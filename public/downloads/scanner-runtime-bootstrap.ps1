@@ -33,11 +33,11 @@ function Read-SodaRuntimeManifest {
     if ($manifest.schemaVersion -ne 1 -or [string]::IsNullOrWhiteSpace($manifest.runtimeVersion)) {
         throw 'release_manifest_invalid'
     }
-    $pinnedAsset = 'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.7/soda-scanner-runtime-18-rc7-win-x64.zip'
+    $pinnedAsset = 'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8/soda-scanner-runtime-18-rc8-win-x64.zip'
     $sameOrigin = $manifest.assetUrl -ceq ('/downloads/' + $manifest.assetName)
     $pinnedGitHub = $manifest.assetUrl -ceq $pinnedAsset -and
-        $manifest.assetName -ceq 'soda-scanner-runtime-18-rc7-win-x64.zip' -and
-        $manifest.releaseTag -ceq 'scanner-runtime-v18.0.0-rc.7'
+        $manifest.assetName -ceq 'soda-scanner-runtime-18-rc8-win-x64.zip' -and
+        $manifest.releaseTag -ceq 'scanner-runtime-v18.0.0-rc.8'
     if ($manifest.assetName -notmatch '^[a-zA-Z0-9._-]+\.zip$' -or
         -not ($sameOrigin -or $pinnedGitHub)) {
         throw 'release_manifest_asset_url_invalid'
@@ -56,7 +56,7 @@ function Read-SodaRuntimeManifest {
 
 function Assert-SodaRuntimeTrustedDownloadUri {
     param([Parameter(Mandatory = $true)][System.Uri]$Uri)
-    $pinnedAsset = 'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.7/soda-scanner-runtime-18-rc7-win-x64.zip'
+    $pinnedAsset = 'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8/soda-scanner-runtime-18-rc8-win-x64.zip'
     if ($Uri.Scheme -cne 'https' -or -not $Uri.IsDefaultPort -or $Uri.UserInfo -ne '' -or
         $Uri.Fragment -ne '' -or
         ($Uri.Host -cne 'github.com' -and $Uri.Host -cne 'release-assets.githubusercontent.com')) {
@@ -139,7 +139,7 @@ function Copy-SodaRuntimeAsset {
             $origin.UserInfo -ne '' -or $PublicOrigin.TrimEnd('/') -cne $origin.GetLeftPart([System.UriPartial]::Authority)) {
             throw 'scanner_public_origin_invalid'
         }
-        $pinnedAsset = 'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.7/soda-scanner-runtime-18-rc7-win-x64.zip'
+        $pinnedAsset = 'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8/soda-scanner-runtime-18-rc8-win-x64.zip'
         $externalAsset = $Manifest.assetUrl -ceq $pinnedAsset
         $assetUri = if ($externalAsset) { [System.Uri]::new($pinnedAsset) } else { [System.Uri]::new($origin, $Manifest.assetUrl) }
         if (-not $externalAsset -and $assetUri.GetLeftPart([System.UriPartial]::Authority) -cne $origin.GetLeftPart([System.UriPartial]::Authority)) {

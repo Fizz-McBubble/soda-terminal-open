@@ -180,10 +180,7 @@ function HydratedScannerAssistantPage({
   const [selectedAccountId, setSelectedAccountId] = useState('')
   const [newAccountName, setNewAccountName] = useState('')
   const [accountMessage, setAccountMessage] = useState('')
-  const [actionFeedback, setActionFeedback] = useState<{
-    kind: 'status' | 'error'
-    message: string
-  } | null>(null)
+  const [actionFeedback, setActionFeedback] = useState<string | null>(null)
   const [handoffState, setHandoffState] = useState<HandoffState>({ status: 'idle' })
   const [inlineImportOpen, setInlineImportOpen] = useState(false)
   const [importedThisVisit, setImportedThisVisit] = useState(false)
@@ -367,22 +364,15 @@ function HydratedScannerAssistantPage({
     stageFocusRequestedRef.current = false
   }, [snapshot.state])
 
-  function runScannerAction(
-    action: () => void | Promise<void>,
-    successMessage = '操作已提交，最新状态会显示在本页。',
-  ) {
+  function runScannerAction(action: () => void | Promise<void>) {
     stageFocusRequestedRef.current = true
-    setActionFeedback({ kind: 'status', message: '正在处理…' })
-    void Promise.resolve(action()).then(
-      () => setActionFeedback({ kind: 'status', message: successMessage }),
-      (error) =>
-        setActionFeedback({
-          kind: 'error',
-          message:
-            error instanceof Error && error.message.includes('扫描')
-              ? error.message
-              : '扫描助手未就绪，可重新连接。',
-        }),
+    setActionFeedback(null)
+    void Promise.resolve(action()).catch((error) =>
+      setActionFeedback(
+        error instanceof Error && error.message.includes('扫描')
+          ? error.message
+          : '扫描助手未就绪，可重新连接。',
+      ),
     )
   }
 
@@ -801,15 +791,9 @@ function HydratedScannerAssistantPage({
               </div>
             </section>
           ) : null}
-          {actionFeedback &&
-          (actionFeedback.kind === 'error' ||
-            actionFeedback.message !== '操作已提交，最新状态会显示在本页。') ? (
-            <p
-              className={`scanner-task__feedback is-${actionFeedback.kind}`}
-              role={actionFeedback.kind === 'error' ? 'alert' : 'status'}
-              aria-live="polite"
-            >
-              {actionFeedback.message}
+          {actionFeedback ? (
+            <p className="scanner-task__feedback is-error" role="alert" aria-live="polite">
+              {actionFeedback}
             </p>
           ) : null}
           {!showImportComplete &&
@@ -857,12 +841,7 @@ function HydratedScannerAssistantPage({
                     <button
                       className="button button--quiet"
                       type="button"
-                      onClick={() =>
-                        void runScannerAction(
-                          () => commands.revokePairing(),
-                          '已撤销本机授权；再次连接时需要重新确认。',
-                        )
-                      }
+                      onClick={() => void runScannerAction(() => commands.revokePairing())}
                     >
                       断开本机授权
                     </button>
@@ -926,16 +905,10 @@ function HydratedScannerAssistantPage({
               }
               onRecover={
                 canOpenInstalledHelper
-                  ? () =>
-                      void runScannerAction(
-                        () => commands.openHelper(true),
-                        '已请求打开本机扫描助手，请在 Windows 提示中确认。',
-                      )
+                  ? () => void runScannerAction(() => commands.openHelper(true))
                   : undefined
               }
-              onReconnect={() =>
-                void runScannerAction(() => commands.retryConnection(), '已重新连接扫描助手。')
-              }
+              onReconnect={() => void runScannerAction(() => commands.retryConnection())}
               onStart={() => void startBoundScan()}
             />
           ) : null}
@@ -982,12 +955,7 @@ function HydratedScannerAssistantPage({
                 <button
                   className="button button--quiet"
                   type="button"
-                  onClick={() =>
-                    runScannerAction(
-                      () => commands.safeStop(),
-                      '本次扫描已停止，可以检查准备项后重新开始。',
-                    )
-                  }
+                  onClick={() => runScannerAction(() => commands.safeStop())}
                 >
                   <CircleStop aria-hidden="true" size={17} />
                   停止本次扫描
