@@ -47,8 +47,8 @@ const devReadySnapshot: ScannerAssistantSnapshot = {
   },
   distribution: {
     state: 'ready',
-    installedVersion: 'soda-scanner-zzz-next-ppocrv6-18-rc6',
-    targetVersion: 'soda-scanner-zzz-next-ppocrv6-18-rc6',
+    installedVersion: initialDistributionSnapshot.targetVersion,
+    targetVersion: initialDistributionSnapshot.targetVersion,
     progressPercent: null,
     action: 'open',
     message: 'PP-OCRv6 扫描组件已校验，可由网页直接使用。',

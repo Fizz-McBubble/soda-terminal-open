@@ -232,7 +232,7 @@ export function createScannerAssistantRuntime(
     if (
       !identity ||
       identity.service !== 'soda-terminal-scanner-helper' ||
-      !['2.3.1', '2.3.2'].includes(identity.version) ||
+      !['2.3.1', '2.3.2', '2.3.3'].includes(identity.version) ||
       identity.protocolVersion !== 5 ||
       identity.transport !== 'direct-fork-http' ||
       identity.accountWriteEnabled !== false ||
