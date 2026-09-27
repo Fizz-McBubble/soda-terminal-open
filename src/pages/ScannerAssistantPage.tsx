@@ -292,7 +292,7 @@ function HydratedScannerAssistantPage({
           title: '确认数据归属，然后检查并开始',
           body:
             window.location.protocol === 'https:'
-              ? '首次使用请下载安装包并打开本机扫描助手；已安装可直接尝试连接。允许浏览器访问本机设备，并在助手中确认此网站。连接后选择账户，再检查游戏。'
+              ? '首次使用下载安装包并打开本机扫描助手；已安装可直接连接。连接后选择账户，再检查游戏。'
               : '点击后会切换到游戏，并自动检查扫描准备情况。',
         }
       case 'connection_failed':

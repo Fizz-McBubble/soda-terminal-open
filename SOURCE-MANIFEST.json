@@ -704,7 +704,7 @@
     "src/pages/savedTeamRatingPresentation.ts": "3c76b559bd5503d7fb444860b0d5563dc609b4463a23ad66f6aeb78e1d118be3",
     "src/pages/savedTeamRatingPresentationLocal.ts": "c53bc1a129631663e6c14ec792571bb1fb632443bb2cebbdf092b7b04f4acf9b",
     "src/pages/ScannerAccountHydrationGate.tsx": "eb7c016552c10bc6603f58a562af36b4e56ccb60056ee952a4d9ca3bb933963f",
-    "src/pages/ScannerAssistantPage.tsx": "efb9e909a17cf37b3a530dc00f5eefaa419a2e5b236713953673cbb2d858be61",
+    "src/pages/ScannerAssistantPage.tsx": "7f0f5692dd5d103bd6ff27cefac261f2671b6bddc9a1dacbe75af28e3f41e8f1",
     "src/pages/scannerAssistantPresentation.ts": "1d572b5a74e801a4aaccd211c3848106dd492667b05b2fc1979ea578a0fa51ba",
     "src/pages/ScannerPrepareChecklist.tsx": "c783c89437ece2d0810caa4ffb1e6de5d42f062d6e1ed92f49a02f003a0a7d1c",
     "src/pages/scannerPrepareChecks.ts": "4d7eab773dbf25f1f27c76ec7d8b8a83fdf28df6f801f8cbd6dc0bfeeb5b046d",
