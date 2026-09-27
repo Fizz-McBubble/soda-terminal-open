@@ -1,0 +1,13 @@
+.effect-description {
+  color: var(--soda-text-3);
+  font-family: var(--soda-font-ui);
+  font-size: var(--soda-font-body);
+  font-weight: 400;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.effect-description strong {
+  color: var(--soda-text);
+  font-weight: 700;
+}

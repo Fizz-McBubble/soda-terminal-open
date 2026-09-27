@@ -1,0 +1,3 @@
+# Soda Terminal
+
+This source release carries forward Soda Terminal’s existing algorithm, UI, saved-account semantics, and release checks. The calculation carrier runs in the browser; this is not a new product implementation. Install with `pnpm install --frozen-lockfile`, then run `pnpm typecheck`, `pnpm test`, and `pnpm build`. The build verifies the approved media inventory and emits an offline manifest. `deploy/cloudflare/prepare.mjs` checks the built Static Assets candidate; the Scanner download manifest remains pinned and must be updated and verified for a new RC7 release. Soda-owned code is MIT licensed (`LICENSE`); third-party terms are in `public/third-party-notices.txt` and `src/upstream/genshinOptimizer/NOTICE.md`.

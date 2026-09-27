@@ -1,0 +1,145 @@
+.f5v-shell .overview .catalog-empty {
+  grid-column: 1 / -1;
+  align-self: start;
+  padding: 32px 18px;
+  font-size: var(--soda-font-body);
+  line-height: 1.6;
+}
+.f5v-shell .overview .catalog-empty strong {
+  color: var(--ink);
+  font-size: 16px;
+}
+.f5v-shell .overview .catalog-empty p {
+  margin: 8px 0 16px;
+}
+.f5v-shell .overview .catalog-empty button {
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid var(--line);
+  border-radius: var(--soda-radius-control);
+  color: var(--accent);
+  background: white;
+  cursor: pointer;
+}
+/* Only the catalogue scrolls in the two-column desktop directory. */
+@media (min-width: 961px) and (min-height: 600px) {
+  .f5v-shell .ad-golden:has(> .overview) {
+    height: 100%;
+    min-height: 0;
+  }
+  .f5v-shell .ad-golden > .overview {
+    height: 100%;
+    min-height: 0;
+  }
+  .f5v-shell .overview > .page-heading {
+    flex: 0 0 auto;
+  }
+  .f5v-shell .overview .agent-grid {
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none;
+    overscroll-behavior: contain;
+  }
+  .f5v-shell .overview .agent-grid::-webkit-scrollbar {
+    display: none;
+  }
+}
+@media (min-width: 961px) and (min-height: 600px) and (max-height: 760px) {
+  .f5v-shell .overview > .page-heading {
+    padding-block: 12px;
+  }
+  .f5v-shell .overview .next-agent {
+    margin-top: 12px;
+    padding-bottom: 10px;
+  }
+  .f5v-shell .overview .next-agent .featured-avatar {
+    width: 60px;
+    height: 60px;
+  }
+  .f5v-shell .overview .next-copy {
+    padding: 12px 16px;
+  }
+  .f5v-shell .overview .next-copy dl {
+    margin-block: 8px;
+  }
+  .f5v-shell .overview .next-copy .next-safety-note {
+    margin-top: 4px !important;
+    padding-top: 4px;
+  }
+  .f5v-shell .overview .next-copy .primary {
+    margin-top: 8px;
+  }
+}
+.f5v-shell .next-training-steps {
+  margin-block: 12px;
+  font-size: var(--soda-font-body);
+  line-height: 1.5;
+}
+.f5v-shell .next-training-steps p {
+  margin-block: 6px;
+  font-size: var(--soda-font-body);
+}
+.f5v-shell .next-training-steps small {
+  font-size: var(--soda-font-caption);
+}
+.f5v-shell .training-order-note {
+  flex: 0 0 auto;
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: var(--soda-font-caption);
+  line-height: 1.5;
+}
+.f5v-shell .overview .agent-catalog:has(> .training-order-note) {
+  grid-template-rows: auto auto minmax(0, 1fr);
+}
+
+/* A single heading row leaves room for the catalogue and its bottom inset. */
+.f5v-shell .overview > .page-heading {
+  align-items: center;
+  gap: 16px;
+  padding: 18px 28px;
+}
+.f5v-shell .overview > .page-heading h1 {
+  margin: 0;
+  font-size: 1.2rem;
+  line-height: 1.5;
+}
+.f5v-shell .overview-summary {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.f5v-shell .overview-summary > span {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  white-space: nowrap;
+}
+.f5v-shell .overview-summary b {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.f5v-shell .overview .overview-layout {
+  padding-bottom: 16px;
+}
+.f5v-shell .overview .next-panel {
+  position: relative;
+}
+.f5v-shell .overview .delete-agent-plan {
+  position: absolute;
+  top: 20px;
+  right: 16px;
+  z-index: 1;
+  display: block;
+  margin: 0;
+  padding: 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: var(--soda-radius-control);
+  background: white;
+  color: #a33c50;
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}

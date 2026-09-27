@@ -1,0 +1,111 @@
+.team-execution__inspector {
+  display: grid;
+  gap: 12px;
+  padding: 18px 20px;
+}
+
+.team-execution__attribute-notes {
+  display: grid;
+  gap: 6px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.team-execution__attribute-notes:empty {
+  display: none;
+}
+
+.team-execution__next,
+.team-execution__impact {
+  display: grid;
+  gap: 8px;
+}
+
+.team-execution__next h3,
+.team-execution__impact h3 {
+  margin: 0;
+  color: var(--soda-text);
+  font-size: 1rem;
+  font-weight: 720;
+  line-height: 1.35;
+}
+
+.team-execution__next ol {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  counter-reset: execution-action;
+  list-style: none;
+}
+
+.team-execution__next li {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+  min-height: 24px;
+  color: var(--soda-text-2);
+  font-size: 0.75rem;
+  line-height: 1.35;
+  counter-increment: execution-action;
+}
+
+.team-execution__next li::before {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 999px;
+  color: #fff;
+  background: var(--soda-accent);
+  content: counter(execution-action);
+  font-size: 0.6875rem;
+  font-weight: 720;
+}
+
+.team-execution__inspector section + section,
+.team-execution__reuse {
+  padding-top: 10px;
+  border-top: 1px solid var(--soda-line);
+}
+
+.team-execution__inspector :is(h4, p, ul) {
+  margin: 0;
+}
+
+.team-execution__inspector h4 {
+  color: var(--soda-text);
+  font-size: 0.875rem;
+  font-weight: 720;
+}
+
+.team-execution__inspector p,
+.team-execution__inspector li {
+  margin-top: 5px;
+  color: var(--soda-text-2);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.team-execution__inspector ul {
+  padding-left: 17px;
+}
+
+.team-execution__reuse {
+  color: var(--soda-text-3) !important;
+  font-size: 0.6875rem !important;
+  line-height: 1.4;
+}
+
+@media (max-width: 860px) {
+  .team-execution__inspector {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .team-execution__inspector {
+    padding: 14px;
+  }
+}

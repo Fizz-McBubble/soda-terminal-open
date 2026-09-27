@@ -1,0 +1,107 @@
+{
+  "schemaVersion": 1,
+  "files": [
+    {
+      "path": "/assets/deep-sea-hero-background-CqMC7kSx.png",
+      "sha256": "9e9e0a27f0c1f8b211a399e558ca1db5c733f0e71bb823f9bb705e2722fbd0ae",
+      "rightsBasis": "project_original",
+      "evidence": "2026-09-26 user confirmation: project-created homepage deep-sea background, retained for public release."
+    },
+    {
+      "path": "/assets/ramiel-user-cutout-argb-BAJ4HXnO.png",
+      "sha256": "fe4da9ae2f70139186ecd9f04d18f47024e849fc9cd5c4268da9bb8dcea1a0d3",
+      "rightsBasis": "project_original",
+      "evidence": "2026-09-26 user confirmation: project-created homepage character cutout, retained for public release."
+    },
+    {
+      "path": "/assets/soda-brand-icon.png",
+      "sha256": "95dc73b4ba276bb74eff96e97bd43ce6ea8396d64e36ca70d460180539cbfe86",
+      "rightsBasis": "owner_authorization",
+      "evidence": "2026-09-26 user-provided, self-generated Soda Terminal brand guideline; transparent icon isolated from its bubble-orbit mark for the public site."
+    },
+    {
+      "path": "/assets/soda-city-day-m4lL0PMJ.png",
+      "sha256": "83cf5bbbfb9bd363fdbae2197837b4552767933054d1dbba3fd5b8836e9b1394",
+      "rightsBasis": "project_original",
+      "evidence": "src/data/visual-assets.v1.json scene-soda-city-day: original, project-original-generated, contentHash sha256-83cf5bbbfb9bd363fdbae2197837b4552767933054d1dbba3fd5b8836e9b1394."
+    },
+    {
+      "path": "/favicon.svg",
+      "sha256": "06bae259ec1c1a29829c79ec08e1ebe60c6f29711679885b324a0a61a609aa2b",
+      "rightsBasis": "project_original",
+      "evidence": "2026-09-26 owner-provided Soda Terminal bubble-orbit brand guideline, replacing the S favicon."
+    },
+    {
+      "path": "/sponsor/alipay-10-qr.png",
+      "sha256": "1fe960a70452806d17890ac94687ed482848b13c0138a13b167914a68a440716",
+      "rightsBasis": "owner_authorization",
+      "evidence": "User-provided static sponsor QR for the already approved public support UI; 2026-09-26 scope reaffirmed."
+    },
+    {
+      "path": "/sponsor/alipay-100-qr.png",
+      "sha256": "33ab01f7a404780c76736e56a745c24b6fcf5b7deb11a3dfbd1f6fad1987317f",
+      "rightsBasis": "owner_authorization",
+      "evidence": "User-provided static sponsor QR for the already approved public support UI; 2026-09-26 scope reaffirmed."
+    },
+    {
+      "path": "/sponsor/alipay-20-qr.png",
+      "sha256": "32a7eca850c7b57e3b4ff32e09a9320de5f752fde611c1a47dc3d20b7f27c3e0",
+      "rightsBasis": "owner_authorization",
+      "evidence": "User-provided static sponsor QR for the already approved public support UI; 2026-09-26 scope reaffirmed."
+    },
+    {
+      "path": "/sponsor/alipay-5-qr.png",
+      "sha256": "2fc73660d7d6ca6f24fdb7b837dd736468daaf594b286fbf59b24cf6473e395d",
+      "rightsBasis": "owner_authorization",
+      "evidence": "User-provided static sponsor QR for the already approved public support UI; 2026-09-26 scope reaffirmed."
+    },
+    {
+      "path": "/sponsor/alipay-50-qr.png",
+      "sha256": "a58455bf52362d724dd785c3522b185b9c9fd6360f78bbeed758f950008fd22c",
+      "rightsBasis": "owner_authorization",
+      "evidence": "User-provided static sponsor QR for the already approved public support UI; 2026-09-26 scope reaffirmed."
+    },
+    {
+      "path": "/sponsor/alipay-qr.png",
+      "sha256": "def87cf0f820c21f980c84bae0127e70d93afad59bdc75cb025f0238c3c70dc4",
+      "rightsBasis": "owner_authorization",
+      "evidence": "User-provided static sponsor QR for the already approved public support UI; 2026-09-26 scope reaffirmed."
+    },
+    {
+      "path": "/sponsor/wechat-10-qr.png",
+      "sha256": "a8eb25fb7e2c58e021e0ffcaf743374a6d8ee32cefde0eb8704b9dcb97e7e959",
+      "rightsBasis": "owner_authorization",
+      "evidence": "User-provided static sponsor QR for the already approved public support UI; 2026-09-26 scope reaffirmed."
+    },
+    {
+      "path": "/sponsor/wechat-100-qr.png",
+      "sha256": "067e9c00a709e3860d4b71ddc4d3a3bb9a8965b6436b194cc90f6a837f1a6c0b",
+      "rightsBasis": "owner_authorization",
+      "evidence": "User-provided static sponsor QR for the already approved public support UI; 2026-09-26 scope reaffirmed."
+    },
+    {
+      "path": "/sponsor/wechat-20-qr.png",
+      "sha256": "7630a708c5950b04abbe011285f693a5c893fa0f8321fe3b49235f446a0aa717",
+      "rightsBasis": "owner_authorization",
+      "evidence": "User-provided static sponsor QR for the already approved public support UI; 2026-09-26 scope reaffirmed."
+    },
+    {
+      "path": "/sponsor/wechat-5-qr.png",
+      "sha256": "d4eb2e84e4f7ae6e56ce64735ae95580037e0abd670032471b0801bc1efe5d57",
+      "rightsBasis": "owner_authorization",
+      "evidence": "User-provided static sponsor QR for the already approved public support UI; 2026-09-26 scope reaffirmed."
+    },
+    {
+      "path": "/sponsor/wechat-50-qr.png",
+      "sha256": "c8ecbdecb1f0b631991447b296c96f2794c0dce0600b63a974858a10ea475a03",
+      "rightsBasis": "owner_authorization",
+      "evidence": "User-provided static sponsor QR for the already approved public support UI; 2026-09-26 scope reaffirmed."
+    },
+    {
+      "path": "/sponsor/wechat-qr.png",
+      "sha256": "fef4790981d8f80a6b5619e3ca1c6c64e377de98e0b5a18974f6e4ee986c90aa",
+      "rightsBasis": "owner_authorization",
+      "evidence": "User-provided static sponsor QR for the already approved public support UI; 2026-09-26 scope reaffirmed."
+    }
+  ]
+}

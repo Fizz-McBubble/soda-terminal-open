@@ -1,0 +1,390 @@
+.f5v-shell .warehouse-action-drawer {
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  box-sizing: border-box;
+  max-height: 100%;
+  align-self: start;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  padding: 18px;
+  border: 1px solid color-mix(in srgb, var(--f5-accent) 20%, transparent);
+  border-radius: var(--soda-radius-surface);
+  background: var(--f5-paper);
+  color: var(--soda-text-3);
+  font-family: var(--soda-font-ui);
+  font-size: var(--soda-type-body);
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+@media (max-width: 760px) {
+  /* The narrow drawer grows with the page, so wheel input must reach the page scroll. */
+  .f5v-shell .warehouse-action-drawer {
+    overscroll-behavior-y: auto;
+  }
+}
+.f5v-shell .warehouse-action-drawer > header {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+.f5v-shell .warehouse-action-drawer__image {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--soda-radius-control);
+  background: var(--f5-wash);
+}
+.f5v-shell .warehouse-action-drawer__heading {
+  min-width: 0;
+}
+.f5v-shell .warehouse-action-drawer .warehouse-disc-stepper {
+  margin-bottom: 14px;
+}
+.f5v-shell .warehouse-action-drawer .warehouse-disc-stepper .button {
+  min-height: 30px;
+  height: 30px;
+}
+.f5v-shell .warehouse-action-drawer__heading p {
+  margin-top: 3px;
+  font-size: var(--soda-type-meta);
+}
+.f5v-shell .warehouse-action-drawer h2 {
+  margin: 0;
+  color: var(--soda-text);
+  font-family: var(--soda-font-ui);
+  font-size: var(--soda-type-section);
+  font-weight: 700;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.f5v-shell .warehouse-action-drawer > section {
+  padding: 8px 0;
+}
+.f5v-shell .warehouse-action-drawer > section + section {
+  border-top: 1px solid var(--soda-line);
+}
+.f5v-shell .warehouse-action-drawer > section:last-of-type {
+  padding-bottom: 0;
+}
+.f5v-shell .warehouse-action-drawer > .warehouse-action-drawer__decision {
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: var(--soda-radius-control);
+  background: var(--f5-wash);
+}
+.f5v-shell .warehouse-action-drawer > .warehouse-action-drawer__decision + section {
+  border-top: 0;
+}
+.f5v-shell .warehouse-action-drawer h3,
+.f5v-shell .warehouse-action-drawer p {
+  margin: 0;
+}
+.f5v-shell .warehouse-action-drawer h3 {
+  margin-bottom: 8px;
+  color: var(--soda-text);
+  font-family: var(--soda-font-ui);
+  font-size: var(--soda-type-section);
+  font-weight: 700;
+  line-height: 1.6;
+}
+.f5v-shell .warehouse-action-drawer p,
+.f5v-shell .warehouse-action-drawer li {
+  color: var(--soda-text-3);
+  font-size: var(--soda-type-body);
+  line-height: 1.6;
+}
+.f5v-shell .warehouse-action-drawer strong {
+  color: var(--soda-text);
+  font-weight: 700;
+}
+.f5v-shell .warehouse-action-drawer__section-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 12px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.f5v-shell .warehouse-action-drawer__section-heading h3 {
+  margin: 0;
+}
+.f5v-shell .warehouse-action-drawer p + p,
+.f5v-shell .warehouse-action-drawer p + ul,
+.f5v-shell .warehouse-action-drawer ul + p {
+  margin-top: 4px;
+}
+.f5v-shell .warehouse-action-drawer ul {
+  display: grid;
+  gap: var(--soda-space-1);
+  margin: 4px 0 0;
+  padding-left: 20px;
+}
+.f5v-shell .warehouse-action-drawer__stats {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+}
+.f5v-shell .warehouse-action-drawer__stats div {
+  display: grid;
+  grid-template-columns: minmax(0, 136px) minmax(0, 1fr);
+  align-items: baseline;
+  column-gap: 16px;
+  min-height: 28px;
+  padding-block: 3px;
+}
+.f5v-shell .warehouse-action-drawer__stats dt,
+.f5v-shell .warehouse-action-drawer__stats dd {
+  margin: 0;
+  font-size: var(--soda-type-body);
+  line-height: 1.6;
+}
+.f5v-shell .warehouse-action-drawer__stats dt {
+  color: var(--soda-text-3);
+}
+.f5v-shell .warehouse-action-drawer__stats dd {
+  color: var(--soda-text);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.f5v-shell .warehouse-action-drawer__development {
+  margin-top: 6px;
+}
+.f5v-shell .warehouse-action-drawer .warehouse-action-drawer__hits {
+  color: var(--f5-accent);
+  font-size: 16px;
+}
+.f5v-shell .warehouse-action-drawer__usage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.f5v-shell .warehouse-action-drawer__alternatives-summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+.f5v-shell .warehouse-action-drawer__alternatives-summary .button {
+  flex: none;
+}
+.f5v-shell .warehouse-action-drawer__alternatives-summary + p {
+  margin-top: 4px;
+}
+.f5v-shell .warehouse-action-drawer .warehouse-alternatives {
+  gap: 6px;
+  margin-top: 8px;
+  padding: 0;
+  list-style: none;
+}
+.f5v-shell .warehouse-alternatives > li {
+  min-width: 0;
+}
+.f5v-shell .warehouse-alternative__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 7px 10px;
+  border: 1px solid var(--soda-line);
+  border-radius: var(--soda-radius-control);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+.f5v-shell button.warehouse-alternative__row {
+  cursor: pointer;
+}
+.f5v-shell button.warehouse-alternative__row:hover {
+  border-color: var(--f5-accent);
+  background: var(--f5-wash);
+}
+.f5v-shell button.warehouse-alternative__row:focus-visible {
+  outline: 2px solid var(--f5-accent);
+  outline-offset: 2px;
+}
+.f5v-shell .warehouse-alternative__info {
+  display: grid;
+  min-width: 0;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.f5v-shell .warehouse-alternative__info--same-kind {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 10px;
+}
+.f5v-shell .warehouse-alternative__meta,
+.f5v-shell .warehouse-alternative__feature,
+.f5v-shell .warehouse-alternative__status {
+  color: var(--soda-text-3);
+  font-size: var(--soda-type-meta);
+}
+.f5v-shell .warehouse-alternative__feature {
+  color: var(--soda-text-3);
+  overflow-wrap: anywhere;
+}
+.f5v-shell .warehouse-alternatives__pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 6px;
+}
+.f5v-shell .warehouse-alternatives__pagination .button {
+  min-height: 28px;
+  height: 28px;
+  padding-block: 0;
+}
+.f5v-shell .warehouse-disc-comparison__grid {
+  display: grid;
+  border-block: 1px solid var(--soda-line);
+}
+.f5v-shell .warehouse-disc-comparison__row {
+  display: grid;
+  grid-template-columns: minmax(72px, 0.55fr) repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  padding: 4px 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--soda-line) 70%, transparent);
+}
+.f5v-shell .warehouse-disc-comparison__row:last-child {
+  border-bottom: 0;
+}
+.f5v-shell .warehouse-disc-comparison__row > * {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.f5v-shell .warehouse-disc-comparison__head {
+  color: var(--soda-text-3);
+  font-size: var(--soda-type-meta);
+}
+.f5v-shell .warehouse-alternative__status {
+  white-space: nowrap;
+  line-height: 1.5;
+}
+.f5v-shell .warehouse-alternative__status[data-priority] {
+  color: var(--f5-accent);
+  font-weight: 700;
+}
+.f5v-shell .warehouse-action-drawer__usage .warehouse-used-agents {
+  flex: 0 0 auto;
+  max-width: 50%;
+}
+.f5v-shell .warehouse-action-drawer--empty {
+  display: grid;
+  place-items: center;
+  color: var(--soda-text-3);
+  font-size: var(--soda-type-body);
+}
+.f5v-shell .warehouse-action-drawer .warehouse-action-drawer__action {
+  color: var(--soda-text);
+  font-size: var(--soda-type-section);
+  font-weight: 700;
+  line-height: 1.6;
+}
+.f5v-shell .warehouse-action-drawer .warehouse-action-drawer__identity,
+.f5v-shell .warehouse-action-drawer .warehouse-action-drawer__meta,
+.f5v-shell .warehouse-action-drawer .warehouse-action-drawer__heading p,
+.f5v-shell .warehouse-action-drawer .eyebrow,
+.f5v-shell .warehouse-action-drawer .warehouse-disc-stepper > span {
+  color: var(--soda-text-3);
+  font-size: var(--soda-type-meta);
+  font-weight: 400;
+  line-height: 1.6;
+}
+.f5v-shell .warehouse-action-drawer__stale {
+  margin: 16px 0 0 !important;
+  padding: 12px;
+  border-radius: var(--soda-radius-control);
+  color: #7d531d;
+  background: #fff0ce;
+}
+
+@media (min-width: 1401px) and (max-height: 950px) {
+  .f5v-shell .warehouse-action-drawer {
+    padding: 8px 16px;
+  }
+  .f5v-shell .warehouse-action-drawer .warehouse-disc-stepper {
+    margin-bottom: 8px;
+  }
+  .f5v-shell .warehouse-action-drawer > section {
+    padding-block: 7px;
+  }
+  .f5v-shell .warehouse-action-drawer > .warehouse-action-drawer__decision {
+    margin-top: 8px;
+    padding: 8px 12px;
+  }
+  .f5v-shell .warehouse-action-drawer h3 {
+    margin-bottom: 4px;
+  }
+  .f5v-shell .warehouse-action-drawer__section-heading {
+    align-items: center;
+  }
+  .f5v-shell .warehouse-action-drawer__section-heading h3 {
+    margin: 0;
+  }
+  .f5v-shell .warehouse-action-drawer .warehouse-action-drawer__section-heading button {
+    min-height: 24px;
+    height: 24px;
+    padding-block: 0;
+  }
+  .f5v-shell .warehouse-action-drawer__development {
+    margin-top: 2px;
+  }
+  .f5v-shell .warehouse-action-drawer__stale {
+    margin-top: 8px !important;
+    padding: 6px 8px;
+  }
+  .f5v-shell .warehouse-action-drawer__stats {
+    gap: 0;
+  }
+  .f5v-shell .warehouse-action-drawer__stats div {
+    padding-block: 2px;
+  }
+}
+.f5v-shell .disc-workspace-switch {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--soda-radius-control);
+  background: #f0edf6;
+}
+
+.f5v-shell .disc-workspace-switch button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 54px;
+  min-height: 30px;
+  padding-inline: 10px;
+  border: 0;
+  border-radius: var(--soda-radius-tag);
+  color: #665d73;
+  font-size: var(--soda-type-control);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.f5v-shell .disc-workspace-switch button[aria-current='page'] {
+  color: #513b82;
+  background: #fff;
+  font-weight: 850;
+}
+
+.f5v-shell .disc-workspace-switch button:focus-visible {
+  outline: 3px solid rgba(107, 85, 170, 0.35);
+  outline-offset: 2px;
+}
+
+.f5v-shell .r6-golden .section-head__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--soda-space-3);
+}

@@ -1,0 +1,10 @@
+.visual-asset-fallback.is-compact {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  white-space: nowrap;
+  font-size: var(--soda-font-caption, 12px);
+  line-height: 1;
+  color: var(--soda-text-2, #60556f);
+  background: var(--soda-surface-muted, #f3eff9);
+}

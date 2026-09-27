@@ -1,0 +1,429 @@
+@media (max-width: 900px) {
+  .comparison-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .f5v-shell .top10-layout.comparison-workbench {
+    grid-template-columns: 1fr;
+  }
+
+  .comparison-candidates {
+    overflow-x: auto;
+    grid-template-columns: 190px repeat(3, minmax(230px, 1fr));
+  }
+
+  .comparison-baseline,
+  .comparison-candidate {
+    border-right: 1px solid rgba(93, 79, 130, 0.1);
+    border-bottom: 0;
+  }
+
+  .comparison-detail__summary {
+    grid-template-columns: 1fr;
+  }
+
+  .comparison-detail__summary dl {
+    grid-template-columns: 1fr;
+    gap: var(--soda-space-2);
+  }
+
+  .comparison-detail__summary dl > div {
+    padding: 0;
+    border-left: 0;
+  }
+
+  .comparison-disc-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .comparison-disc:nth-child(3n) {
+    border-right: 1px solid rgba(93, 79, 130, 0.1);
+  }
+
+  .comparison-disc:nth-child(2n) {
+    border-right: 0;
+  }
+
+  .comparison-disc:nth-child(-n + 4) {
+    border-bottom: 1px solid rgba(93, 79, 130, 0.1);
+  }
+}
+
+.comparison-stat-table.is-candidate-only [role='row'] {
+  grid-template-columns: minmax(0, 1fr) minmax(80px, 1fr);
+}
+
+.comparison-disc-strip {
+  gap: 8px;
+  border: 0;
+}
+
+.comparison-disc {
+  border: 1px solid var(--soda-border, #e7e2ef);
+  border-radius: var(--soda-radius-control);
+}
+
+.comparison-disc:last-child {
+  border-right: 1px solid var(--soda-border, #e7e2ef);
+}
+
+.comparison-disc-subs {
+  margin: 8px 0;
+  font-size: 12px;
+}
+
+.comparison-disc-subs > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+}
+
+.comparison-disc-subs dd {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.comparison-disc-subs .is-effective {
+  color: var(--f5-accent);
+  font-weight: 650;
+}
+
+.comparison-disc > small {
+  font-size: 12px;
+}
+
+.comparison-stat-table {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 20px;
+}
+
+.comparison-stat-table__head {
+  grid-column: 1 / -1;
+}
+
+.comparison-priority-label {
+  display: block;
+  font-size: var(--soda-type-meta);
+  font-weight: 500;
+  color: var(--f5-accent);
+}
+
+@media (max-width: 900px) {
+  .comparison-stat-table {
+    grid-template-columns: 1fr;
+  }
+}
+
+.comparison-candidate {
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 2px 8px;
+  padding: 8px 12px;
+}
+
+.comparison-candidate__identity > strong {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.comparison-candidate__identity > small:first-of-type {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.comparison-candidate > span:nth-of-type(3) {
+  grid-column: 2;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.comparison-candidate > em {
+  display: none;
+}
+
+.comparison-candidate.is-selected {
+  box-shadow: none;
+  background: #eee8fa;
+}
+
+.comparison-candidate__identity > small:nth-of-type(2) {
+  display: none;
+}
+
+.comparison-candidate > span:nth-of-type(4) {
+  grid-column: 2;
+}
+
+.comparison-detail__summary {
+  padding: 10px 14px;
+}
+
+.comparison-evidence,
+.comparison-stats {
+  padding: 10px 14px;
+}
+
+.comparison-stat-table [role='row'] {
+  padding-block: 4px;
+}
+
+@media (min-width: 1100px) {
+  .comparison-heading > div {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 12px !important;
+    align-items: center;
+  }
+  .comparison-heading .back-navigation {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+  }
+  .comparison-heading h1 {
+    grid-column: 2;
+    margin: 0;
+  }
+  .comparison-heading p {
+    grid-column: 2;
+    margin: 0;
+  }
+  .comparison-candidate {
+    padding-block: 4px;
+  }
+  .comparison-baseline {
+    padding-block: 8px;
+  }
+  .comparison-baseline > span {
+    display: none;
+  }
+}
+
+/* Give six fact cards room for unbroken stat names. */
+@media (min-width: 1400px) {
+  .f5v-shell .top10-layout.comparison-workbench {
+    grid-template-columns: 250px minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 1399px) {
+  .comparison-disc-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.comparison-current-plan {
+  border: 0;
+  border-bottom: 1px solid #e6e0ef;
+  text-align: left;
+  cursor: pointer;
+}
+
+.comparison-current-plan[aria-pressed='true'] {
+  background: #eee8fa;
+}
+
+.comparison-candidate .disc-conflict {
+  grid-column: 2;
+  color: #98622e;
+}
+
+.comparison-current-plan > span {
+  display: block;
+  white-space: normal;
+}
+
+.comparison-candidate > span:nth-of-type(3) {
+  white-space: nowrap;
+}
+
+.comparison-candidate > span:nth-of-type(3) > b {
+  flex: 0 0 auto;
+  overflow: visible;
+}
+
+.comparison-candidate > span:nth-of-type(3) > small {
+  font-size: 12px;
+}
+
+/* The comparison is one document inside the shell scroll owner. Keep its
+   full candidate list and panel rows in normal flow so the final row remains
+   reachable without a second clipped viewport. */
+.f5v-shell .ad-golden > .top10 {
+  height: auto;
+  min-height: max-content;
+  overflow: visible;
+  overscroll-behavior: auto;
+}
+
+.f5v-shell .top10-layout.comparison-workbench {
+  grid-template-columns: 300px minmax(0, 1fr);
+}
+
+.comparison-candidate {
+  gap: 2px 8px;
+  padding: 8px 12px;
+}
+
+.comparison-candidate__identity > strong {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+
+.comparison-candidate__identity > small {
+  line-height: 1.35;
+}
+
+.comparison-candidate__identity > small:first-of-type {
+  overflow: visible;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.comparison-candidate__identity > small:nth-of-type(2) {
+  display: block;
+}
+
+.comparison-candidate__metrics {
+  grid-column: 2;
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 2px 8px;
+  min-width: 0;
+  white-space: normal;
+}
+
+.comparison-candidate__metrics > b {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+.comparison-hit-count {
+  color: #5f4a91 !important;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.comparison-detail__summary.comparison-detail__summary--inline {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px 14px;
+}
+
+.comparison-detail__summary--inline > .comparison-summary-intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  min-width: 0;
+  grid-column: 1;
+  grid-row: 1;
+  gap: 3px 14px;
+}
+
+.comparison-summary-intro > :is(h2, span) {
+  margin: 0;
+  line-height: 1.35;
+}
+
+.comparison-summary-intro > h2 {
+  white-space: nowrap;
+}
+
+.comparison-summary-intro > span {
+  color: var(--soda-text-2);
+}
+
+.comparison-summary-intro__note {
+  color: var(--soda-text-3);
+  font-size: var(--soda-font-small, 13px);
+}
+
+.comparison-detail__summary--inline > dl {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 0;
+}
+
+.comparison-detail__summary--inline > dl > div {
+  display: inline-flex;
+  align-items: baseline;
+  min-width: 0;
+  gap: 6px;
+  padding-inline: 12px;
+  border-left: 1px solid var(--soda-line);
+}
+
+.comparison-detail__summary--inline > dl > div:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.comparison-detail__summary--inline dd {
+  margin: 0;
+}
+
+.comparison-detail__summary--inline > .comparison-disc-count {
+  grid-column: 2;
+  grid-row: 1;
+  white-space: nowrap;
+}
+
+.comparison-detail__summary--inline > .primary {
+  grid-column: 3;
+  grid-row: 1;
+  white-space: nowrap;
+}
+
+.comparison-detail__summary--inline > .comparison-status {
+  grid-column: 1 / -1;
+  grid-row: 3;
+}
+
+.comparison-detail__summary--inline > dl:empty {
+  display: none;
+}
+
+.comparison-detail__summary--inline > .primary {
+  width: auto;
+}
+
+@media (max-width: 900px) {
+  .comparison-detail__summary.comparison-detail__summary--inline {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .comparison-detail__summary--inline > .comparison-summary-intro {
+    grid-column: 1 / -1;
+  }
+
+  .comparison-detail__summary--inline > .comparison-disc-count {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .comparison-detail__summary--inline > .primary {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .comparison-detail__summary--inline > dl {
+    grid-row: 3;
+  }
+
+  .comparison-detail__summary--inline > .comparison-status {
+    grid-row: 4;
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 2,
+  "componentVersion": "soda-scanner-zzz-next-ppocrv6-14",
+  "upstreamRepository": "ZztIsolation/ZZZ-Scanner.Next",
+  "upstreamTag": "scanner-1.0.49",
+  "upstreamCommit": "ff90891140016d3f1b738d73cb6cd9b291e17cec",
+  "captureSchema": "soda.zzz-scanner-next.direct-r4.v1",
+  "rid": "win-x64",
+  "selfContained": true,
+  "singleFile": true,
+  "publishAot": false,
+  "package": {
+    "file": "soda-scanner-runtime-14-win-x64.zip",
+    "size": 142180374,
+    "sha256": "08163669ef3df763bdc7de087ea3c9e747ed69a90835a26b83bda03e150e6bd4",
+    "installedSize": 285062754
+  },
+  "entry": {
+    "file": "native/ZZZ-Scanner.Next.Soda.exe",
+    "size": 139979866,
+    "sha256": "2c017780545d5fc7bb4e62335f360156cdfc567a7eed49a55e0b469da1fd55fc"
+  },
+  "ocrEntry": {
+    "file": "ocr/Soda.ScannerPpOcrV6.exe",
+    "size": 35660734,
+    "sha256": "8f11e9d67b0d28c494ed45d7b3d125f49705f39b0cd9be6468902b4dd8f7a32e"
+  },
+  "orchestration": "one-click-foreground-verified-ppocrv6-child-helper",
+  "r4Schema": "soda-terminal-scan-staging@1",
+  "accountWriteEnabled": false,
+  "importAccess": false
+}

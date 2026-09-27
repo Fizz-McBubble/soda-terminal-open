@@ -1,0 +1,197 @@
+.workbench-more {
+  position: relative;
+}
+
+.workbench-more > summary {
+  display: grid;
+  justify-items: end;
+  gap: 1px;
+  padding: 6px 9px;
+  border: 1px solid rgba(116, 95, 176, 0.18);
+  border-radius: var(--soda-radius-control);
+  color: #5f4a91;
+  background: #f7f4fb;
+  cursor: pointer;
+  font-size: 0.6rem;
+  font-weight: 750;
+  list-style: none;
+}
+
+.workbench-more > summary::-webkit-details-marker {
+  display: none;
+}
+
+.workbench-more > summary small {
+  color: var(--muted);
+  font-size: 0.47rem;
+  font-weight: 500;
+}
+
+.workbench-more[open] {
+  z-index: 40;
+}
+
+.workbench-more[open] > summary::after {
+  content: '';
+  position: fixed;
+  z-index: 38;
+  inset: 0;
+  background: rgba(37, 30, 52, 0.28);
+}
+
+.workbench-more__panel {
+  position: fixed;
+  z-index: 39;
+  inset: 96px 48px 42px 218px;
+  padding: 20px;
+  border: 1px solid rgba(93, 79, 130, 0.16);
+  border-radius: var(--soda-radius-surface);
+  background: #fff;
+  box-shadow: 0 22px 58px rgba(46, 35, 73, 0.24);
+  overflow: auto;
+}
+
+.workbench-more__panel .graduation-advice-grid {
+  margin-top: 14px;
+}
+
+.disc-section--workbench {
+  min-width: 0;
+  padding: 10px 12px 12px;
+  border: 1px solid rgba(93, 79, 130, 0.1);
+  border-radius: var(--soda-radius-surface);
+  background: #fbfafd;
+}
+
+.disc-section--workbench > .disc-workbench-header {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr) auto;
+  align-items: stretch !important;
+  gap: 24px;
+}
+
+.disc-section--workbench > .disc-workbench-header > .disc-workbench-title {
+  display: grid !important;
+  align-content: center;
+  min-width: 0;
+}
+
+.disc-workbench-title h3 {
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+.disc-workbench-title p {
+  overflow: hidden;
+  margin: 3px 0 0;
+  color: var(--muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.analysis-state-copy {
+  overflow: hidden;
+  color: #6a5a80;
+  font-size: 0.48rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.disc-main-stat-differences {
+  margin: 0 0 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.disc-section--workbench > .disc-workbench-header > .disc-workbench-metrics {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: max-content;
+  justify-content: start;
+  gap: 0;
+  min-width: 0;
+}
+
+.disc-metric {
+  display: grid;
+  align-content: center;
+  min-width: 0;
+  padding: 3px 10px;
+  border: 0;
+  border-left: 1px solid rgba(93, 79, 130, 0.1);
+  border-radius: 0;
+  background: transparent;
+}
+
+.disc-metric:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.disc-metric > small {
+  color: var(--muted);
+  font-size: 0.48rem;
+  font-weight: 700;
+}
+
+.disc-metric > strong {
+  overflow: hidden;
+  color: #5f4a91;
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.disc-metric > span,
+.disc-metric > em {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.43rem;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.disc-metric--benchmark.is-supported {
+  background: transparent;
+}
+
+.disc-metric--benchmark.is-supported > strong {
+  color: #287568;
+}
+
+.disc-section--workbench > .disc-workbench-header > .disc-workbench-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  min-width: 0;
+}
+
+.disc-workbench-actions .scheme-tabs {
+  display: flex;
+  gap: 2px;
+}
+
+.disc-workbench-actions .scheme-tabs button,
+.disc-workbench-actions .warehouse-action,
+.disc-workbench-actions .save-plan-action {
+  min-height: 30px;
+  height: 30px;
+  padding-inline: 9px;
+  white-space: nowrap;
+}
+
+.disc-workbench-actions .warehouse-actions {
+  display: flex;
+  gap: var(--soda-space-1);
+}
+
+.warehouse-action-feedback {
+  max-width: 180px;
+  color: #a24d4d;
+  font-size: 0.52rem;
+  line-height: 1.2;
+}

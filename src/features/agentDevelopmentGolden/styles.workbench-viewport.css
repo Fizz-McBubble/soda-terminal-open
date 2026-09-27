@@ -1,0 +1,435 @@
+/* Keep desktop comparison lists inside their own scroll regions. */
+.f5v-shell .disc-guide .disc-guide__secondary-name {
+  font-weight: 650;
+  color: var(--soda-text);
+  white-space: nowrap;
+}
+.f5v-shell .disc-guide .disc-guide__effect {
+  color: var(--soda-text-2);
+  font-size: var(--soda-type-body);
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+@media (max-width: 1200px) {
+  .f5v-shell .comparison-disc-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1021px) and (min-height: 600px) {
+  .f5v-shell .ad-golden:has(> .top10) {
+    height: 100%;
+    min-height: 0;
+  }
+  .f5v-shell .ad-golden > .top10 {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    height: 100%;
+    min-height: 0;
+  }
+  .f5v-shell .top10-layout.comparison-workbench {
+    min-height: 0;
+    align-items: stretch;
+    padding-bottom: 0;
+  }
+  .f5v-shell .comparison-candidates {
+    grid-template-rows: none;
+    grid-auto-rows: max-content;
+    align-content: start;
+    min-height: 0;
+    overflow-y: auto;
+  }
+  .f5v-shell .comparison-detail {
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+
+@media (min-width: 1400px) and (min-height: 760px) {
+  .f5v-shell .comparison-candidate {
+    align-content: start;
+    padding-block: 12px;
+  }
+  .f5v-shell .comparison-disc-strip .development-disc-card {
+    grid-template-rows: 28px 56px minmax(112px, 1fr) 24px;
+    padding: 12px;
+    gap: 8px;
+  }
+  .f5v-shell .comparison-disc-strip .development-disc-card > ul {
+    grid-template-rows: repeat(4, minmax(28px, 1fr));
+  }
+  .f5v-shell .comparison-disc-strip .development-disc-card :is(li, li > span, li b) {
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .f5v-shell .comparison-stat-table {
+    width: 100%;
+    max-width: none;
+  }
+  .f5v-shell .comparison-stat-table > [role='rowgroup'] {
+    display: grid;
+    grid-template-rows: auto repeat(5, minmax(32px, 1fr));
+  }
+  .f5v-shell .comparison-stat-table.is-candidate-only [role='row'] {
+    grid-template-columns: minmax(180px, 0.8fr) minmax(100px, 1fr);
+    align-items: center;
+  }
+  .f5v-shell .comparison-stat-table.is-candidate-only [role='row'] > :not(:first-child) {
+    text-align: left;
+  }
+}
+
+@media (min-width: 1321px) and (min-height: 760px) {
+  .f5v-shell .workbench--single-page {
+    height: 100%;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 12px;
+  }
+  .f5v-shell .workbench--single-page .workbench-main {
+    gap: 12px;
+    align-self: start;
+  }
+  .f5v-shell .workbench--single-page .current-overview__panel {
+    grid-template-rows: auto auto auto;
+    height: auto;
+  }
+  .f5v-shell .workbench--single-page .current-overview__panel .stat-grid {
+    height: auto;
+    min-height: 176px;
+  }
+  .f5v-shell .workbench--single-page .loadout-recommendations {
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+  .f5v-shell .workbench--single-page .loadout-recommendation-card.disc-guide {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 0.32fr);
+    grid-template-rows: auto auto;
+    height: auto;
+    gap: 10px;
+    padding: 12px;
+  }
+  .f5v-shell .workbench--single-page .disc-guide__heading {
+    justify-content: flex-start;
+    gap: 8px 16px;
+    grid-column: 1;
+  }
+  .f5v-shell .workbench--single-page .disc-guide__heading > .explanation:first-of-type {
+    margin-left: auto;
+  }
+  .f5v-shell .workbench--single-page .loadout-disc-options {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 16px;
+    margin: 0;
+  }
+  .f5v-shell .workbench--single-page .disc-guide .loadout-main-stat-priority {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    grid-template-columns: 1fr;
+    align-content: center;
+    gap: 8px;
+    padding-left: 12px;
+    border-left: 1px solid var(--soda-line);
+  }
+  .f5v-shell .workbench--single-page .loadout-disc-options.has-distinct-directions {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+  .f5v-shell
+    .workbench--single-page
+    .disc-guide
+    .loadout-disc-options:not(.has-distinct-directions) {
+    row-gap: 4px;
+  }
+  .f5v-shell .workbench--single-page .disc-section--workbench {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 12px;
+  }
+  .f5v-shell .workbench--single-page .disc-section--workbench .disc-grid {
+    flex: 1;
+    grid-auto-rows: minmax(0, 1fr);
+  }
+  .f5v-shell .workbench--single-page .agent-scene {
+    min-height: 0;
+  }
+}
+
+@media (min-width: 1551px) and (min-height: 760px) and (max-height: 950px) {
+  .f5v-shell .workbench--single-page .current-overview {
+    padding: 12px;
+  }
+  .f5v-shell .workbench--single-page .agent-scene {
+    min-height: 0;
+  }
+  .f5v-shell .workbench--single-page .panel-graduation-targets > div > span {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .f5v-shell .workbench--single-page .loadout-recommendation-card.disc-guide {
+    gap: 8px;
+    padding: 10px;
+  }
+  .f5v-shell .workbench--single-page .development-disc-card {
+    grid-template-rows: 24px 44px 112px 24px;
+    gap: 4px;
+    padding: 10px;
+  }
+}
+
+@media (min-width: 1551px) and (min-height: 760px) and (max-height: 900px) {
+  .f5v-shell .workbench--single-page .current-overview__panel .stat-grid {
+    min-height: 166px;
+  }
+  .f5v-shell .workbench--single-page .current-overview__panel .panel-graduation-targets {
+    margin-top: 8px;
+  }
+}
+
+/* Reserve readable result space before distributing the remaining height. */
+@media (min-width: 1321px) and (min-height: 760px) and (max-height: 820px) {
+  .f5v-shell .workbench--single-page {
+    grid-template-rows: minmax(0, 1fr) 264px;
+  }
+  .f5v-shell .workbench--single-page .development-disc-card {
+    grid-template-rows: 20px 40px 88px 18px;
+    gap: 4px;
+    padding: 8px;
+  }
+  .f5v-shell .workbench--single-page .development-disc-card > ul {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: repeat(4, 22px);
+  }
+  .f5v-shell
+    .workbench--single-page
+    .development-disc-card
+    :is(li, li > span, li b, .development-disc-card__main-stat, footer) {
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+  .f5v-shell .workbench--single-page .workbench-main {
+    grid-template-rows: auto auto;
+    align-content: start;
+  }
+  .f5v-shell .workbench--single-page .current-overview__panel .stat-grid {
+    min-height: 0;
+    grid-template-rows: repeat(5, 26px);
+  }
+  .f5v-shell .workbench--single-page .current-overview__panel .stat-grid > div {
+    min-height: 26px;
+    padding-block: 2px;
+  }
+}
+.f5v-shell .current-engine-plan > .explanation {
+  grid-column: 1 / -1;
+  justify-self: end;
+}
+
+@media (min-width: 1321px) and (min-height: 760px) and (max-height: 820px) {
+  .f5v-shell .workbench--single-page .current-overview {
+    padding-block: 6px;
+  }
+  .f5v-shell .workbench--single-page .current-overview__panel .stat-grid {
+    grid-template-rows: repeat(5, 24px);
+    row-gap: 2px;
+  }
+  .f5v-shell .workbench--single-page .current-overview__panel .stat-grid > div {
+    min-height: 24px;
+    padding-block: 0;
+  }
+  .f5v-shell .workbench--single-page .current-overview__panel .panel-graduation-targets {
+    padding-top: 4px;
+    margin-top: 4px;
+  }
+  .f5v-shell .workbench--single-page .disc-guide .loadout-disc-options > .disc-guide__option {
+    padding-block: 4px;
+  }
+}
+
+/* Single directions use the entire recommendation column. */
+.f5v-shell .workbench--single-page .disc-guide .loadout-disc-options:has(> li:only-child) {
+  grid-template-columns: minmax(0, 1fr);
+}
+.f5v-shell .disc-guide .loadout-main-stat-priority dd {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 4px;
+}
+.f5v-shell .disc-guide__main-stat {
+  display: inline-block;
+  white-space: nowrap;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+.f5v-shell .disc-guide .disc-guide__secondary-option {
+  flex-wrap: nowrap;
+}
+
+/* Keep the six-disc grid inside its own surface, including the bottom inset. */
+@media (min-width: 1321px) and (min-height: 760px) {
+  .f5v-shell .workbench--single-page {
+    grid-template-rows: minmax(0, 1fr) 304px;
+    padding-bottom: 20px;
+  }
+  .f5v-shell .workbench--single-page .workbench-main {
+    min-height: 0;
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+  .f5v-shell .workbench--single-page .disc-section--workbench {
+    min-height: 0;
+    padding-bottom: 24px;
+  }
+  .f5v-shell .workbench--single-page .disc-section--workbench .disc-grid {
+    min-height: 0;
+    grid-template-rows: minmax(0, 1fr);
+  }
+  .f5v-shell .workbench--single-page .development-disc-card {
+    min-height: 0;
+    height: 100%;
+    grid-template-rows: 24px 44px minmax(0, 1fr) 20px;
+  }
+  .f5v-shell .workbench--single-page .development-disc-card > ul {
+    min-height: 0;
+    grid-template-rows: repeat(4, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1321px) and (min-height: 760px) and (max-height: 820px) {
+  .f5v-shell .workbench--single-page {
+    grid-template-rows: minmax(0, 1fr) 272px;
+  }
+  .f5v-shell .workbench--single-page .development-disc-card {
+    grid-template-rows: 20px 40px minmax(0, 1fr) 18px;
+  }
+}
+@media (min-width: 1321px) and (min-height: 760px) {
+  .f5v-shell .workbench--single-page .workbench-main {
+    height: 100%;
+    align-self: stretch;
+  }
+  .f5v-shell .workbench--single-page .current-overview {
+    min-height: 0;
+  }
+}
+@media (min-width: 1551px) and (min-height: 821px) and (max-height: 950px) {
+  .f5v-shell .workbench--single-page .current-overview__panel .stat-grid {
+    min-height: 0;
+    grid-template-rows: repeat(5, 24px);
+    row-gap: 2px;
+  }
+  .f5v-shell .workbench--single-page .current-overview__panel .stat-grid > div {
+    min-height: 24px;
+    padding-block: 0;
+  }
+  .f5v-shell .workbench--single-page .current-overview__panel .panel-graduation-targets {
+    margin-top: 4px;
+    padding-top: 4px;
+  }
+}
+
+.f5v-shell .workbench--single-page .panel-graduation-targets > .explanation {
+  flex: 0 0 auto;
+  min-width: max-content;
+  white-space: nowrap;
+}
+.f5v-shell .workbench--single-page .panel-graduation-targets > .explanation > button {
+  white-space: nowrap;
+  word-break: keep-all;
+}
+.f5v-shell .workbench--single-page .current-overview__panel {
+  min-width: 0;
+}
+.f5v-shell .workbench--single-page .panel-graduation-targets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  min-width: 0;
+}
+.f5v-shell .workbench--single-page .panel-graduation-targets > div:not(.explanation) {
+  display: flex;
+  flex: 1 1 280px;
+  flex-wrap: wrap;
+  min-width: 0;
+  gap: 8px 16px;
+}
+
+.f5v-shell .comparison-candidates .comparison-candidate {
+  height: auto;
+  min-height: min-content;
+  grid-template-rows: auto;
+  row-gap: 6px;
+  align-items: start;
+}
+.f5v-shell .comparison-candidate .comparison-candidate__identity > small:first-of-type {
+  white-space: normal;
+  overflow: visible;
+  line-height: 1.5;
+}
+.f5v-shell .comparison-candidate > .disc-conflict {
+  position: static;
+  grid-column: 2;
+  margin: 0;
+  white-space: normal;
+  line-height: 1.5;
+}
+.f5v-shell .comparison-candidate .comparison-candidate__metrics {
+  flex-wrap: wrap;
+}
+.f5v-shell .comparison-candidates {
+  position: relative;
+}
+.f5v-shell .comparison-filter {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  z-index: 1;
+}
+.f5v-shell .comparison-candidates-heading {
+  position: relative;
+}
+.f5v-shell .comparison-candidates-heading .comparison-baseline {
+  width: 100%;
+  box-sizing: border-box;
+  padding-top: 8px;
+}
+.f5v-shell .comparison-candidates-heading .comparison-baseline > strong {
+  display: flex;
+  align-items: center;
+  min-height: 28px;
+  padding-right: 78px;
+}
+.f5v-shell .comparison-candidate .comparison-conflict-badge {
+  margin-left: auto;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: #fff3df;
+  color: #92601e;
+  white-space: nowrap;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.f5v-shell .comparison-filter button {
+  padding: 4px 8px;
+  border: 1px solid var(--soda-line);
+  border-radius: 6px;
+  background: white;
+  color: var(--soda-text-2);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+.f5v-shell .comparison-filter button[aria-pressed='true'] {
+  background: #eee8fa;
+  color: #6f5aa8;
+  border-color: #8a75c3;
+}
+.f5v-shell .comparison-filter-empty {
+  padding: 12px;
+}
+.f5v-shell .comparison-detail[hidden] {
+  display: none;
+}

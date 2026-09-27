@@ -1,0 +1,196 @@
+@media (max-width: 1600px) {
+  .f5v-shell .warehouse-workbench__header > div:first-child {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .f5v-shell .warehouse-workbench__header .warehouse-workbench__notice {
+    grid-column: 1 / -1;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 1400px) {
+  .f5v-shell .warehouse-action-list__header,
+  .f5v-shell .warehouse-action-row {
+    grid-template-columns: minmax(115px, 0.8fr) minmax(260px, 1.65fr) minmax(82px, 0.5fr) minmax(
+        100px,
+        0.6fr
+      );
+    column-gap: 9px;
+    padding: 0 11px;
+  }
+  .f5v-shell .warehouse-workbench {
+    --warehouse-workspace-columns: minmax(0, 1.9fr) minmax(280px, 0.7fr);
+  }
+  .f5v-shell .warehouse-workbench__header > div:first-child {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .f5v-shell .warehouse-workbench {
+    width: calc(100vw - 40px);
+    max-width: calc(100vw - 40px);
+    margin: 0;
+    overflow: auto;
+    grid-template-rows: auto auto auto;
+  }
+  .f5v-shell .warehouse-workbench > *,
+  .f5v-shell .warehouse-action-controls,
+  .f5v-shell .warehouse-action-list {
+    min-width: 0;
+    width: 100%;
+  }
+  .f5v-shell .warehouse-workbench__header {
+    align-items: start;
+    flex-direction: column;
+    gap: var(--soda-space-2);
+  }
+  .f5v-shell .warehouse-workbench__header > div:first-child {
+    display: block;
+  }
+  .f5v-shell .warehouse-workbench__header p {
+    margin-top: 4px;
+  }
+  .f5v-shell .warehouse-action-summary {
+    flex-wrap: wrap;
+  }
+  .f5v-shell .warehouse-workbench__header .button {
+    width: auto;
+  }
+  .f5v-shell .warehouse-workbench__actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: auto auto;
+    align-items: center;
+    gap: var(--soda-space-2);
+  }
+  .f5v-shell .warehouse-analysis-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .f5v-shell .warehouse-analysis-filters__discs,
+  .f5v-shell .warehouse-analysis-filters__usage {
+    display: contents;
+  }
+  .f5v-shell .warehouse-analysis-filters__discs > svg {
+    display: none;
+  }
+  .f5v-shell .warehouse-filter-actions {
+    grid-column: 1 / -1;
+  }
+  .f5v-shell .warehouse-action-list {
+    min-height: 510px;
+  }
+  .f5v-shell .warehouse-action-workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    overflow: visible;
+  }
+  .f5v-shell .warehouse-action-list__header {
+    display: none;
+  }
+  .f5v-shell .warehouse-action-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    height: var(--warehouse-row-height, 112px);
+    padding: 0 12px;
+  }
+  .f5v-shell .warehouse-action-row__stats {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .f5v-shell .warehouse-action-row__relations {
+    display: none;
+  }
+  .f5v-shell .warehouse-action-row__advice {
+    justify-content: end;
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .f5v-shell .warehouse-action-row__advice small {
+    display: none;
+  }
+  .f5v-shell .warehouse-more-filters[open] > div {
+    position: absolute;
+    width: min(360px, calc(100vw - 48px));
+    box-sizing: border-box;
+    right: auto;
+    left: 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-height: min(420px, calc(100dvh - 160px));
+    overflow-y: auto;
+  }
+  .f5v-shell .warehouse-action-drawer {
+    width: 100%;
+    height: auto;
+    max-height: none;
+  }
+}
+
+/* The action list can become narrow while the overall workbench is still a
+   desktop viewport (for example when the detail drawer is open). Keep the
+   row layout and virtual row height in sync with the actual list width. */
+@container warehouse-action-list (max-width: 760px) {
+  .f5v-shell .warehouse-action-list__header {
+    display: none;
+  }
+  .f5v-shell .warehouse-action-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    height: var(--warehouse-row-height, 112px);
+    padding: 0 12px;
+  }
+  .f5v-shell .warehouse-action-row__stats {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .f5v-shell .warehouse-action-row__relations {
+    display: none;
+  }
+  .f5v-shell .warehouse-action-row__advice {
+    justify-content: end;
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .f5v-shell .warehouse-action-row__advice small {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .f5v-shell .warehouse-action-row,
+  .f5v-shell .warehouse-action-summary__item {
+    transition: none;
+  }
+}
+
+.f5v-shell .warehouse-workbench .button.warehouse-mobile-return {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .f5v-shell .warehouse-workbench .button.warehouse-mobile-return {
+    display: inline-flex;
+    margin-bottom: 12px;
+    font-size: var(--soda-font-body);
+  }
+  .f5v-shell .warehouse-action-drawer {
+    scroll-margin-top: 20px;
+  }
+}
+
+.f5v-shell .warehouse-disc-stepper {
+  display: flex;
+  align-items: center;
+  gap: var(--soda-space-3);
+  flex-wrap: wrap;
+}
+.f5v-shell .warehouse-disc-stepper {
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.f5v-shell .warehouse-disc-stepper .button {
+  min-height: 36px;
+}

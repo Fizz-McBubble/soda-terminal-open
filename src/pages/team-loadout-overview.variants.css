@@ -1,0 +1,66 @@
+.f5v-box-team-variants {
+  display: grid;
+  gap: 8px;
+  padding: 0 !important;
+}
+.f5v-box-team-variants > div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+.f5v-box-team-variant-button {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  gap: 12px;
+  min-height: 52px !important;
+  padding: 8px !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--soda-line) !important;
+  border-radius: 0;
+  background: transparent !important;
+  text-align: left;
+  cursor: pointer;
+}
+.f5v-box-team-variant-button:hover,
+.f5v-box-team-variant-button.is-selected {
+  background: #eee8f8 !important;
+}
+.f5v-box-team-variant-button .f5v-box-team-portraits {
+  gap: 3px;
+  flex: none;
+}
+.f5v-box-team-variant-button > .f5v-box-team-variant-copy {
+  display: flex;
+  flex: 1;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px 12px;
+  min-width: 0;
+  color: var(--soda-text);
+  font-size: 14px;
+  line-height: 20px;
+}
+.f5v-box-team-variant-copy small {
+  font-size: 12px;
+  font-weight: 400;
+  white-space: nowrap;
+}
+.f5v-box-team-variant-button .f5v-box-team-portrait-frame,
+.f5v-box-team-variant-button .f5v-box-team-portrait,
+.f5v-box-team-variant-button .visual-asset-fallback {
+  width: 34px;
+  height: 34px;
+  flex-basis: 34px;
+  border-radius: var(--soda-radius-tag);
+}
+.f5v-box-team-variants-more {
+  justify-self: start;
+  min-height: 36px;
+  border: 0;
+  background: transparent;
+  color: var(--soda-accent);
+  cursor: pointer;
+}

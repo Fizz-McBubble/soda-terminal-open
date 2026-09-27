@@ -1,0 +1,408 @@
+/* N1-D acceptance repair: the workbench is a compact reading flow. */
+.f5v-shell .workbench,
+.workbench {
+  grid-template-columns: minmax(360px, 30%) minmax(0, 70%);
+}
+
+.f5v-shell .agent-scene > .agent-art,
+.agent-scene > .agent-art {
+  /* Preserve the full-body hero slot and its deliberate crop; these coordinates
+     are tuned for the identity rail, not a centered image treatment. The 30%
+     rail is 1.5× the former 20% rail, so this preserves an actual 1.5×
+  illustration scale without expanding its crop into the information area. */
+  left: -58%;
+  top: -12%;
+  width: 220%;
+}
+
+.f5v-shell .agent-scene > .visual-asset-fallback.agent-art,
+.agent-scene > .visual-asset-fallback.agent-art {
+  inset: 0;
+  display: grid;
+  width: 100%;
+  min-width: 280px;
+  height: 100%;
+  min-height: 460px;
+  place-items: center;
+  padding: 24px;
+  aspect-ratio: auto !important;
+  object-fit: contain !important;
+  color: #756b84;
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+.f5v-shell .agent-identity,
+.agent-identity {
+  z-index: 4;
+}
+
+.f5v-shell .loadout-head,
+.loadout-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--soda-space-4);
+  min-width: 0;
+  padding: 18px 0 14px;
+}
+
+.f5v-shell .loadout-head > div:first-child,
+.loadout-head > div:first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.f5v-shell .loadout-head p,
+.loadout-head p {
+  margin: 3px 0 0;
+  white-space: nowrap;
+}
+
+.f5v-shell .loadout-actions,
+.loadout-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--soda-space-2);
+  min-width: 0;
+}
+
+.f5v-shell .scheme-tabs,
+.scheme-tabs {
+  display: flex;
+  flex: 0 0 auto;
+}
+
+.f5v-shell .save-bar,
+.save-bar {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: var(--soda-space-2);
+  width: auto;
+  margin: 0;
+  padding: 0;
+}
+
+.f5v-shell .save-bar > div,
+.save-bar > div {
+  display: none;
+}
+
+.f5v-shell .save-bar > button,
+.save-bar > button {
+  min-height: 36px;
+  white-space: nowrap;
+}
+
+.graduation-guide {
+  display: grid;
+  gap: 18px;
+  padding: 16px 18px;
+  border: 1px solid rgba(93, 79, 130, 0.12);
+  border-radius: var(--soda-radius-surface);
+  background: #fff;
+}
+
+.graduation-target-row,
+.graduation-advice-grid {
+  display: grid;
+  align-items: start;
+}
+
+.graduation-guide h4 {
+  margin: 0;
+  color: var(--ink);
+}
+
+.graduation-guide h4 {
+  font-size: 0.8rem;
+}
+
+.graduation-target-row {
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  gap: var(--soda-space-4);
+}
+
+.graduation-target-row > section + section {
+  padding-left: 16px;
+  border-left: 1px solid rgba(93, 79, 130, 0.1);
+}
+
+.skill-targets,
+.panel-targets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.skill-targets > span,
+.panel-targets > span {
+  display: grid;
+  gap: 2px;
+  min-width: 52px;
+  padding: 6px 8px;
+  border-radius: var(--soda-radius-control);
+  background: #f7f5fa;
+}
+
+.skill-targets > span.priority,
+.panel-targets > span {
+  background: #edf8f5;
+}
+
+.skill-targets small,
+.panel-targets small {
+  color: #71687d;
+  font-size: 0.57rem;
+}
+
+.skill-targets b,
+.panel-targets b {
+  color: #34294d;
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+
+.graduation-advice-grid {
+  grid-template-columns: minmax(150px, 0.72fr) minmax(220px, 1fr) minmax(390px, 1.8fr);
+  gap: var(--soda-space-4);
+}
+
+.graduation-advice-grid > section + section {
+  padding-left: 16px;
+  border-left: 1px solid rgba(93, 79, 130, 0.1);
+}
+
+.graduation-advice-grid ol {
+  display: grid;
+  gap: 10px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.graduation-advice-grid li {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--soda-space-2);
+  color: #554d61;
+  font-size: 0.7rem;
+}
+
+.graduation-advice-grid li > span {
+  display: grid;
+  gap: 2px;
+}
+
+.graduation-advice-grid li b {
+  color: #382e4d;
+  font-size: 0.72rem;
+}
+
+.graduation-advice-grid li small {
+  color: #745da7;
+  font-size: 0.57rem;
+  font-weight: 750;
+}
+
+.team-visual-groups {
+  grid-template-columns: repeat(3, auto);
+  justify-content: start;
+  gap: var(--soda-space-4);
+}
+
+.graduation-advice-grid .team-visual-groups li {
+  display: block;
+}
+
+.engine-bonus {
+  max-width: 196px;
+  padding: 4px 6px;
+  border-radius: var(--soda-radius-tag);
+  color: #287568;
+  background: #edf8f5;
+  font-size: 0.64rem;
+  font-style: normal;
+  font-weight: 750;
+  line-height: 1.25;
+  text-align: right;
+}
+
+.disc-set-options {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.disc-set-option {
+  display: grid;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(93, 79, 130, 0.1);
+}
+
+.disc-set-option:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.disc-set-option-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--soda-space-2);
+  color: #5a488a;
+  font-size: 0.69rem;
+}
+
+.disc-set-option dl {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+}
+
+.disc-set-option dl div {
+  display: grid;
+  grid-template-columns: minmax(92px, auto) minmax(0, 1fr);
+  gap: var(--soda-space-2);
+}
+
+.disc-set-option dt,
+.disc-set-option dd {
+  margin: 0;
+  font-size: 0.65rem;
+  line-height: 1.35;
+}
+
+.disc-set-option dt {
+  color: var(--muted);
+}
+
+.disc-set-option dd {
+  color: #3f3554;
+  font-weight: 650;
+}
+
+.disc-stat-direction {
+  display: grid;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.disc-stat-direction > dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}
+
+.disc-stat-direction > dl div {
+  display: grid;
+  gap: 2px;
+}
+
+.disc-stat-direction p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.65rem;
+  line-height: 1.35;
+}
+
+.graduation-visuals {
+  display: inline-flex;
+  align-items: center;
+  min-width: 32px;
+  height: 32px;
+}
+
+.graduation-visuals img,
+.graduation-visuals .visual-asset-fallback,
+.graduation-visual {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--soda-radius-control);
+  object-fit: contain;
+}
+
+.graduation-visuals img + img {
+  margin-left: -9px;
+  border: 1px solid #fff;
+}
+
+.graduation-visuals > * + * {
+  margin-left: -9px;
+  border: 1px solid #fff;
+}
+
+.skill-fact-fields {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 10px 0 0;
+  border: 0;
+}
+
+.skill-fact-fields legend {
+  padding: 0;
+  color: #6c647a;
+  font-size: 0.66rem;
+}
+
+.skill-fact-fields > div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--soda-space-2);
+}
+
+.skill-fact-fields label {
+  min-width: 0;
+}
+
+.graduation-advice-grid dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 9px 0 0;
+}
+
+.graduation-advice-grid dl div {
+  display: grid;
+  gap: 2px;
+  min-width: 72px;
+}
+
+.graduation-advice-grid dt,
+.graduation-advice-grid dd {
+  margin: 0;
+  font-size: 0.61rem;
+}
+
+.graduation-advice-grid dt {
+  color: var(--muted);
+}
+
+.graduation-advice-grid dd {
+  color: #3f3554;
+  font-weight: 700;
+}
+
+.graduation-advice-grid .disc-set-option dl {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+}
+
+.graduation-advice-grid .disc-set-option dl div {
+  grid-template-columns: minmax(92px, auto) minmax(0, 1fr);
+  min-width: 0;
+}
+
+.graduation-advice-grid .disc-stat-direction > dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0;
+}

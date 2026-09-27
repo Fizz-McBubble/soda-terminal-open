@@ -1,0 +1,18 @@
+@import './styles.part1.css';
+@import './styles.part2.css';
+@import './styles.part3.css';
+@import './styles.part4.css';
+@import './styles.part5.css';
+@import './styles.part6.css';
+@import './styles.comparison.css';
+@import './styles.part7.css';
+@import './styles.part8.css';
+@import './styles.guidance.css';
+@import './styles.workbench-current.css';
+@import './styles.part9.css';
+@import './styles.workbench-single-page.css';
+
+@import './development-disc-card.css';
+@import './styles.workbench-fit.css';
+@import './styles.compact-guidance.css';
+@import './styles.workbench-viewport.css';

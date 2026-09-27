@@ -1,0 +1,133 @@
+/* Keep decision text readable without shrinking it to fit a fixed card. */
+.workbench--single-page .panel-graduation-targets {
+  grid-template-columns: minmax(0, 1fr);
+}
+.workbench--single-page .panel-graduation-targets > div {
+  grid-column: 1;
+  grid-row: auto;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+}
+.workbench--single-page .panel-graduation-targets span b {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+}
+.workbench--single-page .disc-main > span {
+  grid-template-columns: minmax(0, 1fr) max-content;
+  align-items: baseline;
+  column-gap: 6px;
+}
+
+.workbench--single-page .disc-main small {
+  grid-column: 1 / -1;
+}
+
+.workbench--single-page .disc-main strong {
+  display: block;
+  text-align: right;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.f5v-shell .workbench--single-page :is(small, em, dt, label, button, summary),
+.f5v-shell .workbench--single-page .skill-comparison__current i,
+.f5v-shell .workbench--single-page .disc-card :is(header, footer),
+.f5v-shell .workbench--single-page .disc-metric > span,
+.f5v-shell .workbench--single-page .analysis-state-copy,
+.f5v-shell .workbench--single-page .current-state-actions > span {
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.f5v-shell .workbench--single-page :is(p, input, select),
+.f5v-shell .workbench--single-page .current-engine-plan b,
+.f5v-shell .workbench--single-page .loadout-recommendations :is(h3, b),
+.f5v-shell .workbench--single-page .loadout-recommendation-card > header > span,
+.f5v-shell .workbench--single-page .skill-comparison b,
+.f5v-shell .workbench--single-page .panel-graduation-targets b,
+.f5v-shell .workbench--single-page .disc-card :is(b, strong, li > span),
+.f5v-shell .workbench--single-page .warehouse-action-feedback {
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.workbench--single-page
+  :is(
+    .disc-workbench-title p,
+    .disc-metric > span,
+    .disc-metric > em,
+    .analysis-state-copy,
+    .loadout-recommendation-card > p,
+    .loadout-recommendation-card > b
+  ) {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+}
+
+.workbench--single-page .disc-workbench-actions {
+  flex-wrap: wrap;
+}
+
+.workbench--single-page .disc-workbench-actions :is(.warehouse-action, .save-plan-action) {
+  height: auto;
+  min-height: 34px;
+  white-space: normal;
+}
+
+@media (min-width: 1321px) {
+  .workbench--single-page .workbench-main {
+    grid-template-rows: auto auto;
+    overflow: visible;
+  }
+
+  .workbench--single-page .current-status-details {
+    grid-template-rows: auto auto auto;
+    align-content: start;
+    gap: var(--soda-space-2);
+  }
+
+  .workbench--single-page .current-overview,
+  .workbench--single-page .current-overview__state,
+  .workbench--single-page .loadout-recommendations,
+  .workbench--single-page .loadout-recommendation-grid,
+  .workbench--single-page .loadout-recommendation-card {
+    height: auto;
+    min-height: min-content;
+  }
+
+  .workbench--single-page .disc-section--workbench {
+    overflow: visible;
+  }
+}
+
+/* Recommendation and result remain adjacent; no guide column. */
+.workbench--single-page .loadout-recommendation-grid {
+  grid-template-columns: minmax(0, 1fr);
+  height: auto;
+}
+.workbench--single-page .loadout-disc-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 16px;
+}
+.workbench--single-page .loadout-recommendation-card {
+  height: auto;
+}
+.workbench--single-page .loadout-recommendations {
+  height: auto;
+}
+.workbench--single-page .loadout-shared-effects p {
+  margin: 4px 0 8px;
+}
+.workbench--single-page .disc-priority {
+  color: var(--f5-accent);
+  font-size: inherit;
+}
+@media (max-width: 900px) {
+  .workbench--single-page .loadout-disc-options {
+    grid-template-columns: 1fr;
+  }
+}

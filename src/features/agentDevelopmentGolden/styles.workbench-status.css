@@ -1,0 +1,172 @@
+/* Agent development single-page workbench.
+   Existing product surfaces are regrouped by player decision. */
+.current-state-actions,
+.loadout-recommendations > header,
+.loadout-recommendation-card > header,
+.disc-workbench-actions,
+.disc-workbench-metrics {
+  display: flex;
+  align-items: center;
+}
+
+.current-state-actions {
+  gap: var(--soda-space-2);
+}
+
+.workbench--single-page .current-overview__state h2,
+.workbench--single-page .current-overview__panel h2 {
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.current-state-actions > span {
+  color: #695887;
+  font-size: 0.62rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.current-state-actions .current-level-fact {
+  display: block;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.skill-comparison {
+  display: grid;
+  gap: var(--soda-space-2);
+  min-width: 0;
+}
+
+.current-status-details {
+  display: grid;
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  min-height: 0;
+}
+
+/* This workbench groups all three rows together, including short viewports.
+   Do not inherit the legacy two-column account-facts grid. */
+.workbench--single-page .current-overview__state {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.current-status-details > * {
+  min-width: 0;
+  padding-block: 2px;
+}
+
+.skill-comparison__current,
+.skill-comparison__target {
+  display: grid;
+  grid-template-columns: 66px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--soda-space-2);
+  min-width: 0;
+}
+
+.skill-comparison__current > small,
+.skill-comparison__target > small,
+.panel-graduation-targets > small {
+  color: var(--muted);
+  font-size: 0.6rem;
+  font-weight: 700;
+}
+
+.skill-comparison__current > div,
+.skill-comparison__target > div {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 5px;
+  min-width: 0;
+}
+
+.skill-comparison__current span,
+.skill-comparison__target span {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 28px;
+  padding: 3px 2px;
+}
+
+.skill-comparison__current i {
+  color: #75669a;
+  font-size: 0.52rem;
+  font-style: normal;
+  font-weight: 750;
+}
+
+.skill-comparison__current b,
+.skill-comparison__target b {
+  overflow: hidden;
+  max-width: 100%;
+  color: #3d3452;
+  font-size: 0.63rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.skill-comparison__target span > small {
+  color: var(--muted);
+  font-size: 0.5rem;
+}
+
+.skill-comparison__target span.priority {
+  background: #f2eef9;
+  border-radius: var(--soda-radius-tag);
+}
+
+.skill-comparison .skill-priority-order {
+  margin: 0;
+  padding: 7px 9px;
+  border-radius: var(--soda-radius-control);
+  background: rgba(110, 88, 163, 0.07);
+}
+
+.panel-graduation-targets {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--soda-space-2);
+  margin-top: 8px;
+  padding: 6px 0 0;
+}
+
+.panel-graduation-targets > div {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(82px, 1fr));
+  gap: 6px;
+}
+
+.panel-graduation-targets__conditions {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  overflow-wrap: anywhere;
+  line-height: 1.5;
+}
+
+.panel-graduation-targets > div {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.panel-graduation-targets span {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.panel-graduation-targets span small {
+  color: #5f776f;
+  font-size: 0.5rem;
+}
+
+.panel-graduation-targets span b {
+  overflow: hidden;
+  color: #2d6258;
+  font-size: 0.66rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

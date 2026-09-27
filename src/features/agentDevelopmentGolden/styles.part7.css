@@ -1,0 +1,365 @@
+.f5v-shell .overview {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.f5v-shell .overview-layout {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding-bottom: 0;
+  overflow: hidden;
+}
+
+.f5v-shell .agent-catalog {
+  align-self: stretch;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.f5v-shell .agent-grid {
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.f5v-shell .next-panel {
+  position: static;
+  align-self: start;
+  min-height: initial;
+}
+
+.f5v-shell .next-agent {
+  margin-top: 20px;
+}
+
+.f5v-shell .next-copy {
+  flex: initial;
+  min-height: initial;
+  overflow: visible;
+}
+
+.f5v-shell .next-copy .next-safety-note {
+  margin-top: 18px !important;
+}
+
+.f5v-shell .next-copy .primary {
+  margin-top: 16px;
+}
+
+.f5v-shell .workbench {
+  overflow: hidden;
+}
+
+.f5v-shell .top10 {
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.f5v-shell .agent-scene {
+  position: relative;
+  height: auto;
+  min-height: 0;
+}
+
+.f5v-shell .workbench-main {
+  min-height: 0;
+  padding-bottom: var(--space-md);
+  overflow: auto;
+  overscroll-behavior: auto;
+}
+
+.f5v-shell .candidate-detail {
+  height: auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* Production readability pass. Keep the accepted hierarchy, while returning
+   the workbench controls to one compact action cluster and giving body facts
+   enough size and breathing room to read at desktop scale. */
+.f5v-shell .workbench {
+  grid-template-columns: minmax(420px, 33%) minmax(0, 67%);
+}
+
+.f5v-shell .workbench-main {
+  padding: 20px 28px 28px;
+}
+
+.f5v-shell .current-strip > header,
+.f5v-shell .account-fact,
+.f5v-shell .current-strip .engine,
+.f5v-shell .current-strip .skills {
+  min-height: 74px;
+}
+
+.f5v-shell .current-strip h2 {
+  font-size: 1rem;
+}
+
+.f5v-shell .current-strip header p,
+.f5v-shell .current-strip .engine span {
+  font-size: 0.72rem;
+}
+
+.f5v-shell .account-fact small,
+.f5v-shell .current-strip .skills > small {
+  font-size: 0.67rem;
+}
+
+.f5v-shell .account-fact b,
+.f5v-shell .current-strip .engine b {
+  font-size: 0.82rem;
+}
+
+.f5v-shell .current-strip .skills b {
+  font-size: 0.7rem;
+}
+
+.f5v-shell .loadout-head {
+  align-items: flex-end;
+  padding: 20px 0 14px;
+}
+
+.f5v-shell .loadout-head h2 {
+  font-size: 1.24rem;
+}
+
+.f5v-shell .loadout-head p {
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.loadout-actions {
+  display: grid;
+  justify-items: end;
+  gap: var(--soda-space-2);
+  min-width: 430px;
+}
+
+.f5v-shell .save-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  width: auto;
+  margin: 0;
+  padding: 0;
+}
+
+.f5v-shell .save-bar > div {
+  min-width: 184px;
+  text-align: right;
+}
+
+.f5v-shell .save-bar small,
+.f5v-shell .save-bar span {
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+.f5v-shell .compare-plans,
+.f5v-shell .save-bar > .primary {
+  min-height: 40px;
+  font-size: 0.72rem;
+}
+
+.f5v-shell .profile-band {
+  gap: 20px;
+  padding: 18px;
+}
+
+.f5v-shell .profile-band h3,
+.f5v-shell .guide-grid h3,
+.f5v-shell .panel-snapshot h3,
+.f5v-shell .disc-section h3 {
+  font-size: 0.98rem;
+}
+
+.f5v-shell .profile-band p,
+.f5v-shell .profile-band dt,
+.f5v-shell .profile-band dd,
+.f5v-shell .profile-select {
+  font-size: 0.72rem;
+}
+
+.f5v-shell .guide-grid {
+  gap: var(--soda-space-4);
+  margin-top: 16px;
+}
+
+.f5v-shell .graduation-targets,
+.f5v-shell .recommendations {
+  padding: 18px;
+}
+
+.f5v-shell .target-row,
+.f5v-shell .target-row strong,
+.f5v-shell .recommendation-list b {
+  font-size: 0.78rem;
+}
+
+.f5v-shell .recommendation-list small,
+.f5v-shell .recommendation-list p,
+.f5v-shell .coverage-note p {
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+.f5v-shell .recommendation-list article {
+  min-height: 78px;
+}
+
+.f5v-shell .panel-snapshot header p,
+.f5v-shell .stat-grid dt,
+.f5v-shell .stat-grid dd {
+  font-size: 0.72rem;
+}
+
+@media (max-width: 960px) {
+  .f5v-shell .ad-golden,
+  .f5v-shell .overview,
+  .f5v-shell .workbench,
+  .f5v-shell .top10 {
+    height: auto;
+    overflow: visible;
+  }
+
+  .f5v-shell .overview-layout,
+  .f5v-shell .agent-catalog,
+  .f5v-shell .agent-grid,
+  .f5v-shell .next-copy,
+  .f5v-shell .workbench-main {
+    overflow: visible;
+  }
+}
+.ad-golden button:focus-visible,
+.ad-golden input:focus-visible,
+.ad-golden select:focus-visible,
+.ad-golden a:focus-visible {
+  outline: 3px solid rgba(116, 95, 176, 0.64);
+  outline-offset: 2px;
+}
+@media (max-width: 1400px) {
+  .ad-golden {
+    min-width: 0;
+  }
+  .ad-golden {
+    grid-template-columns: 148px minmax(0, 1fr);
+  }
+  .rail {
+    padding-inline: 9px;
+  }
+  .topbar {
+    padding-inline: 22px;
+  }
+  .page-heading {
+    padding: 20px 22px 14px;
+  }
+  .overview-layout,
+  .top10-layout {
+    padding-inline: 22px;
+  }
+  .overview-layout {
+    grid-template-columns: minmax(0, 1fr) 278px;
+  }
+  .agent-grid {
+    grid-auto-rows: 96px;
+    gap: 7px;
+  }
+  .agent-tile {
+    min-width: 0;
+  }
+  .agent-tile-link {
+    grid-template-columns: minmax(104px, 44%) minmax(0, 1fr);
+  }
+  .agent-tile img {
+    width: 100%;
+    height: 84px;
+  }
+  .workbench {
+    grid-template-columns: minmax(340px, 32%) minmax(0, 68%);
+  }
+  .workbench-main {
+    padding: 12px 18px 0;
+  }
+  .equipment-strip {
+    grid-template-columns: 245px 1fr;
+  }
+  .skills > div {
+    gap: 10px;
+  }
+  .loadout-head {
+    padding-top: 10px;
+  }
+  .graduation {
+    padding-block: 9px;
+  }
+  .stat-row {
+    min-height: 31px;
+  }
+  .disc-card {
+    padding: 10px;
+  }
+  .disc-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+  }
+  .disc-main img {
+    width: 42px;
+    height: 42px;
+  }
+  .disc-card li {
+    min-height: 19px;
+  }
+  .save-bar {
+    right: 18px;
+  }
+  .top10-layout {
+    grid-template-columns: minmax(0, 1fr) 270px;
+  }
+  .ranking > button {
+    min-height: 58px;
+  }
+  .rank-header,
+  .ranking > button {
+    grid-template-columns:
+      minmax(118px, 1fr) minmax(78px, 0.64fr) minmax(86px, 0.72fr) minmax(90px, 0.72fr)
+      minmax(138px, 1.15fr) 147px;
+    column-gap: var(--soda-space-2);
+  }
+}
+@media (max-width: 960px) {
+  .f5v-shell .overview-layout {
+    grid-template-columns: minmax(0, 1fr);
+    padding-inline: 14px;
+  }
+  .f5v-shell .next-panel {
+    width: 100%;
+  }
+  .f5v-shell .catalog-tools {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: end;
+  }
+  .f5v-shell .catalog-tools > label:first-child {
+    grid-column: 1 / -1;
+  }
+  .f5v-shell .catalog-tools > * {
+    min-width: 0;
+  }
+  .f5v-shell .agent-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}

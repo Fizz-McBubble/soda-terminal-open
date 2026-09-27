@@ -1,0 +1,3 @@
+/* Asset geometry lives beside the Team Execution layout in
+ * `team-loadout-execution.css`. Keeping this compatibility entry empty avoids
+ * a second cascade overriding the accepted workspace surface. */

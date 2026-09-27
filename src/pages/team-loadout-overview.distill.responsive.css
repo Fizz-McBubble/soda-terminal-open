@@ -1,0 +1,264 @@
+.f5v-box-team-overview .f5v-box-team-overview__notice p {
+  margin: 0;
+}
+
+.f5v-box-team-overview .f5v-box-team-completion > ul {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 12px;
+}
+
+.f5v-box-team-overview .f5v-box-team-completion li {
+  align-content: start;
+  gap: 12px;
+  padding: 16px;
+  grid-template-columns: 184px minmax(0, 1fr);
+  align-items: center;
+  border: 0;
+  border-bottom: 1px solid var(--soda-line);
+  border-radius: 0;
+  background: transparent;
+}
+
+.f5v-box-team-overview .f5v-box-team-completion__candidate-label {
+  font-size: 14px;
+  line-height: 21px;
+}
+
+.f5v-box-team-overview .f5v-box-team-completion__member-row {
+  grid-template-columns: 36px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.f5v-box-team-overview .f5v-box-team-completion__member-label {
+  padding-top: 0;
+}
+
+.f5v-box-team-overview .f5v-box-team-completion__portrait,
+.f5v-box-team-overview .f5v-box-team-completion__member-identity .visual-asset-fallback {
+  width: 28px;
+  height: 28px;
+  flex-basis: 28px;
+  border-radius: var(--soda-radius-control);
+  object-fit: cover;
+}
+
+.f5v-box-team-overview .f5v-box-team-completion__member-identity {
+  font-size: var(--soda-type-body);
+}
+
+/* The list supports comparison; the preview keeps one decision and one action. */
+.f5v-box-team-overview .f5v-box-team-reference,
+.f5v-box-team-overview .f5v-box-team-preview__reference {
+  display: inline-flex;
+  width: fit-content;
+  padding: 3px 8px;
+  border-radius: var(--soda-radius-tag);
+  background: #eee8f8;
+  color: #513a80;
+  font-family:
+    'Microsoft YaHei UI', 'Microsoft YaHei', 'PingFang SC', 'Noto Sans CJK SC', sans-serif;
+  font-size: var(--soda-type-body);
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.f5v-box-team-overview .f5v-box-team-preview {
+  align-self: start;
+  height: auto;
+  min-height: 0;
+}
+
+.f5v-box-team-overview .f5v-box-team-preview__scroll {
+  flex: initial;
+}
+
+@media (min-width: 1024px) {
+  .f5v-box-team-overview .f5v-box-team-preview {
+    display: flex;
+    flex-direction: column;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .f5v-box-team-overview .f5v-box-team-preview__scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .f5v-box-team-preview__actions {
+    flex: 0 0 auto;
+  }
+}
+
+.f5v-box-team-preview__details {
+  margin: 16px 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.f5v-box-team-preview__details summary {
+  cursor: pointer;
+  color: #513a80;
+}
+
+.f5v-box-team-preview__details li + li {
+  margin-top: 8px;
+}
+
+.f5v-box-team-overview .f5v-box-team-preview__actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px 18px;
+}
+
+.f5v-box-team-preview__prepare-error {
+  flex: 1 1 220px;
+  color: #a5464f !important;
+}
+
+@media (min-width: 981px) {
+  .f5v-box-team-overview .f5v-box-team-decision-card {
+    grid-template-columns: 240px minmax(0, 1fr) auto;
+  }
+  .f5v-box-team-overview .f5v-box-team-row {
+    grid-template-columns: 240px minmax(0, 1fr);
+  }
+  .f5v-box-team-overview .f5v-box-team-row__identity {
+    display: grid;
+    grid-template-columns: 144px minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 12px;
+  }
+  .f5v-box-team-overview .f5v-box-team-row__identity > .f5v-box-team-reference {
+    width: 100%;
+    box-sizing: border-box;
+    white-space: nowrap;
+  }
+  .f5v-box-team-overview .f5v-box-team-row__identity > strong {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .f5v-box-team-overview .f5v-box-team-row__identity > .team-graduation-completion {
+    grid-column: 3;
+  }
+  .f5v-box-team-overview .f5v-box-team-row__identity > .f5v-box-team-state {
+    grid-column: 4;
+  }
+  .f5v-box-team-overview
+    :is(.f5v-box-team-row, .f5v-box-team-decision-card)
+    .f5v-box-team-portrait-frame,
+  .f5v-box-team-overview
+    :is(.f5v-box-team-row, .f5v-box-team-decision-card)
+    .f5v-box-team-portrait {
+    width: 56px;
+    height: 56px;
+    flex-basis: 56px;
+  }
+  .f5v-box-team-overview :is(.f5v-box-team-row, .f5v-box-team-decision-card) .is-bangboo {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+    object-fit: contain;
+  }
+}
+
+.f5v-box-team-overview .f5v-box-team-preview__gaps {
+  margin: 20px 0 12px;
+}
+
+.f5v-box-team-overview .f5v-box-team-preview__gaps :is(p, li),
+.f5v-box-team-overview .f5v-box-team-preview__gaps h3 {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.f5v-box-team-overview .f5v-box-team-preview__details {
+  margin-top: 12px;
+}
+
+.f5v-box-team-preview__details summary::after {
+  content: ' ＋';
+}
+
+.f5v-box-team-preview__details[open] summary::after {
+  content: ' －';
+}
+
+.f5v-box-team-overview .f5v-box-team-preview__actions button {
+  min-width: 160px;
+  min-height: 44px;
+  font-size: 14px;
+}
+
+.f5v-box-team-overview :is(.f5v-box-team-row, .f5v-box-team-decision-card) {
+  min-height: 80px;
+}
+
+.f5v-box-team-overview .f5v-box-team-preview__scroll {
+  gap: 16px;
+}
+
+.f5v-box-team-overview .f5v-box-team-preview__gaps,
+.f5v-box-team-overview .f5v-box-team-preview__details {
+  margin: 0;
+}
+
+.f5v-box-team-overview .f5v-box-team-preview__details summary {
+  padding: 8px 0;
+}
+
+.f5v-box-team-completion__identities {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+.f5v-box-team-completion__team-portrait {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--soda-radius-control);
+  object-fit: cover;
+}
+.f5v-box-team-completion__team-portrait.is-missing {
+  opacity: 0.55;
+}
+.f5v-box-team-completion__copy {
+  display: grid;
+  gap: 6px;
+}
+.f5v-box-team-completion__member-identity > .visual-entity-image {
+  display: none;
+}
+@media (max-width: 640px) {
+  .f5v-box-team-overview .f5v-box-team-completion li {
+    grid-template-columns: 126px minmax(0, 1fr);
+    padding-inline: 0;
+  }
+  .f5v-box-team-completion__team-portrait {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+/* Let the selected result use its own height; inactive variants must not reserve space. */
+.f5v-box-team-overview .f5v-box-team-preview {
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.f5v-box-team-overview .f5v-box-team-preview__scroll {
+  flex: initial;
+  overflow: visible;
+  align-content: start;
+}
+.f5v-box-team-overview .f5v-box-team-member-names {
+  min-height: 36px;
+}
+.f5v-box-team-overview .f5v-box-team-preview__actions {
+  flex: 0 0 auto;
+}

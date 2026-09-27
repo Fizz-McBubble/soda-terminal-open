@@ -1,0 +1,35 @@
+{
+  "comment": "Browser-graph boundaries bound at build time. Paths are relative to this directory. Shared by vite.config.ts / vite.server.config.ts (aliases) and deploy/prepare-public-shell.mjs (source audit).",
+  "boundaries": [
+    {
+      "specifier": "@soda/visual-asset-manifest",
+      "local": "../src/assets/visualAssetManifestLocal.ts",
+      "public": "../src/assets/visualAssetManifestPublic.ts"
+    },
+    {
+      "specifier": "@soda/planning-profile",
+      "local": "../src/pages/planningProfileLocal.ts",
+      "public": "../src/pages/planningProfilePublic.ts"
+    },
+    {
+      "specifier": "@soda/disc-fact-presentation",
+      "local": "../src/pages/discFactPresentationLocal.ts",
+      "public": "../src/pages/discFactPresentationPublic.ts"
+    },
+    {
+      "specifier": "@soda/warehouse-fact-labels",
+      "local": "../src/pages/warehouseFactLabelsLocal.ts",
+      "public": "../src/pages/warehouseFactLabelsPublic.ts"
+    },
+    {
+      "specifier": "@soda/saved-portfolio-plan-teams",
+      "local": "../src/pages/SavedPortfolioPlanTeamsLocal.tsx",
+      "public": "../src/pages/SavedPortfolioPlanTeamsPublic.tsx"
+    },
+    {
+      "specifier": "@soda/legacy-recovery-fixture",
+      "local": "../src/testing/loadLegacyRecoveryFixture.ts",
+      "public": "../src/testing/emptyLegacyRecoveryFixture.ts"
+    }
+  ]
+}

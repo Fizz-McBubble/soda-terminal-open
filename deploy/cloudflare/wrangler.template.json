@@ -1,0 +1,36 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "soda-terminal",
+  "main": "./edge.mjs",
+  "compatibility_date": "2026-09-27",
+  "workers_dev": true,
+  "preview_urls": false,
+  "assets": {
+    "directory": "./web",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": [
+      "/official-catalog-cache",
+      "/api",
+      "/api/*",
+      "/_soda/*",
+      "/private/*",
+      "/src/*",
+      "/deploy/*",
+      "/scripts/*",
+      "/node_modules/*",
+      "/outputs/*",
+      "/tests/*",
+      "/build/*",
+      "/docs/*",
+      "/.*",
+      "/*/.*",
+      "/*%*",
+      "/*.map",
+      "/*.ts",
+      "/*.tsx",
+      "/*.mjs"
+    ]
+  },
+  "observability": { "enabled": false }
+}

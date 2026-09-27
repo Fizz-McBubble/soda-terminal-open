@@ -1,0 +1,22 @@
+diff --git a/dist/core-server/index.js b/dist/core-server/index.js
+index 91c503c7751afa1fa369fc46dbf35bb43df3876c..cf04ff966f78f95d289baa0ddcb4e2a4039469b7 100644
+--- a/dist/core-server/index.js
++++ b/dist/core-server/index.js
+@@ -8340,7 +8340,7 @@ async function buildOrThrow(callback) {
+ // src/core-server/utils/copy-all-static-files.ts
+ var import_picocolors = __toESM(require_picocolors(), 1);
+ import { cp } from "node:fs/promises";
+-import { join as join2, relative as relative2 } from "node:path";
++import { join as join2, relative as relative2, win32 } from "node:path";
+ import { getDirectoryFromWorkingDir } from "storybook/internal/common";
+ import { logger as logger2 } from "storybook/internal/node-logger";
+ async function copyAllStaticFilesRelativeToMain(staticDirs, outputDir, configDir) {
+@@ -8348,7 +8348,7 @@ async function copyAllStaticFilesRelativeToMain(staticDirs, outputDir, configDir
+   return staticDirs?.reduce(async (acc, dir) => {
+     await acc;
+     let staticDirAndTarget = typeof dir == "string" ? dir : `${dir.from}:${dir.to}`, { staticPath: from, targetEndpoint: to } = parseStaticDir(
+-      getDirectoryFromWorkingDir({
++      win32.isAbsolute(staticDirAndTarget) ? staticDirAndTarget : getDirectoryFromWorkingDir({
+         configDir,
+         workingDir,
+         directory: staticDirAndTarget

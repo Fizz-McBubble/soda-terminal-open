@@ -1,0 +1,19 @@
+.team-decision-summary {
+  display: grid;
+  gap: 6px;
+  margin-block: 12px 16px;
+  color: var(--text-secondary, #625c73);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.team-decision-summary p {
+  margin: 0;
+}
+.team-decision-summary > p:first-child {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 24px;
+}
+.team-decision-summary strong {
+  color: var(--text-primary, #29223b);
+}

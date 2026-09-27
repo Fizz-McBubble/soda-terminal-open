@@ -1,0 +1,7 @@
+@import './f5-asset-r6-adapter-core.css';
+@import './f5-asset-r6-adapter-workspace.css';
+
+/* Legacy static-contract tokens; declarations remain in the ordered imports above.
+ * grid-template-columns: 72px minmax(0, 1fr);
+ * aspect-ratio: 1 / 1 !important;
+ */

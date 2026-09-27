@@ -1,0 +1,448 @@
+.r6-golden .account-chip {
+  min-width: 0;
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.r6-golden .r6-message {
+  position: absolute;
+  inset: 10px 24px auto auto;
+  z-index: 5;
+  max-width: 420px;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: var(--soda-radius-control);
+  background: #f0ecfb;
+  color: #473b69;
+  box-shadow: 0 6px 20px rgb(54 43 84 / 12%);
+}
+
+.f5v-shell .asset-center-loading {
+  display: grid;
+  min-height: 180px;
+  place-items: center;
+  color: #655882;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+.r6-golden .empty-state {
+  grid-column: 1 / -1;
+  padding: 32px;
+  text-align: center;
+}
+
+.r6-golden .draft-stale {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: var(--soda-radius-control);
+  background: #fff1f2;
+  color: #8b3544;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.r6-golden .catalog-reference {
+  display: grid;
+  gap: var(--soda-space-2);
+}
+
+.r6-golden .wengine-reference__stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--soda-space-3);
+  margin: 0;
+}
+.r6-golden .wengine-reference__stats dt {
+  color: var(--soda-text-3);
+  font-size: var(--soda-font-caption);
+}
+.r6-golden .wengine-reference__requirement {
+  color: var(--soda-text-3);
+  font-size: var(--soda-font-body);
+  line-height: 1.6;
+}
+.r6-golden .wengine-reference__stats dd {
+  margin: 4px 0 0;
+  font-size: var(--soda-font-body);
+  font-weight: 700;
+}
+.r6-golden .wengine-reference__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--soda-space-3);
+}
+.r6-golden .wengine-reference__heading h3 {
+  margin: 0;
+}
+.r6-golden .wengine-reference__heading > :last-child {
+  width: 104px;
+}
+.r6-golden .wengine-reference__effect {
+  color: var(--soda-text-3);
+  line-height: 1.6;
+  margin-bottom: 0;
+}
+.r6-golden .wengine-reference__name,
+.r6-golden .catalog-reference__name {
+  color: var(--soda-text);
+  font-size: var(--soda-font-body);
+  font-weight: 700;
+  line-height: 1.6;
+}
+.r6-golden .catalog-reference__facts {
+  display: grid;
+  gap: 0;
+  margin: 0;
+}
+
+.r6-golden .catalog-reference__facts > div {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: var(--soda-space-2);
+  padding: 8px 0;
+  border-top: 1px solid rgb(100 89 133 / 12%);
+}
+
+.r6-golden .catalog-reference__facts dt {
+  color: var(--soda-text-3);
+  font-size: var(--soda-font-caption);
+  font-weight: 400;
+}
+
+.r6-golden .catalog-reference__facts dd,
+.r6-golden .catalog-reference__boundary {
+  margin: 0;
+  color: var(--soda-text-3);
+  font-size: var(--soda-font-body);
+  line-height: 1.6;
+}
+
+.r6-golden .disc-editor-stats :is(.main-stat, .stats) {
+  color: var(--soda-text-3);
+  font-family: var(--soda-font-ui);
+  font-size: var(--soda-font-body);
+  line-height: 1.6;
+}
+
+.r6-golden .disc-editor-stats :is(strong, .stats dd) {
+  color: var(--soda-text);
+  font-weight: 700;
+}
+
+.r6-golden .disc-editor-stats .stats dt em {
+  color: var(--soda-text-3);
+  font-weight: 400;
+}
+
+/* Shared assignment controls live in both the asset editor and the team-plan
+   dialog. Their visual and interaction contract must not depend on an
+   `.r6-golden` ancestor. The menu is portalled to `body` so dialogs cannot
+   clip it. */
+.f5v-wengine-assignment.wengine-assignment-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--soda-space-3);
+  margin: 0;
+  padding: 12px;
+  border: 0;
+  border-radius: var(--soda-radius-surface);
+  background: #f7f4fc;
+  color: #241d36;
+}
+
+.f5v-wengine-assignment .wengine-assignment-field__selector,
+.f5v-wengine-assignment .wengine-assignment-field__levels .field {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  color: #655882;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.f5v-wengine-assignment .wengine-assignment-field__selector > small {
+  color: #746987;
+  font-size: var(--soda-font-caption);
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.f5v-wengine-assignment .wengine-assignment-field__levels {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.f5v-wengine-assignment .wengine-assignment-field__levels input {
+  width: 100%;
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid rgb(100 89 133 / 24%);
+  border-radius: var(--soda-radius-control);
+  color: #2d2542;
+  background: #faf9fd;
+  font: inherit;
+  font-weight: 700;
+}
+
+.f5v-select-menu.select-menu {
+  position: relative;
+  min-width: 0;
+}
+
+.f5v-select-menu.select-menu > .filter-select__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--soda-control-height);
+  padding: 5px 10px;
+  border: 1px solid rgb(100 89 133 / 24%);
+  border-radius: var(--soda-radius-control);
+  color: #302747;
+  background: #faf9fd;
+  font: inherit;
+  font-size: var(--soda-font-body);
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.f5v-select-menu.select-menu > .filter-select__trigger[aria-expanded='true'] {
+  border-color: #7662aa;
+  box-shadow: 0 0 0 3px rgb(118 98 170 / 14%);
+}
+
+.f5v-select-menu.select-menu > .filter-select__trigger:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.f5v-select-menu.select-menu > .filter-select__trigger:focus-visible {
+  outline: 2px solid var(--soda-accent);
+  outline-offset: 2px;
+}
+
+.f5v-select-menu.select-menu > .filter-select__trigger > svg {
+  flex: 0 0 auto;
+  color: #6d5b9e;
+  transition: transform 160ms ease-out;
+}
+
+.f5v-select-menu.select-menu > .filter-select__trigger[aria-expanded='true'] > svg {
+  transform: rotate(180deg);
+}
+
+.f5v-select-menu .filter-select__option-copy,
+.f5v-select-menu-popover .filter-select__option-copy {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+}
+
+.f5v-select-menu .filter-select__option-copy > span:last-child,
+.f5v-select-menu-popover .filter-select__option-copy > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.f5v-select-menu .filter-select__visual,
+.f5v-select-menu-popover .filter-select__visual {
+  display: grid;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  overflow: hidden;
+  border-radius: var(--soda-radius-control);
+  background: #f0edf7;
+}
+
+.f5v-select-menu .filter-select__visual > :is(.visual-entity-image, .visual-asset-fallback),
+.f5v-select-menu-popover
+  .filter-select__visual
+  > :is(.visual-entity-image, .visual-asset-fallback) {
+  width: 44px;
+  height: 44px;
+  object-fit: contain;
+  font-size: var(--soda-font-caption);
+  text-align: center;
+}
+
+.f5v-select-menu-popover.select-menu__popover.filter-select__menu {
+  font-family: var(--soda-font-ui);
+  color: var(--soda-text);
+  position: fixed;
+  z-index: calc(var(--z-overlay, 20) + 1);
+  display: grid;
+  align-content: start;
+  overflow: auto;
+  padding: 6px;
+  border: 1px solid rgb(90 76 127 / 20%);
+  border-radius: var(--soda-radius-control);
+  background: #fff;
+  box-shadow: 0 6px 8px rgb(51 41 78 / 16%);
+}
+
+/* The edit dialog owns the top layer. Its menu stays inside the selector card
+   and must clear the surrounding form controls rather than sit beneath them. */
+.f5v-select-menu-popover--dialog.select-menu__popover.filter-select__menu {
+  z-index: calc(var(--z-overlay, 20) + 8);
+}
+
+.f5v-select-menu-popover.select-menu__popover.filter-select__menu button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  min-height: 44px;
+  padding: 5px 7px;
+  border: 0;
+  border-radius: var(--soda-radius-control);
+  color: #443856;
+  background: transparent;
+  font: inherit;
+  font-size: 0.75rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.f5v-select-menu-popover.select-menu__popover.filter-select__menu button:hover,
+.f5v-select-menu-popover.select-menu__popover.filter-select__menu button:focus-visible,
+.f5v-select-menu-popover.select-menu__popover.filter-select__menu button[aria-selected='true'] {
+  outline: none;
+  color: #493871;
+  background: #f0edf7;
+}
+
+/* The portal sits outside .f5v-shell. Distinguish keyboard focus from selection. */
+.f5v-select-menu-popover.select-menu__popover.filter-select__menu button:focus-visible {
+  outline: 2px solid var(--soda-focus, #6b57a1);
+  outline-offset: -2px;
+}
+
+.f5v-select-menu-popover.select-menu__popover.filter-select__menu button:disabled {
+  color: #938b9e;
+  cursor: not-allowed;
+}
+
+.f5v-select-menu-popover.select-menu__popover .filter-select__group {
+  display: grid;
+}
+
+.f5v-select-menu-popover.select-menu__popover .filter-select__group > strong {
+  padding: 9px 7px 4px;
+  color: #6c5c85;
+  font-size: var(--soda-font-caption);
+  font-weight: 800;
+}
+
+.f5v-select-menu-popover.select-menu__popover.filter-select__menu > button > svg,
+.f5v-select-menu-popover.select-menu__popover .filter-select__group button > svg {
+  flex: 0 0 auto;
+  color: #6b57a1;
+}
+
+@media (max-width: 520px) {
+  .f5v-wengine-assignment .wengine-assignment-field__levels {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .f5v-select-menu.select-menu > .filter-select__trigger > svg {
+    transition: none;
+  }
+}
+
+.r6-golden .catalog-reference__boundary {
+  padding: 8px 10px;
+  border-radius: var(--soda-radius-control);
+  background: #f4f1f9;
+}
+
+@media (max-width: 1390px) {
+  .r6-golden .filterbar {
+    grid-template-columns: minmax(145px, 200px) repeat(3, minmax(96px, max-content));
+  }
+  .r6-golden .filterbar--discs {
+    grid-template-columns: minmax(145px, 200px) repeat(2, minmax(96px, max-content));
+  }
+}
+
+/* This file is imported after adapter-core. Keep its desktop compression rule
+   from restoring four fixed controls inside the narrow two-column catalog. */
+@media (max-width: 960px) {
+  .f5v-wengine-assignment .wengine-assignment-field__selector > small {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .r6-golden .filterbar,
+  .r6-golden .filterbar--discs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .r6-golden .filterbar > * {
+    min-width: 0;
+  }
+}
+
+/* Player-facing facts must stay readable at the normal desktop text size. */
+.f5v-shell .r6-golden .catalog-reference__facts dd,
+.f5v-shell .r6-golden .catalog-reference__boundary,
+.f5v-shell .r6-golden .editor-section > p,
+.f5v-shell .r6-golden .catalog > header p {
+  font-size: var(--soda-font-body);
+  line-height: 1.6;
+  white-space: normal;
+}
+
+.f5v-shell .r6-golden .catalog-reference__facts dt,
+.f5v-shell .r6-golden .editor label,
+.f5v-shell .r6-golden .editor .field > span,
+.f5v-shell .r6-golden .editor .field > label,
+.f5v-shell .r6-golden .editor small,
+.f5v-shell .r6-golden .editor > footer,
+.f5v-shell .r6-golden .identity p,
+.f5v-shell .f5v-wengine-assignment .wengine-assignment-field__selector > small {
+  font-size: var(--soda-font-caption);
+  line-height: 1.5;
+  white-space: normal;
+}
+
+.f5v-select-menu .filter-select__visual,
+.f5v-select-menu-popover .filter-select__visual {
+  background: transparent;
+}
+.f5v-select-menu .filter-select__visual > .visual-entity-image,
+.f5v-select-menu-popover .filter-select__visual > .visual-entity-image {
+  box-sizing: border-box;
+  padding: 4px;
+}
+
+.r6-golden .engine-user-avatar {
+  display: inline-flex;
+  width: 52px;
+  height: 52px;
+  overflow: hidden;
+  border-radius: 8px;
+}
+.r6-golden .engine-user-avatar > * {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.f5v-shell .r6-golden .catalog-reference__facts dd {
+  white-space: pre-line;
+}

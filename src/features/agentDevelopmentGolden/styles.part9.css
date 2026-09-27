@@ -1,0 +1,114 @@
+.decision-guide {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid rgba(93, 79, 130, 0.18);
+  border-radius: var(--soda-radius-surface);
+  background: linear-gradient(135deg, #f0edf8 0%, #f8f7fc 100%);
+  box-shadow: inset 3px 0 0 rgba(101, 83, 157, 0.62);
+}
+
+.decision-guide__recommendation,
+.decision-guide__separation,
+.decision-guide__separation > div {
+  min-width: 0;
+}
+
+.decision-guide__recommendation small,
+.decision-guide__separation dt {
+  color: #746d87;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.decision-guide__recommendation h4 {
+  margin: 7px 0 6px;
+  color: var(--ink, #201a2c);
+  font-size: 1rem;
+  line-height: 1.45;
+}
+
+.decision-guide__recommendation p,
+.decision-guide__separation dd,
+.decision-evidence p {
+  margin: 0;
+  color: var(--muted, #655d73);
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.decision-guide__separation {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+
+.decision-guide__separation > div {
+  padding-left: 12px;
+  border-left: 2px solid rgba(101, 83, 157, 0.28);
+}
+
+.decision-guide__separation dd {
+  margin: 4px 0 0;
+  font-size: 0.82rem;
+}
+
+.decision-evidence {
+  padding-top: 12px;
+}
+
+.decision-evidence summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--soda-space-3);
+  color: var(--ink, #201a2c);
+  cursor: pointer;
+  list-style: none;
+}
+
+.decision-evidence summary::-webkit-details-marker {
+  display: none;
+}
+
+.decision-evidence summary span {
+  color: var(--muted, #655d73);
+  font-size: 0.76rem;
+}
+
+.decision-evidence > div {
+  display: grid;
+  gap: 10px;
+  padding-top: 12px;
+}
+
+.decision-evidence code {
+  color: #584193;
+}
+
+.decision-evidence ul {
+  display: grid;
+  gap: var(--soda-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.decision-evidence li {
+  display: grid;
+  grid-template-columns: minmax(140px, 0.45fr) minmax(0, 1fr);
+  gap: 10px;
+  font-size: 0.78rem;
+}
+
+.decision-evidence li span {
+  color: var(--muted, #655d73);
+}
+
+@media (max-width: 1080px) {
+  .decision-guide {
+    grid-template-columns: 1fr;
+  }
+}

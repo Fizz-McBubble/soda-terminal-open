@@ -1,0 +1,212 @@
+.f5v-box-team-row__identity {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.f5v-box-team-row__identity strong {
+  overflow-wrap: anywhere;
+  font-size: 16px;
+  line-height: 21px;
+}
+
+.f5v-box-team-state {
+  width: max-content;
+  max-width: 100%;
+  color: #3f846a;
+  font-size: var(--soda-font-small);
+  font-weight: 680;
+  line-height: 18px;
+}
+
+.f5v-box-team-state.is-direction {
+  color: #b25d68;
+}
+
+.f5v-box-team-state.is-saved {
+  color: #7659c7;
+}
+
+.f5v-box-team-row__reason {
+  grid-column: 2;
+  color: var(--soda-text-2);
+  font-size: var(--soda-font-small);
+  line-height: 20px;
+}
+
+.f5v-box-team-preview {
+  min-width: 0;
+  border-left: 1px solid var(--soda-line);
+  background: transparent;
+}
+
+.f5v-box-team-preview__scroll {
+  padding: 8px 28px 6px 34px;
+}
+
+.f5v-box-team-preview header {
+  display: grid;
+  gap: 6px;
+}
+
+.f5v-box-team-combat-evidence {
+  color: var(--soda-text-2);
+  font-size: var(--soda-font-small);
+  line-height: 1.6;
+}
+
+.f5v-box-team-preview .f5v-box-team-combat-evidence summary {
+  display: block;
+  cursor: pointer;
+  color: var(--soda-accent, #7659c7);
+}
+
+.f5v-box-team-combat-evidence__chevron {
+  display: inline-block;
+  margin-right: 6px;
+}
+
+.f5v-box-team-combat-evidence[open] .f5v-box-team-combat-evidence__chevron {
+  transform: rotate(90deg);
+}
+
+.f5v-box-team-combat-evidence ul {
+  margin: 6px 0;
+  padding-left: 20px;
+}
+
+.f5v-box-team-preview h2 {
+  margin: 0;
+  color: var(--soda-text);
+  font-size: 25px;
+  font-weight: 740;
+  line-height: 31px;
+}
+
+.f5v-box-team-preview__preference {
+  margin: 0 0 8px;
+  color: #6548b5;
+  font-size: var(--soda-font-caption);
+  font-weight: 650;
+  line-height: 18px;
+}
+
+.f5v-box-team-preview__mechanism,
+.f5v-box-team-preview__core {
+  margin: 0;
+  color: var(--soda-text-2);
+  font-size: var(--soda-font-small);
+  line-height: 19px;
+}
+
+.f5v-box-team-preview__mechanism {
+  color: #6853a7;
+  font-weight: 680;
+}
+
+.f5v-box-team-variants {
+  padding: 16px 0 !important;
+}
+
+.f5v-box-team-variants > p {
+  margin-bottom: 10px;
+}
+
+.f5v-box-team-variants > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.f5v-box-team-variants button {
+  min-height: 34px;
+  padding: 5px 9px;
+  border: 1px solid var(--soda-line-strong);
+  border-radius: var(--soda-radius-control);
+  color: var(--soda-text-2);
+  background: transparent;
+  font: inherit;
+  font-size: var(--soda-font-caption);
+  line-height: 17px;
+  cursor: pointer;
+}
+
+.f5v-box-team-variants button.is-selected {
+  border-color: #7659c7;
+  color: #513a96;
+  background: #f3f0fa;
+  font-weight: 680;
+}
+
+.f5v-box-team-preview__members {
+  margin-top: 26px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--soda-line);
+}
+
+.f5v-box-team-portraits.is-large {
+  gap: var(--soda-space-3);
+}
+
+.f5v-box-team-portraits.is-large .f5v-box-team-portrait,
+.f5v-box-team-portraits.is-large .visual-asset-fallback {
+  width: 64px;
+  height: 64px;
+  flex-basis: 64px;
+}
+
+.f5v-box-team-portraits.is-large .f5v-box-team-portrait.is-bangboo,
+.f5v-box-team-portraits.is-large .visual-asset-fallback.is-bangboo {
+  width: 64px;
+  height: 64px;
+  flex-basis: 64px;
+}
+
+.f5v-box-team-member-names {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--soda-space-3);
+  margin-top: 12px;
+  color: var(--soda-text-2);
+  font-size: var(--soda-font-caption);
+  line-height: 18px;
+  text-align: center;
+}
+
+.f5v-box-team-member-names.has-bangboo {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.f5v-box-team-bangboo-direction {
+  margin-top: 8px !important;
+  color: var(--soda-text-3) !important;
+  font-size: 12px !important;
+}
+
+.f5v-box-team-preview section {
+  padding: 23px 0;
+  border-bottom: 1px solid var(--soda-line);
+}
+
+.f5v-box-team-preview h3 {
+  margin: 0 0 7px;
+  color: #6853a7;
+  font-size: 15px;
+  font-weight: 720;
+  line-height: 22px;
+}
+
+.f5v-box-team-preview p,
+.f5v-box-team-preview li {
+  margin: 0;
+  color: var(--soda-text-2);
+  font-size: var(--soda-font-body);
+  line-height: 22px;
+}
+
+.f5v-box-team-preview ul {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding-left: 20px;
+}

@@ -1,0 +1,64 @@
+@import './team-loadout-overview.part1.css';
+@import './team-loadout-overview.part2.css';
+@import './team-loadout-overview.variants.css';
+@import './team-loadout-overview.actions.css';
+.f5v-box-team-dps {
+  color: var(--f5v-ink-soft, #625d6a);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.f5v-box-team-dps[data-capability-state='ready'] {
+  color: var(--f5v-purple-strong, #6547a5);
+}
+
+.f5v-saved-plan-list {
+  max-width: 1120px;
+  margin: 20px auto;
+  color: var(--soda-text);
+}
+
+.f5v-saved-plan-list h1 {
+  margin: 24px 0 20px;
+  font-size: 28px;
+  line-height: 1.25;
+}
+
+.f5v-saved-plan-list .panel {
+  padding: 20px;
+  border: 1px solid var(--soda-line);
+  border-radius: var(--soda-radius-surface);
+  background: var(--soda-panel);
+}
+
+.f5v-saved-plan-list ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.f5v-saved-plan-list li + li {
+  border-top: 1px solid var(--soda-line);
+}
+
+.f5v-saved-plan-list li {
+  padding: 12px 0;
+  overflow-wrap: anywhere;
+}
+
+.f5v-saved-plan-list li a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--soda-accent);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.f5v-saved-plan-list p {
+  margin: 0 0 8px;
+  color: var(--soda-text-2);
+  font-size: var(--soda-font-body);
+  line-height: 1.6;
+}

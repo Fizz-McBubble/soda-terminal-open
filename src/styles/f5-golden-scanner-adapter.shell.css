@@ -1,0 +1,429 @@
+/* Mechanically promoted Scanner prototype geometry. Production state only fills these slots. */
+.f5v-shell .visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.f5v-shell .scanner-route li {
+  position: relative;
+  display: block;
+  padding: 0 0 28px 26px;
+  color: var(--f5-muted) !important;
+  font-size: 0.875rem;
+}
+
+.f5v-shell .scanner-route li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 3px;
+  z-index: 1;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #e6e2ed;
+}
+
+.f5v-shell .scanner-route li.complete::before {
+  background: #b8cbd8;
+}
+
+.f5v-shell .scanner-route li.current {
+  color: var(--f5-ink) !important;
+  font-weight: 700;
+}
+
+.f5v-shell .scanner-route li.current::before {
+  background: var(--f5-accent);
+  box-shadow: 0 0 0 5px rgba(103, 90, 144, 0.12);
+}
+
+.f5v-shell .scanner-task {
+  padding: 34px 40px;
+}
+
+.f5v-shell .scanner-task__top h1 {
+  margin: 0;
+  font-size: 2rem;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.f5v-shell .scanner-task__state-preview {
+  display: grid;
+  gap: 6px;
+  min-width: 158px;
+  color: var(--f5-muted) !important;
+  font-size: 0.75rem;
+}
+
+.f5v-shell .scanner-task__state-preview strong {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 34px 0 12px;
+  border: 1px solid rgba(103, 90, 144, 0.26);
+  border-radius: var(--soda-radius-control);
+  color: var(--f5-ink) !important;
+  background: #fff;
+  font-weight: 400;
+}
+
+.f5v-shell .scanner-task__state-copy,
+.f5v-shell .scanner-prepare {
+  margin-top: 14px;
+}
+
+.f5v-shell .scanner-prepare__intro {
+  display: block !important;
+}
+
+.f5v-shell .scanner-task__state-copy > span,
+.f5v-shell .scanner-prepare__intro > span {
+  display: none;
+}
+
+.f5v-shell .scanner-task__state-copy h2,
+.f5v-shell .scanner-prepare__intro h2 {
+  max-width: none;
+  margin: 0 0 5px;
+  font-size: 1.125rem;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+}
+
+.f5v-shell .scanner-task__state-copy p,
+.f5v-shell .scanner-prepare__intro p {
+  margin: 0;
+  color: var(--f5-muted) !important;
+  line-height: 1.6;
+}
+
+.f5v-shell .scanner-prepare__intro p {
+  max-width: none;
+}
+
+.f5v-shell .scanner-prepare {
+  padding: 0;
+}
+
+.f5v-shell .scanner-prepare__account {
+  max-width: 620px;
+  margin: 0;
+  padding: 18px 0;
+  border-top: 0;
+  border-bottom: 0;
+  list-style: none;
+}
+
+.f5v-shell .scanner-prepare__account > .scanner-target-account {
+  display: block;
+  padding: 0;
+  border: 0;
+}
+
+.f5v-shell .scanner-prepare__account .scanner-target-account__content {
+  display: block;
+  width: 100%;
+}
+
+.f5v-shell .scanner-prepare__account .scanner-account-picker {
+  width: 100%;
+  max-width: none;
+}
+
+.f5v-shell .scanner-prepare__account .scanner-prepare__check-icon {
+  display: none;
+}
+
+.f5v-shell .scanner-account-picker__trigger {
+  min-height: 46px;
+  margin-top: 8px;
+  padding-inline: 14px;
+  background: #fff;
+}
+
+.f5v-shell .scanner-target-account__summary {
+  margin: 0;
+  font-size: 0.75rem;
+}
+
+.f5v-shell .scanner-target-account__summary :is(strong, span) {
+  display: block;
+}
+
+.f5v-shell .scanner-target-account__summary span {
+  margin-top: 4px;
+  color: var(--f5-muted) !important;
+}
+
+.f5v-shell .scanner-target-account__create {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--soda-space-3);
+  margin-top: 12px;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.f5v-shell .scanner-target-account__create > label {
+  display: grid;
+  gap: var(--soda-space-2);
+  color: var(--f5-muted);
+  font-size: 0.75rem;
+}
+
+.f5v-shell .scanner-prepare__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--soda-space-4);
+  margin-top: 24px;
+}
+
+.f5v-shell .scanner-web__handoff > p,
+.f5v-shell .scanner-task__safety {
+  color: var(--f5-muted) !important;
+  font-size: 0.875rem;
+}
+
+.f5v-shell .scanner-prepare__details {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--soda-line);
+}
+
+.f5v-shell .scanner-prepare__details > summary {
+  color: var(--f5-accent);
+  cursor: pointer;
+}
+
+.f5v-shell .scanner-prepare__details .scanner-prepare__summary {
+  margin-top: 12px;
+}
+
+.f5v-shell .scanner-prepare__account-disclosure {
+  margin-top: 12px;
+}
+
+.f5v-shell .scanner-prepare__details > p {
+  margin: 10px 0 0;
+  color: var(--f5-muted) !important;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+.f5v-shell .scanner-web__handoff,
+.f5v-shell .scanner-target-review,
+.f5v-shell .scanner-completed-review {
+  max-width: 620px;
+  margin-top: 26px;
+}
+
+.f5v-shell .scanner-golden--import_ready .scanner-web__handoff {
+  max-width: none;
+}
+
+.f5v-shell .scanner-account-evidence {
+  margin: 0 0 14px;
+  padding: 0;
+  background: #f7edf0;
+}
+
+.f5v-shell .scanner-completed-review .scanner-account-picker,
+.f5v-shell .scanner-completed-account {
+  margin: 0;
+  padding: 18px 0;
+  border-top: 0;
+  border-bottom: 0;
+}
+
+.f5v-shell .scanner-target-review .scanner-account-picker {
+  margin: 0;
+  padding: 0 0 18px;
+  border-top: 0;
+  border-bottom: 0;
+}
+
+.f5v-shell .scanner-completed-account {
+  display: block;
+}
+
+.f5v-shell .scanner-completed-account span {
+  color: var(--f5-muted) !important;
+  font-size: 0.75rem;
+}
+
+.f5v-shell .scanner-completed-account strong {
+  display: flex;
+  align-items: center;
+  min-height: 46px;
+  margin-top: 8px;
+  padding-inline: 14px;
+  border-radius: var(--soda-radius-control);
+  background: #fff;
+  box-shadow: inset 0 0 0 1px rgba(103, 90, 144, 0.2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.f5v-shell .scanner-web__summary {
+  margin-top: 18px;
+  border: 0;
+}
+
+.f5v-shell .scanner-web__summary article {
+  padding: 12px 0;
+}
+
+.f5v-shell .scanner-web__summary article + article {
+  border: 0;
+}
+
+.f5v-shell .scanner-web__summary small {
+  display: none;
+}
+
+.f5v-shell
+  :is(
+    .scanner-prepare__actions,
+    .scanner-web__scan-actions,
+    .scanner-target-review__actions,
+    .scanner-task__confirmation-actions
+  ) {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--soda-space-2);
+}
+
+.f5v-shell .scanner-target-review__actions,
+.f5v-shell .scanner-web__handoff > .scanner-web__primary-action,
+.f5v-shell .scanner-completed-review > .scanner-web__primary-action,
+.f5v-shell .scanner-web__scan-actions {
+  margin-top: var(--soda-space-4);
+}
+
+.f5v-shell .scanner-task__confirmation-actions {
+  justify-content: flex-end;
+  margin-top: var(--soda-space-4);
+}
+
+.f5v-shell .scanner-web__scan-actions .button:first-child {
+  min-height: 46px;
+  padding-inline: 20px;
+  border: 0;
+  border-radius: var(--soda-radius-control);
+  color: #fff;
+  background: linear-gradient(135deg, #75689f, #625685);
+  box-shadow: 0 6px 12px rgba(91, 76, 132, 0.18);
+  text-decoration: none;
+}
+
+.f5v-shell .scanner-web__scan-actions small {
+  display: none;
+}
+
+.f5v-shell
+  .scanner-golden[data-scanner-state='scanning']
+  :is(.scanner-web__interaction-lock, .scanner-web__progress, .scanner-target-mismatch),
+.f5v-shell
+  .scanner-golden[data-scanner-state='paused']
+  :is(.scanner-web__interaction-lock, .scanner-web__progress, .scanner-target-mismatch) {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0 0 0 0) !important;
+  white-space: nowrap !important;
+}
+
+.f5v-shell .scanner-target-account__frozen {
+  max-width: 620px;
+  margin: 28px 0 0;
+  padding: 18px 0;
+  border-top: 0;
+  border-bottom: 0;
+  color: var(--f5-ink);
+}
+
+.f5v-shell .scanner-context__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.f5v-shell .scanner-context__heading b {
+  padding: 5px 9px;
+  border-radius: 999px;
+  color: var(--f5-accent);
+  background: var(--f5-wash);
+  font-size: 0.75rem;
+}
+
+.f5v-shell .scanner-context__heading h2 {
+  margin: 0;
+  color: var(--f5-accent);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  line-height: 1.2;
+}
+
+.f5v-shell .scanner-context__ownership p {
+  margin: 10px 0 0;
+}
+
+.f5v-shell .scanner-task__utilities-disclosure {
+  margin-top: 16px;
+}
+
+.f5v-shell .scanner-task__slant.danger {
+  color: #843448 !important;
+  background: #f3e1e6;
+}
+
+.f5v-shell .scanner-golden--connection_failed .scanner-prepare__intro h2 {
+  color: #a84a5d !important;
+}
+
+/* Loaded after primitives: keep Scanner's one primary action visually authoritative. */
+.f5v-shell .scanner-golden .scanner-web__primary-action.button--primary {
+  border: 0;
+  color: #fff;
+  background-color: #625685;
+  background-image: linear-gradient(135deg, #75689f, #625685);
+  box-shadow: 0 6px 12px rgba(91, 76, 132, 0.18);
+}
+
+.f5v-shell .scanner-import-complete {
+  display: grid;
+  grid-template-columns: minmax(280px, 1fr) minmax(320px, 1fr);
+  align-items: center;
+  gap: var(--soda-space-6);
+  padding: 28px 0;
+}
+
+.f5v-shell .scanner-import-complete .scanner-task__completion {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  align-items: flex-start;
+}
+
+.f5v-shell .scanner-import-complete h2 {
+  margin: 6px 0;
+  font-size: 24px;
+  line-height: 1.35;
+}

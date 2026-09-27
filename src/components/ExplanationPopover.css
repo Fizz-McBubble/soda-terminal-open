@@ -1,0 +1,106 @@
+.explanation {
+  display: inline-block;
+  min-width: 0;
+}
+.f5v-shell .explanation > .explanation__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 30px;
+  padding: 3px 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--soda-text-3);
+  font-family: var(--soda-font-ui);
+  font-size: var(--soda-type-body);
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: left;
+  cursor: pointer;
+}
+.explanation-popover[popover] {
+  position: fixed;
+  inset: auto;
+  box-sizing: border-box;
+  width: min(30rem, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  margin: 0;
+  padding: 16px;
+  overflow: auto;
+  visibility: hidden;
+  border: 1px solid var(--soda-line);
+  border-radius: var(--soda-radius-surface);
+  background: var(--soda-surface);
+  box-shadow: 0 8px 28px rgb(35 28 50 / 14%);
+  color: var(--soda-text-3);
+  font-family: var(--soda-font-ui);
+  font-size: var(--soda-type-body);
+  font-weight: 400;
+  line-height: 1.6;
+  text-align: left;
+  overflow-wrap: anywhere;
+  opacity: 0;
+  transition:
+    opacity 160ms var(--soda-ease-out),
+    display 160ms allow-discrete,
+    overlay 160ms allow-discrete;
+}
+.explanation-popover[popover]:popover-open {
+  opacity: 1;
+}
+@starting-style {
+  .explanation-popover[popover]:popover-open {
+    opacity: 0;
+  }
+}
+.explanation-popover[popover] .explanation-popover__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 8px;
+}
+.explanation-popover[popover] .explanation-popover__header button {
+  width: 30px;
+  min-height: 30px;
+  flex: 0 0 auto;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--soda-text-3);
+  font: inherit;
+  font-size: var(--soda-type-section);
+  cursor: pointer;
+}
+.explanation-popover[popover] :is(p, ul, dl, section) {
+  margin: 0;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+}
+.explanation-popover[popover] :is(p + p, dl, section + section) {
+  margin-top: 12px;
+}
+.explanation-popover[popover] ul {
+  padding-left: 20px;
+}
+.explanation-popover[popover] :is(strong, b, dt) {
+  color: var(--soda-text);
+  font-weight: 700;
+}
+.explanation-popover[popover] dl > div + div {
+  margin-top: 12px;
+}
+.explanation-popover[popover] dd {
+  margin: 4px 0 0;
+  white-space: pre-line;
+}
+.f5v-shell .explanation button:focus-visible {
+  outline: 2px solid var(--soda-accent);
+  outline-offset: 2px;
+}

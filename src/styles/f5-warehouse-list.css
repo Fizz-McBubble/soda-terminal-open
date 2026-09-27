@@ -1,0 +1,474 @@
+/* N3: read-only action projection, with one list scroll owner for 0–3000 discs. */
+.f5v-shell .warehouse-workbench {
+  --warehouse-workspace-columns: minmax(0, 1.7fr) minmax(300px, 0.72fr);
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: var(--soda-space-3);
+  margin: 0;
+  overflow: hidden;
+  color: var(--f5-ink);
+}
+.f5v-shell .warehouse-workbench__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 2px 2px;
+}
+.f5v-shell .warehouse-workbench__header > div:first-child {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: end;
+  column-gap: 10px;
+  min-width: 0;
+}
+.f5v-shell .warehouse-workbench__header > div:first-child .eyebrow {
+  grid-column: 1 / -1;
+}
+.f5v-shell .warehouse-workbench__header .eyebrow,
+.f5v-shell .warehouse-action-drawer .eyebrow {
+  color: var(--f5-accent);
+  font-size: var(--soda-font-caption);
+  font-weight: 750;
+}
+.f5v-shell .warehouse-workbench__header h1 {
+  margin: 4px 0 0;
+  font-size: clamp(24px, 2vw, 28px);
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+}
+.f5v-shell .warehouse-workbench__header p {
+  margin: 0 0 2px;
+  color: var(--f5-muted);
+  font-size: var(--soda-font-small);
+}
+
+.f5v-shell .warehouse-workbench__header .warehouse-workbench__notice {
+  white-space: nowrap;
+  font-size: var(--soda-font-caption);
+}
+.f5v-shell .warehouse-workbench__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--soda-space-3);
+}
+.f5v-shell .warehouse-workbench__actions > span {
+  color: var(--f5-muted);
+  font-size: var(--soda-font-caption);
+  white-space: nowrap;
+}
+.f5v-shell .warehouse-action-controls {
+  display: grid;
+  gap: var(--soda-space-2);
+  min-width: 0;
+}
+.f5v-shell .warehouse-action-summary {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: var(--soda-space-2);
+}
+.f5v-shell .warehouse-action-summary__item {
+  min-width: 0;
+  min-height: 36px;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--soda-space-2);
+  padding: 6px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--soda-radius-control);
+  background: var(--f5-wash);
+  color: var(--f5-muted);
+  cursor: pointer;
+  transition:
+    transform var(--soda-motion-fast) var(--soda-ease-out),
+    border-color var(--soda-motion-fast) var(--soda-ease-out),
+    background-color var(--soda-motion-fast) var(--soda-ease-out),
+    box-shadow var(--soda-motion-fast) var(--soda-ease-out);
+}
+.f5v-shell .warehouse-action-summary__item span {
+  font-size: var(--soda-font-small);
+  font-weight: 600;
+}
+.f5v-shell .warehouse-action-summary__item strong {
+  color: var(--f5-ink);
+  font-size: var(--soda-font-body);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.f5v-shell .warehouse-action-summary__item:hover {
+  border-color: rgba(112, 90, 158, 0.28);
+  background: #ffffff;
+  box-shadow: 0 2px 6px rgba(45, 35, 70, 0.05);
+  transform: translateY(-0.5px);
+}
+.f5v-shell .warehouse-action-summary__item.is-active {
+  border-color: var(--f5-accent);
+  background: linear-gradient(110deg, #ece7f8, #f6f3fb);
+  color: var(--f5-accent);
+  box-shadow: 0 2px 6px rgba(93, 78, 129, 0.08);
+}
+.f5v-shell .warehouse-action-summary__item.is-active strong {
+  color: var(--f5-accent);
+}
+.f5v-shell .warehouse-analysis-filters {
+  display: grid;
+  grid-template-columns: var(--warehouse-workspace-columns);
+  gap: var(--soda-space-3);
+  align-items: end;
+}
+.f5v-shell .warehouse-analysis-filters__discs,
+.f5v-shell .warehouse-analysis-filters__usage {
+  display: grid;
+  min-width: 0;
+  gap: var(--soda-space-2);
+  align-items: end;
+}
+.f5v-shell .warehouse-analysis-filters__discs {
+  grid-template-columns: auto repeat(3, minmax(0, 1fr));
+}
+.f5v-shell .warehouse-analysis-filters__usage {
+  grid-template-columns: minmax(0, 1fr) minmax(100px, 0.65fr) auto;
+}
+.f5v-shell .warehouse-filter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--soda-space-2);
+}
+.f5v-shell .warehouse-clear-filters {
+  min-height: 34px;
+  padding: 6px 10px;
+  font-size: var(--soda-font-caption);
+  white-space: nowrap;
+}
+.f5v-shell .warehouse-analysis-filters__discs > svg {
+  margin: 0 2px 10px;
+  color: var(--f5-accent);
+}
+.f5v-shell .warehouse-analysis-filters label {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  color: var(--f5-muted);
+  font-size: var(--soda-font-caption);
+}
+.f5v-shell .warehouse-analysis-filters select {
+  min-width: 0;
+  min-height: 34px;
+  padding: 0 7px;
+  border: 1px solid color-mix(in srgb, var(--f5-accent) 22%, transparent);
+  border-radius: var(--soda-radius-control);
+  color: var(--f5-ink);
+  background: var(--f5-paper);
+  font-size: var(--soda-font-caption);
+}
+.f5v-shell .warehouse-more-filters {
+  position: relative;
+  min-height: 34px;
+}
+.f5v-shell .warehouse-more-filters summary {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  border: 1px solid color-mix(in srgb, var(--f5-accent) 22%, transparent);
+  border-radius: var(--soda-radius-control);
+  color: var(--f5-ink);
+  font-size: var(--soda-font-caption);
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+.f5v-shell .warehouse-more-filters summary::-webkit-details-marker {
+  display: none;
+}
+.f5v-shell .warehouse-more-filters[open] > div {
+  position: absolute;
+  z-index: 3;
+  right: 0;
+  top: 42px;
+  width: min(360px, calc(100vw - 32px));
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--soda-space-2);
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--f5-accent) 20%, transparent);
+  border-radius: var(--soda-radius-surface);
+  background: var(--f5-paper);
+  box-shadow: 0 6px 8px color-mix(in srgb, var(--f5-ink) 12%, transparent);
+}
+.f5v-shell .warehouse-action-list {
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  container: warehouse-action-list / inline-size;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--f5-accent) 18%, transparent);
+  border-radius: var(--soda-radius-surface);
+  background: var(--f5-paper);
+}
+.f5v-shell .warehouse-action-workspace {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: var(--warehouse-workspace-columns);
+  gap: var(--soda-space-3);
+  overflow: hidden;
+}
+.f5v-shell .warehouse-action-list__header,
+.f5v-shell .warehouse-action-row {
+  display: grid;
+  grid-template-columns: minmax(135px, 0.9fr) minmax(270px, 1.65fr) minmax(100px, 0.6fr) minmax(
+      115px,
+      0.7fr
+    );
+  column-gap: var(--soda-space-3);
+  padding: 0 14px;
+}
+.f5v-shell .warehouse-action-list__header {
+  min-height: 30px;
+  align-items: center;
+  border-bottom: 1px solid color-mix(in srgb, var(--f5-accent) 16%, transparent);
+  color: var(--f5-muted);
+  font-size: var(--soda-font-caption);
+  font-weight: 750;
+}
+.f5v-shell .warehouse-action-list__result,
+.f5v-shell .warehouse-action-list__sort {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.f5v-shell .warehouse-action-list__result .text-action {
+  min-height: 26px;
+  white-space: nowrap;
+}
+.f5v-shell .warehouse-action-list__sort {
+  justify-content: flex-end;
+}
+.f5v-shell .warehouse-action-list__sort [role='combobox'] {
+  min-width: 108px;
+  min-height: 28px;
+  font-size: var(--soda-type-meta);
+}
+.f5v-shell .warehouse-action-list__body {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: auto;
+  scrollbar-gutter: stable;
+}
+.f5v-shell .warehouse-action-list__selection-notice {
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  margin: 0;
+  padding: 6px 12px;
+  border-bottom: 1px solid var(--soda-line);
+  color: var(--soda-text-3);
+  background: var(--f5-wash);
+  font-size: var(--soda-type-meta);
+}
+.f5v-shell .warehouse-action-list__spacer {
+  position: relative;
+}
+.f5v-shell .warehouse-action-list__window {
+  position: absolute;
+  inset: 0 0 auto;
+  width: 100%;
+}
+.f5v-shell .warehouse-action-row {
+  width: 100%;
+  height: var(--warehouse-row-height, 72px);
+  align-items: center;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--f5-accent) 8%, transparent);
+  border-radius: var(--soda-radius-control);
+  color: var(--f5-ink);
+  background: transparent;
+  text-align: left;
+  transition:
+    background-color var(--soda-motion-fast) var(--soda-ease-out),
+    box-shadow var(--soda-motion-fast) var(--soda-ease-out);
+}
+.f5v-shell .warehouse-action-row:hover {
+  background: rgba(236, 231, 248, 0.4);
+}
+.f5v-shell .warehouse-action-row.is-selected {
+  background: color-mix(in srgb, var(--f5-accent) 10%, var(--f5-paper));
+  box-shadow: inset 3px 0 0 var(--f5-accent);
+}
+.f5v-shell .warehouse-action-row:focus-visible,
+.f5v-shell .warehouse-action-summary__item:focus-visible,
+.f5v-shell .warehouse-more-filters summary:focus-visible {
+  outline: 2px solid var(--f5-accent);
+  outline-offset: -2px;
+}
+.f5v-shell .warehouse-action-row__identity {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--soda-space-2);
+}
+.f5v-shell .warehouse-action-row__image {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: var(--soda-radius-control);
+  background: var(--f5-wash);
+}
+.f5v-shell .warehouse-action-row__identity > span {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+.f5v-shell .warehouse-action-row strong {
+  overflow: hidden;
+  font-size: var(--soda-font-small);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.f5v-shell .warehouse-action-row small {
+  overflow: hidden;
+  color: var(--f5-muted);
+  font-size: var(--soda-font-caption);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.f5v-shell .warehouse-action-row__stats {
+  min-width: 0;
+  display: grid;
+  gap: 1px;
+}
+.f5v-shell .warehouse-action-row__substats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px 10px;
+}
+.f5v-shell .warehouse-action-row__substats small {
+  overflow: visible;
+  font-size: 12px;
+  line-height: 18px;
+  text-overflow: clip;
+}
+.f5v-shell .warehouse-action-row__relations {
+  display: flex;
+  min-width: 0;
+  gap: var(--soda-space-1);
+  overflow: hidden;
+  align-items: center;
+}
+.f5v-shell .warehouse-action-row__relations em {
+  display: inline-flex;
+  min-height: 22px;
+  align-items: center;
+  padding: 1px 7px;
+  border-radius: 999px;
+  color: #366781;
+  background: #dceef6;
+  font-size: var(--soda-font-caption);
+  font-style: normal;
+  white-space: nowrap;
+}
+.f5v-shell .warehouse-action-row__advice {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 5px;
+  min-width: 0;
+}
+.f5v-shell .warehouse-action-badge {
+  display: inline-flex;
+  min-height: 24px;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: var(--soda-font-caption);
+  font-style: normal;
+  font-weight: 750;
+  white-space: nowrap;
+}
+.f5v-shell .warehouse-action-badge--keep {
+  color: #5d4b99;
+  background: #e9e2fc;
+}
+.f5v-shell .warehouse-action-badge--enhance {
+  color: #8a5715;
+  background: #fff0ce;
+}
+.f5v-shell .warehouse-action-badge--cleanup {
+  color: #97435e;
+  background: #f9e1e7;
+}
+.f5v-shell .warehouse-action-row__advice small {
+  color: #8a5a1b;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.f5v-shell .warehouse-action-row.is-stale {
+  opacity: 0.7;
+}
+.f5v-shell .warehouse-action-list__empty,
+.f5v-shell .warehouse-action-list__missing-records,
+.f5v-shell .warehouse-empty,
+.f5v-shell .warehouse-loading {
+  display: grid;
+  justify-items: start;
+  gap: var(--soda-space-2);
+  padding: 20px;
+  color: var(--f5-ink);
+}
+.f5v-shell .warehouse-action-list__empty p,
+.f5v-shell .warehouse-action-list__missing-records p,
+.f5v-shell .warehouse-empty p {
+  margin: 0;
+  color: var(--f5-muted);
+  font-size: var(--soda-font-small);
+}
+.f5v-shell .warehouse-used-agents {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+.f5v-shell .warehouse-used-agent {
+  display: block;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  object-fit: cover;
+}
+.f5v-shell .warehouse-transition__uses {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  list-style: none;
+}
+.f5v-shell .warehouse-transition__uses li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 8px;
+}
+.f5v-shell .warehouse-transition__uses li span {
+  grid-column: 1;
+  font-size: var(--soda-font-caption);
+}
+.f5v-shell .warehouse-transition__uses li button {
+  grid-column: 2;
+  grid-row: 1 / 3;
+}
+.f5v-shell .warehouse-transition__discs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.f5v-shell .warehouse-transition__discs .is-selected {
+  outline: 2px solid var(--f5-accent);
+  border-radius: 10px;
+}

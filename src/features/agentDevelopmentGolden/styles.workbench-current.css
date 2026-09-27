@@ -1,0 +1,336 @@
+.f5v-shell .panel-snapshot,
+.panel-snapshot {
+  margin-top: 18px;
+}
+
+/* The account record and the game-facing panel form one scanning unit. */
+.current-overview {
+  display: grid;
+  grid-template-columns: minmax(300px, 0.78fr) minmax(0, 1.22fr);
+  gap: var(--space-md);
+  align-items: stretch;
+  margin-bottom: var(--space-md);
+}
+
+.current-overview__state {
+  display: grid;
+  grid-template-columns: minmax(106px, 0.72fr) minmax(84px, 0.58fr);
+  align-content: start;
+  gap: 0;
+  padding: var(--space-md);
+  border: 1px solid rgba(93, 79, 130, 0.1);
+  border-radius: var(--soda-radius-surface);
+  background: #fff;
+  box-shadow: 0 5px 10px rgba(61, 48, 96, 0.06);
+}
+
+.current-overview__state > header {
+  grid-column: 1 / -1;
+  margin-bottom: var(--space-sm);
+}
+
+.current-overview__state h2 {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.current-overview__state header p {
+  margin: var(--space-2xs) 0 0;
+  color: var(--muted);
+  font-size: 0.61rem;
+  line-height: 1.45;
+}
+
+.current-overview__state .account-fact,
+.current-overview__state .engine,
+.current-overview__state .skills {
+  min-height: 58px;
+  padding: var(--space-xs) var(--space-sm);
+  border-top: 1px solid rgba(93, 79, 130, 0.08);
+}
+
+.current-overview__state .account-fact {
+  display: grid;
+  align-content: center;
+  gap: var(--space-2xs);
+}
+
+.current-overview__state .engine {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-width: 0;
+}
+
+.current-overview__state .engine > .engine-visual,
+.current-overview__state .engine > img {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  border-radius: var(--soda-radius-control);
+  object-fit: cover;
+}
+
+.current-overview__state .engine > div {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.current-overview__state .engine b,
+.current-overview__state .engine span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.current-overview__state .skills {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: var(--space-2xs);
+}
+
+.current-overview__state .skills > div {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--space-2xs);
+}
+
+.current-overview__state .skills span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+.current-overview__state .skills i {
+  display: grid;
+  width: 20px;
+  height: 18px;
+  place-items: center;
+  border-radius: var(--soda-radius-tag);
+  color: #615776;
+  background: rgba(110, 88, 163, 0.08);
+  font-size: 0.52rem;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.current-overview__state .edit-current {
+  grid-column: 1 / -1;
+  justify-self: end;
+  margin-top: var(--space-sm);
+}
+
+.current-overview__panel {
+  display: grid;
+  align-content: start;
+  margin-top: 0;
+}
+
+.current-overview__panel .stat-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(5, minmax(36px, auto));
+  column-gap: var(--space-md);
+  row-gap: var(--space-2xs);
+}
+
+.panel-snapshot__unavailable {
+  margin: var(--space-sm) 0;
+  color: var(--f5v-ink-soft, #625d6a);
+  font-weight: 700;
+}
+
+.compare-plans--prominent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 14px;
+  border-color: #7560a8;
+  color: #4e3a79;
+  background: #f0ecf8;
+  box-shadow: 0 2px 5px rgba(93, 79, 130, 0.12);
+}
+
+.compare-plans--prominent:hover:not(:disabled) {
+  border-color: #5f4a91;
+  background: #e7e0f4;
+}
+
+.compare-plans--prominent:focus-visible {
+  outline: 3px solid rgba(107, 85, 170, 0.35);
+  outline-offset: 2px;
+}
+
+.top10 .page-heading.compact > div {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-xs);
+}
+
+.top10 .page-heading.compact .back-navigation--heading {
+  margin: 0;
+}
+
+.top10 .page-heading.compact .slant {
+  margin-top: var(--space-2xs);
+}
+
+.top10 .page-heading.compact h1 {
+  margin: 0;
+}
+
+.top10 .page-heading.compact p {
+  margin-top: 0;
+}
+
+@media (max-width: 960px) {
+  .current-overview {
+    grid-template-columns: 1fr;
+  }
+}
+
+.f5v-shell .stat-grid div.focus,
+.stat-grid div.focus {
+  border-radius: var(--soda-radius-control);
+  background: var(--soda-surface-soft, #f4f0fa);
+  color: var(--soda-text, #171523);
+}
+
+.stat-grid div.focus :is(dt, dd) {
+  color: var(--soda-text, #171523);
+  font-weight: 700;
+}
+
+.f5v-shell .stat-grid div.focus small,
+.stat-grid div.focus small {
+  color: var(--soda-text-2, #6d667c);
+  background: transparent;
+}
+
+.f5v-shell .disc-section > header,
+.disc-section > header {
+  align-items: center;
+}
+
+.f5v-shell .disc-section h3,
+.disc-section h3 {
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
+
+.f5v-shell .disc-section h3 span,
+.disc-section h3 span,
+.f5v-shell .disc-section header p,
+.disc-section header p {
+  font-size: 0.68rem;
+}
+
+.analysis-unavailable {
+  max-width: 280px;
+  color: #8a5d45;
+  font-size: 0.65rem;
+  text-align: right;
+}
+
+.f5v-shell .disc-card > header b,
+.disc-card > header b {
+  color: #6a529e;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Six-disc cards use a shared four-row grid so scores, stat rows, and the
+   effective-hit footer keep one visual baseline even when a disc has gaps. */
+.f5v-shell .disc-grid,
+.disc-grid {
+  grid-auto-rows: 226px;
+  align-items: stretch;
+}
+
+.f5v-shell .disc-card,
+.disc-card {
+  display: grid;
+  grid-template-rows: 20px 54px minmax(80px, 1fr) 22px;
+  min-height: 226px;
+}
+
+.f5v-shell .disc-card > header,
+.disc-card > header {
+  align-items: center;
+}
+
+.f5v-shell .disc-card ul,
+.disc-card ul {
+  align-self: stretch;
+  margin-block: var(--space-xs);
+}
+
+.f5v-shell .disc-card footer,
+.disc-card footer {
+  align-self: end;
+  display: flex;
+  align-items: center;
+  border-top: 1px solid rgba(93, 79, 130, 0.1);
+  font-variant-numeric: tabular-nums;
+}
+
+.f5v-shell .disc-card li.is-effective,
+.disc-card li.is-effective {
+  border-radius: var(--soda-radius-tag);
+  color: #3b324c;
+  background: transparent;
+  font-weight: 800;
+}
+
+.f5v-shell .disc-card li.is-effective span,
+.f5v-shell .disc-card li.is-effective em,
+.f5v-shell .disc-card li.is-effective b,
+.disc-card li.is-effective span,
+.disc-card li.is-effective em,
+.disc-card li.is-effective b {
+  color: #3b324c;
+  font-weight: 800;
+}
+
+@media (max-width: 1080px) {
+  .f5v-shell .loadout-head,
+  .loadout-head {
+    align-items: flex-start;
+  }
+
+  .f5v-shell .loadout-head p,
+  .loadout-head p {
+    white-space: normal;
+  }
+
+  .graduation-advice-grid,
+  .graduation-target-row {
+    grid-template-columns: 1fr;
+  }
+
+  .graduation-advice-grid {
+    grid-template-areas:
+      'teams'
+      'engines'
+      'discs';
+    gap: var(--soda-space-4);
+  }
+
+  .graduation-target-row > section + section,
+  .graduation-advice-grid > section + section {
+    padding: 12px 0 0;
+    border-top: 1px solid rgba(93, 79, 130, 0.1);
+    border-left: 0;
+  }
+
+  .graduation-advice-grid .disc-set-option dl div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .guide-target-pane .skill-targets {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

@@ -1,0 +1,442 @@
+.r6-golden .rail nav a > span,
+.r6-golden .asset-tabs button .tab-label,
+.r6-golden .filterbar,
+.r6-golden .filterbar :is(input, select, summary),
+.r6-golden .editor :is(label, button),
+.r6-golden .backup-create button,
+.r6-golden .backup-row button {
+  white-space: nowrap;
+}
+
+.r6-golden .asset-tabs button .tab-label {
+  margin: 0;
+  color: inherit;
+  font-size: inherit;
+}
+
+.r6-golden .object-card > .visual-asset-fallback,
+.r6-golden .identity > .visual-asset-fallback {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  background: #efebf6;
+  color: #6f6488;
+  text-align: center;
+  font-size: var(--soda-font-caption);
+}
+
+.r6-golden .object-card > .visual-entity-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.r6-golden .object-card.agent > :is(.visual-entity-image, .visual-asset-fallback) {
+  min-width: 104px;
+  height: 84px;
+}
+
+.r6-golden .object-card.wengine > :is(.visual-entity-image, .visual-asset-fallback),
+.r6-golden .object-card.bangboo > :is(.visual-entity-image, .visual-asset-fallback) {
+  object-fit: contain;
+  padding: 6px 5px 20px;
+}
+
+.r6-golden .object-card.disc > :is(.visual-entity-image, .visual-asset-fallback) {
+  object-fit: contain;
+  padding: 11px 12px 10px;
+}
+
+.r6-golden .object-card.wengine > .visual-entity-image {
+  padding: 14px 13px 30px;
+}
+
+.r6-golden .icon-stack > .visual-asset-fallback {
+  display: none;
+}
+
+.r6-golden .icon-stack {
+  gap: 0;
+  padding: 2px;
+  background: rgb(47 38 69 / 58%);
+  opacity: 1;
+  box-shadow: 0 1px 5px rgb(34 27 51 / 18%);
+}
+
+.r6-golden .icon-stack img {
+  width: 16px;
+  height: 16px;
+  filter: saturate(1.08) brightness(1.16) contrast(1.22)
+    drop-shadow(0 1px 1px rgb(255 255 255 / 35%));
+}
+
+.r6-golden .section-head h1:focus {
+  outline: none;
+}
+
+.r6-golden .identity > :is(.visual-entity-image, .visual-asset-fallback) {
+  width: auto;
+  height: auto;
+  max-width: 112px;
+  max-height: 72px;
+  aspect-ratio: auto !important;
+  border-radius: 0;
+  background: transparent;
+  object-fit: contain;
+  transform: none !important;
+}
+
+.r6-golden .identity--agent {
+  grid-template-columns: 72px minmax(0, 1fr);
+}
+
+.r6-golden .identity--agent > :is(.visual-entity-image, .visual-asset-fallback) {
+  width: 72px;
+  height: 72px;
+  max-width: none;
+  max-height: none;
+  aspect-ratio: 1 / 1 !important;
+  border-radius: var(--soda-radius-surface);
+  object-fit: cover;
+  object-position: center;
+}
+
+.r6-golden .identity:not(.identity--agent) {
+  grid-template-columns: minmax(72px, 96px) minmax(0, 1fr);
+}
+
+.r6-golden .identity:not(.identity--agent) > :is(.visual-entity-image, .visual-asset-fallback) {
+  width: 100%;
+  max-width: 96px;
+  height: 72px;
+}
+
+.r6-golden .identity > div {
+  min-width: 0;
+}
+
+.r6-golden .identity :is(h2, p) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.r6-golden .identity h2 {
+  white-space: nowrap;
+}
+
+.f5v-shell .r6-golden--content-only {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 100%;
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.f5v-shell .r6-golden--content-only .asset-tabs {
+  flex: 0 0 44px;
+  margin-bottom: 10px;
+}
+
+.f5v-shell .r6-golden--content-only .workspace {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: auto;
+  min-height: 0;
+}
+
+/* In the narrow single-column catalog, the workspace is a flex item. Its
+   automatic min-content width kept the catalog's former desktop grid width
+   inside the page frame even after the cards and filters became responsive. */
+.f5v-shell .r6-golden--content-only .split {
+  min-width: 0;
+}
+
+.r6-golden,
+.r6-golden .workspace,
+.r6-golden .split,
+.r6-golden .catalog,
+.r6-golden .editor,
+.r6-golden .object-grid {
+  min-height: 0;
+}
+
+.r6-golden .split,
+.r6-golden .catalog,
+.r6-golden .editor {
+  max-height: 100%;
+}
+
+.r6-golden :is(.object-grid, .editor, .account-overview) {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.r6-golden :is(.object-grid, .editor, .account-overview)::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.r6-golden .filterbar {
+  grid-template-columns: minmax(160px, 230px) repeat(3, minmax(108px, max-content));
+  align-items: center;
+  overflow: visible;
+}
+
+.r6-golden .filterbar--discs {
+  grid-template-columns: minmax(160px, 230px) repeat(3, minmax(108px, max-content));
+}
+
+.r6-golden .filterbar > input {
+  width: 100%;
+}
+
+/* The catalog's grid row must reserve the full height of its controls.  A 30px
+   footer cannot contain either the 38px secondary action or the 42px destructive
+   action, which made the action bar paint over the final disc row. */
+.r6-golden .catalog-foot {
+  height: auto;
+  min-height: 50px;
+  padding-top: 8px;
+  align-items: center;
+  gap: var(--soda-space-3);
+}
+
+.r6-golden .filter-select {
+  position: relative;
+  min-width: 0;
+  z-index: 2;
+}
+
+.r6-golden .filter-select__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--soda-space-2);
+  width: 100%;
+  min-width: 108px;
+  height: 36px;
+  padding: 0 10px 0 12px;
+  border: 1px solid rgb(100 89 133 / 26%);
+  border-radius: var(--soda-radius-control);
+  background: #fcfbfe;
+  color: #352d50;
+  font-weight: 700;
+  text-align: left;
+}
+
+.r6-golden .filter-select__trigger svg {
+  flex: 0 0 auto;
+  color: #6d5b9e;
+  transition: transform 160ms ease;
+}
+
+.r6-golden .filter-select__trigger[aria-expanded='true'] {
+  border-color: #7662aa;
+  box-shadow: 0 0 0 3px rgb(118 98 170 / 14%);
+}
+
+.r6-golden .filter-select__trigger[aria-expanded='true'] svg {
+  transform: rotate(180deg);
+}
+
+.r6-golden .filter-select__menu {
+  position: absolute;
+  z-index: 12;
+  top: calc(100% + 6px);
+  right: 0;
+  display: grid;
+  min-width: max(100%, 132px);
+  max-height: 252px;
+  overflow: auto;
+  padding: 5px;
+  border: 1px solid rgb(90 76 127 / 18%);
+  border-radius: var(--soda-radius-control);
+  background: #fff;
+  box-shadow: 0 8px 18px rgb(51 41 78 / 18%);
+}
+
+.r6-golden .filter-select__menu button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 30px;
+  padding: 5px 7px;
+  border: 0;
+  border-radius: var(--soda-radius-control);
+  background: transparent;
+  color: #4a405f;
+  font-size: 0.78rem;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.r6-golden .filter-select__menu button:disabled {
+  color: #9a92a8;
+  cursor: not-allowed;
+}
+
+.r6-golden .filter-select__group {
+  display: grid;
+}
+
+.r6-golden .filter-select__group > strong {
+  padding: 7px 7px 3px;
+  color: #7a6b96;
+  font-size: var(--soda-font-caption);
+  font-weight: 800;
+}
+
+.r6-golden .filter-select__menu button:hover,
+.r6-golden .filter-select__menu button[aria-selected='true'] {
+  background: #eeebf7;
+  color: #493871;
+}
+
+.r6-golden .filter-select__menu svg {
+  flex: 0 0 auto;
+  color: #6b57a1;
+}
+
+.r6-golden .relation-row--engine {
+  grid-template-columns: minmax(0, 3fr) minmax(96px, 1fr);
+  align-items: start;
+}
+
+.r6-golden .relation-row--engine > .field {
+  min-width: 0;
+}
+
+.r6-golden .relation-row--engine .filter-select__trigger,
+.r6-golden .relation-row--engine .field input {
+  height: 36px;
+}
+
+.r6-golden .identity > .identity-image[data-visual-variant='full_body'] {
+  object-fit: contain;
+  object-position: center;
+  transform: none !important;
+}
+
+/* Restore the accepted 120 x 84 compact-card frame and Foundation crop. */
+.r6-golden .object-grid.agents {
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  grid-auto-rows: 84px;
+  align-content: start;
+}
+
+.r6-golden .object-card.agent {
+  width: 100%;
+  height: 84px;
+  aspect-ratio: auto;
+}
+
+.r6-golden .object-card::after {
+  height: 42px;
+  background: linear-gradient(transparent, rgba(31, 27, 44, 0.9));
+  pointer-events: none;
+}
+
+.r6-golden .card-name,
+.r6-golden .card-state {
+  color: #fff;
+  font-size: var(--soda-font-caption);
+  line-height: 14px;
+  text-shadow: 0 1px 2px #211b30;
+}
+
+.r6-golden .card-name {
+  bottom: 20px;
+}
+.r6-golden .card-state {
+  bottom: 4px;
+}
+
+.r6-golden .object-card.wengine > .visual-entity-image,
+.r6-golden .object-card.bangboo > .visual-entity-image,
+.r6-golden .object-card.disc > .visual-entity-image {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+}
+
+.r6-golden .inventory-protection-note {
+  margin: 10px 0 0;
+  color: #7a4f35;
+  font-size: var(--soda-font-caption);
+  line-height: 1.5;
+}
+
+.r6-golden .selection-context {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: var(--soda-radius-control);
+  background: #eeeaf7;
+  color: #473b69;
+  font-size: var(--soda-font-body);
+  line-height: 1.5;
+}
+
+.r6-golden .selection-context span {
+  display: block;
+  font-size: var(--soda-font-caption);
+}
+
+/* Keep the narrow, stacked workspace responsive after the desktop adapter rules. */
+@media (max-width: 960px) {
+  /* Keep complete rows visible at short/zoomed viewports. The stacked page
+     scrolls; its catalog must not shrink below a readable selection area. */
+  .r6-golden .catalog {
+    height: clamp(420px, 58dvh, 520px);
+    min-height: 420px;
+    max-height: none;
+  }
+
+  .r6-golden .object-grid.agents,
+  .r6-golden .object-grid.wengines,
+  .r6-golden .object-grid.bangboos,
+  .r6-golden .object-grid.discs {
+    grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  }
+
+  .r6-golden .filterbar,
+  .r6-golden .filterbar--discs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .r6-golden .filterbar > * {
+    min-width: 0;
+  }
+}
+
+.r6-golden .asset-editor-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--soda-space-3);
+  flex-wrap: wrap;
+}
+.r6-golden .asset-editor-heading .identity {
+  min-width: 0;
+  flex: 1 1 200px;
+}
+.r6-golden .asset-editor-heading .editor-action {
+  position: static;
+  margin: 0 0 0 auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.r6-golden .asset-editor-heading .editor-action > small {
+  display: none;
+}
+.r6-golden .object-grid.wengines,
+.r6-golden .object-grid.bangboos,
+.r6-golden .object-grid.discs {
+  grid-auto-rows: max-content;
+}

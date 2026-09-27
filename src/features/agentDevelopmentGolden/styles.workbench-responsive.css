@@ -1,0 +1,253 @@
+@media (min-width: 1321px) and (max-height: 779px) {
+  .workbench--single-page .workbench-main {
+    grid-template-rows: auto auto;
+    overflow: visible;
+  }
+
+  .workbench--single-page .current-overview,
+  .workbench--single-page .loadout-recommendations,
+  .workbench--single-page .loadout-recommendation-grid,
+  .workbench--single-page .loadout-recommendation-card {
+    height: auto;
+  }
+
+  .workbench--single-page .loadout-recommendation-grid {
+    min-height: 300px;
+  }
+
+  .workbench--single-page .agent-scene > .agent-art {
+    top: 0;
+  }
+}
+
+/* Keep the scene rail at this range, but do not split its reduced content
+   column again: the status and panel cards need the full readable width. */
+@media (min-width: 961px) and (max-width: 1320px) {
+  .workbench--single-page .current-overview {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: var(--soda-space-3);
+  }
+}
+
+@media (max-width: 1320px) {
+  .workbench--single-page {
+    height: auto;
+    overflow: visible;
+  }
+
+  .workbench--single-page .workbench-main {
+    padding: 16px;
+  }
+
+  .workbench--single-page .agent-scene > .agent-art {
+    top: 0;
+  }
+
+  .loadout-recommendation-grid,
+  .disc-section--workbench > .disc-workbench-header {
+    grid-template-columns: 1fr;
+  }
+
+  .workbench--single-page .disc-section--workbench {
+    grid-column: 1 / -1;
+  }
+
+  .current-engine-plan {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .disc-section--workbench > .disc-workbench-header > .disc-workbench-metrics {
+    grid-template-columns: none;
+    grid-auto-columns: max-content;
+  }
+
+  .disc-workbench-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .workbench-more__panel {
+    inset: 24px;
+  }
+}
+
+@media (max-width: 720px) {
+  .skill-comparison__current,
+  .skill-comparison__target,
+  .panel-graduation-targets {
+    grid-template-columns: 1fr;
+  }
+
+  .skill-comparison__current > div,
+  .skill-comparison__target > div {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .panel-graduation-targets > div {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .panel-graduation-targets__conditions {
+    grid-row: 3;
+  }
+
+  .disc-workbench-metrics,
+  .loadout-engine-comparison {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* The inherited three-up grid leaves each six-disc card too narrow for the
+   stat rows on phone-sized workbench content. Two cards remain readable once
+   the content rail is wide enough; below that, show one complete card per row. */
+@media (min-width: 520px) and (max-width: 720px) {
+  .workbench--single-page .disc-section--workbench .disc-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 519px) {
+  .workbench--single-page .disc-section--workbench .disc-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 960px) {
+  .f5v-shell .workbench--single-page,
+  .workbench--single-page {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .workbench--single-page .agent-scene {
+    grid-column: 1;
+    min-height: 460px;
+  }
+
+  .workbench--single-page .workbench-main {
+    grid-column: 1;
+    padding: 16px;
+    overflow: visible;
+  }
+
+  .workbench--single-page .agent-identity__trait-icon {
+    display: inline-grid;
+    width: 26px;
+    height: 26px;
+    margin-right: 5px;
+    place-items: center;
+    overflow: hidden;
+    vertical-align: -7px;
+    border-radius: var(--soda-radius-control);
+    background: #50406f;
+  }
+
+  .workbench--single-page .agent-identity__trait-icon > :is(img, .visual-asset-fallback) {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+  }
+
+  .workbench--single-page .agent-identity__trait-icon > .visual-asset-fallback {
+    display: grid;
+    place-items: center;
+    color: #fff;
+    font-size: 0;
+  }
+
+  .workbench--single-page .agent-identity__trait-icon > .visual-asset-fallback::after {
+    content: '特';
+    font-size: 0.7rem;
+    font-weight: 850;
+  }
+}
+
+@media (min-width: 1321px) {
+  .workbench--single-page .loadout-recommendation-grid {
+    min-height: 0;
+  }
+  .workbench--single-page .loadout-recommendation-card > h3 {
+    margin: 0 0 6px;
+  }
+  .workbench--single-page .loadout-disc-options li > span:last-child {
+    display: block;
+  }
+  .workbench--single-page .loadout-disc-options li b,
+  .workbench--single-page .disc-priority {
+    display: inline;
+  }
+  .workbench--single-page .loadout-option-effect {
+    display: block;
+  }
+  .workbench--single-page .loadout-main-stat-priority {
+    padding: 0;
+    margin-top: 8px;
+  }
+  .workbench--single-page .loadout-main-stat-priority > div {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+  .workbench--single-page .disc-workbench-header {
+    margin-bottom: 8px;
+  }
+  .workbench--single-page .disc-metric--benchmark > span {
+    display: none;
+  }
+}
+@media (min-width: 1321px) {
+  .workbench--single-page .stat-grid {
+    grid-template-rows: repeat(5, minmax(20px, 1fr));
+  }
+  .workbench--single-page .stat-grid > div {
+    min-height: 20px;
+  }
+  .workbench--single-page .panel-graduation-targets {
+    margin-top: 4px;
+    padding-top: 0;
+    gap: 4px;
+  }
+}
+
+.workbench--single-page {
+  overflow-anchor: none;
+}
+.workbench--single-page .loadout-disc-options > li {
+  display: grid;
+  grid-template-columns: 116px minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+}
+.workbench--single-page .loadout-disc-options .recommendation-square-group {
+  width: 116px;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 2px;
+}
+.workbench--single-page .loadout-disc-options .recommendation-item-icon {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+}
+.workbench--single-page .loadout-disc-options.has-shared-four > li {
+  grid-template-columns: 36px minmax(0, 1fr);
+}
+.workbench--single-page .loadout-disc-options.has-shared-four .recommendation-square-group {
+  width: 36px;
+}
+.workbench--single-page .disc-workbench-actions .warehouse-action--primary {
+  min-height: 40px;
+  padding: 9px 16px;
+  background: #70589f;
+  color: #fff;
+  border-radius: 9px;
+  font-weight: 750;
+  box-shadow: 0 3px 8px #70589f30;
+}
+@media (min-width: 1321px) {
+  .f5v-shell .workbench--single-page {
+    grid-template-columns: minmax(260px, 26%) minmax(0, 74%);
+  }
+}

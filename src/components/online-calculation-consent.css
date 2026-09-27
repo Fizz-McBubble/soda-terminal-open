@@ -1,0 +1,87 @@
+.online-calculation-consent-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(24, 19, 53, 0.48);
+}
+
+.online-calculation-consent {
+  display: flex;
+  width: min(100%, 620px);
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 28px;
+  border: 1px solid #dcd6f0;
+  border-radius: 14px;
+  background: #f7f4ff;
+  color: #29253d;
+  box-shadow: 0 20px 60px rgba(24, 19, 53, 0.24);
+}
+
+.online-calculation-consent strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 15px;
+}
+
+.online-calculation-consent p {
+  max-width: 740px;
+  margin: 0 0 7px;
+  color: #504b68;
+  line-height: 1.55;
+}
+
+.online-calculation-consent a {
+  color: #61518c;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.online-calculation-consent__actions {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 16px;
+}
+
+.online-calculation-consent__actions button {
+  min-height: 40px;
+  padding: 9px 16px;
+  border: 1px solid #6d53a4;
+  border-radius: 9px;
+  background: #6d53a4;
+  box-shadow: 0 4px 12px rgba(54, 35, 102, 0.16);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.online-calculation-consent__actions button:hover {
+  background: #5d448f;
+}
+
+.online-calculation-consent__actions button:focus-visible {
+  outline: 2px solid #37206e;
+  outline-offset: 3px;
+}
+
+@media (max-width: 700px) {
+  .online-calculation-consent {
+    align-items: stretch;
+    padding: 22px;
+  }
+  .online-calculation-consent__actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+
+  .online-calculation-consent__actions button {
+    width: 100%;
+  }
+}

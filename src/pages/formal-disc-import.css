@@ -1,0 +1,314 @@
+.formal-import-success {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 20px;
+  min-width: 0;
+  padding: 28px 30px;
+  color: var(--sea-text-1);
+  border-top: 1px solid var(--sea-line-strong);
+  border-bottom: 1px solid var(--sea-line);
+  background: #061f31;
+}
+
+.formal-import-success__mark {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  color: #06291f;
+  border-radius: 50%;
+  background: var(--sea-success);
+}
+
+.formal-import-success__mark svg {
+  width: 28px;
+  height: 28px;
+  stroke-width: 2.4;
+}
+
+.formal-import-success__copy {
+  min-width: 0;
+}
+
+.formal-import-success__copy h1 {
+  margin: 0;
+  color: var(--sea-text-1);
+  font-size: clamp(1.75rem, 2.3vw, 2.5rem);
+  line-height: 1.12;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+}
+
+.formal-import-success__lead {
+  max-width: 68ch;
+  margin: 10px 0 0;
+  color: var(--sea-text-2);
+  font-size: 0.9375rem;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.formal-import-success__scope {
+  max-width: 68ch;
+  margin: 4px 0 0;
+  color: var(--sea-text-3);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.formal-import-success__actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+  min-width: 168px;
+}
+
+.app-shell--tactical
+  .page-content:not(.page-content--assets):not(.page-content--home)
+  .formal-import-success__actions
+  .formal-import-success__primary {
+  color: #03202c;
+  border-color: var(--sea-cyan-strong);
+  background: var(--sea-cyan-strong);
+  box-shadow: none;
+}
+
+.app-shell--tactical
+  .page-content:not(.page-content--assets):not(.page-content--home)
+  .formal-import-success__actions
+  .formal-import-success__primary:hover {
+  color: #021820;
+  border-color: #9af6fb;
+  background: #9af6fb;
+}
+
+.app-shell--tactical
+  .page-content:not(.page-content--assets):not(.page-content--home)
+  .formal-import-success__actions
+  .formal-import-success__secondary {
+  color: var(--sea-text-1);
+  border-color: #37677a;
+  background: #0d3044;
+}
+
+.app-shell--tactical
+  .page-content:not(.page-content--assets):not(.page-content--home)
+  .formal-import-success__actions
+  .formal-import-success__secondary:hover {
+  color: #ffffff;
+  border-color: #5590a5;
+  background: #16445a;
+}
+
+.formal-import-success__actions .button:active {
+  transform: translateY(1px);
+}
+
+.f5v-shell [data-import-state='success'] > .formal-import-success {
+  width: min(100%, 1080px);
+  box-sizing: border-box;
+  margin: 24px auto 0;
+  padding: 24px;
+  border: 1px solid var(--f5-line);
+  border-radius: var(--soda-radius-surface);
+  background: #f8f6fc;
+  color: var(--f5-ink);
+}
+
+.f5v-shell [data-import-state='success'] .formal-import-success__mark {
+  background: #d9f4e9;
+  color: #225e48;
+}
+
+.f5v-shell [data-import-state='success'] .formal-import-success__copy h1 {
+  color: var(--f5-ink);
+}
+
+.f5v-shell [data-import-state='success'] .formal-import-success__lead,
+.f5v-shell [data-import-state='success'] .formal-import-success__scope {
+  color: var(--f5-muted);
+}
+
+.f5v-shell [data-import-state='success'] .formal-import-success__actions .button {
+  min-height: 40px;
+  justify-content: center;
+  border-radius: var(--soda-radius-control);
+}
+
+.f5v-shell [data-import-state='success'] .formal-import-success__primary {
+  border-color: #625685;
+  background: #625685;
+  color: #fff;
+}
+
+.f5v-shell [data-import-state='success'] .formal-import-success__secondary {
+  border-color: var(--f5-line);
+  background: #fff;
+  color: var(--f5-accent);
+}
+
+.formal-import-handoff {
+  min-width: 0;
+  color: var(--sea-text-1);
+  border-top: 1px solid var(--sea-line-strong);
+  border-bottom: 1px solid var(--sea-line);
+  background: rgba(3, 20, 34, 0.5);
+}
+
+.formal-import-handoff__summary {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.85fr) minmax(540px, 1.5fr) minmax(190px, 0.45fr);
+  align-items: center;
+  gap: 24px;
+  padding: 18px 20px;
+}
+
+.formal-import-handoff__title h2 {
+  margin: 4px 0 0;
+  color: var(--sea-text-1);
+  font-size: 1.5rem;
+  line-height: 1.2;
+  letter-spacing: -0.025em;
+}
+
+.formal-import-handoff__title p {
+  max-width: 62ch;
+  margin: 6px 0 0;
+  color: var(--sea-text-2);
+  font-size: 0.875rem;
+  line-height: 1.55;
+}
+
+.formal-import-handoff__metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(84px, 1fr));
+  margin: 0;
+}
+
+.formal-import-handoff__metrics > div {
+  min-width: 0;
+  padding: 4px 12px;
+  border-left: 1px solid var(--sea-line);
+}
+
+.formal-import-handoff__metrics dt {
+  color: var(--sea-text-3);
+  font-size: 0.75rem;
+}
+
+.formal-import-handoff__metrics dd {
+  margin: 2px 0 0;
+  color: var(--sea-text-1);
+  font-size: 1.375rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.formal-import-handoff__impact {
+  display: grid;
+  gap: 2px;
+  justify-items: end;
+  text-align: right;
+}
+
+.formal-import-handoff__impact > span {
+  color: var(--sea-cyan);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.formal-import-handoff__impact strong {
+  font-size: 0.875rem;
+}
+
+.formal-import-handoff__impact b {
+  color: var(--sea-warning);
+  font-size: 1.125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.formal-import-handoff__impact small {
+  color: var(--sea-text-3);
+  font-size: 0.75rem;
+}
+
+.formal-import-handoff__action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--sea-line);
+  background: rgba(7, 35, 51, 0.5);
+}
+
+.formal-import-handoff__action > div {
+  min-width: 0;
+}
+
+.formal-import-handoff__action strong {
+  color: var(--sea-text-1);
+  font-size: 0.9375rem;
+}
+
+.formal-import-handoff__action p {
+  max-width: 68ch;
+  margin: 4px 0 0;
+  color: var(--sea-text-2);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+}
+
+.formal-import-handoff__action .button {
+  flex: 0 0 auto;
+}
+
+.app-shell--tactical
+  .page-content:not(.page-content--assets):not(.page-content--home)
+  .formal-import-success__actions
+  .button:disabled,
+.app-shell--tactical
+  .page-content:not(.page-content--assets):not(.page-content--home)
+  .formal-import-success__actions
+  .button[aria-disabled='true'] {
+  color: #c9dce5;
+  border-color: #365869;
+  background: #173847;
+  box-shadow: none;
+  opacity: 1;
+  cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  .formal-import-success {
+    grid-template-columns: auto minmax(0, 1fr);
+    padding: 24px;
+  }
+
+  .formal-import-success__actions {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    min-width: 0;
+  }
+
+  .formal-import-success__actions .button {
+    flex: 1 1 0;
+  }
+
+  .formal-import-handoff__summary {
+    grid-template-columns: 1fr;
+  }
+
+  .formal-import-handoff__metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .formal-import-handoff__action {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,204 @@
+:root {
+  font-family:
+    'Segoe UI Variable Text', 'Segoe UI', 'Microsoft YaHei UI', 'PingFang SC', 'Noto Sans CJK SC',
+    sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-width: 320px;
+  height: 100%;
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  overflow-x: hidden;
+  caret-color: transparent;
+}
+
+/* Keep the insertion caret only where the user can actually enter text. */
+button,
+a,
+select,
+summary,
+input:is(
+  [type='button'],
+  [type='submit'],
+  [type='reset'],
+  [type='checkbox'],
+  [type='radio'],
+  [type='file']
+),
+[role='button'],
+[role='tab'],
+[role='checkbox'],
+[role='radio'],
+[role='switch'],
+[role='option'],
+[tabindex]:not(input):not(textarea):not([contenteditable]) {
+  caret-color: transparent;
+}
+
+input:not([type]),
+input:is(
+  [type='text'],
+  [type='search'],
+  [type='number'],
+  [type='password'],
+  [type='email'],
+  [type='tel'],
+  [type='url']
+),
+textarea,
+[contenteditable='true'],
+[contenteditable='plaintext-only'] {
+  caret-color: auto;
+}
+
+.app-entry-state {
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 12px;
+  min-height: 100%;
+  padding: clamp(24px, 6vw, 72px);
+  color: #302940;
+  background: #faf9fc;
+}
+
+.app-entry-state > span {
+  color: #6e599c;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+}
+
+.app-entry-state h1 {
+  margin: 0;
+  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  line-height: 1.35;
+}
+
+.app-entry-state p {
+  max-width: 42rem;
+  margin: 0;
+  line-height: 1.7;
+}
+
+.app-entry-state__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+/* The F5 application is a desktop workstation: the browser document is never
+   its business scroll surface. Dialogs and drawers retain their own explicit
+   overflow; each page chooses the scroll owner inside the shared shell. */
+html.soda-f5-scrollbarless,
+body.soda-f5-scrollbarless {
+  overflow: hidden;
+}
+
+/* Hide scroll chrome, not overflow: page frames, lists and drawers remain
+   reachable with keyboard, wheel and touch. */
+html.soda-f5-scrollbarless,
+body.soda-f5-scrollbarless,
+.soda-f5-scrollbarless .f5v-shell,
+.soda-f5-scrollbarless .f5v-shell * {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+html.soda-f5-scrollbarless::-webkit-scrollbar,
+body.soda-f5-scrollbarless::-webkit-scrollbar,
+.soda-f5-scrollbarless .f5v-shell::-webkit-scrollbar,
+.soda-f5-scrollbarless .f5v-shell *::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.back-navigation {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 36px;
+  padding: 0 11px 0 7px;
+  border: 1px solid #7560a8;
+  border-radius: 9px;
+  color: #4e3a79;
+  background: #f0ecf8;
+  box-shadow: 0 2px 5px rgba(93, 79, 130, 0.12);
+  font-size: 0.68rem;
+  font-weight: 750;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.back-navigation:hover {
+  border-color: #5f4a91;
+  background: #e7e0f4;
+}
+
+.back-navigation:focus-visible {
+  outline: 3px solid rgba(107, 85, 170, 0.35);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+.account-required-state {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-3, 0.75rem);
+  max-width: 42rem;
+}
+
+.account-required-state > span {
+  color: var(--color-text-muted, #6b6777);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.account-required-state > h1,
+.account-required-state > p {
+  margin: 0;
+}

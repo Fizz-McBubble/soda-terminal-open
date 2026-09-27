@@ -1,0 +1,236 @@
+@media (max-width: 1400px) {
+  .f5v-shell {
+    grid-template-columns: 166px minmax(0, 1fr);
+  }
+  .f5v-shell .f5v-page-content {
+    padding-inline: 20px;
+  }
+  .f5v-shell .home-focus {
+    height: 488px;
+  }
+  .f5v-shell .home-journey {
+    margin-top: 11px;
+  }
+  .f5v-shell .home-section-heading {
+    height: 42px;
+  }
+  .f5v-shell .journey-list--five .journey-item {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+  }
+  .f5v-shell .home-journey__number {
+    top: 8px;
+  }
+  .f5v-shell .focus-copy {
+    width: 48%;
+    padding: 34px 0 0 36px;
+  }
+  .f5v-shell .home-focus__overline {
+    margin-top: 18px;
+  }
+  .f5v-shell .focus-copy h1 {
+    font-size: 2.6rem;
+  }
+  .f5v-shell .home-focus__lead {
+    max-width: 29rem;
+    margin: 14px 0 18px;
+    line-height: 1.55;
+  }
+  .f5v-shell .home-next-signal {
+    margin-top: 20px;
+  }
+  .f5v-shell .home-scene {
+    right: 48px;
+  }
+  .f5v-shell .home-version-hero {
+    width: 530px;
+    height: 530px;
+    bottom: -46px;
+  }
+  .f5v-shell .home-scene__orbit {
+    width: 390px;
+    height: 390px;
+    right: 50px;
+    top: 28px;
+  }
+  .f5v-shell .home-scene__orbit--two {
+    width: 270px;
+    height: 270px;
+    right: 130px;
+    top: 82px;
+  }
+  .f5v-shell .home-readiness {
+    right: 48px;
+    bottom: 22px;
+    width: 270px;
+    padding: 15px;
+  }
+  .f5v-shell .home-disc-objects {
+    right: 276px;
+    bottom: 26px;
+  }
+  .f5v-shell .scanner-golden__workbench {
+    grid-template-columns: 176px minmax(0, 1fr) 236px;
+    width: calc(100% + 12px);
+    margin-left: -12px;
+  }
+  .f5v-shell .scanner-task {
+    padding: 28px 30px;
+  }
+  .f5v-shell :is(.scanner-route, .scanner-context) {
+    padding: 24px 18px;
+  }
+}
+
+@media (max-width: 960px) {
+  .f5v-shell[data-slice-theme='bright-muted'] {
+    display: block;
+    padding: 0;
+  }
+
+  .f5v-content {
+    min-width: 0;
+    width: 100%;
+    height: 100%;
+    grid-template-rows: 58px minmax(0, 1fr);
+  }
+
+  .f5v-page-content {
+    overflow: auto;
+  }
+
+  .f5v-page-content.is-workspace .f5v-page-frame {
+    height: auto;
+    overflow: visible;
+  }
+
+  .f5v-rail {
+    position: fixed;
+    z-index: 80;
+    inset: 0 auto 0 0;
+    width: min(280px, 84vw);
+    min-height: 100dvh;
+    border-radius: 0 var(--soda-radius-surface) var(--soda-radius-surface) 0;
+    transform: translateX(-102%);
+    transition: transform 180ms ease;
+  }
+
+  .f5v-rail.is-open {
+    transform: translateX(0);
+  }
+
+  .f5v-rail-close,
+  .f5v-menu {
+    display: inline-grid;
+    place-items: center;
+  }
+
+  .f5v-backdrop {
+    position: fixed;
+    z-index: 70;
+    inset: 0;
+    display: block;
+    border: 0;
+    background: rgba(29, 25, 41, 0.34);
+  }
+
+  .f5v-content {
+    border-radius: 0;
+  }
+  .f5v-shell .scanner-golden__workbench {
+    height: auto;
+    grid-template-columns: 1fr;
+  }
+  .f5v-shell .scanner-route,
+  .f5v-shell .scanner-context {
+    border: 0;
+  }
+  .f5v-shell .scanner-route ol {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .f5v-shell .scanner-route li {
+    padding: 0;
+  }
+  .f5v-shell .scanner-route li::after {
+    display: none;
+  }
+  .f5v-shell .home-focus {
+    height: auto;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .f5v-shell .focus-copy {
+    width: 100%;
+    padding: 34px;
+  }
+  .f5v-shell .home-scene {
+    position: relative;
+    inset: auto;
+    height: 430px;
+    margin: 0;
+  }
+  .f5v-shell .home-version-hero {
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .f5v-shell .home-readiness {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    width: auto;
+    max-height: none;
+    margin: 0 20px 20px;
+    overflow: visible;
+  }
+  .f5v-shell .journey-list--five {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .f5v-topbar {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 10px;
+    padding-inline: 16px;
+  }
+
+  .f5v-location {
+    gap: 0;
+  }
+
+  .f5v-location > span,
+  .f5v-account-strip > :not(b) {
+    display: none;
+  }
+
+  .f5v-account-strip {
+    display: block;
+    max-width: none;
+    margin-left: 0;
+  }
+
+  .f5v-account-strip > b {
+    display: inline-flex;
+    margin-left: 0;
+    white-space: nowrap;
+  }
+
+  .f5v-page-content,
+  .f5v-page-frame {
+    min-width: 0;
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .f5v-shell *,
+  .f5v-shell *::before,
+  .f5v-shell *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

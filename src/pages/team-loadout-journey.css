@@ -1,0 +1,314 @@
+@import './team-loadout-execution.css';
+@import './team-loadout-inspector.css';
+@import './team-loadout-team-view.css';
+@import './team-loadout-workspace-assets.css';
+@import './team-loadout-disc-facts.css';
+
+.optimizer-plan,
+.optimizer-portfolio {
+  /* Let the accepted four-zone workbench occupy the entire F5 content frame.
+   * A narrower hard cap left unused desktop space to the right of the action inspector. */
+  width: 100%;
+  margin: 0 auto;
+  color: var(--soda-text);
+}
+
+/* These two C4 routes are part of the F5 light application shell.  The older
+ * shared `.panel` rules otherwise inherit the retired tactical sea palette,
+ * making light surfaces render with light text. */
+.f5v-content:has(.optimizer-plan),
+.f5v-content:has(.optimizer-portfolio) {
+  min-height: calc(100vh - 70px);
+  background: #f7f6fb;
+}
+
+.f5v-page-frame:has(.optimizer-plan),
+.f5v-page-frame:has(.optimizer-portfolio) {
+  width: 100%;
+  max-width: none;
+  padding: 18px 0 32px;
+  color: var(--soda-text);
+}
+
+.optimizer-plan .panel,
+.optimizer-portfolio .panel {
+  color: var(--soda-text);
+  border: 1px solid var(--soda-line);
+  border-radius: var(--soda-radius-control);
+  background: var(--soda-surface-raised);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+
+.optimizer-plan .panel :is(h2, h3),
+.optimizer-portfolio .panel :is(h2, h3) {
+  color: var(--soda-text);
+}
+
+.optimizer-plan .panel :is(p, li, small),
+.optimizer-portfolio .panel :is(p, li, small) {
+  color: var(--soda-text-2);
+}
+
+.optimizer-plan:has(.team-execution) {
+  display: grid;
+  gap: 16px;
+}
+
+.optimizer-plan__team-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 0;
+}
+
+.optimizer-plan__team-heading :is(h1, p) {
+  margin: 0;
+}
+
+.optimizer-plan__transition-notice {
+  margin: 0;
+  color: var(--soda-accent);
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.optimizer-plan__route-label,
+.optimizer-plan__back-link {
+  color: var(--soda-accent);
+  font-size: 0.75rem;
+  font-weight: 680;
+}
+
+.optimizer-plan__back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 38px;
+  padding: 8px 12px;
+  border: 1px solid var(--soda-line);
+  background: var(--soda-surface-raised);
+  border-radius: var(--soda-radius-control);
+  cursor: pointer;
+}
+
+.optimizer-plan__team-identity {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 4px 16px;
+  min-width: 0;
+}
+
+.optimizer-plan__team-identity > button {
+  grid-row: 1 / 3;
+}
+
+.optimizer-plan__team-identity > p {
+  grid-column: 2;
+}
+
+.optimizer-plan__team-heading h1 {
+  margin-top: 0;
+  color: var(--soda-text);
+  font-size: 1.375rem;
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.optimizer-plan__team-heading h1 + p {
+  margin-top: 5px;
+  font-size: 0.8125rem;
+  color: var(--soda-text-2);
+}
+
+.optimizer-plan__team-actions {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 10px;
+  padding-top: 0;
+}
+
+.optimizer-plan__stale-state {
+  color: var(--soda-warning, #a56b24);
+  font-size: 12px;
+  font-weight: 680;
+}
+
+.optimizer-plan__team-actions .primary-action {
+  min-height: 34px;
+  padding: 7px 14px;
+  border: 1px solid var(--soda-accent);
+  border-radius: var(--soda-radius-control);
+  color: #fff;
+  background: var(--soda-accent);
+  box-shadow: none;
+}
+
+.optimizer-plan__team-actions .primary-action:disabled {
+  border-color: var(--soda-line);
+  color: var(--soda-text-3);
+  background: var(--soda-surface-raised);
+}
+
+.optimizer-plan__execution-state {
+  padding: 6px 12px;
+  border-radius: 999px;
+  color: #397f73;
+  background: #e8f8f2;
+  font-size: 0.75rem;
+  font-weight: 680;
+}
+
+.optimizer-plan__execution-state.is-adjust,
+.optimizer-plan__execution-state.is-confirm {
+  color: #6549b2;
+  background: color-mix(in srgb, var(--soda-accent) 9%, var(--soda-surface-raised));
+}
+
+.optimizer-plan__execution-state.is-build {
+  color: #974b57;
+  background: #fff0f1;
+}
+
+@media (max-width: 1400px) {
+  .f5v-page-frame:has(.optimizer-plan) {
+    padding: 14px 0 28px;
+  }
+}
+
+.optimizer-plan__evidence {
+  border-top: 1px solid var(--soda-line);
+}
+
+.optimizer-plan__evidence > summary {
+  min-height: 48px;
+  padding: 12px 0;
+  color: var(--soda-accent);
+  font-size: 0.9375rem;
+  font-weight: 680;
+  cursor: pointer;
+}
+
+.optimizer-plan__evidence > .candidate-warehouse-result {
+  margin-top: 10px;
+}
+
+.optimizer-plan__evidence > p {
+  margin: 0;
+  color: var(--soda-text-2);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+.candidate-warehouse-result.panel {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+}
+
+.candidate-warehouse-result > :is(h2, p) {
+  margin: 0;
+}
+
+.candidate-warehouse-result > h2 {
+  font-size: 1rem;
+}
+
+.candidate-warehouse-result > details > summary {
+  min-height: 36px;
+  align-content: center;
+}
+
+.candidate-warehouse-result__integrity {
+  color: var(--soda-text);
+  font-weight: 680;
+}
+
+.optimizer-portfolio {
+  display: grid;
+  gap: 18px;
+  padding-bottom: 40px;
+}
+
+.optimizer-portfolio__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.optimizer-portfolio__heading h1,
+.optimizer-portfolio__heading p {
+  margin: 0;
+}
+
+.optimizer-portfolio__heading p {
+  margin-top: 8px;
+  color: var(--soda-text-2);
+}
+
+.optimizer-portfolio__heading > span {
+  flex: none;
+  color: #3f846a;
+  font-size: 13px;
+  font-weight: 680;
+}
+
+.optimizer-portfolio .button-row [aria-pressed='true'] {
+  border-color: #6853a7;
+  color: #533a9f;
+  background: #f3f0fa;
+}
+
+.optimizer-portfolio__why {
+  border-color: rgb(104 83 167 / 24%);
+  background: #faf9fd;
+}
+
+.optimizer-portfolio__teams {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
+}
+
+.optimizer-portfolio__teams > .panel {
+  margin: 0;
+  min-width: 0;
+  padding: 16px;
+}
+
+.optimizer-portfolio__teams .eyebrow {
+  margin: 0 0 5px;
+  color: #6853a7;
+  font-size: 12px;
+  font-weight: 720;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 1100px) {
+  .optimizer-portfolio__teams {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .optimizer-plan__team-heading,
+  .optimizer-plan__team-actions {
+    display: grid;
+  }
+
+  .optimizer-plan__team-actions {
+    justify-items: start;
+    padding-top: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .optimizer-portfolio *,
+  .optimizer-plan * {
+    scroll-behavior: auto;
+  }
+}

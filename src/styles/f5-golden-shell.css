@@ -1,0 +1,309 @@
+.f5v-shell[data-slice-theme='bright-muted'] {
+  color-scheme: light;
+  --f5-shadow: 0 10px 20px rgba(78, 64, 112, 0.1), 0 2px 6px rgba(93, 76, 130, 0.05);
+  height: 100dvh;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 178px minmax(0, 1fr);
+  padding: 12px;
+  border-radius: var(--soda-radius-surface);
+  overflow: hidden;
+  background: var(--f5-canvas);
+  color: var(--f5-ink);
+}
+
+/* Independent F5 visual shell: Home and Scanner never render the legacy tactical sidebar tree. */
+.f5v-rail {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 22px 14px 16px;
+  border: 0;
+  border-radius: var(--soda-radius-surface) 0 0 var(--soda-radius-surface);
+  background: var(--f5-rail);
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.f5v-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.f5v-brand-row {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 8px;
+}
+
+.f5v-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--f5-ink);
+  text-decoration: none;
+}
+
+.f5v-brand-icon {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  flex: none;
+}
+
+.f5v-brand > span:last-child :is(strong, small) {
+  display: block;
+  line-height: 1.1;
+  letter-spacing: 0.08em;
+}
+
+.f5v-brand > span:last-child strong {
+  font-size: 1rem;
+}
+
+.f5v-brand > span:last-child small {
+  margin-top: 3px;
+  color: var(--f5-accent);
+  font-size: 0.68rem;
+}
+
+.f5v-rail-close,
+.f5v-menu {
+  display: none;
+  border: 0;
+  color: var(--f5-ink);
+  background: transparent;
+}
+
+.f5v-navigation {
+  display: grid;
+  gap: 5px;
+  margin-top: 38px;
+}
+
+.f5v-navigation a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--soda-space-2);
+  min-height: 45px;
+  padding: 0 12px;
+  border-radius: var(--soda-radius-control);
+  color: var(--f5-muted);
+  text-decoration: none;
+}
+
+.f5v-navigation a > span {
+  min-width: 0;
+  font-size: 0.875rem;
+  white-space: nowrap;
+}
+
+.f5v-navigation a > small {
+  color: currentColor;
+  font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+  opacity: 1;
+  white-space: nowrap;
+}
+
+.f5v-navigation a > .f5v-beta {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: #e9e3f5;
+  color: #55427c;
+  font-size: 0.625rem;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.f5v-navigation a.is-current {
+  color: var(--f5-ink);
+  background: linear-gradient(100deg, #e4def3, #f5f3fa);
+  font-weight: 700;
+}
+
+.f5v-navigation a:hover {
+  color: var(--f5-ink);
+  background: #eeebf5;
+}
+
+.f5v-local-status {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 9px;
+  align-items: start;
+  margin-top: auto;
+  padding: 14px 2px 2px;
+}
+
+.f5v-help-link {
+  display: inline-block;
+  margin: 8px 8px 0;
+  color: var(--f5-muted);
+  font-size: 0.75rem;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.f5v-local-status > i {
+  width: 8px;
+  height: 8px;
+  margin-top: 5px;
+  border-radius: 50%;
+  background: #7b9b99;
+  box-shadow: 0 0 0 4px rgba(123, 155, 153, 0.12);
+}
+
+.f5v-local-status :is(strong, small) {
+  display: block;
+}
+
+.f5v-local-status strong {
+  color: var(--f5-ink);
+  font-size: 0.875rem;
+}
+
+.f5v-local-status small {
+  margin-top: 4px;
+  color: var(--f5-muted);
+  font-size: 0.75rem;
+}
+
+.f5v-content {
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  display: grid;
+  grid-template-rows: 58px minmax(0, 1fr);
+  border-radius: 0 var(--soda-radius-surface) var(--soda-radius-surface) 0;
+  background: var(--f5-paper);
+  overflow: hidden;
+}
+
+.f5v-topbar {
+  min-height: 58px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--soda-space-5);
+  border: 0;
+  color: var(--f5-ink);
+  background: var(--f5-paper);
+}
+
+.f5v-location {
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: var(--soda-space-3);
+}
+
+.f5v-location span {
+  color: var(--f5-accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+}
+
+.f5v-location strong {
+  font-size: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.f5v-account-strip {
+  min-width: 0;
+  max-width: min(55vw, 32rem);
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  color: var(--f5-muted);
+  font-size: 0.75rem;
+}
+
+.f5v-account-strip > * {
+  min-width: 0;
+  padding: 0 12px;
+  white-space: nowrap;
+}
+
+.f5v-account-strip > strong {
+  max-width: 18rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.f5v-account-strip > * + * {
+  border: 0;
+}
+
+.f5v-account-strip b {
+  margin-left: 9px;
+  padding-block: 6px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--f5-accent);
+  background: var(--f5-wash);
+}
+
+.f5v-page-content {
+  min-height: 0;
+  padding: var(--soda-space-4) var(--soda-space-5);
+  overflow: hidden;
+  color: var(--f5-ink);
+  background: var(--f5-paper);
+}
+
+.f5v-page-frame {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.f5v-backdrop,
+.f5v-mobile-navigation {
+  display: none;
+}
+
+.f5v-shell :is(a, button, summary, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--soda-focus);
+  outline-offset: 3px;
+}
+
+.f5v-shell h1[tabindex='-1']:focus {
+  outline: none;
+}
+
+.f5v-shell :is(.button--primary, .home-primary-action) {
+  border: 0;
+  border-radius: var(--soda-radius-control);
+  color: #fff;
+  background: var(--soda-accent);
+  box-shadow: 0 6px 12px rgba(91, 76, 132, 0.18);
+  cursor: pointer;
+  transition:
+    transform var(--soda-motion-fast) var(--soda-ease-out),
+    box-shadow var(--soda-motion-fast) var(--soda-ease-out);
+}
+
+.f5v-shell :is(.button--primary, .home-primary-action):hover:not(:disabled) {
+  box-shadow: 0 8px 16px rgba(91, 76, 132, 0.24);
+  transform: translateY(-1px);
+}
+
+.f5v-shell :is(.button--primary, .home-primary-action):active:not(:disabled) {
+  box-shadow: 0 3px 6px rgba(91, 76, 132, 0.18);
+  transform: scale(0.985);
+}

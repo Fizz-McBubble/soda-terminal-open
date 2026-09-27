@@ -1,0 +1,4 @@
+allowBuilds:
+  esbuild: true
+patchedDependencies:
+  storybook@10.5.10: patches/storybook@10.5.10.patch

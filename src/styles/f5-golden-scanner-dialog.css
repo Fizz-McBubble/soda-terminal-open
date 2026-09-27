@@ -1,0 +1,182 @@
+.f5v-shell .scanner-web__fallback-dialog {
+  width: min(620px, calc(100vw - 40px));
+  max-height: calc(100vh - 40px);
+  padding: 0;
+  overflow: auto;
+  border: 0;
+  border-radius: var(--soda-radius-surface);
+  color: var(--f5-ink);
+  background: var(--f5-paper);
+  box-shadow: 0 18px 40px rgba(56, 45, 83, 0.2);
+}
+
+.f5v-shell .scanner-web__fallback-dialog::backdrop {
+  background: rgba(31, 27, 43, 0.28);
+}
+
+.f5v-shell .scanner-result-dialog__header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 22px 12px;
+}
+
+.f5v-shell .scanner-result-dialog__header span {
+  color: var(--f5-accent);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+}
+
+.f5v-shell .scanner-result-dialog__header h2 {
+  margin: 4px 0 0;
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+
+.f5v-shell .scanner-result-dialog__close {
+  border: 0;
+  color: var(--f5-muted);
+  background: transparent;
+}
+
+.f5v-shell .scanner-result-dialog__summary {
+  padding: 0 22px 20px;
+}
+
+.f5v-shell .scanner-result-dialog__count,
+.f5v-shell .scanner-result-dialog__next-step,
+.f5v-shell .scanner-result-dialog__safety {
+  margin: 0;
+}
+
+.f5v-shell .scanner-result-dialog__count {
+  font-size: 1rem;
+}
+
+.f5v-shell .scanner-result-dialog__summary > dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--soda-space-3);
+  margin: 16px 0;
+}
+
+.f5v-shell .scanner-result-dialog__summary > dl > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--soda-space-2);
+}
+
+.f5v-shell .scanner-result-dialog__summary :is(dt, dd) {
+  margin: 0;
+}
+
+.f5v-shell .scanner-result-dialog__summary dt,
+.f5v-shell .scanner-result-dialog__safety {
+  color: var(--f5-muted);
+  font-size: 0.8rem;
+}
+
+.f5v-shell .scanner-result-dialog__summary dd {
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.f5v-shell .scanner-result-dialog__next-step {
+  line-height: 1.55;
+}
+
+.f5v-shell .scanner-result-dialog__safety {
+  margin-top: 8px;
+}
+
+.f5v-shell .scanner-result-dialog__primary {
+  margin-top: 20px;
+}
+
+.f5v-shell .scanner-dialog-import {
+  margin-top: 4px;
+}
+
+.f5v-shell .scanner-dialog-import__ready,
+.f5v-shell .scanner-dialog-import__confirmation {
+  padding-top: 16px;
+  border-top: 1px solid var(--f5-line);
+}
+
+.f5v-shell .scanner-dialog-import__impact {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.f5v-shell .scanner-dialog-import__impact div {
+  display: grid;
+  gap: 3px;
+}
+
+.f5v-shell .scanner-dialog-import__impact span,
+.f5v-shell .scanner-dialog-import__scope {
+  color: var(--f5-muted);
+  font-size: 0.8rem;
+}
+
+.f5v-shell .scanner-dialog-import__impact strong {
+  font-size: 1rem;
+}
+
+.f5v-shell .scanner-dialog-import__impact b {
+  color: var(--f5-warning);
+  font-size: 1.2rem;
+}
+
+.f5v-shell .scanner-dialog-import__ready > p,
+.f5v-shell .scanner-dialog-import__confirmation > p {
+  margin: 12px 0 0;
+  line-height: 1.55;
+}
+
+.f5v-shell .scanner-dialog-import__confirmation h3 {
+  margin: 0;
+  font-size: 1.08rem;
+  line-height: 1.35;
+}
+
+.f5v-shell .scanner-dialog-import__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.f5v-shell .scanner-dialog-import__actions .scanner-result-dialog__primary {
+  margin-top: 0;
+}
+
+@media (max-width: 560px) {
+  .f5v-shell .scanner-dialog-import__impact {
+    align-items: start;
+    flex-direction: column;
+    gap: var(--soda-space-2);
+  }
+
+  .f5v-shell .scanner-dialog-import__actions {
+    align-items: stretch;
+    flex-direction: column-reverse;
+  }
+}
+
+/* Loaded after global primitives: the dialog has one F5 primary action. */
+.f5v-shell .scanner-web__fallback-dialog .scanner-result-dialog__primary.button--primary {
+  min-height: 46px;
+  border: 0 !important;
+  color: #fff !important;
+  background-color: #625685 !important;
+  background-image: linear-gradient(135deg, #75689f, #625685) !important;
+  box-shadow: 0 6px 12px rgba(91, 76, 132, 0.18) !important;
+  font-size: 1rem;
+  font-weight: 750;
+}

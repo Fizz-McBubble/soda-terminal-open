@@ -1,0 +1,299 @@
+.f5v-shell {
+  font-family: var(--soda-font-ui);
+  font-size: var(--soda-font-body);
+  line-height: var(--soda-leading-body);
+  caret-color: transparent;
+}
+
+.f5v-shell
+  :is(
+    input:not([type]),
+    input[type='text'],
+    input[type='search'],
+    input[type='number'],
+    input[type='password'],
+    input[type='email'],
+    input[type='tel'],
+    input[type='url'],
+    textarea,
+    [contenteditable='true'],
+    [contenteditable='plaintext-only']
+  ) {
+  caret-color: auto;
+}
+
+.f5v-shell :is(button, input, select, textarea) {
+  font-family: inherit;
+}
+
+.f5v-shell :is(input, textarea)::placeholder {
+  color: var(--soda-text-3);
+  opacity: 1;
+}
+
+.f5v-shell button {
+  cursor: pointer;
+}
+
+.f5v-shell :is(.button, .scanner-account-picker__trigger) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--soda-space-2);
+  min-height: var(--soda-control-height);
+  padding: 0 16px;
+  border: 1px solid rgba(103, 90, 144, 0.2);
+  border-radius: var(--soda-radius-control);
+  color: var(--f5-ink);
+  background: rgba(255, 255, 255, 0.76);
+  font-size: 0.875rem;
+  font-weight: 700;
+  user-select: none;
+  cursor: pointer;
+  transition:
+    color var(--soda-motion-fast) var(--soda-ease-out),
+    border-color var(--soda-motion-fast) var(--soda-ease-out),
+    background-color var(--soda-motion-fast) var(--soda-ease-out),
+    box-shadow var(--soda-motion-fast) var(--soda-ease-out),
+    transform var(--soda-motion-fast) var(--soda-ease-out);
+}
+
+.f5v-shell :is(.button, .scanner-account-picker__trigger):hover:not(:disabled) {
+  background: #ffffff;
+  border-color: rgba(103, 90, 144, 0.32);
+  box-shadow: 0 2px 6px rgba(45, 35, 70, 0.05);
+  transform: translateY(-0.5px);
+}
+
+.f5v-shell :is(.button, .scanner-account-picker__trigger):active:not(:disabled) {
+  transform: scale(0.985);
+}
+
+.f5v-shell
+  :is(.tabular-nums, [data-stat], .stat-value, .numeric, [class*='score'], [class*='level']) {
+  font-variant-numeric: tabular-nums;
+}
+
+.f5v-shell :is(.button, button, summary):focus-visible {
+  transition-duration: 80ms;
+}
+
+/* Native open state remains immediate; the content box follows smoothly. */
+@supports (interpolate-size: allow-keywords) and selector(details::details-content) {
+  .f5v-shell details[data-motion-details] {
+    interpolate-size: allow-keywords;
+  }
+
+  .f5v-shell details[data-motion-details]::details-content {
+    block-size: 0;
+    overflow: clip;
+    transition:
+      block-size 220ms var(--soda-ease-out),
+      content-visibility 220ms allow-discrete;
+  }
+
+  .f5v-shell details[data-motion-details][open]::details-content {
+    block-size: auto;
+  }
+}
+
+.f5v-shell
+  :is(
+    .warehouse-action-drawer,
+    .warehouse-disc-drawer,
+    .team-execution__wengine-drawer,
+    .modal-panel,
+    .scanner-web__fallback-dialog
+  ) {
+  animation: soda-overlay-panel-enter var(--soda-motion-overlay) var(--soda-ease-out) both;
+}
+
+.f5v-shell
+  :is(
+    .f5v-backdrop,
+    .draft-conflict-backdrop,
+    .modal-backdrop,
+    .team-execution__wengine-drawer-backdrop
+  ) {
+  animation: soda-overlay-backdrop-enter var(--soda-motion-fast) var(--soda-ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .f5v-shell *,
+  .f5v-shell *::before,
+  .f5v-shell *::after {
+    scroll-behavior: auto !important;
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .f5v-shell details::details-content {
+    transition: none !important;
+  }
+
+  .f5v-shell
+    :is(
+      .warehouse-action-drawer,
+      .warehouse-disc-drawer,
+      .team-execution__wengine-drawer,
+      .modal-panel,
+      .scanner-web__fallback-dialog,
+      .f5v-backdrop,
+      .draft-conflict-backdrop,
+      .modal-backdrop,
+      .team-execution__wengine-drawer-backdrop
+    ) {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+.f5v-shell:where(:root[data-soda-motion='off'] .f5v-shell) *,
+.f5v-shell:where(:root[data-soda-motion='off'] .f5v-shell) *::before,
+.f5v-shell:where(:root[data-soda-motion='off'] .f5v-shell) *::after {
+  scroll-behavior: auto !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+.f5v-shell:where(:root[data-soda-motion='off'] .f5v-shell) details::details-content {
+  transition: none !important;
+}
+
+.f5v-shell :is(.button, .scanner-account-picker__trigger):disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.f5v-shell .scanner-input {
+  width: 100%;
+  min-height: var(--soda-control-height);
+  padding: 0 14px;
+  border: 1px solid rgba(103, 90, 144, 0.24);
+  border-radius: var(--soda-radius-control);
+  color: var(--f5-ink);
+  background: rgba(255, 255, 255, 0.82);
+  font: inherit;
+  outline: none;
+  transition:
+    border-color var(--soda-motion-fast) var(--soda-ease-out),
+    box-shadow var(--soda-motion-fast) var(--soda-ease-out);
+}
+
+.f5v-shell .scanner-input:focus-visible {
+  border-color: var(--f5-accent);
+  box-shadow: 0 0 0 3px rgba(103, 90, 144, 0.14);
+}
+
+.f5v-shell .button--quiet {
+  color: var(--f5-accent);
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.f5v-shell .status-banner {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid rgba(103, 90, 144, 0.18);
+  border-radius: var(--soda-radius-control);
+  color: var(--f5-ink);
+  background: rgba(255, 255, 255, 0.66);
+}
+
+.f5v-shell .status-banner :is(strong, p) {
+  margin: 0;
+}
+
+.f5v-shell .status-banner p {
+  color: var(--f5-muted);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+.f5v-shell .status-banner--error {
+  border-color: rgba(142, 53, 75, 0.24);
+  background: rgba(249, 235, 239, 0.78);
+}
+
+.f5v-shell .status-banner--success {
+  border-color: rgba(73, 111, 101, 0.24);
+  background: rgba(234, 243, 240, 0.8);
+}
+
+.f5v-shell .scanner-account-picker {
+  position: relative;
+  min-width: 0;
+}
+
+.f5v-shell .scanner-account-picker__trigger {
+  justify-content: space-between;
+  text-align: left;
+}
+
+.f5v-shell .scanner-account-picker__options {
+  position: absolute;
+  inset: calc(100% + 6px) 0 auto;
+  display: grid;
+  max-height: 220px;
+  padding: 6px;
+  overflow: auto;
+  border: 1px solid rgba(103, 90, 144, 0.18);
+  border-radius: var(--soda-radius-control);
+  box-shadow: var(--f5-shadow);
+}
+
+.f5v-shell .scanner-account-picker__option {
+  display: grid;
+  gap: 2px;
+  width: 100%;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: var(--soda-radius-control);
+  color: var(--f5-ink);
+  background: transparent;
+  text-align: left;
+}
+
+.f5v-shell .scanner-account-picker__option:hover,
+.f5v-shell .scanner-account-picker__option[aria-selected='true'] {
+  background: var(--f5-wash);
+}
+.f5v-shell .f5-route-boundary {
+  min-height: min(560px, calc(100dvh - 116px));
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 18px;
+  padding: clamp(28px, 6vw, 76px);
+  border: 1px solid var(--f5-line);
+  border-radius: var(--soda-radius-surface);
+  background: linear-gradient(135deg, var(--f5-paper), var(--f5-wash));
+}
+
+.f5v-shell .f5-route-boundary > span {
+  color: var(--f5-accent);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+.f5v-shell .f5-route-boundary h1,
+.f5v-shell .f5-route-boundary p {
+  margin: 0;
+}
+
+.f5v-shell .f5-route-boundary p {
+  max-width: 46rem;
+  color: var(--f5-muted);
+  line-height: 1.75;
+}
+
+.f5v-shell .f5-route-boundary > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--soda-space-3);
+}
+
+.f5v-shell .f5-route-boundary > small {
+  color: var(--f5-muted);
+}

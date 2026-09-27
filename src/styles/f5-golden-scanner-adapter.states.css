@@ -1,0 +1,309 @@
+.f5v-shell .scanner-import-complete__next {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--soda-space-2);
+}
+
+.f5v-shell .scanner-import-complete__next > button {
+  flex: 0 0 auto;
+  margin: 0;
+}
+
+.f5v-shell .scanner-import-complete__next .scanner-web__scan-actions {
+  margin: 0;
+}
+
+.f5v-shell .scanner-import-complete__next > p {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--soda-text-2);
+  font-size: var(--soda-font-small);
+  line-height: 1.6;
+}
+
+@media (max-width: 760px) {
+  .f5v-shell .scanner-import-complete {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+.f5v-shell .scanner-golden:has(.scanner-import-complete),
+.f5v-shell .scanner-golden__workbench:has(.scanner-import-complete) {
+  height: auto;
+}
+
+.f5v-shell .scanner-task:has(.scanner-import-complete) .scanner-task__slant,
+.f5v-shell .scanner-task:has(.scanner-import-complete) .scanner-task__top p {
+  display: none;
+}
+
+.f5v-shell .scanner-task:has(.scanner-import-complete) .scanner-task__top h1 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 32px;
+}
+
+.f5v-shell .scanner-task .scanner-journey-cards {
+  max-width: none;
+}
+
+.f5v-shell .scanner-import-complete {
+  grid-template-columns: minmax(280px, 1fr) minmax(320px, 540px);
+  padding-bottom: 0;
+}
+
+@media (max-width: 760px) {
+  .f5v-shell .scanner-import-complete {
+    grid-template-columns: 1fr;
+  }
+}
+
+.f5v-shell dialog.scanner-task__confirmation {
+  width: min(640px, calc(100vw - 48px));
+  max-height: calc(100vh - 48px);
+  box-sizing: border-box;
+  overflow: auto;
+  padding: 24px;
+  border: 1px solid var(--soda-line);
+  border-radius: var(--soda-radius-surface);
+  color: var(--soda-text);
+  background: var(--soda-panel);
+}
+
+.f5v-shell dialog.scanner-task__confirmation::backdrop {
+  background: rgb(25 21 35 / 40%);
+}
+
+.f5v-shell .scanner-task .scanner-prepare {
+  max-width: none;
+  display: grid;
+  grid-template-columns: minmax(0, 620px) minmax(220px, 1fr);
+  align-items: start;
+  gap: var(--soda-space-4) var(--soda-space-6);
+}
+
+.f5v-shell .scanner-task .scanner-prepare__intro {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.f5v-shell .scanner-task .scanner-prepare__installer {
+  grid-column: 1 / -1;
+  grid-row: 4;
+  margin: 0;
+}
+
+.f5v-shell .scanner-task .scanner-prepare__account {
+  grid-column: 1;
+  grid-row: 2;
+  margin: 0;
+}
+
+.f5v-shell .scanner-task .scanner-prepare__actions {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  margin: 0;
+  align-self: start;
+  flex-wrap: wrap;
+  padding-top: 0;
+}
+
+.f5v-shell .scanner-task .scanner-prepare__actions > button {
+  height: 40px;
+  min-height: 40px;
+  padding-block: 0;
+}
+
+.f5v-shell .scanner-task .scanner-prepare__details {
+  grid-column: 1 / -1;
+  grid-row: 5;
+  margin: 0;
+}
+
+@media (max-width: 860px) {
+  .f5v-shell .scanner-task .scanner-prepare {
+    display: flex;
+    flex-direction: column;
+    gap: var(--soda-space-4);
+  }
+  .f5v-shell .scanner-task .scanner-prepare > * {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .f5v-shell .scanner-task .scanner-prepare__actions {
+    padding-top: 0;
+  }
+}
+
+.f5v-shell .scanner-target-account__create > button {
+  justify-self: start;
+  height: 40px;
+  margin: 0;
+}
+
+@media (max-width: 640px) {
+  .f5v-shell .scanner-target-account__create,
+  .f5v-shell .scanner-prepare__installer {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .f5v-shell .scanner-prepare__installer > a {
+    justify-self: start;
+  }
+}
+
+.f5v-shell .scanner-task__top p {
+  display: none;
+}
+
+.f5v-shell .scanner-task__top h1 {
+  font-size: 1.5rem;
+  line-height: 1.35;
+}
+
+/* Keep prerequisite instructions visible and result actions together. */
+.f5v-shell .scanner-prepare__details > h3 {
+  margin: 0 0 10px;
+  font-size: 15px;
+}
+.f5v-shell .scanner-prepare__details .scanner-prepare__checks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 20px;
+}
+.f5v-shell .scanner-prepare__check > div {
+  display: grid;
+  gap: 3px;
+}
+.f5v-shell .scanner-prepare__details .scanner-prepare__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+.f5v-shell .scanner-web__handoff {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.f5v-shell .scanner-web__handoff > :not(button) {
+  flex-basis: 100%;
+  min-width: 0;
+}
+.f5v-shell .scanner-result-ready {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 16px 24px;
+  width: min(100%, 1100px);
+}
+.f5v-shell .scanner-result-ready__facts {
+  display: flex;
+  align-items: end;
+  gap: 16px;
+  min-width: 0;
+}
+.f5v-shell .scanner-result-ready__facts .scanner-completed-account {
+  flex: 0 1 240px;
+  min-width: 0;
+  padding: 0;
+}
+.f5v-shell .scanner-result-ready__facts .scanner-web__summary {
+  flex: 1 1 280px;
+  grid-template-columns: repeat(2, minmax(100px, 1fr));
+  min-width: 0;
+  margin: 0;
+}
+.f5v-shell .scanner-result-ready__actions {
+  display: flex;
+  align-items: stretch;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.f5v-shell .scanner-result-ready__actions .button {
+  min-height: 46px;
+  margin: 0;
+  white-space: nowrap;
+}
+.f5v-shell .scanner-result-ready__next p {
+  margin: 8px 0 0;
+  color: var(--f5-muted);
+  font-size: 0.75rem;
+}
+@media (max-width: 1050px) {
+  .f5v-shell .scanner-result-ready {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 620px) {
+  .f5v-shell .scanner-result-ready__facts {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .f5v-shell .scanner-result-ready__facts .scanner-completed-account,
+  .f5v-shell .scanner-result-ready__facts .scanner-web__summary {
+    flex-basis: auto;
+    width: 100%;
+  }
+}
+.f5v-shell .scanner-web__handoff > button,
+.f5v-shell .scanner-dialog-import__actions > button {
+  margin: 0;
+  flex: 0 0 auto;
+}
+.f5v-shell .scanner-dialog-import__actions {
+  flex-wrap: wrap;
+  gap: 12px;
+}
+@media (max-width: 760px) {
+  .f5v-shell .scanner-prepare__details .scanner-prepare__checks {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Avoid empty grid rows and oversized gaps in the preparation screen. */
+.f5v-shell .scanner-task .scanner-prepare {
+  row-gap: 12px;
+}
+.f5v-shell .scanner-task .scanner-prepare__details {
+  padding-top: 12px;
+}
+.f5v-shell .scanner-prepare__details .scanner-prepare__checks {
+  margin-top: 10px;
+  row-gap: 0;
+}
+.f5v-shell .scanner-prepare__details .scanner-prepare__checks > li {
+  padding-block: 10px;
+}
+.f5v-shell .scanner-task .scanner-prepare__account {
+  padding-block: 0;
+}
+.f5v-shell .scanner-task .scanner-prepare__actions {
+  gap: 12px;
+}
+
+@media (min-width: 1551px) and (min-height: 821px) and (max-height: 950px) {
+  .f5v-shell .scanner-task {
+    padding-block: 24px;
+  }
+  .f5v-shell .scanner-task .scanner-journey-cards {
+    margin-top: 14px;
+  }
+  .f5v-shell .scanner-task .scanner-prepare {
+    margin-top: 8px;
+    row-gap: 8px;
+  }
+  .f5v-shell .scanner-task .scanner-prepare__details {
+    padding-top: 6px;
+  }
+  .f5v-shell .scanner-prepare__details .scanner-prepare__checks {
+    margin-top: 6px;
+  }
+  .f5v-shell .scanner-prepare__details .scanner-prepare__checks > li {
+    padding-block: 7px;
+  }
+}

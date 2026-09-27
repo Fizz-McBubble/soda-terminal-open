@@ -1,0 +1,47 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "lib": [
+      "ES2023",
+      "DOM"
+    ],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "types": [
+      "vite/client",
+      "node"
+    ],
+    "paths": {
+      "@soda/visual-asset-manifest": [
+        "./src/assets/visualAssetManifestPublic.ts"
+      ],
+      "@soda/planning-profile": [
+        "./src/pages/planningProfilePublic.ts"
+      ],
+      "@soda/disc-fact-presentation": [
+        "./src/pages/discFactPresentationPublic.ts"
+      ],
+      "@soda/warehouse-fact-labels": [
+        "./src/pages/warehouseFactLabelsPublic.ts"
+      ],
+      "@soda/saved-portfolio-plan-teams": [
+        "./src/pages/SavedPortfolioPlanTeamsPublic.tsx"
+      ],
+      "@soda/legacy-recovery-fixture": [
+        "./src/testing/emptyLegacyRecoveryFixture.ts"
+      ]
+    }
+  },
+  "include": [
+    "src",
+    "build",
+    "vite.config.ts"
+  ]
+}

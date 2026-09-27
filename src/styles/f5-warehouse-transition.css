@@ -1,0 +1,31 @@
+.f5v-shell .warehouse-transition__pagination {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: var(--soda-space-3);
+  padding: 4px;
+  border: 1px solid rgba(103, 90, 144, 0.12);
+  border-radius: var(--soda-radius-control);
+  background: var(--f5-wash);
+}
+
+.f5v-shell .warehouse-transition__page-button {
+  min-width: 64px;
+  min-height: 34px;
+  padding: 0 12px;
+  font-size: var(--soda-font-caption);
+}
+
+.f5v-shell .warehouse-transition__page-indicator {
+  display: inline-flex;
+  min-width: 44px;
+  min-height: 34px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  color: var(--f5-muted);
+  font-size: var(--soda-font-caption);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}

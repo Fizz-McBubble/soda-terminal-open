@@ -1,0 +1,420 @@
+.r6-golden .account-source {
+  grid-column: 1/-1;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 28px;
+  padding: 4px 0 18px;
+}
+.r6-golden .account-source h1 {
+  font-size: 1.65em;
+  margin: 4px 0 0;
+}
+.r6-golden .account-source dl {
+  display: flex;
+  gap: var(--soda-space-6);
+  margin: 0;
+}
+.r6-golden .account-source dl div {
+  display: grid;
+  gap: var(--soda-space-1);
+}
+.r6-golden .account-source dt,
+.r6-golden .range-facts dt {
+  font-size: var(--soda-font-caption);
+  color: var(--muted);
+}
+.r6-golden .account-source dd,
+.r6-golden .range-facts dd {
+  margin: 0;
+  font-size: var(--soda-font-body);
+  font-weight: 760;
+}
+.r6-golden .account-range {
+  grid-column: 1;
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  gap: 18px;
+  align-items: center;
+  padding: 22px 0;
+  border: 0;
+}
+.r6-golden .account-range h2,
+.r6-golden .account-switcher h2,
+.r6-golden .account-management h2,
+.r6-golden .backup-create h2,
+.r6-golden .backup-history h2 {
+  margin: 4px 0 0;
+  font-size: 1em;
+}
+.r6-golden .range-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--soda-space-4);
+  margin: 0;
+}
+.r6-golden .range-facts div {
+  display: grid;
+  gap: 5px;
+}
+.r6-golden .range-facts dd {
+  font-size: 1.06em;
+  color: #463b64;
+}
+.r6-golden .account-switcher {
+  grid-column: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(210px, 0.72fr);
+  gap: 18px;
+  align-items: end;
+  padding: 20px 0;
+  border: 0;
+}
+.r6-golden .account-switcher h2 {
+  margin: 4px 0 0;
+}
+.r6-golden .account-switcher p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: var(--soda-font-body);
+  line-height: 1.5;
+}
+.r6-golden .account-switcher label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: var(--soda-font-caption);
+  font-weight: 700;
+}
+.r6-golden .account-switcher select {
+  min-height: 38px;
+  padding: 0 10px;
+  border: 1px solid rgba(107, 96, 140, 0.22);
+  border-radius: var(--soda-radius-control);
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+}
+.r6-golden .account-management {
+  grid-column: 1;
+  padding: 20px 0;
+  border: 0;
+}
+.r6-golden .account-management > div > p,
+.r6-golden .account-empty-note {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: var(--soda-font-body);
+  line-height: 1.5;
+}
+.r6-golden .account-create-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 10px;
+  margin-top: 14px;
+}
+.r6-golden .account-create-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: var(--soda-font-caption);
+  font-weight: 700;
+}
+.r6-golden .account-create-form input,
+.r6-golden .account-management dialog input {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 10px;
+  border: 1px solid rgba(107, 96, 140, 0.22);
+  border-radius: var(--soda-radius-control);
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+}
+.r6-golden .account-management-list {
+  display: grid;
+  gap: var(--soda-space-2);
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.r6-golden .account-management-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--soda-space-3);
+  padding: 10px 0;
+  border-top: 1px solid rgba(107, 96, 140, 0.08);
+}
+.r6-golden .account-management-list span {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+.r6-golden .account-management-list strong {
+  overflow: hidden;
+  font-size: var(--soda-font-body);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.r6-golden .account-management-list small {
+  color: var(--muted);
+  font-size: var(--soda-font-caption);
+}
+.r6-golden .acceptance-recovery {
+  grid-column: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 0;
+  border: 0;
+}
+.r6-golden .acceptance-recovery h2 {
+  margin: 4px 0 0;
+  font-size: 1em;
+}
+.r6-golden .acceptance-recovery p {
+  max-width: 60ch;
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: var(--soda-font-body);
+  line-height: 1.5;
+}
+.r6-golden .acceptance-recovery button {
+  flex: 0 0 auto;
+}
+.r6-golden .backup-create {
+  grid-column: 2;
+  grid-row: 2/4;
+  align-self: start;
+  padding: 22px 0 22px 24px;
+  border: 0;
+}
+.r6-golden .backup-create p {
+  max-width: 31ch;
+  color: var(--muted);
+  font-size: var(--soda-font-body);
+  line-height: 1.5;
+  margin: 10px 0 16px;
+}
+.r6-golden .backup-history {
+  grid-column: 1;
+  padding: 22px 0 0;
+  border: 0;
+}
+.r6-golden .backup-history > header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 9px;
+}
+.r6-golden .backup-history > header > small {
+  font-size: var(--soda-font-caption);
+  color: var(--muted);
+}
+.r6-golden .backup-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(107, 96, 140, 0.08);
+}
+.r6-golden .backup-row:last-child {
+  border-bottom: 0;
+}
+.r6-golden .backup-row strong {
+  font-size: var(--soda-font-body);
+}
+.r6-golden .backup-row small {
+  display: block;
+  color: var(--muted);
+  font-size: var(--soda-font-caption);
+  margin-top: 3px;
+}
+.r6-golden dialog {
+  width: min(520px, calc(100vw - 40px));
+  border: 0;
+  border-radius: var(--soda-radius-surface);
+  padding: 0;
+  box-shadow: 0 22px 60px rgba(35, 27, 55, 0.28);
+  color: var(--ink);
+}
+.r6-golden dialog::backdrop {
+  background: rgba(31, 25, 45, 0.34);
+}
+.r6-golden dialog form {
+  padding: 20px;
+}
+.r6-golden dialog header {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--soda-space-3);
+}
+.r6-golden dialog h2 {
+  margin: 3px 0 10px;
+  font-size: 1.2em;
+}
+.r6-golden dialog p {
+  color: var(--muted);
+  line-height: 1.5;
+}
+.r6-golden .icon-button {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--soda-radius-control);
+  background: #f0edf7;
+}
+.r6-golden .restore-facts {
+  background: #f3f0f8;
+  padding: 10px 12px;
+  border-radius: var(--soda-radius-control);
+}
+.r6-golden .restore-facts div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 0;
+}
+.r6-golden .restore-facts dt {
+  color: var(--muted);
+  font-size: var(--soda-font-caption);
+}
+.r6-golden .restore-facts dd {
+  margin: 0;
+  font-size: var(--soda-font-body);
+  font-weight: 700;
+}
+.r6-golden dialog footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--soda-space-2);
+  margin-top: 16px;
+}
+.r6-golden .object-card:focus-visible,
+.r6-golden .asset-tabs button:focus-visible,
+.r6-golden .primary:focus-visible,
+.r6-golden .quiet:focus-visible,
+.r6-golden .danger:focus-visible,
+.r6-golden .filterbar :focus-visible {
+  outline: 3px solid rgba(107, 85, 170, 0.48);
+  outline-offset: 2px;
+}
+@media (max-width: 1400px) {
+  .r6-golden {
+    font-size: var(--soda-font-small);
+  }
+  .r6-golden .shell {
+    grid-template-columns: 136px minmax(0, 1fr);
+  }
+  .r6-golden .rail {
+    padding-inline: 9px;
+  }
+  .r6-golden .rail nav a {
+    padding-inline: 8px;
+  }
+  .r6-golden .catalog,
+  .r6-golden .editor {
+    padding: 13px;
+  }
+  .r6-golden .object-grid {
+    gap: 9px 8px;
+  }
+  .r6-golden .object-grid.discs {
+    column-gap: 5px;
+  }
+  .r6-golden .workspace {
+    height: 100%;
+  }
+  .r6-golden .card-name {
+    font-size: var(--soda-font-caption);
+  }
+  .r6-golden .card-state {
+    font-size: var(--soda-font-caption);
+  }
+  .r6-golden .split {
+    grid-template-columns: minmax(0, 72fr) minmax(300px, 28fr);
+  }
+  .r6-golden .account-overview.account-flow {
+    padding: 18px 22px;
+    gap: 0 22px;
+  }
+  .r6-golden .account-source {
+    padding-bottom: 14px;
+  }
+  .r6-golden .account-range,
+  .r6-golden .account-switcher,
+  .r6-golden .account-management,
+  .r6-golden .acceptance-recovery,
+  .r6-golden .backup-create,
+  .r6-golden .backup-history {
+    padding-top: 18px;
+  }
+  .r6-golden .backup-create {
+    padding-left: 20px;
+  }
+  .r6-golden .account-source dl {
+    gap: 22px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .r6-golden *,
+  .r6-golden *::before,
+  .r6-golden *::after {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+@media (max-width: 960px) {
+  .r6-golden.r6-golden--content-only .asset-tabs {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .r6-golden .account-overview.account-flow {
+    grid-template-columns: minmax(0, 1fr);
+    padding: 18px;
+    overflow-x: hidden;
+  }
+
+  .r6-golden .account-range,
+  .r6-golden .account-switcher,
+  .r6-golden .acceptance-recovery,
+  .r6-golden .backup-create,
+  .r6-golden .backup-history {
+    min-width: 0;
+    grid-column: 1;
+  }
+
+  .r6-golden .backup-create {
+    padding-left: 0;
+  }
+
+  .r6-golden .split {
+    height: auto;
+    max-height: none;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .r6-golden .catalog {
+    height: min(58dvh, 520px);
+    min-height: 420px;
+    max-height: min(58dvh, 520px);
+  }
+
+  .r6-golden .editor {
+    max-height: none;
+    overflow: visible;
+    scroll-margin-top: 72px;
+  }
+
+  .r6-golden .object-grid.agents {
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  }
+}
