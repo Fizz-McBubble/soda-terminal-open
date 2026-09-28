@@ -215,7 +215,9 @@ function HydratedScannerAssistantPage({
   const stageFocusRequestedRef = useRef(false)
   const distribution = snapshot.distribution ?? initialDistributionSnapshot
   const canOpenInstalledHelper =
-    !snapshot.readiness.helperConnected && snapshot.error?.diagnosticCode !== 'helper_incompatible'
+    !snapshot.readiness.helperConnected &&
+    snapshot.error?.diagnosticCode !== 'helper_incompatible' &&
+    scannerDistributionManifest.runtime.releaseState !== 'not_published'
   const prepareGateReady = useMemo(
     () => createPrepareChecks(snapshot).every((check) => check.status === 'ready'),
     [snapshot],
@@ -292,7 +294,7 @@ function HydratedScannerAssistantPage({
           title: '确认数据归属，然后检查并开始',
           body:
             window.location.protocol === 'https:'
-              ? '首次使用下载安装包并打开本机扫描助手；已安装可直接连接。连接后选择账户，再检查游戏。'
+              ? '首次使用先下载并安装扫描助手；已安装点击连接。连接后选择账户，再检查游戏。'
               : '点击后会切换到游戏，并自动检查扫描准备情况。',
         }
       case 'connection_failed':
@@ -640,20 +642,15 @@ function HydratedScannerAssistantPage({
   const installer =
     distribution.state !== 'ready' &&
     scannerDistributionManifest.runtime.releaseState !== 'not_published' ? (
-      <section className="scanner-prepare__installer" aria-labelledby="scanner-installer-heading">
-        <div>
-          <h3 id="scanner-installer-heading">安装或修复扫描器</h3>
-          <p>首次使用或需要修复时，下载安装包，按 Windows 提示完成后返回扫描。</p>
-        </div>
-        <a
-          className="button button--quiet"
-          href={scannerDistributionManifest.helper.downloadUrl}
-          download
-        >
-          <Download aria-hidden="true" size={17} />
-          下载 Windows 安装包
-        </a>
-      </section>
+      <a
+        className="button button--quiet scanner-prepare__download"
+        href={scannerDistributionManifest.helper.downloadUrl}
+        download
+        title="首次安装或修复扫描助手"
+      >
+        <Download aria-hidden="true" size={17} />
+        下载扫描助手
+      </a>
     ) : null
   const presentedStateCopy =
     restartingAfterCompletedResult || preparingNewScan

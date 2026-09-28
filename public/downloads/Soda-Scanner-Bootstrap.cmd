@@ -1,7 +1,7 @@
 @echo off
 setlocal EnableExtensions DisableDelayedExpansion
 set "ORIGIN=__SODA_PUBLIC_ORIGIN__"
-if "%ORIGIN%"=="__SODA_PUBLIC_ORIGIN__" (
+if not "%ORIGIN:~0,8%"=="https://" (
   echo Scanner installer has no public HTTPS origin. Installation stopped.
   exit /b 2
 )

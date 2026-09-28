@@ -41,6 +41,7 @@ export function PrepareChecklist({
   const unchecked = snapshot.state === 'unchecked'
   const requestInFlight = snapshot.state === 'checking' || snapshot.state === 'awaiting_elevation'
   const waitingForPlayer = snapshot.state === 'ready' && !snapshot.prepare
+  const needsConnection = !snapshot.readiness.helperConnected
   const gateExplanation = startReady
     ? '点击后会切换到游戏，检查画面和仓库是否就绪；检查通过后才开始扫描。'
     : !targetReady
@@ -72,13 +73,15 @@ export function PrepareChecklist({
         <button
           className="button button--primary scanner-web__primary-action"
           type="button"
-          disabled={(!startReady && !onRecover) || requestInFlight}
+          disabled={requestInFlight || (!startReady && !needsConnection)}
           aria-describedby="scanner-gate-explanation"
-          onClick={startReady ? onStart : onRecover}
+          onClick={startReady ? onStart : needsConnection ? (onRecover ?? onReconnect) : undefined}
         >
           <ScanLine aria-hidden="true" size={19} />
-          {!startReady && onRecover
-            ? '打开本机扫描助手'
+          {!startReady && needsConnection
+            ? unchecked
+              ? '连接扫描助手'
+              : '重新连接扫描助手'
             : snapshot.state === 'awaiting_elevation'
               ? '等待 Windows 权限确认'
               : snapshot.state === 'checking'
@@ -88,19 +91,8 @@ export function PrepareChecklist({
                   : '切换游戏并开始扫描'}
           <ChevronRight aria-hidden="true" size={18} />
         </button>
-        {!startReady ? (
-          <button
-            className="button button--quiet"
-            type="button"
-            disabled={requestInFlight}
-            onClick={onReconnect}
-          >
-            {unchecked ? '连接本机助手' : '重新连接'}
-          </button>
-        ) : null}
+        {installer}
       </div>
-
-      {installer}
 
       <section className="scanner-prepare__details" aria-label="本机准备条件">
         <h3>本机准备条件</h3>

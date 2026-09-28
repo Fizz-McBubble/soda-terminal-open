@@ -92,12 +92,6 @@
   background: transparent;
 }
 
-.f5v-shell .scanner-task .scanner-prepare__installer {
-  grid-column: 1 / -1;
-  grid-row: 4;
-  margin: 0;
-}
-
 .f5v-shell .scanner-task .scanner-prepare__account {
   grid-column: 1;
   grid-row: 2;
@@ -113,7 +107,7 @@
   padding-top: 0;
 }
 
-.f5v-shell .scanner-task .scanner-prepare__actions > button {
+.f5v-shell .scanner-task .scanner-prepare__actions > :is(button, a) {
   height: 40px;
   min-height: 40px;
   padding-block: 0;
@@ -121,7 +115,7 @@
 
 .f5v-shell .scanner-task .scanner-prepare__details {
   grid-column: 1 / -1;
-  grid-row: 5;
+  grid-row: 4;
   margin: 0;
 }
 
@@ -147,12 +141,8 @@
 }
 
 @media (max-width: 640px) {
-  .f5v-shell .scanner-target-account__create,
-  .f5v-shell .scanner-prepare__installer {
+  .f5v-shell .scanner-target-account__create {
     grid-template-columns: minmax(0, 1fr);
-  }
-  .f5v-shell .scanner-prepare__installer > a {
-    justify-self: start;
   }
 }
 

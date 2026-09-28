@@ -2,6 +2,7 @@ import { createHash } from 'node:crypto'
 import { cp, lstat, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { dirname, extname, isAbsolute, relative, resolve, sep } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { materializeScannerDistribution, validatePublicOrigin } from '../../scripts/materialize-scanner-distribution.mjs'
 
 export const wranglerVersion = '4.141.0'
 const here = dirname(fileURLToPath(import.meta.url))
@@ -84,11 +85,39 @@ function browserMarker(html) {
       /\bcontent\s*=\s*['"]browser['"]/iu.test(tag),
   )
 }
-export async function inspectDist(dist) {
+export async function inspectDist(dist, { allowScannerTemplate = false, origin } = {}) {
   const root = resolve(dist)
   if (!(await lstat(root)).isDirectory() || (await lstat(root)).isSymbolicLink())
     throw new Error('dist_must_be_real_directory')
   const files = await inventory(root)
+  const scannerFiles = [
+    'downloads/Soda-Scanner-Bootstrap.cmd',
+    'downloads/scanner-runtime-bootstrap.ps1',
+    'downloads/scanner-runtime-pointer-store.ps1',
+    'downloads/scanner-runtime-release.v1.json',
+  ]
+  const present = scannerFiles.filter((path) => files.some((file) => file.path === path))
+  if (present.length && present.length !== scannerFiles.length)
+    throw new Error('scanner_distribution_incomplete')
+  if (present.length) {
+    const command = await readFile(resolve(root, scannerFiles[0]), 'utf8')
+    if (!allowScannerTemplate) {
+      if (/__SODA_[A-Z0-9_]+__/u.test(command))
+        throw new Error('scanner_template_unresolved')
+      const embeddedOrigin = command.match(/^set "ORIGIN=([^"]+)"\r?$/mu)?.[1]
+      validatePublicOrigin(embeddedOrigin)
+      if (origin && embeddedOrigin !== validatePublicOrigin(origin))
+        throw new Error('scanner_public_origin_mismatch')
+      if (!command.includes('if not "%ORIGIN:~0,8%"=="https://" ('))
+        throw new Error('scanner_origin_guard_invalid')
+      for (const path of scannerFiles.slice(1)) {
+        const file = files.find((item) => item.path === path)
+        if (!command.includes(file.sha256)) throw new Error(`scanner_hash_pin_mismatch:${path}`)
+      }
+    } else if (!command.includes('__SODA_PUBLIC_ORIGIN__')) {
+      throw new Error('scanner_source_must_be_template')
+    }
+  }
   const html = await readFile(resolve(root, 'index.html'), 'utf8')
   if (!browserMarker(html)) throw new Error('browser_compute_marker_required_not_R17')
   if (
@@ -174,7 +203,7 @@ export async function inspectDist(dist) {
     scope: 'browser_bundle_file_closure_and_reference_audit_not_runtime_acceptance',
   }
 }
-export async function prepare({ dist, out, accountId, name = 'app' }) {
+export async function prepare({ dist, out, accountId, name = 'app', origin }) {
   if (!dist || !out) throw new Error('dist_and_out_required')
   if (!/^[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/u.test(name)) throw new Error('worker_name_invalid')
   if (accountId && !/^[a-f0-9]{32}$/u.test(accountId)) throw new Error('account_id_invalid')
@@ -182,7 +211,9 @@ export async function prepare({ dist, out, accountId, name = 'app' }) {
     output = resolve(out)
   if (within(output, input) || within(input, output) || within(output, here))
     throw new Error('output_overlaps_input_or_tools')
-  const report = await inspectDist(input)
+  const report = await inspectDist(input, { allowScannerTemplate: true })
+  if (report.files.some((file) => file.path === 'downloads/Soda-Scanner-Bootstrap.cmd'))
+    validatePublicOrigin(origin)
   const config = JSON.parse(await readFile(resolve(here, 'wrangler.template.json'), 'utf8'))
   const staticHeaders = await readFile(resolve(here, 'static-headers.txt'), 'utf8')
   config.name = name
@@ -195,9 +226,15 @@ export async function prepare({ dist, out, accountId, name = 'app' }) {
     await cp(input, resolve(output, 'web'), { recursive: true, errorOnExist: true, force: false })
     // Recheck the copied tree rather than assume input stayed unchanged during copy.
     const web = resolve(output, 'web')
-    const copied = await inspectDist(web)
+    const copied = await inspectDist(web, { allowScannerTemplate: true })
     if (copied.inventorySha256 !== report.inventorySha256)
       throw new Error('dist_changed_during_copy')
+    if (report.files.some((file) => file.path === 'downloads/Soda-Scanner-Bootstrap.cmd'))
+      await materializeScannerDistribution({
+        origin,
+        templateRoot: resolve(input, 'downloads'),
+        output: resolve(web, 'downloads'),
+      })
     const headersPath = resolve(web, '_headers')
     try {
       const existing = await readFile(headersPath, 'utf8')
@@ -206,7 +243,7 @@ export async function prepare({ dist, out, accountId, name = 'app' }) {
       if (error?.code !== 'ENOENT') throw error
       await writeFile(headersPath, staticHeaders, { flag: 'wx' })
     }
-    const upload = await inspectDist(web)
+    const upload = await inspectDist(web, { origin })
     const packagedReport = {
       ...upload,
       sourceInventorySha256: report.inventorySha256,
@@ -254,12 +291,12 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
   try {
     for (let i = 0; i < args.length; i += 2) {
       if (
-        !['--dist', '--out', '--account-id', '--name'].includes(args[i]) ||
+        !['--dist', '--out', '--account-id', '--name', '--origin'].includes(args[i]) ||
         !args[i + 1] ||
         args[i + 1].startsWith('--')
       )
         throw new Error(
-          'usage: --dist <browser-dist> --out <new-directory> [--account-id <id>] [--name <name>]',
+          'usage: --dist <browser-dist> --out <new-directory> [--account-id <id>] [--name <name>] [--origin <https-origin>]',
         )
       options[args[i] === '--account-id' ? 'accountId' : args[i].slice(2)] = args[i + 1]
     }
