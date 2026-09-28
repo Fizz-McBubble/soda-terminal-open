@@ -29,7 +29,11 @@ export function AgentEditor({ props, item }: { props: AssetGoldenProps; item: Ca
     return (
       <>
         <div className="asset-editor-heading">
-          {Identity(item, `${item.rarity ?? ''}级 · ${getAgentSpecialtyLabel(item.specialty)}`)}
+          {Identity(
+            item,
+            `${item.rarity ?? ''}级 · ${getAgentSpecialtyLabel(item.specialty)}`,
+            '图鉴预览',
+          )}
         </div>
         <CatalogReferencePanel item={item} />
         <p className="selection-context">创建本机账户后可记录拥有情况与养成进度。</p>

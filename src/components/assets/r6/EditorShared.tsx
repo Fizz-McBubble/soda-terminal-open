@@ -42,7 +42,7 @@ export function Field({
   )
 }
 
-export function Identity(item: CatalogItem, meta: string) {
+export function Identity(item: CatalogItem, meta: string, scopeLabel = '当前账户') {
   return (
     <header className={`identity identity--${item.entityType}`}>
       <VisualEntityImage
@@ -62,7 +62,7 @@ export function Identity(item: CatalogItem, meta: string) {
         className="identity-image"
       />
       <div>
-        <small>当前账户</small>
+        <small>{scopeLabel}</small>
         <h2>{item.playerName}</h2>
         <p>{meta}</p>
       </div>

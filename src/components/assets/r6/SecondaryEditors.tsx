@@ -10,7 +10,11 @@ export function WEngineEditor({ props, item }: { props: AssetGoldenProps; item: 
   const users = props.roster.agents.filter((agent) => agent.wEngineDetails.id === item.stableId)
   return (
     <>
-      {Identity(item, `${item.rarity ?? ''}级 · ${getAgentSpecialtyLabel(item.specialty)}`)}
+      {Identity(
+        item,
+        `${item.rarity ?? ''}级 · ${getAgentSpecialtyLabel(item.specialty)}`,
+        props.accountId === 'no-account' ? '图鉴预览' : '当前账户',
+      )}
       <CatalogReferencePanel item={item} />
       {users.length > 0 && (
         <section className="editor-section" aria-label="使用代理人">
@@ -46,7 +50,9 @@ export function BangbooEditor({ props, item }: { props: AssetGoldenProps; item: 
   if (props.accountId === 'no-account') {
     return (
       <>
-        <div className="asset-editor-heading">{Identity(item, `${item.rarity ?? ''}级邦布`)}</div>
+        <div className="asset-editor-heading">
+          {Identity(item, `${item.rarity ?? ''}级邦布`, '图鉴预览')}
+        </div>
         <CatalogReferencePanel item={item} />
         <p className="selection-context">创建本机账户后可记录拥有情况与培养进度。</p>
       </>
