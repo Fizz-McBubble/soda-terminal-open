@@ -24,7 +24,7 @@
     "pnpm-workspace.yaml": "72fad324b44db4dfd1e76e7b910f0df5b488fef148c330740d8bb5614d330fde",
     "public/assets/soda-brand-icon.png": "95dc73b4ba276bb74eff96e97bd43ce6ea8396d64e36ca70d460180539cbfe86",
     "public/downloads/scanner-native-core.package.json": "155ba1ba3633c19cb4f44c7da9cb3861192ddf297c0f9dc399d6bb776f2fb86b",
-    "public/downloads/scanner-runtime-bootstrap.ps1": "4898fdde721985594cfc8404574ef97715fc61037847d4f166dbd68b00eafbff",
+    "public/downloads/scanner-runtime-bootstrap.ps1": "4006133173758b79be7a8c79e0ecae5fdb3772ab459a5490de7de75451ef7eb5",
     "public/downloads/scanner-runtime-pointer-store.ps1": "f150211d592f6190c822b0f993e83fc82cbc40ae6cc630f368d43cb9a12fbd1f",
     "public/downloads/scanner-runtime-release.v1.json": "4072a1f65065d6eee71a93e7ec81d3efbe1b269d63c7069fec49114e2fda1b4d",
     "public/downloads/Soda-Scanner-Bootstrap.cmd": "8db6928b6c177705a5ef5066cd0669c30be276e29359b8a5dfc3716f42c7151d",

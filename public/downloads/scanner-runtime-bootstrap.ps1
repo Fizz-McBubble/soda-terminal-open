@@ -326,7 +326,8 @@ function Test-SodaRuntimeHealth {
 function Ensure-SodaProtocolRegistration {
     param(
         [Parameter(Mandatory = $true)][string]$Helper,
-        [Parameter(Mandatory = $true)][string]$InstallRoot
+        [Parameter(Mandatory = $true)][string]$InstallRoot,
+        [Parameter(Mandatory = $true)][string]$PublicOrigin
     )
 
     $expectedFileVersion = (Get-Item -LiteralPath $Helper).VersionInfo.FileVersion
@@ -352,6 +353,16 @@ function Ensure-SodaProtocolRegistration {
         Join-Path $env:LOCALAPPDATA 'SodaTerminal\Scanner'
     } else { $env:ZZZ_SCANNER_DATA_ROOT }
     $managedHelper = [IO.Path]::GetFullPath((Join-Path $managedRoot 'helper\ZZZ-Scanner-Helper.exe'))
+    $originSource = Join-Path (Split-Path -Path $Helper -Parent) 'scanner-public-origin.txt'
+    if (-not (Test-Path -LiteralPath $originSource -PathType Leaf) -or
+        (Get-Content -LiteralPath $originSource -Raw -Encoding UTF8).Trim() -cne $PublicOrigin) {
+        throw 'runtime_public_origin_mismatch'
+    }
+    $originTarget = Join-Path (Split-Path -Path $managedHelper -Parent) 'scanner-public-origin.txt'
+    [IO.File]::Copy($originSource, $originTarget, $true)
+    if ((Get-Content -LiteralPath $originTarget -Raw -Encoding UTF8).Trim() -cne $PublicOrigin) {
+        throw 'runtime_managed_origin_copy_mismatch'
+    }
     $expectedCommand = '"' + $managedHelper + '" "%1"'
     $commandKey = 'Registry::HKEY_CURRENT_USER\Software\Classes\soda-terminal-scanner\shell\open\command'
     for ($attempt = 0; $attempt -lt 120; $attempt++) {
@@ -405,7 +416,7 @@ function Install-SodaScannerRuntime {
         try {
             Test-SodaRuntimeHealth -StageRoot $oldActive.path -Manifest $manifest
             if ([string]::IsNullOrWhiteSpace($TestAssetPath) -and $env:SODA_SCANNER_TEST_MODE -ne '1') {
-                Ensure-SodaProtocolRegistration -Helper (Join-Path $oldActive.path 'helper\ZZZ-Scanner-Helper.exe') -InstallRoot $InstallRoot
+                Ensure-SodaProtocolRegistration -Helper (Join-Path $oldActive.path 'helper\ZZZ-Scanner-Helper.exe') -InstallRoot $InstallRoot -PublicOrigin $PublicOrigin
             }
             return [pscustomobject]@{ state = 'ready'; repeatedInstall = $true; runtimeVersion = $manifest.runtimeVersion }
         }
@@ -458,7 +469,7 @@ function Install-SodaScannerRuntime {
         if ([string]::IsNullOrWhiteSpace($TestAssetPath) -and $env:SODA_SCANNER_TEST_MODE -ne '1') {
             $helper = Join-Path $versionRoot 'helper\ZZZ-Scanner-Helper.exe'
             if (-not (Test-Path -LiteralPath $helper -PathType Leaf)) { throw 'runtime_helper_missing' }
-            Ensure-SodaProtocolRegistration -Helper $helper -InstallRoot $InstallRoot
+            Ensure-SodaProtocolRegistration -Helper $helper -InstallRoot $InstallRoot -PublicOrigin $PublicOrigin
         }
         return [pscustomobject]@{ state = 'ready'; repeatedInstall = $false; runtimeVersion = $manifest.runtimeVersion }
     }
