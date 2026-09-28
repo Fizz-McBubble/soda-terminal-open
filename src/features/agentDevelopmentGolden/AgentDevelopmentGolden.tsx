@@ -35,6 +35,7 @@ function Workbench({
   scenario,
   data,
   onSavePlan,
+  onEditCurrent,
   onAnalyzeWarehouse,
 }: {
   toOverview: () => void
@@ -42,6 +43,7 @@ function Workbench({
   onContinueOptimization?: () => void
   scenario: JourneyScenario
   data: GoldenWorkbenchData
+  onEditCurrent?: () => void
   onSavePlan?: AgentDevelopmentGoldenProps['onSavePlan']
   onAnalyzeWarehouse?: AgentDevelopmentGoldenProps['onAnalyzeWarehouse']
 }) {
@@ -68,9 +70,11 @@ function Workbench({
   const planKey = JSON.stringify([
     subject.agentId,
     subject.selectedCandidateRank,
-    subject.discs,
-    subject.warehouseAnalysis,
-    subject.valueBenchmark,
+    subject.discs.map((disc) => [disc.slot, disc.id]),
+    subject.level,
+    subject.mindscape,
+    subject.skills,
+    subject.engine.currentId,
   ])
   const planSaved = savedPlanKey === planKey
   const isSavedView = subject.mode === 'saved'
@@ -204,12 +208,14 @@ function Workbench({
                     Lv.{subject.level} · {subject.mindscape} 影
                   </b>
                 </span>
-                <a
+                <button
+                  type="button"
                   className="edit-current"
-                  href={`/assets/agents?selected=${encodeURIComponent(data.agentId)}`}
+                  onClick={onEditCurrent}
+                  disabled={!onEditCurrent}
                 >
-                  在我的资产编辑
-                </a>
+                  编辑当前状态
+                </button>
               </div>
             </header>
             <div className="current-status-details">
@@ -386,16 +392,7 @@ function Workbench({
               <span className="analysis-state-copy">{subject.warehouseAnalysis.summary}</span>
             ) : null}
           </div>
-          {isSavedView && (
-            <button
-              type="button"
-              className="button button--quiet"
-              onClick={onContinueOptimization}
-              disabled={!onContinueOptimization}
-            >
-              继续优化配装
-            </button>
-          )}
+
           {
             <div className="disc-workbench-metrics" aria-label="方案指标">
               {benchmarkSupported && (
@@ -438,6 +435,16 @@ function Workbench({
           }
           {
             <div className="disc-workbench-actions">
+              {isSavedView && (
+                <button
+                  type="button"
+                  className="button button--quiet"
+                  onClick={onContinueOptimization}
+                  disabled={!onContinueOptimization}
+                >
+                  继续优化配装
+                </button>
+              )}
               <button
                 className="warehouse-action warehouse-action--primary button primary"
                 type="button"
@@ -573,6 +580,7 @@ export function AgentDevelopmentGolden({
   top10: top10Data,
   onNavigate,
   onSavePlan,
+  onEditCurrent,
   onSelectCandidatePlan,
   onAnalyzeWarehouse,
   onReanalyzeWarehouse,
@@ -599,6 +607,7 @@ export function AgentDevelopmentGolden({
       onContinueOptimization={onContinueOptimization}
       scenario={scenario}
       data={workbench!}
+      onEditCurrent={onEditCurrent}
       onSavePlan={onSavePlan}
       onAnalyzeWarehouse={onAnalyzeWarehouse}
     />

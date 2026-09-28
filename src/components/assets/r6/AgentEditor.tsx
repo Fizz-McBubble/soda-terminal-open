@@ -11,7 +11,13 @@ import { WEngineAssignmentField } from './WEngineAssignmentField'
 import { useDraft } from './state'
 import type { AgentDraft, AssetGoldenProps, CatalogItem } from './types'
 
-export function AgentEditor({ props, item }: { props: AssetGoldenProps; item: CatalogItem }) {
+export function AgentEditor({
+  props,
+  item,
+}: {
+  props: Pick<AssetGoldenProps, 'accountId' | 'roster' | 'catalog' | 'onSave'>
+  item: CatalogItem
+}) {
   const source = props.roster.agents.find((x) => x.agentId === item.stableId)!
   const revision = JSON.stringify({ source })
   const current = {

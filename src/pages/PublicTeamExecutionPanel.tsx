@@ -1,4 +1,4 @@
-import { useId, useState, type ReactNode } from 'react'
+import { useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import type { CoreWarehouse } from '../accounts/coreFlow'
 import type {
   TargetTeamEquipmentParameterSelection,
@@ -102,6 +102,8 @@ export function PublicTeamExecutionPanel({
   const [showWholeTeam, setShowWholeTeam] = useState(false)
   const [pending, setPending] = useState(false)
   const [error, setError] = useState('')
+  const memberTabRefs = useRef(new Map<string, HTMLButtonElement>())
+  const pendingMemberFocus = useRef<string | null>(null)
   const selectedMember =
     view.members.find((member) => member.agentId === selectedMemberId) ?? view.members[0]
   const expectedDiscCount = view.members.length * 6
@@ -128,6 +130,13 @@ export function PublicTeamExecutionPanel({
     return member ? [member] : []
   })
   const orderedNames = currentOrder.map(getAgentName)
+
+  useLayoutEffect(() => {
+    const memberId = pendingMemberFocus.current
+    if (!memberId || memberId !== selectedMember?.agentId) return
+    pendingMemberFocus.current = null
+    memberTabRefs.current.get(memberId)?.focus()
+  }, [selectedMember?.agentId])
 
   const apply = async (next: TargetTeamEquipmentParameterSelection) => {
     if (!onConfirmEquipmentParameters || pending || readOnly) return
@@ -158,12 +167,34 @@ export function PublicTeamExecutionPanel({
               {orderedMembers.map((member, index) => (
                 <div className="team-execution__member-slot" key={member.agentId}>
                   <button
+                    ref={(element) => {
+                      if (element) memberTabRefs.current.set(member.agentId, element)
+                      else memberTabRefs.current.delete(member.agentId)
+                    }}
                     type="button"
                     role="tab"
                     id={`${headingId}-${member.agentId}`}
                     aria-selected={selectedMember.agentId === member.agentId}
                     aria-controls={`${headingId}-panel`}
+                    tabIndex={selectedMember.agentId === member.agentId ? 0 : -1}
                     className={selectedMember.agentId === member.agentId ? 'is-selected' : ''}
+                    onKeyDown={(event) => {
+                      const next =
+                        event.key === 'Home'
+                          ? 0
+                          : event.key === 'End'
+                            ? orderedMembers.length - 1
+                            : event.key === 'ArrowRight'
+                              ? (index + 1) % orderedMembers.length
+                              : event.key === 'ArrowLeft'
+                                ? (index + orderedMembers.length - 1) % orderedMembers.length
+                                : null
+                      if (next === null) return
+                      event.preventDefault()
+                      pendingMemberFocus.current = orderedMembers[next].agentId
+                      setSelectedMemberId(orderedMembers[next].agentId)
+                      setShowWholeTeam(false)
+                    }}
                     onClick={() => {
                       setSelectedMemberId(member.agentId)
                       setShowWholeTeam(false)

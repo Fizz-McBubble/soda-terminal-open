@@ -256,6 +256,34 @@ function getCacheableVisualAssets(manifest: VisualAssetManifest, scope: 'catalog
     .filter((item) => scope === 'all' || isCatalogVisualAsset(item))
 }
 
+// The full catalog check reads and hashes every cached image. Share overlapping checks, but
+// revalidate a later call: Cache Storage can evict an image without changing our state pointer.
+let verificationByStorage = new WeakMap<
+  object,
+  WeakMap<VisualAssetManifest, Map<string, Promise<boolean>>>
+>()
+let verificationGeneration = 0
+
+function invalidateVisualAssetPackVerification() {
+  verificationGeneration += 1
+  verificationByStorage = new WeakMap()
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('soda-visual-assets-ready', invalidateVisualAssetPackVerification)
+}
+
+function verificationStateKey(state: VisualAssetPackState, scope: 'catalog' | 'all') {
+  return [
+    scope,
+    state.packVersion,
+    state.catalogProfile,
+    state.activeCache,
+    state.wEngineCache,
+    ...visualAssetEntityTypeSchema.options.map((type) => state.activeCaches?.[type] ?? ''),
+  ].join('|')
+}
+
 /**
  * A pack pointer alone is not proof that its current manifest is usable. Old
  * browser state can survive a manifest update while the newly introduced files
@@ -270,13 +298,43 @@ export async function isVisualAssetPackCached(
   const parsed = visualAssetManifestSchema.parse(manifest)
   const state = runtime.getState()
   if (!isOfficialCatalogPackReadyFor(state, parsed.packVersion)) return false
-  const assets = getCacheableVisualAssets(parsed, scope)
-  const activeCaches = await openActiveVisualAssetCaches(state, runtime)
-  return (
-    await Promise.all(
-      assets.map((asset) => findVerifiedCachedAsset(asset, state, runtime, activeCaches)),
-    )
-  ).every(Boolean)
+  let byManifest = verificationByStorage.get(runtime.cacheStorage)
+  if (!byManifest) {
+    byManifest = new WeakMap()
+    verificationByStorage.set(runtime.cacheStorage, byManifest)
+  }
+  let checks = byManifest.get(manifest)
+  if (!checks) {
+    checks = new Map()
+    byManifest.set(manifest, checks)
+  }
+  const key = verificationStateKey(state, scope)
+  const existing = checks.get(key)
+  if (existing) return existing
+
+  const generation = verificationGeneration
+  const verification: Promise<boolean> = (async () => {
+    const assets = getCacheableVisualAssets(parsed, scope)
+    const activeCaches = await openActiveVisualAssetCaches(state, runtime)
+    let verified = true
+    await runBoundedConcurrentTasks(assets, 4, async (asset) => {
+      if (!(await findVerifiedCachedAsset(asset, state, runtime, activeCaches))) verified = false
+    })
+    // An install or removal can finish during this scan. Read the new pointer before reporting.
+    return generation === verificationGeneration
+      ? verified
+      : isVisualAssetPackCached(manifest, runtime, scope)
+  })()
+  checks.set(key, verification)
+  void verification.then(
+    () => {
+      if (checks.get(key) === verification) checks.delete(key)
+    },
+    () => {
+      if (checks.get(key) === verification) checks.delete(key)
+    },
+  )
+  return verification
 }
 
 async function installAssetsIntoCache(
@@ -361,10 +419,12 @@ export async function installVisualAssetPack(
         ),
       },
     })
+    invalidateVisualAssetPackVerification()
     return { installed: cacheableAssets.length, cacheName }
   } catch (error) {
     await runtime.cacheStorage.delete(cacheName)
     runtime.setState(previousState)
+    invalidateVisualAssetPackVerification()
     throw error
   }
 }
@@ -418,10 +478,12 @@ export async function installOfficialWEngineAssetPack(
         wengine: previousState.activeCaches?.wengine ?? previousState.wEngineCache ?? undefined,
       },
     })
+    invalidateVisualAssetPackVerification()
     return { installed: cacheableAssets.length, cacheName }
   } catch (error) {
     await runtime.cacheStorage.delete(cacheName)
     runtime.setState(previousState)
+    invalidateVisualAssetPackVerification()
     throw error
   }
 }
@@ -448,6 +510,7 @@ export async function rollbackVisualAssetPack(
       }),
     ),
   })
+  invalidateVisualAssetPackVerification()
   return true
 }
 
@@ -470,6 +533,7 @@ export async function rollbackOfficialWEngineAssetPack(
       wengine: state.activeCaches?.wengine ?? state.wEngineCache ?? undefined,
     },
   })
+  invalidateVisualAssetPackVerification()
   return true
 }
 
@@ -501,5 +565,6 @@ export async function removePersonalVisualAssetCaches(
   const names = (await cacheStorage.keys()).filter((name) => name.startsWith(`${cachePrefix}:`))
   for (const name of names) await cacheStorage.delete(name)
   clearState()
+  invalidateVisualAssetPackVerification()
   return { deleted: names.length }
 }

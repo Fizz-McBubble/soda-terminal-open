@@ -253,6 +253,7 @@ export type AgentDevelopmentGoldenProps = {
   directoryAgents?: AgentSummary[]
   onOpenAgent?: (agentId: string) => void
   onOpenSavedAgent?: (agentId: string) => void
+  onEditCurrent?: () => void
   onContinueOptimization?: () => void
   onToggleFavorite?: (agentId: string) => void | Promise<void>
   onDeleteAgentPlan?: (agentId: string) => void

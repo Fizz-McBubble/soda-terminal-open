@@ -13,6 +13,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { BackNavigation } from '../components/BackNavigation'
 import { AccountRequiredState } from '../components/ui/AccountRequiredState'
 import { AgentDevelopmentReadError } from './AgentDevelopmentReadError'
+import { AgentDevelopmentCurrentEditor } from './AgentDevelopmentCurrentEditor'
 import { currentIndependentPlans, independentDiscConflicts } from './agentIndependentPlanReferences'
 import { saveCurrentAgentBuild } from '../accounts/planningDrafts'
 import {
@@ -61,6 +62,17 @@ export function AgentDevelopmentWorkbenchPage() {
   const queryDevelopmentCandidateAlternatives = useDevelopmentCandidateAlternativesCalculation()
   const queryDevelopmentWorkbenchRoute = useDevelopmentWorkbenchRouteCalculation()
   const [analysisVersion, setAnalysisVersion] = useState(0)
+  const [editingCurrent, setEditingCurrent] = useState(false)
+  const [saveRefresh, setSaveRefresh] = useState<{
+    accountId: string
+    agentId: string
+    completedAnalysisVersion: number | null
+  } | null>(null)
+  const [lastRouteProjection, setLastRouteProjection] = useState<{
+    accountId: string
+    agentId: string
+    value: DevelopmentWorkbenchRoutePresentation
+  } | null>(null)
   const [routeRead, setRouteRead] = useState<{
     key: string
     value: DevelopmentWorkbenchRoutePresentation
@@ -105,10 +117,31 @@ export function AgentDevelopmentWorkbenchPage() {
         if (active) {
           setRouteFailureKey(null)
           setRouteRead({ key: routeKey, value })
+          setLastRouteProjection({
+            accountId: currentRun.input.warehouse.accountId ?? '',
+            agentId,
+            value,
+          })
+          setSaveRefresh((pending) =>
+            pending &&
+            pending.completedAnalysisVersion !== null &&
+            analysisVersion >= pending.completedAnalysisVersion
+              ? null
+              : pending,
+          )
         }
       })
       .catch(() => {
-        if (active) setRouteFailureKey(routeKey)
+        if (active) {
+          setRouteFailureKey(routeKey)
+          setSaveRefresh((pending) =>
+            pending &&
+            pending.completedAnalysisVersion !== null &&
+            analysisVersion >= pending.completedAnalysisVersion
+              ? null
+              : pending,
+          )
+        }
       })
     return () => {
       active = false
@@ -152,6 +185,21 @@ export function AgentDevelopmentWorkbenchPage() {
         <p>只能打开当前账户中已拥有的代理人。</p>
         <BackNavigation to="/development" />
       </section>
+    )
+
+  if (editingCurrent)
+    return (
+      <AgentDevelopmentCurrentEditor
+        accountId={account.id}
+        agentId={agentId}
+        roster={data.roster}
+        onCancel={() => setEditingCurrent(false)}
+        onSaved={async () => {
+          const refreshed = await decisionWorld.refresh()
+          if (!refreshed) throw new Error('资料已保存，但养成分析暂未刷新；请稍后重新打开。')
+          setEditingCurrent(false)
+        }}
+      />
     )
 
   const equipment =
@@ -219,7 +267,7 @@ export function AgentDevelopmentWorkbenchPage() {
     ? candidateChoices.map((choice) => choice.disc.id)
     : (savedAgentBuild?.warehouseRefs ?? currentDiscIds)
   const selectedDiscs = data.discs.filter((disc) => selectedDiscIds.includes(disc.id))
-  const routeProjection =
+  const freshRouteProjection =
     routeRead?.key === routeKey &&
     routeRead &&
     currentRun &&
@@ -236,6 +284,14 @@ export function AgentDevelopmentWorkbenchPage() {
     )
       ? routeRead.value
       : null
+  const retainingDuringSave =
+    !freshRouteProjection &&
+    saveRefresh?.accountId === account.id &&
+    saveRefresh.agentId === agentId &&
+    lastRouteProjection?.accountId === account.id &&
+    lastRouteProjection.agentId === agentId
+  const routeProjection =
+    freshRouteProjection ?? (retainingDuringSave ? lastRouteProjection!.value : null)
   if (currentRun && !routeProjection) {
     if (routeFailureKey === routeKey)
       return (
@@ -423,27 +479,37 @@ export function AgentDevelopmentWorkbenchPage() {
   return (
     <>
       <AgentDevelopmentGolden
+        onEditCurrent={() => setEditingCurrent(true)}
         onContinueOptimization={() => navigate(`/development/${agentId}`)}
         initialView="workbench"
-        scenario={candidateSnapshotStale ? 'stale' : undefined}
+        scenario={candidateSnapshotStale || retainingDuringSave ? 'stale' : undefined}
         workbench={workbenchData}
         onNavigate={(view) =>
           navigate(view === 'overview' ? '/development' : `/development/${agentId}/loadouts`)
         }
-        onAnalyzeWarehouse={async () => {
-          // A solve must use a run captured from the same live account
-          // that supplies the current panel. Refresh first rather than
-          // sending the retained stale run ID back into the solver.
-          const currentRun =
-            decisionWorld.status === 'current' ? decisionWorld.run : await decisionWorld.refresh()
-          if (!currentRun) throw new Error('当前账户无法重新分析；请稍后重试。')
-          const result = await queryDevelopmentCandidateAlternatives(currentRun.runId, agentId)
-          if (!cacheDevelopmentCandidateSnapshot(result))
-            throw new Error(result.gaps[0] ?? '当前账户无法生成完整的六张候选盘。')
-          setAnalysisVersion((version) => version + 1)
-        }}
+        onAnalyzeWarehouse={
+          retainingDuringSave
+            ? undefined
+            : async () => {
+                // A solve must use a run captured from the same live account
+                // that supplies the current panel. Refresh first rather than
+                // sending the retained stale run ID back into the solver.
+                const currentRun =
+                  decisionWorld.status === 'current'
+                    ? decisionWorld.run
+                    : await decisionWorld.refresh()
+                if (!currentRun) throw new Error('当前账户无法重新分析；请稍后重试。')
+                const result = await queryDevelopmentCandidateAlternatives(
+                  currentRun.runId,
+                  agentId,
+                )
+                if (!cacheDevelopmentCandidateSnapshot(result))
+                  throw new Error(result.gaps[0] ?? '当前账户无法生成完整的六张候选盘。')
+                setAnalysisVersion((version) => version + 1)
+              }
+        }
         onSavePlan={
-          candidateSnapshotStale || !equipment
+          candidateSnapshotStale || retainingDuringSave || !equipment
             ? undefined
             : async (candidateRank) => {
                 if (decisionWorld.status === 'stale' || candidateSnapshotStale)
@@ -457,6 +523,11 @@ export function AgentDevelopmentWorkbenchPage() {
                 const benchmarkDisposition = valueBenchmarkSaveLabel(valueBenchmark)
                 const agentName = legacyCatalog?.[1] ?? catalog.playerName
                 const discIds = candidate.discs.map((item) => item.disc.id)
+                setSaveRefresh({
+                  accountId: account.id,
+                  agentId,
+                  completedAnalysisVersion: null,
+                })
                 await saveCurrentAgentBuild(account.id, {
                   name: `${agentName} · 养成方案`,
                   selection: {
@@ -521,6 +592,9 @@ export function AgentDevelopmentWorkbenchPage() {
                     boundary: candidatePlan.boundary,
                   },
                   comparisonCapability: profileSave!.status === 'formal' ? 'formal' : 'direction',
+                }).catch((error: unknown) => {
+                  setSaveRefresh(null)
+                  throw error
                 })
                 const refreshedRank = await refreshDevelopmentCandidatesAfterSave({
                   accountId: account.id,
@@ -528,7 +602,13 @@ export function AgentDevelopmentWorkbenchPage() {
                   discIds,
                   refresh: decisionWorld.refresh,
                   query: queryDevelopmentCandidateAlternatives,
+                }).catch((error: unknown) => {
+                  setSaveRefresh(null)
+                  throw error
                 })
+                setSaveRefresh((pending) =>
+                  pending ? { ...pending, completedAnalysisVersion: analysisVersion + 1 } : null,
+                )
                 setAnalysisVersion((version) => version + 1)
                 navigate(`/development/${agentId}?candidate=${refreshedRank}`, { replace: true })
               }

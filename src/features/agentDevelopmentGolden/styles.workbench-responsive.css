@@ -251,3 +251,15 @@
     grid-template-columns: minmax(260px, 26%) minmax(0, 74%);
   }
 }
+
+.f5v-shell
+  .workbench--single-page
+  .disc-workbench-actions
+  .warehouse-action--primary:hover:not(:disabled),
+.f5v-shell
+  .workbench--single-page
+  .disc-workbench-actions
+  .warehouse-action--primary:focus-visible {
+  background: #624c8e;
+  color: #fff;
+}

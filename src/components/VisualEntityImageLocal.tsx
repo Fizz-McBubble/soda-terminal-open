@@ -49,6 +49,26 @@ export function VisualEntityImage({
     : null
   const isCompactFallback =
     compactFallback || Boolean(minimumSize && minimumSize.width <= 64 && minimumSize.height <= 64)
+  const [imageElement, setImageElement] = useState<HTMLElement | null>(null)
+  const [nearViewport, setNearViewport] = useState(
+    () => typeof IntersectionObserver === 'undefined',
+  )
+  const eager = asset?.variant === 'full_body'
+  useEffect(() => {
+    if (eager || nearViewport || !imageElement) return
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setNearViewport(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: '160px' },
+    )
+    observer.observe(imageElement)
+    return () => observer.disconnect()
+  }, [eager, nearViewport, imageElement])
+  const shouldResolve = eager || nearViewport
   const assetKey = asset ? visualSourceKey(asset) : null
   const sessionSource = assetKey ? sessionVisualSources.get(assetKey) : null
   const [cachedSource, setCachedSource] = useState<{
@@ -87,7 +107,7 @@ export function VisualEntityImage({
 
   useEffect(() => {
     let active = true
-    if (asset && !bundledSource) {
+    if (asset && !bundledSource && shouldResolve) {
       void resolveSessionVisualSource(asset).then((cachedUrl) => {
         if (!active) return
         if (assetKey) setCachedSource({ assetKey, objectUrl: cachedUrl, revision: runtimeRevision })
@@ -96,12 +116,13 @@ export function VisualEntityImage({
     return () => {
       active = false
     }
-  }, [asset, assetKey, bundledSource, cacheVersion, runtimeRevision])
+  }, [asset, assetKey, bundledSource, cacheVersion, runtimeRevision, shouldResolve])
 
   if (!source || failed) {
     const fallbackLabel = resolving ? '图片加载中' : asset ? '图片暂未提供' : '暂无可用图像'
     return (
       <span
+        ref={setImageElement}
         className={`visual-asset-fallback${isCompactFallback ? ' is-compact' : ''} ${className ?? ''}`}
         data-visual-slot={slot?.slotId}
         data-visual-slot-minimum={
@@ -127,6 +148,8 @@ export function VisualEntityImage({
 
   return (
     <img
+      ref={setImageElement}
+      decoding="async"
       key={`${assetKey ?? `missing:${entityType}:${entityId}`}:${runtimeRevision}:${cacheVersion ?? ''}`}
       alt={`${name}图鉴图像`}
       className={`visual-entity-image ${className ?? ''}`}
@@ -135,7 +158,7 @@ export function VisualEntityImage({
       data-visual-slot-minimum={
         minimumSize ? `${minimumSize.width}x${minimumSize.height}` : undefined
       }
-      loading="eager"
+      loading={eager ? 'eager' : 'lazy'}
       referrerPolicy="no-referrer"
       src={source}
       style={

@@ -3,8 +3,7 @@ import { useEffect, useInsertionEffect, useLayoutEffect, useState } from 'react'
 import { Archive, Menu, ShieldCheck, Users, X } from 'lucide-react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { BackNavigation } from './BackNavigation'
-import { loadCoreWarehouse } from '../accounts/coreWarehouse'
-import { getActiveAccount } from '../accounts/repository'
+import { getActiveAccount, getAccountRoster } from '../accounts/repository'
 import { database } from '../db/databaseCore'
 import { useAppHealth } from '../appHealthContext'
 import {
@@ -35,11 +34,14 @@ export function AppShell({ onAllowOnlineCalculation }: { onAllowOnlineCalculatio
           const account = await getActiveAccount()
           if (!account)
             return { accountId: null, name: '', discCount: 0, agentCount: 0, hasAccount: false }
-          const { discs, roster } = await loadCoreWarehouse()
+          const [discCount, roster] = await Promise.all([
+            database.accountDriveDiscs.where('accountId').equals(account.id).count(),
+            getAccountRoster(account.id),
+          ])
           return {
             accountId: account.id,
             name: account.displayName,
-            discCount: discs.length,
+            discCount,
             agentCount: roster.agents.filter((agent) => agent.owned).length,
             hasAccount: true,
           }

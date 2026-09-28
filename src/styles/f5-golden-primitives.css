@@ -58,7 +58,10 @@
     transform var(--soda-motion-fast) var(--soda-ease-out);
 }
 
-.f5v-shell :is(.button, .scanner-account-picker__trigger):hover:not(:disabled) {
+.f5v-shell
+  :is(.button, .scanner-account-picker__trigger):not(.primary):not(.button--primary):not(
+    .home-primary-action
+  ):hover:not(:disabled) {
   background: #ffffff;
   border-color: rgba(103, 90, 144, 0.32);
   box-shadow: 0 2px 6px rgba(45, 35, 70, 0.05);

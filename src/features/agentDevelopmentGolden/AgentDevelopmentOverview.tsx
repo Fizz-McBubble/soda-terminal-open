@@ -81,7 +81,7 @@ function getDirectoryProgress(agent: AgentSummary) {
   if (agent.status === '已有方案') {
     return {
       label: '方案已保存',
-      detail: '查看已保存的装备搭配，或继续调整。',
+      detail: '配装已保存，可继续调整。',
     }
   }
   if (agent.status === '培养中') {
@@ -107,6 +107,7 @@ function preloadRecommendationAvatar(agentId: string) {
 
 export function AgentDevelopmentOverview({
   openAgent,
+  openSavedAgent,
   directoryAgents,
   onToggleFavorite,
   onDeleteAgentPlan,
@@ -385,15 +386,6 @@ export function AgentDevelopmentOverview({
               </div>
             </div>
             <div className="next-copy">
-              {selectedAgent.plan ? (
-                <dl>
-                  <div>
-                    <dt>已保存方案</dt>
-                    <dd>{selectedAgent.name} · 已保存配装</dd>
-                  </div>
-                </dl>
-              ) : null}
-
               {!selectedAgent.nextTrainingSteps?.length ? (
                 <p className="next-action-detail">{selectedProgress.detail}</p>
               ) : null}
@@ -413,9 +405,13 @@ export function AgentDevelopmentOverview({
               <button
                 className="primary"
                 type="button"
-                onClick={() => openAgent(selectedAgent.agentId)}
+                onClick={() =>
+                  selectedAgent.plan && openSavedAgent
+                    ? openSavedAgent(selectedAgent.agentId)
+                    : openAgent(selectedAgent.agentId)
+                }
               >
-                进入养成
+                {selectedAgent.plan && openSavedAgent ? '查看配装' : '进入养成'}
               </button>
             </div>
           </aside>
