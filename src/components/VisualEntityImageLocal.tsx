@@ -53,7 +53,7 @@ export function VisualEntityImage({
   const [nearViewport, setNearViewport] = useState(
     () => typeof IntersectionObserver === 'undefined',
   )
-  const eager = asset?.variant === 'full_body'
+  const eager = slotId === 'agent.hero' || (!slotId && variant === 'full_body')
   useEffect(() => {
     if (eager || nearViewport || !imageElement) return
     const observer = new IntersectionObserver(

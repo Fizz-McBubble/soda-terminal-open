@@ -295,7 +295,7 @@
     "src/components/ui/StatusBanner.tsx": "34579415811a8833b419406f283a4676e6c9f8367264b3fcd53aff11fd7f8d27",
     "src/components/visual-entity-image.css": "46c6555834da132d4035bdca0f8b91985eecdeb4e8eb175735bc9f2343f9e03a",
     "src/components/VisualEntityImage.tsx": "1aa54ec4500354a1e42151c4b29734bca80ec71c4f648e3d719bf071e7121d30",
-    "src/components/VisualEntityImageLocal.tsx": "40a6262aff56cdfd61da578a0aaac4d8f373471516580b13fba4fdc9afb48c41",
+    "src/components/VisualEntityImageLocal.tsx": "2cdc731fa600f2f52d779685eec1109dbfaffe30161187eee1322c49f100c01c",
     "src/data/agent-directions-public.v1.json": "1733692d080a1b9c78061a13ad1605352710123412af7262ecaaaf83f742082f",
     "src/data/build-knowledge.v1.json": "6dad7a4feb7908c2abef980cb53614986e01664977405e5b0f2ee9fba4054b33",
     "src/data/build-profiles.v1.json": "974d8757c91504457f4f4c0e504be354db714ea3c98f4cc29510c9d361a0e840",
