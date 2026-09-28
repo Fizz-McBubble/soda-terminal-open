@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
   "files": {
+    ".gitattributes": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
     ".gitignore": "272d305fdaee39627ec739c4bf06970075bc789bd988e9e7ace39cf0d4f4edf4",
     "build/catalogCodeSplitting.ts": "f3778080d0651e5f411c01b30b704812c96c5c3d0f9dc1b90c1e114057c4559d",
     "build/communitySourceProjection.mjs": "aab21ded5f3e6594c7d0df19d52094ba5ca714c11c2f952fca8d9cf3f3f2e1df",
