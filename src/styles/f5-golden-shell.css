@@ -53,6 +53,7 @@
   height: 36px;
   object-fit: contain;
   flex: none;
+  filter: saturate(0.64) brightness(1.04) contrast(0.94);
 }
 
 .f5v-brand > span:last-child :is(strong, small) {

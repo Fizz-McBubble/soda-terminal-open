@@ -311,9 +311,11 @@ function HydratedScannerAssistantPage({
             }
       case 'ready':
         return {
-          eyebrow: prepareGateReady ? '准备检查已通过' : '等待本机核验',
-          title: '切换到游戏，开始本地扫描',
-          body: '已选择接收结果的本地账户。扫描只在本机读取，正式导入前仍会让你检查。',
+          eyebrow: !targetReady ? '等待选择账户' : prepareGateReady ? '准备检查已通过' : '等待本机核验',
+          title: targetReady ? '切换到游戏，开始本地扫描' : '选择账户，再检查游戏',
+          body: targetReady
+            ? '已选择接收结果的本地账户。扫描只在本机读取，正式导入前仍会让你检查。'
+            : '扫描助手已连接。选择接收结果的账户后，再检查游戏并开始扫描。',
         }
       case 'checking':
         return {
@@ -352,6 +354,7 @@ function HydratedScannerAssistantPage({
     snapshot.progress,
     snapshot.readiness.helperConnected,
     snapshot.state,
+    targetReady,
   ])
 
   useEffect(() => {
@@ -633,12 +636,7 @@ function HydratedScannerAssistantPage({
         ；确认后完整替换此账户的驱动盘，不合并。扫描期间不会改动账户。
       </span>
     </p>
-  ) : (
-    <p className="scanner-target-account__summary" role="alert">
-      <strong>先确定数据归属</strong>
-      <span>创建账户不会开始扫描或导入。</span>
-    </p>
-  )
+  ) : null
   const installer =
     distribution.state !== 'ready' &&
     scannerDistributionManifest.runtime.releaseState !== 'not_published' ? (
@@ -826,7 +824,7 @@ function HydratedScannerAssistantPage({
               headingRef={stageHeadingRef}
               targetReady={targetReady}
               installer={installer}
-              accountDisclosure={
+              accountDisclosure={accountDisclosure || accountMessage ? (
                 <>
                   {accountDisclosure}
                   {accountMessage ? (
@@ -834,17 +832,8 @@ function HydratedScannerAssistantPage({
                       {playerResultMessage(accountMessage)}
                     </p>
                   ) : null}
-                  {snapshot.readiness.helperConnected && snapshot.state === 'ready' ? (
-                    <button
-                      className="button button--quiet"
-                      type="button"
-                      onClick={() => void runScannerAction(() => commands.revokePairing())}
-                    >
-                      断开本机授权
-                    </button>
-                  ) : null}
                 </>
-              }
+              ) : null}
               targetPanel={
                 <li
                   className={`scanner-target-account is-${targetReady ? 'ready' : 'blocked'}`}
@@ -906,6 +895,7 @@ function HydratedScannerAssistantPage({
                   : undefined
               }
               onReconnect={() => void runScannerAction(() => commands.retryConnection())}
+              onRevoke={() => void runScannerAction(() => commands.revokePairing())}
               onStart={() => void startBoundScan()}
             />
           ) : null}

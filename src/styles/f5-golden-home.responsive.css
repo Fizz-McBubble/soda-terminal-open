@@ -36,8 +36,9 @@
   position: absolute;
   left: 10px;
   top: 10px;
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 25px;
   height: 25px;
   border-radius: 999px;
@@ -45,6 +46,9 @@
   background: #eceaf1;
   font-size: 0.75rem;
   font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  text-align: center;
 }
 
 .f5v-shell .journey-item.is-current .home-journey__number {

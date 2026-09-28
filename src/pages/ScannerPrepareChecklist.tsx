@@ -16,6 +16,7 @@ export function PrepareChecklist({
   onStart,
   onRecover,
   onReconnect,
+  onRevoke,
 }: {
   snapshot: ScannerAssistantSnapshot
   eyebrow: string
@@ -29,6 +30,7 @@ export function PrepareChecklist({
   onStart: () => void
   onRecover?: () => void
   onReconnect: () => void
+  onRevoke?: () => void
 }) {
   const checks = createPrepareChecks(snapshot)
   const readyCount = checks.filter((check) => check.status === 'ready').length
@@ -96,13 +98,13 @@ export function PrepareChecklist({
 
       <section className="scanner-prepare__details" aria-label="本机准备条件">
         <h3>本机准备条件</h3>
-        <div className="scanner-prepare__account-disclosure">{accountDisclosure}</div>
+        {accountDisclosure ? <div className="scanner-prepare__account-disclosure">{accountDisclosure}</div> : null}
         <p id="scanner-gate-explanation" aria-live="polite">
           {gateExplanation}
         </p>
         <div className="scanner-prepare__summary">
           <strong>
-            {waitingForPlayer
+            {waitingForPlayer && targetReady
               ? '点击后检查游戏是否就绪'
               : checksReady && targetReady
                 ? `${totalChecks} 项准备全部通过`
@@ -139,7 +141,16 @@ export function PrepareChecklist({
               </span>
               <div>
                 <strong>{check.label}</strong>
-                <span className="scanner-prepare__instruction">{check.instruction}</span>
+                {check.id === 'local-scanner' && onRevoke && snapshot.readiness.helperConnected && snapshot.state === 'ready' ? (
+                  <span className="scanner-prepare__instruction-row">
+                    <span className="scanner-prepare__instruction">{check.instruction}</span>
+                    <button className="scanner-prepare__revoke" type="button" onClick={onRevoke}>
+                      断开授权
+                    </button>
+                  </span>
+                ) : (
+                  <span className="scanner-prepare__instruction">{check.instruction}</span>
+                )}
                 {check.status === 'ready' || check.status === 'blocked' ? (
                   <small className="scanner-prepare__feedback">{check.feedback}</small>
                 ) : null}
