@@ -83,7 +83,9 @@ export function createBrowserCalculationQueryClient(options: {
       if (workerGeneration !== generation) return
       const response = event.data
       if (response.protocolVersion !== browserCalculationQueryProtocolVersion) {
-        invalidate(queryError('BrowserCalculationProtocolError', '计算版本不匹配，请刷新页面后重试。'))
+        invalidate(
+          queryError('BrowserCalculationProtocolError', '计算版本不匹配，请刷新页面后重试。'),
+        )
         return
       }
       if (response.status === 'ready') {
@@ -157,7 +159,17 @@ export function createBrowserCalculationQueryClient(options: {
   function dispatchNext() {
     if (activeRequestId !== null) return
     if (!queue.length) return
-    ensureWorker()
+    try {
+      ensureWorker()
+    } catch {
+      invalidate(
+        queryError(
+          'BrowserCalculationWorkerStartupError',
+          '本机计算程序未能启动，请刷新页面后重试。',
+        ),
+      )
+      return
+    }
     if (!workerReady) return
     let requestId = queue.shift()
     while (requestId !== undefined && !pending.has(requestId)) requestId = queue.shift()
@@ -195,8 +207,7 @@ export function createBrowserCalculationQueryClient(options: {
   }
 
   function submit<T>(query: BrowserCalculationQuery, signal?: AbortSignal): Promise<T> {
-    if (signal?.aborted)
-      return Promise.reject(queryError('AbortError', '已取消本次计算。'))
+    if (signal?.aborted) return Promise.reject(queryError('AbortError', '已取消本次计算。'))
     return new Promise<T>((resolve, reject) => {
       const requestId = nextRequestId++
       const abort = () => {
@@ -267,9 +278,8 @@ export function createBrowserCalculationQueryClient(options: {
     async calculateAccountDecision(query) {
       release(query.runId)
       const browser = browserCalculationInputFingerprint(query.input)
-      const run = await submit<Awaited<ReturnType<CalculationQueryClient['calculateAccountDecision']>>>(
-        query,
-      )
+      const run =
+        await submit<Awaited<ReturnType<CalculationQueryClient['calculateAccountDecision']>>>(query)
       liveRuns.add(query.runId)
       fingerprints.set(query.runId, { browser, core: run.inputFingerprint })
       return run

@@ -46,7 +46,10 @@ export function WEngineEditor({ props, item }: { props: AssetGoldenProps; item: 
 export function BangbooEditor({ props, item }: { props: AssetGoldenProps; item: CatalogItem }) {
   const source = props.roster.bangboos.find((x) => x.bangbooId === item.stableId)!
   const revision = JSON.stringify(source)
-  const { draft, setDraft, baseRevision, stale } = useDraft<BangbooDraft>({ ...source }, revision)
+  const { draft, setDraft, baseRevision, stale, rebase } = useDraft<BangbooDraft>(
+    { ...source },
+    revision,
+  )
   if (props.accountId === 'no-account') {
     return (
       <>
@@ -65,7 +68,13 @@ export function BangbooEditor({ props, item }: { props: AssetGoldenProps; item: 
         <Save
           label="保存邦布资料"
           onSave={async () => {
-            await props.onSave({ kind: 'bangboos', stableId: item.stableId, baseRevision, draft })
+            const savedRevision = await props.onSave({
+              kind: 'bangboos',
+              stableId: item.stableId,
+              baseRevision,
+              draft,
+            })
+            if (typeof savedRevision === 'string') rebase(draft, savedRevision)
           }}
         />
       </div>

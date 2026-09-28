@@ -273,12 +273,19 @@ export function AssetCenterPage() {
           setRevision((value) => value + 1)
           return savedRevision
         } else {
-          await saveAccountBangboo(
+          const savedRoster = await saveAccountBangboo(
             account.id,
             payload.stableId,
             payload.draft,
             payload.baseRevision,
           )
+          const savedBangboo = savedRoster.bangboos.find(
+            (bangboo) => bangboo.bangbooId === payload.stableId,
+          )
+          if (!savedBangboo) throw new Error('邦布资料保存后未能重新读取。')
+          setMessage('已保存到当前账户。', true)
+          setRevision((value) => value + 1)
+          return JSON.stringify(savedBangboo)
         }
       }
       setMessage('已保存到当前账户。', true)

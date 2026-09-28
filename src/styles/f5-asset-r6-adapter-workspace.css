@@ -379,6 +379,14 @@
   }
 }
 
+/* A split catalog on a small laptop cannot fit four legible filters. */
+@media (min-width: 961px) and (max-width: 1200px) {
+  .r6-golden .filterbar,
+  .r6-golden .filterbar--discs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 /* This file is imported after adapter-core. Keep its desktop compression rule
    from restoring four fixed controls inside the narrow two-column catalog. */
 @media (max-width: 960px) {

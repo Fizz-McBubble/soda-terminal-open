@@ -5,6 +5,7 @@ import { createPrepareChecks } from './scannerPrepareChecks'
 
 export function PrepareChecklist({
   snapshot,
+  actionPending = false,
   eyebrow,
   title,
   body,
@@ -19,6 +20,7 @@ export function PrepareChecklist({
   onRevoke,
 }: {
   snapshot: ScannerAssistantSnapshot
+  actionPending?: boolean
   eyebrow: string
   title: string
   body: string
@@ -41,7 +43,8 @@ export function PrepareChecklist({
   const totalChecks = checks.length + 1
   const checking = ['connecting', 'checking', 'awaiting_elevation'].includes(snapshot.state)
   const unchecked = snapshot.state === 'unchecked'
-  const requestInFlight = snapshot.state === 'checking' || snapshot.state === 'awaiting_elevation'
+  const requestInFlight =
+    actionPending || snapshot.state === 'checking' || snapshot.state === 'awaiting_elevation'
   const waitingForPlayer = snapshot.state === 'ready' && !snapshot.prepare
   const needsConnection = !snapshot.readiness.helperConnected
   const gateExplanation = startReady
@@ -76,14 +79,17 @@ export function PrepareChecklist({
           className="button button--primary scanner-web__primary-action"
           type="button"
           disabled={requestInFlight || (!startReady && !needsConnection)}
+          aria-busy={actionPending}
           aria-describedby="scanner-gate-explanation"
           onClick={startReady ? onStart : needsConnection ? (onRecover ?? onReconnect) : undefined}
         >
           <ScanLine aria-hidden="true" size={19} />
           {!startReady && needsConnection
-            ? unchecked
-              ? '连接扫描助手'
-              : '重新连接扫描助手'
+            ? actionPending
+              ? '正在连接扫描助手'
+              : unchecked
+                ? '连接扫描助手'
+                : '重新连接扫描助手'
             : snapshot.state === 'awaiting_elevation'
               ? '等待 Windows 权限确认'
               : snapshot.state === 'checking'
@@ -98,7 +104,9 @@ export function PrepareChecklist({
 
       <section className="scanner-prepare__details" aria-label="本机准备条件">
         <h3>本机准备条件</h3>
-        {accountDisclosure ? <div className="scanner-prepare__account-disclosure">{accountDisclosure}</div> : null}
+        {accountDisclosure ? (
+          <div className="scanner-prepare__account-disclosure">{accountDisclosure}</div>
+        ) : null}
         <p id="scanner-gate-explanation" aria-live="polite">
           {gateExplanation}
         </p>
@@ -141,7 +149,10 @@ export function PrepareChecklist({
               )}
               <div>
                 <strong>{check.label}</strong>
-                {check.id === 'local-scanner' && onRevoke && snapshot.readiness.helperConnected && snapshot.state === 'ready' ? (
+                {check.id === 'local-scanner' &&
+                onRevoke &&
+                snapshot.readiness.helperConnected &&
+                snapshot.state === 'ready' ? (
                   <span className="scanner-prepare__instruction-row">
                     <span className="scanner-prepare__instruction">{check.instruction}</span>
                     <button className="scanner-prepare__revoke" type="button" onClick={onRevoke}>

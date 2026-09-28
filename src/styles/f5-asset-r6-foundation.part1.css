@@ -165,6 +165,8 @@
 }
 .r6-golden .asset-tabs button {
   height: 36px;
+  flex-shrink: 0;
+  white-space: nowrap;
   padding: 0 14px;
   border: 0;
   border-radius: var(--soda-radius-control);
@@ -223,6 +225,8 @@
   font-size: var(--soda-font-body);
 }
 .r6-golden .count {
+  white-space: nowrap;
+  flex-shrink: 0;
   font-size: var(--soda-font-body);
   color: #63588b;
   font-weight: 760;

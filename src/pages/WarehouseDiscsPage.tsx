@@ -102,6 +102,7 @@ export function WarehouseDiscsPage() {
   const detailRequested = useRef(false)
   const cardNavigationRequested = useRef(false)
   const originalCardScrollTop = useRef(0)
+  const originalAlternativesScrollTop = useRef(0)
   const listFocusRequested = useRef(false)
   const alternativeFocusRequested = useRef<string | null>(null)
   const pendingScrollTop = useRef<number | null>(null)
@@ -124,6 +125,8 @@ export function WarehouseDiscsPage() {
         alternativeFocusRequested.current = null
         const card = workbenchRef.current?.querySelector<HTMLElement>('.warehouse-action-drawer')
         if (card) card.scrollTop = originalCardScrollTop.current
+        const alternatives = card?.querySelector<HTMLElement>('.warehouse-alternatives')
+        if (alternatives) alternatives.scrollTop = originalAlternativesScrollTop.current
         trigger.focus({ preventScroll: true })
         return
       }
@@ -267,9 +270,12 @@ export function WarehouseDiscsPage() {
   }
   function showAlternative(id: string) {
     if (!data?.account) return
-    if (!comparisonId)
+    if (!comparisonId) {
       originalCardScrollTop.current =
         workbenchRef.current?.querySelector<HTMLElement>('.warehouse-action-drawer')?.scrollTop ?? 0
+      originalAlternativesScrollTop.current =
+        workbenchRef.current?.querySelector<HTMLElement>('.warehouse-alternatives')?.scrollTop ?? 0
+    }
     if (!comparisonId && selectedItem)
       setSelection({ accountId: data.account.id, discId: selectedItem.disc.id })
     setComparison({ accountId: data.account.id, discId: id })

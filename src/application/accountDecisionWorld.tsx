@@ -143,8 +143,18 @@ function AccountScopedDecisionWorldProvider({
         queryRun(query.runId, () => queryClient.queryDecisionPortfolio(query)),
       calculateTargetTeamWarehouseFit: (query) =>
         queryRun(query.runId, () => queryClient.calculateTargetTeamWarehouseFit(query)),
+      queryTeamOverviewPresentation: (query, internal) =>
+        queryRun(query.runId, () => queryClient.queryTeamOverviewPresentation(query, internal)),
+      queryTeamRoutePresentation: (query) =>
+        queryRun(query.runId, () => queryClient.queryTeamRoutePresentation(query)),
+      querySavedTeamPlanReplay: (query) =>
+        queryRun(query.runId, () => queryClient.querySavedTeamPlanReplay(query)),
+      querySavedTeamSolutionComponents: (query) =>
+        queryRun(query.runId, () => queryClient.querySavedTeamSolutionComponents(query)),
       queryDevelopmentCandidateAlternatives: (query) =>
         queryRun(query.runId, () => queryClient.queryDevelopmentCandidateAlternatives(query)),
+      queryDevelopmentWorkbenchRoute: (query) =>
+        queryRun(query.runId, () => queryClient.queryDevelopmentWorkbenchRoute(query)),
       queryWarehouseDiscTransitionUses: queryClient.queryWarehouseDiscTransitionUses
         ? (query, options) =>
             queryRun(query.runId, () =>

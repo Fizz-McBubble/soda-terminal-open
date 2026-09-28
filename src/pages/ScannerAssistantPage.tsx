@@ -181,6 +181,8 @@ function HydratedScannerAssistantPage({
   const [newAccountName, setNewAccountName] = useState('')
   const [accountMessage, setAccountMessage] = useState('')
   const [actionFeedback, setActionFeedback] = useState<string | null>(null)
+  const [actionPending, setActionPending] = useState(false)
+  const actionPendingRef = useRef(false)
   const [handoffState, setHandoffState] = useState<HandoffState>({ status: 'idle' })
   const [inlineImportOpen, setInlineImportOpen] = useState(false)
   const [importedThisVisit, setImportedThisVisit] = useState(false)
@@ -311,7 +313,11 @@ function HydratedScannerAssistantPage({
             }
       case 'ready':
         return {
-          eyebrow: !targetReady ? '等待选择账户' : prepareGateReady ? '准备检查已通过' : '等待本机核验',
+          eyebrow: !targetReady
+            ? '等待选择账户'
+            : prepareGateReady
+              ? '准备检查已通过'
+              : '等待本机核验',
           title: targetReady ? '切换到游戏，开始本地扫描' : '选择账户，再检查游戏',
           body: targetReady
             ? '已选择接收结果的本地账户。扫描只在本机读取，正式导入前仍会让你检查。'
@@ -369,16 +375,24 @@ function HydratedScannerAssistantPage({
     stageFocusRequestedRef.current = false
   }, [snapshot.state])
 
-  function runScannerAction(action: () => void | Promise<void>) {
+  async function runScannerAction(action: () => void | Promise<void>) {
+    if (actionPendingRef.current) return
+    actionPendingRef.current = true
+    setActionPending(true)
     stageFocusRequestedRef.current = true
     setActionFeedback(null)
-    void Promise.resolve(action()).catch((error) =>
+    try {
+      await action()
+    } catch (error) {
       setActionFeedback(
         error instanceof Error && error.message.includes('扫描')
           ? error.message
           : '扫描助手未就绪，可重新连接。',
-      ),
-    )
+      )
+    } finally {
+      actionPendingRef.current = false
+      setActionPending(false)
+    }
   }
 
   async function freezeSelectedTarget() {
@@ -818,22 +832,25 @@ function HydratedScannerAssistantPage({
             preparingNewScan) ? (
             <PrepareChecklist
               snapshot={snapshot}
+              actionPending={actionPending}
               eyebrow={presentedStateCopy.eyebrow}
               title={presentedStateCopy.title}
               body={presentedStateCopy.body}
               headingRef={stageHeadingRef}
               targetReady={targetReady}
               installer={installer}
-              accountDisclosure={accountDisclosure || accountMessage ? (
-                <>
-                  {accountDisclosure}
-                  {accountMessage ? (
-                    <p role={targetReady ? 'status' : 'alert'} aria-live="polite">
-                      {playerResultMessage(accountMessage)}
-                    </p>
-                  ) : null}
-                </>
-              ) : null}
+              accountDisclosure={
+                accountDisclosure || accountMessage ? (
+                  <>
+                    {accountDisclosure}
+                    {accountMessage ? (
+                      <p role={targetReady ? 'status' : 'alert'} aria-live="polite">
+                        {playerResultMessage(accountMessage)}
+                      </p>
+                    ) : null}
+                  </>
+                ) : null
+              }
               targetPanel={
                 <li
                   className={`scanner-target-account is-${targetReady ? 'ready' : 'blocked'}`}

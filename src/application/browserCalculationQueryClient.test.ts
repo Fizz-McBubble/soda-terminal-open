@@ -73,6 +73,35 @@ function harness(autoReady = true) {
 }
 
 describe('browser Query Worker lifecycle', () => {
+  it('clears a failed Worker startup before the next query retries', async () => {
+    const workers: FakeQueryWorker[] = []
+    let startupAttempts = 0
+    const client = createBrowserCalculationQueryClient({
+      readRuntimeSelection: async () => current,
+      createWorker: () => {
+        if (++startupAttempts === 1) throw new Error('Worker unavailable')
+        const worker = new FakeQueryWorker()
+        workers.push(worker)
+        return worker
+      },
+    })
+    await expect(client.calculateAccountDecision(query('failed-start'))).rejects.toMatchObject({
+      name: 'BrowserCalculationWorkerStartupError',
+    })
+    const retry = client.calculateAccountDecision(query('retry'))
+    await vi.waitFor(() => expect(workers[0]?.requests).toHaveLength(1))
+    expect(workers[0]?.requests[0]).toMatchObject({
+      kind: 'query',
+      query: { kind: 'account_decision', runId: 'retry' },
+    })
+    workers[0]!.respond(2, {
+      runId: 'retry',
+      inputFingerprint: 'retry-fingerprint',
+      input: query('retry').input,
+    })
+    await expect(retry).resolves.toMatchObject({ runId: 'retry' })
+  })
+
   it('holds the first query until the module Worker signals that its handler is installed', async () => {
     const { client, workers } = harness(false)
     const decision = client.calculateAccountDecision(query('cold-start'))
@@ -96,7 +125,11 @@ describe('browser Query Worker lifecycle', () => {
       kind: 'query',
       query: { kind: 'account_decision', runId: 'one' },
     })
-    workers[0]!.respond(1, { runId: 'one', inputFingerprint: 'core-fingerprint', input: input.input })
+    workers[0]!.respond(1, {
+      runId: 'one',
+      inputFingerprint: 'core-fingerprint',
+      input: input.input,
+    })
     await expect(decision).resolves.toMatchObject({ runId: 'one' })
     expect(client.hasAccountDecisionRun?.('one')).toBe(true)
     expect(client.fingerprintAccountDecisionInput(input.input, 'one')).toBe('core-fingerprint')

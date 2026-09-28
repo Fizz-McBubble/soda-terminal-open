@@ -408,6 +408,9 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
         ref={deleteDialogRef}
         open={deleteDialogOpen || undefined}
         aria-labelledby="bulk-delete-title"
+        onCancel={(event) => {
+          if (deleting) event.preventDefault()
+        }}
         onClose={() => setDeleteDialogOpen(false)}
       >
         <form>

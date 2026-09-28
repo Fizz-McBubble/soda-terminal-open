@@ -255,6 +255,9 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
         ref={dialogRef}
         open={restoreDialogOpen || undefined}
         aria-labelledby="restore-title"
+        onCancel={(event) => {
+          if (restoring) event.preventDefault()
+        }}
         onClose={() => setRestoreDialogOpen(false)}
       >
         <form>
@@ -267,6 +270,7 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
               type="button"
               className="icon-button"
               aria-label="关闭"
+              disabled={restoring}
               onClick={closeRestoreDialog}
             >
               ×
@@ -328,6 +332,9 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
         ref={deleteDialogRef}
         open={deleteDialogOpen || undefined}
         aria-labelledby="delete-account-title"
+        onCancel={(event) => {
+          if (deleting) event.preventDefault()
+        }}
         onClose={() => setDeleteDialogOpen(false)}
       >
         <form>
