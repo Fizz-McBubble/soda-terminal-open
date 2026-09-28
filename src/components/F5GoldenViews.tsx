@@ -145,7 +145,9 @@ export function F5HomeGoldenView({
               key={step.label}
             >
               <Link aria-current={step.state === 'current' ? 'step' : undefined} to={step.path}>
-                <span className="home-journey__number">{String(index + 1).padStart(2, '0')}</span>
+                <span className="home-journey__number">
+                  <span>{String(index + 1).padStart(2, '0')}</span>
+                </span>
                 <span className="home-journey__copy">
                   <strong>{step.label}</strong>
                   <small>{step.description}</small>

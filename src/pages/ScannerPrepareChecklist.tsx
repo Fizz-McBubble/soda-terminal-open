@@ -128,17 +128,17 @@ export function PrepareChecklist({
               className={`scanner-prepare__check is-${check.status}${index % 2 ? ' is-right-column' : ''}${index >= 2 ? ' is-lower-row' : ''}`}
               key={check.id}
             >
-              <span className="scanner-prepare__check-icon" aria-hidden="true">
-                {check.status === 'ready' ? (
-                  <Check size={16} strokeWidth={3} />
-                ) : check.status === 'checking' ? (
-                  <LoaderCircle size={16} />
-                ) : check.status === 'blocked' ? (
-                  <AlertTriangle size={16} />
-                ) : (
-                  <span />
-                )}
-              </span>
+              {check.status === 'unchecked' ? null : (
+                <span className="scanner-prepare__check-icon" aria-hidden="true">
+                  {check.status === 'ready' ? (
+                    <Check size={16} strokeWidth={3} />
+                  ) : check.status === 'checking' ? (
+                    <LoaderCircle size={16} />
+                  ) : (
+                    <AlertTriangle size={16} />
+                  )}
+                </span>
+              )}
               <div>
                 <strong>{check.label}</strong>
                 {check.id === 'local-scanner' && onRevoke && snapshot.readiness.helperConnected && snapshot.state === 'ready' ? (

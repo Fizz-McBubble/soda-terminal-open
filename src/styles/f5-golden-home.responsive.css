@@ -51,6 +51,10 @@
   text-align: center;
 }
 
+.f5v-shell .home-journey__number > span {
+  transform: translate(0.5px, -2px);
+}
+
 .f5v-shell .journey-item.is-current .home-journey__number {
   color: #fff !important;
   background: var(--f5-accent) !important;
