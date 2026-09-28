@@ -90,6 +90,8 @@ export function AppShell({ onAllowOnlineCalculation }: { onAllowOnlineCalculatio
   }, [isF5Slice])
 
   useLayoutEffect(() => {
+    // Saving updates the candidate query string without leaving the workbench.
+    if (location.state?.preserveWorkbenchPosition) return
     const frame = window.requestAnimationFrame(() => {
       if (location.hash) {
         // Only ordinary anchor fragments participate in route restoration. Tooling
@@ -114,7 +116,13 @@ export function AppShell({ onAllowOnlineCalculation }: { onAllowOnlineCalculatio
       document.body.scrollTop = 0
     })
     return () => window.cancelAnimationFrame(frame)
-  }, [isF5Slice, location.hash, location.pathname, location.search])
+  }, [
+    isF5Slice,
+    location.hash,
+    location.pathname,
+    location.search,
+    location.state?.preserveWorkbenchPosition,
+  ])
 
   useInsertionEffect(() => {
     applyRouteStyleScope(location.pathname)

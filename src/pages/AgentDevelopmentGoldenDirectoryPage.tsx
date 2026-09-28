@@ -1,5 +1,6 @@
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { AppLoadingState } from '../components/AppEntryState'
 import { AccountRequiredState } from '../components/ui/AccountRequiredState'
 import { publicDevelopmentDirectoryCatalog } from '../application/publicDevelopmentDirectoryCatalog'
 import { saveDevelopmentPriorityAgentIds } from '../accounts/developmentPlanning'
@@ -12,6 +13,39 @@ import { projectAgentDevelopmentCatalogJoin } from './agentDevelopmentCatalogJoi
 export function AgentDevelopmentGoldenDirectoryPage() {
   const navigate = useNavigate()
   const decisionWorld = useAccountDecisionWorld()
+  const refresh = decisionWorld.refresh
+  const staleAccountId = decisionWorld.liveInput?.warehouse.accountId
+  const staleRefreshKey =
+    decisionWorld.status === 'stale' && staleAccountId && decisionWorld.liveFingerprint
+      ? `${staleAccountId}\0${decisionWorld.liveFingerprint}\0${decisionWorld.run.runId}`
+      : null
+  const [refreshFailureKey, setRefreshFailureKey] = useState<string | null>(null)
+  const attemptedRefresh = useRef<string | null>(null)
+  const latestStaleKey = useRef(staleRefreshKey)
+  const mounted = useRef(false)
+  useLayoutEffect(() => {
+    latestStaleKey.current = staleRefreshKey
+  }, [staleRefreshKey])
+  useEffect(() => {
+    mounted.current = true
+    return () => {
+      mounted.current = false
+    }
+  }, [])
+  const recordRefreshFailure = useCallback((key: string, succeeded: boolean) => {
+    if (mounted.current && latestStaleKey.current === key)
+      setRefreshFailureKey(succeeded ? null : key)
+  }, [])
+  useEffect(() => {
+    if (!staleRefreshKey || attemptedRefresh.current === staleRefreshKey) return
+    attemptedRefresh.current = staleRefreshKey
+    const accountId = staleAccountId
+    void refresh()
+      .then((run) =>
+        recordRefreshFailure(staleRefreshKey, run?.input.warehouse.accountId === accountId),
+      )
+      .catch(() => recordRefreshFailure(staleRefreshKey, false))
+  }, [staleRefreshKey, staleAccountId, refresh, recordRefreshFailure])
   const [deleteTarget, setDeleteTarget] = useState<{
     accountId: string
     id: string
@@ -44,8 +78,9 @@ export function AgentDevelopmentGoldenDirectoryPage() {
 
   if (decisionWorld.status === 'error')
     return <AgentDevelopmentReadError message={decisionWorld.message} />
-  if (decisionWorld.status === 'loading') return <p role="status">正在整理养成建议…</p>
-  if (data === undefined) return <p role="status">正在读取当前账户…</p>
+  if (decisionWorld.status === 'loading')
+    return <AppLoadingState title="正在整理养成建议…" compact />
+  if (data === undefined) return <AppLoadingState title="正在读取当前账户…" compact />
   if (!data) {
     return <AccountRequiredState title="先创建或选择账户" />
   }
@@ -170,11 +205,24 @@ export function AgentDevelopmentGoldenDirectoryPage() {
 
   return (
     <>
-      {decisionWorld.status === 'stale' ? (
-        <section className="panel" aria-label="养成建议需要更新">
-          <p role="status">账户资料已变化，旧养成建议需要重新分析。</p>
-          <button type="button" onClick={() => void decisionWorld.refresh()}>
-            重新分析当前账户
+      {staleRefreshKey && refreshFailureKey === staleRefreshKey ? (
+        <section className="panel" role="alert">
+          <p>养成资料暂未更新，已保存的数据仍保留。</p>
+          <button
+            className="button"
+            type="button"
+            onClick={() => {
+              const key = staleRefreshKey
+              const accountId = staleAccountId
+              setRefreshFailureKey(null)
+              void refresh()
+                .then((run) =>
+                  recordRefreshFailure(key, run?.input.warehouse.accountId === accountId),
+                )
+                .catch(() => recordRefreshFailure(key, false))
+            }}
+          >
+            重试
           </button>
         </section>
       ) : null}

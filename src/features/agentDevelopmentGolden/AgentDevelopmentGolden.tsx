@@ -79,60 +79,7 @@ function Workbench({
   const planSaved = savedPlanKey === planKey
   const isSavedView = subject.mode === 'saved'
   const canCompare = subject.hasComparablePlan
-  const benchmark = subject.valueBenchmark
-  const benchmarkSupported =
-    benchmark?.comparison.status === 'supported' &&
-    !benchmark.stale &&
-    benchmark.comparison.planningDpsDelta !== null
-  const benchmarkDelta = benchmarkSupported ? benchmark.comparison.planningDpsDelta! : null
-  const benchmarkPercentDelta = benchmarkSupported
-    ? benchmark.comparison.planningDpsPercentDelta
-    : null
-  const benchmarkIsFixedEvent =
-    benchmark?.comparison.coverage.domain === 'fixed_event_direct_damage'
-  const benchmarkOverallUndetermined =
-    benchmark?.comparison.coverage.generalConclusion !== 'supported' ||
-    benchmark?.comparison.candidateDisposition === 'unresolved'
   const specialtyIcon = specialtyIconIds[subject.specialty]
-  const benchmarkLabel =
-    benchmarkSupported && benchmarkDelta !== null
-      ? benchmarkDelta === 0
-        ? benchmarkPercentDelta === null
-          ? benchmarkIsFixedEvent
-            ? '持平'
-            : '预计输出持平'
-          : benchmarkIsFixedEvent || benchmarkOverallUndetermined
-            ? '持平'
-            : '预计输出持平'
-        : benchmarkIsFixedEvent || benchmarkOverallUndetermined
-          ? `${benchmarkDelta > 0 ? '+' : ''}${benchmarkDelta.toLocaleString('zh-CN', { maximumFractionDigits: 2 })}`
-          : benchmark.comparison.candidateDisposition === 'recommendation'
-            ? `预计输出 +${Math.abs(benchmarkDelta).toLocaleString('zh-CN', { maximumFractionDigits: 2 })}`
-            : `预计输出 -${Math.abs(benchmarkDelta).toLocaleString('zh-CN', { maximumFractionDigits: 2 })}`
-      : scenario === 'stale' || benchmark?.stale
-        ? '需重新搭配'
-        : benchmark
-          ? '暂不可比较'
-          : '尚未生成'
-  const benchmarkDetail = benchmarkSupported
-    ? benchmarkIsFixedEvent || benchmarkOverallUndetermined
-      ? '只比较同一段战斗动作的输出，不能据此判断整场强弱。'
-      : benchmarkPercentDelta === null
-        ? '暂无法换算百分比。'
-        : benchmarkPercentDelta === 0
-          ? '两套方案输出持平。'
-          : benchmarkIsFixedEvent
-            ? `同段输出 ${benchmarkPercentDelta > 0 ? '+' : ''}${benchmarkPercentDelta.toFixed(2)}%`
-            : benchmarkPercentDelta > 0
-              ? `推荐方案 +${benchmarkPercentDelta.toFixed(2)}%`
-              : `当前方案高 ${Math.abs(benchmarkPercentDelta).toFixed(2)}%`
-    : scenario === 'stale' || benchmark?.stale
-      ? '资料已更新，请重新搭配。'
-      : benchmark
-        ? subject.warehouseAnalysis.replacementCount === undefined
-          ? '尚无可计算的双侧方案，仍可查看或保存本方案。'
-          : '当前方案的数值差值暂不可计算。'
-        : '从仓库搭配后，可查看方案与条件。'
   const currentRecommendedEngine = subject.graduation.engines.find(
     (engine) =>
       Boolean(engine.visual?.entityId) &&
@@ -395,20 +342,6 @@ function Workbench({
 
           {
             <div className="disc-workbench-metrics" aria-label="方案指标">
-              {benchmarkSupported && (
-                <section
-                  className={`disc-metric disc-metric--benchmark ${benchmarkSupported ? 'is-supported' : ''}`}
-                  aria-labelledby="value-benchmark-title"
-                >
-                  <small id="value-benchmark-title">
-                    {benchmarkIsFixedEvent || benchmarkOverallUndetermined
-                      ? '同段输出变化'
-                      : '方案比较'}
-                  </small>
-                  <strong>{benchmarkLabel}</strong>
-                  <span>{benchmarkDetail}</span>
-                </section>
-              )}
               <span className="disc-metric">
                 <small>配装评分</small>
                 <strong>{subject.warehouseAnalysis.totalScore ?? '—'}</strong>
@@ -449,7 +382,9 @@ function Workbench({
                 className="warehouse-action warehouse-action--primary button primary"
                 type="button"
                 disabled={
-                  warehouseActionState === 'running' || (!canCompare && !onAnalyzeWarehouse)
+                  savingPlan ||
+                  warehouseActionState === 'running' ||
+                  (!canCompare && !onAnalyzeWarehouse)
                 }
                 onClick={async () => {
                   if (canCompare || (await runWarehouseAnalysis())) toTop10()
@@ -462,7 +397,7 @@ function Workbench({
                   <button
                     className="warehouse-action warehouse-action--secondary"
                     type="button"
-                    disabled={warehouseActionState === 'running'}
+                    disabled={savingPlan || warehouseActionState === 'running'}
                     onClick={runWarehouseAnalysis}
                   >
                     {warehouseActionState === 'running' ? '搭配中…' : '重新搭配'}
@@ -490,7 +425,7 @@ function Workbench({
                   {warehouseActionError}
                 </span>
               ) : null}
-              {!isSavedView && (onSavePlan || !canCompare) ? (
+              {!isSavedView && (onSavePlan || !canCompare || savingPlan) ? (
                 <button
                   className="primary save-plan-action"
                   type="button"

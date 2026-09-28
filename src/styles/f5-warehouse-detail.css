@@ -174,9 +174,13 @@
   margin-top: 4px;
 }
 .f5v-shell .warehouse-action-drawer .warehouse-alternatives {
+  display: grid;
   gap: 6px;
   margin-top: 8px;
-  padding: 0;
+  max-height: min(280px, 36dvh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 4px 0 0;
   list-style: none;
 }
 .f5v-shell .warehouse-alternatives > li {
@@ -230,18 +234,6 @@
 .f5v-shell .warehouse-alternative__feature {
   color: var(--soda-text-3);
   overflow-wrap: anywhere;
-}
-.f5v-shell .warehouse-alternatives__pagination {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 6px;
-}
-.f5v-shell .warehouse-alternatives__pagination .button {
-  min-height: 28px;
-  height: 28px;
-  padding-block: 0;
 }
 .f5v-shell .warehouse-disc-comparison__grid {
   display: grid;

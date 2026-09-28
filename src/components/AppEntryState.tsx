@@ -1,7 +1,20 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { useAppHealth } from '../appHealthContext'
 
-function EntryLoading({ title }: { title: string }) {
+/** Brief reads should resolve without introducing a separate page into the visual journey. */
+export function AppLoadingState({ title, compact = false }: { title: string; compact?: boolean }) {
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    const timeout = window.setTimeout(() => setVisible(true), 250)
+    return () => window.clearTimeout(timeout)
+  }, [])
+  if (!visible) return null
+  if (compact)
+    return (
+      <section className="panel" role="status" aria-live="polite" aria-busy="true">
+        <p>{title}</p>
+      </section>
+    )
   return (
     <main className="app-entry-state" role="status" aria-live="polite" aria-busy="true">
       <span>SODA TERMINAL</span>
@@ -78,12 +91,12 @@ export function AppInitializationGate({ children }: { children: ReactNode }) {
         {repairError ? <p role="alert">{repairError}</p> : null}
       </EntryError>
     )
-  if (databaseStatus !== 'ready') return <EntryLoading title="正在读取本地资料" />
+  if (databaseStatus !== 'ready') return <AppLoadingState title="正在读取本地资料" />
   return children
 }
 
 export function AppRouteLoading() {
-  return <EntryLoading title="正在打开页面" />
+  return <AppLoadingState title="正在打开页面" />
 }
 
 export function AppRouteError() {

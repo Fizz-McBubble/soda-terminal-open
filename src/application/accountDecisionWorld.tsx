@@ -3,6 +3,7 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { type AccountDecisionRun, type CalculationQueryClient } from './calculationQueryContract'
 import { getActiveAccount } from '../accounts/repository'
+import { AppLoadingState } from '../components/AppEntryState'
 import {
   type AccountDecisionWorldContextValue,
   type RuntimeSelectionReader,
@@ -57,7 +58,7 @@ export function AccountDecisionWorldProvider({
   const identity = useLiveQuery(async () => ({ account: await getActiveAccount() }), [])
   // Do not mount editable consumers under a temporary loading key and discard their input
   // when the independent account lookup completes.
-  if (!identity) return <section role="status">正在读取当前账户资料…</section>
+  if (!identity) return <AppLoadingState title="正在读取当前账户资料" />
   const account = identity.account
   return (
     <AccountScopedDecisionWorldProvider

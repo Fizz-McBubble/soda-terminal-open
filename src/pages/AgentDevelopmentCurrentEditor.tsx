@@ -5,6 +5,8 @@ import type { AccountRoster } from '../assault/types'
 import { publicAssetCatalog } from '../application/publicAssetCatalog'
 import { AgentEditor } from '../components/assets/r6/AgentEditor'
 import type { AssetGoldenProps, TypedAssetSave } from '../components/assets/r6/types'
+import { PlanningDialog } from './TeamSolverWorkspaceParts'
+import './agent-development-current-editor.css'
 
 export function AgentDevelopmentCurrentEditor({
   accountId,
@@ -71,21 +73,22 @@ export function AgentDevelopmentCurrentEditor({
     onSave: save,
   } satisfies Pick<AssetGoldenProps, 'accountId' | 'roster' | 'catalog' | 'onSave'>
   return (
-    <section
-      className="r6-golden r6-golden--content-only agent-development-current-editor"
-      aria-label="编辑当前状态"
+    <PlanningDialog
+      title="编辑当前状态"
+      description="保存后同步更新我的资产中的代理人资料。"
+      onCancel={onCancel}
     >
-      <div className="workspace">
+      <div className="r6-golden r6-golden--content-only agent-development-current-editor">
         <div className="editor">
+          {message && <p role="alert">{message}</p>}
+          <AgentEditor props={editorProps} item={item} />
           <div className="agent-development-current-editor__actions">
             <button className="button" type="button" onClick={onCancel}>
               取消编辑
             </button>
           </div>
-          {message && <p role="alert">{message}</p>}
-          <AgentEditor props={editorProps} item={item} />
         </div>
       </div>
-    </section>
+    </PlanningDialog>
   )
 }

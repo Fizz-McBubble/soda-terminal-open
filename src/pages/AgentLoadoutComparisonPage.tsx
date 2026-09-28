@@ -1,3 +1,4 @@
+import { AppLoadingState } from '../components/AppEntryState'
 import { useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { BackNavigation } from '../components/BackNavigation'
@@ -37,7 +38,8 @@ export function AgentLoadoutComparisonPage() {
   const [justSaved, setJustSaved] = useState<AccountPlanningDraft | null>(null)
   const decisionWorld = useAccountDecisionWorld()
   const queryDevelopmentCandidateAlternatives = useDevelopmentCandidateAlternativesCalculation()
-  if (decisionWorld.status === 'loading') return <p role="status">正在读取账户配装…</p>
+  if (decisionWorld.status === 'loading')
+    return <AppLoadingState title="正在读取账户配装…" compact />
   if (decisionWorld.status !== 'current' && decisionWorld.status !== 'stale')
     return (
       <section className="panel">
@@ -53,7 +55,7 @@ export function AgentLoadoutComparisonPage() {
     decisionWorld.status === 'stale'
       ? decisionWorld.liveInput?.warehouse
       : decisionWorld.run.input.warehouse
-  if (!warehouse) return <p role="status">正在读取当前账户配装…</p>
+  if (!warehouse) return <AppLoadingState title="正在读取当前账户配装…" compact />
   const agent = warehouse.roster.agents.find((item) => item.agentId === agentId)
   if (!warehouse.accountId || !agent?.owned)
     return (

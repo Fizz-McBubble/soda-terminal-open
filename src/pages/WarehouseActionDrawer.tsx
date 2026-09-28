@@ -14,7 +14,6 @@ import {
 import { formatRecordedDiscStatValue, formatRecordedDiscSubStat } from './discStatPresentation'
 import { WarehouseUsedAgents } from './WarehouseUsedAgents'
 import { warehouseDevelopmentAction } from '../application/warehouseDevelopmentPresentation'
-import { useState } from 'react'
 import { DiscAttributeComparison, SavedUsageReferences } from './WarehouseActionDrawerDetails'
 import { savedUsageReferences } from './WarehouseActionDrawerDetails.helpers'
 import { selectWarehouseCleanupReason } from './warehouseActionListJoin'
@@ -74,9 +73,6 @@ export function WarehouseActionDrawer({
     item.compatibleAgentIds.length > 0 &&
     new Set(retentionAgentIds).size === new Set(item.compatibleAgentIds).size &&
     item.compatibleAgentIds.every((id) => retentionAgentIds.includes(id))
-  const [alternativePage, setAlternativePage] = useState(0)
-  const alternativePageCount = Math.max(1, Math.ceil(alternatives.length / 3))
-  const visibleAlternatives = alternatives.slice(alternativePage * 3, alternativePage * 3 + 3)
   const decisionReason = selectWarehouseCleanupReason(item.reasons)
   const explanationReasons = item.reasons.filter((reason) => reason !== decisionReason)
   const savedUses = savedUsageReferences(item.affectedPlans, item.affectedTeams)
@@ -319,7 +315,7 @@ export function WarehouseActionDrawer({
         </div>
         {alternatives.length ? (
           <ul className="warehouse-alternatives" aria-label="可比较盘">
-            {visibleAlternatives.map((alternative) => {
+            {alternatives.map((alternative) => {
               const identity = readablePhysicalDiscLabel(alternative, discs)
               const ordinal = identity.match(/同类第\d+张/)?.[0]
               const recommendation = alternativeRecommendations?.get(alternative.id)
@@ -379,29 +375,6 @@ export function WarehouseActionDrawer({
               )
             })}
           </ul>
-        ) : null}
-        {alternativePageCount > 1 ? (
-          <nav className="warehouse-alternatives__pagination" aria-label="可比较盘分页">
-            <button
-              className="button button--quiet"
-              type="button"
-              disabled={alternativePage === 0}
-              onClick={() => setAlternativePage((page) => page - 1)}
-            >
-              上一页
-            </button>
-            <span>
-              {alternativePage + 1} / {alternativePageCount}
-            </span>
-            <button
-              className="button button--quiet"
-              type="button"
-              disabled={alternativePage + 1 >= alternativePageCount}
-              onClick={() => setAlternativePage((page) => page + 1)}
-            >
-              下一页
-            </button>
-          </nav>
         ) : null}
         {missingAlternativeDiscIds.length ? (
           <div role="status">

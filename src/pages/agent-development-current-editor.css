@@ -1,0 +1,30 @@
+.planning-dialog:has(.agent-development-current-editor) {
+  width: min(760px, calc(100vw - 32px));
+  max-height: calc(100dvh - 32px);
+}
+
+.planning-dialog .agent-development-current-editor {
+  height: auto;
+  min-width: 0;
+  background: transparent;
+}
+
+.planning-dialog .agent-development-current-editor .editor {
+  max-height: none;
+  overflow: visible;
+  padding: 8px 0 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.planning-dialog .agent-development-current-editor__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
+@media (max-width: 600px) {
+  .planning-dialog:has(.agent-development-current-editor) {
+    padding: 16px;
+  }
+}
