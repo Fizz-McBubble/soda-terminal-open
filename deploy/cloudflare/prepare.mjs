@@ -174,7 +174,7 @@ export async function inspectDist(dist) {
     scope: 'browser_bundle_file_closure_and_reference_audit_not_runtime_acceptance',
   }
 }
-export async function prepare({ dist, out, accountId, name = 'soda-terminal' }) {
+export async function prepare({ dist, out, accountId, name = 'app' }) {
   if (!dist || !out) throw new Error('dist_and_out_required')
   if (!/^[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/u.test(name)) throw new Error('worker_name_invalid')
   if (accountId && !/^[a-f0-9]{32}$/u.test(accountId)) throw new Error('account_id_invalid')
