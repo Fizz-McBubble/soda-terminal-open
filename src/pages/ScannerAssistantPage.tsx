@@ -305,7 +305,7 @@ function HydratedScannerAssistantPage({
           : {
               eyebrow: '连接恢复',
               title: '本机扫描助手尚未连接',
-              body: `${snapshot.error?.userMessage ?? '扫描助手未就绪，可重新连接。'}${window.location.protocol === 'https:' ? ' 首次连接时，请允许浏览器访问本机设备，并在扫描助手中确认此网站；如果曾拒绝，请到此网站的浏览器权限设置中改为允许，再点击重新连接。' : ''}`,
+              body: `${snapshot.error?.userMessage ?? '扫描助手未就绪，可重新连接。'}${window.location.protocol === 'https:' ? ' 首次连接时，请允许浏览器访问本机设备；如果曾拒绝，请到此网站的浏览器权限设置中改为允许，再点击重新连接。' : ''}`,
             }
       case 'ready':
         return {

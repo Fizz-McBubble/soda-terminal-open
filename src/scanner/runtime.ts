@@ -326,7 +326,7 @@ export function createScannerAssistantRuntime(
         ...failedSnapshot,
         error: {
           ...failedSnapshot.error!,
-          userMessage: '本机扫描助手授权已拒绝。重新连接时可在 Windows 弹窗中允许。',
+          userMessage: '本机扫描助手拒绝了此网站。请确认使用受支持的 Soda Terminal 网址，再重新连接。',
           diagnosticCode: 'helper_pairing_denied',
         },
       }
