@@ -376,9 +376,6 @@ function HydratedScannerAssistantPage({
   }, [snapshot.state])
 
   async function runScannerAction(action: () => void | Promise<void>) {
-    if (actionPendingRef.current) return
-    actionPendingRef.current = true
-    setActionPending(true)
     stageFocusRequestedRef.current = true
     setActionFeedback(null)
     try {
@@ -389,6 +386,15 @@ function HydratedScannerAssistantPage({
           ? error.message
           : '扫描助手未就绪，可重新连接。',
       )
+    }
+  }
+
+  async function connectScanner(action: () => void | Promise<void>) {
+    if (actionPendingRef.current) return
+    actionPendingRef.current = true
+    setActionPending(true)
+    try {
+      await runScannerAction(action)
     } finally {
       actionPendingRef.current = false
       setActionPending(false)
@@ -908,10 +914,10 @@ function HydratedScannerAssistantPage({
               }
               onRecover={
                 canOpenInstalledHelper
-                  ? () => void runScannerAction(() => commands.openHelper(true))
+                  ? () => void connectScanner(() => commands.openHelper(true))
                   : undefined
               }
-              onReconnect={() => void runScannerAction(() => commands.retryConnection())}
+              onReconnect={() => void connectScanner(() => commands.retryConnection())}
               onRevoke={() => void runScannerAction(() => commands.revokePairing())}
               onStart={() => void startBoundScan()}
             />

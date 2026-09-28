@@ -709,7 +709,7 @@
     "src/pages/savedTeamRatingPresentation.ts": "3c76b559bd5503d7fb444860b0d5563dc609b4463a23ad66f6aeb78e1d118be3",
     "src/pages/savedTeamRatingPresentationLocal.ts": "c53bc1a129631663e6c14ec792571bb1fb632443bb2cebbdf092b7b04f4acf9b",
     "src/pages/ScannerAccountHydrationGate.tsx": "eb7c016552c10bc6603f58a562af36b4e56ccb60056ee952a4d9ca3bb933963f",
-    "src/pages/ScannerAssistantPage.tsx": "27a6b348852429acbf66c1f4bdba55491f43d93d02b968a66b00808210bd4ce5",
+    "src/pages/ScannerAssistantPage.tsx": "4a104914d276625c223f4d76fff5dfe624843a01a24f26f769a5f6afb0773bb1",
     "src/pages/scannerAssistantPresentation.ts": "1d572b5a74e801a4aaccd211c3848106dd492667b05b2fc1979ea578a0fa51ba",
     "src/pages/ScannerPrepareChecklist.tsx": "19be1b0bb480d841cfb912e0faab0875b2ea824de067d42cba67d28ef7a45554",
     "src/pages/scannerPrepareChecks.ts": "4d7eab773dbf25f1f27c76ec7d8b8a83fdf28df6f801f8cbd6dc0bfeeb5b046d",
