@@ -425,7 +425,11 @@ export function AssetCenterPage() {
       catalog={catalog}
       discs={discs}
       roster={propsData.roster}
-      initialTab={propsData.account ? activeTab(params.assetType) : 'account'}
+      initialTab={
+        propsData.account || activeTab(params.assetType) !== 'discs'
+          ? activeTab(params.assetType)
+          : 'account'
+      }
       initialSelection={{
         agents:
           searchParams.get('selected') ??

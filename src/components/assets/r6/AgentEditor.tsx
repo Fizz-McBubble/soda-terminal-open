@@ -25,6 +25,17 @@ export function AgentEditor({ props, item }: { props: AssetGoldenProps; item: Ca
   const { draft, setDraft, baseRevision, stale, rebase } = useDraft<AgentDraft>(current, revision)
   const skillMax = (field: 'basic' | 'dodge' | 'assist' | 'special' | 'chain') =>
     getAgentSkillMaxFor(field, draft.mindscape)
+  if (props.accountId === 'no-account') {
+    return (
+      <>
+        <div className="asset-editor-heading">
+          {Identity(item, `${item.rarity ?? ''}级 · ${getAgentSpecialtyLabel(item.specialty)}`)}
+        </div>
+        <CatalogReferencePanel item={item} />
+        <p className="selection-context">创建本机账户后可记录拥有情况与养成进度。</p>
+      </>
+    )
+  }
   return (
     <>
       <div className="asset-editor-heading">

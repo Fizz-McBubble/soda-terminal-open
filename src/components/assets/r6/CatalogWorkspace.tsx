@@ -231,14 +231,14 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
                 {{ agents: '代理人', wengines: '音擎', bangboos: '邦布', discs: '驱动盘' }[kind]}
               </h1>
               <p>
-                {
-                  {
-                    agents: '选择代理人，查看或修改等级、技能与当前装备。',
-                    wengines: '查看音擎使用情况；在代理人资料中更换装备。',
-                    bangboos: '选择邦布，记录拥有情况、等级与星级。',
-                    discs: '查看驱动盘词条，按套装、号位或使用情况筛选。',
-                  }[kind]
-                }
+                {props.accountId === 'no-account' && kind !== 'discs'
+                  ? '浏览图鉴；创建本机账户后可记录拥有情况与养成资料。'
+                  : {
+                      agents: '选择代理人，查看或修改等级、技能与当前装备。',
+                      wengines: '查看音擎使用情况；在代理人资料中更换装备。',
+                      bangboos: '选择邦布，记录拥有情况、等级与星级。',
+                      discs: '查看驱动盘词条，按套装、号位或使用情况筛选。',
+                    }[kind]}
               </p>
             </div>
             <div className="section-head__actions">

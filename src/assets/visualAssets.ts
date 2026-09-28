@@ -157,7 +157,7 @@ async function fetchOfficialVisualAsset(
   runtime: VisualAssetCacheRuntime,
 ) {
   let lastError: unknown
-  for (let attempt = 1; attempt <= 3; attempt += 1) {
+  for (let attempt = 1; attempt <= 5; attempt += 1) {
     let response: Response
     try {
       response = await fetchWithTimeout(
@@ -171,19 +171,29 @@ async function fetchOfficialVisualAsset(
         error instanceof DOMException && error.name === 'AbortError'
           ? new Error(`${asset.name} 下载失败（请求超时）`)
           : error
-      if (attempt === 3) throw lastError
+      if (attempt === 5) throw lastError
       continue
     }
     const proxyError = response.headers.get('x-soda-asset-error')
     if (proxyError) {
       const upstreamStatus = response.headers.get('x-soda-upstream-status') ?? '502'
       lastError = new Error(`${asset.name} 下载失败（HTTP ${upstreamStatus}）`)
-      if (attempt === 3) throw lastError
+      if (attempt === 5) throw lastError
       continue
     }
     if (response.ok) return response
     lastError = new Error(`${asset.name} 下载失败（HTTP ${response.status}）`)
-    if (response.status < 500 || attempt === 3) throw lastError
+    if (response.status === 429 && attempt < 5) {
+      const retryAfter = Number(response.headers.get('retry-after'))
+      await new Promise((resolve) =>
+        setTimeout(
+          resolve,
+          Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : 500 * attempt,
+        ),
+      )
+      continue
+    }
+    if (response.status < 500 || attempt === 5) throw lastError
   }
   throw lastError
 }
@@ -279,7 +289,7 @@ async function installAssetsIntoCache(
 ) {
   const activeCaches = await openActiveVisualAssetCaches(previousState, runtime)
   let completed = 0
-  await runBoundedConcurrentTasks(assets, 8, async (asset) => {
+  await runBoundedConcurrentTasks(assets, 3, async (asset) => {
     const cached =
       options.reuseCached === false
         ? null

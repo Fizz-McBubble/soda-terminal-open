@@ -43,6 +43,15 @@ export function BangbooEditor({ props, item }: { props: AssetGoldenProps; item: 
   const source = props.roster.bangboos.find((x) => x.bangbooId === item.stableId)!
   const revision = JSON.stringify(source)
   const { draft, setDraft, baseRevision, stale } = useDraft<BangbooDraft>({ ...source }, revision)
+  if (props.accountId === 'no-account') {
+    return (
+      <>
+        <div className="asset-editor-heading">{Identity(item, `${item.rarity ?? ''}级邦布`)}</div>
+        <CatalogReferencePanel item={item} />
+        <p className="selection-context">创建本机账户后可记录拥有情况与培养进度。</p>
+      </>
+    )
+  }
   return (
     <>
       <div className="asset-editor-heading">

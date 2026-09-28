@@ -33,7 +33,7 @@ export function Shell({
             key={id}
             className={activeTab === id ? 'active' : ''}
             aria-current={activeTab === id ? 'page' : undefined}
-            disabled={props.accountId === 'no-account' && id !== 'account'}
+            disabled={props.accountId === 'no-account' && id === 'discs'}
             onClick={() => onTab(id)}
           >
             <span className="tab-label">{label}</span>
