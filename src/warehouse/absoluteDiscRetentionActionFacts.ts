@@ -2,6 +2,7 @@ import type { CurrentAgentEventContract } from '../calculation/currentAgentMecha
 import type { CandidateWarehouseConstraint } from '../gameDataPacks/candidateWarehouseConstraints'
 import { stableContentHash } from '../gameDataPacks/types'
 import { getL3AgentDevelopmentEvidence } from '../gameDataPacks/l3ProductionProjection'
+import { reviewedKitAftershockFact } from './reviewedRetentionActionKits'
 
 export type RetentionActionTag = 'basic' | 'dash' | 'aftershock'
 export type RetentionActionFact = {
@@ -16,6 +17,7 @@ export type RetentionActionFact = {
   currentBuildBenefit: 'primary' | 'incidental' | 'unresolved'
   sourceIds: string[]
   sourceEvents: readonly string[]
+  detail?: string
 }
 
 /**
@@ -250,7 +252,10 @@ export function resolveRetentionActionFact(
       `${contract.source.repository}:${reviewedCommit}:libs/zzz/formula/src/data/char/util.ts:6278397afa6c5b5f65a15bdadd16037b67b997dffb2bf66289d63634bec49a3d:reviewed-emitted-action-classification`,
     )
   if (actionTag === 'aftershock') {
-    if (!sheet) return fact
+    if (!sheet) {
+      const kitFact = reviewedKitAftershockFact(actorAgentId, contract)
+      return kitFact ? { ...kitFact, sourceIds: [...fact.sourceIds, ...kitFact.sourceIds] } : fact
+    }
     fact.sourceEvents = sheet[2]
     fact.presence = sheet[2].length ? 'present' : 'absent'
     if (fact.presence === 'absent') return fact

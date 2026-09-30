@@ -228,7 +228,7 @@ describe('production absolute-retention adapter', () => {
     ['B', 0, [0.8]],
     ['B', 3, [0.8, 1.6]],
   ] as const)(
-    'validates %s level %s line unlocks without borrowing S initial counts',
+    'validates %s level %s growth rules independently of the approved rarity cleanup rule',
     (rarity, level, values) => {
       const stats = ['crit_rate', 'crit_dmg', 'atk_percent']
       const assessment = assessDisc(
@@ -242,7 +242,7 @@ describe('production absolute-retention adapter', () => {
           subStats: values.map((value, index) => ({ stat: stats[index]!, value, upgrades: 0 })),
         },
         absoluteDiscRetentionCatalog,
-        absoluteDiscRetentionPolicy,
+        { ...absoluteDiscRetentionPolicy, rarityCleanup: undefined },
       )
       expect(assessment.reasons).not.toContain('invalid_record')
       expect(assessment.evidence.length).toBeGreaterThan(0)

@@ -34,6 +34,12 @@ import type {
 const policyVersion = 'absolute-disc-retention-3.1-stage-r4'
 const calibratedCutoffs = { cleanupBelow: 48, keepFrom: 60, premiumFrom: 67 } as const
 const calibratedRarities = ['S'] as const
+const rarityCleanup = {
+  id: 'approved-ab-cleanup-20260930',
+  approval: 'approved',
+  rarities: ['A', 'B'],
+  sourceIds: ['product-policy:user-approved-ab-cleanup-20260930'],
+} as const
 
 const released = currentAgentDirectory.filter(
   (entry) => entry.releaseState === 'released' && entry.accountOwnable,
@@ -315,6 +321,7 @@ const catalog: Catalog = {
 
 /** Frozen policy identity includes the live branch, set-effect and game-rule inputs. */
 export const absoluteDiscRetentionCatalogHash = stableContentHash({
+  rarityCleanup,
   profiles: catalog.profiles,
   sets: catalog.sets,
   rules: catalog.rules,
@@ -335,12 +342,13 @@ export const absoluteDiscRetentionCatalogHash = stableContentHash({
 /**
  * Independent S-rarity calibration and holdout fix the cleanup and strong-keep lines.
  * The premium line is a sufficient high-score signal, not a claim to catch every
- * excellent disc. Other rarities still receive quality/growth evidence but no cleanup.
+ * excellent disc. A/B follow the separately approved rarity rule, not these cutoffs.
  */
 export const absoluteDiscRetentionPolicy: QualityPolicy = {
   id: `${policyVersion}:${absoluteDiscRetentionCatalogHash}`,
   calibration: 'approved',
   calibratedRarities,
+  rarityCleanup,
   investment: {
     id: 'source-goal-stage-investment-r1',
     calibration: 'approved',

@@ -105,7 +105,7 @@ describe('current protection action and intrinsic quality', () => {
       expect(status.textContent).toContain('下一步：保留')
       expect(status.textContent).not.toContain('人工清理')
       expect(
-        screen.getByText(/固有品质判断/).compareDocumentPosition(status) &
+        screen.getByText(/品质说明/).compareDocumentPosition(status) &
           Node.DOCUMENT_POSITION_PRECEDING,
       ).toBeTruthy()
       expect(screen.getByText(/解除全部保护后仍需人工复核/)).toBeTruthy()

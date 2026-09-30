@@ -35,6 +35,7 @@ export type RetentionReasonKind =
   | 'proven_low_ceiling'
   | 'low_investment_value'
   | 'no_supported_use'
+  | 'approved_rarity_cleanup'
   | 'invalid_record'
 export interface RetentionBlocker {
   readonly profileId?: string
@@ -167,6 +168,13 @@ export interface QualityPolicy {
   readonly calibration: 'candidate' | 'approved'
   /** Cleanup is withheld for rarities absent from the independent calibration sample. */
   readonly calibratedRarities?: readonly string[]
+  /** An explicit product rule, independent of the numeric quality calibration. */
+  readonly rarityCleanup?: {
+    readonly id: string
+    readonly approval: 'candidate' | 'approved'
+    readonly rarities: readonly ('A' | 'B')[]
+    readonly sourceIds: readonly string[]
+  }
   readonly byProfile: Readonly<Record<string, Readonly<Record<string, Cutoffs>>>>
   readonly investment?: InvestmentPolicy
 }

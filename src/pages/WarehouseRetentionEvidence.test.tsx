@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import type { WarehouseAbsoluteRetentionEvidence } from '../warehouse/discWarehouseEvidence'
 import { WarehouseRetentionEvidence } from './WarehouseRetentionEvidence'
 
@@ -63,6 +64,121 @@ function use(
 }
 
 describe('absolute retention evidence', () => {
+  it('keeps A/B guidance simple without fabricated scores or uncalibrated warnings', () => {
+    const source = evidence({
+      disposition: 'cleanup_candidate',
+      reasonKind: 'approved_rarity_cleanup',
+      reviewedUseScope: 'approved-ab-cleanup-20260930',
+      nextAction: {
+        kind: 'manual_cleanup',
+        targetLevel: null,
+        detail: 'A/B 级盘直接列为清理候选。',
+        stopWhen: '受保护时保留。',
+      },
+    })
+    const { rerender } = render(<WarehouseRetentionEvidence discLevel={0} evidence={source} />)
+    expect(screen.getByRole('status')).toHaveTextContent('下一步：可清理')
+    expect(screen.queryByText('查看评分与强化依据')).not.toBeInTheDocument()
+    expect(screen.queryByText(/尚未校准/)).not.toBeInTheDocument()
+    rerender(
+      <WarehouseRetentionEvidence
+        discLevel={0}
+        evidence={{
+          ...source,
+          nextAction: {
+            kind: 'keep',
+            targetLevel: null,
+            detail: '当前正在装备。',
+            stopWhen: '当前保护生效期间保留此盘。',
+          },
+        }}
+      />,
+    )
+    expect(screen.getByRole('status')).toHaveTextContent('下一步：保留')
+    expect(screen.getByText('当前正在装备。')).toBeVisible()
+    expect(screen.queryByText(/不需要继续强化/)).not.toBeInTheDocument()
+  })
+  it('shows a short trial first and reveals scores only when requested', async () => {
+    render(
+      <WarehouseRetentionEvidence
+        discLevel={0}
+        evidence={evidence({
+          reasonKind: 'try_next_upgrade',
+          nextAction: {
+            kind: 'try_upgrade',
+            targetLevel: 3,
+            detail: '仅建议试到 +3，记录后重新分析。',
+            stopWhen: '阶段结构不达标时停止。',
+          },
+          leadingUses: [use('trial', 79.4, 21)],
+        })}
+      />,
+    )
+    expect(screen.getByRole('status')).toHaveTextContent('下一步：先强化到 +3')
+    expect(screen.getByText('强化后重新分析，不再推荐就停手。')).toBeVisible()
+    expect(screen.getByText('21.0 分')).not.toBeVisible()
+    await userEvent.click(screen.getByText('查看评分与强化依据'))
+    expect(screen.getByText('21.0 分')).toBeVisible()
+    expect(screen.getByText('21.0–79.4 分')).toBeVisible()
+    expect(screen.getByText(/不代表成功概率/)).toBeVisible()
+  })
+
+  it('prioritizes owned references without calling reserve uses equipped', () => {
+    render(
+      <WarehouseRetentionEvidence
+        discLevel={0}
+        evidence={evidence({
+          ownedUseAgentIds: ['agent-nicole'],
+          leadingUses: [use('reserve', 80), { ...use('owned', 75), agentId: 'agent-nicole' }],
+        })}
+      />,
+    )
+    const references = screen.getByRole('list', { name: '参考角色用途' })
+    const rows = within(references).getAllByRole('listitem')
+    expect(rows[0]).toHaveTextContent('妮可')
+    expect(rows[0]).toHaveTextContent('已拥有')
+    expect(rows[1]).toHaveTextContent('储备')
+    expect(within(rows[1]!).getByTitle('未拥有，可作储备用途')).toBeVisible()
+    expect(references).not.toHaveTextContent('正在使用')
+  })
+
+  it('does not ask the player to supply unpublished action facts or clear uncalibrated rarities', () => {
+    const { rerender } = render(
+      <WarehouseRetentionEvidence
+        discLevel={0}
+        evidence={evidence({
+          reasonKind: 'missing_fact',
+          nextAction: {
+            kind: 'complete_data',
+            targetLevel: null,
+            detail: '按字段补齐资料。',
+            stopWhen: '暂停投入和清理。',
+          },
+        })}
+      />,
+    )
+    expect(screen.getByRole('status')).toHaveTextContent('暂留，等待资料确认')
+    expect(screen.getByText(/暂不建议继续投入或清理/)).toBeVisible()
+    rerender(
+      <WarehouseRetentionEvidence
+        discLevel={0}
+        evidence={evidence({
+          reasonKind: 'missing_fact',
+          blockedBy: [
+            {
+              kind: 'policy',
+              field: 'calibration',
+              predicateId: 'rarity-A',
+              detail: 'A级尚未校准',
+              sourceIds: [],
+            },
+          ],
+        })}
+      />,
+    )
+    expect(screen.getByText(/这一类盘的清理标准尚未校准/)).toBeVisible()
+  })
+
   it('names every blocker even when the affected profile is outside the first three score rows', () => {
     render(
       <WarehouseRetentionEvidence
@@ -91,8 +207,8 @@ describe('absolute retention evidence', () => {
       />,
     )
     expect(screen.getByText(/需要核对四件套队伍条件/)).toBeInTheDocument()
-    expect(screen.getAllByText(/剩余强化节点 3 个/)).toHaveLength(4)
-    expect(screen.getByText('查看其余 1 个构筑方向')).toBeInTheDocument()
+    expect(screen.getAllByText(/还可强化 3 次/)).toHaveLength(4)
+    expect(screen.getByText('查看评分与强化依据').closest('details')?.open).toBe(false)
   })
 
   it('keeps completed function separate from substat quality at mature level', () => {
@@ -120,8 +236,8 @@ describe('absolute retention evidence', () => {
         })}
       />,
     )
-    expect(screen.getByText(/保留依据是已具备的功能用途/)).toBeInTheDocument()
-    expect(screen.getByText(/副词条当前 28.0 分/)).toBeInTheDocument()
+    expect(screen.getByText(/主词条已能发挥所需功能/)).toBeInTheDocument()
+    expect(screen.getAllByText('28.0 分').length).toBeGreaterThan(0)
     expect(screen.queryByText(/试强化/)).not.toBeInTheDocument()
   })
 
@@ -136,8 +252,8 @@ describe('absolute retention evidence', () => {
         })}
       />,
     )
-    expect(screen.getByText(/剩余强化即使仍有很高的理论上界/)).toBeInTheDocument()
-    expect(screen.getByText(/合法最终上界 95.0 分/)).toBeInTheDocument()
+    expect(screen.getByText(/仍可能出现极端的好结果/)).toBeInTheDocument()
+    expect(screen.getByText('42.0–95.0 分')).toBeInTheDocument()
     rerender(
       <WarehouseRetentionEvidence
         discLevel={15}
@@ -147,10 +263,8 @@ describe('absolute retention evidence', () => {
         })}
       />,
     )
-    expect(screen.getByText(/严格上界仍低于相关门槛/)).toBeInTheDocument()
-    expect(
-      screen.getByText(/副词条当前 42.0 分 \/ 保留线 60.0 分 · 合法最终上界 50.0 分/),
-    ).toBeInTheDocument()
+    expect(screen.getByText(/即使后续强化全部往有利方向发展/)).toBeInTheDocument()
+    expect(screen.getByText('42.0–50.0 分')).toBeInTheDocument()
     expect(screen.queryByText(/理论上界，也不自动证明/)).not.toBeInTheDocument()
   })
 
@@ -171,7 +285,7 @@ describe('absolute retention evidence', () => {
       />,
     )
     expect(screen.queryByText(/试强化/)).not.toBeInTheDocument()
-    expect(screen.getByText(/下一步：人工清理复核/)).toBeInTheDocument()
+    expect(screen.getByText(/下一步：复核后可清理/)).toBeInTheDocument()
   })
 
   it('uses player-facing branch, field, and stat labels while retaining policy and source provenance', () => {
@@ -248,6 +362,6 @@ describe('absolute retention evidence', () => {
     expect(screen.queryByText(/inconsistent_substat_record/)).not.toBeInTheDocument()
     const scope = screen.getByText(/用途范围标识：/)
     expect(scope.closest('details')?.open).toBe(false)
-    expect(screen.getByText(/已核对范围：当前版本已发布角色/)).toBeInTheDocument()
+    expect(screen.getByText(/范围：当前版本已发布角色/)).toBeInTheDocument()
   })
 })

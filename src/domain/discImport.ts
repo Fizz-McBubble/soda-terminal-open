@@ -5,7 +5,7 @@ import { driveDiscSchema, discSlotSchema, statKeySchema } from './schemas'
 export const driveDiscImportFormat = 'soda-terminal-drive-disc-import'
 export const driveDiscImportFormatVersion = 1
 
-const raritySchema = z.enum(['A', 'S']).default('S')
+const raritySchema = z.enum(['B', 'A', 'S']).default('S')
 const importSubStatSchema = z.object({
   stat: z.string().min(1),
   value: z.number().nonnegative(),
@@ -359,7 +359,7 @@ function normalizeScannerDisc(input: Record<string, unknown>) {
             : undefined,
     slot: Number(input.slot ?? input.position),
     level: Number(input.level ?? input.enhancement ?? 0),
-    rarity: input.rarity === 'A' ? 'A' : 'S',
+    rarity: input.rarity === 'A' || input.rarity === 'B' ? input.rarity : 'S',
     mainStat: String(main ?? ''),
     subStats: Array.isArray(subStats)
       ? subStats.map((subStat) => {

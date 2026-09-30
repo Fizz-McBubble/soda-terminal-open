@@ -17,6 +17,7 @@ import {
   scoreProfile,
   twoPieceApplicability,
 } from './absoluteDiscRetentionScoring'
+import { approvedRarityRetention } from './approvedRarityRetention'
 export type * from './absoluteDiscRetentionContract'
 export { twoPieceApplicability } from './absoluteDiscRetentionScoring'
 const EPS = 1e-8
@@ -112,6 +113,8 @@ export function assessDisc(
   )
   try {
     history(disc, catalog.rules)
+    const rarityDecision = approvedRarityRetention(disc, policy, Boolean(annotation.protected))
+    if (rarityDecision) return rarityDecision
     const released = new Set(catalog.releasedAgentIds)
     const sets = catalog.sets.filter((row) => row.id === disc.setId)
     const set = sets.length === 1 ? sets[0] : undefined

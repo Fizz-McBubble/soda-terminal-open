@@ -99,7 +99,7 @@ export const driveDiscSchema = z.object({
   setId: z.string().min(1),
   slot: discSlotSchema,
   level: z.number().int().min(0).max(15),
-  rarity: z.enum(['A', 'S']).optional(),
+  rarity: z.enum(['B', 'A', 'S']).optional(),
   mainStat: statKeySchema,
   subStats: z
     .array(

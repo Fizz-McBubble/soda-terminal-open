@@ -1,0 +1,99 @@
+.f5v-shell .warehouse-retention {
+  display: grid;
+  gap: 8px;
+}
+.f5v-shell .warehouse-retention h3 {
+  margin-bottom: 0;
+}
+.f5v-shell .warehouse-retention .warehouse-retention__action {
+  color: var(--soda-text);
+  font-size: var(--soda-type-section);
+}
+.f5v-shell .warehouse-retention .warehouse-retention__reason {
+  color: var(--soda-text);
+}
+.f5v-shell .warehouse-retention__stop {
+  padding-bottom: 2px;
+}
+.f5v-shell .warehouse-retention__uses {
+  display: grid;
+  gap: 5px;
+  padding-top: 3px;
+}
+.f5v-shell .warehouse-retention__uses > ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.f5v-shell .warehouse-retention__uses li {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+.f5v-shell .warehouse-retention__uses li span,
+.f5v-shell .warehouse-retention .warehouse-retention__hint,
+.f5v-shell .warehouse-retention__use-heading span {
+  color: var(--soda-text-3);
+  font-size: var(--soda-type-meta);
+}
+.f5v-shell .warehouse-retention__details {
+  min-width: 0;
+  padding-top: 6px;
+  border-top: 1px solid var(--soda-line);
+}
+.f5v-shell .warehouse-retention__details > summary {
+  width: fit-content;
+  padding: 3px 0;
+  color: var(--f5-accent);
+  cursor: pointer;
+  font-size: var(--soda-type-body);
+}
+.f5v-shell .warehouse-retention__details > summary:focus-visible {
+  outline: 2px solid var(--f5-accent);
+  outline-offset: 3px;
+}
+.f5v-shell .warehouse-retention__details[open] > summary {
+  margin-bottom: 7px;
+}
+.f5v-shell .warehouse-retention__details > p + p {
+  margin-top: 5px;
+}
+.f5v-shell .warehouse-retention__score-list {
+  display: grid;
+  gap: 12px;
+  padding: 0;
+  margin: 12px 0 0;
+  list-style: none;
+}
+.f5v-shell .warehouse-retention__use-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 3px 8px;
+}
+.f5v-shell .warehouse-retention__scores {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 5px 12px;
+  margin: 6px 0;
+  font-variant-numeric: tabular-nums;
+}
+.f5v-shell .warehouse-retention__scores div,
+.f5v-shell .warehouse-retention__scores dd {
+  min-width: 0;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.f5v-shell .warehouse-retention__scores dt {
+  font-size: var(--soda-type-meta);
+}
+.f5v-shell .warehouse-retention__scores dd {
+  color: var(--soda-text);
+}
+.f5v-shell .warehouse-retention__sources p,
+.f5v-shell .warehouse-retention__sources li {
+  overflow-wrap: anywhere;
+}

@@ -67,7 +67,6 @@ export function WarehouseActionDrawer({
       candidate.slot === disc.slot &&
       candidate.mainStat === disc.mainStat,
   ).length
-  const sameKindOrdinal = readablePhysicalDiscLabel(disc, discs).match(/同类第(\d+)张/)?.[1]
   const retentionAgentIds = !stale && item.action === 'keep' ? (item.retentionAgentIds ?? []) : []
   const retainedUsesCoverCompatibility =
     retentionAgentIds.length > 0 &&
@@ -77,6 +76,8 @@ export function WarehouseActionDrawer({
   const decisionReason = selectWarehouseCleanupReason(item.reasons)
   const explanationReasons = item.reasons.filter((reason) => reason !== decisionReason)
   const savedUses = savedUsageReferences(item.affectedPlans, item.affectedTeams)
+  const hasUsage =
+    item.usageAgentIds.length || savedUses.length || relations.length || retentionAgentIds.length
 
   return (
     <aside className="warehouse-action-drawer" aria-labelledby="warehouse-action-drawer-title">
@@ -132,7 +133,7 @@ export function WarehouseActionDrawer({
           </h2>
           <p>
             +{disc.level}
-            {sameKindCount > 1 ? ` · 同类 ${sameKindCount} 张 · 当前第 ${sameKindOrdinal} 张` : ''}
+            {sameKindCount > 1 ? ` · 同款共 ${sameKindCount} 张` : ''}
           </p>
         </div>
       </header>
@@ -172,7 +173,7 @@ export function WarehouseActionDrawer({
               : `同类还有 ${sameKindCount - 1} 张。`}
           </p>
         )}
-        {!stale && item.developmentAdvice ? (
+        {!stale && !item.absoluteRetention && item.developmentAdvice ? (
           <div
             className="warehouse-action-drawer__development"
             role="group"
@@ -229,38 +230,40 @@ export function WarehouseActionDrawer({
           ))}
         </dl>
       </section>
-      <section>
-        <div className="warehouse-action-drawer__section-heading">
-          <h3>{stale ? '分析时的使用与用途' : '使用与保留用途'}</h3>
-          {savedUses.length > 0 ? (
-            <ExplanationPopover label={`${savedUses.length} 个关联方案`}>
-              <SavedUsageReferences references={savedUses} />
-            </ExplanationPopover>
+      {hasUsage ? (
+        <section>
+          <div className="warehouse-action-drawer__section-heading">
+            <h3>{stale ? '分析时的使用与用途' : '使用与保留用途'}</h3>
+            {savedUses.length > 0 ? (
+              <ExplanationPopover label={`${savedUses.length} 个关联方案`}>
+                <SavedUsageReferences references={savedUses} />
+              </ExplanationPopover>
+            ) : null}
+          </div>
+          <div className="warehouse-action-drawer__usage">
+            <WarehouseUsedAgents agentIds={item.usageAgentIds} />
+            <p>
+              {relations.length
+                ? relations.join(' · ')
+                : item.affectedPlans.length
+                  ? '方案已引用，未记录具体分配代理人。'
+                  : '当前没有角色或方案使用这张盘。'}
+            </p>
+          </div>
+          {!item.usageAgentIds.length && item.affectedPlans.length && relations.length ? (
+            <p>方案已引用，未记录具体分配代理人。</p>
           ) : null}
-        </div>
-        <div className="warehouse-action-drawer__usage">
-          <WarehouseUsedAgents agentIds={item.usageAgentIds} />
-          <p>
-            {relations.length
-              ? relations.join(' · ')
-              : item.affectedPlans.length
-                ? '方案已引用，未记录具体分配代理人。'
-                : '当前没有角色或方案使用这张盘。'}
-          </p>
-        </div>
-        {!item.usageAgentIds.length && item.affectedPlans.length && relations.length ? (
-          <p>方案已引用，未记录具体分配代理人。</p>
-        ) : null}
-        {retentionAgentIds.length ? (
-          <p aria-label="具体保留用途">
-            保留用途：{retentionAgentIds.slice(0, 3).map(readableAgentName).join('、')}
-            {retentionAgentIds.length > 3 ? `等 ${retentionAgentIds.length} 位` : ''}。
-            {item.retentionBasis === 'other_agent_fit'
-              ? '这些角色尚未拥有；请结合培养计划预留，不代表现在必须投入强化。'
-              : null}
-          </p>
-        ) : null}
-      </section>
+          {retentionAgentIds.length ? (
+            <p aria-label="具体保留用途">
+              保留用途：{retentionAgentIds.slice(0, 3).map(readableAgentName).join('、')}
+              {retentionAgentIds.length > 3 ? `等 ${retentionAgentIds.length} 位` : ''}。
+              {item.retentionBasis === 'other_agent_fit'
+                ? '这些角色尚未拥有；请结合培养计划预留，不代表现在必须投入强化。'
+                : null}
+            </p>
+          ) : null}
+        </section>
+      ) : null}
       {item.affectedTeams.length ? (
         <section>
           <h3>队伍影响</h3>

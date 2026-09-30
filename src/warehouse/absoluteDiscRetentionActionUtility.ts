@@ -43,13 +43,15 @@ export function resolveActionUtility(
     return ev(
       'missing_fact',
       `${action}_actor_action_contract_missing`,
-      `Missing reviewed self ${action} classification; guide text and teammate descriptions cannot prove this action.`,
+      fact.detail ??
+        `Missing reviewed self ${action} classification; guide text and teammate descriptions cannot prove this action.`,
     )
   if (fact.presence === 'absent')
     return ev(
       'incompatible',
       `no_${action}_mechanic_in_kit`,
-      `Reviewed source kit classifies no self ${action} damage events; this is a source-bound negative fact.`,
+      fact.detail ??
+        `Reviewed source kit classifies no self ${action} damage events; this is a source-bound negative fact.`,
     )
   if (fact.currentBuildBenefit === 'primary' && fact.condition?.binding === 'reviewed_build')
     return ev(

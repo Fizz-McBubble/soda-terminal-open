@@ -136,13 +136,14 @@ export function WarehouseDiscControls({
         <option value="protected">装备、收藏或方案保护</option>
         <option value="reason:quality_keep">副词条品质达线</option>
         <option value="reason:functional_ready">功能用途已具备</option>
-        <option value="reason:try_next_upgrade">试下一强化节点</option>
+        <option value="reason:try_next_upgrade">值得试一次强化</option>
         <option value="reason:quality_borderline">品质边界待复核</option>
         <option value="reason:conditional_use">用途条件待核对</option>
-        <option value="reason:missing_fact">来源资料待补齐</option>
+        <option value="reason:missing_fact">相关资料待确认</option>
         <option value="reason:proven_low_ceiling">严格上界仍不足</option>
         <option value="reason:low_investment_value">继续投入价值偏低</option>
         <option value="reason:no_supported_use">支持范围未证用途</option>
+        <option value="reason:approved_rarity_cleanup">A/B 级盘清理规则</option>
         <option value="reason:invalid_record">盘记录待核对</option>
       </PlayerSelect>
     </label>
