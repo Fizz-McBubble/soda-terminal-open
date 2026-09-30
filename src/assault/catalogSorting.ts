@@ -21,7 +21,11 @@ export function hasTrustedReleaseAt(
  * a date is never guessed from a name, external ID, or array position.
  */
 export function sortCatalogByRarityAndRelease<
-  T extends { rarity: string | null; releaseAt?: string | null; releaseSourceVersion?: string | null },
+  T extends {
+    rarity: string | null
+    releaseAt?: string | null
+    releaseSourceVersion?: string | null
+  },
 >(items: readonly T[]): T[] {
   return items
     .map((item, sourceIndex) => ({ item, sourceIndex }))

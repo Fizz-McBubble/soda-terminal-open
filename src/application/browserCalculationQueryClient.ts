@@ -193,15 +193,9 @@ export function createBrowserCalculationQueryClient(options: {
         } satisfies BrowserCalculationQueryRequest)
       } catch (error) {
         if (dispatchGeneration !== generation) return
-        request.removeAbortListener()
-        pending.delete(requestId)
-        activeRequestId = null
-        if (error instanceof Error && /资料/.test(error.message)) {
-          invalidate(error)
-        } else {
-          request.reject(error instanceof Error ? error : new Error('无法启动本机计算。'))
-          dispatchNext()
-        }
+        // Keep the active request in pending so invalidation settles it together with
+        // every queued request and discards the Worker after a failed dispatch.
+        invalidate(error instanceof Error ? error : new Error('无法启动本机计算。'))
       }
     })()
   }

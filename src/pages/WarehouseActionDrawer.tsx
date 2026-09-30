@@ -17,6 +17,7 @@ import { warehouseDevelopmentAction } from '../application/warehouseDevelopmentP
 import { DiscAttributeComparison, SavedUsageReferences } from './WarehouseActionDrawerDetails'
 import { savedUsageReferences } from './WarehouseActionDrawerDetails.helpers'
 import { selectWarehouseCleanupReason } from './warehouseActionListJoin'
+import { WarehouseRetentionEvidence } from './WarehouseRetentionEvidence'
 
 export function WarehouseActionDrawer({
   item,
@@ -208,6 +209,9 @@ export function WarehouseActionDrawer({
           </div>
         ) : null}
       </section>
+      {item.absoluteRetention && !stale ? (
+        <WarehouseRetentionEvidence evidence={item.absoluteRetention} discLevel={disc.level} />
+      ) : null}
       <section>
         <h3>词条</h3>
         <dl className="warehouse-action-drawer__stats">

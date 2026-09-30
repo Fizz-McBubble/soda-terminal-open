@@ -2,7 +2,10 @@ import { createHash } from 'node:crypto'
 import { cp, lstat, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { dirname, extname, isAbsolute, relative, resolve, sep } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
-import { materializeScannerDistribution, validatePublicOrigin } from '../../scripts/materialize-scanner-distribution.mjs'
+import {
+  materializeScannerDistribution,
+  validatePublicOrigin,
+} from '../../scripts/materialize-scanner-distribution.mjs'
 
 export const wranglerVersion = '4.141.0'
 const here = dirname(fileURLToPath(import.meta.url))
@@ -102,8 +105,7 @@ export async function inspectDist(dist, { allowScannerTemplate = false, origin }
   if (present.length) {
     const command = await readFile(resolve(root, scannerFiles[0]), 'utf8')
     if (!allowScannerTemplate) {
-      if (/__SODA_[A-Z0-9_]+__/u.test(command))
-        throw new Error('scanner_template_unresolved')
+      if (/__SODA_[A-Z0-9_]+__/u.test(command)) throw new Error('scanner_template_unresolved')
       const embeddedOrigin = command.match(/^set "ORIGIN=([^"]+)"\r?$/mu)?.[1]
       validatePublicOrigin(embeddedOrigin)
       if (origin && embeddedOrigin !== validatePublicOrigin(origin))
@@ -192,6 +194,13 @@ export async function inspectDist(dist, { allowScannerTemplate = false, origin }
       workerReferenced = true
   }
   if (!workerReferenced) throw new Error('compute_worker_not_referenced')
+  const digests = new Map(files.map((file) => [`/${file.path}`, file.sha256]))
+  for (const path of manifest.criticalAssets) {
+    const expected = manifest.criticalAssetSha256?.[path]
+    if (typeof expected !== 'string' || !/^[a-f0-9]{64}$/u.test(expected))
+      throw new Error(`critical_asset_digest_missing:${path}`)
+    if (digests.get(path) !== expected) throw new Error(`critical_asset_digest_mismatch:${path}`)
+  }
   return {
     schema: 'soda.cloudflare.preflight/v1',
     releaseId: manifest.releaseId,

@@ -78,20 +78,24 @@ export function AgentDevelopmentGoldenDirectoryPage() {
 
   if (decisionWorld.status === 'error')
     return <AgentDevelopmentReadError message={decisionWorld.message} />
-  if (decisionWorld.status === 'loading')
-    return <AppLoadingState title="正在整理养成建议…" compact />
   if (data === undefined) return <AppLoadingState title="正在读取当前账户…" compact />
   if (!data) {
     return <AccountRequiredState title="先创建或选择账户" />
   }
-  if (decisionWorld.status !== 'current' && decisionWorld.status !== 'stale')
+  const advicePending = decisionWorld.status === 'loading'
+  const projectionRun =
+    decisionWorld.status === 'current' || decisionWorld.status === 'stale'
+      ? decisionWorld.run
+      : null
+  if (!advicePending && !projectionRun)
     return <p role="status">暂时无法整理养成建议，请刷新页面重试。</p>
-  const directoryProjection = decisionWorld.run.developmentDirectory
+  const directoryProjection = projectionRun?.developmentDirectory
   if (
-    directoryProjection?.contract !== 'soda-development-directory/v1' ||
-    directoryProjection.runId !== decisionWorld.run.runId ||
-    directoryProjection.accountId !== data.accountId ||
-    directoryProjection.inputFingerprint !== decisionWorld.run.inputFingerprint
+    projectionRun &&
+    (directoryProjection?.contract !== 'soda-development-directory/v1' ||
+      directoryProjection.runId !== projectionRun.runId ||
+      directoryProjection.accountId !== data.accountId ||
+      directoryProjection.inputFingerprint !== projectionRun.inputFingerprint)
   )
     return <p role="status">养成建议需要重新分析，请刷新页面后重试。</p>
 
@@ -106,7 +110,9 @@ export function AgentDevelopmentGoldenDirectoryPage() {
     publicDevelopmentDirectoryCatalog,
   )
   const eligibleOwnedAgentIds = new Set(catalogJoin.eligibleOwnedAgentIds)
-  const decisions = new Map(directoryProjection.decisions.map((entry) => [entry.agentId, entry]))
+  const decisions = new Map(
+    (directoryProjection?.decisions ?? []).map((entry) => [entry.agentId, entry]),
+  )
   const directoryAgents = publicDevelopmentDirectoryCatalog
     .filter((entry) => entry.releaseState === 'released' && entry.accountOwnable)
     .flatMap<AgentSummary>((entry) => {
@@ -122,7 +128,8 @@ export function AgentDevelopmentGoldenDirectoryPage() {
       const decisionStatus =
         decisionWorld.status === 'stale' ? 'stale' : (decision?.current.status ?? 'unsupported')
       const hasReliableTarget = decisionStatus !== 'unsupported' && decisionStatus !== 'stale'
-      const skillTargets = decisionWorld.status === 'stale' ? [] : (decision?.skills ?? [])
+      const skillTargets =
+        advicePending || decisionWorld.status === 'stale' ? [] : (decision?.skills ?? [])
       const nextTrainingSteps = skillTargets
         .filter(
           (skill) =>
@@ -145,18 +152,22 @@ export function AgentDevelopmentGoldenDirectoryPage() {
           mindscape: record.mindscape,
           status: activePlan
             ? '已有方案'
-            : priorityOrder.has(agentId)
-              ? '培养中'
-              : decisionStatus === 'stale'
-                ? '待确认'
-                : hasReliableTarget
-                  ? '可继续'
-                  : '待确认',
+            : advicePending
+              ? '待确认'
+              : priorityOrder.has(agentId)
+                ? '培养中'
+                : decisionStatus === 'stale'
+                  ? '待确认'
+                  : hasReliableTarget
+                    ? '可继续'
+                    : '待确认',
           guideNote: activePlan
             ? `${isPlayerFacingPlanName(activePlan.name) ? activePlan.name : '培养方案'} 已保存`
-            : decisionWorld.status === 'stale'
-              ? (decision?.staleSummary ?? '账户资料已变化，请重新分析养成建议。')
-              : (decision?.current.summary ?? '当前还没有包含该代理人的完整三人队伍建议。'),
+            : advicePending
+              ? '正在核对养成建议；角色资料可先浏览。'
+              : decisionWorld.status === 'stale'
+                ? (decision?.staleSummary ?? '账户资料已变化，请重新分析养成建议。')
+                : (decision?.current.summary ?? '当前还没有包含该代理人的完整三人队伍建议。'),
           plan: activePlan && isPlayerFacingPlanName(activePlan.name) ? activePlan.name : undefined,
           reliableTarget: hasReliableTarget,
           decisionAuthorityState:
@@ -192,6 +203,7 @@ export function AgentDevelopmentGoldenDirectoryPage() {
     )
 
   if (!directoryAgents.length && !catalogJoin.unmappedOwnedAgentIds.length) {
+    if (advicePending) return <AppLoadingState title="正在整理养成建议…" compact />
     return (
       <section className="panel">
         <h1>还没有已拥有代理人</h1>
@@ -205,6 +217,11 @@ export function AgentDevelopmentGoldenDirectoryPage() {
 
   return (
     <>
+      {advicePending ? (
+        <p className="panel" role="status" aria-live="polite">
+          正在核对养成建议；代理人资料与已保存方案可先查看。
+        </p>
+      ) : null}
       {staleRefreshKey && refreshFailureKey === staleRefreshKey ? (
         <section className="panel" role="alert">
           <p>养成资料暂未更新，已保存的数据仍保留。</p>

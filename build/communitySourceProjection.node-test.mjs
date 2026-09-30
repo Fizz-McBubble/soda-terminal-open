@@ -18,3 +18,13 @@ test('public HTTPS sources remain intact while maintainer paths are projected', 
   assert.equal(hasPrivateCommunityLocator(projected.remoteUrl), false)
   assert.equal(hasPrivateCommunityLocator(JSON.stringify(projected)), false)
 })
+
+test('minified ternary syntax is not mistaken for a drive path', () => {
+  assert.equal(hasPrivateCommunityLocator('const x=c?o:/时使用/.test(text)'), false)
+  assert.equal(
+    hasPrivateCommunityLocator(
+      `const sourcePath="${['F:', 'maintainer', 'source.json'].join('/')}"`,
+    ),
+    true,
+  )
+})

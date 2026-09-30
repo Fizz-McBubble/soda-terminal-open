@@ -1,3 +1,5 @@
+import { preloadPlayerRoute } from '../routes/preloadPlayerRoute'
+
 export function DiscWorkspaceModeSwitch({
   mode,
   onNavigate,
@@ -10,6 +12,8 @@ export function DiscWorkspaceModeSwitch({
       <button
         type="button"
         aria-current={mode === 'inventory' ? 'page' : undefined}
+        onPointerEnter={() => preloadPlayerRoute('/assets/discs')}
+        onFocus={() => preloadPlayerRoute('/assets/discs')}
         onClick={() => onNavigate('/assets/discs')}
       >
         库存
@@ -17,6 +21,8 @@ export function DiscWorkspaceModeSwitch({
       <button
         type="button"
         aria-current={mode === 'analysis' ? 'page' : undefined}
+        onPointerEnter={() => preloadPlayerRoute('/warehouse/discs')}
+        onFocus={() => preloadPlayerRoute('/warehouse/discs')}
         onClick={() => onNavigate('/warehouse/discs')}
       >
         分析

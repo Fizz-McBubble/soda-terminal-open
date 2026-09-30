@@ -16,6 +16,7 @@ export function warehouseDevelopmentAdvice(
   usageAgentIds: readonly string[],
   demandAgentIds: ReadonlySet<string>,
   useAssessment?: import('../warehouse/warehouseUseAssessment').WarehouseUseAssessment,
+  retention?: import('../warehouse/discWarehouseEvidence').WarehouseAbsoluteRetentionEvidence,
 ): WarehouseDevelopmentAdvice {
   const improvingDemandAgentIds = (potential.improvableAgentIds ?? []).filter((id) =>
     demandAgentIds.has(id),
@@ -26,6 +27,35 @@ export function warehouseDevelopmentAdvice(
     maxLevel !== undefined && disc.level < maxLevel
       ? Math.min(maxLevel, Math.floor(disc.level / 3) * 3 + 3)
       : null
+  if (retention?.nextAction) {
+    const next = retention.nextAction
+    const kind =
+      next.kind === 'try_upgrade'
+        ? 'review_after_enhance'
+        : next.kind === 'complete_data'
+          ? retention.reasonKind === 'invalid_record'
+            ? 'verify_record'
+            : 'verify_use'
+          : next.kind === 'check_condition'
+            ? 'verify_use'
+            : remaining === 0
+              ? 'review_finished'
+              : next.kind === 'manual_cleanup'
+                ? 'stop_investment'
+                : useAssessment?.status === 'verify'
+                  ? 'verify_use'
+                  : 'hold_for_need'
+    return {
+      kind,
+      currentEffectiveRolls: null,
+      optimisticEffectiveRolls: null,
+      effectiveAgentId: null,
+      remainingNodes: remaining,
+      nextReviewLevel: kind === 'review_after_enhance' ? next.targetLevel : null,
+      improvingDemandAgentIds: [],
+      priority: kind === 'review_after_enhance' ? 0 : 3,
+    }
+  }
   if (useAssessment) {
     const kind =
       useAssessment.status === 'verify'

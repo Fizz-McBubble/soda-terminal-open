@@ -1,3 +1,11 @@
+import {
+  downloadJson,
+  frozenRecoveryBatchIdLabel,
+  reviewedRecoveryBatchIdLabel,
+} from './accountRecoveryHelpers'
+import { AccountRecoveryBackupStep } from './AccountRecoveryBackupStep'
+import { AccountRecoveryAccountSelector } from './AccountRecoveryAccountSelector'
+import { AccountRecoveryGroupReview } from './AccountRecoveryGroupReview'
 import { useEffect, useState } from 'react'
 import { Download, RefreshCw, ShieldCheck } from 'lucide-react'
 import { driveDiscData } from '../data/gameData'
@@ -26,74 +34,12 @@ import {
 } from '../accounts/reviewRecovery'
 import { getActiveAccount, renameAccount, setActiveAccount } from '../accounts/repository'
 import { getAccountDisplayLabel, type AccountProfile } from '../accounts/types'
-import type { DriveDiscSet } from '../domain/schemas'
 import {
   loadLegacyRecoveryFixture,
   type LegacyRecoveryFixture,
 } from '@soda/legacy-recovery-fixture'
 
 const emptyRecoveryGroups = { batchId: 'no-test-fixture', groups: [] }
-
-function downloadJson(value: unknown, filename: string) {
-  const blob = new Blob([JSON.stringify(value, null, 2)], { type: 'application/json' })
-  const url = URL.createObjectURL(blob)
-  const anchor = document.createElement('a')
-  anchor.href = url
-  anchor.download = filename
-  anchor.click()
-  URL.revokeObjectURL(url)
-}
-
-function AccountRecoveryGroupReview({
-  group,
-  sets,
-  onConfirm,
-}: {
-  group: RecoveryReviewGroup
-  sets: DriveDiscSet[]
-  onConfirm: (setId: string) => Promise<void>
-}) {
-  const [setId, setSetId] = useState(group.candidateSetId)
-  const [saving, setSaving] = useState(false)
-  return (
-    <article className="preflight-card">
-      <img
-        alt={`${group.candidateSetName} 代表盘面`}
-        height="126"
-        src={group.representativeDataUrl}
-        width="124"
-      />
-      <p>
-        <strong>{group.candidateSetName}</strong> · {group.sequences.length} 张 · 序号{' '}
-        {group.sequences.join('、')}
-      </p>
-      <p className="muted-note">{group.reason}</p>
-      <label>
-        确认套装
-        <select value={setId} onChange={(event) => setSetId(event.target.value)}>
-          {sets
-            .filter((set) => !set.evidenceOnly)
-            .map((set) => (
-              <option key={set.id} value={set.id}>
-                {set.name}
-              </option>
-            ))}
-        </select>
-      </label>
-      <button
-        className="button button--secondary"
-        disabled={saving}
-        type="button"
-        onClick={() => {
-          setSaving(true)
-          void onConfirm(setId).finally(() => setSaving(false))
-        }}
-      >
-        {saving ? '正在确认…' : '确认这一组'}
-      </button>
-    </article>
-  )
-}
 
 export function AccountMigrationPreflightPanel() {
   const [recoveryFixture, setRecoveryFixture] = useState<LegacyRecoveryFixture | null>(null)
@@ -336,75 +282,23 @@ export function AccountMigrationPreflightPanel() {
       {error && <p className="danger-note">{error}</p>}
       {message && <p className="form-message">{message}</p>}
 
-      {accounts.length > 0 && (
-        <div className="preflight-card">
-          <h3>账号选择与显示名</h3>
-          <label>
-            当前账号
-            <select
-              aria-label="当前账号"
-              value={activeAccountId}
-              onChange={(event) => void selectAccount(event.target.value)}
-            >
-              <option value="">请选择账号</option>
-              {accounts.map((account) => (
-                <option key={account.id} value={account.id}>
-                  {getAccountDisplayLabel(account)}
-                </option>
-              ))}
-            </select>
-          </label>
-          {activeAccountId && (
-            <div className="inline-form">
-              <label>
-                显示名
-                <input
-                  aria-label="账号显示名"
-                  maxLength={40}
-                  value={renameValue}
-                  onChange={(event) => setRenameValue(event.target.value)}
-                />
-              </label>
-              <button
-                className="button button--quiet"
-                type="button"
-                onClick={() => void saveRename()}
-              >
-                保存显示名
-              </button>
-            </div>
-          )}
-        </div>
-      )}
+      <AccountRecoveryAccountSelector
+        accounts={accounts}
+        activeAccountId={activeAccountId}
+        renameValue={renameValue}
+        setRenameValue={setRenameValue}
+        onSelectAccount={(id) => void selectAccount(id)}
+        onSaveRename={() => void saveRename()}
+      />
 
       {preflight && (
         <ol className="migration-steps">
-          <li>
-            <h3>1. 下载迁移前完整备份</h3>
-            {migrationComplete && completion ? (
-              <p className="form-message">已完成迁移；旧表仍完整保留，可作为原始回滚依据。</p>
-            ) : (
-              <>
-                <p>包含旧仓库、鉴定历史、角色池、配装结果、扫描证据、模板与全部旧设置。</p>
-                <button
-                  className="button button--primary"
-                  type="button"
-                  onClick={() => void exportLegacyBackup()}
-                >
-                  <Download size={16} /> 生成并下载迁移前备份
-                </button>
-              </>
-            )}
-            {legacyBackup && (
-              <p className="muted-note">
-                {getLegacyMigrationBackupFilename(new Date(legacyBackup.exportedAt))} ·
-                完整性校验已记录 · 正式盘 {legacyBackup.counts.driveDiscs} · 角色池设置{' '}
-                {legacyBackup.data.settings.some((setting) => setting.key === 'assault-roster-v1')
-                  ? '已包含'
-                  : '未发现'}
-              </p>
-            )}
-          </li>
+          <AccountRecoveryBackupStep
+            migrationComplete={migrationComplete}
+            completion={completion}
+            legacyBackup={legacyBackup}
+            onExportBackup={() => void exportLegacyBackup()}
+          />
           <li>
             <h3>2. 复制旧数据到原本地账号</h3>
             {displayedTargetAccount && (
@@ -599,14 +493,4 @@ export function AccountMigrationPreflightPanel() {
       )}
     </article>
   )
-}
-
-function frozenRecoveryBatchIdLabel(input: unknown) {
-  const value = input as { batch?: { id?: unknown } } | null | undefined
-  return typeof value?.batch?.id === 'string' ? value.batch.id : '未知批次'
-}
-
-function reviewedRecoveryBatchIdLabel(input: unknown) {
-  const value = input as { batch?: { id?: unknown } } | null | undefined
-  return typeof value?.batch?.id === 'string' ? value.batch.id : '未知批次'
 }

@@ -1,0 +1,432 @@
+.warehouse-category--enhance_watch {
+  color: #b3cad0;
+  background: rgba(156, 197, 207, 0.14);
+}
+.warehouse-category--cleanup_candidate {
+  color: #f6a1ac;
+  background: rgba(246, 161, 172, 0.13);
+}
+.warehouse-empty,
+.warehouse-loading {
+  min-height: 210px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  padding: 22px;
+  color: #a9c8ce;
+  border-radius: 14px;
+  text-align: center;
+}
+.warehouse-empty svg {
+  color: #5cdad3;
+}
+.warehouse-empty p {
+  max-width: 480px;
+  margin: 0;
+}
+.warehouse-disc-drawer {
+  position: fixed;
+  z-index: 40;
+  top: 0;
+  right: 0;
+  width: min(465px, calc(100vw - 18px));
+  height: 100dvh;
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  padding: 22px;
+  overflow: auto;
+  border-radius: 16px 0 0 16px;
+  box-shadow: -20px 0 50px rgba(0, 0, 0, 0.38);
+}
+.warehouse-disc-drawer header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+}
+.warehouse-disc-drawer section {
+  display: grid;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(103, 183, 192, 0.22);
+}
+.warehouse-disc-drawer h3 {
+  color: #76e2da;
+  font-size: 15px;
+}
+.warehouse-disc-drawer p,
+.warehouse-disc-drawer li,
+.warehouse-disc-drawer summary {
+  color: #bad3d7;
+  line-height: 1.6;
+}
+.warehouse-disc-drawer p {
+  margin: 0;
+}
+.warehouse-disc-drawer ul {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding-left: 19px;
+}
+.warehouse-disc-drawer details {
+  padding: 13px;
+  border: 1px solid rgba(103, 183, 192, 0.25);
+  border-radius: 10px;
+}
+.warehouse-disc-drawer .icon-button {
+  color: #d7eff2;
+  border-color: rgba(103, 183, 192, 0.42);
+}
+@media (min-width: 1500px) {
+  .warehouse-card-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1850px) {
+  .warehouse-card-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+@media (max-width: 1500px) {
+  .warehouse-analysis-filters {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .warehouse-analysis-filters > svg {
+    display: none;
+  }
+}
+@media (max-width: 1100px) {
+  .warehouse-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .warehouse-category-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Build-knowledge states always carry a textual label; these borders reinforce, not replace it. */
+.knowledge-status,
+.asset-knowledge-summary {
+  border: 1px solid var(--line, #42616a);
+  border-radius: 8px;
+  padding: 4px 7px;
+  font-style: normal;
+}
+
+.knowledge-status--formal {
+  border-color: #4ab7a3;
+}
+.knowledge-status--candidate {
+  border-color: #d6a84f;
+}
+.knowledge-status--missing {
+  border-color: #7e9196;
+}
+
+.asset-knowledge-summary {
+  margin: 12px 0;
+}
+.asset-knowledge-summary p {
+  margin: 4px 0 0;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+  background: rgb(4 10 18 / 72%);
+}
+
+.modal-panel {
+  width: min(100%, 42rem);
+  max-height: calc(100vh - 2.5rem);
+  overflow: auto;
+}
+
+.modal-panel .management-actions {
+  justify-content: flex-end;
+}
+
+.disc-workflow-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid rgba(36, 76, 91, 0.14);
+  border-radius: 18px;
+  background: rgba(247, 252, 253, 0.82);
+}
+
+.disc-workflow-tabs button {
+  min-height: 46px;
+  border: 0;
+  border-radius: 13px;
+  background: transparent;
+  color: var(--ink-strong);
+  font-weight: 800;
+}
+
+.disc-workflow-tabs button.is-active {
+  background: var(--accent-cyan);
+  box-shadow: 0 8px 22px rgba(25, 203, 190, 0.2);
+}
+
+.disc-workflow-tabs button:focus-visible {
+  outline: 3px solid var(--accent-orange);
+  outline-offset: 2px;
+}
+
+.archive-empty__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.disc-task-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.disc-task-card {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+}
+
+.disc-task-card.is-selected {
+  outline: 3px solid var(--accent-cyan);
+}
+
+.disc-task-card__identity {
+  display: grid;
+  grid-template-columns: 46px 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.disc-task-card__identity > div {
+  display: grid;
+  gap: 3px;
+}
+
+.disc-task-card__identity > div > strong {
+  font-size: 1.08rem;
+}
+
+.disc-task-card__identity > div > span,
+.disc-task-card__fit span {
+  color: var(--ink-muted);
+}
+
+.disc-task-card__slot {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border-radius: 15px;
+  background: var(--navy-950);
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 900;
+}
+
+.disc-tier {
+  padding: 7px 11px;
+  border-radius: 999px;
+  background: rgba(29, 207, 187, 0.13);
+  color: #08776d;
+  font-size: 0.8rem;
+  font-weight: 900;
+}
+
+.disc-tier--unavailable {
+  background: rgba(220, 91, 79, 0.12);
+  color: #a13a30;
+}
+
+.disc-task-card__substats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.disc-task-card__substats li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 11px;
+  border-radius: 11px;
+  background: rgba(237, 246, 248, 0.9);
+  font-size: 0.86rem;
+}
+
+.disc-task-card__signals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.disc-task-card__signals > span {
+  padding: 6px 9px;
+  border-radius: 9px;
+  background: rgba(8, 34, 46, 0.06);
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.disc-task-card__fit {
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+
+.disc-task-card__reason {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 0;
+  padding: 10px 12px;
+  border-left: 4px solid var(--accent-orange);
+  border-radius: 0 10px 10px 0;
+  background: rgba(255, 183, 65, 0.11);
+}
+
+.disc-task-card__footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
+.disc-task-card__footer > span {
+  display: flex;
+  gap: 8px;
+}
+
+.disc-detail-tier {
+  display: inline-flex;
+  gap: 8px;
+  margin-top: 8px;
+  color: var(--ink-muted);
+}
+
+.disc-detail-tier strong {
+  color: #08776d;
+}
+
+.reevaluation-comparison {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.reevaluation-comparison > div {
+  display: grid;
+  gap: 5px;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(237, 246, 248, 0.9);
+}
+
+.reevaluation-comparison strong {
+  font-size: 1.15rem;
+}
+
+.reevaluation-comparison small {
+  color: var(--ink-muted);
+}
+
+@media (max-width: 980px) {
+  .disc-task-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* S7.1 visual alignment: one focused loadout at desktop scale */
+.app-shell--tactical {
+  grid-template-columns: clamp(190px, 14vw, 210px) minmax(0, 1fr);
+}
+
+.app-shell--tactical .topbar {
+  height: 58px;
+}
+
+.app-shell--tactical .tactical-route-title strong {
+  font-size: 17px;
+}
+
+.app-shell--tactical .tactical-route-title span,
+.app-shell--tactical .tactical-status-strip > span {
+  font-size: 12px;
+}
+
+.page-content--optimizer {
+  height: calc(100vh - 58px);
+  min-height: 0;
+  overflow: auto;
+  padding: 10px 14px 14px;
+}
+
+.page-content--optimizer .optimizer-page {
+  max-width: none;
+  min-height: 0;
+  gap: 9px;
+}
+
+.page-content--optimizer .optimizer-page > h1 {
+  margin: 0;
+  font-size: clamp(24px, 2.1vw, 32px);
+  line-height: 1.1;
+}
+
+.page-content--optimizer .optimizer-page > .muted-note {
+  margin: 0;
+}
+
+.tactical-control-surface {
+  display: grid;
+  gap: 8px;
+  min-height: 128px;
+}
+
+.tactical-mode-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  min-height: 62px;
+}
+
+.tactical-mode-strip button {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-content: center;
+  gap: 4px;
+  padding: 10px 18px;
+  color: #b4cdd2;
+  text-align: left;
+  border: 1px solid rgba(69, 126, 137, 0.32);
+  border-radius: 8px;
+  background: rgba(6, 27, 37, 0.82);
+  cursor: pointer;
+}
+
+.tactical-mode-strip button strong {
+  font-size: 16px;
+}
+
+.tactical-mode-strip button span {
+  color: #789ca4;
+  font-size: 13px;
+}

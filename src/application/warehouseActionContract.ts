@@ -1,11 +1,15 @@
 import type { AccountDecisionSnapshot } from '../decision/accountDecisionService'
-import type { WarehouseAnalysisSnapshot } from '../warehouse/discWarehouseEvidence'
+import type {
+  WarehouseAbsoluteRetentionEvidence,
+  WarehouseAnalysisSnapshot,
+} from '../warehouse/discWarehouseEvidence'
 import type { WarehouseRetentionBasis } from './warehouseRetention'
 import type { WarehouseDevelopmentAdvice } from './warehouseDevelopmentPresentation'
 
 /** Serializable warehouse directions returned with an account decision run. */
 export type WarehouseActionKind = 'keep' | 'enhance' | 'cleanup'
 export type WarehouseActionStatus =
+  | 'favorite'
   | 'currently_equipped'
   | 'active_plan_reference'
   | 'saved_plan_reference'
@@ -18,6 +22,7 @@ export type WarehouseActionRecommendationState = 'current' | 'needs_review' | 's
 export type WarehouseActionItem = {
   disc: { id: string; setId: string; slot: number; level: number; mainStat: string }
   action: WarehouseActionKind
+  absoluteRetention?: WarehouseAbsoluteRetentionEvidence
   retentionBasis?: WarehouseRetentionBasis
   retentionReview?: 'low_effective_rolls'
   reviewBasis?: 'no_current_fit'
@@ -59,7 +64,7 @@ export type WarehouseActionProjection = {
 export const warehouseActionLabels: Record<WarehouseActionKind, string> = {
   keep: '建议保留',
   enhance: '继续观察',
-  cleanup: '可考虑清理',
+  cleanup: '清理候选',
 }
 
 /** A changed local account never inherits a prior run's cleanup recommendation. */

@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto'
 import { extname } from 'node:path'
 import ts from 'typescript'
 
-const privateLocator = /(?:(?<![A-Za-z0-9])[A-Za-z]:[\\/]|\/(?:Users|home)\/|(?:^|[\\/])(?:outputs|docs[\\/]audits)[\\/]|^file:\/\/)/iu
+const privateLocator = /(?:(?<![A-Za-z0-9?])[A-Za-z]:[\\/]|\/(?:Users|home)\/|(?:^|[\\/])(?:outputs|docs[\\/]audits)[\\/]|^file:\/\/)/iu
 
 function publicSourceReference(value) {
   const digest = createHash('sha256').update(value).digest('hex').slice(0, 32)

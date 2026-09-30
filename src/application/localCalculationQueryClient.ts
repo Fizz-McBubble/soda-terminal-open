@@ -15,7 +15,8 @@ export function createLocalCalculationQueryClient(
   return createLocalCalculationQueryClientCore({
     readRuntimeSelection: options.readRuntimeSelection ?? readCurrentGameDataRuntimeSelection,
     calculateSnapshot:
-      options.calculateSnapshot ?? createDefaultAccountDecisionSnapshotCalculator().calculateSnapshot,
+      options.calculateSnapshot ??
+      createDefaultAccountDecisionSnapshotCalculator().calculateSnapshot,
   })
 }
 

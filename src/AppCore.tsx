@@ -5,6 +5,7 @@ import { AppErrorBoundary } from './components/AppErrorBoundary'
 import { AppInitializationGate, AppRouteError, AppRouteLoading } from './components/AppEntryState'
 import { AppShell } from './components/AppShell'
 import { AccountDecisionWorldProvider } from './application/accountDecisionWorld'
+import { shouldAutoCalculateAccountDecision } from './application/decisionRoutePolicy'
 import type { CalculationQueryClient } from './application/calculationQueryContract'
 import type { RuntimeSelectionReader } from './application/accountDecisionWorldModel'
 import { DashboardPage } from './pages/DashboardPage'
@@ -43,7 +44,6 @@ function PlayerDecisionWorld({
   decisionEnvironment: DecisionEnvironment
 }) {
   const { pathname, search } = useLocation()
-  const analysisRequested = new URLSearchParams(search).get('reanalyze') === '1'
   const onlineMode = decisionEnvironment.mode === 'remote'
   const [onlineAllowed, setOnlineAllowed] = useState(() => {
     try {
@@ -82,8 +82,7 @@ function PlayerDecisionWorld({
       repairRuntimeSelection={decisionEnvironment.repairRuntimeSelection}
       autoCalculate={
         (!onlineMode || onlineAllowed) &&
-        (!onlineMode || !pathname.startsWith('/loadouts/plans/')) &&
-        (pathname.replace(/\/+$/, '') !== '/loadouts/team' || analysisRequested)
+        shouldAutoCalculateAccountDecision(pathname, search, decisionEnvironment.mode)
       }
     >
       <AppShell

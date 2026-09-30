@@ -1,11 +1,39 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import './help-and-privacy.css'
 
 const onlineMode = import.meta.env.VITE_SODA_PUBLIC_BUILD === 'true'
 const configuredFeedbackUrl = import.meta.env.VITE_SODA_FEEDBACK_URL?.trim()
-const feedbackUrl = configuredFeedbackUrl?.startsWith('https://') ? configuredFeedbackUrl : null
+const defaultFeedbackUrl = 'https://github.com/Fizz-McBubble/soda-terminal-feedback/issues'
+const feedbackUrl = configuredFeedbackUrl?.startsWith('https://')
+  ? configuredFeedbackUrl
+  : defaultFeedbackUrl
+const releaseId = import.meta.env.VITE_SODA_RELEASE_ID || 'local-development'
+const diagnosticStages = [
+  ['startup', '页面启动'],
+  ['calculation', '本机计算'],
+  ['image', '图片加载'],
+  ['scanner', '本机扫描连接'],
+  ['backup', '备份导入或导出'],
+] as const
+
+function diagnosticText(stage: string) {
+  return `Soda Terminal 版本：${releaseId}\n错误阶段：${stage}\n可重试提示：刷新页面后重试；涉及账户资料时，先保存现有备份。`
+}
 
 export function HelpAndPrivacyPage() {
+  const [stage, setStage] = useState<string>(diagnosticStages[0][1])
+  const [copyState, setCopyState] = useState('')
+
+  async function copyDiagnostic() {
+    try {
+      await navigator.clipboard.writeText(diagnosticText(stage))
+      setCopyState('诊断已复制。请检查内容后自行粘贴到反馈页面。')
+    } catch {
+      setCopyState('复制失败。请手动选择下方文字。')
+    }
+  }
+
   return (
     <div className="help-privacy">
       <header className="help-privacy__header">
@@ -23,23 +51,39 @@ export function HelpAndPrivacyPage() {
               第三方软件声明
             </a>
           </p>
-          {feedbackUrl ? (
-            <p>
-              <a href={feedbackUrl} target="_blank" rel="noopener noreferrer">
-                问题与建议反馈
-              </a>
-              ：请勿公开上传账户备份、游戏 UID 或扫描截图。
-            </p>
-          ) : (
-            <p>问题与建议反馈入口准备中。</p>
-          )}
+          <p>
+            <a href={feedbackUrl} target="_blank" rel="noopener noreferrer">
+              问题与建议反馈
+            </a>
+            ：请勿公开上传账户备份、游戏 UID 或扫描截图。
+          </p>
+          <p>
+            反馈前可复制以下简要诊断。它只包含版本、你选择的错误阶段和重试提示；不会读取账户或自动发送资料。
+          </p>
+          <label htmlFor="feedback-stage">错误阶段</label>{' '}
+          <select
+            id="feedback-stage"
+            value={stage}
+            onChange={(event) => setStage(event.target.value)}
+          >
+            {diagnosticStages.map(([code, label]) => (
+              <option key={code} value={label}>
+                {label}
+              </option>
+            ))}
+          </select>{' '}
+          <button type="button" onClick={() => void copyDiagnostic()}>
+            复制简要诊断
+          </button>
+          <p role="status">{copyState}</p>
+          <pre>{diagnosticText(stage)}</pre>
         </section>
         <section id="data" aria-labelledby="help-data-heading">
           <h2 id="help-data-heading">资料保存与计算</h2>
           <p>
             账户、资产、标记和已保存方案存于当前浏览器。你可以在
             <Link to="/assets/account">我的资产 · 账户</Link>
-            导出备份或删除本地账户；清除站点数据或更换浏览器前，请先导出备份并妥善保管。
+            导出备份、恢复已有备份或删除本地账户。首次打开本站时，如需继续使用旧资料，请先从该页选择备份文件并确认恢复；清除站点数据或更换浏览器前，请先导出备份并妥善保管。
           </p>
           <p>
             {onlineMode

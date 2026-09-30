@@ -2,6 +2,7 @@ import { useEffect, useRef, useSyncExternalStore, type ReactNode } from 'react'
 import { Menu, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { mobileNavigation, navigationGroups } from '../navigation'
+import { preloadPlayerRoute } from '../routes/preloadPlayerRoute'
 import { useDetailsDisclosureMotion } from '../motion/useDetailsDisclosureMotion'
 import { useStateTransitionMotion } from '../motion/useStateTransitionMotion'
 import { SponsorProvider, SponsorRail } from './SponsorSupport'
@@ -159,6 +160,8 @@ function F5VisualShellContent({
                   aria-current={current ? 'page' : undefined}
                   className={current ? 'is-current' : undefined}
                   onClick={closeSidebar}
+                  onPointerEnter={() => preloadPlayerRoute(destination)}
+                  onFocus={() => preloadPlayerRoute(destination)}
                 >
                   <span>{label}</span>
                   {path === '/loadouts/team' || path === '/warehouse/discs' ? (
@@ -172,7 +175,13 @@ function F5VisualShellContent({
           )}
         </nav>
         <SponsorRail />
-        <Link className="f5v-help-link" to="/system/help" onClick={closeSidebar}>
+        <Link
+          className="f5v-help-link"
+          to="/system/help"
+          onClick={closeSidebar}
+          onPointerEnter={() => preloadPlayerRoute('/system/help')}
+          onFocus={() => preloadPlayerRoute('/system/help')}
+        >
           帮助与隐私
         </Link>
         <div className="f5v-local-status" aria-live="polite">

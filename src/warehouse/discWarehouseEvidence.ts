@@ -10,6 +10,54 @@ import {
 } from '../evaluation/subStatHistory'
 import { getCurrentScopeEntry } from '../gameDataPacks/currentScopeManifest'
 import { type DiscEnhancementPotential } from './discEnhancementPotential'
+import type {
+  Decision as AbsoluteRetentionDecision,
+  QualityEvidence,
+} from './absoluteDiscRetentionKernel'
+
+export type WarehouseAbsoluteRetentionEvidence = {
+  disposition: AbsoluteRetentionDecision['qualityDisposition']
+  policyId: string
+  policyCalibration: 'candidate' | 'approved'
+  sourceCoverage: 'complete' | 'partial'
+  branchCount: number
+  bestUseProfileId: string | null
+  bestUseScore: number | null
+  ownedUseAgentIds: string[]
+  unownedUseAgentIds: string[]
+  reasonKind?: AbsoluteRetentionDecision['reasonKind']
+  nextAction?: AbsoluteRetentionDecision['nextAction']
+  blockedBy?: AbsoluteRetentionDecision['blockedBy']
+  witnessProfileIds?: AbsoluteRetentionDecision['witnessProfileIds']
+  reviewedUseScope?: AbsoluteRetentionDecision['reviewedUseScope']
+  leadingUses: Array<
+    Pick<
+      QualityEvidence,
+      | 'profileId'
+      | 'agentId'
+      | 'mainFit'
+      | 'setFit'
+      | 'twoPieceFit'
+      | 'fourPieceFit'
+      | 'currentScore'
+      | 'possibleFinalScore'
+      | 'functionalMain'
+      | 'cutoffs'
+      | 'sourceIds'
+    > &
+      Partial<
+        Pick<
+          QualityEvidence,
+          | 'useState'
+          | 'functionalState'
+          | 'functionDetail'
+          | 'investment'
+          | 'weightEvidence'
+          | 'blockers'
+        >
+      >
+  >
+}
 
 export type WarehouseDiscCategory =
   | 'account_premium'
@@ -31,6 +79,7 @@ export const warehouseCategoryLabels: Record<WarehouseDiscCategory, string> = {
 export type WarehouseDiscDecision = {
   discId: string
   category: WarehouseDiscCategory
+  absoluteRetention?: WarehouseAbsoluteRetentionEvidence
   useAssessment?: import('./warehouseUseAssessment').WarehouseUseAssessment
   reviewDirection?: 'no_current_fit'
   reasons: string[]
@@ -42,6 +91,8 @@ export type WarehouseDiscDecision = {
   subStatHistory: SubStatHistory
   enhancementPotential: DiscEnhancementPotential
   cleanupSafety: {
+    /** Explicit saved player intent; independent of absolute quality and current equipment. */
+    favorite?: boolean
     equipped: boolean
     referenced: boolean
     activePlanReferenced: boolean

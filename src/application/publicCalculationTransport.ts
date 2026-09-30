@@ -11,6 +11,7 @@ import type { DevelopmentWorkbenchRoutePresentation } from './publicDevelopmentW
 import type { TeamOverviewPresentationDto } from '../pages/teamLoadoutPresentationDto'
 import type { TeamRoutePresentation } from '../pages/publicTeamRoutePresentation'
 import type { WarehouseDiscTransitionUsesResult } from './calculationQueryContract'
+import { packPublicWarehouseActions } from './publicWarehouseActionTransport'
 
 /**
  * Browser transport boundary. The private service keeps the full captured run and solve; the public
@@ -195,7 +196,7 @@ function projectPublicAccountDecisionRun(run: AccountDecisionRun): RemoteCalcula
     claimStatus,
     decisionAuthority,
     snapshot,
-    ...(warehouseActions ? { warehouseActions } : {}),
+    ...(warehouseActions ? { warehouseActions: packPublicWarehouseActions(warehouseActions) } : {}),
     ...(developmentDirectory ? { developmentDirectory } : {}),
     ...(developmentWorkbenchPresentation ? { developmentWorkbenchPresentation } : {}),
     ...(teamPresentation ? { teamPresentation } : {}),

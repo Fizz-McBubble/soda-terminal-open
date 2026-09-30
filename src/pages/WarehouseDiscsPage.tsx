@@ -1,16 +1,15 @@
-import { WarehouseDiscControls, WarehouseActionSummary } from './WarehouseDiscControls'
+import { WarehouseDiscControls } from './WarehouseDiscControls'
 import { WarehouseDiscActionList } from './WarehouseDiscActionList'
 import {
   initialFilters,
   type FilterState,
-  hasStatus,
-  matchesBoolean,
   statusText,
   warehouseActionStrengthLabel,
 } from './warehouseDiscPresentation'
-import { Archive, RefreshCw } from 'lucide-react'
+import { matchesWarehouseDiscFilters } from './warehouseDiscFilters'
+import { Archive } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useAccountDecisionWorld } from '../application/accountDecisionWorld'
 import { displayWarehouseActionProjection } from '../application/warehouseActionContract'
 import { WarehouseActionDrawer } from './WarehouseActionDrawer'
@@ -24,10 +23,9 @@ import {
   warehouseActionMobileRowHeight,
   warehouseActionWindowSize,
 } from './warehouseActionListConfig'
-import { DiscWorkspaceModeSwitch } from '../components/DiscWorkspaceModeSwitch'
+import { WarehouseWorkbenchHeader } from './WarehouseWorkbenchHeader'
 
 export function WarehouseDiscsPage() {
-  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const decisionWorld = useAccountDecisionWorld()
   const [narrowRows, setNarrowRows] = useState(
@@ -156,36 +154,7 @@ export function WarehouseDiscsPage() {
   const filters = filterState.accountId === data?.account?.id ? filterState.value : initialFilters
   const visible = useMemo(() => {
     if (!projection) return []
-    return projection.actions.filter((item) => {
-      if (filters.action !== 'all' && item.action !== filters.action) return false
-      if (
-        filters.cleanupBasis !== 'all' &&
-        (item.action !== 'cleanup' ||
-          (filters.cleanupBasis === 'complete'
-            ? hasStatus(item, 'needs_review')
-            : filters.cleanupBasis === 'no_current_fit'
-              ? item.reviewBasis !== 'no_current_fit'
-              : !hasStatus(item, 'needs_review') || item.reviewBasis === 'no_current_fit'))
-      )
-        return false
-      if (filters.setId && item.disc.setId !== filters.setId) return false
-      if (filters.slot && String(item.disc.slot) !== filters.slot) return false
-      if (filters.mainStat && item.disc.mainStat !== filters.mainStat) return false
-      if (filters.fit && !item.compatibleAgentIds.includes(filters.fit)) return false
-      if (filters.level && String(item.disc.level) !== filters.level) return false
-      if (
-        !matchesBoolean(
-          filters.referenced,
-          hasStatus(item, 'active_plan_reference') ||
-            hasStatus(item, 'saved_plan_reference') ||
-            hasStatus(item, 'selected_portfolio_reference'),
-        )
-      )
-        return false
-      if (filters.review === 'no' && item.recommendationState === 'stale') return false
-      if (!matchesBoolean(filters.review, hasStatus(item, 'needs_review'))) return false
-      return true
-    })
+    return projection.actions.filter((item) => matchesWarehouseDiscFilters(item, filters))
   }, [filters, projection])
   const firstVisible = Math.max(0, Math.floor(scrollTop / rowHeight) - 4)
   const actionList = useMemo(
@@ -215,7 +184,6 @@ export function WarehouseDiscsPage() {
   const hasFilters = Object.entries(filters).some(
     ([key, value]) => key !== 'sort' && value !== initialFilters[key as keyof FilterState],
   )
-  const stale = projection?.state === 'stale'
   const compatibleAgentIds = [
     ...new Set(projection?.actions.flatMap((item) => item.compatibleAgentIds) ?? []),
   ]
@@ -226,7 +194,8 @@ export function WarehouseDiscsPage() {
     filters.level !== '',
     filters.referenced !== 'all',
     filters.review !== 'all',
-    filters.cleanupBasis !== 'all',
+    filters.qualityBasis !== 'all',
+    filters.useScope !== 'all',
   ].filter(Boolean).length
   const selectedIndex = actionList.rows.findIndex((row) => row.disc.id === selectedDisc?.id)
   const availableMainStats = new Set(
@@ -356,8 +325,13 @@ export function WarehouseDiscsPage() {
   }
   if (decisionWorld.status === 'loading')
     return (
-      <section className="warehouse-loading" aria-live="polite">
-        正在读取账户仓库…
+      <section className="warehouse-loading" role="status" aria-live="polite">
+        <h1>驱动盘分析</h1>
+        <p>
+          {decisionWorld.liveInput?.warehouse.accountId
+            ? `已读取 ${decisionWorld.liveInput.warehouse.discs.length} 张驱动盘，正在核对品质与用途。`
+            : '正在读取当前账户的驱动盘。'}
+        </p>
       </section>
     )
   if (decisionWorld.status === 'error')
@@ -399,7 +373,7 @@ export function WarehouseDiscsPage() {
       <section className="warehouse-empty" aria-live="polite">
         <Archive size={28} />
         <h1>还没有可分析的驱动盘</h1>
-        <p>先扫描或导入当前账户的驱动盘；有数据后，这里会给出保留、强化和清理候选建议。</p>
+        <p>先扫描或导入当前账户的驱动盘；有数据后，这里会给出保留、观察和清理候选建议。</p>
         <Link className="button button--primary" to="/system/scanner">
           前往扫描与导入
         </Link>
@@ -422,47 +396,13 @@ export function WarehouseDiscsPage() {
       ref={workbenchRef}
       style={{ '--warehouse-row-height': `${rowHeight}px` } as CSSProperties}
     >
-      <header className="warehouse-workbench__header">
-        <div>
-          <h1>驱动盘分析</h1>
-          <p>
-            已分析 {data.discs.length} 张驱动盘。
-            {Boolean(projection?.referenceIssues?.savedPlanIds.length) && (
-              <Link to="/loadouts/team">
-                {' '}
-                {projection?.referenceIssues?.savedPlanIds.length} 份队伍配装待核对
-              </Link>
-            )}
-            {projection?.referenceIssues?.equipmentNeedsReview && (
-              <Link to="/assets/agents"> 核对当前装备</Link>
-            )}
-          </p>
-          <p className="warehouse-workbench__notice">
-            分析建议仅供参考；清理前请自行核对，本站不会自动删除驱动盘。
-          </p>
-        </div>
-        <WarehouseActionSummary
-          filters={filters}
-          updateFilters={updateFilters}
-          stale={stale}
-          projection={projection}
-        />
-        <div className="warehouse-workbench__actions">
-          <DiscWorkspaceModeSwitch
-            mode="analysis"
-            onNavigate={(path) =>
-              navigate(
-                selectedDisc
-                  ? `${path}?selected=${encodeURIComponent(selectedDisc.id)}&account=${encodeURIComponent(data.account!.id)}`
-                  : path,
-              )
-            }
-          />
-          <button className="button button--primary" type="button" onClick={runAnalysis}>
-            <RefreshCw size={17} /> 重新分析
-          </button>
-        </div>
-      </header>
+      <WarehouseWorkbenchHeader
+        discCount={data.discs.length}
+        accountId={data.account.id}
+        selectedDiscId={selectedDisc?.id ?? null}
+        projection={projection}
+        runAnalysis={runAnalysis}
+      />
       <WarehouseDiscControls
         filters={filters}
         updateFilters={updateFilters}
@@ -472,6 +412,7 @@ export function WarehouseDiscsPage() {
         ownedAgentIds={ownedAgentIds}
         moreFilterCount={moreFilterCount}
         hasFilters={hasFilters}
+        projection={projection}
       />
       <div className="warehouse-action-workspace">
         <WarehouseDiscActionList
@@ -485,7 +426,7 @@ export function WarehouseDiscsPage() {
           data={data}
           selectDisc={selectDisc}
           selectionNotice={
-            selectedId && selectedRow?.disc.id !== selectedId
+            selectedId && selectedRow && selectedRow.disc.id !== selectedId
               ? '原选择已不在当前结果，已暂时定位到当前排序中的第一张。'
               : undefined
           }

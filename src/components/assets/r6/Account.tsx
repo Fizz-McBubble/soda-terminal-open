@@ -57,7 +57,10 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
     setPreview(null)
     setInspecting(false)
     if (typeof dialogRef.current?.close === 'function') dialogRef.current.close()
-    else setRestoreDialogOpen(false)
+    else {
+      setRestoreDialogOpen(false)
+      openerRef.current?.focus()
+    }
   }
   const openDeleteDialog = (account: { id: string; displayName: string }) => {
     setDeleteTarget(account)

@@ -62,8 +62,9 @@
   white-space: nowrap;
 }
 .f5v-shell .warehouse-action-controls {
-  display: grid;
-  gap: var(--soda-space-2);
+  display: flex;
+  align-items: end;
+  gap: var(--soda-space-3);
   min-width: 0;
 }
 .f5v-shell .warehouse-action-summary {
@@ -72,13 +73,14 @@
   gap: var(--soda-space-2);
 }
 .f5v-shell .warehouse-action-summary__item {
-  min-width: 0;
-  min-height: 36px;
+  min-width: 120px;
+  min-height: var(--soda-control-height);
   white-space: nowrap;
   display: inline-flex;
   align-items: center;
-  gap: var(--soda-space-2);
-  padding: 6px 12px;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 12px;
   border: 1px solid transparent;
   border-radius: var(--soda-radius-control);
   background: var(--f5-wash);
@@ -91,12 +93,18 @@
     box-shadow var(--soda-motion-fast) var(--soda-ease-out);
 }
 .f5v-shell .warehouse-action-summary__item span {
+  line-height: 1.2;
   font-size: var(--soda-font-small);
   font-weight: 600;
 }
+.f5v-shell .warehouse-action-summary__item small {
+  font-size: 11px;
+  font-weight: 400;
+  opacity: 0.85;
+}
 .f5v-shell .warehouse-action-summary__item strong {
   color: var(--f5-ink);
-  font-size: var(--soda-font-body);
+  font-size: 18px;
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
@@ -117,31 +125,26 @@
 }
 .f5v-shell .warehouse-analysis-filters {
   display: grid;
-  grid-template-columns: var(--warehouse-workspace-columns);
-  gap: var(--soda-space-3);
+  flex: 1;
+  min-width: 0;
+  grid-template-columns:
+    auto minmax(120px, 1.3fr) minmax(70px, 0.65fr) minmax(100px, 1fr)
+    minmax(120px, 1.2fr) minmax(90px, 0.85fr) auto;
+  gap: var(--soda-space-2);
   align-items: end;
 }
 .f5v-shell .warehouse-analysis-filters__discs,
 .f5v-shell .warehouse-analysis-filters__usage {
-  display: grid;
-  min-width: 0;
-  gap: var(--soda-space-2);
-  align-items: end;
-}
-.f5v-shell .warehouse-analysis-filters__discs {
-  grid-template-columns: auto repeat(3, minmax(0, 1fr));
-}
-.f5v-shell .warehouse-analysis-filters__usage {
-  grid-template-columns: minmax(0, 1fr) minmax(100px, 0.65fr) auto;
+  display: contents;
 }
 .f5v-shell .warehouse-filter-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   align-items: end;
   gap: var(--soda-space-2);
 }
 .f5v-shell .warehouse-clear-filters {
-  min-height: 34px;
+  min-height: var(--soda-control-height);
   padding: 6px 10px;
   font-size: var(--soda-font-caption);
   white-space: nowrap;
@@ -154,8 +157,15 @@
   display: grid;
   min-width: 0;
   gap: 2px;
+  line-height: 1.2;
   color: var(--f5-muted);
   font-size: var(--soda-font-caption);
+}
+.f5v-shell .warehouse-analysis-filters .filter-select__trigger {
+  min-height: var(--soda-control-height);
+}
+.f5v-shell .warehouse-analysis-filters label > div {
+  min-width: 0;
 }
 .f5v-shell .warehouse-analysis-filters select {
   min-width: 0;
@@ -169,10 +179,10 @@
 }
 .f5v-shell .warehouse-more-filters {
   position: relative;
-  min-height: 34px;
+  min-height: var(--soda-control-height);
 }
 .f5v-shell .warehouse-more-filters summary {
-  min-height: 34px;
+  min-height: var(--soda-control-height);
   display: flex;
   align-items: center;
   padding: 0 10px;
@@ -183,6 +193,12 @@
   font-weight: 700;
   cursor: pointer;
   list-style: none;
+  white-space: nowrap;
+}
+.f5v-shell .warehouse-more-filters[open] summary {
+  border-color: var(--f5-accent);
+  color: var(--f5-accent);
+  background: var(--f5-wash);
 }
 .f5v-shell .warehouse-more-filters summary::-webkit-details-marker {
   display: none;

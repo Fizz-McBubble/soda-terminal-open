@@ -21,9 +21,12 @@ export async function saveDevelopmentPriorityAgentIds(
 
 export async function getActiveDevelopmentPlanIds(accountId: string, db?: SodaDatabase) {
   const value = await getAccountPreference(accountId, activePlansKey, db)
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return {} as Record<string, string>
+  if (!value || typeof value !== 'object' || Array.isArray(value))
+    return {} as Record<string, string>
   return Object.fromEntries(
-    Object.entries(value).filter((entry): entry is [string, string] => typeof entry[1] === 'string'),
+    Object.entries(value).filter(
+      (entry): entry is [string, string] => typeof entry[1] === 'string',
+    ),
   )
 }
 
@@ -35,8 +38,7 @@ export async function getSavedAgentBuildIds(accountId: string, db?: SodaDatabase
     .where('[accountId+kind]')
     .equals([accountId, 'agent'])
     .filter(
-      (plan) =>
-        plan.savedRole === 'current_reference' && plan.selection.agentIds.length === 1,
+      (plan) => plan.savedRole === 'current_reference' && plan.selection.agentIds.length === 1,
     )
     .toArray()
   return {

@@ -100,11 +100,16 @@ function statusesFor(
   input: { stale: boolean },
 ): WarehouseActionStatus[] {
   const statuses: WarehouseActionStatus[] = []
+  if (decision.cleanupSafety.favorite) statuses.push('favorite')
   if (decision.cleanupSafety.equipped) statuses.push('currently_equipped')
   if (decision.cleanupSafety.activePlanReferenced) statuses.push('active_plan_reference')
   if (decision.cleanupSafety.savedPlanReferenced) statuses.push('saved_plan_reference')
   if (decision.cleanupSafety.portfolioReferenced) statuses.push('selected_portfolio_reference')
-  if (decision.cleanupSafety.alternativeSafe && decision.alternatives.length > 0)
+  if (
+    !decision.absoluteRetention &&
+    decision.cleanupSafety.alternativeSafe &&
+    decision.alternatives.length > 0
+  )
     statuses.push('better_alternative')
   if (
     decision.reviewDirection ||
@@ -198,39 +203,32 @@ export function projectWarehouseActions(
       }),
     ])
     const affectedAgentIds = uniqueInOrder([...decision.fitAgentIds, ...usageAgentIds])
-    const noCurrentFitReview =
-      decision.reviewDirection === 'no_current_fit' &&
-      decision.cleanupSafety.complete &&
-      decision.cleanupSafety.noCurrentAccountFit &&
-      decision.cleanupSafety.deleteAfterFeasible
-    const needsReview =
-      noCurrentFitReview || decision.category === 'replaceable' || !decision.cleanupSafety.complete
-    // Stopping investment with a real covering replacement is a practical review
-    // direction, not proof that even perfect future rolls would lose.
-    const coveredStopInvestment =
-      decision.category === 'replaceable' &&
-      decision.cleanupSafety.complete &&
-      decision.cleanupSafety.hasCoverageAlternative &&
-      decision.cleanupSafety.alternativeSafe &&
-      decision.alternatives.some((id) => id !== disc.id && discsById.has(id))
-    const baseAction =
-      coveredStopInvestment || noCurrentFitReview ? 'cleanup' : actionForCategory(decision.category)
-    const protectedByCurrentDecision =
-      (!decision.useAssessment &&
-        (decision.cleanupSafety.rareUnique ||
-          decision.cleanupSafety.scarceReserve ||
-          decision.cleanupSafety.premiumReserve)) ||
+    const needsReview = decision.absoluteRetention
+      ? decision.absoluteRetention.disposition === 'review' ||
+        decision.absoluteRetention.disposition === 'observe' ||
+        decision.absoluteRetention.policyCalibration !== 'approved' ||
+        decision.absoluteRetention.sourceCoverage !== 'complete'
+      : decision.category === 'replaceable' ||
+        !decision.cleanupSafety.complete ||
+        Boolean(decision.reviewDirection)
+    const baseAction: WarehouseActionKind = decision.absoluteRetention
+      ? decision.absoluteRetention.disposition === 'cleanup_candidate' &&
+        decision.absoluteRetention.policyCalibration === 'approved' &&
+        decision.cleanupSafety.complete &&
+        decision.cleanupSafety.deleteAfterFeasible
+        ? 'cleanup'
+        : decision.absoluteRetention.disposition === 'observe' ||
+            decision.absoluteRetention.disposition === 'review'
+          ? 'enhance'
+          : 'keep'
+      : actionForCategory(decision.category)
+    const explicitlyProtected =
+      decision.cleanupSafety.favorite ||
       decision.cleanupSafety.equipped ||
       decision.cleanupSafety.activePlanReferenced ||
       decision.cleanupSafety.savedPlanReferenced ||
-      decision.cleanupSafety.portfolioReferenced ||
-      !decision.cleanupSafety.deleteAfterFeasible
-    const action =
-      stale ||
-      ((baseAction === 'cleanup' || decision.category === 'replaceable') &&
-        protectedByCurrentDecision)
-        ? 'keep'
-        : baseAction
+      decision.cleanupSafety.portfolioReferenced
+    const action = stale || explicitlyProtected ? 'keep' : baseAction
     const retentionBasis =
       action === 'keep'
         ? stale
@@ -238,6 +236,7 @@ export function projectWarehouseActions(
           : warehouseRetentionBasis(decision, accountAgentIds)
         : undefined
     const lowEffectiveRollsReview =
+      !decision.absoluteRetention &&
       !stale &&
       action === 'keep' &&
       retentionBasis === 'other_agent_fit' &&
@@ -261,35 +260,40 @@ export function projectWarehouseActions(
           mainStat: disc.mainStat,
         },
         action,
-        ...(action === 'cleanup' && noCurrentFitReview
+        ...(decision.absoluteRetention ? { absoluteRetention: decision.absoluteRetention } : {}),
+        ...(retentionBasis ? { retentionBasis } : {}),
+        ...(!decision.absoluteRetention && decision.reviewDirection === 'no_current_fit'
           ? { reviewBasis: 'no_current_fit' as const }
           : {}),
-        ...(retentionBasis ? { retentionBasis } : {}),
         ...(lowEffectiveRollsReview ? { retentionReview: 'low_effective_rolls' as const } : {}),
         recommendationState: stale ? 'stale' : needsReview ? 'needs_review' : 'current',
-        reasons: uniqueInOrder([
-          ...(action === 'keep' && baseAction !== 'keep'
-            ? [
-                '当前实装、已保存方案、显式多队组合、数据时效或删除后可行性仍保护该实体盘，不建议处理。',
-              ]
-            : []),
-          ...decision.reasons,
-        ]),
+        reasons: uniqueInOrder(decision.reasons),
         statuses: affectedPlanStatuses,
         compatibleAgentIds: uniqueInOrder(
-          decision.useAssessment?.compatibleAgentIds ??
-            decision.enhancementPotential.relevantAgentIds,
+          decision.absoluteRetention
+            ? [
+                ...decision.absoluteRetention.ownedUseAgentIds,
+                ...decision.absoluteRetention.unownedUseAgentIds,
+              ]
+            : (decision.useAssessment?.compatibleAgentIds ??
+                decision.enhancementPotential.relevantAgentIds),
         ),
-        retentionAgentIds: stale ? [] : uniqueInOrder(decision.fitAgentIds),
+        retentionAgentIds:
+          stale || (decision.absoluteRetention && decision.absoluteRetention.disposition !== 'keep')
+            ? []
+            : uniqueInOrder(decision.fitAgentIds),
         usageAgentIds,
         affectedAgentIds,
         affectedPlans,
         affectedTeams,
         alternativeDiscIds: [...decision.alternatives],
-        developmentAlternativeIds: stale
-          ? []
-          : [...(decision.enhancementPotential.developmentAlternativeIds ?? [])],
-        ...(!stale && action !== 'cleanup'
+        developmentAlternativeIds:
+          stale || (decision.absoluteRetention && action !== 'keep')
+            ? []
+            : [...(decision.enhancementPotential.developmentAlternativeIds ?? [])],
+        ...(!stale &&
+        action === 'keep' &&
+        (!decision.absoluteRetention || decision.absoluteRetention.disposition === 'keep')
           ? {
               developmentAdvice: warehouseDevelopmentAdvice(
                 disc,
@@ -297,6 +301,7 @@ export function projectWarehouseActions(
                 usageAgentIds,
                 accountAgentIds,
                 decision.useAssessment,
+                decision.absoluteRetention,
               ),
             }
           : {}),

@@ -26,12 +26,10 @@ import { projectPrivateTeamRoute } from '../pages/privateTeamRouteProjection'
 import { projectPrivateSavedTeamReplay } from './privateSavedTeamReplayProjection'
 import { projectPrivateSavedTeamSolutionComponents } from './privateSavedTeamSolutionComponentsProjection'
 
-export function createLocalCalculationQueryClientCore(
-  options: {
-    readRuntimeSelection: () => Promise<CurrentGameDataRuntimeSelection>
-    calculateSnapshot: AccountDecisionSnapshotCalculator
-  },
-): CalculationQueryClient {
+export function createLocalCalculationQueryClientCore(options: {
+  readRuntimeSelection: () => Promise<CurrentGameDataRuntimeSelection>
+  calculateSnapshot: AccountDecisionSnapshotCalculator
+}): CalculationQueryClient {
   const runs = new Map<string, AccountDecisionRun>()
   const teamFits = new Map<
     string,

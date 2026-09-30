@@ -8,6 +8,15 @@ import type { DriveDisc } from '../domain/schemas'
 import { statLabel } from './warehouseFactLabels'
 import { formatRecordedDiscStatValue } from './discStatPresentation'
 import type { DiscSortMode } from '../domain/discOrdering'
+import type { RetentionReasonKind } from '../warehouse/absoluteDiscRetentionContract'
+
+export type QualityBasisFilter =
+  | 'all'
+  | 'quality_keep'
+  | 'legal_growth'
+  | 'evidence_gap'
+  | 'protected'
+  | `reason:${RetentionReasonKind}`
 
 export type FilterState = {
   action: 'all' | WarehouseActionKind
@@ -18,7 +27,8 @@ export type FilterState = {
   level: string
   referenced: 'all' | 'yes' | 'no'
   review: 'all' | 'yes' | 'no'
-  cleanupBasis: 'all' | 'complete' | 'replacement' | 'no_current_fit'
+  qualityBasis: QualityBasisFilter
+  useScope: 'all' | 'owned' | 'unowned' | 'none'
   sort: DiscSortMode
 }
 
@@ -31,11 +41,13 @@ export const initialFilters: FilterState = {
   level: '',
   referenced: 'all',
   review: 'all',
-  cleanupBasis: 'all',
+  qualityBasis: 'all',
+  useScope: 'all',
   sort: 'catalog',
 }
 export const actionKinds: WarehouseActionKind[] = ['keep', 'enhance', 'cleanup']
 export const statusLabels: Partial<Record<WarehouseActionStatus, string>> = {
+  favorite: '收藏保护',
   currently_equipped: '当前使用',
   active_plan_reference: '当前方案',
   saved_plan_reference: '方案使用中',
@@ -63,6 +75,7 @@ export function statusText(item: WarehouseActionItem) {
   return item.statuses
     .filter((status) =>
       [
+        'favorite',
         'currently_equipped',
         'active_plan_reference',
         'saved_plan_reference',
@@ -73,7 +86,5 @@ export function statusText(item: WarehouseActionItem) {
     .filter((label): label is string => Boolean(label))
 }
 export function warehouseActionStrengthLabel(item: WarehouseActionItem) {
-  if (item.action !== 'cleanup') return warehouseActionLabels[item.action]
-  if (item.reviewBasis === 'no_current_fit') return '当前账号暂无推荐用途'
-  return hasStatus(item, 'needs_review') ? '建议停止强化' : '可考虑清理'
+  return warehouseActionLabels[item.action]
 }

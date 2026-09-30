@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'node:fs'
+import { createHash } from 'node:crypto'
 import { extname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { auditPublicMediaClearance } from '../deploy/auditPublicMediaClearance.mjs'
 import { hasPrivateCommunityLocator } from '../build/communitySourceProjection.mjs'
 
 const appRoot = resolve(fileURLToPath(new URL('..', import.meta.url)))
-const allowedAsset = /^\/assets\/[A-Za-z0-9._~/-]+\.(?:avif|css|gif|jpe?g|js|json|png|svg|wasm|webp|woff2?)$/u
+const allowedAsset =
+  /^\/assets\/[A-Za-z0-9._~/-]+\.(?:avif|css|gif|jpe?g|js|json|png|svg|wasm|webp|woff2?)$/u
 
 function filesUnder(root) {
   return readdirSync(root, { withFileTypes: true }).flatMap((entry) => {
@@ -34,8 +36,7 @@ export function prepareCommunityShell({ dist, releaseId }) {
   if (
     files.some(
       (path) =>
-        /\.(?:html|js|json)$/u.test(path) &&
-        hasPrivateCommunityLocator(readFileSync(path, 'utf8')),
+        /\.(?:html|js|json)$/u.test(path) && hasPrivateCommunityLocator(readFileSync(path, 'utf8')),
     )
   )
     throw new Error('private_locator_in_community_artifact')
@@ -52,9 +53,14 @@ export function prepareCommunityShell({ dist, releaseId }) {
   if (workers.length !== 1) throw new Error('browser_query_worker_missing_or_ambiguous')
   const computeWorker = workers[0]
   const appScripts = files.filter(
-    (path) => extname(path) === '.js' && path !== serviceWorkerPath && path !== join(root, computeWorker),
+    (path) =>
+      extname(path) === '.js' && path !== serviceWorkerPath && path !== join(root, computeWorker),
   )
-  if (!appScripts.some((path) => readFileSync(path, 'utf8').includes(computeWorker.slice('/assets/'.length))))
+  if (
+    !appScripts.some((path) =>
+      readFileSync(path, 'utf8').includes(computeWorker.slice('/assets/'.length)),
+    )
+  )
     throw new Error('browser_query_worker_not_referenced')
   if (!appScripts.some((path) => readFileSync(path, 'utf8').includes(releaseId)))
     throw new Error('community_build_release_id_missing')
@@ -72,6 +78,14 @@ export function prepareCommunityShell({ dist, releaseId }) {
     computeWorker,
     assets: ['/index.html', '/favicon.svg', ...assetPaths],
     criticalAssets,
+    criticalAssetSha256: Object.fromEntries(
+      criticalAssets.map((path) => [
+        path,
+        createHash('sha256')
+          .update(readFileSync(join(root, path.slice(1))))
+          .digest('hex'),
+      ]),
+    ),
   }
   writeFileSync(join(root, 'offline-shell-manifest.json'), `${JSON.stringify(manifest)}\n`, {
     flag: 'wx',

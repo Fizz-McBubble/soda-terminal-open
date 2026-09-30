@@ -1,0 +1,292 @@
+.roster-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+  min-width: 0;
+}
+.roster-fields label,
+.roster-agent > label {
+  display: grid;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.roster-fields input,
+.roster-fields select,
+.roster-agent > label input {
+  min-width: 0;
+  width: 100%;
+}
+.roster-details {
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+.roster-details summary {
+  cursor: pointer;
+  color: #087b7c;
+  font-size: 11px;
+  font-weight: 800;
+}
+.roster-details > label {
+  display: grid;
+  gap: 5px;
+  margin-top: 9px;
+  color: var(--muted);
+  font-size: 11px;
+}
+.roster-details input,
+.roster-details select {
+  min-width: 0;
+  width: 100%;
+}
+.roster-skill-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+  margin: 10px 0;
+}
+.roster-skill-grid label {
+  display: grid;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 10px;
+}
+.assault-bangboo-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+.bangboo-entry {
+  display: grid;
+  grid-template-columns: auto 72px 64px;
+  align-items: center;
+  gap: 6px;
+}
+.bangboo-entry input[type='number'] {
+  min-width: 0;
+  width: 100%;
+}
+.rotation-card {
+  border-left: 4px solid var(--cyan);
+}
+.rotation-card.is-expired {
+  border-left-color: var(--orange);
+}
+.rotation-card > header,
+.assault-team > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+.rotation-card h2,
+.rotation-card p,
+.assault-team h2 {
+  margin: 4px 0;
+}
+.rotation-bosses {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 14px 0;
+}
+.rotation-bosses article {
+  display: grid;
+  gap: 5px;
+  padding: 13px;
+  border-radius: 12px;
+  background: rgba(248, 251, 249, 0.86);
+}
+.rotation-bosses span,
+.rotation-bosses small {
+  color: var(--muted);
+}
+.rotation-bosses em {
+  color: #087b7c;
+  font-style: normal;
+  font-weight: 800;
+}
+.assault-steps {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+.assault-steps article {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  min-height: 235px;
+}
+.assault-steps h2,
+.assault-steps p {
+  margin: 0;
+}
+.assault-steps label {
+  display: grid;
+  gap: 5px;
+  font-size: 11px;
+}
+.assault-steps select,
+.assault-steps input {
+  min-width: 0;
+  width: 100%;
+}
+.assault-steps .is-confirm {
+  border-color: rgba(53, 222, 215, 0.5);
+  background: linear-gradient(150deg, rgba(53, 222, 215, 0.1), var(--surface));
+}
+.step-number {
+  color: var(--cyan);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+}
+.agent-check-grid {
+  display: grid;
+  gap: 4px;
+  max-height: 120px;
+  overflow: auto;
+}
+.agent-check-grid label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.agent-check-grid input {
+  width: auto;
+}
+.status-note {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(53, 222, 215, 0.1);
+  color: #087b7c;
+}
+.assault-team-results {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.assault-team {
+  display: grid;
+  gap: 12px;
+}
+.assault-team > header strong {
+  color: #087b7c;
+  font-size: 20px;
+}
+.reason-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.reason-list span {
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(53, 222, 215, 0.12);
+  font-size: 10px;
+}
+.assault-loadouts {
+  display: grid;
+  gap: 10px;
+}
+.assault-loadouts > details {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.assault-loadouts > details > summary {
+  display: flex;
+  justify-content: space-between;
+  cursor: pointer;
+}
+.assault-loadouts .optimizer-disc {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+}
+.assault-loadouts .optimizer-disc ul {
+  margin: 4px 0 0;
+  padding-left: 16px;
+  font-size: 10px;
+}
+.file-action {
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  cursor: pointer;
+  font-weight: 800;
+}
+.file-action input {
+  display: none;
+}
+
+.file-dropzone {
+  display: grid;
+  gap: 8px;
+  padding: 20px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 12px;
+  color: var(--text-primary);
+  cursor: pointer;
+  outline: none;
+}
+
+.file-dropzone:hover,
+.file-dropzone:focus-visible,
+.file-dropzone--active {
+  border-color: var(--cyan);
+  background: rgb(49 210 255 / 8%);
+}
+
+.file-dropzone span {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+@media (max-width: 1100px) {
+  .assault-roster-grid,
+  .rotation-bosses,
+  .assault-team-results {
+    grid-template-columns: 1fr 1fr;
+  }
+  .roster-role-tabs {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .roster-selection-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .assault-steps {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 1100px) {
+  .app-shell {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+  .dashboard-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .panel--wide {
+    grid-column: 1/-1;
+  }
+  .hero-can {
+    right: 4%;
+    opacity: 0.75;
+  }
+  .optimizer-disc-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

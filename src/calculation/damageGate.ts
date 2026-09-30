@@ -1,3 +1,4 @@
+import { formalDamageUnsupportedContext } from './formalDamageUnsupportedContext'
 import { z } from 'zod'
 import {
   type CalculationCapability,
@@ -279,38 +280,89 @@ export function evaluateCalculationGate(input: unknown): UnifiedCalculationGateR
   const singleEventBlockers = formalDamageBlockers.filter((blocker) => blocker.code !== 'cycle')
   capabilities.formalSingleEvent = {
     allowed: singleEventBlockers.length === 0,
-    blockers: singleEventBlockers.map((blocker) => ({ ...blocker, capability: 'formal_single_event' })),
+    blockers: singleEventBlockers.map((blocker) => ({
+      ...blocker,
+      capability: 'formal_single_event',
+    })),
   }
   const formalEventBaseBlockers: CalculationGateBlocker[] = []
   if (context.canonical.gameVersion !== context.gameVersion)
-    formalEventBaseBlockers.push({ code: 'cross-version', fieldId: 'canonical', capability: 'formal_event_set_ready', reason: `canonical ${context.canonical.gameVersion} 与计算版本 ${context.gameVersion} 不一致。` })
+    formalEventBaseBlockers.push({
+      code: 'cross-version',
+      fieldId: 'canonical',
+      capability: 'formal_event_set_ready',
+      reason: `canonical ${context.canonical.gameVersion} 与计算版本 ${context.gameVersion} 不一致。`,
+    })
   if (context.canonical.status !== 'formal')
-    formalEventBaseBlockers.push({ code: 'canonical-not-formal', fieldId: 'canonical', capability: 'formal_event_set_ready', reason: '当前 canonical 数据不是可用于正式事件的 formal 基线。' })
+    formalEventBaseBlockers.push({
+      code: 'canonical-not-formal',
+      fieldId: 'canonical',
+      capability: 'formal_event_set_ready',
+      reason: '当前 canonical 数据不是可用于正式事件的 formal 基线。',
+    })
   if (context.accountSnapshot.stale)
-    formalEventBaseBlockers.push({ code: 'asset-snapshot', fieldId: 'account-snapshot', capability: 'formal_event_set_ready', reason: '账户资产快照已过期。' })
-  if (!context.scenario.enemy || context.scenario.enemy.defense === null || context.scenario.enemy.resistance === null || context.scenario.enemy.stunMultiplier === null)
-    formalEventBaseBlockers.push({ code: 'enemy', fieldId: 'enemy', capability: 'formal_event_set_ready', reason: '缺少敌人 DEF、RES 或失衡倍率。' })
+    formalEventBaseBlockers.push({
+      code: 'asset-snapshot',
+      fieldId: 'account-snapshot',
+      capability: 'formal_event_set_ready',
+      reason: '账户资产快照已过期。',
+    })
+  if (
+    !context.scenario.enemy ||
+    context.scenario.enemy.defense === null ||
+    context.scenario.enemy.resistance === null ||
+    context.scenario.enemy.stunMultiplier === null
+  )
+    formalEventBaseBlockers.push({
+      code: 'enemy',
+      fieldId: 'enemy',
+      capability: 'formal_event_set_ready',
+      reason: '缺少敌人 DEF、RES 或失衡倍率。',
+    })
   const eventDamageOnly = capabilityBlockers(context, 'formal_event_damage_ready')
   const eventSetOnly = capabilityBlockers(context, 'formal_event_set_ready')
   capabilities.formalEventSet = {
-    allowed: formalEventBaseBlockers.length === 0 && eventDamageOnly.length === 0 && eventSetOnly.length === 0,
+    allowed:
+      formalEventBaseBlockers.length === 0 &&
+      eventDamageOnly.length === 0 &&
+      eventSetOnly.length === 0,
     blockers: [...formalEventBaseBlockers, ...eventDamageOnly, ...eventSetOnly],
   }
   const loadoutOnly = capabilityBlockers(context, 'formal_loadout_ready')
   capabilities.formalLoadout = {
-    allowed: formalEventBaseBlockers.length === 0 && eventDamageOnly.length === 0 && loadoutOnly.length === 0 && context.actors.every((actor) => actor.discs.length === 6),
+    allowed:
+      formalEventBaseBlockers.length === 0 &&
+      eventDamageOnly.length === 0 &&
+      loadoutOnly.length === 0 &&
+      context.actors.every((actor) => actor.discs.length === 6),
     blockers: [
-      ...formalEventBaseBlockers.map((blocker) => ({ ...blocker, capability: 'formal_loadout_ready' as const })),
-      ...eventDamageOnly.map((blocker) => ({ ...blocker, capability: 'formal_loadout_ready' as const })),
+      ...formalEventBaseBlockers.map((blocker) => ({
+        ...blocker,
+        capability: 'formal_loadout_ready' as const,
+      })),
+      ...eventDamageOnly.map((blocker) => ({
+        ...blocker,
+        capability: 'formal_loadout_ready' as const,
+      })),
       ...loadoutOnly,
       ...(context.actors.some((actor) => actor.discs.length !== 6)
-        ? [{ code: 'missing-field' as const, fieldId: 'six-disc-loadout', capability: 'formal_loadout_ready' as const, reason: '正式配装比较需要每名代理人的完整六盘方案。' }]
+        ? [
+            {
+              code: 'missing-field' as const,
+              fieldId: 'six-disc-loadout',
+              capability: 'formal_loadout_ready' as const,
+              reason: '正式配装比较需要每名代理人的完整六盘方案。',
+            },
+          ]
         : []),
     ],
   }
   capabilities.estimatedRotation = {
     allowed: formalDamageBlockers.length === 0,
-    blockers: formalDamageBlockers.map((blocker) => ({ ...blocker, capability: 'estimated_rotation' })),
+    blockers: formalDamageBlockers.map((blocker) => ({
+      ...blocker,
+      capability: 'estimated_rotation',
+    })),
   }
 
   const dpsOnly = capabilityBlockers(context, 'formal_dps')
@@ -408,44 +460,5 @@ export function evaluateDamageCalculationGate(input: unknown): DamageGateResult 
 }
 
 export function formalDamageUnsupportedReason() {
-  return evaluateDamageCalculationGate({
-    contextId: 'formal-damage-context',
-    calculationModelVersion: 'damage-direct-v1',
-    gameVersion: '3.0',
-    gameBase: {
-      id: 'game-base-3.0.1',
-      packageVersion: '3.0.1',
-      contentHash: 'catalog',
-      gameVersion: '3.0',
-      status: 'formal',
-    },
-    buildKnowledge: {
-      id: 'build-knowledge-3.0.1',
-      packageVersion: '3.0.1',
-      contentHash: 'knowledge',
-      gameVersion: '3.0',
-      status: 'formal',
-      profileId: 'profile',
-      profileHash: 'profile',
-    },
-    rotation: {
-      id: 'rotation-3.0.0',
-      packageVersion: '3.0.0',
-      contentHash: 'rotation',
-      gameVersion: '3.0',
-      status: 'formal',
-      scenarioId: 'general',
-      scenarioHash: 'general',
-    },
-    playerSnapshot: {
-      accountId: 'current',
-      rosterHash: 'current',
-      discWarehouseHash: 'current',
-      capturedAt: '2026-07-19T00:00:00.000Z',
-    },
-    combatSnapshot: null,
-    enemySnapshot: null,
-    cycleSnapshot: null,
-    directDamage: false,
-  })
+  return evaluateDamageCalculationGate(formalDamageUnsupportedContext)
 }

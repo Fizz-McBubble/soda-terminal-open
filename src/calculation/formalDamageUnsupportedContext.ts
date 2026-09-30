@@ -1,0 +1,41 @@
+/** Deliberately incomplete legacy context used to explain why formal damage is unavailable. */
+export const formalDamageUnsupportedContext = {
+  contextId: 'formal-damage-context',
+  calculationModelVersion: 'damage-direct-v1',
+  gameVersion: '3.0',
+  gameBase: {
+    id: 'game-base-3.0.1',
+    packageVersion: '3.0.1',
+    contentHash: 'catalog',
+    gameVersion: '3.0',
+    status: 'formal',
+  },
+  buildKnowledge: {
+    id: 'build-knowledge-3.0.1',
+    packageVersion: '3.0.1',
+    contentHash: 'knowledge',
+    gameVersion: '3.0',
+    status: 'formal',
+    profileId: 'profile',
+    profileHash: 'profile',
+  },
+  rotation: {
+    id: 'rotation-3.0.0',
+    packageVersion: '3.0.0',
+    contentHash: 'rotation',
+    gameVersion: '3.0',
+    status: 'formal',
+    scenarioId: 'general',
+    scenarioHash: 'general',
+  },
+  playerSnapshot: {
+    accountId: 'current',
+    rosterHash: 'current',
+    discWarehouseHash: 'current',
+    capturedAt: '2026-07-19T00:00:00.000Z',
+  },
+  combatSnapshot: null,
+  enemySnapshot: null,
+  cycleSnapshot: null,
+  directDamage: false,
+}

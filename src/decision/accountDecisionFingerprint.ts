@@ -16,9 +16,16 @@ import { current31TeamStrengthProductReadiness } from './current31TeamStrengthPr
 import { teamRatingDecisionTable } from './teamRatingEvaluator'
 import { portfolioSelectionPolicy } from '../optimizer/multiTeamCoordinator'
 import { candidateSetPlanPolicyVersion } from '../gameDataPacks/candidateSetPlanPolicy'
-import { warehouseUsePolicyVersion } from '../warehouse/warehousePolicyVersion'
+import {
+  warehouseAnalysisRuleVersion,
+  warehouseUsePolicyVersion,
+} from '../warehouse/warehousePolicyVersion'
+import {
+  absoluteDiscRetentionCatalogHash,
+  absoluteDiscRetentionPolicy,
+} from '../warehouse/absoluteDiscRetentionCatalog'
 
-export const accountDecisionFingerprintContract = 'soda-account-decision-fingerprint/v3' as const
+export const accountDecisionFingerprintContract = 'soda-account-decision-fingerprint/v4' as const
 
 export function accountDecisionModelHashForEvidencePolicy(evidencePolicy: string) {
   return contentHash({
@@ -33,6 +40,9 @@ export function accountDecisionModelHashForEvidencePolicy(evidencePolicy: string
     teamAssignmentObjectivePolicy,
     candidateSetPlanPolicyVersion,
     warehouseUsePolicyVersion,
+    warehouseAnalysisRuleVersion,
+    absoluteDiscRetentionCatalogHash,
+    absoluteDiscRetentionPolicy,
     teamStrengthProductGate: current31TeamStrengthProductReadiness,
     portfolioSelectionPolicy,
   })

@@ -274,6 +274,7 @@ export async function deleteAccountDriveDiscs(
         .equals(accountId)
         .toArray()
       const protectedByInventory = existing.some((disc) => removedIds.has(disc.id) && disc.locked)
+      const protectedByFavorite = existing.some((disc) => removedIds.has(disc.id) && disc.favorite)
       const protectedByEquipment = rosterRecord?.roster.agents.some((agent) =>
         (agent.equippedDiscIds ?? []).some((id) => removedIds.has(id)),
       )
@@ -282,6 +283,7 @@ export async function deleteAccountDriveDiscs(
       )
       const protectionReasons = [
         ...(protectedByInventory ? ['已锁定'] : []),
+        ...(protectedByFavorite ? ['收藏'] : []),
         ...(protectedByEquipment ? ['当前装备'] : []),
         ...(protectedByPlan ? ['已保存方案'] : []),
       ]

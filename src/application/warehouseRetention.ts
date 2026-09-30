@@ -1,6 +1,7 @@
 import type { WarehouseDiscDecision } from '../warehouse/discWarehouseAnalysis'
 
 export type WarehouseRetentionBasis =
+  | 'user_protected'
   | 'in_use'
   | 'account_fit'
   | 'other_agent_fit'
@@ -15,6 +16,7 @@ export function warehouseRetentionBasis(
   accountAgentIds: ReadonlySet<string>,
 ): WarehouseRetentionBasis {
   const safety = decision.cleanupSafety
+  if (safety.favorite) return 'user_protected'
   if (
     safety.equipped ||
     safety.activePlanReferenced ||
@@ -22,6 +24,13 @@ export function warehouseRetentionBasis(
     safety.portfolioReferenced
   )
     return 'in_use'
+  if (decision.absoluteRetention) {
+    if (decision.absoluteRetention.disposition !== 'keep') return 'unresolved'
+    if (decision.absoluteRetention.ownedUseAgentIds.some((id) => accountAgentIds.has(id)))
+      return 'account_fit'
+    if (decision.absoluteRetention.unownedUseAgentIds.length) return 'other_agent_fit'
+    return 'unresolved'
+  }
   if (!safety.complete) return 'unresolved'
   if (decision.useAssessment?.basis === 'quality_reserve') return 'premium_reserve'
   if (decision.fitAgentIds.some((id) => accountAgentIds.has(id))) return 'account_fit'

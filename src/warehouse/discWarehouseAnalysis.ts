@@ -1,12 +1,16 @@
 import type { DriveDisc } from '../domain/schemas'
 import { deriveSubStatHistory } from '../evaluation/subStatHistory'
 import { resolveWarehouseDemandContexts } from './warehouseDemandContexts'
-import { assessWarehouseUses, warehouseUseReasons } from './warehouseUseAssessment'
+import { assessWarehouseUses } from './warehouseUseAssessment'
+import { warehouseUsePolicyVersion } from './warehouseDiscQuality'
+import { warehouseAnalysisRuleVersion } from './warehousePolicyVersion'
+import { assessWarehouse } from './absoluteDiscRetentionKernel'
 import {
-  warehouseUsePolicyVersion,
-  assessWarehouseContextQuality,
-  warehouseQualityIsAdmitted,
-} from './warehouseDiscQuality'
+  absoluteDiscRetentionCatalog,
+  absoluteDiscRetentionCatalogHash,
+  absoluteDiscRetentionPolicy,
+  toAbsoluteRetentionDisc,
+} from './absoluteDiscRetentionCatalog'
 import { resolvePlanningDiscReferences } from '../accounts/planningDiscReferences'
 import { resolveCurrentReleasedIdentity } from '../gameDataPacks/currentReleasedIdentityMap'
 import { stableContentHash } from '../gameDataPacks/types'
@@ -17,7 +21,6 @@ import {
   type WarehouseDiscDecision,
   type WarehouseAnalysisSnapshot,
   type WarehouseAnalysisInput,
-  discQuality,
   isRareUnique,
   hasAdoptedCurrentSetIdentity,
 } from './discWarehouseEvidence'
@@ -29,7 +32,7 @@ export {
   type WarehouseAnalysisInput,
 } from './discWarehouseEvidence'
 
-export const warehouseAnalysisRuleVersion = 'warehouse-analysis-r3.27-replacement-witness'
+export { warehouseAnalysisRuleVersion } from './warehousePolicyVersion'
 
 /**
  * A pure, account-scoped decision service. It intentionally has no repository
@@ -54,6 +57,24 @@ export function analyzeAccountWarehouse(input: WarehouseAnalysisInput): Warehous
     input.protectedSimultaneousDemands?.flatMap((demand) => demand.discIds) ?? [],
   )
   const hasProtectedSimultaneousDemands = Boolean(input.protectedSimultaneousDemands?.length)
+  const absoluteRetention = assessWarehouse(
+    input.discs.map(toAbsoluteRetentionDisc),
+    absoluteDiscRetentionCatalog,
+    absoluteDiscRetentionPolicy,
+    {
+      protectedIds: [
+        ...new Set([
+          ...equipped,
+          ...refs.keys(),
+          ...protectedPortfolioDiscIds,
+          ...input.discs.filter((disc) => disc.favorite).map((disc) => disc.id),
+        ]),
+      ],
+      ownedAgentIds: input.roster.agents
+        .filter((agent) => agent.owned)
+        .map((agent) => resolveCurrentReleasedIdentity(agent.agentId)),
+    },
+  )
   // A reservation is meaningful only when the caller has explicitly established its coverage.  Treating
   // an omitted attestation as complete would let a partially computed portfolio make unrelated copies
   // look disposable. Every reserved ID must resolve unambiguously in this snapshot, and a selected
@@ -85,23 +106,18 @@ export function analyzeAccountWarehouse(input: WarehouseAnalysisInput): Warehous
   const hasDuplicateProtectedDemandReference = protectedDemandContexts.some(
     (demand) => new Set(demand.discIds).size !== demand.discIds.length,
   )
-  const hasDuplicateCapturedDemandReference = [...capturedDiscIdCounts.values()].some(
-    (count) => count > 1,
-  )
   const hasConflictingSavedReferences = input.drafts.some(
     (draft) => !resolvePlanningDiscReferences(draft).consistent,
   )
-  const protectedDemandReferencesResolved =
+  const allDemandReferencesResolved =
     !hasConflictingSavedReferences &&
     !hasMissingProtectedDemandReference &&
-    !hasDuplicateProtectedDemandReference &&
-    !hasDuplicateCapturedDemandReference
+    !hasDuplicateProtectedDemandReference
   // Missing IDs are absent assets, not claims on every unrelated current disc.
   // Preserve every surviving reference and report stale plans separately. A selected
   // simultaneous portfolio remains gated until its concrete demand is resolved.
   const currentDemandSafe =
-    !hasDuplicateCapturedDemandReference &&
-    protectedDemandDiscIds.every((id) => discsById.has(id)) &&
+    protectedDemandDiscIds.every((id) => discsById.has(id) && capturedDiscIdCounts.get(id) === 1) &&
     new Set(protectedDemandDiscIds).size === protectedDemandDiscIds.length
   const referenceIssues = {
     savedPlanIds: input.drafts
@@ -134,14 +150,19 @@ export function analyzeAccountWarehouse(input: WarehouseAnalysisInput): Warehous
         input.discs,
       ),
     }))
-  const decisions = input.discs.map<WarehouseDiscDecision>((disc) => {
+  const decisions = input.discs.map<WarehouseDiscDecision>((disc, discIndex) => {
+    const retention = absoluteRetention[discIndex]!
     const useAssessment = uses.get(disc.id)!
     const adoptedSetIdentity = hasAdoptedCurrentSetIdentity(disc.setId)
     const subStatHistory = deriveSubStatHistory(disc)
     const planIds = refs.get(disc.id) ?? []
     const activePlanIds = planIds.filter((id) => activePlanIdSet.has(id))
     const portfolioReferenced = protectedPortfolioDiscIds.has(disc.id)
-    const directlyProtected = equipped.has(disc.id) || planIds.length > 0 || portfolioReferenced
+    const directlyProtected =
+      disc.favorite || equipped.has(disc.id) || planIds.length > 0 || portfolioReferenced
+    // References name physical entities. A stale saved ID never reserves every unrelated copy.
+    const protectedDemandReferencesResolved =
+      capturedDiscIdCounts.get(disc.id) === 1 && (!directlyProtected || allDemandReferencesResolved)
     const enhancementPotential = evaluateDiscEnhancementPotential({
       disc,
       allDiscs: input.discs,
@@ -149,48 +170,13 @@ export function analyzeAccountWarehouse(input: WarehouseAnalysisInput): Warehous
       agents: potentialAgents,
       profileCoverageComplete: completeFitCoverage,
     })
-    const objectiveUse =
-      useAssessment.status === 'cleanup' && useAssessment.basis === 'surplus'
-        ? demand.contexts.find((context) => {
-            if (context.demand !== 'active' || context.eligibility !== 'eligible') return false
-            if (
-              !potentialAgents.find((agent) => agent.contextId === context.id)?.replacementObjective
-            )
-              return false
-            const quality = assessWarehouseContextQuality(disc, context)
-            if (!quality || !warehouseQualityIsAdmitted(quality)) return false
-            return (
-              enhancementPotential.undominatedAgentIds.includes(context.agentId) &&
-              !enhancementPotential.coverageAlternativeIds.length &&
-              input.discs.some(
-                (other) =>
-                  other.id !== disc.id &&
-                  copyGroupKey(other) === copyGroupKey(disc) &&
-                  uses.get(other.id)?.contextId === context.id &&
-                  uses.get(other.id)?.status !== 'cleanup',
-              )
-            )
-          })
-        : undefined
-    if (objectiveUse) {
-      const quality = assessWarehouseContextQuality(disc, objectiveUse)!
-      Object.assign(useAssessment, {
-        status: quality.worthInvestment ? 'develop' : 'keep',
-        basis: 'active_use',
-        agentId: objectiveUse.agentId,
-        contextId: objectiveUse.id,
-        effectiveRolls: quality.effectiveRolls,
-        worthInvestment: quality.worthInvestment,
-        retainedAgentIds: [objectiveUse.agentId],
-      })
-    }
     const copyKey = copyGroupKey(disc)
     const physicalCopyCount = input.discs.filter((item) => copyGroupKey(item) === copyKey).length
     const protectedDemandCount = protectedDemandContexts.reduce(
       (highest, context) =>
         Math.max(
           highest,
-          context.discIds.filter((id) => {
+          [...new Set(context.discIds)].filter((id) => {
             const demanded = discsById.get(id)
             return demanded ? copyGroupKey(demanded) === copyKey : false
           }).length,
@@ -202,35 +188,126 @@ export function analyzeAccountWarehouse(input: WarehouseAnalysisInput): Warehous
       protectedDemandCoverageComplete &&
       currentDemandSafe &&
       !directlyProtected &&
-      availableCopiesAfterDelete >= protectedDemandCount
+      protectedDemandReferencesResolved
     const complete =
-      completeFitCoverage &&
+      retention.sourceCoverage === 'complete' &&
+      absoluteDiscRetentionPolicy.calibration === 'approved' &&
       adoptedSetIdentity &&
       protectedDemandCoverageComplete &&
       currentDemandSafe &&
-      useAssessment.status !== 'verify'
+      protectedDemandReferencesResolved &&
+      retention.qualityDisposition !== 'review'
     const category: WarehouseDiscCategory =
       equipped.has(disc.id) || activePlanIds.length > 0 || portfolioReferenced
         ? 'current_plan_key'
         : directlyProtected
           ? 'targeted_keep'
-          : !complete
-            ? 'targeted_keep'
-            : useAssessment.status === 'cleanup' && deleteAfterFeasible
-              ? 'cleanup_candidate'
-              : useAssessment.status === 'develop'
-                ? 'enhance_watch'
-                : 'targeted_keep'
-    const fitAgentIds = useAssessment.retainedAgentIds
+          : retention.qualityDisposition === 'cleanup_candidate' && complete && deleteAfterFeasible
+            ? 'cleanup_candidate'
+            : retention.qualityDisposition === 'keep'
+              ? 'targeted_keep'
+              : 'enhance_watch'
+    const fitAgentIds = [
+      ...new Set([...retention.ownedUseAgentIds, ...retention.unownedUseAgentIds]),
+    ]
+    const leadingUses = [...retention.evidence]
+      .filter(
+        (evidence) => evidence.setFit !== 'incompatible' && evidence.mainFit !== 'incompatible',
+      )
+      .sort(
+        (left, right) =>
+          Number(retention.witnessProfileIds.includes(right.profileId)) -
+            Number(retention.witnessProfileIds.includes(left.profileId)) ||
+          Number(right.mainFit === 'valid' && right.setFit === 'valid') -
+            Number(left.mainFit === 'valid' && left.setFit === 'valid') ||
+          right.currentScore - left.currentScore ||
+          left.profileId.localeCompare(right.profileId),
+      )
+      .filter(
+        (evidence, index, all) =>
+          all.findIndex((row) => row.agentId === evidence.agentId) === index,
+      )
+      .slice(0, 3)
+      .map((evidence) => ({
+        profileId: evidence.profileId,
+        agentId: evidence.agentId,
+        mainFit: evidence.mainFit,
+        setFit: evidence.setFit,
+        twoPieceFit: evidence.twoPieceFit,
+        fourPieceFit: evidence.fourPieceFit,
+        currentScore: evidence.currentScore,
+        possibleFinalScore: evidence.possibleFinalScore,
+        functionalMain: evidence.functionalMain,
+        cutoffs: evidence.cutoffs,
+        sourceIds: evidence.sourceIds,
+        useState: evidence.useState,
+        functionalState: evidence.functionalState,
+        functionDetail: evidence.functionDetail,
+        investment: evidence.investment,
+        weightEvidence: evidence.weightEvidence,
+        blockers: evidence.blockers,
+      }))
     return {
       discId: disc.id,
       category,
+      absoluteRetention: {
+        disposition: retention.qualityDisposition,
+        policyId: retention.policyId,
+        policyCalibration: absoluteDiscRetentionPolicy.calibration,
+        sourceCoverage:
+          retention.sourceCoverage === 'complete' && adoptedSetIdentity ? 'complete' : 'partial',
+        branchCount: retention.evidence.length,
+        bestUseProfileId: retention.bestUseProfileId,
+        bestUseScore: retention.bestUseScore,
+        ownedUseAgentIds: [...retention.ownedUseAgentIds],
+        unownedUseAgentIds: [...retention.unownedUseAgentIds],
+        reasonKind: retention.reasonKind,
+        nextAction: disc.favorite
+          ? {
+              kind: 'keep',
+              targetLevel: null,
+              detail: '已收藏，按明确保留意图保护此盘。',
+              stopWhen: '收藏保护不改变盘面品质；不会自动清理。',
+            }
+          : !directlyProtected && (!protectedDemandCoverageComplete || !currentDemandSafe)
+            ? {
+                kind: 'check_condition',
+                targetLevel: null,
+                detail: '先核对选定队伍的同时用盘范围与实体引用。',
+                stopWhen: '用盘范围未闭合时暂停清理。',
+              }
+            : retention.nextAction,
+        blockedBy: [
+          ...retention.blockedBy,
+          ...(!protectedDemandCoverageComplete || !currentDemandSafe
+            ? [
+                {
+                  kind: 'reference' as const,
+                  field: 'simultaneousDemand',
+                  predicateId: 'reference:simultaneousDemand',
+                  detail: '选定的同时用盘范围或实体引用尚未闭合；先核对队伍用盘记录。',
+                  sourceIds: [],
+                },
+              ]
+            : []),
+        ],
+        witnessProfileIds: retention.witnessProfileIds,
+        reviewedUseScope: retention.reviewedUseScope,
+        leadingUses,
+      },
       useAssessment,
       reasons: [
+        ...(disc.favorite ? ['已收藏，按明确保留意图保护。'] : []),
         ...(equipped.has(disc.id) ? ['当前正在装备。'] : []),
         ...(planIds.length ? ['已保存方案正在使用。'] : []),
         ...(portfolioReferenced ? ['选定队伍正在使用。'] : []),
-        warehouseUseReasons[useAssessment.basis],
+        ...(!disc.favorite ? [retention.nextAction.detail, retention.nextAction.stopWhen] : []),
+        ...(absoluteDiscRetentionPolicy.calibration !== 'approved'
+          ? ['生产品质阈值尚待独立逐盘样本校准，暂不生成清理候选。']
+          : []),
+        ...(retention.reasons.includes('rarity_cleanup_threshold_not_calibrated')
+          ? ['该稀有度尚无独立阈值校准，不生成清理候选。']
+          : []),
         ...(!adoptedSetIdentity ? ['套装资料待确认，暂留核对。'] : []),
         ...(!protectedDemandCoverageComplete || !currentDemandSafe
           ? ['队伍用盘记录待确认，暂留核对。']
@@ -240,10 +317,11 @@ export function analyzeAccountWarehouse(input: WarehouseAnalysisInput): Warehous
       planIds,
       activePlanIds,
       alternatives: enhancementPotential.coverageAlternativeIds,
-      badges: fitAgentIds.length >= 2 && discQuality(disc) >= 42 ? ['account_premium'] : [],
+      badges: [],
       subStatHistory,
       enhancementPotential,
       cleanupSafety: {
+        favorite: disc.favorite,
         equipped: equipped.has(disc.id),
         referenced: planIds.length > 0,
         activePlanReferenced: activePlanIds.length > 0,
@@ -259,20 +337,16 @@ export function analyzeAccountWarehouse(input: WarehouseAnalysisInput): Warehous
         hasCoverageAlternative: enhancementPotential.coverageAlternativeIds.length > 0,
         rareUnique: isRareUnique(disc, input.discs),
         scarceReserve: false,
-        premiumReserve: useAssessment.basis === 'quality_reserve',
+        premiumReserve: retention.qualityDisposition === 'keep',
         significantFit: fitAgentIds.length > 0,
         alternativeSafe: false,
         complete,
         potentialEvaluated: enhancementPotential.potentialEvaluated,
         optimisticCeilingDominated: enhancementPotential.optimisticCeilingDominated,
-        noCurrentAccountFit: useAssessment.basis === 'no_current_use',
-        nonViableEmbryo:
-          useAssessment.basis === 'poor_seed' || useAssessment.basis === 'failed_rolls',
-        badEmbryoCleanupSafe:
-          complete &&
-          deleteAfterFeasible &&
-          (useAssessment.basis === 'poor_seed' || useAssessment.basis === 'failed_rolls'),
-        cleanupEvidenceComplete: complete && useAssessment.status === 'cleanup',
+        noCurrentAccountFit: retention.ownedUseAgentIds.length === 0,
+        nonViableEmbryo: retention.qualityDisposition === 'cleanup_candidate',
+        badEmbryoCleanupSafe: category === 'cleanup_candidate',
+        cleanupEvidenceComplete: category === 'cleanup_candidate',
         adoptedSetIdentity,
       },
       strength: fitAgentIds.length ? 'candidate' : 'limited',
@@ -316,6 +390,8 @@ export function analyzeAccountWarehouse(input: WarehouseAnalysisInput): Warehous
   const assetSnapshot = stableContentHash({
     demand: demand.contentHash,
     warehouseUsePolicyVersion,
+    absoluteDiscRetentionCatalogHash,
+    absoluteDiscRetentionPolicy,
     replacementObjectives: potentialAgents.flatMap(({ agentId, replacementObjective }) =>
       replacementObjective ? [{ agentId, replacementObjective }] : [],
     ),
@@ -323,6 +399,7 @@ export function analyzeAccountWarehouse(input: WarehouseAnalysisInput): Warehous
       id: disc.id,
       version: disc.discVersion ?? disc.updatedAt,
       tags: disc.tags,
+      favorite: disc.favorite,
     })),
     roster: input.roster.agents.map((agent) => ({
       agentId: resolveCurrentReleasedIdentity(agent.agentId),

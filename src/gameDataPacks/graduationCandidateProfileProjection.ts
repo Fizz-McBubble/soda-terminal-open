@@ -17,7 +17,10 @@ function sourceAgentId(agentId: string) {
  * It intentionally has no Formal fallback and does not feed legacy target_panel data.
  */
 export function getGraduationCandidateProfile(agentId: string): GraduationCandidateProfile | null {
-  const profile = graduationCandidateProfiles.find((item) => item.agentId === sourceAgentId(agentId))
-  if (!profile || profile.model_candidate !== true || profile.formal_supported !== false) return null
+  const profile = graduationCandidateProfiles.find(
+    (item) => item.agentId === sourceAgentId(agentId),
+  )
+  if (!profile || profile.model_candidate !== true || profile.formal_supported !== false)
+    return null
   return profile
 }

@@ -1,0 +1,435 @@
+.tactical-agent-switcher button {
+  flex: 0 0 auto;
+  padding: 7px 13px;
+  color: #8fb0b7;
+  border: 1px solid rgba(89, 140, 150, 0.26);
+  border-radius: 6px;
+  background: rgba(3, 18, 25, 0.8);
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.tactical-agent-switcher button.is-active {
+  color: #05232a;
+  border-color: var(--tactical-cyan);
+  background: var(--tactical-cyan);
+  font-weight: 900;
+}
+
+.tactical-agent-switcher > span {
+  color: #76969e;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.page-content--optimizer .tactical-loadout {
+  display: grid;
+  grid-template-columns: minmax(230px, 0.9fr) minmax(520px, 1.75fr) minmax(245px, 0.95fr);
+  grid-template-rows: minmax(380px, 44vh) minmax(188px, 21vh);
+  gap: 9px;
+  min-height: 590px;
+  padding: 9px;
+  border-color: rgba(46, 231, 226, 0.36);
+  border-radius: 8px;
+}
+
+.page-content--optimizer .tactical-agent-panel,
+.page-content--optimizer .tactical-disc-panel,
+.page-content--optimizer .tactical-verdict-panel,
+.page-content--optimizer .tactical-graduation {
+  border-color: rgba(74, 133, 144, 0.28);
+  border-radius: 7px;
+  background: rgba(6, 29, 39, 0.86);
+}
+
+.page-content--optimizer .tactical-agent-panel {
+  gap: 15px;
+  padding: 20px;
+}
+
+.page-content--optimizer .tactical-agent-panel__identity {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  padding: 0 0 16px;
+}
+
+.page-content--optimizer .tactical-agent-panel__identity > div > span,
+.page-content--optimizer .tactical-agent-panel__identity p {
+  color: #8dabb2;
+  font-size: 13px;
+}
+
+.page-content--optimizer .tactical-agent-panel__identity h2 {
+  margin: 7px 0;
+  color: #fff;
+  font-size: clamp(30px, 2.3vw, 40px);
+  line-height: 1;
+}
+
+.page-content--optimizer .tactical-agent-panel__identity > b {
+  color: var(--tactical-gold);
+  font-size: 54px;
+  font-style: italic;
+  line-height: 0.9;
+}
+
+.page-content--optimizer .tactical-agent-panel__facts {
+  gap: 8px;
+}
+
+.page-content--optimizer .tactical-agent-panel__facts > div {
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 10px;
+  padding: 9px 10px;
+  border-left: 3px solid rgba(46, 231, 226, 0.5);
+}
+
+.page-content--optimizer .tactical-agent-panel__facts span,
+.page-content--optimizer .tactical-agent-panel__facts strong {
+  font-size: 14px;
+}
+
+.page-content--optimizer .tactical-agent-panel__assumption {
+  padding: 10px;
+  font-size: 13px;
+}
+
+.page-content--optimizer .asset-gap-note {
+  margin-top: auto;
+  color: #78969e;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.page-content--optimizer .tactical-disc-panel {
+  padding: 14px;
+}
+
+.page-content--optimizer .tactical-disc-panel > header {
+  min-height: 42px;
+  margin-bottom: 10px;
+}
+
+.page-content--optimizer .tactical-disc-panel > header span {
+  font-size: 12px;
+}
+
+.page-content--optimizer .tactical-disc-panel > header strong,
+.page-content--optimizer .tactical-disc-panel__pattern {
+  font-size: 15px;
+}
+
+.page-content--optimizer .tactical-disc-wheel {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.page-content--optimizer .tactical-disc {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(80, 138, 149, 0.3);
+  border-radius: 8px;
+  background: rgba(2, 17, 24, 0.86);
+}
+
+.page-content--optimizer .tactical-disc.is-primary-set {
+  border-top: 3px solid var(--tactical-cyan);
+}
+
+.page-content--optimizer .tactical-disc.is-secondary-set {
+  border-top: 3px solid var(--tactical-gold);
+}
+
+.page-content--optimizer .tactical-disc summary {
+  grid-template-columns: 34px minmax(0, 1fr) auto;
+  gap: 6px 8px;
+  min-height: 156px;
+  padding: 9px;
+}
+
+.page-content--optimizer .tactical-disc__slot {
+  width: 32px;
+  height: 32px;
+  font-size: 17px;
+}
+
+.page-content--optimizer .tactical-disc summary > div strong {
+  font-size: 13px;
+}
+
+.page-content--optimizer .tactical-disc summary > div span,
+.page-content--optimizer .tactical-disc summary > b {
+  font-size: 12px;
+}
+
+.page-content--optimizer .tactical-disc__group {
+  grid-column: 1 / -1;
+  color: #85a9b0;
+  font-size: 11px;
+  font-style: normal;
+}
+
+.page-content--optimizer .tactical-disc summary ul {
+  gap: 3px;
+}
+
+.page-content--optimizer .tactical-disc summary li {
+  padding: 3px 5px;
+  font-size: 11px;
+}
+
+.page-content--optimizer .tactical-disc__flags {
+  font-size: 10px;
+}
+
+.page-content--optimizer .tactical-disc__detail {
+  font-size: 12px;
+}
+
+.page-content--optimizer .tactical-verdict-panel {
+  gap: 12px;
+  padding: 15px;
+}
+
+.page-content--optimizer .tactical-score__grade {
+  font-size: 66px;
+}
+
+.page-content--optimizer .tactical-score strong {
+  font-size: 28px;
+}
+
+.page-content--optimizer .tactical-score span,
+.page-content--optimizer .tactical-hit-grid span {
+  font-size: 12px;
+}
+
+.page-content--optimizer .tactical-hit-grid > div {
+  padding: 10px;
+}
+
+.page-content--optimizer .tactical-hit-grid strong {
+  font-size: 18px;
+}
+
+.page-content--optimizer .tactical-verdict-panel h3 {
+  margin-bottom: 8px;
+  color: #fff;
+  font-size: 14px;
+}
+
+.page-content--optimizer .tactical-reason-list li,
+.page-content--optimizer .tactical-next-list li,
+.page-content--optimizer .tactical-conflict {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.page-content--optimizer .tactical-graduation {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  padding: 12px 14px;
+}
+
+.page-content--optimizer .tactical-graduation > header {
+  margin-bottom: 8px;
+}
+
+.page-content--optimizer .tactical-graduation > header strong {
+  font-size: 16px;
+}
+
+.page-content--optimizer .tactical-graduation > header span {
+  color: #789aa2;
+  font-size: 12px;
+}
+
+.tactical-graduation__body {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.75fr) minmax(500px, 2fr) minmax(230px, 0.9fr);
+  gap: 10px;
+  min-height: 122px;
+}
+
+.tactical-graduation__summary,
+.tactical-graduation__gaps {
+  padding: 12px;
+  border: 1px solid rgba(69, 126, 137, 0.25);
+  border-radius: 7px;
+  background: rgba(2, 17, 24, 0.72);
+}
+
+.tactical-graduation__summary {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-content: center;
+  gap: 2px 9px;
+}
+
+.tactical-graduation__summary > span,
+.tactical-graduation__summary > p {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #86a6ad;
+  font-size: 12px;
+}
+
+.tactical-graduation__summary > strong {
+  color: var(--tactical-green);
+  font-size: 48px;
+  line-height: 1;
+}
+
+.tactical-graduation__summary > b {
+  align-self: end;
+  padding-bottom: 7px;
+  color: var(--tactical-gold);
+  font-size: 17px;
+}
+
+.tactical-graduation__matrix {
+  display: grid;
+  align-content: stretch;
+  border: 1px solid rgba(69, 126, 137, 0.25);
+  border-radius: 7px;
+  background: rgba(2, 17, 24, 0.72);
+}
+
+.page-content--optimizer .graduation-metric {
+  display: grid;
+  grid-template-columns: 1.15fr 0.9fr 1fr 0.72fr;
+  align-items: center;
+  gap: 8px;
+  min-height: 24px;
+  padding: 3px 10px;
+  border: 0;
+  border-bottom: 1px solid rgba(69, 126, 137, 0.16);
+  background: transparent;
+}
+
+.page-content--optimizer .graduation-metric:last-child {
+  border-bottom: 0;
+}
+
+.page-content--optimizer .graduation-metric span,
+.page-content--optimizer .graduation-metric strong,
+.page-content--optimizer .graduation-metric small,
+.page-content--optimizer .graduation-metric em {
+  position: static;
+  grid-column: auto;
+  color: #b7cfd4;
+  font-size: 12px;
+  font-style: normal;
+}
+
+.page-content--optimizer .graduation-metric em {
+  text-align: right;
+  font-weight: 900;
+}
+
+.page-content--optimizer .graduation-metric--head span {
+  color: #648992;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.page-content--optimizer .graduation-metric.is-met em {
+  color: var(--tactical-green);
+}
+
+.page-content--optimizer .graduation-metric.is-near em {
+  color: var(--tactical-gold);
+}
+
+.page-content--optimizer .graduation-metric.is-missed em {
+  color: #ff806f;
+}
+
+.tactical-graduation__gaps {
+  display: grid;
+  align-content: center;
+  gap: 7px;
+}
+
+.tactical-graduation__gaps > strong {
+  color: #fff;
+  font-size: 13px;
+}
+
+.tactical-graduation__gaps > div {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 7px;
+  border: 1px solid rgba(255, 180, 59, 0.32);
+  border-radius: 6px;
+  background: rgba(255, 180, 59, 0.06);
+}
+
+.tactical-graduation__gaps > div > b {
+  color: var(--tactical-gold);
+  font-size: 20px;
+  text-align: center;
+}
+
+.tactical-graduation__gaps > div span,
+.tactical-graduation__gaps > div strong,
+.tactical-graduation__gaps > p {
+  margin: 0;
+  color: #9db7bd;
+  font-size: 11px;
+}
+
+.tactical-graduation__gaps > div strong {
+  display: block;
+  color: #fff;
+  font-size: 12px;
+}
+
+.page-content--optimizer .tactical-graduation > footer {
+  margin-top: 7px;
+  font-size: 11px;
+}
+
+.tactical-bottom-tools {
+  display: grid;
+  grid-template-columns: minmax(320px, 1.2fr) minmax(220px, 0.75fr) minmax(320px, 1fr);
+  gap: 9px;
+  min-height: 68px;
+}
+
+.tactical-bottom-tools--pending {
+  grid-template-columns: 1fr;
+}
+
+.page-content--optimizer .tactical-bottom-tools > * {
+  margin: 0;
+  padding: 12px 14px;
+  color: #a8c3c8;
+  border: 1px solid rgba(69, 126, 137, 0.26);
+  border-radius: 7px;
+  background: rgba(5, 24, 33, 0.9);
+  font-size: 13px;
+}
+
+.tactical-bottom-tools summary {
+  color: #d8eef0;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.tactical-advanced-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.page-content--optimizer .tactical-advanced-grid .optimizer-control-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}

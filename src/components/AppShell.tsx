@@ -14,6 +14,7 @@ import {
 } from '../navigation'
 import { useUiStore } from '../store/useUiStore'
 import { applyRouteStyleScope } from '../styles/routeStyles'
+import { preloadPlayerRoute } from '../routes/preloadPlayerRoute'
 import { SodaMark } from './SodaMark'
 import { F5VisualShell } from './F5VisualShell'
 import { F5AccountSummaryProvider } from './f5AccountSummaryContext'
@@ -233,6 +234,8 @@ export function AppShell({ onAllowOnlineCalculation }: { onAllowOnlineCalculatio
                     aria-current={current ? 'page' : undefined}
                     className={`nav-item ${current ? 'nav-item--active' : ''}`}
                     onClick={closeSidebar}
+                    onPointerEnter={() => preloadPlayerRoute(path)}
+                    onFocus={() => preloadPlayerRoute(path)}
                   >
                     <Icon size={19} strokeWidth={2.1} />
                     <span className="nav-item__label">{label}</span>
@@ -243,7 +246,12 @@ export function AppShell({ onAllowOnlineCalculation }: { onAllowOnlineCalculatio
           ))}
         </nav>
         <div className="sidebar__footer" aria-live="polite">
-          <Link to="/system/help" onClick={closeSidebar}>
+          <Link
+            to="/system/help"
+            onClick={closeSidebar}
+            onPointerEnter={() => preloadPlayerRoute('/system/help')}
+            onFocus={() => preloadPlayerRoute('/system/help')}
+          >
             帮助与隐私
           </Link>
           <strong>本地数据</strong>
