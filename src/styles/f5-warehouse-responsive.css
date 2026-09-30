@@ -241,3 +241,147 @@
 .f5v-shell .warehouse-disc-stepper .button {
   min-height: 36px;
 }
+
+/* Summary and primary controls share one desktop row and control height. */
+@media (min-width: 1101px) {
+  .f5v-shell .warehouse-action-controls {
+    display: flex;
+    gap: 8px;
+    align-items: end;
+  }
+  .f5v-shell .warehouse-action-summary {
+    gap: 6px;
+    flex-shrink: 0;
+  }
+  .f5v-shell .warehouse-action-summary__item {
+    min-width: 96px;
+    height: var(--soda-control-height);
+    min-height: var(--soda-control-height);
+    padding: 0 8px;
+    gap: 6px;
+  }
+  .f5v-shell .warehouse-action-summary__item:disabled strong {
+    font-size: var(--soda-font-caption);
+    font-weight: 500;
+  }
+  .f5v-shell .warehouse-analysis-filters {
+    grid-template-columns:
+      minmax(100px, 1.25fr) minmax(74px, 0.8fr) minmax(95px, 1.1fr) minmax(92px, 1fr)
+      minmax(87px, 0.9fr) auto;
+    gap: 6px;
+  }
+  .f5v-shell .warehouse-analysis-filters__discs > svg {
+    display: none;
+  }
+  .f5v-shell .warehouse-analysis-filters .filter-select__trigger {
+    height: var(--soda-control-height);
+    min-height: var(--soda-control-height);
+    padding-inline: 7px;
+  }
+  .f5v-shell .warehouse-more-filters summary,
+  .f5v-shell .warehouse-clear-filters {
+    height: var(--soda-control-height);
+    min-height: var(--soda-control-height);
+  }
+  .f5v-shell .warehouse-clear-filters {
+    max-width: 76px;
+    padding-inline: 4px;
+  }
+}
+.f5v-shell .warehouse-calculation-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--f5-muted);
+  font-size: var(--soda-font-caption);
+}
+.f5v-shell .warehouse-action-summary__item:disabled {
+  cursor: default;
+  transform: none;
+  box-shadow: none;
+}
+.f5v-shell .warehouse-pending-list__heading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 9px 12px;
+  font-size: var(--soda-font-small);
+  border-bottom: 1px solid var(--f5-wash);
+}
+.f5v-shell .warehouse-pending-list__heading span {
+  color: var(--f5-muted);
+}
+.f5v-shell .warehouse-pending-row {
+  width: 100%;
+  height: 112px;
+  display: grid;
+  grid-template-columns: minmax(100px, 0.8fr) minmax(0, 1.5fr) auto;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+  padding: 10px 14px;
+  border: 0;
+  border-bottom: 1px solid var(--f5-wash);
+  background: var(--f5-paper);
+  color: var(--f5-ink);
+  cursor: pointer;
+}
+.f5v-shell .warehouse-pending-row > span {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+.f5v-shell .warehouse-pending-row small {
+  font-size: var(--soda-font-caption);
+  color: var(--f5-muted);
+  line-height: 1.5;
+}
+.f5v-shell .warehouse-pending-row em {
+  font-size: var(--soda-font-caption);
+  font-style: normal;
+  color: var(--f5-muted);
+}
+.f5v-shell .warehouse-pending-row.is-selected {
+  background: var(--f5-wash);
+}
+.f5v-shell .warehouse-pending-row:focus-visible {
+  outline: 2px solid var(--f5-accent);
+  outline-offset: -2px;
+}
+.f5v-shell .warehouse-pending-detail {
+  padding: 16px;
+}
+@media (max-width: 760px) {
+  .f5v-shell .warehouse-workbench__actions {
+    grid-template-columns: 1fr;
+  }
+  .f5v-shell .warehouse-calculation-status {
+    flex-wrap: wrap;
+  }
+  .f5v-shell .warehouse-action-list {
+    height: min(60dvh, 540px);
+    min-height: 320px;
+  }
+  .f5v-shell .warehouse-action-list__body {
+    overflow-y: auto;
+  }
+  .f5v-shell .warehouse-pending-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 4px 8px;
+    padding: 8px 12px;
+  }
+  .f5v-shell .warehouse-pending-row > span:nth-child(2) {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+  .f5v-shell .warehouse-pending-row em {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .f5v-shell .warehouse-pending-row small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

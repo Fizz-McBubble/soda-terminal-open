@@ -1,3 +1,5 @@
+import { WarehouseInitialReadState } from './WarehouseInitialReadState'
+import { WarehousePendingDiscList } from './WarehousePendingDiscList'
 import { WarehouseDiscControls } from './WarehouseDiscControls'
 import { WarehouseDiscActionList } from './WarehouseDiscActionList'
 import {
@@ -54,7 +56,7 @@ export function WarehouseDiscsPage() {
         discs: decisionWorld.run.input.warehouse.discs,
         roster: decisionWorld.run.input.warehouse.roster,
       }
-    : null
+    : (decisionWorld.liveInput?.warehouse ?? null)
   const projection = useMemo(
     () =>
       decisionWorld.status === 'current' || decisionWorld.status === 'stale'
@@ -323,17 +325,8 @@ export function WarehouseDiscsPage() {
       setRepairingApplicationData(false)
     }
   }
-  if (decisionWorld.status === 'loading')
-    return (
-      <section className="warehouse-loading" role="status" aria-live="polite">
-        <h1>驱动盘分析</h1>
-        <p>
-          {decisionWorld.liveInput?.warehouse.accountId
-            ? `已读取 ${decisionWorld.liveInput.warehouse.discs.length} 张驱动盘，正在核对品质与用途。`
-            : '正在读取当前账户的驱动盘。'}
-        </p>
-      </section>
-    )
+  if (decisionWorld.status === 'loading' && !data)
+    return <WarehouseInitialReadState decisionWorld={decisionWorld} runAnalysis={runAnalysis} />
   if (decisionWorld.status === 'error')
     return (
       <section className="warehouse-empty" aria-live="polite">
@@ -379,17 +372,6 @@ export function WarehouseDiscsPage() {
         </Link>
       </section>
     )
-  if (!projection)
-    return (
-      <section className="warehouse-empty" aria-live="polite">
-        <Archive size={28} />
-        <h1>驱动盘建议暂时无法显示</h1>
-        <p>这次分析结果不完整，请重新分析。账户资料没有被修改。</p>
-        <button className="button button--primary" type="button" onClick={() => void runAnalysis()}>
-          重新分析
-        </button>
-      </section>
-    )
   return (
     <div
       className="warehouse-workbench"
@@ -399,9 +381,12 @@ export function WarehouseDiscsPage() {
       <WarehouseWorkbenchHeader
         discCount={data.discs.length}
         accountId={data.account.id}
-        selectedDiscId={selectedDisc?.id ?? null}
+        selectedDiscId={selectedDisc?.id ?? selectedId ?? null}
         projection={projection}
         runAnalysis={runAnalysis}
+        calculation={decisionWorld.calculation}
+        calculationCancelled={decisionWorld.calculationCancelled}
+        cancelCalculation={decisionWorld.cancelCalculation}
       />
       <WarehouseDiscControls
         filters={filters}
@@ -414,72 +399,82 @@ export function WarehouseDiscsPage() {
         hasFilters={hasFilters}
         projection={projection}
       />
-      <div className="warehouse-action-workspace">
-        <WarehouseDiscActionList
-          actionList={actionList}
-          listBodyRef={listBodyRef}
-          setScrollTop={setScrollTop}
-          rowHeight={rowHeight}
-          firstVisible={firstVisible}
-          windowed={windowed}
-          selectedItem={selectedItem}
-          data={data}
+      {!projection ? (
+        <WarehousePendingDiscList
+          key={`${data.account.id}:${filters.setId}:${filters.slot}:${filters.mainStat}:${filters.level}:${filters.sort}`}
+          discs={data.discs}
+          filters={filters}
+          selectedId={selectedId}
           selectDisc={selectDisc}
-          selectionNotice={
-            selectedId && selectedRow && selectedRow.disc.id !== selectedId
-              ? '原选择已不在当前结果，已暂时定位到当前排序中的第一张。'
-              : undefined
-          }
-          sameKindContext={
-            sameKindContext?.accountId === data.account.id
-              ? { label: '正在浏览同类盘', onReturn: returnFromSameKind }
-              : undefined
-          }
         />
-        {detailItem && detailDisc ? (
-          <WarehouseActionDrawer
-            key={`${detailDisc.id}:${comparisonId ? 'compare' : 'detail'}`}
-            navigation={
-              !comparisonId
-                ? {
-                    index: selectedIndex,
-                    total: actionList.rows.length,
-                    onPrevious: () => moveSelection(-1),
-                    onNext: () => moveSelection(1),
-                  }
+      ) : (
+        <div className="warehouse-action-workspace">
+          <WarehouseDiscActionList
+            actionList={actionList}
+            listBodyRef={listBodyRef}
+            setScrollTop={setScrollTop}
+            rowHeight={rowHeight}
+            firstVisible={firstVisible}
+            windowed={windowed}
+            selectedItem={selectedItem}
+            data={data}
+            selectDisc={selectDisc}
+            selectionNotice={
+              selectedId && selectedRow && selectedRow.disc.id !== selectedId
+                ? '原选择已不在当前结果，已暂时定位到当前排序中的第一张。'
                 : undefined
             }
-            onReturnToList={comparisonId ? undefined : returnToSelectedDisc}
-            onSelectAlternative={showAlternative}
-            onShowSameKind={showSameKind}
-            onReturnToOriginal={comparisonId ? returnToOriginal : undefined}
-            comparisonOrigin={
-              comparisonId && selectedItem && selectedDisc
-                ? { item: selectedItem, disc: selectedDisc }
+            sameKindContext={
+              sameKindContext?.accountId === data.account.id
+                ? { label: '正在浏览同类盘', onReturn: returnFromSameKind }
                 : undefined
             }
-            item={detailItem}
-            disc={detailDisc}
-            discs={data.discs}
-            decisionLabel={warehouseActionStrengthLabel(detailItem)}
-            alternativeRecommendations={alternativeRecommendations}
-            relations={statusText(detailItem)}
           />
-        ) : (
-          <aside className="warehouse-action-drawer warehouse-action-drawer--empty">
-            {comparisonId ? (
-              <>
-                <p role="status">替代盘记录或分析结果已不可用，请更新仓库后重新分析。</p>
-                <button className="button button--quiet" type="button" onClick={returnToOriginal}>
-                  返回原盘
-                </button>
-              </>
-            ) : (
-              '当前筛选下没有可查看的驱动盘。'
-            )}
-          </aside>
-        )}
-      </div>
+          {detailItem && detailDisc ? (
+            <WarehouseActionDrawer
+              key={`${detailDisc.id}:${comparisonId ? 'compare' : 'detail'}`}
+              navigation={
+                !comparisonId
+                  ? {
+                      index: selectedIndex,
+                      total: actionList.rows.length,
+                      onPrevious: () => moveSelection(-1),
+                      onNext: () => moveSelection(1),
+                    }
+                  : undefined
+              }
+              onReturnToList={comparisonId ? undefined : returnToSelectedDisc}
+              onSelectAlternative={showAlternative}
+              onShowSameKind={showSameKind}
+              onReturnToOriginal={comparisonId ? returnToOriginal : undefined}
+              comparisonOrigin={
+                comparisonId && selectedItem && selectedDisc
+                  ? { item: selectedItem, disc: selectedDisc }
+                  : undefined
+              }
+              item={detailItem}
+              disc={detailDisc}
+              discs={data.discs}
+              decisionLabel={warehouseActionStrengthLabel(detailItem)}
+              alternativeRecommendations={alternativeRecommendations}
+              relations={statusText(detailItem)}
+            />
+          ) : (
+            <aside className="warehouse-action-drawer warehouse-action-drawer--empty">
+              {comparisonId ? (
+                <>
+                  <p role="status">替代盘记录或分析结果已不可用，请更新仓库后重新分析。</p>
+                  <button className="button button--quiet" type="button" onClick={returnToOriginal}>
+                    返回原盘
+                  </button>
+                </>
+              ) : (
+                '当前筛选下没有可查看的驱动盘。'
+              )}
+            </aside>
+          )}
+        </div>
+      )}
     </div>
   )
 }

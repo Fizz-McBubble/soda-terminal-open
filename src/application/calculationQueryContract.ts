@@ -213,6 +213,8 @@ export interface CalculationQueryClient {
   releaseAccountDecisionRun?(runId: string): void
   /** Synchronous server-side liveness check after bounded run eviction. */
   hasAccountDecisionRun?(runId: string): boolean
+  /** Observe transient handle invalidation without changing the serialized Query contract. */
+  subscribeAccountDecisionRuns?(listener: () => void): () => void
   /** Abort active work for a completed run; its captured input remains available for replay. */
   cancelActiveQuery?(runId: string): void
   fingerprintAccountDecisionInput(input: AccountDecisionQueryInput, currentRunId?: string): string

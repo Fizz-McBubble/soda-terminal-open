@@ -80,6 +80,28 @@ function harness(autoReady = true) {
 }
 
 describe('browser Query Worker lifecycle', () => {
+  it('notifies handle subscribers when the Worker fails, and supports unsubscribe', async () => {
+    const { client, workers } = harness()
+    const listener = vi.fn()
+    const unsubscribe = client.subscribeAccountDecisionRuns!(listener)
+    const first = client.calculateAccountDecision(query('observed-run'))
+    await vi.waitFor(() => expect(workers[0]?.requests).toHaveLength(1))
+    workers[0]!.respond(1, {
+      runId: 'observed-run',
+      inputFingerprint: 'observed-input',
+      input: query('observed-run').input,
+    })
+    await first
+    expect(client.hasAccountDecisionRun?.('observed-run')).toBe(true)
+    expect(listener).toHaveBeenCalledTimes(1)
+    workers[0]!.onerror?.({ message: 'synthetic Worker failure' } as ErrorEvent)
+    expect(client.hasAccountDecisionRun?.('observed-run')).toBe(false)
+    expect(listener).toHaveBeenCalledTimes(2)
+    unsubscribe()
+    client.releaseAccountDecisionRun?.('observed-run')
+    expect(listener).toHaveBeenCalledTimes(2)
+  })
+
   it.each(['selection throws', 'selection unbound', 'postMessage throws'])(
     'settles the active and queued requests when %s, then retries with a new Worker',
     async (failure) => {

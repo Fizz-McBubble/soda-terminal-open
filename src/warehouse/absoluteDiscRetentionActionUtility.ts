@@ -1,17 +1,28 @@
 import type { CandidateWarehouseConstraint } from '../gameDataPacks/candidateWarehouseConstraints'
-import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
+import type { CurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
 import { resolveCurrentReleasedIdentity } from '../gameDataPacks/currentReleasedIdentityMap'
+import {
+  resolveRetentionActionFact,
+  type RetentionActionTag,
+} from './absoluteDiscRetentionActionFacts'
 import type {
   RetentionUtilityEvidence,
   RetentionUtilityState,
 } from './absoluteDiscRetentionUseFacts'
+
 export function resolveActionUtility(
-  action: 'basic' | 'dash' | 'aftershock',
+  action: RetentionActionTag,
   agentId: string,
   constraint: CandidateWarehouseConstraint,
-  eventContract: ReturnType<typeof getCurrentAgentEventContract>,
+  eventContract: CurrentAgentEventContract | null,
   evidenceIds: string[],
 ): RetentionUtilityEvidence {
+  const fact = resolveRetentionActionFact(
+    action,
+    resolveCurrentReleasedIdentity(agentId),
+    constraint,
+    eventContract,
+  )
   const ev = (
     state: RetentionUtilityState,
     predicateId: string,
@@ -19,100 +30,44 @@ export function resolveActionUtility(
   ): RetentionUtilityEvidence => ({
     state,
     predicateId,
-    evidenceIds,
+    evidenceIds: [...new Set([...evidenceIds, ...fact.sourceIds])],
     detail,
   })
-
-  if (constraint.status === 'missing' || constraint.sources.length === 0) {
+  if (constraint.status === 'missing' || !constraint.sources.some((source) => source.verified))
     return ev(
       'missing_fact',
       'missing_build_source',
       `Verified action build source facts missing for ${agentId}.`,
     )
-  }
-
-  const setIds = [
-    ...(constraint.setIds ?? []),
-    ...(constraint.setPlans ?? []).flatMap((p) => [...p.primarySetIds, ...p.secondarySetIds]),
-  ]
-  const progText = (constraint.progressionDirection ?? []).join(' ')
-  const teamText = (constraint.teamAndBangbooPreconditions ?? []).join(' ')
-  const released = resolveCurrentReleasedIdentity(agentId)
-
-  if (action === 'aftershock') {
-    const hasAftershock =
-      released === 'agent-soldier-0-anby' ||
-      released === 'agent-orphie-magus' ||
-      released === 'agent-trigger' ||
-      released === 'agent-seed' ||
-      /aftershock|追加/i.test(progText) ||
-      /aftershock|追加/i.test(teamText) ||
-      (eventContract?.eventContract?.events?.some(
-        (e) => /aftershock|abloom/i.test(e.actionId) || /aftershock/i.test(e.skill),
-      ) ??
-        false)
-
-    if (!hasAftershock) {
-      return ev(
-        'incompatible',
-        'no_aftershock_mechanic_in_kit',
-        'Agent possesses no aftershock abilities or damage channels; aftershock bonuses provide zero benefit.',
-      )
-    }
-    if (setIds.includes('set-shadow-harmony') || /aftershock/i.test(progText)) {
-      return ev(
-        'valid',
-        'aftershock_primary_damage_focus',
-        'Recommended set Shadow Harmony and reviewed rotation confirm aftershock as primary damage source.',
-      )
-    }
+  if (fact.presence === 'unresolved')
+    return ev(
+      'missing_fact',
+      `${action}_actor_action_contract_missing`,
+      `Missing reviewed self ${action} classification; guide text and teammate descriptions cannot prove this action.`,
+    )
+  if (fact.presence === 'absent')
+    return ev(
+      'incompatible',
+      `no_${action}_mechanic_in_kit`,
+      `Reviewed source kit classifies no self ${action} damage events; this is a source-bound negative fact.`,
+    )
+  if (fact.currentBuildBenefit === 'primary' && fact.condition?.binding === 'reviewed_build')
+    return ev(
+      'valid',
+      action === 'aftershock'
+        ? 'aftershock_primary_damage_focus'
+        : `${action}_attack_primary_damage`,
+      `Reviewed Candidate build uses self ${action} damage under ${fact.condition.predicateId}; not a Formal damage claim.`,
+    )
+  if (action === 'aftershock')
     return ev(
       'conditional',
-      'aftershock_conditional_activation',
-      'Agent possesses aftershock mechanics, active under team coordination or specific rotation window.',
+      'aftershock_current_build_benefit_unverified',
+      'Source-classified self aftershock events exist; verify their activation and benefit in this build before claiming a primary damage use.',
     )
-  }
-
-  if (action === 'basic') {
-    const usesDawnsBloom = setIds.includes('set-dawns-bloom')
-    const knownBasic = ['agent-ellen', 'agent-soldier-11', 'agent-zhu-yuan', 'agent-billy']
-    if (usesDawnsBloom || knownBasic.includes(released) || /普攻|basic attack/i.test(progText)) {
-      return ev(
-        'valid',
-        'basic_attack_primary_damage',
-        'Adopted build directions or primary rotation confirm basic attack as core damage channel.',
-      )
-    }
-    return ev(
-      'incidental',
-      'generic_basic_attack_action',
-      'Agent possesses basic attack inputs, but generic button existence is not primary damage use.',
-    )
-  }
-
-  if (action === 'dash') {
-    const usesShadowHarmony = setIds.includes('set-shadow-harmony')
-    const knownDash = ['agent-harumasa', 'agent-nekomata']
-    if (
-      (usesShadowHarmony && knownDash.includes(released)) ||
-      /强化冲刺|dash attack/i.test(progText)
-    ) {
-      return ev(
-        'valid',
-        'dash_attack_primary_damage',
-        'Adopted build directions and enhanced dash mechanics confirm dash attack as core damage channel.',
-      )
-    }
-    return ev(
-      'incidental',
-      'generic_dash_attack_action',
-      'Agent possesses dash attack inputs, but dash attack is not primary damage focus.',
-    )
-  }
-
   return ev(
     'incidental',
-    'generic_action_utility',
-    'Action utility is incidental to primary rotation.',
+    `generic_${action === 'basic' ? 'basic_attack' : 'dash_attack'}_action`,
+    `Generic self ${action} inputs exist, but no source-bound primary damage focus is established for this build.`,
   )
 }

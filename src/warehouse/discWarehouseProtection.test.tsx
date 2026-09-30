@@ -1,0 +1,162 @@
+import { beforeAll, describe, expect, it } from 'vitest'
+import { render, screen, cleanup } from '@testing-library/react'
+import { driveDiscData } from '../data/gameData'
+import { createEmptyRoster } from '../assault/catalog'
+import { world, input as worldInput } from '../decision/warehouseActionProjection.testFixture'
+import { projectWarehouseActions } from '../application/warehouseActionProjection'
+import { WarehouseRetentionEvidence } from '../pages/WarehouseRetentionEvidence'
+import { analyzeAccountWarehouse } from './discWarehouseAnalysis'
+import type { WarehouseAnalysisInput } from './discWarehouseEvidence'
+import { warehouseTestDisc } from './discWarehouseAnalysis.testFixtures'
+
+const protectionLabels = ['已收藏', '当前正在装备', '已保存方案正在使用', '选定队伍正在使用']
+
+function input(mask = 0): WarehouseAnalysisInput {
+  const base = worldInput()
+  const accountId = base.warehouse.accountId
+  if (!accountId) throw new Error('synthetic account id required')
+  const flatDefenseRoll = driveDiscData!.rules.subStatStepsByRarity.S.find(
+    (rule) => rule.stat === 'def_flat',
+  )!.baseValue
+  const disc = warehouseTestDisc('protected-low-quality', {
+    setId: 'set-woodpecker-electro',
+    slot: 1,
+    mainStat: 'hp_flat',
+    favorite: Boolean(mask & 1),
+    subStats: [
+      { stat: 'crit_dmg', value: 4.8, upgrades: 0 },
+      { stat: 'atk_percent', value: 3, upgrades: 0 },
+      { stat: 'hp_percent', value: 3, upgrades: 0 },
+      { stat: 'def_flat', value: flatDefenseRoll * 6, upgrades: 5 },
+    ],
+  })
+  const roster = createEmptyRoster('2026-09-30T00:00:00.000Z')
+  roster.agents[0] = {
+    ...roster.agents[0]!,
+    owned: true,
+    equippedDiscIds: mask & 2 ? [disc.id] : [],
+  }
+  return {
+    accountId,
+    discs: [disc],
+    roster,
+    drafts: mask & 4 ? [{ ...base.drafts[0]!, warehouseRefs: [disc.id] }] : [],
+    protectedSimultaneousDemands: mask & 8 ? [{ id: 'selected-team', discIds: [disc.id] }] : [],
+    protectedDemandCoverageComplete: true,
+  }
+}
+
+function intrinsic(
+  evidence: NonNullable<
+    ReturnType<typeof analyzeAccountWarehouse>['decisions'][number]['absoluteRetention']
+  >,
+) {
+  const quality = structuredClone(evidence)
+  delete quality.nextAction
+  return quality
+}
+
+describe('current protection action and intrinsic quality', () => {
+  let template: Awaited<ReturnType<typeof world>>
+  beforeAll(async () => {
+    template = await world('current', 'cleanup_candidate')
+  })
+
+  function project(source: WarehouseAnalysisInput) {
+    const current = structuredClone(template)
+    current.run.input.warehouse.discs = source.discs
+    current.run.input.warehouse.roster = source.roster
+    current.run.input.drafts = source.drafts
+    current.run.snapshot.warehouse = analyzeAccountWarehouse(source)
+    return projectWarehouseActions(current).actions[0]!
+  }
+
+  it('keeps the unprotected low quality path executable as manual cleanup review', () => {
+    const action = project(input())
+    expect(action.action).toBe('cleanup')
+    expect(action.absoluteRetention?.nextAction?.kind).toBe('manual_cleanup')
+    expect(action.absoluteRetention?.disposition).toBe('cleanup_candidate')
+  })
+
+  it.each(Array.from({ length: 15 }, (_, index) => index + 1))(
+    'gives a consistent keep action and every current protection source for mask %s',
+    (mask) => {
+      const source = input(mask)
+      const before = structuredClone(source)
+      const unprotected = analyzeAccountWarehouse(input()).decisions[0]!.absoluteRetention!
+      const action = project(source)
+      expect(source).toEqual(before)
+      expect(action.action).toBe('keep')
+      expect(action.absoluteRetention?.nextAction).toMatchObject({
+        kind: 'keep',
+        targetLevel: null,
+      })
+      expect(intrinsic(action.absoluteRetention!)).toEqual(intrinsic(unprotected))
+      for (const [index, label] of protectionLabels.entries()) {
+        if (mask & (1 << index)) {
+          expect(action.absoluteRetention?.nextAction?.detail).toContain(label)
+          expect(action.reasons.join('')).toContain(label)
+        } else {
+          expect(action.absoluteRetention?.nextAction?.detail).not.toContain(label)
+        }
+      }
+      render(<WarehouseRetentionEvidence evidence={action.absoluteRetention!} discLevel={15} />)
+      const status = screen.getByRole('status')
+      expect(status.textContent).toContain('下一步：保留')
+      expect(status.textContent).not.toContain('人工清理')
+      expect(
+        screen.getByText(/固有品质判断/).compareDocumentPosition(status) &
+          Node.DOCUMENT_POSITION_PRECEDING,
+      ).toBeTruthy()
+      expect(screen.getByText(/解除全部保护后仍需人工复核/)).toBeTruthy()
+      cleanup()
+    },
+  )
+
+  it('does not invent protection for unrelated discs from missing equipment or saved references', () => {
+    const source = input()
+    source.roster.agents[0]!.equippedDiscIds = ['absent-equipped']
+    source.drafts = [{ ...worldInput().drafts[0]!, warehouseRefs: ['absent-saved'] }]
+    source.activePlanIds = { 'agent-nicole': source.drafts[0]!.id }
+    const result = analyzeAccountWarehouse(source)
+    expect(result.referenceIssues?.equipmentNeedsReview).toBe(true)
+    expect(result.decisions[0]!.cleanupSafety).toMatchObject({
+      equipped: false,
+      savedPlanReferenced: false,
+      portfolioReferenced: false,
+    })
+    expect(project(source).absoluteRetention?.nextAction?.kind).toBe('manual_cleanup')
+    expect(project(source).action).toBe('cleanup')
+  })
+
+  it('requires reference review for unresolved simultaneous demand without claiming direct protection', () => {
+    const source = input()
+    source.protectedSimultaneousDemands = [
+      { id: 'invalid-selection', discIds: ['absent-selected'] },
+    ]
+    const result = analyzeAccountWarehouse(source)
+    expect(result.referenceIssues?.simultaneousNeedsReview).toBe(true)
+    expect(result.decisions[0]!.cleanupSafety.portfolioReferenced).toBe(false)
+    expect(project(source).absoluteRetention?.nextAction?.kind).toBe('check_condition')
+    expect(project(source).absoluteRetention?.nextAction?.detail).not.toContain('正在使用')
+  })
+
+  it('preserves a surviving active saved-plan protection when another reference is missing', () => {
+    const source = input(4)
+    source.drafts[0]!.kind = 'team'
+    source.drafts[0]!.warehouseRefs.push('absent-saved')
+    source.activePlanIds = { 'agent-nicole': source.drafts[0]!.id }
+    const action = project(source)
+    expect(action.action).toBe('keep')
+    expect(action.absoluteRetention?.nextAction?.kind).toBe('keep')
+    expect(action.absoluteRetention?.nextAction?.detail).toContain('已保存方案正在使用')
+    expect(action.statuses).toContain('active_plan_reference')
+  })
+
+  it('does not turn equipment on an unowned roster record into current protection', () => {
+    const source = input(2)
+    source.roster.agents[0]!.owned = false
+    expect(project(source).absoluteRetention?.nextAction?.kind).toBe('manual_cleanup')
+    expect(analyzeAccountWarehouse(source).decisions[0]!.cleanupSafety.equipped).toBe(false)
+  })
+})

@@ -160,6 +160,30 @@ export function analyzeAccountWarehouse(input: WarehouseAnalysisInput): Warehous
     const portfolioReferenced = protectedPortfolioDiscIds.has(disc.id)
     const directlyProtected =
       disc.favorite || equipped.has(disc.id) || planIds.length > 0 || portfolioReferenced
+    const protectionReasons = [
+      ...(disc.favorite ? ['已收藏，按明确保留意图保护。'] : []),
+      ...(equipped.has(disc.id) ? ['当前正在装备。'] : []),
+      ...(planIds.length ? ['已保存方案正在使用。'] : []),
+      ...(portfolioReferenced ? ['选定队伍正在使用。'] : []),
+    ]
+    const nextAction = directlyProtected
+      ? {
+          kind: 'keep' as const,
+          targetLevel: null,
+          detail: protectionReasons.join(''),
+          stopWhen:
+            retention.qualityDisposition === 'cleanup_candidate'
+              ? '当前保护不改变盘面品质；解除全部保护后仍需人工复核，不能直接清理。'
+              : '当前保护不改变盘面品质；保护生效期间保留此盘，不会自动清理。',
+        }
+      : !protectedDemandCoverageComplete || !currentDemandSafe
+        ? {
+            kind: 'check_condition' as const,
+            targetLevel: null,
+            detail: '先核对选定队伍的同时用盘范围与实体引用。',
+            stopWhen: '用盘范围未闭合时暂停清理。',
+          }
+        : retention.nextAction
     // References name physical entities. A stale saved ID never reserves every unrelated copy.
     const protectedDemandReferencesResolved =
       capturedDiscIdCounts.get(disc.id) === 1 && (!directlyProtected || allDemandReferencesResolved)
@@ -262,21 +286,7 @@ export function analyzeAccountWarehouse(input: WarehouseAnalysisInput): Warehous
         ownedUseAgentIds: [...retention.ownedUseAgentIds],
         unownedUseAgentIds: [...retention.unownedUseAgentIds],
         reasonKind: retention.reasonKind,
-        nextAction: disc.favorite
-          ? {
-              kind: 'keep',
-              targetLevel: null,
-              detail: '已收藏，按明确保留意图保护此盘。',
-              stopWhen: '收藏保护不改变盘面品质；不会自动清理。',
-            }
-          : !directlyProtected && (!protectedDemandCoverageComplete || !currentDemandSafe)
-            ? {
-                kind: 'check_condition',
-                targetLevel: null,
-                detail: '先核对选定队伍的同时用盘范围与实体引用。',
-                stopWhen: '用盘范围未闭合时暂停清理。',
-              }
-            : retention.nextAction,
+        nextAction,
         blockedBy: [
           ...retention.blockedBy,
           ...(!protectedDemandCoverageComplete || !currentDemandSafe
@@ -297,11 +307,9 @@ export function analyzeAccountWarehouse(input: WarehouseAnalysisInput): Warehous
       },
       useAssessment,
       reasons: [
-        ...(disc.favorite ? ['已收藏，按明确保留意图保护。'] : []),
-        ...(equipped.has(disc.id) ? ['当前正在装备。'] : []),
-        ...(planIds.length ? ['已保存方案正在使用。'] : []),
-        ...(portfolioReferenced ? ['选定队伍正在使用。'] : []),
-        ...(!disc.favorite ? [retention.nextAction.detail, retention.nextAction.stopWhen] : []),
+        ...protectionReasons,
+        ...(!directlyProtected ? [nextAction.detail] : []),
+        nextAction.stopWhen,
         ...(absoluteDiscRetentionPolicy.calibration !== 'approved'
           ? ['生产品质阈值尚待独立逐盘样本校准，暂不生成清理候选。']
           : []),

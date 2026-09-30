@@ -1,3 +1,5 @@
+import { WarehouseCalculationStatus } from './WarehouseCalculationStatus'
+import type { AccountDecisionWorldContextValue } from '../application/accountDecisionWorldModel'
 import { RefreshCw } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import type { WarehouseActionProjection } from '../application/warehouseActionContract'
@@ -9,11 +11,17 @@ export function WarehouseWorkbenchHeader({
   selectedDiscId,
   projection,
   runAnalysis,
+  calculation,
+  calculationCancelled,
+  cancelCalculation,
 }: {
   discCount: number
   accountId: string
   selectedDiscId: string | null
-  projection: WarehouseActionProjection
+  projection: WarehouseActionProjection | null
+  calculationCancelled?: boolean
+  calculation?: AccountDecisionWorldContextValue['calculation']
+  cancelCalculation?: () => void
   runAnalysis: () => void
 }) {
   const navigate = useNavigate()
@@ -22,14 +30,16 @@ export function WarehouseWorkbenchHeader({
       <div>
         <h1>驱动盘分析</h1>
         <p>
-          已分析 {discCount} 张驱动盘。
-          {Boolean(projection.referenceIssues?.savedPlanIds.length) && (
+          {projection
+            ? `已分析 ${discCount} 张驱动盘。`
+            : `已读取 ${discCount} 张驱动盘，建议待分析。`}
+          {Boolean(projection?.referenceIssues?.savedPlanIds.length) && (
             <Link to="/loadouts/team">
               {' '}
-              {projection.referenceIssues?.savedPlanIds.length} 份队伍配装待核对
+              {projection?.referenceIssues?.savedPlanIds.length} 份队伍配装待核对
             </Link>
           )}
-          {projection.referenceIssues?.equipmentNeedsReview && (
+          {projection?.referenceIssues?.equipmentNeedsReview && (
             <Link to="/assets/agents"> 核对当前装备</Link>
           )}
         </p>
@@ -48,7 +58,19 @@ export function WarehouseWorkbenchHeader({
             )
           }
         />
-        <button className="button button--primary" type="button" onClick={runAnalysis}>
+        {calculationCancelled && !calculation ? (
+          <span role="status">分析已取消，可重新分析。</span>
+        ) : null}
+        <WarehouseCalculationStatus
+          calculation={calculation}
+          cancelCalculation={cancelCalculation}
+        />
+        <button
+          className="button button--primary"
+          type="button"
+          disabled={Boolean(calculation)}
+          onClick={runAnalysis}
+        >
           <RefreshCw size={17} /> 重新分析
         </button>
       </div>

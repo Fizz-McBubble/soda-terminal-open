@@ -171,7 +171,8 @@ export function assessDisc(
     const functionalContext = usable.filter(
       (row) =>
         row.functionalState === 'needs_build_context' ||
-        (row.functionalState === 'ready' && row.useState === 'conditional'),
+        ((row.functionalState === 'ready' || row.functionalState === 'needs_level') &&
+          row.useState === 'conditional'),
     )
     const functionalBlockers: RetentionBlocker[] = functionalContext.flatMap((row) => [
       {
@@ -192,6 +193,13 @@ export function assessDisc(
     )
     const readyFunction = usable.find(
       (row) => row.functionalState === 'ready' && row.useState === 'valid',
+    )
+    const growingFunction = usable.find(
+      (row) =>
+        row.functionalState === 'needs_level' &&
+        row.useState === 'valid' &&
+        row.investment.remainingNodes > 0 &&
+        row.investment.qualified === true,
     )
     const borderline = usable.find(
       (row) => row.cutoffs && row.currentScore + EPS >= row.cutoffs.cleanupBelow,
@@ -219,9 +227,13 @@ export function assessDisc(
       reasons = ['absolute_quality_pass']
       blockedBy = winner.blockers.filter((row) => row.kind === 'conditional_use')
       nextAction = action(
-        'keep',
-        '该具名构筑已达到品质保留线。',
-        '无需为了其他副本或库存排名调整去留。',
+        winner.useState === 'conditional' ? 'check_condition' : 'keep',
+        winner.useState === 'conditional'
+          ? '品质已达到保留线；先核对列出的用途条件，再决定投入或装配。'
+          : '该具名构筑已达到品质保留线。',
+        winner.useState === 'conditional'
+          ? '条件未核对时保留现状并暂停投入，不按理论潜力自动强化。'
+          : '无需为了其他副本或库存排名调整去留。',
       )
     } else if (readyFunction) {
       disposition = 'keep'
@@ -233,6 +245,17 @@ export function assessDisc(
         'keep',
         readyFunction.functionDetail ?? '该主词已完成已证实的单盘功能。',
         '功能保留不虚增副词品质，也不要求继续追副词。',
+      )
+    } else if (growingFunction) {
+      disposition = 'observe'
+      reasonKind = 'try_next_upgrade'
+      witnesses = [growingFunction]
+      reasons = ['sourced_functional_main_growth', 'substat_ceiling_does_not_limit_main_function']
+      nextAction = action(
+        'try_upgrade',
+        `已证实的单盘主词功能尚需强化；先到 +${growingFunction.investment.nextLevel} 后重新分析。`,
+        '用途前提或记录变化时停止；主词功能完成后按功能保留，不继续追副词。',
+        growingFunction.investment.nextLevel,
       )
     } else if (materialGaps.length || functionalBlockers.length) {
       witnesses = functionalContext

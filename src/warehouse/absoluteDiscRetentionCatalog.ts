@@ -166,7 +166,7 @@ function buildProfiles() {
           profile(
             base,
             `base-${index}:${stableContentHash(plan).slice(0, 10)}`,
-            plan.primarySetIds,
+            plan.pattern === '4+2' ? plan.primarySetIds : [],
             plan.condition || (plan.purpose && plan.purpose !== 'recommended')
               ? 'conditional'
               : 'valid',
@@ -249,7 +249,7 @@ function buildProfiles() {
         profile(
           branch,
           `reviewed-${direction.id}`,
-          direction.setPlan.primarySetIds,
+          direction.setPlan.pattern === '4+2' ? direction.setPlan.primarySetIds : [],
           'conditional',
           direction.source.locator.text,
           direction.mainStats ? 'conditional' : 'valid',

@@ -175,16 +175,16 @@ export function WarehouseRetentionEvidence({
   return (
     <section aria-label="绝对品质与成长证据">
       <h3>品质与成长</h3>
-      {reason ? (
-        <p>
-          <strong>{reasonLabels[reason]}</strong>
-        </p>
-      ) : null}
       <p role="status">
         <strong>{actionLead(evidence, discLevel)}</strong>
       </p>
       {evidence.nextAction?.stopWhen ? (
         <p>停止条件：{readableDetail(evidence.nextAction.stopWhen)}</p>
+      ) : null}
+      {reason ? (
+        <p>
+          固有品质判断：<strong>{reasonLabels[reason]}</strong>
+        </p>
       ) : null}
       <p>
         {evidence.bestUseScore === null

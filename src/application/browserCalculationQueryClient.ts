@@ -44,6 +44,7 @@ export function createBrowserCalculationQueryClient(options: {
   const pending = new Map<number, PendingRequest>()
   const queue: number[] = []
   const liveRuns = new Set<string>()
+  const runListeners = new Set<() => void>()
   const fingerprints = new Map<string, { browser: string; core: string }>()
   let worker: WorkerPort | null = null
   let workerReady = false
@@ -51,6 +52,10 @@ export function createBrowserCalculationQueryClient(options: {
   let generation = 0
   let activeRequestId: number | null = null
   let nextRequestId = 1
+
+  function notifyRunChange() {
+    for (const listener of runListeners) listener()
+  }
 
   function invalidate(error: Error) {
     generation += 1
@@ -71,8 +76,10 @@ export function createBrowserCalculationQueryClient(options: {
     pending.clear()
     queue.length = 0
     activeRequestId = null
+    const hadRuns = liveRuns.size > 0
     liveRuns.clear()
     fingerprints.clear()
+    if (hadRuns) notifyRunChange()
   }
 
   function ensureWorker() {
@@ -230,8 +237,9 @@ export function createBrowserCalculationQueryClient(options: {
   }
 
   function release(runId: string) {
-    liveRuns.delete(runId)
+    const hadRun = liveRuns.delete(runId)
     fingerprints.delete(runId)
+    if (hadRun) notifyRunChange()
     for (const [requestId, request] of pending) {
       if (request.runId !== runId) continue
       if (activeRequestId === requestId) {
@@ -252,6 +260,10 @@ export function createBrowserCalculationQueryClient(options: {
   return {
     releaseAccountDecisionRun: release,
     hasAccountDecisionRun: (runId) => liveRuns.has(runId),
+    subscribeAccountDecisionRuns(listener) {
+      runListeners.add(listener)
+      return () => runListeners.delete(listener)
+    },
     cancelActiveQuery: (runId) => {
       for (const [requestId, request] of pending) {
         if (request.runId !== runId) continue
@@ -276,6 +288,7 @@ export function createBrowserCalculationQueryClient(options: {
         await submit<Awaited<ReturnType<CalculationQueryClient['calculateAccountDecision']>>>(query)
       liveRuns.add(query.runId)
       fingerprints.set(query.runId, { browser, core: run.inputFingerprint })
+      notifyRunChange()
       return run
     },
     queryDecisionPortfolio: (query) => submit(query),

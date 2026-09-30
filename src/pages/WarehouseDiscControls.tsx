@@ -33,6 +33,7 @@ function WarehouseActionSummary({
           type="button"
           className={`warehouse-action-summary__item warehouse-action-summary__item--${action}${filters.action === action ? ' is-active' : ''}`}
           aria-pressed={filters.action === action}
+          disabled={!projection}
           aria-description={actionDescriptions[action]}
           title={actionDescriptions[action]}
           onClick={() =>
@@ -56,7 +57,7 @@ function WarehouseActionSummary({
                 ? '清理候选'
                 : warehouseActionLabels[action]}
           </span>
-          <strong>{projection?.counts[action] ?? 0}</strong>
+          <strong>{projection ? projection.counts[action] : '待分析'}</strong>
         </button>
       ))}
     </div>
@@ -82,7 +83,7 @@ export function WarehouseDiscControls({
   ownedAgentIds: Set<string>
   moreFilterCount: number
   hasFilters: boolean
-  projection: WarehouseActionProjection
+  projection: WarehouseActionProjection | null
 }) {
   const moreFiltersRef = useRef<HTMLDetailsElement>(null)
   useEffect(() => {
@@ -119,6 +120,7 @@ export function WarehouseDiscControls({
       品质与保护
       <PlayerSelect
         aria-label="品质与保护"
+        disabled={!projection}
         value={filters.qualityBasis}
         onChange={(value) =>
           updateFilters((current) => ({
@@ -150,7 +152,7 @@ export function WarehouseDiscControls({
       <WarehouseActionSummary
         filters={filters}
         updateFilters={updateFilters}
-        stale={projection.state === 'stale'}
+        stale={projection?.state === 'stale'}
         projection={projection}
       />
       <form
@@ -228,6 +230,7 @@ export function WarehouseDiscControls({
             适用角色
             <PlayerSelect
               aria-label="适用角色"
+              disabled={!projection}
               value={filters.fit}
               onChange={(value) => updateFilters((current) => ({ ...current, fit: value }))}
             >
@@ -262,6 +265,7 @@ export function WarehouseDiscControls({
                   用途范围
                   <PlayerSelect
                     aria-label="用途范围"
+                    disabled={!projection}
                     value={filters.useScope}
                     onChange={(value) =>
                       updateFilters((current) => ({
@@ -295,6 +299,7 @@ export function WarehouseDiscControls({
                   方案引用
                   <PlayerSelect
                     aria-label="方案引用"
+                    disabled={!projection}
                     value={filters.referenced}
                     onChange={(value) =>
                       updateFilters((current) => ({
@@ -312,6 +317,7 @@ export function WarehouseDiscControls({
                   核对状态
                   <PlayerSelect
                     aria-label="核对状态"
+                    disabled={!projection}
                     value={filters.review}
                     onChange={(value) =>
                       updateFilters((current) => ({

@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { type AccountDecisionRun, type CalculationQueryClient } from './calculationQueryContract'
 import { getActiveAccount } from '../accounts/repository'
 import { AppLoadingState } from '../components/AppEntryState'
+import { useAccountDecisionCalculation } from './useAccountDecisionCalculation'
+import { useAccountDecisionRunLiveness } from './useAccountDecisionRunLiveness'
 import {
   type AccountDecisionWorldContextValue,
   type RuntimeSelectionReader,
@@ -11,8 +13,6 @@ import {
   observeRuntimeSelection,
   loadWorldInput,
   accountDecisionNextAction,
-  createAccountDecisionRun,
-  retainOrCreateInitialAccountDecisionRun,
 } from './accountDecisionWorldModel'
 import {
   AccountDecisionWorldContext,
@@ -93,8 +93,6 @@ function AccountScopedDecisionWorldProvider({
     const input = await loadWorldInput()
     return input?.warehouse.accountId === accountId ? input : null
   }, [accountId])
-  const requestGeneration = useRef(0)
-  const activeRefreshGeneration = useRef<number | null>(null)
   const scope = useRef({ active: true, epoch: 0, runs: new Set<string>() })
   const scopedClient = useMemo<CalculationQueryClient>(() => {
     const state = scope.current
@@ -127,10 +125,12 @@ function AccountScopedDecisionWorldProvider({
         if (query.input.warehouse.accountId !== accountId)
           throw new Error('分析输入不属于当前账户。')
         let result: AccountDecisionRun | undefined
+        state.runs.add(query.runId)
         try {
           return await guarded(async () => {
-            state.runs.add(query.runId)
+            if (!state.runs.has(query.runId)) throw new Error('本次分析已取消，可重新分析。')
             result = await queryClient.calculateAccountDecision(query)
+            if (!state.runs.has(query.runId)) throw new Error('本次分析已取消，可重新分析。')
             return result
           })
         } catch (error) {
@@ -169,123 +169,38 @@ function AccountScopedDecisionWorldProvider({
     return () => {
       state.active = false
       state.epoch += 1
-      requestGeneration.current += 1
       for (const id of state.runs) queryClient.releaseAccountDecisionRun?.(id)
       state.runs.clear()
     }
   }, [queryClient])
-  const [run, setRun] = useState<AccountDecisionRun | null>(null)
-  const [calculationError, setCalculationError] = useState<string | null>(null)
   const [repairError, setRepairError] = useState<string | null>(null)
   const [runtimeSelectionRevision, setRuntimeSelectionRevision] = useState(0)
-  const runRef = useRef<AccountDecisionRun | null>(null)
   const runtimeObservation = useLiveQuery(
     () => observeRuntimeSelection(runtimeSelectionReader),
     [runtimeSelectionReader, runtimeSelectionRevision],
   )
+  const reviewRuntime = useCallback(() => setRuntimeSelectionRevision((current) => current + 1), [])
+  const {
+    run,
+    error: calculationError,
+    calculation,
+    cancelled,
+    refresh,
+    cancelCalculation,
+  } = useAccountDecisionCalculation({
+    accountId,
+    liveInput,
+    client: scopedClient,
+    runtimeObservation,
+    runtimeSelectionReader,
+    autoCalculate,
+    reviewRuntime,
+  })
   const liveFingerprint = useMemo(() => {
     if (!liveInput?.warehouse.accountId) return null
     return queryClient.fingerprintAccountDecisionInput(liveInput, run?.runId)
   }, [liveInput, queryClient, run?.runId])
-
-  useEffect(() => {
-    if (liveInput === undefined || runtimeObservation === undefined) return
-    let active = true
-    if (
-      runtimeObservation.status === 'error' ||
-      runtimeObservation.selection.status === 'unbound'
-    ) {
-      // Clear the synchronous ref before the next selection can be observed; React state is then
-      // cleared in the queued update to keep this subscription effect render-safe.
-      if (runRef.current) scopedClient.releaseAccountDecisionRun?.(runRef.current.runId)
-      runRef.current = null
-      queueMicrotask(() => {
-        if (!active) return
-        setRun(null)
-      })
-      return () => {
-        active = false
-      }
-    }
-    if (!liveInput || !liveFingerprint) {
-      queueMicrotask(() => {
-        if (!active) return
-        runRef.current = null
-        setRun(null)
-      })
-      return () => {
-        active = false
-      }
-    }
-    if (runRef.current || activeRefreshGeneration.current !== null) return
-    // The BOX landing page reads saved plans without needing a full warehouse
-    // decision. Its explicit Analyze action already calls refresh(). Starting
-    // that same calculation here blocks first paint and then repeats the work.
-    if (!autoCalculate) return
-    const generation = ++requestGeneration.current
-    void retainOrCreateInitialAccountDecisionRun(null, liveInput, scopedClient)
-      .then((next) => {
-        if (!active || generation !== requestGeneration.current) {
-          scopedClient.releaseAccountDecisionRun?.(next.runId)
-          return
-        }
-        runRef.current = next
-        setRun(next)
-        setCalculationError(null)
-      })
-      .catch((error: unknown) => {
-        if (active && generation === requestGeneration.current)
-          setCalculationError(readableCalculationError(error))
-      })
-    return () => {
-      active = false
-    }
-  }, [liveFingerprint, liveInput, scopedClient, runtimeObservation, autoCalculate])
-
-  const refresh = useCallback(async () => {
-    const generation = ++requestGeneration.current
-    activeRefreshGeneration.current = generation
-    let pendingRun: AccountDecisionRun | null = null
-    // Explicit refresh may immediately follow a committed save, before liveQuery
-    // re-renders. Read the source again instead of capturing the pre-save closure.
-    try {
-      const input = await loadWorldInput()
-      if (!input?.warehouse.accountId || input.warehouse.accountId !== accountId) return null
-      const runtime = await runtimeSelectionReader()
-      if (runtime.status === 'unbound') throw new Error(runtime.message)
-      const next = await createAccountDecisionRun(input, { client: scopedClient })
-      pendingRun = next
-      const latestInput = await loadWorldInput()
-      if (
-        generation !== requestGeneration.current ||
-        !scope.current.active ||
-        latestInput?.warehouse.accountId !== accountId ||
-        scopedClient.fingerprintAccountDecisionInput(latestInput) !==
-          scopedClient.fingerprintAccountDecisionInput(input)
-      ) {
-        scopedClient.releaseAccountDecisionRun?.(next.runId)
-        return null
-      }
-      if (runRef.current && runRef.current.runId !== next.runId)
-        scopedClient.releaseAccountDecisionRun?.(runRef.current.runId)
-      runRef.current = next
-      setRun(next)
-      setCalculationError(null)
-      return next
-    } catch (error) {
-      if (pendingRun && runRef.current?.runId !== pendingRun.runId)
-        scopedClient.releaseAccountDecisionRun?.(pendingRun.runId)
-      if (scope.current.active && generation === requestGeneration.current) {
-        setCalculationError(readableCalculationError(error))
-      }
-      return null
-    } finally {
-      if (activeRefreshGeneration.current === generation) {
-        activeRefreshGeneration.current = null
-        if (scope.current.active) setRuntimeSelectionRevision((current) => current + 1)
-      }
-    }
-  }, [accountId, scopedClient, runtimeSelectionReader])
+  const retained = useAccountDecisionRunLiveness(queryClient, run?.runId)
 
   const repairApplicationData = useCallback(async () => {
     if (
@@ -309,15 +224,27 @@ function AccountScopedDecisionWorldProvider({
   }, [refresh, runtimeObservation, repairRuntimeSelection])
 
   const value = useMemo<AccountDecisionWorldContextValue>(() => {
+    const common = {
+      refresh,
+      repairApplicationData,
+      liveInput,
+      calculation:
+        calculation ??
+        (liveInput === undefined
+          ? { phase: 'reading_account' as const, startedAt: null }
+          : runtimeObservation === undefined
+            ? { phase: 'preparing_rules' as const, startedAt: null }
+            : null),
+      calculationCancelled: cancelled,
+      cancelCalculation,
+    }
     if (runtimeObservation === undefined)
       return {
         status: 'loading',
         run: null,
         liveFingerprint: null,
         nextAction: null,
-        refresh,
-        repairApplicationData,
-        liveInput,
+        ...common,
       }
     if (runtimeObservation.status === 'error')
       return {
@@ -327,9 +254,7 @@ function AccountScopedDecisionWorldProvider({
         nextAction: null,
         message: runtimeObservation.message,
         canRepairApplicationData: false,
-        refresh,
-        repairApplicationData,
-        liveInput,
+        ...common,
       }
     if (runtimeObservation.selection.status === 'unbound')
       return {
@@ -339,9 +264,7 @@ function AccountScopedDecisionWorldProvider({
         nextAction: null,
         message: repairError ?? runtimeObservation.selection.message,
         canRepairApplicationData: repairRuntimeSelection !== null,
-        refresh,
-        repairApplicationData,
-        liveInput,
+        ...common,
       }
     if (calculationError)
       return {
@@ -351,9 +274,7 @@ function AccountScopedDecisionWorldProvider({
         nextAction: null,
         message: calculationError,
         canRepairApplicationData: false,
-        refresh,
-        repairApplicationData,
-        liveInput,
+        ...common,
       }
     if (liveInput === undefined)
       return {
@@ -361,9 +282,7 @@ function AccountScopedDecisionWorldProvider({
         run: null,
         liveFingerprint: null,
         nextAction: null,
-        refresh,
-        repairApplicationData,
-        liveInput,
+        ...common,
       }
     if (!liveInput || !liveFingerprint)
       return {
@@ -371,9 +290,7 @@ function AccountScopedDecisionWorldProvider({
         run: null,
         liveFingerprint: null,
         nextAction: null,
-        refresh,
-        repairApplicationData,
-        liveInput,
+        ...common,
       }
     if (!run || run.input.warehouse.accountId !== liveInput.warehouse.accountId)
       return {
@@ -381,11 +298,9 @@ function AccountScopedDecisionWorldProvider({
         run: null,
         liveFingerprint: null,
         nextAction: null,
-        refresh,
-        repairApplicationData,
-        liveInput,
+        ...common,
       }
-    const status = run.inputFingerprint === liveFingerprint ? 'current' : 'stale'
+    const status = run.inputFingerprint === liveFingerprint && retained ? 'current' : 'stale'
     return {
       status,
       run,
@@ -394,12 +309,14 @@ function AccountScopedDecisionWorldProvider({
         status === 'stale' ? 'stale' : run.claimStatus,
         run.decisionAuthority,
       ),
-      refresh,
-      repairApplicationData,
-      liveInput,
+      ...common,
     }
   }, [
     calculationError,
+    calculation,
+    cancelled,
+    cancelCalculation,
+    retained,
     liveFingerprint,
     liveInput,
     refresh,

@@ -182,7 +182,7 @@ describe('resolveRetentionUseFacts: sourced facts resolver', () => {
   })
 
   describe('6. basic/dash/aftershock: action-primary proof vs generic buttons', () => {
-    it('validates basic for primary rotation, aftershock for Shadow Harmony users, and avoids false tagging', () => {
+    it('validates source-bound primary rotations and avoids false action tagging', () => {
       // Ellen: basic attack primary rotation
       const ellenConstraint = getCandidateWarehouseConstraint('agent-ellen')!
       const ellenFacts = resolveRetentionUseFacts(ellenConstraint, 'agent-ellen')
@@ -191,7 +191,7 @@ describe('resolveRetentionUseFacts: sourced facts resolver', () => {
       expect(ellenFacts.actions.aftershock.state).toBe('incompatible')
       expect(ellenFacts.actions.aftershock.predicateId).toBe('no_aftershock_mechanic_in_kit')
 
-      // Soldier 0 Anby: Aftershock primary with Shadow Harmony
+      // Soldier 0 Anby: reviewed self Aftershock rotation, independent of set identity
       const soldier0Constraint = getCandidateWarehouseConstraint('agent-soldier-0-anby')!
       const soldier0Facts = resolveRetentionUseFacts(soldier0Constraint, 'agent-soldier-0-anby')
       expect(soldier0Facts.actions.aftershock.state).toBe('valid')
@@ -262,15 +262,15 @@ describe('resolveRetentionUseFacts: sourced facts resolver', () => {
       expect(facts.actions.aftershock.state).toBe('missing_fact')
     })
 
-    it('returns conditional for agents with aftershock mechanics without primary shadow harmony', () => {
+    it('keeps an unknown actor missing when only teammate text mentions aftershock', () => {
       const conditionalAftershock = syntheticConstraint({
         agentId: 'agent-custom-aftershock',
         setIds: ['set-woodpecker-electro'],
         teamAndBangbooPreconditions: ['队伍中有追加攻击队友时触发协同 aftershock'],
       })
       const facts = resolveRetentionUseFacts(conditionalAftershock, 'agent-custom-aftershock')
-      expect(facts.actions.aftershock.state).toBe('conditional')
-      expect(facts.actions.aftershock.predicateId).toBe('aftershock_conditional_activation')
+      expect(facts.actions.aftershock.state).toBe('missing_fact')
+      expect(facts.actions.aftershock.predicateId).toBe('aftershock_actor_action_contract_missing')
     })
   })
 })

@@ -51,6 +51,13 @@ export type AccountDecisionWorldContextValue = AccountDecisionWorld & {
   repairApplicationData: () => Promise<AccountDecisionRun | null>
   /** Current account records stay available to directory views while a captured calculation is stale. */
   liveInput: AccountDecisionWorldInput | null | undefined
+  /** Observable work only; it does not estimate a completion percentage. */
+  calculation?: {
+    phase: 'reading_account' | 'preparing_rules' | 'analyzing'
+    startedAt: number | null
+  } | null
+  calculationCancelled?: boolean
+  cancelCalculation?: () => void
 }
 
 export type RuntimeSelectionReader = () => Promise<CurrentGameDataRuntimeSelection>
