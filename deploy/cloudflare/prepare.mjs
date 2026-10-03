@@ -258,10 +258,14 @@ export async function prepare({ dist, out, accountId, name = 'app', origin }) {
       sourceInventorySha256: report.inventorySha256,
       staticHeadersSha256: hash(staticHeaders),
     }
-    await cp(resolve(here, 'edge.mjs'), resolve(output, 'edge.mjs'), {
-      errorOnExist: true,
-      force: false,
-    })
+    // Preserve module-relative imports and copy only the edge's reviewed policy dependency.
+    for (const path of ['deploy/cloudflare/edge.mjs', 'src/assets/reviewed32-media-urls.json']) {
+      await mkdir(dirname(resolve(output, path)), { recursive: true })
+      await cp(resolve(here, '../..', path), resolve(output, path), {
+        errorOnExist: true,
+        force: false,
+      })
+    }
     await writeFile(resolve(output, 'wrangler.json'), JSON.stringify(config, null, 2) + '\n')
     await writeFile(
       resolve(output, 'package.json'),

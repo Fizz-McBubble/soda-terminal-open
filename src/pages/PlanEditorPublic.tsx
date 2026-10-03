@@ -229,24 +229,22 @@ export function PlanEditor(props: PlanEditorProps) {
         kind === 'team' && targetTeamFit
           ? targetTeamFit.targetExecution
           : draft.teamExecutionSnapshot
-      const next = await persistPlanEditorDraft(
-        {
-          accountId: warehouse.accountId!,
-          draft,
-          nextPlanId,
-          approved,
-          team,
-          selectedBangbooId,
-          candidateWarehouse,
-          teamExecutionSnapshot,
-          teamEquipmentParameters: effectiveTeamParameters ?? undefined,
-          targetTeamFit,
-          inputFingerprint,
-          exactVariantKey,
-          profiles: profiles,
-          remainingSession,
-        },
-      )
+      const next = await persistPlanEditorDraft({
+        accountId: warehouse.accountId!,
+        draft,
+        nextPlanId,
+        approved,
+        team,
+        selectedBangbooId,
+        candidateWarehouse,
+        teamExecutionSnapshot,
+        teamEquipmentParameters: effectiveTeamParameters ?? undefined,
+        targetTeamFit,
+        inputFingerprint,
+        exactVariantKey,
+        profiles: profiles,
+        remainingSession,
+      })
       setDraft(next)
       setSaved(true)
       setDirty(false)

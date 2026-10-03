@@ -1,4 +1,7 @@
 /** Cloudflare edge only. No solver, player storage, or Railway fallback. */
+import reviewed32MediaUrls from '../../src/assets/reviewed32-media-urls.json' with { type: 'json' }
+
+const reviewedImageUrls = new Set(Object.values(reviewed32MediaUrls))
 const sources = [
   ['act-upload.mihoyo.com', '/nap-obc-indep/'],
   ['fastcdn.hoyoverse.com', '/content-v2/nap/'],
@@ -7,14 +10,16 @@ const sources = [
   ['i.gachabase.net', '/'],
   ['static.nanoka.cc', '/assets/zzz/IconRoleCrop'],
 ]
-// Same URL boundary as R17 production-static-server; the retired runtime stays unchanged.
-export function allowedImage(url) {
+// Share the reviewed immutable URLs with the browser and local image proxy.
+// Compare the original string so URL normalization cannot admit unreviewed paths.
+export function allowedImage(url, original = url.href) {
   return (
     url.protocol === 'https:' &&
     !url.username &&
     !url.password &&
     !url.port &&
-    sources.some(([host, prefix]) => url.hostname === host && url.pathname.startsWith(prefix))
+    (reviewedImageUrls.has(original) ||
+      sources.some(([host, prefix]) => url.hostname === host && url.pathname.startsWith(prefix)))
   )
 }
 function reply(status, body, headers = {}) {
@@ -93,7 +98,7 @@ export function createEdge({
       } catch {
         return reply(400, '素材地址无效')
       }
-      if (!allowedImage(remote)) return reply(403, '素材地址不在允许范围内')
+      if (!allowedImage(remote, values[0])) return reply(403, '素材地址不在允许范围内')
       if (active >= concurrency) return reply(429, '素材请求繁忙', { 'retry-after': '1' })
       active += 1
       try {
@@ -104,6 +109,7 @@ export function createEdge({
           if (![301, 302, 303, 307, 308].includes(upstream.status)) break
           const location = upstream.headers.get('location')
           await upstream.body?.cancel()
+          if (reviewedImageUrls.has(remote.href)) return unavailable(request.method)
           if (!location || hop === 3) return unavailable(request.method)
           remote = new URL(location, remote)
           if (!allowedImage(remote)) return unavailable(request.method)

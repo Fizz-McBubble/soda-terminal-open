@@ -205,6 +205,36 @@ describe('public service worker release cache lifecycle', () => {
     expect(worker.entries.get(name(current))!.has(workerAsset)).toBe(false)
   })
 
+  it.each(['open', 'keys'] as const)(
+    'recovers online with checked bytes when Cache Storage %s becomes unavailable',
+    async (operation) => {
+      const worker = createWorker()
+      await worker.dispatch('install')
+      worker.cacheApi[operation].mockRejectedValue(
+        new DOMException('Cache disabled', 'SecurityError'),
+      )
+      worker.fetcher.mockClear()
+      expect(await (await worker.asset(workerAsset))!.text()).toBe(`${current}:${workerAsset}`)
+      expect(await (await worker.asset('/assets/entry-abcd1234.js'))!.text()).toBe(
+        `${current}:/assets/entry-abcd1234.js`,
+      )
+      expect(
+        worker.fetcher.mock.calls.filter(([request]) => request === '/offline-shell-manifest.json'),
+      ).toHaveLength(1)
+      worker.fetcher.mockResolvedValueOnce(new Response('wrong-release-worker'))
+      await expect(worker.asset(workerAsset)).rejects.toThrow('critical_asset_release_mismatch')
+    },
+  )
+
+  it('refuses a different online release when cache access is unavailable', async () => {
+    const worker = createWorker()
+    await worker.dispatch('install')
+    worker.cacheApi.open.mockRejectedValue(new DOMException('Cache disabled', 'SecurityError'))
+    worker.fetcher.mockResolvedValueOnce(Response.json(manifest(r2)))
+    await expect(worker.asset(workerAsset)).rejects.toThrow('invalid_public_manifest')
+    expect(await (await worker.asset(workerAsset))!.text()).toBe(`${current}:${workerAsset}`)
+  })
+
   it.each(['/index.html', workerAsset, '/assets/entry-abcd1234.js'])(
     'rejects a mixed-release critical asset %s without activating or losing the legacy predecessor',
     async (corrupt) => {

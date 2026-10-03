@@ -1,7 +1,7 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "app",
-  "main": "./edge.mjs",
+  "main": "./deploy/cloudflare/edge.mjs",
   "compatibility_date": "2026-09-27",
   "workers_dev": true,
   "preview_urls": false,

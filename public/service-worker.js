@@ -5,6 +5,7 @@ const cacheName = `${cachePrefix}${releaseId}`
 const installBatchSize = 6
 const clientReleases = new Map()
 const completeReleases = new Set()
+let networkManifest
 
 function validRelease(value) {
   return typeof value === 'string' && /^[a-zA-Z0-9._-]{8,80}$/.test(value)
@@ -60,6 +61,20 @@ async function verifyAsset(response, expected) {
   ).join('')
   if (actual !== expected) throw new Error('critical_asset_release_mismatch')
   return response
+}
+
+function manifestWithoutCache() {
+  // Cache Storage can become unavailable after installation. Recover online using
+  // this worker's checked release manifest, never by skipping critical-byte checks.
+  if (!networkManifest)
+    networkManifest = checkedManifest().then(
+      ({ manifest }) => manifest,
+      (error) => {
+        networkManifest = undefined
+        throw error
+      },
+    )
+  return networkManifest
 }
 
 // A previous release is usable only if its install finished and its required assets remain.
@@ -224,24 +239,31 @@ self.addEventListener('fetch', (event) => {
   if (!allowedAsset(url.pathname)) return
   event.respondWith(
     (async () => {
-      if (clientReleases.get(event.clientId) !== releaseId) {
-        const old = await matchingOldAsset(request, event.clientId)
-        if (old) return old
-      }
-      const cache = await caches.open(cacheName)
-      const cached = await cache.match(request)
-      if (cached) return cached
-      if (clientReleases.get(event.clientId) === releaseId) {
-        const previous = await matchingOldAsset(request, event.clientId)
-        if (previous) return previous
+      let cache
+      let manifest
+      try {
+        if (clientReleases.get(event.clientId) !== releaseId) {
+          const old = await matchingOldAsset(request, event.clientId)
+          if (old) return old
+        }
+        cache = await caches.open(cacheName)
+        const cached = await cache.match(request)
+        if (cached) return cached
+        if (clientReleases.get(event.clientId) === releaseId) {
+          const previous = await matchingOldAsset(request, event.clientId)
+          if (previous) return previous
+        }
+        const stored = await cache.match('/offline-shell-manifest.json')
+        manifest = await stored?.json()
+      } catch {
+        cache = undefined
+        manifest = await manifestWithoutCache()
       }
       const network = await fetch(request)
       if (network.ok) {
-        const stored = await cache.match('/offline-shell-manifest.json')
-        const manifest = await stored?.json()
         if (manifest?.criticalAssetSha256?.[url.pathname])
           await verifyAsset(network, manifest.criticalAssetSha256[url.pathname])
-        if (manifest?.assets.includes(url.pathname))
+        if (cache && manifest?.assets.includes(url.pathname))
           event.waitUntil(cache.put(request, network.clone()).catch(() => {}))
       }
       return network

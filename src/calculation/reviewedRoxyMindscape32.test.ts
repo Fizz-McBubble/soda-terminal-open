@@ -1,3 +1,4 @@
+import { roxyPreparedState, roxyHeldConditions } from './reviewedRoxyPreparedAction32.testFixture'
 import { describe, expect, it } from 'vitest'
 import { createLevel60NeutralEffectRuntimeMember } from './currentPlanningEffectRuntime'
 import { currentNormalizedPlanningBaseline } from './currentNormalizedPlanningBaseline'
@@ -136,25 +137,8 @@ describe('Roxy M0–M6 source packet and shared arithmetic', () => {
       mindscape: 6,
       skillLevel: 12,
       holdDurationSeconds: 1,
-      preparedState: {
-        energy: 120,
-        energyCapacity: 120,
-        windEnergy: 3,
-        groundEyes: 0,
-        energyConsumptionAccumulator: 0,
-      },
-      conditions: {
-        directDamageContacts: true,
-        createdEyes: 3,
-        simultaneousHammerEyeContacts: 3,
-        hammerBeforeEyeExpiry: true,
-        eyeBlastContacts: 3,
-        giantWindstormContactSeconds: 1,
-        constantDamageState: true,
-        uninterruptedWhirlwind: true,
-        fullWhirlwindContact: true,
-        releaseWithoutJoystickMovement: true,
-      },
+      preparedState: roxyPreparedState(120),
+      conditions: roxyHeldConditions(),
     })
     expect(missingContact.status).toBe('unsupported')
   })

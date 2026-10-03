@@ -4,9 +4,11 @@ import { createHash } from 'node:crypto'
 import { cp, mkdtemp, mkdir, readFile, rm, symlink, truncate, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { dirname, join, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createEdge, allowedImage } from './edge.mjs'
 import { inspectDist, prepare } from './prepare.mjs'
+import reviewed32MediaUrls from '../../src/assets/reviewed32-media-urls.json' with { type: 'json' }
+import visualManifest from '../../src/assets/visual-assets-display.v1.json' with { type: 'json' }
 
 const checks = []
 const check = (name, run) => checks.push({ name, run })
@@ -118,6 +120,71 @@ check('missing/duplicate source rejected', async () => {
   for (const path of ['/official-catalog-cache', '/official-catalog-cache?source=a&source=b'])
     assert.equal((await createEdge().fetch(req(path), env)).status, 400)
 })
+check('every downloadable catalog source is accepted by the production edge', async () => {
+  const requested = []
+  const edge = createEdge({
+    fetcher: async (url) => {
+      requested.push(url)
+      return fakeImage()
+    },
+  })
+  const urls = visualManifest.assets
+    .filter(
+      (asset) =>
+        asset.status === 'verified' &&
+        asset.cachePolicy === 'explicit-personal-cache' &&
+        asset.remoteUrl,
+    )
+    .map((asset) => asset.remoteUrl)
+  for (const url of urls) {
+    const response = await edge.fetch(
+      req(`/official-catalog-cache?source=${encodeURIComponent(url)}`),
+      env,
+    )
+    assert.equal(response.status, 200, url)
+    assert.equal(response.headers.get('x-soda-asset-error'), null, url)
+  }
+  assert.deepEqual(requested, urls)
+  for (const url of Object.values(reviewed32MediaUrls)) assert(urls.includes(url), url)
+})
+check(
+  'reviewed image pins reject alternate paths, queries, credentials and redirects',
+  async () => {
+    const source = reviewed32MediaUrls['wengine-14161']
+    let requests = 0
+    const edge = createEdge({
+      fetcher: async () => {
+        requests += 1
+        return new Response(null, { status: 302, headers: { location: imageUrl } })
+      },
+    })
+    for (const invalid of [
+      source + '?raw=1',
+      source + '#x',
+      source.replace('3456cd0f6f5bea10e168074502460dac2fcd6df4', 'main'),
+      source.replace('CrimsonThirst/icon.png', 'CrimsonThirst/../CrimsonThirst/icon.png'),
+      source.replace('CrimsonThirst/icon.png', 'CrimsonThirst/%2e%2e/CrimsonThirst/icon.png'),
+      source.replace('https://', 'https://user@'),
+      source.replace('CrimsonThirst', 'Anything'),
+    ])
+      assert.equal(
+        (
+          await edge.fetch(
+            req(`/official-catalog-cache?source=${encodeURIComponent(invalid)}`),
+            env,
+          )
+        ).status,
+        403,
+      )
+    assert.equal(requests, 0)
+    const response = await edge.fetch(
+      req(`/official-catalog-cache?source=${encodeURIComponent(source)}`),
+      env,
+    )
+    assert.equal(response.headers.get('x-soda-asset-error'), 'upstream-unavailable')
+    assert.equal(requests, 1, 'A reviewed immutable source must not follow a redirect')
+  },
+)
 check('image bytes preserved; upstream cookies not forwarded', async () => {
   const response = await createEdge({ fetcher: async () => fakeImage() }).fetch(assetReq(), env)
   assert.deepEqual([...new Uint8Array(await response.arrayBuffer())], [1, 2, 3])
@@ -372,6 +439,13 @@ check('prepared config is assets-first and pinned; no automatic deployment', asy
   assert.equal(report.sourceInventorySha256.length, 64)
   assert.equal(report.staticHeadersSha256.length, 64)
   const config = JSON.parse(await readFile(join(out, 'wrangler.json')))
+  assert.equal(config.main, './deploy/cloudflare/edge.mjs')
+  assert.deepEqual(
+    JSON.parse(await readFile(join(out, 'src/assets/reviewed32-media-urls.json'))),
+    reviewed32MediaUrls,
+  )
+  const packagedEdge = await import(new URL(config.main, pathToFileURL(join(out, 'wrangler.json'))))
+  assert.equal(packagedEdge.allowedImage(new URL(reviewed32MediaUrls['agent-claret'])), true)
   assert.equal(config.assets.directory, './web')
   assert(Array.isArray(config.assets.run_worker_first))
   assert(!config.assets.run_worker_first.includes('/*'))
