@@ -1,3 +1,11 @@
+import {
+  formationKey,
+  recognitionIndex,
+  resolveCurrent31MainstreamRecognition,
+  type Current31MainstreamRecognition,
+} from './current31TeamMainstreamRecognition'
+export { resolveCurrent31MainstreamRecognition } from './current31TeamMainstreamRecognition'
+export type { Current31MainstreamRecognition } from './current31TeamMainstreamRecognition'
 import type { CurrentMetaStrengthBand } from '../teamEngine/contracts'
 import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
 import {
@@ -16,7 +24,13 @@ import {
   currentReviewedTeamSourceDirections,
 } from '../gameDataPacks/reviewedTeamSourceDirections'
 import { stableContentHash } from '../gameDataPacks/types'
-import { currentReleasedIdentityMap } from '../gameDataPacks/currentReleasedIdentityMap'
+import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
+import {
+  canApplyReviewedReferenceSupport32,
+  isExistingReviewed31Formation,
+  reviewedReferenceSupportContinuity32,
+} from '../gameDataPacks/reviewedReferenceSupportContinuity32'
+import { current31VariantRealityProfileSet } from './current31VariantRealityProfile'
 import {
   current31StrengthGoldSet,
   current31ReviewedStrengthEvidence,
@@ -51,71 +65,6 @@ const calibrationBandProjection: Record<CurrentMetaStrengthBand, TeamRatingBand>
   viable: 'B',
 }
 
-function formationKey(memberIds: readonly string[]) {
-  return [...memberIds].sort().join('|')
-}
-
-const mainstreamRecognitionByFormationKey = new Map(
-  currentReviewedTeamSourceDirections().map((item) => [
-    formationKey(item.memberIds),
-    {
-      evidenceRefs: item.sourceRefs.map((ref) => ref.url),
-      conditions: [...item.conditions],
-      sourceBangbooOptionIds: [...(item.sourceBangbooOptionIds ?? [])],
-      historicalReferenceOnly: item.sourceRefs.every(
-        (ref) => ref.verificationStatus === 'historical_membership_reference',
-      ),
-    },
-  ]),
-)
-
-const compatibilityNotesByFormationKey = new Map(
-  currentReviewedTeamCompatibilityNotes().map((item) => [formationKey(item.memberIds), item]),
-)
-
-export type Current31MainstreamRecognition = {
-  status: 'confirmed' | 'unknown'
-  evidenceRefs: string[]
-  explanation: string
-  conditions?: string[]
-  sourceBangbooOptionIds?: string[]
-  historicalReferenceOnly?: boolean
-}
-
-export function resolveCurrent31MainstreamRecognition(
-  memberIds: readonly [string, string, string],
-): Current31MainstreamRecognition {
-  const recognized = mainstreamRecognitionByFormationKey.get(formationKey(memberIds))
-  const note = compatibilityNotesByFormationKey.get(formationKey(memberIds))
-  const conditions = [...new Set([...(recognized?.conditions ?? []), ...(note?.conditions ?? [])])]
-  const evidenceRefs = [
-    ...new Set([
-      ...(recognized?.evidenceRefs ?? []),
-      ...(note?.sourceRefs.map((ref) => ref.url) ?? []),
-    ]),
-  ]
-  return recognized
-    ? {
-        status: 'confirmed',
-        evidenceRefs,
-        conditions,
-        sourceBangbooOptionIds: [...recognized.sourceBangbooOptionIds],
-        historicalReferenceOnly: recognized.historicalReferenceOnly,
-        explanation:
-          '当前已审阅配队来源收录该精确三人搭配；这只支持候选可达，不提供强度档位或排序。',
-      }
-    : {
-        status: 'unknown',
-        evidenceRefs,
-        conditions,
-        explanation: note
-          ? '来源讨论了该组合的适用性限制，未据此确认它为推荐方向。'
-          : '当前来源化主流识别目录未确认该精确三人组合；unknown 不等于 weak。',
-      }
-}
-
-// Recovered kernel bands are provenance diagnostics only. They cannot project a
-// product Team Strength for every eligible third-member expansion.
 const legacyDiagnosticByFormationKey = new Map(
   current31TeamEngineD1Pack.kernels.flatMap((kernel) => {
     const definition = current31MetaStrengthR1.kernelBands.find(
@@ -145,6 +94,7 @@ export function resolveCurrent31LegacyCalibrationDiagnostic(
 }
 
 export type Current31MetaCalibration = {
+  referenceContinuity?: typeof reviewedReferenceSupportContinuity32
   contract: typeof current31TeamStrengthCalibrationContractId
   status: 'aligned' | 'calibration_violation' | 'insufficient'
   authority:
@@ -207,16 +157,36 @@ export function deriveCurrent31MechanicValidity(
   return 'valid'
 }
 
+const continuitySourceHashes = [
+  ['strengthGold', stableContentHash(current31StrengthGoldSet)],
+  ['realityProfiles', stableContentHash(current31VariantRealityProfileSet)],
+  ['publishedStrength', stableContentHash(reviewedTeamPublishedStrength)],
+  ['editorialAnalysis', stableContentHash(reviewedTeamAnalysis)],
+] as const
+
 export function resolveCurrent31MetaCalibration(input: {
   memberIds: readonly [string, string, string]
   bangbooId: string | null
   predictedRating: TeamRatingResult
   benchmark: BenchmarkEvidence
+  sourceReviewVersion?: '3.1'
 }): Current31MetaCalibration {
+  const targetVersion = input.sourceReviewVersion ?? currentVersionProjection.gameVersion
+  const continued =
+    isExistingReviewed31Formation(input.memberIds) &&
+    continuitySourceHashes.every(([sourceKind, sourceContentHash]) =>
+      canApplyReviewedReferenceSupport32({
+        targetVersion,
+        sourceReviewVersion: '3.1',
+        sourceKind,
+        sourceContentHash,
+      }),
+    )
   const sourceProjection = (sourceStrengthBand: TeamRatingBand) => {
     const mechanicBand =
       input.predictedRating.status === 'rated' ? input.predictedRating.ratingBand : null
     return {
+      ...(continued ? { referenceContinuity: reviewedReferenceSupportContinuity32 } : {}),
       // The mechanism gate must be usable; equality with its legacy categorical
       // grade is not a strength-calibration gate (SPEC 4.12.2).
       status: mechanicBand === null ? ('calibration_violation' as const) : ('aligned' as const),
@@ -233,7 +203,8 @@ export function resolveCurrent31MetaCalibration(input: {
       },
     }
   }
-  const legacyEvidenceIsCurrent = currentReleasedIdentityMap.gameVersion === '3.1'
+  const reviewVersion = continued ? '3.1' : targetVersion
+  const legacyEvidenceIsCurrent = reviewVersion === '3.1'
   const strengthGold = legacyEvidenceIsCurrent
     ? resolveCurrent31StrengthGoldTeamCalibration(input.memberIds)
     : null
@@ -280,7 +251,7 @@ export function resolveCurrent31MetaCalibration(input: {
       explanation: `该精确三人依据 ${realityProfile.guideStanding}/${realityProfile.realityStanding} 的来源化类别事实进入公开规则；邦布不参与三人定档。`,
     }
   }
-  const published = resolveReviewedTeamPublishedStrength(input.memberIds)
+  const published = resolveReviewedTeamPublishedStrength(input.memberIds, reviewVersion)
   if (published.status === 'conflict')
     return {
       contract: current31TeamStrengthCalibrationContractId,
@@ -297,7 +268,7 @@ export function resolveCurrent31MetaCalibration(input: {
   if (
     published.status === 'supported' &&
     published.band &&
-    mainstreamRecognitionByFormationKey.has(formationKey(input.memberIds))
+    recognitionIndex(reviewVersion).has(formationKey(input.memberIds))
   ) {
     const projectedStrengthBand = published.band
     return {
@@ -315,8 +286,8 @@ export function resolveCurrent31MetaCalibration(input: {
       explanation: published.explanation,
     }
   }
-  const analysis = resolveReviewedTeamAnalysis(input.memberIds)
-  const recognized = mainstreamRecognitionByFormationKey.get(formationKey(input.memberIds))
+  const analysis = resolveReviewedTeamAnalysis(input.memberIds, reviewVersion)
+  const recognized = recognitionIndex(reviewVersion).get(formationKey(input.memberIds))
   if (
     analysis &&
     recognized &&
@@ -412,11 +383,20 @@ export function projectCurrent31TeamStrength(input: {
   benchmark: BenchmarkEvidence
   /** Offline fit/holdout collection must not read inferred labels. */
   reviewedOnly?: boolean
+  /** Explicit immutable source-label version for offline collection only. */
+  sourceReviewVersion?: '3.1'
 }) {
   const mechanicValidity = deriveCurrent31MechanicValidity(input.featureVector)
-  const mainstreamRecognition = resolveCurrent31MainstreamRecognition(input.memberIds)
+  const mainstreamRecognition = resolveCurrent31MainstreamRecognition(
+    input.memberIds,
+    input.reviewedOnly ? input.sourceReviewVersion : undefined,
+  )
   const metaCalibration = inferredStrengthCalibration(
-    resolveCurrent31MetaCalibration({ ...input, predictedRating: input.mechanicRating }),
+    resolveCurrent31MetaCalibration({
+      ...input,
+      sourceReviewVersion: input.reviewedOnly ? input.sourceReviewVersion : undefined,
+      predictedRating: input.mechanicRating,
+    }),
     input.memberIds,
     input.reviewedOnly || mechanicValidity === 'invalid',
   )
@@ -476,6 +456,8 @@ export function projectCurrent31TeamStrength(input: {
 
 export const current31TeamStrengthCalibrationBoundary = Object.freeze({
   contract: current31TeamStrengthCalibrationContractId,
+  // Requested eligibility target, not an upgrade of any imported source review.
+  sourceReviewVersion: currentVersionProjection.gameVersion,
   // Included in Account Decision fingerprints so old status projections go stale.
   mechanicBandComparisonPolicy: 'exact-three-strength-bangboo-independent-v3',
   publishedStrengthFingerprint: stableContentHash(reviewedTeamPublishedStrength),
@@ -489,7 +471,7 @@ export const current31TeamStrengthCalibrationBoundary = Object.freeze({
   sourceBackedFormationCount: legacyDiagnosticByFormationKey.size,
   strengthGoldCalibrationCaseCount: current31StrengthGoldSet.calibrationCases.length,
   strengthGoldIndependentHoldoutCaseCount: current31StrengthGoldSet.independentHoldoutCases.length,
-  mainstreamRecognitionFormationCount: mainstreamRecognitionByFormationKey.size,
+  mainstreamRecognitionFormationCount: recognitionIndex(currentVersionProjection.gameVersion).size,
   reviewedTeamSourceFingerprint: stableContentHash(currentReviewedTeamSourceDirections()),
   reviewedTeamCompatibilityFingerprint: stableContentHash(currentReviewedTeamCompatibilityNotes()),
   recoveredCalibrationLineage: current31MetaStrengthR1Lineage,

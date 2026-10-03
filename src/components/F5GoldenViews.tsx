@@ -19,6 +19,8 @@ type F5HomeGoldenViewProps = {
   primaryAction: { label: string; route: string }
   nextSignal: { label: string; summary: string }
   heroSrc: string
+  heroSrcSet?: string
+  recoveryAction?: { label: string; route: string }
   discArtUrls: string[]
   readiness: {
     stateLabel: string
@@ -42,6 +44,8 @@ export function F5HomeGoldenView({
   primaryAction,
   nextSignal,
   heroSrc,
+  heroSrcSet,
+  recoveryAction,
   discArtUrls,
   readiness,
   assetAction,
@@ -66,6 +70,11 @@ export function F5HomeGoldenView({
             <Link className="home-primary-action" to={primaryAction.route}>
               {primaryAction.label} <span aria-hidden="true">→</span>
             </Link>
+            {recoveryAction ? (
+              <Link className="home-secondary-action" to={recoveryAction.route}>
+                {recoveryAction.label}
+              </Link>
+            ) : null}
           </div>
           <div className="home-next-signal" aria-label="接下来">
             <span>接下来</span>
@@ -82,6 +91,12 @@ export function F5HomeGoldenView({
           <img
             className="home-version-hero"
             src={heroSrc}
+            srcSet={heroSrcSet}
+            sizes="(max-width: 960px) 90vw, (max-width: 1400px) 530px, 690px"
+            width={1536}
+            height={2048}
+            fetchPriority="high"
+            decoding="async"
             alt="蕾米埃尔版本主视觉"
             draggable="false"
           />

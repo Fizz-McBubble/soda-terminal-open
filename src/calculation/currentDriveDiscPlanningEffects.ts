@@ -53,6 +53,8 @@ export function driveDiscEffectProtectionOwner(effect: {
 export function compileCurrentDriveDiscPlanningEffects(input: {
   members: readonly PlanningEffectRuntimeMember[]
   loadouts: readonly { agentId: string; discs: readonly { setId: string }[] }[]
+  /** Only supplied by the named prepared model; omission remains unknown. */
+  preparedQuickAssist?: 'none_in_preceding_15s_or_counted_events'
 }) {
   const buckets: SourceBackedEquipmentModifierBucket[] = []
   const exclusions: Array<{
@@ -99,12 +101,20 @@ export function compileCurrentDriveDiscPlanningEffects(input: {
         flags['PolarMetal:freeze_shatter'] = false
         exclude('unobserved_condition', ['PolarMetal:freeze_shatter'])
       }
+      // Source text: stacks require a Quick Assist within 15s. This exact
+      // preparation explicitly has none; zero is proven, never a missing-value default.
+      const knownInactiveAstral =
+        input.preparedQuickAssist === 'none_in_preceding_15s_or_counted_events' &&
+        source.upstreamKey === 'AstralVoice' &&
+        source.fourPieceFormula.sha256 ===
+          sharedDiscProtectionSources['set-astral-voice'].formulaSha256
       const result = resolveCurrentDriveDiscFourPieceContract({
         stableId: setId,
         equippedPieces: count,
         runtimePolicy: 'exclude_unobserved',
         runtime: {
           flags,
+          accumulators: knownInactiveAstral ? { 'AstralVoice:astral': 0 } : {},
           numbers: {
             'own.initial.def': member.initialStats.def,
             'own.final.anomMas': member.finalStats.anomMas,
@@ -120,7 +130,7 @@ export function compileCurrentDriveDiscPlanningEffects(input: {
         continue
       }
       for (const item of result.exclusions) exclude('unobserved_condition', item.reasons)
-      if (!result.effects.length && !result.exclusions.length)
+      if (!result.effects.length && !result.exclusions.length && !knownInactiveAstral)
         exclude('static_condition_not_met', requirements.flags.concat(requirements.numbers))
       for (const [index, effect] of result.effects.entries()) {
         const stat = String(effect.stat)
@@ -163,6 +173,7 @@ export function compileCurrentDriveDiscPlanningEffects(input: {
     status: blockers.length ? ('unsupported' as const) : ('supported' as const),
     buckets,
     exclusions,
+    preparedQuickAssist: input.preparedQuickAssist ?? null,
     blockers,
     boundary:
       '仅消费固定比较基线中可证明的四件套直接伤害效果；未观测触发、叠层、时窗及非直接伤害效果逐项排除。没有模拟全队四件套联动或证明18盘最优。',

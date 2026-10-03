@@ -1,4 +1,7 @@
 import type { AccountRoster } from '../assault/types'
+import type { PlanningEffectRuntimeStats } from '../calculation/currentPlanningEffectDomain'
+import { evaluateSourceBoundSheerForce32 } from '../calculation/currentSourceBoundSheerForce32'
+import { resolveCurrentAgentCoreGrowth } from '../gameDataPacks/panel/currentPanelData'
 import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
 import {
   hasLegalSixDriveDiscs,
@@ -7,6 +10,15 @@ import {
 import type { DriveDisc, StatKey } from '../domain/schemas'
 import { resolveCurrentDriveDiscTwoPieceModifiers } from '../gameDataPacks/currentDriveDiscFormulaCatalog'
 import { getCurrentWEngineStaticData } from '../gameDataPacks/currentWEngineStaticCatalog'
+import {
+  currentFormulaBaseStats,
+  currentFormulaBaseStatsSource,
+} from '../gameDataPacks/currentFormulaBaseStats'
+import {
+  calculateWEngineBaseStatExact,
+  calculateWEngineSecondaryStat,
+  defaultAscensionForLevel,
+} from '../gameDataPacks/panel/wEngineGrowth'
 
 export type NormalizedPercentageStat = 'hp' | 'atk' | 'def' | 'impact' | 'anomMas' | 'enerRegen'
 
@@ -34,6 +46,7 @@ export function addStaticTwoPieceModifiers(input: {
     penetrationRatio: (value: number) => void
   }
   damageBonus: { value: number }
+  damageBonusesByAttribute?: Record<string, number>
   actionDamageBonuses: Array<{ actionTypes: readonly string[]; value: number }>
 }) {
   const setCounts = new Map<string, number>()
@@ -93,6 +106,10 @@ export function addStaticTwoPieceModifiers(input: {
       if (modifier.stat === 'anomProf') input.add.anomalyProficiency(modifier.value)
       if (modifier.stat === 'pen_') input.add.penetrationRatio(modifier.value)
       if (modifier.stat === `${input.attribute}_dmg_`) input.damageBonus.value += modifier.value
+      if (elementalDamageTwoPieceStats.has(modifier.stat) && input.damageBonusesByAttribute) {
+        const attribute = modifier.stat.slice(0, -5)
+        input.damageBonusesByAttribute[attribute] += modifier.value
+      }
       if (modifier.stat === 'action_dmg_')
         input.actionDamageBonuses.push({
           actionTypes: modifier.actionTypes!,
@@ -137,42 +154,127 @@ export function projectNormalizedAccountFinalStatsDetailed(input: {
     return { status: 'unsupported' as const, reasons: ['当前试算未找到该代理人的静态数据。'] }
   if (!engine)
     return { status: 'unsupported' as const, reasons: ['当前试算未找到该方案音擎的静态数据。'] }
-  if (input.agent.level !== 60)
-    return { status: 'unsupported' as const, reasons: ['当前试算仅支持 60 级代理人。'] }
+
+  const agentLevel = input.agent.level
+  if (!Number.isInteger(agentLevel) || agentLevel < 1 || agentLevel > 60)
+    return { status: 'unsupported' as const, reasons: ['代理人等级必须在 1 到 60 之间。'] }
   if (!hasLegalSixDriveDiscs(input.discs))
     return { status: 'unsupported' as const, reasons: ['需关联六张不同盘位、合法等级的驱动盘。'] }
-  const promotion = contract.promotionStats[5]
+
+  const explicitAscension = (input.agent as { ascension?: unknown }).ascension
+  let agentAscension: number
+  if (explicitAscension !== undefined && explicitAscension !== null) {
+    if (
+      typeof explicitAscension !== 'number' ||
+      !Number.isInteger(explicitAscension) ||
+      explicitAscension < 0 ||
+      explicitAscension > 5
+    ) {
+      return { status: 'unsupported' as const, reasons: ['代理人突破阶段必须在 0 到 5 之间。'] }
+    }
+    agentAscension = explicitAscension
+  } else {
+    agentAscension = defaultAscensionForLevel(agentLevel)
+  }
+
+  const promotion = contract.promotionStats[agentAscension]
   if (!promotion)
     return {
       status: 'unsupported' as const,
-      reasons: ['当前试算缺少该代理人的 60 级突破数据。'],
+      reasons: [`当前试算缺少该代理人的突破阶段 ${agentAscension} 数据。`],
     }
+
+  const explicitEngineLevel = input.agent.wEngineDetails?.level
+  let engineLevel: number
+  if (explicitEngineLevel !== undefined && explicitEngineLevel !== null) {
+    if (
+      typeof explicitEngineLevel !== 'number' ||
+      !Number.isInteger(explicitEngineLevel) ||
+      explicitEngineLevel < 1 ||
+      explicitEngineLevel > 60
+    ) {
+      return { status: 'unsupported' as const, reasons: ['音擎等级必须在 1 到 60 之间。'] }
+    }
+    engineLevel = explicitEngineLevel
+  } else {
+    engineLevel = agentLevel
+  }
+
+  const explicitEngineAscension = (input.agent.wEngineDetails as { ascension?: unknown })?.ascension
+  let engineAscension: number
+  if (explicitEngineAscension !== undefined && explicitEngineAscension !== null) {
+    if (
+      typeof explicitEngineAscension !== 'number' ||
+      !Number.isInteger(explicitEngineAscension) ||
+      explicitEngineAscension < 0 ||
+      explicitEngineAscension > 5
+    ) {
+      return { status: 'unsupported' as const, reasons: ['音擎突破阶段必须在 0 到 5 之间。'] }
+    }
+    engineAscension = explicitEngineAscension
+  } else {
+    engineAscension = defaultAscensionForLevel(engineLevel)
+  }
+
+  const isLv60Engine = engineLevel === 60 && engineAscension === 5
+  const engineBaseValue = calculateWEngineBaseStatExact(
+    engine.staticStats.baseStat.value,
+    engineLevel,
+    engineAscension,
+  )
+
+  const engineSecondaryValue = isLv60Engine
+    ? engine.staticStats.level60SecondaryValue
+    : calculateWEngineSecondaryStat(
+        engine.staticStats.secondaryStatBaseValue,
+        engineLevel,
+        engineAscension,
+      )
+
+  const engineBaseAttack = engine.staticStats.baseStat.key === 'atk' ? engineBaseValue : 0
+  const engineBaseDefense = engine.staticStats.baseStat.key === 'def' ? engineBaseValue : 0
+
+  const coreGrowth = resolveCurrentAgentCoreGrowth({
+    agentId: input.agent.agentId,
+    coreLevel: input.agent.skillLevels?.core ?? Number.NaN,
+    basis: 'source_growth',
+  })
+  if (coreGrowth.status === 'unsupported')
+    return { status: 'unsupported' as const, reasons: [coreGrowth.reason] }
+  const core = coreGrowth.values
+
   const percentages = emptyNormalizedPercentages()
   let attackFlat = 0
   let hpFlat = 0
   let defenseFlat = 0
-  let critRate = 0.05
-  let critDamage = 0.5
-  let anomalyProficiency = contract.baseStats.anomProf
-  let penetrationRatio = 0
+  percentages.hp += (core.hpPercent ?? 0) / 100
+  percentages.atk += (core.atkPercent ?? 0) / 100
+  percentages.impact += (core.impactPercent ?? 0) / 100
+  percentages.anomMas += (core.anomalyMasteryPercent ?? 0) / 100
+  percentages.enerRegen += (core.energyRegenPercent ?? 0) / 100
+  let critRate = currentFormulaBaseStats.critRate + (core.critRate ?? 0) / 100
+  let critDamage = currentFormulaBaseStats.critDamage + (core.critDamage ?? 0) / 100
+  let anomalyProficiency = contract.baseStats.anomProf + (core.anomalyProficiency ?? 0)
+  let penetrationRatio = (core.penRatio ?? 0) / 100
   let penetration = 0
   const damageBonus = { value: 0 }
+  const damageBonusesByAttribute = Object.fromEntries(
+    [...elementalDamageTwoPieceStats].map((key) => [key.slice(0, -5), 0]),
+  )
   const actionDamageBonuses: Array<{ actionTypes: readonly string[]; value: number }> = []
+
   const secondary = engine.staticStats
-  if (secondary.secondaryStatKey === 'hp_') percentages.hp += secondary.level60SecondaryValue
-  if (secondary.secondaryStatKey === 'atk_') percentages.atk += secondary.level60SecondaryValue
-  if (secondary.secondaryStatKey === 'def_') percentages.def += secondary.level60SecondaryValue
-  if (secondary.secondaryStatKey === 'impact_')
-    percentages.impact += secondary.level60SecondaryValue
-  if (secondary.secondaryStatKey === 'anomMas_')
-    percentages.anomMas += secondary.level60SecondaryValue
-  if (secondary.secondaryStatKey === 'enerRegen_')
-    percentages.enerRegen += secondary.level60SecondaryValue
-  if (secondary.secondaryStatKey === 'crit_') critRate += secondary.level60SecondaryValue
-  if (secondary.secondaryStatKey === 'crit_dmg_') critDamage += secondary.level60SecondaryValue
-  if (secondary.secondaryStatKey === 'anomProf')
-    anomalyProficiency += secondary.level60SecondaryValue
-  if (secondary.secondaryStatKey === 'pen_') penetrationRatio += secondary.level60SecondaryValue
+  if (secondary.secondaryStatKey === 'hp_') percentages.hp += engineSecondaryValue
+  if (secondary.secondaryStatKey === 'atk_') percentages.atk += engineSecondaryValue
+  if (secondary.secondaryStatKey === 'def_') percentages.def += engineSecondaryValue
+  if (secondary.secondaryStatKey === 'impact_') percentages.impact += engineSecondaryValue
+  if (secondary.secondaryStatKey === 'anomMas_') percentages.anomMas += engineSecondaryValue
+  if (secondary.secondaryStatKey === 'enerRegen_') percentages.enerRegen += engineSecondaryValue
+  if (secondary.secondaryStatKey === 'crit_') critRate += engineSecondaryValue
+  if (secondary.secondaryStatKey === 'crit_dmg_') critDamage += engineSecondaryValue
+  if (secondary.secondaryStatKey === 'anomProf') anomalyProficiency += engineSecondaryValue
+  if (secondary.secondaryStatKey === 'pen_') penetrationRatio += engineSecondaryValue
+
   const damageKey = `${contract.identity.attribute}_dmg` as StatKey
   for (const disc of input.discs) {
     const main = resolveDriveDiscMainStatValue(disc)
@@ -188,6 +290,11 @@ export function projectNormalizedAccountFinalStatsDetailed(input: {
       if (stat.stat === 'crit_rate') critRate += value / 100
       if (stat.stat === 'crit_dmg') critDamage += value / 100
       if (stat.stat === damageKey) damageBonus.value += value / 100
+      if (stat.stat.endsWith('_dmg')) {
+        const attribute = stat.stat.slice(0, -4)
+        if (Object.hasOwn(damageBonusesByAttribute, attribute))
+          damageBonusesByAttribute[attribute] += value / 100
+      }
       if (stat.stat === 'anomaly_mastery') percentages.anomMas += value / 100
       if (stat.stat === 'anomaly_proficiency') anomalyProficiency += value
       if (stat.stat === 'pen') penetration += value
@@ -207,54 +314,117 @@ export function projectNormalizedAccountFinalStatsDetailed(input: {
       penetrationRatio: (value) => (penetrationRatio += value),
     },
     damageBonus,
+    damageBonusesByAttribute,
     actionDamageBonuses,
   })
+
   const characterAttack =
-    contract.baseStats.atk_base + contract.baseStats.atk_growth * 59 + promotion.atk
-  const characterHp = contract.baseStats.hp_base + contract.baseStats.hp_growth * 59 + promotion.hp
+    contract.baseStats.atk_base +
+    contract.baseStats.atk_growth * (agentLevel - 1) +
+    promotion.atk +
+    (core.atk ?? 0)
+  const characterHp =
+    contract.baseStats.hp_base +
+    contract.baseStats.hp_growth * (agentLevel - 1) +
+    promotion.hp +
+    (core.hp ?? 0)
   const characterDefense =
-    contract.baseStats.def_base + contract.baseStats.def_growth * 59 + promotion.def
-  const attack =
-    (characterAttack + engine.staticStats.level60BaseAttack) * (1 + percentages.atk) + attackFlat
-  const initialAttack = characterAttack + engine.staticStats.level60BaseAttack
-  const initialStats = {
-    atk: initialAttack,
-    def: characterDefense,
-    hp: characterHp,
-    crit_: 0.05,
-    crit_dmg_: 0.5,
-    anomMas: contract.baseStats.anomMas,
-    anomProf: contract.baseStats.anomProf,
-    impact: contract.baseStats.impact,
-    pen_: 0,
-    enerRegen: contract.baseStats.enerRegen,
+    contract.baseStats.def_base + contract.baseStats.def_growth * (agentLevel - 1) + promotion.def
+
+  const initialAttack = characterAttack + engineBaseAttack
+  const initialDefense = characterDefense + engineBaseDefense
+
+  const attack = initialAttack * (1 + percentages.atk) + attackFlat
+  const defense = initialDefense * (1 + percentages.def) + defenseFlat
+
+  const baseAttack = initialAttack
+  const baseDefense = initialDefense
+  const { sharpDamageBonus, lacerationDamage } = currentFormulaBaseStats
+
+  // Upstream `initial` is the completed unconditional static panel, before
+  // combat modifiers. The separate base fields retain the growth/engine base.
+  // Do not clip CR here: the sharp formula has a second roll above 100%.
+  const initialStats: PlanningEffectRuntimeStats = {
+    atk: attack,
+    def: defense,
+    hp: characterHp * (1 + percentages.hp) + hpFlat,
+    crit_: Math.max(0, critRate),
+    crit_dmg_: Math.max(0, critDamage),
+    anomMas: (contract.baseStats.anomMas + (core.anomalyMastery ?? 0)) * (1 + percentages.anomMas),
+    anomProf: anomalyProficiency,
+    impact: (contract.baseStats.impact + (core.impact ?? 0)) * (1 + percentages.impact),
+    pen_: penetrationRatio,
+    enerRegen:
+      (contract.baseStats.enerRegen + (core.energyRegenFlat ?? 0)) * (1 + percentages.enerRegen),
+    baseAttack,
+    baseDefense,
+    sharpDamageBonus,
+    lacerationDamage,
+  }
+  if (contract.identity.specialty === 'rupture') {
+    const sheer = evaluateSourceBoundSheerForce32({
+      agentId: input.agent.agentId,
+      level: agentLevel,
+      coreLevel: input.agent.skillLevels?.core ?? Number.NaN,
+      initialStats,
+      finalStats: initialStats,
+    })
+    if (sheer.status === 'unsupported')
+      return { status: 'unsupported' as const, reasons: sheer.blockers }
+    initialStats.sheerForce = sheer.sheerForce
+    initialStats.sheerForceBasis = {
+      kind: 'source_derived_static',
+      bindingHash: sheer.bindingHash,
+      sourceRefs: sheer.sourceRefs,
+    }
   }
   const finalStats = {
     ...initialStats,
     atk: attack,
-    def: characterDefense * (1 + percentages.def) + defenseFlat,
+    def: defense,
     hp: characterHp * (1 + percentages.hp) + hpFlat,
-    crit_: Math.min(1, Math.max(0, critRate)),
+    crit_: Math.max(0, critRate),
     crit_dmg_: Math.max(0, critDamage),
-    anomMas: contract.baseStats.anomMas * (1 + percentages.anomMas),
+    anomMas: initialStats.anomMas,
     anomProf: anomalyProficiency,
-    impact: contract.baseStats.impact * (1 + percentages.impact),
+    impact: initialStats.impact,
     pen_: penetrationRatio,
-    enerRegen: contract.baseStats.enerRegen * (1 + percentages.enerRegen),
+    enerRegen: initialStats.enerRegen,
     damageBonus: Math.max(0, damageBonus.value),
+    damageBonusesByAttribute,
     pen: penetration,
     actionDamageBonuses,
+    defense,
+    baseDefense,
+    baseAttack,
+    level: agentLevel,
+    lacerationDamage,
+    sharpDamageBonus,
   }
   const stats = {
     attack,
-    critRate: Math.min(1, Math.max(0, critRate)),
+    defense,
+    baseHp: characterHp,
+    baseAttack,
+    baseDefense,
+    level: agentLevel,
+    critRate: Math.max(0, critRate),
     critDamage: Math.max(0, critDamage),
     damageBonus: Math.max(0, damageBonus.value),
+    lacerationDamage,
+    sharpDamageBonus,
+    progression: { agentLevel, agentAscension, engineLevel, engineAscension },
+    baseStatsSource: currentFormulaBaseStatsSource,
+    coreGrowth: {
+      ...coreGrowth,
+      coreIncluded: true as const,
+      coreLevel: input.agent.skillLevels.core,
+    },
     initialStats,
     finalStats,
     twoPieceProjection,
     boundary:
-      '角色 60 级来源成长 + 方案音擎 60 级静态值 + 六张实体盘；角色核心、音擎被动与条件四件套在 R1 基线中显式不激活。已知护盾/失衡二件套不属于固定直接伤害或局外面板字段，作为排除项保留。',
+      '角色来源成长 + 一条累计核心静态成长 + 方案音擎静态值 + 六张实体盘；来源贯穿力初始转换单独纳入，其他核心战斗效果、音擎被动与条件四件套仍显式排除。未复用含核心与影画的菜单观测锚，不宣称完整战斗面板资格。',
   }
   if (twoPieceProjection.status === 'partial')
     return {

@@ -1,12 +1,18 @@
 import {
+  currentFormulaBaseStats,
+  currentFormulaBaseStatsSource,
+} from '../gameDataPacks/currentFormulaBaseStats'
+import {
   currentBangbooNumericCatalog,
   projectCurrentBangbooStats,
 } from '../gameDataPacks/currentBangbooNumericCatalog'
 import { stableContentHash } from '../gameDataPacks/types'
+import { isSourceRateEvent32, sourceEventQuantityIdentity32 } from './sourceEventQuantity32'
 import { current31LegalAgentFormations } from '../teamEngine/current31LegalCandidateUniverse'
 import { getCurrentAgentDecisionMechanicContract } from './currentAgentDecisionMechanicContracts'
 import {
   currentAgentEventContracts,
+  currentAgentMechanicIdentity,
   evaluateCurrentAgentTeamActivation,
   getCurrentAgentEventContract,
   resolveCurrentAgentEvent,
@@ -20,26 +26,28 @@ import type {
   PlanningEventUsage,
 } from './planningCalculationContextCompiler'
 import { directDamageCoreVersion } from './directDamageCore'
+import { damageFormula32Identity } from './sharpDamageCore'
 import { currentDriveDiscFormulaCatalog } from '../gameDataPacks/currentDriveDiscFormulaCatalog'
 import { currentWEngineStaticCatalog } from '../gameDataPacks/currentWEngineStaticCatalog'
 import { driveDiscData } from '../data/gameData'
 import { currentFormulaMechanicContractHash } from './currentFormulaMechanicContracts'
 
 export const currentNormalizedPlanningModelBoundary =
-  '同一 30 秒固定事件比较基线；只计具名代表动作的来源倍率。条件式角色效果全部显式排除，不补零、不伪造效果数值，也不等同实战循环。'
+  '同一30秒固定事件比较基线；已审核的3.2来源动作优先，其余沿用具名代表动作。每秒倍率按声明秒数计量；只有明确准备态或事件条件进入效果公式，未观测条件显式排除，不等同实战循环。'
+
+const normalizedBaselineId = `soda-${currentAgentMechanicIdentity.gameVersion}-normalized-fixed-event-r1`
 
 export const currentBangbooFixedEventObservation = Object.freeze({
   activeUseCount: 1 as const,
   chainUseCount: 1 as const,
   durationSeconds: 30 as const,
   authority: 'declared_candidate_fixed_event_comparison' as const,
-  sourceRefs: [
-    'planning-baseline:soda-3.1-phase-ii-normalized-fixed-event-r1:bangboo-active-chain-once',
-  ],
+  sourceRefs: [`planning-baseline:${normalizedBaselineId}:bangboo-active-chain-once`],
 })
 
 const normalizedSourcePackHash = stableContentHash({
   agents: currentAgentEventContracts.map((item) => [item.stableId, item.source.formulaSha256]),
+  formulaBaseStats: { values: currentFormulaBaseStats, source: currentFormulaBaseStatsSource },
   agentStaticStats: currentAgentEventContracts.map((item) => [item.stableId, item.baseStats]),
   wEngineStaticCatalog: currentWEngineStaticCatalog.contentHash,
   driveDiscFormulaCatalog: currentDriveDiscFormulaCatalog.contentHash,
@@ -49,8 +57,8 @@ const normalizedSourcePackHash = stableContentHash({
 
 export const currentNormalizedPlanningBaseline = Object.freeze({
   schemaVersion: 'planning-baseline-v1' as const,
-  baselineId: 'soda-3.1-phase-ii-normalized-fixed-event-r1',
-  gameVersion: '3.1',
+  baselineId: normalizedBaselineId,
+  gameVersion: currentAgentMechanicIdentity.gameVersion,
   phaseId: 'normalized-fixed-event-comparison',
   declaredDurationSeconds: 30,
   bangbooFixedEventObservation: currentBangbooFixedEventObservation,
@@ -67,10 +75,12 @@ export const currentNormalizedPlanningBaseline = Object.freeze({
     family: 'normalized_fixed_event_direct_potential',
     sourcePackHash: normalizedSourcePackHash,
     directDamageCoreVersion,
-    staticProjection: 'level60-promotion-equipment-static-v2',
+    typedDamageFormula32: damageFormula32Identity,
+    staticProjection: 'actual-level-typed-base-full-initial-static-v3',
     penetration: 'ratio-and-flat-in-defense-factor',
     receiverSemantics: 'separate-attack-flat-and-percent-v2',
-    eventSelection: 'highest-source-multiplier-action-within-field-time-skill-priority',
+    eventSelection: 'reviewed-32-source-packets-else-existing-field-time-skill-priority-r1',
+    coefficientUnits: sourceEventQuantityIdentity32,
     occurrenceByFieldTimeMode: {
       dominant_field: 6,
       primary_field: 5,
@@ -78,7 +88,7 @@ export const currentNormalizedPlanningBaseline = Object.freeze({
       burst_swap: 3,
       background: 2,
     },
-    conditionalEffects: 'explicitly_excluded',
+    conditionalEffects: 'source-prepared-state-or-observed-else-explicitly-excluded',
     driveDiscFourPiecePolicy: 'disc-fixed-event-passives-r1',
     equipmentFormulaContract: currentFormulaMechanicContractHash,
     bangbooFixedEventObservation: currentBangbooFixedEventObservation,
@@ -125,7 +135,9 @@ function representativeAction(agentId: string, levels?: Readonly<Record<string, 
   ]
   for (const skill of preference) {
     const actions = new Map<string, typeof eventContract.eventContract.events>()
-    for (const event of eventContract.eventContract.events.filter((item) => item.skill === skill)) {
+    for (const event of eventContract.eventContract.events.filter(
+      (item) => item.skill === skill && item.formulaProjection !== 'raw_only',
+    )) {
       const list = actions.get(event.actionId) ?? []
       actions.set(event.actionId, [...list, event])
     }
@@ -187,6 +199,9 @@ export function compileNormalizedAgentEventSchedule(input: {
     eventId: event.eventId,
     skillLevel: action.skillLevel,
     occurrenceCount,
+    ...(isSourceRateEvent32(input.agentId, event.eventId)
+      ? { durationSeconds: occurrenceCount }
+      : {}),
     evidenceRefs,
   }))
   return {
@@ -243,7 +258,21 @@ const normalizedAgentScore = new Map(
     const schedule = compileNormalizedAgentEventSchedule({ agentId: contract.stableId })
     if (schedule.status === 'unsupported') throw new Error(schedule.blockers.join(' '))
     const level60BaseAttack = contract.baseStats.atk_base + contract.baseStats.atk_growth * 59
-    return [contract.stableId, level60BaseAttack * schedule.normalizedDamageMultiplier] as const
+    const level60BaseDefense = contract.baseStats.def_base + contract.baseStats.def_growth * 59
+    const score = schedule.eventUsages.reduce((sum, usage) => {
+      const event = resolveCurrentAgentEvent({
+        stableId: contract.stableId,
+        eventId: usage.eventId,
+        skillLevel: usage.skillLevel,
+      })
+      if (event.status !== 'supported')
+        throw new Error(`候选事件不可求值：${contract.stableId}:${usage.eventId}`)
+      // The legacy rupture decision proxy remains explicitly a candidate score.
+      // A reviewed DEF event must use its actual source DEF, never an ATK substitute.
+      const sourceBase = event.scalingAttribute === 'def' ? level60BaseDefense : level60BaseAttack
+      return sum + sourceBase * event.damageMultiplier * usage.occurrenceCount
+    }, 0)
+    return [contract.stableId, score] as const
   }),
 )
 
@@ -274,12 +303,13 @@ export function getNormalizedBangbooDecisionScore(bangbooId: string) {
 
 const allAgentProfilesFinite = [...normalizedAgentScore.values()].every(Number.isFinite)
 const scoredFormationCount =
-  normalizedAgentScore.size === 58 && allAgentProfilesFinite
+  normalizedAgentScore.size === currentAgentMechanicIdentity.agentCount && allAgentProfilesFinite
     ? current31LegalAgentFormations.length
     : 0
 
 export const currentNormalizedDecisionScoreAudit = Object.freeze({
   contract: 'soda-normalized-decision-score-audit/v1',
+  scalingAuthority: 'source_event_def_or_legacy_attack_candidate_proxy',
   baselineId: currentNormalizedPlanningBaseline.baselineId,
   agentProfilesReady: normalizedAgentScore.size,
   bangbooProfilesReady: normalizedBangbooScore.size,
@@ -290,10 +320,13 @@ export const currentNormalizedDecisionScoreAudit = Object.freeze({
     current31LegalAgentFormations.length * (normalizedBangbooScore.size + 1),
   decisionScoreCoveragePercent:
     scoredFormationCount === current31LegalAgentFormations.length &&
-    normalizedBangbooScore.size === 41
+    normalizedBangbooScore.size === currentBangbooNumericCatalog.items.length
       ? 100
       : 0,
   effectDispositionCount:
-    (currentAgentPlanningEffectBlueprintCoverage.effectCount * (58 - 1) * (58 - 2)) / 2,
+    (currentAgentPlanningEffectBlueprintCoverage.effectCount *
+      (currentAgentMechanicIdentity.agentCount - 1) *
+      (currentAgentMechanicIdentity.agentCount - 2)) /
+    2,
   boundary: currentNormalizedPlanningModelBoundary,
 })

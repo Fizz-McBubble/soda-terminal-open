@@ -62,6 +62,12 @@ export function materialCompetingPlan(plan: AccountPlanningDraft) {
       : null,
     teamExecutionSnapshot: plan.teamExecutionSnapshot
       ? {
+          ...(plan.teamExecutionSnapshot.authorComparisonMembership
+            ? {
+                authorComparisonMembership: plan.teamExecutionSnapshot.authorComparisonMembership,
+                accountFactBinding: plan.teamAccountFactBinding,
+              }
+            : {}),
           status: plan.teamExecutionSnapshot.status,
           scenario: plan.teamExecutionSnapshot.scenario,
           bangbooId: plan.teamExecutionSnapshot.bangbooId,

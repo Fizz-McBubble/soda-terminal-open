@@ -1,4 +1,7 @@
 import type {
+  CommonAnomalySettlement32Query,
+  PlanningBenchmark32Query,
+  ReviewedIncrementalEvent32Query,
   AccountDecisionQuery,
   DecisionPortfolioQuery,
   DevelopmentCandidateAlternativesQuery,
@@ -12,9 +15,12 @@ import type {
 } from './calculationQueryContract'
 import type { CurrentGameDataRuntimeSelection } from '../gameDataPacks/runtimeSelection'
 
-export const browserCalculationQueryProtocolVersion = 'soda-browser-calculation-query/v2' as const
+export const browserCalculationQueryProtocolVersion = 'soda-browser-calculation-query/v4' as const
 
 export type BrowserCalculationQuery =
+  | CommonAnomalySettlement32Query
+  | PlanningBenchmark32Query
+  | ReviewedIncrementalEvent32Query
   | AccountDecisionQuery
   | DecisionPortfolioQuery
   | TargetTeamWarehouseFitQuery

@@ -1,6 +1,7 @@
 import { createAccountWithRoster } from './accountCreationCore'
 import {
   assertBangbooSkillFacts,
+  assertRosterAscensionFacts,
   createEmptyRoster,
   hydrateRosterDefaults,
 } from './rosterHydration'
@@ -407,6 +408,7 @@ export async function saveAccountRoster(
 ) {
   await assertAccount(accountId, db)
   assertBangbooSkillFacts(roster)
+  assertRosterAscensionFacts(roster)
   const updatedAt = new Date().toISOString()
   const value = normalizeWEngineInstances({ ...roster, updatedAt })
   await db.accountRosters.put({

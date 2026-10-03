@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import dataset from '../gameDataPacks/data/reviewed-team-preferences.v1.json'
 import { currentScopeManifest } from '../gameDataPacks/currentScopeManifest'
-import { currentReleasedIdentityMap } from '../gameDataPacks/currentReleasedIdentityMap'
+import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
 import { createTeamPreferenceIndex } from './teamPreferenceEvidence'
 
 const members = z.tuple([z.string().min(1), z.string().min(1), z.string().min(1)])
@@ -49,5 +49,5 @@ export function createReviewedTeamPreferenceCatalog(input: unknown, currentVersi
 
 export const reviewedTeamPreferences = createReviewedTeamPreferenceCatalog(
   dataset,
-  currentReleasedIdentityMap.gameVersion,
+  currentVersionProjection.gameVersion,
 )

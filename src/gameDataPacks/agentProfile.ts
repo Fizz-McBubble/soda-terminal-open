@@ -18,7 +18,10 @@ import { getCandidateWarehouseConstraint } from './candidateWarehouseConstraints
 import { combatFieldIntakes30 } from './combatFieldIntake'
 import { directDamage30SourceLedger } from './directDamageLedger'
 import { gameBase30FieldContinuityLedger } from './fieldContinuity'
-import { currentVersionProjection } from './currentVersionProjection'
+import { projectedReviewedBuild32Fields } from './agentProfileFieldProjection'
+
+// Frozen review identity of the existing adapter; a global title is not a new review.
+const legacyProfileReviewVersion = '3.1'
 import {
   playerBuildProfiles30,
   type PlayerBuildField,
@@ -130,10 +133,14 @@ function projectedPlayerField(field: PlayerBuildField, agentId: string): AgentPr
       field.status === 'candidate' && field.source?.verified && !conflict
         ? 'verified_candidate'
         : field.status,
-    gameVersion: currentVersionProjection.gameVersion,
+    gameVersion: legacyProfileReviewVersion,
     originalSourceVersion: field.source?.sourceVersion ?? null,
     lastChangeVersion: potentialAffected ? '3.0' : null,
-    currentApplicability: potentialAffected ? 'affected_pending' : 'continuous',
+    currentApplicability: potentialAffected
+      ? 'affected_pending'
+      : field.status === 'missing' || !field.source?.verified
+        ? 'unknown'
+        : 'continuous',
     sourceRefs: [
       ...sourceRef(field.source),
       ...supplements.flatMap((supplement) => sourceRef(supplement.source)),
@@ -160,10 +167,10 @@ function canonicalFieldsFor(agentId: string): AgentProfileField[] {
       path: field.path,
       value: null,
       status: canonicalStatus(field.status),
-      gameVersion: currentVersionProjection.gameVersion,
+      gameVersion: field.sourceVersion ?? 'unknown',
       originalSourceVersion: field.sourceVersion,
       lastChangeVersion: null,
-      currentApplicability: 'continuous',
+      currentApplicability: field.sourceVersion ? 'continuous' : 'unknown',
       sourceRefs: source
         ? [
             {
@@ -191,7 +198,7 @@ function combatFieldsFor(agentId: string): AgentProfileField[] {
     path: field.path,
     value: null,
     status: field.status,
-    gameVersion: currentVersionProjection.gameVersion,
+    gameVersion: field.source.sourceVersion ?? 'unknown',
     originalSourceVersion: field.source.sourceVersion,
     lastChangeVersion: null,
     currentApplicability: 'unknown',
@@ -208,7 +215,7 @@ function continuityFields(): AgentProfileField[] {
     path: `continuity.${entry.id}`,
     value: entry.affectedFieldIds,
     status: entry.status,
-    gameVersion: currentVersionProjection.gameVersion,
+    gameVersion: entry.lastVerifiedVersion,
     originalSourceVersion: entry.introducedVersion,
     lastChangeVersion:
       entry.effect === 'changed' || entry.effect === 'potential' ? entry.lastVerifiedVersion : null,
@@ -292,19 +299,26 @@ function buildAgentProfile(agentId: string): AgentProfile {
     ...combatFieldsFor(agentId),
     ...continuityFields(),
   ]
+  const guidance32 = projectedReviewedBuild32Fields(agentId)
+  for (const field of guidance32) {
+    const index = fields.findIndex((existing) => existing.path === field.path)
+    if (index < 0) fields.push(field)
+    else fields[index] = field
+  }
   const teamFieldIndex = fields.findIndex((field) => field.path === 'build.team_bangboo_scenario')
   if (teamFieldIndex < 0 || fields[teamFieldIndex].status === 'missing') {
     const adoptedTeamField = currentTeamGuidanceField(agentId)
     if (adoptedTeamField) {
-      if (teamFieldIndex < 0) fields.push(adoptedTeamField)
-      else fields[teamFieldIndex] = adoptedTeamField
+      if (teamFieldIndex < 0)
+        fields.push({ ...adoptedTeamField, gameVersion: legacyProfileReviewVersion })
+      else fields[teamFieldIndex] = { ...adoptedTeamField, gameVersion: legacyProfileReviewVersion }
     }
   }
   const agentName = player?.agentName ?? getAgentName(agentId)
   const input = {
     agentId,
     agentName,
-    gameVersion: currentVersionProjection.gameVersion,
+    gameVersion: guidance32[0]?.gameVersion ?? legacyProfileReviewVersion,
     fields,
     warehouseStatus: warehouse?.status ?? 'missing',
     directDamageStatus: directDamageStatus(agentId),

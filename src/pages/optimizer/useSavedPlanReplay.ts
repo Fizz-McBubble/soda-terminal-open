@@ -309,9 +309,11 @@ export function useSavedPlanReplay({
                 buildIntentFingerprint: contentHash([
                   currentBuildIntent.fingerprint,
                   currentExactVariantKey!,
-                  targetTeamEquipmentParametersFingerprint(
-                    currentSavedTeam!.effectiveEquipmentParameters,
-                  ),
+                  currentSavedTeam!.effectiveEquipmentParameters
+                    ? targetTeamEquipmentParametersFingerprint(
+                        currentSavedTeam!.effectiveEquipmentParameters,
+                      )
+                    : currentSavedTeam!.accountFactBinding!.fingerprint,
                 ]),
                 nonPlanningComponents,
               })
@@ -370,9 +372,10 @@ export function useSavedPlanReplay({
   const savedTargetParameters = savedTargetCandidateId
     ? currentSavedTeam?.effectiveEquipmentParameters
     : undefined
+  const savedAccountBindingFingerprint = currentSavedTeam?.accountFactBinding?.fingerprint ?? ''
   const savedTargetParametersFingerprint = savedTargetParameters
     ? targetTeamEquipmentParametersFingerprint(savedTargetParameters)
-    : ''
+    : savedAccountBindingFingerprint
   const savedTargetDiscFingerprint = plan ? savedTeamDiscAssignmentFingerprint(plan) : ''
   const stableSavedTargetParameters = useMemo(
     () => savedTargetParameters,
@@ -384,7 +387,9 @@ export function useSavedPlanReplay({
       ? decisionWorld.run.runId
       : undefined
   const savedTargetIdentity =
-    savedTargetRunId && savedTargetCandidateId && savedTargetParameters
+    savedTargetRunId &&
+    savedTargetCandidateId &&
+    (savedTargetParameters || savedAccountBindingFingerprint)
       ? `${savedTargetRunId}:${savedTargetCandidateId}:${savedTargetParametersFingerprint}:${savedTargetDiscFingerprint}`
       : ''
   const savedTargetRequestIdentity = savedTargetIdentity
@@ -404,7 +409,12 @@ export function useSavedPlanReplay({
 
   useEffect(() => {
     let active = true
-    if (!savedTargetRunId || !savedTargetCandidateId || !stableSavedTargetParameters) return
+    if (
+      !savedTargetRunId ||
+      !savedTargetCandidateId ||
+      (!stableSavedTargetParameters && !savedAccountBindingFingerprint)
+    )
+      return
     void calculateTargetTeamWarehouseFit(
       savedTargetRunId,
       savedTargetCandidateId,
@@ -439,6 +449,7 @@ export function useSavedPlanReplay({
     calculateTargetTeamWarehouseFit,
     savedTargetCandidateId,
     stableSavedTargetParameters,
+    savedAccountBindingFingerprint,
     savedTargetParametersFingerprint,
     savedTargetIdentity,
     savedTargetRequestIdentity,

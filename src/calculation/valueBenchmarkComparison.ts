@@ -1,4 +1,6 @@
 import { stableContentHash } from '../gameDataPacks/types'
+import type { qualifyReviewedPreparedBenchmark32 } from './reviewedPreparedBenchmark32'
+import type { qualifyReviewedPreparedTeamBenchmark32 } from './reviewedPreparedTeamBenchmark32'
 import {
   hasWellFormedValueBenchmarkCoverage,
   valueBenchmarkEvidencePolicy,
@@ -35,15 +37,20 @@ export type ValueBenchmarkDimension =
   | 'disc_loadout'
   | 'w_engine'
   | 'bangboo'
+  | 'potential'
 
 export type ValueBenchmarkSide = {
   state: ValueBenchmarkState
-  dimensions: Record<ValueBenchmarkDimension, string>
+  dimensions: Record<Exclude<ValueBenchmarkDimension, 'potential'>, string> & { potential?: string }
   totalDamage: number | null
   planningDps: number | null
   calculationFingerprint: string | null
   reasons: string[]
   coverage?: ValueBenchmarkCoverage
+  modelQualification32?: NonNullable<ReturnType<typeof qualifyReviewedPreparedBenchmark32>>
+  memberModelQualification32?: NonNullable<
+    ReturnType<typeof qualifyReviewedPreparedTeamBenchmark32>
+  >
 }
 
 export type ValueBenchmarkComparisonBasis = {
@@ -77,12 +84,14 @@ const lockedDimensions: ValueBenchmarkDimension[] = [
   'disc_loadout',
   'w_engine',
   'bangboo',
+  'potential',
 ]
 
 const mutableDimensions: readonly ValueBenchmarkDimension[] = [
   'disc_loadout',
   'w_engine',
   'bangboo',
+  'potential',
 ]
 
 function unique<T extends string>(values: readonly T[]) {
@@ -148,12 +157,26 @@ export function compareValueBenchmarkSides(input: {
   const baselineKey = valueBenchmarkComparabilityKey(input.baseline, changedDimensions)
   const candidateKey = valueBenchmarkComparabilityKey(input.candidate, changedDimensions)
   const sideEvidenceIssues = [
-    ...valueBenchmarkSideEvidenceIssues(input.baseline, lockedDimensions).map(
-      (reason) => `当前方案：${reason}`,
-    ),
-    ...valueBenchmarkSideEvidenceIssues(input.candidate, lockedDimensions).map(
-      (reason) => `候选方案：${reason}`,
-    ),
+    ...valueBenchmarkSideEvidenceIssues(
+      input.baseline,
+      lockedDimensions.filter(
+        (key) =>
+          key !== 'potential' ||
+          input.baseline.dimensions.potential !== undefined ||
+          input.candidate.dimensions.potential !== undefined ||
+          changedDimensions.includes('potential'),
+      ),
+    ).map((reason) => `当前方案：${reason}`),
+    ...valueBenchmarkSideEvidenceIssues(
+      input.candidate,
+      lockedDimensions.filter(
+        (key) =>
+          key !== 'potential' ||
+          input.baseline.dimensions.potential !== undefined ||
+          input.candidate.dimensions.potential !== undefined ||
+          changedDimensions.includes('potential'),
+      ),
+    ).map((reason) => `候选方案：${reason}`),
   ]
   const reasons = unique([
     ...sideEvidenceIssues,

@@ -12,6 +12,7 @@ import type { TeamOverviewPresentationDto } from '../pages/teamLoadoutPresentati
 import type { TeamRoutePresentation } from '../pages/publicTeamRoutePresentation'
 import type { WarehouseDiscTransitionUsesResult } from './calculationQueryContract'
 import { packPublicWarehouseActions } from './publicWarehouseActionTransport'
+import { commonAnomalySettlementQueryResultSchema32 } from './publicCommonAnomalySettlementQuery32'
 
 /**
  * Browser transport boundary. The private service keeps the full captured run and solve; the public
@@ -24,6 +25,119 @@ export function projectPublicCalculationResult(
   result: unknown,
 ): RemoteCalculationResult {
   switch (kind) {
+    case 'common_anomaly_settlement32': {
+      const view =
+        result as import('./publicCommonAnomalySettlementQuery32').CommonAnomalySettlementQueryResult32
+      const { contract, runId, metadata, fingerprint } = view
+      return commonAnomalySettlementQueryResultSchema32.parse({
+        contract,
+        runId,
+        metadata,
+        result: view.result,
+        fingerprint,
+      })
+    }
+    case 'planning_benchmark32': {
+      const view = result as import('./publicPlanningBenchmark32').PlanningBenchmarkResult32
+      return {
+        contract: view.contract,
+        runId: view.runId,
+        candidateId: view.candidateId,
+        fitFingerprint: view.fitFingerprint,
+        accountFingerprint: view.accountFingerprint,
+        sourceBindingFingerprint: view.sourceBindingFingerprint,
+        inputFingerprint: view.inputFingerprint,
+        sideEffect: view.sideEffect,
+        status: view.status,
+        formalCycleReady: view.formalCycleReady,
+        totalDamage: view.totalDamage,
+        benchmarkDps: view.benchmarkDps,
+        declaredDurationSeconds: view.declaredDurationSeconds,
+        resultFingerprint: view.resultFingerprint,
+        metadata:
+          view.metadata === null
+            ? null
+            : {
+                contract: view.metadata.contract,
+                gameVersion: view.metadata.gameVersion,
+                phaseId: view.metadata.phaseId,
+                sourceFingerprint: view.metadata.sourceFingerprint,
+                declaredDurationSeconds: view.metadata.declaredDurationSeconds,
+                memberIds: [...view.metadata.memberIds],
+                events: view.metadata.events.map((event) => ({
+                  ownerAgentId: event.ownerAgentId,
+                  eventId: event.eventId,
+                  skillLevel: event.skillLevel,
+                  requiresWindsweptObservation: event.requiresWindsweptObservation,
+                  sourceRefs: [...event.sourceRefs],
+                  conditions: event.conditions.map((condition) => ({
+                    providerAgentId: condition.providerAgentId,
+                    referenceKey: condition.referenceKey,
+                    label: condition.label,
+                    valueKind: condition.valueKind,
+                    ...(condition.minimum === undefined ? {} : { minimum: condition.minimum }),
+                    ...(condition.maximum === undefined ? {} : { maximum: condition.maximum }),
+                    ...(condition.options === undefined
+                      ? {}
+                      : {
+                          options: condition.options.map((option) => ({
+                            value: option.value,
+                            label: option.label,
+                          })),
+                        }),
+                    sourceRefs: [...condition.sourceRefs],
+                  })),
+                })),
+              },
+        eventResults: view.eventResults.map((event) => ({
+          occurrenceId: event.occurrenceId,
+          ownerAgentId: event.ownerAgentId,
+          eventId: event.eventId,
+          atSeconds: event.atSeconds,
+          snapshotAtSeconds: event.snapshotAtSeconds,
+          totalDamage: event.totalDamage,
+          runtimeHash: event.runtimeHash,
+          sourceRefs: [...event.sourceRefs],
+        })),
+        includedEffectKeys: [...view.includedEffectKeys],
+        excludedEffects: view.excludedEffects.map((effect) => ({
+          effectKey: effect.effectKey,
+          reason: effect.reason,
+          fields: [...effect.fields],
+          sourceRefs: [...effect.sourceRefs],
+        })),
+        gaps: [...view.gaps],
+        missingContext: [...view.missingContext],
+      }
+    }
+    case 'reviewed_incremental_event32': {
+      const view =
+        result as import('./publicReviewedIncrementalEvent32').ReviewedIncrementalEventResult32Dto
+      const {
+        contract,
+        runId,
+        inputFingerprint,
+        resultFingerprint,
+        sideEffect,
+        subject,
+        status,
+        formalSingleEvent,
+        expectedDamage,
+        gaps,
+      } = view
+      return {
+        contract,
+        runId,
+        inputFingerprint,
+        resultFingerprint,
+        sideEffect,
+        subject,
+        status,
+        formalSingleEvent,
+        expectedDamage,
+        gaps,
+      }
+    }
     case 'account_decision':
       return projectPublicAccountDecisionRun(result as AccountDecisionRun)
     case 'target_team_warehouse_fit':
@@ -43,6 +157,7 @@ export function projectPublicCalculationResult(
         candidateId,
         team,
         targetCandidateId,
+        discOnlyCandidate,
         automaticBangboo,
         playerConfirmableBangbooOptions,
         ratingAnalysis,
@@ -58,6 +173,7 @@ export function projectPublicCalculationResult(
         candidateId,
         team,
         targetCandidateId,
+        ...(discOnlyCandidate ? { discOnlyCandidate } : {}),
         automaticBangboo,
         playerConfirmableBangbooOptions,
         ratingAnalysis,
@@ -84,6 +200,7 @@ export function projectPublicCalculationResult(
                 exactTeam: { candidateId: view.match.buildIntent.exactTeam.candidateId },
               },
               effectiveEquipmentParameters: view.match.effectiveEquipmentParameters,
+              accountFactBinding: view.match.accountFactBinding,
             }
           : null,
       } as RemoteCalculationResult
@@ -257,6 +374,7 @@ function projectPublicTargetTeamFit(
     boundary,
     portfolioContinuationEligible,
     effectiveEquipmentParameters,
+    accountFactBinding,
     targetExecution,
     teamExecutionPresentation,
     accountBoundBenchmark,
@@ -278,10 +396,17 @@ function projectPublicTargetTeamFit(
     boundary,
     portfolioContinuationEligible,
     effectiveEquipmentParameters,
+    accountFactBinding,
     targetExecution,
     teamExecutionPresentation,
     accountBoundBenchmark: accountBoundBenchmark
       ? {
+          ...(accountBoundBenchmark.koledaFixedEventConditionsMetadata32
+            ? {
+                koledaFixedEventConditionsMetadata32:
+                  accountBoundBenchmark.koledaFixedEventConditionsMetadata32,
+              }
+            : {}),
           equipmentModifierProjection: accountBoundBenchmark.equipmentModifierProjection
             ? {
                 wEngines: accountBoundBenchmark.equipmentModifierProjection.wEngines.map(
@@ -316,6 +441,10 @@ function projectPublicDevelopmentAlternatives(
     runId,
     capturedAt,
     inputFingerprint,
+    comparisonContract,
+    comparisonFingerprint,
+    comparisonOptions,
+    candidateParametersByRank,
     accountId,
     agentId,
     status,
@@ -332,6 +461,10 @@ function projectPublicDevelopmentAlternatives(
     runId,
     capturedAt,
     inputFingerprint,
+    comparisonContract,
+    comparisonFingerprint,
+    comparisonOptions,
+    candidateParametersByRank,
     accountId,
     agentId,
     status,

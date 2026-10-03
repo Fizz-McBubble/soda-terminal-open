@@ -256,9 +256,7 @@ export function createTeamExecutionAttributePanel(input: {
   const exactGameVersion = currentGameVersion()
   // Free-text conditions are visible evidence, not proof this account satisfies them.
   const comparable =
-    currentStatus === 'exact' &&
-    targetField?.gameVersion === exactGameVersion &&
-    !targetField.conditions.length
+    currentStatus === 'exact' && targetField !== null && !targetField.conditions.length
   const priority = profile.recommendation?.subStats ?? []
   const rows = characterPanelLabels.map((label, index) => {
     const fact = workbench.facts[index]!

@@ -1,4 +1,4 @@
-import { sortCatalogByRarityAndRelease } from '../assault/catalogSorting'
+import { sortCatalogByRarityAndRelease } from '../application/catalogDisplayOrdering'
 
 export function sortOwnedAgentsForPicker<
   T extends {

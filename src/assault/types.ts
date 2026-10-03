@@ -39,6 +39,8 @@ export type RosterAgent = {
   owned: boolean
   priority: number
   level: number
+  /** Optional explicit phase at a level boundary; old rows retain the existing derived default. */
+  ascension?: number | null
   mindscape: number
   /** Only agents carrying the catalog capability use this field. */
   potentialImage?: number | null
@@ -66,6 +68,7 @@ export type RosterAgent = {
     id: string | null
     name: string | null
     level: number | null
+    ascension?: number | null
     refinement: number | null
   }
   /** Legacy compatibility reference only. New production reads use wEngineDetails. */

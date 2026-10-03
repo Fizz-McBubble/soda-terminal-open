@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import type { Catalog, Disc, Profile, QualityPolicy } from './absoluteDiscRetentionContract'
 import { assessDisc, assessWarehouse, twoPieceApplicability } from './absoluteDiscRetentionKernel'
+import { noFunctionalSubstatGoalMethod } from './absoluteDiscRetentionContract'
+import { enrichRetentionEvidence } from './absoluteDiscRetentionStages'
 
 const rules: Catalog['rules'] = {
   sourceIds: ['synthetic-rules'],
@@ -114,6 +116,56 @@ const assess = (item: Disc, profiles: readonly Profile[] = [baseProfile]) =>
   assessDisc(item, catalog(profiles), policy(profiles))
 
 describe('independent staged retention contract', () => {
+  it('a sourced absence of a substat goal does not block unrelated cleanup', () => {
+    const profile: Profile = {
+      ...baseProfile,
+      goal: 'functional',
+      weights: {},
+      coreStats: [],
+      weightEvidence: {
+        id: 'sourced-negative-goal',
+        method: noFunctionalSubstatGoalMethod,
+        sourceIds: ['synthetic-build'],
+      },
+    }
+    const item = disc(['def_flat', 'hp_percent', 'pen'])
+    expect(assess(item, [profile]).evidence[0]!.investment.qualified).toBe(false)
+    expect(assess(item, [profile]).reasonKind).not.toBe('missing_fact')
+    for (const incomplete of [
+      { ...profile, weightEvidence: { ...profile.weightEvidence!, method: 'unknown' } },
+      { ...profile, weightEvidence: { ...profile.weightEvidence!, sourceIds: [] } },
+      { ...profile, weights: { crit_rate: 1 } },
+      { ...profile, coreStats: ['crit_rate'] },
+    ]) {
+      const result = enrichRetentionEvidence({
+        disc: item,
+        profile: incomplete,
+        set: catalog().sets[0],
+        rules,
+        policy: { ...policy([incomplete]), investment: undefined },
+        mainFit: 'valid',
+        twoPieceFit: 'valid',
+        fourPieceFit: 'incompatible',
+        setFit: 'valid',
+        currentScore: 0,
+        possibleUpper: 0,
+        remainingNodes: 5,
+      })
+      expect(result.investment.qualified).toBeNull()
+    }
+    for (const completion of ['main_only', 'build_threshold'] as const) {
+      const functional: Profile = {
+        ...profile,
+        functionalMains: [
+          { slot: 4, stat: 'energy_regen', sourceId: 'synthetic-build', completion },
+        ],
+      }
+      const result = assess({ ...item, slot: 4, mainStat: 'energy_regen' }, [functional])
+      expect(result.evidence[0]!.investment.qualified).toBe(
+        completion === 'main_only' ? true : null,
+      )
+    }
+  })
   it('does not retain zero effective +0 lines merely for their high legal ceiling', () => {
     const result = assess(disc(['def_flat', 'hp_percent', 'pen']))
     expect(result.evidence[0]!.possibleFinalScore.upper).toBeGreaterThan(60)

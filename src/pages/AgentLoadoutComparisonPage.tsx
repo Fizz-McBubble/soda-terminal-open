@@ -1,3 +1,5 @@
+import { rebindComparisonParameters } from './rebindComparisonParameters'
+import { createComparisonSavedBuild } from './createComparisonSavedBuild'
 import { AppLoadingState } from '../components/AppEntryState'
 import { useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
@@ -10,15 +12,9 @@ import {
   useAccountDecisionWorld,
   useDevelopmentCandidateAlternativesCalculation,
 } from '../application/accountDecisionWorld'
-import { publicVersionIdentity } from '../application/publicVersionIdentity'
 import { agentDevelopmentMainStatDifferences } from './agentDevelopmentMainStatDifferences'
-import { contentHash } from '../application/contentHash'
 import { findDevelopmentComparisonPanel } from '../application/publicDevelopmentComparisonPanels'
-import { valueBenchmarkSaveLabel } from '../application/valueBenchmarkSaveLabel'
-import {
-  formatCandidateSkillDirections,
-  getCandidateStatLabels,
-} from '../application/publicCandidateLabels'
+import { getCandidateStatLabels } from '../application/publicCandidateLabels'
 import { AgentDevelopmentGolden, type GoldenTop10Data } from '../features/agentDevelopmentGolden'
 import { presentDiscFactFromChoice } from './discFactPresentation'
 import { displayDiscMainValue, displayDriveDiscSet } from './publicDiscFacts'
@@ -173,7 +169,10 @@ export function AgentLoadoutComparisonPage() {
   }))
   let coreStats = allStats.filter((stat) => stat.highlight).slice(0, 5)
   let defaultStats = coreStats.length ? coreStats : allStats.slice(0, 5)
-  let finalStatsFor = (discs: typeof warehouse.discs) =>
+  let finalStatsFor: (
+    discs: Parameters<typeof findDevelopmentComparisonPanel>[1],
+    rank?: number,
+  ) => Record<string, number> = (discs) =>
     Object.fromEntries(
       allStats.map((stat) => [
         stat.key,
@@ -189,18 +188,31 @@ export function AgentLoadoutComparisonPage() {
     )
   // The captured private Query projects every displayed six-disc panel.
   // Never mix final panel values and substat contributions in one comparison.
-  const panelFor = (discs: typeof warehouse.discs) =>
+  const panelFor = (discs: typeof warehouse.discs, rank?: number) =>
     snapshotStale
       ? null
-      : findDevelopmentComparisonPanel(candidateSnapshot.panelPresentation, discs)
-  const candidatePanels = alternatives.map((plan) =>
-    panelFor(plan.loadouts[0]?.discs.map((item) => item.disc) ?? []),
+      : findDevelopmentComparisonPanel(
+          candidateSnapshot.panelPresentation,
+          discs,
+          rank === -1
+            ? currentPlan?.solutionContext?.comparisonParameters
+            : rank
+              ? candidateSnapshot.candidateParametersByRank?.[rank]
+              : baselineKind === 'saved'
+                ? savedBaselinePlan?.solutionContext?.comparisonParameters
+                : baselineKind === 'candidate'
+                  ? candidateSnapshot.candidateParametersByRank?.[1]
+                  : undefined,
+        )
+  const candidatePanels = alternatives.map((plan, index) =>
+    panelFor(plan.loadouts[0]?.discs.map((item) => item.disc) ?? [], index + 1),
   )
   const baselinePanel = panelFor(comparisonDiscs)
   const hasStaticPanels =
     candidatePanels.length > 0 &&
     candidatePanels.every((panel) => panel?.status === 'ok') &&
-    (baselineKind === 'none' || baselinePanel?.status === 'ok')
+    (baselineKind === 'none' || baselinePanel?.status === 'ok') &&
+    (!currentPlan || panelFor(currentPlanDiscs, -1)?.status === 'ok')
   if (hasStaticPanels) {
     const panelStats = [
       ['hp', '生命值', '', 'hp_percent'],
@@ -222,7 +234,7 @@ export function AgentLoadoutComparisonPage() {
     }))
     coreStats = allStats.filter((stat) => stat.highlight).slice(0, 5)
     defaultStats = coreStats.length ? coreStats : allStats.slice(0, 5)
-    finalStatsFor = (discs) => ({ ...panelFor(discs)?.values })
+    finalStatsFor = (discs, rank) => ({ ...panelFor(discs, rank)?.values })
   }
   const setSummaryFor = (discs: typeof warehouse.discs, pattern?: '4+2' | '2+2+2') => {
     const counts = new Map<string, number>()
@@ -282,7 +294,7 @@ export function AgentLoadoutComparisonPage() {
     const loadout = plan?.loadouts[0]
     const selectedDiscs = savedDiscs ?? loadout?.discs.map((item) => item.disc) ?? comparisonDiscs
     const ids = selectedDiscs.map((disc) => disc.id)
-    const finalStats = finalStatsFor(selectedDiscs)
+    const finalStats = finalStatsFor(selectedDiscs, savedDiscs ? -1 : rank)
     const statDeltaSummary = defaultStats
       .map((stat) => ({
         stat,
@@ -378,69 +390,17 @@ export function AgentLoadoutComparisonPage() {
     const candidate = alternatives[rank - 1]?.loadouts[0]
     const candidatePlan = alternatives[rank - 1]
     if (!candidate || !candidatePlan) return
-    const valueBenchmark = candidateSnapshot.valueBenchmarks?.[rank - 1]
-    const benchmarkDisposition = valueBenchmarkSaveLabel(valueBenchmark)
-    const knowledge = candidateSnapshot.panelPresentation!.saveKnowledge
     const discIds = candidate.discs.map((item) => item.disc.id)
-    const saved = await saveCurrentAgentBuild(accountId, {
-      name: `${getAgentName(agentId)} · 养成方案`,
-      selection: { agentIds: [agentId], bangbooId: null, scenario: knowledge.scenario },
-      manualOverrides: {
-        wEngineDirection: knowledge.currentEngineRecorded
-          ? '沿用我的资产中已记录的当前音擎'
-          : '当前音擎未记录；本方案仅保存实体驱动盘',
-        discDirection: `仓库候选（${benchmarkDisposition}）`,
-        progressionDirection: formatCandidateSkillDirections(
-          candidatePresentation.progressionDirections,
-        ),
-        notes: '养成配装方案；驱动盘可供其他代理人或队伍搭配。',
-      },
-      knowledgeRefs: [
-        {
-          profileId: knowledge.profileId,
-          status: knowledge.status,
-          version: knowledge.version,
-          source: knowledge.source,
-        },
-      ],
-      warehouseRefs: discIds,
-      solutionContext: {
-        contract: 'soda-solution-context/v1',
-        scope: 'agent_independent',
-        resourcePolicy: 'advisory',
-        sourceCandidateId: `development:${agentId}:${contentHash(discIds.toSorted())}`,
-        inputFingerprint: contentHash([
-          candidateSnapshot.inputFingerprint,
-          candidateSnapshot.buildIntent.fingerprint,
-        ]),
-        solverMethod: candidatePlan.solver?.method ?? 'bounded_heuristic',
-        gameVersion: publicVersionIdentity.gameVersion,
-        knowledgeVersion: knowledge.version,
-        exactVariantKey: null,
-      },
-      candidateWarehouse: {
-        ...(candidatePlan.inventoryTransition ? { inventoryTransition: true as const } : {}),
-        scope: 'agent',
-        totalScore: candidatePlan.totalScore,
-        loadouts: [
-          {
-            agentId,
-            totalScore: candidate.totalScore,
-            discIds: candidate.discs.map((item) => item.disc.id),
-            effectiveRolls: candidate.discs.reduce((total, item) => total + item.effectiveRolls, 0),
-            setPattern: candidate.setPattern,
-            degraded: candidate.degraded,
-          },
-        ],
-        boundary: candidatePlan.boundary,
-      },
-      comparisonCapability: knowledge.status === 'formal' ? 'formal' : 'direction',
-    })
+    const saved = await saveCurrentAgentBuild(
+      accountId,
+      createComparisonSavedBuild(agentId, rank, candidateSnapshot),
+    )
     setJustSaved(saved)
     const refreshedRank = await refreshDevelopmentCandidatesAfterSave({
       accountId,
       agentId,
       discIds,
+      comparisonParameters: candidateSnapshot.candidateParametersByRank?.[rank],
       refresh: decisionWorld.refresh,
       query: queryDevelopmentCandidateAlternatives,
     })
@@ -474,7 +434,10 @@ export function AgentLoadoutComparisonPage() {
         const currentRun =
           decisionWorld.status === 'stale' ? await decisionWorld.refresh() : decisionWorld.run
         if (!currentRun) throw new Error('当前账户无法重新分析；请稍后重试。')
-        const result = await queryDevelopmentCandidateAlternatives(currentRun.runId, agentId)
+        let result = await queryDevelopmentCandidateAlternatives(currentRun.runId, agentId)
+        const rebound = rebindComparisonParameters(candidateSnapshot, result)
+        if (Object.keys(rebound).length)
+          result = await queryDevelopmentCandidateAlternatives(currentRun.runId, agentId, rebound)
         if (!cacheDevelopmentCandidateSnapshot(result))
           throw new Error(result.gaps[0] ?? '当前账户无法生成完整的六张候选盘。')
         setSnapshotVersion((version) => version + 1)

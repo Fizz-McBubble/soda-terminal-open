@@ -1,9 +1,7 @@
 import { z } from 'zod'
 import dataset from '../gameDataPacks/data/reviewed-team-analysis.3.1.json'
-import {
-  currentReleasedIdentityMap,
-  resolveCurrentReleasedIdentity,
-} from '../gameDataPacks/currentReleasedIdentityMap'
+import { resolveCurrentReleasedIdentity } from '../gameDataPacks/currentReleasedIdentityMap'
+import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
 import { stableContentHash } from '../gameDataPacks/types'
 
 const evidenceSchema = z
@@ -80,9 +78,17 @@ export function createReviewedTeamAnalysisCatalog(input: unknown, currentVersion
   }
 }
 
-const catalog = createReviewedTeamAnalysisCatalog(dataset, currentReleasedIdentityMap.gameVersion)
+const catalog = createReviewedTeamAnalysisCatalog(dataset, currentVersionProjection.gameVersion)
 export const reviewedTeamAnalysis = Object.freeze({
   ...catalog.dataset,
   contentHash: stableContentHash(dataset),
 })
-export const resolveReviewedTeamAnalysis = catalog.resolve
+const sourceVersionCatalog = createReviewedTeamAnalysisCatalog(dataset, dataset.gameVersion)
+export function resolveReviewedTeamAnalysis(
+  memberIds: readonly string[],
+  reviewVersion: string = currentVersionProjection.gameVersion,
+) {
+  // The imported package keeps its own review version even when the available
+  // agent directory grows. Another requested version cannot reuse this review.
+  return reviewVersion === dataset.gameVersion ? sourceVersionCatalog.resolve(memberIds) : null
+}

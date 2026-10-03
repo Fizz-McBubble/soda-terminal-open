@@ -20,6 +20,7 @@ const attributeIcons: Record<string, { id: string; label: string }> = {
 }
 
 const specialtyIcons: Record<string, { id: string; label: string }> = {
+  armorer: { id: 'specialty-armorer', label: '锋御特性' },
   anomaly: { id: 'specialty-anomaly', label: '异常特性' },
   damage: { id: 'specialty-attack', label: '强攻特性' },
   defense: { id: 'specialty-defense', label: '防护特性' },

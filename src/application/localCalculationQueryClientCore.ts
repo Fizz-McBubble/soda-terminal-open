@@ -1,3 +1,10 @@
+import {
+  projectReviewedIncrementalEvent32,
+  projectReviewedIncrementalEventMetadata32,
+} from './privateReviewedIncrementalEvent32'
+import { currentWEngineDirectory } from '../assault/planningCatalog'
+import { supportsPotentialImage } from '../assault/agentCapabilities'
+import { stableContentHash } from '../gameDataPacks/types'
 import { buildAccountDecisionInputFingerprint } from '../decision/accountDecisionService'
 import { createLocalTargetTeamFitQuery } from './localTargetTeamFitQuery'
 import type { AccountDecisionSnapshotCalculator } from './browserAccountDecisionWorker'
@@ -25,6 +32,8 @@ import { prepareRemainingBox } from './remainingBox'
 import { projectPrivateTeamRoute } from '../pages/privateTeamRouteProjection'
 import { projectPrivateSavedTeamReplay } from './privateSavedTeamReplayProjection'
 import { projectPrivateSavedTeamSolutionComponents } from './privateSavedTeamSolutionComponentsProjection'
+import { projectPlanningBenchmark32 } from './privatePlanningBenchmark32'
+import { projectCommonAnomalySettlementQuery32 } from './privateCommonAnomalySettlementQuery32'
 
 export function createLocalCalculationQueryClientCore(options: {
   readRuntimeSelection: () => Promise<CurrentGameDataRuntimeSelection>
@@ -61,6 +70,45 @@ export function createLocalCalculationQueryClientCore(options: {
   }
 
   const client: CalculationQueryClient = {
+    async queryCommonAnomalySettlement32(request) {
+      const query = structuredClone(request)
+      if (query.contractVersion !== calculationQueryContractVersion)
+        throw new Error(`Unsupported Calculation/Query contract: ${query.contractVersion}.`)
+      await requireCompiledRuntime()
+      return projectCommonAnomalySettlementQuery32(query)
+    },
+    async queryPlanningBenchmark32(query) {
+      if (query.contractVersion !== calculationQueryContractVersion)
+        throw new Error(`Unsupported Calculation/Query contract: ${query.contractVersion}.`)
+      await requireCompiledRuntime()
+      const run = runs.get(query.runId)
+      const fit = teamFits.get(query.runId)?.get(query.candidateId)
+      if (!run || run.inputFingerprint !== query.accountFingerprint)
+        throw new Error('账户分析已失效，请重新分析后读取逐次条件。')
+      if (!fit || fit.fingerprint !== query.fitFingerprint)
+        throw new Error('十八盘配装已变化，请重新生成后读取逐次条件。')
+      if (query.declarations && !query.sourceBindingFingerprint)
+        throw new Error('请先读取与当前配装绑定的条件定义。')
+      return projectPlanningBenchmark32(
+        {
+          runId: run.runId,
+          candidateId: query.candidateId,
+          accountFingerprint: run.inputFingerprint,
+          capturedAt: run.capturedAt,
+          warehouse: run.input.warehouse,
+          fit,
+          selectedEquipment: fit.effectiveEquipmentParameters,
+        },
+        query.declarations,
+        query.sourceBindingFingerprint,
+      )
+    },
+    async queryReviewedIncrementalEvent32(query) {
+      if (query.contractVersion !== calculationQueryContractVersion)
+        throw new Error(`Unsupported Calculation/Query contract: ${query.contractVersion}.`)
+      await requireCompiledRuntime()
+      return projectReviewedIncrementalEvent32(query.runId, query.input)
+    },
     releaseAccountDecisionRun(runId) {
       pendingRuns.get(runId)?.abort()
       pendingRuns.delete(runId)
@@ -236,16 +284,42 @@ export function createLocalCalculationQueryClientCore(options: {
       const accountId = run.input.warehouse.accountId
       if (!accountId) throw new Error(`Account Decision run has no account: ${query.runId}.`)
       const projection = projectDevelopmentCandidateAlternatives(run.input, query.agentId)
+      const explicit = query.candidateParametersByRank ?? {}
+      if (
+        Object.keys(explicit).some(
+          (rank) =>
+            !Number.isInteger(Number(rank)) ||
+            Number(rank) < 1 ||
+            Number(rank) > projection.candidates.length,
+        )
+      )
+        throw new Error('显式比较参数必须绑定本次存在的候选序号。')
       const valueBenchmarks = projectDevelopmentValueBenchmarks({
         warehouse: run.input.warehouse,
         agentId: query.agentId,
         baseline: projection.baseline,
         candidates: projection.candidates,
         savedPlans: run.input.drafts,
+        candidateParametersByRank: explicit,
         stale: false,
       })
       return {
         contract: 'soda-development-candidate-alternatives/v1',
+        comparisonContract: 'soda-explicit-development-comparison/v1',
+        comparisonFingerprint: stableContentHash({
+          inputFingerprint: run.snapshot.fingerprint.inputHash,
+          agentId: query.agentId,
+          parameters: explicit,
+          comparisons: valueBenchmarks.map((row) => row.candidate.calculationFingerprint),
+        }),
+        candidateParametersByRank: explicit,
+        comparisonOptions: {
+          reviewedEvent32: projectReviewedIncrementalEventMetadata32(query.agentId),
+          wEngines: currentWEngineDirectory
+            .filter((row) => row.releaseState === 'released' && row.accountOwnable)
+            .map((row) => ({ engineId: row.id, name: row.name })),
+          potentialSupported: supportsPotentialImage(query.agentId),
+        },
         runId: run.runId,
         capturedAt: run.capturedAt,
         inputFingerprint: run.snapshot.fingerprint.inputHash,
@@ -261,6 +335,7 @@ export function createLocalCalculationQueryClientCore(options: {
           agentId: query.agentId,
           baseline: projection.baseline,
           candidates: projection.candidates,
+          candidateParametersByRank: explicit,
         }),
       }
     },

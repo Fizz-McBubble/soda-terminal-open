@@ -28,7 +28,7 @@ export function resolveTargetTeamFitEntry(
   )
   const targetCandidateId = authorityCandidate?.candidateId ?? engineCandidate?.candidateId ?? null
   const playerConfirmableBangbooInput =
-    team && !team.bangbooId
+    team && !team.bangbooId && !authorityCandidate?.authorComparisonMembership
       ? {
           memberIds: team.agentIds as [string, string, string],
           primaryBangbooId: engineCandidate ? (sourceBangbooId(engineCandidate) ?? '') : '',

@@ -1,4 +1,5 @@
 import { stableContentHash } from '../gameDataPacks/types'
+import { resolveSourceEventQuantity32 } from './sourceEventQuantity32'
 import { auditLegalFormationNumericOperands } from '../teamEngine/current31LegalCandidateUniverse'
 import {
   createCalculationContext,
@@ -9,7 +10,10 @@ import {
   compileFormationPlanningEffectBlueprints,
   type CurrentAgentPlanningEffectBlueprint,
 } from './currentAgentPlanningEffectBlueprint'
-import { getCurrentAgentEventContract } from './currentAgentMechanicContracts'
+import {
+  getCurrentAgentEventContract,
+  resolveCurrentAgentEvent,
+} from './currentAgentMechanicContracts'
 import {
   compilePlanningInteractionContracts,
   type PlanningInteractionContract,
@@ -17,6 +21,10 @@ import {
 } from './planningInteractionOperators'
 import { compileSourceBackedPlanningInteractionContracts } from './currentPlanningInteractionMechanicIR'
 import type { PlanningAccountSnapshot, PlanningBaseline } from './planningDpsContract'
+import {
+  planningEventScheduleGaps32,
+  type PlanningEventSchedule32,
+} from './planningEventOccurrenceState32'
 
 export type PlanningContextMemberAsset = {
   agentId: string
@@ -46,6 +54,8 @@ export type PlanningEventUsage = {
   eventId: string
   skillLevel: number
   occurrenceCount: number
+  /** Total seconds for a source coefficient explicitly measured per second. */
+  durationSeconds?: number
   evidenceRefs: string[]
 }
 
@@ -68,6 +78,7 @@ export type PlanningCalculationContextCompilerInput = {
   bangboo: { id: string; level: number; coreLevel: number } | null
   assets: PlanningContextMemberAsset[]
   eventUsages: PlanningEventUsage[]
+  eventSchedule32?: PlanningEventSchedule32
   effectDispositions: PlanningEffectDisposition[]
   interactionContracts?: PlanningInteractionContract[]
   requiredInteractionOperators?: PlanningInteractionOperator[]
@@ -154,7 +165,8 @@ export function compilePlanningCalculationContext(
       blockers.push(`成员缺少实体装备与 finalStats：${agentId}`)
       return
     }
-    if (!validPositiveInteger(asset.level)) blockers.push(`成员等级无效：${agentId}`)
+    if (!validPositiveInteger(asset.level) || asset.level > 60)
+      blockers.push(`成员等级无效：${agentId}`)
     if (!Number.isInteger(asset.mindscape) || asset.mindscape < 0 || asset.mindscape > 6)
       blockers.push(`成员影画等级无效：${agentId}`)
     if (
@@ -185,8 +197,17 @@ export function compilePlanningCalculationContext(
     if (!input.memberIds.includes(usage.ownerAgentId))
       blockers.push(`事件 owner 不属于计算队伍：${usage.ownerAgentId}`)
     if (!event) blockers.push(`固定事件不存在：${usage.ownerAgentId}:${usage.eventId}`)
+    const resolved = resolveCurrentAgentEvent({
+      stableId: usage.ownerAgentId,
+      eventId: usage.eventId,
+      skillLevel: usage.skillLevel,
+    })
+    if (resolved.status === 'unsupported') blockers.push(...resolved.blockers)
     if (!validPositiveInteger(usage.occurrenceCount))
       blockers.push(`事件次数必须是正整数：${usage.ownerAgentId}:${usage.eventId}`)
+    const quantity = resolveSourceEventQuantity32(usage)
+    if (quantity.status === 'unsupported')
+      blockers.push(`${usage.ownerAgentId}:${usage.eventId}：${quantity.reason}`)
     if (!validPositiveInteger(usage.skillLevel))
       blockers.push(`事件技能等级无效：${usage.ownerAgentId}:${usage.eventId}`)
     if (event && asset?.skillLevels[event.skill] !== usage.skillLevel)
@@ -198,6 +219,16 @@ export function compilePlanningCalculationContext(
     if (!input.eventUsages.some((usage) => usage.ownerAgentId === agentId))
       blockers.push(`固定事件集未包含成员事件：${agentId}`)
   })
+  if (input.eventSchedule32)
+    blockers.push(
+      ...planningEventScheduleGaps32({
+        schedule: input.eventSchedule32,
+        gameVersion: input.gameVersion,
+        memberIds: input.memberIds,
+        eventUsages: input.eventUsages,
+        declaredDurationSeconds: input.baseline.declaredDurationSeconds,
+      }),
+    )
 
   const effectBlueprintResult = compileFormationPlanningEffectBlueprints(input.memberIds)
   if (effectBlueprintResult.status === 'unsupported')
@@ -281,8 +312,16 @@ export function compilePlanningCalculationContext(
 
   if (blockers.length) return { status: 'unsupported', blockers: unique(blockers), inputHash }
 
-  const eventScheduleHash = stableContentHash(input.eventUsages)
-  const effectStateHash = stableContentHash(input.effectDispositions)
+  const eventScheduleHash = stableContentHash(
+    input.eventSchedule32
+      ? { eventUsages: input.eventUsages, schedule: input.eventSchedule32 }
+      : input.eventUsages,
+  )
+  const effectStateHash = stableContentHash(
+    input.eventSchedule32
+      ? { dispositions: input.effectDispositions, schedule: input.eventSchedule32 }
+      : input.effectDispositions,
+  )
   const assetBindingHash = stableContentHash(input.assets)
   const interactionStateHash = stableContentHash({
     contracts: input.interactionContracts ?? [],
@@ -343,7 +382,8 @@ export function compilePlanningCalculationContext(
       actionSequenceHash: eventScheduleHash,
       hitCount: input.eventUsages.reduce((sum, usage) => sum + usage.occurrenceCount, 0),
       buffWindowHash: effectStateHash,
-      complete: true,
+      // Event-state declarations do not certify action occupancy or resources.
+      complete: input.eventSchedule32 ? false : true,
     },
     objective: 'formal_dps',
     constraintsHash: stableContentHash({
@@ -408,6 +448,17 @@ export function compilePlanningCalculationContext(
         conflict: false,
         stale: false,
         reason: disposition.reason,
+      })),
+      ...(input.eventSchedule32?.occurrences ?? []).map((occurrence) => ({
+        fieldId: `event-occurrence:${occurrence.occurrenceId}`,
+        status: evidenceStatus,
+        applicability: 'verified_current' as const,
+        sourceRefs: [...occurrence.sourceRefs],
+        sourceVersion: input.gameVersion,
+        requiredFor: [...requiredFor],
+        conflict: false,
+        stale: false,
+        reason: '逐次事件时刻、条件与必要快照绑定当前来源定义；不推断轮转资源或合法性。',
       })),
       ...(input.interactionContracts ?? []).map((contract) => ({
         fieldId: `interaction-contract:${contract.contractId}`,

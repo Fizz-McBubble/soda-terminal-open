@@ -1,10 +1,25 @@
-import { driveDiscData } from '../data/gameData'
+import { resolveDriveDiscMainStatValue, hasLegalSixDriveDiscs } from './outOfCombatDiscStats'
+export { resolveDriveDiscMainStatValue, hasLegalSixDriveDiscs } from './outOfCombatDiscStats'
 import type { DriveDisc, StatKey } from '../domain/schemas'
 import {
   getCurrentDriveDiscFormulaData,
   resolveCurrentDriveDiscTwoPieceModifiers,
 } from '../gameDataPacks/currentDriveDiscFormulaCatalog'
-import { currentPanelData } from '../gameDataPacks/panel/currentPanelData'
+import { getCurrentWEngineStaticData } from '../gameDataPacks/currentWEngineStaticCatalog'
+import {
+  currentPanelData,
+  resolveCurrentAgentCoreGrowth,
+} from '../gameDataPacks/panel/currentPanelData'
+import {
+  currentFormulaBaseStats,
+  currentFormulaBaseStatsSource,
+} from '../gameDataPacks/currentFormulaBaseStats'
+import {
+  calculateWEngineBaseStatExact,
+  calculateWEngineSecondaryStat,
+} from '../gameDataPacks/panel/wEngineGrowth'
+import { getCurrentAgentEventContract } from './currentAgentMechanicContracts'
+import { evaluateInitialCritConversion32 } from './currentInitialCritConversion32'
 
 export const outOfCombatKeys = [
   'hp',
@@ -13,6 +28,7 @@ export const outOfCombatKeys = [
   'impact',
   'critRate',
   'critDamage',
+  'lacerationDamage',
   'anomalyMastery',
   'anomalyProficiency',
   'pen',
@@ -25,6 +41,9 @@ export type PanelInput = {
   agentId: string
   level: number
   ascension: number
+  /** Learned-growth row0..5 (A..F) maps to account core2..7.
+   * Explicit -1 alone maps to account core1's source-proven zero enhancement;
+   * missing/NaN never select this zero row. */
   core: number
   mindscape?: number
   wEngine: { id: string; level: number; ascension: number; refinement: number }
@@ -67,8 +86,8 @@ export function projectPanelEngineSupport(
 
 type PanelValues = Record<OutOfCombatKey, number>
 
-const defaultCritRate = 5
-const defaultCritDamage = 50
+const defaultCritRate = currentFormulaBaseStats.critRate * 100
+const defaultCritDamage = currentFormulaBaseStats.critDamage * 100
 const flatStatMap: Partial<Record<StatKey, OutOfCombatKey>> = {
   hp_flat: 'hp',
   atk_flat: 'atk',
@@ -118,7 +137,12 @@ function emptyValues(): PanelValues {
 }
 
 function initialValues(): PanelValues {
-  return { ...emptyValues(), critRate: defaultCritRate, critDamage: defaultCritDamage }
+  return {
+    ...emptyValues(),
+    critRate: defaultCritRate,
+    critDamage: defaultCritDamage,
+    lacerationDamage: currentFormulaBaseStats.lacerationDamage * 100,
+  }
 }
 
 function unsupported(reason: string): PanelResult {
@@ -129,37 +153,6 @@ function unsupported(reason: string): PanelResult {
     menuRounding: 'menu_rule_missing',
     reason,
   }
-}
-
-export function resolveDriveDiscMainStatValue(
-  disc: DriveDisc,
-): { stat: StatKey; value: number } | null {
-  const rarity = disc.rarity ?? 'S'
-  const rule = driveDiscData?.rules.mainStatBaseByRarity[rarity].find(
-    (item) => item.stat === disc.mainStat,
-  )
-  const maxLevel = driveDiscData?.rules.maxLevelByRarity[rarity]
-  if (!rule || maxLevel === undefined) return null
-
-  const raw = rule.baseValue * (1 + (3 * disc.level) / maxLevel)
-  return { stat: disc.mainStat, value: rule.unit === 'flat' ? Math.round(raw) : raw }
-}
-
-export function hasLegalSixDriveDiscs(discs: readonly DriveDisc[]): boolean {
-  const slots = discs.map((disc) => disc.slot)
-  return (
-    discs.length === 6 &&
-    new Set(discs.map((disc) => disc.id)).size === 6 &&
-    new Set(slots).size === 6 &&
-    [1, 2, 3, 4, 5, 6].every((slot) => slots.includes(slot as DriveDisc['slot'])) &&
-    discs.every(
-      (disc) =>
-        (driveDiscData?.rules.mainStatsBySlot[String(disc.slot)] ?? []).includes(disc.mainStat) &&
-        Number.isInteger(disc.level) &&
-        disc.level >= 0 &&
-        disc.level <= (driveDiscData?.rules.maxLevelByRarity[disc.rarity ?? 'S'] ?? -1),
-    )
-  )
 }
 
 function add(
@@ -179,14 +172,34 @@ export function projectOutOfCombatPanel(input: PanelInput): PanelResult {
   const engine = currentPanelData.wEngines[input.wEngine.id]
   if (!agent || !engine) return unsupported('未知 agentId 或 engineId。')
   if (
-    input.level !== agent.level ||
-    input.ascension !== agent.ascension ||
-    input.wEngine.level !== engine.level ||
-    input.wEngine.ascension !== engine.ascension
-  )
-    return unsupported('该锚点只冻结了锁定上游的 60级/5突破投影。')
+    agent.kind === 'menu_observed' &&
+    (input.level !== agent.level || input.ascension !== agent.ascension)
+  ) {
+    return unsupported('观测锚点仅登记了 60级/5突破的菜单观测值。')
+  }
+  if (!Number.isInteger(input.level) || input.level < 1 || input.level > 60) {
+    return unsupported('代理人等级必须在 1 到 60 之间。')
+  }
+  if (!Number.isInteger(input.ascension) || input.ascension < 0 || input.ascension > 5) {
+    return unsupported('代理人突破阶段必须在 0 到 5 之间。')
+  }
   if (
-    input.core < 0 ||
+    !Number.isInteger(input.wEngine.level) ||
+    input.wEngine.level < 1 ||
+    input.wEngine.level > 60
+  ) {
+    return unsupported('音擎等级必须在 1 到 60 之间。')
+  }
+  if (
+    !Number.isInteger(input.wEngine.ascension) ||
+    input.wEngine.ascension < 0 ||
+    input.wEngine.ascension > 5
+  ) {
+    return unsupported('音擎突破阶段必须在 0 到 5 之间。')
+  }
+  if (
+    !Number.isInteger(input.core) ||
+    input.core < -1 ||
     (agent.kind === 'growth' && input.core >= agent.core.length) ||
     (agent.kind === 'menu_observed' && input.core !== agent.core) ||
     input.wEngine.refinement < 1 ||
@@ -200,14 +213,18 @@ export function projectOutOfCombatPanel(input: PanelInput): PanelResult {
   const postFlat = emptyValues()
   const trace: PanelTrace[] = []
 
+  const contract = agent.kind === 'growth' ? getCurrentAgentEventContract(input.agentId) : null
+  const promotion = contract?.promotionStats[input.ascension] ?? { hp: 0, atk: 0, def: 0 }
+
   if (agent.kind === 'growth') {
     ;(['hp', 'atk', 'def'] as const).forEach((key) => {
-      const [base, growth, promotion] = agent.stats[key]
+      const [base, growth] = agent.stats[key]
+      const promotionValue = promotion[key]
       add(
         values,
         trace,
         key,
-        base + growth * (input.level - 1) + promotion,
+        base + growth * (input.level - 1) + promotionValue,
         `character:${input.agentId}:base+growth+promotion`,
         'base',
       )
@@ -230,7 +247,20 @@ export function projectOutOfCombatPanel(input: PanelInput): PanelResult {
       'base',
     )
     add(values, trace, 'energyRegen', agent.stats.energyRegen, 'character:energyRegen', 'base')
-    const core = agent.core[input.core]!
+    const coreGrowth = resolveCurrentAgentCoreGrowth({
+      agentId: input.agentId,
+      coreLevel: input.core + 2,
+      basis: 'source_growth',
+    })
+    if (coreGrowth.status === 'unsupported') return unsupported(coreGrowth.reason)
+    const core = coreGrowth.values
+    if (coreGrowth.kind === 'source_proven_zero_growth')
+      trace.push({
+        key: 'atk',
+        source: 'character:source_proven_zero_growth:row0',
+        operation: 'inactive',
+        value: '明确核心1的来源零提升；不代表核心被动无效。',
+      })
     if (core.hp) add(values, trace, 'hp', core.hp, 'character:coreStats.hp', 'base')
     if (core.atk) add(values, trace, 'atk', core.atk, 'character:coreStats.atk', 'base')
     if (core.atkPercent)
@@ -250,12 +280,12 @@ export function projectOutOfCombatPanel(input: PanelInput): PanelResult {
       add(percent, trace, 'hp', core.hpPercent, 'character:coreStats.hp_', 'percent')
     if (core.energyRegenFlat)
       add(
-        postFlat,
+        values,
         trace,
         'energyRegen',
         core.energyRegenFlat,
         'character:coreStats.enerRegen',
-        'post_flat',
+        'base',
       )
     if (core.energyRegenPercent)
       add(
@@ -301,7 +331,16 @@ export function projectOutOfCombatPanel(input: PanelInput): PanelResult {
       add(postFlat, trace, 'penRatio', core.penRatio, 'character:coreStats.pen_', 'post_flat')
   } else {
     for (const key of outOfCombatKeys)
-      add(values, trace, key, agent.values[key], `game-menu:${agent.evidence}:base`, 'base')
+      if (key === 'lacerationDamage')
+        add(
+          values,
+          trace,
+          key,
+          currentFormulaBaseStats.lacerationDamage * 100,
+          currentFormulaBaseStatsSource.evidenceRef,
+          'base',
+        )
+      else add(values, trace, key, agent.values[key], `game-menu:${agent.evidence}:base`, 'base')
     if (input.mindscape !== agent.mindscape)
       trace.push({
         key: 'atk',
@@ -311,13 +350,51 @@ export function projectOutOfCombatPanel(input: PanelInput): PanelResult {
       })
   }
 
-  add(values, trace, 'atk', engine.atkBase, `wengine:${engine.evidence}:lv60_base`, 'base')
+  const engineStatic = getCurrentWEngineStaticData(input.wEngine.id)
+  const isLv60Engine = input.wEngine.level === 60 && input.wEngine.ascension === 5
+  const baseKey = engine.baseStat?.key ?? 'atk'
+  const baseValue =
+    agent.kind === 'menu_observed' && isLv60Engine
+      ? (engine.baseStat?.value ?? engine.atkBase ?? 0)
+      : engineStatic
+        ? calculateWEngineBaseStatExact(
+            engineStatic.staticStats.baseStat.value,
+            input.wEngine.level,
+            input.wEngine.ascension,
+          )
+        : (engine.baseStat?.value ?? engine.atkBase ?? 0)
+
+  const secondaryValue = isLv60Engine
+    ? engine.secondary.value
+    : engineStatic
+      ? engineStatic.staticStats.secondaryStatKey === 'anomProf'
+        ? calculateWEngineSecondaryStat(
+            engineStatic.staticStats.secondaryStatBaseValue,
+            input.wEngine.level,
+            input.wEngine.ascension,
+          )
+        : calculateWEngineSecondaryStat(
+            engineStatic.staticStats.secondaryStatBaseValue,
+            input.wEngine.level,
+            input.wEngine.ascension,
+          ) * 100
+      : engine.secondary.value
+
+  const engineEvidenceTag = isLv60Engine ? 'lv60' : `lv${input.wEngine.level}`
+  add(
+    values,
+    trace,
+    baseKey,
+    baseValue,
+    `wengine:${engine.evidence}:${engineEvidenceTag}_base`,
+    'base',
+  )
   add(
     engine.secondary.operation === 'percent' ? percent : postFlat,
     trace,
     engine.secondary.key,
-    engine.secondary.value,
-    `wengine:${engine.evidence}:lv60_second_stat`,
+    secondaryValue,
+    `wengine:${engine.evidence}:${engineEvidenceTag}_second_stat`,
     engine.secondary.operation,
   )
 
@@ -379,6 +456,21 @@ export function projectOutOfCombatPanel(input: PanelInput): PanelResult {
     }
   }
 
+  const initialCritConversion = evaluateInitialCritConversion32({
+    agentId: input.agentId,
+    initialStats: { crit_dmg_: (values.critDamage + postFlat.critDamage) / 100 },
+  })
+  if (initialCritConversion.status === 'unsupported')
+    return unsupported(initialCritConversion.blockers.join('；'))
+  if (initialCritConversion.critRate !== 0)
+    add(
+      postFlat,
+      trace,
+      'critRate',
+      initialCritConversion.critRate * 100,
+      initialCritConversion.sourceRefs.join('|'),
+      'post_flat',
+    )
   ;(['hp', 'atk', 'def', 'impact', 'anomalyMastery', 'energyRegen'] as const).forEach((key) => {
     values[key] = values[key] * (1 + percent[key] / 100) + postFlat[key]
     trace.push({ key, source: 'base×percent+post_flat', operation: 'final', value: values[key] })

@@ -344,7 +344,7 @@ export async function installOfficialWEngineAssetPack(
     (item): item is typeof item & { remoteUrl: string } =>
       item.entityType === 'wengine' &&
       item.status === 'verified' &&
-      item.sourceType === 'official' &&
+      isOfficialCacheableAsset(item) &&
       item.cachePolicy === 'explicit-personal-cache' &&
       Boolean(item.remoteUrl),
   )

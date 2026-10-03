@@ -1,4 +1,5 @@
 export const specialtyIconIds: Record<string, { entityId: string; name: string }> = {
+  锋御: { entityId: 'specialty-armorer', name: '锋御特性' },
   异常: { entityId: 'specialty-anomaly', name: '异常特性' },
   强攻: { entityId: 'specialty-attack', name: '强攻特性' },
   防护: { entityId: 'specialty-defense', name: '防护特性' },

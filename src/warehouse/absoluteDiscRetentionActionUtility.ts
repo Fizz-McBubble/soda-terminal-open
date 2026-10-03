@@ -1,6 +1,7 @@
 import type { CandidateWarehouseConstraint } from '../gameDataPacks/candidateWarehouseConstraints'
 import type { CurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
 import { resolveCurrentReleasedIdentity } from '../gameDataPacks/currentReleasedIdentityMap'
+import { stableContentHash } from '../gameDataPacks/types'
 import {
   resolveRetentionActionFact,
   type RetentionActionTag,
@@ -9,6 +10,19 @@ import type {
   RetentionUtilityEvidence,
   RetentionUtilityState,
 } from './absoluteDiscRetentionUseFacts'
+import {
+  resolveReviewedUseScope,
+  type Context,
+  type Review,
+  type Adoption,
+} from './reviewedRetentionUseScope'
+
+/** Explicit reviewed profile input; the ordinary caller cannot infer this from an actor name. */
+export type ReviewedActionUseScope = {
+  context: Context
+  review: Review
+  adoption: Adoption
+}
 
 export function resolveActionUtility(
   action: RetentionActionTag,
@@ -16,6 +30,7 @@ export function resolveActionUtility(
   constraint: CandidateWarehouseConstraint,
   eventContract: CurrentAgentEventContract | null,
   evidenceIds: string[],
+  reviewedScope?: ReviewedActionUseScope,
 ): RetentionUtilityEvidence {
   const fact = resolveRetentionActionFact(
     action,
@@ -27,12 +42,51 @@ export function resolveActionUtility(
     state: RetentionUtilityState,
     predicateId: string,
     detail: string,
-  ): RetentionUtilityEvidence => ({
-    state,
-    predicateId,
-    evidenceIds: [...new Set([...evidenceIds, ...fact.sourceIds])],
-    detail,
-  })
+  ): RetentionUtilityEvidence => {
+    const result = {
+      state,
+      predicateId,
+      evidenceIds: [...new Set([...evidenceIds, ...fact.sourceIds])],
+      detail,
+    }
+    const { contentHash, ...constraintPayload } = constraint
+    if (
+      !reviewedScope ||
+      constraint.status === 'missing' ||
+      !constraint.sources.some((source) => source.verified) ||
+      contentHash !== stableContentHash(constraintPayload) ||
+      !/^[a-f\d]{64}$/i.test(reviewedScope.review.sourceArtifactSha256 ?? '') ||
+      !eventContract ||
+      reviewedScope.context.actorAgentId !== fact.actorAgentId ||
+      reviewedScope.context.profileFingerprint !== constraint.contentHash ||
+      reviewedScope.context.externalId !== eventContract.externalId ||
+      reviewedScope.context.sourceCommit !== eventContract.source.commit ||
+      reviewedScope.context.formulaSha256.toUpperCase() !==
+        eventContract.source.formulaSha256.toUpperCase() ||
+      reviewedScope.context.statsSha256.toUpperCase() !==
+        eventContract.source.statsSha256.toUpperCase()
+    )
+      return result
+    const scoped = resolveReviewedUseScope(
+      { action, mechanicalPresence: fact.presence, utility: state, predicateId },
+      reviewedScope.context,
+      reviewedScope.review,
+      reviewedScope.adoption,
+    )
+    return scoped.applied
+      ? {
+          state: scoped.utility,
+          predicateId: scoped.predicateId,
+          evidenceIds: [
+            ...result.evidenceIds,
+            `reviewed-use:${scoped.useReviewId}`,
+            `reviewed-source-sha256:${reviewedScope.review.sourceArtifactSha256}`,
+            ...scoped.evidenceUrls,
+          ],
+          detail: scoped.explanation,
+        }
+      : result
+  }
   if (constraint.status === 'missing' || !constraint.sources.some((source) => source.verified))
     return ev(
       'missing_fact',

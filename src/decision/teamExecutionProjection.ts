@@ -5,11 +5,13 @@ import type { AccountBuildResult } from '../optimizer/optimizeAccountBuilds'
 import type { CandidateWarehousePlan } from '../optimizer/candidateWarehouseSolver'
 import type { MultiTeamCoordination } from '../optimizer/multiTeamCoordinator'
 import {
+  hasPreparedTeamScenario32,
   hasUnresolvedAuthorityScenario,
   type TeamBuildExecutionIdentity,
 } from './teamBuildExecutionIdentity'
 import type { EffectiveTargetTeamEquipmentParameters } from './targetTeamEquipmentParameters'
 import { defaultWEngineRefinement, resolveWEngine } from './wEngineResolver'
+import { reviewedPreparedTeamConditions32 } from '../calculation/reviewedPreparedTeamBenchmark32'
 
 export const teamExecutionContract = 'soda-team-execution/r1' as const
 
@@ -71,11 +73,12 @@ export type TeamExecution = {
   memberIds: [string, string, string]
   /** Player-selected battle placement; absent on legacy and uncustomized snapshots. */
   deploymentOrder?: [string, string, string]
-  bangbooId: string
+  bangbooId: string | null
+  authorComparisonMembership?: import('./reviewedAuthorComparisonMembership32').AuthorComparisonMembership32
   /** Exact selected/default star when the source calculation supplied one; omitted for legacy or unknown. */
   bangbooStar?: 1 | 2 | 3 | 4 | 5
   /** Absent only on legacy persisted projections. */
-  wEngineBindingMode?: 'scheme_parameters'
+  wEngineBindingMode?: 'scheme_parameters' | 'account_fact_binding'
   members: TeamExecutionMember[]
   physicalDiscIds: string[]
   /** Legacy compatibility field; new projections never populate physical W-Engine copies. */
@@ -90,7 +93,7 @@ export type TeamExecutionPortfolio = {
   reusePolicy: 'simultaneous_lock'
   requestedTeamCount: number
   /** Absent only on legacy persisted projections. */
-  wEngineBindingMode?: 'scheme_parameters'
+  wEngineBindingMode?: 'scheme_parameters' | 'account_fact_binding'
   executions: TeamExecution[]
   /** Legacy compatibility field; new projections never populate physical W-Engine copies. */
   uniqueConfirmedWEngineCopyIds: string[]
@@ -113,7 +116,14 @@ type ProjectionInput = ProjectionContext & {
 
 function scenario(candidate: TeamBuildExecutionIdentity): TeamExecutionScenario {
   const tags = [...new Set(candidate.scenarioTags)].sort()
-  return { identity: tags.length ? `scenario:${tags.join('+')}` : 'scenario:unresolved', tags }
+  return {
+    identity: hasPreparedTeamScenario32(candidate)
+      ? reviewedPreparedTeamConditions32.policyId
+      : tags.length
+        ? `scenario:${tags.join('+')}`
+        : 'scenario:unresolved',
+    tags,
+  }
 }
 
 function recordedBangbooStar(value: number | null | undefined) {
@@ -295,7 +305,9 @@ function projectOne(
     }
   })
   const blockers = [
-    ...(candidate.scenarioTags.length || hasUnresolvedAuthorityScenario(candidate)
+    ...(candidate.scenarioTags.length ||
+    hasPreparedTeamScenario32(candidate) ||
+    hasUnresolvedAuthorityScenario(candidate)
       ? []
       : ['Team Engine 未提供 scenario identity。']),
     ...members.flatMap((member) =>
@@ -318,11 +330,21 @@ function projectOne(
     reusePolicy,
     scenario: scenario(candidate),
     memberIds: [...candidate.memberIds],
-    bangbooId: candidate.bangbooId ?? '',
+    // Ordinary legacy pending-Bangboo plans keep their established representation.
+    // Only the separately qualified author membership carries an explicit null identity.
+    bangbooId: candidate.authorComparisonMembership
+      ? candidate.bangbooId
+      : (candidate.bangbooId ?? ''),
+    ...(candidate.bangbooId === null && candidate.authorComparisonMembership
+      ? { authorComparisonMembership: candidate.authorComparisonMembership }
+      : {}),
     bangbooStar: recordedBangbooStar(
       effectiveEquipmentParameters?.bangbooStars ?? schemeBangbooStar(candidate),
     ),
-    wEngineBindingMode: 'scheme_parameters',
+    wEngineBindingMode:
+      candidate.authorComparisonMembership && candidate.bangbooId === null
+        ? 'account_fact_binding'
+        : 'scheme_parameters',
     members,
     physicalDiscIds,
     confirmedWEngineCopyIds: [],

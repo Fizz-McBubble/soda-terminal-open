@@ -1,3 +1,4 @@
+import reviewed32MediaUrls from './src/assets/reviewed32-media-urls.json'
 import { configDefaults, defineConfig } from 'vitest/config'
 import { readFileSync } from 'node:fs'
 import react from '@vitejs/plugin-react'
@@ -106,12 +107,14 @@ function officialCatalogCachePlugin(): Plugin {
       response.end('官方图鉴素材地址无效')
       return
     }
+    const reviewedCommunity = Object.values(reviewed32MediaUrls).includes(source)
     if (
       remote.protocol !== 'https:' ||
-      !officialAssetSources.some(
-        (source) =>
-          remote.hostname === source.host && remote.pathname.startsWith(source.pathPrefix),
-      )
+      (!reviewedCommunity &&
+        !officialAssetSources.some(
+          (source) =>
+            remote.hostname === source.host && remote.pathname.startsWith(source.pathPrefix),
+        ))
     ) {
       response.statusCode = 403
       response.end('官方图鉴素材地址不在允许范围内')
@@ -124,7 +127,7 @@ function officialCatalogCachePlugin(): Plugin {
         // The manifest hash is recorded from the origin's default byte stream.
         // Do not negotiate a WebP/AVIF variant here, or cache verification will
         // correctly reject a different representation of the same image.
-        const upstream = await fetch(remote, { redirect: 'follow' })
+        const upstream = await fetch(remote, { redirect: reviewedCommunity ? 'manual' : 'follow' })
         lastStatus = upstream.status
         if (upstream.ok) {
           const body = Buffer.from(await upstream.arrayBuffer())

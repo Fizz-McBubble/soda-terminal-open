@@ -54,7 +54,13 @@
 }
 
 .r6-golden .icon-stack > .visual-asset-fallback {
-  display: none;
+  /* Lazy image resolution observes this placeholder, so it must retain a visible box. */
+  display: grid;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  background: transparent;
+  color: var(--soda-surface);
 }
 
 .r6-golden .icon-stack {

@@ -1,3 +1,4 @@
+import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
 import type { AccountRoster } from '../assault/types'
 import { currentNormalizedPlanningBaseline } from '../calculation/currentNormalizedPlanningBaseline'
 import type { AccountBuildResult } from '../optimizer/optimizeAccountBuilds'
@@ -13,6 +14,11 @@ import { evaluateCurrent31TeamRating } from './current31TeamRating'
 import { reviewedTeamCombatEvidence } from './reviewedTeamCombatEvidence'
 import { isReviewedFallbackTeam } from './reviewedTeamRecommendationDisposition'
 import { teamBangbooActivationAlternatives } from './teamBangbooActivationAlternatives'
+import { reviewedPreparedTeamCapabilities32 } from '../calculation/reviewedPreparedTeamBenchmark32'
+import {
+  authorComparisonMembership32Identity,
+  reviewedAuthorComparisonMembership32,
+} from './reviewedAuthorComparisonMembership32'
 import { projectOutputPotentialBands } from './outputPotentialBand'
 import { type RankedFormation } from './accountDecisionBands'
 import {
@@ -119,6 +125,39 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
     mode: input.validationIntrinsicProjectionMode ?? 'indexed',
   })
   const recommendationLimit = input.recommendationLimit ?? 12
+  const ownedAgentIds = input.roster.agents
+    .filter((agent) => agent.owned)
+    .map((agent) => agent.agentId)
+  const explicitMembershipById = new Map(
+    projected.flatMap((item) => {
+      // Membership evidence cannot override invalid mechanics, hard player constraints,
+      // or turn an unqualified source observation into a rated-strength claim.
+      if (
+        item.rating.status !== 'rated' ||
+        item.rating.ratingBand !== 'Experimental' ||
+        item.rating.confidence !== 'experimental'
+      )
+        return []
+      const membership = reviewedAuthorComparisonMembership32(item.memberIds, ownedAgentIds)
+      return membership ? [[item.candidate.candidateId, membership] as const] : []
+    }),
+  )
+  // Availability of a named local finite model permits deliberate selection;
+  // it is independent of community recognition, strength and rotation closure.
+  const preparedBenchmarkIds = new Set(
+    projected.flatMap((item) =>
+      item.rating.status === 'rated' &&
+      reviewedPreparedTeamCapabilities32.some(
+        (capability) =>
+          capability.memberIds.length === item.memberIds.length &&
+          capability.memberIds.every(
+            (id) => item.memberIds.includes(id) && ownedAgentIds.includes(id),
+          ),
+      )
+        ? [item.candidate.candidateId]
+        : [],
+    ),
+  )
   const teamStrengthRankById = projectCurrent31TeamStrengthOrder(
     projected.flatMap((item) =>
       item.rating.status === 'rated'
@@ -149,6 +188,11 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
     )
   }
   const defaultRecommendation = (item: (typeof projected)[number]) => {
+    if (
+      explicitMembershipById.has(item.candidate.candidateId) ||
+      preparedBenchmarkIds.has(item.candidate.candidateId)
+    )
+      return false
     const independentRating =
       item.rating.status === 'rated' &&
       !item.inferredStrength &&
@@ -185,17 +229,32 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
     intrinsicShortlist.map((item) => item.candidate.candidateId),
   )
   // Preserve rule/source discovery; inference alone must not expand eager detail work.
-  const consumerWorkset = allIntrinsicOrdered.filter(
+  let consumerWorkset = allIntrinsicOrdered.filter(
     (item) =>
       intrinsicShortlistIds.has(item.candidate.candidateId) ||
       item.mechanicallyClosed ||
       item.mainstreamRecognition.status === 'confirmed' ||
       item.hasPreliminaryDirection ||
+      explicitMembershipById.has(item.candidate.candidateId) ||
+      preparedBenchmarkIds.has(item.candidate.candidateId) ||
       (item.rating.status === 'rated' &&
         !item.inferredStrength &&
         item.rating.ratingBand !== 'Experimental' &&
         item.rating.confidence !== 'experimental'),
   )
+  // A BOX with no recognized recommendation still needs a bounded exact-team
+  // direction. Keep the existing partial mechanic/rating evidence; these rows
+  // never enter default strength recommendations or either required portfolio.
+  if (consumerWorkset.length === 0) {
+    const ruleAgentIds = new Set(current31TeamEngineD1Pack.agentRules.map((rule) => rule.agentId))
+    consumerWorkset = allIntrinsicOrdered
+      .filter((item) =>
+        item.memberIds.every(
+          (agentId) => ownedAgentIds.includes(agentId) && ruleAgentIds.has(agentId),
+        ),
+      )
+      .slice(0, recommendationLimit)
+  }
   const consumerWorksetIds = new Set(consumerWorkset.map((item) => item.candidate.candidateId))
   const ordered = [...projected].sort(baseComparator)
   const tierOrder = ['ready_now', 'short_upgrade', 'strategic_build', 'experimental'] as const
@@ -263,6 +322,9 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
     right: (typeof enriched)[number],
   ) => intrinsicDisplayComparator(left, right)
   const toRecommendation = (item: (typeof enriched)[number]) => {
+    const authorComparisonMembership = explicitMembershipById.get(item.candidate.candidateId)
+    const hasPreparedBenchmark32 = preparedBenchmarkIds.has(item.candidate.candidateId)
+    const explicitSelectionOnly = Boolean(authorComparisonMembership || hasPreparedBenchmark32)
     const current = evaluateCurrent31TeamRating({
       candidateId: item.candidate.candidateId,
       memberIds: item.memberIds,
@@ -284,12 +346,16 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
     })
     return {
       candidateId: item.candidate.candidateId,
-      teamStrengthOrder: teamStrengthRankById.get(item.candidate.candidateId) ?? null,
-      cultivationPriorityOrder: cultivationRankById.get(item.candidate.candidateId) ?? null,
+      teamStrengthOrder: explicitSelectionOnly
+        ? null
+        : (teamStrengthRankById.get(item.candidate.candidateId) ?? null),
+      cultivationPriorityOrder: explicitSelectionOnly
+        ? null
+        : (cultivationRankById.get(item.candidate.candidateId) ?? null),
       memberIds: item.memberIds,
-      bangbooId: item.candidate.bestBangbooId,
-      benchmarkOutput: item.candidate.planningDps,
-      ...(item.candidate.bestBangbooId
+      bangbooId: explicitSelectionOnly ? null : item.candidate.bestBangbooId,
+      benchmarkOutput: explicitSelectionOnly ? null : item.candidate.planningDps,
+      ...(authorComparisonMembership || (!hasPreparedBenchmark32 && item.candidate.bestBangbooId)
         ? {}
         : {
             // Activation-only choices are not ranked recommendations. Check at
@@ -311,6 +377,8 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
         coverageGain: priorityInput.coverageGain,
       },
       cultivationPriority: createPriorityResult(priorityInput),
+      ...(authorComparisonMembership ? { authorComparisonMembership } : {}),
+      ...(hasPreparedBenchmark32 ? { hasPreparedBenchmark32: true as const } : {}),
     }
   }
   // Owned BOX constrains membership; inventory costs stay outside intrinsic strength ordering.
@@ -346,6 +414,7 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
     contract: accountDecisionAuthorityContractId,
     status: 'ready' as const,
     sideEffect: 'read_only' as const,
+    explicitMembershipSourceIdentity: authorComparisonMembership32Identity,
     outputPotentialCohort: cohort,
     recommendations,
     consumerRecommendations,

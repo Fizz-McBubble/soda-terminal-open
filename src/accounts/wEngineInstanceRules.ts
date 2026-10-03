@@ -32,8 +32,15 @@ export function makeWEngineCopyId(engineId: string, ordinal: number) {
 
 function projectDetails(copy: WEngineCopy | undefined, previous: RosterAgent['wEngineDetails']) {
   if (previous.id) return previous
-  if (!copy) return { id: null, name: null, level: null, refinement: null }
-  return { id: copy.engineId, name: previous.name, level: copy.level, refinement: copy.refinement }
+  const explicitPhase = 'ascension' in previous ? { ascension: previous.ascension } : {}
+  if (!copy) return { id: null, name: null, level: null, refinement: null, ...explicitPhase }
+  return {
+    id: copy.engineId,
+    name: previous.name,
+    level: copy.level,
+    refinement: copy.refinement,
+    ...explicitPhase,
+  }
 }
 
 /** Upgrades legacy rows and rejects ambiguous/conflicting equipment authority. */

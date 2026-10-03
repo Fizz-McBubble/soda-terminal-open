@@ -2,6 +2,7 @@ import { database, type SodaDatabase } from '../db/databaseCore'
 import type { AccountRoster, ScenarioResult } from '../assault/types'
 import {
   assertBangbooSkillFacts,
+  assertRosterAscensionFacts,
   createEmptyRoster,
   hydrateRosterDefaults,
 } from './rosterHydration'
@@ -33,6 +34,7 @@ export async function getRoster(db: SodaDatabase = database): Promise<AccountRos
 
 export async function saveRoster(roster: AccountRoster, db: SodaDatabase = database) {
   assertBangbooSkillFacts(roster)
+  assertRosterAscensionFacts(roster)
   const value = { ...roster, updatedAt: new Date().toISOString() }
   await db.settings.put({ key: ROSTER_KEY, value })
   return value

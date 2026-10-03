@@ -14,6 +14,7 @@ export type AgentWEngineDraft = {
   wEngineCopyId: string | null
   wEngineCatalogId?: string | null
   wEngineLevel?: number | null
+  wEngineAscension?: number | null
   wEngineRefinement?: number | null
   wEngineRefinementManuallySet?: boolean
 }
@@ -64,6 +65,15 @@ export function applyAgentWEngineAssignment({
       (draft.wEngineRefinement ?? 0) > 5)
   )
     throw new Error('当前音擎精炼必须为 1–5。')
+  if (
+    selectedEngine &&
+    draft.wEngineAscension !== undefined &&
+    draft.wEngineAscension !== null &&
+    (!Number.isInteger(draft.wEngineAscension) ||
+      draft.wEngineAscension < 0 ||
+      draft.wEngineAscension > 5)
+  )
+    throw new Error('当前音擎突破阶段必须为 0–5 或未确认。')
 
   const agentsNext = roster.agents.map((agent) =>
     agent.agentId === agentId
@@ -75,6 +85,12 @@ export function applyAgentWEngineAssignment({
                 id: selectedEngine.stableId,
                 name: selectedEngine.playerName,
                 level: draft.wEngineLevel ?? 60,
+                ...('wEngineAscension' in draft
+                  ? { ascension: draft.wEngineAscension }
+                  : selectedEngine.stableId === agent.wEngineDetails.id &&
+                      'ascension' in agent.wEngineDetails
+                    ? { ascension: agent.wEngineDetails.ascension }
+                    : {}),
                 refinement: draft.wEngineRefinement ?? (selectedEngine.rarity === 'S' ? 1 : 5),
               }
             : { id: null, name: null, level: null, refinement: null },

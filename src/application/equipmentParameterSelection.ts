@@ -1,3 +1,4 @@
+import { targetTeamEquipmentParametersFingerprint } from './publicTargetTeamEquipmentFingerprint'
 import type {
   TargetTeamEquipmentParameterSelection,
   TargetTeamWarehouseFitQueryResult,
@@ -33,6 +34,12 @@ export function equipmentParameterSelection({
     return {
       agentId,
       engineId: selected?.engineId ?? '',
+      ...(selected?.engineId === effective?.engineId
+        ? {
+            ...(effective?.level === undefined ? {} : { level: effective.level }),
+            ...(effective?.ascension === undefined ? {} : { ascension: effective.ascension }),
+          }
+        : {}),
       refinement:
         selected?.engineId === effective?.engineId
           ? (effective?.refinement ?? recordedRefinement ?? selected?.refinement ?? 1)
@@ -47,12 +54,38 @@ export function equipmentParameterSelection({
       (item) => item.bangbooId === recommendations.bangboo.primaryBangbooId,
     ) ??
     recommendations.bangboo.options[0]
-  return {
+  const selection: TargetTeamEquipmentParameterSelection = {
     wEngines,
+    ...(effectiveParameters?.potentialByAgentId === undefined
+      ? {}
+      : {
+          potentialByAgentId: Object.fromEntries(
+            Object.entries(effectiveParameters.potentialByAgentId).filter(([agentId]) =>
+              memberIds.includes(agentId),
+            ),
+          ),
+        }),
+    ...(effectiveParameters?.koledaFixedEventConditions32 === undefined
+      ? {}
+      : { koledaFixedEventConditions32: effectiveParameters.koledaFixedEventConditions32 }),
     bangbooId: bangboo?.bangbooId ?? '',
     bangbooStars:
       bangboo?.bangbooId === effectiveParameters?.bangbooId
         ? (effectiveParameters?.bangbooStars ?? bangboo?.defaultStars ?? 1)
         : (bangboo?.defaultStars ?? 1),
   }
+  if (
+    effectiveParameters &&
+    targetTeamEquipmentParametersFingerprint({
+      ...selection,
+      koledaFixedEventConditions32: undefined,
+    }) !==
+      targetTeamEquipmentParametersFingerprint({
+        ...effectiveParameters,
+        koledaFixedEventConditions32: undefined,
+      })
+  ) {
+    delete selection.koledaFixedEventConditions32
+  }
+  return selection
 }

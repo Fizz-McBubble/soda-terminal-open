@@ -80,6 +80,18 @@ function harness(autoReady = true) {
 }
 
 describe('browser Query Worker lifecycle', () => {
+  it('rejects an older Worker before accepting any mixed-version comparison response', async () => {
+    const { client, workers } = harness(false)
+    const task = client.calculateAccountDecision(query('mixed-worker'))
+    const rejected = expect(task).rejects.toMatchObject({ name: 'BrowserCalculationProtocolError' })
+    await vi.waitFor(() => expect(workers).toHaveLength(1))
+    workers[0]!.onmessage?.({
+      data: { protocolVersion: 'soda-browser-calculation-query/v2', requestId: 0, status: 'ready' },
+    } as unknown as MessageEvent<BrowserCalculationQueryResponse>)
+    await rejected
+    expect(workers[0]!.terminated).toBe(true)
+    expect(workers[0]!.requests).toHaveLength(0)
+  })
   it('notifies handle subscribers when the Worker fails, and supports unsubscribe', async () => {
     const { client, workers } = harness()
     const listener = vi.fn()

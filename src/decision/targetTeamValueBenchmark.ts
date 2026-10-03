@@ -1,3 +1,4 @@
+import { defaultAscensionForLevel } from '../gameDataPacks/panel/wEngineGrowth'
 import type { CoreWarehouse } from '../accounts/coreFlow'
 import type { AccountPlanningDraft } from '../accounts/types'
 import { currentNormalizedPlanningBaseline } from '../calculation/currentNormalizedPlanningBaseline'
@@ -6,7 +7,6 @@ import {
   type ValueBenchmarkComparisonBasis,
   type ValueBenchmarkSide,
 } from '../calculation/valueBenchmarkComparison'
-import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
 import { stableContentHash } from '../gameDataPacks/types'
 import {
   hasUnresolvedAuthorityScenario,
@@ -20,7 +20,7 @@ import {
 import type { TargetTeamWarehouseFit } from './targetTeamWarehouseFit'
 import { resolveWEngine } from './wEngineResolver'
 
-const teamRuntimeIdentity = 'source-backed-target-team-fixed-event/v1'
+const teamRuntimeIdentity = 'source-backed-target-team-fixed-event/v2'
 
 function memberKey(memberIds: readonly string[]) {
   return [...memberIds].sort().join('|')
@@ -131,24 +131,46 @@ function side(input: {
   stale: boolean
 }): ValueBenchmarkSide {
   const parameters = input.parameters
+  const projection =
+    input.benchmark.calculationProjection?.status === 'supported'
+      ? input.benchmark.calculationProjection
+      : null
+  const memberModel = projection?.memberModelQualification32
+  const memberOnly = projection?.includedScope === 'three_members'
   const dimensions: ValueBenchmarkSide['dimensions'] = {
-    game_version: currentVersionProjection.gameVersion,
+    game_version: currentNormalizedPlanningBaseline.gameVersion,
     subject: stableContentHash({
       memberIds: input.candidate.memberIds,
-      bangbooId: parameters?.bangbooId ?? input.candidate.bangbooId,
+      progressionHash: projection?.progressionHash ?? null,
+      bangbooId: memberOnly ? null : (parameters?.bangbooId ?? input.candidate.bangbooId),
     }),
-    scenario: input.candidate.scenarioTags.length
-      ? `scenario:${input.candidate.scenarioTags.join('+')}`
-      : hasUnresolvedAuthorityScenario(input.candidate)
-        ? 'scenario:unresolved'
-        : 'scenario:normalized',
-    event_set: currentNormalizedPlanningBaseline.baselineId,
+    scenario: memberModel
+      ? memberModel.policyId
+      : input.candidate.scenarioTags.length
+        ? `scenario:${input.candidate.scenarioTags.join('+')}`
+        : hasUnresolvedAuthorityScenario(input.candidate)
+          ? 'scenario:unresolved'
+          : 'scenario:normalized',
+    event_set: projection?.eventSetHash ?? currentNormalizedPlanningBaseline.baselineId,
+    potential: projection?.potentialHash ?? 'unavailable',
     duration: String(currentNormalizedPlanningBaseline.declaredDurationSeconds),
     formula: currentNormalizedPlanningBaseline.formulaHash,
-    runtime: teamRuntimeIdentity,
+    runtime: memberModel ? `${teamRuntimeIdentity}:${memberModel.policyId}` : teamRuntimeIdentity,
     disc_loadout: stableContentHash(input.fit.loadouts),
-    w_engine: stableContentHash(parameters?.wEngines ?? []),
-    bangboo: parameters ? `${parameters.bangbooId}:s${parameters.bangbooStars}` : 'missing',
+    w_engine: stableContentHash(
+      (parameters?.wEngines ?? []).map((row) => ({
+        agentId: row.agentId,
+        engineId: row.engineId,
+        level: row.level ?? 60,
+        ascension: row.ascension ?? defaultAscensionForLevel(row.level ?? 60),
+        refinement: row.refinement,
+      })),
+    ),
+    bangboo: memberOnly
+      ? 'excluded_from_member_model'
+      : parameters
+        ? `${parameters.bangbooId}:s${parameters.bangbooStars}`
+        : 'missing',
   }
   if (input.stale)
     return {
@@ -175,10 +197,26 @@ function side(input: {
   return {
     state: 'supported',
     dimensions,
-    totalDamage: input.benchmark.totalDamage,
-    planningDps: input.benchmark.planningDps,
-    calculationFingerprint: input.benchmark.fingerprint,
-    reasons: [],
+    totalDamage: memberModel?.totalDamage ?? input.benchmark.totalDamage,
+    planningDps: memberModel?.planningDps ?? input.benchmark.planningDps,
+    calculationFingerprint: memberModel?.contextComparisonKey ?? input.benchmark.fingerprint,
+    reasons: memberModel
+      ? []
+      : (projection?.coverage.excludedEffects.map((row) => `${row.effectKey}：${row.reason}`) ??
+        []),
+    coverage:
+      memberModel && projection
+        ? {
+            ...projection.coverage,
+            excludedEffects: [],
+            exclusionContextFingerprint: memberModel.policyId,
+            boundary:
+              '三名成员在同一声明准备状态与固定事件内的总伤害；不含邦布、准备动作伤害、异常结算或提前失衡收益。',
+          }
+        : projection?.coverage,
+    ...(projection?.memberModelQualification32
+      ? { memberModelQualification32: projection.memberModelQualification32 }
+      : {}),
   }
 }
 
@@ -261,32 +299,35 @@ export function projectTargetTeamValueBenchmark(input: {
             engineId: current.engineId,
             refinement: current.refinement,
             level: current.level,
+            ascension:
+              agent?.wEngineDetails.id === current.engineId
+                ? (agent.wEngineDetails.ascension ?? undefined)
+                : undefined,
           },
         ]
       : []
   })
-  const currentEngineLevelReasons = allCurrentEquipment
-    ? currentWEngines
-        .filter((engine) => engine.level !== 60)
-        .map(
-          (engine) =>
-            `“${engine.agentId}”当前音擎为 ${engine.level} 级；游戏当前实装比较仅支持全员当前音擎 60 级，不会自动升满后计算。`,
-        )
-    : []
   const currentEquipmentParameters = allSavedPlans
     ? input.equipmentParameters
     : allCurrentEquipment &&
         input.equipmentParameters &&
-        currentWEngines.length === input.candidate.memberIds.length &&
-        currentEngineLevelReasons.length === 0
+        currentWEngines.length === input.candidate.memberIds.length
       ? {
-          wEngines: currentWEngines.map(({ agentId, engineId, refinement }) => ({
+          wEngines: currentWEngines.map(({ agentId, engineId, refinement, level, ascension }) => ({
             agentId,
             engineId,
             refinement,
+            level,
+            ascension,
           })),
           bangbooId: input.equipmentParameters.bangbooId,
           bangbooStars: input.equipmentParameters.bangbooStars,
+          ...(input.equipmentParameters.koledaFixedEventConditions32
+            ? {
+                koledaFixedEventConditions32:
+                  input.equipmentParameters.koledaFixedEventConditions32,
+              }
+            : {}),
         }
       : undefined
   const ready =
@@ -327,11 +368,29 @@ export function projectTargetTeamValueBenchmark(input: {
     equipmentParameters: currentEquipmentParameters,
   })
   const changedDimensions = [
+    ...(currentBenchmark.calculationProjection?.status === 'supported' &&
+    input.targetBenchmark.calculationProjection?.status === 'supported' &&
+    currentBenchmark.calculationProjection.potentialHash !==
+      input.targetBenchmark.calculationProjection.potentialHash
+      ? (['potential'] as const)
+      : []),
     ...(stableContentHash(currentFit.loadouts) === stableContentHash(input.targetFit.loadouts)
       ? []
       : (['disc_loadout'] as const)),
-    ...(stableContentHash(currentEquipmentParameters?.wEngines ?? []) ===
-    stableContentHash(input.equipmentParameters?.wEngines ?? [])
+    ...(stableContentHash(
+      (currentEquipmentParameters?.wEngines ?? []).map((row) => ({
+        ...row,
+        level: row.level ?? 60,
+        ascension: row.ascension ?? defaultAscensionForLevel(row.level ?? 60),
+      })),
+    ) ===
+    stableContentHash(
+      (input.equipmentParameters?.wEngines ?? []).map((row) => ({
+        ...row,
+        level: row.level ?? 60,
+        ascension: row.ascension ?? defaultAscensionForLevel(row.level ?? 60),
+      })),
+    )
       ? []
       : (['w_engine'] as const)),
   ]
@@ -341,7 +400,6 @@ export function projectTargetTeamValueBenchmark(input: {
       candidate: input.candidate,
       fit: currentFit,
       parameters: currentEquipmentParameters,
-      unsupportedReasons: currentEngineLevelReasons,
       stale: input.stale,
     }),
     candidate: side({
@@ -355,7 +413,7 @@ export function projectTargetTeamValueBenchmark(input: {
     independentCounterfactual: changedDimensions.length === 1,
     labels: {
       baseline: baselineLabel,
-      candidate: '18 盘 Target Fit + 方案装备参数',
+      candidate: `18盘 Target Fit + 方案装备参数（${input.equipmentParameters?.wEngines.map((row) => `${row.agentId}:${row.engineId} Lv${row.level ?? '60（旧声明）'}/P${row.refinement}`).join('、') ?? '参数未提供'}；音擎维度变化包含养成变化）`,
     },
     baselineSource,
   })

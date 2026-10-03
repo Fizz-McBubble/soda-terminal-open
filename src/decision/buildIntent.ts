@@ -1,6 +1,10 @@
 import type { AccountOptimizerOptions } from '../optimizer/optimizeAccountBuilds'
 import { candidatePanelObjectiveVersion } from '../optimizer/optimizeBuild'
 import { computeBuildIntentFingerprint } from '../application/publicBuildIntentFingerprint'
+import {
+  reviewedAuthorComparisonMembership32,
+  type AuthorComparisonMembership32,
+} from './reviewedAuthorComparisonMembership32'
 export {
   computeBuildIntentFingerprint,
   buildIntentFingerprintMatches,
@@ -46,7 +50,8 @@ export type TeamJointBuildIntent = {
   agentIds: [string, string, string]
   exactTeam: {
     candidateId: string
-    bangbooId: string
+    bangbooId: string | null
+    authorComparisonMembership?: AuthorComparisonMembership32
     scenarioTags: string[]
     /** Normalized condition input: missing potential uses the product default; explicit 0 is retained. */
     agentPotentialById: Record<string, number>
@@ -170,6 +175,41 @@ export function compileTeamBuildIntent(input: {
       candidateId: input.candidateId,
       bangbooId: input.bangbooId,
       scenarioTags: unique(input.scenarioTags ?? []).sort(),
+      agentPotentialById: reviewedTeamPotentialByAgentId({
+        memberIds: agentIds,
+        agentStateById: input.agentStateById,
+      }),
+    },
+    recommendations: recommendations(agentIds, {
+      memberIds: agentIds,
+      agentStateById: input.agentStateById,
+    }),
+    constraints: constraints(input.optimizerOptions ?? {}, agentIds),
+  })
+}
+
+/** A source-qualified explicit disc fit has no invented Bangboo or combat context. */
+export function compileAuthorComparisonTeamBuildIntent(input: {
+  candidateId: string
+  memberIds: readonly [string, string, string]
+  ownedAgentIds: readonly string[]
+  agentStateById?: Readonly<Record<string, ReviewedTeamAgentState>>
+  optimizerOptions?: AccountOptimizerOptions
+}): TeamJointBuildIntent {
+  const membership = reviewedAuthorComparisonMembership32(input.memberIds, input.ownedAgentIds)
+  if (!input.candidateId || !membership)
+    throw new Error('作者比较队伍的来源、成员或拥有资格已失效。')
+  const agentIds: [string, string, string] = [...input.memberIds]
+  return withFingerprint({
+    contract: buildIntentContract,
+    scope: 'team_joint',
+    resourcePolicy: 'within_team_exclusive',
+    agentIds,
+    exactTeam: {
+      candidateId: input.candidateId,
+      bangbooId: null,
+      scenarioTags: [],
+      authorComparisonMembership: membership,
       agentPotentialById: reviewedTeamPotentialByAgentId({
         memberIds: agentIds,
         agentStateById: input.agentStateById,

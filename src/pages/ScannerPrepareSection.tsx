@@ -110,13 +110,13 @@ export function ScannerPrepareSection({
           </div>
           <div className="scanner-import-complete__next">
             <button
-              className="button button--primary scanner-web__primary-action"
+              className="button button--quiet"
               type="button"
               onClick={onReturnToTargetSelection}
             >
               重新扫描
             </button>
-            <Link className="button button--quiet" to="/assets/discs">
+            <Link className="button button--primary scanner-web__primary-action" to="/assets/discs">
               查看驱动盘
             </Link>
             <p>重新扫描不会改动已导入的驱动盘，新结果仍需检查并确认。</p>

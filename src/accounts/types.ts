@@ -67,6 +67,11 @@ export type PlanningSolutionContext = {
   gameVersion: string
   knowledgeVersion: string
   exactVariantKey: string | null
+  /** Explicit comparison choices, saved only with the player-owned proposal. */
+  comparisonParameters?: {
+    wEngine?: { engineId: string; level: number; ascension?: number; refinement: number }
+    potential?: number
+  }
 }
 
 /** A player-owned loadout proposal. It deliberately stores directions and references only. */
@@ -151,6 +156,8 @@ export type AccountPlanningDraft = {
    * drafts deliberately remain readable without it, but cannot be treated as current results.
    */
   teamEquipmentParameters?: import('../decision/targetTeamEquipmentParameters').EffectiveTargetTeamEquipmentParameters
+  planningBenchmark32?: import('../application/publicSavedPlanningBenchmark32').SavedPlanningBenchmark32
+  teamAccountFactBinding?: import('../application/publicAuthorComparisonAccountBinding').AuthorComparisonAccountBinding
   comparisonCapability: 'formal' | 'direction'
   createdAt: string
   updatedAt: string

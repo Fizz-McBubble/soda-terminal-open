@@ -139,7 +139,10 @@ export function profileValid(profile: Profile, rules: GameRules) {
         w <= 1 &&
         Boolean(rules.rarities[rules.standardRarity]?.steps[stat]),
     ) &&
-    Object.values(profile.weights).some((w) => w > 0) &&
+    (Object.values(profile.weights).some((w) => w > 0) ||
+      (profile.goal === 'functional' &&
+        profile.weightEvidence?.method === 'source_proven_no_functional_substat_goal' &&
+        Object.keys(profile.weights).length === 0)) &&
     !(profile.functionalMains ?? []).some((entry) => entry.slot < 4 || !entry.sourceId)
   )
 }
@@ -170,8 +173,13 @@ export function scoreProfile(
   const maximumRaw =
     weights.slice(0, rules.maxSubStats).reduce((a, b) => a + b, 0) +
     Math.floor(standard.maxLevel / rules.enhancementInterval) * (weights[0] ?? 0)
-  if (maximumRaw <= 0) throw new Error('no_scoreable_legal_substats')
-  const asScore = (raw: number) => Math.min(100, Math.max(0, (raw / maximumRaw) * 100))
+  const noSubstatGoal =
+    profile.goal === 'functional' &&
+    profile.weightEvidence?.method === 'source_proven_no_functional_substat_goal' &&
+    Object.keys(profile.weights).length === 0
+  if (maximumRaw <= 0 && !noSubstatGoal) throw new Error('no_scoreable_legal_substats')
+  const asScore = (raw: number) =>
+    noSubstatGoal ? 0 : Math.min(100, Math.max(0, (raw / maximumRaw) * 100))
   const contributors = disc.subStats.map((line) => {
     const standardRollUnits = line.value / standard.steps[line.stat]!
     const weight = profile.weights[line.stat] ?? 0

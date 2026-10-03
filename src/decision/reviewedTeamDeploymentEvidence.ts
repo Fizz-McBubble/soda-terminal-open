@@ -1,8 +1,6 @@
 import { currentAssetProjection } from '../gameDataPacks/currentAssetProjection'
-import {
-  currentReleasedIdentityMap,
-  resolveCurrentReleasedIdentity,
-} from '../gameDataPacks/currentReleasedIdentityMap'
+import { resolveCurrentReleasedIdentity } from '../gameDataPacks/currentReleasedIdentityMap'
+import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
 import imageDirections from '../gameDataPacks/data/reviewed-team-image-directions.3.1.json'
 import nestedDirections from '../gameDataPacks/data/reviewed-team-nested-directions.3.1.json'
 import reusedDirections from '../gameDataPacks/data/reviewed-team-direction-reuse.3.1.json'
@@ -177,7 +175,7 @@ function strengthFor(
 
 function basisFor(record: RawDirectionRecord): 'current' | 'retained' {
   const explicitlyCurrent = record.applicabilityDisposition?.startsWith('current_')
-  const versionCurrent = sourceVersion(record) === currentReleasedIdentityMap.gameVersion
+  const versionCurrent = sourceVersion(record) === currentVersionProjection.gameVersion
   return explicitlyCurrent || versionCurrent ? 'current' : 'retained'
 }
 

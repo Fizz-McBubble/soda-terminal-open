@@ -15,6 +15,13 @@ import {
   resolveEffectUtility,
 } from './absoluteDiscRetentionEffectUtility'
 import { resolveActionUtility } from './absoluteDiscRetentionActionUtility'
+import { getReviewedNormalM0UseScope } from './reviewedRetentionUseScope'
+import {
+  normalRetentionFunctionalContext,
+  resolveRetentionFunctionalStatEvidence,
+  retentionFunctionalStatEvidencePolicy,
+  type FunctionalStatContext,
+} from './retentionFunctionalStatEvidence'
 
 export type RetentionUtilityState =
   | 'valid'
@@ -37,6 +44,7 @@ export type RetentionUseFacts = {
   goal: 'crit_damage' | 'anomaly_damage' | 'functional' | 'unknown'
   scalingStats: string[]
   coreStats: string[]
+  functionalStatPolicy?: string
 }
 
 export const STAT_EFFECT_KEYS = [
@@ -186,14 +194,14 @@ function determineGoal(
   const fourthSlot = constraint.mainStats['4'] ?? []
   if (fourthSlot.includes('crit_rate') || fourthSlot.includes('crit_dmg')) return 'crit_damage'
   if (norm === 'stun' || norm === 'support') return 'functional'
-  if (fourthSlot.includes('anomaly_proficiency') || isJane || norm === 'anomaly')
-    return 'anomaly_damage'
   if (norm === 'defense') {
     const mains = Object.values(constraint.mainStats).flat()
     return mains.some((s) => s === 'crit_dmg' || s === 'crit_rate' || s === 'fire_dmg')
       ? 'crit_damage'
       : 'functional'
   }
+  if (fourthSlot.includes('anomaly_proficiency') || isJane || norm === 'anomaly')
+    return 'anomaly_damage'
   if (norm === 'attack' || norm === 'rupture' || role === 'damage') return 'crit_damage'
   const mains = Object.values(constraint.mainStats).flat()
   return mains.some((s) => s === 'crit_rate' || s === 'crit_dmg') ? 'crit_damage' : 'functional'
@@ -245,6 +253,7 @@ function determineCoreStats(
 export function resolveRetentionUseFacts(
   constraint: CandidateWarehouseConstraint,
   agentId: string,
+  functionalContext: FunctionalStatContext = normalRetentionFunctionalContext,
 ): RetentionUseFacts {
   const releasedId = resolveCurrentReleasedIdentity(agentId)
   const catalogEntry = catalogMap.get(releasedId)
@@ -281,7 +290,35 @@ export function resolveRetentionUseFacts(
   )
   const coreStats = determineCoreStats(eventContract)
 
-  const context = { hasShield, hpScaling, defScaling, sheerDefenseBypass, isJane, role }
+  const functionalStatEvidence = Object.fromEntries(
+    ['atk_', 'hp_', 'def_', 'anomProf', 'crit_', 'crit_dmg_'].map((effectStat) => [
+      effectStat,
+      resolveRetentionFunctionalStatEvidence({
+        agentId: releasedId,
+        effectStat,
+        context: {
+          ...functionalContext,
+          unconsumedShieldOrHealing:
+            hasShield && !decisionContract?.effectContract?.functionalInputs.length,
+        },
+      }),
+    ]),
+  )
+  const context = {
+    hasShield,
+    hpScaling,
+    defScaling,
+    sheerDefenseBypass,
+    isJane,
+    role,
+    functionalStatEvidence,
+  }
+  sourceIds.push(
+    retentionFunctionalStatEvidencePolicy,
+    ...Object.values(functionalStatEvidence).map(
+      (evidence) => `functional-stat-context:${evidence.fingerprint}`,
+    ),
+  )
 
   const effects = Object.fromEntries(
     STAT_EFFECT_KEYS.map((s) => [
@@ -292,9 +329,24 @@ export function resolveRetentionUseFacts(
   const actions = Object.fromEntries(
     ACTION_KEYS.map((a) => [
       a,
-      resolveActionUtility(a, releasedId, constraint, eventContract, sourceIds),
+      resolveActionUtility(
+        a,
+        releasedId,
+        constraint,
+        eventContract,
+        sourceIds,
+        getReviewedNormalM0UseScope(constraint, releasedId, goal, eventContract),
+      ),
     ]),
   )
 
-  return { effects, actions, sourceIds, goal, scalingStats, coreStats }
+  return {
+    effects,
+    actions,
+    sourceIds,
+    goal,
+    scalingStats,
+    coreStats,
+    functionalStatPolicy: retentionFunctionalStatEvidencePolicy,
+  }
 }

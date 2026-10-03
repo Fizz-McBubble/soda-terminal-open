@@ -1,10 +1,22 @@
 import { currentAgentDirectory } from '../assault/catalog'
 import { getCurrentWEngineStaticData } from '../gameDataPacks/currentWEngineStaticCatalog'
 import { stableContentHash } from '../gameDataPacks/types'
+import { applyReviewedWEngineReceiverSemantics32 } from './reviewedWEngineReceiverSemantics32'
 import type { TargetTeamEquipmentParameterSelection } from '../decision/targetTeamAccountBoundBenchmark'
 import type { SourceBackedEquipmentModifierBucket } from './currentPlanningTeamDpsRuntime'
 import { evaluateCurrentBangbooPlanningParameter } from './currentBangbooPlanningAdapter'
 import { resolveCurrentWEnginePassive } from './currentWEnginePassiveAdapters'
+import { resolveCurrentFormulaWEngineContract } from './currentFormulaMechanicContracts'
+import {
+  bindCurrentWEngineFormulaRuntime,
+  type CurrentWEngineFormulaRuntime,
+} from './currentWEnginePersonalPlanningEffects'
+import type { PlanningEffectRuntimeMember } from './currentPlanningEffectRuntime'
+import {
+  planningWEngineActions as directActionBySource,
+  retainPlanningWEngineDependencies32,
+} from './currentPlanningWEngineDependencies32'
+import { currentCombatPlanningModifierTargets } from './currentCombatPlanningModifierTargets'
 
 const agentSpecialtyById = new Map(
   currentAgentDirectory.map((agent) => [agent.id, agent.specialty] as const),
@@ -14,37 +26,19 @@ function unique(values: readonly string[]) {
   return [...new Set(values)]
 }
 
-const directApplicationByStat = {
+const directApplicationByStat: Readonly<
+  Record<string, SourceBackedEquipmentModifierBucket['application']>
+> = {
   attack_percent: 'attack_percent',
   crit_rate: 'crit_rate',
   crit_damage: 'crit_damage',
   damage_bonus: 'damage_bonus',
-  'combat.atk_': 'attack_percent',
-  'combat.crit_': 'crit_rate',
-  'combat.crit_dmg_': 'crit_damage',
-  'combat.dmg_': 'damage_bonus',
-  'combat.common_dmg_': 'damage_bonus',
-  'combat.defIgn_': 'defense_ignore',
-  'combat.resIgn_': 'resistance_ignore',
-} as const
-const directActionBySource: Record<string, string> = {
-  basic: 'basic_attack',
-  basic_attack: 'basic_attack',
-  dash: 'dash',
-  dodgeCounter: 'dodge_counter',
-  dodge_counter: 'dodge_counter',
-  exSpecial: 'ex_special',
-  ex_special: 'ex_special',
-  chain: 'chain',
-  ult: 'ultimate',
-  ultimate: 'ultimate',
+  ...currentCombatPlanningModifierTargets,
 }
-
 const explicitlyExcludedDirectStats = new Set([
   'combat.anomBuildup_',
   'combat.anomProf',
-  'combat.buff_',
-  'combat.buff_.wind',
+  'combat.dazeInc_',
 ])
 
 function compileDirectRuntimeBuckets(input: {
@@ -85,7 +79,7 @@ function compileDirectRuntimeBuckets(input: {
       }
       const stat = String(effect.stat)
       const channel =
-        /^combat\.(dmg_|common_dmg_|crit_dmg_|defIgn_|resIgn_)\.(physical|fire|ice|electric|ether)$/.exec(
+        /^combat\.(dmg_|common_dmg_|crit_dmg_|laceration_dmg_|sharp_dmg_|sheer_dmg_|direct_dmg_|buff_|defIgn_|resIgn_)\.(physical|fire|ice|electric|ether|wind)$/.exec(
           stat,
         )
       const application = channel
@@ -131,7 +125,13 @@ function compileDirectRuntimeBuckets(input: {
         bucketId: `wengine:${item.agentId}:${item.engineId}:${index}`,
         effectKey: `wengine:${item.engineId}:P:${index}`,
         providerAgentId: item.agentId,
-        recipientAgentIds: effect.target === 'team' ? [...input.memberIds] : [item.agentId],
+        recipientAgentIds: Array.isArray(effect.recipientAgentIds)
+          ? effect.recipientAgentIds.filter(
+              (id): id is string => typeof id === 'string' && input.memberIds.includes(id),
+            )
+          : effect.target === 'team'
+            ? [...input.memberIds]
+            : [item.agentId],
         receiverPath: null,
         damageType: null,
         action: action ?? null,
@@ -157,9 +157,12 @@ function compileDirectRuntimeBuckets(input: {
  * Resolves only source-backed equipment operands selected for one target-team run.
  * It never reads account W-Engine/Bangboo inventory and never invents missing combat state.
  */
-export function projectTargetTeamEquipmentModifiers(input: {
+export function projectTargetTeamWEngineModifiers(input: {
   memberIds: readonly [string, string, string]
-  parameters: TargetTeamEquipmentParameterSelection
+  parameters: Pick<TargetTeamEquipmentParameterSelection, 'wEngines'>
+  members?: readonly PlanningEffectRuntimeMember[]
+  runtimeByAgentId?: Readonly<Record<string, CurrentWEngineFormulaRuntime>>
+  wEngineLevelsByAgentId?: Readonly<Record<string, number>>
 }) {
   const wEngines = input.parameters.wEngines.map((selection) => {
     const staticData = getCurrentWEngineStaticData(selection.engineId)
@@ -167,12 +170,62 @@ export function projectTargetTeamEquipmentModifiers(input: {
     const specialtyMatches = Boolean(
       staticData && agentSpecialty && staticData.specialty === agentSpecialty,
     )
-    const resolved = resolveCurrentWEnginePassive(selection.engineId, {
-      refinement: selection.refinement,
-      specialtyMatches,
-      runtimePolicy: 'exclude_unobserved',
-    })
+    const recipientResults =
+      input.members || input.runtimeByAgentId
+        ? input.memberIds.map((recipientAgentId) => {
+            const bound = bindCurrentWEngineFormulaRuntime({
+              agentId: selection.agentId,
+              engineId: selection.engineId,
+              member: input.members?.find((row) => row.agentId === selection.agentId),
+              targetAgentId: recipientAgentId,
+              runtime: input.runtimeByAgentId?.[selection.agentId],
+            })
+            const result = resolveCurrentFormulaWEngineContract({
+              stableId: selection.engineId,
+              refinement: selection.refinement,
+              specialtyMatches,
+              runtimePolicy: 'exclude_unobserved',
+              runtime: bound,
+            })
+            return { recipientAgentId, bound, result }
+          })
+        : null
+    const resolved = recipientResults
+      ? {
+          status: 'supported' as const,
+          active: recipientResults.some(
+            (row) => row.result.status === 'supported' && row.result.active,
+          ),
+          effects: recipientResults.flatMap(({ recipientAgentId, result }) =>
+            result.status !== 'supported'
+              ? []
+              : result.effects
+                  .filter(
+                    (effect) => effect.target === 'team' || recipientAgentId === selection.agentId,
+                  )
+                  .map((effect) => ({ ...effect, recipientAgentIds: [recipientAgentId] })),
+          ),
+          exclusions: recipientResults.flatMap(({ recipientAgentId, result }) =>
+            result.status !== 'supported'
+              ? []
+              : result.exclusions.map((row) => ({ ...row, recipientAgentId })),
+          ),
+        }
+      : resolveCurrentWEnginePassive(selection.engineId, {
+          refinement: selection.refinement,
+          specialtyMatches,
+          runtimePolicy: 'exclude_unobserved',
+        })
+    const declaredLevel = input.wEngineLevelsByAgentId?.[selection.agentId]
     const blockers = [
+      ...(declaredLevel !== undefined &&
+      (!Number.isInteger(declaredLevel) || declaredLevel < 1 || declaredLevel > 60)
+        ? ['音擎实际等级必须为1至60整数。']
+        : []),
+      ...(recipientResults?.flatMap(({ bound, result }) => [
+        ...bound.blockers,
+        ...(result.status === 'unsupported' ? result.blockers : []),
+      ]) ?? []),
       ...(staticData ? [] : [`音擎 ${selection.engineId} 缺少 60 级静态权威。`]),
       ...(staticData?.formulaAdoption.status === 'static_only'
         ? [`音擎 ${selection.engineId} 的被动仍为 static_only，不能作为数值 modifier。`]
@@ -196,7 +249,12 @@ export function projectTargetTeamEquipmentModifiers(input: {
     const core = {
       agentId: selection.agentId,
       engineId: selection.engineId,
-      level: 60 as const,
+      level: declaredLevel ?? 60,
+      levelAuthority:
+        declaredLevel === undefined
+          ? ('legacy_declared_level60' as const)
+          : ('explicit_equipment_level' as const),
+      staticStatsAuthority: 'catalog_level60_reference' as const,
       refinement: selection.refinement,
       specialtyMatches,
       staticStats: staticData?.staticStats ?? null,
@@ -215,17 +273,42 @@ export function projectTargetTeamEquipmentModifiers(input: {
     return { ...core, fingerprint: stableContentHash(core) }
   })
 
-  const bangbooParameter = evaluateCurrentBangbooPlanningParameter({
-    stableId: input.parameters.bangbooId,
-    stars: input.parameters.bangbooStars,
-    memberIds: input.memberIds,
-  })
-  const bangboo = {
-    ...bangbooParameter,
-    bangbooId: input.parameters.bangbooId,
-    starModifierStatus: bangbooParameter.status,
+  const initialDirectRuntime = compileDirectRuntimeBuckets({ memberIds: input.memberIds, wEngines })
+  let dependencyBuckets = initialDirectRuntime.buckets
+  for (const engine of wEngines) {
+    if (!engine.specialtyMatches || engine.passiveStatus !== 'supported') continue
+    for (const target of ['own', 'team'] as const) {
+      const recipients = target === 'own' ? [engine.agentId] : input.memberIds
+      for (const recipient of recipients) {
+        const runtime = input.runtimeByAgentId?.[engine.agentId]
+        const boundRuntime = bindCurrentWEngineFormulaRuntime({
+          agentId: engine.agentId,
+          engineId: engine.engineId,
+          member: input.members?.find((row) => row.agentId === engine.agentId),
+          targetAgentId: recipient,
+          runtime,
+        })
+        dependencyBuckets = retainPlanningWEngineDependencies32({
+          buckets: dependencyBuckets,
+          agentId: engine.agentId,
+          engineId: engine.engineId,
+          refinement: engine.refinement,
+          runtime,
+          boundRuntime,
+          sourceRefs: engine.sourceRefs,
+          target,
+          recipientAgentIds: [recipient],
+        })
+      }
+    }
   }
-  const directRuntime = compileDirectRuntimeBuckets({ memberIds: input.memberIds, wEngines })
+  const receivers = applyReviewedWEngineReceiverSemantics32(dependencyBuckets)
+  const directRuntimeCore = {
+    ...initialDirectRuntime,
+    buckets: receivers.buckets,
+    exclusions: [...initialDirectRuntime.exclusions, ...receivers.exclusions],
+  }
+  const directRuntime = { ...directRuntimeCore, fingerprint: stableContentHash(directRuntimeCore) }
   const memberSetValid =
     input.parameters.wEngines.length === input.memberIds.length &&
     new Set(input.parameters.wEngines.map((item) => item.agentId)).size ===
@@ -237,19 +320,58 @@ export function projectTargetTeamEquipmentModifiers(input: {
     ...(memberSetValid ? [] : ['方案音擎参数没有与三名目标成员逐一对应。']),
     ...wEngines.flatMap((item) => item.blockers.map((blocker) => `${item.agentId}：${blocker}`)),
     ...directRuntime.blockers,
-    ...bangbooParameter.blockers,
   ])
   const core = {
-    contract: 'soda-target-team-equipment-modifier-projection/v1' as const,
+    contract: 'soda-target-team-wengine-modifier-projection/v1' as const,
     status: blockers.length ? ('partial' as const) : ('supported' as const),
     memberSetValid,
     wEngines,
-    bangboo,
     directRuntime,
     blockers,
     sideEffect: 'read_only' as const,
     boundary:
       '固定 60 级静态值与玩家确认的 P1–P5 参数经过统一白盒 adapter 求值；固定事件切片未观测到的条件效果显式排除并留痕，缺少权威、参数、作用域或不可解释 operator 仍具名 unsupported。',
+  }
+  return { ...core, fingerprint: stableContentHash(core) }
+}
+
+/** The legacy team projection retains its explicit Bangboo scope. The shared
+ * W-Engine projection also serves reviewed three-actor benchmarks without one. */
+export function projectTargetTeamEquipmentModifiers(input: {
+  memberIds: readonly [string, string, string]
+  parameters: TargetTeamEquipmentParameterSelection
+  members?: readonly PlanningEffectRuntimeMember[]
+  runtimeByAgentId?: Readonly<Record<string, CurrentWEngineFormulaRuntime>>
+  wEngineLevelsByAgentId?: Readonly<Record<string, number>>
+  bangbooScope?: 'included' | 'excluded_from_member_model'
+}) {
+  const engines = projectTargetTeamWEngineModifiers(input)
+  const bangbooParameter = evaluateCurrentBangbooPlanningParameter({
+    stableId: input.parameters.bangbooId,
+    stars: input.parameters.bangbooStars,
+    memberIds: input.memberIds,
+  })
+  const bangboo = {
+    ...bangbooParameter,
+    bangbooId: input.parameters.bangbooId,
+    starModifierStatus: bangbooParameter.status,
+  }
+  const bangbooScope = input.bangbooScope ?? 'included'
+  const blockers = unique([
+    ...engines.blockers,
+    ...(bangbooScope === 'included' ? bangbooParameter.blockers : []),
+  ])
+  const core = {
+    contract: 'soda-target-team-equipment-modifier-projection/v1' as const,
+    status: blockers.length ? ('partial' as const) : ('supported' as const),
+    memberSetValid: engines.memberSetValid,
+    wEngines: engines.wEngines,
+    bangboo,
+    bangbooScope,
+    directRuntime: engines.directRuntime,
+    blockers,
+    sideEffect: 'read_only' as const,
+    boundary: engines.boundary,
   }
   return { ...core, fingerprint: stableContentHash(core) }
 }

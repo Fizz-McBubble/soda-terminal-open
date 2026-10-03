@@ -1,5 +1,6 @@
 import agentMechanicCatalog from '../gameDataPacks/generated/current-agent-mechanic-catalog.v1.json'
 import { agentCatalog } from '../assault/catalogData'
+import { resolvePotentialImage } from '../assault/agentCapabilities'
 import { currentReleasedIdentityMap } from '../gameDataPacks/currentReleasedIdentityMap'
 import { resolveSourceBoundAdditionalAbility } from '../gameDataPacks/reviewedSourceBoundAdditionalAbility'
 import {
@@ -20,6 +21,14 @@ export type AgentEventOperator =
 export type CurrentAgentEventContract = (typeof agentMechanicCatalog.items)[number] & {
   stableId: string
 }
+export const currentAgentMechanicIdentity = Object.freeze({
+  gameVersion: agentMechanicCatalog.gameVersion,
+  contentHash: agentMechanicCatalog.contentHash,
+  upstreamCommit: agentMechanicCatalog.generatedFrom.commit,
+  license: agentMechanicCatalog.generatedFrom.license,
+  agentCount: agentMechanicCatalog.coverage.entities,
+  eventCount: agentMechanicCatalog.coverage.numericSkillEvents,
+})
 
 export type AgentTeamActivationTerm = {
   kind: 'attribute' | 'specialty' | 'faction'
@@ -86,7 +95,12 @@ export function resolveOtherMemberActivationMinimum(
 ) {
   const contract = getCurrentAgentEventContract(stableId)
   if (!contract) throw new Error(`角色机制合同不存在：${stableId}`)
-  const reviewedMinimum = reviewedTeammateActivationMinimum(stableId, predicate.minimum)
+  // The reviewed correction is a floor. New source terms (e.g. Piper's
+  // now-native anomaly term) can increase both self count and source minimum.
+  const reviewedMinimum = Math.max(
+    predicate.minimum,
+    reviewedTeammateActivationMinimum(stableId, predicate.minimum),
+  )
   const selfContribution = predicate.terms.filter(
     (term) => contract.identity[term.kind] === term.value,
   ).length
@@ -164,6 +178,12 @@ export function resolveCurrentAgentEvent(input: {
     damageMultiplier: damageMultiplier.value,
     dazeMultiplier: dazeMultiplier.value,
     anomalyBuildup: anomalyBuildup.value,
+    formulaFamily: event.formulaFamily,
+    scalingAttribute: event.scalingAttribute,
+    damageType: event.damageType,
+    attribute: event.attribute,
+    formulaProjection: event.formulaProjection,
+    catalogIdentity: currentAgentMechanicIdentity,
     source: contract.source,
   }
 }
@@ -171,7 +191,7 @@ export function resolveCurrentAgentEvent(input: {
 export function evaluateCurrentAgentTeamActivation(input: {
   stableId: string
   memberIds: readonly string[]
-  agentState?: { mindscape?: number }
+  agentState?: { mindscape?: number; potentialImage?: number | null }
 }) {
   const contract = getCurrentAgentEventContract(input.stableId)
   if (!contract)
@@ -201,10 +221,18 @@ export function evaluateCurrentAgentTeamActivation(input: {
       source: contract.source,
     }
   const sourcePredicate = activation.predicate as AgentTeamActivationPredicate | null
-  const predicate = sourceBoundPredicate ?? {
+  const basePredicate = sourceBoundPredicate ?? {
     ...sourcePredicate!,
-    terms: reviewedTeammateActivationTerms(input.stableId, sourcePredicate!.terms),
+    terms: sourcePredicate!.terms,
     minimum: resolveOtherMemberActivationMinimum(input.stableId, sourcePredicate!),
+  }
+  const predicate = {
+    ...basePredicate,
+    terms: reviewedTeammateActivationTerms(
+      input.stableId,
+      basePredicate.terms,
+      resolvePotentialImage(input.stableId, input.agentState?.potentialImage) ?? 0,
+    ),
   }
   const uniqueOtherMembers = [
     ...new Map(

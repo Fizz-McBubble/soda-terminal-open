@@ -12,6 +12,8 @@ export type TeamRoutePresentation = {
   candidateId: string
   team: DecisionTeamViewModel | null
   targetCandidateId: string | null
+  /** Private source-qualified exact membership permits a disc-only Candidate solve. */
+  discOnlyCandidate?: true
   automaticBangboo: { bangbooId: string; name: string } | null
   playerConfirmableBangbooOptions: PlayerConfirmableBangbooOption[]
   ratingAnalysis: ReviewedTeamAnalysis | null

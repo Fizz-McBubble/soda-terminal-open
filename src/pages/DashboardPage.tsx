@@ -1,7 +1,9 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useRef, useState } from 'react'
 import { Database, RefreshCw, ScanLine, ShieldCheck, Sparkles, Users, X } from 'lucide-react'
-import ramielHero from '../assets/golden-sample/ramiel-user-cutout-argb.png'
+import ramielHero from '../assets/golden-sample/ramiel-user-cutout-1152.webp'
+import ramielHeroSmall from '../assets/golden-sample/ramiel-user-cutout-576.webp'
+import ramielHeroLarge from '../assets/golden-sample/ramiel-user-cutout-1536.webp'
 import {
   getVisualAssetInstallErrorMessage,
   getVisualAssetPackState,
@@ -415,6 +417,12 @@ export function DashboardPage() {
         primaryAction={{ label: nextAction.label, route: nextAction.path }}
         nextSignal={nextSignal}
         heroSrc={ramielHero}
+        heroSrcSet={`${ramielHeroSmall} 576w, ${ramielHero} 1152w, ${ramielHeroLarge} 1536w`}
+        recoveryAction={
+          home.account
+            ? undefined
+            : { label: '恢复已有备份', route: '/assets/account#restore-backup' }
+        }
         discArtUrls={discArtUrls}
         readiness={{
           stateLabel: home.account ? '本机账户' : '开始使用',

@@ -88,6 +88,10 @@ export type TeamLoadoutOverviewItem = {
   authorityNextAction: string | null
   /** A reviewed exact-three source confirms this direction, but not its strength band. */
   sourceConfirmed?: boolean
+  /** Typed membership observation, exposed only by deliberate member search. */
+  authorComparisonMembership?: import('../decision/reviewedAuthorComparisonMembership32').AuthorComparisonMembership32
+  /** Named local finite model availability; deliberate search only, no strength claim. */
+  hasPreparedBenchmark32?: boolean
   sourceConditions?: string[]
   sourceBangbooOptionIds?: string[]
   historicalReferenceOnly?: boolean

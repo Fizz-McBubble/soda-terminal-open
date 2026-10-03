@@ -11,6 +11,8 @@ import reviewedBuildPatchImpact from './data/reviewed-build-patch-impact.3.1.jso
 import { stableContentHash } from './types'
 import { isPotentialGuideReference } from './reviewedPotentialGuideReferences'
 import { reviewedTargetPanelGuidance } from './reviewedTargetPanelGuidance'
+import { projectedReviewedBuild32Fields } from './agentProfileFieldProjection'
+import { reviewedBuildFieldReferenceContinuity32 } from './reviewedReferenceSupportContinuity32'
 
 export const currentBuildFieldIds = [
   'progression.lv60_and_ascension',
@@ -52,6 +54,7 @@ export type CurrentBuildAuthorityField = {
   }>
   blockers: readonly string[]
   conditions: readonly string[]
+  referenceContinuity?: NonNullable<ReturnType<typeof reviewedBuildFieldReferenceContinuity32>>
   nextEvidence: readonly string[]
 }
 
@@ -63,10 +66,14 @@ export type CurrentCalculationAccountField = {
   reason: string
 }
 
-function fieldState(field: AgentProfileField | undefined): CurrentBuildFieldState {
+function fieldState(
+  field: AgentProfileField | undefined,
+  targetVersion: string,
+): CurrentBuildFieldState {
   if (!field || field.status === 'missing') return 'missing'
   if (field.conflict) return 'conflict'
-  if (field.currentApplicability !== 'continuous') return 'stale'
+  if (field.currentApplicability !== 'continuous' || field.gameVersion !== targetVersion)
+    return 'stale'
   return 'ready'
 }
 
@@ -74,10 +81,8 @@ const reviewedImpactRows = new Map(
   reviewedBuildPatchImpact.rows.map((row) => [row.agentId, row] as const),
 )
 if (
-  reviewedBuildPatchImpact.targetVersion !== currentVersionProjection.gameVersion ||
   reviewedImpactRows.size !== reviewedBuildPatchImpact.rows.length ||
-  reviewedImpactRows.size !== currentAssetProjection.agents.length ||
-  currentAssetProjection.agents.some((agent) => !reviewedImpactRows.has(agent.stableId))
+  reviewedBuildPatchImpact.rows.some((row) => !row.agentId)
 ) {
   throw new Error('Reviewed build patch impact does not cover the current agent projection.')
 }
@@ -138,7 +143,7 @@ function reviewedVersionImpact(agentId: string): AgentProfileField | undefined {
       directChangeIds: row.directChangeIds,
     },
     status: 'candidate',
-    gameVersion: currentVersionProjection.gameVersion,
+    gameVersion: reviewedBuildPatchImpact.targetVersion,
     originalSourceVersion: introduced ? null : reviewedBuildPatchImpact.baseVersion,
     lastChangeVersion: named ? reviewedBuildPatchImpact.targetVersion : null,
     currentApplicability: 'affected_pending',
@@ -175,7 +180,7 @@ const remielleWEngineGuidanceField: AgentProfileField = {
   path: 'build.wengines',
   value: ['wengine-14158'],
   status: 'verified_candidate',
-  gameVersion: currentVersionProjection.gameVersion,
+  gameVersion: '3.1',
   originalSourceVersion: '3.1',
   lastChangeVersion: '3.1',
   currentApplicability: 'continuous',
@@ -209,7 +214,7 @@ function remielleIntakeGuidanceField(
     path: authorityPath,
     value: intakeField.value,
     status: intakeField.status === 'reference' ? 'candidate' : intakeField.status,
-    gameVersion: currentVersionProjection.gameVersion,
+    gameVersion: '3.1',
     originalSourceVersion: '3.1',
     lastChangeVersion: '3.1',
     currentApplicability: 'continuous',
@@ -251,7 +256,7 @@ const sigridWEngineGuidanceField: AgentProfileField = {
   path: 'build.wengines',
   value: ['wengine-14159'],
   status: 'verified_candidate',
-  gameVersion: currentVersionProjection.gameVersion,
+  gameVersion: '3.1',
   originalSourceVersion: '3.1',
   lastChangeVersion: '3.1',
   currentApplicability: 'continuous',
@@ -289,15 +294,21 @@ function adoptedCurrentField(agentId: string, fieldId: CurrentBuildFieldId) {
   return undefined
 }
 
+function frozenTargetPanelGuidance(agentId: string) {
+  const field = reviewedTargetPanelGuidance(agentId)
+  return field ? { ...field, gameVersion: '3.1' } : undefined
+}
+
 function selectedGuidanceField(
   fieldId: CurrentBuildFieldId,
   fields: readonly AgentProfileField[],
   agentId: string,
 ) {
   return (
+    projectedReviewedBuild32Fields(agentId).find((field) => field.path === fieldId) ??
     adoptedCurrentField(agentId, fieldId) ??
     fields.find((candidate) => candidate.path === fieldId && candidate.status !== 'missing') ??
-    (fieldId === 'build.target_panel' ? reviewedTargetPanelGuidance(agentId) : undefined) ??
+    (fieldId === 'build.target_panel' ? frozenTargetPanelGuidance(agentId) : undefined) ??
     fields.find((candidate) => candidate.path === fieldId)
   )
 }
@@ -313,11 +324,15 @@ function authorityField(
   agentId: string,
 ): CurrentBuildAuthorityField {
   const field = selectedGuidanceField(fieldId, fields, agentId)
-  const state = fieldState(field)
+  const targetVersion =
+    projectedReviewedBuild32Fields(agentId)[0]?.gameVersion ?? currentVersionProjection.gameVersion
+  const continuity = reviewedBuildFieldReferenceContinuity32({ agentId, targetVersion, field })
+  const state = continuity ? 'ready' : fieldState(field, targetVersion)
   const reason = field?.reason ?? `${fieldId} 缺少可追溯的当前版本构筑字段。`
   return {
     fieldId,
     lane: 'guidance',
+    ...(continuity ? { referenceContinuity: continuity } : {}),
     state,
     sourceStatus: field?.status ?? 'missing',
     value: state === 'ready' ? (field?.value ?? null) : null,
@@ -325,19 +340,30 @@ function authorityField(
       field?.sourceRefs.map((source) => ({
         id: source.id,
         sourceVersion: source.sourceVersion,
-        evaluatedForVersion:
-          field.currentApplicability === 'continuous' ? currentVersionProjection.gameVersion : null,
+        evaluatedForVersion: field.currentApplicability === 'continuous' ? field.gameVersion : null,
         checkedAt: source.checkedAt,
         contentHash: source.contentHash,
       })) ?? [],
-    blockers: state === 'ready' ? [] : [reason],
+    blockers:
+      state === 'ready'
+        ? []
+        : [
+            reason,
+            ...(field && field.gameVersion !== targetVersion
+              ? [`该字段仅复核至 ${field.gameVersion}；${targetVersion} 适用性尚未闭合。`]
+              : []),
+          ],
     conditions: field?.conditions ?? [],
     nextEvidence:
       state === 'ready'
         ? []
         : fieldId === 'build.version_change_impact'
-          ? ['核对 3.1 当前构筑字段与分支、热修复；已有 3.0 构筑的代理人再做同字段值对比。']
-          : [`补齐 ${fieldId} 的 3.1 evaluated-for 证据并通过字段级 continuity gate。`],
+          ? [
+              `核对 ${targetVersion} 当前构筑字段与分支、热修复；已有历史构筑的代理人再做同字段值对比。`,
+            ]
+          : [
+              `补齐 ${fieldId} 的 ${targetVersion} evaluated-for 证据并通过字段级 continuity gate。`,
+            ],
   }
 }
 
@@ -358,7 +384,9 @@ function buildProfile(asset: (typeof currentAssetProjection.agents)[number]) {
   const core = {
     stableId: asset.stableId,
     displayName: asset.playerName,
-    gameVersion: currentVersionProjection.gameVersion,
+    gameVersion:
+      projectedReviewedBuild32Fields(asset.stableId)[0]?.gameVersion ??
+      currentVersionProjection.gameVersion,
     releaseState: asset.releaseState,
     accountOwnable: asset.accountOwnable,
     guidance: {

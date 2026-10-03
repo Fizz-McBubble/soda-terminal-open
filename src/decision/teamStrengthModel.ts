@@ -1,5 +1,6 @@
 import artifact from '../gameDataPacks/generated/team-strength-model.3.1.json'
 import { currentReleasedIdentityMap } from '../gameDataPacks/currentReleasedIdentityMap'
+import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
 import { stableContentHash } from '../gameDataPacks/types'
 import {
   extractTeamStrengthMechanicFeatures,
@@ -16,11 +17,13 @@ export const teamStrengthModelPolicy = {
   contract: artifact.contract,
   modelFingerprint: stableContentHash(artifact),
   gameVersion: artifact.gameVersion,
+  reviewedForVersion: artifact.reviewedForVersion,
   trainingCount: artifact.regression.sampleCount,
   confidence: 'low' as const,
 }
 
 const inferenceCache = new Map<string, ReturnType<typeof infer>>()
+const reviewedSubjectIds: readonly string[] | null = artifact.reviewedSubjectIds
 const withdrawnKeys = new Set(
   reviewedTeamAnalysis.records
     .filter((row) => row.withdrawn)
@@ -29,7 +32,12 @@ const withdrawnKeys = new Set(
 
 function infer(memberIds: readonly string[]) {
   if (
-    artifact.gameVersion !== currentReleasedIdentityMap.gameVersion ||
+    ![artifact.gameVersion, artifact.reviewedForVersion].includes(
+      currentVersionProjection.gameVersion,
+    ) ||
+    (artifact.reviewedForVersion ?? artifact.gameVersion) !==
+      currentReleasedIdentityMap.gameVersion ||
+    (reviewedSubjectIds !== null && memberIds.some((id) => !reviewedSubjectIds.includes(id))) ||
     artifact.mechanicDataFingerprint !== teamStrengthMechanicDataFingerprint ||
     JSON.stringify(artifact.featureNames) !== JSON.stringify(teamStrengthMechanicFeatureNames)
   )

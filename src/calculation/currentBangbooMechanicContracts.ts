@@ -54,6 +54,7 @@ const inputSchema = z.object({
   composition: z.record(z.string(), z.number().int().nonnegative()),
   flags: z.record(z.string(), z.boolean()).default({}),
   accumulators: z.record(z.string(), z.number().nonnegative()).default({}),
+  additionalAbilityEnabled: z.boolean().default(true),
 })
 const activationInputSchema = inputSchema.pick({
   stableId: true,
@@ -207,7 +208,10 @@ export function resolveCurrentBangbooMechanicContract(input: unknown) {
       ? undefined
       : (values[definition.conditionMinimumIndex] ?? undefined)
   const composition = normalizeCurrentBangbooComposition(parsed.data.composition)
-  if (!compositionActive(definition, composition, minimumOverride))
+  if (
+    !parsed.data.additionalAbilityEnabled ||
+    !compositionActive(definition, composition, minimumOverride)
+  )
     return {
       status: 'supported' as const,
       active: skillOutputs.length > 0,

@@ -8,10 +8,22 @@
       "evidence": "2026-09-26 user confirmation: project-created homepage deep-sea background, retained for public release."
     },
     {
-      "path": "/assets/ramiel-user-cutout-argb-BAJ4HXnO.png",
-      "sha256": "fe4da9ae2f70139186ecd9f04d18f47024e849fc9cd5c4268da9bb8dcea1a0d3",
+      "path": "/assets/ramiel-user-cutout-1152-Vv96RJ3Q.webp",
+      "sha256": "9357ea9c58392566d6895703a3f8d72608899d632ad95d8cfec54e550dc94f8a",
       "rightsBasis": "project_original",
-      "evidence": "2026-09-26 user confirmation: project-created homepage character cutout, retained for public release."
+      "evidence": "2026-09-26 user confirmation: project-created homepage character cutout, retained for public release. 2026-10-03 approved loading optimization: transparent 1152px WebP derivative of original PNG sha256-fe4da9ae2f70139186ecd9f04d18f47024e849fc9cd5c4268da9bb8dcea1a0d3."
+    },
+    {
+      "path": "/assets/ramiel-user-cutout-1536-DZGN0xXE.webp",
+      "sha256": "b521d6ba3bbe2309f3ac0930d57afb0fbbd3e748defde59427f27e44f9371d98",
+      "rightsBasis": "project_original",
+      "evidence": "2026-09-26 user confirmation: project-created homepage character cutout, retained for public release. 2026-10-03 approved loading optimization: transparent 1536px WebP derivative of original PNG sha256-fe4da9ae2f70139186ecd9f04d18f47024e849fc9cd5c4268da9bb8dcea1a0d3."
+    },
+    {
+      "path": "/assets/ramiel-user-cutout-576-CEG7CQtv.webp",
+      "sha256": "72e894a9ce982432d94a33522bc12a0d758438eee51e14564079d51e31f61ab3",
+      "rightsBasis": "project_original",
+      "evidence": "2026-09-26 user confirmation: project-created homepage character cutout, retained for public release. 2026-10-03 approved loading optimization: transparent 576px WebP derivative of original PNG sha256-fe4da9ae2f70139186ecd9f04d18f47024e849fc9cd5c4268da9bb8dcea1a0d3."
     },
     {
       "path": "/assets/soda-brand-icon.png",

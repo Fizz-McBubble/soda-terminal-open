@@ -125,6 +125,8 @@ export interface Profile {
     readonly method: string
     readonly sourceIds: readonly string[]
   }
+  /** Uncertainty is scoped to a contributing stat of this one goal. */
+  readonly qualityInputEvidence?: Readonly<Record<string, UtilityEvidence>>
   readonly mainStatsBySlot: Readonly<Record<string, Readonly<Record<string, Applicability>>>>
   /** A sourced mechanical benefit, not a list of popular set names. */
   readonly effectUtility: Readonly<Record<string, Applicability>>
@@ -151,6 +153,21 @@ export interface Catalog {
   readonly releasedAgentIds: readonly string[]
   readonly factsGameVersion: string
   readonly assessmentGameVersion: string
+  /** Installed analysis identity; source and policy versions remain historical. */
+  readonly versionIdentity?: {
+    readonly analysisTargetVersion: string
+    readonly policyCalibrationVersion: string
+    readonly sourceOriginalVersions: readonly (string | null)[]
+    readonly adoption: {
+      readonly id: string
+      readonly contentHash: string
+      readonly targetVersion: string
+      readonly sourceCommit: string
+      readonly scopeContentHash: string
+      readonly referenceContinuityId: string
+      readonly referenceReviewVersion: string
+    }
+  }
   /** Attests all relevant released build branches, not just all agent names. */
   readonly branchCoverageComplete: boolean
   readonly reviewedUseScope?: string
@@ -235,3 +252,5 @@ export interface Decision {
   readonly witnessProfileIds: readonly string[]
   readonly reviewedUseScope: string | null
 }
+/** A sourced negative quality goal is distinct from an uncalibrated goal. */
+export const noFunctionalSubstatGoalMethod = 'source_proven_no_functional_substat_goal'

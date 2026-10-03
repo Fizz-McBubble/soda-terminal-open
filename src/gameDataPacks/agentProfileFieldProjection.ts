@@ -1,8 +1,11 @@
+import {
+  getGameData32BuildGuidance,
+  getGameData32BuildGuidanceFields,
+} from './gameData32BuildGuidance'
 import { type VisualAssetEntityType } from '../assets/visualAssets'
 import type { canonicalFieldConflictLedger } from './canonicalBaseline'
 import { type BuildKnowledgeProfile } from './buildKnowledge'
 import type { getCandidateWarehouseConstraint } from './candidateWarehouseConstraints'
-import { currentVersionProjection } from './currentVersionProjection'
 
 export const agentProfileFieldStatuses = [
   'formal',
@@ -87,7 +90,7 @@ export type UpstreamAgentProfileAdapter = {
 export type AgentProfile = {
   agentId: string
   agentName: string
-  gameVersion: typeof currentVersionProjection.gameVersion
+  gameVersion: string
   fields: AgentProfileField[]
   warehouseStatus: 'candidate' | 'missing'
   directDamageStatus: 'formal' | 'candidate' | 'missing'
@@ -98,10 +101,13 @@ export type AgentProfile = {
 
 /** Player-facing current-version view; stored 3.0 source profiles remain unchanged. */
 export type ProjectedBuildKnowledgeProfile = Omit<BuildKnowledgeProfile, 'gameVersion'> & {
-  gameVersion: typeof currentVersionProjection.gameVersion
+  gameVersion: string
 }
 
 const candidateStatLabels: Record<string, string> = {
+  def_percent: '防御力百分比',
+  def_flat: '防御力',
+  wind_dmg: '风属性伤害',
   atk_percent: '攻击力百分比',
   atk_flat: '攻击力',
   crit_rate: '暴击率',
@@ -140,7 +146,6 @@ function constraintSourceRefs(
 export function projectedCurrentConstraintFields(
   constraint: NonNullable<ReturnType<typeof getCandidateWarehouseConstraint>>,
 ): AgentProfileField[] {
-  if (constraint.gameVersion !== currentVersionProjection.gameVersion) return []
   const sourceRefs = constraintSourceRefs(constraint)
   const checkedAt =
     constraint.sources
@@ -150,7 +155,7 @@ export function projectedCurrentConstraintFields(
       .at(-1) ?? null
   const common = {
     group: 'build_guidance' as const,
-    gameVersion: currentVersionProjection.gameVersion,
+    gameVersion: constraint.gameVersion,
     originalSourceVersion: constraint.gameVersion,
     lastChangeVersion: constraint.gameVersion,
     currentApplicability: 'continuous' as const,
@@ -243,6 +248,19 @@ export function projectedCurrentConstraintFields(
           : '当前版本候选约束缺少可追溯的目标面板参考。',
     },
   ]
+}
+
+export function projectedReviewedBuild32Fields(agentId: string): AgentProfileField[] {
+  const guide = getGameData32BuildGuidance(agentId)
+  return getGameData32BuildGuidanceFields(agentId).map((field) =>
+    field.path === 'build.wengines' && guide
+      ? {
+          ...field,
+          value: [...guide.wEngineIds],
+          conditions: [...(field.conditions ?? []), ...guide.wEngineDirections],
+        }
+      : field,
+  )
 }
 
 export const upstreamOptimizerBaseline = {

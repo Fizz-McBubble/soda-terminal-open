@@ -1,3 +1,5 @@
+import effectCatalog from '../gameDataPacks/generated/current-agent-decision-mechanic-catalog.v1.json'
+
 export type UpstreamExpressionIR =
   | { kind: 'literal'; value: unknown }
   | { kind: 'reference'; path: string }
@@ -76,8 +78,26 @@ function evaluateBuiltin(operator: string, values: unknown[]): EvaluationResult 
     if (operator === 'binary:/')
       return right === 0 ? unsupported('binary:/ 除数不能为 0。') : supported(left / right)
   }
-  if (['cmpGE', 'cmpGT', 'cmpLT', 'cmpEq'].includes(operator)) {
-    if (values.length < 3 || typeof values[0] !== 'number' || typeof values[1] !== 'number')
+  if (['cmpEq', 'cmpNE'].includes(operator)) {
+    const scalar = (value: unknown) =>
+      typeof value === 'string' ||
+      typeof value === 'boolean' ||
+      (typeof value === 'number' && Number.isFinite(value))
+    if (values.length < 3 || !scalar(values[0]) || !scalar(values[1]))
+      return unsupported(`${operator} 参数无效。`)
+    const [left, right, whenTrue, whenFalse = 0] = values
+    return supported(
+      (operator === 'cmpEq' ? left === right : left !== right) ? whenTrue : whenFalse,
+    )
+  }
+  if (['cmpGE', 'cmpGT', 'cmpLT'].includes(operator)) {
+    if (
+      values.length < 3 ||
+      typeof values[0] !== 'number' ||
+      typeof values[1] !== 'number' ||
+      !Number.isFinite(values[0]) ||
+      !Number.isFinite(values[1])
+    )
       return unsupported(`${operator} 参数无效。`)
     const [left, right, whenTrue, whenFalse = 0] = values
     const matches =
@@ -116,6 +136,7 @@ export const currentUpstreamExpressionBuiltinOperators = Object.freeze([
   'cmpGT',
   'cmpLT',
   'cmpEq',
+  'cmpNE',
   'subscript',
 ] as const)
 
@@ -252,10 +273,10 @@ export function evaluateUpstreamExpressionIr(
 
 export const currentUpstreamExpressionOperatorContract = Object.freeze({
   contract: 'soda-upstream-expression-ir/v1',
-  structuralSourceExpressionCount: 342,
-  directUpstreamExpressionCount: 303,
+  structuralSourceExpressionCount: effectCatalog.coverage.formulaEffects,
+  directUpstreamExpressionCount: effectCatalog.coverage.upstreamNumericExpressionAvailable,
   declarativeBaselineInputExpressionCount: 39,
-  sharedIrReadyCount: 342,
+  sharedIrReadyCount: effectCatalog.coverage.sharedExpressionIrReady,
   sharedIrPendingCount: 0,
   builtinOperatorCount: currentUpstreamExpressionBuiltinOperators.length,
   domainOperatorCount: currentPlanningExpressionDomainOperators.length,

@@ -3,6 +3,7 @@ import type { CandidateWarehouseConstraint } from '../gameDataPacks/candidateWar
 import { stableContentHash } from '../gameDataPacks/types'
 import { getL3AgentDevelopmentEvidence } from '../gameDataPacks/l3ProductionProjection'
 import { reviewedKitAftershockFact } from './reviewedRetentionActionKits'
+import actionContinuity from './reviewed-action-source-continuity.v1.json'
 
 export type RetentionActionTag = 'basic' | 'dash' | 'aftershock'
 export type RetentionActionFact = {
@@ -233,20 +234,79 @@ export function resolveRetentionActionFact(
     sourceEvents: [],
   }
   if (!contract || contract.stableId !== actorAgentId) return fact
+  // Historical review bytes remain authoritative. The current commit is accepted
+  // only through a separate source-locked static field and generic-action review.
+  const currentSourceContinues =
+    contract.source.commit === actionContinuity.currentCommit &&
+    contract.source.repository === 'https://github.com/frzyc/genshin-optimizer' &&
+    actionContinuity.genericActionReview.legacyActionProjectionEqual &&
+    contract.identity.specialty !== 'armorer' &&
+    actionContinuity.rows.some(
+      (row) =>
+        row.unchanged &&
+        row.upstreamKey === contract.upstreamKey &&
+        row.externalId === contract.externalId &&
+        row.formulaPath === contract.source.formulaPath &&
+        row.statsPath === contract.source.statsPath &&
+        row.formulaSha256 === contract.source.formulaSha256 &&
+        row.statsSha256 === contract.source.statsSha256,
+    )
+  const positiveAction = actionTag === 'aftershock' ? null : actionTag
+  const positiveReview =
+    positiveAction === null
+      ? undefined
+      : actionContinuity.positiveActionReviews32.rows.find((row) => {
+          const expected = row.actions[positiveAction]
+          const event = contract.eventContract.events.find(
+            (item) => item.eventId === expected.eventId,
+          )
+          return (
+            actionContinuity.positiveActionReviews32.gameVersion === '3.2' &&
+            actionContinuity.positiveActionReviews32.genericActionSourceSha256 ===
+              actionContinuity.genericActionReview.currentSha256 &&
+            actionContinuity.positiveActionReviews32.commit === contract.source.commit &&
+            row.actorAgentId === actorAgentId &&
+            row.externalId === contract.externalId &&
+            row.upstreamKey === contract.upstreamKey &&
+            contract.source.repository === 'https://github.com/frzyc/genshin-optimizer' &&
+            row.source.commit === contract.source.commit &&
+            row.source.formulaPath === contract.source.formulaPath &&
+            row.source.statsPath === contract.source.statsPath &&
+            row.source.formulaSha256 === contract.source.formulaSha256 &&
+            row.source.statsSha256 === contract.source.statsSha256 &&
+            event !== undefined &&
+            Object.entries(expected).every(
+              ([key, value]) =>
+                stableContentHash((event as unknown as Record<string, unknown>)[key]) ===
+                stableContentHash(value),
+            )
+          )
+        })
   const sheet = reviewedSheets.find(
     ([key, hash]) =>
       contract.upstreamKey === key &&
       contract.source.formulaSha256 === hash &&
-      contract.source.commit === reviewedCommit &&
+      (contract.source.commit === reviewedCommit || currentSourceContinues) &&
       contract.source.repository === 'https://github.com/frzyc/genshin-optimizer' &&
       contract.source.formulaPath === `libs/zzz/formula/src/data/char/sheets/${key}.ts`,
   )
   // A stale reviewed sheet cannot prove incidental utility any more than it
   // can prove a primary use. Preserve the gap for every affected action family.
-  if (!sheet && reviewedSheets.some(([key]) => key === contract.upstreamKey)) return fact
-  if (contract.source.commit !== reviewedCommit) return fact
+  if (!sheet && !positiveReview && reviewedSheets.some(([key]) => key === contract.upstreamKey))
+    return fact
+  if (contract.source.commit !== reviewedCommit && !currentSourceContinues && !positiveReview)
+    return fact
   const sourceId = `${contract.source.repository}:${contract.source.commit}:${contract.source.formulaPath}:${contract.source.formulaSha256}`
   fact.sourceIds = [sourceId]
+  if (positiveReview)
+    fact.sourceIds.push(
+      `source32-positive-action:${actionTag}:${positiveReview.actions[actionTag as 'basic' | 'dash'].eventId}:${stableContentHash(actionContinuity.positiveActionReviews32)}`,
+      `${contract.source.statsPath}:${contract.source.statsSha256}`,
+    )
+  if (currentSourceContinues)
+    fact.sourceIds.push(
+      `${actionContinuity.historicalCommit}->${actionContinuity.currentCommit}:unchanged-stat-and-formula:${actionContinuity.genericActionReview.currentLegacyProjectionSha256}:reviewed-legacy-action-continuity`,
+    )
   if (sheet)
     fact.sourceIds.push(
       `${contract.source.repository}:${reviewedCommit}:libs/zzz/formula/src/data/char/util.ts:6278397afa6c5b5f65a15bdadd16037b67b997dffb2bf66289d63634bec49a3d:reviewed-emitted-action-classification`,
@@ -266,7 +326,11 @@ export function resolveRetentionActionFact(
     }
   } else {
     const events = contract.eventContract.events.filter((event) =>
-      actionTag === 'basic' ? event.skill === 'basic' : event.actionId.startsWith('DashAttack'),
+      positiveReview
+        ? event.eventId === positiveReview.actions[actionTag].eventId
+        : actionTag === 'basic'
+          ? event.skill === 'basic'
+          : event.actionId.startsWith('DashAttack'),
     )
     if (!events.length) return fact
     fact.presence = 'present'

@@ -46,6 +46,7 @@ export function CatalogCard({
     wind: { id: 'attribute-wind', label: '风属性' },
   }
   const specialtyIcons: Record<string, string> = {
+    armorer: 'specialty-armorer',
     anomaly: 'specialty-anomaly',
     damage: 'specialty-attack',
     defense: 'specialty-defense',

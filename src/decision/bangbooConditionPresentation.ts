@@ -26,6 +26,7 @@ const labels: Record<string, string> = {
   'specialty:support': '支援成员',
   'specialty:defense': '防护成员',
   'specialty:rupture': '命破成员',
+  'specialty:armorer': '锋御成员',
   'attack_type:pierce': '擅长穿透类型招式的成员',
 }
 for (const [id, , , , , , faction] of agentCatalog) {

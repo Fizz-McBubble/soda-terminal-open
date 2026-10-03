@@ -52,11 +52,11 @@ export function projectBuildKnowledgeProfile(
   const potentialStatus: 'formal' | 'missing' =
     buildField(unified, 'progression.potential_overlay')?.status === 'formal' ? 'formal' : 'missing'
   const input = {
-    id: `agent-profile-projection-${currentVersionProjection.gameVersion}-${agentId}`,
+    id: `agent-profile-projection-${unified.gameVersion}-${agentId}`,
     agentId,
     agentName: unified.agentName,
     role: legacy?.role ?? '资料待补',
-    gameVersion: currentVersionProjection.gameVersion,
+    gameVersion: unified.gameVersion,
     packageVersion: `${currentVersionProjection.packageVersion}-agent-projected`,
     status: readable ? ('candidate' as const) : ('missing' as const),
     updatedAt:
@@ -68,9 +68,22 @@ export function projectBuildKnowledgeProfile(
     scenario: team.join('；') || legacy?.scenario || '当前版本资料待补',
     assumptions: [
       '候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。',
-      `早期来源若没有对应补丁变更证据则连续有效；建议与仓库候选按当前 ${currentVersionProjection.gameVersion} 目录重新比较。`,
+      `字段保留各自的来源与复核版本；${unified.gameVersion} 的攻略不因当前目录标题 ${currentVersionProjection.gameVersion} 自动获得新版本连续性。`,
     ],
-    gaps: missing.map((field) => field?.reason ?? '当前角色缺少可追溯构筑方向。'),
+    gaps: [
+      ...missing.map((field) => field?.reason ?? '当前角色缺少可追溯构筑方向。'),
+      ...sourceFields
+        .filter(
+          (field) =>
+            field.currentApplicability !== 'continuous' ||
+            Number.parseFloat(field.gameVersion) <
+              Number.parseFloat(currentVersionProjection.gameVersion),
+        )
+        .map(
+          (field) =>
+            `${field.path} 仅复核至 ${field.gameVersion}；当前 ${currentVersionProjection.gameVersion} 适用性未闭合。`,
+        ),
+    ],
     sources: sourceFields.flatMap((field) =>
       field.sourceRefs.map((source) => ({
         label: source.id,

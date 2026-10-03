@@ -3,6 +3,19 @@ import type { AssetGoldenProps, BackupPreview } from './types'
 import { SelectMenu } from './SelectMenu'
 
 export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
+  const backupSectionRef = useRef<HTMLElement>(null)
+  useEffect(() => {
+    const locateBackup = () => {
+      if (window.location.hash === '#restore-backup')
+        backupSectionRef.current?.scrollIntoView({ block: 'start' })
+    }
+    const frame = window.requestAnimationFrame(locateBackup)
+    window.addEventListener('hashchange', locateBackup)
+    return () => {
+      window.cancelAnimationFrame(frame)
+      window.removeEventListener('hashchange', locateBackup)
+    }
+  }, [])
   const inputRef = useRef<HTMLInputElement>(null)
   const dialogRef = useRef<HTMLDialogElement>(null)
   const deleteDialogRef = useRef<HTMLDialogElement>(null)
@@ -224,7 +237,7 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
             </button>
           </section>
         ) : null}
-        <section className="backup-history">
+        <section className="backup-history" id="restore-backup" ref={backupSectionRef}>
           <header>
             <div>
               <span className="kicker">恢复资料</span>

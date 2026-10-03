@@ -1,6 +1,25 @@
+import {
+  bindPlanningEffectRuntimePotentialReference,
+  teamCounts,
+  statReferences,
+  effectRuntimeReferences,
+  type PlanningEffectRuntimeMember,
+} from './currentPlanningEffectDomain'
+export {
+  bindPlanningEffectRuntimePotentialReference,
+  createLevel60NeutralEffectRuntimeMember,
+} from './currentPlanningEffectDomain'
+export type {
+  PlanningEffectRuntimeStats,
+  PlanningEffectRuntimeMember,
+} from './currentPlanningEffectDomain'
+import { evaluateInitialCritConversion32 } from './currentInitialCritConversion32'
+import { bindReviewedRoxyEnergyConversion32 } from './reviewedRoxyEnergyConversion32'
+import { requiredReferences, effectReceiverMetadata } from './currentPlanningEffectExpressions'
+import type { CurrentAgentPlanningEffectBlueprint } from './currentAgentPlanningEffectBlueprint'
+import type { PlanningEffectRuntimeStats } from './currentPlanningEffectDomain'
 import { stableContentHash } from '../gameDataPacks/types'
 import { reviewedInlineAbilityEffectSources } from '../gameDataPacks/reviewedTeammateActivationMinimum'
-import { resolvePotentialImage } from '../assault/agentCapabilities'
 import { getCurrentAgentDecisionMechanicContract } from './currentAgentDecisionMechanicContracts'
 import {
   evaluateCurrentAgentTeamActivation,
@@ -29,154 +48,47 @@ const potentialValueOnlyKeys = new Set(
   reviewedPotentialEffectBlueprints.map((entry) => entry.effectKey),
 )
 
-export type PlanningEffectRuntimeStats = {
-  atk: number
-  def: number
-  hp: number
-  crit_: number
-  crit_dmg_: number
-  anomMas: number
-  anomProf: number
-  impact: number
-  pen_: number
-  /** Flat penetration; pen_ is the separate fractional penetration ratio. */
-  pen?: number
-  /** Static damage bonus for this member's event attribute, as a fraction. */
-  damageBonus?: number
-  actionDamageBonuses?: Array<{ actionTypes: readonly string[]; value: number }>
-  enerRegen: number
-}
-
-export type PlanningEffectRuntimeMember = {
-  agentId: string
-  mindscape: number
-  /** Account potential image in its source 0..6 domain, when available. */
-  potential?: number | null
-  coreLevel: number
-  skillLevels: Readonly<Record<string, number>>
-  initialStats: PlanningEffectRuntimeStats
-  finalStats: PlanningEffectRuntimeStats
-}
-
-/**
- * Binds the account's potential image for an expression runtime without
- * deriving a skill index or any effect value. The shared account helper only
- * supplies 6 for agents eligible for the image; other missing values are the
- * neutral 0 expression input.
- */
-export function bindPlanningEffectRuntimePotentialReference(input: {
-  agentId: string
-  potential: number | null | undefined
-  references: Readonly<Record<string, unknown>>
-}): Record<string, unknown> {
-  return {
-    ...input.references,
-    // This deliberate final binding prevents named baseline fixtures from
-    // replacing an observed account value.
-    'char.potential': resolvePotentialImage(input.agentId, input.potential) ?? 0,
-  }
-}
-
 function unique(values: readonly string[]) {
   return [...new Set(values)]
 }
 
-function collectReferences(node: UpstreamExpressionIR, references: Set<string>) {
-  if (node.kind === 'reference') references.add(node.path)
-  else if (node.kind === 'call') {
-    node.arguments.forEach((argument) => collectReferences(argument, references))
-    if (node.receiver) collectReferences(node.receiver, references)
-  } else if (node.kind === 'array')
-    node.items.forEach((item) => collectReferences(item, references))
-  else if (node.kind === 'object')
-    node.entries.forEach((entry) => collectReferences(entry.value, references))
-  else if (node.kind === 'property') collectReferences(node.receiver, references)
-  else if (node.kind === 'element') {
-    collectReferences(node.receiver, references)
-    collectReferences(node.index, references)
-  }
-}
-
-const requiredReferencesByExpression = new WeakMap<UpstreamExpressionIR, readonly string[]>()
-
-function requiredReferences(expression: UpstreamExpressionIR) {
-  const cached = requiredReferencesByExpression.get(expression)
-  if (cached) return cached
-  const references = new Set<string>()
-  collectReferences(expression, references)
-  const result = [...references]
-  requiredReferencesByExpression.set(expression, result)
-  return result
-}
-
-function effectReceiverMetadata(expression: UpstreamExpressionIR) {
-  if (
-    expression.kind !== 'call' ||
-    !['add', 'addWithDmgType'].includes(expression.operator) ||
-    expression.receiver?.kind !== 'reference'
-  )
-    return { receiverPath: null, damageType: null }
-  const damageType =
-    expression.operator === 'addWithDmgType' && expression.arguments[0]?.kind === 'literal'
-      ? expression.arguments[0].value
-      : null
-  return {
-    receiverPath: expression.receiver.path,
-    damageType: typeof damageType === 'string' ? damageType : null,
-  }
-}
-
-function teamCounts(memberIds: readonly string[]) {
-  const specialty: Record<string, number> = {}
-  const faction: Record<string, number> = {}
-  const attribute: Record<string, number> = {}
-  for (const agentId of memberIds) {
-    const identity = getCurrentAgentEventContract(agentId)?.identity
-    if (!identity) continue
-    specialty[identity.specialty] = (specialty[identity.specialty] ?? 0) + 1
-    faction[identity.faction] = (faction[identity.faction] ?? 0) + 1
-    attribute[identity.attribute] = (attribute[identity.attribute] ?? 0) + 1
-  }
-  return { specialty, faction, attribute }
-}
-
-function statReferences(
-  prefix: 'own.initial' | 'own.final' | 'target.final',
-  stats: PlanningEffectRuntimeStats,
+/** Typed runtime wrapper around the same pure panel conversion. */
+export function evaluateCurrentPlanningInitialCritConversion32(
+  member: PlanningEffectRuntimeMember,
 ) {
-  return Object.fromEntries(
-    Object.entries(stats).map(([key, value]) => [`${prefix}.${key}`, value]),
-  )
-}
-
-function effectRuntimeReferences(input: {
-  target: PlanningEffectRuntimeMember
-  baseReferences: Readonly<Record<string, unknown>>
-  requiredReferences: readonly string[]
-}) {
-  const references: Record<string, unknown> = {
-    ...input.baseReferences,
-    ...statReferences('target.final', input.target.finalStats),
-  }
-  // A named neutral PlanningBaseline explicitly leaves non-selected event and
-  // state triggers off. Numeric conditions therefore resolve to 0; callers can
-  // override any selected condition with baselineReferences.
-  for (const reference of input.requiredReferences)
-    if (!Object.hasOwn(references, reference) && !reference.startsWith('dm.'))
-      references[reference] = 0
-  return references
+  return evaluateInitialCritConversion32({
+    agentId: member.agentId,
+    initialStats: member.initialStats,
+  })
 }
 
 export function evaluateCurrentPlanningFormationEffects(input: {
   memberIds: readonly [string, string, string]
   members: readonly PlanningEffectRuntimeMember[]
   baselineReferencesByAgentId?: Readonly<Record<string, Readonly<Record<string, unknown>>>>
+  finalStatsByAgentId?: Readonly<Record<string, PlanningEffectRuntimeStats>>
 }) {
   return evaluateFormationEffects(input, compileFormationPlanningEffectBlueprints(input.memberIds))
 }
 
+export function evaluateCurrentPlanningEffectEntries32(
+  input: {
+    memberIds: readonly string[]
+    members: readonly PlanningEffectRuntimeMember[]
+    baselineReferencesByAgentId?: Readonly<Record<string, Readonly<Record<string, unknown>>>>
+    finalStatsByAgentId?: Readonly<Record<string, PlanningEffectRuntimeStats>>
+  },
+  entries: CurrentAgentPlanningEffectBlueprint[],
+) {
+  return evaluateFormationEffects(input, {
+    status: 'supported',
+    entries,
+    blueprintHash: stableContentHash(entries),
+  })
+}
+
 function evaluateFormationEffects(
-  input: Parameters<typeof evaluateCurrentPlanningFormationEffects>[0],
+  input: Parameters<typeof evaluateCurrentPlanningEffectEntries32>[0],
   blueprints: ReturnType<typeof compileFormationPlanningEffectBlueprints>,
 ) {
   const blockers: string[] = []
@@ -209,7 +121,7 @@ function evaluateFormationEffects(
       const activation = evaluateCurrentAgentTeamActivation({
         stableId: agentId,
         memberIds: input.memberIds,
-        agentState: { mindscape: provider.mindscape },
+        agentState: { mindscape: provider.mindscape, potentialImage: provider.potential },
       })
       return [
         [
@@ -238,6 +150,11 @@ function evaluateFormationEffects(
                 ...statReferences('own.initial', provider.initialStats),
                 ...statReferences('own.final', provider.finalStats),
                 ...(input.baselineReferencesByAgentId?.[agentId] ?? {}),
+                ...(provider.level === undefined ? {} : { 'char.lvl': provider.level }),
+                ...(input.finalStatsByAgentId?.[agentId]
+                  ? statReferences('own.final', input.finalStatsByAgentId[agentId])
+                  : {}),
+                'char.specialty': getCurrentAgentEventContract(agentId)?.identity.specialty,
               },
             }),
           },
@@ -277,6 +194,8 @@ function evaluateFormationEffects(
       return {
         effectKey: blueprint.effectKey,
         providerAgentId: blueprint.providerAgentId,
+        effectId: blueprint.effectId,
+        applicationScope: blueprint.applicationScope ?? 'generic',
         targetKinds: blueprint.targetKinds,
         receiverPath: metadata.receiverPath,
         damageType: metadata.damageType,
@@ -293,11 +212,23 @@ function evaluateFormationEffects(
         status: 'unsupported' as const,
         blockers: [`效果运行时缺少机制合同：${provider.agentId}`],
       }
-    const references = effectRuntimeReferences({
-      target,
+    const rawReferences = effectRuntimeReferences({
+      target: input.finalStatsByAgentId?.[target.agentId]
+        ? { ...target, finalStats: input.finalStatsByAgentId[target.agentId] }
+        : target,
       baseReferences: providerRuntime.baseReferences,
       requiredReferences: requiredReferences(expression),
     })
+    const conversion = bindReviewedRoxyEnergyConversion32({
+      agentId: provider.agentId,
+      effectId: blueprint.effectId,
+      coreLevel: provider.coreLevel,
+      source: getCurrentAgentDecisionMechanicContract(provider.agentId)!.effectContract.source,
+      expressionSha256: blueprint.numericExpression.expressionSha256,
+      references: rawReferences,
+    })
+    if (conversion.status !== 'supported') return { effectKey: blueprint.effectKey, ...conversion }
+    const references = conversion.references
     const reviewedAbilitySource = reviewedInlineAbilityEffectSources[blueprint.effectKey]
     const blockedByReviewedAbility =
       reviewedAbilitySource &&
@@ -323,22 +254,59 @@ function evaluateFormationEffects(
         status: 'unsupported' as const,
         blockers: evaluated.blockers,
       }
+    const recipientValues: Array<{ agentId: string; value: unknown }> = []
+    if (requiredReferences(expression).some((ref) => ref.startsWith('target.'))) {
+      for (const recipient of input.members) {
+        const recipientReferences = effectRuntimeReferences({
+          target: input.finalStatsByAgentId?.[recipient.agentId]
+            ? { ...recipient, finalStats: input.finalStatsByAgentId[recipient.agentId] }
+            : recipient,
+          baseReferences: providerRuntime.baseReferences,
+          requiredReferences: requiredReferences(expression),
+        })
+        const recipientResult = evaluateUpstreamExpressionIr(
+          blockedByReviewedAbility ? { kind: 'literal', value: 0 } : expression,
+          createPlanningExpressionDomainRuntime({
+            references: recipientReferences,
+            teamCounts: { specialty: counts.specialty, faction: counts.faction },
+            gates: {
+              ability:
+                providerRuntime.activation.status === 'supported' &&
+                providerRuntime.activation.active,
+              directStrike: Boolean(recipientReferences.directStrike),
+              besiege: Boolean(recipientReferences.besiege),
+              besiegeDisplay: Boolean(recipientReferences.besiegeDisplay),
+            },
+          }),
+        )
+        if (recipientResult.status === 'unsupported')
+          return {
+            effectKey: blueprint.effectKey,
+            status: 'unsupported' as const,
+            blockers: recipientResult.blockers,
+          }
+        recipientValues.push({ agentId: recipient.agentId, value: recipientResult.value })
+      }
+    }
     return {
       effectKey: blueprint.effectKey,
       providerAgentId: blueprint.providerAgentId,
+      effectId: blueprint.effectId,
+      applicationScope: blueprint.applicationScope ?? 'generic',
       targetKinds: blueprint.targetKinds,
       receiverPath: metadata.receiverPath,
       damageType: metadata.damageType,
       status: 'supported' as const,
       value: evaluated.value,
+      recipientValues,
       active:
         !potentialValueOnlyKeys.has(blueprint.effectKey) &&
-        typeof evaluated.value === 'number' &&
-        evaluated.value !== 0,
+        ((typeof evaluated.value === 'number' && evaluated.value !== 0) ||
+          recipientValues.some((row) => typeof row.value === 'number' && row.value !== 0)),
       todoBoundary: blueprint.numericExpression.todoBoundary,
       sourceRefs: reviewedAbilitySource
         ? [...blueprint.sourceRefs, reviewedAbilitySource]
-        : blueprint.sourceRefs,
+        : [...blueprint.sourceRefs, ...conversion.sourceRefs],
     }
   })
   // Numeric source parameters are visible to shared consumers but cannot
@@ -362,36 +330,6 @@ function evaluateFormationEffects(
           potentialParameters,
         }),
       }
-}
-
-export function createLevel60NeutralEffectRuntimeMember(
-  agentId: string,
-): PlanningEffectRuntimeMember {
-  const contract = getCurrentAgentEventContract(agentId)
-  if (!contract) throw new Error(`缺少角色事件合同：${agentId}`)
-  const base = contract.baseStats
-  const stats: PlanningEffectRuntimeStats = {
-    atk: base.atk_base + base.atk_growth * 59,
-    def: base.def_base + base.def_growth * 59,
-    hp: base.hp_base + base.hp_growth * 59,
-    crit_: 0.05,
-    crit_dmg_: 0.5,
-    anomMas: base.anomMas,
-    anomProf: base.anomProf,
-    impact: base.impact,
-    pen_: 0,
-    enerRegen: base.enerRegen,
-  }
-  return {
-    agentId,
-    mindscape: 0,
-    // Frozen neutral fixtures must not inherit the eligible-agent default.
-    potential: 0,
-    coreLevel: 1,
-    skillLevels: { basic: 1, dodge: 1, assist: 1, special: 1, chain: 1, core: 1 },
-    initialStats: stats,
-    finalStats: stats,
-  }
 }
 
 export function compileCurrentPlanningFormationEffectObservations(input: {

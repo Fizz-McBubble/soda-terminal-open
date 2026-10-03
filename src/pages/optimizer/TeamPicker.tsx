@@ -37,6 +37,7 @@ import {
 import { TeamAnalysisOverviewView } from './TeamAnalysisOverviewView'
 import { TeamRemainingBoxSelector } from './TeamRemainingBoxSelector'
 import { useTeamAnalysisFlow } from './useTeamAnalysisFlow'
+import { traceTeamRematch } from './teamRematchTrace'
 import { useTeamPickerQueries } from './useTeamPickerQueries'
 
 export function TeamPicker() {
@@ -64,6 +65,7 @@ export function TeamPicker() {
   const contextDiscId = params.get('discId')
   const reanalyzeRequested = params.get('reanalyze') === '1'
   const rematchRequest = useRef<{ planId: string | null; teamId: string | null } | null>(null)
+  const reanalyzeHandled = useRef(false)
   const currentDecisionWorld = currentDecisionWorldForRecovery(decisionWorld)
   const matchingSessionFromMemory =
     accountSummary &&
@@ -123,7 +125,15 @@ export function TeamPicker() {
 
   useEffect(
     () => () => {
+      traceTeamRematch('picker.cleanup', {
+        generation: analysisRequest.current,
+        handled: reanalyzeHandled.current,
+      })
       analysisRequest.current += 1
+      // Effect replay cancels the queued start just like a real unmount. Allow
+      // the next setup to resume the still-present URL request instead of
+      // retaining a handled marker for work that never started.
+      reanalyzeHandled.current = false
     },
     [],
   )
@@ -217,7 +227,6 @@ export function TeamPicker() {
 
   const exceptionHeadingRef = useRef<HTMLHeadingElement>(null)
   const previousAnalysisKind = useRef(analysis.kind)
-  const reanalyzeHandled = useRef(false)
 
   const { startAnalysis, startRemainingBoxAnalysis, reuseCurrentAnalysis } = useTeamAnalysisFlow({
     accountSummary,
@@ -323,9 +332,20 @@ export function TeamPicker() {
 
   useEffect(() => {
     if (!reanalyzeRequested) {
+      traceTeamRematch('picker.reanalyze.reject.no_url_request', {
+        generation: analysisRequest.current,
+      })
       reanalyzeHandled.current = false
       return
     }
+    traceTeamRematch('picker.reanalyze.effect', {
+      handled: reanalyzeHandled.current,
+      hydrating: accountHydrating,
+      worldStatus: decisionWorld.status,
+      generation: analysisRequest.current,
+      hasTeamId: Boolean(params.get('rematchTeam')),
+      hasPlanId: Boolean(params.get('rematchPlan')),
+    })
     if (reanalyzeHandled.current || accountHydrating) return
     if (decisionWorld.status === 'loading') return
     reanalyzeHandled.current = true
@@ -335,13 +355,30 @@ export function TeamPicker() {
     }
     navigate('/loadouts/team', { replace: true })
     const request = analysisRequest.current
+    traceTeamRematch('picker.start.queued', {
+      generation: request,
+      hasRequest: Boolean(rematchRequest.current),
+    })
     queueMicrotask(() => {
+      traceTeamRematch('picker.start.microtask', {
+        expected: request,
+        actual: analysisRequest.current,
+        current: request === analysisRequest.current,
+      })
       if (request !== analysisRequest.current) return
       void reuseCurrentAnalysisEvent()
         .then((reused) => {
+          traceTeamRematch('picker.reuse.return', {
+            reused,
+            current: request === analysisRequest.current,
+          })
+          if (request !== analysisRequest.current) return
           if (!reused) void startRequestedAnalysis()
         })
-        .catch(() => void startRequestedAnalysis())
+        .catch(() => {
+          traceTeamRematch('picker.reuse.error', { current: request === analysisRequest.current })
+          if (request === analysisRequest.current) void startRequestedAnalysis()
+        })
     })
   }, [accountHydrating, decisionWorld.status, navigate, params, reanalyzeRequested])
 

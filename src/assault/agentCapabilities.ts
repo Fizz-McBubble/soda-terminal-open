@@ -16,9 +16,17 @@ export type AgentCapability = {
   supportsPotentialImage: boolean
   /** Source label, which can be an archive label rather than an introduced version. */
   sourceVersion: string | null
-  evidence: 'formal' | 'licensed_wiki_direct' | 'reviewed_guide_direct'
+  evidence: 'formal' | 'licensed_wiki_direct' | 'reviewed_guide_direct' | 'pinned_formula_source_32'
   sourceUrl: string | null
   sourceContentHash: string | null
+  sourceBinding32?: {
+    targetVersion: '3.2'
+    upstreamCommit: string
+    formulaPath: string
+    formulaSha256: string
+    status: 'source_registered'
+    missingObservationPolicy: 'preserve_unknown'
+  }
 }
 
 type ReviewedPotentialGuideEntry = {
@@ -117,6 +125,24 @@ const potentialImageCapabilities: Readonly<Record<string, AgentCapability>> = {
   ...catalogPotentialImageCapabilities,
   ...wikiPotentialImageCapabilities,
   ...formalPotentialImageCapabilities,
+  // Eligibility comes from this exact newly reviewed source. It is neither a
+  // package-wide promotion nor evidence that an account has activated potential.
+  'agent-koleda': {
+    supportsPotentialImage: true,
+    sourceVersion: '3.2',
+    evidence: 'pinned_formula_source_32',
+    sourceUrl:
+      'https://github.com/frzyc/genshin-optimizer/blob/3456cd0f6f5bea10e168074502460dac2fcd6df4/libs/zzz/formula/src/data/char/sheets/Koleda.ts',
+    sourceContentHash: '632180C58A583A7024641799AF82A21906D78973C2046A48C2DFB88E21E59C8C',
+    sourceBinding32: {
+      targetVersion: '3.2',
+      upstreamCommit: '3456cd0f6f5bea10e168074502460dac2fcd6df4',
+      formulaPath: 'libs/zzz/formula/src/data/char/sheets/Koleda.ts',
+      formulaSha256: '632180C58A583A7024641799AF82A21906D78973C2046A48C2DFB88E21E59C8C',
+      status: 'source_registered',
+      missingObservationPolicy: 'preserve_unknown',
+    },
+  },
 }
 
 export function getAgentCapability(agentId: string): AgentCapability | null {
@@ -137,5 +163,7 @@ export function resolvePotentialImage(
   value: number | null | undefined,
 ): number | undefined {
   if (value !== null && value !== undefined) return value
+  if (getAgentCapability(agentId)?.sourceBinding32?.missingObservationPolicy === 'preserve_unknown')
+    return undefined
   return supportsPotentialImage(agentId) ? 6 : undefined
 }

@@ -4,7 +4,8 @@ import {
   getCurrentReleasedIdentity,
   resolveCurrentReleasedIdentity,
 } from './currentReleasedIdentityMap'
-import { gameData31CatalogIntake, type GameData31CatalogEntity } from './gameData31CatalogIntake'
+import { type GameData31CatalogEntity } from './gameData31CatalogIntake'
+import { currentCatalogEntities } from './currentCatalogIntake'
 import { stableContentHash } from './types'
 
 export type CurrentScopeDomain = 'agent' | 'wengine' | 'bangboo' | 'drive_disc_set'
@@ -26,8 +27,8 @@ export type CurrentScopeManifestEntry = {
 
 export type CurrentScopeManifest = {
   schema: 'soda-current-scope-manifest/v1'
-  id: 'current-scope-manifest-3.1-r1'
-  gameVersion: '3.1'
+  id: string
+  gameVersion: string
   phase: 'phase_ii'
   effectiveAsOf: string
   productionCatalog: {
@@ -46,7 +47,7 @@ export type CurrentScopeManifest = {
   contentHash: string
 }
 
-const effectiveAsOf = '2026-08-19'
+const effectiveAsOf = '2026-09-30'
 const accountOwnableCandidateIds = new Set([
   'agent-sigrid',
   'bangboo-ariel',
@@ -54,6 +55,13 @@ const accountOwnableCandidateIds = new Set([
   'wengine-14159',
   'set-34100',
   'set-34200',
+  'agent-claret',
+  'agent-roxy',
+  'wengine-14161',
+  'wengine-14162',
+  'wengine-13021',
+  'wengine-13017',
+  'wengine-12016',
 ])
 
 function isCurrentScopeDomain(
@@ -92,7 +100,7 @@ const formalEntries: CurrentScopeManifestEntry[] = gameCurrent31CatalogLedger.en
   },
 )
 
-const candidateEntries: CurrentScopeManifestEntry[] = gameData31CatalogIntake.entities
+const candidateEntries: CurrentScopeManifestEntry[] = currentCatalogEntities
   .filter((entity): entity is GameData31CatalogEntity & { domain: CurrentScopeDomain } =>
     isCurrentScopeDomain(entity.domain),
   )
@@ -145,8 +153,8 @@ const coverage = {
 
 const manifestCore = {
   schema: 'soda-current-scope-manifest/v1' as const,
-  id: 'current-scope-manifest-3.1-r1' as const,
-  gameVersion: '3.1' as const,
+  id: 'current-scope-manifest-3.2-r1' as const,
+  gameVersion: '3.2' as const,
   phase: 'phase_ii' as const,
   effectiveAsOf,
   productionCatalog: {

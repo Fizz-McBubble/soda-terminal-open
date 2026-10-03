@@ -1,7 +1,35 @@
 export const currentReleasedIdentitySourceRegistry = {
   schema: 'soda-released-identity-source-registry/v1',
-  gameVersion: '3.1',
+  gameVersion: '3.2' as string,
   sources: [
+    {
+      id: 'official-3.2-update-2026-09-09',
+      url: 'https://zzz.mihoyo.com/news/166026?nav=news%3Fnav%3Dnews',
+      sourceVersion: '3.2',
+      publishedAt: '2026-09-09',
+      checkedAt: '2026-09-30T00:00:00.000Z',
+      contentHash: null,
+      stableIds: [
+        'agent-claret',
+        'agent-roxy',
+        'wengine-14161',
+        'wengine-14162',
+        'wengine-13021',
+        'wengine-13017',
+        'wengine-12016',
+      ],
+      boundary: '官方公告仅闭合3.2发布范围；数值使用独立锁定来源，未存正文哈希不伪造原文哈希。',
+    },
+    {
+      id: 'official-3.2-phase-ii-2026-09-30',
+      url: 'https://zenless.hoyoverse.com/en-us/news/166475?catchSpider=1',
+      sourceVersion: '3.2',
+      publishedAt: '2026-09-30',
+      checkedAt: '2026-09-30T00:00:00.000Z',
+      contentHash: null,
+      stableIds: ['agent-roxy', 'wengine-14162'],
+      boundary: '下半开放2026-09-30 12:00服务器时间；不推导玩家拥有、伤害或精算资格。',
+    },
     {
       id: 'official-3.1-update-2026-07-29',
       url: 'https://zenless.hoyoverse.com/zh-cn/news/165414?catchSpider=1',
@@ -25,9 +53,47 @@ export const currentReleasedIdentitySourceRegistry = {
 
 export const currentReleasedIdentityMap = {
   schema: 'soda-released-identity-map/v1',
-  gameVersion: '3.1',
-  cutoff: '2026-08-19',
+  gameVersion: '3.2' as string,
+  cutoff: '2026-09-30',
   entries: [
+    {
+      stableId: 'agent-claret',
+      aliases: ['candidate-3.2-agent-claret'],
+      gameEvidenceId: '1611',
+      playerName: '克拉蕾',
+      releaseState: 'released',
+      releaseAt: '2026-09-09',
+      sourceRefs: ['official-3.2-update-2026-09-09'],
+      boundary: '稳定身份、锋御特性和发布范围已核验；精算按能力与具名上下文分别准入。',
+    },
+    {
+      stableId: 'agent-roxy',
+      aliases: ['candidate-3.2-agent-roxy'],
+      gameEvidenceId: '1621',
+      playerName: '洛克茜',
+      releaseState: 'released',
+      releaseAt: '2026-09-30',
+      sourceRefs: ['official-3.2-phase-ii-2026-09-30'],
+      boundary: '稳定身份和下半开放时间已核验；数值与固定循环精算资格分别核验。',
+    },
+    ...[
+      ['14161', '猩红渴望', '2026-09-09'],
+      ['14162', '绯月银棺', '2026-09-30'],
+      ['13021', '血髓秘匣', '2026-09-09'],
+      ['13017', '喵运当头', '2026-09-09'],
+      ['12016', '「月相」-弦', '2026-09-09'],
+    ].map(([id, playerName, releaseAt]) => ({
+      stableId: `wengine-${id}`,
+      aliases: [`candidate-3.2-wengine-${id}`],
+      gameEvidenceId: id,
+      playerName,
+      releaseState: 'released' as const,
+      releaseAt,
+      sourceRefs: [
+        id === '14162' ? 'official-3.2-phase-ii-2026-09-30' : 'official-3.2-update-2026-09-09',
+      ],
+      boundary: '发布身份与锁定上游相交核验；基础属性保留atk/def类型，效果与触发条件独立准入。',
+    })),
     {
       stableId: 'agent-remielle',
       aliases: ['candidate-3.1-agent-remielle'],

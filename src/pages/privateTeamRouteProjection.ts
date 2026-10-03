@@ -77,6 +77,9 @@ export function projectPrivateTeamRoute(
     candidateId,
     team,
     targetCandidateId: entry.targetCandidateId,
+    ...(entry.authorityCandidate?.authorComparisonMembership
+      ? { discOnlyCandidate: true as const }
+      : {}),
     automaticBangboo: entry.automaticBangboo
       ? { bangbooId: entry.automaticBangboo.bangbooId, name: entry.automaticBangboo.name }
       : null,

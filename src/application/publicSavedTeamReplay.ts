@@ -12,6 +12,12 @@ export function savedTeamReplayPlanHash(plan: AccountPlanningDraft) {
     updatedAt: plan.updatedAt,
     memberIds: plan.selection.agentIds,
     bangbooId: plan.selection.bangbooId,
+    ...(plan.teamAccountFactBinding
+      ? {
+          accountFactBinding: plan.teamAccountFactBinding,
+          sourceMembership: plan.teamExecutionSnapshot?.authorComparisonMembership,
+        }
+      : {}),
     equipmentParameters: plan.teamEquipmentParameters
       ? {
           wEngines: plan.teamEquipmentParameters.wEngines.map((engine) => ({

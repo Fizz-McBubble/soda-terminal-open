@@ -1,3 +1,4 @@
+import { currentAgentPlanningEffectBlueprints } from '../calculation/currentAgentPlanningEffectBlueprint'
 import type { CoreWarehouse } from '../accounts/coreFlow'
 import type { AccountPlanningDraft } from '../accounts/types'
 import { completePersonalValueBenchmarkCoverage } from '../calculation/personalValueBenchmarkCoverage'
@@ -18,14 +19,16 @@ import {
   type ValueBenchmarkSide,
 } from '../calculation/valueBenchmarkComparison'
 import type { DriveDisc } from '../domain/schemas'
-import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
 import { stableContentHash } from '../gameDataPacks/types'
 import type { CandidateWarehousePlan } from '../optimizer/candidateWarehouseSolver'
 import {
   accountSkillLevel,
   projectNormalizedAccountFinalStatsDetailed,
 } from './normalizedPlanningCandidateEvaluator'
+import { supportsPotentialImage } from '../assault/agentCapabilities'
 import { resolveWEngine } from './wEngineResolver'
+import { developmentSourceAction32 } from './developmentSourceAction32'
+import { qualifyReviewedPreparedBenchmark32 } from '../calculation/reviewedPreparedBenchmark32'
 
 const personalRuntimeIdentity = `source-backed-personal-fixed-event/v6-${currentWEnginePersonalPlanningEffectVersion}`
 const personalEventSetIdentity = stableContentHash({
@@ -43,9 +46,9 @@ function unsupportedSide(input: {
   return {
     state: input.state ?? 'unsupported',
     dimensions: {
-      game_version: currentVersionProjection.gameVersion,
+      game_version: currentNormalizedPlanningBaseline.gameVersion,
       subject: `agent:${input.agentId}`,
-      scenario: 'scenario:normalized-personal',
+      scenario: `scenario:normalized-personal:${stableContentHash(currentNormalizedPlanningBaseline.enemy)}`,
       event_set: personalEventSetIdentity,
       duration: String(currentNormalizedPlanningBaseline.declaredDurationSeconds),
       formula: currentNormalizedPlanningBaseline.formulaHash,
@@ -61,12 +64,17 @@ function unsupportedSide(input: {
   }
 }
 
-function evaluateSide(input: {
+export type DevelopmentComparisonParameters = {
+  wEngine?: { engineId: string; level: number; ascension?: number; refinement: number }
+  potential?: number
+}
+
+export function evaluateDevelopmentValueBenchmarkSide(input: {
   warehouse: CoreWarehouse
   agentId: string
   discs: readonly DriveDisc[]
   stale: boolean
-  engineMode: 'current' | 'recommended'
+  parameters?: DevelopmentComparisonParameters
 }): ValueBenchmarkSide {
   const agent = input.warehouse.roster.agents.find(
     (item) => item.agentId === input.agentId && item.owned,
@@ -75,9 +83,17 @@ function evaluateSide(input: {
     agent,
     legacyWEngines: input.warehouse.roster.wEngines,
   })
-  const engine = input.engineMode === 'current' ? resolution.current : resolution.recommendedPrimary
+  const engine = input.parameters?.wEngine
+    ? { ...input.parameters.wEngine, source: 'agent_current_fact' as const }
+    : resolution.current
+  const engineAscension =
+    input.parameters?.wEngine?.ascension ??
+    (agent && agent.wEngineDetails.id === engine?.engineId
+      ? (agent.wEngineDetails.ascension ?? undefined)
+      : undefined)
+  const potential = input.parameters?.potential ?? agent?.potentialImage
   const engineKey = engine
-    ? `${engine.engineId}:p${engine.refinement}:lv${engine.level}`
+    ? `${engine.engineId}:p${engine.refinement}:lv${engine.level}:asc${engineAscension ?? 'derived'}`
     : 'missing'
   if (input.stale)
     return unsupportedSide({
@@ -95,17 +111,29 @@ function evaluateSide(input: {
       reasons: [
         !agent
           ? '缺少目标代理人。'
-          : input.engineMode === 'current'
-            ? '未记录当前音擎；六盘方案仍可查看和保存，固定事件数值比较需明确音擎参数。'
-            : '当前没有来源化推荐音擎。',
+          : '未记录当前音擎；六盘方案仍可查看和保存，固定事件数值比较需明确音擎参数。',
       ],
     })
-  if (engine.level !== 60)
+  if (
+    !Number.isInteger(engine.level) ||
+    engine.level < 1 ||
+    engine.level > 60 ||
+    !Number.isInteger(engine.refinement) ||
+    engine.refinement < 1 ||
+    engine.refinement > 5 ||
+    (engineAscension !== undefined &&
+      (!Number.isInteger(engineAscension) || engineAscension < 0 || engineAscension > 5)) ||
+    (input.parameters?.potential !== undefined &&
+      (!supportsPotentialImage(input.agentId) ||
+        !Number.isInteger(input.parameters.potential) ||
+        input.parameters.potential < 0 ||
+        input.parameters.potential > 6))
+  )
     return unsupportedSide({
       agentId: input.agentId,
       discs: input.discs,
       engineKey,
-      reasons: ['当前试算仅支持 60 级音擎；不会将已记录的音擎等级自动提高后比较。'],
+      reasons: ['显式音擎等级需在 1–60、突破在 0–5、精炼在 P1–P5；潜能需属于该代理人开放范围。'],
     })
   if (input.discs.length !== 6 || new Set(input.discs.map((disc) => disc.slot)).size !== 6)
     return unsupportedSide({
@@ -115,7 +143,17 @@ function evaluateSide(input: {
       reasons: [`需要六个不同盘位的实体驱动盘，当前为 ${input.discs.length}/6。`],
     })
   const projection = projectNormalizedAccountFinalStatsDetailed({
-    agent,
+    agent: {
+      ...agent,
+      potentialImage: potential,
+      wEngineDetails: {
+        id: engine.engineId,
+        name: engine.engineId,
+        level: engine.level,
+        ascension: engineAscension,
+        refinement: engine.refinement,
+      },
+    },
     engineId: engine.engineId,
     discs: [...input.discs],
   })
@@ -126,26 +164,41 @@ function evaluateSide(input: {
       accountSkillLevel(agent, skill),
     ]),
   )
-  const schedule = compileNormalizedAgentEventSchedule({ agentId: input.agentId, skillLevels })
-  if (!stats || schedule.status === 'unsupported')
+  if (!stats)
     return unsupportedSide({
       agentId: input.agentId,
       discs: input.discs,
       engineKey,
-      reasons: [
-        ...(projection.status === 'unsupported' ? projection.reasons : []),
-        ...(schedule.status === 'unsupported' ? schedule.blockers : []),
-      ],
+      reasons: [...(projection.status === 'unsupported' ? projection.reasons : [])],
     })
   const member = {
     agentId: input.agentId,
+    level: agent.level,
     mindscape: agent.mindscape,
-    potential: agent.potentialImage,
+    potential,
     coreLevel: Math.min(7, accountSkillLevel(agent, 'core')),
     skillLevels,
     initialStats: stats.initialStats,
     finalStats: stats.finalStats,
   }
+  const sourceAction = developmentSourceAction32(member)
+  if (sourceAction?.status === 'unsupported')
+    return unsupportedSide({
+      agentId: input.agentId,
+      discs: input.discs,
+      engineKey,
+      reasons: sourceAction.blockers,
+    })
+  const schedule =
+    sourceAction ?? compileNormalizedAgentEventSchedule({ agentId: input.agentId, skillLevels })
+  if (schedule.status === 'unsupported')
+    return unsupportedSide({
+      agentId: input.agentId,
+      discs: input.discs,
+      engineKey,
+      reasons: schedule.blockers,
+    })
+  const eventUsages = schedule.eventUsages
   const discEffects = compileCurrentDriveDiscPlanningEffects({
     members: [member],
     loadouts: [{ agentId: input.agentId, discs: input.discs }],
@@ -161,6 +214,8 @@ function evaluateSide(input: {
     agentId: input.agentId,
     engineId: engine.engineId,
     refinement: engine.refinement,
+    member,
+    runtime: sourceAction?.equipmentRuntime,
   })
   if (engineEffects.status !== 'supported')
     return unsupportedSide({
@@ -187,7 +242,7 @@ function evaluateSide(input: {
   }
   const runtime = evaluateSourceBackedPersonalPlanningDps({
     member,
-    eventUsages: schedule.eventUsages,
+    ...(sourceAction?.runtimeInput ?? { eventUsages }),
     baseline: currentNormalizedPlanningBaseline,
     equipmentModifierBuckets: [...discEffects.buckets, ...engineEffects.buckets],
   })
@@ -198,32 +253,95 @@ function evaluateSide(input: {
       engineKey,
       reasons: runtime.blockers,
     })
-  const coverage = completePersonalValueBenchmarkCoverage({
+  const baseCoverage = completePersonalValueBenchmarkCoverage({
     discCoverage,
     engine,
     engineSource: getCurrentWEngineStaticData(engine.engineId)?.source ?? null,
     member,
     potentialApplications: runtime.potentialApplications,
     engineEffects,
+    sourceEffectKeys: runtime.effectBuckets
+      .filter((row) => row.application !== 'outside_direct_event_formula')
+      .map((row) => row.effectKey),
+    sourceEffectExclusions: runtime.sourceEffectExclusions,
   })
+  const agentExclusions = currentAgentPlanningEffectBlueprints
+    .filter(
+      (row) =>
+        row.providerAgentId === input.agentId &&
+        !baseCoverage.includedEffectKeys.includes(row.effectKey) &&
+        row.effectId !== 'core_initial_crit_',
+    )
+    .map((row) => ({
+      effectKey: row.effectKey,
+      reason: '此个人固定事件切片未消费该来源角色效果；条件、队伍与动作适用范围不能从盘面推断。',
+      fields: ['agent_effect', 'combat_conditions', 'event_context', ...row.targetKinds],
+      sourceRefs: [...row.sourceRefs],
+    }))
+  const coverage: ValueBenchmarkCoverage = {
+    ...baseCoverage,
+    boundary: `${baseCoverage.boundary}${sourceAction ? ` ${sourceAction.boundary}` : ''}`,
+    excludedEffects: [...baseCoverage.excludedEffects, ...agentExclusions],
+    exclusionContextFingerprint: stableContentHash({
+      context: baseCoverage.exclusionContextFingerprint,
+      agentExclusions,
+      member,
+      ...(sourceAction ? { actionPolicy: sourceAction.identity } : {}),
+    }),
+  }
   const dimensions: ValueBenchmarkSide['dimensions'] = {
-    game_version: currentVersionProjection.gameVersion,
-    subject: `agent:${input.agentId}`,
-    scenario: 'scenario:normalized-personal',
-    event_set: personalEventSetIdentity,
+    game_version: currentNormalizedPlanningBaseline.gameVersion,
+    subject: stableContentHash({
+      agentId: input.agentId,
+      level: agent.level,
+      ascension: agent.ascension,
+      mindscape: agent.mindscape,
+      skillLevels,
+    }),
+    potential: String(potential ?? 'unavailable'),
+    scenario: `scenario:normalized-personal:${stableContentHash(currentNormalizedPlanningBaseline.enemy)}${sourceAction ? `:${sourceAction.policyId}` : ''}`,
+    event_set: stableContentHash(eventUsages),
     duration: String(runtime.declaredDurationSeconds),
     formula: currentNormalizedPlanningBaseline.formulaHash,
-    runtime: personalRuntimeIdentity,
+    runtime: `${personalRuntimeIdentity}${sourceAction ? `:${sourceAction.identity}` : ''}`,
     disc_loadout: stableContentHash(input.discs),
     w_engine: engineKey,
     bangboo: 'none',
   }
+  const modelQualification32 = sourceAction
+    ? qualifyReviewedPreparedBenchmark32({
+        member,
+        policyId: sourceAction.policyId,
+        actionIdentity: sourceAction.identity,
+        resourceLegality: sourceAction.resourceLegality,
+        eventUsages,
+        baseline: currentNormalizedPlanningBaseline,
+        engine,
+        discs: input.discs,
+        accountId: input.warehouse.accountId ?? 'legacy-local',
+        accountHash: stableContentHash({ agent, engine, potential }),
+        effects: {
+          included: coverage.includedEffectKeys,
+          excluded: coverage.excludedEffects,
+          context: coverage.exclusionContextFingerprint,
+        },
+        totalDamage: runtime.totalDamage,
+        planningDps: runtime.planningDps,
+        stale: input.stale,
+      })
+    : null
   return {
     state: 'supported',
     dimensions,
     totalDamage: runtime.totalDamage,
     planningDps: runtime.planningDps,
-    calculationFingerprint: stableContentHash({ dimensions, runtime, coverage }),
+    calculationFingerprint: stableContentHash({
+      dimensions,
+      runtime,
+      coverage,
+      modelQualification32,
+    }),
+    ...(modelQualification32 ? { modelQualification32 } : {}),
     reasons: coverage.excludedEffects.map(
       (effect) =>
         `固定事件未计入 ${effect.effectKey}：${effect.reason}（${effect.fields.join('、') || '无可用条件字段'}）。`,
@@ -239,6 +357,7 @@ export function projectDevelopmentValueBenchmarks(input: {
   candidates: CandidateWarehousePlan[]
   savedPlans?: readonly AccountPlanningDraft[]
   stale: boolean
+  candidateParametersByRank?: Readonly<Record<number, DevelopmentComparisonParameters>>
 }) {
   const validLoadout = (discs: readonly DriveDisc[]) =>
     discs.length === 6 &&
@@ -296,17 +415,20 @@ export function projectDevelopmentValueBenchmarks(input: {
   const baselineLabel = actualAvailable
     ? `游戏当前实装（已记录六盘，${engineLabel}）`
     : savedAvailable
-      ? `已保存方案「${saved!.name}」（仅复用六盘引用，按当前资产与${engineLabel}重算，非游戏实装）`
+      ? `已保存方案「${saved!.name}」（按当前资产与${saved?.solutionContext?.comparisonParameters ? '保存的显式方案参数' : engineLabel}重算，非游戏实装）`
       : baselineDiscs.length
         ? '仓库方案 1（试算基线，非游戏实装）'
         : '没有第二份可比方案（非游戏实装）'
   const baseline = baselineDiscs.length
-    ? evaluateSide({
+    ? evaluateDevelopmentValueBenchmarkSide({
         warehouse: input.warehouse,
         agentId: input.agentId,
         discs: baselineDiscs,
         stale: input.stale,
-        engineMode: 'current',
+        parameters:
+          !actualAvailable && savedAvailable
+            ? saved?.solutionContext?.comparisonParameters
+            : undefined,
       })
     : unsupportedSide({
         agentId: input.agentId,
@@ -321,14 +443,17 @@ export function projectDevelopmentValueBenchmarks(input: {
       })
   return input.candidates.map((plan, index) => {
     const discs = plan.loadouts[0]?.discs.map((item) => item.disc) ?? []
-    const candidate = evaluateSide({
+    const candidate = evaluateDevelopmentValueBenchmarkSide({
       warehouse: input.warehouse,
       agentId: input.agentId,
       discs,
       stale: input.stale,
-      engineMode: 'current',
+      parameters: input.candidateParametersByRank?.[index + 1],
     })
     const changedDimensions = [
+      ...(baseline.dimensions.potential === candidate.dimensions.potential
+        ? []
+        : (['potential'] as const)),
       ...(baseline.dimensions.disc_loadout === candidate.dimensions.disc_loadout
         ? []
         : (['disc_loadout'] as const)),
@@ -359,7 +484,7 @@ export function projectDevelopmentValueBenchmarks(input: {
       independentCounterfactual: changedDimensions.length === 1,
       labels: {
         baseline: baselineLabel,
-        candidate: `仓库方案 ${index + 1}（六张实体盘，${engineLabel}）`,
+        candidate: `仓库方案 ${index + 1}（六张实体盘，${input.candidateParametersByRank?.[index + 1]?.wEngine ? `显式音擎 ${candidate.dimensions.w_engine}，含音擎养成变化` : engineLabel}${input.candidateParametersByRank?.[index + 1]?.potential !== undefined ? '，显式潜能' : ''}）`,
       },
     })
   })

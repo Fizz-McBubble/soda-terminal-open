@@ -237,8 +237,10 @@ describe('resolveRetentionUseFacts: sourced facts resolver', () => {
       expect(soukakuFacts.effects.enerRegen_.predicateId).toBe('energy_regeneration_primary_target')
 
       // atk_ provided by both Hormone Punk and Astral Voice
-      expect(soukakuFacts.effects.atk_.state).toBe('valid')
-      expect(soukakuFacts.effects.atk_.predicateId).toBe('attack_scaling_primary_target')
+      expect(soukakuFacts.effects.atk_.state).toBe('conditional')
+      expect(soukakuFacts.effects.atk_.predicateId).toBe(
+        'source-functional-stat-input-m0-p0-r2:atk_',
+      )
 
       // 2-piece utility does not require 4-piece condition or ownership
       expect(soukakuFacts.effects.enerRegen_.evidenceIds.length).toBeGreaterThan(0)

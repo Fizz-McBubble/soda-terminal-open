@@ -1,4 +1,5 @@
 import type { AssetGoldenProps, CatalogKind } from './types'
+import { getAgentSpecialtyLabel } from '../../../application/publicRosterNames'
 
 export function incomingDiscSelection(kind: CatalogKind, accountId: string, search: string) {
   if (kind !== 'discs') return undefined
@@ -21,16 +22,8 @@ export function isOwned(props: AssetGoldenProps, kind: CatalogKind, id: string) 
 }
 
 export function specialtyLabel(value: string) {
-  return (
-    {
-      anomaly: '异常',
-      damage: '强攻',
-      defense: '防护',
-      rupture: '命破',
-      stun: '击破',
-      support: '支援',
-    }[value] ?? value
-  )
+  const label = getAgentSpecialtyLabel(value)
+  return label === '资料待补齐' ? value : label
 }
 
 export function factsLabel(props: AssetGoldenProps, kind: CatalogKind, id: string) {

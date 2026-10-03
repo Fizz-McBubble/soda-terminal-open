@@ -12,3 +12,6 @@ export const publicAssetCatalog = {
 export const publicAssetDiscSetById = new Map(
   publicAssetCatalog.driveDiscSets.map((entry) => [entry.stableId, entry]),
 )
+
+export const publicPotentialMissingObservationPolicy: Readonly<Record<string, 'preserve_unknown'>> =
+  snapshot.potentialMissingObservationPolicy as Record<string, 'preserve_unknown'>

@@ -2,31 +2,71 @@ import { getCurrentAgentEventContract } from './currentAgentMechanicContracts'
 import {
   currentFormulaMechanicContractHash,
   resolveCurrentFormulaWEngineContract,
+  getCurrentFormulaContractRequirements,
 } from './currentFormulaMechanicContracts'
 import { getCurrentWEngineStaticData } from '../gameDataPacks/currentWEngineStaticCatalog'
 import { stableContentHash } from '../gameDataPacks/types'
 import type { SourceBackedEquipmentModifierBucket } from './currentPlanningTeamDpsRuntime'
+import {
+  evaluateCurrentPlanningInitialCritConversion32,
+  type PlanningEffectRuntimeMember,
+} from './currentPlanningEffectRuntime'
 import type { ValueBenchmarkEffectExclusion } from './valueBenchmarkComparison'
+import { currentCombatPlanningModifierTargets } from './currentCombatPlanningModifierTargets'
+import {
+  planningWEngineActions as actions,
+  retainPlanningWEngineDependencies32,
+} from './currentPlanningWEngineDependencies32'
+import type { PlanningEffectRuntimeStats } from './currentPlanningEffectDomain'
 
-export const currentWEnginePersonalPlanningEffectVersion = 'wengine-personal-fixed-event-r1'
+export const currentWEnginePersonalPlanningEffectVersion =
+  'wengine-personal-event-final-dependency-r2'
 
-const directStats: Record<string, SourceBackedEquipmentModifierBucket['application']> = {
-  'combat.atk_': 'attack_percent',
-  'combat.crit_': 'crit_rate',
-  'combat.crit_dmg_': 'crit_damage',
-  'combat.dmg_': 'damage_bonus',
-  'combat.common_dmg_': 'damage_bonus',
-  'combat.defIgn_': 'defense_ignore',
-  'combat.resIgn_': 'resistance_ignore',
+const directStats = currentCombatPlanningModifierTargets
+
+export type CurrentWEngineFormulaRuntime = {
+  flags?: Readonly<Record<string, boolean>>
+  numbers?: Readonly<Record<string, number>>
+  accumulators?: Readonly<Record<string, number>>
 }
-const actions: Record<string, string> = {
-  basic: 'basic_attack',
-  dash: 'dash',
-  dodgeCounter: 'dodge_counter',
-  exSpecial: 'ex_special',
-  chain: 'chain',
-  ult: 'ultimate',
-  ultimate: 'ultimate',
+
+export function bindCurrentWEngineFormulaRuntime(input: {
+  agentId: string
+  engineId: string
+  member?: PlanningEffectRuntimeMember
+  targetAgentId?: string
+  runtime?: CurrentWEngineFormulaRuntime
+  eventFinalStats?: PlanningEffectRuntimeStats
+}) {
+  const blockers: string[] = []
+  const numbers = { ...input.runtime?.numbers }
+  const flags = { ...input.runtime?.flags }
+  if (input.member) {
+    if (input.member.agentId !== input.agentId) blockers.push('音擎面板代理人与消费代理人不一致。')
+    const conversion = evaluateCurrentPlanningInitialCritConversion32(input.member)
+    if (conversion.status === 'unsupported') blockers.push(...conversion.blockers)
+    for (const [key, value] of Object.entries(input.eventFinalStats ?? input.member.finalStats))
+      if (typeof value === 'number') numbers[`own.final.${key}`] = value
+    if (conversion.status === 'supported' && !input.eventFinalStats)
+      numbers['own.final.crit_'] = input.member.finalStats.crit_ + conversion.critRate
+  }
+  const identity = getCurrentAgentEventContract(input.agentId)?.identity
+  const targetIdentity = getCurrentAgentEventContract(
+    input.targetAgentId ?? input.agentId,
+  )?.identity
+  if (identity) {
+    for (const key of getCurrentFormulaContractRequirements('wengine', input.engineId)?.flags ??
+      []) {
+      const match = /^(eq|ne):(own|target)\.char\.(specialty|attribute):(.+)$/.exec(key)
+      if (match) {
+        const recipient = match[2] === 'target' ? targetIdentity : identity
+        if (!recipient) continue
+        const actual = match[3] === 'specialty' ? recipient.specialty : recipient.attribute
+        flags[key] = match[1] === 'eq' ? actual === match[4] : actual !== match[4]
+      }
+    }
+  }
+  return { flags, numbers, blockers, accumulators: input.runtime?.accumulators }
 }
 
 /** Translate the locked formula contract into the existing fixed-event runtime. */
@@ -34,10 +74,18 @@ export function compileCurrentWEnginePersonalPlanningEffects(input: {
   agentId: string
   engineId: string
   refinement: number
+  member?: PlanningEffectRuntimeMember
+  runtime?: {
+    flags?: Readonly<Record<string, boolean>>
+    numbers?: Readonly<Record<string, number>>
+    accumulators?: Readonly<Record<string, number>>
+  }
 }) {
   const source = getCurrentWEngineStaticData(input.engineId)
   const identity = getCurrentAgentEventContract(input.agentId)?.identity
-  const blockers: string[] = []
+  const boundRuntime = bindCurrentWEngineFormulaRuntime(input)
+  const blockers = [...boundRuntime.blockers]
+  let passiveInactive = false
   const buckets: SourceBackedEquipmentModifierBucket[] = []
   const exclusions: ValueBenchmarkEffectExclusion[] = []
   const sourceRefs = source
@@ -70,6 +118,7 @@ export function compileCurrentWEnginePersonalPlanningEffects(input: {
       refinement: input.refinement,
       specialtyMatches: true,
       runtimePolicy: 'exclude_unobserved',
+      runtime: boundRuntime,
     })
     if (result.status === 'unsupported') blockers.push(...result.blockers)
     else if (
@@ -78,6 +127,7 @@ export function compileCurrentWEnginePersonalPlanningEffects(input: {
     )
       blockers.push(`音擎公式与静态目录来源不一致：${input.engineId}`)
     else {
+      passiveInactive = !result.active && result.exclusions.length === 0
       result.exclusions.forEach((item) =>
         exclude(
           `wengine:${input.engineId}:formula:${item.effectIndex}`,
@@ -90,7 +140,7 @@ export function compileCurrentWEnginePersonalPlanningEffects(input: {
         const key = `wengine:${input.engineId}:resolved:${index}`
         const stat = String(effect.stat ?? '')
         const channel =
-          /^combat\.(dmg_|common_dmg_|crit_dmg_|defIgn_|resIgn_)\.(physical|fire|ice|electric|ether)$/.exec(
+          /^combat\.(dmg_|common_dmg_|crit_dmg_|laceration_dmg_|sharp_dmg_|sheer_dmg_|direct_dmg_|defIgn_|resIgn_)\.(physical|fire|ice|electric|ether|wind)$/.exec(
             stat,
           )
         const attribute = channel?.[2] ?? null
@@ -137,8 +187,25 @@ export function compileCurrentWEnginePersonalPlanningEffects(input: {
   const core = {
     version: currentWEnginePersonalPlanningEffectVersion,
     formulaContractHash: currentFormulaMechanicContractHash,
+    runtimeInput: { member: input.member ?? null, runtime: input.runtime ?? null },
     status: blockers.length ? ('unsupported' as const) : ('supported' as const),
-    buckets,
+    buckets:
+      source &&
+      !blockers.length &&
+      source.specialty === (identity?.specialty === 'attack' ? 'damage' : identity?.specialty)
+        ? retainPlanningWEngineDependencies32({
+            buckets,
+            agentId: input.agentId,
+            engineId: input.engineId,
+            refinement: input.refinement,
+            runtime: input.runtime,
+            boundRuntime,
+            sourceRefs,
+            target: 'own',
+            recipientAgentIds: [input.agentId],
+          })
+        : buckets,
+    passiveInactive,
     exclusions,
     blockers,
     boundary:

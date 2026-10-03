@@ -1,13 +1,11 @@
 #!/usr/bin/env node
-import { createHash } from 'node:crypto'
-import { readFileSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { verifySourceManifest } from './source-manifest.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const manifest = readFileSync(resolve(root, 'SOURCE-MANIFEST.json'))
-const releaseId = `soda-open-${createHash('sha256').update(manifest).digest('hex').slice(0, 16)}`
+const { releaseId } = await verifySourceManifest(root)
 const result = spawnSync(process.execPath, [resolve(root, 'scripts/build-community-dist.mjs')], {
   cwd: root,
   env: {

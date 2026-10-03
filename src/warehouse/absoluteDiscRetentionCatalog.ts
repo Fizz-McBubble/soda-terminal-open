@@ -10,6 +10,8 @@ import { candidateSetIdsInSourceOrder } from '../gameDataPacks/candidateSetPlans
 import type { CandidateSetPlan } from '../gameDataPacks/candidateSetPlans'
 import { currentDriveDiscFormulaCatalog } from '../gameDataPacks/currentDriveDiscFormulaCatalog'
 import { currentAssetCatalog } from '../gameDataPacks/currentAssetCatalog'
+import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
+import { reviewedReferenceSupportContinuity32 } from '../gameDataPacks/reviewedReferenceSupportContinuity32'
 import { resolveCurrentReleasedIdentity } from '../gameDataPacks/currentReleasedIdentityMap'
 import { reviewedTeamDiscDirections } from '../gameDataPacks/reviewedTeamDiscConditions'
 import { stableContentHash } from '../gameDataPacks/types'
@@ -307,9 +309,33 @@ const catalog: Catalog = {
   })),
   profiles: built.profiles,
   releasedAgentIds,
-  factsGameVersion: '3.1',
-  assessmentGameVersion: '3.1',
-  reviewedUseScope: '3.1:released-source-backed-guide-and-mechanic-reserve-objectives:r4',
+  factsGameVersion: currentAssetCatalog.gameVersion,
+  assessmentGameVersion: currentVersionProjection.gameVersion,
+  versionIdentity: {
+    analysisTargetVersion: currentVersionProjection.gameVersion,
+    policyCalibrationVersion: '3.1',
+    sourceOriginalVersions: [
+      ...new Set([
+        ...releasedAgentIds.flatMap((id) => {
+          const constraint = getCandidateWarehouseConstraint(id)
+          return constraint
+            ? [constraint.gameVersion, ...constraint.sources.map((source) => source.sourceVersion)]
+            : []
+        }),
+        ...reviewedTeamDiscDirections.map((direction) => direction.source.sourceVersion),
+      ]),
+    ],
+    adoption: {
+      id: currentVersionProjection.adoptionId,
+      contentHash: currentVersionProjection.adoptionContentHash,
+      targetVersion: currentVersionProjection.gameVersion,
+      sourceCommit: currentVersionProjection.sourceCommit,
+      scopeContentHash: currentVersionProjection.scopeContentHash,
+      referenceContinuityId: reviewedReferenceSupportContinuity32.id,
+      referenceReviewVersion: reviewedReferenceSupportContinuity32.sourceReviewVersion,
+    },
+  },
+  reviewedUseScope: `${currentVersionProjection.gameVersion}:released-source-backed-guide-and-mechanic-reserve-objectives:r4:${currentVersionProjection.adoptionId}#${currentVersionProjection.adoptionContentHash}`,
   coverageGaps: built.coverageGaps,
   branchCoverageComplete:
     built.missingAgentIds.length === 0 &&
@@ -320,24 +346,27 @@ const catalog: Catalog = {
 }
 
 /** Frozen policy identity includes the live branch, set-effect and game-rule inputs. */
-export const absoluteDiscRetentionCatalogHash = stableContentHash({
-  rarityCleanup,
-  profiles: catalog.profiles,
-  sets: catalog.sets,
-  rules: catalog.rules,
-  releasedAgentIds,
-  missingAgentIds: built.missingAgentIds,
-  unresolvedBranchIds: built.unresolvedBranchIds,
-  coverageGaps: built.coverageGaps,
-  reviewedUseScope: catalog.reviewedUseScope,
-  weightPolicy: { id: retentionWeightPolicyId, parameters: retentionWeightParameters },
-  factsVersion: catalog.factsGameVersion,
-  sourceVersions: [
-    currentAssetCatalog.gameVersion,
-    driveDiscData?.dataVersion,
-    currentDriveDiscFormulaCatalog.gameVersion,
-  ],
-})
+export function hashAbsoluteDiscRetentionCatalog(input: Catalog) {
+  return stableContentHash({
+    rarityCleanup,
+    profiles: input.profiles,
+    sets: input.sets,
+    rules: input.rules,
+    releasedAgentIds: input.releasedAgentIds,
+    coverageGaps: input.coverageGaps,
+    reviewedUseScope: input.reviewedUseScope,
+    versionIdentity: input.versionIdentity,
+    weightPolicy: { id: retentionWeightPolicyId, parameters: retentionWeightParameters },
+    factsVersion: input.factsGameVersion,
+    assessmentVersion: input.assessmentGameVersion,
+    sourceVersions: [
+      currentAssetCatalog.gameVersion,
+      driveDiscData?.dataVersion,
+      currentDriveDiscFormulaCatalog.gameVersion,
+    ],
+  })
+}
+export const absoluteDiscRetentionCatalogHash = hashAbsoluteDiscRetentionCatalog(catalog)
 
 /**
  * Independent S-rarity calibration and holdout fix the cleanup and strong-keep lines.

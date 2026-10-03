@@ -7,8 +7,6 @@ import { currentReviewedTeamSourceDirections } from './reviewedTeamSourceDirecti
 
 /** Reuse the adopted team source, not account-dependent rankings or a page-local fallback. */
 export function currentTeamGuidanceField(agentId: string): AgentProfileField | undefined {
-  if (currentTeamArchetypeProjection.gameVersion !== currentVersionProjection.gameVersion)
-    return undefined
   const released = currentScopeManifest.entries.filter(
     (entry) => entry.releaseState === 'released' && entry.accountOwnable,
   )
@@ -27,6 +25,7 @@ export function currentTeamGuidanceField(agentId: string): AgentProfileField | u
   )
   const teams = currentTeamArchetypeProjection.archetypes.filter(
     (team) =>
+      team.gameVersion === currentVersionProjection.gameVersion &&
       team.releaseState === 'released' &&
       team.members.some((member) => member.agentId === agentId) &&
       team.members.every((member) => releasedAgents.has(member.agentId)) &&
@@ -94,7 +93,9 @@ export function currentTeamGuidanceField(agentId: string): AgentProfileField | u
     status: 'candidate',
     gameVersion: currentVersionProjection.gameVersion,
     originalSourceVersion: sourceVersions.size === 1 ? [...sourceVersions][0]! : null,
-    lastChangeVersion: currentTeamArchetypeProjection.gameVersion,
+    lastChangeVersion: teams.length
+      ? currentTeamArchetypeProjection.gameVersion
+      : currentVersionProjection.gameVersion,
     currentApplicability: directions.some(isHistoricalReference) ? 'unknown' : 'continuous',
     sourceRefs: [
       ...[...sources.values()].map((source) => ({

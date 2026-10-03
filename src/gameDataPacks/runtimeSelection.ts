@@ -1,5 +1,5 @@
 import { database, type SodaDatabase } from '../db/database'
-import { gameBase31Current } from './baseline'
+import { gameBase32Current } from './currentVersionAdoption32'
 import { currentVersionProjection } from './currentVersionProjection'
 import { validateManifest } from './types'
 
@@ -32,7 +32,7 @@ export type CurrentGameDataRuntimeSelection =
     }
 
 /**
- * Reads only the already-selected game-base package. The compiled 3.1 projection is the sole
+ * Reads only the already-selected game-base package. The compiled current projection is the sole
  * runtime adapter today, so a different selected package must block calculation instead of being
  * silently treated as if its metadata changed the static consumers.
  *
@@ -71,11 +71,11 @@ export async function readCurrentGameDataRuntimeSelection(
   if (state.expiredCalculationPackageIds.includes(active.id))
     return unbound('active_package_expired', active.id, active.packageVersion, active.gameVersion)
   if (
-    active.kind !== gameBase31Current.kind ||
-    active.id !== gameBase31Current.id ||
-    active.packageVersion !== gameBase31Current.packageVersion ||
-    active.gameVersion !== gameBase31Current.gameVersion ||
-    active.contentHash !== gameBase31Current.contentHash
+    active.kind !== gameBase32Current.kind ||
+    active.id !== gameBase32Current.id ||
+    active.packageVersion !== gameBase32Current.packageVersion ||
+    active.gameVersion !== gameBase32Current.gameVersion ||
+    active.contentHash !== gameBase32Current.contentHash
   )
     return unbound(
       'active_package_not_compiled_artifact',

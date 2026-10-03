@@ -19,8 +19,9 @@ export const developmentPanelKeys = [
 
 export type DevelopmentComparisonPanel = {
   discFingerprint: string
+  parameterFingerprint?: string
   status: 'ok' | 'unsupported'
-  values: Record<(typeof developmentPanelKeys)[number], number>
+  values: Record<(typeof developmentPanelKeys)[number], number> & { lacerationDamage?: number }
   reason?: string
 }
 
@@ -91,6 +92,8 @@ export function hasDevelopmentComparisonPanels(
         typeof entry.discFingerprint === 'string' &&
         (entry.status === 'ok' || entry.status === 'unsupported') &&
         (entry.reason === undefined || typeof entry.reason === 'string') &&
+        (entry.values?.lacerationDamage === undefined ||
+          Number.isFinite(entry.values.lacerationDamage)) &&
         developmentPanelKeys.every((key) => Number.isFinite(entry.values?.[key])),
     ),
   )
@@ -99,10 +102,13 @@ export function hasDevelopmentComparisonPanels(
 export function findDevelopmentComparisonPanel(
   presentation: DevelopmentComparisonPanels | undefined,
   discs: DriveDisc[],
+  parameters?: import('../decision/developmentValueBenchmark').DevelopmentComparisonParameters,
 ) {
   return (
     presentation?.entries.find(
-      (entry) => entry.discFingerprint === developmentPanelDiscFingerprint(discs),
+      (entry) =>
+        entry.discFingerprint === developmentPanelDiscFingerprint(discs) &&
+        (entry.parameterFingerprint ?? null) === (parameters ? contentHash(parameters) : null),
     ) ?? null
   )
 }

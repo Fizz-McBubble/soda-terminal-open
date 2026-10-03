@@ -7,6 +7,7 @@ import {
   currentFormulaWEngineContractIds,
 } from '../calculation/currentFormulaMechanicContracts'
 import { currentAgentEventContracts } from '../calculation/currentAgentMechanicContracts'
+import { currentReleasedIdentitySourceRegistry } from './currentReleasedIdentityMap'
 
 const rows = currentNonAgentFieldCompletenessMatrix.rows
 
@@ -84,6 +85,42 @@ const currentCandidateFields =
   currentNonAgentFieldCompletenessMatrix.summary.wEngines.candidateFields +
   currentNonAgentFieldCompletenessMatrix.summary.bangboos.candidateFields +
   currentNonAgentFieldCompletenessMatrix.summary.driveDiscSets.candidateFields
+const historicalSnapshotVersion = [3, 1] as const
+const snapshotIds = new Set<string>(
+  currentReleasedIdentitySourceRegistry.sources
+    .filter((source) => {
+      const version = /^(\d+)\.(\d+)$/.exec(source.sourceVersion)
+      return (
+        version &&
+        (Number(version[1]) < historicalSnapshotVersion[0] ||
+          (Number(version[1]) === historicalSnapshotVersion[0] &&
+            Number(version[2]) <= historicalSnapshotVersion[1]))
+      )
+    })
+    .flatMap((source) => [...source.stableIds]),
+)
+const postSnapshotIds = new Set<string>(
+  currentReleasedIdentitySourceRegistry.sources
+    .filter((source) => {
+      const version = /^(\d+)\.(\d+)$/.exec(source.sourceVersion)
+      return (
+        version &&
+        (Number(version[1]) > historicalSnapshotVersion[0] ||
+          (Number(version[1]) === historicalSnapshotVersion[0] &&
+            Number(version[2]) > historicalSnapshotVersion[1]))
+      )
+    })
+    .flatMap((source) => [...source.stableIds])
+    .filter((stableId) => !snapshotIds.has(stableId)),
+)
+const historicalCandidateFields = Object.values(rows)
+  .flat()
+  .filter((row) => !postSnapshotIds.has(row.stableId))
+  .reduce(
+    (total, row) =>
+      total + Object.values(row.fields).filter((field) => field.status === 'candidate').length,
+    0,
+  )
 const currentMissingFields =
   currentNonAgentFieldCompletenessMatrix.summary.wEngines.missingAfterReuseFields +
   currentNonAgentFieldCompletenessMatrix.summary.bangboos.missingAfterReuseFields +
@@ -144,8 +181,10 @@ export const currentN4LayeredCoverage = Object.freeze({
       rows.driveDiscSets.length,
   },
   legacyFieldAudit: {
+    historicalSnapshotVersion: historicalSnapshotVersion.join('.'),
     historicalCandidateSnapshot: 253,
-    promotedSinceSnapshot: 253 - currentCandidateFields,
+    promotedSinceSnapshot: 253 - historicalCandidateFields,
+    postSnapshotCandidateFields: currentCandidateFields - historicalCandidateFields,
     currentCandidateFields,
     currentMissingAfterReuseFields: currentMissingFields,
     boundary: 'Legacy field counts are audit evidence, not a single completion metric.',

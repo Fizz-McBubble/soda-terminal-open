@@ -15,7 +15,9 @@ export function candidateSetPlanIdentity(plan: CandidateSetPlan): string {
       ? `${rule.kind}:${rule.agentId}`
       : rule.kind === 'teammate_four_piece' || rule.kind === 'teammate_not_four_piece'
         ? `${rule.kind}:${rule.setId}`
-        : rule.kind
+        : rule.kind === 'teammate_specialty_and_action'
+          ? `${rule.kind}:${[...rule.specialties].sort().join(',')}:${rule.action}`
+          : rule.kind
   return [
     plan.pattern,
     [...plan.primarySetIds].sort().join(','),
@@ -26,6 +28,9 @@ export function candidateSetPlanIdentity(plan: CandidateSetPlan): string {
     plan.condition?.sourceUrl ?? '',
     plan.condition ? String(plan.condition.sourceTextVerified) : '',
     ruleIdentity,
+    ...(plan.condition?.sourceVersion || plan.condition?.contentHash
+      ? [plan.condition.sourceVersion ?? '', plan.condition.contentHash ?? '']
+      : []),
   ].join('|')
 }
 

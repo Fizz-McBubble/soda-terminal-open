@@ -8,7 +8,16 @@ export type HealthStatus = 'loading' | 'ready' | 'error'
 
 export type AppHealth = {
   data: GameDataManifest | null
-  currentVersion: typeof currentVersionProjection
+  currentVersion: Pick<
+    typeof currentVersionProjection,
+    | 'id'
+    | 'gameVersion'
+    | 'packageId'
+    | 'packageVersion'
+    | 'rollbackPackageId'
+    | 'lifecycle'
+    | 'fieldBoundary'
+  >
   currentDataAuthority?: typeof currentDataAuthorityProjection
   capabilities?: ReturnType<typeof createAppCapabilityHealth>
   dataStatus: Exclude<HealthStatus, 'loading'>

@@ -42,6 +42,8 @@ export function evaluateCurrent31TeamRating(input: {
   hardPrunes?: readonly HardPruneDecision[]
   /** Offline calibration labels must bypass the model being evaluated. */
   reviewedOnly?: boolean
+  /** Offline refits read labels in their source version, never as current meta. */
+  sourceReviewVersion?: '3.1'
 }) {
   const memberIds = [...input.memberIds].sort() as [string, string, string]
   const teamIdentity = resolveCurrent31BangbooVariant(memberIds, input.bangbooId)
@@ -85,6 +87,7 @@ export function evaluateCurrent31TeamRating(input: {
     featureVector,
     benchmark,
     reviewedOnly: input.reviewedOnly,
+    sourceReviewVersion: input.reviewedOnly ? input.sourceReviewVersion : undefined,
   })
   return {
     contract: current31TeamRatingContractId,

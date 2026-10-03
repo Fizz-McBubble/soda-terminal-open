@@ -17,7 +17,14 @@ browser Worker, generated game database, or player data is vendored here. The
 original MIT license requires this notice and the copyright and permission
 statement to remain with substantial copied portions.
 
-## Planning direct event source mapping R1
+## Reviewed 3.2 damage arithmetic
+
+`calculation/sharpDamageCore.ts` adapts standard/sharp base, defense and laceration
+arithmetic from `libs/zzz/formula/src/data/common/{dmg,prep}.ts` and
+`data/char/util.ts` and the shared base-stat defaults in `src/util.ts` at commit `3456cd0f6f5bea10e168074502460dac2fcd6df4`.
+The local source identity retains file SHA-256 references. This arithmetic
+does not promote catalog, action duration, or trigger evidence to Formal.
+The same MIT copyright and permission statement below applies.
 
 `gameDataPacks/general-event-mapping.v1.ts` and the Planning event adapters
 contain minimal normalized event mappings adapted from

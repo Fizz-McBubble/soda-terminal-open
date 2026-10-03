@@ -1,4 +1,7 @@
-import { projectCurrentBangbooStats } from '../gameDataPacks/currentBangbooNumericCatalog'
+import {
+  currentBangbooNumericCatalog,
+  projectCurrentBangbooStats,
+} from '../gameDataPacks/currentBangbooNumericCatalog'
 import { stableContentHash } from '../gameDataPacks/types'
 import { getCurrentAgentEventContract } from './currentAgentMechanicContracts'
 import { resolveCurrentBangbooMechanicContract } from './currentBangbooMechanicContracts'
@@ -34,6 +37,7 @@ export function evaluateCurrentBangbooPlanningParameter(input: {
   stableId: string
   stars: number
   memberIds: readonly [string, string, string]
+  additionalAbilityEnabled?: boolean
 }) {
   const stats = projectCurrentBangbooStats({
     stableId: input.stableId,
@@ -48,6 +52,7 @@ export function evaluateCurrentBangbooPlanningParameter(input: {
     composition: teamComposition(input.memberIds),
     flags: {},
     accumulators: {},
+    additionalAbilityEnabled: input.additionalAbilityEnabled ?? true,
   })
   const blockers = [
     ...(stats.status === 'supported' ? [] : [`邦布 ${input.stableId} 缺少 60 级静态数值。`]),
@@ -101,6 +106,10 @@ export function evaluateCurrentBangbooPlanningParameter(input: {
     stars: input.stars,
     skillLevel: 10 as const,
     additionalAbilityLevel: input.stars,
+    additionalAbilityEnabled: input.additionalAbilityEnabled ?? true,
+    sourceVersion: currentBangbooNumericCatalog.sourceVersion,
+    reviewedForVersion: currentBangbooNumericCatalog.reviewedForVersion,
+    sourceReviewCommit: currentBangbooNumericCatalog.continuityReview.releaseSource.commit,
     composition: teamComposition(input.memberIds),
     stats: stats.status === 'supported' ? stats : null,
     outputs,

@@ -13,6 +13,7 @@ export const rosterSnapshotSchema = z.object({
       owned: z.boolean(),
       priority: z.number().int().min(1).max(5),
       level: z.number().int().min(1).max(60),
+      ascension: z.number().int().min(0).max(5).nullable().optional(),
       mindscape: z.number().int().min(0).max(6),
       skills: z.string(),
       wEngine: z.string(),
@@ -48,6 +49,7 @@ export const rosterSnapshotSchema = z.object({
           id: z.string().min(1).nullable().optional(),
           name: z.string().min(1).nullable(),
           level: z.number().int().min(1).max(60).nullable(),
+          ascension: z.number().int().min(0).max(5).nullable().optional(),
           refinement: z.number().int().min(0).max(5).nullable(),
         })
         .optional(),
@@ -103,6 +105,7 @@ function toSnapshotAgent(agent: AccountRoster['agents'][number]): RosterSnapshot
     owned: agent.owned,
     priority: agent.priority,
     level: agent.level,
+    ...('ascension' in agent ? { ascension: agent.ascension } : {}),
     mindscape: agent.mindscape,
     skills: agent.skills,
     wEngine: agent.wEngine,

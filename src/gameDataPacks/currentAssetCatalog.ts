@@ -1,4 +1,5 @@
-import { gameData31CatalogIntake, type GameData31CatalogEntity } from './gameData31CatalogIntake'
+import { type GameData31CatalogEntity } from './gameData31CatalogIntake'
+import { currentCatalogEntities } from './currentCatalogIntake'
 import { currentScopeManifest, getCurrentScopeEntry } from './currentScopeManifest'
 import { resolveCurrentReleasedIdentity } from './currentReleasedIdentityMap'
 
@@ -41,7 +42,7 @@ function project(entity: GameData31CatalogEntity): CurrentAssetCatalogEntry | nu
     evidence: entity.status,
     releaseState: currentScope?.releaseState ?? 'unreleased',
     releaseAt: currentScope?.releaseAt ?? null,
-    sourceVersion: gameData31CatalogIntake.gameVersion,
+    sourceVersion: entity.source.sourceVersion,
     sourceId: entity.source.id,
     releaseSourceId: currentScope?.sourceId ?? null,
     gaps: entity.gaps,
@@ -49,7 +50,7 @@ function project(entity: GameData31CatalogEntity): CurrentAssetCatalogEntry | nu
   }
 }
 
-const additions = gameData31CatalogIntake.entities
+const additions = currentCatalogEntities
   .map(project)
   .filter((entry): entry is CurrentAssetCatalogEntry => entry !== null)
 
@@ -62,9 +63,9 @@ function byDomain(domain: CurrentAssetDomain) {
  * provenance; these entries preserve their candidate/missing and release boundary.
  */
 export const currentAssetCatalog = {
-  id: 'current-asset-catalog-3.1',
-  gameVersion: gameData31CatalogIntake.gameVersion,
-  projectionId: 'current-version-projection-3.1',
+  id: 'current-asset-catalog-3.2',
+  gameVersion: '3.2',
+  projectionId: 'current-version-projection-3.2',
   scopeManifestId: currentScopeManifest.id,
   effectiveAsOf: currentScopeManifest.effectiveAsOf,
   agents: byDomain('agent'),

@@ -6,6 +6,7 @@
  * Preserve the current category terms, including Pulchra's rupture expansion.
  */
 import type { AgentTeamActivationTerm } from '../calculation/currentAgentMechanicContracts'
+import { reviewedPotentialTeamActivation } from './reviewedPotentialTeamActivation'
 
 export function reviewedTeammateActivationMinimum(agentId: string, sourceMinimum: number) {
   return agentId === 'agent-pulchra' ? 2 : agentId === 'agent-piper' ? 3 : sourceMinimum
@@ -15,10 +16,22 @@ export function reviewedTeammateActivationMinimum(agentId: string, sourceMinimum
 export function reviewedTeammateActivationTerms(
   agentId: string,
   sourceTerms: readonly AgentTeamActivationTerm[],
+  potentialImage = 0,
 ): AgentTeamActivationTerm[] {
-  return agentId === 'agent-piper'
-    ? [...sourceTerms, { kind: 'specialty', value: 'anomaly' }]
+  const expansion = reviewedPotentialTeamActivation.find((entry) => entry.agentId === agentId)
+  const terms = expansion
+    ? sourceTerms.filter(
+        (term) => !(term.kind === 'specialty' && term.value === expansion.specialty),
+      )
     : [...sourceTerms]
+  if (expansion && potentialImage >= expansion.minimum)
+    terms.push({ kind: 'specialty', value: expansion.specialty })
+  if (
+    agentId === 'agent-piper' &&
+    !terms.some((term) => term.kind === 'specialty' && term.value === 'anomaly')
+  )
+    terms.push({ kind: 'specialty', value: 'anomaly' })
+  return terms
 }
 
 // Piper's adopted formula embeds the old count check instead of abilityCheck.

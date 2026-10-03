@@ -1,6 +1,11 @@
 import rawIndex from '../gameDataPacks/generated/current31-team-intrinsic-index.v1.json'
 import strengthModel from '../gameDataPacks/generated/team-strength-model.3.1.json'
 import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
+import {
+  canApplyReviewedReferenceSupport32,
+  isExistingReviewed31Formation,
+  reviewedReferenceSupportContinuity32,
+} from '../gameDataPacks/reviewedReferenceSupportContinuity32'
 import { stableContentHash } from '../gameDataPacks/types'
 import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
 import type { Current31MechanicValidity } from './current31TeamStrengthCalibration'
@@ -24,6 +29,7 @@ const metaAuthorities = [
 type MetaAuthority = (typeof metaAuthorities)[number]
 type RawRow = readonly number[]
 type PreparedIndex = {
+  legacyReference: boolean
   contentHash: string
   agentIds: readonly string[]
   agentIndex: ReadonlyMap<string, number>
@@ -60,8 +66,35 @@ function prepareIndex(): { index: PreparedIndex | null; reason: string | null } 
     const { contentHash, ...content } = artifact
     if (typeof contentHash !== 'string' || stableContentHash(content) !== contentHash)
       throw new Error('content hash mismatch')
-    if (artifact.gameVersion !== currentVersionProjection.gameVersion)
+    if (
+      artifact.gameVersion !== currentVersionProjection.gameVersion &&
+      !canApplyReviewedReferenceSupport32({
+        targetVersion: currentVersionProjection.gameVersion,
+        sourceReviewVersion: String(artifact.gameVersion),
+        sourceKind: 'intrinsicIndex',
+        sourceContentHash: contentHash,
+      })
+    )
       throw new Error('game version mismatch')
+    const legacyReference = artifact.gameVersion !== currentVersionProjection.gameVersion
+    if (!legacyReference) {
+      const currentIdentity = Object.fromEntries(
+        [
+          'gameVersion',
+          'packageId',
+          'packageVersion',
+          'adoptionId',
+          'adoptionContentHash',
+          'sourceCommit',
+          'scopeContentHash',
+        ].map((key) => [
+          key,
+          currentVersionProjection[key as keyof typeof currentVersionProjection],
+        ]),
+      )
+      if (stableContentHash(artifact.currentIdentity) !== stableContentHash(currentIdentity))
+        throw new Error('current adoption identity mismatch')
+    }
     if (
       !Array.isArray(artifact.agentIds) ||
       !artifact.agentIds.every((id) => typeof id === 'string')
@@ -106,6 +139,7 @@ function prepareIndex(): { index: PreparedIndex | null; reason: string | null } 
     }
     return {
       index: {
+        legacyReference,
         contentHash,
         agentIds,
         agentIndex: new Map(agentIds.map((id, index) => [id, index])),
@@ -124,6 +158,9 @@ export const current31TeamIntrinsicIndexStatus = Object.freeze({
   status: prepared.index ? ('ready' as const) : ('fallback' as const),
   reason: prepared.reason,
   contentHash: prepared.index?.contentHash ?? null,
+  referenceContinuity: prepared.index?.legacyReference
+    ? reviewedReferenceSupportContinuity32
+    : null,
 })
 
 export function lookupCurrent31TeamIntrinsicSummary(
@@ -131,6 +168,7 @@ export function lookupCurrent31TeamIntrinsicSummary(
 ): Current31TeamIntrinsicSummary | null {
   const index = prepared.index
   if (!index || new Set(memberIds).size !== 3) return null
+  if (index.legacyReference && !isExistingReviewed31Formation(memberIds)) return null
   const positions = memberIds
     .map((id) => index.agentIndex.get(id))
     .sort((left, right) => left! - right!)

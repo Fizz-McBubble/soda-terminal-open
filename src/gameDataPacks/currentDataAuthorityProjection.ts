@@ -10,6 +10,9 @@ import { current31VariantBangbooRecommendationSet } from '../decision/current31V
 import { current31StrengthGoldSet } from '../decision/current31StrengthGoldSet'
 import reviewedTeamGuideVerification from './data/reviewed-team-guide-verification.3.1.json'
 import { reviewedTeamDiscDirections } from './reviewedTeamDiscConditions'
+import { reviewedSourceTeamObservations32Identity } from './reviewedSourceTeamObservations32'
+import { reviewedWEngineReceiverSemantics32Identity } from '../calculation/reviewedWEngineReceiverSemanticsIdentity32'
+import { planningEffectResolutionIdentity32 } from '../calculation/currentPlanningEffectResolutionIdentity32'
 import reviewedTeamPerformance from './data/reviewed-team-performance.3.1.json'
 import { currentFieldAuthority } from './currentFieldAuthority'
 import { currentBuildAuthority } from './currentBuildAuthority'
@@ -32,6 +35,19 @@ import {
 import { planningSheerManatoSupportAdoption } from '../calculation/planningSheerSupportAdoption'
 import { planningAnomalyPiperSupportAdoption } from '../calculation/planningAnomalySupportAdoption'
 import { stableContentHash } from './types'
+import { incremental32RecoveryPolicy } from './incremental32RecoveryPolicy'
+import {
+  sourceBoundSheerForceHash32,
+  sourceBoundSheerForceIdentity32,
+} from '../calculation/currentSourceBoundSheerForceIdentity32'
+import {
+  currentCoreGrowthHash32,
+  currentCoreGrowthIdentity32,
+} from './panel/currentCoreGrowthIdentity32'
+import {
+  incrementalFormalCapabilitySummary32,
+  reviewedCalculationCapabilities32,
+} from './reviewedEventCapabilities32'
 
 /**
  * PC2-DATA1's single runtime-readable map of the installed data authorities.
@@ -60,6 +76,25 @@ export const currentDataAuthorityProjection = {
     calculationBoundary: 'real_account_snapshot_required_no_guidance_defaults',
   },
   driveDiscRecommendations: currentDriveDiscRecommendationCatalogIdentity,
+  verifiedIncrementalCalculation: {
+    gameVersion: '3.2',
+    recoveryPolicy: incremental32RecoveryPolicy,
+    ...incrementalFormalCapabilitySummary32,
+    contentHash: stableContentHash(reviewedCalculationCapabilities32),
+    records: reviewedCalculationCapabilities32.map((record) => ({
+      subjectId: record.agentId,
+      eventId: record.eventId,
+      formulaFamily: record.family,
+      capability: record.capability,
+      contextScope: record.contextScope,
+      sourceCommit: record.source.commit,
+      evidenceRefs: record.evidenceRefs,
+      validationRef: record.validationRef,
+      contentHash: record.contentHash,
+    })),
+    boundary:
+      'Named single-event, prepared personal and exact three-member fixed models; declared scope, duration and effect coverage, no automatic arbitrary-team or legacy promotion.',
+  },
   staticPlanningCalculation: {
     registrySchema: planningFormulaFamilyRegistry.schema,
     gameVersion: planningFormulaFamilyRegistry.gameVersion,
@@ -87,6 +122,22 @@ export const currentDataAuthorityProjection = {
     // their identities in the public data authority makes any adopted source, canonical, or
     // derived planning change invalidate an older saved result through the shared input hash.
     runtimeInputs: {
+      sourceBoundStatConversions: {
+        sheerForce: {
+          identity: sourceBoundSheerForceIdentity32,
+          contentHash: sourceBoundSheerForceHash32,
+        },
+        coreGrowth: { identity: currentCoreGrowthIdentity32, contentHash: currentCoreGrowthHash32 },
+      },
+      reviewedIncrementalEvents: {
+        gameVersion: '3.2',
+        contentHash: stableContentHash({
+          records: reviewedCalculationCapabilities32,
+          recoveryPolicy: incremental32RecoveryPolicy,
+        }),
+      },
+      reviewedEquipmentReceiverSemantics32: reviewedWEngineReceiverSemantics32Identity,
+      eventEffectResolution32: planningEffectResolutionIdentity32,
       // Hash adopted values as well as declared source identities: a changed projection must
       // invalidate results even if an upstream manifest's identity has not been refreshed.
       numericInputs: {
@@ -174,6 +225,7 @@ export const currentDataAuthorityProjection = {
     contentHash: stableContentHash(current31TeamEngineD1Pack),
     exactVariantDefaultsHash: stableContentHash(current31VariantBangbooRecommendationSet),
     teamDiscConditionsHash: stableContentHash(reviewedTeamDiscDirections),
+    sourceComparisonSetups32: reviewedSourceTeamObservations32Identity,
     strengthCalibrationHash: stableContentHash({
       cases: current31StrengthGoldSet.cases,
       supplements: current31StrengthGoldSet.versionedTeamStrengthSupplements,
@@ -189,10 +241,12 @@ export const currentDataAuthorityProjection = {
       'Exact source directions support warehouse planning without inventing Engine scenarios; source observations do not establish strength, damage or optimality.',
   },
   boundary: {
-    formalReady: 0,
+    formalReady: incrementalFormalCapabilitySummary32.activeTuples,
+    fixedCycleReady: incrementalFormalCapabilitySummary32.activeFixedCycleTuples,
+    legacyL3FormalPromotion: false,
     importEnabled: false,
     accountWrites: false,
     statement:
-      'current version, compatibility catalogues, Candidate L3 sidecars, and the Team Engine recommendation authority are separate; none promotes missing or Candidate evidence to Formal, Import, damage, DPS, or optimum',
+      'Formal readiness counts only the named verified capability records. Candidate L3 sidecars and Team Engine recommendations do not gain Formal or Import authority; fixed-cycle readiness is counted separately.',
   },
 } as const

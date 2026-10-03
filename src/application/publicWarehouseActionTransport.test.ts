@@ -59,4 +59,42 @@ describe('public warehouse action transport', () => {
       } as never),
     ).toThrow('驱动盘分析用途资料无效')
   })
+
+  it('preserves repeated condition and source text and rejects corrupt evidence references', () => {
+    const detail = 'A named build condition and its complete evidence must remain visible. '.repeat(
+      12,
+    )
+    const original = {
+      actions: Array.from({ length: 12 }, (_, index) => ({
+        disc: { id: `disc-${index}` },
+        compatibleAgentIds: [],
+        absoluteRetention: {
+          ownedUseAgentIds: [],
+          unownedUseAgentIds: [],
+          blockedBy: [{ detail, sourceIds: ['upstream:commit:sha256'.repeat(5)] }],
+          leadingUses: [{ functionDetail: detail, currentScore: index / 3 }],
+        },
+      })),
+    } as unknown as WarehouseActionProjection
+    const packed = packPublicWarehouseActions(original)
+    expect(JSON.stringify(packed).length).toBeLessThan(JSON.stringify(original).length / 3)
+    expect(unpackPublicWarehouseActions(JSON.parse(JSON.stringify(packed)))).toEqual(original)
+    expect(original.actions[0]!.absoluteRetention!.blockedBy![0]!.detail).toBe(detail)
+    expect(() =>
+      unpackPublicWarehouseActions({
+        agentListsVersion: 2,
+        agentLists: [[]],
+        retentionTexts: [detail],
+        actions: [{ absoluteRetention: { blockedBy: [{ detail: { $t: 2 } }] } }],
+      } as never),
+    ).toThrow('驱动盘分析证据资料无效')
+    const legacy = {
+      agentListsVersion: 1,
+      agentLists: [['agent-test']],
+      actions: [{ compatibleAgentIds: 0 }],
+    }
+    expect(unpackPublicWarehouseActions(legacy as never).actions[0]!.compatibleAgentIds).toEqual([
+      'agent-test',
+    ])
+  })
 })

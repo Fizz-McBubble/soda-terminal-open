@@ -1,5 +1,7 @@
 import { z } from 'zod'
 import rawCatalog from './generated/current-bangboo-numeric-catalog.v1.json'
+import reviewedContinuity from './reviewedBangbooContinuity32.json'
+import { stableContentHash } from './types'
 
 const ascensionSchema = z.object({ hp: z.number(), attack: z.number(), defence: z.number() })
 const propertySchema = z.object({
@@ -84,7 +86,55 @@ const catalogSchema = z.object({
   contentHash: z.string().regex(/^[A-F0-9]{64}$/),
 })
 
-export const currentBangbooNumericCatalog = catalogSchema.parse(rawCatalog)
+const historicalCatalog = catalogSchema.parse(rawCatalog)
+
+/** Source version stays historical; current evaluation requires an exact reviewed binding. */
+export function validateBangbooContinuity32(
+  catalog: typeof rawCatalog,
+  review: typeof reviewedContinuity,
+) {
+  if (
+    review.sourceKind !== 'release' ||
+    review.reviewedForVersion !== '3.2-phase-ii' ||
+    review.pending !== 0 ||
+    review.baselineCatalogContentHash !== catalog.contentHash ||
+    review.releaseSource.commit !== '1277ebca4b8a7a6c3bcbaac6d5708dc9f4a55f23' ||
+    !review.releaseSource.releaseLabel.includes('PRODWin3.2.0_') ||
+    review.releaseSource.tableHashes.length !== 14 ||
+    new Set(review.releaseSource.tableHashes.map((entry) => entry.path)).size !== 14 ||
+    review.releaseSource.tableHashes.some((entry) => !/^[A-F0-9]{64}$/.test(entry.sha256)) ||
+    review.rows.length !== catalog.items.length ||
+    new Set(review.rows.map((row) => row.stableId)).size !== catalog.items.length
+  )
+    return false
+  return catalog.items.every((item) => {
+    const row = review.rows.find((row) => row.stableId === item.stableId)
+    return (
+      row?.gameId === item.gameId &&
+      row.itemFingerprint === stableContentHash(item) &&
+      row.historicalSource.url === item.source.url &&
+      row.historicalSource.sha256 === item.source.sha256 &&
+      row.targetVersion === '3.2' &&
+      ['reviewed_field_continuity', 'reviewed_current_fields_with_text_change'].includes(
+        row.status,
+      ) &&
+      row.numericFieldsVerified === 11 &&
+      row.ascensionCapsVerified === 6 &&
+      row.skillPropertyRecordsVerified === item.skillProps.length &&
+      row.skillLevelRecordsVerified === item.skills.length
+    )
+  })
+}
+
+if (!validateBangbooContinuity32(historicalCatalog, reviewedContinuity))
+  throw new Error('Bangboo current 3.2 source continuity binding failed.')
+
+export const currentBangbooNumericCatalog = {
+  ...historicalCatalog,
+  sourceVersion: historicalCatalog.gameVersion,
+  reviewedForVersion: reviewedContinuity.reviewedForVersion,
+  continuityReview: reviewedContinuity,
+}
 const byStableId = new Map(
   currentBangbooNumericCatalog.items.map((item) => [item.stableId, item] as const),
 )

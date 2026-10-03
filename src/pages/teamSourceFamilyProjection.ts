@@ -65,7 +65,7 @@ const outputAgentIds = new Set<string>(
   agentCatalog
     .filter(
       (agent) =>
-        ['damage', 'anomaly', 'rupture'].includes(agent[2]) ||
+        ['damage', 'anomaly', 'rupture', 'armorer'].includes(agent[2]) ||
         (agent[2] === 'defense' &&
           ['primary_field', 'dominant_field'].includes(
             getCurrentAgentDecisionMechanicContract(agent[0])?.fieldTimeContract?.mode ?? '',

@@ -47,6 +47,7 @@ export function resolveEffectUtility(
     sheerDefenseBypass: boolean
     isJane: boolean
     role?: string | null
+    functionalStatEvidence?: Readonly<Record<string, RetentionUtilityEvidence>>
   },
 ): RetentionUtilityEvidence {
   const ev = (
@@ -73,6 +74,12 @@ export function resolveEffectUtility(
   const mappedDomainStat = EFFECT_TO_DOMAIN_STAT[effectStat]
   const isRecommended =
     mappedDomainStat && ((weights[mappedDomainStat] ?? 0) > 0 || allMains.has(mappedDomainStat))
+
+  if (goal === 'functional' && ['atk_', 'anomProf', 'crit_', 'crit_dmg_'].includes(effectStat))
+    return (
+      context.functionalStatEvidence?.[effectStat] ??
+      ev('missing_fact', 'functional_stat_expression_unbound', '缺少当前来源的功能词条输入证明。')
+    )
 
   // 1. Elemental damage bonuses
   if (Object.values(ELEMENT_EFFECT_MAP).includes(effectStat)) {

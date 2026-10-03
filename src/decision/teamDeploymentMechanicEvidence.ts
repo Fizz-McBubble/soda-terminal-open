@@ -215,7 +215,9 @@ function directionsFor(rule: AgentRule): DirectionFact[] {
 
 function outputTargets(providerId: string, rules: readonly AgentRule[]) {
   const peers = rules.filter((rule) => rule.agentId !== providerId)
-  const outputs = peers.filter((rule) => ['damage', 'anomaly', 'rupture'].includes(rule.specialty))
+  const outputs = peers.filter((rule) =>
+    ['damage', 'anomaly', 'rupture', 'armorer'].includes(rule.specialty),
+  )
   const pool = outputs.length ? outputs : peers
   const highest = Math.max(...pool.map((rule) => rule.fieldTimeDemand))
   return pool.filter((rule) => rule.fieldTimeDemand === highest)

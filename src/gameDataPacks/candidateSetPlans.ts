@@ -14,11 +14,18 @@ export type CandidateSetPlan = {
     sourceId: string
     sourceUrl: string
     sourceTextVerified: boolean
+    sourceVersion?: string
+    contentHash?: string
     rule:
       | { kind: 'teammate'; agentId: string }
       | { kind: 'teammate_four_piece'; setId: string }
       | { kind: 'teammate_not_four_piece'; setId: string }
       | { kind: 'electric_team' }
+      | {
+          kind: 'teammate_specialty_and_action'
+          specialties: readonly ('attack' | 'rupture' | 'armorer')[]
+          action: 'wearer_ex_special' | 'team_quick_assist'
+        }
   }
 }
 

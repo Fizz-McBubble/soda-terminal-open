@@ -53,8 +53,13 @@ function EntryError({
 
 /** The router may download modules concurrently, but no business page mounts before storage is ready. */
 export function AppInitializationGate({ children }: { children: ReactNode }) {
-  const { databaseStatus, dataStatus, canRepairApplicationData, repairApplicationData } =
-    useAppHealth()
+  const {
+    databaseStatus,
+    dataStatus,
+    canRepairApplicationData,
+    repairApplicationData,
+    currentVersion,
+  } = useAppHealth()
   const [repairing, setRepairing] = useState(false)
   const [repairError, setRepairError] = useState<string | null>(null)
 
@@ -85,7 +90,9 @@ export function AppInitializationGate({ children }: { children: ReactNode }) {
       >
         {canRepairApplicationData && repairApplicationData ? (
           <button className="back-navigation" onClick={repair} disabled={repairing}>
-            {repairing ? '正在恢复应用自带资料…' : '恢复应用自带 3.1 资料'}
+            {repairing
+              ? '正在恢复应用自带资料…'
+              : `恢复应用自带 ${currentVersion.gameVersion} 资料`}
           </button>
         ) : null}
         {repairError ? <p role="alert">{repairError}</p> : null}

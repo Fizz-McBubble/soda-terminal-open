@@ -10,8 +10,9 @@ import {
 import { evaluateTeamPredicate, type TeamContext } from '../teamEngine/teamMethodR1'
 
 type SupportMember = { agentId: string; specialty: string; attribute: string; hpToSheer: boolean }
-const outputSpecialties = new Set(['attack', 'anomaly', 'rupture'])
-const attributes = new Set(['physical', 'fire', 'ice', 'electric', 'ether', 'frost'])
+const outputSpecialties = new Set(['attack', 'anomaly', 'rupture', 'armorer'])
+const attributes = new Set(['physical', 'fire', 'ice', 'electric', 'ether', 'frost', 'wind'])
+export type SupportRecipientContext = { contaminationAttributes?: readonly string[] }
 
 type EffectReceiver = { path: string; damageType: string | null }
 export function expressionReferences(expression: UpstreamExpressionIR): string[] {
@@ -72,6 +73,8 @@ type Capability =
   | 'sheer'
   | 'health'
   | 'stun'
+  | 'sharp'
+  | 'laceration'
 
 const reviewedCapability: Record<ReviewedExternalSupportChannel, Capability> = {
   attack_from_source_initial_attack: 'attack',
@@ -85,6 +88,8 @@ const reviewedCapability: Record<ReviewedExternalSupportChannel, Capability> = {
 
 function capabilityFor(receiver: EffectReceiver, effectId: string): Capability | null {
   const label = `${receiver.path}.${receiver.damageType ?? ''}.${effectId}`.toLowerCase()
+  if (/laceration/.test(label)) return 'laceration'
+  if (/sharp/.test(label)) return 'sharp'
   if (/sheerforce|sheer_dmg/.test(label)) return 'sheer'
   if (/anom|disorder/.test(label)) return 'anomaly'
   if (/crit/.test(label)) return 'critical'
@@ -111,6 +116,8 @@ function recipientCompatible(
   // Do not lend an Abloom/Aftershock-only buff to every ordinary attacker.
   if (receiver.damageType === 'abloom' || receiver.damageType === 'aftershock') return false
   if (!outputSpecialties.has(member.specialty)) return false
+  if (capability === 'sharp' || capability === 'laceration') return member.specialty === 'armorer'
+  if (capability === 'attack' && member.specialty === 'armorer') return false
   if (capability === 'sheer') return member.specialty === 'rupture'
   if (capability === 'health') return member.hpToSheer
   if (capability === 'anomaly') return member.specialty === 'anomaly'
@@ -128,6 +135,7 @@ export function compatibleCapabilities(
   members: SupportMember[],
   abilityById: ReadonlyMap<string, boolean>,
   context: TeamContext,
+  recipientContext: SupportRecipientContext = {},
 ) {
   const covered = new Map<Capability, Set<string>>()
   const providers = new Map<string, Set<string>>()
@@ -136,10 +144,25 @@ export function compatibleCapabilities(
   const reviewedProviders = new Set<string>()
   const deferredProviders = new Set<string>()
   const sourceConflictProviders = new Set<string>()
+  const attributeConditionalRecipients = new Set<string>()
   function cover(provider: SupportMember, capability: Capability, receiver: EffectReceiver) {
     for (const target of members) {
       if (target.agentId === provider.agentId || !recipientCompatible(target, capability, receiver))
         continue
+      // Roxy.ts represents these as generic receivers, but the original 3.2
+      // description requires Wind or the actual Contamination/Cleanse attribute.
+      // Composition alone cannot establish the latter runtime state.
+      if (
+        provider.agentId === 'agent-roxy' &&
+        (capability === 'critical' ||
+          capability === 'laceration' ||
+          receiver.path.includes('direct_dmg_')) &&
+        target.attribute !== 'wind' &&
+        !recipientContext.contaminationAttributes?.includes(target.attribute)
+      ) {
+        attributeConditionalRecipients.add(target.agentId)
+        continue
+      }
       const outputCapability = capability === 'health' ? 'sheer' : capability
       const targets = covered.get(outputCapability) ?? new Set<string>()
       targets.add(target.agentId)
@@ -232,6 +255,7 @@ export function compatibleCapabilities(
     reviewedProviders: [...reviewedProviders].sort(),
     deferredProviders: [...deferredProviders].sort(),
     sourceConflictProviders: [...sourceConflictProviders].sort(),
+    attributeConditionalRecipients: [...attributeConditionalRecipients].sort(),
     // Distinct compatible providers, not effect records or a claim that buffs
     // stack continuously. The fitted model learns this capacity's contribution.
     multiProvider:

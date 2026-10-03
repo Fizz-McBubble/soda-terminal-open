@@ -188,7 +188,7 @@ export function TeamAnalysisOverviewView({
                 return
               }
               const team = entry.team
-              if (!team.bangbooId && !entry.automaticBangboo) {
+              if (!entry.discOnlyCandidate && !team.bangbooId && !entry.automaticBangboo) {
                 navigate(item.destination)
                 return
               }

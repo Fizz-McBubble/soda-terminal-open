@@ -7,6 +7,7 @@ import type {
   RetentionBlocker,
   SetFacts,
 } from './absoluteDiscRetentionContract'
+import { noFunctionalSubstatGoalMethod } from './absoluteDiscRetentionContract'
 
 /** Named dependencies are returned in full, rather than hidden behind the top three scores. */
 export function enrichRetentionEvidence(input: {
@@ -45,6 +46,20 @@ export function enrichRetentionEvidence(input: {
   }
   const applicable = mainFit !== 'incompatible' && setFit !== 'incompatible'
   if (applicable) {
+    for (const [stat, fact] of Object.entries(profile.qualityInputEvidence ?? {})) {
+      const contributes =
+        (profile.weights[stat] ?? 0) > 0 &&
+        (disc.subStats.some((line) => line.stat === stat) ||
+          (input.remainingNodes > 0 && disc.mainStat !== stat && Boolean(native.steps[stat])))
+      if (contributes && ['conditional', 'missing_fact'].includes(fact.state))
+        add(
+          `qualityInput.${stat}`,
+          fact.predicateId,
+          fact.detail,
+          fact.state === 'conditional',
+          fact.evidenceIds,
+        )
+    }
     if (mainFit === 'conditional') {
       if (profile.mainAvailability === 'conditional' && profile.conditionEvidence?.length)
         for (const fact of profile.conditionEvidence)
@@ -183,17 +198,28 @@ export function enrichRetentionEvidence(input: {
       : investment && cutoffs
         ? cutoffs[investment.growthTarget]
         : null
+  const noSubstatInvestmentGoal =
+    profile.verified &&
+    profile.sourceIds.length > 0 &&
+    profile.goal === 'functional' &&
+    profile.weightEvidence?.method === noFunctionalSubstatGoalMethod &&
+    profile.weightEvidence.sourceIds.length > 0 &&
+    Object.keys(profile.weights).length === 0 &&
+    !profile.coreStats?.length &&
+    functionalState === 'none'
   const qualified = !input.remainingNodes
     ? false
     : functionalState === 'needs_level'
       ? true
-      : configured && progressFloor !== null
-        ? meaningfulStats.length >= minimumLines! &&
-          coreStats.length >= investment!.minimumCoreLines &&
-          input.currentScore + 1e-8 >= progressFloor &&
-          potentialTarget !== null &&
-          input.possibleUpper + 1e-8 >= potentialTarget
-        : null
+      : noSubstatInvestmentGoal
+        ? false
+        : configured && progressFloor !== null
+          ? meaningfulStats.length >= minimumLines! &&
+            coreStats.length >= investment!.minimumCoreLines &&
+            input.currentScore + 1e-8 >= progressFloor &&
+            potentialTarget !== null &&
+            input.possibleUpper + 1e-8 >= potentialTarget
+          : null
   return {
     functionalState,
     functionDetail,

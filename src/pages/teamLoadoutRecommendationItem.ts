@@ -110,7 +110,9 @@ export function recommendationItem(
     : defaultSchemeBangbooId(recommendation)
   // The fit route uses the same exact-trio shortlist when no source default was
   // bound. Fill the initial card from it without changing the candidate identity.
-  const bangbooOptions = targetTeamBangbooOptions({ memberIds: recommendation.memberIds })
+  const bangbooOptions = authority?.authorComparisonMembership
+    ? []
+    : targetTeamBangbooOptions({ memberIds: recommendation.memberIds })
   const defaultOptions = sourceSchemeBangbooId ? [] : bangbooOptions
   const automaticBangbooId = defaultOptions[0]?.bangbooId ?? null
   const schemeBangbooId = sourceSchemeBangbooId ?? automaticBangbooId
@@ -229,9 +231,19 @@ export function recommendationItem(
     authorityReasons: authority?.cultivationPriority.reasons ?? [],
     authorityTradeoffs: authority?.cultivationPriority.tradeoffs ?? [],
     authorityNextAction: authority?.cultivationPriority.nextAction ?? null,
-    sourceConfirmed: authority?.mainstreamRecognition?.status === 'confirmed',
+    sourceConfirmed:
+      !authority?.authorComparisonMembership &&
+      !authority?.hasPreparedBenchmark32 &&
+      authority?.mainstreamRecognition?.status === 'confirmed',
+    ...(authority?.hasPreparedBenchmark32 ? { hasPreparedBenchmark32: true } : {}),
+    ...(authority?.authorComparisonMembership
+      ? { authorComparisonMembership: authority.authorComparisonMembership }
+      : {}),
     fallbackOnly: isReviewedFallbackTeam(recommendation.memberIds),
-    sourceConditions: authority?.mainstreamRecognition?.conditions ?? [],
+    sourceConditions:
+      authority?.authorComparisonMembership?.conditions ??
+      authority?.mainstreamRecognition?.conditions ??
+      [],
     sourceBangbooOptionIds: authority?.mainstreamRecognition?.sourceBangbooOptionIds ?? [],
     historicalReferenceOnly: authority?.mainstreamRecognition?.historicalReferenceOnly ?? false,
   }

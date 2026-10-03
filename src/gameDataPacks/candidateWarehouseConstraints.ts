@@ -12,6 +12,8 @@ import {
   type PlayerBuildSource,
 } from './playerBuildProfiles'
 import { candidateWarehouseConstraints31 } from './gameData31CatalogIntake'
+import { candidateWarehouseConstraints32 } from './candidateWarehouseConstraints32'
+import type { CandidateSetPlanEligibilityContext } from './candidateSetPlanEligibility'
 import { resolveCurrentReleasedIdentity } from './currentReleasedIdentityMap'
 import { stableContentHash } from './types'
 import {
@@ -35,7 +37,7 @@ export { candidateStatKeys, candidateSubStatWeights } from './candidateStatParsi
 export type CandidateWarehouseConstraint = {
   agentId: string
   agentName: string
-  gameVersion: '3.0' | '3.1'
+  gameVersion: '3.0' | '3.1' | '3.2'
   status: 'candidate' | 'missing'
   setPlanReadiness:
     | {
@@ -249,7 +251,8 @@ export function getCandidateWarehouseConstraint(agentId: string) {
     ) ??
     candidateWarehouseConstraints31.find(
       (constraint) => resolveCurrentReleasedIdentity(constraint.agentId) === releasedAgentId,
-    )
+    ) ??
+    candidateWarehouseConstraints32.find((constraint) => constraint.agentId === releasedAgentId)
   )
 }
 
@@ -275,10 +278,13 @@ function sourceForReviewedTeamDiscDirection(
  */
 export function getCandidateWarehouseConstraintForTeam(
   agentId: string,
-  context: ReviewedTeamDiscConditionContext,
+  context: ReviewedTeamDiscConditionContext & CandidateSetPlanEligibilityContext,
 ): CandidateWarehouseConstraint | undefined {
   const base = getCandidateWarehouseConstraint(agentId)
   if (!base) return undefined
+  // New source scenarios are advisory. No operation/stack evidence is inferred
+  // from composition, and a non-matching recipe does not delete legal inventory.
+  if (base.gameVersion === '3.2') return base
   const directions = resolveReviewedTeamDiscDirections(base.agentId, context)
   if (!directions.length) {
     const plans = candidateSetPlansForConstraint(base)

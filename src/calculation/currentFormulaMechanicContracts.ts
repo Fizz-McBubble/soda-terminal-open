@@ -67,8 +67,11 @@ const catalog = rawCatalog as unknown as {
 
 if (
   catalog.schema !== 'soda-current-formula-mechanic-contract-catalog/v1' ||
-  catalog.coverage.wengineEntities !== 95 ||
-  catalog.coverage.driveDiscFourPieceEntities !== 30 ||
+  catalog.coverage.wengineEntities !== catalog.wengineItems.length ||
+  catalog.coverage.driveDiscFourPieceEntities !== catalog.driveDiscItems.length ||
+  new Set(catalog.wengineItems.map((item) => item.stableId)).size !== catalog.wengineItems.length ||
+  new Set(catalog.driveDiscItems.map((item) => item.stableId)).size !==
+    catalog.driveDiscItems.length ||
   catalog.coverage.compilerRejects !== 0
 )
   throw new Error('当前公式 Mechanic Contract 目录覆盖门未通过。')
@@ -229,6 +232,7 @@ const wengineInputSchema = z.object({
   refinement: z.number().int().min(1).max(5),
   specialtyMatches: z.boolean(),
   runtimePolicy: z.enum(['strict', 'exclude_unobserved']).optional(),
+  effectIndices: z.array(z.number().int().nonnegative()).optional(),
   runtime: z
     .object({
       flags: z.record(z.string(), z.boolean()).optional(),
@@ -245,6 +249,16 @@ export function resolveCurrentFormulaWEngineContract(input: unknown) {
   const staticData = getCurrentWEngineStaticData(parsed.data.stableId)
   const params = staticData?.passiveParameterTable[parsed.data.refinement - 1]?.params
   if (!item || !staticData || !params) return unsupported(`未登记音擎：${parsed.data.stableId}`)
+  if (parsed.data.effectIndices?.some((index) => index >= item.effects.length))
+    return unsupported('音擎效果来源索引不存在。')
+  if (
+    item.source.formulaPath !== staticData.source.formulaPath ||
+    item.source.formulaSha256 !== staticData.source.formulaSha256 ||
+    item.source.dataPath !== staticData.source.dataPath ||
+    item.source.dataSha256 !== staticData.source.dataSha256
+  )
+    return unsupported(`音擎公式与静态目录来源不一致：${parsed.data.stableId}`)
+
   if (item.executionKind === 'static_only' || !parsed.data.specialtyMatches)
     return {
       status: 'supported' as const,
@@ -259,7 +273,9 @@ export function resolveCurrentFormulaWEngineContract(input: unknown) {
     [`wengine:${item.upstreamKey}:specialty_and_equipped`]: parsed.data.specialtyMatches,
   }
   const result = evaluateEffects(
-    item.effects,
+    parsed.data.effectIndices
+      ? item.effects.filter((_, index) => parsed.data.effectIndices!.includes(index))
+      : item.effects,
     runtime,
     params,
     parsed.data.runtimePolicy ?? 'strict',
@@ -336,6 +352,31 @@ function collectRequirements(
   if (record.kind === 'accumulator' && typeof record.key === 'string')
     requirements.accumulators.add(record.key)
   Object.values(record).forEach((entry) => collectRequirements(entry, requirements))
+}
+
+/** Per-source-effect dependencies, before evaluation can hide a zero-valued branch. */
+export function getCurrentFormulaWEngineEffectEntries(stableId: string) {
+  return (
+    wengineByStableId.get(stableId)?.effects.flatMap((effect, effectIndex) => {
+      if (effect.kind !== 'modifier_effect') return []
+      const requirements = {
+        flags: new Set<string>(),
+        numbers: new Set<string>(),
+        accumulators: new Set<string>(),
+      }
+      collectRequirements(effect.value, requirements)
+      return [
+        {
+          effectIndex,
+          path: effect.path,
+          action: effect.action ?? null,
+          finalStatReferences: [...requirements.numbers].filter((ref) =>
+            /^(own|target)\.final\./.test(ref),
+          ),
+        },
+      ]
+    }) ?? []
+  )
 }
 
 export function getCurrentFormulaContractRequirements(

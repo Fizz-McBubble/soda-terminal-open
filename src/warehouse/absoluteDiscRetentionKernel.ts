@@ -52,6 +52,17 @@ function coverageBlockers(
     })
   if (catalog.factsGameVersion !== catalog.assessmentGameVersion)
     add('gameVersion', '资料版本与分析版本不一致。')
+  const identity = catalog.versionIdentity
+  if (
+    identity &&
+    (identity.analysisTargetVersion !== catalog.assessmentGameVersion ||
+      identity.adoption.targetVersion !== identity.analysisTargetVersion ||
+      !identity.adoption.id ||
+      !identity.adoption.contentHash ||
+      !identity.adoption.sourceCommit ||
+      !identity.adoption.scopeContentHash)
+  )
+    add('versionIdentity', '分析目标与具名版本采用不一致。')
   const released = new Set(catalog.releasedAgentIds)
   if (!released.size || released.size !== catalog.releasedAgentIds.length)
     add('releasedAgentIds', '已发布角色范围缺失或重复。')
@@ -68,6 +79,9 @@ function coverageBlockers(
     if (gap.setIds?.length && !gap.setIds.includes(disc.setId)) continue
     if (gap.slots?.length && !gap.slots.includes(disc.slot)) continue
     if (gap.mainStats?.length && !gap.mainStats.includes(disc.mainStat)) continue
+    const affectedProfile =
+      gap.profileId && catalog.profiles.find((row) => row.id === gap.profileId)
+    if (affectedProfile && !relevant(disc, affectedProfile, set)) continue
     blockers.push({ ...gap, kind: 'missing_fact', predicateId: `coverage:${gap.field}` })
   }
   if (

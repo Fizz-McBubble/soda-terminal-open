@@ -1,6 +1,8 @@
 import { createManifest, type GameDataPackageManifest } from './types'
 import { gameBase30CatalogLedger, gameBase30CatalogSummary } from './catalogLedger'
 import { buildKnowledge30Coverage, buildKnowledge30Profiles } from './buildKnowledge'
+import { gameBase32Current } from './currentVersionAdoption32'
+export { gameBase32Current } from './currentVersionAdoption32'
 import {
   gameData31CurrentCanonical,
   gameData31CurrentFields,
@@ -241,6 +243,7 @@ export const visualCatalog30Formal = supportingFormalPack(
 export const bundledGameDataPacks: GameDataPackageManifest[] = [
   gameBase30Formal,
   gameBase31Current,
+  gameBase32Current,
   buildKnowledge30Formal,
   rotation30Formal,
   visualCatalog30Formal,

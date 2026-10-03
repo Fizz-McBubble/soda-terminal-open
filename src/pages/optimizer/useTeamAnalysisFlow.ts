@@ -22,6 +22,7 @@ import {
   type TeamAnalysisState,
 } from '../teamAnalysisSession'
 import type { useTeamPickerQueries } from './useTeamPickerQueries'
+import { traceTeamRematch } from './teamRematchTrace'
 
 export function useTeamAnalysisFlow({
   accountSummary,
@@ -97,19 +98,65 @@ export function useTeamAnalysisFlow({
 }) {
   const continueRematch = async (result: TeamAnalysisResult, plans: AccountPlanningDraft[]) => {
     const request = rematchRequest.current
+    traceTeamRematch('continue.enter', {
+      hasRequest: Boolean(request),
+      generation: analysisRequest.current,
+    })
     if (!request) return
     rematchRequest.current = null
+    const analysisGeneration = analysisRequest.current
+    const generation = ++prepareRequest.current
+    const isCurrentRequest = () => {
+      const checks = {
+        analysisCurrent: analysisGeneration === analysisRequest.current,
+        prepareCurrent: generation === prepareRequest.current,
+      }
+      if (!checks.analysisCurrent || !checks.prepareCurrent)
+        traceTeamRematch('continue.reject.generation', checks)
+      return checks.analysisCurrent && checks.prepareCurrent
+    }
+    const hasCurrentSession = () => {
+      const session = currentTeamAnalysisSession
+      traceTeamRematch('continue.session', {
+        complete: session?.kind === 'complete',
+        appMatches: session?.result.appSessionId === result.appSessionId,
+        accountMatches: session?.result.warehouse.accountId === result.warehouse.accountId,
+        runMatches: session?.result.analysisRunId === result.analysisRunId,
+        fingerprintMatches: session?.result.inputFingerprint === result.inputFingerprint,
+      })
+      return (
+        session?.kind === 'complete' &&
+        session.result.appSessionId === result.appSessionId &&
+        session.result.warehouse.accountId === result.warehouse.accountId &&
+        session.result.analysisRunId === result.analysisRunId &&
+        session.result.inputFingerprint === result.inputFingerprint
+      )
+    }
     const plan = plans.find((item) => item.id === request.planId)
     const match = plan ? (await querySavedReplay(result, plan).catch(() => null))?.match : undefined
-    const candidateId = request.planId
-      ? match?.buildIntent?.exactTeam.candidateId
-      : request.teamId
-        ? result.overviewModel.groups
-            .flatMap((group) => group.items.flatMap((family) => family.variants))
-            .find((variant) => variant.detailCandidateId === request.teamId)?.detailCandidateId
-        : undefined
+    if (!isCurrentRequest()) return
+    const candidateId = request.planId ? match?.buildIntent?.exactTeam.candidateId : request.teamId
+    traceTeamRematch('continue.identity', {
+      hasPlan: Boolean(plan),
+      hasReplay: Boolean(match),
+      hasCandidate: Boolean(candidateId),
+    })
+    // Recommendations are a presentation subset and can omit a current team.
+    // The private route Query validates the exact requested
+    // identity against this run's complete producer facts.
     if (candidateId) {
+      traceTeamRematch('route.dispatch', { generation, analysisGeneration })
       const entry = await queryTeamRoute(result, candidateId).catch(() => null)
+      traceTeamRematch('route.received', {
+        accepted: Boolean(entry),
+        hasTeam: Boolean(entry?.team),
+        hasTarget: Boolean(entry?.targetCandidateId),
+      })
+      if (!isCurrentRequest()) return
+      if (!hasCurrentSession()) {
+        setOverviewFeedback('账户资料已更新，请重新分析后再配装。')
+        return
+      }
       if (!entry) {
         setOverviewFeedback('队伍详情已变化，请重新分析后再配装。')
         return
@@ -119,27 +166,25 @@ export function useTeamAnalysisFlow({
         return
       }
       const destination = `/loadouts/team/${encodeURIComponent(candidateId)}`
-      if (!entry.team.bangbooId && !entry.automaticBangboo) {
+      if (!entry.discOnlyCandidate && !entry.team.bangbooId && !entry.automaticBangboo) {
+        traceTeamRematch('continue.navigate.choice', { discOnly: Boolean(entry.discOnlyCandidate) })
         navigate(destination, { replace: true })
         return
       }
-      const generation = ++prepareRequest.current
       setPreparingItemId(candidateId)
       setPreparationError(null)
       setOverviewFeedback('正在重新搭配装备…')
       try {
+        traceTeamRematch('fit.dispatch', { generation, analysisGeneration })
         const fit = await calculateTargetTeamWarehouseFit(
           result.analysisRunId,
           entry.targetCandidateId,
+          match?.effectiveEquipmentParameters,
         )
-        if (generation !== prepareRequest.current) return
+        traceTeamRematch('fit.received', { generation, analysisGeneration })
+        if (!isCurrentRequest()) return
         const session = currentTeamAnalysisSession
-        if (
-          session?.result.appSessionId !== result.appSessionId ||
-          session.result.warehouse.accountId !== result.warehouse.accountId ||
-          session.result.analysisRunId !== result.analysisRunId ||
-          session.result.inputFingerprint !== result.inputFingerprint
-        ) {
+        if (!session || !hasCurrentSession()) {
           setOverviewFeedback('账户资料已更新，请重新分析后再配装。')
           return
         }
@@ -153,12 +198,14 @@ export function useTeamAnalysisFlow({
           },
         })
         navigate(destination, { replace: true })
+        traceTeamRematch('continue.navigate.fit', { generation })
         queueFitOverview(session.result, nextFits)
       } catch {
-        if (generation === prepareRequest.current)
+        traceTeamRematch('fit.reject.query', { current: isCurrentRequest() })
+        if (isCurrentRequest())
           setOverviewFeedback('这支队伍的配装生成失败，请重新搭配；账户资产没有改变。')
       } finally {
-        if (generation === prepareRequest.current) setPreparingItemId(null)
+        if (isCurrentRequest()) setPreparingItemId(null)
       }
     } else if (request.planId || request.teamId) {
       setOverviewFeedback('原方案的成员暂无法匹配当前队伍建议，请重新选择搭配。原方案仍保留。')
@@ -167,7 +214,16 @@ export function useTeamAnalysisFlow({
 
   const startAnalysis = async () => {
     const request = ++analysisRequest.current
-    const isCurrentRequest = () => request === analysisRequest.current
+    traceTeamRematch('analysis.start', { generation: request })
+    const isCurrentRequest = () => {
+      const current = request === analysisRequest.current
+      if (!current)
+        traceTeamRematch('analysis.reject.generation', {
+          expected: request,
+          actual: analysisRequest.current,
+        })
+      return current
+    }
     remainingRequest.current += 1
     remainingRunning.current = false
     let currentStage = 1
@@ -181,6 +237,7 @@ export function useTeamAnalysisFlow({
       const initialWarehouse = await loadCoreWarehouse()
       if (!isCurrentRequest()) return
       if (!initialWarehouse.accountId) {
+        traceTeamRematch('analysis.reject.no_account', {})
         setAnalysis({ kind: 'unable', reason: 'no_account' })
         return
       }
@@ -210,6 +267,7 @@ export function useTeamAnalysisFlow({
       }
       setAnalysisSnapshot(snapshot)
       if (!initialWarehouse.discs.length) {
+        traceTeamRematch('analysis.reject.empty_warehouse', {})
         setAnalysis({ kind: 'unable', reason: 'empty_warehouse' })
         return
       }
@@ -223,6 +281,10 @@ export function useTeamAnalysisFlow({
       await waitForAnalysisStage()
       if (!isCurrentRequest()) return
       const sharedRun = await decisionWorld.refresh()
+      traceTeamRematch('analysis.refresh.received', {
+        hasRun: Boolean(sharedRun),
+        current: isCurrentRequest(),
+      })
       if (!isCurrentRequest()) return
       if (!sharedRun) throw new Error('当前账户资料暂时无法用于分析。')
       const { snapshot: decisionSnapshot, input } = sharedRun
@@ -272,6 +334,7 @@ export function useTeamAnalysisFlow({
       setAnalysis(nextAnalysis)
       void continueRematch(result, savedPlans)
     } catch (error) {
+      traceTeamRematch('analysis.reject.error', { current: isCurrentRequest() })
       if (isCurrentRequest())
         setAnalysis({
           kind: 'error',
@@ -351,10 +414,25 @@ export function useTeamAnalysisFlow({
   }
 
   const reuseCurrentAnalysis = async () => {
+    traceTeamRematch('reuse.enter', {
+      worldStatus: decisionWorld.status,
+      hasRequest: Boolean(rematchRequest.current),
+      generation: analysisRequest.current,
+    })
     if (decisionWorld.status !== 'current') return false
     const request = analysisRequest.current
     const { run } = decisionWorld
     const currentOverview = currentTeamOverviewFromQuery(run)
+    traceTeamRematch('reuse.overview', {
+      accepted: Boolean(currentOverview),
+      hasProjection: Boolean(run.teamPresentation),
+      runMatches: run.teamPresentation?.runId === run.runId,
+      accountMatches: run.teamPresentation?.accountId === run.input.warehouse.accountId,
+      fingerprintMatches:
+        run.teamPresentation?.inputFingerprint === run.snapshot.fingerprint.inputHash,
+      liveFingerprintMatches: decisionWorld.liveFingerprint === run.snapshot.fingerprint.inputHash,
+      summaryAccountMatches: run.input.warehouse.accountId === accountSummary?.accountId,
+    })
     if (!currentOverview) return false
     const overviewModel =
       contextAgentId || contextPlanId || contextDiscId
@@ -364,7 +442,13 @@ export function useTeamAnalysisFlow({
             discId: contextDiscId,
           })
         : currentOverview
-    if (request !== analysisRequest.current) return true
+    if (request !== analysisRequest.current) {
+      traceTeamRematch('reuse.reject.generation', {
+        expected: request,
+        actual: analysisRequest.current,
+      })
+      return true
+    }
     const result = {
       appSessionId: accountSummary?.appSessionId ?? crypto.randomUUID(),
       analysisRunId: run.runId,
@@ -382,6 +466,11 @@ export function useTeamAnalysisFlow({
     }
     const nextAnalysis = { kind: 'complete' as const, result }
     queueMicrotask(() => {
+      traceTeamRematch('reuse.commit.microtask', {
+        current: request === analysisRequest.current,
+        hasRequest: Boolean(rematchRequest.current),
+      })
+      if (request !== analysisRequest.current) return
       setLastCompleteAnalysis(nextAnalysis)
       releasePreviousDetached(run.runId)
       setCurrentTeamAnalysisSession(nextAnalysis)

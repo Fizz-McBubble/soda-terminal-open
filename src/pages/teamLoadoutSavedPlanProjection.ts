@@ -40,6 +40,20 @@ export function currentAuthorityForSavedPlan(
   if (plan.teamPortfolioSnapshot) return null
   const savedMemberIds = plan.selection.agentIds
   const savedBangbooId = plan.selection.bangbooId
+  if (
+    savedMemberIds.length === 3 &&
+    savedBangbooId === null &&
+    plan.teamAccountFactBinding &&
+    plan.teamExecutionSnapshot?.authorComparisonMembership
+  ) {
+    const matches = authorityConsumerRecommendations(decisionAuthority).filter(
+      (candidate) =>
+        candidate.authorComparisonMembership?.fingerprint ===
+          plan.teamAccountFactBinding?.sourceFingerprint &&
+        sameStableIds(savedMemberIds, candidate.memberIds),
+    )
+    return matches.length === 1 ? matches[0]! : null
+  }
   if (savedMemberIds.length !== 3 || !savedBangbooId || new Set(savedMemberIds).size !== 3)
     return null
   const savedMembers = savedMemberIds as [string, string, string]
@@ -161,7 +175,9 @@ function savedPlanMemberIds(plan: AccountPlanningDraft) {
 function savedPlanBangbooLabel(plan: AccountPlanningDraft) {
   if (plan.teamPortfolioSnapshot)
     return plan.teamPortfolioSnapshot.executions
-      .map((execution) => playerFacingBangbooLabel(execution.bangbooId))
+      .map((execution) =>
+        execution.bangbooId ? playerFacingBangbooLabel(execution.bangbooId) : '未纳入',
+      )
       .join(' · ')
   return plan.selection.bangbooId
     ? playerFacingBangbooLabel(plan.selection.bangbooId)
@@ -253,7 +269,9 @@ export function savedPlanItem(
           `已保存的驱动盘中有 ${unavailableDiscCount} 张当前不在仓库；原记录已保留，未自动缩减或替换。`,
         ]
       : []),
-    ...(plan.teamPortfolioSnapshot || plan.selection.bangbooId ? [] : ['尚未保存邦布方向']),
+    ...(plan.teamPortfolioSnapshot || plan.selection.bangbooId || plan.teamAccountFactBinding
+      ? []
+      : ['尚未保存邦布方向']),
     ...(degradedCount ? [`${degradedCount} 名成员需要复核仓库替代盘`] : []),
   ]
   return {

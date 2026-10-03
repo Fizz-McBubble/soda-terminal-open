@@ -225,7 +225,7 @@ function HydratedScannerAssistantPage({
         title="首次安装或修复扫描助手"
       >
         <Download aria-hidden="true" size={17} />
-        下载扫描助手
+        首次使用：下载安装
       </a>
     ) : null
 

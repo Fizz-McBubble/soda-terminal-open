@@ -7,6 +7,7 @@ import {
 import type { DriveDisc } from '../domain/schemas'
 import { getCurrentBuildTargetPanel } from '../gameDataPacks/currentBuildAuthority'
 import { currentPanelData } from '../gameDataPacks/panel/currentPanelData'
+import { defaultAscensionForLevel } from '../gameDataPacks/panel/wEngineGrowth'
 import {
   readTargetPanelMetricSemantic,
   targetPanelMetricSemanticEntries,
@@ -269,13 +270,13 @@ function currentProjection(
   return projectOutOfCombatPanel({
     agentId: agent.agentId,
     level: agent.level,
-    ascension: 5,
+    ascension: agent.ascension ?? defaultAscensionForLevel(agent.level),
     mindscape: agent.mindscape,
     core: core - 2,
     wEngine: {
       id: engine.id,
       level: engine.level,
-      ascension: 5,
+      ascension: defaultAscensionForLevel(engine.level),
       refinement: engine.refinement,
     },
     discs: [...discs],
@@ -297,9 +298,8 @@ function evaluateMember(input: {
   const target = getCurrentBuildTargetPanel(input.agentId)
   if (!target || !target.sourceRefs.length)
     return unknown(input.agentId, '当前版本没有可用的量化毕业面板目标。')
-  const gameVersion = currentPanelData.version.match(/^(\d+\.\d+)/)?.[1]
-  if (!gameVersion || target.gameVersion !== gameVersion)
-    return unknown(input.agentId, '毕业目标与当前面板投影版本不一致。')
+  // getCurrentBuildTargetPanel already requires a ready, version-qualified source.
+  // Numeric panel source revisions are independent of the guide's reviewed version.
   const engine = savedPlanWEngine(member)
   if (!engine) return unknown(input.agentId, '已存方案没有可复算的计划音擎参数。')
   const projection = currentProjection(agent, member, discs)

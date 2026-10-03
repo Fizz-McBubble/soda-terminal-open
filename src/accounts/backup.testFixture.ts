@@ -158,7 +158,7 @@ function completePortfolioInput(snapshot: TeamExecutionPortfolio): TeamPortfolio
               engineId: member.suggested.wEngine!.engineId,
               refinement: member.suggested.wEngine!.refinement,
             })),
-            bangbooId: execution.bangbooId,
+            bangbooId: requireNamedBangboo(execution.bangbooId),
             bangbooStars: execution.bangbooStar!,
           },
         ]),
@@ -270,4 +270,9 @@ export type {
   TeamExecutionPortfolio,
   AccountProfile,
   TeamPortfolioPlanningSaveInput,
+}
+
+function requireNamedBangboo(id: string | null): string {
+  if (id === null) throw new Error('This legacy named-Bangboo fixture requires a Bangboo.')
+  return id
 }

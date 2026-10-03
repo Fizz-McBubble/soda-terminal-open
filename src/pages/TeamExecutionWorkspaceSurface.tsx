@@ -1,3 +1,4 @@
+import { teamEquipmentSelectionErrorMessage } from './teamEquipmentSelectionFeedback'
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import type { CoreWarehouse } from '../accounts/coreFlow'
 import type {
@@ -31,7 +32,6 @@ import {
   TeamSchemeBangbooControl,
   TeamSchemeWEngineControl,
 } from './TeamEquipmentParameterForm'
-
 export type TeamExecutionWorkspaceSubstitute = {
   targetAgentId: string
   agentId: string
@@ -63,7 +63,7 @@ export function TeamExecutionWorkspaceSurface({
   readOnly = false,
 }: {
   view: ReturnType<typeof presentTeamExecution>
-  bangbooId: string
+  bangbooId: string | null
   warehouse: CoreWarehouse
   alternate?: TeamExecutionWorkspaceAlternate
   execution?: TeamExecution
@@ -94,7 +94,7 @@ export function TeamExecutionWorkspaceSurface({
   const selectedAccountAgent = warehouse.roster.agents.find(
     (agent) => agent.agentId === selectedMember?.agentId,
   )
-  const bangbooLabel = playerFacingBangbooLabel(bangbooId)
+  const bangbooLabel = bangbooId ? playerFacingBangbooLabel(bangbooId) : '未纳入'
   const bangbooStarLabel = execution?.bangbooStar ? ` · ${execution.bangbooStar} 星` : ''
   const expectedDiscCount = view.members.length * 6
   const displayedDiscCount = view.members.reduce(
@@ -128,15 +128,11 @@ export function TeamExecutionWorkspaceSurface({
     setEquipmentPending(true)
     setEquipmentError('')
     void onConfirmEquipmentParameters(selection)
-      .catch((error: unknown) =>
-        setEquipmentError(
-          error instanceof Error && error.message === '这只邦布暂不能用于当前队伍，请重新选择。'
-            ? '所选邦布或星级不满足队伍条件，已保留原方案。'
-            : '方案参数未应用，请重试。',
-        ),
-      )
+      .catch((error: unknown) => setEquipmentError(teamEquipmentSelectionErrorMessage(error)))
       .finally(() => setEquipmentPending(false))
   }
+  const applyEquipmentEdit = (selection: TargetTeamEquipmentParameterSelection) =>
+    applyEquipmentSelection({ ...selection, koledaFixedEventConditions32: undefined })
   const attributePanel =
     selectedExecutionMember && selectedAccountAgent
       ? createTeamExecutionAttributePanel({
@@ -287,29 +283,31 @@ export function TeamExecutionWorkspaceSurface({
             className="team-execution__bangboo"
             aria-label={`邦布：${bangbooLabel}${bangbooStarLabel}`}
           >
-            {targetTeamFit && schemeSelection ? (
+            {bangbooId && targetTeamFit && schemeSelection ? (
               <TeamSchemeBangbooControl
                 recommendations={targetTeamFit.equipmentRecommendations}
                 selection={schemeSelection}
                 pending={equipmentPending || !onConfirmEquipmentParameters}
-                onChange={applyEquipmentSelection}
+                onChange={applyEquipmentEdit}
               />
             ) : (
               <div className="team-execution__scheme-control team-execution__scheme-control--bangboo team-execution__scheme-control--static">
-                <VisualEntityImage
-                  className="team-execution__scheme-image"
-                  entityId={bangbooId}
-                  entityType="bangboo"
-                  name={bangbooLabel}
-                  slotId="bangboo.team-icon"
-                  consumer="box.team-workspace"
-                />
+                {bangbooId && (
+                  <VisualEntityImage
+                    className="team-execution__scheme-image"
+                    entityId={bangbooId}
+                    entityType="bangboo"
+                    name={bangbooLabel}
+                    slotId="bangboo.team-icon"
+                    consumer="box.team-workspace"
+                  />
+                )}
                 <span className="team-execution__scheme-static-copy">
                   <small>邦布</small>
                   <strong>{bangbooLabel}</strong>
                 </span>
                 <span className="team-execution__scheme-static-meta">
-                  {bangbooStarLabel.replace(/^ · /, '') || '星级待确认'}
+                  {bangbooId ? bangbooStarLabel.replace(/^ · /, '') || '星级待确认' : '未纳入'}
                 </span>
               </div>
             )}
@@ -364,13 +362,13 @@ export function TeamExecutionWorkspaceSurface({
                   </div>
                 </div>
                 <div className="team-execution__header-engine">
-                  {targetTeamFit && schemeSelection ? (
+                  {bangbooId && targetTeamFit && schemeSelection ? (
                     <TeamSchemeWEngineControl
                       agentId={selectedMember.agentId}
                       recommendations={targetTeamFit.equipmentRecommendations}
                       selection={schemeSelection}
                       pending={equipmentPending || !onConfirmEquipmentParameters}
-                      onChange={applyEquipmentSelection}
+                      onChange={applyEquipmentEdit}
                     />
                   ) : (
                     <div className="team-execution__scheme-control team-execution__scheme-control--wengine team-execution__scheme-control--static">

@@ -63,7 +63,9 @@ export function TeamSavedPlanList({
           const memberNames = agentIds.map(getAgentName).join(' · ')
           const bangbooSummary = portfolio
             ? portfolio.executions
-                .map((execution) => playerFacingBangbooLabel(execution.bangbooId))
+                .map((execution) =>
+                  execution.bangbooId ? playerFacingBangbooLabel(execution.bangbooId) : '未纳入',
+                )
                 .join(' · ')
             : null
           const summary = portfolio

@@ -1,10 +1,9 @@
 import { useState } from 'react'
 import { getCurrentWEngineStaticData } from '../../../gameDataPacks/currentWEngineStaticCatalog'
-import displayCatalog from '../../../gameDataPacks/data/current-wengine-display.3.1.json'
+import { getReviewedWEngineDisplay } from '../../../gameDataPacks/reviewedWEngineDisplay32'
 import { EffectDescription } from '../../EffectDescription'
 import { SelectMenu } from './SelectMenu'
 
-const byId = new Map(displayCatalog.items.map((item) => [item.stableId, item]))
 const statNames = {
   hp_: '生命值',
   atk_: '攻击力',
@@ -21,7 +20,7 @@ const statNames = {
 export function WEngineReferencePanel({ stableId }: { stableId: string }) {
   const [refinement, setRefinement] = useState('1')
   const item = getCurrentWEngineStaticData(stableId)
-  const display = byId.get(stableId)
+  const display = getReviewedWEngineDisplay(stableId)
   if (!item || !display) return null
   const stats = item.staticStats
   const percent = stats.secondaryStatKey.endsWith('_')
@@ -33,8 +32,8 @@ export function WEngineReferencePanel({ stableId }: { stableId: string }) {
         <h3>图鉴属性 · 60级</h3>
         <dl className="wengine-reference__stats">
           <div>
-            <dt>基础攻击力</dt>
-            <dd>{stats.level60BaseAttack}</dd>
+            <dt>{stats.level60BaseStat.key === 'def' ? '基础防御力' : '基础攻击力'}</dt>
+            <dd>{stats.level60BaseStat.value}</dd>
           </div>
           <div>
             <dt>{statNames[stats.secondaryStatKey]}</dt>

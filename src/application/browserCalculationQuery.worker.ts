@@ -1,4 +1,5 @@
 import { buildAccountDecisionSnapshot } from '../decision/accountDecisionService'
+import { projectPublicCalculationResult } from './publicCalculationTransport'
 import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
 import { createLocalCalculationQueryClientCore } from './localCalculationQueryClientCore'
 import {
@@ -52,6 +53,13 @@ export async function calculateBrowserQueryResponse(
   try {
     let result: unknown
     switch (request.query.kind) {
+      case 'common_anomaly_settlement32':
+        if (!client.queryCommonAnomalySettlement32) throw new Error('风异常声明结算不可用。')
+        result = projectPublicCalculationResult(
+          'common_anomaly_settlement32',
+          await client.queryCommonAnomalySettlement32(request.query),
+        )
+        break
       case 'account_decision':
         result = await client.calculateAccountDecision(request.query)
         break
@@ -75,6 +83,17 @@ export async function calculateBrowserQueryResponse(
         break
       case 'development_candidate_alternatives':
         result = await client.queryDevelopmentCandidateAlternatives(request.query)
+        break
+      case 'reviewed_incremental_event32':
+        if (!client.queryReviewedIncrementalEvent32) throw new Error('单次命中计算不可用。')
+        result = await client.queryReviewedIncrementalEvent32(request.query)
+        break
+      case 'planning_benchmark32':
+        if (!client.queryPlanningBenchmark32) throw new Error('逐次事件基准计算不可用。')
+        result = projectPublicCalculationResult(
+          'planning_benchmark32',
+          await client.queryPlanningBenchmark32(request.query),
+        )
         break
       case 'development_workbench_route':
         result = await client.queryDevelopmentWorkbenchRoute(request.query)

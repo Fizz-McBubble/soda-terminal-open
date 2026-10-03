@@ -408,6 +408,7 @@ export type ContextComparison = {
     | 'account'
     | 'scope'
     | 'members'
+    | 'bangboo'
     | 'scenario'
     | 'cycle'
     | 'objective'
@@ -428,16 +429,15 @@ export function compareCalculationContexts(
   const right = rightResult.context
   const mismatchKinds: ContextComparison['mismatchKinds'] = []
   if (left.gameVersion !== right.gameVersion) mismatchKinds.push('version')
-  if (
-    left.canonical.packageId !== right.canonical.packageId ||
-    left.canonical.contentHash !== right.canonical.contentHash
-  )
+  if (stableContentHash(left.canonical) !== stableContentHash(right.canonical))
     mismatchKinds.push('canonical')
   if (left.accountSnapshot.accountId !== right.accountSnapshot.accountId)
     mismatchKinds.push('account')
   if (left.scope.kind !== right.scope.kind) mismatchKinds.push('scope')
   if (stableContentHash(left.scope.agentIds) !== stableContentHash(right.scope.agentIds))
     mismatchKinds.push('members')
+  if (stableContentHash(left.bangboo) !== stableContentHash(right.bangboo))
+    mismatchKinds.push('bangboo')
   if (stableContentHash(left.scenario) !== stableContentHash(right.scenario))
     mismatchKinds.push('scenario')
   if (stableContentHash(left.cycle) !== stableContentHash(right.cycle)) mismatchKinds.push('cycle')
@@ -450,7 +450,7 @@ export function compareCalculationContexts(
   )
     mismatchKinds.push('asset-snapshot')
   if (left.constraintsHash !== right.constraintsHash) mismatchKinds.push('constraints')
-  return { comparable: mismatchKinds.length === 0, mismatchKinds }
+  return { comparable: left.comparabilityKey === right.comparabilityKey, mismatchKinds }
 }
 
 export function evidenceFromCurrentCanonicalField(

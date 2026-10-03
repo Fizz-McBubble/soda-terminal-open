@@ -1,30 +1,22 @@
+import { koledaFixedEventConditionsInputSchema32 } from '../application/publicKoledaFixedEventConditions32'
+import { savedPlanningBenchmark32Schema } from '../application/publicSavedPlanningBenchmark32'
 import { z } from 'zod'
 import { rosterSnapshotSchema } from './publicRosterSnapshot'
 import { databaseSchemaVersion } from '../db/databaseCore'
 import { scanImportBatchMetaSchema, scanImportItemSchema } from '../domain/scanImportStaging'
 import { discEvaluationSchema, driveDiscSchema, statKeySchema } from '../domain/schemas'
 import { accountIdSchema, accountProfileSchema } from './types'
+import { accountScopeShape, optimizationResultSchema } from './backupRecordSchemas'
+import {
+  authorComparisonMembershipSchema,
+  authorComparisonAccountFactBindingSchema,
+  refineAuthorComparisonBangbooIdentity,
+} from './backupAuthorComparisonSchemas'
 
 export const accountBackupFormat = 'soda-terminal-account-backup'
 export const accountBackupFormatVersion = 1
 export const vaultBackupFormat = 'soda-terminal-vault-backup'
 export const vaultBackupFormatVersion = 1
-
-const accountScopeShape = {
-  scopedId: z.string().min(1),
-  accountId: accountIdSchema,
-  sourceLegacyId: z.string().min(1).nullable(),
-  migratedAt: z.string().datetime().nullable(),
-}
-
-const optimizationResultSchema = z.object({
-  scopedId: z.string().min(1),
-  accountId: accountIdSchema,
-  id: z.string().min(1),
-  result: z.unknown(),
-  createdAt: z.string().datetime(),
-  sourceLegacyId: z.string().min(1).nullable(),
-})
 
 const preferenceSchema = z.object({
   scopedId: z.string().min(1),
@@ -44,6 +36,19 @@ const planningSolutionContextSchema = z.object({
   gameVersion: z.string().min(1),
   knowledgeVersion: z.string().min(1),
   exactVariantKey: z.string().min(1).nullable(),
+  comparisonParameters: z
+    .object({
+      wEngine: z
+        .object({
+          engineId: z.string().min(1),
+          level: z.number().int().min(1).max(60),
+          ascension: z.number().int().min(0).max(5).optional(),
+          refinement: z.number().int().min(1).max(5),
+        })
+        .optional(),
+      potential: z.number().int().min(0).max(6).optional(),
+    })
+    .optional(),
 })
 
 const candidateWarehouseSchema = z.object({
@@ -72,9 +77,13 @@ const teamEquipmentParameterSelectionSchema = z
           agentId: z.string().min(1),
           engineId: z.string().min(1),
           refinement: z.number().int().min(0),
+          level: z.number().int().min(1).max(60).optional(),
+          ascension: z.number().int().min(0).max(5).optional(),
         })
         .strict(),
     ),
+    potentialByAgentId: z.record(z.string().min(1), z.number().int().min(0).max(6)).optional(),
+    koledaFixedEventConditions32: koledaFixedEventConditionsInputSchema32.optional(),
     bangbooId: z.string().min(1),
     bangbooStars: z.number().int().min(0),
   })
@@ -190,11 +199,12 @@ const teamExecutionSchema = z
     scenario: z.object({ identity: z.string().min(1), tags: z.array(z.string()) }).strict(),
     memberIds: z.tuple([z.string().min(1), z.string().min(1), z.string().min(1)]),
     deploymentOrder: z.tuple([z.string().min(1), z.string().min(1), z.string().min(1)]).optional(),
-    bangbooId: z.string().min(1),
+    bangbooId: z.string().min(1).nullable(),
+    authorComparisonMembership: authorComparisonMembershipSchema.optional(),
     bangbooStar: z
       .union([z.literal(1), z.literal(2), z.literal(3), z.literal(4), z.literal(5)])
       .optional(),
-    wEngineBindingMode: z.literal('scheme_parameters').optional(),
+    wEngineBindingMode: z.enum(['scheme_parameters', 'account_fact_binding']).optional(),
     members: z.array(teamExecutionMemberSchema),
     physicalDiscIds: z.array(z.string().min(1)),
     confirmedWEngineCopyIds: z.array(z.string().min(1)),
@@ -204,6 +214,7 @@ const teamExecutionSchema = z
   })
   .strict()
   .superRefine((execution, context) => {
+    refineAuthorComparisonBangbooIdentity(execution, context)
     if (!execution.deploymentOrder) return
     const memberIds = execution.members.map((member) => member.agentId)
     const declaredMemberIds = execution.memberIds
@@ -229,7 +240,7 @@ export const teamExecutionPortfolioSnapshotSchema = z
     contract: z.literal('soda-team-execution/r1'),
     reusePolicy: z.literal('simultaneous_lock'),
     requestedTeamCount: z.union([z.literal(2), z.literal(3)]),
-    wEngineBindingMode: z.literal('scheme_parameters').optional(),
+    wEngineBindingMode: z.enum(['scheme_parameters', 'account_fact_binding']).optional(),
     executions: z.array(teamExecutionSchema),
     uniqueConfirmedWEngineCopyIds: z.array(z.string().min(1)),
     uniquePhysicalDiscIds: z.array(z.string().min(1)),
@@ -412,6 +423,8 @@ const planningDraftSchema = z.object({
   teamPortfolioBuildIntent: teamPortfolioBuildIntentSchema.optional(),
   teamPortfolioDiscChoices: teamPortfolioDiscChoicesSchema.optional(),
   teamEquipmentParameters: teamEquipmentParametersSchema.optional(),
+  planningBenchmark32: savedPlanningBenchmark32Schema.optional(),
+  teamAccountFactBinding: authorComparisonAccountFactBindingSchema.optional(),
   comparisonCapability: z.enum(['formal', 'direction']),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),

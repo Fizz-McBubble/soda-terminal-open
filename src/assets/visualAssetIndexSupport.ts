@@ -1,4 +1,5 @@
 import type { VisualAsset, VisualAssetEntityType } from './visualAssets'
+import { isReviewed32CommunityMedia } from './reviewed32CommunityMedia'
 
 const assetKey = (entityType: VisualAssetEntityType, entityId: string, variant?: string) =>
   `${entityType}:${entityId}:${variant ?? ''}`
@@ -52,12 +53,12 @@ export function resolveDefaultVisualAsset(
   return best
 }
 
-/** Only verified official assets under the explicit personal-cache policy may be cached. */
+/** Verified official assets and exact reviewed community references may use explicit personal cache. */
 export function isOfficialCacheableAsset(asset: VisualAsset | null) {
   return Boolean(
     asset &&
     asset.status === 'verified' &&
-    asset.sourceType === 'official' &&
+    (asset.sourceType === 'official' || isReviewed32CommunityMedia(asset)) &&
     asset.cachePolicy === 'explicit-personal-cache' &&
     asset.remoteUrl,
   )

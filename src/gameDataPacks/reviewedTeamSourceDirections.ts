@@ -2,7 +2,7 @@ import { current31IndependentConsensusGoldSet } from '../decision/current31Indep
 import { current31StrengthGoldSet } from '../decision/current31StrengthGoldSet'
 import { current31VariantRealityProfileSet } from '../decision/current31VariantRealityProfile'
 import { reviewedTeamPublishedStrength } from '../decision/reviewedTeamPublishedStrength'
-import { currentReleasedIdentityMap } from './currentReleasedIdentityMap'
+import { currentVersionProjection } from './currentVersionProjection'
 import { currentScopeManifest } from './currentScopeManifest'
 import { current31ReviewedTeamSourceAtoms } from './generated/current31-reviewed-team-source-atoms'
 import { stableContentHash } from './types'
@@ -13,6 +13,7 @@ import nestedTeamDirections from './data/reviewed-team-nested-directions.3.1.jso
 import reviewedCompatibilityNotes from './data/reviewed-team-compatibility-notes.3.1.json'
 import { current31ReviewedBangbooSourceAtoms } from './generated/current31-reviewed-bangboo-source-atoms'
 import { isReviewedSourceAtomContractValid } from './reviewedBangbooSourceContract'
+import { reviewedSourceTeamDirectionProjection32 } from './reviewedSourceTeamDirectionProjection32'
 
 type NestedDirectionRecord = (typeof nestedTeamDirections.records)[number] & {
   additionalConditionSources?: NonNullable<
@@ -28,6 +29,11 @@ export type ReviewedTeamSourceDirection = {
     sourceVersion: string
     checkedAt: string
     contentHash: string
+    observationRole?: 'author_comparison_setup'
+    locator?: string
+    hashDefinition?: string
+    equipmentConditions?: readonly { agentId: string; sourceEquipmentName: string }[]
+    scenario?: string
     /** Exact-team page replay, separate from the adopted coarse rating. */
     verificationStatus?: string
     sourceUpdatedAt?: string | null
@@ -246,7 +252,9 @@ export function currentReviewedTeamSourceSlotSiblings(
 }
 
 /** Exact team observations are discovery inputs, never strength/Bangboo defaults. */
-export function currentReviewedTeamSourceDirections(): readonly ReviewedTeamSourceDirection[] {
+export function currentReviewedTeamSourceDirections(
+  reviewVersion: string = currentVersionProjection.gameVersion,
+): readonly ReviewedTeamSourceDirection[] {
   const released = new Set(
     currentScopeManifest.entries
       .filter(
@@ -256,10 +264,9 @@ export function currentReviewedTeamSourceDirections(): readonly ReviewedTeamSour
       .map((entry) => entry.stableId),
   )
   const observations: ReviewedTeamSourceDirection[] = [
+    ...reviewedSourceTeamDirectionProjection32(reviewVersion),
     ...reviewedTeamPublishedStrength.facts
-      .filter(
-        (fact) => !fact.withdrawn && fact.sourceVersion === currentReleasedIdentityMap.gameVersion,
-      )
+      .filter((fact) => !fact.withdrawn && fact.sourceVersion === reviewVersion)
       .map((fact) => ({
         memberIds: fact.memberIds,
         sourceRefs: [
@@ -293,7 +300,7 @@ export function currentReviewedTeamSourceDirections(): readonly ReviewedTeamSour
           bangbooEffectExclusions: record.bangbooEffectExclusions,
           sourceLocalSlotId: record.sourceLocalSlotId,
           verificationStatus:
-            record.source.sourceVersion === currentReleasedIdentityMap.gameVersion
+            record.source.sourceVersion === reviewVersion
               ? 'reviewed_exact_nested_membership'
               : 'historical_membership_reference',
         },
@@ -330,8 +337,7 @@ export function currentReviewedTeamSourceDirections(): readonly ReviewedTeamSour
           bangbooIdentityCrosschecks: record.bangbooIdentityCrosschecks,
           imageIdentityReview: record.imageIdentityReview,
           verificationStatus:
-            (record.sourceVersion ?? imageTeamDirections.sourceVersion) !==
-            currentReleasedIdentityMap.gameVersion
+            (record.sourceVersion ?? imageTeamDirections.sourceVersion) !== reviewVersion
               ? 'historical_membership_reference'
               : 'reviewed_exact_image_slots',
         },
@@ -369,8 +375,7 @@ export function currentReviewedTeamSourceDirections(): readonly ReviewedTeamSour
           contentHash:
             record.source?.normalizedBodySha256 ?? reusedTeamDirections.normalizedBodySha256,
           verificationStatus:
-            (record.source?.sourceVersion ?? reusedTeamDirections.sourceVersion) !==
-            currentReleasedIdentityMap.gameVersion
+            (record.source?.sourceVersion ?? reusedTeamDirections.sourceVersion) !== reviewVersion
               ? 'historical_membership_reference'
               : 'reviewed_exact_trio_reused',
           sourceUpdatedAt: record.source?.sourceUpdatedAt ?? null,
@@ -461,7 +466,7 @@ export function currentReviewedTeamSourceDirections(): readonly ReviewedTeamSour
         }
       })
       .map((ref) =>
-        ref.sourceVersion === currentReleasedIdentityMap.gameVersion
+        ref.sourceVersion === reviewVersion
           ? ref
           : { ...ref, verificationStatus: 'historical_membership_reference' },
       )

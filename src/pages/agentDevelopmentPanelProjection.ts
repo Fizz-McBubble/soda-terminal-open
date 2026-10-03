@@ -1,5 +1,6 @@
 import type { RosterAgent } from '../assault/types'
 import type { DriveDisc } from '../domain/schemas'
+import { defaultAscensionForLevel } from '../gameDataPacks/panel/wEngineGrowth'
 import { projectOutOfCombatPanel, type PanelResult } from '../calculation/outOfCombatPanel'
 import {
   getGraduationCandidateProfile,
@@ -34,6 +35,7 @@ function unsupported(
         impact: 0,
         critRate: 0,
         critDamage: 0,
+        lacerationDamage: 0,
         anomalyMastery: 0,
         anomalyProficiency: 0,
         pen: 0,
@@ -98,16 +100,8 @@ export function createAgentDevelopmentPanelProjection(input: {
       graduationCandidate,
     )
   }
-  if (input.agent.level !== 60 || input.agent.wEngineDetails.level !== 60) {
-    return unsupported(
-      source,
-      '当前面板仅支持已登记的 60 级角色与音擎组合。',
-      dataFoundation,
-      graduationCandidate,
-    )
-  }
   if (
-    input.agent.skillLevels.core === null ||
+    input.agent.skillLevels?.core == null ||
     !input.agent.wEngineDetails.id ||
     input.agent.wEngineDetails.refinement === null
   ) {
@@ -118,27 +112,35 @@ export function createAgentDevelopmentPanelProjection(input: {
       graduationCandidate,
     )
   }
-  if (input.agent.skillLevels.core === 1) {
+  if (
+    !Number.isInteger(input.agent.level) ||
+    input.agent.level < 1 ||
+    input.agent.level > 60 ||
+    !Number.isInteger(input.agent.wEngineDetails.level) ||
+    input.agent.wEngineDetails.level < 1 ||
+    input.agent.wEngineDetails.level > 60
+  )
     return unsupported(
       source,
-      'roster 核心技 1 对应上游零档；当前内核尚未提供零档 coreStats，不能伪算。',
+      '角色与音擎等级必须为 1–60 的整数；请修正已记录的等级。',
       dataFoundation,
       graduationCandidate,
     )
-  }
   return {
     source,
     result: projectOutOfCombatPanel({
       agentId: input.agent.agentId,
       level: input.agent.level,
-      ascension: 5,
+      ascension: input.agent.ascension ?? defaultAscensionForLevel(input.agent.level),
       mindscape: input.agent.mindscape,
-      // roster 存储 1–7；锁定上游在六档 coreStats 前补零档，因此 2–7 映射 0–5。
+      // local1 -> explicit source-zero -1; learned2..7 -> A..F indices0..5.
       core: input.agent.skillLevels.core - 2,
       wEngine: {
         id: input.agent.wEngineDetails.id,
         level: input.agent.wEngineDetails.level,
-        ascension: 5,
+        ascension:
+          input.agent.wEngineDetails.ascension ??
+          defaultAscensionForLevel(input.agent.wEngineDetails.level),
         refinement: input.agent.wEngineDetails.refinement,
       },
       discs,

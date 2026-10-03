@@ -1,4 +1,5 @@
 import type { CandidateSetPlan } from './candidateSetPlans'
+import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
 
 export type CandidateSetPlanEligibilityContext = {
   /** The actual selected trio; a partial roster is not an absent teammate. */
@@ -15,6 +16,13 @@ export type CandidateSetPlanEligibilityContext = {
   }
   /** Separate evidence for the effect; a recommended scene does not activate Shock. */
   shockCoverage?: 'verified' | 'not-covered' | 'unknown'
+  operationCoverage?: {
+    basis: 'final-candidate' | 'confirmed-assumption' | 'source-confirmed'
+    exSpecialByAgentId?: Readonly<Record<string, 'verified' | 'not-covered' | 'unknown'>>
+    teamQuickAssist?: 'verified' | 'not-covered' | 'unknown'
+    /** Separate actual effect-window/stacks evidence; action use alone never proves uptime. */
+    effectWindowsBySetId?: Readonly<Record<string, 'verified' | 'not-covered' | 'unknown'>>
+  }
 }
 
 export type CandidateSetPlanEligibility = {
@@ -141,7 +149,13 @@ export function evaluateCandidateSetPlanEligibility(
     boundary,
     ...(condition.rule.kind === 'electric_team'
       ? { effectCoverage: context.shockCoverage ?? 'unknown' }
-      : {}),
+      : condition.rule.kind === 'teammate_specialty_and_action'
+        ? {
+            effectCoverage:
+              context.operationCoverage?.effectWindowsBySetId?.[plan.primarySetIds[0]!] ??
+              'unknown',
+          }
+        : {}),
   })
   // Explicit typed pooled input remains fail-closed. Canonical constraint reads
   // split ordinary pooled source shorthand before it reaches this evaluator.
@@ -159,6 +173,42 @@ export function evaluateCandidateSetPlanEligibility(
     return members.filter((id) => id !== agentId).includes(condition.rule.agentId)
       ? result('eligible', '当前三人队包含这条推荐所需的队友；推荐场景成立不表示触发效果常驻。')
       : result('condition-not-met', '当前三人队缺少这条推荐所需的队友；盘套本身仍可装备。')
+  }
+  if (condition.rule.kind === 'teammate_specialty_and_action') {
+    const peers = members
+      .filter((id) => id !== agentId)
+      .map((id) => getCurrentAgentEventContract(id)?.identity.specialty)
+    if (peers.some((specialty) => !specialty))
+      return result('condition-unknown', '队友特性事实不完整，不能确认来源限定的输出角色。')
+    if (
+      !peers.some(
+        (specialty) =>
+          condition.rule.kind === 'teammate_specialty_and_action' &&
+          condition.rule.specialties.some((required) => required === specialty),
+      )
+    )
+      return result('condition-not-met', '当前队友没有来源限定的输出特性；该套装仍是合法库存分支。')
+    const operations = context.operationCoverage
+    if (
+      !operations ||
+      !['final-candidate', 'confirmed-assumption', 'source-confirmed'].includes(operations.basis)
+    )
+      return result(
+        'condition-unknown',
+        '尚无实际或来源确认的触发动作覆盖；不能凭队友特性自动激活套装。',
+      )
+    const coverage =
+      condition.rule.action === 'wearer_ex_special'
+        ? operations.exSpecialByAgentId?.[agentId]
+        : operations.teamQuickAssist
+    if (!coverage || coverage === 'unknown')
+      return result('condition-unknown', '所需强化特殊技或团队快速支援动作覆盖未知；保留条件候选。')
+    return coverage === 'verified'
+      ? result(
+          'eligible',
+          '来源限定的输出特性与触发动作场景已确认；效果窗口与快速支援层数仍须单独核验，不代表常驻。',
+        )
+      : result('condition-not-met', '当前明确没有所需触发动作覆盖；不视为套装装备禁令。')
   }
   if (
     condition.rule.kind === 'teammate_four_piece' ||

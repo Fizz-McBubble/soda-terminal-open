@@ -1,5 +1,19 @@
 import { current31StrengthGoldSet } from './current31StrengthGoldSet'
-import { currentReleasedIdentityMap } from '../gameDataPacks/currentReleasedIdentityMap'
+import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
+import { stableContentHash } from '../gameDataPacks/types'
+import {
+  canApplyReviewedReferenceSupport32,
+  isExistingReviewed31Formation,
+} from '../gameDataPacks/reviewedReferenceSupportContinuity32'
+
+const goldContentHash = stableContentHash(current31StrengthGoldSet)
+const continuedReference = () =>
+  canApplyReviewedReferenceSupport32({
+    targetVersion: currentVersionProjection.gameVersion,
+    sourceReviewVersion: '3.1',
+    sourceKind: 'strengthGold',
+    sourceContentHash: goldContentHash,
+  })
 
 /**
  * Runtime ordering is deliberately a separate contract from the calibration
@@ -58,7 +72,11 @@ function isStronger(stronger: string, weaker: string) {
 }
 
 export function knownCurrent31ProductionStrongerKeys(identity: VariantIdentity) {
-  if (currentReleasedIdentityMap.gameVersion !== '3.1') return []
+  if (
+    currentVersionProjection.gameVersion !== '3.1' &&
+    (!continuedReference() || !isExistingReviewed31Formation(identity.memberIds))
+  )
+    return []
   const key = current31ProductionPartialOrderVariantKey(identity)
   if (!key) return []
   const pending = [...(strongerByWeaker.get(key) ?? [])]
@@ -77,7 +95,13 @@ export function compareCurrent31ProductionPartialOrder(
   left: VariantIdentity,
   right: VariantIdentity,
 ) {
-  if (currentReleasedIdentityMap.gameVersion !== '3.1') return 0
+  if (
+    currentVersionProjection.gameVersion !== '3.1' &&
+    (!continuedReference() ||
+      !isExistingReviewed31Formation(left.memberIds) ||
+      !isExistingReviewed31Formation(right.memberIds))
+  )
+    return 0
   const leftKey = current31ProductionPartialOrderVariantKey(left)
   const rightKey = current31ProductionPartialOrderVariantKey(right)
   if (!leftKey || !rightKey || leftKey === rightKey) return 0

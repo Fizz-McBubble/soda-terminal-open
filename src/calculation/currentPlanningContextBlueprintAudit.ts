@@ -1,21 +1,25 @@
-import { current31LegalAgentFormations } from '../teamEngine/current31LegalCandidateUniverse'
+import {
+  current31LegalAgentFormations,
+  current31LegalCandidateUniverse,
+} from '../teamEngine/current31LegalCandidateUniverse'
 import { currentAgentPlanningEffectBlueprintCoverage } from './currentAgentPlanningEffectBlueprint'
 import { currentAgentEventContracts } from './currentAgentMechanicContracts'
 import { currentPlanningInteractionFixtureAudit } from './currentPlanningInteractionFixtures'
 import { currentPlanningInteractionMechanicIRAudit } from './currentPlanningInteractionMechanicIR'
 
+const population = current31LegalCandidateUniverse.legality.agentCount
 const allAgentsBlueprintReady =
-  currentAgentEventContracts.length === 58 &&
+  currentAgentEventContracts.length === population &&
   currentAgentEventContracts.every((contract) => contract.eventContract.events.length > 0) &&
-  currentAgentPlanningEffectBlueprintCoverage.agentCount === 58
+  currentAgentPlanningEffectBlueprintCoverage.agentCount === population
 const formationBlueprintReadyCount = allAgentsBlueprintReady
   ? current31LegalAgentFormations.length
   : 0
 const effectBindingCount = allAgentsBlueprintReady
   ? ((currentAgentPlanningEffectBlueprintCoverage.upstreamEffectCount +
       currentAgentPlanningEffectBlueprintCoverage.reviewedPotentialEffectCount) *
-      (58 - 1) *
-      (58 - 2)) /
+      (population - 1) *
+      (population - 2)) /
     2
   : 0
 
@@ -87,7 +91,7 @@ export const currentPlanningContextBlueprintAudit = Object.freeze({
     effectOwnerTargetAndSnapshotPolicy: 'ready',
     eventOccurrenceAndDuration: 'shared_operator_ready_source_contract_required',
     effectActivationValueAndCoverage:
-      '342_frozen_upstream_plus_1_reviewed_potential_expression_shared_ir_ready_runtime_contract_required',
+      'current_upstream_and_reviewed_expression_shared_ir_ready_runtime_contract_required',
     entityEquipmentAndFinalStats: 'account_snapshot_input_required',
     resourceStateTransition: 'shared_operator_ready_source_contract_required',
     fieldTimeOpportunityCost: 'shared_operator_ready_source_contract_required',
@@ -95,5 +99,5 @@ export const currentPlanningContextBlueprintAudit = Object.freeze({
     chainUltimateConversion: 'shared_operator_ready_source_contract_required',
   },
   boundary:
-    'All legal identity formations can enter the shared compiler and six team-interaction operators are structurally executable. The current entity corpus collapses to shared Mechanic IR requirement patterns without dedicated adapters. The locked upstream formula AST remains 342 effects: 303 direct expressions and 39 generic conditionals compiled as declarative PlanningBaseline inputs. A separate reviewed 3.1 Jane potential expression uses the same deterministic IR but does not claim an upstream AST, whole-mechanic coverage, DPS completion, or a Formal CalculationContext. Two upstream TODO boundaries remain explicit and fail closed only when selected. No expression is promoted to a production value until runtime dependencies, activation windows and duration are bound. Semantic fixtures never enter production and missing source-backed contracts fail closed.',
+    'Formation and expression counts follow the current released identity and source catalogs. Shared IR and six interaction operators remain separate from numerical readiness: runtime dependencies, activation windows and duration must be bound. Reviewed prose effects do not claim upstream AST authority. Semantic fixtures never enter production; missing source-backed contracts remain blocked.',
 })

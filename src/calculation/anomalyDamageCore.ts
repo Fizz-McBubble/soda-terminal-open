@@ -1,19 +1,20 @@
 import { stableContentHash } from '../gameDataPacks/types'
 import { resolveAttackerLevelDefenseCoefficient } from './directDamageCore'
 
-export const anomalyDamageCoreVersion = 'soda-anomaly-damage-core-v1' as const
+export const anomalyDamageCoreVersion = 'soda-anomaly-damage-core-v2' as const
 
 export const anomalyDamageCoreIdentity = Object.freeze({
   family: 'anomaly_disorder',
   version: anomalyDamageCoreVersion,
   upstreamRepository: 'frzyc/genshin-optimizer',
-  upstreamCommit: 'eabba1f092b282cccb3f028b7253a1db3dac5208',
+  upstreamCommit: '3456cd0f6f5bea10e168074502460dac2fcd6df4',
   license: 'MIT',
   evidenceRefs: [
-    'GO:dmg.ts:sha256:34AE40061649E0F06FC6BFCCD07F35132103481559B96EDD446F5C8EE939FC5E',
-    'GO:prep.ts:sha256:4DD2D7F4DA7ED1FB4B824E4332B9BC0D60E2B243CD52C4EBBD38253ABE245A77',
-    'GO:char-util.ts:sha256:6278397AFA6C5B5F65A15BDADD16037B67B997DFFB2BF66289D63634BEC49A3D',
+    'GO:common/dmg.ts:sha256:43C1755F8DECECB32F5710F815A8A67C76B4C05F2AD0467A9D3F9714C0B1A3E5',
+    'GO:common/prep.ts:sha256:45D051C23C6055A75EE0B6A894659244754BCE298683F409667419B43E58ADF9',
+    'GO:char/util.ts:sha256:0CD0429E53E7523AFE601A98BA09F3507F132FF820C09942B7B4993BADFBBF21',
   ],
+  windDisorderScope: 'polarity_disorder_only',
   standardAnomalyBaseMultipliers: {
     fire: 0.5,
     electric: 1.25,
@@ -41,7 +42,7 @@ export const anomalyDamageCoreHash = stableContentHash(anomalyDamageCoreIdentity
 export type AnomalyAttribute = keyof typeof anomalyDamageCoreIdentity.standardAnomalyBaseMultipliers
 export type DisorderAttribute = keyof typeof anomalyDamageCoreIdentity.disorderTimeMultipliers
 
-export type AnomalyDamageCoreInput = {
+export type AnomalyDamageCoreInput = import('./damageModifierInputs').CommonDamageModifierInput & {
   attackerLevel: number
   attack: number
   baseMultiplier: number
@@ -50,19 +51,6 @@ export type AnomalyDamageCoreInput = {
   anomalyProficiency: number
   anomalyCritRate: number
   anomalyCritDamage: number
-  damageBonus: number
-  buffBonus: number
-  directDamageBonus: number
-  vulnerability: number
-  defenseReduction: number
-  defenseIgnore: number
-  penetrationRatio: number
-  penetrationFlat: number
-  enemyDefense: number
-  resistance: number
-  resistanceReduction: number
-  resistanceIgnore: number
-  stunMultiplier: number
 }
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value))

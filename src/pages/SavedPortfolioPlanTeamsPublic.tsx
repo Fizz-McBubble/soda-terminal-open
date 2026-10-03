@@ -49,7 +49,7 @@ export function SavedPortfolioPlanTeams({ plan, warehouse }: SavedPortfolioPlanT
               </p>
               <p>
                 {execution.memberIds.map(getAgentName).join(' · ')} ·{' '}
-                {playerFacingBangbooLabel(execution.bangbooId)}
+                {execution.bangbooId ? playerFacingBangbooLabel(execution.bangbooId) : '未纳入'}
               </p>
               <p role="status">
                 当前仓库核对：{presentCount}/{savedIds.length} 张可找到

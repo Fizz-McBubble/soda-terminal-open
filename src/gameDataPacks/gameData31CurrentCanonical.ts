@@ -414,6 +414,7 @@ const packCore = {
   id: 'game-data-current-3.1.0',
   schemaVersion: 1 as const,
   gameVersion: '3.1' as const,
+  reviewedForVersion: '3.1' as const,
   lifecycle: 'current' as const,
   installedAt: checkedAt,
   previousPackId: canonicalBaselinePack30.id,

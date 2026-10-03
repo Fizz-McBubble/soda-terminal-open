@@ -77,7 +77,7 @@ export function candidateConstraintForAgent(agentId: string): CandidateWarehouse
   // 3.1 catalogue intake is a separate candidate layer until the agent receives a
   // formal game ID/Profile projection. Do not let the 3.0-only profile fallback
   // erase an otherwise sourced candidate warehouse constraint.
-  if (constraint.gameVersion === '3.1') return constraint
+  if (constraint.gameVersion === '3.1' || constraint.gameVersion === '3.2') return constraint
   return getAgentProfile(agentId).warehouseStatus === 'candidate' ? constraint : null
 }
 

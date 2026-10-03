@@ -5,6 +5,8 @@
   "packageManager": "pnpm@11.5.3",
   "scripts": {
     "build": "node scripts/build-community.mjs",
+    "source:check": "node scripts/source-manifest.mjs --check",
+    "source:refresh": "node scripts/source-manifest.mjs --refresh",
     "typecheck": "tsc --noEmit --project tsconfig.json",
     "test": "node scripts/test-community.mjs"
   },

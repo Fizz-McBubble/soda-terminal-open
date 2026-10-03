@@ -12,6 +12,7 @@ export type CurrentAgentPlanningEffectBlueprint = {
   effectKey: string
   providerAgentId: string
   effectId: string
+  applicationScope?: 'generic' | 'event_only'
   targetKinds: PlanningEffectTargetKind[]
   snapshotPolicy: 'recompute_per_event'
   activationBoundary: 'explicit_planning_baseline_disposition_required'
@@ -41,6 +42,7 @@ function compileEffectBlueprints(agentId: string): CurrentAgentPlanningEffectBlu
       effectKey: `${agentId}:${effect.effectId}`,
       providerAgentId: agentId,
       effectId: effect.effectId,
+      applicationScope: effect.applicationScope as 'generic' | 'event_only',
       targetKinds: [...new Set(effect.recipients)] as PlanningEffectTargetKind[],
       // R1 never assumes that a buff persists or snapshots. Every included effect
       // is recomputed against the named event unless a later version adds a
@@ -149,5 +151,5 @@ export const currentAgentPlanningEffectBlueprintCoverage = Object.freeze({
   productionExpressionRuntimeReadyCount: 0,
   dedicatedAdapterCount: 0,
   boundary:
-    'The frozen upstream corpus remains separately counted at 342 effects. One reviewed 3.1 Jane potential expression is source-backed prose compiled through the same deterministic IR, but is explicitly not represented as an upstream AST. Upstream-expression-available means reusable formula source exists, not that its runtime inputs, activation window or duration are production-ready. Generic conditionals compile as declarative PlanningBaseline inputs; upstream TODO boundaries remain fail-closed only when the affected condition is selected. R1 uses recompute-per-event so it never invents persistent snapshot semantics.',
+    'Upstream and reviewed prose effects remain separately counted from their current catalogs. Upstream-expression-available means reusable formula source exists, not that its runtime inputs, activation window or duration are production-ready. Generic conditionals compile as declarative PlanningBaseline inputs; event-only effects require the event source registration; upstream TODO boundaries remain fail-closed when the affected condition is selected. Recompute-per-event never invents persistent snapshot semantics.',
 })

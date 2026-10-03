@@ -1,3 +1,4 @@
+import { claimPlanEditorSaveFromProps } from './planEditorBenchmark32Save'
 import { PlanEditorSavedStateNotices } from './PlanEditorSavedStateNotices'
 import { finishPlanEditorSave } from './planEditorSessionRefresh'
 import { useContext, useEffect, useMemo, useRef, useState } from 'react'
@@ -28,11 +29,7 @@ import { withTeamExecutionSubstituteActions } from './teamExecutionWorkspaceSubs
 import { decisionTeamWarehousePlan } from './planningDraftProjection'
 import { useTeamSaveConfirmation } from './useTeamSaveConfirmation'
 import { projectPlanEditorCandidateWarehouse } from './planEditorSaveProjection'
-import {
-  assertCurrentPlanEditorReservation,
-  claimPlanEditorSave,
-  usePlanEditorDraft,
-} from './planEditorSharedState'
+import { assertCurrentPlanEditorReservation, usePlanEditorDraft } from './planEditorSharedState'
 import {
   PlanEditorSharedFooter,
   PlanEditorSharedSavedTeamHeader,
@@ -145,20 +142,7 @@ export function PlanEditor(props: PlanEditorProps) {
   }
 
   const save = async () => {
-    if (
-      !claimPlanEditorSave(
-        saving,
-        {
-          equipmentParametersRequireRefresh,
-          readOnly,
-          staleNotice,
-          accountId: warehouse.accountId!,
-          duplicateMemberId,
-        },
-        setMessage,
-      )
-    )
-      return false
+    if (!claimPlanEditorSaveFromProps(props, saving, duplicateMemberId, setMessage)) return false
     try {
       const remainingSession = assertCurrentPlanEditorReservation(
         kind,
@@ -171,7 +155,10 @@ export function PlanEditor(props: PlanEditorProps) {
         kind === 'team' && targetTeamFit ? targetTeamFit.effectiveEquipmentParameters : undefined
       if (
         kind === 'team' &&
-        (!team || !targetTeamFit || !acceptedExecution || !effectiveTeamParameters)
+        (!team ||
+          !targetTeamFit ||
+          !acceptedExecution ||
+          (!effectiveTeamParameters && !targetTeamFit.accountFactBinding))
       )
         throw new Error('当前方案展示或装备参数未就绪，请重新匹配后再保存。')
       const approved =
@@ -193,7 +180,11 @@ export function PlanEditor(props: PlanEditorProps) {
           })
         : undefined
       let inputFingerprint = ''
-      if (kind === 'team' && targetTeamFit && effectiveTeamParameters) {
+      if (
+        kind === 'team' &&
+        targetTeamFit &&
+        (effectiveTeamParameters || targetTeamFit.accountFactBinding)
+      ) {
         const input = decisionWorld.liveInput
         const run = decisionWorld.run
         if (!calculationClient || !input || !run || decisionWorld.status !== 'current')
@@ -224,7 +215,9 @@ export function PlanEditor(props: PlanEditorProps) {
           buildIntentFingerprint: contentHash([
             targetTeamFit.buildIntent.fingerprint,
             exactVariantKey,
-            targetTeamEquipmentParametersFingerprint(effectiveTeamParameters),
+            effectiveTeamParameters
+              ? targetTeamEquipmentParametersFingerprint(effectiveTeamParameters)
+              : targetTeamFit.accountFactBinding!.fingerprint,
           ]),
           nonPlanningComponents: localPrivateNonPlanningComponents(
             accepted.nonPlanningComponents,
@@ -236,22 +229,24 @@ export function PlanEditor(props: PlanEditorProps) {
         kind === 'team' && targetTeamFit
           ? targetTeamFit.targetExecution
           : draft.teamExecutionSnapshot
-      const next = await persistPlanEditorDraft({
-        accountId: warehouse.accountId!,
-        draft,
-        nextPlanId,
-        approved,
-        team,
-        selectedBangbooId,
-        candidateWarehouse,
-        teamExecutionSnapshot,
-        teamEquipmentParameters: effectiveTeamParameters ?? undefined,
-        targetTeamFit,
-        inputFingerprint,
-        exactVariantKey,
-        profiles: profiles,
-        remainingSession,
-      })
+      const next = await persistPlanEditorDraft(
+        {
+          accountId: warehouse.accountId!,
+          draft,
+          nextPlanId,
+          approved,
+          team,
+          selectedBangbooId,
+          candidateWarehouse,
+          teamExecutionSnapshot,
+          teamEquipmentParameters: effectiveTeamParameters ?? undefined,
+          targetTeamFit,
+          inputFingerprint,
+          exactVariantKey,
+          profiles: profiles,
+          remainingSession,
+        },
+      )
       setDraft(next)
       setSaved(true)
       setDirty(false)

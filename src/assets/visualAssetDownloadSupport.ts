@@ -1,4 +1,5 @@
 import type { VisualAsset } from './visualAssets'
+import reviewedUrls from './reviewed32-media-urls.json'
 
 const officialVisualAssetSources = [
   { host: 'act-upload.mihoyo.com', pathPrefix: '/nap-obc-indep/', sourceType: 'official' },
@@ -16,12 +17,13 @@ export function getOfficialVisualAssetDownloadUrl(
   const remoteUrl = new URL(asset.remoteUrl)
   if (
     remoteUrl.protocol !== 'https:' ||
-    !officialVisualAssetSources.some(
-      (source) =>
-        remoteUrl.hostname === source.host &&
-        remoteUrl.pathname.startsWith(source.pathPrefix) &&
-        asset.sourceType === source.sourceType,
-    )
+    (!(asset.sourceType === 'community' && Object.values(reviewedUrls).includes(asset.remoteUrl)) &&
+      !officialVisualAssetSources.some(
+        (source) =>
+          remoteUrl.hostname === source.host &&
+          remoteUrl.pathname.startsWith(source.pathPrefix) &&
+          asset.sourceType === source.sourceType,
+      ))
   ) {
     throw new Error(`${asset.name} 的图片来源暂不可用`)
   }

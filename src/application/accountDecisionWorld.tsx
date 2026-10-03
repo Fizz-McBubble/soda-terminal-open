@@ -25,6 +25,7 @@ export {
   useDetachedAccountDecisionCalculation,
   useDevelopmentCandidateAlternativesCalculation,
   useDevelopmentWorkbenchRouteCalculation,
+  useReviewedIncrementalEvent32Calculation,
   useAccountDecisionWorld,
   useOptionalAccountDecisionWorld,
 } from './accountDecisionWorldHooks'

@@ -54,7 +54,10 @@ export function inspectSavedTeamPortfolioPlanSnapshotFreshness(
 
 /** A saved team remains readable history until its current input has been verified. */
 export function inspectSavedTeamPlanSnapshotFreshness(
-  plan: Pick<AccountPlanningDraft, 'kind' | 'solutionContext' | 'teamEquipmentParameters'>,
+  plan: Pick<
+    AccountPlanningDraft,
+    'kind' | 'solutionContext' | 'teamEquipmentParameters' | 'teamAccountFactBinding'
+  >,
   liveInputFingerprint: string | null | undefined,
   legacyCombinedFingerprint?: string,
   currentSavedTeamFingerprint?: string,
@@ -68,7 +71,8 @@ export function inspectSavedTeamPlanSnapshotFreshness(
     !context.inputFingerprint
   )
     return { stale: true, reason: 'missing-snapshot' }
-  if (!plan.teamEquipmentParameters) return { stale: true, reason: 'legacy-unverifiable' }
+  if (!plan.teamEquipmentParameters && !plan.teamAccountFactBinding)
+    return { stale: true, reason: 'legacy-unverifiable' }
   if (context.inputFingerprint.startsWith(savedTeamFingerprintPrefix)) {
     if (!currentSavedTeamFingerprint) return { stale: true, reason: 'current-result-unavailable' }
     return context.inputFingerprint === currentSavedTeamFingerprint

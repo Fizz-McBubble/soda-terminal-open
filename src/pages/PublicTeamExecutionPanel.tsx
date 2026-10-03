@@ -143,7 +143,7 @@ export function PublicTeamExecutionPanel({
     setPending(true)
     setError('')
     try {
-      await onConfirmEquipmentParameters(next)
+      await onConfirmEquipmentParameters({ ...next, koledaFixedEventConditions32: undefined })
     } catch {
       setError('方案参数未应用，原方案已保留。请重试。')
     } finally {
@@ -302,7 +302,9 @@ export function PublicTeamExecutionPanel({
               <p>
                 邦布：
                 {selectedBangboo?.name ??
-                  playerFacingBangbooLabel(targetTeamFit?.targetExecution.bangbooId ?? '')}
+                  (targetTeamFit?.targetExecution.bangbooId
+                    ? playerFacingBangbooLabel(targetTeamFit.targetExecution.bangbooId)
+                    : '未纳入')}
               </p>
             )}
           </div>

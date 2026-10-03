@@ -24,7 +24,11 @@ import {
   compositionCacheKey,
   evaluateBangbooFixedEvent,
 } from './exhaustiveBangbooScoring'
+import type { CurrentWEngineFormulaRuntime } from '../calculation/currentWEnginePersonalPlanningEffects'
+import type { PotentialApplicationEvent } from '../calculation/potentialApplicationBinding'
 import { compileAgentAlternatives, bestDistinctAssignment } from './exhaustiveAgentScoring'
+import { compileIncremental32PlanningSourceSelection } from './incremental32PlanningSourceSelection'
+import { projectTargetTeamWEngineModifiers } from '../calculation/targetTeamEquipmentModifierProjection'
 
 export { projectCurrentBangbooComposition } from './exhaustiveBangbooScoring'
 
@@ -99,6 +103,9 @@ export function scoreCurrent31ExhaustiveAccountCandidates(input: {
   roster: AccountRoster
   allocation: AccountBuildResult
   discs: readonly DriveDisc[]
+  engineRuntimeByCopyId?: Readonly<Record<string, CurrentWEngineFormulaRuntime>>
+  baselineReferencesByAgentId?: Readonly<Record<string, Readonly<Record<string, unknown>>>>
+  potentialEvents?: Readonly<Record<string, PotentialApplicationEvent>>
 }) {
   const ownedAgentIds = input.roster.agents
     .filter((agent) => agent.owned)
@@ -176,13 +183,65 @@ export function scoreCurrent31ExhaustiveAccountCandidates(input: {
       }
       continue
     }
+    const sourceSelection = compileIncremental32PlanningSourceSelection({
+      members: assignment.map((item) => item.runtimeMember),
+      eventUsages: assignment.flatMap((item) => item.eventUsages),
+    })
+    const sourceTeamEquipment = sourceSelection.sourcePackets.length
+      ? projectTargetTeamWEngineModifiers({
+          memberIds: candidate.memberIds,
+          members: assignment.map((item) => item.runtimeMember),
+          parameters: {
+            wEngines: assignment.map((item) => ({
+              agentId: item.agentId,
+              engineId: item.wEngineId,
+              refinement: item.progression.refinement,
+              level: item.progression.engineLevel,
+            })),
+          },
+          runtimeByAgentId: Object.fromEntries(
+            assignment.map((item) => {
+              const declared = input.engineRuntimeByCopyId?.[item.wEngineCopyId]
+              return [
+                item.agentId,
+                {
+                  ...declared,
+                  flags: {
+                    ...sourceSelection.runtimeByAgentId[item.agentId]?.flags,
+                    ...declared?.flags,
+                  },
+                },
+              ]
+            }),
+          ),
+        })
+      : null
     const teamDamage = evaluateSourceBackedPlanningTeamDps({
       memberIds: candidate.memberIds,
       members: assignment.map((item) => item.runtimeMember),
-      eventUsages: assignment.flatMap((item) => item.eventUsages),
+      eventUsages: sourceSelection.eventUsages,
       baseline: currentNormalizedPlanningBaseline,
+      equipmentModifierBuckets: sourceTeamEquipment
+        ? [
+            ...assignment.flatMap((item) =>
+              item.equipmentModifierBuckets.filter(
+                (bucket) => !bucket.effectKey.startsWith('wengine:'),
+              ),
+            ),
+            ...sourceTeamEquipment.directRuntime.buckets,
+          ]
+        : assignment.flatMap((item) => item.equipmentModifierBuckets),
+      baselineReferencesByAgentId: {
+        ...sourceSelection.referencesByAgentId,
+        ...input.baselineReferencesByAgentId,
+      },
+      potentialEvents: input.potentialEvents,
     })
-    if (teamDamage.status === 'unsupported') {
+    if (
+      sourceSelection.status !== 'supported' ||
+      (sourceTeamEquipment && sourceTeamEquipment.status !== 'supported') ||
+      teamDamage.status === 'unsupported'
+    ) {
       candidateEvaluationFingerprintWord = absorbFingerprintWord(
         candidateEvaluationFingerprintWord,
         2,

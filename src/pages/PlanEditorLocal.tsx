@@ -1,3 +1,4 @@
+import { claimPlanEditorSaveFromProps } from './planEditorBenchmark32Save'
 import { PlanEditorSavedStateNotices } from './PlanEditorSavedStateNotices'
 import { finishPlanEditorSave } from './planEditorSessionRefresh'
 import { useContext, useEffect, useMemo, useRef, useState } from 'react'
@@ -20,11 +21,7 @@ import { AgentPlanDetails } from './AgentPlanDetails'
 import type { PlanEditorProps } from './PlanEditorProps'
 import { useTeamSaveConfirmation } from './useTeamSaveConfirmation'
 import { projectPlanEditorCandidateWarehouse } from './planEditorSaveProjection'
-import {
-  assertCurrentPlanEditorReservation,
-  claimPlanEditorSave,
-  usePlanEditorDraft,
-} from './planEditorSharedState'
+import { assertCurrentPlanEditorReservation, usePlanEditorDraft } from './planEditorSharedState'
 import {
   PlanEditorSharedFooter,
   PlanEditorSharedSavedTeamHeader,
@@ -138,20 +135,7 @@ export function PlanEditor(props: PlanEditorProps) {
       ? withTeamExecutionSubstituteActions(team, alternativeTeams, onSelectAlternative)
       : undefined
   const save = async () => {
-    if (
-      !claimPlanEditorSave(
-        saving,
-        {
-          equipmentParametersRequireRefresh,
-          readOnly,
-          staleNotice,
-          accountId: warehouse.accountId!,
-          duplicateMemberId,
-        },
-        setMessage,
-      )
-    )
-      return false
+    if (!claimPlanEditorSaveFromProps(props, saving, duplicateMemberId, setMessage)) return false
     try {
       const remainingSession = assertCurrentPlanEditorReservation(
         kind,
@@ -162,7 +146,7 @@ export function PlanEditor(props: PlanEditorProps) {
       const candidateWarehouse = projectPlanEditorCandidateWarehouse(selectedCandidatePlan)
       const effectiveTeamParameters =
         kind === 'team' && targetTeamFit ? targetTeamFit.effectiveEquipmentParameters : undefined
-      if (kind === 'team' && !effectiveTeamParameters)
+      if (kind === 'team' && !effectiveTeamParameters && !targetTeamFit?.accountFactBinding)
         throw new Error('当前方案缺少已验证的装备参数，请重新匹配后再保存。')
       const approved =
         kind === 'team'
@@ -192,7 +176,9 @@ export function PlanEditor(props: PlanEditorProps) {
               buildIntentFingerprint: contentHash([
                 targetTeamFit.buildIntent.fingerprint,
                 exactVariantKey,
-                targetTeamEquipmentParametersFingerprint(effectiveTeamParameters!),
+                effectiveTeamParameters
+                  ? targetTeamEquipmentParametersFingerprint(effectiveTeamParameters)
+                  : targetTeamFit.accountFactBinding!.fingerprint,
               ]),
             })
           : ''
@@ -206,22 +192,24 @@ export function PlanEditor(props: PlanEditorProps) {
               }).orderedMemberIds,
             }
           : draft.teamExecutionSnapshot
-      const next = await persistPlanEditorDraft({
-        accountId: warehouse.accountId!,
-        draft,
-        nextPlanId,
-        approved,
-        team,
-        selectedBangbooId,
-        candidateWarehouse,
-        teamExecutionSnapshot,
-        teamEquipmentParameters: effectiveTeamParameters ?? undefined,
-        targetTeamFit,
-        inputFingerprint,
-        exactVariantKey,
-        profiles: activeProfiles,
-        remainingSession,
-      })
+      const next = await persistPlanEditorDraft(
+        {
+          accountId: warehouse.accountId!,
+          draft,
+          nextPlanId,
+          approved,
+          team,
+          selectedBangbooId,
+          candidateWarehouse,
+          teamExecutionSnapshot,
+          teamEquipmentParameters: effectiveTeamParameters ?? undefined,
+          targetTeamFit,
+          inputFingerprint,
+          exactVariantKey,
+          profiles: activeProfiles,
+          remainingSession,
+        },
+      )
       setDraft(next)
       setSaved(true)
       setDirty(false)

@@ -127,7 +127,10 @@ export function TeamPlan({
   const needsBangbooChoice =
     Boolean(targetCandidateId) && playerConfirmableBangbooOptions.length > 0 && !automaticBangboo
   const bangbooUnavailable =
-    !team?.bangbooId && !automaticBangboo && playerConfirmableBangbooOptions.length === 0
+    !route?.discOnlyCandidate &&
+    !team?.bangbooId &&
+    !automaticBangboo &&
+    playerConfirmableBangbooOptions.length === 0
   const canRecoverTargetFit =
     Boolean(team && analysisRunId && targetCandidateId) &&
     !currentTargetTeamFit &&
@@ -237,7 +240,7 @@ export function TeamPlan({
       return
     }
     const destination = `/loadouts/team/${encodeURIComponent(candidateId)}`
-    if (!entry.team.bangbooId && !entry.automaticBangboo) {
+    if (!entry.discOnlyCandidate && !entry.team.bangbooId && !entry.automaticBangboo) {
       navigate(destination)
       return
     }

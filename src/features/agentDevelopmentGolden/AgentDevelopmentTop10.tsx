@@ -4,7 +4,12 @@ import { BackNavigation } from '../../components/BackNavigation'
 import { DevelopmentDiscCard } from './DevelopmentDiscCard'
 import { Top10StatTable } from './Top10StatTable'
 import type { AgentDevelopmentGoldenProps, GoldenTop10Data, JourneyScenario } from './types'
-import { benchmarkLabel, benchmarkOverallReason, effectiveHitLabel } from './top10Labels'
+import {
+  benchmarkLabel,
+  benchmarkOverallReason,
+  benchmarkScopeNote,
+  effectiveHitLabel,
+} from './top10Labels'
 
 export function Top10({
   back,
@@ -348,10 +353,12 @@ export function Top10({
               (selectedBenchmark.coverage.domain === 'fixed_event_direct_damage' ||
                 benchmarkOverallReason(selectedBenchmark)) ? (
                 <span className="comparison-summary-intro__note">
-                  仅比较同一段输出，不代表整场表现
+                  {benchmarkScopeNote(selectedBenchmark)}
                 </span>
               ) : null}
-              {selectedBenchmark?.comparisonBasis.changedDimensions.length &&
+              {baselineAvailable &&
+              !data.snapshot?.stale &&
+              selectedBenchmark?.status === 'supported' &&
               selectedBenchmark.comparisonBasis.changedDimensions.length > 1 ? (
                 <span className="comparison-summary-intro__note">
                   输出对比同时计入
@@ -363,7 +370,9 @@ export function Top10({
                           ? '音擎'
                           : dimension === 'bangboo'
                             ? '邦布'
-                            : dimension,
+                            : dimension === 'potential'
+                              ? '潜能'
+                              : dimension,
                     )
                     .join('、')}
                   的变化。

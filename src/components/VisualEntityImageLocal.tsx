@@ -119,7 +119,11 @@ export function VisualEntityImage({
   }, [asset, assetKey, bundledSource, cacheVersion, runtimeRevision, shouldResolve])
 
   if (!source || failed) {
-    const fallbackLabel = resolving ? '图片加载中' : asset ? '图片暂未提供' : '暂无可用图像'
+    const fallbackLabel = resolving
+      ? '图片加载中'
+      : asset?.remoteUrl || bundledSource
+        ? '图片未加载'
+        : '此图暂缺'
     return (
       <span
         ref={setImageElement}

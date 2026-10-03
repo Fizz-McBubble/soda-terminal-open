@@ -1,6 +1,9 @@
 import { stableContentHash } from '../gameDataPacks/types'
 import type { CurrentWEngineStaticCatalogItem } from '../gameDataPacks/currentWEngineStaticCatalog'
-import type { PlanningEffectRuntimeMember } from './currentPlanningEffectRuntime'
+import {
+  evaluateCurrentPlanningInitialCritConversion32,
+  type PlanningEffectRuntimeMember,
+} from './currentPlanningEffectRuntime'
 import type { PotentialApplicationBinding } from './potentialApplicationBinding'
 import type { compileCurrentWEnginePersonalPlanningEffects } from './currentWEnginePersonalPlanningEffects'
 import type {
@@ -16,7 +19,10 @@ export function completePersonalValueBenchmarkCoverage(input: {
   member: PlanningEffectRuntimeMember
   potentialApplications: readonly PotentialApplicationBinding[]
   engineEffects?: ReturnType<typeof compileCurrentWEnginePersonalPlanningEffects>
+  sourceEffectKeys?: readonly string[]
+  sourceEffectExclusions?: readonly ValueBenchmarkEffectExclusion[]
 }): ValueBenchmarkCoverage {
+  const initialConversion = evaluateCurrentPlanningInitialCritConversion32(input.member)
   const source = input.engineSource
   const engineExclusion: ValueBenchmarkEffectExclusion = {
     effectKey: `wengine:${input.engine.engineId}:passive`,
@@ -45,12 +51,17 @@ export function completePersonalValueBenchmarkCoverage(input: {
         ...input.discCoverage.excludedEffects,
         ...(input.engineEffects ? input.engineEffects.exclusions : [engineExclusion]),
         ...potentialExclusions,
+        ...(input.sourceEffectExclusions ?? []),
       ].map((effect) => [stableContentHash(effect), effect] as const),
     ).values(),
   ]
   const includedEffectKeys = [
     ...new Set([
       ...input.discCoverage.includedEffectKeys,
+      ...(input.sourceEffectKeys ?? []),
+      ...(initialConversion.status === 'supported' && initialConversion.critRate !== 0
+        ? ['agent-claret:core_initial_crit_']
+        : []),
       ...(input.engineEffects?.buckets.map((bucket) => bucket.effectKey) ?? []),
       ...input.potentialApplications
         .filter((effect) => effect.status === 'applied')
@@ -64,9 +75,12 @@ export function completePersonalValueBenchmarkCoverage(input: {
     exclusionContextFingerprint: stableContentHash({
       discContext: input.discCoverage.exclusionContextFingerprint,
       engine: input.engine,
+      initialConversion,
       engineEffects: input.engineEffects?.fingerprint ?? null,
       member: input.member,
       potentialApplications: input.potentialApplications,
+      sourceEffectKeys: input.sourceEffectKeys,
+      sourceEffectExclusions: input.sourceEffectExclusions,
       exclusions: excludedEffects,
     }),
     boundary:

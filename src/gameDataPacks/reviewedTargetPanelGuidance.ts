@@ -1,6 +1,5 @@
 import reviewedTargetPanelGuidanceData from './data/reviewed-target-panel-guidance.3.1.json'
 import type { AgentProfileField } from './agentProfile'
-import { currentVersionProjection } from './currentVersionProjection'
 import type {
   TargetPanelMetricKey,
   TargetPanelMetricSemantic,
@@ -331,7 +330,7 @@ export function reviewedTargetPanelGuidance(agentId: string): AgentProfileField 
     path: 'build.target_panel',
     value,
     status: 'candidate',
-    gameVersion: currentVersionProjection.gameVersion,
+    gameVersion: reviewedTargetPanelGuidanceData.reviewedForVersion,
     originalSourceVersion: sourceVersion,
     lastChangeVersion: null,
     currentApplicability: 'continuous',

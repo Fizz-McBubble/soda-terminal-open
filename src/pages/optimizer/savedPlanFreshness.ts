@@ -1,3 +1,5 @@
+import { reviewedAuthorComparisonMembership32 } from '../../decision/reviewedAuthorComparisonMembership32'
+import { authorComparisonAccountBinding } from '../../application/publicAuthorComparisonAccountBinding'
 import type { getAccountPlanningDraft } from '../../accounts/planningDrafts'
 export { savedPlanStaleNotice } from '../../application/publicSavedPlanStaleNotice'
 import type { CoreWarehouse } from '../../accounts/coreFlow'
@@ -6,7 +8,10 @@ import {
   createAccountTeamEngineBoxInput,
   createAuthorityExecutionVariantResolver,
 } from '../../decision/authorityExecutionVariantResolver'
-import { compileTeamBuildIntent } from '../../decision/buildIntent'
+import {
+  compileTeamBuildIntent,
+  compileAuthorComparisonTeamBuildIntent,
+} from '../../decision/buildIntent'
 import { candidatePanelInputsForScheme } from '../../optimizer/optimizeAccountBuilds'
 import { authorityConsumerRecommendations } from '../../application/authorityConsumerRecommendations'
 import {
@@ -17,6 +22,7 @@ import {
 } from '../../decision/targetTeamEquipmentParameters'
 import type { BangbooSelection, BangbooStar } from '../../teamEngine/contracts'
 import { current31TeamEngineD1Pack } from '../../teamEngine/current31D1Pack'
+import { currentBangbooDirectory } from '../../assault/catalog'
 
 function savedBangbooStar(parameters: { bangbooStars: number }) {
   const { bangbooStars } = parameters
@@ -64,6 +70,41 @@ export function currentSavedTeamBuildIntent(
   decision: AccountDecisionSnapshot | undefined,
   warehouse: CoreWarehouse | undefined,
 ) {
+  if (plan?.kind === 'team' && decision && warehouse && plan.teamAccountFactBinding) {
+    const candidate = authorityConsumerRecommendations(decision.decisionAuthority).find(
+      (row) => row.candidateId === plan.solutionContext?.sourceCandidateId,
+    )
+    const ids = plan.selection.agentIds
+    const owned = warehouse.roster.agents.filter((row) => row.owned).map((row) => row.agentId)
+    const source = reviewedAuthorComparisonMembership32(ids, owned)
+    if (
+      !candidate?.authorComparisonMembership ||
+      !source ||
+      ids.length !== 3 ||
+      candidate.memberIds.some((id) => !ids.includes(id)) ||
+      plan.selection.bangbooId !== null ||
+      plan.teamExecutionSnapshot?.bangbooId !== null ||
+      plan.teamExecutionSnapshot.authorComparisonMembership?.fingerprint !== source.fingerprint
+    )
+      return undefined
+    const binding = authorComparisonAccountBinding(warehouse, ids, source.fingerprint)
+    if (binding.fingerprint !== plan.teamAccountFactBinding.fingerprint) return undefined
+    return {
+      buildIntent: compileAuthorComparisonTeamBuildIntent({
+        candidateId: candidate.candidateId,
+        memberIds: ids as [string, string, string],
+        ownedAgentIds: owned,
+        agentStateById: Object.fromEntries(
+          warehouse.roster.agents.map((row) => [
+            row.agentId,
+            { potentialImage: row.potentialImage },
+          ]),
+        ),
+      }),
+      effectiveEquipmentParameters: undefined,
+      accountFactBinding: binding,
+    }
+  }
   if (!plan || plan.kind !== 'team' || !decision || !warehouse || !plan.teamEquipmentParameters)
     return undefined
   const sameMembers = (memberIds: readonly string[]) =>
@@ -103,7 +144,19 @@ export function currentSavedTeamBuildIntent(
   const resolvedSourceBangbooId =
     matchingAuthority?.bangbooId ??
     (matchingEngine && sourceBangbooId(matchingEngine)) ??
-    (playerConfirmedSourceSelection ? plan.teamEquipmentParameters.bangbooId : null)
+    (playerConfirmedSourceSelection ? plan.teamEquipmentParameters.bangbooId : null) ??
+    (matchingAuthority &&
+    !matchingEngine &&
+    !unboundEngine &&
+    plan.teamEquipmentParameters.source === 'player_confirmed' &&
+    currentBangbooDirectory.some(
+      (entry) =>
+        entry.id === plan.teamEquipmentParameters!.bangbooId &&
+        entry.releaseState === 'released' &&
+        entry.accountOwnable,
+    )
+      ? plan.teamEquipmentParameters.bangbooId
+      : null)
   if (
     !candidate ||
     !resolvedSourceBangbooId ||
@@ -180,5 +233,6 @@ export function currentSavedTeamBuildIntent(
       ),
     }),
     effectiveEquipmentParameters: plan.teamEquipmentParameters,
+    accountFactBinding: undefined,
   }
 }

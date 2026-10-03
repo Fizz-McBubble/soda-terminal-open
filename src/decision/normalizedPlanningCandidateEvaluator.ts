@@ -23,8 +23,11 @@ import {
   type PlanningEventUsage,
 } from '../calculation/planningCalculationContextCompiler'
 import type { DriveDisc } from '../domain/schemas'
-import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
+import { candidateCalculationPackage } from '../gameDataPacks/currentCalculationCandidate'
+import { compileCurrentWEnginePersonalPlanningEffects } from '../calculation/currentWEnginePersonalPlanningEffects'
 import { stableContentHash } from '../gameDataPacks/types'
+import { compileIncremental32PlanningSourceSelection } from './incremental32PlanningSourceSelection'
+import { projectTargetTeamWEngineModifiers } from '../calculation/targetTeamEquipmentModifierProjection'
 import type { TeamEngineCandidate } from '../teamEngine/contracts'
 import type { TeamExecution } from './teamExecutionProjection'
 import { evaluateCurrentBangbooPlanningParameter } from '../calculation/currentBangbooPlanningAdapter'
@@ -116,7 +119,7 @@ export function evaluateNormalizedPlanningCandidate(input: {
       wEngine: {
         copyId: schemeBindingId,
         engineId: selectedEngine.engineId,
-        level: 60,
+        level: stats.progression.engineLevel,
         refinement: selectedEngine.refinement,
       },
       discs: discs.map((disc) => ({
@@ -135,6 +138,7 @@ export function evaluateNormalizedPlanningCandidate(input: {
     })
     effectRuntimeMembers.push({
       agentId,
+      level: rosterAgent.level,
       mindscape: rosterAgent.mindscape,
       potential: resolvePotentialImage(agentId, rosterAgent.potentialImage) ?? null,
       // Formula tables index the seven core-skill nodes, whereas account skill
@@ -149,14 +153,48 @@ export function evaluateNormalizedPlanningCandidate(input: {
   if (new Set(assets.flatMap((asset) => asset.discs.map((disc) => disc.id))).size !== 18)
     return null
 
+  const sourceSelection = compileIncremental32PlanningSourceSelection({
+    members: effectRuntimeMembers,
+    eventUsages,
+  })
+  if (sourceSelection.status !== 'supported') return null
+  eventUsages.splice(0, eventUsages.length, ...sourceSelection.eventUsages)
+
   const discEffects = compileCurrentDriveDiscPlanningEffects({
     members: effectRuntimeMembers,
     loadouts: assets.map((asset) => ({ agentId: asset.agentId, discs: asset.discs })),
   })
   if (discEffects.status !== 'supported') return null
+  const engineEffects = assets.map((asset) =>
+    compileCurrentWEnginePersonalPlanningEffects({
+      agentId: asset.agentId,
+      engineId: asset.wEngine.engineId,
+      refinement: asset.wEngine.refinement,
+      member: effectRuntimeMembers.find((member) => member.agentId === asset.agentId),
+      runtime: sourceSelection.runtimeByAgentId[asset.agentId],
+    }),
+  )
+  if (engineEffects.some((effects) => effects.status !== 'supported')) return null
+  const sourceTeamEquipment = sourceSelection.sourcePackets.length
+    ? projectTargetTeamWEngineModifiers({
+        memberIds: candidate.memberIds,
+        parameters: {
+          wEngines: assets.map((asset) => ({
+            agentId: asset.agentId,
+            engineId: asset.wEngine.engineId,
+            refinement: asset.wEngine.refinement,
+            level: asset.wEngine.level,
+          })),
+        },
+        members: effectRuntimeMembers,
+        runtimeByAgentId: sourceSelection.runtimeByAgentId,
+      })
+    : null
+  if (sourceTeamEquipment && sourceTeamEquipment.status !== 'supported') return null
   const effectResult = compileCurrentPlanningFormationEffectObservations({
     memberIds: candidate.memberIds,
     members: effectRuntimeMembers,
+    baselineReferencesByAgentId: sourceSelection.referencesByAgentId,
   })
   if (effectResult.status === 'unsupported') return null
   const accountSnapshot = {
@@ -173,14 +211,14 @@ export function evaluateNormalizedPlanningCandidate(input: {
   }
   const context = compilePlanningCalculationContext({
     contextId: `normalized:${candidate.candidateId}:${input.planningHash}`,
-    gameVersion: '3.1',
+    gameVersion: currentNormalizedPlanningBaseline.gameVersion,
     canonical: {
-      packageId: currentVersionProjection.packageId,
-      packageVersion: currentVersionProjection.packageVersion,
-      gameVersion: '3.1',
+      packageId: candidateCalculationPackage.packageId,
+      packageVersion: candidateCalculationPackage.packageVersion,
+      gameVersion: candidateCalculationPackage.gameVersion,
       contentHash: currentNormalizedPlanningBaseline.sourcePackHash,
       status: 'candidate',
-      rollbackPackageId: currentVersionProjection.rollbackPackageId,
+      rollbackPackageId: candidateCalculationPackage.rollbackPackageId,
     },
     accountSnapshot,
     baseline: currentNormalizedPlanningBaseline,
@@ -206,6 +244,9 @@ export function evaluateNormalizedPlanningCandidate(input: {
       candidateId: candidate.candidateId,
       execution,
       discEffects: discEffects.fingerprint,
+      engineEffects,
+      sourceSelection: sourceSelection.fingerprint,
+      sourceTeamEquipment: sourceTeamEquipment?.directRuntime.fingerprint ?? null,
     }),
   })
   if (context.status === 'unsupported') return null
@@ -216,7 +257,14 @@ export function evaluateNormalizedPlanningCandidate(input: {
     members: effectRuntimeMembers,
     eventUsages,
     baseline: currentNormalizedPlanningBaseline,
-    equipmentModifierBuckets: discEffects.buckets,
+    equipmentModifierBuckets: [
+      ...discEffects.buckets,
+      ...(sourceTeamEquipment?.directRuntime.buckets ??
+        engineEffects.flatMap((effects) =>
+          effects.status === 'supported' ? effects.buckets : [],
+        )),
+    ],
+    baselineReferencesByAgentId: sourceSelection.referencesByAgentId,
   })
   if (sourceBackedDamage.status === 'unsupported') return null
   const personalSupports: CalculationSupport[] = candidate.memberIds.map((agentId) => ({

@@ -19,6 +19,7 @@ export const agentSpecialtyLabels: Record<string, string> = {
   support: '支援',
   defense: '防护',
   rupture: '命破',
+  armorer: '锋御',
 }
 
 /** Never expose a stable catalog key when its player-facing label is not available. */

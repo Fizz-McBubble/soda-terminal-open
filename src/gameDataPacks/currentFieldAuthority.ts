@@ -1,6 +1,15 @@
-import { gameData31CurrentFields, type CurrentCanonicalField } from './gameData31CurrentCanonical'
+import { reviewedBuildContinuity32 } from './reviewedBuildContinuity32'
+import {
+  gameData31CurrentCanonical,
+  gameData31CurrentFields,
+  type CurrentCanonicalField,
+} from './gameData31CurrentCanonical'
 import { currentVersionProjection } from './currentVersionProjection'
 import { stableContentHash } from './types'
+import {
+  canApplyReviewedReferenceSupport32,
+  reviewedReferenceSupportContinuity32,
+} from './reviewedReferenceSupportContinuity32'
 
 export const currentFieldApplicabilities = [
   'verified_current',
@@ -23,6 +32,12 @@ export type CurrentFieldAuthorityCandidate = {
   supersedes: readonly string[]
   sourceRefs: readonly string[]
   contentHash: string
+  referenceContinuity?: {
+    adoptionId: string
+    sourceReviewVersion: string
+    adoptedForVersion: string
+    referenceContentHash: string
+  }
 }
 
 export type CurrentFieldResolution =
@@ -84,12 +99,13 @@ function byAuthority(left: CurrentFieldAuthorityCandidate, right: CurrentFieldAu
  */
 export function resolveCurrentFieldAuthority(
   candidates: readonly CurrentFieldAuthorityCandidate[],
-  targetVersion = currentVersionProjection.gameVersion,
+  targetVersion: string = currentVersionProjection.gameVersion,
 ): CurrentFieldResolution {
   const consideredIds = candidates.map((candidate) => candidate.id).sort()
   const usable = candidates.filter(
     (candidate) =>
-      candidate.evaluatedForVersion === targetVersion &&
+      (candidate.evaluatedForVersion === targetVersion ||
+        hasCanonicalReferenceContinuity(candidate, targetVersion)) &&
       candidate.freshness === 'current' &&
       candidate.evidence !== 'missing' &&
       candidate.sourceRefs.some((ref) => ref.trim().length > 0) &&
@@ -123,6 +139,28 @@ export function resolveCurrentFieldAuthority(
       }
 }
 
+function hasCanonicalReferenceContinuity(
+  candidate: CurrentFieldAuthorityCandidate,
+  targetVersion: string,
+) {
+  const proof = candidate.referenceContinuity
+  const field = gameData31CurrentFields.find((row) => row.id === candidate.id)
+  return Boolean(
+    proof &&
+    field &&
+    field.effect === 'carry_forward' &&
+    proof.referenceContentHash === stableContentHash(field) &&
+    proof.adoptionId === reviewedReferenceSupportContinuity32.id &&
+    proof.adoptedForVersion === targetVersion &&
+    canApplyReviewedReferenceSupport32({
+      targetVersion,
+      sourceReviewVersion: proof.sourceReviewVersion,
+      sourceKind: 'canonical',
+      sourceContentHash: gameData31CurrentCanonical.contentHash,
+    }),
+  )
+}
+
 function evidenceFor(field: CurrentCanonicalField): CurrentFieldAuthorityCandidate['evidence'] {
   if (field.status === 'formal') return 'formal'
   if (field.status === 'candidate') return 'candidate'
@@ -132,17 +170,34 @@ function evidenceFor(field: CurrentCanonicalField): CurrentFieldAuthorityCandida
 function evaluatedForVersion(field: CurrentCanonicalField) {
   return field.currentApplicability === 'verified_current' ||
     field.currentApplicability === 'continuous'
-    ? currentVersionProjection.gameVersion
+    ? gameData31CurrentCanonical.reviewedForVersion
     : null
 }
 
 function projectField(field: CurrentCanonicalField): CurrentFieldAuthorityCandidate {
+  const reviewedVersion = evaluatedForVersion(field)
+  const continued =
+    field.effect === 'carry_forward' &&
+    field.status !== 'missing' &&
+    (field.currentApplicability === 'verified_current' ||
+      field.currentApplicability === 'continuous') &&
+    canApplyReviewedReferenceSupport32({
+      targetVersion: currentVersionProjection.gameVersion,
+      sourceReviewVersion: reviewedVersion ?? '',
+      sourceKind: 'canonical',
+      sourceContentHash: gameData31CurrentCanonical.contentHash,
+    })
+  const [reviewMajor, reviewMinor] = versionParts(reviewedVersion ?? '')
+  const [targetMajor, targetMinor] = versionParts(currentVersionProjection.gameVersion)
+  const olderReview =
+    reviewedVersion !== null &&
+    (reviewMajor < targetMajor || (reviewMajor === targetMajor && reviewMinor < targetMinor))
   const core = {
     id: field.id,
     subjectId: field.domain,
     fieldPath: field.fieldPath,
     sourceVersion: field.originalSourceVersion,
-    evaluatedForVersion: evaluatedForVersion(field),
+    evaluatedForVersion: reviewedVersion,
     evidence: evidenceFor(field),
     currentApplicability: field.currentApplicability,
     affectedByDelta:
@@ -151,18 +206,31 @@ function projectField(field: CurrentCanonicalField): CurrentFieldAuthorityCandid
       field.effect === 'overlay' ||
       field.effect === 'conflict',
     freshness:
-      field.currentApplicability === 'stale'
+      field.currentApplicability === 'stale' || (olderReview && !continued)
         ? ('stale' as const)
         : field.currentApplicability === 'not_applicable'
           ? ('unknown' as const)
           : ('current' as const),
     supersedes: [] as readonly string[],
     sourceRefs: field.sourceRefs,
+    ...(continued
+      ? {
+          referenceContinuity: {
+            adoptionId: reviewedReferenceSupportContinuity32.id,
+            sourceReviewVersion: reviewedVersion!,
+            adoptedForVersion: currentVersionProjection.gameVersion,
+            referenceContentHash: stableContentHash(field),
+          },
+        }
+      : {}),
   }
   return { ...core, contentHash: stableContentHash(core) }
 }
 
-const entries = gameData31CurrentFields.map(projectField)
+const entries: CurrentFieldAuthorityCandidate[] = [
+  ...gameData31CurrentFields.map(projectField),
+  ...reviewedBuildContinuity32,
+]
 const projectionCore = {
   schema: 'soda-current-field-authority/v1' as const,
   id: 'current-field-authority-3.1-r1' as const,
@@ -173,6 +241,7 @@ const projectionCore = {
     evaluatedForCurrent: entries.filter(
       (entry) => entry.evaluatedForVersion === currentVersionProjection.gameVersion,
     ).length,
+    continuedReferenceSupport: entries.filter((entry) => entry.referenceContinuity).length,
     stale: entries.filter((entry) => entry.freshness === 'stale').length,
     affectedByDelta: entries.filter((entry) => entry.affectedByDelta).length,
   },

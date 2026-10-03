@@ -237,8 +237,17 @@ describe('retention compiler source boundaries', () => {
     expect(missing.length).toBeGreaterThan(0)
     for (const profile of missing) {
       expect(profile.verified).toBe(true)
-      expect(profile.utilityEvidence?.['action:basic']?.state).not.toBe('missing_fact')
-      expect(profile.utilityEvidence?.['action:dash']?.state).not.toBe('missing_fact')
+      for (const action of ['basic', 'dash']) {
+        const fact = resolveRetentionActionFact(
+          action as 'basic' | 'dash',
+          profile.agentId,
+          constraint(profile.agentId),
+          getCurrentAgentEventContract(profile.agentId),
+        )
+        if (fact.presence === 'present')
+          expect(profile.utilityEvidence?.[`action:${action}`]?.state).not.toBe('missing_fact')
+        else expect(profile.utilityEvidence?.[`action:${action}`]?.state).toBe('missing_fact')
+      }
       expect(Object.values(profile.effectUtility ?? {})).toContain('valid')
     }
   })

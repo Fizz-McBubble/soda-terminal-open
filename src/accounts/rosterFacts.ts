@@ -1,4 +1,7 @@
-import { publicAssetCatalog } from '../application/publicAssetCatalog'
+import {
+  publicAssetCatalog,
+  publicPotentialMissingObservationPolicy,
+} from '../application/publicAssetCatalog'
 import { agentCatalog, bangbooCatalog } from '../application/publicRosterNames'
 import {
   currentReleasedIdentityMap,
@@ -55,4 +58,11 @@ export function rosterBangbooRarity(bangbooId: string): RosterRarity {
  */
 export function supportsRosterPotentialImage(agentId: string) {
   return agentFactsById.get(agentId)?.supportsPotentialImage === true
+}
+
+/** Source eligibility does not authorize manufacturing a missing potential observation. */
+export function resolveRosterPotentialImage(agentId: string, value: number | null | undefined) {
+  if (value !== null && value !== undefined) return value
+  if (publicPotentialMissingObservationPolicy[agentId] === 'preserve_unknown') return undefined
+  return supportsRosterPotentialImage(agentId) ? 6 : undefined
 }

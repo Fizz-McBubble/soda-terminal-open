@@ -89,20 +89,21 @@ function capabilitiesFor(agentId: string): AgentRule['capabilities'] {
 }
 
 function evidenceFor(input: {
-  fieldTimeSource: { sourceId: string; locator: string }
+  fieldTimeSource: { sourceId: string; locator: string; sourceVersion?: string }
   formulaSource: { commit: string; formulaPath: string }
+  formulaVersion: string
   activationLocator: string
 }): TeamEngineEvidenceRef[] {
   return [
     {
       sourceId: input.fieldTimeSource.sourceId,
-      gameVersion: '3.1',
+      gameVersion: input.fieldTimeSource.sourceVersion ?? '3.1',
       status: 'candidate',
       locator: input.fieldTimeSource.locator,
     },
     {
       sourceId: `genshin-optimizer-${input.formulaSource.commit}`,
-      gameVersion: '3.1',
+      gameVersion: input.formulaVersion,
       status: 'candidate',
       locator: `${input.formulaSource.formulaPath}; ${input.activationLocator}`,
     },
@@ -168,6 +169,10 @@ function compileRule(contract: (typeof currentAgentDecisionMechanicContracts)[nu
       ...evidenceFor({
         fieldTimeSource: fieldTime.source,
         formulaSource: eventContract.source,
+        formulaVersion:
+          eventContract.source.commit === '3456cd0f6f5bea10e168074502460dac2fcd6df4'
+            ? '3.2'
+            : '3.1',
         activationLocator: activation.predicate.locator,
       }),
       ...(contract.agentId === 'agent-pulchra'

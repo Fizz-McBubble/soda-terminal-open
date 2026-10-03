@@ -1,3 +1,4 @@
+import { authorComparisonAccountBinding } from './publicAuthorComparisonAccountBinding'
 import { projectTargetTeamExecution } from '../decision/teamExecutionProjection'
 import { isAdoptedPortfolioTeam } from '../decision/authorityPortfolioCandidates'
 import { calculateTargetTeamWarehouseFit } from '../decision/targetTeamWarehouseFit'
@@ -24,7 +25,11 @@ import {
 } from '../decision/authorityExecutionVariantResolver'
 import type { BangbooStar, TeamEngineCandidate } from '../teamEngine/contracts'
 import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
-import { compileTeamBuildIntent } from '../decision/buildIntent'
+import {
+  compileTeamBuildIntent,
+  compileAuthorComparisonTeamBuildIntent,
+} from '../decision/buildIntent'
+import { reviewedAuthorComparisonMembership32 } from '../decision/reviewedAuthorComparisonMembership32'
 import { candidatePanelInputsForScheme } from '../optimizer/optimizeAccountBuilds'
 import { projectTeamEquipmentRecommendations } from '../decision/teamEquipmentRecommendations'
 import {
@@ -115,6 +120,96 @@ export function createLocalTargetTeamFitQuery({
         !run.snapshot.decisionAuthority.productionWorkset.candidateIds.includes(query.candidateId)
       )
         throw new Error(`Candidate is outside the production workset: ${query.candidateId}.`)
+      if (authorityCandidate?.authorComparisonMembership) {
+        // Revalidate current facts, not a caller-supplied marker or stale presentation.
+        const memberIds = [...authorityCandidate.memberIds] as [string, string, string]
+        const ownedAgentIds = run.input.warehouse.roster.agents
+          .filter((row) => row.owned)
+          .map((row) => row.agentId)
+        const membership = reviewedAuthorComparisonMembership32(memberIds, ownedAgentIds)
+        if (
+          !membership ||
+          membership.fingerprint !== authorityCandidate.authorComparisonMembership.fingerprint
+        )
+          throw new Error('队伍资料已变化，请重新分析。')
+        if (query.equipmentParameters || query.playerBangbooSelection)
+          throw new Error('当前方案仅比较三名代理人的驱动盘。')
+        const buildIntent = compileAuthorComparisonTeamBuildIntent({
+          candidateId: query.candidateId,
+          memberIds,
+          ownedAgentIds,
+          agentStateById: Object.fromEntries(
+            run.input.warehouse.roster.agents.map((row) => [
+              row.agentId,
+              { potentialImage: row.potentialImage },
+            ]),
+          ),
+        })
+        const fit = calculateTargetTeamWarehouseFit({
+          warehouse: run.input.warehouse,
+          buildIntent,
+          bangbooSelection: {
+            status: 'not_evaluated',
+            reason: '本次未纳入邦布。',
+          },
+        })
+        const candidate = {
+          candidateId: query.candidateId,
+          memberIds,
+          bangbooId: null,
+          scenarioTags: [],
+          provenance: 'authority_exact' as const,
+          authorComparisonMembership: membership,
+        }
+        const context = {
+          warehouse: run.input.warehouse,
+          candidate,
+          fit,
+          rosterHash: run.snapshot.fingerprint.components.rosterHash,
+          warehouseHash: run.snapshot.fingerprint.components.warehouseHash,
+          planningHash: run.snapshot.fingerprint.components.planningHash,
+          capturedAt: run.capturedAt,
+        }
+        const accountBoundBenchmark = projectTargetTeamAccountBoundBenchmark(context)
+        const result: Awaited<
+          ReturnType<CalculationQueryClient['calculateTargetTeamWarehouseFit']>
+        > = {
+          ...fit,
+          portfolioContinuationEligible: false,
+          effectiveEquipmentParameters: null,
+          accountFactBinding: authorComparisonAccountBinding(
+            run.input.warehouse,
+            memberIds,
+            membership.fingerprint,
+          ),
+          accountBoundBenchmark,
+          targetExecution: projectTargetTeamExecution({
+            candidate,
+            warehousePlan: fit.warehousePlan,
+            allocation: run.snapshot.allocation,
+            roster: run.input.warehouse.roster,
+            drafts: run.input.drafts,
+            activePlanIds: run.input.activePlanIds,
+          }),
+          valueBenchmark: projectTargetTeamValueBenchmark({
+            ...context,
+            drafts: run.input.drafts,
+            activePlanIds: run.input.activePlanIds,
+            targetFit: fit,
+            targetBenchmark: accountBoundBenchmark,
+            stale: false,
+          }),
+          cultivationRefinement: refineCultivationPriorityWithTargetFit({
+            recommendation: authorityCandidate,
+            fit,
+          }),
+        }
+        result.teamExecutionPresentation = projectPrivateTeamExecution(run, result)
+        const cached = teamFits.get(run.runId) ?? new Map()
+        cached.set(result.candidateId, result)
+        teamFits.set(run.runId, cached)
+        return result
+      }
       const directEngineCandidate = run.snapshot.teamEngine.recommendations.find(
         (item) => item.candidateId === query.candidateId,
       )

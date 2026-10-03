@@ -10,6 +10,9 @@ export function validateGameData31CurrentCanonical(input: unknown) {
     id: candidate.id,
     schemaVersion: candidate.schemaVersion,
     gameVersion: candidate.gameVersion,
+    ...(candidate.reviewedForVersion === undefined
+      ? {}
+      : { reviewedForVersion: candidate.reviewedForVersion }),
     lifecycle: candidate.lifecycle,
     installedAt: candidate.installedAt,
     previousPackId: candidate.previousPackId,
@@ -25,6 +28,7 @@ export function validateGameData31CurrentCanonical(input: unknown) {
   if (
     candidate.schemaVersion !== 1 ||
     candidate.gameVersion !== '3.1' ||
+    (candidate.reviewedForVersion !== undefined && candidate.reviewedForVersion !== '3.1') ||
     candidate.lifecycle !== 'current' ||
     candidate.rollbackTo !== canonicalBaselinePack30.id ||
     candidate.contentHash !== expected

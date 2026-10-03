@@ -15,19 +15,19 @@ function input(mask = 0): WarehouseAnalysisInput {
   const base = worldInput()
   const accountId = base.warehouse.accountId
   if (!accountId) throw new Error('synthetic account id required')
-  const flatDefenseRoll = driveDiscData!.rules.subStatStepsByRarity.S.find(
-    (rule) => rule.stat === 'def_flat',
+  const flatPenRoll = driveDiscData!.rules.subStatStepsByRarity.S.find(
+    (rule) => rule.stat === 'pen',
   )!.baseValue
   const disc = warehouseTestDisc('protected-low-quality', {
     setId: 'set-woodpecker-electro',
-    slot: 1,
-    mainStat: 'hp_flat',
+    slot: 2,
+    mainStat: 'atk_flat',
     favorite: Boolean(mask & 1),
     subStats: [
+      { stat: 'hp_flat', value: 112, upgrades: 0 },
       { stat: 'crit_dmg', value: 4.8, upgrades: 0 },
-      { stat: 'atk_percent', value: 3, upgrades: 0 },
-      { stat: 'hp_percent', value: 3, upgrades: 0 },
-      { stat: 'def_flat', value: flatDefenseRoll * 6, upgrades: 5 },
+      { stat: 'def_flat', value: 15, upgrades: 0 },
+      { stat: 'pen', value: flatPenRoll * 6, upgrades: 5 },
     ],
   })
   const roster = createEmptyRoster('2026-09-30T00:00:00.000Z')
@@ -112,6 +112,35 @@ describe('current protection action and intrinsic quality', () => {
       cleanup()
     },
   )
+
+  it('keeps a high flat-defense disc for the sourced unowned Claret future use', () => {
+    const source = input()
+    source.discs[0] = warehouseTestDisc('unowned-claret-defense-use', {
+      setId: 'set-woodpecker-electro',
+      slot: 1,
+      mainStat: 'hp_flat',
+      subStats: [
+        { stat: 'crit_dmg', value: 4.8, upgrades: 0 },
+        { stat: 'atk_percent', value: 3, upgrades: 0 },
+        { stat: 'hp_percent', value: 3, upgrades: 0 },
+        { stat: 'def_flat', value: 90, upgrades: 5 },
+      ],
+    })
+    const before = structuredClone(source)
+    const evidence = analyzeAccountWarehouse(source).decisions[0]!.absoluteRetention!
+    // Source DEF 35 + 4.8155 * 59 makes each flat DEF roll worth 0.734454.
+    // This is an explicit future use, even though Claret is not owned.
+    const use = evidence.leadingUses.find((row) => row.agentId === 'agent-claret')
+    expect(use).toBeDefined()
+    expect(use!.currentScore).toBeCloseTo(
+      ((1 + 6 * 0.734454) / (5 + 1 + 1 + 0.75 + 0.734454)) * 100,
+      5,
+    )
+    expect(evidence.unownedUseAgentIds).toContain('agent-claret')
+    expect(evidence.disposition).toBe('keep')
+    expect(project(source).action).toBe('keep')
+    expect(source).toEqual(before)
+  })
 
   it('does not invent protection for unrelated discs from missing equipment or saved references', () => {
     const source = input()

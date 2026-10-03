@@ -51,7 +51,10 @@ export function persistPlanEditorDraft({
         ? { ...draft.selection, agentIds: [...team!.agentIds], bangbooId: selectedBangbooId }
         : draft.selection,
     candidateWarehouse,
+    // Existing snapshots are compatibility history, never recomputed by the editor.
+    planningBenchmark32: draft.planningBenchmark32 ?? approved?.planningBenchmark32,
     teamExecutionSnapshot,
+    teamAccountFactBinding: targetTeamFit?.accountFactBinding,
     teamEquipmentParameters:
       draft.kind === 'team' && teamEquipmentParameters
         ? teamEquipmentParameters

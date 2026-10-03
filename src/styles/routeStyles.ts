@@ -55,8 +55,12 @@ export function applyRouteStyleScope(
 ): RouteStyleScope {
   const activeScope = getRouteStyleScope(pathname)
 
+  // Only fetch the selected scope on first entry. Previously even a home-only visit created
+  // the legacy link before disabling it, allowing the browser to schedule an unused stylesheet.
+  ensureStylesheet(documentRoot, activeScope)
   for (const scope of ['legacy', 'f5'] as const) {
-    const stylesheet = ensureStylesheet(documentRoot, scope)
+    const stylesheet = documentRoot.getElementById(routeStyles[scope].id)
+    if (!(stylesheet instanceof HTMLLinkElement)) continue
     const active = scope === activeScope
     stylesheet.disabled = !active
     stylesheet.media = active ? 'all' : 'not all'

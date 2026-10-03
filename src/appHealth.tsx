@@ -4,10 +4,12 @@ import { AppHealthContext, type AppHealth, type HealthStatus } from './appHealth
 import { gameData, gameDataResult } from './data/gameData'
 import { databaseSchemaVersion, initializeDatabase } from './db/database'
 import { currentVersionProjection } from './gameDataPacks/currentVersionProjection'
-import { currentDataAuthorityProjection } from './gameDataPacks/currentDataAuthorityProjection'
-import { createAppCapabilityHealth } from './appCapabilityHealth'
 import { readCurrentGameDataRuntimeSelection } from './gameDataPacks/runtimeSelection'
-import { repairBundledGameData31Current } from './gameDataPacks/repository'
+
+type DetailedHealth = {
+  authority: NonNullable<AppHealth['currentDataAuthority']>
+  createCapabilities: typeof import('./appCapabilityHealth').createAppCapabilityHealth
+}
 
 export function AppHealthProvider({
   children,
@@ -18,6 +20,32 @@ export function AppHealthProvider({
 }) {
   const [databaseStatus, setDatabaseStatus] = useState<HealthStatus>('loading')
   const [databaseError, setDatabaseError] = useState<string | null>(null)
+  const [detailedHealth, setDetailedHealth] = useState<DetailedHealth | null>(null)
+
+  useEffect(() => {
+    // These optional diagnostics have no browser-product consumer. Their authority/validation
+    // graphs remain in the calculation Worker, not the synchronous player UI entry.
+    if (import.meta.env.VITE_SODA_COMMUNITY_BUILD === 'true') return
+    let active = true
+    void Promise.all([
+      import('./gameDataPacks/currentDataAuthorityProjection'),
+      import('./appCapabilityHealth'),
+    ]).then(
+      ([authority, capabilities]) => {
+        if (active)
+          setDetailedHealth({
+            authority: authority.currentDataAuthorityProjection,
+            createCapabilities: capabilities.createAppCapabilityHealth,
+          })
+      },
+      () => {
+        // Optional diagnostics must not change the actual database/data failure gate below.
+      },
+    )
+    return () => {
+      active = false
+    }
+  }, [])
 
   // This query is deliberately inactive until initialization completes. It observes the same
   // game-data records used by calculation, so repair or an explicit package switch refreshes the
@@ -66,18 +94,19 @@ export function AppHealthProvider({
     runtimeSelection.value.status === 'unbound'
   const repairApplicationData = useCallback(async () => {
     if (!canRepairApplicationData) throw new Error('当前游戏资料状态不可由应用自带资料恢复。')
-    return repairBundledGameData31Current()
+    return (await import('./gameDataPacks/repository')).repairBundledCurrentGameData()
   }, [canRepairApplicationData])
 
   const value = useMemo<AppHealth>(
     () => ({
       data: dataStatus === 'ready' ? gameData : null,
       currentVersion: currentVersionProjection,
-      currentDataAuthority: currentDataAuthorityProjection,
-      capabilities: createAppCapabilityHealth({
-        dataStatus,
-        databaseStatus,
-      }),
+      ...(detailedHealth
+        ? {
+            currentDataAuthority: detailedHealth.authority,
+            capabilities: detailedHealth.createCapabilities({ dataStatus, databaseStatus }),
+          }
+        : {}),
       dataStatus,
       dataError,
       canRepairApplicationData,
@@ -91,6 +120,7 @@ export function AppHealthProvider({
       dataStatus,
       databaseError,
       databaseStatus,
+      detailedHealth,
       repairApplicationData,
     ],
   )

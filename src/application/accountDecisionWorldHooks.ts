@@ -124,6 +124,7 @@ export function useDevelopmentCandidateAlternativesCalculation() {
     async (
       runId: string,
       agentId: string,
+      candidateParametersByRank?: import('./calculationQueryContract').DevelopmentCandidateAlternativesQuery['candidateParametersByRank'],
     ): Promise<DevelopmentCandidateAlternativesQueryResult> => {
       if (!client) throw new Error('Calculation/Query client is unavailable.')
       return client.queryDevelopmentCandidateAlternatives({
@@ -131,6 +132,7 @@ export function useDevelopmentCandidateAlternativesCalculation() {
         kind: 'development_candidate_alternatives',
         runId,
         agentId,
+        candidateParametersByRank,
       })
     },
     [client],
@@ -167,4 +169,46 @@ export function useAccountDecisionWorld() {
 
 export function useOptionalAccountDecisionWorld() {
   return useContext(AccountDecisionWorldContext)
+}
+
+export function useReviewedIncrementalEvent32Calculation() {
+  const client = useContext(CalculationQueryClientContext)
+  return useCallback(
+    async (
+      runId: string,
+      input: import('./publicReviewedIncrementalEvent32').ReviewedIncrementalEventInput32Dto,
+    ) => {
+      if (!client?.queryReviewedIncrementalEvent32)
+        throw new Error('单次命中计算服务不可用，请刷新应用。')
+      return client.queryReviewedIncrementalEvent32({
+        contractVersion: calculationQueryContractVersion,
+        kind: 'reviewed_incremental_event32',
+        runId,
+        input,
+      })
+    },
+    [client],
+  )
+}
+
+export function useCommonAnomalySettlement32Calculation() {
+  const client = useContext(CalculationQueryClientContext)
+  return useCallback(
+    async (
+      runId: string,
+      input:
+        | import('./publicCommonAnomalySettlement32').PublicCommonAnomalySettlementInput32
+        | null,
+    ) => {
+      if (!client?.queryCommonAnomalySettlement32)
+        throw new Error('风异常声明结算服务不可用，请刷新应用。')
+      return client.queryCommonAnomalySettlement32({
+        contractVersion: calculationQueryContractVersion,
+        kind: 'common_anomaly_settlement32',
+        runId,
+        input,
+      })
+    },
+    [client],
+  )
 }

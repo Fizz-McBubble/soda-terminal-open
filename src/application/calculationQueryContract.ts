@@ -9,7 +9,7 @@ import type { TeamExecutionPortfolio } from '../decision/teamExecutionProjection
 import type { DriveDisc } from '../domain/schemas'
 import type { CandidateWarehousePlan } from '../optimizer/candidateWarehouseSolver'
 
-export const calculationQueryContractVersion = 'soda-calculation-query/v2' as const
+export const calculationQueryContractVersion = 'soda-calculation-query/v4' as const
 export type { AccountDecisionSnapshot, DecisionClaimStatus }
 
 export type AccountDecisionQueryInput = {
@@ -140,6 +140,7 @@ export type TargetTeamWarehouseFitQueryResult =
     effectiveEquipmentParameters:
       | import('../decision/targetTeamEquipmentParameters').EffectiveTargetTeamEquipmentParameters
       | null
+    accountFactBinding?: import('./publicAuthorComparisonAccountBinding').AuthorComparisonAccountBinding
     targetExecution: import('../decision/teamExecutionProjection').TeamExecution
     /** Private producer's exact 18-disc view; absent on older Query responses. */
     teamExecutionPresentation?: import('../pages/teamLoadoutPresentationDto').TeamExecutionPresentationDto
@@ -155,6 +156,9 @@ export type DevelopmentCandidateAlternativesQuery = {
   kind: 'development_candidate_alternatives'
   runId: string
   agentId: string
+  candidateParametersByRank?: Readonly<
+    Record<number, import('../decision/developmentValueBenchmark').DevelopmentComparisonParameters>
+  >
 }
 
 export type DevelopmentWorkbenchRouteQuery = {
@@ -166,6 +170,18 @@ export type DevelopmentWorkbenchRouteQuery = {
 
 export type DevelopmentCandidateAlternativesQueryResult = {
   contract: 'soda-development-candidate-alternatives/v1'
+  comparisonContract?: 'soda-explicit-development-comparison/v1'
+  comparisonFingerprint?: string
+  comparisonOptions?: {
+    reviewedEvent32?:
+      | import('./publicReviewedIncrementalEvent32').ReviewedIncrementalEventMetadata32
+      | null
+    wEngines: Array<{ engineId: string; name: string }>
+    potentialSupported: boolean
+  }
+  candidateParametersByRank?: Readonly<
+    Record<number, import('../decision/developmentValueBenchmark').DevelopmentComparisonParameters>
+  >
   runId: string
   capturedAt: string
   inputFingerprint: string
@@ -209,6 +225,16 @@ export type WarehouseDiscTransitionUsesResult = {
  * changing page components or moving browser/storage concerns into Core.
  */
 export interface CalculationQueryClient {
+  queryCommonAnomalySettlement32?(
+    query: CommonAnomalySettlement32Query,
+  ): Promise<import('./publicCommonAnomalySettlementQuery32').CommonAnomalySettlementQueryResult32>
+  queryPlanningBenchmark32?(
+    query: PlanningBenchmark32Query,
+  ): Promise<import('./publicPlanningBenchmark32').PlanningBenchmarkResult32>
+  queryReviewedIncrementalEvent32?(
+    query: ReviewedIncrementalEvent32Query,
+  ): Promise<import('./publicReviewedIncrementalEvent32').ReviewedIncrementalEventResult32Dto>
+
   /** Release a transient query handle; saved plans carry their own snapshots. */
   releaseAccountDecisionRun?(runId: string): void
   /** Synchronous server-side liveness check after bounded run eviction. */
@@ -247,4 +273,30 @@ export interface CalculationQueryClient {
     query: WarehouseDiscTransitionUsesQuery,
     options?: { signal?: AbortSignal },
   ): Promise<WarehouseDiscTransitionUsesResult>
+}
+
+export type ReviewedIncrementalEvent32Query = {
+  contractVersion: typeof calculationQueryContractVersion
+  kind: 'reviewed_incremental_event32'
+  runId: string
+  input: import('./publicReviewedIncrementalEvent32').ReviewedIncrementalEventInput32Dto
+}
+
+export type CommonAnomalySettlement32Query = {
+  contractVersion: typeof calculationQueryContractVersion
+  kind: 'common_anomaly_settlement32'
+  runId: string
+  /** Null reads the public vocabulary without calculating a settlement. */
+  input: import('./publicCommonAnomalySettlement32').PublicCommonAnomalySettlementInput32 | null
+}
+
+export type PlanningBenchmark32Query = {
+  contractVersion: typeof calculationQueryContractVersion
+  kind: 'planning_benchmark32'
+  runId: string
+  candidateId: string
+  fitFingerprint: string
+  accountFingerprint: string
+  sourceBindingFingerprint?: string
+  declarations?: import('./publicPlanningEventDeclarations32').PlanningEventDeclarationsInput32
 }

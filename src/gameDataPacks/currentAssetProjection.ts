@@ -3,7 +3,8 @@ import { getAgentCapability } from '../assault/agentCapabilities'
 import { getVisualAsset } from '../assets/visualAssets'
 import sourceLedger from './assetSourceLedger.v1.json'
 import { gameCurrent31CatalogLedger } from './catalogLedger'
-import { gameData31CatalogIntake, type GameData31CatalogEntity } from './gameData31CatalogIntake'
+import { type GameData31CatalogEntity } from './gameData31CatalogIntake'
+import { currentCatalogEntities } from './currentCatalogIntake'
 import {
   getCurrentScopeCandidateEntry,
   currentScopeManifest,
@@ -45,7 +46,12 @@ export type CurrentAssetProjectionEntry = {
   }
   potential: {
     eligible: boolean
-    evidence: 'formal' | 'licensed_wiki_direct' | 'reviewed_guide_direct' | null
+    evidence:
+      | 'formal'
+      | 'licensed_wiki_direct'
+      | 'reviewed_guide_direct'
+      | 'pinned_formula_source_32'
+      | null
     /** Source label; guide evidence keeps its archive label rather than an inferred release version. */
     sourceVersion: string | null
     sourceUrl: string | null
@@ -75,6 +81,7 @@ const stableAgentSpecialties = new Set([
   'anomaly',
   'defense',
   'rupture',
+  'armorer',
 ])
 
 const releaseLedger = new Map(sourceLedger.records.map((record) => [record.stableId, record]))
@@ -131,7 +138,7 @@ function mediaFor(
       cacheStatus: 'not_cached',
       licenseStatus:
         asset.sourceType === 'official' ? 'official_personal_cache_only' : 'reference_only',
-      sourceUrl: asset.sourcePage ?? null,
+      sourceUrl: asset.sourcePage ?? mediaLedger.get(stableId)?.sourceUrl ?? null,
     }
   }
   const declared = mediaLedger.get(stableId)
@@ -252,7 +259,7 @@ function sortCurrentAssets(entries: readonly CurrentAssetProjectionEntry[]) {
 }
 
 const formal = gameCurrent31CatalogLedger.entries.map(formalEntry)
-const candidate = gameData31CatalogIntake.entities
+const candidate = currentCatalogEntities
   .map(candidateEntry)
   .filter((entry): entry is CurrentAssetProjectionEntry => entry !== null)
 
@@ -278,8 +285,8 @@ function byDomain(domain: CurrentAssetDomain) {
  * with the installed 3.1 intake while keeping candidate and media boundaries explicit.
  */
 export const currentAssetProjection = {
-  id: 'current-asset-projection-3.1-r4b',
-  gameVersion: '3.1',
+  id: 'current-asset-projection-3.2-r1',
+  gameVersion: '3.2',
   scopeManifestId: currentScopeManifest.id,
   effectiveAsOf: currentScopeManifest.effectiveAsOf,
   entries,

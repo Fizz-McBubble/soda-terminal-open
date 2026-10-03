@@ -3,7 +3,9 @@ import AppCore, { type DecisionEnvironment } from './AppCore'
 import { AppHealthProvider } from './appHealth'
 import { createBrowserCalculationQueryClient } from './application/browserCalculationQueryClient'
 import { readCurrentGameDataRuntimeSelection } from './gameDataPacks/runtimeSelection'
-import { repairBundledGameData31Current } from './gameDataPacks/repository'
+
+const repairBundledCurrentGameData = async () =>
+  (await import('./gameDataPacks/repository')).repairBundledCurrentGameData()
 
 /** The published browser product uses the accepted local algorithm through a Query Worker. */
 export default function AppCommunity() {
@@ -14,7 +16,7 @@ export default function AppCommunity() {
         readRuntimeSelection: readCurrentGameDataRuntimeSelection,
       }),
       runtimeSelectionReader: readCurrentGameDataRuntimeSelection,
-      repairRuntimeSelection: repairBundledGameData31Current,
+      repairRuntimeSelection: repairBundledCurrentGameData,
     }),
     [],
   )

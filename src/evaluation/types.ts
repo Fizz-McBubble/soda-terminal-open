@@ -102,7 +102,7 @@ export type EvaluationProfile = {
   statWeights: Partial<Record<StatKey, number>>
   mainStatFit: Record<string, Partial<Record<StatKey, number>>>
   setFit: Record<string, number>
-  role?: 'damage' | 'anomaly' | 'stun' | 'support' | 'defense'
+  role?: 'damage' | 'anomaly' | 'stun' | 'support' | 'defense' | 'rupture' | 'armorer'
   isDefault?: boolean
   sourceTemplateId?: string | null
   archived?: boolean

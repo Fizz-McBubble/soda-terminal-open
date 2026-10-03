@@ -1,4 +1,7 @@
 import type {
+  CommonAnomalySettlement32Query,
+  PlanningBenchmark32Query,
+  ReviewedIncrementalEvent32Query,
   AccountDecisionQuery,
   AccountDecisionRun,
   DevelopmentCandidateAlternativesQuery,
@@ -16,9 +19,21 @@ import type {
 import type { CandidateWarehousePlan } from '../optimizer/candidateWarehouseSolver'
 import type { SavedTeamReplayPresentation } from './publicSavedTeamReplay'
 
-export const remoteCalculationProtocolVersion = 'soda-remote-calculation/v2' as const
+export const remoteCalculationProtocolVersion = 'soda-remote-calculation/v4' as const
 
 export type RemoteCalculationRequest =
+  | {
+      protocolVersion: typeof remoteCalculationProtocolVersion
+      query: CommonAnomalySettlement32Query
+    }
+  | {
+      protocolVersion: typeof remoteCalculationProtocolVersion
+      query: PlanningBenchmark32Query
+    }
+  | {
+      protocolVersion: typeof remoteCalculationProtocolVersion
+      query: ReviewedIncrementalEvent32Query
+    }
   | {
       protocolVersion: typeof remoteCalculationProtocolVersion
       runtime: { packageId: string; packageVersion: string; gameVersion: string }
@@ -91,6 +106,7 @@ export type PublicTargetTeamWarehouseFit = Pick<
   | 'boundary'
   | 'portfolioContinuationEligible'
   | 'effectiveEquipmentParameters'
+  | 'accountFactBinding'
   | 'targetExecution'
   | 'teamExecutionPresentation'
 > & {
@@ -100,7 +116,7 @@ export type PublicTargetTeamWarehouseFit = Pick<
     scope: 'team_joint'
     resourcePolicy: 'within_team_exclusive'
     fingerprint: string
-    exactTeam: { candidateId: string; bangbooId: string }
+    exactTeam: { candidateId: string; bangbooId: string | null }
   }
   accountBoundBenchmark: {
     equipmentModifierProjection: {
@@ -112,6 +128,7 @@ export type PublicTargetTeamWarehouseFit = Pick<
 export type PublicSavedTeamReplay = Omit<SavedTeamReplayPresentation, 'match'> & {
   match: {
     buildIntent: { fingerprint: string; exactTeam: { candidateId: string } }
+    accountFactBinding?: import('./publicAuthorComparisonAccountBinding').AuthorComparisonAccountBinding
     effectiveEquipmentParameters: NonNullable<
       SavedTeamReplayPresentation['match']
     >['effectiveEquipmentParameters']
@@ -130,6 +147,9 @@ export type PublicDevelopmentCandidateAlternatives = Omit<
 }
 
 export type RemoteCalculationResult =
+  | import('./publicCommonAnomalySettlementQuery32').CommonAnomalySettlementQueryResult32
+  | import('./publicPlanningBenchmark32').PlanningBenchmarkResult32
+  | import('./publicReviewedIncrementalEvent32').ReviewedIncrementalEventResult32Dto
   | PublicAccountDecisionRun
   | PublicTargetTeamWarehouseFit
   | import('../pages/teamLoadoutPresentationDto').TeamOverviewPresentationDto

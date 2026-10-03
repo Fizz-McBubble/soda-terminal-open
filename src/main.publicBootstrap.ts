@@ -1,6 +1,6 @@
 import { createElement, StrictMode, type ComponentType } from 'react'
 import { createRoot } from 'react-dom/client'
-import { registerPublicOfflineShell } from './offline/registerPublicOfflineShell'
+import { schedulePublicOfflineShell } from './offline/schedulePublicOfflineShell'
 import { applyRouteStyleScope, waitForRouteStyleScope } from './styles/routeStyles'
 
 export function mountPublicApp(App: ComponentType) {
@@ -10,7 +10,7 @@ export function mountPublicApp(App: ComponentType) {
       createRoot(document.getElementById('root')!).render(
         createElement(StrictMode, null, createElement(App)),
       )
-      void registerPublicOfflineShell()
+      schedulePublicOfflineShell()
     },
     () => {
       const root = document.getElementById('root')!

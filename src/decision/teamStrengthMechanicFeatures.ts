@@ -17,6 +17,7 @@ import {
   compatibleCapabilities,
   effectReceivers,
   expressionReferences,
+  type SupportRecipientContext,
 } from './teamStrengthSupportCapabilities'
 /** Source facts and structural capacities, never a team label, agent tier, or DPS. */
 export const teamStrengthMechanicFeatureNames = [
@@ -60,6 +61,9 @@ export type TeamStrengthMechanicFeatures = {
     reviewedProviderIds: string[]
     deferredProviderIds: string[]
     sourceConflictProviderIds: string[]
+    sharpCoverage: number
+    lacerationCoverage: number
+    attributeConditionalRecipientIds: string[]
   }
   /** Validation grouping only. Neither identity field enters values. */
   primaryOutputAgentId: string | null
@@ -73,9 +77,9 @@ export type TeamStrengthMechanicFeatures = {
   limitations: string[]
 }
 const ruleById = new Map(current31TeamEngineD1Pack.agentRules.map((rule) => [rule.agentId, rule]))
-const outputSpecialties = new Set(['attack', 'anomaly', 'rupture'])
+const outputSpecialties = new Set(['attack', 'anomaly', 'rupture', 'armorer'])
 const fieldBudget = 1.35
-export const teamStrengthMechanicFeaturesVersion = 'source-fact-team-features/v5' as const
+export const teamStrengthMechanicFeaturesVersion = 'source-fact-team-features/v6' as const
 /** Only inputs actually used here; guide rows, evidence counts and labels are excluded. */
 export const teamStrengthMechanicDataFingerprint = stableContentHash({
   version: teamStrengthMechanicFeaturesVersion,
@@ -198,6 +202,7 @@ const second = (members: Member[], value: (member: Member) => number) =>
 /** Pure exact-trio extraction. Missing guides and missing observations are not eligibility gates. */
 export function extractTeamStrengthMechanicFeatures(
   inputMemberIds: readonly string[],
+  recipientContext: SupportRecipientContext = {},
 ): TeamStrengthMechanicFeatures {
   const ids = inputMemberIds.map(resolveCurrentReleasedIdentity).sort()
   const invalidIdentity = ids.length !== 3 || new Set(ids).size !== 3
@@ -228,6 +233,9 @@ export function extractTeamStrengthMechanicFeatures(
         reviewedProviderIds: [],
         deferredProviderIds: [],
         sourceConflictProviderIds: [],
+        sharpCoverage: 0,
+        lacerationCoverage: 0,
+        attributeConditionalRecipientIds: [],
       },
       primaryOutputAgentId: null,
       coreGroup: 'unsupported',
@@ -267,7 +275,7 @@ export function extractTeamStrengthMechanicFeatures(
   const background = output.filter((member) => member.demand <= 0.3)
   const anomalies = output.filter((member) => member.specialty === 'anomaly')
   const fieldDemand = members.reduce((sum, member) => sum + member.demand, 0)
-  const capabilities = compatibleCapabilities(members, abilityById, context)
+  const capabilities = compatibleCapabilities(members, abilityById, context, recipientContext)
   const primary = [...output].sort(
     (left, right) => right.demand - left.demand || left.agentId.localeCompare(right.agentId),
   )[0]
@@ -300,7 +308,12 @@ export function extractTeamStrengthMechanicFeatures(
         (member) => (member.impact * member.dazeMultiplier) / 100,
       ),
     ),
-    Math.log1p(maximum(background, (member) => member.attack * member.damageMultiplier)),
+    Math.log1p(
+      maximum(
+        background.filter((member) => member.specialty !== 'armorer'),
+        (member) => member.attack * member.damageMultiplier,
+      ),
+    ),
     fieldDemand,
     Math.max(0, fieldDemand - fieldBudget),
     output.length,
@@ -328,7 +341,10 @@ export function extractTeamStrengthMechanicFeatures(
       members.filter((member) => member.specialty === 'stun'),
       (member) => (member.impact * member.dazeMultiplier) / 100,
     ),
-    secondBackgroundAction: second(background, (member) => member.attack * member.damageMultiplier),
+    secondBackgroundAction: second(
+      background.filter((member) => member.specialty !== 'armorer'),
+      (member) => member.attack * member.damageMultiplier,
+    ),
     secondAnomalyBuildup: second(
       anomalies,
       (member) => (member.anomalyBuildup * member.anomalyMastery) / 100,
@@ -340,6 +356,12 @@ export function extractTeamStrengthMechanicFeatures(
     'M0/P0 基础能力；高影和潜能路线需要另行说明。',
     '未量化专有伤害通道的持续覆盖；不把仅限以太帷幕衍生伤害或追加攻击的增益泛用于所有输出。',
     ...(capabilities.conditional ? ['条件增益仅表示对接受者相容的能力，不假定条件持续触发。'] : []),
+    ...(output.some((member) => member.specialty === 'armorer')
+      ? ['锋御计入输出角色；锐化与锐暴覆盖独立展示，未给未校准的专有伤害通道新增模型系数。']
+      : []),
+    ...(capabilities.attributeConditionalRecipients.length
+      ? ['浸染 / 涤净属性尚未给定，相应非风属性增益未计入覆盖。']
+      : []),
     ...(resourceUnknown ? ['部分资源转换未完整表达；未将缺失资料当作资源无法满足。'] : []),
     ...(capabilities.unverifiedProviders.length
       ? [
@@ -383,6 +405,9 @@ export function extractTeamStrengthMechanicFeatures(
       reviewedProviderIds: capabilities.reviewedProviders,
       deferredProviderIds: capabilities.deferredProviders,
       sourceConflictProviderIds: capabilities.sourceConflictProviders,
+      sharpCoverage: capabilities.coverage('sharp'),
+      lacerationCoverage: capabilities.coverage('laceration'),
+      attributeConditionalRecipientIds: capabilities.attributeConditionalRecipients,
     },
     primaryOutputAgentId: primary?.agentId ?? null,
     coreGroup: primary ? `primary:${primary.agentId}` : 'no-primary-output',

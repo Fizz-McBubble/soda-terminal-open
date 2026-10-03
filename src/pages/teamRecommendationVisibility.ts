@@ -29,12 +29,19 @@ export function visibleRecommendationFamilies(
     const variants = family.variants.filter(
       (item) =>
         item.mechanicValidity !== 'invalid' &&
+        (!item.authorComparisonMembership?.explicitSelectionOnly || includeExploratory) &&
+        (!item.hasPreparedBenchmark32 || includeExploratory) &&
         (!item.fallbackOnly ||
           (hasRatedTeamStrength(item) && !item.inferredStrength) ||
           includeHistorical ||
           includeExploratory) &&
-        ((hasRatedTeamStrength(item) &&
-          (!item.inferredStrength || item.sourceConfirmed || includeExploratory)) ||
+        ((includeExploratory && item.hasPreparedBenchmark32 === true) ||
+          (includeExploratory &&
+            item.authorComparisonMembership?.explicitSelectionOnly === true &&
+            item.authorComparisonMembership.observationRole === 'author_comparison_setup' &&
+            item.authorComparisonMembership.sourceVersion === '3.2') ||
+          (hasRatedTeamStrength(item) &&
+            (!item.inferredStrength || item.sourceConfirmed || includeExploratory)) ||
           (item.sourceConfirmed &&
             (!item.historicalReferenceOnly || includeHistorical || includeExploratory))),
     )

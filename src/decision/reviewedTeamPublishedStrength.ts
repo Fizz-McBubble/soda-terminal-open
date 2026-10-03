@@ -1,9 +1,7 @@
 import { z } from 'zod'
 import dataset from '../gameDataPacks/data/reviewed-team-strength.v1.json'
-import {
-  currentReleasedIdentityMap,
-  resolveCurrentReleasedIdentity,
-} from '../gameDataPacks/currentReleasedIdentityMap'
+import { resolveCurrentReleasedIdentity } from '../gameDataPacks/currentReleasedIdentityMap'
+import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
 import { stableContentHash } from '../gameDataPacks/types'
 import { createTeamStrengthEvidenceIndex, type TeamStrengthFact } from './teamStrengthEvidence'
 
@@ -77,7 +75,7 @@ export function createPublishedTeamStrengthCatalog(input: unknown, currentVersio
   return { facts, index: createTeamStrengthEvidenceIndex(facts, currentVersion) }
 }
 
-const catalog = createPublishedTeamStrengthCatalog(dataset, currentReleasedIdentityMap.gameVersion)
+const catalog = createPublishedTeamStrengthCatalog(dataset, currentVersionProjection.gameVersion)
 export const reviewedTeamPublishedStrength = Object.freeze({
   ...dataset,
   grain: 'exact_3_agent',
@@ -88,8 +86,22 @@ export const reviewedTeamPublishedStrength = Object.freeze({
   contentHash: stableContentHash(dataset),
 })
 
-export function resolveReviewedTeamPublishedStrength(memberIds: readonly [string, string, string]) {
-  const result = catalog.index.resolve(memberIds)
+// Identity catalog updates do not change source eligibility. Every requested
+// review version receives its own evidence index, including unsupported versions.
+const indicesByReviewVersion = new Map([
+  [currentVersionProjection.gameVersion as string, catalog.index],
+])
+
+export function resolveReviewedTeamPublishedStrength(
+  memberIds: readonly [string, string, string],
+  reviewVersion: string = currentVersionProjection.gameVersion,
+) {
+  let index = indicesByReviewVersion.get(reviewVersion)
+  if (!index) {
+    index = createTeamStrengthEvidenceIndex(catalog.facts, reviewVersion)
+    indicesByReviewVersion.set(reviewVersion, index)
+  }
+  const result = index.resolve(memberIds)
   return {
     status: result.status,
     band: result.band,
