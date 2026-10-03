@@ -101,6 +101,16 @@ textarea,
   margin-top: 8px;
 }
 
+.app-loading-status {
+  padding: 20px 24px;
+  color: #6e599c;
+  font-size: 0.875rem;
+}
+
+.app-loading-status p {
+  margin: 0;
+}
+
 /* The F5 application is a desktop workstation: the browser document is never
    its business scroll surface. Dialogs and drawers retain their own explicit
    overflow; each page chooses the scroll owner inside the shared shell. */

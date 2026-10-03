@@ -1,26 +1,24 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { useAppHealth } from '../appHealthContext'
+import { AppShell } from './AppShell'
 
 /** Brief reads should resolve without introducing a separate page into the visual journey. */
 export function AppLoadingState({ title, compact = false }: { title: string; compact?: boolean }) {
   const [visible, setVisible] = useState(false)
   useEffect(() => {
-    const timeout = window.setTimeout(() => setVisible(true), 250)
+    const timeout = window.setTimeout(() => setVisible(true), 1200)
     return () => window.clearTimeout(timeout)
   }, [])
   if (!visible) return null
-  if (compact)
-    return (
-      <section className="panel" role="status" aria-live="polite" aria-busy="true">
-        <p>{title}</p>
-      </section>
-    )
   return (
-    <main className="app-entry-state" role="status" aria-live="polite" aria-busy="true">
-      <span>SODA TERMINAL</span>
-      <h1>{title}</h1>
-      <p>请稍候，准备完成后会自动继续。</p>
-    </main>
+    <section
+      className={compact ? 'panel' : 'app-loading-status'}
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <p>{title}</p>
+    </section>
   )
 }
 
@@ -52,7 +50,13 @@ function EntryError({
 }
 
 /** The router may download modules concurrently, but no business page mounts before storage is ready. */
-export function AppInitializationGate({ children }: { children: ReactNode }) {
+export function AppInitializationGate({
+  children,
+  loadingFallback,
+}: {
+  children: ReactNode
+  loadingFallback?: ReactNode
+}) {
   const {
     databaseStatus,
     dataStatus,
@@ -98,12 +102,17 @@ export function AppInitializationGate({ children }: { children: ReactNode }) {
         {repairError ? <p role="alert">{repairError}</p> : null}
       </EntryError>
     )
-  if (databaseStatus !== 'ready') return <AppLoadingState title="正在读取本地资料" />
+  if (databaseStatus !== 'ready')
+    return loadingFallback ?? <AppLoadingState title="正在读取本地资料" />
   return children
 }
 
 export function AppRouteLoading() {
-  return <AppLoadingState title="正在打开页面" />
+  return (
+    <AppShell>
+      <AppLoadingState title="正在打开页面" />
+    </AppShell>
+  )
 }
 
 export function AppRouteError() {

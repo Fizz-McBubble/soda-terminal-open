@@ -7,10 +7,38 @@
     <meta name="theme-color" content="#071b2b" />
     <meta name="description" content="Soda Terminal - 清爽、聪明、可解释的绝区零养成决策终端" />
     <title>Soda Terminal</title>
+    <style>
+      body {
+        margin: 0;
+        background: #faf9fc;
+      }
+      .soda-startup-hint {
+        visibility: hidden;
+        position: fixed;
+        bottom: 24px;
+        left: 24px;
+        margin: 0;
+        color: #6e599c;
+        font:
+          14px/1.6 system-ui,
+          sans-serif;
+        animation: soda-startup-reveal 0s 3s forwards;
+      }
+      .soda-startup-hint a {
+        color: inherit;
+      }
+      @keyframes soda-startup-reveal {
+        to {
+          visibility: visible;
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="root">
-      <p role="status">正在加载 Soda Terminal… 若长时间没有响应，请<a href="">重新加载</a>。</p>
+      <p class="soda-startup-hint" role="status">
+        加载时间较长，请检查网络或<a href="">重新加载</a>。
+      </p>
       <noscript>请启用 JavaScript 后重新加载，本地账户和方案不会被清除。</noscript>
     </div>
     <script type="module" src="/src/main.tsx"></script>

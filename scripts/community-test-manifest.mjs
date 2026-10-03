@@ -17,6 +17,8 @@ export const incremental32CommunityTests = Object.freeze([
 ])
 
 export const communityTests = Object.freeze([
+  'src/AppCore.startup.test.tsx',
+  'src/components/AppEntryState.loading.test.tsx',
   'src/appHealth.test.tsx',
   'src/calculation/calculationContext.bangboo.test.ts',
   'src/warehouse/absoluteDiscRetentionVersionIdentity.test.ts',

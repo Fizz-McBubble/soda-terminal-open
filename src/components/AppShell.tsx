@@ -1,5 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { useEffect, useInsertionEffect, useLayoutEffect, useState } from 'react'
+import { useEffect, useInsertionEffect, useLayoutEffect, useState, type ReactNode } from 'react'
 import { Archive, Menu, ShieldCheck, Users, X } from 'lucide-react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { BackNavigation } from './BackNavigation'
@@ -20,35 +20,48 @@ import { F5VisualShell } from './F5VisualShell'
 import { F5AccountSummaryProvider } from './f5AccountSummaryContext'
 import { OnlineCalculationConsent } from './OnlineCalculationConsent'
 
-export function AppShell({ onAllowOnlineCalculation }: { onAllowOnlineCalculation?: () => void }) {
+export function AppShell({
+  onAllowOnlineCalculation,
+  children,
+}: {
+  onAllowOnlineCalculation?: () => void
+  children?: ReactNode
+}) {
   const [appSessionId] = useState(() => crypto.randomUUID())
   const location = useLocation()
   const { currentVersion, dataStatus, databaseError, databaseStatus } = useAppHealth()
   const { sidebarOpen, toggleSidebar, closeSidebar } = useUiStore()
   const routeMeta = getRouteMeta(location.pathname)
   const accountSummary = useLiveQuery(
-    () =>
-      database.transaction(
-        'r',
-        [database.settings, database.accounts, database.accountDriveDiscs, database.accountRosters],
-        async () => {
-          const account = await getActiveAccount()
-          if (!account)
-            return { accountId: null, name: '', discCount: 0, agentCount: 0, hasAccount: false }
-          const [discCount, roster] = await Promise.all([
-            database.accountDriveDiscs.where('accountId').equals(account.id).count(),
-            getAccountRoster(account.id),
-          ])
-          return {
-            accountId: account.id,
-            name: account.displayName,
-            discCount,
-            agentCount: roster.agents.filter((agent) => agent.owned).length,
-            hasAccount: true,
-          }
-        },
-      ),
-    [],
+    async () =>
+      databaseStatus === 'ready'
+        ? database.transaction(
+            'r',
+            [
+              database.settings,
+              database.accounts,
+              database.accountDriveDiscs,
+              database.accountRosters,
+            ],
+            async () => {
+              const account = await getActiveAccount()
+              if (!account)
+                return { accountId: null, name: '', discCount: 0, agentCount: 0, hasAccount: false }
+              const [discCount, roster] = await Promise.all([
+                database.accountDriveDiscs.where('accountId').equals(account.id).count(),
+                getAccountRoster(account.id),
+              ])
+              return {
+                accountId: account.id,
+                name: account.displayName,
+                discCount,
+                agentCount: roster.agents.filter((agent) => agent.owned).length,
+                hasAccount: true,
+              }
+            },
+          )
+        : undefined,
+    [databaseStatus],
   )
   const systemReady = dataStatus === 'ready' && databaseStatus === 'ready'
   const systemFailed = dataStatus === 'error' || databaseStatus === 'error'
@@ -202,7 +215,7 @@ export function AppShell({ onAllowOnlineCalculation }: { onAllowOnlineCalculatio
           {showOnlineCalculationCard && onAllowOnlineCalculation ? (
             <OnlineCalculationConsent onAllow={onAllowOnlineCalculation} />
           ) : null}
-          <Outlet />
+          {children ?? <Outlet />}
         </F5VisualShell>
       </F5AccountSummaryProvider>
     )
@@ -333,7 +346,7 @@ export function AppShell({ onAllowOnlineCalculation }: { onAllowOnlineCalculatio
             {showOnlineCalculationCard && onAllowOnlineCalculation ? (
               <OnlineCalculationConsent onAllow={onAllowOnlineCalculation} />
             ) : null}
-            <Outlet />
+            {children ?? <Outlet />}
           </main>
         </div>
         <nav

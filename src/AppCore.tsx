@@ -1,5 +1,11 @@
 import { useMemo, useState, type ComponentType, type ReactNode } from 'react'
-import { createBrowserRouter, Navigate, RouterProvider, useLocation } from 'react-router-dom'
+import {
+  createBrowserRouter,
+  Navigate,
+  Outlet,
+  RouterProvider,
+  useLocation,
+} from 'react-router-dom'
 import type { initializeDatabase } from './db/database'
 import { AppErrorBoundary } from './components/AppErrorBoundary'
 import { AppInitializationGate, AppRouteError, AppRouteLoading } from './components/AppEntryState'
@@ -76,19 +82,23 @@ function PlayerDecisionWorld({
     }
   }, [onlineAllowed, onlineMode, decisionEnvironment])
   return (
-    <AccountDecisionWorldProvider
-      queryClient={queryClient}
-      runtimeSelectionReader={decisionEnvironment.runtimeSelectionReader}
-      repairRuntimeSelection={decisionEnvironment.repairRuntimeSelection}
-      autoCalculate={
-        (!onlineMode || onlineAllowed) &&
-        shouldAutoCalculateAccountDecision(pathname, search, decisionEnvironment.mode)
-      }
+    <AppShell
+      onAllowOnlineCalculation={onlineMode && !onlineAllowed ? allowOnlineCalculation : undefined}
     >
-      <AppShell
-        onAllowOnlineCalculation={onlineMode && !onlineAllowed ? allowOnlineCalculation : undefined}
-      />
-    </AccountDecisionWorldProvider>
+      <AppInitializationGate>
+        <AccountDecisionWorldProvider
+          queryClient={queryClient}
+          runtimeSelectionReader={decisionEnvironment.runtimeSelectionReader}
+          repairRuntimeSelection={decisionEnvironment.repairRuntimeSelection}
+          autoCalculate={
+            (!onlineMode || onlineAllowed) &&
+            shouldAutoCalculateAccountDecision(pathname, search, decisionEnvironment.mode)
+          }
+        >
+          <Outlet />
+        </AccountDecisionWorldProvider>
+      </AppInitializationGate>
+    </AppShell>
   )
 }
 
@@ -320,12 +330,11 @@ export default function AppCore({
     ]),
   )
 
+  const routerView = <RouterProvider router={router} />
   return (
     <AppErrorBoundary>
       <HealthProvider databaseInitializer={databaseInitializer}>
-        <AppInitializationGate>
-          <RouterProvider router={router} />
-        </AppInitializationGate>
+        <AppInitializationGate loadingFallback={routerView}>{routerView}</AppInitializationGate>
       </HealthProvider>
     </AppErrorBoundary>
   )
