@@ -34,5 +34,5 @@ export const publicVersionIdentity = {
       koledaChangedPotentialMinimum: 2,
     },
   },
-  contentHash: 'fnv1a-142ef3e7',
+  contentHash: 'fnv1a-55673acf',
 } as const

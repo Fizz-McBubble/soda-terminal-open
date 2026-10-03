@@ -94,7 +94,7 @@ export const gameBase32Current = createManifest({
       checkedAt: entity.source.checkedAt,
       sourceVersion: entity.source.sourceVersion,
       contentHash: entity.source.contentHash,
-      verification: 'official_reference' as const,
+      verification: 'community_reference' as const,
     })),
     {
       label: adoptionCore.id,
@@ -102,7 +102,7 @@ export const gameBase32Current = createManifest({
       checkedAt: gameData32CatalogCheckedAt,
       sourceVersion: '3.2',
       contentHash: currentVersionAdoption32.contentHash,
-      verification: 'official_reference',
+      verification: 'derived_reference',
     },
   ],
   coverage: currentScopeManifest.entries.map((entry) => {

@@ -1,4 +1,5 @@
 import type { AccountDecisionQueryInput } from './calculationQueryContract'
+import { normalizeTargetTeamEquipmentParameters } from './publicTargetTeamEquipmentFingerprint'
 
 /** Keep calculation facts and saved physical references; leave personal labels in IndexedDB. */
 export function projectRemoteAccountDecisionInput(
@@ -32,6 +33,7 @@ export function projectRemoteAccountDecisionInput(
           owned: agent.owned,
           priority: agent.priority,
           level: agent.level,
+          ascension: agent.ascension,
           mindscape: agent.mindscape,
           potentialImage: agent.potentialImage,
           skills: '',
@@ -57,6 +59,7 @@ export function projectRemoteAccountDecisionInput(
             id: agent.wEngineDetails.id,
             name: null,
             level: agent.wEngineDetails.level,
+            ascension: agent.wEngineDetails.ascension,
             refinement: agent.wEngineDetails.refinement,
           },
           wEngineCopyId: agent.wEngineCopyId,
@@ -115,6 +118,19 @@ export function projectRemoteAccountDecisionInput(
             gameVersion: draft.solutionContext.gameVersion,
             knowledgeVersion: draft.solutionContext.knowledgeVersion,
             exactVariantKey: draft.solutionContext.exactVariantKey,
+            comparisonParameters: draft.solutionContext.comparisonParameters
+              ? {
+                  potential: draft.solutionContext.comparisonParameters.potential,
+                  wEngine: draft.solutionContext.comparisonParameters.wEngine
+                    ? {
+                        engineId: draft.solutionContext.comparisonParameters.wEngine.engineId,
+                        level: draft.solutionContext.comparisonParameters.wEngine.level,
+                        ascension: draft.solutionContext.comparisonParameters.wEngine.ascension,
+                        refinement: draft.solutionContext.comparisonParameters.wEngine.refinement,
+                      }
+                    : undefined,
+                }
+              : undefined,
           }
         : undefined,
       savedRole: draft.savedRole,
@@ -136,13 +152,7 @@ export function projectRemoteAccountDecisionInput(
         : undefined,
       teamEquipmentParameters: draft.teamEquipmentParameters
         ? {
-            wEngines: draft.teamEquipmentParameters.wEngines.map((engine) => ({
-              agentId: engine.agentId,
-              engineId: engine.engineId,
-              refinement: engine.refinement,
-            })),
-            bangbooId: draft.teamEquipmentParameters.bangbooId,
-            bangbooStars: draft.teamEquipmentParameters.bangbooStars,
+            ...normalizeTargetTeamEquipmentParameters(draft.teamEquipmentParameters),
             source: draft.teamEquipmentParameters.source,
           }
         : undefined,

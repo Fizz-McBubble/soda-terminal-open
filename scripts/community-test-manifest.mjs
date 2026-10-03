@@ -24,6 +24,8 @@ export const communityTests = Object.freeze([
   'src/application/publicDataProjection.test.ts',
   'src/assets/publicVisualAssets.test.ts',
   'src/application/browserCalculationQueryClient.test.ts',
+  'src/application/browserCalculationInputFingerprint.test.ts',
+  'src/application/accountDecisionWorld.ascension.test.tsx',
   'src/application/accountDecisionWorld.loading.test.tsx',
   'src/pages/WarehouseDiscsPage.loading.test.tsx',
   'src/application/browserAccountDecisionWorker.test.ts',

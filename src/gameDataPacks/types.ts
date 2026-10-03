@@ -15,7 +15,14 @@ export const gameDataSourceSchema = z.object({
   checkedAt: z.string().datetime(),
   sourceVersion: z.string().min(1),
   contentHash: z.string().min(1).nullable().default(null),
-  verification: z.enum(['official_verified', 'official_reference', 'missing']),
+  // Source provenance is separate from package adoption and calculation eligibility.
+  verification: z.enum([
+    'official_verified',
+    'official_reference',
+    'community_reference',
+    'derived_reference',
+    'missing',
+  ]),
 })
 
 export const gameDataCoverageSchema = z.object({
