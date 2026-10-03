@@ -42,6 +42,7 @@ function createWorker(
     corrupt?: string
     invalidHash?: boolean
     legacyOld?: boolean
+    redirectedIndex?: boolean
   } = {},
 ) {
   const release = options.release ?? current
@@ -87,7 +88,12 @@ function createWorker(
       const key = (request: string | { url: string }) =>
         typeof request === 'string' ? request : new URL(request.url).pathname
       return {
-        match: async (request: string | { url: string }) => contents.get(key(request))?.clone(),
+        match: async (request: string | { url: string }) => {
+          const response = contents.get(key(request))?.clone()
+          if (response && options.redirectedIndex && key(request) === '/index.html')
+            Object.defineProperty(response, 'redirected', { value: true })
+          return response
+        },
         put: async (request: string | { url: string }, response: Response) => {
           contents.set(key(request), response.clone())
         },
@@ -249,6 +255,22 @@ describe('public service worker release cache lifecycle', () => {
       `${current}:/assets/lazy-abcd1234.js`,
     )
     expect(worker.fetcher).not.toHaveBeenCalledWith('/assets/decorative-abcd1234.png')
+  })
+
+  it('serves verified HTML offline without the CDN redirect flag rejected by navigation', async () => {
+    const worker = createWorker({ redirectedIndex: true })
+    await worker.dispatch('install')
+    const cached = await (await worker.cacheApi.open(name(current))).match('/index.html')
+    expect(cached?.redirected).toBe(true)
+    worker.setOnline(false)
+    const response = await worker.dispatch('fetch', {
+      clientId: 'new',
+      request: { method: 'GET', mode: 'navigate', url: 'https://soda.example/account' },
+    })
+    expect(response?.redirected).toBe(false)
+    expect(response?.status).toBe(200)
+    expect(response?.headers.get('content-type')).toBe('text/plain;charset=UTF-8')
+    expect(await response?.text()).toBe(`${current}:/index.html`)
   })
 
   it('keeps current, immediate predecessor and an active older tab, then prunes after that tab closes', async () => {

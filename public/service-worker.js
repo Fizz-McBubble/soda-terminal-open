@@ -206,7 +206,16 @@ self.addEventListener('fetch', (event) => {
           return await fetch(request)
         } catch {
           const cache = await caches.open(cacheName)
-          return (await cache.match('/index.html')) ?? Response.error()
+          const cached = await cache.match('/index.html')
+          // Static Assets redirects /index.html to /. A cached redirected response cannot
+          // answer a navigation with redirect mode "manual"; retain verified bytes/headers.
+          return cached
+            ? new Response(cached.body, {
+                status: cached.status,
+                statusText: cached.statusText,
+                headers: cached.headers,
+              })
+            : Response.error()
         }
       })(),
     )
