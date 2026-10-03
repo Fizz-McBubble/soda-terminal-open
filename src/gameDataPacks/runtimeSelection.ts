@@ -2,6 +2,7 @@ import { database, type SodaDatabase } from '../db/database'
 import { gameBase32Current } from './currentVersionAdoption32'
 import { currentVersionProjection } from './currentVersionProjection'
 import { validateManifest } from './types'
+import { isCompatibleManifestContent } from './manifestContentCompatibility'
 
 export const currentGameDataRuntimeSelectionContract =
   'soda-current-game-data-runtime-selection/v1' as const
@@ -75,7 +76,7 @@ export async function readCurrentGameDataRuntimeSelection(
     active.id !== gameBase32Current.id ||
     active.packageVersion !== gameBase32Current.packageVersion ||
     active.gameVersion !== gameBase32Current.gameVersion ||
-    active.contentHash !== gameBase32Current.contentHash
+    !isCompatibleManifestContent(active.contentHash, gameBase32Current.contentHash)
   )
     return unbound(
       'active_package_not_compiled_artifact',

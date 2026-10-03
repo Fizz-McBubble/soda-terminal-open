@@ -12,6 +12,7 @@ export const incremental32CommunityTests = Object.freeze([
   'src/application/publicSavedPlanningBenchmark32.test.ts',
   'src/accounts/backupCompatibility32.test.ts',
   'src/gameDataPacks/currentVersionAdoption32.test.ts',
+  'src/gameDataPacks/runtimeSelection.test.ts',
   'src/warehouse/reviewedRetentionUseScope.test.ts',
 ])
 
