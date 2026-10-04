@@ -192,13 +192,9 @@ export function WarehouseDiscsPage() {
   const ownedAgentIds = new Set(
     data?.roster.agents.filter((agent) => agent.owned).map((agent) => agent.agentId),
   )
-  const moreFilterCount = [
-    filters.level !== '',
-    filters.referenced !== 'all',
-    filters.review !== 'all',
-    filters.qualityBasis !== 'all',
-    filters.useScope !== 'all',
-  ].filter(Boolean).length
+  const moreFilterCount = [filters.level !== '', filters.referenced !== 'all'].filter(
+    Boolean,
+  ).length
   const selectedIndex = actionList.rows.findIndex((row) => row.disc.id === selectedDisc?.id)
   const availableMainStats = new Set(
     (data?.discs ?? [])

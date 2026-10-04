@@ -5,6 +5,7 @@ import { assessWarehouseUses } from './warehouseUseAssessment'
 import { warehouseUsePolicyVersion } from './warehouseDiscQuality'
 import { warehouseAnalysisRuleVersion } from './warehousePolicyVersion'
 import { assessWarehouse } from './absoluteDiscRetentionKernel'
+import { retentionUseGuidance } from './warehouseRetentionGuidance'
 import {
   absoluteDiscRetentionCatalog,
   absoluteDiscRetentionCatalogHash,
@@ -33,6 +34,10 @@ export {
 } from './discWarehouseEvidence'
 
 export { warehouseAnalysisRuleVersion } from './warehousePolicyVersion'
+
+const retentionProfiles = new Map(
+  absoluteDiscRetentionCatalog.profiles.map((profile) => [profile.id, profile]),
+)
 
 /**
  * A pure, account-scoped decision service. It intentionally has no repository
@@ -244,6 +249,7 @@ export function analyzeAccountWarehouse(input: WarehouseAnalysisInput): Warehous
             Number(retention.witnessProfileIds.includes(left.profileId)) ||
           Number(right.mainFit === 'valid' && right.setFit === 'valid') -
             Number(left.mainFit === 'valid' && left.setFit === 'valid') ||
+          Number(right.useState === 'valid') - Number(left.useState === 'valid') ||
           right.currentScore - left.currentScore ||
           left.profileId.localeCompare(right.profileId),
       )
@@ -270,6 +276,12 @@ export function analyzeAccountWarehouse(input: WarehouseAnalysisInput): Warehous
         investment: evidence.investment,
         weightEvidence: evidence.weightEvidence,
         blockers: evidence.blockers,
+        guidance: retentionUseGuidance(
+          disc,
+          evidence,
+          retentionProfiles.get(evidence.profileId),
+          absoluteDiscRetentionPolicy,
+        ),
       }))
     return {
       discId: disc.id,

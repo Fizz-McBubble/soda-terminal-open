@@ -117,7 +117,7 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
           { value: 'all', label: '全部使用状态' },
           { value: 'equipped', label: '当前装备' },
           { value: 'planned', label: '已保存方案' },
-          { value: 'unprotected', label: '无保护关系' },
+          { value: 'unprotected', label: '暂无使用记录' },
         ]
       : [
           { value: 'all', label: kind === 'wengines' ? '全部使用状态' : '全部状态' },

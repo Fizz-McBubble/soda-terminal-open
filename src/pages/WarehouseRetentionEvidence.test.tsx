@@ -49,6 +49,20 @@ function use(
     functionalMain: false,
     cutoffs: { cleanupBelow: 40, keepFrom: 60, premiumFrom: 85 },
     sourceIds: ['synthetic-source'],
+    guidance: {
+      mainStats: ['def_flat'],
+      subStats: ['crit_rate', 'crit_dmg', 'def_percent'],
+      matchedStats: ['crit_rate'],
+      minorStats: [],
+      unusedStats: ['hp_flat', 'anomaly_proficiency'],
+      minimumLines: 2,
+      minimumCoreLines: 1,
+      twoPieceEffect: '防御力提升16%。',
+      fourPieceEffect: '四件套需满足配装条件。',
+      sources: [
+        { label: 'BWIKI 构筑资料', url: 'https://wiki.biligame.com/zzz/本', sourceVersion: null },
+      ],
+    },
     investment: {
       policyId: 'synthetic-investment',
       qualified: false,
@@ -78,7 +92,7 @@ describe('absolute retention evidence', () => {
     })
     const { rerender } = render(<WarehouseRetentionEvidence discLevel={0} evidence={source} />)
     expect(screen.getByRole('status')).toHaveTextContent('下一步：可清理')
-    expect(screen.queryByText('查看评分与强化依据')).not.toBeInTheDocument()
+    expect(screen.queryByText('查看参考评分')).not.toBeInTheDocument()
     expect(screen.queryByText(/尚未校准/)).not.toBeInTheDocument()
     rerender(
       <WarehouseRetentionEvidence
@@ -117,7 +131,7 @@ describe('absolute retention evidence', () => {
     expect(screen.getByRole('status')).toHaveTextContent('下一步：先强化到 +3')
     expect(screen.getByText('强化后重新分析，不再推荐就停手。')).toBeVisible()
     expect(screen.getByText('21.0 分')).not.toBeVisible()
-    await userEvent.click(screen.getByText('查看评分与强化依据'))
+    await userEvent.click(screen.getByText('查看参考评分'))
     expect(screen.getByText('21.0 分')).toBeVisible()
     expect(screen.getByText('21.0–79.4 分')).toBeVisible()
     expect(screen.getByText(/不代表成功概率/)).toBeVisible()
@@ -207,8 +221,8 @@ describe('absolute retention evidence', () => {
       />,
     )
     expect(screen.getByText(/需要核对四件套队伍条件/)).toBeInTheDocument()
-    expect(screen.getAllByText(/还可强化 3 次/)).toHaveLength(4)
-    expect(screen.getByText('查看评分与强化依据').closest('details')?.open).toBe(false)
+    expect(screen.getAllByText('3 次')).toHaveLength(1)
+    expect(screen.getByText('查看参考评分').closest('details')?.open).toBe(false)
   })
 
   it('keeps completed function separate from substat quality at mature level', () => {
@@ -252,7 +266,7 @@ describe('absolute retention evidence', () => {
         })}
       />,
     )
-    expect(screen.getByText(/仍可能出现极端的好结果/)).toBeInTheDocument()
+    expect(screen.getByText(/当前词条不满足继续强化标准/)).toBeInTheDocument()
     expect(screen.getByText('42.0–95.0 分')).toBeInTheDocument()
     rerender(
       <WarehouseRetentionEvidence
@@ -288,7 +302,7 @@ describe('absolute retention evidence', () => {
     expect(screen.getByText(/下一步：复核后可清理/)).toBeInTheDocument()
   })
 
-  it('uses player-facing branch, field, and stat labels while retaining policy and source provenance', () => {
+  it('shows readable conditions and source links without internal identifiers even when expanded', async () => {
     const profileId = 'agent-anby:base-0:fnv1a123456'
     const fields = [
       'functionalTarget',
@@ -328,8 +342,10 @@ describe('absolute retention evidence', () => {
     expect(text).toContain('四件套条件')
     expect(text).toContain('冲击力')
     expect(text).toContain('异常掌控')
-    expect(text).toContain('品质策略：test-policy')
-    expect(text).toContain('来源 synthetic-source')
+    await userEvent.click(screen.getByText('查看来源与待确认条件'))
+    expect(screen.getByRole('link', { name: 'BWIKI 构筑资料' })).toBeVisible()
+    expect(text).toContain('原资料未标注游戏版本')
+    expect(text).not.toMatch(/test-policy|synthetic-source|fnv1a|synthetic-investment/)
     const mainCopy = [...screen.getByRole('region', { name: '绝对品质与成长证据' }).children]
       .filter((element) => element.tagName !== 'DETAILS')
       .map((element) => element.textContent)
@@ -339,7 +355,7 @@ describe('absolute retention evidence', () => {
     )
   })
 
-  it('explains a record mismatch and keeps the raw scope inside provenance', () => {
+  it('explains a record mismatch without exposing the raw scope', () => {
     render(
       <WarehouseRetentionEvidence
         discLevel={0}
@@ -360,8 +376,44 @@ describe('absolute retention evidence', () => {
     )
     expect(screen.getByText(/副词条数值与记录的强化次数不一致/)).toBeInTheDocument()
     expect(screen.queryByText(/inconsistent_substat_record/)).not.toBeInTheDocument()
-    const scope = screen.getByText(/用途范围标识：/)
-    expect(scope.closest('details')?.open).toBe(false)
-    expect(screen.getByText(/范围：当前版本已发布角色/)).toBeInTheDocument()
+    expect(screen.queryByText(/released-source-backed/)).not.toBeInTheDocument()
+  })
+
+  it('puts actual stat fit first and changes only the displayed purpose when another character is selected', async () => {
+    const first = use('ben', 75)
+    render(
+      <WarehouseRetentionEvidence
+        discLevel={0}
+        evidence={evidence({
+          ownedUseAgentIds: ['agent-ben'],
+          leadingUses: [
+            {
+              ...first,
+              agentId: 'agent-ben',
+              investment: {
+                ...first.investment!,
+                meaningfulStats: ['crit_rate'],
+                coreStats: ['crit_rate'],
+              },
+            },
+            {
+              ...use('claret', 75),
+              agentId: 'agent-claret',
+              fourPieceFit: 'conditional',
+              useState: 'conditional',
+            },
+          ],
+        })}
+      />,
+    )
+    expect(screen.getByText('暴击率有用')).toBeVisible()
+    expect(screen.getByText(/生命值.*异常精通.*不计入这个构筑/)).toBeVisible()
+    expect(screen.getByText(/目前只有 1 条重点副词条/)).toBeVisible()
+    expect(screen.getByText('此用途只取两件效果。')).toBeVisible()
+    expect(screen.queryByText(/四件（有使用条件）/)).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /克拉蕾/ }))
+    expect(screen.getByText(/四件（有使用条件）/)).toBeVisible()
+    expect(screen.getByText(/35%.*不直接放大锐暴/)).toBeVisible()
+    expect(screen.getByRole('button', { name: /克拉蕾/ })).toHaveAttribute('aria-pressed', 'true')
   })
 })

@@ -2,6 +2,7 @@ import type { AccountPlanningDraft } from '../accounts/types'
 import type { AccountRoster } from '../assault/types'
 import { driveDiscData } from '../data/gameData'
 import type { DriveDisc, StatKey } from '../domain/schemas'
+import type { WarehouseRetentionGuidance } from './warehouseRetentionGuidance'
 import { evaluationRules } from '../evaluation/rules'
 import {
   deriveSubStatHistory,
@@ -55,7 +56,7 @@ export type WarehouseAbsoluteRetentionEvidence = {
           | 'weightEvidence'
           | 'blockers'
         >
-      >
+      > & { guidance?: WarehouseRetentionGuidance }
   >
 }
 

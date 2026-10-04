@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
+import { playerErrorMessage } from '../../application/playerErrorMessage'
 import { useStateTransitionMotion } from '../../motion/useStateTransitionMotion'
 import { BackNavigation } from '../../components/BackNavigation'
 import { DevelopmentDiscCard } from './DevelopmentDiscCard'
@@ -103,7 +104,7 @@ export function Top10({
       await onReanalyzeWarehouse()
       setReanalyzeMessage('搭配完成，方案已刷新。')
     } catch (error) {
-      setReanalyzeMessage(error instanceof Error ? error.message : '重新搭配失败，请稍后重试。')
+      setReanalyzeMessage(playerErrorMessage(error, '重新搭配失败，请稍后重试。'))
     } finally {
       setReanalyzing(false)
     }
@@ -114,9 +115,7 @@ export function Top10({
     setSaveError(null)
     setSaving(true)
     void Promise.resolve(onSavePlan(selectedRow.rank))
-      .catch((error: unknown) =>
-        setSaveError(error instanceof Error ? error.message : '保存失败，请稍后重试。'),
-      )
+      .catch((error: unknown) => setSaveError(playerErrorMessage(error, '保存失败，请稍后重试。')))
       .finally(() => setSaving(false))
   }
 

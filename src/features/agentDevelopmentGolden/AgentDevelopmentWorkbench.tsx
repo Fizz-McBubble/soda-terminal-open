@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { playerErrorMessage } from '../../application/playerErrorMessage'
 import { DevelopmentDiscCard } from './DevelopmentDiscCard'
 import { DevelopmentDiscGuide } from './DevelopmentDiscGuide'
 import { useStateTransitionMotion } from '../../motion/useStateTransitionMotion'
@@ -77,7 +78,7 @@ export function Workbench({
       return true
     } catch (error) {
       setWarehouseActionState('error')
-      setWarehouseActionError(error instanceof Error ? error.message : '搭配未完成，请重试。')
+      setWarehouseActionError(playerErrorMessage(error, '搭配未完成，请重新分析后重试。'))
     }
   }
   return (
@@ -420,9 +421,7 @@ export function Workbench({
                       await onSavePlan(subject.selectedCandidateRank)
                       setSavedPlanKey(planKey)
                     } catch (error) {
-                      setSavePlanError(
-                        error instanceof Error ? error.message : '保存失败，请重试。',
-                      )
+                      setSavePlanError(playerErrorMessage(error, '保存失败，请稍后重试。'))
                     } finally {
                       setSavingPlan(false)
                     }

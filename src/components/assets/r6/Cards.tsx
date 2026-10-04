@@ -132,7 +132,7 @@ export function DiscCard({
     .filter((value) => value !== 'locked' && value !== 'favorite')
     .map(
       (value) =>
-        ({ locked: '锁定', favorite: '收藏', equipped: '装备中', planned: '方案引用' })[value],
+        ({ locked: '锁定', favorite: '收藏', equipped: '装备中', planned: '已保存方案' })[value],
     )
   return (
     <button

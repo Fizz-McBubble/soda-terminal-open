@@ -85,6 +85,7 @@ export function readableDetail(detail: string) {
   }
   if (recordMessages[detail]) return recordMessages[detail]
   return detail
+    .replace(/已收藏，按(?:明确|你的)保留(?:意图|选择)保护。/g, '已有保留记录。')
     .replace(/\b[a-z0-9_-]+:(?:base-\d+|condition-\d+):[a-f0-9]{8,}\b/gi, '相关构筑')
     .replace(/\b(?:mainStats\.\d+\.[a-z0-9_]+|functionalTarget|numericWeights)\b/g, (field) =>
       readableField(field),
@@ -127,17 +128,17 @@ export function playerRetentionCopy(
     conditional_use: '用途取决于队伍或配装条件，确认成立后再投入。',
     missing_fact: '相关用途或清理标准尚未确认，暂不建议继续投入或清理。',
     proven_low_ceiling: '即使后续强化全部往有利方向发展，也达不到清理门槛。',
-    low_investment_value: '当前有效词条不足，不建议再投入；仍可能出现极端的好结果。',
+    low_investment_value: '当前词条不满足继续强化标准，建议停手。',
     no_supported_use: '已核对的用途中，暂未找到适合的主词条与套装组合。',
     approved_rarity_cleanup: 'A/B 级盘直接归入清理候选，不需要继续强化。',
     invalid_record: '词条记录与强化规则不一致，请先核对或重新导入。',
   }
   const stop = protectedKeep
-    ? null
+    ? '处理前请先确认是否仍在使用。'
     : trial
       ? null
       : action?.kind === 'manual_cleanup'
-        ? '清理前确认没有装备、收藏或方案引用。'
+        ? '清理前请在游戏内确认未装备，并检查是否仍用于方案。'
         : action?.kind === 'check_condition'
           ? '条件未确认前，先别强化或清理。'
           : null

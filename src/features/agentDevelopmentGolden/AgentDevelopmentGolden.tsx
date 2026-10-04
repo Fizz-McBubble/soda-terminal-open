@@ -26,7 +26,7 @@ export function AgentDevelopmentGolden({
   const content = missingData ? (
     <section className="production-data-missing" role="alert">
       <h1>当前账户资料尚未准备好</h1>
-      <p>此页面只展示当前账户的生产数据，不会回退到演示数据。</p>
+      <p>请稍后重试；若仍无法读取，请重新加载页面。</p>
     </section>
   ) : view === 'overview' ? (
     <AgentDevelopmentOverview

@@ -18,7 +18,7 @@ describe('warehouse favorite protection presentation', () => {
     } as unknown as WarehouseActionItem
     const before = structuredClone({ decision, item })
     expect(item.retentionBasis).toBe('user_protected')
-    expect(statusText(item)).toEqual(['收藏保护'])
+    expect(statusText(item)).toEqual(['已有保留记录'])
     expect(item.usageAgentIds).toEqual([])
     expect({ decision, item }).toEqual(before)
   })
@@ -28,6 +28,6 @@ describe('warehouse favorite protection presentation', () => {
       statusText({
         statuses: ['currently_equipped', 'favorite'],
       } as unknown as WarehouseActionItem),
-    ).toEqual(['当前使用', '收藏保护'])
+    ).toEqual(['当前使用', '已有保留记录'])
   })
 })

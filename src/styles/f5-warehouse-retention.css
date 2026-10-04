@@ -39,6 +39,33 @@
   color: var(--soda-text-3);
   font-size: var(--soda-type-meta);
 }
+.f5v-shell .warehouse-retention__uses button {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 5px 9px;
+  border: 1px solid var(--soda-line);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--soda-text);
+  cursor: pointer;
+}
+.f5v-shell .warehouse-retention__uses button[aria-pressed='true'] {
+  border-color: var(--f5-accent);
+}
+.f5v-shell .warehouse-retention__fit dl {
+  display: grid;
+  gap: 8px;
+  margin: 4px 0 8px;
+}
+.f5v-shell .warehouse-retention__fit dt {
+  font-size: var(--soda-type-meta);
+  color: var(--soda-text-3);
+}
+.f5v-shell .warehouse-retention__fit dd {
+  margin: 2px 0 0;
+  color: var(--soda-text);
+}
 .f5v-shell .warehouse-retention__details {
   min-width: 0;
   padding-top: 6px;

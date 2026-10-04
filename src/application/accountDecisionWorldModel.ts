@@ -1,3 +1,4 @@
+import { playerErrorMessage } from './playerErrorMessage'
 import {
   getDevelopmentPriorityAgentIds,
   getSavedAgentBuildIds,
@@ -67,8 +68,7 @@ export type RuntimeSelectionObservation =
   | { status: 'error'; message: string }
 
 export function readableCalculationError(error: unknown) {
-  const message = error instanceof Error ? error.message : ''
-  return /[\u3400-\u9fff]/.test(message) ? message : '当前分析暂时无法完成，请稍后重新分析。'
+  return playerErrorMessage(error, '当前分析暂时无法完成，请稍后重新分析。')
 }
 
 export function readableRuntimeSelectionError() {

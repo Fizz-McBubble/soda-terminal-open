@@ -171,6 +171,15 @@ export function resolveEffectUtility(
 
   // 6. Critical rate & Critical damage
   if (effectStat === 'crit_' || effectStat === 'crit_dmg_') {
+    if (agentId === 'agent-claret' && isRecommended) {
+      return ev(
+        'valid',
+        'claret_sharpened_critical_input',
+        effectStat === 'crit_dmg_'
+          ? '初始暴击伤害的35%转为暴击率；锐暴伤害不直接使用普通暴击伤害加成。'
+          : '暴击率服务锐暴与二次锐暴判定；实际收益需结合完整配装。',
+      )
+    }
     if (context.isJane && goal === 'anomaly_damage') {
       return ev(
         'incidental',

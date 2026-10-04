@@ -54,6 +54,7 @@ export function readableWarehouseReason(reason: string) {
   const viability = reason.match(/^按当前角色有效词条计算，最乐观可达 (.+)，本号位保留线为 (.+)$/)
   if (viability) return `有效词条最多 ${viability[1]} 次命中，建议至少 ${viability[2]} 次。`
   const knownReasons: Record<string, string> = {
+    '已收藏，按你的保留选择保护。': '已有保留记录，暂不建议清理。',
     '未记录为当前实装，也未被长期激活或保存方案引用；实际装备状态需在游戏内核对':
       '没有记录这张盘的当前实装或方案引用；实际是否装备请在游戏内核对。',
     '强化历史或角色约束不足，缺少可证潜力上限': '强化记录或角色资料不足，暂时无法估计强化上限。',

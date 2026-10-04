@@ -140,78 +140,88 @@ export function WarehouseActionDrawer({
       {comparisonOrigin ? (
         <DiscAttributeComparison original={comparisonOrigin.disc} candidate={disc} />
       ) : null}
-      <section className="warehouse-action-drawer__decision">
-        {!stale && item.action === 'cleanup' && decisionReason ? (
-          <p className="warehouse-action-drawer__decision-summary">
-            <EffectDescription text={readableWarehouseReason(decisionReason)} />
-          </p>
-        ) : null}
-        <div className="warehouse-action-drawer__section-heading">
-          <p className="warehouse-action-drawer__action">
-            {stale ? '旧结果待重新分析' : decisionLabel}
-          </p>
-          {explanationReasons.length > 0 ||
-          (!stale && item.reviewBasis === 'no_current_fit' && !decisionReason) ? (
-            <ExplanationPopover label="判断依据" title={stale ? '分析时的判断依据' : '判断依据'}>
-              {explanationReasons.length > 0 ? (
-                <ul>
-                  {explanationReasons.map((reason) => (
-                    <li key={reason}>
-                      <EffectDescription text={readableWarehouseReason(reason)} />
-                    </li>
-                  ))}
-                </ul>
-              ) : null}
-            </ExplanationPopover>
+      {!item.absoluteRetention || stale || item.reviewBasis === 'no_current_fit' ? (
+        <section className="warehouse-action-drawer__decision">
+          {!stale && !item.absoluteRetention && item.action === 'cleanup' && decisionReason ? (
+            <p className="warehouse-action-drawer__decision-summary">
+              <EffectDescription text={readableWarehouseReason(decisionReason)} />
+            </p>
           ) : null}
-        </div>
-        {!stale && item.reviewBasis === 'no_current_fit' && (
-          <p>
-            当前角色与保存队伍未推荐这一组合。
-            {sameKindCount === 1
-              ? '这是同类唯一一张，处理后将没有这一组合。'
-              : `同类还有 ${sameKindCount - 1} 张。`}
-          </p>
-        )}
-        {!stale && !item.absoluteRetention && item.developmentAdvice ? (
-          <div
-            className="warehouse-action-drawer__development"
-            role="group"
-            aria-label="培养下一步"
-          >
-            {item.developmentAdvice.kind !== 'review_finished' ||
-            item.developmentAdvice.currentEffectiveRolls === null ? (
-              <p>
-                <strong>{warehouseDevelopmentAction(item.developmentAdvice)}</strong>
+          <div className="warehouse-action-drawer__section-heading">
+            {!item.absoluteRetention || stale ? (
+              <p className="warehouse-action-drawer__action">
+                {stale ? '旧结果待重新分析' : decisionLabel}
               </p>
             ) : null}
-            {item.developmentAdvice.effectiveAgentId &&
-            item.developmentAdvice.currentEffectiveRolls !== null ? (
-              <p>
-                <strong>{readableAgentName(item.developmentAdvice.effectiveAgentId)}</strong>
-                {' · '}
-                <strong className="warehouse-action-drawer__hits">
-                  {item.developmentAdvice.currentEffectiveRolls} 次有效命中
-                </strong>
-                （含初始）
-                {item.developmentAdvice.remainingNodes !== null &&
-                item.developmentAdvice.remainingNodes > 0 ? (
-                  <>
-                    还可强化 <strong>{item.developmentAdvice.remainingNodes} 次</strong>。
-                  </>
+            {!item.absoluteRetention &&
+            (explanationReasons.length > 0 ||
+              (!stale && item.reviewBasis === 'no_current_fit' && !decisionReason)) ? (
+              <ExplanationPopover label="判断依据" title={stale ? '分析时的判断依据' : '判断依据'}>
+                {explanationReasons.length > 0 ? (
+                  <ul>
+                    {explanationReasons.map((reason) => (
+                      <li key={reason}>
+                        <EffectDescription text={readableWarehouseReason(reason)} />
+                      </li>
+                    ))}
+                  </ul>
                 ) : null}
-              </p>
-            ) : item.developmentAdvice.remainingNodes !== null &&
-              item.developmentAdvice.remainingNodes > 0 ? (
-              <p>
-                还可强化 <strong>{item.developmentAdvice.remainingNodes} 次</strong>。
-              </p>
+              </ExplanationPopover>
             ) : null}
           </div>
-        ) : null}
-      </section>
+          {!stale && item.reviewBasis === 'no_current_fit' && (
+            <p>
+              当前角色与保存队伍未推荐这一组合。
+              {sameKindCount === 1
+                ? '这是同类唯一一张，处理后将没有这一组合。'
+                : `同类还有 ${sameKindCount - 1} 张。`}
+            </p>
+          )}
+          {!stale && !item.absoluteRetention && item.developmentAdvice ? (
+            <div
+              className="warehouse-action-drawer__development"
+              role="group"
+              aria-label="培养下一步"
+            >
+              {item.developmentAdvice.kind !== 'review_finished' ||
+              item.developmentAdvice.currentEffectiveRolls === null ? (
+                <p>
+                  <strong>{warehouseDevelopmentAction(item.developmentAdvice)}</strong>
+                </p>
+              ) : null}
+              {item.developmentAdvice.effectiveAgentId &&
+              item.developmentAdvice.currentEffectiveRolls !== null ? (
+                <p>
+                  <strong>{readableAgentName(item.developmentAdvice.effectiveAgentId)}</strong>
+                  {' · '}
+                  <strong className="warehouse-action-drawer__hits">
+                    {item.developmentAdvice.currentEffectiveRolls} 次有效命中
+                  </strong>
+                  （含初始）
+                  {item.developmentAdvice.remainingNodes !== null &&
+                  item.developmentAdvice.remainingNodes > 0 ? (
+                    <>
+                      还可强化 <strong>{item.developmentAdvice.remainingNodes} 次</strong>。
+                    </>
+                  ) : null}
+                </p>
+              ) : item.developmentAdvice.remainingNodes !== null &&
+                item.developmentAdvice.remainingNodes > 0 ? (
+                <p>
+                  还可强化 <strong>{item.developmentAdvice.remainingNodes} 次</strong>。
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+        </section>
+      ) : null}
       {item.absoluteRetention && !stale ? (
-        <WarehouseRetentionEvidence evidence={item.absoluteRetention} discLevel={disc.level} />
+        <WarehouseRetentionEvidence
+          key={disc.id}
+          evidence={item.absoluteRetention}
+          discLevel={disc.level}
+          disc={disc}
+        />
       ) : null}
       <section>
         <h3>词条</h3>

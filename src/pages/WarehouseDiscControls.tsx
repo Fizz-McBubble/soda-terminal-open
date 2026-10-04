@@ -9,7 +9,7 @@ import { readableAgentName, readableSetName, setNames } from './warehouseFactLab
 import { initialFilters, actionKinds, type FilterState } from './warehouseDiscPresentation'
 
 const actionDescriptions = {
-  keep: '品质达线或已被保护',
+  keep: '有适合的用途或仍在使用',
   enhance: '需核对，不代表建议强化',
   cleanup: '仅供人工清理核对',
 } as const
@@ -115,39 +115,6 @@ export function WarehouseDiscControls({
       document.removeEventListener('keydown', closeOnEscape)
     }
   }, [])
-  const qualityBasisControl = (
-    <label>
-      品质与保护
-      <PlayerSelect
-        aria-label="品质与保护"
-        disabled={!projection}
-        value={filters.qualityBasis}
-        onChange={(value) =>
-          updateFilters((current) => ({
-            ...current,
-            qualityBasis: value as FilterState['qualityBasis'],
-          }))
-        }
-      >
-        <option value="all">全部</option>
-        <option value="quality_keep">品质或功能保留</option>
-        <option value="legal_growth">观察分类（全部原因）</option>
-        <option value="evidence_gap">资料或条件待核对</option>
-        <option value="protected">装备、收藏或方案保护</option>
-        <option value="reason:quality_keep">副词条品质达线</option>
-        <option value="reason:functional_ready">功能用途已具备</option>
-        <option value="reason:try_next_upgrade">值得试一次强化</option>
-        <option value="reason:quality_borderline">品质边界待复核</option>
-        <option value="reason:conditional_use">用途条件待核对</option>
-        <option value="reason:missing_fact">相关资料待确认</option>
-        <option value="reason:proven_low_ceiling">严格上界仍不足</option>
-        <option value="reason:low_investment_value">继续投入价值偏低</option>
-        <option value="reason:no_supported_use">支持范围未证用途</option>
-        <option value="reason:approved_rarity_cleanup">A/B 级盘清理规则</option>
-        <option value="reason:invalid_record">盘记录待核对</option>
-      </PlayerSelect>
-    </label>
-  )
   return (
     <section className="warehouse-action-controls" aria-label="驱动盘建议与筛选">
       <WarehouseActionSummary
@@ -263,25 +230,6 @@ export function WarehouseDiscControls({
               <summary>更多筛选 · {moreFilterCount}</summary>
               <div>
                 <label>
-                  用途范围
-                  <PlayerSelect
-                    aria-label="用途范围"
-                    disabled={!projection}
-                    value={filters.useScope}
-                    onChange={(value) =>
-                      updateFilters((current) => ({
-                        ...current,
-                        useScope: value as FilterState['useScope'],
-                      }))
-                    }
-                  >
-                    <option value="all">全部用途</option>
-                    <option value="owned">已拥有角色</option>
-                    <option value="unowned">未拥有·潜在用途</option>
-                    <option value="none">尚无已证用途</option>
-                  </PlayerSelect>
-                </label>
-                <label>
                   等级/强化
                   <PlayerSelect
                     aria-label="等级/强化"
@@ -297,9 +245,9 @@ export function WarehouseDiscControls({
                   </PlayerSelect>
                 </label>
                 <label>
-                  方案引用
+                  方案使用
                   <PlayerSelect
-                    aria-label="方案引用"
+                    aria-label="方案使用"
                     disabled={!projection}
                     value={filters.referenced}
                     onChange={(value) =>
@@ -310,29 +258,10 @@ export function WarehouseDiscControls({
                     }
                   >
                     <option value="all">全部</option>
-                    <option value="yes">已被引用</option>
-                    <option value="no">未被引用</option>
+                    <option value="yes">已用于方案</option>
+                    <option value="no">未用于方案</option>
                   </PlayerSelect>
                 </label>
-                <label>
-                  核对状态
-                  <PlayerSelect
-                    aria-label="核对状态"
-                    disabled={!projection}
-                    value={filters.review}
-                    onChange={(value) =>
-                      updateFilters((current) => ({
-                        ...current,
-                        review: value as FilterState['review'],
-                      }))
-                    }
-                  >
-                    <option value="all">全部</option>
-                    <option value="yes">待核对</option>
-                    <option value="no">无需核对</option>
-                  </PlayerSelect>
-                </label>
-                {qualityBasisControl}
               </div>
             </details>
             {hasFilters ? (
