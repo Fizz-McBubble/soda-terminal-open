@@ -16,6 +16,7 @@ import { projectTeamEquipmentRecommendations } from './teamEquipmentRecommendati
 import { optimizerOptionsFromBuildIntent, type TeamJointBuildIntent } from './buildIntent'
 import type { TeamAssignmentObjective } from '../optimizer/selectTeamObjectiveAssignment'
 import { compareCandidatePanelObjective } from '../optimizer/candidatePanelObjective'
+import { candidateTeamSetScore } from '../optimizer/candidateTeamSetScore'
 import {
   candidateSetPlanPriority,
   candidateSetPlanIdentity,
@@ -95,6 +96,19 @@ function agentOnlyOptions(options: CandidateWarehouseOptions, agentId: string) {
   }
 }
 
+function excludesFixedDisc(
+  discs: CoreWarehouse['discs'],
+  recommendation: CandidateWarehouseRecommendation,
+  options: CandidateWarehouseOptions,
+) {
+  const fixedId = options.fixedDiscByAgent?.[recommendation.agentId]
+  const fixed = fixedId ? discs.find((disc) => disc.id === fixedId) : undefined
+  if (!fixed || !recommendation.constraint) return false
+  return !candidateSetPlansForConstraint(recommendation.constraint).some((plan) =>
+    [...plan.primarySetIds, ...plan.secondarySetIds].includes(fixed.setId),
+  )
+}
+
 function firstFeasibleSourceBranch(input: {
   discs: CoreWarehouse['discs']
   recommendation: CandidateWarehouseRecommendation
@@ -114,6 +128,7 @@ function firstFeasibleSourceBranch(input: {
   for (let index = 0; index < branches.length; index += 1) {
     const branch = branches[index]!
     const narrowed = candidateRecommendationForSetPlan(recommendation, branch)
+    if (excludesFixedDisc(input.discs, narrowed, options)) continue
     const plan = solveCandidateWarehouse(input.discs, [recommendation.agentId], 'agent', options, [
       narrowed,
     ])
@@ -143,6 +158,7 @@ function completeFeasibleSourceBranches(
   const choices = [...first.choices]
   for (const recommendation of first.remainingBranches) {
     const options = agentOnlyOptions(input.options, recommendation.agentId)
+    if (excludesFixedDisc(input.discs, recommendation, options)) continue
     const plan = solveCandidateWarehouse(input.discs, [recommendation.agentId], 'agent', options, [
       recommendation,
     ])
@@ -214,7 +230,9 @@ function improvesCompletePlan(
     candidateValue !== baselineValue
   )
     return candidateValue > baselineValue
-  return candidate.plan.totalScore > baseline.plan.totalScore
+  return (
+    candidateTeamSetScore(candidate.plan.loadouts) > candidateTeamSetScore(baseline.plan.loadouts)
+  )
 }
 
 function solveSourceOrderedTargetTeam(input: {
@@ -443,7 +461,7 @@ export function calculateTargetTeamWarehouseFit(input: {
     exactWithinModel: false as const,
     discCount: discIds.length,
     uniqueDiscCount: new Set(discIds).size,
-    totalScore: plan.totalScore,
+    totalScore: candidateTeamSetScore(plan.loadouts),
     gaps: [
       ...namedDiscGaps,
       ...plan.gaps,

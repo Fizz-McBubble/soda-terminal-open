@@ -176,12 +176,9 @@ function HydratedScannerAssistantPage({
     snapshot.state === 'completed' &&
     Boolean(snapshot.summary?.resultFileHandle) &&
     discardedCompletedResultHandle === snapshot.summary?.resultFileHandle
-  const nextScanHasAdvanced =
-    ['checking', 'awaiting_elevation', 'scanning', 'paused'].includes(snapshot.state) ||
-    (snapshot.state === 'completed' &&
-      Boolean(snapshot.summary?.resultFileHandle) &&
-      snapshot.summary?.resultFileHandle !== discardedCompletedResultHandle)
-  const preparingNewScan = preparingAnotherScan && !nextScanHasAdvanced
+  // Reconnecting can replay the old completion before its result handle is known.
+  // Only an explicit new start leaves preparation, not a late helper snapshot.
+  const preparingNewScan = preparingAnotherScan
   const showImportComplete =
     completedImportCount !== null &&
     !inlineImportOpen &&

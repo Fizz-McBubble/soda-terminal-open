@@ -13,7 +13,7 @@ export const currentCoreGrowthSource = Object.freeze({
 
 /** Small fingerprint input; no panel, expression runtime or character contract imports. */
 export const currentCoreGrowthIdentity32 = Object.freeze({
-  algorithmRevision: 'core-row-once-explicit-zero-row-energy-base-before-static-percent-v2',
+  algorithmRevision: 'core-row-once-explicit-zero-flat-core-before-static-percent-v3',
   source: currentCoreGrowthSource,
   dependencies: [
     { ...sheerForceCommonSource32, locator: '40-57' },

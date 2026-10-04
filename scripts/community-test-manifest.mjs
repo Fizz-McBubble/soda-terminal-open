@@ -17,6 +17,12 @@ export const incremental32CommunityTests = Object.freeze([
 ])
 
 export const communityTests = Object.freeze([
+  'src/gameDataPacks/candidateWarehouseConstraints.nangong.test.ts',
+  'src/calculation/outOfCombatPanel.core-order.test.ts',
+  'src/decision/targetTeamWarehouseFit.shared-sets.test.ts',
+  'src/gameDataPacks/panel/reviewedMenuBaseStats.test.ts',
+  'src/pages/OptimizerFlowPage.rematch-lifecycle.test.tsx',
+  'src/pages/ScannerAssistantPage.rescan.test.tsx',
   'src/AppCore.startup.test.tsx',
   'src/components/AppEntryState.loading.test.tsx',
   'src/appHealth.test.tsx',

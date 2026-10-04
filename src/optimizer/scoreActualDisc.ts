@@ -5,6 +5,11 @@ import { resolveDriveDiscMainStatValue } from '../calculation/outOfCombatPanel'
 import type { DiscContribution } from './optimizeBuild'
 
 export { actualDiscScoreVersion } from '../application/publicBuildIntentFingerprint'
+export const candidateSetFitPoints = { twoPiece: 12, fourPiece: 30 } as const
+
+export function scoreSetFit(fit: number, count: number) {
+  return fit * (count >= 4 ? candidateSetFitPoints.fourPiece : candidateSetFitPoints.twoPiece)
+}
 
 const standardSteps = new Map(
   driveDiscData?.rules.subStatStepsByRarity.S.map((rule) => [rule.stat, rule.baseValue]) ?? [],

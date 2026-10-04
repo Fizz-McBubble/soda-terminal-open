@@ -1,7 +1,7 @@
 import type { BuildProfile, DriveDisc, StatKey } from '../domain/schemas'
 import { contentHash } from '../evaluation/contentHash'
 import { retainSetRepresentatives } from './retainSetRepresentatives'
-import { actualDiscScoreVersion, scoreActualDisc } from './scoreActualDisc'
+import { actualDiscScoreVersion, scoreActualDisc, scoreSetFit } from './scoreActualDisc'
 import { insertTopK } from './retainTopK'
 import { evaluationRules } from '../evaluation/rules'
 import { isAllowedMainStat, type BuildKnowledgeProfile } from './buildKnowledge'
@@ -161,7 +161,7 @@ export function resolveSetPlan(
       score: round(
         candidate.activeSets.reduce((sum, setId) => {
           const fit = profile.setFit[setId] ?? 0
-          return sum + fit * ((counts[setId] ?? 0) >= 4 ? 30 : 12)
+          return sum + scoreSetFit(fit, counts[setId] ?? 0)
         }, 0),
       ),
     }))

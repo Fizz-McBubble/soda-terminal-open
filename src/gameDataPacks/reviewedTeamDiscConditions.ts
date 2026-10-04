@@ -204,6 +204,7 @@ export const reviewedTeamDiscDirections: readonly ReviewedTeamDiscDirection[] = 
     id: 'miyoushe-74153268-nangong-anomaly-support-astral-voice',
     agentId: 'agent-nangong',
     teamCondition: 'other-anomaly-support',
+    retainBasePlans: true,
     exactMemberSets: [
       ['agent-miyabi', 'agent-nangong', 'agent-yuzuha'],
       ['agent-miyabi', 'agent-nangong', 'agent-nicole'],

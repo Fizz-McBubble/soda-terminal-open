@@ -161,6 +161,7 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
     setAccountMessage('')
     try {
       await freezeSelectedTarget()
+      setPreparingAnotherScan(false)
       window.localStorage.removeItem(completedScannerImportKey)
       setCompletedImport(null)
       window.localStorage.removeItem(discardedScannerResultHandleKey)

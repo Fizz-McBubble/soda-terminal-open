@@ -63,7 +63,7 @@ function OptimizerFlowWorkspace() {
     (isTeamDetail || isSavedDetail) &&
     (!accountSummary ||
       accountSummary.hydrating ||
-      ((isTeamDetail || isSavedDetail) && decisionWorld.status === 'loading'))
+      ((isSavedDetail || (isTeamDetail && !session)) && decisionWorld.status === 'loading'))
   )
     return (
       <section className="panel result-empty" aria-live="polite">

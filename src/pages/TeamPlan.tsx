@@ -26,6 +26,7 @@ import { isTeamDeploymentOrder } from '../application/publicTeamDeploymentOrder'
 import { useTeamRoutePresentation } from './useTeamRoutePresentation'
 import { acceptTeamRoutePresentation } from './publicTeamRoutePresentation'
 import { calculationQueryContractVersion } from '../application/calculationQueryContract'
+import { useTeamRematch } from './useTeamRematch'
 
 export function TeamPlan({
   warehouse,
@@ -124,6 +125,17 @@ export function TeamPlan({
       : retainedTargetTeamFit?.candidateId === targetCandidateId
         ? retainedTargetTeamFit
         : undefined
+  const { rematching, rematchTeam } = useTeamRematch({
+    teamKey,
+    warehouse,
+    decision,
+    analysisRunId,
+    team,
+    currentTargetTeamFit,
+    setTargetFitState,
+    setAlternativeError,
+    readOnly,
+  })
   const needsBangbooChoice =
     Boolean(targetCandidateId) && playerConfirmableBangbooOptions.length > 0 && !automaticBangboo
   const bangbooUnavailable =
@@ -435,14 +447,18 @@ export function TeamPlan({
           false,
         )
       }}
-      readOnly={readOnly}
+      readOnly={readOnly || rematching}
       alternativeTeams={route?.alternativeTeams ?? [team]}
       onSelectAlternative={(candidateId) => void selectAlternative(candidateId)}
-      transitionNotice={switchingAlternativeId ? '正在搭配替换队伍…' : alternativeError}
-      equipmentParametersRequireRefresh={equipmentParametersRequireRefresh}
-      onReanalyze={() =>
-        navigate(`/loadouts/team?reanalyze=1&rematchTeam=${encodeURIComponent(team.id)}`)
+      transitionNotice={
+        rematching
+          ? '正在重新搭配装备…'
+          : switchingAlternativeId
+            ? '正在搭配替换队伍…'
+            : alternativeError
       }
+      equipmentParametersRequireRefresh={equipmentParametersRequireRefresh}
+      onReanalyze={() => void rematchTeam()}
       onConfirmEquipmentParameters={async (selection) => {
         if (!analysisRunId || !targetCandidateId || readOnly)
           throw new Error('当前队伍资料已变更，请重新分析后再确认配装。')

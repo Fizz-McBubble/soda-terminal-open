@@ -20,6 +20,10 @@ import {
 } from '../gameDataPacks/panel/wEngineGrowth'
 import { getCurrentAgentEventContract } from './currentAgentMechanicContracts'
 import { evaluateInitialCritConversion32 } from './currentInitialCritConversion32'
+import {
+  getReviewedAgentMenuBaseStats,
+  getReviewedWEngineMenuBaseStat,
+} from '../gameDataPacks/panel/reviewedMenuBaseStats'
 
 export const outOfCombatKeys = [
   'hp',
@@ -217,6 +221,7 @@ export function projectOutOfCombatPanel(input: PanelInput): PanelResult {
   const promotion = contract?.promotionStats[input.ascension] ?? { hp: 0, atk: 0, def: 0 }
 
   if (agent.kind === 'growth') {
+    const publishedBase = getReviewedAgentMenuBaseStats(input.agentId, input.level, input.ascension)
     ;(['hp', 'atk', 'def'] as const).forEach((key) => {
       const [base, growth] = agent.stats[key]
       const promotionValue = promotion[key]
@@ -224,8 +229,10 @@ export function projectOutOfCombatPanel(input: PanelInput): PanelResult {
         values,
         trace,
         key,
-        base + growth * (input.level - 1) + promotionValue,
-        `character:${input.agentId}:base+growth+promotion`,
+        publishedBase?.values[key] ?? base + growth * (input.level - 1) + promotionValue,
+        publishedBase
+          ? `character:${input.agentId}:official-menu-base:${publishedBase.source.entryVersion}`
+          : `character:${input.agentId}:base+growth+promotion`,
         'base',
       )
     })
@@ -261,8 +268,16 @@ export function projectOutOfCombatPanel(input: PanelInput): PanelResult {
         operation: 'inactive',
         value: '明确核心1的来源零提升；不代表核心被动无效。',
       })
-    if (core.hp) add(values, trace, 'hp', core.hp, 'character:coreStats.hp', 'base')
-    if (core.atk) add(values, trace, 'atk', core.atk, 'character:coreStats.atk', 'base')
+    // Source flat core growth belongs to the white base before equipment percentages.
+    for (const [key, sourceKey, value] of [
+      ['hp', 'hp', core.hp],
+      ['atk', 'atk', core.atk],
+      ['energyRegen', 'enerRegen', core.energyRegenFlat],
+      ['anomalyMastery', 'anomMas', core.anomalyMastery],
+      ['anomalyProficiency', 'anomProf', core.anomalyProficiency],
+      ['impact', 'impact', core.impact],
+    ] as const)
+      if (value) add(values, trace, key, value, `character:coreStats.${sourceKey}`, 'base')
     if (core.atkPercent)
       add(percent, trace, 'atk', core.atkPercent, 'character:coreStats.atk_', 'percent')
     if (core.critRate)
@@ -278,15 +293,6 @@ export function projectOutOfCombatPanel(input: PanelInput): PanelResult {
       )
     if (core.hpPercent)
       add(percent, trace, 'hp', core.hpPercent, 'character:coreStats.hp_', 'percent')
-    if (core.energyRegenFlat)
-      add(
-        values,
-        trace,
-        'energyRegen',
-        core.energyRegenFlat,
-        'character:coreStats.enerRegen',
-        'base',
-      )
     if (core.energyRegenPercent)
       add(
         percent,
@@ -295,15 +301,6 @@ export function projectOutOfCombatPanel(input: PanelInput): PanelResult {
         core.energyRegenPercent,
         'character:coreStats.enerRegen_',
         'percent',
-      )
-    if (core.anomalyMastery)
-      add(
-        postFlat,
-        trace,
-        'anomalyMastery',
-        core.anomalyMastery,
-        'character:coreStats.anomMas',
-        'post_flat',
       )
     if (core.anomalyMasteryPercent)
       add(
@@ -314,17 +311,6 @@ export function projectOutOfCombatPanel(input: PanelInput): PanelResult {
         'character:coreStats.anomMas_',
         'percent',
       )
-    if (core.anomalyProficiency)
-      add(
-        postFlat,
-        trace,
-        'anomalyProficiency',
-        core.anomalyProficiency,
-        'character:coreStats.anomProf',
-        'post_flat',
-      )
-    if (core.impact)
-      add(postFlat, trace, 'impact', core.impact, 'character:coreStats.impact', 'post_flat')
     if (core.impactPercent)
       add(percent, trace, 'impact', core.impactPercent, 'character:coreStats.impact_', 'percent')
     if (core.penRatio)
@@ -353,16 +339,23 @@ export function projectOutOfCombatPanel(input: PanelInput): PanelResult {
   const engineStatic = getCurrentWEngineStaticData(input.wEngine.id)
   const isLv60Engine = input.wEngine.level === 60 && input.wEngine.ascension === 5
   const baseKey = engine.baseStat?.key ?? 'atk'
+  const publishedEngineBase = getReviewedWEngineMenuBaseStat(
+    input.wEngine.id,
+    input.wEngine.level,
+    input.wEngine.ascension,
+  )
   const baseValue =
-    agent.kind === 'menu_observed' && isLv60Engine
-      ? (engine.baseStat?.value ?? engine.atkBase ?? 0)
-      : engineStatic
-        ? calculateWEngineBaseStatExact(
-            engineStatic.staticStats.baseStat.value,
-            input.wEngine.level,
-            input.wEngine.ascension,
-          )
-        : (engine.baseStat?.value ?? engine.atkBase ?? 0)
+    publishedEngineBase?.baseStat.key === baseKey
+      ? publishedEngineBase.baseStat.value
+      : agent.kind === 'menu_observed' && isLv60Engine
+        ? (engine.baseStat?.value ?? engine.atkBase ?? 0)
+        : engineStatic
+          ? calculateWEngineBaseStatExact(
+              engineStatic.staticStats.baseStat.value,
+              input.wEngine.level,
+              input.wEngine.ascension,
+            )
+          : (engine.baseStat?.value ?? engine.atkBase ?? 0)
 
   const secondaryValue = isLv60Engine
     ? engine.secondary.value
@@ -386,7 +379,9 @@ export function projectOutOfCombatPanel(input: PanelInput): PanelResult {
     trace,
     baseKey,
     baseValue,
-    `wengine:${engine.evidence}:${engineEvidenceTag}_base`,
+    publishedEngineBase
+      ? `wengine:${input.wEngine.id}:official-menu-base:${publishedEngineBase.source.entryVersion}`
+      : `wengine:${engine.evidence}:${engineEvidenceTag}_base`,
     'base',
   )
   add(

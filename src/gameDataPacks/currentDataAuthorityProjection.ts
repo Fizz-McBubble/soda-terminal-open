@@ -35,6 +35,7 @@ import {
 import { planningSheerManatoSupportAdoption } from '../calculation/planningSheerSupportAdoption'
 import { planningAnomalyPiperSupportAdoption } from '../calculation/planningAnomalySupportAdoption'
 import { stableContentHash } from './types'
+import { reviewedMenuBaseStatsIdentity } from './panel/reviewedMenuBaseStats'
 import { incremental32RecoveryPolicy } from './incremental32RecoveryPolicy'
 import {
   sourceBoundSheerForceHash32,
@@ -128,6 +129,7 @@ export const currentDataAuthorityProjection = {
           contentHash: sourceBoundSheerForceHash32,
         },
         coreGrowth: { identity: currentCoreGrowthIdentity32, contentHash: currentCoreGrowthHash32 },
+        publishedMenuBases: reviewedMenuBaseStatsIdentity,
       },
       reviewedIncrementalEvents: {
         gameVersion: '3.2',

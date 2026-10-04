@@ -76,7 +76,7 @@ export const currentNormalizedPlanningBaseline = Object.freeze({
     sourcePackHash: normalizedSourcePackHash,
     directDamageCoreVersion,
     typedDamageFormula32: damageFormula32Identity,
-    staticProjection: 'actual-level-typed-base-full-initial-static-v3',
+    staticProjection: 'actual-level-published-base-flat-core-before-percent-v4',
     penetration: 'ratio-and-flat-in-defense-factor',
     receiverSemantics: 'separate-attack-flat-and-percent-v2',
     eventSelection: 'reviewed-32-source-packets-else-existing-field-time-skill-priority-r1',
