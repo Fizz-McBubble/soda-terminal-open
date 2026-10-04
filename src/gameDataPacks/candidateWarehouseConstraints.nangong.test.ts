@@ -1,7 +1,6 @@
+import { candidateFourPieceInventory } from './candidateWarehouseConstraint.testFixture'
 import { describe, expect, it } from 'vitest'
-import { sampleDiscs } from '../evaluation/fixtures'
 import { solveCandidateWarehouse } from '../optimizer/candidateWarehouseSolver'
-import type { DriveDisc } from '../domain/schemas'
 import {
   getCandidateWarehouseConstraint,
   getCandidateWarehouseConstraintForTeam,
@@ -44,20 +43,7 @@ describe('Nangong team candidate warehouse constraints', () => {
           }),
         ]),
       )
-      const inventory: DriveDisc[] = [1, 2, 3, 4, 5, 6].map((slot, index) => ({
-        ...sampleDiscs.treasureCandidate,
-        id: `${primary}-${slot}`,
-        slot: slot as DriveDisc['slot'],
-        setId: index < 4 ? primary : secondary,
-        mainStat:
-          slot === 1
-            ? 'hp_flat'
-            : slot === 2
-              ? 'atk_flat'
-              : slot === 3
-                ? 'def_flat'
-                : constraint.mainStats[String(slot) as '4' | '5' | '6']![0]!,
-      }))
+      const inventory = candidateFourPieceInventory(constraint, primary, secondary)
       const result = solveCandidateWarehouse(inventory, ['agent-nangong'], 'agent', {}, [
         { agentId: 'agent-nangong', constraint },
       ])

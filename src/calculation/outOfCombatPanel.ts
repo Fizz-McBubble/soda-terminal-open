@@ -206,6 +206,7 @@ export function projectOutOfCombatPanel(input: PanelInput): PanelResult {
     input.core < -1 ||
     (agent.kind === 'growth' && input.core >= agent.core.length) ||
     (agent.kind === 'menu_observed' && input.core !== agent.core) ||
+    !Number.isInteger(input.wEngine.refinement) ||
     input.wEngine.refinement < 1 ||
     input.wEngine.refinement > 5 ||
     !hasLegalSixDriveDiscs(input.discs)

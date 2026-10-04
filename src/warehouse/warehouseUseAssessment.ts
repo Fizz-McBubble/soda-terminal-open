@@ -130,13 +130,18 @@ export function assessWarehouseUses(
 ) {
   const qualities = new Map<string, WarehouseContextQuality[]>()
   const byContext = new Map<string, Entry[]>()
+  const capturedCounts = new Map<string, number>()
+  for (const disc of discs) capturedCounts.set(disc.id, (capturedCounts.get(disc.id) ?? 0) + 1)
   for (const disc of discs) {
+    if (capturedCounts.get(disc.id) !== 1 || !hasReliableWarehouseDiscRecord(disc)) {
+      qualities.set(disc.id, [])
+      continue
+    }
     const matched = contexts.flatMap((context) => {
       const quality = assessWarehouseContextQuality(disc, context)
       return quality ? [quality] : []
     })
     qualities.set(disc.id, matched)
-    if (!hasReliableWarehouseDiscRecord(disc)) continue
     for (const quality of matched.filter(warehouseQualityIsAdmitted)) {
       byContext.set(quality.context.id, [
         ...(byContext.get(quality.context.id) ?? []),
@@ -317,7 +322,7 @@ export function assessWarehouseUses(
                   JSON.stringify(Object.entries(quality.context.constraint.subStatWeights).sort()),
             ),
         )
-      const reliable = hasReliableWarehouseDiscRecord(disc)
+      const reliable = capturedCounts.get(disc.id) === 1 && hasReliableWarehouseDiscRecord(disc)
       const worthInvestment = uses.some(
         (quality) => quality.worthInvestment && quality.context.demand === 'active',
       )

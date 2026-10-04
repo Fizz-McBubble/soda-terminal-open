@@ -62,6 +62,20 @@ export function AgentDevelopmentWorkbenchPage() {
   } | null>(null)
   const [routeFailureKey, setRouteFailureKey] = useState<string | null>(null)
   const requestedPlanId = searchParams.get('plan')
+  const pageAccountId =
+    decisionWorld.liveInput?.warehouse.accountId ?? decisionWorld.run?.input.warehouse.accountId
+  useEffect(() => {
+    let active = true
+    queueMicrotask(() => {
+      if (!active) return
+      setSaveRefresh(null)
+      setEditingCurrent(false)
+      setEditingPresentation(null)
+    })
+    return () => {
+      active = false
+    }
+  }, [pageAccountId, agentId, requestedPlanId])
   const requestedCandidateRank = Number.parseInt(searchParams.get('candidate') ?? '1', 10)
   const selectedCandidateRank =
     Number.isFinite(requestedCandidateRank) && requestedCandidateRank > 0

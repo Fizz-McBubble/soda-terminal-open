@@ -25,6 +25,7 @@ import {
   isDevelopmentCandidateSnapshotStale,
   readDevelopmentCandidateSnapshot,
 } from './agentDevelopmentCandidateSession'
+import { usePageOperationScope } from '../components/usePageOperationScope'
 
 export function AgentLoadoutComparisonPage() {
   const { agentId = '' } = useParams()
@@ -34,6 +35,11 @@ export function AgentLoadoutComparisonPage() {
   const [justSaved, setJustSaved] = useState<AccountPlanningDraft | null>(null)
   const decisionWorld = useAccountDecisionWorld()
   const queryDevelopmentCandidateAlternatives = useDevelopmentCandidateAlternativesCalculation()
+  const pageAccountId =
+    decisionWorld.status === 'stale'
+      ? decisionWorld.liveInput?.warehouse.accountId
+      : decisionWorld.run?.input.warehouse.accountId
+  const capturePageScope = usePageOperationScope(JSON.stringify([pageAccountId, agentId]))
   if (decisionWorld.status === 'loading')
     return <AppLoadingState title="正在读取账户配装…" compact />
   if (decisionWorld.status !== 'current' && decisionWorld.status !== 'stale')
@@ -384,6 +390,7 @@ export function AgentLoadoutComparisonPage() {
     selectedCandidateRank,
   }
   const persist = async (rank: number) => {
+    const isCurrentPage = capturePageScope()
     if (snapshotStale) throw new Error('仓库资料已更新，请先重新搭配；尚未保存。')
     if (decisionWorld.status === 'stale')
       throw new Error('账户资料已更新，请重新分析后再保存方案。')
@@ -395,6 +402,7 @@ export function AgentLoadoutComparisonPage() {
       accountId,
       createComparisonSavedBuild(agentId, rank, candidateSnapshot),
     )
+    if (!isCurrentPage()) return
     setJustSaved(saved)
     const refreshedRank = await refreshDevelopmentCandidatesAfterSave({
       accountId,
@@ -404,6 +412,7 @@ export function AgentLoadoutComparisonPage() {
       refresh: decisionWorld.refresh,
       query: queryDevelopmentCandidateAlternatives,
     })
+    if (!isCurrentPage()) return
     setSnapshotVersion((version) => version + 1)
     const next = new URLSearchParams(params)
     next.set('candidate', String(refreshedRank))
@@ -431,13 +440,17 @@ export function AgentLoadoutComparisonPage() {
         setParams(next, { replace: true })
       }}
       onReanalyzeWarehouse={async () => {
+        const isCurrentPage = capturePageScope()
         const currentRun =
           decisionWorld.status === 'stale' ? await decisionWorld.refresh() : decisionWorld.run
+        if (!isCurrentPage()) return
         if (!currentRun) throw new Error('当前账户无法重新分析；请稍后重试。')
         let result = await queryDevelopmentCandidateAlternatives(currentRun.runId, agentId)
+        if (!isCurrentPage()) return
         const rebound = rebindComparisonParameters(candidateSnapshot, result)
         if (Object.keys(rebound).length)
           result = await queryDevelopmentCandidateAlternatives(currentRun.runId, agentId, rebound)
+        if (!isCurrentPage()) return
         if (!cacheDevelopmentCandidateSnapshot(result))
           throw new Error(result.gaps[0] ?? '当前账户无法生成完整的六张候选盘。')
         setSnapshotVersion((version) => version + 1)

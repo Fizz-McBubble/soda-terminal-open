@@ -359,17 +359,22 @@ export function solveCandidateAgentAlternatives(
   const sourcePlans = constraint
     ? orderedCandidateSetPlans(candidateSetPlansForConstraint(constraint))
     : []
-  const global = boundedAlternatives(discs, limit, [agentId], (excluded) =>
-    solveCandidateWarehouse(
-      discs,
-      [agentId],
-      'agent',
-      {
-        ...options,
-        excludedDiscIds: [...new Set([...(options.excludedDiscIds ?? []), ...excluded])],
-      },
-      recommendations,
-    ),
+  const global = boundedAlternatives(
+    discs,
+    limit,
+    [agentId],
+    (excluded) =>
+      solveCandidateWarehouse(
+        discs,
+        [agentId],
+        'agent',
+        {
+          ...options,
+          excludedDiscIds: [...new Set([...(options.excludedDiscIds ?? []), ...excluded])],
+        },
+        recommendations,
+      ),
+    options.fixedDiscByAgent?.[agentId] ? [options.fixedDiscByAgent[agentId]!] : [],
   )
   if (!global.length || !constraint) return global
   // Retain a feasible representative of each adopted recommendation. Secondary
@@ -389,6 +394,15 @@ export function solveCandidateAgentAlternatives(
       : [plan],
   )
   const representatives = branches.slice(0, 10).flatMap((branch) => {
+    const fixedId = options.fixedDiscByAgent?.[agentId]
+    const fixedDisc = fixedId ? discs.find((disc) => disc.id === fixedId) : undefined
+    // A fixed disc selects a feasible subset of the source branches. It must
+    // not make an unrelated representative abort the entire alternatives list.
+    if (
+      fixedDisc &&
+      ![...branch.primarySetIds, ...branch.secondarySetIds].includes(fixedDisc.setId)
+    )
+      return []
     const plan = solveCandidateWarehouse(discs, [agentId], 'agent', options, [
       {
         agentId,

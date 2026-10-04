@@ -11,6 +11,7 @@ export type ResolvedWEngine = {
   name: string
   rarity: string | null
   level: number
+  ascension?: number
   refinement: number
   source: 'agent_current_fact' | 'legacy_copy_compat' | 'recommendation'
 }
@@ -60,6 +61,7 @@ function currentFact(
       name: details.name ?? engine?.name ?? details.id,
       rarity: engine?.rarity ?? null,
       level: details.level,
+      ...(details.ascension == null ? {} : { ascension: details.ascension }),
       refinement: details.refinement,
       source: 'agent_current_fact',
     }

@@ -252,7 +252,12 @@ function selectedDiscs(member: TeamExecutionMember, warehouse: readonly DriveDis
 function savedPlanWEngine(member: TeamExecutionMember) {
   const planned = resolveSuggestedWEngineParameters(member.suggested.wEngine, null)
   return planned
-    ? { id: planned.engineId, level: planned.level, refinement: planned.refinement }
+    ? {
+        id: planned.engineId,
+        level: planned.level,
+        ascension: planned.ascension,
+        refinement: planned.refinement,
+      }
     : null
 }
 
@@ -276,7 +281,7 @@ function currentProjection(
     wEngine: {
       id: engine.id,
       level: engine.level,
-      ascension: defaultAscensionForLevel(engine.level),
+      ascension: engine.ascension ?? defaultAscensionForLevel(engine.level),
       refinement: engine.refinement,
     },
     discs: [...discs],

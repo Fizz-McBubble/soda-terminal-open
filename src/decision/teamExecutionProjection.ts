@@ -25,6 +25,9 @@ export type TeamExecutionWEngine = {
   /** Legacy executions may retain a physical copy id; new projections use scheme parameters. */
   copyId: string | null
   refinement: number
+  /** Explicit scheme growth parameters; absent on legacy/default projections. */
+  level?: number
+  ascension?: number
   fact:
     | 'confirmed'
     | 'manual_initial_default_assumption'
@@ -197,9 +200,29 @@ function resolveMemberWEngine(
   agentId: string,
   roster: AccountRoster,
   effectiveEquipmentParameters?: EffectiveTargetTeamEquipmentParameters,
+  accountFactBinding = false,
 ) {
   const currentAgent = roster.agents.find((agent) => agent.agentId === agentId)
   const resolution = resolveWEngine({ agent: currentAgent, legacyWEngines: roster.wEngines })
+  if (accountFactBinding) {
+    const engine = resolution.current
+    return {
+      currentCopyId: currentAgent?.wEngineCopyId ?? null,
+      suggested: engine
+        ? {
+            engineId: engine.engineId,
+            copyId: currentAgent?.wEngineCopyId ?? null,
+            refinement: engine.refinement,
+            level: engine.level,
+            ...(engine.ascension === undefined ? {} : { ascension: engine.ascension }),
+            fact: 'confirmed' as const,
+          }
+        : null,
+      actions: [] as TeamExecutionAction[],
+      impacts: [] as TeamExecutionImpact[],
+      status: 'ready' as const,
+    }
+  }
   const parameter = effectiveEquipmentParameters?.wEngines.find((item) => item.agentId === agentId)
   if (parameter)
     return {
@@ -208,6 +231,8 @@ function resolveMemberWEngine(
         engineId: parameter.engineId,
         copyId: null,
         refinement: parameter.refinement,
+        ...(parameter.level === undefined ? {} : { level: parameter.level }),
+        ...(parameter.ascension === undefined ? {} : { ascension: parameter.ascension }),
         fact:
           effectiveEquipmentParameters?.source === 'player_confirmed'
             ? ('player_confirmed_parameter' as const)
@@ -252,7 +277,12 @@ function projectOne(
     const currentAgent = input.roster.agents.find((agent) => agent.agentId === agentId)
     const currentDiscIds = [...(currentAgent?.equippedDiscIds ?? [])]
     const suggestedDiscIds = loadouts.get(agentId)?.discs.map((choice) => choice.disc.id) ?? []
-    const wEngine = resolveMemberWEngine(agentId, input.roster, effectiveEquipmentParameters)
+    const wEngine = resolveMemberWEngine(
+      agentId,
+      input.roster,
+      effectiveEquipmentParameters,
+      Boolean(candidate.authorComparisonMembership && candidate.bangbooId === null),
+    )
     const actions = [...wEngine.actions]
     const impacts = [
       ...wEngine.impacts,

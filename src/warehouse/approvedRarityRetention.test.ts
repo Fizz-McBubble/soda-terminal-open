@@ -46,6 +46,29 @@ const cases = (['A', 'B'] as const).flatMap((rarity) => {
 
 describe('approved A/B retention rule', () => {
   it.each(['A', 'B'] as const)(
+    'preserves %s equipment references even when the roster ownership marker conflicts',
+    (rarity) => {
+      const source = disc(rarity, 0, 2)
+      const roster = createEmptyRoster('2026-10-04T00:00:00.000Z')
+      roster.agents[0] = { ...roster.agents[0]!, owned: false, equippedDiscIds: [source.id] }
+      const input = {
+        accountId: 'isolated-equipment-reference',
+        discs: [source],
+        roster,
+        drafts: [],
+      }
+      const before = structuredClone(input)
+      const snapshot = analyzeAccountWarehouse(input)
+      const decision = snapshot.decisions[0]!
+      expect(input).toEqual(before)
+      expect(decision.category).toBe('current_plan_key')
+      expect(decision.cleanupSafety.equipped).toBe(true)
+      expect(decision.absoluteRetention?.nextAction?.kind).toBe('keep')
+      expect(snapshot.referenceIssues?.equipmentNeedsReview).toBe(true)
+    },
+  )
+
+  it.each(['A', 'B'] as const)(
     'preserves %s in standard and compatible scanner JSON imports',
     (rarity) => {
       const source = disc(rarity, 0, 2)

@@ -24,9 +24,10 @@ import { currentTeamAnalysisSession } from './teamAnalysisSession'
 import { PlanEditor } from './PlanEditor'
 import { isTeamDeploymentOrder } from '../application/publicTeamDeploymentOrder'
 import { useTeamRoutePresentation } from './useTeamRoutePresentation'
-import { acceptTeamRoutePresentation } from './publicTeamRoutePresentation'
+import { useTeamAlternativeSelection } from './useTeamAlternativeSelection'
 import { calculationQueryContractVersion } from '../application/calculationQueryContract'
 import { useTeamRematch } from './useTeamRematch'
+import { usePageOperationScope } from '../components/usePageOperationScope'
 
 export function TeamPlan({
   warehouse,
@@ -113,6 +114,15 @@ export function TeamPlan({
   const teamRatingLabel = route?.teamRatingLabel ?? ''
   const targetCandidateId = route?.targetCandidateId ?? null
   const targetFitRouteIdentity = `${analysisRunId ?? ''}:${team?.id ?? ''}:${targetCandidateId ?? ''}`
+  const capturePageScope = usePageOperationScope(
+    JSON.stringify([
+      warehouse.accountId,
+      teamKey,
+      analysisRunId,
+      decision?.fingerprint.inputHash,
+      readOnly,
+    ]),
+  )
   const automaticBangboo = route?.automaticBangboo ?? null
   const playerConfirmableBangbooOptions: readonly PlayerConfirmableBangbooOption[] =
     route?.playerConfirmableBangbooOptions ?? []
@@ -219,78 +229,20 @@ export function TeamPlan({
     recoveryTeamId,
     targetCandidateId,
   ])
-  const selectAlternative = async (candidateId: string) => {
-    if (!decision || !analysisRunId || !calculationClient || readOnly || switchingAlternativeId)
-      return
-    const projected = await calculationClient
-      .queryTeamRoutePresentation({
-        contractVersion: calculationQueryContractVersion,
-        kind: 'team_route_presentation',
-        runId: analysisRunId,
-        candidateId,
-      })
-      .catch(() => null)
-    const entry = acceptTeamRoutePresentation(projected, {
-      runId: analysisRunId,
-      accountId: warehouse.accountId ?? '',
-      inputFingerprint: decision.fingerprint.inputHash,
-      candidateId,
-    })
-    if (entry && currentTeamAnalysisSession?.result.analysisRunId === analysisRunId)
-      setCurrentTeamAnalysisSession({
-        ...currentTeamAnalysisSession,
-        result: {
-          ...currentTeamAnalysisSession.result,
-          teamRoutePresentations: {
-            ...currentTeamAnalysisSession.result.teamRoutePresentations,
-            [candidateId]: entry,
-          },
-        },
-      })
-    if (!entry?.team || !entry.targetCandidateId) {
-      setAlternativeError('这支替换队伍暂不能生成配装。')
-      return
-    }
-    const destination = `/loadouts/team/${encodeURIComponent(candidateId)}`
-    if (!entry.discOnlyCandidate && !entry.team.bangbooId && !entry.automaticBangboo) {
-      navigate(destination)
-      return
-    }
-    const cached = currentTeamAnalysisSession?.result.targetTeamFits[entry.team.id]
-    if (cached?.candidateId === entry.targetCandidateId) {
-      navigate(destination)
-      return
-    }
-    const generation = ++targetFitRequestGeneration.current
-    setSwitchingAlternativeId(candidateId)
-    setAlternativeError(null)
-    try {
-      const fit = await calculateTargetTeamWarehouseFit(analysisRunId, entry.targetCandidateId)
-      if (generation !== targetFitRequestGeneration.current) return
-      const session = currentTeamAnalysisSession
-      if (
-        session?.result.analysisRunId !== analysisRunId ||
-        session.result.warehouse.accountId !== warehouse.accountId ||
-        session.result.decisionSnapshot.fingerprint.inputHash !== decision.fingerprint.inputHash
-      ) {
-        setAlternativeError('账户资料已更新，请重新分析后再配装。')
-        return
-      }
-      setCurrentTeamAnalysisSession({
-        ...session,
-        result: {
-          ...session.result,
-          targetTeamFits: { ...session.result.targetTeamFits, [entry.team.id]: fit },
-        },
-      })
-      navigate(destination)
-    } catch {
-      if (generation === targetFitRequestGeneration.current)
-        setAlternativeError('替换队伍配装失败，请重试；账户资产没有改变。')
-    } finally {
-      if (generation === targetFitRequestGeneration.current) setSwitchingAlternativeId(null)
-    }
-  }
+  const selectAlternative = useTeamAlternativeSelection({
+    accountId: warehouse.accountId,
+    decision,
+    analysisRunId,
+    calculationClient,
+    readOnly,
+    switchingAlternativeId,
+    targetFitRequestGeneration,
+    capturePageScope,
+    setSwitchingAlternativeId,
+    setAlternativeError,
+    calculateTargetTeamWarehouseFit,
+    navigate,
+  })
   if (!team)
     return routeStatus === 'loading' ? (
       <section className="panel result-empty" role="status">
@@ -300,6 +252,13 @@ export function TeamPlan({
       <section className="panel result-empty" role="alert">
         <h1>队伍详情暂不可用</h1>
         <p>请返回当前队伍建议后重试；账户资产没有改变。</p>
+        <button
+          className="button button--secondary"
+          type="button"
+          onClick={() => navigate('/loadouts/team')}
+        >
+          返回当前队伍建议
+        </button>
       </section>
     ) : (
       <InvalidPlan back="/loadouts/team" label="队伍" />
@@ -463,6 +422,7 @@ export function TeamPlan({
         if (!analysisRunId || !targetCandidateId || readOnly)
           throw new Error('当前队伍资料已变更，请重新分析后再确认配装。')
         const requestGeneration = ++targetFitRequestGeneration.current
+        const isCurrentPage = capturePageScope()
         setEquipmentParametersRequireRefresh(true)
         setFitStatus('running')
         try {
@@ -471,12 +431,12 @@ export function TeamPlan({
             targetCandidateId,
             selection,
           )
-          if (requestGeneration !== targetFitRequestGeneration.current) return
+          if (!isCurrentPage() || requestGeneration !== targetFitRequestGeneration.current) return
           setTargetTeamFit(fit)
           setEquipmentParametersRequireRefresh(false)
           setFitStatus('idle')
         } catch (error) {
-          if (requestGeneration !== targetFitRequestGeneration.current) return
+          if (!isCurrentPage() || requestGeneration !== targetFitRequestGeneration.current) return
           // Inline controls roll back to the previous effective parameters on
           // failure; keep that unchanged result available for a fresh retry.
           setEquipmentParametersRequireRefresh(false)

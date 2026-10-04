@@ -1,4 +1,5 @@
-import { useState, type Dispatch, type SetStateAction } from 'react'
+import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react'
+import { usePageOperationScope } from '../usePageOperationScope'
 import {
   importRecognizedScanDataToActiveAccount,
   recognizeDataCenterFile,
@@ -39,8 +40,26 @@ export function useDataCenterFileOperations({
     null,
   )
   const [restoreDisplayName, setRestoreDisplayName] = useState('')
+  const inspectionGeneration = useRef(0)
+  const accountId = accountState?.active?.id ?? null
+  const capturePageScope = usePageOperationScope(accountId ?? 'no-account')
+  useEffect(() => {
+    inspectionGeneration.current += 1
+    let active = true
+    queueMicrotask(() => {
+      if (!active) return
+      setFileState(idleFileState)
+      setRestoreConfirmation(null)
+    })
+    return () => {
+      active = false
+    }
+  }, [accountId])
 
   async function inspectFile(file: File) {
+    const generation = ++inspectionGeneration.current
+    const isCurrentPage = capturePageScope()
+    const isCurrentInspection = () => isCurrentPage() && generation === inspectionGeneration.current
     setFileState({
       phase: 'reading',
       fileName: file.name,
@@ -51,6 +70,7 @@ export function useDataCenterFileOperations({
     setMessage('')
     try {
       const parsed = JSON.parse(await file.text()) as unknown
+      if (!isCurrentInspection()) return
       if (!data || !discData) throw new Error('游戏数据尚未加载，暂时无法安全预检。')
       setFileState({
         phase: 'recognized',
@@ -66,6 +86,7 @@ export function useDataCenterFileOperations({
         rules: discData.rules,
         gameDataVersion: discData.dataVersion,
       })
+      if (!isCurrentInspection()) return
       setFileState({
         phase: recognitionPhase(recognition),
         fileName: file.name,
@@ -74,6 +95,7 @@ export function useDataCenterFileOperations({
         success: null,
       })
     } catch (error) {
+      if (!isCurrentInspection()) return
       const detail = error instanceof Error ? error.message : '文件无法读取。'
       setFileState({
         phase: 'error',
@@ -212,7 +234,10 @@ export function useDataCenterFileOperations({
 
   return {
     fileState,
-    setFileState,
+    setFileState: (next: SetStateAction<FileState>) => {
+      inspectionGeneration.current += 1
+      setFileState(next)
+    },
     restoreConfirmation,
     setRestoreConfirmation,
     restoreDisplayName,

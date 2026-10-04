@@ -4,6 +4,7 @@ import type { TeamExecutionMember } from '../decision/teamExecutionProjection'
 import { resolveWEngine, type ResolvedWEngine } from '../decision/wEngineResolver'
 import { getAgentProfile, getProjectedBuildKnowledgeProfile } from '../gameDataPacks/agentProfile'
 import { currentPanelData } from '../gameDataPacks/panel/currentPanelData'
+import { defaultAscensionForLevel } from '../gameDataPacks/panel/wEngineGrowth'
 import { getCurrentBuildTargetPanel } from '../gameDataPacks/currentBuildAuthority'
 import { createAgentDevelopmentPanelProjection } from './agentDevelopmentPanelProjection'
 import {
@@ -116,13 +117,13 @@ function currentGameVersion() {
   return currentPanelData.version.match(/^(\d+\.\d+)/)?.[1] ?? null
 }
 
-type WEngineFact = Pick<ResolvedWEngine, 'engineId' | 'level' | 'refinement'>
+type WEngineFact = Pick<ResolvedWEngine, 'engineId' | 'level' | 'ascension' | 'refinement'>
 
 /**
  * Team Execution records the confirmed refinement as part of its suggested
- * equipment parameter. Its plan contract currently fixes the W-Engine level
- * at 60, so it must not inherit a different level from the current account
- * copy when rebuilding the suggested out-of-combat panel.
+ * equipment parameter. Explicit growth parameters take precedence; legacy
+ * recommendations retain the level-60 baseline. Neither inherits growth from
+ * the currently equipped account copy.
  */
 export function resolveSuggestedWEngineParameters(
   suggested: TeamExecutionMember['suggested']['wEngine'],
@@ -131,7 +132,8 @@ export function resolveSuggestedWEngineParameters(
   if (!suggested) return recommendedPrimary
   return {
     engineId: suggested.engineId,
-    level: 60,
+    level: suggested.level ?? 60,
+    ascension: suggested.ascension ?? defaultAscensionForLevel(suggested.level ?? 60),
     refinement: suggested.refinement,
   }
 }
@@ -153,6 +155,7 @@ function agentWithWEngine(agent: RosterAgent, engine: WEngineFact | null): Roste
       ...agent.wEngineDetails,
       id: engine.engineId,
       level: engine.level,
+      ascension: engine.ascension,
       refinement: engine.refinement,
     },
   }
@@ -228,6 +231,7 @@ export function createTeamExecutionAttributePanel(input: {
             ...input.agent.wEngineDetails,
             id: engine.engineId,
             level: engine.level,
+            ascension: engine.ascension,
             refinement: engine.refinement,
           }
         : { id: null, name: null, level: null, refinement: null },
@@ -348,7 +352,7 @@ export function createTeamExecutionAttributePanel(input: {
         panelVersion: currentPanelData.version,
         gameVersion: exactGameVersion,
         discIds: [...suggested.discIds],
-        wEngineId: suggested.wEngine?.engineId ?? null,
+        wEngineId: engine?.engineId ?? null,
         reason: panel.status === 'unsupported' ? (panel.reason ?? null) : null,
       },
       target: {

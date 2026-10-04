@@ -1,10 +1,11 @@
+import { portfolioConstraintSchema } from './backupFrozenConstraintSchemas'
 import { koledaFixedEventConditionsInputSchema32 } from '../application/publicKoledaFixedEventConditions32'
 import { savedPlanningBenchmark32Schema } from '../application/publicSavedPlanningBenchmark32'
 import { z } from 'zod'
 import { rosterSnapshotSchema } from './publicRosterSnapshot'
 import { databaseSchemaVersion } from '../db/databaseCore'
 import { scanImportBatchMetaSchema, scanImportItemSchema } from '../domain/scanImportStaging'
-import { discEvaluationSchema, driveDiscSchema, statKeySchema } from '../domain/schemas'
+import { discEvaluationSchema, driveDiscSchema } from '../domain/schemas'
 import { accountIdSchema, accountProfileSchema } from './types'
 import { accountScopeShape, optimizationResultSchema } from './backupRecordSchemas'
 import {
@@ -100,6 +101,8 @@ const teamExecutionWEngineSchema = z
     engineId: z.string().min(1),
     copyId: z.string().min(1).nullable(),
     refinement: z.number().int().min(0),
+    level: z.number().int().min(1).max(60).optional(),
+    ascension: z.number().int().min(0).max(5).optional(),
     fact: z.enum([
       'confirmed',
       'manual_initial_default_assumption',
@@ -247,93 +250,6 @@ export const teamExecutionPortfolioSnapshotSchema = z
     status: z.enum(['ready', 'needs_confirmation', 'missing_equipment']),
     blockers: z.array(z.string()),
     sideEffect: z.literal('read_only'),
-  })
-  .strict()
-
-const portfolioBuildSourceSchema = z
-  .object({
-    id: z.string().min(1),
-    url: z.string().min(1),
-    sourceVersion: z.string().nullable(),
-    checkedAt: z.string().min(1),
-    contentHash: z.string().min(1),
-    licenseBoundary: z.string().min(1),
-    verified: z.boolean(),
-  })
-  .strict()
-
-const portfolioSetPlanSchema = z
-  .object({
-    pattern: z.enum(['4+2', '2+2+2']),
-    primarySetIds: z.array(z.string().min(1)),
-    secondarySetIds: z.array(z.string().min(1)),
-    sourceText: z.string().optional(),
-  })
-  .strict()
-
-const portfolioConstraintSchema = z
-  .object({
-    agentId: z.string().min(1),
-    agentName: z.string().min(1),
-    gameVersion: z.enum(['3.0', '3.1']),
-    status: z.enum(['candidate', 'missing']),
-    setPlanReadiness: z.discriminatedUnion('status', [
-      z
-        .object({
-          status: z.literal('executable'),
-          pattern: z.enum(['4+2', '2+2+2']),
-          primarySetIds: z.array(z.string().min(1)),
-          secondarySetIds: z.array(z.string().min(1)),
-        })
-        .strict(),
-      z
-        .object({
-          status: z.literal('non_executable'),
-          reason: z.enum(['missing_secondary_set', 'unresolved_set_roles']),
-          missingEvidence: z.string().min(1),
-        })
-        .strict(),
-    ]),
-    sources: z.array(portfolioBuildSourceSchema),
-    setIds: z.array(z.string().min(1)),
-    setPlans: z.array(portfolioSetPlanSchema).optional(),
-    unresolvedSetDirections: z.array(z.string()).optional(),
-    mainStats: z
-      .object({
-        4: z.array(statKeySchema).optional(),
-        5: z.array(statKeySchema).optional(),
-        6: z.array(statKeySchema).optional(),
-      })
-      .strict(),
-    subStatWeights: z.record(statKeySchema, z.number()),
-    wEngineDirections: z.array(z.string()),
-    teamAndBangbooPreconditions: z.array(z.string()),
-    progressionDirection: z.array(z.string()),
-    targetPanel: z
-      .object({
-        level: z.literal(60),
-        values: z.record(
-          z.enum(['atk', 'hp', 'def', 'critRate', 'critDamage']),
-          z.union([
-            z.number(),
-            z
-              .object({
-                min: z.number(),
-                max: z.number().optional(),
-                upperOpen: z.boolean().optional(),
-              })
-              .strict(),
-          ]),
-        ),
-        conditions: z.array(z.string()),
-        sourceIds: z.array(z.string().min(1)),
-        label: z.literal('guide_reference_range'),
-      })
-      .strict()
-      .optional(),
-    gaps: z.array(z.string()),
-    boundary: z.string(),
-    contentHash: z.string().min(1),
   })
   .strict()
 

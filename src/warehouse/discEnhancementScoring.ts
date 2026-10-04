@@ -11,7 +11,7 @@ export function weightFor(weights: Partial<Record<StatKey, number>>, stat: StatK
 
 export function rollScale(disc: DriveDisc, stat: StatKey) {
   const steps = driveDiscData?.rules.subStatStepsByRarity
-  const base = steps?.[disc.rarity ?? 'S'].find((item) => item.stat === stat)?.baseValue
+  const base = steps?.[disc.rarity ?? 'S']?.find((item) => item.stat === stat)?.baseValue
   const standard = steps?.S.find((item) => item.stat === stat)?.baseValue
   return base && standard ? base / standard : 0
 }
@@ -39,11 +39,15 @@ export function realizedScore(
 
 export function hasConsistentDevelopmentStats(disc: DriveDisc) {
   return disc.subStats.every((stat) => {
-    const step = driveDiscData?.rules.subStatStepsByRarity[disc.rarity ?? 'S'].find(
+    const step = driveDiscData?.rules.subStatStepsByRarity[disc.rarity ?? 'S']?.find(
       (item) => item.stat === stat.stat,
     )?.baseValue
     return (
       step !== undefined &&
+      Number.isInteger(stat.upgrades) &&
+      stat.upgrades >= 0 &&
+      Number.isFinite(stat.value) &&
+      stat.value >= 0 &&
       normalizedScore(stat.value) === normalizedScore(step * (stat.upgrades + 1))
     )
   })

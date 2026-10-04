@@ -17,6 +17,19 @@ export const incremental32CommunityTests = Object.freeze([
 ])
 
 export const communityTests = Object.freeze([
+  'src/calculation/outOfCombatPanel.catalog-edges.test.ts',
+  'src/pages/teamExecutionAttributePanel.growth.test.ts',
+  'src/optimizer/candidateWarehouseSolver.fixed-alternatives.test.ts',
+  'src/optimizer/candidateWarehouseSolver.catalog-coverage.test.ts',
+  'src/decision/teamExecutionProjection.growth-facts.test.ts',
+  'src/decision/savedTeamGraduationCompletion.growth.test.ts',
+  'src/application/publicSavedTeamSolutionFingerprint.equipment.test.ts',
+  'src/accounts/backup.equipment-growth.test.ts',
+  'src/pages/AgentDevelopmentWorkbenchView.lifecycle.test.tsx',
+  'src/components/dataCenter/useDataCenterFileOperations.lifecycle.test.tsx',
+  'src/pages/TeamPlan.alternative-lifecycle.test.tsx',
+  'src/pages/useTeamSaveConfirmation.lifecycle.test.tsx',
+  'src/warehouse/warehouseRecordIsolation.test.ts',
   'src/gameDataPacks/candidateWarehouseConstraints.nangong.test.ts',
   'src/calculation/outOfCombatPanel.core-order.test.ts',
   'src/decision/targetTeamWarehouseFit.shared-sets.test.ts',

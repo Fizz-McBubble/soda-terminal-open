@@ -54,9 +54,8 @@ export function analyzeAccountWarehouse(input: WarehouseAnalysisInput): Warehous
   const activePlanIdSet = new Set(
     Object.values(input.activePlanIds ?? {}).filter((id): id is string => Boolean(id)),
   )
-  const equippedDiscIds = input.roster.agents.flatMap((agent) =>
-    agent.owned ? (agent.equippedDiscIds ?? []) : [],
-  )
+  // Ownership controls demand, but cannot erase an existing concrete equipment reference.
+  const equippedDiscIds = input.roster.agents.flatMap((agent) => agent.equippedDiscIds ?? [])
   const equipped = new Set(equippedDiscIds)
   const protectedPortfolioDiscIds = new Set(
     input.protectedSimultaneousDemands?.flatMap((demand) => demand.discIds) ?? [],
@@ -133,6 +132,7 @@ export function analyzeAccountWarehouse(input: WarehouseAnalysisInput): Warehous
       })
       .map((draft) => draft.id),
     equipmentNeedsReview:
+      input.roster.agents.some((agent) => !agent.owned && Boolean(agent.equippedDiscIds?.length)) ||
       equippedDiscIds.some((id) => !discsById.has(id)) ||
       new Set(equippedDiscIds).size !== equippedDiscIds.length,
     simultaneousNeedsReview: !protectedDemandCoverageComplete || !currentDemandSafe,

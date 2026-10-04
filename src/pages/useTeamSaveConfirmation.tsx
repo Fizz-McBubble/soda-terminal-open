@@ -4,6 +4,7 @@ import type { AccountPlanningDraft } from '../accounts/types'
 import type { SodaDatabase } from '../db/database'
 import { PlanningDialog } from './TeamSolverWorkspaceParts'
 import { savedPlanDisplayName } from '../application/savedPlanDisplayName'
+import { usePageOperationScope } from '../components/usePageOperationScope'
 
 export function sameSavedTeam(plan: AccountPlanningDraft, memberIds: readonly string[]) {
   return (
@@ -34,6 +35,7 @@ export async function verifyTeamSaveChoice(
 export function useTeamSaveConfirmation() {
   const [target, setTarget] = useState<AccountPlanningDraft | null>(null)
   const resolve = useRef<((value: AccountPlanningDraft | null) => void) | null>(null)
+  const capturePageScope = usePageOperationScope('team-save-confirmation')
   useEffect(
     () => () => {
       resolve.current?.(null)
@@ -46,9 +48,11 @@ export function useTeamSaveConfirmation() {
     setTarget(null)
   }
   const request = async (accountId: string, memberIds: readonly string[], preferredId?: string) => {
+    const isCurrentPage = capturePageScope()
     const matches = (await listAccountPlanningDrafts(accountId)).filter((plan) =>
       sameSavedTeam(plan, memberIds),
     )
+    if (!isCurrentPage()) return null
     const existing = matches.find((plan) => plan.id === preferredId) ?? matches.at(-1)
     if (!existing) return undefined
     setTarget(existing)

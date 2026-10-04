@@ -24,6 +24,7 @@ import {
 } from './agentDevelopmentCandidateSession'
 import { createAgentDevelopmentSavedPlan } from './agentDevelopmentSavedPlan'
 import { rememberDevelopmentWorkbenchRoute } from './developmentWorkbenchRouteCache'
+import { usePageOperationScope } from '../components/usePageOperationScope'
 
 type CandidateSnapshot = NonNullable<ReturnType<typeof readDevelopmentCandidateSnapshot>>
 type EditingPresentation = { accountId: string; presentation: GoldenWorkbenchData }
@@ -91,6 +92,9 @@ export function AgentDevelopmentWorkbenchView({
   setLastRouteProjection,
 }: Props) {
   const navigate = useNavigate()
+  const capturePageScope = usePageOperationScope(
+    JSON.stringify([accountId, agentId, requestedPlanId]),
+  )
   return (
     <>
       <AgentDevelopmentGolden
@@ -125,15 +129,18 @@ export function AgentDevelopmentWorkbenchView({
           savingThisAgent || retainingDuringSave
             ? undefined
             : async () => {
+                const isCurrentPage = capturePageScope()
                 const currentRun =
                   decisionWorld.status === 'current'
                     ? decisionWorld.run
                     : await decisionWorld.refresh()
+                if (!isCurrentPage()) return
                 if (!currentRun) throw new Error('当前账户无法重新分析；请稍后重试。')
                 const result = await queryDevelopmentCandidateAlternatives(
                   currentRun.runId,
                   agentId,
                 )
+                if (!isCurrentPage()) return
                 if (!cacheDevelopmentCandidateSnapshot(result))
                   throw new Error(result.gaps[0] ?? '当前账户无法生成完整的六张候选盘。')
                 setAnalysisVersion((version) => version + 1)
@@ -143,6 +150,7 @@ export function AgentDevelopmentWorkbenchView({
           candidateSnapshotStale || savingThisAgent || retainingDuringSave || !equipment
             ? undefined
             : async (candidateRank) => {
+                const isCurrentPage = capturePageScope()
                 if (decisionWorld.status === 'stale' || candidateSnapshotStale)
                   throw new Error('仓库或账户资料已更新，请先重新匹配；尚未保存。')
                 const candidateIndex = candidateRank - 1
@@ -163,9 +171,10 @@ export function AgentDevelopmentWorkbenchView({
                     equipment,
                   }),
                 ).catch((error: unknown) => {
-                  setSaveRefresh(null)
+                  if (isCurrentPage()) setSaveRefresh(null)
                   throw error
                 })
+                if (!isCurrentPage()) return
                 const refreshedRank = await refreshDevelopmentCandidatesAfterSave({
                   accountId,
                   agentId,
@@ -173,9 +182,10 @@ export function AgentDevelopmentWorkbenchView({
                   refresh: decisionWorld.refresh,
                   query: queryDevelopmentCandidateAlternatives,
                 }).catch((error: unknown) => {
-                  setSaveRefresh(null)
+                  if (isCurrentPage()) setSaveRefresh(null)
                   throw error
                 })
+                if (!isCurrentPage()) return
                 try {
                   const snapshot = readDevelopmentCandidateSnapshot(accountId, agentId)
                   const loadout = snapshot?.candidates[refreshedRank - 1]?.loadouts[0]
@@ -187,12 +197,13 @@ export function AgentDevelopmentWorkbenchView({
                     candidateLoadoutFingerprint: contentHash(loadout),
                   }
                   const projection = await queryDevelopmentWorkbenchRoute(snapshot.runId, selection)
+                  if (!isCurrentPage()) return
                   const key = contentHash([snapshot.runId, snapshot.inputFingerprint, selection])
                   rememberDevelopmentWorkbenchRoute(key, projection)
                   setRouteRead({ key, value: projection })
                   setLastRouteProjection({ accountId, agentId, value: projection })
                 } catch (error) {
-                  setSaveRefresh(null)
+                  if (isCurrentPage()) setSaveRefresh(null)
                   throw error
                 }
                 setSaveRefresh(null)
@@ -212,7 +223,9 @@ export function AgentDevelopmentWorkbenchView({
           roster={roster}
           onCancel={() => setEditingCurrent(false)}
           onSaved={async () => {
+            const isCurrentPage = capturePageScope()
             const refreshed = await decisionWorld.refresh()
+            if (!isCurrentPage()) return
             if (!refreshed) throw new Error('资料已保存，但养成资料暂未更新，请稍后重试。')
             const selection = {
               agentId,
@@ -221,6 +234,7 @@ export function AgentDevelopmentWorkbenchView({
               candidateLoadoutFingerprint: null,
             }
             const projection = await queryDevelopmentWorkbenchRoute(refreshed.runId, selection)
+            if (!isCurrentPage()) return
             const key = contentHash([refreshed.runId, refreshed.inputFingerprint, selection])
             rememberDevelopmentWorkbenchRoute(key, projection)
             setRouteRead({ key, value: projection })

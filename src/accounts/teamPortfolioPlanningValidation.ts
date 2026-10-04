@@ -132,7 +132,7 @@ export function frozenPortfolioBuildIntentValid(
       }
     }
   }
-  if (!buildIntentFingerprintMatches(intent))
+  if (!buildIntentFingerprintMatches(intent, true))
     errors.push('多队草稿冻结的 Build Intent 指纹不匹配。')
 }
 

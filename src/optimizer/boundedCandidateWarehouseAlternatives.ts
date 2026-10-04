@@ -10,6 +10,7 @@ export function boundedAlternatives(
   limit: number,
   expectedAgentIds: readonly string[],
   solve: (excluded: string[]) => CandidateWarehousePlan,
+  protectedDiscIds: readonly string[] = [],
 ) {
   if (!Number.isFinite(limit) || limit <= 0) return []
   const count = Math.min(Math.floor(limit), 10)
@@ -58,6 +59,8 @@ export function boundedAlternatives(
     frontier.sort((a, b) => compare(a.plan, b.plan))
     const next = frontier.shift()!
     for (const choice of next.plan.loadouts.flatMap((item) => item.discs)) {
+      // Exploration changes only replaceable choices, never the user's fixed disc.
+      if (protectedDiscIds.includes(choice.disc.id)) continue
       // Excluding a globally unique slot cannot produce a complete alternative.
       if (
         !discs.some(

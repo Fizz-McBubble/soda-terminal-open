@@ -294,7 +294,7 @@ export function resolveReviewedTeamDiscDirections(
   context: ReviewedTeamDiscConditionContext,
 ): AppliedReviewedTeamDiscDirection[] {
   const members = context.memberIds
-  if (!members || new Set(members).size !== 3) return []
+  if (!members || members.length !== 3 || new Set(members).size !== 3) return []
   return reviewedTeamDiscDirections.flatMap((direction) => {
     if (direction.agentId !== agentId) return []
     let exactMemberIds = direction.exactMemberSets.find((candidate) =>

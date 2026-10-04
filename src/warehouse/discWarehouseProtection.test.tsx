@@ -183,10 +183,14 @@ describe('current protection action and intrinsic quality', () => {
     expect(action.statuses).toContain('active_plan_reference')
   })
 
-  it('does not turn equipment on an unowned roster record into current protection', () => {
+  it('preserves concrete equipment references while reviewing an inconsistent ownership marker', () => {
     const source = input(2)
     source.roster.agents[0]!.owned = false
-    expect(project(source).absoluteRetention?.nextAction?.kind).toBe('manual_cleanup')
-    expect(analyzeAccountWarehouse(source).decisions[0]!.cleanupSafety.equipped).toBe(false)
+    const before = structuredClone(source)
+    const result = analyzeAccountWarehouse(source)
+    expect(project(source).absoluteRetention?.nextAction?.kind).toBe('keep')
+    expect(result.decisions[0]!.cleanupSafety.equipped).toBe(true)
+    expect(result.referenceIssues?.equipmentNeedsReview).toBe(true)
+    expect(source).toEqual(before)
   })
 })

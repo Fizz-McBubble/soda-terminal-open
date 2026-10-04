@@ -3,6 +3,7 @@ import rawKnowledge from '../data/build-knowledge.v1.json'
 import type { BuildProfile, StatKey } from '../domain/schemas'
 import { statKeySchema } from '../domain/schemas'
 import { contentHash } from '../evaluation/contentHash'
+import { driveDiscData } from '../data/gameData'
 
 const sourceSchema = z.object({
   id: z.string().min(1),
@@ -182,5 +183,6 @@ export function isAllowedMainStat(
   slot: number,
   stat: StatKey,
 ) {
+  if (!driveDiscData?.rules.mainStatsBySlot[String(slot)]?.includes(stat)) return false
   return slot <= 3 || (knowledge.mainStats[String(slot)] as StatKey[] | undefined)?.includes(stat)
 }

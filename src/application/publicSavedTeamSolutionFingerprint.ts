@@ -3,6 +3,7 @@ import type { BuildAccountDecisionInput } from '../decision/accountDecisionSnaps
 import type { PortfolioJointBuildIntent } from '../decision/buildIntent'
 import { contentHash } from './contentHash'
 import { rosterFingerprintFacts } from './publicRosterFingerprintFacts'
+import { normalizeTargetTeamEquipmentParameters } from './publicTargetTeamEquipmentFingerprint'
 
 export const savedTeamFingerprintPrefix = 'saved-team/v2:'
 export const savedTeamPortfolioFingerprintPrefix = 'saved-team-portfolio/v1:'
@@ -47,6 +48,13 @@ export function materialCompetingPlan(plan: AccountPlanningDraft) {
     selection: plan.selection,
     manualOverrides: plan.manualOverrides,
     warehouseRefs: [...plan.warehouseRefs].sort(),
+    ...(plan.teamEquipmentParameters
+      ? {
+          teamEquipmentParameters: normalizeTargetTeamEquipmentParameters(
+            plan.teamEquipmentParameters,
+          ),
+        }
+      : {}),
     candidateWarehouse: plan.candidateWarehouse
       ? {
           scope: plan.candidateWarehouse.scope,
@@ -71,6 +79,11 @@ export function materialCompetingPlan(plan: AccountPlanningDraft) {
           status: plan.teamExecutionSnapshot.status,
           scenario: plan.teamExecutionSnapshot.scenario,
           bangbooId: plan.teamExecutionSnapshot.bangbooId,
+          ...(plan.teamExecutionSnapshot.bangbooStar === undefined
+            ? {}
+            : {
+                bangbooStar: plan.teamExecutionSnapshot.bangbooStar,
+              }),
           physicalDiscIds: [...plan.teamExecutionSnapshot.physicalDiscIds].sort(),
           members: plan.teamExecutionSnapshot.members
             .map((member) => ({
@@ -81,6 +94,12 @@ export function materialCompetingPlan(plan: AccountPlanningDraft) {
                     engineId: member.suggested.wEngine.engineId,
                     copyId: member.suggested.wEngine.copyId,
                     refinement: member.suggested.wEngine.refinement,
+                    ...(member.suggested.wEngine.level === undefined
+                      ? {}
+                      : { level: member.suggested.wEngine.level }),
+                    ...(member.suggested.wEngine.ascension === undefined
+                      ? {}
+                      : { ascension: member.suggested.wEngine.ascension }),
                   }
                 : null,
             }))

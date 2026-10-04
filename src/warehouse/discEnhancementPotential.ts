@@ -82,7 +82,13 @@ function isSameReplacementClass(target: DriveDisc, candidate: DriveDisc) {
     maxLevel !== undefined &&
     candidate.level <= maxLevel &&
     new Set(candidate.subStats.map((item) => item.stat)).size === candidate.subStats.length &&
-    candidate.subStats.every((item) => Number.isFinite(item.value) && item.value >= 0) &&
+    candidate.subStats.every(
+      (item) =>
+        Number.isFinite(item.value) &&
+        item.value >= 0 &&
+        Number.isInteger(item.upgrades) &&
+        item.upgrades >= 0,
+    ) &&
     targetMain !== null &&
     candidateMain !== null &&
     candidateMain.value >= targetMain.value
@@ -90,6 +96,8 @@ function isSameReplacementClass(target: DriveDisc, candidate: DriveDisc) {
 }
 
 export function isConstraintCompatible(disc: DriveDisc, constraint: CandidateWarehouseConstraint) {
+  if (!(driveDiscData?.rules.mainStatsBySlot[String(disc.slot)] ?? []).includes(disc.mainStat))
+    return false
   if (!constraint.setIds.includes(disc.setId)) return false
   if (disc.slot <= 3) return true
   return (constraint.mainStats[String(disc.slot) as '4' | '5' | '6'] ?? []).includes(disc.mainStat)
@@ -133,7 +141,24 @@ export function evaluateDiscEnhancementPotential(input: {
   if (!input.profileCoverageComplete) return unevaluated(input.history, 'missing_profile')
   if (input.history.status !== 'known') return unevaluated(input.history, 'missing_history')
   const maxLevel = driveDiscData?.rules.maxLevelByRarity[input.disc.rarity ?? 'S']
-  if (maxLevel === undefined || input.disc.level > maxLevel)
+  const capturedCounts = new Map<string, number>()
+  for (const disc of input.allDiscs)
+    capturedCounts.set(disc.id, (capturedCounts.get(disc.id) ?? 0) + 1)
+  if (
+    maxLevel === undefined ||
+    input.disc.level > maxLevel ||
+    (capturedCounts.get(input.disc.id) ?? 0) > 1 ||
+    !(driveDiscData?.rules.mainStatsBySlot[String(input.disc.slot)] ?? []).includes(
+      input.disc.mainStat,
+    ) ||
+    input.disc.subStats.some(
+      (line) =>
+        !Number.isInteger(line.upgrades) ||
+        line.upgrades < 0 ||
+        !Number.isFinite(line.value) ||
+        line.value < 0,
+    )
+  )
     return unevaluated(input.history, 'missing_history')
   const remainingEnhancementNodes = Math.max(0, Math.ceil((maxLevel - input.disc.level) / 3))
   const history = {
@@ -189,7 +214,10 @@ export function evaluateDiscEnhancementPotential(input: {
     objectiveCoverage.get(dimensionId)?.(alternative, future) ?? true
 
   const alternatives = input.allDiscs
-    .filter((candidate) => isSameReplacementClass(input.disc, candidate))
+    .filter(
+      (candidate) =>
+        capturedCounts.get(candidate.id) === 1 && isSameReplacementClass(input.disc, candidate),
+    )
     .sort((left, right) => left.id.localeCompare(right.id))
   const candidateAlternatives = alternatives.filter((alternative) =>
     ceilings.every(
