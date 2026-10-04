@@ -212,10 +212,20 @@ export async function inspectDist(dist, { allowScannerTemplate = false, origin }
     scope: 'browser_bundle_file_closure_and_reference_audit_not_runtime_acceptance',
   }
 }
-export async function prepare({ dist, out, accountId, name = 'app', origin }) {
+export async function prepare({
+  dist,
+  out,
+  accountId,
+  name = 'app',
+  origin,
+  usageStatistics = false,
+}) {
   if (!dist || !out) throw new Error('dist_and_out_required')
   if (!/^[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/u.test(name)) throw new Error('worker_name_invalid')
   if (accountId && !/^[a-f0-9]{32}$/u.test(accountId)) throw new Error('account_id_invalid')
+  if (typeof usageStatistics !== 'boolean') throw new Error('usage_statistics_flag_invalid')
+  if (usageStatistics && origin !== 'https://app.sodaterminal.workers.dev')
+    throw new Error('usage_statistics_requires_production_origin')
   const input = resolve(dist),
     output = resolve(out)
   if (within(output, input) || within(input, output) || within(output, here))
@@ -228,6 +238,15 @@ export async function prepare({ dist, out, accountId, name = 'app', origin }) {
   config.name = name
   if (accountId) config.account_id = accountId
   config.vars = { SODA_RELEASE_ID: report.releaseId }
+  if (usageStatistics) {
+    config.vars.SODA_USAGE_STATISTICS = 'enabled'
+    config.vars.SODA_PUBLIC_ORIGIN = origin
+  }
+  config.observability = {
+    enabled: usageStatistics,
+    logs: { enabled: usageStatistics, invocation_logs: false, head_sampling_rate: 1 },
+    traces: { enabled: false },
+  }
   await mkdir(dirname(output), { recursive: true })
   // Exclusive destination: never overwrite a previous candidate.
   await mkdir(output)
@@ -302,16 +321,23 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
   const args = process.argv.slice(2),
     options = {}
   try {
-    for (let i = 0; i < args.length; i += 2) {
+    for (let i = 0; i < args.length; ) {
+      if (args[i] === '--usage-statistics') {
+        if (options.usageStatistics) throw new Error('duplicate_usage_statistics_flag')
+        options.usageStatistics = true
+        i += 1
+        continue
+      }
       if (
         !['--dist', '--out', '--account-id', '--name', '--origin'].includes(args[i]) ||
         !args[i + 1] ||
         args[i + 1].startsWith('--')
       )
         throw new Error(
-          'usage: --dist <browser-dist> --out <new-directory> [--account-id <id>] [--name <name>] [--origin <https-origin>]',
+          'usage: --dist <browser-dist> --out <new-directory> [--account-id <id>] [--name <name>] [--origin <https-origin>] [--usage-statistics]',
         )
       options[args[i] === '--account-id' ? 'accountId' : args[i].slice(2)] = args[i + 1]
+      i += 2
     }
     const report = await prepare(options)
     console.log(

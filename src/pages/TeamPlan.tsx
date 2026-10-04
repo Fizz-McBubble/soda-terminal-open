@@ -28,6 +28,7 @@ import { useTeamAlternativeSelection } from './useTeamAlternativeSelection'
 import { calculationQueryContractVersion } from '../application/calculationQueryContract'
 import { useTeamRematch } from './useTeamRematch'
 import { usePageOperationScope } from '../components/usePageOperationScope'
+import { beginUsageOperation } from '../usageStatistics/client'
 
 export function TeamPlan({
   warehouse,
@@ -46,6 +47,7 @@ export function TeamPlan({
   const navigate = useNavigate()
   const resolveProfile = useContext(PlanningProfileContext)
   const calculationClient = useContext(CalculationQueryClientContext)
+  const explicitFitPending = useRef(false)
   const calculateTargetTeamWarehouseFit = useTargetTeamWarehouseFitCalculation()
   const { retainedSession, route, routeStatus } = useTeamRoutePresentation({
     analysisRunId,
@@ -267,7 +269,17 @@ export function TeamPlan({
     bangbooId: string
     bangbooStars: 1 | 2 | 3 | 4 | 5
   }) => {
-    if (!analysisRunId || !targetCandidateId || !calculationClient || readOnly) return
+    if (
+      !analysisRunId ||
+      !targetCandidateId ||
+      !calculationClient ||
+      readOnly ||
+      explicitFitPending.current
+    )
+      return
+    explicitFitPending.current = true
+    const finishUsage = beginUsageOperation('team_loadout')
+    const isCurrentPage = capturePageScope()
     const requestGeneration = ++targetFitRequestGeneration.current
     setFitStatus('running')
     try {
@@ -278,12 +290,22 @@ export function TeamPlan({
         candidateId: targetCandidateId,
         playerBangbooSelection: { teamKey, ...selection },
       })
-      if (requestGeneration !== targetFitRequestGeneration.current) return
+      if (!isCurrentPage() || requestGeneration !== targetFitRequestGeneration.current) {
+        finishUsage('cancelled')
+        return
+      }
+      finishUsage(fit.status === 'ready' ? 'success' : 'incomplete')
       setTargetTeamFit(fit)
       setFitStatus('idle')
     } catch {
-      if (requestGeneration !== targetFitRequestGeneration.current) return
+      if (!isCurrentPage() || requestGeneration !== targetFitRequestGeneration.current) {
+        finishUsage('cancelled')
+        return
+      }
+      finishUsage('failure')
       setFitStatus('error')
+    } finally {
+      explicitFitPending.current = false
     }
   }
   const resolvedTeam =
@@ -421,6 +443,9 @@ export function TeamPlan({
       onConfirmEquipmentParameters={async (selection) => {
         if (!analysisRunId || !targetCandidateId || readOnly)
           throw new Error('当前队伍资料已变更，请重新分析后再确认配装。')
+        if (explicitFitPending.current) return
+        explicitFitPending.current = true
+        const finishUsage = beginUsageOperation('team_loadout')
         const requestGeneration = ++targetFitRequestGeneration.current
         const isCurrentPage = capturePageScope()
         setEquipmentParametersRequireRefresh(true)
@@ -431,17 +456,27 @@ export function TeamPlan({
             targetCandidateId,
             selection,
           )
-          if (!isCurrentPage() || requestGeneration !== targetFitRequestGeneration.current) return
+          if (!isCurrentPage() || requestGeneration !== targetFitRequestGeneration.current) {
+            finishUsage('cancelled')
+            return
+          }
+          finishUsage(fit.status === 'ready' ? 'success' : 'incomplete')
           setTargetTeamFit(fit)
           setEquipmentParametersRequireRefresh(false)
           setFitStatus('idle')
         } catch (error) {
-          if (!isCurrentPage() || requestGeneration !== targetFitRequestGeneration.current) return
+          if (!isCurrentPage() || requestGeneration !== targetFitRequestGeneration.current) {
+            finishUsage('cancelled')
+            return
+          }
+          finishUsage('failure')
           // Inline controls roll back to the previous effective parameters on
           // failure; keep that unchanged result available for a fresh retry.
           setEquipmentParametersRequireRefresh(false)
           setFitStatus('error')
           throw error
+        } finally {
+          explicitFitPending.current = false
         }
       }}
     />

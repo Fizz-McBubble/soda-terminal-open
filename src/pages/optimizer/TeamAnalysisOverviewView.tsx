@@ -1,5 +1,6 @@
-import { useState, type MutableRefObject } from 'react'
+import { useRef, useState, type MutableRefObject } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { beginUsageOperation } from '../../usageStatistics/client'
 import type {
   useAccountDecisionWorld,
   useTargetTeamWarehouseFitCalculation,
@@ -75,6 +76,7 @@ export function TeamAnalysisOverviewView({
 }) {
   const navigate = useNavigate()
   const [pendingDelete, setPendingDelete] = useState<TeamLoadoutOverviewItem | null>(null)
+  const preparingRef = useRef<number | null>(null)
   const { result } = analysis
 
   const fitsAreCurrent =
@@ -162,11 +164,13 @@ export function TeamAnalysisOverviewView({
         contextNote={overviewFeedback ?? result.overviewModel.contextNote}
         onSelect={(id) => {
           prepareRequestRef.current += 1
+          preparingRef.current = null
           setPreparingItemId(null)
           setPreparationError(null)
           setRequestedSelectedId(id)
         }}
         onPrimaryAction={(item) => {
+          if (preparingRef.current !== null) return
           setPreparationError(null)
           if (!item.detailCandidateId && item.kind !== 'saved') {
             setOverviewFeedback('该记录没有可打开的队伍详情。')
@@ -177,12 +181,17 @@ export function TeamAnalysisOverviewView({
             return
           }
           const request = ++prepareRequestRef.current
+          preparingRef.current = request
+          const finishUsage = beginUsageOperation('team_loadout')
           setPreparingItemId(item.id)
           setPreparationError(null)
           setOverviewFeedback(null)
           void queryTeamRoute(result, item.detailCandidateId!)
             .then(async (entry) => {
-              if (request !== prepareRequestRef.current) return
+              if (request !== prepareRequestRef.current) {
+                finishUsage('cancelled')
+                return
+              }
               if (!entry.team || !entry.targetCandidateId) {
                 navigate(item.destination)
                 return
@@ -201,17 +210,23 @@ export function TeamAnalysisOverviewView({
                 result.analysisRunId,
                 entry.targetCandidateId,
               )
-              if (request !== prepareRequestRef.current) return
+              if (request !== prepareRequestRef.current) {
+                finishUsage('cancelled')
+                return
+              }
               const session = currentTeamAnalysisSession
               if (
-                session?.result.appSessionId !== result.appSessionId ||
+                session?.kind !== 'complete' ||
+                session.result.appSessionId !== result.appSessionId ||
                 session.result.warehouse.accountId !== result.warehouse.accountId ||
                 session.result.analysisRunId !== result.analysisRunId ||
                 session.result.inputFingerprint !== result.inputFingerprint
               ) {
+                finishUsage('cancelled')
                 setOverviewFeedback('账户资料已更新，请重新分析后再配装。')
                 return
               }
+              finishUsage(fit.status === 'ready' ? 'success' : 'incomplete')
               const nextFits = { ...session.result.targetTeamFits, [team.id]: fit }
               setCurrentTeamAnalysisSession({
                 ...session,
@@ -225,6 +240,7 @@ export function TeamAnalysisOverviewView({
               queueFitOverview(session.result, nextFits)
             })
             .catch(() => {
+              finishUsage(request === prepareRequestRef.current ? 'failure' : 'cancelled')
               if (request === prepareRequestRef.current)
                 setPreparationError({
                   runId: result.analysisRunId,
@@ -233,6 +249,7 @@ export function TeamAnalysisOverviewView({
                 })
             })
             .finally(() => {
+              if (preparingRef.current === request) preparingRef.current = null
               if (request === prepareRequestRef.current) setPreparingItemId(null)
             })
         }}

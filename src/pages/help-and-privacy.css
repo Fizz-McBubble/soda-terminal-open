@@ -100,6 +100,15 @@
 .f5v-shell .help-privacy__footer p {
   margin: 0 0 4px;
 }
+.f5v-shell .help-privacy__usage {
+  margin-top: 12px;
+}
+.f5v-shell .help-privacy__usage label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+}
 @media (max-width: 700px) {
   .f5v-shell .help-privacy__sections section {
     grid-template-columns: minmax(0, 1fr);

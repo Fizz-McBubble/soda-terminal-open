@@ -2,6 +2,19 @@ import { act, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import App from '../App'
+const usage = vi.hoisted(() => ({ begin: vi.fn(), outcome: vi.fn() }))
+vi.mock('../usageStatistics/client', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../usageStatistics/client')>()),
+  beginUsageOperation: (action: string) => {
+    usage.begin(action)
+    let finished = false
+    return (outcome: string) => {
+      if (finished) return
+      finished = true
+      usage.outcome(outcome)
+    }
+  },
+}))
 import { localCalculationQueryClient } from '../application/localCalculationQueryClient'
 import {
   findAnalyzeCurrentTeamButton,
@@ -24,6 +37,8 @@ describe('alternative team navigation lifecycle', () => {
       await user.click(await findAnalyzeCurrentTeamButton())
       await user.click(await findFitTeamEquipmentButton())
       await findTeamEquipmentHeading()
+      expect(usage.begin.mock.calls).toEqual([['team_loadout']])
+      expect(usage.outcome.mock.calls).toEqual([['success']])
       const original = localCalculationQueryClient.queryTeamRoutePresentation.bind(
         localCalculationQueryClient,
       )
@@ -53,6 +68,8 @@ describe('alternative team navigation lifecycle', () => {
         })
         expect(window.location.pathname).toBe('/loadouts/team')
         expect(screen.queryByText('正在搭配替换队伍…')).not.toBeInTheDocument()
+        expect(usage.begin.mock.calls).toEqual([['team_loadout']])
+        expect(usage.outcome.mock.calls).toEqual([['success']])
       } finally {
         release()
         query.mockRestore()

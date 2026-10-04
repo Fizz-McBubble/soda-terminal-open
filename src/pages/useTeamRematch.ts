@@ -1,5 +1,6 @@
 import { useContext, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { beginUsageOperation } from '../usageStatistics/client'
 import type { CoreWarehouse } from '../accounts/coreFlow'
 import type {
   AccountDecisionSnapshot,
@@ -66,6 +67,7 @@ export function useTeamRematch({
     rematchPending.current = true
     setRematching(true)
     setAlternativeError(null)
+    const finishUsage = beginUsageOperation('team_loadout')
     try {
       const refreshed = readOnly ? await decisionWorld.refresh() : null
       if (!active()) return
@@ -112,8 +114,10 @@ export function useTeamRematch({
         liveWorld.current.liveFingerprint !== inputFingerprint ||
         currentTeamAnalysisSession?.result.appSessionId !== previousSession.result.appSessionId ||
         currentTeamAnalysisSession.result.warehouse.accountId !== accountId
-      )
+      ) {
+        finishUsage('cancelled')
         throw new Error('账户资料已更新，请重新搭配后再使用方案。')
+      }
       const order = previousFit?.targetExecution.deploymentOrder
       const nextFit = isTeamDeploymentOrder(order, fit.memberIds)
         ? {
@@ -135,6 +139,7 @@ export function useTeamRematch({
           })?.overviewModel
         : previousSession.result.overviewModel
       if (!overview) throw new Error('队伍展示结果缺失或已过期，请重新搭配。')
+      finishUsage(fit.status === 'ready' ? 'success' : 'incomplete')
       setCurrentTeamAnalysisSession({
         kind: 'complete',
         result: {
@@ -167,11 +172,13 @@ export function useTeamRematch({
       setTargetFitState({ runId, fit: nextFit })
       navigate(`/loadouts/team/${encodeURIComponent(teamKey)}`, { replace: true })
     } catch (error) {
+      finishUsage(active() ? 'failure' : 'cancelled')
       if (active())
         setAlternativeError(
           error instanceof Error ? error.message : '重新搭配失败；账户资产没有改变。',
         )
     } finally {
+      if (!active()) finishUsage('cancelled')
       if (active()) {
         rematchPending.current = false
         setRematching(false)

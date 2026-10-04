@@ -24,6 +24,7 @@ import {
 import { database } from '../db/databaseCore'
 import { isLegacyScanImportBatch } from '../domain/scanImportStaging'
 import { clearScannerTargetAccountBinding } from '../scanner/targetAccountBinding'
+import { beginUsageOperation } from '../usageStatistics/client'
 
 type ImportState = { mode: 'idle' | 'success' | 'error'; message: string }
 
@@ -43,6 +44,7 @@ export function FormalDiscImportPage({
   const [revision, setRevision] = useState(0)
   const [state, setState] = useState<ImportState>({ mode: 'idle', message: '' })
   const [busy, setBusy] = useState(false)
+  const importPendingRef = useRef(false)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dropActive, setDropActive] = useState(false)
   const cancelRef = useRef<HTMLButtonElement>(null)
@@ -231,9 +233,18 @@ export function FormalDiscImportPage({
   }
 
   async function confirmImport() {
-    if (!current || 'bindingError' in current || !current.batch || !publicScannerDriveDiscData)
+    if (
+      importPendingRef.current ||
+      !readyForConfirmation ||
+      !current ||
+      'bindingError' in current ||
+      !current.batch ||
+      !publicScannerDriveDiscData
+    )
       return
+    importPendingRef.current = true
     setBusy(true)
+    const finishUsage = beginUsageOperation('disc_import')
     try {
       await armAccountScanReviewImport(current.account.id, current.batch.id, database)
       const result = await replaceReadyAccountScanStaging(
@@ -249,6 +260,7 @@ export function FormalDiscImportPage({
         'replace_current_account_discs',
         database,
       )
+      finishUsage('success')
       clearScannerTargetAccountBinding()
       closeConfirmation()
       setState({
@@ -258,12 +270,14 @@ export function FormalDiscImportPage({
       onImportSuccess?.(result.imported)
       setRevision((value) => value + 1)
     } catch (error) {
+      finishUsage('failure')
       closeConfirmation()
       setState({
         mode: 'error',
         message: error instanceof Error ? error.message : '更新失败，账户仓库未改动，请重试。',
       })
     } finally {
+      importPendingRef.current = false
       setBusy(false)
     }
   }

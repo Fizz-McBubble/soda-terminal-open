@@ -431,6 +431,8 @@ check('prepared config is assets-first and pinned; no automatic deployment', asy
   assert.match(headers, /Content-Security-Policy:/u)
   assert.match(headers, /worker-src 'self'/u)
   assert.match(headers, /connect-src 'self' http:\/\/127\.0\.0\.1:43127/u)
+  assert.equal(headers.match(/script-src ([^;]+)/u)?.[1], "'self'")
+  assert.equal(headers.match(/connect-src ([^;]+)/u)?.[1], "'self' http://127.0.0.1:43127")
   assert.match(headers, /img-src 'self' blob: data: http:\/\/127\.0\.0\.1:43127/u)
   assert.match(headers, /font-src 'self'/u)
   assert.doesNotMatch(headers, /(?:https?:\/\/\*|\*\.\w|connect-src[^;]*\*)/u)
@@ -440,6 +442,11 @@ check('prepared config is assets-first and pinned; no automatic deployment', asy
   assert.equal(report.staticHeadersSha256.length, 64)
   const config = JSON.parse(await readFile(join(out, 'wrangler.json')))
   assert.equal(config.main, './deploy/cloudflare/edge.mjs')
+  assert.deepEqual(config.vars, { SODA_RELEASE_ID: 'synthetic-local-1' })
+  assert.equal(config.observability.enabled, false)
+  assert.equal(config.observability.logs.enabled, false)
+  assert.equal(config.observability.logs.invocation_logs, false)
+  assert.equal(config.observability.traces.enabled, false)
   assert.deepEqual(
     JSON.parse(await readFile(join(out, 'src/assets/reviewed32-media-urls.json'))),
     reviewed32MediaUrls,

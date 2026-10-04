@@ -1,4 +1,5 @@
 import { type Dispatch, type MutableRefObject, type SetStateAction } from 'react'
+import { beginUsageOperation } from '../../usageStatistics/client'
 import type { NavigateFunction } from 'react-router-dom'
 import { loadCoreWarehouse } from '../../accounts/coreWarehouse'
 import type { AccountPlanningDraft } from '../../accounts/types'
@@ -174,6 +175,7 @@ export function useTeamAnalysisFlow({
       setPreparingItemId(candidateId)
       setPreparationError(null)
       setOverviewFeedback('正在重新搭配装备…')
+      const finishUsage = beginUsageOperation('team_loadout')
       try {
         traceTeamRematch('fit.dispatch', { generation, analysisGeneration })
         const fit = await calculateTargetTeamWarehouseFit(
@@ -182,12 +184,17 @@ export function useTeamAnalysisFlow({
           match?.effectiveEquipmentParameters,
         )
         traceTeamRematch('fit.received', { generation, analysisGeneration })
-        if (!isCurrentRequest()) return
+        if (!isCurrentRequest()) {
+          finishUsage('cancelled')
+          return
+        }
         const session = currentTeamAnalysisSession
         if (!session || !hasCurrentSession()) {
+          finishUsage('cancelled')
           setOverviewFeedback('账户资料已更新，请重新分析后再配装。')
           return
         }
+        finishUsage(fit.status === 'ready' ? 'success' : 'incomplete')
         const nextFits = { ...session.result.targetTeamFits, [entry.team.id]: fit }
         setCurrentTeamAnalysisSession({
           ...session,
@@ -201,6 +208,7 @@ export function useTeamAnalysisFlow({
         traceTeamRematch('continue.navigate.fit', { generation })
         queueFitOverview(session.result, nextFits)
       } catch {
+        finishUsage(isCurrentRequest() ? 'failure' : 'cancelled')
         traceTeamRematch('fit.reject.query', { current: isCurrentRequest() })
         if (isCurrentRequest())
           setOverviewFeedback('这支队伍的配装生成失败，请重新搭配；账户资产没有改变。')

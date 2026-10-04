@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { PlayerSelect } from '../components/PlayerSelect'
+import { UsageStatisticsPreference } from '../usageStatistics/UsageStatistics'
 import './help-and-privacy.css'
 
 const configuredFeedbackUrl = import.meta.env.VITE_SODA_FEEDBACK_URL?.trim()
@@ -56,6 +57,7 @@ export function HelpAndPrivacyPage() {
               在<Link to="/assets/account">我的资产 · 账户</Link>
               导出或恢复备份。清除站点数据、更换浏览器前，请先导出备份并妥善保管；恢复时须选择文件并确认。
             </p>
+            <UsageStatisticsPreference />
           </div>
         </section>
         <section aria-labelledby="help-scanner-heading">

@@ -56,19 +56,170 @@ function reserved(path) {
     return true
   }
 }
+const usageOrigin = 'https://app.sodaterminal.workers.dev'
+const usagePageCategories = new Set([
+  'home',
+  'assets',
+  'development',
+  'loadouts',
+  'warehouse',
+  'scanner',
+  'help',
+])
+const usageOperationCategories = new Set([
+  'scanner_connection',
+  'disc_import',
+  'team_loadout',
+  'plan_save',
+])
+const usageOutcomes = new Set(['success', 'failure', 'cancelled', 'incomplete'])
+function usageRecord(payload, release) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return null
+  if (
+    Object.keys(payload).some(
+      (key) => !['schema', 'event', 'category', 'outcome', 'durationMs', 'release'].includes(key),
+    ) ||
+    payload.schema !== 1 ||
+    typeof payload.release !== 'string' ||
+    !/^[A-Za-z0-9._-]{8,80}$/u.test(payload.release)
+  )
+    return null
+  const hasDuration = Object.hasOwn(payload, 'durationMs')
+  const hasOutcome = Object.hasOwn(payload, 'outcome')
+  if (
+    hasDuration &&
+    (!Number.isInteger(payload.durationMs) ||
+      payload.durationMs < 0 ||
+      payload.durationMs > 3_600_000)
+  )
+    return null
+  if (payload.event === 'page_view') {
+    if (!usagePageCategories.has(payload.category) || hasOutcome || hasDuration) return null
+  } else if (payload.event === 'operation') {
+    if (
+      !usageOperationCategories.has(payload.category) ||
+      !usageOutcomes.has(payload.outcome) ||
+      !hasDuration
+    )
+      return null
+  } else if (payload.event === 'performance') {
+    if (payload.category !== 'startup' || !hasDuration || hasOutcome) return null
+  } else return null
+  if (payload.release !== release) return { status: 409 }
+  // Reconstruct the log. Never log the original body, URL, headers, IP, or errors.
+  return {
+    dataset: 'soda_usage',
+    schema: 1,
+    event: payload.event,
+    category: payload.category,
+    ...(hasOutcome ? { outcome: payload.outcome } : {}),
+    ...(hasDuration ? { durationMs: payload.durationMs } : {}),
+    release,
+  }
+}
+async function readUsageBody(request, timeoutMs) {
+  const length = request.headers.get('content-length')
+  if (length && (!/^\d+$/u.test(length) || Number(length) > 512)) return { status: 413 }
+  if (!request.body) return { status: 400 }
+  const reader = request.body.getReader()
+  let timer
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => reject(new Error('usage_body_timeout')), timeoutMs)
+  })
+  try {
+    const bytes = new Uint8Array(512)
+    let size = 0
+    while (true) {
+      const { done, value } = await Promise.race([reader.read(), timeout])
+      if (done) break
+      if (size + value.byteLength > bytes.length) return { status: 413 }
+      bytes.set(value, size)
+      size += value.byteLength
+    }
+    return {
+      payload: JSON.parse(
+        new TextDecoder('utf-8', { fatal: true }).decode(bytes.subarray(0, size)),
+      ),
+    }
+  } catch {
+    return { status: 400 }
+  } finally {
+    clearTimeout(timer)
+    // A hostile stream's cancel promise must not delay this response or retain an in-flight slot.
+    void reader.cancel().catch(() => {})
+    reader.releaseLock()
+  }
+}
 export function createEdge({
   fetcher = globalThis.fetch,
   byteLimit = 8 * 1024 * 1024,
   timeoutMs = 10_000,
   concurrency = 4,
+  usageTimeoutMs = 2_000,
+  usageConcurrency = 4,
+  usageLogsPerMinute = 120,
+  usageLogger = (record) => console.log(record),
+  now = Date.now,
 } = {}) {
   // Per-isolate bound, NOT a global rate limit. At most 4 buffered images in this isolate.
   let active = 0
+  let usageActive = 0
+  let usageWindowStart = now()
+  let usageLogs = 0
   return {
     async fetch(request, env) {
       const url = new URL(request.url)
       if (url.pathname === '/api' || url.pathname.startsWith('/api/'))
         return reply(410, '此站仅提供本机计算，不提供或转发在线计算 API。')
+      if (url.pathname === '/_soda/usage') {
+        if (
+          env.SODA_USAGE_STATISTICS !== 'enabled' ||
+          typeof env.SODA_RELEASE_ID !== 'string' ||
+          !/^[A-Za-z0-9._-]{8,80}$/u.test(env.SODA_RELEASE_ID ?? '') ||
+          env.SODA_PUBLIC_ORIGIN !== usageOrigin ||
+          url.origin !== usageOrigin
+        )
+          return reply(404, 'Not found')
+        if (request.method !== 'POST') return reply(405, 'Method not allowed', { allow: 'POST' })
+        if (request.url.includes('?')) return reply(400, 'Invalid usage event')
+        const site = request.headers.get('sec-fetch-site')
+        if (
+          request.headers.get('origin') !== usageOrigin ||
+          (site !== null && site !== 'same-origin')
+        )
+          return reply(403, 'Forbidden')
+        if (
+          !/^application\/json(?:\s*;\s*charset=utf-8)?$/iu.test(
+            request.headers.get('content-type') ?? '',
+          )
+        )
+          return reply(400, 'Invalid usage event')
+        const time = now()
+        if (time < usageWindowStart || time - usageWindowStart >= 60_000) {
+          usageWindowStart = time
+          usageLogs = 0
+        }
+        // These bounds apply to this isolate only, never a global abuse or quota guarantee.
+        if (usageActive >= usageConcurrency || usageLogs >= usageLogsPerMinute)
+          return reply(429, 'Usage collection busy', { 'retry-after': '60' })
+        usageActive += 1
+        try {
+          const body = await readUsageBody(request, usageTimeoutMs)
+          if (body.status) return reply(body.status, 'Invalid usage event')
+          const record = usageRecord(body.payload, env.SODA_RELEASE_ID)
+          if (!record) return reply(400, 'Invalid usage event')
+          if (record.status) return reply(record.status, 'Usage release mismatch')
+          if (usageLogs >= usageLogsPerMinute)
+            return reply(429, 'Usage collection busy', { 'retry-after': '60' })
+          usageLogs += 1
+          usageLogger(record)
+          return reply(204, null)
+        } catch {
+          return reply(204, null)
+        } finally {
+          usageActive -= 1
+        }
+      }
       if (url.pathname === '/_soda/health') {
         if (!['GET', 'HEAD'].includes(request.method)) return reply(405, 'Method not allowed')
         return reply(

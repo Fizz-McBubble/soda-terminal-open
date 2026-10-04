@@ -15,6 +15,7 @@ import { shouldAutoCalculateAccountDecision } from './application/decisionRouteP
 import type { CalculationQueryClient } from './application/calculationQueryContract'
 import type { RuntimeSelectionReader } from './application/accountDecisionWorldModel'
 import { DashboardPage } from './pages/DashboardPage'
+import { UsageStatistics } from './usageStatistics/UsageStatistics'
 import {
   LegacyAgentsRedirect,
   LegacyAssaultRedirect,
@@ -86,6 +87,7 @@ function PlayerDecisionWorld({
       onAllowOnlineCalculation={onlineMode && !onlineAllowed ? allowOnlineCalculation : undefined}
     >
       <AppInitializationGate>
+        <UsageStatistics />
         <AccountDecisionWorldProvider
           queryClient={queryClient}
           runtimeSelectionReader={decisionEnvironment.runtimeSelectionReader}

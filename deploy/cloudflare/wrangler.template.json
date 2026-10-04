@@ -32,5 +32,9 @@
       "/*.mjs"
     ]
   },
-  "observability": { "enabled": false }
+  "observability": {
+    "enabled": false,
+    "logs": { "enabled": false, "invocation_logs": false },
+    "traces": { "enabled": false }
+  }
 }

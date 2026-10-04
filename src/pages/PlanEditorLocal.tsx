@@ -1,6 +1,7 @@
 import { claimPlanEditorSaveFromProps } from './planEditorBenchmark32Save'
 import { PlanEditorSavedStateNotices } from './PlanEditorSavedStateNotices'
 import { finishPlanEditorSave } from './planEditorSessionRefresh'
+import { beginUsageOperation } from '../usageStatistics/client'
 import { useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { buildSavedTeamPlanSolutionFingerprint } from '../accounts/planningSnapshotFreshness'
@@ -136,6 +137,7 @@ export function PlanEditor(props: PlanEditorProps) {
       : undefined
   const save = async () => {
     if (!claimPlanEditorSaveFromProps(props, saving, duplicateMemberId, setMessage)) return false
+    let finishUsage: ReturnType<typeof beginUsageOperation> | undefined
     try {
       const remainingSession = assertCurrentPlanEditorReservation(
         kind,
@@ -153,6 +155,7 @@ export function PlanEditor(props: PlanEditorProps) {
           ? await teamSaveConfirmation.request(warehouse.accountId!, team!.agentIds, draft.id)
           : undefined
       if (approved === null) return false
+      finishUsage = beginUsageOperation('plan_save')
       const nextPlanId =
         approved?.id ?? (kind === 'agent' ? draft.id : undefined) ?? `plan-${crypto.randomUUID()}`
       const selectedBangbooId =
@@ -208,6 +211,7 @@ export function PlanEditor(props: PlanEditorProps) {
         profiles: activeProfiles,
         remainingSession,
       })
+      finishUsage('success')
       setDraft(next)
       setSaved(true)
       setDirty(false)
@@ -221,6 +225,7 @@ export function PlanEditor(props: PlanEditorProps) {
         savedName: next.name,
       })
     } catch (error) {
+      finishUsage?.('failure')
       setMessage(error instanceof Error ? error.message : '保存失败，原方案未改变。')
       return false
     } finally {

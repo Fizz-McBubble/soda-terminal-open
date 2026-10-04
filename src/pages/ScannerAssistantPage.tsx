@@ -19,6 +19,7 @@ import { ScannerPrepareSection } from './ScannerPrepareSection'
 import { createPrepareChecks } from './scannerPrepareChecks'
 import { ScannerScanningSection } from './ScannerScanningSection'
 import { useScannerTargetBinding } from './useScannerTargetBinding'
+import { beginUsageOperation } from '../usageStatistics/client'
 
 export function ScannerAssistantPage() {
   return (
@@ -108,8 +109,17 @@ function HydratedScannerAssistantPage({
     if (actionPendingRef.current) return
     actionPendingRef.current = true
     setActionPending(true)
+    const finishUsage = beginUsageOperation('scanner_connection')
     try {
-      await runScannerAction(action)
+      await runScannerAction(async () => {
+        try {
+          await action()
+          finishUsage('success')
+        } catch (error) {
+          finishUsage('failure')
+          throw error
+        }
+      })
     } finally {
       actionPendingRef.current = false
       setActionPending(false)
