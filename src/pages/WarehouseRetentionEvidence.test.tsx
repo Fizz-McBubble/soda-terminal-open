@@ -220,7 +220,8 @@ describe('absolute retention evidence', () => {
         })}
       />,
     )
-    expect(screen.getByText(/需要核对四件套队伍条件/)).toBeInTheDocument()
+    expect(screen.getByText(/需要核对四件套队伍条件/)).toBeVisible()
+    expect(screen.queryByText(/查看来源/)).not.toBeInTheDocument()
     expect(screen.getAllByText('3 次')).toHaveLength(1)
     expect(screen.getByText('查看参考评分').closest('details')?.open).toBe(false)
   })
@@ -342,9 +343,10 @@ describe('absolute retention evidence', () => {
     expect(text).toContain('四件套条件')
     expect(text).toContain('冲击力')
     expect(text).toContain('异常掌控')
-    await userEvent.click(screen.getByText('查看来源与待确认条件'))
-    expect(screen.getByRole('link', { name: 'BWIKI 构筑资料' })).toBeVisible()
-    expect(text).toContain('原资料未标注游戏版本')
+    expect(screen.queryByText(/查看来源/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'BWIKI 构筑资料' })).not.toBeInTheDocument()
+    expect(text).not.toMatch(/原资料未标注游戏版本|旧攻略沿用|这份分析未附/)
+    expect(screen.getByRole('group', { name: '全部待确认事项' })).toBeVisible()
     expect(text).not.toMatch(/test-policy|synthetic-source|fnv1a|synthetic-investment/)
     const mainCopy = [...screen.getByRole('region', { name: '绝对品质与成长证据' }).children]
       .filter((element) => element.tagName !== 'DETAILS')

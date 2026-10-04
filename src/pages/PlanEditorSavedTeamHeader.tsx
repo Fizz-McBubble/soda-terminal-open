@@ -1,6 +1,6 @@
 import type { RefObject, ReactNode } from 'react'
 import type { NavigateFunction } from 'react-router-dom'
-import { TeamRatingLine } from './TeamRatingLine'
+import { TeamPlanHeaderIdentity } from './TeamPlanHeaderIdentity'
 
 export function PlanEditorSavedTeamHeader({
   backButton,
@@ -21,22 +21,17 @@ export function PlanEditorSavedTeamHeader({
 }) {
   return (
     <header className="optimizer-plan__team-heading">
-      <div>
-        <button
-          ref={backButton}
-          className="link-button optimizer-plan__back-link"
-          type="button"
-          onClick={() => navigate(back)}
-        >
-          ← 返回选择队伍
-        </button>
-        <h1 ref={heading} tabIndex={-1}>
-          {name}
-        </h1>
-        <p>已保存队伍方案 · 原成员、邦布与驱动盘</p>
-        <TeamRatingLine label={teamRatingLabel} />
+      <TeamPlanHeaderIdentity
+        title={name}
+        headingRef={heading}
+        backButtonRef={backButton}
+        teamRatingLabel={teamRatingLabel}
+        onBack={() => navigate(back)}
+      />
+      <div className="optimizer-plan__team-actions">
+        <span className="optimizer-plan__stale-state">已保存配装</span>
+        {deleteAction}
       </div>
-      <div className="optimizer-plan__team-actions">{deleteAction}</div>
     </header>
   )
 }

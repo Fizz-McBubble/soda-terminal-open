@@ -1,80 +1,123 @@
 .f5v-shell .help-privacy {
-  width: min(100%, 1080px);
+  width: min(100%, 1000px);
   box-sizing: border-box;
   margin: 0 auto;
-  padding: clamp(12px, 2vw, 28px);
+  padding: clamp(16px, 2vw, 28px);
   color: var(--f5-ink);
 }
-
 .f5v-shell .help-privacy__header {
-  margin-bottom: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 24px;
 }
-
 .f5v-shell .help-privacy h1 {
   margin: 0 0 8px;
   font-size: clamp(1.7rem, 2.4vw, 2.2rem);
   line-height: 1.2;
 }
-
 .f5v-shell .help-privacy__header p {
   margin: 0;
   color: var(--f5-muted);
 }
-
-.f5v-shell .help-privacy__header p + p {
-  margin-top: 6px;
-  font-size: 0.8rem;
-}
-
-.f5v-shell .help-privacy__sections {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px 28px;
-}
-
 .f5v-shell .help-privacy__sections section {
-  min-width: 0;
-  padding: 18px 0;
+  display: grid;
+  grid-template-columns: 160px minmax(0, 1fr);
+  gap: 24px;
+  padding: 20px 0;
   border-top: 1px solid rgba(103, 90, 144, 0.18);
 }
-
 .f5v-shell .help-privacy h2 {
-  margin: 0 0 10px;
+  margin: 0;
   font-size: 1rem;
-  line-height: 1.35;
+  line-height: 1.6;
 }
-
-.f5v-shell .help-privacy__sections p {
-  max-width: 65ch;
-  margin: 0 0 10px;
+.f5v-shell .help-privacy__content {
+  min-width: 0;
+}
+.f5v-shell .help-privacy__content p {
+  margin: 0 0 8px;
   color: var(--f5-muted);
   font-size: 0.875rem;
   line-height: 1.65;
   text-wrap: pretty;
 }
-
-.f5v-shell .help-privacy__sections p:last-child {
+.f5v-shell .help-privacy__content p:last-child {
   margin-bottom: 0;
 }
-
-.f5v-shell .help-privacy__sections a {
+.f5v-shell .help-privacy a:not(.button) {
   color: var(--f5-primary, #675a90);
-  text-underline-offset: 2px;
+  text-underline-offset: 3px;
 }
-
-.f5v-shell .help-privacy__back {
-  margin-top: 16px;
+.f5v-shell .help-privacy__content .help-privacy__feedback-note {
+  margin-top: 10px;
 }
-
-@media (min-width: 1200px) {
-  .f5v-shell .help-privacy__sections {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+.f5v-shell .help-privacy__diagnostic {
+  margin-top: 12px;
 }
-
+.f5v-shell .help-privacy__diagnostic summary {
+  width: fit-content;
+  cursor: pointer;
+  color: var(--f5-primary, #675a90);
+  font-size: 0.875rem;
+}
+.f5v-shell .help-privacy__diagnostic[open] summary {
+  margin-bottom: 10px;
+}
+.f5v-shell .help-privacy__diagnostic-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+  font-size: 0.875rem;
+}
+.f5v-shell .help-privacy__stage {
+  width: min(100%, 210px);
+  min-width: 0;
+}
+.f5v-shell .help-privacy__diagnostic pre {
+  box-sizing: border-box;
+  max-width: 100%;
+  margin: 8px 0 0;
+  padding: 12px;
+  border-radius: 8px;
+  background: rgba(103, 90, 144, 0.06);
+  color: var(--f5-muted);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+.f5v-shell .help-privacy__footer {
+  padding-top: 16px;
+  border-top: 1px solid rgba(103, 90, 144, 0.18);
+  color: var(--f5-muted);
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+.f5v-shell .help-privacy__footer p {
+  margin: 0 0 4px;
+}
 @media (max-width: 700px) {
-  .f5v-shell .help-privacy__sections {
-    grid-template-columns: 1fr;
-    gap: 0;
+  .f5v-shell .help-privacy__sections section {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+    padding: 16px 0;
+  }
+  .f5v-shell .help-privacy__header {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .f5v-shell .help-privacy__diagnostic-controls {
+    align-items: stretch;
+  }
+  .f5v-shell .help-privacy__diagnostic-controls label {
+    width: 100%;
+  }
+  .f5v-shell .help-privacy__stage {
+    flex: 1 1 180px;
+    width: auto;
   }
 }

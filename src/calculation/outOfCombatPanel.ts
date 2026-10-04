@@ -171,7 +171,15 @@ function add(
   trace.push({ key, source, operation, value })
 }
 
-export function projectOutOfCombatPanel(input: PanelInput): PanelResult {
+/** Menu consumers share the arithmetic while normalizing only source white bases. */
+export function projectOutOfCombatMenuPanel(input: PanelInput): PanelResult {
+  return projectOutOfCombatPanel(input, 'menu_white_base')
+}
+
+export function projectOutOfCombatPanel(
+  input: PanelInput,
+  basis: 'source_precision' | 'menu_white_base' = 'source_precision',
+): PanelResult {
   const agent = currentPanelData.agents[input.agentId]
   const engine = currentPanelData.wEngines[input.wEngine.id]
   if (!agent || !engine) return unsupported('未知 agentId 或 engineId。')
@@ -226,14 +234,16 @@ export function projectOutOfCombatPanel(input: PanelInput): PanelResult {
     ;(['hp', 'atk', 'def'] as const).forEach((key) => {
       const [base, growth] = agent.stats[key]
       const promotionValue = promotion[key]
+      const sourceBase = base + growth * (input.level - 1) + promotionValue
       add(
         values,
         trace,
         key,
-        publishedBase?.values[key] ?? base + growth * (input.level - 1) + promotionValue,
+        publishedBase?.values[key] ??
+          (basis === 'menu_white_base' ? Math.floor(sourceBase) : sourceBase),
         publishedBase
           ? `character:${input.agentId}:official-menu-base:${publishedBase.source.entryVersion}`
-          : `character:${input.agentId}:base+growth+promotion`,
+          : `character:${input.agentId}:base+growth+promotion${basis === 'menu_white_base' ? ':menu-white' : ''}`,
         'base',
       )
     })
@@ -379,10 +389,10 @@ export function projectOutOfCombatPanel(input: PanelInput): PanelResult {
     values,
     trace,
     baseKey,
-    baseValue,
+    basis === 'menu_white_base' ? Math.floor(baseValue) : baseValue,
     publishedEngineBase
       ? `wengine:${input.wEngine.id}:official-menu-base:${publishedEngineBase.source.entryVersion}`
-      : `wengine:${engine.evidence}:${engineEvidenceTag}_base`,
+      : `wengine:${engine.evidence}:${engineEvidenceTag}_base${basis === 'menu_white_base' ? ':menu-white' : ''}`,
     'base',
   )
   add(

@@ -26,10 +26,10 @@ describe('saved equipment growth in graduation panels', () => {
     const member = result.members.find((row) => row.agentId === ids[0])
     expect(member?.status).toBe('scored')
     if (member?.status !== 'scored') throw new Error('Missing saved panel')
-    // Menu white ATK823; Lv10/A0 engine50*(1+1.5682).
+    // Menu white ATK823; Lv10/A0 engine white128 (source128.41).
     // Slot4 ATK30% + engine ATK14.4%; slot2 flat316.
     expect(member.metrics.find((metric) => metric.key === 'atk')?.current).toBeCloseTo(
-      (823 + 50 * (1 + 1.5682)) * 1.444 + 316,
+      (823 + 128) * 1.444 + 316,
       8,
     )
     expect(member.progression.wEngineLevel).toBe(10)

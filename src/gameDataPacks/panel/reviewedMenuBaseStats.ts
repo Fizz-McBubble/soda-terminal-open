@@ -56,6 +56,25 @@ const flightOfFancy = {
 /** Exact adopted values and source revisions participate in saved-result invalidation. */
 export const reviewedMenuBaseStatsIdentity = { aria, flightOfFancy } as const
 
+/** Menu white integers precede core/equipment multipliers. Combat source precision is separate.
+ * Official Aria/Claret/Flight values and the transcribed Promeia loadout agree with this rule;
+ * it does not truncate secondary percentages, disc values, or observed menu anchors. */
+export const menuWhiteBaseProjectionIdentity = {
+  revision: 'menu-white-integers-before-core-and-equipment-r1',
+  agentStats: ['hp', 'atk', 'def'],
+  wEngineStats: ['atk', 'def'],
+  operation: 'floor_source_growth_white_base',
+  observedAnchors: 'preserve',
+  secondaryAndDiscPrecision: 'preserve',
+  combatSourcePrecision: 'preserve',
+  evidence: [
+    'official-aria-1793',
+    'official-claret-2145',
+    'official-flight-1277',
+    'promeia-menu-20261004',
+  ],
+} as const
+
 /** Published character base before core growth and equipment contributions. */
 export function getReviewedAgentMenuBaseStats(agentId: string, level: number, ascension: number) {
   return agentId === aria.agentId && level === aria.level && ascension === aria.ascension

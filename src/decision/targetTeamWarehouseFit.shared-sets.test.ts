@@ -1,11 +1,15 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { createEmptyRoster } from '../assault/catalog'
 import { sampleDiscs } from '../evaluation/fixtures'
 import type { DriveDisc } from '../domain/schemas'
 import { compileTeamBuildIntent } from './buildIntent'
 import { calculateTargetTeamWarehouseFit } from './targetTeamWarehouseFit'
-import { candidateTeamSetScore } from '../optimizer/candidateTeamSetScore'
-import type { AccountLoadout } from '../optimizer/optimizeAccountBuilds'
+import {
+  candidateTeamSetScore,
+  type CandidateTeamSetScoreLoadout,
+} from '../optimizer/candidateTeamSetScore'
+import * as discFormulaCatalog from '../gameDataPacks/currentDriveDiscFormulaCatalog'
+import { candidateNonStackingFourPieceIdentity } from '../optimizer/candidateNonStackingFourPiece'
 
 const memberIds = ['agent-nangong', 'agent-yuzuha', 'agent-promeia'] as const
 function discs(prefix: string, primary: string, secondary: string, level = 15): DriveDisc[] {
@@ -99,8 +103,11 @@ describe('team set alternatives and shared four-piece effects', () => {
   })
 
   it('counts shared 4pc fit once, leaves 2pc and wearer-specific sets intact, and allows better stats', () => {
-    const row = (setId: string, count: number, totalScore = 200) =>
-      ({ setCounts: { [setId]: count }, totalScore }) as AccountLoadout
+    const row = (setId: string, count: number, totalScore = 200): CandidateTeamSetScoreLoadout => ({
+      agentId: 'agent-astra',
+      setCounts: { [setId]: count },
+      totalScore,
+    })
     expect(candidateTeamSetScore([row('set-astral-voice', 4), row('set-astral-voice', 4)])).toBe(
       382,
     )
@@ -113,5 +120,70 @@ describe('team set alternatives and shared four-piece effects', () => {
     ).toBeGreaterThan(
       candidateTeamSetScore([row('set-astral-voice', 4), row('set-phaethons-melody', 4)]),
     )
+  })
+
+  it('counts one Moonlight premium for qualified supports while preserving every wearer stat score', () => {
+    const row = (agentId: string, count = 4, totalScore = 200): CandidateTeamSetScoreLoadout => ({
+      agentId,
+      setCounts: { 'set-moonlight-lullaby': count },
+      totalScore,
+    })
+    const supports = [row('agent-astra'), row('agent-yuzuha', 4, 230)]
+    expect(candidateTeamSetScore(supports)).toBe(412)
+    expect(candidateTeamSetScore([...supports].reverse())).toBe(412)
+    expect(candidateTeamSetScore([row('agent-astra'), row('agent-yuzuha', 2)])).toBe(400)
+    // A non-support or unknown identity cannot consume the real support's premium.
+    for (const agentId of ['agent-ellen', 'agent-unknown']) {
+      expect(candidateTeamSetScore([row(agentId), row('agent-astra')])).toBe(382)
+      expect(candidateTeamSetScore([row('agent-astra'), row(agentId)])).toBe(382)
+      expect(candidateTeamSetScore([row(agentId)])).toBe(182)
+    }
+  })
+
+  it('preserves different same-name effect groups when Astral and Moonlight coexist', () => {
+    const row = (agentId: string, setId: string): CandidateTeamSetScoreLoadout => ({
+      agentId,
+      setCounts: { [setId]: 4 },
+      totalScore: 200,
+    })
+    expect(
+      candidateTeamSetScore([
+        row('agent-astra', 'set-astral-voice'),
+        row('agent-yuzuha', 'set-moonlight-lullaby'),
+      ]),
+    ).toBe(400)
+    expect(
+      candidateTeamSetScore([
+        row('agent-astra', 'set-astral-voice'),
+        row('agent-nangong', 'set-astral-voice'),
+        row('agent-yuzuha', 'set-moonlight-lullaby'),
+      ]),
+    ).toBe(582)
+    expect(candidateNonStackingFourPieceIdentity.commit).toBe(
+      discFormulaCatalog.currentDriveDiscFormulaCatalog.generatedFrom.commit,
+    )
+  })
+
+  it('does not apply stale nonstacking or wearer-qualification rules after formula identity changes', () => {
+    const original = discFormulaCatalog.getCurrentDriveDiscFormulaData
+    const source = original('set-moonlight-lullaby')!
+    const spy = vi
+      .spyOn(discFormulaCatalog, 'getCurrentDriveDiscFormulaData')
+      .mockImplementation((setId) =>
+        setId === 'set-moonlight-lullaby'
+          ? { ...source, fourPieceFormula: { ...source.fourPieceFormula, sha256: '0'.repeat(64) } }
+          : original(setId),
+      )
+    try {
+      const row = (agentId: string): CandidateTeamSetScoreLoadout => ({
+        agentId,
+        setCounts: { 'set-moonlight-lullaby': 4 },
+        totalScore: 200,
+      })
+      expect(candidateTeamSetScore([row('agent-astra'), row('agent-yuzuha')])).toBe(400)
+      expect(candidateTeamSetScore([row('agent-ellen'), row('agent-astra')])).toBe(400)
+    } finally {
+      spy.mockRestore()
+    }
   })
 })

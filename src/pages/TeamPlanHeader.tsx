@@ -1,8 +1,7 @@
 import type { RefObject } from 'react'
-import { ArrowLeft } from 'lucide-react'
 import type { TeamExecutionPresentation } from './teamExecutionPresentation'
 import type { DecisionTeamViewModel } from './teamLoadoutDecisionViewModel'
-import { TeamRatingLine } from './TeamRatingLine'
+import { TeamPlanHeaderIdentity } from './TeamPlanHeaderIdentity'
 
 type TeamPlanHeaderProps = {
   deleteAction?: import('react').ReactNode
@@ -39,20 +38,13 @@ export function TeamPlanHeader({
 }: TeamPlanHeaderProps) {
   return (
     <header className="optimizer-plan__team-heading">
-      <div className="optimizer-plan__team-identity">
-        <button
-          ref={backButtonRef}
-          className="button button--secondary optimizer-plan__back-link"
-          type="button"
-          onClick={onBack}
-        >
-          <ArrowLeft size={16} aria-hidden="true" /> 返回选择队伍
-        </button>
-        <h1 ref={headingRef} tabIndex={-1}>
-          {team.title}
-        </h1>
-        <TeamRatingLine label={teamRatingLabel} />
-      </div>
+      <TeamPlanHeaderIdentity
+        title={team.title}
+        headingRef={headingRef}
+        backButtonRef={backButtonRef}
+        teamRatingLabel={teamRatingLabel}
+        onBack={onBack}
+      />
       <div className="optimizer-plan__team-actions">
         {usingRemainingBox ? <span className="f5v-remaining-box-badge">另一支队伍</span> : null}
         {savedPlanState && savedPlanState !== 'stale' ? (

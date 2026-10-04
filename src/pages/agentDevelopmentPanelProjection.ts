@@ -1,7 +1,7 @@
 import type { RosterAgent } from '../assault/types'
 import type { DriveDisc } from '../domain/schemas'
 import { defaultAscensionForLevel } from '../gameDataPacks/panel/wEngineGrowth'
-import { projectOutOfCombatPanel, type PanelResult } from '../calculation/outOfCombatPanel'
+import { projectOutOfCombatMenuPanel, type PanelResult } from '../calculation/outOfCombatPanel'
 import {
   getGraduationCandidateProfile,
   type GraduationCandidateProfile,
@@ -128,7 +128,7 @@ export function createAgentDevelopmentPanelProjection(input: {
     )
   return {
     source,
-    result: projectOutOfCombatPanel({
+    result: projectOutOfCombatMenuPanel({
       agentId: input.agent.agentId,
       level: input.agent.level,
       ascension: input.agent.ascension ?? defaultAscensionForLevel(input.agent.level),

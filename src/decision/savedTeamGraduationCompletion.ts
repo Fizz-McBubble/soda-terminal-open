@@ -1,6 +1,6 @@
 import type { AccountRoster, RosterAgent } from '../assault/types'
 import {
-  projectOutOfCombatPanel,
+  projectOutOfCombatMenuPanel,
   type OutOfCombatKey,
   type PanelResult,
 } from '../calculation/outOfCombatPanel'
@@ -272,7 +272,7 @@ function currentProjection(
   if (agentAnchor.kind === 'menu_observed' && agent.mindscape !== agentAnchor.mindscape) return null
   const core = agent.skillLevels.core
   if (core === null || core < 2 || core > 7) return null
-  return projectOutOfCombatPanel({
+  return projectOutOfCombatMenuPanel({
     agentId: agent.agentId,
     level: agent.level,
     ascension: agent.ascension ?? defaultAscensionForLevel(agent.level),

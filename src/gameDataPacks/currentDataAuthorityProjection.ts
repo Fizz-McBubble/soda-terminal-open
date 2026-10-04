@@ -35,7 +35,11 @@ import {
 import { planningSheerManatoSupportAdoption } from '../calculation/planningSheerSupportAdoption'
 import { planningAnomalyPiperSupportAdoption } from '../calculation/planningAnomalySupportAdoption'
 import { stableContentHash } from './types'
-import { reviewedMenuBaseStatsIdentity } from './panel/reviewedMenuBaseStats'
+import { candidateNonStackingFourPieceIdentity } from '../optimizer/candidateNonStackingFourPiece'
+import {
+  menuWhiteBaseProjectionIdentity,
+  reviewedMenuBaseStatsIdentity,
+} from './panel/reviewedMenuBaseStats'
 import { incremental32RecoveryPolicy } from './incremental32RecoveryPolicy'
 import {
   sourceBoundSheerForceHash32,
@@ -130,6 +134,7 @@ export const currentDataAuthorityProjection = {
         },
         coreGrowth: { identity: currentCoreGrowthIdentity32, contentHash: currentCoreGrowthHash32 },
         publishedMenuBases: reviewedMenuBaseStatsIdentity,
+        menuWhiteBaseProjection: menuWhiteBaseProjectionIdentity,
       },
       reviewedIncrementalEvents: {
         gameVersion: '3.2',
@@ -139,6 +144,7 @@ export const currentDataAuthorityProjection = {
         }),
       },
       reviewedEquipmentReceiverSemantics32: reviewedWEngineReceiverSemantics32Identity,
+      candidateNonStackingFourPiece: candidateNonStackingFourPieceIdentity,
       eventEffectResolution32: planningEffectResolutionIdentity32,
       // Hash adopted values as well as declared source identities: a changed projection must
       // invalidate results even if an upstream manifest's identity has not been refreshed.

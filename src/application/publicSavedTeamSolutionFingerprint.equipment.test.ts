@@ -21,28 +21,29 @@ describe('stored plan equipment identity', () => {
     )
   })
 
-  it.each(['explicit-branch-priority-r1', 'explicit-branch-priority-shared-four-piece-once-r2'])(
-    'preserves exact %s snapshots without treating them as a current solve',
-    (branchPolicy) => {
-      const intent = compileAgentBuildIntent({ agentId: 'agent-remielle' })
-      const { fingerprint, ...facts } = intent
-      const old = {
+  it.each([
+    'explicit-branch-priority-r1',
+    'explicit-branch-priority-shared-four-piece-once-r2',
+    'legal-slot-fixed-branch-priority-shared-four-piece-once-r3',
+  ])('preserves exact %s snapshots without treating them as a current solve', (branchPolicy) => {
+    const intent = compileAgentBuildIntent({ agentId: 'agent-remielle' })
+    const { fingerprint, ...facts } = intent
+    const old = {
+      ...facts,
+      fingerprint: contentHash({
         ...facts,
-        fingerprint: contentHash({
-          ...facts,
-          discScoring: 'actual-disc-values-s-standard-r1',
-          branchPolicy,
-        }),
-      }
-      expect(buildIntentFingerprintMatches(old)).toBe(false)
-      expect(old.fingerprint).not.toBe(fingerprint)
-      expect(buildIntentFingerprintMatches(old, true)).toBe(true)
-      expect(
-        buildIntentFingerprintMatches(
-          { ...old, constraints: { ...old.constraints, excludedDiscIds: ['tampered-disc'] } },
-          true,
-        ),
-      ).toBe(false)
-    },
-  )
+        discScoring: 'actual-disc-values-s-standard-r1',
+        branchPolicy,
+      }),
+    }
+    expect(buildIntentFingerprintMatches(old)).toBe(false)
+    expect(old.fingerprint).not.toBe(fingerprint)
+    expect(buildIntentFingerprintMatches(old, true)).toBe(true)
+    expect(
+      buildIntentFingerprintMatches(
+        { ...old, constraints: { ...old.constraints, excludedDiscIds: ['tampered-disc'] } },
+        true,
+      ),
+    ).toBe(false)
+  })
 })

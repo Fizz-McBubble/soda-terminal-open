@@ -46,8 +46,8 @@ describe('equipment growth in the player panel', () => {
   })
 
   it.each([
-    [30, 2, '1831'],
-    [10, 0, '1446'],
+    [30, 2, '1830'],
+    [10, 0, '1445'],
   ])(
     'preserves explicit suggested level %s / ascension %s in its final panel',
     (level, ascension, expectedAttack) => {
@@ -88,8 +88,8 @@ describe('equipment growth in the player panel', () => {
       executionMember.current.discIds = discs.map((disc) => disc.id)
       const view = createTeamExecutionAttributePanel({ agent, member: executionMember, discs })
 
-      // At30/A2: (823 + 50*(1+4.7045+.8922*2))*(1+.144*1.6)+358.
-      // At10/A0: (823 + 50*(1+1.5682))*(1+.144)+358.
+      // At30/A2: (823 + menu white374)*(1+.144*1.6)+358 =1830.2928.
+      // At10/A0: (823 + menu white128)*(1+.144)+358 =1445.944.
       expect(view.rows.find((row) => row.label === '攻击力')).toMatchObject({
         outOfCombat: '2487',
         current: expectedAttack,

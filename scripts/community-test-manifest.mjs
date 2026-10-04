@@ -18,7 +18,9 @@ export const incremental32CommunityTests = Object.freeze([
 
 export const communityTests = Object.freeze([
   'src/calculation/outOfCombatPanel.catalog-edges.test.ts',
+  'src/calculation/outOfCombatPanel.menu-bases.test.ts',
   'src/pages/teamExecutionAttributePanel.growth.test.ts',
+  'src/pages/TeamPlanHeaderIdentity.test.tsx',
   'src/optimizer/candidateWarehouseSolver.fixed-alternatives.test.ts',
   'src/optimizer/candidateWarehouseSolver.catalog-coverage.test.ts',
   'src/decision/teamExecutionProjection.growth-facts.test.ts',

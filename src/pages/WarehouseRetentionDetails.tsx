@@ -45,49 +45,19 @@ export function RetentionScoreDetails({
 export function RetentionSourceDetails({
   evidence,
   blockers,
-  use,
 }: {
   evidence: WarehouseAbsoluteRetentionEvidence
   blockers: RetentionBlocker[]
   use?: Use
 }) {
-  if (evidence.reasonKind === 'approved_rarity_cleanup') return null
+  if (evidence.reasonKind === 'approved_rarity_cleanup' || !blockers.length) return null
   return (
-    <details className="warehouse-retention__details warehouse-retention__sources">
-      <summary>查看来源{blockers.length ? '与待确认条件' : ''}</summary>
-      {blockers.length ? (
-        <div role="group" aria-label="全部待确认事项">
-          <ul>
-            {blockers.map((blocker, index) => (
-              <li key={`${blocker.predicateId}-${index}`}>{blockerText(blocker)}</li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
-      {evidence.sourceCoverage !== 'complete' && !blockers.length ? (
-        <p>相关角色或套装用途尚未确认；先保留现状。</p>
-      ) : null}
-      {evidence.policyCalibration !== 'approved' ? (
-        <p>该稀有度的清理标准尚未校准，目前不会建议清理。</p>
-      ) : null}
-      {use?.guidance?.sources.length ? (
-        <ul>
-          {use.guidance.sources.map((source) => (
-            <li key={source.url}>
-              <a href={source.url} target="_blank" rel="noreferrer">
-                {source.label}
-              </a>
-              {' · '}
-              {source.sourceVersion ? `原资料 ${source.sourceVersion}` : '原资料未标注游戏版本'}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>这份分析未附可核对的来源链接。</p>
-      )}
-      <p>
-        构筑建议用于判断词条方向；实际提升取决于整套配装。旧攻略沿用已核对的部分，不表示作者已更新到当前版本。
-      </p>
-    </details>
+    <div role="group" aria-label="全部待确认事项">
+      <ul>
+        {blockers.map((blocker, index) => (
+          <li key={`${blocker.predicateId}-${index}`}>{blockerText(blocker)}</li>
+        ))}
+      </ul>
+    </div>
   )
 }

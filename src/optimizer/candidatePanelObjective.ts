@@ -1,5 +1,5 @@
 import type { DriveDisc } from '../domain/schemas'
-import { projectOutOfCombatPanel, type PanelInput } from '../calculation/outOfCombatPanel'
+import { projectOutOfCombatMenuPanel, type PanelInput } from '../calculation/outOfCombatPanel'
 import {
   candidatePanelPolicyPrerequisites,
   getCandidatePanelPolicy,
@@ -8,7 +8,8 @@ import {
 } from '../gameDataPacks/candidatePanelPolicy'
 
 export type CandidatePanelInput = Omit<PanelInput, 'discs'>
-export const candidatePanelObjectiveVersion = 'reviewed-attack-threshold-priority-r2' as const
+export const candidatePanelObjectiveVersion =
+  'reviewed-attack-threshold-menu-white-priority-r3' as const
 export type CandidatePanelObjective = {
   attackDeficit: number
   anomalyProficiency: number
@@ -115,7 +116,7 @@ export function projectCandidatePanelObjective(
   panelInput: CandidatePanelInput,
   discs: DriveDisc[],
 ): CandidatePanelObjective | undefined {
-  const panel = projectOutOfCombatPanel({ ...panelInput, discs })
+  const panel = projectOutOfCombatMenuPanel({ ...panelInput, discs })
   if (panel.status !== 'ok') return undefined
   return {
     attackDeficit: Math.max(0, target.minimumAttack - panel.values.atk),
@@ -143,7 +144,7 @@ export function prepareCandidatePanelObjective(
   )
   const anchor =
     objectiveTarget && panelInput
-      ? projectOutOfCombatPanel({ ...panelInput, discs: anchorDiscs })
+      ? projectOutOfCombatMenuPanel({ ...panelInput, discs: anchorDiscs })
       : null
   const objectiveEnabled = anchor?.status === 'ok'
   const baseAttack =
@@ -157,7 +158,7 @@ export function prepareCandidatePanelObjective(
   const contributions = new Map<string, { attack: number; priority: number }>()
   if (objectiveEnabled && panelInput) {
     for (const disc of eligible) {
-      const panel = projectOutOfCombatPanel({
+      const panel = projectOutOfCombatMenuPanel({
         ...panelInput,
         discs: anchorDiscs.map((item) => (item.slot === disc.slot ? disc : item)),
       })
