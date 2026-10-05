@@ -107,3 +107,12 @@ export function candidateSubStatWeights(
     keys.map((key, index) => [key, strictOrder ? Math.max(0.35, 1 - index * 0.12) : 1]),
   )
 }
+
+/** Exact tokens for ordinal guidance, without changing existing useful-stat weights. */
+export function candidatePriorityToken(text: string): StatKey[] {
+  const token = text.trim()
+  if (token === '双暴') return ['crit_rate', 'crit_dmg']
+  const canonical = statKeySchema.safeParse(token)
+  if (canonical.success) return [canonical.data]
+  return statAliases.filter(([, aliases]) => aliases.includes(token)).map(([key]) => key)
+}

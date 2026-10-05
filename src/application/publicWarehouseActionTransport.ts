@@ -24,9 +24,6 @@ export function packPublicWarehouseActions(
   projection: WarehouseActionProjection,
 ): PackedProjection | WarehouseActionProjection {
   if (!Array.isArray(projection.actions)) return projection
-  const textCodec = warehouseEvidenceTextCodec(
-    projection.actions.map((item) => item.absoluteRetention),
-  )
   const agentLists: string[][] = []
   const listIndexes = new Map<string, number>()
   const intern = (list: string[]) => {
@@ -38,21 +35,29 @@ export function packPublicWarehouseActions(
     listIndexes.set(key, index)
     return index
   }
-  const actions = projection.actions.map((item) => {
+  const interned = projection.actions.map((item) => {
     const packed: PackedAction = { ...item }
     for (const field of agentFields) {
       const value = item[field]
       if (value) packed[field] = intern(value)
     }
     if (item.absoluteRetention) {
-      packed.absoluteRetention = textCodec.encode({
+      packed.absoluteRetention = {
         ...item.absoluteRetention,
         ownedUseAgentIds: intern(item.absoluteRetention.ownedUseAgentIds),
         unownedUseAgentIds: intern(item.absoluteRetention.unownedUseAgentIds),
-      })
+      }
     }
     return packed
   })
+  // Agent lists have already become numeric references. Count only strings
+  // which the evidence encoder will actually see on the wire.
+  const textCodec = warehouseEvidenceTextCodec(interned.map((item) => item.absoluteRetention))
+  const actions = interned.map((item) =>
+    item.absoluteRetention
+      ? { ...item, absoluteRetention: textCodec.encode(item.absoluteRetention) }
+      : item,
+  )
   return {
     ...projection,
     agentListsVersion: 2,

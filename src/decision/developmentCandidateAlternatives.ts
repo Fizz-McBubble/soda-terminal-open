@@ -1,3 +1,4 @@
+import { refineDevelopmentCandidates } from './developmentCandidateRefinement'
 import type { CoreWarehouse } from '../accounts/coreFlow'
 import type { DriveDisc } from '../domain/schemas'
 import { candidatePanelInputForAgent } from '../optimizer/optimizeAccountBuilds'
@@ -33,10 +34,7 @@ type DevelopmentCandidateAlternativesInput = {
   developmentPriorityAgentIds: string[]
 }
 
-/**
- * Produces the single-agent candidate comparison from an already captured Account Decision
- * input. The result is read-only: candidate discs are not reserved until a player saves a plan.
- */
+/** Read-only candidate comparison; candidate discs are not reserved before saving. */
 export function projectDevelopmentCandidateAlternatives(
   input: DevelopmentCandidateAlternativesInput,
   agentId: string,
@@ -61,7 +59,7 @@ export function projectDevelopmentCandidateAlternatives(
   const baseline = input.warehouse.discs
     .filter((disc) => baselineIds.includes(disc.id))
     .toSorted((left, right) => left.slot - right.slot)
-  const candidates = solveCandidateAgentAlternatives(
+  let candidates = solveCandidateAgentAlternatives(
     input.warehouse.discs,
     agentId,
     10,
@@ -84,6 +82,12 @@ export function projectDevelopmentCandidateAlternatives(
       gaps: diagnostic.gaps.length ? diagnostic.gaps : ['仓库中暂未找到符合建议的完整六盘配装。'],
     }
   }
+  candidates = refineDevelopmentCandidates({
+    warehouse: input.warehouse,
+    agentId,
+    candidates,
+    buildIntent,
+  })
   return {
     status: 'ready',
     baseline,

@@ -22,6 +22,8 @@ describe('stored plan equipment identity', () => {
   })
 
   it.each([
+    'source-priority-compatible-objective-incumbent-exchange-r5',
+    'legal-slot-menu-white-qualified-nonstacking-four-piece-r4',
     'explicit-branch-priority-r1',
     'explicit-branch-priority-shared-four-piece-once-r2',
     'legal-slot-fixed-branch-priority-shared-four-piece-once-r3',

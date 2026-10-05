@@ -2,6 +2,7 @@ import { z } from 'zod'
 import dataset from '../gameDataPacks/data/reviewed-team-preferences.v1.json'
 import { currentScopeManifest } from '../gameDataPacks/currentScopeManifest'
 import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
+import { currentVersionAdoption32 } from '../gameDataPacks/currentVersionAdoption32'
 import { createTeamPreferenceIndex } from './teamPreferenceEvidence'
 
 const members = z.tuple([z.string().min(1), z.string().min(1), z.string().min(1)])
@@ -47,7 +48,15 @@ export function createReviewedTeamPreferenceCatalog(input: unknown, currentVersi
   return createTeamPreferenceIndex(parsed.records, currentVersion)
 }
 
+/** The adopted 3.2 read view preserves its explicitly pinned 3.1 review basis.
+ * An unknown/future read view cannot borrow that authority. */
+export function reviewedTeamPreferenceVersion(currentVersion: string) {
+  return currentVersion === currentVersionAdoption32.gameVersion
+    ? currentVersionAdoption32.legacyFieldAuthority.gameVersion
+    : currentVersion
+}
+
 export const reviewedTeamPreferences = createReviewedTeamPreferenceCatalog(
   dataset,
-  currentVersionProjection.gameVersion,
+  reviewedTeamPreferenceVersion(currentVersionProjection.gameVersion),
 )

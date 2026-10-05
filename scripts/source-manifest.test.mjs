@@ -110,6 +110,9 @@ test('new public pins cannot escape root or include private/output paths', async
       'src\\private.json',
       '.env',
       'outputs/account.json',
+      'tests/private/account.test.mjs',
+      'tests/algorithm-quality/private/account.test.mjs',
+      'tests/algorithm-quality/account.json',
       'public/sponsor/private.png',
     ])
       await assert.rejects(
@@ -117,6 +120,23 @@ test('new public pins cannot escape root or include private/output paths', async
         /source_manifest_unsafe_path/,
       )
     assert.deepEqual(await readFile(join(root, 'SOURCE-MANIFEST.json')), before)
+  })
+})
+
+test('algorithm regression pins are editable public source and invalidate stale identity', async () => {
+  await fixture(async (root) => {
+    const path = 'tests/algorithm-quality/core.test.mjs'
+    await mkdir(join(root, 'tests/algorithm-quality'), { recursive: true })
+    await writeFile(join(root, path), 'export const checked = true\n')
+    const refreshed = await refreshSourceManifest({ root, add: [path] })
+    assert.ok(refreshed.changed.includes(path))
+    assert.equal((await verifySourceManifest(root)).releaseId, refreshed.releaseId)
+    const newPath = 'tests/algorithm-quality/new.test.mjs'
+    await writeFile(join(root, newPath), 'export const additional = true\n')
+    await assert.rejects(verifySourceManifest(root), /source_manifest_unpinned/)
+    await refreshSourceManifest({ root, add: [newPath] })
+    await writeFile(join(root, path), 'export const checked = false\n')
+    await assert.rejects(verifySourceManifest(root), /source_manifest_drift/)
   })
 })
 

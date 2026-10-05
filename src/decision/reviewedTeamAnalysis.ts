@@ -2,6 +2,7 @@ import { z } from 'zod'
 import dataset from '../gameDataPacks/data/reviewed-team-analysis.3.1.json'
 import { resolveCurrentReleasedIdentity } from '../gameDataPacks/currentReleasedIdentityMap'
 import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
+import { currentVersionAdoption32 } from '../gameDataPacks/currentVersionAdoption32'
 import { stableContentHash } from '../gameDataPacks/types'
 
 const evidenceSchema = z
@@ -78,7 +79,17 @@ export function createReviewedTeamAnalysisCatalog(input: unknown, currentVersion
   }
 }
 
-const catalog = createReviewedTeamAnalysisCatalog(dataset, currentVersionProjection.gameVersion)
+/** Only the adopted read view carries the explicitly retained legacy review basis. */
+export function reviewedTeamAnalysisVersion(currentVersion: string) {
+  return currentVersion === currentVersionAdoption32.gameVersion
+    ? currentVersionAdoption32.legacyFieldAuthority.gameVersion
+    : currentVersion
+}
+
+const catalog = createReviewedTeamAnalysisCatalog(
+  dataset,
+  reviewedTeamAnalysisVersion(currentVersionProjection.gameVersion),
+)
 export const reviewedTeamAnalysis = Object.freeze({
   ...catalog.dataset,
   contentHash: stableContentHash(dataset),
@@ -86,7 +97,7 @@ export const reviewedTeamAnalysis = Object.freeze({
 const sourceVersionCatalog = createReviewedTeamAnalysisCatalog(dataset, dataset.gameVersion)
 export function resolveReviewedTeamAnalysis(
   memberIds: readonly string[],
-  reviewVersion: string = currentVersionProjection.gameVersion,
+  reviewVersion: string = reviewedTeamAnalysisVersion(currentVersionProjection.gameVersion),
 ) {
   // The imported package keeps its own review version even when the available
   // agent directory grows. Another requested version cannot reuse this review.

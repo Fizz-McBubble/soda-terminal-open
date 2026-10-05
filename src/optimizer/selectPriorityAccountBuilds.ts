@@ -1,5 +1,5 @@
 import type { CandidateBuild } from './accountBuildCandidates'
-import { compareCandidatePanelObjective } from './optimizeBuild'
+import { compareCandidatePanelPriority as compareCandidatePanelObjective } from './candidateSearchFacts'
 import {
   selectTeamObjectiveAssignment,
   type TeamAssignmentObjective,
@@ -66,9 +66,14 @@ export function selectPriorityBuilds(
         (left, right) =>
           right.selected.length - left.selected.length ||
           comparePriorityCoverage(left, right) ||
-          compareCandidatePanelObjective(
-            left.selected.find((item) => item.panelObjective)?.panelObjective,
-            right.selected.find((item) => item.panelObjective)?.panelObjective,
+          priorityIds.reduce(
+            (difference, id) =>
+              difference ||
+              compareCandidatePanelObjective(
+                left.selected.find((item) => item.agentId === id)?.panelObjective,
+                right.selected.find((item) => item.agentId === id)?.panelObjective,
+              ),
+            0,
           ) ||
           right.score - left.score ||
           left.key.localeCompare(right.key),

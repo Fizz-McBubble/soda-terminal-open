@@ -42,7 +42,9 @@ function safePath(path) {
       path,
     ) ||
     /\.(?:pem|key|log)$/iu.test(path) ||
-    (!rootFiles.has(path) && !sourceDirectories.has(path.split('/')[0]))
+    (!rootFiles.has(path) &&
+      !sourceDirectories.has(path.split('/')[0]) &&
+      !/^tests\/algorithm-quality\/[^/]+\.mjs$/u.test(path))
   )
     throw new Error('source_manifest_unsafe_path')
   if (
@@ -100,7 +102,7 @@ async function assertNoUnpinnedSource(root, pinned) {
       else if (!pinned.has(path)) unpinned.push(path)
     }
   }
-  for (const directory of sourceDirectories) {
+  for (const directory of [...sourceDirectories, 'tests/algorithm-quality']) {
     try {
       const stat = await lstat(join(root, directory))
       if (!stat.isDirectory() || stat.isSymbolicLink())

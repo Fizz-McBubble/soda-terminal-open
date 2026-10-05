@@ -2,6 +2,7 @@ import { currentScopeManifest } from './currentScopeManifest'
 import type { AgentProfileField } from './agentProfile'
 import { currentTeamArchetypeProjection } from './currentTeamArchetypeProjection'
 import { currentVersionProjection } from './currentVersionProjection'
+import { currentVersionAdoption32 } from './currentVersionAdoption32'
 import { stableContentHash } from './types'
 import { currentReviewedTeamSourceDirections } from './reviewedTeamSourceDirections'
 
@@ -25,7 +26,9 @@ export function currentTeamGuidanceField(agentId: string): AgentProfileField | u
   )
   const teams = currentTeamArchetypeProjection.archetypes.filter(
     (team) =>
-      team.gameVersion === currentVersionProjection.gameVersion &&
+      (team.gameVersion === currentVersionProjection.gameVersion ||
+        (currentVersionProjection.gameVersion === currentVersionAdoption32.gameVersion &&
+          team.gameVersion === currentVersionAdoption32.legacyFieldAuthority.gameVersion)) &&
       team.releaseState === 'released' &&
       team.members.some((member) => member.agentId === agentId) &&
       team.members.every((member) => releasedAgents.has(member.agentId)) &&
@@ -51,6 +54,9 @@ export function currentTeamGuidanceField(agentId: string): AgentProfileField | u
       (ref) => ref.verificationStatus === 'historical_membership_reference',
     )
   const currentDirections = allDirections.filter((direction) => !isHistoricalReference(direction))
+  const hasRetainedTeams = teams.some(
+    (team) => team.gameVersion !== currentVersionProjection.gameVersion,
+  )
   // Preserve current profile guidance. Historical fallback is used only when
   // current guidance is absent; BOX retains the complete source catalogue.
   const directions = teams.length || currentDirections.length ? currentDirections : allDirections
@@ -77,7 +83,9 @@ export function currentTeamGuidanceField(agentId: string): AgentProfileField | u
       ...teams.map((team) => {
         const members = team.members.map((member) => agentNames.get(member.agentId)).join('、')
         const bangboo = bangboos.get(team.bangbooId)!
-        return `${members}；邦布：${bangboo}。${team.prerequisites.join('；')}。适用：${team.scenarios.join('、')}。`
+        const prefix =
+          team.gameVersion !== currentVersionProjection.gameVersion ? '历史攻略参考：' : ''
+        return `${prefix}${members}；邦布：${bangboo}。${team.prerequisites.join('；')}。适用：${team.scenarios.join('、')}。`
       }),
       ...directions.map((direction) => {
         const prefix = isHistoricalReference(direction) ? '历史攻略参考：' : ''
@@ -91,12 +99,15 @@ export function currentTeamGuidanceField(agentId: string): AgentProfileField | u
       }),
     ],
     status: 'candidate',
-    gameVersion: currentVersionProjection.gameVersion,
+    gameVersion: hasRetainedTeams
+      ? currentVersionAdoption32.legacyFieldAuthority.gameVersion
+      : currentVersionProjection.gameVersion,
     originalSourceVersion: sourceVersions.size === 1 ? [...sourceVersions][0]! : null,
     lastChangeVersion: teams.length
       ? currentTeamArchetypeProjection.gameVersion
       : currentVersionProjection.gameVersion,
-    currentApplicability: directions.some(isHistoricalReference) ? 'unknown' : 'continuous',
+    currentApplicability:
+      hasRetainedTeams || directions.some(isHistoricalReference) ? 'unknown' : 'continuous',
     sourceRefs: [
       ...[...sources.values()].map((source) => ({
         id: source.id,

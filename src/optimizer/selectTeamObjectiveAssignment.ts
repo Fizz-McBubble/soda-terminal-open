@@ -1,5 +1,5 @@
 import type { AccountLoadout } from './optimizeAccountBuilds'
-import { compareCandidatePanelObjective } from './optimizeBuild'
+import { compareCandidatePanelPriority, type SearchPanelObjective } from './candidateSearchFacts'
 
 export type TeamAssignmentObjective = {
   fingerprint: string
@@ -7,7 +7,32 @@ export type TeamAssignmentObjective = {
 }
 
 export const teamAssignmentObjectivePolicy =
-  'target-team-raw-domain-search-r6-proven-inventory-shortages'
+  'target-team-raw-domain-search-r8-functional-members-atomic-exchanges'
+
+/** Missing or differently configured functional goals are not equality. */
+export function preservesTeamPanelObjectives(
+  assignment: readonly { agentId: string; panelObjective?: SearchPanelObjective }[],
+  baseline: readonly { agentId: string; panelObjective?: SearchPanelObjective }[],
+) {
+  if (
+    assignment.length !== baseline.length ||
+    new Set(assignment.map((row) => row.agentId)).size !== assignment.length
+  )
+    return false
+  return baseline.every((base) => {
+    const row = assignment.find((item) => item.agentId === base.agentId)
+    if (!row) return false
+    const left = row.panelObjective,
+      right = base.panelObjective
+    if (!left || !right) return left === right
+    const stat = right.priorityStat ?? 'anomalyProficiency'
+    return (
+      stat === (left.priorityStat ?? 'anomalyProficiency') &&
+      [left.attackDeficit, right.attackDeficit, left[stat], right[stat]].every(Number.isFinite) &&
+      compareCandidatePanelPriority(left, right) === 0
+    )
+  })
+}
 
 /** Rerank a bounded, already feasible domain; never manufacture missing damage. */
 export function selectTeamObjectiveAssignment<T extends AccountLoadout>(
@@ -20,17 +45,9 @@ export function selectTeamObjectiveAssignment<T extends AccountLoadout>(
   let best = baseline
   let bestValue = objective.evaluate(baseline)
   if (bestValue === null || !Number.isFinite(bestValue)) return baseline
-  const baselinePanel = baseline.find((item) => item.panelObjective)?.panelObjective
   for (const assignment of assignments.slice(1, 64)) {
     if (assignment.length !== memberCount) continue
-    // Preserve the accepted cultivation target before comparing combat output.
-    if (
-      compareCandidatePanelObjective(
-        assignment.find((item) => item.panelObjective)?.panelObjective,
-        baselinePanel,
-      ) !== 0
-    )
-      continue
+    if (!preservesTeamPanelObjectives(assignment, baseline)) continue
     const value = objective.evaluate(assignment)
     if (value === null || !Number.isFinite(value) || value <= bestValue) continue
     best = assignment

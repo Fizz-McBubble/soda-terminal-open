@@ -1,7 +1,12 @@
 import type { DriveDisc } from '../domain/schemas'
 import type { AccountLoadout } from './optimizeAccountBuilds'
-import { canStillCompleteSetPattern, compareCandidatePanelObjective } from './optimizeBuild'
-import type { TeamAssignmentObjective } from './selectTeamObjectiveAssignment'
+import { canStillCompleteSetPattern } from './optimizerSetPatterns'
+import { candidateDiscFactKey, compareCandidateDiscFacts } from './candidateSearchFacts'
+import { teamSearchNeighborhood } from './teamSearchNeighborhood'
+import {
+  preservesTeamPanelObjectives,
+  type TeamAssignmentObjective,
+} from './selectTeamObjectiveAssignment'
 
 export type TeamSearchDomain<T extends AccountLoadout> = {
   agentId: string
@@ -73,9 +78,8 @@ function provenInventoryShortages<T extends AccountLoadout>(domains: TeamSearchD
   return ['set', 'slot'].flatMap((kind) => shortages.find((item) => item.kind === kind) ?? [])
 }
 
-/** Enumerate the raw legal domain. Only identity and set feasibility prune it.
- * The opaque objective has no proven upper bound: a budget stop is not pruning.
- */
+/** Improve the incumbent with bounded legal exchanges, then visit the raw
+ * domain. The objective alone accepts moves. No heuristic is used for pruning. */
 export function searchTeamAssignments<T extends AccountLoadout>(
   baseline: T[],
   domains: TeamSearchDomain<T>[],
@@ -89,45 +93,157 @@ export function searchTeamAssignments<T extends AccountLoadout>(
     domain: 'profile_legal_discs',
   }
   let selected = baseline
-  if (domains.length !== 3) return { selected, evidence }
-  const needsCompleteAssignment = baseline.length !== 3
-  let panelBaseline = baseline
-  let best = baseline.length === 3 ? objective?.evaluate(baseline) : null
-  if (baseline.length === 3 && objective) evidence.evaluatedAssignments++
-  // An unavailable combat objective preserves an already complete assignment.
-  // It must not prevent an incomplete team from finding eighteen legal discs.
-  if (!needsCompleteAssignment && (best == null || !Number.isFinite(best)))
+  if (domains.length !== 3 || new Set(domains.map((row) => row.agentId)).size !== 3)
     return { selected, evidence }
+  if (
+    !Number.isSafeInteger(budget.evaluations) ||
+    budget.evaluations < 1 ||
+    !Number.isSafeInteger(budget.nodes) ||
+    budget.nodes < 1
+  ) {
+    evidence.status = 'budget_exhausted'
+    return { selected, evidence }
+  }
+  const facts = new Map<string, string>()
+  for (const domain of domains) {
+    if (domain.slots.length !== 6) return { selected, evidence }
+    for (let slot = 0; slot < 6; slot++) {
+      for (const disc of domain.slots[slot]!) {
+        if (disc.slot !== slot + 1) return { selected, evidence }
+        const fact = candidateDiscFactKey(disc)
+        if (facts.has(disc.id) && facts.get(disc.id) !== fact) return { selected, evidence }
+        facts.set(disc.id, fact)
+      }
+    }
+  }
   const key = (items: readonly AccountLoadout[]) =>
-    items
-      .map(
-        (item) =>
-          `${item.agentId}:${item.discs
-            .map((choice) => choice.disc.id)
-            .sort()
-            .join(',')}`,
-      )
-      .sort()
-      .join('|')
-  const seen = new Set([key(baseline)])
+    JSON.stringify(
+      items
+        .map((item) => [item.agentId, item.discs.map((choice) => choice.disc.id).sort()])
+        .sort((a, b) => String(a[0]).localeCompare(String(b[0]))),
+    )
+  const fullBaseline = baseline.length === 3
+  if (
+    fullBaseline &&
+    (new Set(baseline.flatMap((row) => row.discs.map((item) => item.disc.id))).size !== 18 ||
+      !domains.every((domain) => {
+        const row = baseline.find((item) => item.agentId === domain.agentId)
+        if (
+          !row ||
+          row.discs.length !== 6 ||
+          new Set(row.discs.map((item) => item.disc.slot)).size !== 6
+        )
+          return false
+        const counts: Record<string, number> = {}
+        for (const { disc } of row.discs) {
+          if (
+            !domain.slots[disc.slot - 1]?.some(
+              (allowed) =>
+                allowed.id === disc.id &&
+                candidateDiscFactKey(allowed) === candidateDiscFactKey(disc),
+            )
+          )
+            return false
+          counts[disc.setId] = (counts[disc.setId] ?? 0) + 1
+        }
+        return canStillCompleteSetPattern(counts, 0, domain.patterns)
+      }))
+  )
+    return { selected, evidence }
+  let panelBaseline = baseline
+  let best = fullBaseline ? objective?.evaluate(baseline) : null
+  if (fullBaseline && objective) evidence.evaluatedAssignments++
+  if (fullBaseline && (best == null || !Number.isFinite(best))) return { selected, evidence }
+  const seen = new Set<string>(fullBaseline ? [key(baseline)] : [])
+  const compiled = domains.map(() => new Map<string, T | null>())
+  let stopped = false,
+    foundFeasible = false
+  const compile = (selection: DriveDisc[][]): T[] | null => {
+    const result = domains.map((domain, member) => {
+      const discs = selection[member]!
+      if (discs.length !== 6 || new Set(discs.map((disc) => disc.slot)).size !== 6) return null
+      const counts: Record<string, number> = {}
+      for (const disc of discs) counts[disc.setId] = (counts[disc.setId] ?? 0) + 1
+      if (!canStillCompleteSetPattern(counts, 0, domain.patterns)) return null
+      const identity = JSON.stringify(discs.map((disc) => disc.id).sort())
+      const cache = compiled[member]!
+      if (!cache.has(identity))
+        cache.set(identity, domain.compile([...discs].sort((a, b) => a.slot - b.slot)))
+      return cache.get(identity)!
+    })
+    if (result.some((item) => !item)) return null
+    const complete = result as T[]
+    if (new Set(complete.flatMap((item) => item.discs.map((row) => row.disc.id))).size !== 18)
+      return null
+    return complete
+  }
+  const consider = (complete: T[]) => {
+    if (selected.length === 3 && !preservesTeamPanelObjectives(complete, panelBaseline)) return
+    const identity = key(complete)
+    if (seen.has(identity)) return
+    if (evidence.evaluatedAssignments >= budget.evaluations) {
+      stopped = true
+      return
+    }
+    seen.add(identity)
+    evidence.evaluatedAssignments++
+    const value = objective?.evaluate(complete)
+    if (selected.length !== 3) {
+      selected = complete
+      panelBaseline = complete
+      best = value
+      if (value == null || !Number.isFinite(value)) {
+        foundFeasible = true
+        stopped = true
+      }
+    } else if (value != null && Number.isFinite(value) && value > best!) {
+      selected = complete
+      best = value
+    }
+  }
+  const canRefine = fullBaseline
+  // Reserve a quarter of the original evaluation budget for non-local search.
+  const localLimit = Math.max(1, Math.floor(budget.evaluations * 0.75))
+  const localNodeLimit = Math.min(budget.nodes, Math.max(1, Math.floor(budget.nodes / 4)))
+  if (canRefine && objective) {
+    while (evidence.evaluatedAssignments < localLimit && evidence.visitedNodes < localNodeLimit) {
+      const previous = key(selected)
+      for (const proposal of teamSearchNeighborhood(selected, domains)) {
+        if (evidence.evaluatedAssignments >= localLimit || evidence.visitedNodes >= localNodeLimit)
+          break
+        evidence.visitedNodes++
+        const complete = compile(proposal)
+        if (complete) consider(complete)
+        if (stopped) break
+      }
+      if (stopped || key(selected) === previous) break
+    }
+  }
+  const chosen: DriveDisc[][] = domains.map(() => [])
+  const counts: Record<string, number>[] = domains.map(() => ({}))
+  const used = new Set<string>()
+  const incumbentByAgent = new Map(
+    selected.map((row) => [row.agentId, new Set(row.discs.map((item) => item.disc.id))]),
+  )
   const slots = domains
     .flatMap((domain, member) =>
       domain.slots.map((discs, slot) => ({
         member,
         slot,
-        discs: [...discs].sort((a, b) => a.id.localeCompare(b.id)),
+        discs: [...new Map(discs.map((disc) => [disc.id, disc])).values()].sort(
+          (a, b) =>
+            Number(incumbentByAgent.get(domain.agentId)?.has(b.id) ?? false) -
+              Number(incumbentByAgent.get(domain.agentId)?.has(a.id) ?? false) ||
+            compareCandidateDiscFacts(a, b),
+        ),
       })),
     )
-    .sort((a, b) => a.discs.length - b.discs.length || b.member - a.member || b.slot - a.slot)
-  const used = new Set<string>()
-  const chosen: DriveDisc[][] = domains.map(() => [])
-  const counts: Record<string, number>[] = domains.map(() => ({}))
-  // A member's compile closure fixes its profile and account parameters for
-  // this search. Reusing that same six-disc result cannot change team value;
-  // the team objective still runs separately for each complete assignment.
-  const compiledByMember = domains.map(() => new Map<string, T | null>())
-  let stopped = false
-  let foundFeasible = false
+    .sort(
+      (a, b) =>
+        a.discs.length - b.discs.length ||
+        domains[a.member]!.agentId.localeCompare(domains[b.member]!.agentId) ||
+        a.slot - b.slot,
+    )
   function visit(depth: number) {
     if (stopped) return
     if (evidence.visitedNodes >= budget.nodes) {
@@ -136,47 +252,8 @@ export function searchTeamAssignments<T extends AccountLoadout>(
     }
     evidence.visitedNodes++
     if (depth === slots.length) {
-      const assignment = domains.map((domain, member) => {
-        const discs = chosen[member]!
-        const identity = JSON.stringify(discs.map((disc) => disc.id).sort())
-        const cache = compiledByMember[member]!
-        if (!cache.has(identity)) cache.set(identity, domain.compile(discs))
-        return cache.get(identity)!
-      })
-      if (assignment.some((item) => item === null)) return
-      const complete = assignment as T[]
-      if (
-        selected.length === 3 &&
-        complete.some(
-          (item) =>
-            compareCandidatePanelObjective(
-              item.panelObjective,
-              panelBaseline.find((base) => base.agentId === item.agentId)?.panelObjective,
-            ) !== 0,
-        )
-      )
-        return
-      const identity = key(complete)
-      if (seen.has(identity)) return
-      if (evidence.evaluatedAssignments >= budget.evaluations) {
-        stopped = true
-        return
-      }
-      seen.add(identity)
-      evidence.evaluatedAssignments++
-      const value = objective?.evaluate(complete)
-      if (selected.length !== 3) {
-        selected = complete
-        panelBaseline = complete
-        best = value
-        if (value == null || !Number.isFinite(value)) {
-          foundFeasible = true
-          stopped = true
-        }
-      } else if (value != null && Number.isFinite(value) && value > best!) {
-        best = value
-        selected = complete
-      }
+      const complete = compile(chosen)
+      if (complete) consider(complete)
       return
     }
     const { member, discs } = slots[depth]!

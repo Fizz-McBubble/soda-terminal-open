@@ -2,6 +2,7 @@ import { z } from 'zod'
 import dataset from '../gameDataPacks/data/reviewed-team-strength.v1.json'
 import { resolveCurrentReleasedIdentity } from '../gameDataPacks/currentReleasedIdentityMap'
 import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
+import { currentVersionAdoption32 } from '../gameDataPacks/currentVersionAdoption32'
 import { stableContentHash } from '../gameDataPacks/types'
 import { createTeamStrengthEvidenceIndex, type TeamStrengthFact } from './teamStrengthEvidence'
 
@@ -75,7 +76,17 @@ export function createPublishedTeamStrengthCatalog(input: unknown, currentVersio
   return { facts, index: createTeamStrengthEvidenceIndex(facts, currentVersion) }
 }
 
-const catalog = createPublishedTeamStrengthCatalog(dataset, currentVersionProjection.gameVersion)
+/** Preserve the adopted read view's review basis without authorizing a future view. */
+export function reviewedTeamPublishedStrengthVersion(currentVersion: string) {
+  return currentVersion === currentVersionAdoption32.gameVersion
+    ? currentVersionAdoption32.legacyFieldAuthority.gameVersion
+    : currentVersion
+}
+
+const defaultReviewVersion = reviewedTeamPublishedStrengthVersion(
+  currentVersionProjection.gameVersion,
+)
+const catalog = createPublishedTeamStrengthCatalog(dataset, defaultReviewVersion)
 export const reviewedTeamPublishedStrength = Object.freeze({
   ...dataset,
   grain: 'exact_3_agent',
@@ -88,13 +99,11 @@ export const reviewedTeamPublishedStrength = Object.freeze({
 
 // Identity catalog updates do not change source eligibility. Every requested
 // review version receives its own evidence index, including unsupported versions.
-const indicesByReviewVersion = new Map([
-  [currentVersionProjection.gameVersion as string, catalog.index],
-])
+const indicesByReviewVersion = new Map([[defaultReviewVersion as string, catalog.index]])
 
 export function resolveReviewedTeamPublishedStrength(
   memberIds: readonly [string, string, string],
-  reviewVersion: string = currentVersionProjection.gameVersion,
+  reviewVersion: string = defaultReviewVersion,
 ) {
   let index = indicesByReviewVersion.get(reviewVersion)
   if (!index) {

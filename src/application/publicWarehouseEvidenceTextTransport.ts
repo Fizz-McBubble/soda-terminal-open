@@ -5,7 +5,7 @@ export function warehouseEvidenceTextCodec(evidence: readonly unknown[]) {
   const counts = new Map<string, number>()
   const visit = (value: unknown): void => {
     if (typeof value === 'string') {
-      if (value.length >= 32) counts.set(value, (counts.get(value) ?? 0) + 1)
+      counts.set(value, (counts.get(value) ?? 0) + 1)
     } else if (Array.isArray(value)) value.forEach(visit)
     else if (value && typeof value === 'object') {
       if (Object.hasOwn(value, marker)) throw new Error('驱动盘分析证据格式无效。')
@@ -13,7 +13,16 @@ export function warehouseEvidenceTextCodec(evidence: readonly unknown[]) {
     }
   }
   evidence.forEach(visit)
-  const texts = [...counts].filter(([, count]) => count > 1).map(([value]) => value)
+  const encoder = new TextEncoder()
+  const bytes = (value: unknown) => encoder.encode(JSON.stringify(value)).byteLength
+  const texts: string[] = []
+  for (const [value, count] of counts) {
+    // Charge both the actual indexed marker and its dictionary entry. Even a
+    // frequently repeated short string stays literal unless the wire shrinks.
+    const literalBytes = bytes(value)
+    const referenceBytes = bytes({ [marker]: texts.length })
+    if (count > 1 && count * (literalBytes - referenceBytes) > literalBytes + 1) texts.push(value)
+  }
   const indexes = new Map(texts.map((value, index) => [value, index]))
   const encode = (value: unknown): unknown => {
     if (typeof value === 'string' && indexes.has(value)) return { [marker]: indexes.get(value)! }

@@ -5,6 +5,11 @@ import { getCandidateWarehouseConstraint } from '../gameDataPacks/candidateWareh
 import { resolveCurrentReleasedIdentity } from '../gameDataPacks/currentReleasedIdentityMap'
 import { candidateTransitionProfile } from '../optimizer/candidateTransitionWarehouse'
 import { optimizeAccountBuilds } from '../optimizer/optimizeAccountBuilds'
+import {
+  configuredMainStats,
+  createAccountOptimizerKnowledge,
+} from '../optimizer/accountBuildCandidates'
+import { isAllowedMainStat } from '../optimizer/buildKnowledge'
 import { savedDiscAgentIds } from '../warehouse/discWarehousePlanAssignments'
 import { deriveSubStatHistory } from '../evaluation/subStatHistory'
 import { hasConsistentDevelopmentStats } from '../warehouse/discEnhancementScoring'
@@ -54,6 +59,16 @@ export function findWarehouseDiscTransitionUse(
   if (new Set(discs.map((disc) => disc.id)).size !== discs.length) return null
   const profile = candidateTransitionProfile(agentId, constraint, discs)
   if (!profile || (profile.mainStatFit[String(target.slot)]?.[target.mainStat] ?? 0) <= 0)
+    return null
+  // Use the same strict fixed-disc domain as generateCandidates/optimizeBuild.
+  // One owned agent's inapplicable set must not abort the entire advisory query.
+  const knowledge = createAccountOptimizerKnowledge(profile, configuredMainStats(profile))
+  if (
+    !isAllowedMainStat(knowledge, target.slot, target.mainStat) ||
+    !knowledge.setPlans.some((plan) =>
+      [...plan.primarySets, ...plan.secondarySets].includes(target.setId),
+    )
+  )
     return null
   const options = { priorityAgentIds: [] as string[] }
   const fixed = optimizeAccountBuilds(discs, [profile], {

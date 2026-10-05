@@ -13,9 +13,14 @@
 }
 
 .comparison-stat-table {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  /* Size against the detail card, which also shares space with the candidate list. */
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 440px), 1fr));
   gap: 0 32px;
   max-width: 960px;
+}
+
+.comparison-stat-table.is-candidate-only {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
 }
 
 .comparison-stat-table > [role='rowgroup'] {

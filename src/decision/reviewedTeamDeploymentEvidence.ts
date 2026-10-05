@@ -1,6 +1,7 @@
 import { currentAssetProjection } from '../gameDataPacks/currentAssetProjection'
 import { resolveCurrentReleasedIdentity } from '../gameDataPacks/currentReleasedIdentityMap'
 import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
+import { currentVersionAdoption32 } from '../gameDataPacks/currentVersionAdoption32'
 import imageDirections from '../gameDataPacks/data/reviewed-team-image-directions.3.1.json'
 import nestedDirections from '../gameDataPacks/data/reviewed-team-nested-directions.3.1.json'
 import reusedDirections from '../gameDataPacks/data/reviewed-team-direction-reuse.3.1.json'
@@ -173,10 +174,19 @@ function strengthFor(
     : 'required'
 }
 
+/** Review applicability follows the adopted field authority, separately from
+ * the player-facing catalogue version. The bridge is only adopted for 3.2. */
+export function reviewedTeamDeploymentVersion(currentVersion: string) {
+  return currentVersion === currentVersionAdoption32.gameVersion
+    ? currentVersionAdoption32.legacyFieldAuthority.gameVersion
+    : currentVersion
+}
+
 function basisFor(record: RawDirectionRecord): 'current' | 'retained' {
-  const explicitlyCurrent = record.applicabilityDisposition?.startsWith('current_')
-  const versionCurrent = sourceVersion(record) === currentVersionProjection.gameVersion
-  return explicitlyCurrent || versionCurrent ? 'current' : 'retained'
+  // A source-local "current" label has no authority over another read version.
+  const versionCurrent =
+    sourceVersion(record) === reviewedTeamDeploymentVersion(currentVersionProjection.gameVersion)
+  return versionCurrent ? 'current' : 'retained'
 }
 
 function sourceVersion(record: RawDirectionRecord) {

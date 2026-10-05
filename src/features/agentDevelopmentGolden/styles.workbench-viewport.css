@@ -17,6 +17,12 @@
   }
 }
 
+@media (max-width: 600px) {
+  .f5v-shell .comparison-disc-strip {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 @media (min-width: 1021px) and (min-height: 600px) {
   .f5v-shell .ad-golden:has(> .top10) {
     height: 100%;
