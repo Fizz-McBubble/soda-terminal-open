@@ -41,6 +41,12 @@ export function AgentDevelopmentWorkbenchPage() {
   const queryDevelopmentCandidateAlternatives = useDevelopmentCandidateAlternativesCalculation()
   const queryDevelopmentWorkbenchRoute = useDevelopmentWorkbenchRouteCalculation()
   const [analysisVersion, setAnalysisVersion] = useState(0)
+  const [warehouseRefresh, setWarehouseRefresh] = useState<{
+    accountId: string
+    agentId: string
+    inputFingerprint: string | null
+    presentation: GoldenWorkbenchData
+  } | null>(null)
   const [editingCurrent, setEditingCurrent] = useState(false)
   const [editingPresentation, setEditingPresentation] = useState<{
     accountId: string
@@ -69,6 +75,7 @@ export function AgentDevelopmentWorkbenchPage() {
     queueMicrotask(() => {
       if (!active) return
       setSaveRefresh(null)
+      setWarehouseRefresh(null)
       setEditingCurrent(false)
       setEditingPresentation(null)
     })
@@ -175,6 +182,10 @@ export function AgentDevelopmentWorkbenchPage() {
     editingPresentation?.accountId === account.id &&
     editingPresentation.presentation.agentId === agentId
   const savingThisAgent = saveRefresh?.accountId === account.id && saveRefresh.agentId === agentId
+  const matchingThisAgent =
+    warehouseRefresh?.accountId === account.id &&
+    warehouseRefresh.agentId === agentId &&
+    warehouseRefresh.inputFingerprint === decisionWorld.liveFingerprint
   const agent = data.roster.agents.find((item) => item.agentId === agentId)
   const catalog = publicDevelopmentDirectoryCatalog.find(
     (item) => item.stableId === agentId && item.releaseState === 'released' && item.accountOwnable,
@@ -276,7 +287,7 @@ export function AgentDevelopmentWorkbenchPage() {
     lastRouteProjection.agentId === agentId
   const routeProjection =
     freshRouteProjection ?? (retainingDuringSave ? lastRouteProjection!.value : null)
-  if (currentRun && !routeProjection) {
+  if (currentRun && !routeProjection && !matchingThisAgent) {
     if (routeFailureKey === routeKey)
       return (
         <section className="panel">
@@ -325,7 +336,9 @@ export function AgentDevelopmentWorkbenchPage() {
       accountId={account.id}
       agentName={legacyCatalog?.[1] ?? catalog.playerName}
       roster={data.roster}
-      workbenchData={workbenchData}
+      workbenchData={
+        matchingThisAgent && !freshRouteProjection ? warehouseRefresh.presentation : workbenchData
+      }
       savingThisAgent={savingThisAgent}
       editingThisAgent={editingThisAgent}
       candidateSnapshotStale={candidateSnapshotStale}
@@ -339,7 +352,9 @@ export function AgentDevelopmentWorkbenchPage() {
       candidateSnapshot={candidateSnapshot}
       equipment={equipment}
       requestedPlanId={requestedPlanId}
+      selectedCandidateRank={selectedCandidateRank}
       setAnalysisVersion={setAnalysisVersion}
+      setWarehouseRefresh={setWarehouseRefresh}
       setEditingPresentation={setEditingPresentation}
       setEditingCurrent={setEditingCurrent}
       setSaveRefresh={setSaveRefresh}

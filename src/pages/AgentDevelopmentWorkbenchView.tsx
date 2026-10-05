@@ -12,6 +12,8 @@ import type {
   DevelopmentWorkbenchRoutePresentation,
   DevelopmentWorkbenchRouteSelection,
 } from '../application/publicDevelopmentWorkbenchRoute'
+import { isCurrentDevelopmentWorkbenchRoute } from '../application/publicDevelopmentWorkbenchRoute'
+import { developmentPanelDiscFingerprint } from '../application/publicDevelopmentComparisonPanels'
 import {
   AgentDevelopmentGolden,
   type GoldenWorkbenchData,
@@ -29,6 +31,7 @@ import { usePageOperationScope } from '../components/usePageOperationScope'
 type CandidateSnapshot = NonNullable<ReturnType<typeof readDevelopmentCandidateSnapshot>>
 type EditingPresentation = { accountId: string; presentation: GoldenWorkbenchData }
 type SaveRefresh = EditingPresentation & { agentId: string }
+type WarehouseRefresh = SaveRefresh & { inputFingerprint: string | null }
 type RouteRead = { key: string; value: DevelopmentWorkbenchRoutePresentation }
 type RouteProjection = {
   accountId: string
@@ -57,7 +60,9 @@ type Props = {
   candidateSnapshot: CandidateSnapshot | null
   equipment: ReturnType<typeof findCurrentDevelopmentWorkbenchEquipment>
   requestedPlanId: string | null
+  selectedCandidateRank: number
   setAnalysisVersion: Dispatch<SetStateAction<number>>
+  setWarehouseRefresh: Dispatch<SetStateAction<WarehouseRefresh | null>>
   setEditingPresentation: Dispatch<SetStateAction<EditingPresentation | null>>
   setEditingCurrent: Dispatch<SetStateAction<boolean>>
   setSaveRefresh: Dispatch<SetStateAction<SaveRefresh | null>>
@@ -84,7 +89,9 @@ export function AgentDevelopmentWorkbenchView({
   candidateSnapshot,
   equipment,
   requestedPlanId,
+  selectedCandidateRank,
   setAnalysisVersion,
+  setWarehouseRefresh,
   setEditingPresentation,
   setEditingCurrent,
   setSaveRefresh,
@@ -94,6 +101,15 @@ export function AgentDevelopmentWorkbenchView({
   const navigate = useNavigate()
   const capturePageScope = usePageOperationScope(
     JSON.stringify([accountId, agentId, requestedPlanId]),
+  )
+  const captureAnalysisScope = usePageOperationScope(
+    JSON.stringify([
+      accountId,
+      agentId,
+      requestedPlanId,
+      selectedCandidateRank,
+      decisionWorld.liveFingerprint,
+    ]),
   )
   return (
     <>
@@ -130,20 +146,100 @@ export function AgentDevelopmentWorkbenchView({
             ? undefined
             : async () => {
                 const isCurrentPage = capturePageScope()
-                const currentRun =
-                  decisionWorld.status === 'current'
-                    ? decisionWorld.run
-                    : await decisionWorld.refresh()
-                if (!isCurrentPage()) return
-                if (!currentRun) throw new Error('当前账户无法重新分析；请稍后重试。')
-                const result = await queryDevelopmentCandidateAlternatives(
-                  currentRun.runId,
+                const isCurrentAnalysis = captureAnalysisScope()
+                const canContinue = () => {
+                  if (!isCurrentPage()) return false
+                  if (!isCurrentAnalysis())
+                    throw new Error('仓库或配装选择已变化，请重新搭配；尚未保存。')
+                  return true
+                }
+                setWarehouseRefresh({
+                  accountId,
                   agentId,
-                )
-                if (!isCurrentPage()) return
-                if (!cacheDevelopmentCandidateSnapshot(result))
-                  throw new Error(result.gaps[0] ?? '当前账户无法生成完整的六张候选盘。')
-                setAnalysisVersion((version) => version + 1)
+                  inputFingerprint: decisionWorld.liveFingerprint,
+                  presentation: workbenchData,
+                })
+                let published = false
+                try {
+                  const currentRun =
+                    decisionWorld.status === 'current'
+                      ? decisionWorld.run
+                      : await decisionWorld.refresh()
+                  if (!canContinue()) return
+                  if (!currentRun) throw new Error('当前账户无法重新分析；请稍后重试。')
+                  const result = await queryDevelopmentCandidateAlternatives(
+                    currentRun.runId,
+                    agentId,
+                  )
+                  if (!canContinue()) return
+                  if (
+                    result.status !== 'ready' ||
+                    result.accountId !== accountId ||
+                    result.agentId !== agentId ||
+                    result.runId !== currentRun.runId ||
+                    result.inputFingerprint !== currentRun.inputFingerprint
+                  )
+                    throw new Error(result.gaps[0] ?? '当前账户无法生成完整的六张候选盘。')
+                  const index = Math.min(
+                    selectedCandidateRank - 1,
+                    Math.max(result.candidates.length - 1, 0),
+                  )
+                  const loadout = requestedPlanId
+                    ? undefined
+                    : result.candidates[index]?.loadouts[0]
+                  const selection: DevelopmentWorkbenchRouteSelection = {
+                    agentId,
+                    requestedPlanId,
+                    candidateRank: loadout ? index + 1 : null,
+                    candidateLoadoutFingerprint: loadout ? contentHash(loadout) : null,
+                  }
+                  // Prepare the matching panel before publishing its candidate. Publishing
+                  // first changes the route key and replaces the whole workbench with loading.
+                  const projection = await queryDevelopmentWorkbenchRoute(
+                    currentRun.runId,
+                    selection,
+                  )
+                  if (!canContinue()) return
+                  const selectedIds =
+                    loadout?.discs.map((choice) => choice.disc.id) ??
+                    workbenchData.discs.map((disc) => disc.id)
+                  const selectedDiscs = currentRun.input.warehouse.discs.filter((disc) =>
+                    selectedIds.includes(disc.id),
+                  )
+                  if (
+                    !isCurrentDevelopmentWorkbenchRoute(
+                      projection,
+                      {
+                        runId: currentRun.runId,
+                        accountId,
+                        inputFingerprint: currentRun.inputFingerprint,
+                        selection,
+                        selectedDiscs,
+                      },
+                      developmentPanelDiscFingerprint,
+                    )
+                  )
+                    throw new Error('本次配装资料已变化，请重新搭配；尚未保存。')
+                  if (!cacheDevelopmentCandidateSnapshot(result))
+                    throw new Error(result.gaps[0] ?? '当前账户无法生成完整的六张候选盘。')
+                  const key = contentHash([
+                    currentRun.runId,
+                    currentRun.inputFingerprint,
+                    selection,
+                  ])
+                  rememberDevelopmentWorkbenchRoute(key, projection)
+                  setRouteRead({ key, value: projection })
+                  setLastRouteProjection({ accountId, agentId, value: projection })
+                  setAnalysisVersion((version) => version + 1)
+                  published = true
+                } catch (error) {
+                  if (isCurrentPage()) throw error
+                } finally {
+                  // A refreshed run can still be waiting for its default route. Keep
+                  // the same-input view available after failure so the error stays local.
+                  if (isCurrentPage() && (published || !isCurrentAnalysis()))
+                    setWarehouseRefresh(null)
+                }
               }
         }
         onSavePlan={

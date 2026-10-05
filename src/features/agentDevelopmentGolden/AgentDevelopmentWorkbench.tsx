@@ -7,6 +7,7 @@ import { VisualEntityImage } from '../../components/VisualEntityImage'
 import { ExplanationPopover } from '../../components/ExplanationPopover'
 import { AgentVisualSlot } from './agentVisualSlot'
 import { BackNavigation } from '../../components/BackNavigation'
+import { usePageOperationScope } from '../../components/usePageOperationScope'
 import { specialtyIconIds, presentationTargetLevel } from './agentDevelopmentWorkbenchPresentation'
 import type { AgentDevelopmentGoldenProps, GoldenWorkbenchData, JourneyScenario } from './types'
 export function Workbench({
@@ -31,10 +32,17 @@ export function Workbench({
   const [savedPlanKey, setSavedPlanKey] = useState<string | null>(null)
   const [savingPlan, setSavingPlan] = useState(false)
   const [savePlanError, setSavePlanError] = useState<string | null>(null)
-  const [warehouseActionState, setWarehouseActionState] = useState<'idle' | 'running' | 'error'>(
-    'idle',
-  )
-  const [warehouseActionError, setWarehouseActionError] = useState<string | null>(null)
+  const [warehouseAction, setWarehouseAction] = useState<{
+    agentId: string
+    state: 'idle' | 'running' | 'error'
+    error: string | null
+  }>({ agentId: data.agentId, state: 'idle', error: null })
+  const warehouseActionState =
+    warehouseAction.agentId === data.agentId ? warehouseAction.state : 'idle'
+  const warehouseActionError =
+    warehouseAction.agentId === data.agentId ? warehouseAction.error : null
+  const warehouseRequestRunning = useRef<{ agentId: string; token: symbol } | null>(null)
+  const captureActionScope = usePageOperationScope(data.agentId)
   const workbenchRef = useRef<HTMLElement>(null)
   useEffect(() => {
     const owner = workbenchRef.current?.closest<HTMLElement>('[data-f5-scroll-owner]')
@@ -67,18 +75,27 @@ export function Workbench({
       engine.visual?.entityId === (subject.engine.currentId ?? subject.engine.visual?.entityId),
   )
   const runWarehouseAnalysis = async () => {
-    if (!onAnalyzeWarehouse || warehouseActionState === 'running') return
-    setWarehouseActionState('running')
+    if (!onAnalyzeWarehouse || warehouseRequestRunning.current?.agentId === data.agentId) return
+    const isCurrentAction = captureActionScope()
+    const token = Symbol()
+    warehouseRequestRunning.current = { agentId: data.agentId, token }
+    setWarehouseAction({ agentId: data.agentId, state: 'running', error: null })
     setSavedPlanKey(null)
     setSavePlanError(null)
-    setWarehouseActionError(null)
     try {
       await onAnalyzeWarehouse()
-      setWarehouseActionState('idle')
+      if (!isCurrentAction()) return
+      setWarehouseAction({ agentId: data.agentId, state: 'idle', error: null })
       return true
     } catch (error) {
-      setWarehouseActionState('error')
-      setWarehouseActionError(playerErrorMessage(error, '搭配未完成，请重新分析后重试。'))
+      if (!isCurrentAction()) return
+      setWarehouseAction({
+        agentId: data.agentId,
+        state: 'error',
+        error: playerErrorMessage(error, '搭配未完成，请重新分析后重试。'),
+      })
+    } finally {
+      if (warehouseRequestRunning.current?.token === token) warehouseRequestRunning.current = null
     }
   }
   return (
