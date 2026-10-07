@@ -7,6 +7,22 @@ import { sanitizeScanDiagnostic } from '../scanner/diagnostics'
 import userEvent from '@testing-library/user-event'
 import { choosePlayerSelect } from '../testing/choosePlayerSelect'
 
+// jsdom has no native Popover API; the production-browser check covers its geometry.
+vi.mock('../components/ExplanationPopover', () => ({
+  ExplanationPopover: ({
+    label,
+    children,
+  }: {
+    label: string
+    children: import('react').ReactNode
+  }) => (
+    <details>
+      <summary>{label}</summary>
+      {children}
+    </details>
+  ),
+}))
+
 afterEach(() => {
   vi.restoreAllMocks()
   localStorage.clear()
