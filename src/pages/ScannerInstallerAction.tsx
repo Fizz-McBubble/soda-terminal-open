@@ -1,116 +1,228 @@
-import { useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Download } from 'lucide-react'
 import {
   scannerDistributionManifest,
   type ScannerDistributionSnapshot,
 } from '../scanner/distribution'
+import { downloadScannerInstaller } from '../scanner/installerDownload'
+import './scanner-installer-action.css'
 
-type SaveHandle = { createWritable(): Promise<FileSystemWritableFileStream> }
-type SaveWindow = Window & {
-  showSaveFilePicker?: (options: { suggestedName: string; startIn: string }) => Promise<SaveHandle>
-}
+type DownloadState = 'idle' | 'downloading' | 'saving' | 'save_requested' | 'error' | 'cancelled'
+const megabytes = (bytes: number) => (bytes / 1_000_000).toFixed(1)
 
 export function ScannerInstallerAction({
   distribution,
   issueCode,
+  onConnect,
 }: {
   distribution: ScannerDistributionSnapshot
   issueCode?: string
+  onConnect?: () => void | Promise<void>
 }) {
-  const [pending, setPending] = useState(false)
-  const [message, setMessage] = useState('')
-  const inFlight = useRef(false)
+  const [state, setState] = useState<DownloadState>('idle')
+  const [bytes, setBytes] = useState(0)
+  const [connecting, setConnecting] = useState(false)
+  const [timedOut, setTimedOut] = useState(false)
+  const [connectionNotice, setConnectionNotice] = useState('')
+  const request = useRef<AbortController | null>(null)
+  const connectPending = useRef(false)
+  const completedDownload = useRef(false)
+  const leftAfterDownload = useRef(false)
+  const autoConnectAttempted = useRef(false)
+  const mounted = useRef(false)
+  useEffect(() => {
+    mounted.current = true
+    return () => {
+      mounted.current = false
+      request.current?.abort()
+      request.current = null
+      completedDownload.current = false
+    }
+  }, [])
+  const pending = state === 'downloading' || state === 'saving'
+  const complete = state === 'save_requested'
+  const expectedSize = scannerDistributionManifest.helper.size
+  const percent = Math.min(100, Math.floor((bytes / expectedSize) * 100))
+  const progressText = `${percent}% · ${megabytes(bytes)} / ${megabytes(expectedSize)} MB`
   const update = Boolean(
     (distribution.installedVersion &&
       distribution.installedVersion !== scannerDistributionManifest.runtime.version) ||
     ['helper_incompatible', 'helper_pairing_denied'].includes(issueCode ?? ''),
   )
+  const connect = useCallback(async () => {
+    if (connectPending.current || !onConnect) return
+    connectPending.current = true
+    autoConnectAttempted.current = true
+    setConnecting(true)
+    setConnectionNotice('')
+    try {
+      await onConnect()
+    } catch {
+      if (mounted.current)
+        setConnectionNotice('暂未连接，请确认安装包已打开且助手已启动，再次连接。')
+    } finally {
+      connectPending.current = false
+      if (mounted.current) setConnecting(false)
+    }
+  }, [onConnect])
+
+  useEffect(() => {
+    if (!complete || !onConnect) return
+    const left = () => {
+      if (completedDownload.current) leftAfterDownload.current = true
+    }
+    const returned = () => {
+      if (
+        !completedDownload.current ||
+        !leftAfterDownload.current ||
+        autoConnectAttempted.current ||
+        connectPending.current
+      )
+        return
+      autoConnectAttempted.current = true
+      void connect()
+    }
+    const visibilityChanged = () => {
+      if (document.visibilityState === 'hidden') left()
+      else returned()
+    }
+    window.addEventListener('blur', left)
+    window.addEventListener('focus', returned)
+    document.addEventListener('visibilitychange', visibilityChanged)
+    return () => {
+      window.removeEventListener('blur', left)
+      window.removeEventListener('focus', returned)
+      document.removeEventListener('visibilitychange', visibilityChanged)
+    }
+  }, [complete, onConnect, connect])
+
   if (
     scannerDistributionManifest.runtime.releaseState !== 'published' ||
-    (distribution.state === 'ready' && !update)
+    (distribution.state === 'ready' && !update && !pending)
   )
     return null
 
   async function download() {
-    if (inFlight.current) return
-    inFlight.current = true
-    setPending(true)
-    setMessage('')
-    let writable: FileSystemWritableFileStream | undefined
-    let reader: ReadableStreamDefaultReader<Uint8Array> | undefined
+    if (request.current) return
+    const controller = new AbortController()
+    request.current = controller
+    completedDownload.current = false
+    const current = () => mounted.current && request.current === controller
+    setState('downloading')
+    setBytes(0)
+    setTimedOut(false)
+    setConnectionNotice('')
+    leftAfterDownload.current = false
+    autoConnectAttempted.current = false
     try {
-      const picker = (window as SaveWindow).showSaveFilePicker
-      if (!picker) {
-        const anchor = document.createElement('a')
-        anchor.href = scannerDistributionManifest.helper.downloadUrl
-        anchor.download = scannerDistributionManifest.helper.entry
-        anchor.click()
-        return
-      }
-      // Preserve the click's transient activation: ask where to save before fetching.
-      const handle = await picker.call(window, {
-        suggestedName: scannerDistributionManifest.helper.entry,
-        startIn: 'downloads',
+      const result = await downloadScannerInstaller({
+        url: scannerDistributionManifest.helper.downloadUrl,
+        fileName: scannerDistributionManifest.helper.entry,
+        expectedSize,
+        signal: controller.signal,
+        onProgress: (received) => {
+          if (current()) setBytes(received)
+        },
+        onSaving: () => {
+          if (current()) setState('saving')
+        },
       })
-      const response = await fetch(scannerDistributionManifest.helper.downloadUrl, {
-        credentials: 'omit',
-        signal: AbortSignal.timeout(10 * 60 * 1000),
-      })
-      if (!response.ok) throw new Error('download_failed')
-      const expectedSize = scannerDistributionManifest.helper.size
-      if (!response.body || !Number.isSafeInteger(expectedSize) || expectedSize <= 0)
-        throw new Error('invalid_download')
-      reader = response.body.getReader()
-      const prefix: Uint8Array[] = []
-      let size = 0
-      while (size < 2) {
-        const { done, value } = await reader.read()
-        if (done) throw new Error('invalid_download')
-        prefix.push(value)
-        size += value.byteLength
+      if (current()) {
+        completedDownload.current = true
+        setState(result)
       }
-      const signature = prefix.flatMap((chunk) => Array.from(chunk.subarray(0, 2))).slice(0, 2)
-      if (signature[0] !== 0x4d || signature[1] !== 0x5a || size > expectedSize)
-        throw new Error('invalid_download')
-      writable = await handle.createWritable()
-      for (const chunk of prefix) await writable.write(chunk as Uint8Array<ArrayBuffer>)
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        size += value.byteLength
-        if (size > expectedSize) throw new Error('invalid_download')
-        await writable.write(value as Uint8Array<ArrayBuffer>)
-      }
-      if (size !== expectedSize) throw new Error('incomplete_download')
-      await writable.close()
-      writable = undefined
     } catch (error) {
-      await writable?.abort().catch(() => {})
-      if (!(error instanceof DOMException && error.name === 'AbortError'))
-        setMessage('下载未完成，请重试。')
+      if (!current()) return
+      const cancelled =
+        controller.signal.aborted || (error instanceof DOMException && error.name === 'AbortError')
+      setTimedOut(error instanceof DOMException && error.name === 'TimeoutError')
+      setState(cancelled ? 'cancelled' : 'error')
     } finally {
-      await reader?.cancel().catch(() => {})
-      reader?.releaseLock()
-      inFlight.current = false
-      setPending(false)
+      if (request.current === controller) request.current = null
     }
   }
+
+  const message =
+    state === 'save_requested'
+      ? `安装包已接收。请在浏览器下载列表中确认保存并打开 ${scannerDistributionManifest.helper.entry}，首次打开会自动安装并启动助手；返回本页后会尝试连接。`
+      : state === 'cancelled'
+        ? '下载已取消，可以重新下载。'
+        : state === 'error'
+          ? timedOut
+            ? '下载超时，请重试或使用浏览器直接下载。'
+            : '下载未完成，请重试或使用浏览器直接下载。'
+          : ''
+
   return (
-    <>
-      <button
-        className="button button--quiet scanner-prepare__download"
-        type="button"
-        onClick={() => void download()}
-        disabled={pending}
-      >
-        <Download aria-hidden="true" size={17} />
-        {pending ? '正在下载…' : update ? '更新扫描助手' : '下载扫描助手'}
-      </button>
+    <div className={`scanner-installer${state !== 'idle' ? ' is-active' : ''}`}>
+      <div className="scanner-installer__actions">
+        <button
+          className="button button--quiet scanner-prepare__download"
+          type="button"
+          onClick={() => void download()}
+          disabled={pending}
+        >
+          <Download aria-hidden="true" size={17} />
+          {pending ? '正在下载…' : complete ? '重新下载' : update ? '更新扫描助手' : '下载扫描助手'}
+        </button>
+        {pending ? (
+          <button
+            className="button button--quiet"
+            type="button"
+            onClick={() => request.current?.abort()}
+          >
+            取消下载
+          </button>
+        ) : null}
+      </div>
+      {pending || complete ? (
+        <div className="scanner-installer__progress">
+          <progress
+            aria-label="扫描助手下载进度"
+            aria-valuetext={progressText}
+            value={bytes}
+            max={expectedSize}
+          />
+          <span>{progressText}</span>
+          {pending ? (
+            <span role="status">
+              {state === 'saving' ? '下载完成，正在保存…' : '正在接收安装包…'}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
       {message ? (
         <p className="scanner-installer__notice" role="status">
           {message}
         </p>
       ) : null}
-    </>
+      {state === 'idle' ? (
+        <p className="scanner-installer__notice">首次打开安装包后会自动安装并启动助手。</p>
+      ) : null}
+      {connectionNotice ? (
+        <p className="scanner-installer__notice" role="status">
+          {connectionNotice}
+        </p>
+      ) : null}
+      {complete && onConnect ? (
+        <button
+          className="button button--quiet"
+          type="button"
+          disabled={connecting}
+          onClick={() => void connect()}
+        >
+          {connecting ? '正在连接…' : '已打开，连接助手'}
+        </button>
+      ) : null}
+      {state === 'error' || state === 'cancelled' ? (
+        <a
+          className="scanner-installer__fallback"
+          href={scannerDistributionManifest.helper.downloadUrl}
+          download={scannerDistributionManifest.helper.entry}
+        >
+          浏览器直接下载
+        </a>
+      ) : null}
+    </div>
   )
 }

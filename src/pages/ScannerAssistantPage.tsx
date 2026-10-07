@@ -288,6 +288,7 @@ function HydratedScannerAssistantPage({
     <ScannerInstallerAction
       distribution={distribution}
       issueCode={snapshot.error?.diagnosticCode}
+      onConnect={() => connectScanner(commands.retryConnection)}
     />
   )
 

@@ -1,0 +1,55 @@
+.scanner-installer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 0;
+  flex: 0 1 220px;
+}
+.f5v-shell .scanner-task .scanner-prepare__actions:has(> .scanner-installer) {
+  align-items: flex-start;
+}
+.scanner-installer.is-active {
+  flex: 1 1 220px;
+  max-width: 520px;
+}
+.scanner-installer__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.f5v-shell .scanner-task .scanner-installer .button {
+  height: 40px;
+  min-height: 40px;
+  padding-block: 0;
+}
+.f5v-shell .scanner-task .scanner-installer .scanner-prepare__download > svg {
+  display: none;
+}
+.scanner-installer__progress {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  width: 100%;
+  color: var(--f5-muted);
+  font-size: 12px;
+}
+.scanner-installer__progress progress {
+  flex-basis: 100%;
+  width: 100%;
+  height: 7px;
+  accent-color: var(--f5-accent, #77d7d4);
+}
+.scanner-installer__notice,
+.scanner-installer__fallback {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.scanner-installer__notice {
+  color: var(--f5-muted);
+}
+.scanner-installer__fallback {
+  color: var(--f5-accent, #77d7d4);
+}

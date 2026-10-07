@@ -73,6 +73,7 @@ export const communityTests = Object.freeze([
   'src/pages/HelpAndPrivacyPage.test.tsx',
   'src/pages/ScannerDiagnosticFeedback.test.tsx',
   'src/pages/ScannerInstallerAction.test.tsx',
+  'src/scanner/installerDownload.test.ts',
   'src/scanner/diagnostics.test.ts',
   'src/scanner/scanFeedback.test.tsx',
   'src/scanner/runtime.test.ts',

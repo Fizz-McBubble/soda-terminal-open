@@ -4,6 +4,15 @@ import './ReleaseNotes.css'
 // Keep player-facing changes with the release that ships them, newest first.
 const releases = [
   {
+    date: '2026-10-08',
+    title: '扫描助手下载与安装',
+    changes: [
+      '下载显示实际进度与已下载大小，支持取消和重试。',
+      '首次打开安装包后自动安装并启动助手；已有安装保留修复和卸载入口。',
+      '下载完成后显示下一步操作，返回网页时尝试连接助手。',
+    ],
+  },
+  {
     date: '2026-10-07',
     title: '稳定性与体验优化',
     changes: [
