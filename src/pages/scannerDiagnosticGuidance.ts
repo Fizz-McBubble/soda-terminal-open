@@ -11,8 +11,8 @@ const guidance: Record<string, Guidance> = {
     nextAction: '按页面提示更新扫描助手，然后重新连接。',
   },
   helper_pairing_denied: {
-    problem: '网页与扫描助手尚未完成连接授权。',
-    nextAction: '重新连接，并在扫描助手中确认本次网页连接。',
+    problem: '扫描助手拒绝了此网站的连接。',
+    nextAction: '更新扫描助手后重新连接。',
   },
   permission_denied: {
     problem: '扫描助手未获得本次操作所需的权限。',
