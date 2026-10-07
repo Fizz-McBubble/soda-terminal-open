@@ -21,7 +21,10 @@ type UsageEvent =
 
 const preferenceKey = 'soda-usage-statistics-v1'
 const preferenceChanged = 'soda-usage-statistics-changed'
-const configuredOrigin = 'https://app.sodaterminal.workers.dev'
+const configuredOrigins = new Set([
+  'https://app.sodaterminal.workers.dev',
+  'https://sodaterminal.com',
+])
 const maxDuration = 3_600_000
 
 // Never return or transmit a route parameter, query, fragment, title, or account field.
@@ -63,7 +66,7 @@ export function createUsageStatistics({
   const configured = () =>
     enabled &&
     /^[A-Za-z0-9._-]{8,80}$/u.test(release) &&
-    runtime()?.location.origin === configuredOrigin
+    configuredOrigins.has(runtime()?.location.origin ?? '')
   const allowed = () => {
     const current = runtime()
     if (!configured() || !current || privacyBlocked()) return false

@@ -16,6 +16,7 @@ export function ScannerPrepareSection({
   onReturnToTargetSelection,
   actionFeedback,
   snapshot,
+  diagnosticFeedback,
   restartingAfterCompletedResult,
   preparingNewScan,
   inlineImportOpen,
@@ -45,6 +46,7 @@ export function ScannerPrepareSection({
   onReturnToTargetSelection: () => void
   actionFeedback: string | null
   snapshot: ScannerAssistantSnapshot
+  diagnosticFeedback?: React.ReactNode
   restartingAfterCompletedResult: boolean
   preparingNewScan: boolean
   inlineImportOpen: boolean
@@ -155,6 +157,7 @@ export function ScannerPrepareSection({
         preparingNewScan) ? (
         <PrepareChecklist
           snapshot={snapshot}
+          diagnosticFeedback={diagnosticFeedback}
           actionPending={actionPending}
           eyebrow={presentedStateCopy.eyebrow}
           title={presentedStateCopy.title}

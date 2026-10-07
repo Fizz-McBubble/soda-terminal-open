@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import {
   createPublicScannerAccount,
   setPublicScannerActiveAccount,
@@ -19,6 +19,7 @@ import {
   scanResultHandleSettingKey,
 } from '../scanner/resultHandoff'
 import type { ScannerAssistantSnapshot, useScannerAssistantRuntime } from '../scanner/runtime'
+import { readScannerResultWithDeadline } from '../scanner/resultRead'
 import {
   clearScannerTargetAccountBinding,
   createScannerTargetAccountBinding,
@@ -79,6 +80,51 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
     const result = readScannerTargetAccountBinding()
     return result.valid ? result.binding : null
   })
+  const readRef = useRef<AbortController | null>(null)
+  const startingScanRef = useRef(false)
+  const previousSnapshotRef = useRef(snapshot)
+  const latestSnapshotRef = useRef(snapshot)
+  useLayoutEffect(() => {
+    latestSnapshotRef.current = snapshot
+    if (snapshot.state === 'connection_failed') startingScanRef.current = false
+  }, [snapshot])
+
+  function cancelResultRead() {
+    readRef.current?.abort()
+    readRef.current = null
+  }
+
+  useEffect(() => () => cancelResultRead(), [])
+  useEffect(() => {
+    const previous = previousSnapshotRef.current
+    previousSnapshotRef.current = snapshot
+    const changedAttempt = Boolean(
+      snapshot.diagnostics?.reportId &&
+      previous.diagnostics?.reportId &&
+      snapshot.diagnostics.reportId !== previous.diagnostics.reportId,
+    )
+    const changedResult = Boolean(
+      snapshot.summary?.resultFileHandle &&
+      previous.summary?.resultFileHandle &&
+      snapshot.summary.resultFileHandle !== previous.summary.resultFileHandle,
+    )
+    const beganScanning = snapshot.state === 'scanning' && previous.state !== 'scanning'
+    if (!changedAttempt && !changedResult && !beganScanning) return
+    cancelResultRead()
+    setHandoffState({ status: 'idle' })
+    setPreparingAnotherScan(false)
+    setInlineImportOpen(false)
+    setCompletedImport(null)
+    window.localStorage.removeItem(completedScannerImportKey)
+    window.localStorage.removeItem(discardedScannerResultHandleKey)
+    setDiscardedCompletedResultHandle(null)
+    if (!startingScanRef.current) {
+      clearScannerTargetAccountBinding()
+      setTargetBinding(null)
+    }
+    if (snapshot.state === 'scanning' || snapshot.state === 'completed')
+      startingScanRef.current = false
+  }, [snapshot, setCompletedImport, setInlineImportOpen, setPreparingAnotherScan])
 
   const frozenTargetValidation = useMemo(() => {
     if (!targetBinding || !accountState)
@@ -161,11 +207,21 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
     setAccountMessage('')
     try {
       await freezeSelectedTarget()
+      cancelResultRead()
+      setHandoffState({ status: 'idle' })
+      startingScanRef.current = true
       setPreparingAnotherScan(false)
       window.localStorage.removeItem(completedScannerImportKey)
       setCompletedImport(null)
       window.localStorage.removeItem(discardedScannerResultHandleKey)
-      runScannerAction(() => commands.startScan())
+      await runScannerAction(async () => {
+        try {
+          await commands.startScan()
+        } catch (error) {
+          startingScanRef.current = false
+          throw error
+        }
+      })
     } catch (error) {
       setAccountMessage(error instanceof Error ? error.message : '无法锁定扫描目标账户。')
     }
@@ -186,6 +242,8 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
   }
 
   async function returnToTargetSelection() {
+    cancelResultRead()
+    startingScanRef.current = false
     setPreparingAnotherScan(true)
     setInlineImportOpen(false)
     setHandoffState({ status: 'idle' })
@@ -208,7 +266,7 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
   }
 
   async function handOffResult(bindingOverride?: ScannerTargetAccountBinding, file?: File) {
-    if (handoffState.status === 'working') return
+    if (readRef.current) return
     const binding =
       bindingOverride ?? (frozenTargetValidation.valid ? frozenTargetValidation.binding : null)
     if (!binding) {
@@ -222,12 +280,45 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
     }
     setHandoffState({ status: 'working', message: '正在读取扫描结果。' })
     setAccountMessage('正在检查扫描结果。')
+    const controller = new AbortController()
+    readRef.current = controller
+    const sourceSnapshot = latestSnapshotRef.current
+    let phase: 'read' | 'handoff' = 'read'
+    function assertCurrent() {
+      controller.signal.throwIfAborted()
+      if (readRef.current !== controller) throw new DOMException('Cancelled', 'AbortError')
+      const current = latestSnapshotRef.current
+      if (
+        (sourceSnapshot.diagnostics?.reportId &&
+          current.diagnostics?.reportId &&
+          sourceSnapshot.diagnostics.reportId !== current.diagnostics.reportId) ||
+        (sourceSnapshot.summary?.resultFileHandle &&
+          current.summary?.resultFileHandle &&
+          sourceSnapshot.summary.resultFileHandle !== current.summary.resultFileHandle) ||
+        current.state === 'scanning'
+      )
+        throw new DOMException('Cancelled', 'AbortError')
+    }
     try {
-      const result = file ? null : await commands.requestResultFile()
-      const staging = file
-        ? JSON.parse(await file.text())
-        : await commands.requestResultStaging(result!.resultFileHandle)
+      const { result, staging } = await readScannerResultWithDeadline(async (signal) => {
+        const result = file ? null : await commands.requestResultFile(signal)
+        assertCurrent()
+        if (
+          result &&
+          sourceSnapshot.summary?.resultFileHandle &&
+          result.resultFileHandle !== sourceSnapshot.summary.resultFileHandle
+        )
+          throw new Error('扫描结果已经变化，请重新查看本次结果。')
+        const staging = file
+          ? JSON.parse(await file.text())
+          : await commands.requestResultStaging(result!.resultFileHandle, signal)
+        assertCurrent()
+        return { result, staging }
+      }, controller.signal)
+      assertCurrent()
+      phase = 'handoff'
       const staged = await stageAccountPaddleScanImport(binding.accountId, staging, database)
+      assertCurrent()
       if (result)
         await database.settings.put({
           key: scanResultHandleSettingKey(binding.accountId, staged.batch.id),
@@ -251,6 +342,7 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
         database,
         staged.batch.reviewState.revision,
       )
+      assertCurrent()
       setPreparingAnotherScan(false)
       setInlineImportOpen(true)
       setHandoffState({
@@ -260,9 +352,35 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
           : `已保留 ${staged.summary.total} 条结果，其中 ${preflight.needsReview} 条需要重新扫描；尚未更新账户。`,
       })
     } catch (error) {
-      const message = error instanceof Error ? error.message : '暂时无法读取本次扫描结果，请重试。'
+      if (readRef.current !== controller || (error instanceof Error && error.name === 'AbortError'))
+        return
+      const timedOut = error instanceof Error && error.name === 'ScannerResultTimeoutError'
+      const issueCode = timedOut
+        ? 'scan_result_timeout'
+        : file && phase === 'read'
+          ? 'scan_file_invalid'
+          : phase === 'read'
+            ? 'scan_result_read_failed'
+            : 'scan_import_handoff_failed'
+      const knownDraftIssue =
+        error instanceof Error &&
+        (error.message.includes('不完整的同源识别结果') ||
+          error.message.includes('不完整扫描草稿包含已导入记录'))
+      const message = knownDraftIssue
+        ? (error as Error).message
+        : timedOut
+          ? '扫描结果读取超时，请重试或选择扫描结果文件（JSON）。账户仓库尚未更新。'
+          : phase === 'read'
+            ? file
+              ? '无法读取这份扫描结果文件，请选择有效的 JSON 文件。账户仓库尚未更新。'
+              : '暂时无法读取本次扫描结果。请重试；仍失败时重新连接扫描助手，或选择扫描结果文件（JSON）。账户仓库尚未更新。'
+            : error instanceof Error
+              ? error.message
+              : '暂时无法检查本次扫描结果，请重试。'
       setAccountMessage(message)
-      setHandoffState({ status: 'error', message })
+      setHandoffState({ status: 'error', message, issueCode })
+    } finally {
+      if (readRef.current === controller) readRef.current = null
     }
   }
 

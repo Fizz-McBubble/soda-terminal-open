@@ -5,6 +5,7 @@ import { createPrepareChecks } from './scannerPrepareChecks'
 
 export function PrepareChecklist({
   snapshot,
+  diagnosticFeedback,
   actionPending = false,
   eyebrow,
   title,
@@ -20,6 +21,7 @@ export function PrepareChecklist({
   onRevoke,
 }: {
   snapshot: ScannerAssistantSnapshot
+  diagnosticFeedback?: ReactNode
   actionPending?: boolean
   eyebrow: string
   title: string
@@ -55,7 +57,7 @@ export function PrepareChecklist({
 
   return (
     <section
-      className={`scanner-prepare scanner-prepare--${checksReady && targetReady ? 'ready' : checking ? 'checking' : waitingForPlayer ? 'prompt' : 'blocked'}${snapshot.state === 'connection_failed' ? ' scanner-prepare--connection-failed' : ''}`}
+      className={`scanner-prepare scanner-prepare--${checksReady && targetReady ? 'ready' : checking ? 'checking' : waitingForPlayer ? 'prompt' : 'blocked'}${snapshot.state === 'connection_failed' ? ' scanner-prepare--connection-failed' : ''}${diagnosticFeedback ? ' scanner-prepare--with-feedback' : ''}`}
       aria-labelledby="scanner-stage-heading"
       data-prepare-gate={startReady ? 'ready' : 'blocked'}
     >
@@ -101,6 +103,10 @@ export function PrepareChecklist({
         </button>
         {installer}
       </div>
+
+      {diagnosticFeedback ? (
+        <div className="scanner-prepare__feedback">{diagnosticFeedback}</div>
+      ) : null}
 
       <section className="scanner-prepare__details" aria-label="本机准备条件">
         <h3>本机准备条件</h3>

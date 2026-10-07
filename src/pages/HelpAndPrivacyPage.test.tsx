@@ -2,10 +2,15 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, expect, it, vi } from 'vitest'
 import { HelpAndPrivacyPage } from './HelpAndPrivacyPage'
+import { saveLastScanDiagnostic } from '../scanner/scanFeedback'
+import { sanitizeScanDiagnostic } from '../scanner/diagnostics'
 import userEvent from '@testing-library/user-event'
 import { choosePlayerSelect } from '../testing/choosePlayerSelect'
 
-afterEach(() => vi.restoreAllMocks())
+afterEach(() => {
+  vi.restoreAllMocks()
+  localStorage.clear()
+})
 
 it('opens the public feedback Issues and copies only selected, non-account diagnostic fields', async () => {
   const writeText = vi.fn().mockResolvedValue(undefined)
@@ -72,4 +77,28 @@ it('leaves expanded diagnostic text available when clipboard access fails', asyn
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('复制失败'))
   expect(screen.getByLabelText('简要诊断内容')).toBeVisible()
   expect(screen.getByLabelText('简要诊断内容')).toHaveAttribute('tabindex', '0')
+})
+
+it('offers the sanitized last failed scan directly on the Help page without requiring external contact', async () => {
+  const report = sanitizeScanDiagnostic({
+    schema: 1,
+    reportId: crypto.randomUUID(),
+    release: 'test',
+    outcome: 'failed',
+    code: 'panel_capture_timeout',
+    stage: 'capture',
+    counts: { processed: 3, total: null },
+  })!
+  saveLastScanDiagnostic(report)
+  render(
+    <MemoryRouter>
+      <HelpAndPrivacyPage />
+    </MemoryRouter>,
+  )
+  expect(screen.getByText('上次扫描遇到问题？可在这里反馈。')).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: '反馈此问题' })).toBeEnabled()
+  expect(screen.getByLabelText('扫描技术诊断内容')).not.toBeVisible()
+  fireEvent.click(screen.getByText('查看诊断信息'))
+  expect(screen.getByLabelText('扫描技术诊断内容')).toHaveTextContent(report.reportId)
+  expect(screen.getByText(/Cloudflare/)).toHaveTextContent('保存 30 天')
 })

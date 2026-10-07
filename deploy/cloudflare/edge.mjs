@@ -1,5 +1,6 @@
 /** Cloudflare edge only. No solver, player storage, or Railway fallback. */
 import reviewed32MediaUrls from '../../src/assets/reviewed32-media-urls.json' with { type: 'json' }
+import { createScanFeedbackReceiver } from './scan-feedback.mjs'
 
 const reviewedImageUrls = new Set(Object.values(reviewed32MediaUrls))
 const sources = [
@@ -56,7 +57,7 @@ function reserved(path) {
     return true
   }
 }
-const usageOrigin = 'https://app.sodaterminal.workers.dev'
+const usageOrigins = new Set(['https://app.sodaterminal.workers.dev', 'https://sodaterminal.com'])
 const usagePageCategories = new Set([
   'home',
   'assets',
@@ -160,12 +161,25 @@ export function createEdge({
   usageLogsPerMinute = 120,
   usageLogger = (record) => console.log(record),
   now = Date.now,
+  feedbackTimeoutMs = 2_000,
+  feedbackKvTimeoutMs = 2_000,
+  feedbackConcurrency = 4,
+  feedbackPerMinute = 60,
+  feedbackStore = undefined,
 } = {}) {
   // Per-isolate bound, NOT a global rate limit. At most 4 buffered images in this isolate.
   let active = 0
   let usageActive = 0
   let usageWindowStart = now()
   let usageLogs = 0
+  const feedbackReceiver = createScanFeedbackReceiver({
+    now,
+    timeoutMs: feedbackTimeoutMs,
+    kvTimeoutMs: feedbackKvTimeoutMs,
+    concurrency: feedbackConcurrency,
+    rateLimitPerMinute: feedbackPerMinute,
+    feedbackStore,
+  })
   return {
     async fetch(request, env) {
       const url = new URL(request.url)
@@ -176,15 +190,15 @@ export function createEdge({
           env.SODA_USAGE_STATISTICS !== 'enabled' ||
           typeof env.SODA_RELEASE_ID !== 'string' ||
           !/^[A-Za-z0-9._-]{8,80}$/u.test(env.SODA_RELEASE_ID ?? '') ||
-          env.SODA_PUBLIC_ORIGIN !== usageOrigin ||
-          url.origin !== usageOrigin
+          !usageOrigins.has(env.SODA_PUBLIC_ORIGIN) ||
+          !usageOrigins.has(url.origin)
         )
           return reply(404, 'Not found')
         if (request.method !== 'POST') return reply(405, 'Method not allowed', { allow: 'POST' })
         if (request.url.includes('?')) return reply(400, 'Invalid usage event')
         const site = request.headers.get('sec-fetch-site')
         if (
-          request.headers.get('origin') !== usageOrigin ||
+          request.headers.get('origin') !== url.origin ||
           (site !== null && site !== 'same-origin')
         )
           return reply(403, 'Forbidden')
@@ -219,6 +233,9 @@ export function createEdge({
         } finally {
           usageActive -= 1
         }
+      }
+      if (url.pathname === '/_soda/scan-feedback') {
+        return feedbackReceiver(request, env)
       }
       if (url.pathname === '/_soda/health') {
         if (!['GET', 'HEAD'].includes(request.method)) return reply(405, 'Method not allowed')

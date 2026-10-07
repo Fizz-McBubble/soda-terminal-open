@@ -6,6 +6,7 @@ import {
   materializeScannerDistribution,
   validatePublicOrigin,
 } from '../../scripts/materialize-scanner-distribution.mjs'
+import scanFeedbackContract from '../../src/scanner/scanFeedback.contract.json' with { type: 'json' }
 
 export const wranglerVersion = '4.141.0'
 const here = dirname(fileURLToPath(import.meta.url))
@@ -219,13 +220,36 @@ export async function prepare({
   name = 'app',
   origin,
   usageStatistics = false,
+  scanFeedback = false,
+  scanFeedbackNamespaceId,
+  customDomain,
 }) {
   if (!dist || !out) throw new Error('dist_and_out_required')
   if (!/^[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/u.test(name)) throw new Error('worker_name_invalid')
   if (accountId && !/^[a-f0-9]{32}$/u.test(accountId)) throw new Error('account_id_invalid')
   if (typeof usageStatistics !== 'boolean') throw new Error('usage_statistics_flag_invalid')
-  if (usageStatistics && origin !== 'https://app.sodaterminal.workers.dev')
+  if (
+    usageStatistics &&
+    !['https://app.sodaterminal.workers.dev', 'https://sodaterminal.com'].includes(origin)
+  )
     throw new Error('usage_statistics_requires_production_origin')
+  if (typeof scanFeedback !== 'boolean') throw new Error('scan_feedback_flag_invalid')
+  if (scanFeedback) {
+    if (
+      typeof scanFeedbackNamespaceId !== 'string' ||
+      !/^[a-f0-9]{32}$/u.test(scanFeedbackNamespaceId)
+    )
+      throw new Error('scan_feedback_namespace_id_invalid')
+    if (!scanFeedbackContract.origins.includes(origin))
+      throw new Error('scan_feedback_requires_allowed_origin')
+  } else if (scanFeedbackNamespaceId !== undefined) {
+    throw new Error('scan_feedback_flag_required_with_namespace_id')
+  }
+  if (
+    customDomain !== undefined &&
+    (customDomain !== 'sodaterminal.com' || origin !== `https://${customDomain}`)
+  )
+    throw new Error('custom_domain_requires_approved_origin')
   const input = resolve(dist),
     output = resolve(out)
   if (within(output, input) || within(input, output) || within(output, here))
@@ -236,11 +260,22 @@ export async function prepare({
   const config = JSON.parse(await readFile(resolve(here, 'wrangler.template.json'), 'utf8'))
   const staticHeaders = await readFile(resolve(here, 'static-headers.txt'), 'utf8')
   config.name = name
+  if (customDomain) config.routes = [{ pattern: customDomain, custom_domain: true }]
   if (accountId) config.account_id = accountId
   config.vars = { SODA_RELEASE_ID: report.releaseId }
   if (usageStatistics) {
     config.vars.SODA_USAGE_STATISTICS = 'enabled'
     config.vars.SODA_PUBLIC_ORIGIN = origin
+  }
+  if (scanFeedback) {
+    config.vars.SODA_SCAN_FEEDBACK = 'enabled'
+    config.vars.SODA_PUBLIC_ORIGIN = origin
+    config.kv_namespaces = [
+      {
+        binding: scanFeedbackContract.storageBinding,
+        id: scanFeedbackNamespaceId,
+      },
+    ]
   }
   config.observability = {
     enabled: usageStatistics,
@@ -277,8 +312,13 @@ export async function prepare({
       sourceInventorySha256: report.inventorySha256,
       staticHeadersSha256: hash(staticHeaders),
     }
-    // Preserve module-relative imports and copy only the edge's reviewed policy dependency.
-    for (const path of ['deploy/cloudflare/edge.mjs', 'src/assets/reviewed32-media-urls.json']) {
+    // Preserve module-relative imports and copy only the edge's reviewed policy and scanner contract dependencies.
+    for (const path of [
+      'deploy/cloudflare/edge.mjs',
+      'deploy/cloudflare/scan-feedback.mjs',
+      'src/assets/reviewed32-media-urls.json',
+      'src/scanner/scanFeedback.contract.json',
+    ]) {
       await mkdir(dirname(resolve(output, path)), { recursive: true })
       await cp(resolve(here, '../..', path), resolve(output, path), {
         errorOnExist: true,
@@ -328,15 +368,38 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
         i += 1
         continue
       }
+      if (args[i] === '--scan-feedback') {
+        if (options.scanFeedback) throw new Error('duplicate_scan_feedback_flag')
+        options.scanFeedback = true
+        i += 1
+        continue
+      }
+      if (args[i] === '--scan-feedback-namespace-id') {
+        if (options.scanFeedbackNamespaceId)
+          throw new Error('duplicate_scan_feedback_namespace_id_flag')
+        if (!args[i + 1] || args[i + 1].startsWith('--'))
+          throw new Error('scan_feedback_namespace_id_missing')
+        options.scanFeedbackNamespaceId = args[i + 1]
+        i += 2
+        continue
+      }
       if (
-        !['--dist', '--out', '--account-id', '--name', '--origin'].includes(args[i]) ||
+        !['--dist', '--out', '--account-id', '--name', '--origin', '--custom-domain'].includes(
+          args[i],
+        ) ||
         !args[i + 1] ||
         args[i + 1].startsWith('--')
       )
         throw new Error(
-          'usage: --dist <browser-dist> --out <new-directory> [--account-id <id>] [--name <name>] [--origin <https-origin>] [--usage-statistics]',
+          'usage: --dist <browser-dist> --out <new-directory> [--account-id <id>] [--name <name>] [--origin <https-origin>] [--usage-statistics] [--custom-domain sodaterminal.com] [--scan-feedback] [--scan-feedback-namespace-id <32-hex-id>]',
         )
-      options[args[i] === '--account-id' ? 'accountId' : args[i].slice(2)] = args[i + 1]
+      const key =
+        args[i] === '--account-id'
+          ? 'accountId'
+          : args[i] === '--custom-domain'
+            ? 'customDomain'
+            : args[i].slice(2)
+      options[key] = args[i + 1]
       i += 2
     }
     const report = await prepare(options)

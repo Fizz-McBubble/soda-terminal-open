@@ -1,8 +1,12 @@
+import type { ScannerAssistantCommands } from './runtimeCommands'
+export type { ScannerAssistantCommands } from './runtimeCommands'
 import { useEffect, useMemo, useState } from 'react'
 import type { ScannerDistributionSnapshot } from './distribution'
+import type { ScannerAttemptDiagnostics } from './diagnostics'
 import { connectingSnapshot, createDevSnapshot, failedSnapshot } from './runtimeSnapshots'
 import { resolveScannerHelperSessionToken } from './scannerSessionToken'
 import { createDevelopmentScannerCommands } from './runtimeDevelopmentCommands'
+import { readScannerResultWithDeadline } from './resultRead'
 
 export type ScannerAssistantState =
   | 'unchecked'
@@ -73,30 +77,8 @@ export type ScannerAssistantSnapshot = {
     diagnosticCode?: string
   }
   distribution?: ScannerDistributionSnapshot
-}
-
-export type ScannerAssistantCommands = {
-  openHelper(launchImmediately?: boolean): Promise<void>
-  retryConnection(): Promise<void>
-  startScan(): Promise<void>
-  safeStop(): Promise<void>
-  revokePairing(): Promise<void>
-  requestResultFile(): Promise<{
-    resultFileHandle: string
-    resultStatus: string
-    accountWriteEnabled: false
-  }>
-  requestResultStaging(resultFileHandle: string): Promise<unknown>
-  requestResultEvidence(
-    resultFileHandle: string,
-    itemId: string,
-  ): Promise<{
-    availability: 'available'
-    detailSrc: string
-    cardSrc: string
-    visualDetailHash: string
-    revoke(): void
-  }>
+  /** Per-attempt, allowlisted technical facts from Helper; no raw log or account data. */
+  diagnostics?: ScannerAttemptDiagnostics
 }
 
 export function createScannerAssistantRuntime(
@@ -111,6 +93,7 @@ export function createScannerAssistantRuntime(
     maxReconnectAttempts?: number
     deferInitialConnection?: boolean
     launchProtocol?: (uri: string) => void
+    resultRequestTimeoutMs?: number
   } = {},
 ) {
   const baseUrl = options.baseUrl ?? 'http://127.0.0.1:43127'
@@ -226,8 +209,9 @@ export function createScannerAssistantRuntime(
     if (activeSubscription && token) connectEvents(activeSubscription, token)
   }
 
-  async function verifyNativeHelper() {
-    const response = await fetchImpl(`${baseUrl}/`)
+  async function verifyNativeHelper(signal?: AbortSignal) {
+    signal?.throwIfAborted()
+    const response = await fetchImpl(`${baseUrl}/`, signal ? { signal } : undefined)
     const identity = response.ok ? await response.json() : null
     if (
       !identity ||
@@ -259,15 +243,19 @@ export function createScannerAssistantRuntime(
     return token
   }
 
-  async function command(path: string, method = 'POST') {
-    await verifyNativeHelper()
+  async function command(path: string, method = 'POST', signal?: AbortSignal) {
+    await verifyNativeHelper(signal)
+    signal?.throwIfAborted()
     await ensureSessionToken()
+    signal?.throwIfAborted()
     const request = () =>
       fetchImpl(`${baseUrl}${path}`, {
         method,
         headers: { 'X-Soda-Scanner-Token': token },
+        ...(signal ? { signal } : {}),
       })
     let response = await request()
+    signal?.throwIfAborted()
     if (response.status === 401) {
       // Restarted native helpers issue a new session. A rejected request has not
       // entered the authenticated command handler, so retry it once after renewal.
@@ -275,11 +263,21 @@ export function createScannerAssistantRuntime(
       tokenResolved = false
       nativeIdentityVerified = false
       await ensureSessionToken()
+      signal?.throwIfAborted()
       response = await request()
+      signal?.throwIfAborted()
       if (response.ok) reconnectActiveSubscription()
     }
     if (!response.ok) throw new Error(`helper_request_failed_${response.status}`)
     return response.json()
+  }
+
+  async function readResult(path: string, method: string, signal?: AbortSignal) {
+    return readScannerResultWithDeadline(
+      (readSignal) => command(path, method, readSignal),
+      signal,
+      options.resultRequestTimeoutMs,
+    )
   }
 
   async function readAuthenticatedImage(path: string) {
@@ -419,15 +417,15 @@ export function createScannerAssistantRuntime(
         activeSubscription?.abort?.abort()
         activeSubscription?.listener(failedSnapshot)
       },
-      async requestResultFile() {
-        return command('/api/result') as Promise<{
+      async requestResultFile(signal?: AbortSignal) {
+        return readResult('/api/result', 'POST', signal) as Promise<{
           resultFileHandle: string
           resultStatus: string
           accountWriteEnabled: false
         }>
       },
-      async requestResultStaging(resultFileHandle) {
-        return command(`/api/result/${encodeURIComponent(resultFileHandle)}`, 'GET')
+      async requestResultStaging(resultFileHandle, signal?: AbortSignal) {
+        return readResult(`/api/result/${encodeURIComponent(resultFileHandle)}`, 'GET', signal)
       },
       async requestResultEvidence(resultFileHandle, itemId) {
         const projection = (await command(

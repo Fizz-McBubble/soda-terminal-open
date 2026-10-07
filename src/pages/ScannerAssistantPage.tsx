@@ -4,6 +4,8 @@ import { F5ScannerGoldenView } from '../components/F5GoldenViews'
 import { assessScannerAssistantInput } from '../scanner/assistant'
 import { initialDistributionSnapshot, scannerDistributionManifest } from '../scanner/distribution'
 import { useScannerAssistantRuntime } from '../scanner/runtime'
+import { useScannerFailureDiagnostic } from '../scanner/scanFeedback'
+import { ScannerDiagnosticFeedback } from './ScannerDiagnosticFeedback'
 import { ScannerAccountGate, type ScannerAccounts } from './ScannerAccountHydrationGate'
 import {
   completedScannerImportKey,
@@ -75,7 +77,19 @@ function HydratedScannerAssistantPage({
   )
   const targetReady = Boolean(selectedAccount)
   const completedImportCount =
-    completedImport && completedImport.accountId === selectedAccount?.id
+    completedImport &&
+    completedImport.accountId === selectedAccount?.id &&
+    !['checking', 'awaiting_elevation', 'scanning', 'paused'].includes(snapshot.state) &&
+    !(
+      completedImport.attemptReportId &&
+      snapshot.diagnostics?.reportId &&
+      completedImport.attemptReportId !== snapshot.diagnostics.reportId
+    ) &&
+    !(
+      completedImport.resultFileHandle &&
+      snapshot.summary?.resultFileHandle &&
+      completedImport.resultFileHandle !== snapshot.summary.resultFileHandle
+    )
       ? completedImport.count
       : null
 
@@ -165,13 +179,45 @@ function HydratedScannerAssistantPage({
     },
   })
 
+  const failureDiagnostic = useScannerFailureDiagnostic(
+    snapshot,
+    handoffState.status === 'error'
+      ? (handoffState.issueCode ?? 'scan_import_handoff_failed')
+      : actionFeedback
+        ? 'scanner_failure'
+        : null,
+  )
+  const jsonReadRef = useRef(0)
+  useEffect(() => {
+    if (['checking', 'awaiting_elevation', 'scanning', 'paused'].includes(snapshot.state))
+      jsonReadRef.current += 1
+    return () => {
+      jsonReadRef.current += 1
+    }
+  }, [snapshot.state, snapshot.diagnostics?.reportId, snapshot.summary?.resultFileHandle])
+
   async function inspectJson(file: File | undefined) {
     if (!file) return
+    const requestId = ++jsonReadRef.current
     setSelectedJson(null)
-    const text = await file.text()
-    const next = assessScannerAssistantInput({ kind: 'json', name: file.name, text })
-    setAssessment(next)
-    if (next.canHandOff) setSelectedJson(file)
+    try {
+      const text = await file.text()
+      if (requestId !== jsonReadRef.current) return
+      const next = assessScannerAssistantInput({ kind: 'json', name: file.name, text })
+      setAssessment(next)
+      if (next.canHandOff) {
+        setSelectedJson(file)
+        setHandoffState({ status: 'idle' })
+      } else
+        setHandoffState({ status: 'error', message: next.message, issueCode: 'scan_file_invalid' })
+    } catch {
+      if (requestId !== jsonReadRef.current) return
+      setHandoffState({
+        status: 'error',
+        message: '无法读取这份文件，请重新选择有效的扫描结果文件（JSON）。',
+        issueCode: 'scan_file_invalid',
+      })
+    }
   }
 
   const stateCopy = useMemo(
@@ -253,7 +299,7 @@ function HydratedScannerAssistantPage({
       ? 0
       : inlineImportOpen
         ? 2
-        : completedImportCount !== null
+        : showImportComplete
           ? 3
           : snapshot.state === 'completed'
             ? 2
@@ -297,6 +343,10 @@ function HydratedScannerAssistantPage({
             </div>
           </header>
           <ScannerJourneyCards currentStep={journeyStep} />
+          <p className="scanner-task__platform-support">
+            本机扫描仅支持 Windows 版《绝区零》；Mac 和云·绝区零不支持扫描。已有扫描结果可通过 JSON
+            文件导入。
+          </p>
           <ScannerPrepareSection
             showImportComplete={showImportComplete}
             importedThisVisit={importedThisVisit}
@@ -306,6 +356,14 @@ function HydratedScannerAssistantPage({
             onReturnToTargetSelection={() => void returnToTargetSelection()}
             actionFeedback={actionFeedback}
             snapshot={snapshot}
+            diagnosticFeedback={
+              (snapshot.state !== 'completed' ||
+                preparingNewScan ||
+                restartingAfterCompletedResult) &&
+              failureDiagnostic ? (
+                <ScannerDiagnosticFeedback report={failureDiagnostic} />
+              ) : null
+            }
             restartingAfterCompletedResult={restartingAfterCompletedResult}
             preparingNewScan={preparingNewScan}
             inlineImportOpen={inlineImportOpen}
@@ -343,6 +401,7 @@ function HydratedScannerAssistantPage({
 
           {!showImportComplete &&
           (snapshot.state === 'completed' || inlineImportOpen) &&
+          !['scanning', 'paused', 'checking', 'awaiting_elevation'].includes(snapshot.state) &&
           !restartingAfterCompletedResult &&
           !preparingNewScan ? (
             <ScannerHandoffSection
@@ -361,6 +420,10 @@ function HydratedScannerAssistantPage({
               onSetNewAccountName={setNewAccountName}
               onCreateTargetAccount={() => void createTargetAccount()}
               handoffState={handoffState}
+              diagnosticFeedback={<ScannerDiagnosticFeedback report={failureDiagnostic} />}
+              onImportError={(issueCode, message) =>
+                setHandoffState({ status: 'error', message, issueCode })
+              }
               discardDraftConfirmationOpen={discardDraftConfirmationOpen}
               onSelectAccountId={(accountId) => {
                 setSelectedAccountId(accountId)
@@ -369,7 +432,12 @@ function HydratedScannerAssistantPage({
               }}
               onReturnToTargetSelection={() => void returnToTargetSelection()}
               onImportSuccess={(imported) => {
-                const next = { count: imported, accountId: selectedAccount?.id ?? '' }
+                const next = {
+                  count: imported,
+                  accountId: selectedAccount?.id ?? '',
+                  attemptReportId: snapshot.diagnostics?.reportId,
+                  resultFileHandle: snapshot.summary?.resultFileHandle,
+                }
                 window.localStorage.setItem(completedScannerImportKey, JSON.stringify(next))
                 setImportedThisVisit(true)
                 setCompletedImport(next)
@@ -388,12 +456,16 @@ function HydratedScannerAssistantPage({
 
           {!showImportComplete &&
           !inlineImportOpen &&
-          (snapshot.state === 'connection_failed' ||
-            (selectedJson !== null && !['scanning', 'completed'].includes(snapshot.state))) ? (
+          !['scanning', 'paused', 'checking', 'awaiting_elevation'].includes(snapshot.state) &&
+          (snapshot.state !== 'completed' ||
+            preparingNewScan ||
+            restartingAfterCompletedResult ||
+            handoffState.status === 'error') ? (
             <ScannerFallbackJsonSection
               selectedJson={selectedJson}
               assessment={assessment}
               targetReady={targetReady}
+              busy={handoffState.status === 'working'}
               onInspectJson={(file) => void inspectJson(file)}
               onHandOffFallbackJson={() => void handOffFallbackJson()}
             />

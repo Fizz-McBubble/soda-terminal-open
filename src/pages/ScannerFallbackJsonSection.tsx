@@ -7,12 +7,14 @@ export function ScannerFallbackJsonSection({
   selectedJson,
   assessment,
   targetReady,
+  busy = false,
   onInspectJson,
   onHandOffFallbackJson,
 }: {
   selectedJson: File | null
   assessment: ReturnType<typeof assessScannerAssistantInput>
   targetReady: boolean
+  busy?: boolean
   onInspectJson: (file: File | undefined) => void
   onHandOffFallbackJson: () => void
 }) {
@@ -26,11 +28,12 @@ export function ScannerFallbackJsonSection({
       <FileJson aria-hidden="true" size={18} />
       <span>
         <strong id="scanner-json-recovery-heading">已有扫描结果文件？</strong>
-        <small>仅在本机助手不可用时使用</small>
+        <small>可使用本机已有的 JSON，检查后再确认导入</small>
       </span>
       <button
         className="button button--quiet scanner-web__file-picker"
         type="button"
+        disabled={busy}
         onClick={() => inputRef.current?.click()}
       >
         <Upload aria-hidden="true" size={18} />
@@ -60,7 +63,7 @@ export function ScannerFallbackJsonSection({
           <button
             className="button button--quiet"
             type="button"
-            disabled={!targetReady}
+            disabled={!targetReady || busy}
             onClick={onHandOffFallbackJson}
           >
             继续检查并导入

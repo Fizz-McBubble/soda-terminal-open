@@ -32,11 +32,13 @@ export function FormalDiscImportPage({
   embedded = false,
   compact = false,
   onImportSuccess,
+  onError,
   secondaryAction,
 }: {
   embedded?: boolean
   compact?: boolean
   onImportSuccess?: (imported: number) => void
+  onError?: (issueCode: 'scan_import_failed' | 'scan_file_invalid', message: string) => void
   secondaryAction?: ReactNode
 } = {}) {
   const searchParams = new URLSearchParams(window.location.search)
@@ -166,6 +168,7 @@ export function FormalDiscImportPage({
     if (!file || !current || 'bindingError' in current) return
     if (!file.name.toLowerCase().endsWith('.json')) {
       setState({ mode: 'error', message: '请选择 .json 格式的 扫描结果。' })
+      onError?.('scan_file_invalid', '请选择 .json 格式的扫描结果。')
       return
     }
     setBusy(true)
@@ -183,6 +186,7 @@ export function FormalDiscImportPage({
       })
       setRevision((value) => value + 1)
     } catch (error) {
+      onError?.('scan_file_invalid', '无法载入这份扫描结果，请重新选择有效的 JSON 文件。')
       setState({
         mode: 'error',
         message: error instanceof Error ? error.message : '无法载入识别结果。',
@@ -210,6 +214,8 @@ export function FormalDiscImportPage({
         database,
         current.batch.reviewState.revision,
       )
+      if (!result.complete)
+        onError?.('scan_import_failed', '检查未通过，请返回准备步骤重新扫描；账户仓库尚未更新。')
       setState({
         mode: result.complete ? 'success' : 'error',
         message: result.complete
@@ -218,6 +224,7 @@ export function FormalDiscImportPage({
       })
       setRevision((value) => value + 1)
     } catch (error) {
+      onError?.('scan_import_failed', '重新检查失败，请重试；账户仓库尚未更新。')
       setState({
         mode: 'error',
         message: error instanceof Error ? error.message : '重新检查失败。',
@@ -271,6 +278,7 @@ export function FormalDiscImportPage({
       setRevision((value) => value + 1)
     } catch (error) {
       finishUsage('failure')
+      onError?.('scan_import_failed', '更新失败，请重试或返回准备步骤；账户仓库未改动。')
       closeConfirmation()
       setState({
         mode: 'error',

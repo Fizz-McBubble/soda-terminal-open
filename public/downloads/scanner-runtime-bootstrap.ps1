@@ -33,11 +33,17 @@ function Read-SodaRuntimeManifest {
     if ($manifest.schemaVersion -ne 1 -or [string]::IsNullOrWhiteSpace($manifest.runtimeVersion)) {
         throw 'release_manifest_invalid'
     }
-    $pinnedAsset = 'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.1/soda-scanner-runtime-18-rc8-1-win-x64.zip'
+    $pinnedAssets = @(
+        'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.2/soda-scanner-runtime-18-rc8-2-win-x64.zip',
+        'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.3/soda-scanner-runtime-18-rc8-3-win-x64.zip'
+    )
     $sameOrigin = $manifest.assetUrl -ceq ('/downloads/' + $manifest.assetName)
-    $pinnedGitHub = $manifest.assetUrl -ceq $pinnedAsset -and
-        $manifest.assetName -ceq 'soda-scanner-runtime-18-rc8-1-win-x64.zip' -and
-        $manifest.releaseTag -ceq 'scanner-runtime-v18.0.0-rc.8.1'
+    $pinnedGitHub = ($manifest.assetUrl -ceq $pinnedAssets[0] -and
+        $manifest.assetName -ceq 'soda-scanner-runtime-18-rc8-2-win-x64.zip' -and
+        $manifest.releaseTag -ceq 'scanner-runtime-v18.0.0-rc.8.2') -or
+        ($manifest.assetUrl -ceq $pinnedAssets[1] -and
+        $manifest.assetName -ceq 'soda-scanner-runtime-18-rc8-3-win-x64.zip' -and
+        $manifest.releaseTag -ceq 'scanner-runtime-v18.0.0-rc.8.3')
     if ($manifest.assetName -notmatch '^[a-zA-Z0-9._-]+\.zip$' -or
         -not ($sameOrigin -or $pinnedGitHub)) {
         throw 'release_manifest_asset_url_invalid'
@@ -56,13 +62,16 @@ function Read-SodaRuntimeManifest {
 
 function Assert-SodaRuntimeTrustedDownloadUri {
     param([Parameter(Mandatory = $true)][System.Uri]$Uri)
-    $pinnedAsset = 'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.1/soda-scanner-runtime-18-rc8-1-win-x64.zip'
+    $pinnedAssets = @(
+        'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.2/soda-scanner-runtime-18-rc8-2-win-x64.zip',
+        'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.3/soda-scanner-runtime-18-rc8-3-win-x64.zip'
+    )
     if ($Uri.Scheme -cne 'https' -or -not $Uri.IsDefaultPort -or $Uri.UserInfo -ne '' -or
         $Uri.Fragment -ne '' -or
         ($Uri.Host -cne 'github.com' -and $Uri.Host -cne 'release-assets.githubusercontent.com')) {
         throw 'scanner_asset_redirect_untrusted'
     }
-    if ($Uri.Host -ceq 'github.com' -and $Uri.AbsoluteUri -cne $pinnedAsset) {
+    if ($Uri.Host -ceq 'github.com' -and ($Uri.AbsoluteUri -cnotin $pinnedAssets)) {
         throw 'scanner_asset_redirect_untrusted'
     }
 }
@@ -139,9 +148,12 @@ function Copy-SodaRuntimeAsset {
             $origin.UserInfo -ne '' -or $PublicOrigin.TrimEnd('/') -cne $origin.GetLeftPart([System.UriPartial]::Authority)) {
             throw 'scanner_public_origin_invalid'
         }
-        $pinnedAsset = 'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.1/soda-scanner-runtime-18-rc8-1-win-x64.zip'
-        $externalAsset = $Manifest.assetUrl -ceq $pinnedAsset
-        $assetUri = if ($externalAsset) { [System.Uri]::new($pinnedAsset) } else { [System.Uri]::new($origin, $Manifest.assetUrl) }
+        $pinnedAssets = @(
+            'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.2/soda-scanner-runtime-18-rc8-2-win-x64.zip',
+            'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.3/soda-scanner-runtime-18-rc8-3-win-x64.zip'
+        )
+        $externalAsset = $pinnedAssets -ccontains $Manifest.assetUrl
+        $assetUri = if ($externalAsset) { [System.Uri]::new($Manifest.assetUrl) } else { [System.Uri]::new($origin, $Manifest.assetUrl) }
         if (-not $externalAsset -and $assetUri.GetLeftPart([System.UriPartial]::Authority) -cne $origin.GetLeftPart([System.UriPartial]::Authority)) {
             throw 'scanner_asset_cross_origin'
         }
@@ -323,6 +335,17 @@ function Test-SodaRuntimeHealth {
     }
 }
 
+function Test-SodaPublicOriginConfiguration {
+    param([string]$Configuration, [string]$PublicOrigin)
+    if ([string]::IsNullOrWhiteSpace($Configuration)) { return $false }
+    $origins = @($Configuration.TrimEnd([char[]]"`r`n").Split("`n") | ForEach-Object { $_.TrimEnd("`r") })
+    $allowed = @('https://app.sodaterminal.workers.dev', 'https://sodaterminal.com')
+    if ($origins.Count -lt 1 -or $origins.Count -gt 2 -or
+        @($origins | Sort-Object -Unique).Count -ne $origins.Count -or
+        @($origins | Where-Object { $_ -cnotin $allowed }).Count -ne 0) { return $false }
+    return $PublicOrigin -cin $origins
+}
+
 function Ensure-SodaProtocolRegistration {
     param(
         [Parameter(Mandatory = $true)][string]$Helper,
@@ -330,6 +353,12 @@ function Ensure-SodaProtocolRegistration {
         [Parameter(Mandatory = $true)][string]$PublicOrigin
     )
 
+    $originSource = Join-Path (Split-Path -Path $Helper -Parent) 'scanner-public-origin.txt'
+    if (-not (Test-Path -LiteralPath $originSource -PathType Leaf)) { throw 'runtime_public_origin_mismatch' }
+    $originConfiguration = Get-Content -LiteralPath $originSource -Raw -Encoding UTF8
+    if (-not (Test-SodaPublicOriginConfiguration -Configuration $originConfiguration -PublicOrigin $PublicOrigin)) {
+        throw 'runtime_public_origin_mismatch'
+    }
     $expectedFileVersion = (Get-Item -LiteralPath $Helper).VersionInfo.FileVersion
     $expectedHash = Get-SodaRuntimeSha256 -Path $Helper
     $bootstrapRoot = Join-Path $InstallRoot 'helper-bootstrap'
@@ -339,7 +368,7 @@ function Ensure-SodaProtocolRegistration {
     if ((Get-SodaRuntimeSha256 -Path $bootstrapHelper) -cne $expectedHash) {
         throw 'runtime_protocol_bootstrap_copy_mismatch'
     }
-    $process = Start-Process -FilePath $bootstrapHelper -ArgumentList '--install-protocol' -PassThru
+    $process = Start-Process -FilePath $bootstrapHelper -ArgumentList '--install-protocol' -PassThru -WindowStyle Hidden
     try {
         if (-not $process.WaitForExit(120000)) {
             $process.Kill()
@@ -353,14 +382,9 @@ function Ensure-SodaProtocolRegistration {
         Join-Path $env:LOCALAPPDATA 'SodaTerminal\Scanner'
     } else { $env:ZZZ_SCANNER_DATA_ROOT }
     $managedHelper = [IO.Path]::GetFullPath((Join-Path $managedRoot 'helper\ZZZ-Scanner-Helper.exe'))
-    $originSource = Join-Path (Split-Path -Path $Helper -Parent) 'scanner-public-origin.txt'
-    if (-not (Test-Path -LiteralPath $originSource -PathType Leaf) -or
-        (Get-Content -LiteralPath $originSource -Raw -Encoding UTF8).Trim() -cne $PublicOrigin) {
-        throw 'runtime_public_origin_mismatch'
-    }
     $originTarget = Join-Path (Split-Path -Path $managedHelper -Parent) 'scanner-public-origin.txt'
     [IO.File]::Copy($originSource, $originTarget, $true)
-    if ((Get-Content -LiteralPath $originTarget -Raw -Encoding UTF8).Trim() -cne $PublicOrigin) {
+    if ((Get-Content -LiteralPath $originTarget -Raw -Encoding UTF8) -cne $originConfiguration) {
         throw 'runtime_managed_origin_copy_mismatch'
     }
     $expectedCommand = '"' + $managedHelper + '" "%1"'

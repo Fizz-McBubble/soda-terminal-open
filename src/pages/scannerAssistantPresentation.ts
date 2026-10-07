@@ -33,4 +33,13 @@ export type HandoffState =
   | { status: 'idle' }
   | { status: 'working'; message: string }
   | { status: 'success'; message: string }
-  | { status: 'error'; message: string }
+  | {
+      status: 'error'
+      message: string
+      issueCode?:
+        | 'scan_result_timeout'
+        | 'scan_result_read_failed'
+        | 'scan_import_handoff_failed'
+        | 'scan_import_failed'
+        | 'scan_file_invalid'
+    }

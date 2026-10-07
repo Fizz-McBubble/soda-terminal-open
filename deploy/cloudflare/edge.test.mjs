@@ -39,6 +39,41 @@ function fixture(options = {}) {
   return { edge, logs }
 }
 
+test('both approved entry points collect only same-origin requests with either production binding', async () => {
+  const { edge, logs } = fixture()
+  const approved = [origin, 'https://sodaterminal.com']
+  for (const configured of approved) {
+    for (const entry of approved) {
+      const req = new Request(`${entry}/_soda/usage`, {
+        method: 'POST',
+        headers: {
+          origin: entry,
+          'content-type': 'application/json',
+          'sec-fetch-site': 'same-origin',
+        },
+        body: JSON.stringify(page),
+      })
+      const response = await edge.fetch(req, { ...env, SODA_PUBLIC_ORIGIN: configured })
+      assert.equal(response.status, 204)
+      assert.equal(response.headers.get('access-control-allow-origin'), null)
+      const foreign = new Request(`${entry}/_soda/usage`, {
+        method: 'POST',
+        headers: {
+          origin: approved.find((value) => value !== entry),
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify(page),
+      })
+      assert.equal(
+        (await edge.fetch(foreign, { ...env, SODA_PUBLIC_ORIGIN: configured })).status,
+        403,
+      )
+      assert.equal(foreign.bodyUsed, false)
+    }
+  }
+  assert.equal(logs.length, 4)
+})
+
 test('disabled, unbound and nonproduction collectors return 404 without reading bodies', async () => {
   const { edge, logs } = fixture()
   for (const overrides of [
@@ -59,6 +94,8 @@ test('disabled, unbound and nonproduction collectors return 404 without reading 
     'http://127.0.0.1:8787',
     'https://preview.invalid',
     'http://app.sodaterminal.workers.dev',
+    'http://sodaterminal.com',
+    'https://sodaterminal.com.evil.invalid',
   ]) {
     const req = new Request(`${host}/_soda/usage`, request())
     assert.equal((await edge.fetch(req, env)).status, 404)
@@ -252,4 +289,86 @@ test('old computation APIs remain 410 with collection enabled and no body consum
   assert.deepEqual(logs, [])
   for (const path of ['/_soda/usage/', '/_soda/%75sage', '/_soda/other'])
     assert.equal((await edge.fetch(request(page, {}, path), env)).status, 404)
+})
+
+test('scan-feedback edge route integrates before generic /_soda 404 and preserves existing routes', async () => {
+  const store = new Map()
+  const fakeKv = {
+    async get(key) {
+      return store.get(key) ?? null
+    },
+    async put(key, value) {
+      store.set(key, value)
+    },
+  }
+
+  const { edge } = fixture({ feedbackStore: fakeKv })
+  const feedbackReport = {
+    schema: 1,
+    reportId: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
+    release: env.SODA_RELEASE_ID,
+    outcome: 'failed',
+    stage: 'ocr',
+    code: 'ocr_worker_failed',
+    versions: {
+      helper: '1.0.49',
+      protocol: '1',
+      scanner: 'ZZZ-Scanner.Next-1.0.49-soda-r1',
+      runtime: 'soda-scanner-windows-x64-v1',
+      ocr: 'PP-OCRv6',
+    },
+    counts: { processed: 5, total: 100 },
+    durationMs: 12000,
+    environment: { browser: 'chrome', captureMode: 'dxgi' },
+    evidence: { attempts: 1, firstMissingRoi: 'subStat1' },
+  }
+
+  const feedbackEnv = {
+    ...env,
+    SODA_SCAN_FEEDBACK: 'enabled',
+    SODA_SCAN_FEEDBACK_STORE: fakeKv,
+  }
+
+  // 1. Success through edge route
+  const feedbackReq = new Request(`${origin}/_soda/scan-feedback`, {
+    method: 'POST',
+    headers: {
+      origin,
+      'content-type': 'application/json',
+      'sec-fetch-site': 'same-origin',
+    },
+    body: JSON.stringify(feedbackReport),
+  })
+  const res = await edge.fetch(feedbackReq, feedbackEnv)
+  assert.equal(res.status, 200)
+  const ack = await res.json()
+  assert.equal(ack.status, 'received')
+  assert.equal(ack.reportId, feedbackReport.reportId)
+  assert(store.has(feedbackReport.reportId))
+
+  // 2. Disabled feedback returns 404
+  const disabledReq = new Request(`${origin}/_soda/scan-feedback`, {
+    method: 'POST',
+    headers: { origin, 'content-type': 'application/json', 'sec-fetch-site': 'same-origin' },
+    body: JSON.stringify(feedbackReport),
+  })
+  assert.equal(
+    (await edge.fetch(disabledReq, { ...feedbackEnv, SODA_SCAN_FEEDBACK: undefined })).status,
+    404,
+  )
+
+  // 3. Other routes remain intact
+  const healthRes = await edge.fetch(new Request(`${origin}/_soda/health`), feedbackEnv)
+  assert.equal(healthRes.status, 200)
+  const healthJson = await healthRes.json()
+  assert.equal(healthJson.status, 'edge_ready')
+
+  const apiRes = await edge.fetch(new Request(`${origin}/api/calculation`), feedbackEnv)
+  assert.equal(apiRes.status, 410)
+
+  const usageRes = await edge.fetch(request(), feedbackEnv)
+  assert.equal(usageRes.status, 204)
+
+  const generic404 = await edge.fetch(new Request(`${origin}/_soda/unknown`), feedbackEnv)
+  assert.equal(generic404.status, 404)
 })

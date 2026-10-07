@@ -14,6 +14,8 @@ export function playerResultMessage(message: string) {
 export type CompletedScannerImport = {
   count: number
   accountId: string
+  attemptReportId?: string
+  resultFileHandle?: string
 }
 
 export function readCompletedScannerImport(): CompletedScannerImport | null {

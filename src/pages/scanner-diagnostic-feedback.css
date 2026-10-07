@@ -1,0 +1,57 @@
+.f5v-shell .scanner-task .scanner-task__platform-support {
+  margin: 8px 0 12px;
+  color: var(--f5-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.scanner-diagnostic-feedback {
+  margin-block: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--border-subtle, rgb(106 86 164 / 24%));
+  border-radius: 12px;
+  font-size: 13px;
+  min-width: 0;
+}
+.scanner-diagnostic-feedback summary {
+  cursor: pointer;
+}
+.scanner-diagnostic-feedback p {
+  margin-block: 8px;
+  line-height: 1.6;
+}
+.scanner-diagnostic-feedback__main {
+  display: flex;
+  align-items: center;
+  gap: 8px 12px;
+  flex-wrap: wrap;
+}
+.scanner-diagnostic-feedback__main p {
+  margin: 0;
+}
+.scanner-diagnostic-feedback__details {
+  margin-top: 10px;
+}
+.scanner-diagnostic-feedback__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.scanner-diagnostic-feedback pre {
+  max-height: 280px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 12px;
+}
+.f5v-shell .scanner-task .scanner-prepare--with-feedback .scanner-prepare__actions {
+  grid-column: 1;
+}
+.f5v-shell .scanner-task .scanner-prepare__feedback {
+  grid-column: 2;
+  grid-row: 2 / 4;
+  min-width: 0;
+  align-self: start;
+}
+.scanner-prepare__feedback > .scanner-diagnostic-feedback {
+  margin-block: 0;
+}

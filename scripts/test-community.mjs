@@ -14,6 +14,7 @@ const projectionTests = spawnSync(
     resolve(root, 'build/communitySourceProjection.node-test.mjs'),
     resolve(root, 'scripts/source-manifest.test.mjs'),
     resolve(root, 'deploy/cloudflare/edge.test.mjs'),
+    resolve(root, 'deploy/cloudflare/scan-feedback.test.mjs'),
     resolve(root, 'deploy/cloudflare/prepare.test.mjs'),
   ],
   {

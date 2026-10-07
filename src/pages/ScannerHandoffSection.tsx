@@ -25,6 +25,8 @@ export function ScannerHandoffSection({
   onSetNewAccountName,
   onCreateTargetAccount,
   handoffState,
+  diagnosticFeedback,
+  onImportError,
   discardDraftConfirmationOpen,
   onSelectAccountId,
   onReturnToTargetSelection,
@@ -52,6 +54,8 @@ export function ScannerHandoffSection({
   onSetNewAccountName?: (name: string) => void
   onCreateTargetAccount?: () => void
   handoffState: HandoffState
+  diagnosticFeedback?: React.ReactNode
+  onImportError?: (issueCode: 'scan_import_failed' | 'scan_file_invalid', message: string) => void
   discardDraftConfirmationOpen: boolean
   onSelectAccountId: (id: string) => void
   onReturnToTargetSelection: () => void
@@ -79,6 +83,7 @@ export function ScannerHandoffSection({
             </button>
           }
           onImportSuccess={onImportSuccess}
+          onError={onImportError}
         />
       ) : frozenTargetValidation.valid && resultEligibleForFormalReview ? (
         <section className="scanner-result-ready" aria-label="扫描结果与下一步">
@@ -109,10 +114,9 @@ export function ScannerHandoffSection({
               <button
                 className="button button--quiet"
                 type="button"
-                disabled={handoffState.status === 'working'}
                 onClick={onReturnToTargetSelection}
               >
-                放弃此结果并重新扫描
+                {handoffState.status === 'working' ? '取消读取并返回准备' : '放弃此结果并重新扫描'}
               </button>
             </div>
             <p>确认导入前不会更新账户仓库。</p>
@@ -167,10 +171,9 @@ export function ScannerHandoffSection({
             <button
               className="button button--quiet"
               type="button"
-              disabled={handoffState.status === 'working'}
               onClick={onReturnToTargetSelection}
             >
-              放弃此结果并重新扫描
+              {handoffState.status === 'working' ? '取消读取并返回准备' : '放弃此结果并重新扫描'}
             </button>
           </div>
           <p className="scanner-target-review__footnote">
@@ -242,10 +245,11 @@ export function ScannerHandoffSection({
                 <button
                   className="button button--quiet"
                   type="button"
-                  disabled={handoffState.status === 'working'}
                   onClick={onReturnToTargetSelection}
                 >
-                  放弃此结果并重新扫描
+                  {handoffState.status === 'working'
+                    ? '取消读取并返回准备'
+                    : '放弃此结果并重新扫描'}
                 </button>
               </>
             )}
@@ -257,6 +261,7 @@ export function ScannerHandoffSection({
           {playerResultMessage(handoffState.message)}
         </p>
       ) : null}
+      {handoffState.status === 'error' ? diagnosticFeedback : null}
       {handoffState.status === 'error' && handoffState.message.includes('不完整的同源识别结果') ? (
         <>
           <button

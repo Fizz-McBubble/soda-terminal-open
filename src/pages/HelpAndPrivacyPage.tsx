@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { PlayerSelect } from '../components/PlayerSelect'
+import { readLastScanDiagnostic } from '../scanner/scanFeedback'
+import { ScannerDiagnosticFeedback } from './ScannerDiagnosticFeedback'
 import { UsageStatisticsPreference } from '../usageStatistics/UsageStatistics'
 import './help-and-privacy.css'
 
@@ -25,6 +27,7 @@ function diagnosticText(stage: string) {
 export function HelpAndPrivacyPage() {
   const [stage, setStage] = useState<string>(diagnosticStages[0][1])
   const [copyState, setCopyState] = useState('')
+  const [lastScanDiagnostic] = useState(readLastScanDiagnostic)
 
   async function copyDiagnostic() {
     try {
@@ -57,6 +60,14 @@ export function HelpAndPrivacyPage() {
               在<Link to="/assets/account">我的资产 · 账户</Link>
               导出或恢复备份。清除站点数据、更换浏览器前，请先导出备份并妥善保管；恢复时须选择文件并确认。
             </p>
+            <p>
+              新入口为 <a href="https://sodaterminal.com">sodaterminal.com</a>。
+              浏览器按网址分别保存资料；若此前使用旧入口，请先在
+              <a href="https://app.sodaterminal.workers.dev/assets/account">旧入口的账户页</a>
+              导出备份，再到新入口的
+              <a href="https://sodaterminal.com/assets/account#restore-backup">账户页恢复备份</a>。
+              原资料仍留在旧入口，恢复前请检查备份内容。
+            </p>
             <UsageStatisticsPreference />
           </div>
         </section>
@@ -64,10 +75,20 @@ export function HelpAndPrivacyPage() {
           <h2 id="help-scanner-heading">本机扫描</h2>
           <div className="help-privacy__content">
             <p>
+              本机扫描仅支持 Windows 版《绝区零》；Mac 和云·绝区零不支持扫描。已有扫描结果可通过
+              JSON 文件导入。
+            </p>
+            <p>
               Windows
               扫描助手通过本机回环地址连接，读取可见的游戏画面。扫描结果须经你检查并确认导入，才会更新
               Soda 账户。
             </p>
+            {lastScanDiagnostic ? (
+              <>
+                <p>上次扫描遇到问题？可在这里反馈。</p>
+                <ScannerDiagnosticFeedback report={lastScanDiagnostic} />
+              </>
+            ) : null}
           </div>
         </section>
         <section aria-labelledby="help-contact-heading">
