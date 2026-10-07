@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { AlertTriangle, Download, ShieldCheck } from 'lucide-react'
+import { AlertTriangle, ShieldCheck } from 'lucide-react'
 import { F5ScannerGoldenView } from '../components/F5GoldenViews'
 import { assessScannerAssistantInput } from '../scanner/assistant'
 import { initialDistributionSnapshot, scannerDistributionManifest } from '../scanner/distribution'
 import { useScannerAssistantRuntime } from '../scanner/runtime'
 import { useScannerFailureDiagnostic } from '../scanner/scanFeedback'
 import { ScannerDiagnosticFeedback } from './ScannerDiagnosticFeedback'
+import { ScannerInstallerAction } from './ScannerInstallerAction'
 import { ScannerAccountGate, type ScannerAccounts } from './ScannerAccountHydrationGate'
 import {
   completedScannerImportKey,
@@ -268,19 +269,12 @@ function HydratedScannerAssistantPage({
     </p>
   ) : null
 
-  const installer =
-    distribution.state !== 'ready' &&
-    scannerDistributionManifest.runtime.releaseState !== 'not_published' ? (
-      <a
-        className="button button--quiet scanner-prepare__download"
-        href={scannerDistributionManifest.helper.downloadUrl}
-        download
-        title="首次安装或修复扫描助手"
-      >
-        <Download aria-hidden="true" size={17} />
-        首次使用：下载安装
-      </a>
-    ) : null
+  const installer = (
+    <ScannerInstallerAction
+      distribution={distribution}
+      issueCode={snapshot.error?.diagnosticCode}
+    />
+  )
 
   const presentedStateCopy = getScannerPresentedStateCopy({
     restartingAfterCompletedResult,

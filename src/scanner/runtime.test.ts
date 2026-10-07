@@ -99,6 +99,7 @@ describe('direct upstream scanner runtime', () => {
 
   it.each([
     { ...nativeIdentity, version: '2.2.0' },
+    { ...nativeIdentity, version: '2.3.7' },
     { ...nativeIdentity, transport: 'node-compatibility' },
     { ...nativeIdentity, protocolVersion: 4 },
     { ...nativeIdentity, accountWriteEnabled: true },
@@ -118,11 +119,11 @@ describe('direct upstream scanner runtime', () => {
     },
   )
 
-  it('connects to the RC8 Helper without treating version 2.3.4 as an old installation', async () => {
+  it.each(['2.3.4', '2.3.5', '2.3.6'])('connects to published Helper %s', async (version) => {
     const otherRequests = helperFetch()
     const fetchImpl = vi.fn<typeof fetch>((input, init) =>
       new URL(String(input)).pathname === '/'
-        ? Promise.resolve(new Response(JSON.stringify({ ...nativeIdentity, version: '2.3.4' })))
+        ? Promise.resolve(new Response(JSON.stringify({ ...nativeIdentity, version })))
         : otherRequests(input, init),
     )
     const runtime = createScannerAssistantRuntime({ fetchImpl, maxReconnectAttempts: 1 })

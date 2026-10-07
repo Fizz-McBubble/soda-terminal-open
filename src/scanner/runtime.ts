@@ -216,13 +216,13 @@ export function createScannerAssistantRuntime(
     if (
       !identity ||
       identity.service !== 'soda-terminal-scanner-helper' ||
-      !['2.3.1', '2.3.2', '2.3.3', '2.3.4'].includes(identity.version) ||
+      !['2.3.1', '2.3.2', '2.3.3', '2.3.4', '2.3.5', '2.3.6'].includes(identity.version) ||
       identity.protocolVersion !== 5 ||
       identity.transport !== 'direct-fork-http' ||
       identity.accountWriteEnabled !== false ||
       identity.importAccess !== false
     ) {
-      const error = new Error('扫描助手未就绪，请关闭旧扫描助手，再重新打开 Soda Terminal。')
+      const error = new Error('扫描助手未就绪，请更新扫描助手后重新连接。')
       error.name = 'ScannerHelperCompatibilityError'
       throw error
     }
@@ -324,8 +324,7 @@ export function createScannerAssistantRuntime(
         ...failedSnapshot,
         error: {
           ...failedSnapshot.error!,
-          userMessage:
-            '本机扫描助手拒绝了此网站。请确认使用受支持的 Soda Terminal 网址，再重新连接。',
+          userMessage: '扫描助手拒绝了此网站，请更新扫描助手后重新连接。',
           diagnosticCode: 'helper_pairing_denied',
         },
       }

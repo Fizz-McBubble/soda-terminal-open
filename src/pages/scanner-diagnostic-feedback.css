@@ -36,22 +36,75 @@
   gap: 8px;
   flex-wrap: wrap;
 }
-.scanner-diagnostic-feedback pre {
-  max-height: 280px;
-  overflow: auto;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
+.scanner-diagnostic-feedback__guidance {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgb(106 86 164 / 8%);
+}
+.scanner-diagnostic-feedback__guidance p {
+  display: grid;
+  gap: 3px;
+  margin: 0;
+}
+.scanner-diagnostic-feedback__guidance p + p {
+  margin-top: 8px;
+}
+.scanner-diagnostic-feedback__metadata {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0;
+  margin: 10px 0;
+  list-style: none;
+}
+.scanner-diagnostic-feedback__metadata:empty {
+  display: none;
+}
+.scanner-diagnostic-feedback__metadata li {
+  padding: 3px 8px;
+  border-radius: 8px;
+  background: rgb(106 86 164 / 8%);
+  color: var(--f5-muted);
   font-size: 12px;
 }
-.f5v-shell .scanner-task .scanner-prepare--with-feedback .scanner-prepare__actions {
-  grid-column: 1;
+.scanner-diagnostic-feedback__privacy {
+  color: var(--f5-muted);
+  font-size: 12px;
 }
-.f5v-shell .scanner-task .scanner-prepare__feedback {
-  grid-column: 2;
-  grid-row: 2 / 4;
+.f5v-shell .scanner-task .scanner-prepare__primary {
+  display: contents;
+}
+.f5v-shell .scanner-task .scanner-prepare--with-feedback {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.f5v-shell .scanner-task .scanner-prepare--with-feedback > .scanner-prepare__primary {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  grid-column: 1;
+  grid-row: 2;
   min-width: 0;
   align-self: start;
 }
+.f5v-shell .scanner-task .scanner-prepare--with-feedback > .scanner-prepare__feedback {
+  grid-column: 2;
+  grid-row: 2;
+  min-width: 0;
+  align-self: start;
+}
+.f5v-shell .scanner-task .scanner-prepare--with-feedback > .scanner-prepare__details {
+  grid-row: 3;
+}
 .scanner-prepare__feedback > .scanner-diagnostic-feedback {
   margin-block: 0;
+}
+.scanner-installer {
+  min-width: 0;
+}
+.scanner-installer > p {
+  margin: 6px 0 0;
+  color: var(--f5-muted);
+  font-size: 12px;
+  line-height: 1.5;
 }

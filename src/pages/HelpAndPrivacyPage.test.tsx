@@ -80,6 +80,8 @@ it('leaves expanded diagnostic text available when clipboard access fails', asyn
 })
 
 it('offers the sanitized last failed scan directly on the Help page without requiring external contact', async () => {
+  const writeText = vi.fn().mockResolvedValue(undefined)
+  Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } })
   const report = sanitizeScanDiagnostic({
     schema: 1,
     reportId: crypto.randomUUID(),
@@ -97,8 +99,13 @@ it('offers the sanitized last failed scan directly on the Help page without requ
   )
   expect(screen.getByText('上次扫描遇到问题？可在这里反馈。')).toBeInTheDocument()
   expect(screen.getByRole('button', { name: '反馈此问题' })).toBeEnabled()
-  expect(screen.getByLabelText('扫描技术诊断内容')).not.toBeVisible()
+  expect(screen.queryByLabelText('扫描技术诊断内容')).not.toBeInTheDocument()
+  expect(screen.getByText(/Cloudflare/)).toHaveTextContent('30 天')
   fireEvent.click(screen.getByText('查看诊断信息'))
-  expect(screen.getByLabelText('扫描技术诊断内容')).toHaveTextContent(report.reportId)
-  expect(screen.getByText(/Cloudflare/)).toHaveTextContent('保存 30 天')
+  expect(screen.getByText(/未能及时读取到可识别/)).toBeVisible()
+  expect(screen.queryByText(report.reportId)).not.toBeInTheDocument()
+  expect(screen.queryByText(report.code)).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: '复制诊断' }))
+  await waitFor(() => expect(writeText).toHaveBeenCalledOnce())
+  expect(JSON.parse(writeText.mock.calls[0][0])).toEqual(report)
 })

@@ -5,6 +5,7 @@ import {
   type ScanDiagnosticReport,
 } from '../scanner/diagnostics'
 import { ScanFeedbackSubmissionError, submitScanFeedback } from '../scanner/scanFeedback'
+import { scannerDiagnosticGuidance } from './scannerDiagnosticGuidance'
 import './scanner-diagnostic-feedback.css'
 
 type FeedbackState = { reportId: string; pending?: boolean; message: string; receivedAt?: string }
@@ -31,6 +32,7 @@ export function ScannerDiagnosticFeedback({ report }: { report: ScanDiagnosticRe
   if (!safe) return null
   const currentState = state?.reportId === safe.reportId ? state : null
   const text = diagnosticJson(safe)
+  const guidance = scannerDiagnosticGuidance(safe)
 
   async function submit() {
     if (!safe || pendingId.current === safe.reportId || currentState?.receivedAt) return
@@ -64,7 +66,7 @@ export function ScannerDiagnosticFeedback({ report }: { report: ScanDiagnosticRe
       if (currentId.current === reportId) setLocalMessage({ reportId, text: '诊断已复制。' })
     } catch {
       if (currentId.current === reportId)
-        setLocalMessage({ reportId, text: '复制失败，可选择下方诊断文字或下载。' })
+        setLocalMessage({ reportId, text: '复制失败，可下载诊断文件。' })
     }
   }
   function download() {
@@ -78,7 +80,7 @@ export function ScannerDiagnosticFeedback({ report }: { report: ScanDiagnosticRe
       URL.revokeObjectURL(url)
       setLocalMessage({ reportId: safe.reportId, text: '诊断下载已开始。' })
     } catch {
-      setLocalMessage({ reportId: safe.reportId, text: '下载失败，可复制诊断或选择下方文字。' })
+      setLocalMessage({ reportId: safe.reportId, text: '下载失败，可复制诊断或稍后重试。' })
     }
   }
   return (
@@ -95,18 +97,35 @@ export function ScannerDiagnosticFeedback({ report }: { report: ScanDiagnosticRe
         <p>仅在点击时发送，不含账户和驱动盘资料。</p>
       </div>
       {currentState?.message ? <p role="status">{currentState.message}</p> : null}
-      <details className="scanner-diagnostic-feedback__details">
+      <details
+        key={safe.reportId}
+        className="scanner-diagnostic-feedback__details"
+        data-motion-static
+      >
         <summary>查看诊断信息</summary>
-        <p>
-          Cloudflare 仅接收下方诊断信息并保存 30 天。不包含账户、游戏
-          UID、驱动盘内容、截图或联系方式。
-        </p>
-        <p>
-          问题阶段：{stageLabels[safe.stage]} · 已处理：{safe.counts.processed ?? '未知'} /{' '}
-          {safe.counts.total ?? '总数未知'} · 耗时：
-          {safe.durationMs === null ? '未知' : `${(safe.durationMs / 1000).toFixed(1)} 秒`}
-        </p>
-        <p>错误码：{safe.code}</p>
+        <div className="scanner-diagnostic-feedback__guidance">
+          <p>
+            <strong>遇到的问题</strong>
+            <span>{guidance.problem}</span>
+          </p>
+          <p>
+            <strong>可以这样做</strong>
+            <span>{guidance.nextAction}</span>
+          </p>
+        </div>
+        <ul className="scanner-diagnostic-feedback__metadata" aria-label="本次扫描概况">
+          {safe.stage !== 'unknown' ? <li>{stageLabels[safe.stage]}</li> : null}
+          {safe.counts.processed !== null ? (
+            <li>
+              已处理 {safe.counts.processed}
+              {safe.counts.total !== null ? ` / ${safe.counts.total}` : ''} 张
+            </li>
+          ) : safe.counts.total !== null ? (
+            <li>共 {safe.counts.total} 张</li>
+          ) : null}
+          {safe.durationMs !== null ? <li>耗时 {(safe.durationMs / 1000).toFixed(1)} 秒</li> : null}
+        </ul>
+        <p className="scanner-diagnostic-feedback__privacy">仅发送问题信息，保留 30 天。</p>
         <div className="scanner-diagnostic-feedback__actions">
           <button className="button button--quiet" type="button" onClick={() => void copy()}>
             复制诊断
@@ -118,9 +137,6 @@ export function ScannerDiagnosticFeedback({ report }: { report: ScanDiagnosticRe
         {localMessage?.reportId === safe.reportId ? (
           <p aria-live="polite">{localMessage.text}</p>
         ) : null}
-        <pre tabIndex={0} aria-label="扫描技术诊断内容">
-          {text}
-        </pre>
       </details>
     </section>
   )

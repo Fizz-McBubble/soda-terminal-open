@@ -74,34 +74,38 @@ export function PrepareChecklist({
         ) : null}
       </header>
 
-      <ol className="scanner-prepare__account">{targetPanel}</ol>
+      <div className="scanner-prepare__primary">
+        <ol className="scanner-prepare__account">{targetPanel}</ol>
 
-      <div className="scanner-prepare__actions">
-        <button
-          className="button button--primary scanner-web__primary-action"
-          type="button"
-          disabled={requestInFlight || (!startReady && !needsConnection)}
-          aria-busy={actionPending}
-          aria-describedby="scanner-gate-explanation"
-          onClick={startReady ? onStart : needsConnection ? (onRecover ?? onReconnect) : undefined}
-        >
-          <ScanLine aria-hidden="true" size={19} />
-          {!startReady && needsConnection
-            ? actionPending
-              ? '正在连接扫描助手'
-              : unchecked
-                ? '连接扫描助手'
-                : '重新连接扫描助手'
-            : snapshot.state === 'awaiting_elevation'
-              ? '等待 Windows 权限确认'
-              : snapshot.state === 'checking'
-                ? '正在检查'
-                : snapshot.state === 'connection_failed'
-                  ? '重新切换游戏并开始扫描'
-                  : '切换游戏并开始扫描'}
-          <ChevronRight aria-hidden="true" size={18} />
-        </button>
-        {installer}
+        <div className="scanner-prepare__actions">
+          <button
+            className="button button--primary scanner-web__primary-action"
+            type="button"
+            disabled={requestInFlight || (!startReady && !needsConnection)}
+            aria-busy={actionPending}
+            aria-describedby="scanner-gate-explanation"
+            onClick={
+              startReady ? onStart : needsConnection ? (onRecover ?? onReconnect) : undefined
+            }
+          >
+            <ScanLine aria-hidden="true" size={19} />
+            {!startReady && needsConnection
+              ? actionPending
+                ? '正在连接扫描助手'
+                : unchecked
+                  ? '连接扫描助手'
+                  : '重新连接扫描助手'
+              : snapshot.state === 'awaiting_elevation'
+                ? '等待 Windows 权限确认'
+                : snapshot.state === 'checking'
+                  ? '正在检查'
+                  : snapshot.state === 'connection_failed'
+                    ? '重新切换游戏并开始扫描'
+                    : '切换游戏并开始扫描'}
+            <ChevronRight aria-hidden="true" size={18} />
+          </button>
+          {installer}
+        </div>
       </div>
 
       {diagnosticFeedback ? (

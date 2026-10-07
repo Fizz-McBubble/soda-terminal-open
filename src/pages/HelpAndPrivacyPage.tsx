@@ -89,6 +89,7 @@ export function HelpAndPrivacyPage() {
                 <ScannerDiagnosticFeedback report={lastScanDiagnostic} />
               </>
             ) : null}
+            <p>点击反馈才会将问题诊断发送至 Cloudflare，保留 30 天；不含账户和驱动盘资料。</p>
           </div>
         </section>
         <section aria-labelledby="help-contact-heading">

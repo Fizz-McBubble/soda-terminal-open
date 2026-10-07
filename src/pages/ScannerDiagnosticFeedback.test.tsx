@@ -2,6 +2,8 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { ScannerDiagnosticFeedback } from './ScannerDiagnosticFeedback'
 import { sanitizeScanDiagnostic } from '../scanner/diagnostics'
+import contract from '../scanner/scanFeedback.contract.json'
+import { scannerDiagnosticGuidance } from './scannerDiagnosticGuidance'
 const makeReport = () =>
   sanitizeScanDiagnostic({
     schema: 1,
@@ -31,9 +33,9 @@ it('keeps submission explicit, disables duplicate pending clicks, and shows only
   expect(fetcher).not.toHaveBeenCalled()
   expect(screen.getByRole('button', { name: '反馈此问题' })).toBeVisible()
   expect(screen.getByText(/不含账户和驱动盘资料/)).toBeVisible()
-  expect(screen.getByText(/总数未知/)).not.toBeVisible()
-  expect(screen.getByText(/Cloudflare/)).not.toBeVisible()
-  expect(screen.getByLabelText('扫描技术诊断内容')).not.toBeVisible()
+  expect(screen.getByText(/未能及时读取/)).not.toBeVisible()
+  expect(screen.getByText(/保留 30 天/)).not.toBeVisible()
+  expect(screen.queryByLabelText('扫描技术诊断内容')).not.toBeInTheDocument()
   expect(screen.getByRole('button', { name: '复制诊断' })).not.toBeVisible()
   fireEvent.click(screen.getByRole('button', { name: '反馈此问题' }))
   fireEvent.click(screen.getByRole('button', { name: '发送中…' }))
@@ -50,7 +52,7 @@ it('keeps submission explicit, disables duplicate pending clicks, and shows only
   )
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('反馈已收到'))
   expect(screen.getByRole('button', { name: '已反馈' })).toBeDisabled()
-  expect(screen.getByLabelText('扫描技术诊断内容')).not.toBeVisible()
+  expect(screen.queryByText(report.reportId)).not.toBeInTheDocument()
   expect(screen.queryByText(/回执编号/)).not.toBeInTheDocument()
 })
 it('retains report and copy/download options after a network failure, then retries in-page', async () => {
@@ -80,8 +82,12 @@ it('retains report and copy/download options after a network failure, then retri
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('发送失败'))
   expect(screen.getByRole('status')).not.toHaveTextContent('private')
   fireEvent.click(screen.getByText('查看诊断信息'))
-  expect(screen.getByText(/总数未知/)).toBeVisible()
-  expect(screen.getByText(/Cloudflare/)).toHaveTextContent('保存 30 天')
+  expect(screen.getByText(/已处理 4 张/)).toBeVisible()
+  expect(screen.getByText(/未能及时读取/)).toBeVisible()
+  expect(screen.getByText(/确认游戏仓库画面可见/)).toBeVisible()
+  expect(screen.getByText(/保留 30 天/)).toBeVisible()
+  expect(screen.queryByText(/未知|错误码|Cloudflare/)).not.toBeInTheDocument()
+  expect(screen.queryByText(report.code)).not.toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: '复制诊断' }))
   await waitFor(() => expect(writeText).toHaveBeenCalledOnce())
   expect(JSON.parse(writeText.mock.calls[0][0])).toEqual(report)
@@ -122,7 +128,7 @@ it('ignores late receipt for an earlier failure while a newer report remains ind
   })
   expect(screen.queryByRole('status')).not.toBeInTheDocument()
   expect(screen.queryByText(/回执编号/)).not.toBeInTheDocument()
-  expect(screen.getByLabelText('扫描技术诊断内容')).toHaveTextContent(next.reportId)
+  expect(screen.queryByText(next.reportId)).not.toBeInTheDocument()
 })
 
 it.each([
@@ -138,7 +144,48 @@ it.each([
     await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent(message))
     fireEvent.click(screen.getByText('查看诊断信息'))
     expect(screen.getByRole('button', { name: '下载诊断' })).toBeEnabled()
-    expect(screen.getByLabelText('扫描技术诊断内容')).toHaveTextContent(report.reportId)
+    expect(screen.getByText(/未能及时读取/)).toBeVisible()
+    expect(screen.queryByText(report.reportId)).not.toBeInTheDocument()
     expect(screen.queryByText(/回执编号/)).not.toBeInTheDocument()
+  },
+)
+
+it('keeps unknown failures neutral and omits unknown metadata', () => {
+  const report = sanitizeScanDiagnostic({
+    ...makeReport(),
+    code: 'unknown',
+    stage: 'unknown',
+    counts: {},
+  })!
+  render(<ScannerDiagnosticFeedback report={report} />)
+  fireEvent.click(screen.getByText('查看诊断信息'))
+  expect(screen.getByText(/暂时无法确定原因/)).toBeVisible()
+  expect(screen.getByLabelText('本次扫描概况')).toBeEmptyDOMElement()
+  expect(screen.queryByText(/未知|权限|未打开|错误码/)).not.toBeInTheDocument()
+  expect(document.querySelector('pre')).toBeNull()
+})
+
+it('collapses details when a new report arrives and hides old local messages', async () => {
+  Object.defineProperty(navigator, 'clipboard', {
+    configurable: true,
+    value: { writeText: vi.fn().mockResolvedValue(undefined) },
+  })
+  const { rerender } = render(<ScannerDiagnosticFeedback report={makeReport()} />)
+  fireEvent.click(screen.getByText('查看诊断信息'))
+  fireEvent.click(screen.getByRole('button', { name: '复制诊断' }))
+  await waitFor(() => expect(screen.getByText('诊断已复制。')).toBeVisible())
+  rerender(<ScannerDiagnosticFeedback report={makeReport()} />)
+  expect(screen.getByText(/未能及时读取/)).not.toBeVisible()
+  expect(screen.queryByText('诊断已复制。')).not.toBeInTheDocument()
+})
+
+it.each(contract.codes.filter((code) => !['none', 'unknown'].includes(code)))(
+  'gives a concrete problem and next action for safe code %s',
+  (code) => {
+    const result = scannerDiagnosticGuidance({ ...makeReport(), code })
+    expect(result.problem).toBeTruthy()
+    expect(result.nextAction).toBeTruthy()
+    expect(result.problem).not.toContain('没有取得足够信息')
+    expect(result.problem).not.toContain(code)
   },
 )
