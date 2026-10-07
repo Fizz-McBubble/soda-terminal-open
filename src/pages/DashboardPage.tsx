@@ -55,6 +55,8 @@ export function DashboardPage() {
   const [retryingAccountRead, setRetryingAccountRead] = useState(false)
   const [removingImages, setRemovingImages] = useState(false)
   const assetDialog = useRef<HTMLDialogElement>(null)
+  const assetOperationPending =
+    assetCacheStatus.kind === 'checking' || assetCacheStatus.kind === 'preparing' || removingImages
 
   useEffect(() => {
     let active = true
@@ -97,6 +99,7 @@ export function DashboardPage() {
   }, [])
 
   async function downloadVisualAssets() {
+    if (assetOperationPending) return
     if (!('caches' in window)) {
       setAssetCacheStatus({ kind: 'error', message: '当前浏览器不支持本机图鉴图片缓存。' })
       return
@@ -400,13 +403,22 @@ export function DashboardPage() {
     assetCacheStatus.kind === 'checking'
       ? '正在确认本机已有图片。'
       : assetCacheStatus.kind === 'idle'
-        ? '点击下载后保存在此浏览器。'
+        ? '下载后自动加载，保存在此浏览器。'
         : assetCacheStatus.kind === 'incomplete'
           ? '已有图片会保留，下载时只补齐需要更新的图片。'
           : assetCacheStatus.kind === 'error'
-            ? '下载失败不会影响账户资料；可在这里重新下载。'
-            : '代理人、音擎、邦布和驱动盘图片保存在本机。'
-
+            ? '已有图片和账户资料保留，点击下方按钮重试。'
+            : assetCacheStatus.kind === 'preparing'
+              ? '下载完成后自动加载，可继续使用其他功能。'
+              : '代理人、音擎、邦布和驱动盘图片保存在本机。'
+  const assetDownloadLabel =
+    assetCacheStatus.kind === 'checking'
+      ? '正在读取图片…'
+      : assetCacheStatus.kind === 'preparing'
+        ? '正在下载图片…'
+        : assetCacheStatus.kind === 'error'
+          ? '重试下载并加载'
+          : '下载并加载图片'
   return (
     <>
       <F5HomeGoldenView
@@ -423,24 +435,29 @@ export function DashboardPage() {
             ? undefined
             : { label: '恢复已有备份', route: '/assets/account#restore-backup' }
         }
-        discArtUrls={discArtUrls}
+        discArtUrls={assetCacheStatus.kind === 'ready' ? discArtUrls : []}
         readiness={{
           stateLabel: home.account ? '本机账户' : '开始使用',
           stateTitle: localStatus,
           accountName: home.account?.displayName ?? '尚未选择',
           agentCount: ownedAgents.length,
           discCount: home.discs.length,
-          assetLabel: discArtUrls.length === 2 ? '图鉴素材可用' : assetCacheLabel,
+          assetLabel:
+            assetCacheStatus.kind === 'ready' && discArtUrls.length === 2
+              ? '图鉴素材可用'
+              : assetCacheLabel,
           assetDetail: assetCacheDetail,
         }}
         assetAction={{
-          label: '管理图片',
-          disabled: false,
-          onClick: () => assetDialog.current?.showModal(),
+          label: assetDownloadLabel,
+          disabled: assetOperationPending,
+          onClick: () => void downloadVisualAssets(),
         }}
+        onManageImages={() => assetDialog.current?.showModal()}
         journey={journey}
       />
       <dialog
+        id="home-asset-dialog"
         ref={assetDialog}
         className="home-asset-dialog"
         aria-labelledby="home-asset-dialog-title"
@@ -463,11 +480,7 @@ export function DashboardPage() {
           <button
             className="button button--quiet"
             type="button"
-            disabled={
-              assetCacheStatus.kind === 'checking' ||
-              assetCacheStatus.kind === 'preparing' ||
-              removingImages
-            }
+            disabled={assetOperationPending}
             onClick={() => void removeVisualAssets()}
           >
             {removingImages ? '正在删除图片' : '删除本机图片缓存'}
@@ -475,14 +488,10 @@ export function DashboardPage() {
           <button
             className="home-primary-action"
             type="button"
-            disabled={
-              assetCacheStatus.kind === 'checking' ||
-              assetCacheStatus.kind === 'preparing' ||
-              removingImages
-            }
+            disabled={assetOperationPending}
             onClick={() => void downloadVisualAssets()}
           >
-            {assetCacheStatus.kind === 'preparing' ? '正在下载图片' : '下载并加载图片'}
+            {assetDownloadLabel}
           </button>
         </footer>
       </dialog>

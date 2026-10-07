@@ -32,6 +32,7 @@ type F5HomeGoldenViewProps = {
     assetDetail: string
   }
   assetAction: { label: string; disabled: boolean; onClick: () => void }
+  onManageImages: () => void
   assetTools?: ReactNode
   journey: F5HomeJourneyItem[]
 }
@@ -49,6 +50,7 @@ export function F5HomeGoldenView({
   discArtUrls,
   readiness,
   assetAction,
+  onManageImages,
   assetTools,
   journey,
 }: F5HomeGoldenViewProps) {
@@ -125,22 +127,33 @@ export function F5HomeGoldenView({
               <dd title={`${readiness.discCount} 件`}>{readiness.discCount} 件</dd>
             </div>
           </dl>
-          <div className="home-catalog-cache" role="status" title={readiness.assetLabel}>
+          <div className="home-catalog-cache" title={readiness.assetLabel}>
             {discArtUrls.slice(0, 2).map((url) => (
               <img alt="" aria-hidden="true" key={url} src={url} />
             ))}
-            <span>
+            <span role="status">
               <strong>{readiness.assetLabel}</strong>
               <small>{readiness.assetDetail}</small>
             </span>
-            <button
-              className="home-catalog-cache__action"
-              type="button"
-              disabled={assetAction.disabled}
-              onClick={assetAction.onClick}
-            >
-              {assetAction.label}
-            </button>
+            <div className="home-catalog-cache__actions">
+              <button
+                className="home-catalog-cache__action home-catalog-cache__action--download"
+                type="button"
+                disabled={assetAction.disabled}
+                onClick={assetAction.onClick}
+              >
+                {assetAction.label}
+              </button>
+              <button
+                className="home-catalog-cache__action"
+                type="button"
+                aria-haspopup="dialog"
+                aria-controls="home-asset-dialog"
+                onClick={onManageImages}
+              >
+                管理图片
+              </button>
+            </div>
           </div>
           {assetTools}
         </section>

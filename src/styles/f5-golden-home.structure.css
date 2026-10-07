@@ -330,9 +330,11 @@
   grid-column: 1 / -1;
 }
 
-.f5v-shell .home-catalog-cache > .home-catalog-cache__action {
+.f5v-shell .home-catalog-cache__actions {
   grid-column: 1 / -1;
-  width: max-content;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--soda-space-2);
 }
 
 .f5v-shell .home-catalog-cache :is(strong, small) {
@@ -348,14 +350,20 @@
 }
 
 .f5v-shell .home-catalog-cache__action {
-  min-height: 32px;
-  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  width: 100%;
+  min-height: 36px;
+  padding: 0 6px;
   border: 1px solid rgba(103, 90, 144, 0.28);
   border-radius: var(--soda-radius-control);
   color: var(--f5-accent);
   background: rgba(255, 255, 255, 0.7);
   font-size: 0.75rem;
   font-weight: 700;
+  white-space: nowrap;
   cursor: pointer;
   transition:
     background-color var(--soda-motion-fast) var(--soda-ease-out),
@@ -375,6 +383,22 @@
 
 .f5v-shell .home-catalog-cache__action:disabled {
   opacity: 0.55;
+  cursor: default;
+}
+
+.f5v-shell .home-catalog-cache__action--download {
+  color: #fff;
+  background: var(--f5-accent);
+  border-color: var(--f5-accent);
+}
+
+.f5v-shell .home-catalog-cache__action--download:hover:not(:disabled) {
+  background: var(--f5-accent);
+}
+
+.f5v-shell .home-catalog-cache__action:focus-visible {
+  outline: 2px solid var(--f5-accent);
+  outline-offset: 3px;
 }
 
 .f5v-shell .personal-visual-pack {
