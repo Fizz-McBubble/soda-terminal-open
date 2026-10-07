@@ -3,6 +3,18 @@ import { afterEach, expect, it, vi } from 'vitest'
 import { ScannerInstallerAction } from './ScannerInstallerAction'
 import { initialDistributionSnapshot, scannerDistributionManifest } from '../scanner/distribution'
 
+const executableFixture = new Uint8Array([0x4d, 0x5a, 1, 2, 3, 4, 5, 6])
+vi.mock('../scanner/distribution', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../scanner/distribution')>()
+  return {
+    ...actual,
+    scannerDistributionManifest: {
+      ...actual.scannerDistributionManifest,
+      helper: { ...actual.scannerDistributionManifest.helper, size: 8 },
+    },
+  }
+})
+
 afterEach(() => {
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
@@ -33,7 +45,7 @@ it('offers an upgrade only for a detected old installation', () => {
 it('asks where to save in the click task, then writes the actual downloaded file', async () => {
   const write = vi.fn(),
     close = vi.fn()
-  const fetcher = vi.fn().mockResolvedValue(new Response('@echo off\r\necho ready\r\n'))
+  const fetcher = vi.fn().mockResolvedValue(new Response(executableFixture))
   const picker = vi.fn(() => {
     expect(fetcher).not.toHaveBeenCalled()
     return Promise.resolve({ createWritable: async () => ({ write, close }) })
@@ -49,7 +61,9 @@ it('asks where to save in the click task, then writes the actual downloaded file
     suggestedName: scannerDistributionManifest.helper.entry,
     startIn: 'downloads',
   })
-  expect(write).toHaveBeenCalledWith('@echo off\r\necho ready\r\n')
+  expect(write.mock.calls.flatMap(([chunk]) => Array.from(chunk))).toEqual(
+    Array.from(executableFixture),
+  )
 })
 it('does not start another download when the save dialog is cancelled', async () => {
   const picker = vi.fn().mockRejectedValue(new DOMException('cancel', 'AbortError'))
@@ -85,4 +99,46 @@ it('uses the ordinary browser download when the save dialog is unavailable', asy
   )
   fireEvent.click(screen.getByRole('button', { name: '更新扫描助手' }))
   await waitFor(() => expect(click).toHaveBeenCalledOnce())
+})
+
+it.each([
+  ['truncated', executableFixture.subarray(0, 7)],
+  ['oversized', new Uint8Array([...executableFixture, 9])],
+])('aborts a %s executable instead of committing an incomplete destination', async (_, bytes) => {
+  const write = vi.fn(),
+    close = vi.fn(),
+    abort = vi.fn().mockResolvedValue(undefined)
+  Object.defineProperty(window, 'showSaveFilePicker', {
+    configurable: true,
+    value: vi.fn().mockResolvedValue({ createWritable: async () => ({ write, close, abort }) }),
+  })
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(bytes)))
+  render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
+  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('下载未完成'))
+  expect(close).not.toHaveBeenCalled()
+  if (bytes.length < executableFixture.length) expect(abort).toHaveBeenCalledOnce()
+})
+
+it('streams a split executable header and waits for the final byte before completing', async () => {
+  const write = vi.fn(),
+    close = vi.fn()
+  const body = new ReadableStream({
+    start(controller) {
+      controller.enqueue(executableFixture.subarray(0, 1))
+      controller.enqueue(executableFixture.subarray(1, 4))
+      controller.enqueue(executableFixture.subarray(4))
+      controller.close()
+    },
+  })
+  Object.defineProperty(window, 'showSaveFilePicker', {
+    configurable: true,
+    value: vi.fn().mockResolvedValue({ createWritable: async () => ({ write, close }) }),
+  })
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(body)))
+  render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
+  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  await waitFor(() => expect(close).toHaveBeenCalledOnce())
+  expect(write.mock.calls.flatMap(([chunk]) => [...chunk])).toEqual([...executableFixture])
+  expect(screen.queryByRole('status')).not.toBeInTheDocument()
 })

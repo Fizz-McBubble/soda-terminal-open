@@ -47,7 +47,7 @@ export function getScannerStateCopy(
         title: '确认数据归属，然后检查并开始',
         body:
           window.location.protocol === 'https:'
-            ? '首次使用：下载后双击运行；平时直接连接，选择账户后开始扫描。'
+            ? '连接后选择账户，检查游戏并开始扫描。'
             : '点击后会切换到游戏，并自动检查扫描准备情况。',
       }
     case 'connection_failed':

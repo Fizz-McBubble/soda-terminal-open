@@ -4,6 +4,22 @@ import { ScannerDiagnosticFeedback } from './ScannerDiagnosticFeedback'
 import { sanitizeScanDiagnostic } from '../scanner/diagnostics'
 import contract from '../scanner/scanFeedback.contract.json'
 import { scannerDiagnosticGuidance } from './scannerDiagnosticGuidance'
+// jsdom does not implement the native Popover API. The browser regression covers
+// its actual positioning, dismissal and unchanged page geometry.
+vi.mock('../components/ExplanationPopover', () => ({
+  ExplanationPopover: ({
+    label,
+    children,
+  }: {
+    label: string
+    children: import('react').ReactNode
+  }) => (
+    <details>
+      <summary>{label}</summary>
+      {children}
+    </details>
+  ),
+}))
 const makeReport = () =>
   sanitizeScanDiagnostic({
     schema: 1,

@@ -22,13 +22,14 @@ export const scannerDistributionManifest = {
   installationRoot: '%LOCALAPPDATA%\\SodaTerminal\\Scanner',
   connection: 'bundled-loopback-helper',
   helper: {
-    version: 'soda-bootstrap-1',
-    upstreamCommit: 'b4f3b53f6e9acb1f42af1a68c63cfe326bf912d4',
-    license: 'project-code; upstream installer design reference MIT',
-    downloadUrl: '/downloads/Soda-Scanner-Bootstrap.cmd',
-    size: null,
-    sha256: null,
-    entry: 'Soda-Scanner-Bootstrap.cmd',
+    version: installerReleaseManifest.helperVersion,
+    installerVersion: installerReleaseManifest.version,
+    upstreamCommit: '051642b677315c23f4c3e838d0093ec2ea849ca9',
+    license: 'MIT; bundled runtime licenses retained',
+    downloadUrl: '/downloads/Soda-Scanner-Setup.exe',
+    size: installerReleaseManifest.size,
+    sha256: installerReleaseManifest.sha256,
+    entry: installerReleaseManifest.assetName,
   },
   runtime: {
     version: runtimeReleaseManifest.runtimeVersion,
@@ -204,3 +205,4 @@ export function resolveDistributionSnapshot(input: {
   return initialDistributionSnapshot
 }
 import runtimeReleaseManifest from '../../public/downloads/scanner-runtime-release.v1.json'
+import installerReleaseManifest from '../../public/downloads/scanner-installer-release.v1.json'

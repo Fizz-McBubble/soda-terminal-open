@@ -5,6 +5,7 @@ import {
   type ScanDiagnosticReport,
 } from '../scanner/diagnostics'
 import { ScanFeedbackSubmissionError, submitScanFeedback } from '../scanner/scanFeedback'
+import { ExplanationPopover } from '../components/ExplanationPopover'
 import { scannerDiagnosticGuidance } from './scannerDiagnosticGuidance'
 import './scanner-diagnostic-feedback.css'
 
@@ -97,12 +98,13 @@ export function ScannerDiagnosticFeedback({ report }: { report: ScanDiagnosticRe
         <p>仅在点击时发送，不含账户和驱动盘资料。</p>
       </div>
       {currentState?.message ? <p role="status">{currentState.message}</p> : null}
-      <details
+      <ExplanationPopover
         key={safe.reportId}
+        label="查看诊断信息"
+        title="扫描诊断"
+        align="start"
         className="scanner-diagnostic-feedback__details"
-        data-motion-static
       >
-        <summary>查看诊断信息</summary>
         <div className="scanner-diagnostic-feedback__guidance">
           <p>
             <strong>遇到的问题</strong>
@@ -137,7 +139,7 @@ export function ScannerDiagnosticFeedback({ report }: { report: ScanDiagnosticRe
         {localMessage?.reportId === safe.reportId ? (
           <p aria-live="polite">{localMessage.text}</p>
         ) : null}
-      </details>
+      </ExplanationPopover>
     </section>
   )
 }

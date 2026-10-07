@@ -12,9 +12,6 @@
   font-size: 13px;
   min-width: 0;
 }
-.scanner-diagnostic-feedback summary {
-  cursor: pointer;
-}
 .scanner-diagnostic-feedback p {
   margin-block: 8px;
   line-height: 1.6;
@@ -29,7 +26,11 @@
   margin: 0;
 }
 .scanner-diagnostic-feedback__details {
+  display: block;
   margin-top: 10px;
+}
+.scanner-diagnostic-feedback__details > .explanation-popover[popover] {
+  width: min(26rem, calc(100vw - 24px));
 }
 .scanner-diagnostic-feedback__actions {
   display: flex;
@@ -50,7 +51,9 @@
 .scanner-diagnostic-feedback__guidance p + p {
   margin-top: 8px;
 }
-.scanner-diagnostic-feedback__metadata {
+.scanner-diagnostic-feedback__details
+  .explanation-popover[popover]
+  .scanner-diagnostic-feedback__metadata {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;

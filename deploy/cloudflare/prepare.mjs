@@ -316,6 +316,8 @@ export async function prepare({
     for (const path of [
       'deploy/cloudflare/edge.mjs',
       'deploy/cloudflare/scan-feedback.mjs',
+      'deploy/cloudflare/scanner-installer.mjs',
+      'public/downloads/scanner-installer-release.v1.json',
       'src/assets/reviewed32-media-urls.json',
       'src/scanner/scanFeedback.contract.json',
     ]) {

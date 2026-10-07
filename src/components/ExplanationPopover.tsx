@@ -7,11 +7,13 @@ export function ExplanationPopover({
   title = label,
   children,
   className = '',
+  align = 'end',
 }: {
   label: string
   title?: string
   children: ReactNode
   className?: string
+  align?: 'start' | 'end'
 }) {
   const id = useId()
   const trigger = useRef<HTMLButtonElement>(null)
@@ -32,7 +34,8 @@ export function ExplanationPopover({
         below >= bounds.height || below >= above
           ? anchor.bottom + 6
           : anchor.top - bounds.height - 6
-      content.style.left = `${Math.max(gap, Math.min(anchor.right - bounds.width, window.innerWidth - bounds.width - gap))}px`
+      const left = align === 'start' ? anchor.left : anchor.right - bounds.width
+      content.style.left = `${Math.max(gap, Math.min(left, window.innerWidth - bounds.width - gap))}px`
       content.style.top = `${Math.max(gap, Math.min(top, window.innerHeight - bounds.height - gap))}px`
       content.style.visibility = 'visible'
     }
@@ -46,7 +49,7 @@ export function ExplanationPopover({
       window.removeEventListener('scroll', position, true)
       observer.disconnect()
     }
-  }, [open])
+  }, [open, align])
 
   return (
     <span className={`explanation ${className}`}>

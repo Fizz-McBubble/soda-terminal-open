@@ -37,6 +37,7 @@ export function ScannerInstallerAction({
     setPending(true)
     setMessage('')
     let writable: FileSystemWritableFileStream | undefined
+    let reader: ReadableStreamDefaultReader<Uint8Array> | undefined
     try {
       const picker = (window as SaveWindow).showSaveFilePicker
       if (!picker) {
@@ -53,14 +54,34 @@ export function ScannerInstallerAction({
       })
       const response = await fetch(scannerDistributionManifest.helper.downloadUrl, {
         credentials: 'omit',
-        signal: AbortSignal.timeout(15000),
+        signal: AbortSignal.timeout(10 * 60 * 1000),
       })
       if (!response.ok) throw new Error('download_failed')
-      const content = await response.text()
-      if (!content.trimStart().startsWith('@echo off') || content.length > 128 * 1024)
+      const expectedSize = scannerDistributionManifest.helper.size
+      if (!response.body || !Number.isSafeInteger(expectedSize) || expectedSize <= 0)
+        throw new Error('invalid_download')
+      reader = response.body.getReader()
+      const prefix: Uint8Array[] = []
+      let size = 0
+      while (size < 2) {
+        const { done, value } = await reader.read()
+        if (done) throw new Error('invalid_download')
+        prefix.push(value)
+        size += value.byteLength
+      }
+      const signature = prefix.flatMap((chunk) => Array.from(chunk.subarray(0, 2))).slice(0, 2)
+      if (signature[0] !== 0x4d || signature[1] !== 0x5a || size > expectedSize)
         throw new Error('invalid_download')
       writable = await handle.createWritable()
-      await writable.write(content)
+      for (const chunk of prefix) await writable.write(chunk as Uint8Array<ArrayBuffer>)
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        size += value.byteLength
+        if (size > expectedSize) throw new Error('invalid_download')
+        await writable.write(value as Uint8Array<ArrayBuffer>)
+      }
+      if (size !== expectedSize) throw new Error('incomplete_download')
       await writable.close()
       writable = undefined
     } catch (error) {
@@ -68,6 +89,8 @@ export function ScannerInstallerAction({
       if (!(error instanceof DOMException && error.name === 'AbortError'))
         setMessage('下载未完成，请重试。')
     } finally {
+      await reader?.cancel().catch(() => {})
+      reader?.releaseLock()
       inFlight.current = false
       setPending(false)
     }
