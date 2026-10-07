@@ -5,21 +5,16 @@
   gap: var(--soda-space-2);
 }
 
-.f5v-shell .scanner-import-complete__next > button {
+.f5v-shell .scanner-task .scanner-import-complete__next > :is(button, a) {
   flex: 0 0 auto;
+  height: 40px;
+  min-height: 40px;
   margin: 0;
+  padding-block: 0;
 }
 
 .f5v-shell .scanner-import-complete__next .scanner-web__scan-actions {
   margin: 0;
-}
-
-.f5v-shell .scanner-import-complete__next > p {
-  flex-basis: 100%;
-  margin: 0;
-  color: var(--soda-text-2);
-  font-size: var(--soda-font-small);
-  line-height: 1.6;
 }
 
 @media (max-width: 760px) {
@@ -141,6 +136,9 @@
 }
 
 @media (max-width: 640px) {
+  .f5v-shell .scanner-task .scanner-prepare__actions > :is(button, a) {
+    padding-inline: 12px;
+  }
   .f5v-shell .scanner-target-account__create {
     grid-template-columns: minmax(0, 1fr);
   }

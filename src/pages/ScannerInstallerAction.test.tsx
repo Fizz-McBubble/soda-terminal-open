@@ -43,14 +43,13 @@ it('asks where to save in the click task, then writes the actual downloaded file
   render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
   fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
   fireEvent.click(screen.getByRole('button', { name: '正在下载…' }))
-  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('下载完成'))
+  await waitFor(() => expect(close).toHaveBeenCalledOnce())
   expect(picker).toHaveBeenCalledOnce()
   expect(picker).toHaveBeenCalledWith({
     suggestedName: scannerDistributionManifest.helper.entry,
     startIn: 'downloads',
   })
   expect(write).toHaveBeenCalledWith('@echo off\r\necho ready\r\n')
-  expect(close).toHaveBeenCalledOnce()
 })
 it('does not start another download when the save dialog is cancelled', async () => {
   const picker = vi.fn().mockRejectedValue(new DOMException('cancel', 'AbortError'))
@@ -85,6 +84,5 @@ it('uses the ordinary browser download when the save dialog is unavailable', asy
     />,
   )
   fireEvent.click(screen.getByRole('button', { name: '更新扫描助手' }))
-  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('保存位置由浏览器设置'))
-  expect(click).toHaveBeenCalledOnce()
+  await waitFor(() => expect(click).toHaveBeenCalledOnce())
 })

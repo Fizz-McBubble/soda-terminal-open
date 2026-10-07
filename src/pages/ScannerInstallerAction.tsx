@@ -44,7 +44,6 @@ export function ScannerInstallerAction({
         anchor.href = scannerDistributionManifest.helper.downloadUrl
         anchor.download = scannerDistributionManifest.helper.entry
         anchor.click()
-        setMessage('下载后双击运行。保存位置由浏览器设置。')
         return
       }
       // Preserve the click's transient activation: ask where to save before fetching.
@@ -64,7 +63,6 @@ export function ScannerInstallerAction({
       await writable.write(content)
       await writable.close()
       writable = undefined
-      setMessage('下载完成，请双击运行。')
     } catch (error) {
       await writable?.abort().catch(() => {})
       if (!(error instanceof DOMException && error.name === 'AbortError'))
@@ -75,7 +73,7 @@ export function ScannerInstallerAction({
     }
   }
   return (
-    <div className="scanner-installer">
+    <>
       <button
         className="button button--quiet scanner-prepare__download"
         type="button"
@@ -85,9 +83,11 @@ export function ScannerInstallerAction({
         <Download aria-hidden="true" size={17} />
         {pending ? '正在下载…' : update ? '更新扫描助手' : '下载扫描助手'}
       </button>
-      {message || update ? (
-        <p role="status">{message || '扫描助手有更新，下载后运行即可。'}</p>
+      {message ? (
+        <p className="scanner-installer__notice" role="status">
+          {message}
+        </p>
       ) : null}
-    </div>
+    </>
   )
 }

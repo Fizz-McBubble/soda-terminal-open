@@ -121,7 +121,6 @@ export function ScannerPrepareSection({
             <Link className="button button--primary scanner-web__primary-action" to="/assets/discs">
               查看驱动盘
             </Link>
-            <p>重新扫描不会改动已导入的驱动盘，新结果仍需检查并确认。</p>
           </div>
         </section>
       ) : null}
