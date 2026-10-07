@@ -1,10 +1,8 @@
 import { VisualEntityImage } from '../../VisualEntityImage'
 import { CatalogReferencePanel } from './CatalogReference'
 import { getAgentSpecialtyLabel } from '../../../application/publicRosterNames'
-import { Field, Identity, Save } from './EditorShared'
-import { SelectMenu } from './SelectMenu'
-import { useDraft } from './state'
-import type { AssetGoldenProps, BangbooDraft, CatalogItem, DiscItem } from './types'
+import { Identity } from './EditorShared'
+import type { AssetGoldenProps, CatalogItem, DiscItem } from './types'
 
 export function WEngineEditor({ props, item }: { props: AssetGoldenProps; item: CatalogItem }) {
   const users = props.roster.agents.filter((agent) => agent.wEngineDetails.id === item.stableId)
@@ -44,142 +42,27 @@ export function WEngineEditor({ props, item }: { props: AssetGoldenProps; item: 
 }
 
 export function BangbooEditor({ props, item }: { props: AssetGoldenProps; item: CatalogItem }) {
-  const source = props.roster.bangboos.find((x) => x.bangbooId === item.stableId)!
-  const revision = JSON.stringify(source)
-  const { draft, setDraft, baseRevision, stale, rebase } = useDraft<BangbooDraft>(
-    { ...source },
-    revision,
-  )
-  if (props.accountId === 'no-account') {
-    return (
-      <>
-        <div className="asset-editor-heading">
-          {Identity(item, `${item.rarity ?? ''}级邦布`, '图鉴预览')}
-        </div>
-        <CatalogReferencePanel item={item} />
-        <p className="selection-context">创建本机账户后可记录拥有情况与培养进度。</p>
-      </>
-    )
-  }
   return (
     <>
       <div className="asset-editor-heading">
-        {Identity(item, `${item.rarity ?? ''}级邦布`)}
-        <Save
-          label="保存邦布资料"
-          onSave={async () => {
-            const savedRevision = await props.onSave({
-              kind: 'bangboos',
-              stableId: item.stableId,
-              baseRevision,
-              draft,
-            })
-            if (typeof savedRevision === 'string') rebase(draft, savedRevision)
-          }}
-        />
+        {Identity(
+          item,
+          `${item.rarity ?? ''}级邦布`,
+          props.accountId === 'no-account' ? '图鉴预览' : '方案参考',
+        )}
       </div>
-      {stale && (
-        <p className="draft-stale" role="alert">
-          邦布资料已更新；请刷新后重新确认再保存。
-        </p>
-      )}
-      <CatalogReferencePanel
-        item={item}
-        skillLevel={draft.skillLevel ?? 1}
-        additionalAbilityLevel={draft.additionalAbilityLevel ?? 1}
-      />
-      <section className="editor-section">
-        <h3>培养进度</h3>
-        <div className="fields three">
-          <label className="field">
-            <span>拥有</span>
-            <SelectMenu
-              label="拥有"
-              value={draft.owned ? 'yes' : 'no'}
-              options={[
-                { value: 'yes', label: '已拥有' },
-                { value: 'no', label: '未拥有' },
-              ]}
-              onChange={(value) => {
-                const owned = value === 'yes'
-                setDraft({
-                  ...draft,
-                  owned,
-                  ...(owned && !draft.owned
-                    ? {
-                        level: 60,
-                        ...(item.rarity === 'S' && draft.starsManuallySet !== true
-                          ? { stars: 1, starsManuallySet: false }
-                          : {}),
-                      }
-                    : {}),
-                })
-              }}
-            />
-          </label>
-          <Field
-            label="等级"
-            value={draft.level ?? 1}
-            min={1}
-            onChange={(level) => setDraft({ ...draft, level })}
-          />
-          <Field
-            label="星级"
-            value={draft.stars ?? 1}
-            min={1}
-            max={5}
-            onChange={(stars) => setDraft({ ...draft, stars, starsManuallySet: true })}
-          />
-          <label className="field">
-            <span>主动技等级</span>
-            <SelectMenu
-              label="主动技等级"
-              value={draft.skillLevel === null ? 'unconfirmed' : String(draft.skillLevel)}
-              options={[
-                { value: 'unconfirmed', label: '未确认' },
-                ...Array.from({ length: 10 }, (_, index) => ({
-                  value: String(index + 1),
-                  label: `等级 ${index + 1}`,
-                })),
-              ]}
-              onChange={(value) =>
-                setDraft({
-                  ...draft,
-                  skillLevel: value === 'unconfirmed' ? null : Number(value),
-                })
-              }
-            />
-          </label>
-          <label className="field">
-            <span>额外能力等级</span>
-            <SelectMenu
-              label="额外能力等级"
-              value={
-                draft.additionalAbilityLevel === null
-                  ? 'unconfirmed'
-                  : String(draft.additionalAbilityLevel)
-              }
-              options={[
-                { value: 'unconfirmed', label: '未确认' },
-                ...Array.from({ length: 5 }, (_, index) => ({
-                  value: String(index + 1),
-                  label: `等级 ${index + 1}`,
-                })),
-              ]}
-              onChange={(value) =>
-                setDraft({
-                  ...draft,
-                  additionalAbilityLevel: value === 'unconfirmed' ? null : Number(value),
-                })
-              }
-            />
-          </label>
-        </div>
-      </section>
+      <CatalogReferencePanel item={item} skillLevel={10} additionalAbilityLevel={1} />
+      <p>在队伍配装中选择邦布并确认星级。</p>
+      <button
+        type="button"
+        className="quiet"
+        onClick={() => props.onPrimaryNavigate('/loadouts/team')}
+      >
+        前往队伍配装
+      </button>
     </>
   )
 }
-
 export function DiscEditor({ item }: { props: AssetGoldenProps; item: DiscItem }) {
   return (
     <>

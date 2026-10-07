@@ -17,6 +17,12 @@ export const incremental32CommunityTests = Object.freeze([
 ])
 
 export const communityTests = Object.freeze([
+  'src/components/F5VisualShell.test.tsx',
+  'src/components/assets/r6/CatalogPagination.test.tsx',
+  'src/application/browserCalculationQueryClient.reliability.test.ts',
+  'src/scanner/runtime.reliability.test.ts',
+  'src/scanner/distribution.test.ts',
+  'src/accounts/repository.test.ts',
   'src/decision/developmentCandidateRefinement.test.ts',
   'src/decision/developmentCandidateAlternatives.test.ts',
   'src/decision/targetTeamWarehouseFit.test.ts',

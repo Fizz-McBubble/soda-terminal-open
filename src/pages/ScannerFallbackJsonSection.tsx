@@ -42,6 +42,7 @@ export function ScannerFallbackJsonSection({
       <input
         className="visually-hidden"
         tabIndex={-1}
+        aria-hidden="true"
         aria-label="选择扫描结果文件（JSON）"
         ref={inputRef}
         accept="application/json,.json"

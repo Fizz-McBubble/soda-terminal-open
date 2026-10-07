@@ -78,6 +78,59 @@ function use(
 }
 
 describe('absolute retention evidence', () => {
+  it('translates collection locators and merges equal visible conditions without changing evidence', () => {
+    const blocker = {
+      kind: 'conditional_use' as const,
+      field: 'mainStats.4.crit_rate',
+      profileId: 'agent-dialyn:base-0',
+      agentId: 'agent-dialyn',
+      predicateId: 'first-branch',
+      detail: '整套配装需达到50%暴击率。',
+      sourceIds: ['synthetic-source'],
+    }
+    const source = evidence({
+      blockedBy: [
+        blocker,
+        { ...blocker, profileId: 'agent-dialyn:base-1', predicateId: 'another-branch' },
+        { ...blocker, predicateId: 'different-threshold', detail: '整套配装需达到60%暴击率。' },
+        {
+          ...blocker,
+          profileId: 'agent-lycaon:reviewed-miyoushe-73045858-lycaon-potential-illustrated-teams',
+          agentId: 'agent-lycaon',
+          detail:
+            '73045858-1.png：激发潜能ON；驱动盘推荐分区6冲击力/能量恢复；下方莱卡恩+苍角+雅、莱卡恩+雨果+莱特。',
+        },
+        {
+          ...blocker,
+          predicateId: 'other-image',
+          detail:
+            '009-build.jpg：潜能4/6；驱动盘推荐分区6冲击力；下方琉音+莱卡恩+雅；整套暴击率需50%。',
+        },
+      ],
+    })
+    const before = structuredClone(source)
+    render(<WarehouseRetentionEvidence evidence={source} discLevel={2} />)
+    const conditions = screen.getByRole('group', { name: '全部待确认事项' })
+    expect(within(conditions).getAllByRole('listitem')).toHaveLength(4)
+    expect(
+      within(conditions).getAllByText(
+        '琉音（常规构筑） · 4 号位·暴击率：整套配装需达到50%暴击率。',
+      ),
+    ).toHaveLength(1)
+    expect(conditions).toHaveTextContent('整套配装需达到60%暴击率。')
+    expect(conditions).toHaveTextContent('需核对莱卡恩激发潜能是否达到6/6')
+    expect(conditions).toHaveTextContent('用途是否适用于莱卡恩+苍角+雅或莱卡恩+雨果+莱特队伍')
+    expect(conditions).toHaveTextContent(
+      '6号位冲击力或能量自动回复仅作候选方向，需结合整套配装确认',
+    )
+    expect(conditions).toHaveTextContent('潜能4/6')
+    expect(conditions).toHaveTextContent('适用队伍：琉音+莱卡恩+雅；整套暴击率需50%')
+    expect(conditions.textContent).not.toMatch(
+      /\.png|\.jpg|73045858|009-build|推荐分区|下方|潜能ON/,
+    )
+    expect(source).toEqual(before)
+  })
+
   it('keeps A/B guidance simple without fabricated scores or uncalibrated warnings', () => {
     const source = evidence({
       disposition: 'cleanup_candidate',

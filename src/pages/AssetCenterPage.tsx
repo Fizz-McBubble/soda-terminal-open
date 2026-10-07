@@ -337,7 +337,7 @@ export function AssetCenterPage() {
     }
     downloadJson(backup, getAccountBackupFilename(account.id))
     await saveAccountPreference(account.id, lastFullBackupPreference, backup.exportedAt)
-    setMessage('备份文件已下载到本机。')
+    setMessage('已开始下载账户备份，请检查浏览器下载列表。')
   }
 
   async function inspectBackup(file: File): Promise<BackupPreview> {

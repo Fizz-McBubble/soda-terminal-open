@@ -9,7 +9,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { flushSync } from 'react-dom'
 import { Link, Navigate } from 'react-router-dom'
-import { CheckCircle2 } from 'lucide-react'
+import { FormalDiscImportPageSuccess } from './FormalDiscImportPageSuccess'
 import './formal-disc-import.css'
 import {
   publicScannerDriveDiscData,
@@ -126,7 +126,11 @@ export function FormalDiscImportPage({
       reportedImportTotalRef.current !== completedImportedTotal
     ) {
       reportedImportTotalRef.current = completedImportedTotal
-      onImportSuccessRef.current?.(completedImportedTotal)
+      try {
+        onImportSuccessRef.current?.(completedImportedTotal)
+      } catch {
+        // The persisted proof already establishes a successful import.
+      }
     }
   }, [completedImportedTotal, embedded])
 
@@ -268,13 +272,22 @@ export function FormalDiscImportPage({
         database,
       )
       finishUsage('success')
-      clearScannerTargetAccountBinding()
+      try {
+        clearScannerTargetAccountBinding()
+      } catch {
+        // A browser storage failure cannot undo the committed transaction.
+      }
       closeConfirmation()
       setState({
         mode: 'success',
         message: `已更新 ${result.imported} 张驱动盘；未影响其他账户、代理人、邦布、音擎或备份。`,
       })
-      onImportSuccess?.(result.imported)
+      reportedImportTotalRef.current = result.imported
+      try {
+        onImportSuccess?.(result.imported)
+      } catch {
+        // Preserve the successful result if a parent presentation fails.
+      }
       setRevision((value) => value + 1)
     } catch (error) {
       finishUsage('failure')
@@ -304,17 +317,7 @@ export function FormalDiscImportPage({
 
   if (state.mode === 'success' && /^已更新 \d+/.test(state.message))
     return embedded ? (
-      <section className="formal-import-success scanner-inline-import__success" role="status">
-        <div className="formal-import-success__mark" aria-hidden="true">
-          <CheckCircle2 />
-        </div>
-        <div className="formal-import-success__copy">
-          <h2 ref={successHeadingRef} tabIndex={-1}>
-            {state.message.split('；')[0]}
-          </h2>
-          <p>{state.message.split('；').slice(1).join('；')}</p>
-        </div>
-      </section>
+      <FormalDiscImportPageSuccess headingRef={successHeadingRef} message={state.message} />
     ) : (
       <Navigate replace to="/assets/discs" />
     )
@@ -361,15 +364,10 @@ export function FormalDiscImportPage({
 
   if (completedImportedTotal !== null)
     return embedded ? (
-      <section className="formal-import-success scanner-inline-import__success" role="status">
-        <div className="formal-import-success__mark" aria-hidden="true">
-          <CheckCircle2 />
-        </div>
-        <div className="formal-import-success__copy">
-          <h2>已更新 {completedImportedTotal} 张驱动盘</h2>
-          <p>未影响其他账户、代理人、邦布、音擎或备份。</p>
-        </div>
-      </section>
+      <FormalDiscImportPageSuccess
+        headingRef={successHeadingRef}
+        message={`已更新 ${completedImportedTotal} 张驱动盘；未影响其他账户、代理人、邦布、音擎或备份。`}
+      />
     ) : (
       <Navigate replace to="/assets/discs" />
     )

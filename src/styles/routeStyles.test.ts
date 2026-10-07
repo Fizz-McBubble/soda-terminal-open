@@ -34,14 +34,27 @@ describe('route style isolation', () => {
     expect(document.documentElement).toHaveAttribute('data-soda-style-scope', 'f5')
   })
 
-  it('atomically reverses the active stylesheets on non-F5 routes', () => {
+  it('only enables the legacy stylesheet for development tools', () => {
     applyRouteStyleScope('/system/scanner')
-    expect(applyRouteStyleScope('/loadouts/agent')).toBe('legacy')
+    expect(applyRouteStyleScope('/system/data/review-dev')).toBe('legacy')
 
     expect(stylesheet('f5')).toMatchObject({ disabled: true, media: 'not all' })
     expect(stylesheet('legacy')).toMatchObject({ disabled: false, media: 'all' })
     expect(document.documentElement).toHaveAttribute('data-soda-style-scope', 'legacy')
     expect(document.querySelectorAll('link[data-soda-route-styles]')).toHaveLength(2)
+  })
+
+  it('keeps invalid URLs and old redirects in the current public stylesheet', () => {
+    for (const path of [
+      '/missing-page',
+      '/system/scannerhttps%3A/sodaterminal.com/system/scanner',
+      '/loadouts/agent',
+      '/system/data',
+      '/system/scanner/',
+    ]) {
+      expect(applyRouteStyleScope(path)).toBe('f5')
+      expect(stylesheet('legacy')).toBeNull()
+    }
   })
 
   it('keeps the current shell styled when entering saved plans from the team workspace', () => {

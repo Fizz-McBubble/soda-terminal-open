@@ -22,6 +22,26 @@ export const validReport = {
 }
 
 describe('allowlisted diagnostic privacy boundary', () => {
+  it('reports a connection failure without copying a retained completed scan', () => {
+    const report = diagnosticFromSnapshot(
+      {
+        ...connectingSnapshot,
+        state: 'completed',
+        diagnostics: { ...validReport, outcome: 'completed', durationMs: 9000 },
+      },
+      '20f44460-1234-4123-8123-abc123abc123',
+      'helper_unavailable',
+    )
+    expect(report).toMatchObject({
+      reportId: '20f44460-1234-4123-8123-abc123abc123',
+      code: 'helper_unavailable',
+      stage: 'connection',
+      outcome: 'failed',
+      counts: { processed: null, total: null },
+      durationMs: null,
+      evidence: {},
+    })
+  })
   it('reconstructs every nested field before copying/storage/submission and rejects unsafe values', () => {
     const report = sanitizeScanDiagnostic({
       ...validReport,

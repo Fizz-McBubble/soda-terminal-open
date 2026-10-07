@@ -40,7 +40,10 @@ export function PrepareChecklist({
   const readyCount = checks.filter((check) => check.status === 'ready').length
   const checksReady = checks.every((check) => check.status === 'ready')
   const startReady =
-    targetReady && snapshot.readiness.helperConnected && snapshot.distribution?.state === 'ready'
+    targetReady &&
+    !['connecting', 'checking', 'awaiting_elevation'].includes(snapshot.state) &&
+    snapshot.readiness.helperConnected &&
+    snapshot.distribution?.state === 'ready'
   const totalReady = readyCount + (targetReady ? 1 : 0)
   const totalChecks = checks.length + 1
   const checking = ['connecting', 'checking', 'awaiting_elevation'].includes(snapshot.state)
@@ -124,9 +127,11 @@ export function PrepareChecklist({
           <strong>
             {waitingForPlayer && targetReady
               ? '点击后检查游戏是否就绪'
-              : checksReady && targetReady
-                ? `${totalChecks} 项准备全部通过`
-                : `${totalReady} / ${totalChecks} 项准备已通过`}
+              : unchecked || needsConnection
+                ? '先连接本机扫描助手'
+                : checksReady && targetReady
+                  ? `${totalChecks} 项准备全部通过`
+                  : `${totalReady} / ${totalChecks} 项准备已通过`}
           </strong>
           <b aria-live="polite">
             {checksReady && targetReady
@@ -136,7 +141,7 @@ export function PrepareChecklist({
                 : checking
                   ? '正在连接助手'
                   : unchecked
-                    ? '等待本机组件'
+                    ? '点击连接'
                     : '暂不可开始'}
           </b>
         </div>

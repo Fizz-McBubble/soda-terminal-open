@@ -3,6 +3,7 @@ const releaseId = new URL(self.location.href).searchParams.get('release')
 const cachePrefix = 'soda-public-shell-'
 const cacheName = `${cachePrefix}${releaseId}`
 const installBatchSize = 6
+const navigationNetworkTimeoutMs = 8000
 const clientReleases = new Map()
 const completeReleases = new Set()
 let networkManifest
@@ -61,6 +62,42 @@ async function verifyAsset(response, expected) {
   ).join('')
   if (actual !== expected) throw new Error('critical_asset_release_mismatch')
   return response
+}
+
+async function fetchNavigation(request) {
+  const controller = new AbortController()
+  let timer
+  try {
+    return await Promise.race([
+      fetch(request, { signal: controller.signal }),
+      new Promise((_, reject) => {
+        timer = setTimeout(() => {
+          controller.abort()
+          reject(new Error('navigation_network_timeout'))
+        }, navigationNetworkTimeoutMs)
+      }),
+    ])
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
+async function cachedNavigation() {
+  const cache = await caches.open(cacheName)
+  const stored = await cache.match('/offline-shell-manifest.json')
+  const manifest = await stored?.json()
+  const expected = manifest?.criticalAssetSha256?.['/index.html']
+  if (manifest?.releaseId !== releaseId || !/^[a-f0-9]{64}$/.test(expected ?? '')) return
+  const cached = await cache.match('/index.html')
+  if (!cached) return
+  await verifyAsset(cached, expected)
+  // Static Assets redirects /index.html to /. The verified bytes can answer a
+  // navigation, but the cached redirect flag cannot be carried into that response.
+  return new Response(cached.body, {
+    status: cached.status,
+    statusText: cached.statusText,
+    headers: cached.headers,
+  })
 }
 
 function manifestWithoutCache() {
@@ -217,20 +254,18 @@ self.addEventListener('fetch', (event) => {
   if (request.mode === 'navigate') {
     event.respondWith(
       (async () => {
+        let network
         try {
-          return await fetch(request)
+          network = await fetchNavigation(request)
+          if (network.status < 500 && network.status !== 408 && network.status !== 429)
+            return network
         } catch {
-          const cache = await caches.open(cacheName)
-          const cached = await cache.match('/index.html')
-          // Static Assets redirects /index.html to /. A cached redirected response cannot
-          // answer a navigation with redirect mode "manual"; retain verified bytes/headers.
-          return cached
-            ? new Response(cached.body, {
-                status: cached.status,
-                statusText: cached.statusText,
-                headers: cached.headers,
-              })
-            : Response.error()
+          // Offline and stalled networks can both reuse the installed release.
+        }
+        try {
+          return (await cachedNavigation()) ?? network ?? Response.error()
+        } catch {
+          return network ?? Response.error()
         }
       })(),
     )

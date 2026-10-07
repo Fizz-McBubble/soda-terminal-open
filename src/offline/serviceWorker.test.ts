@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { runInNewContext } from 'node:vm'
 import { createHash, webcrypto } from 'node:crypto'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 const current = 'public-r3-20260928'
 const r2 = 'public-r2-20260927'
@@ -17,6 +17,7 @@ const assets = [
 ]
 const criticalAssets = assets.slice(0, 4)
 const name = (release: string) => `soda-public-shell-${release}`
+afterEach(() => vi.useRealTimers())
 const manifest = (release: string) => ({
   releaseId: release,
   browserCompute: true,
@@ -114,6 +115,9 @@ function createWorker(
     Map,
     Set,
     Uint8Array,
+    AbortController,
+    setTimeout,
+    clearTimeout,
     crypto: webcrypto,
     caches: cacheApi,
     fetch: fetcher,
@@ -301,6 +305,59 @@ describe('public service worker release cache lifecycle', () => {
     expect(response?.status).toBe(200)
     expect(response?.headers.get('content-type')).toBe('text/plain;charset=UTF-8')
     expect(await response?.text()).toBe(`${current}:/index.html`)
+  })
+
+  it.each([408, 429, 502, 503])(
+    'uses the installed page when navigation returns HTTP %s',
+    async (status) => {
+      const worker = createWorker()
+      await worker.dispatch('install')
+      worker.fetcher.mockResolvedValueOnce(new Response('edge temporarily unavailable', { status }))
+      const response = await worker.dispatch('fetch', {
+        request: { method: 'GET', mode: 'navigate', url: 'https://soda.example/system/scanner' },
+      })
+      expect(response?.status).toBe(200)
+      expect(await response?.text()).toBe(`${current}:/index.html`)
+    },
+  )
+
+  it('recovers a stalled navigation after a bounded wait without clearing local data', async () => {
+    vi.useFakeTimers()
+    const worker = createWorker()
+    await worker.dispatch('install')
+    worker.fetcher.mockImplementationOnce(() => new Promise<Response>(() => {}))
+    let result: Response | undefined
+    const navigation = worker
+      .dispatch('fetch', {
+        request: { method: 'GET', mode: 'navigate', url: 'https://soda.example/assets/account' },
+      })
+      .then((response) => {
+        result = response
+      })
+    await vi.advanceTimersByTimeAsync(8001)
+    // The timeout is virtual; SHA-256 verification still finishes on Node's native crypto queue.
+    await navigation
+    expect(result?.status).toBe(200)
+    expect(await result?.text()).toBe(`${current}:/index.html`)
+    expect(worker.cacheApi.delete).not.toHaveBeenCalled()
+  })
+
+  it('does not mask denied routes or use a damaged cached page as recovery', async () => {
+    const worker = createWorker()
+    await worker.dispatch('install')
+    const navigate = () =>
+      worker.dispatch('fetch', {
+        request: {
+          method: 'GET',
+          mode: 'navigate',
+          url: 'https://soda.example/private/continuity.json',
+        },
+      })
+    worker.fetcher.mockResolvedValueOnce(new Response('not found', { status: 404 }))
+    expect((await navigate())?.status).toBe(404)
+    worker.entries.get(name(current))!.set('/index.html', new Response('damaged page'))
+    worker.fetcher.mockResolvedValueOnce(new Response('unavailable', { status: 503 }))
+    expect((await navigate())?.status).toBe(503)
   })
 
   it('keeps current, immediate predecessor and an active older tab, then prunes after that tab closes', async () => {

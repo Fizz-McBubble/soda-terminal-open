@@ -3,14 +3,7 @@ import f5StylesheetHref from './f5-golden.css?url'
 
 export type RouteStyleScope = 'f5' | 'legacy'
 
-// C1 player-account journeys must never fall back to the tactical stylesheet
-// between scanning and the explicit import confirmation.
-export const F5_STYLE_PATHS = [
-  '/',
-  '/system/scanner',
-  '/system/help',
-  '/system/data/import-discs',
-] as const
+export const LEGACY_TOOL_PATHS = ['/system/data/review-dev', '/system/data/audit'] as const
 
 const routeStyles = {
   f5: {
@@ -24,15 +17,12 @@ const routeStyles = {
 } as const
 
 export function getRouteStyleScope(pathname: string): RouteStyleScope {
-  return F5_STYLE_PATHS.includes(pathname as (typeof F5_STYLE_PATHS)[number]) ||
-    pathname.startsWith('/assets') ||
-    pathname.startsWith('/development') ||
-    pathname === '/loadouts/team' ||
-    pathname.startsWith('/loadouts/team/') ||
-    pathname.startsWith('/loadouts/plans/') ||
-    pathname === '/warehouse/discs'
-    ? 'f5'
-    : 'legacy'
+  // Only the two development-only tools retain the old layout. Public redirects
+  // and invalid URLs share the current shell, including before route resolution.
+  return import.meta.env.DEV &&
+    LEGACY_TOOL_PATHS.includes(pathname as (typeof LEGACY_TOOL_PATHS)[number])
+    ? 'legacy'
+    : 'f5'
 }
 
 function ensureStylesheet(documentRoot: Document, scope: RouteStyleScope) {

@@ -6,6 +6,7 @@ type ResolveScannerHelperSessionTokenOptions = {
   fetchImpl: ScannerTokenFetch
   origin: string
   fallbackErrorCode: string
+  signal?: AbortSignal
 }
 
 /**
@@ -19,18 +20,23 @@ export async function resolveScannerHelperSessionToken({
   fetchImpl,
   origin,
   fallbackErrorCode,
+  signal,
 }: ResolveScannerHelperSessionTokenOptions) {
+  signal?.throwIfAborted()
   try {
     const response = await fetchImpl(`${baseUrl}/token`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      ...(signal ? { signal } : {}),
     })
     if (response.ok) {
       const body = (await response.json()) as { token?: string }
+      signal?.throwIfAborted()
       if (body.token && body.token.length >= 32) return body.token
     }
     if (response.status === 403) throw new Error('helper_pairing_denied')
   } catch (error) {
+    signal?.throwIfAborted()
     if (error instanceof Error && error.message === 'helper_pairing_denied') throw error
     // The native Helper may not be running; keep the launcher-token fallback.
   }
@@ -39,9 +45,14 @@ export async function resolveScannerHelperSessionToken({
   if (new URL(origin).protocol === 'https:') throw new Error(fallbackErrorCode)
   if (initialToken.length >= 32) return initialToken
 
-  const response = await fetchImpl(new URL('/_soda/runtime-config', origin))
+  signal?.throwIfAborted()
+  const response = await fetchImpl(
+    new URL('/_soda/runtime-config', origin),
+    signal ? { signal } : undefined,
+  )
   if (!response.ok) throw new Error(`${fallbackErrorCode}_${response.status}`)
   const body = (await response.json()) as { scannerToken?: string }
+  signal?.throwIfAborted()
   if (!body.scannerToken || body.scannerToken.length < 32)
     throw new Error('helper_session_token_missing')
   return body.scannerToken

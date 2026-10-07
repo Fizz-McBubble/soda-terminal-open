@@ -1,3 +1,4 @@
+import { createFrozenScannerTargetIssue } from './scannerAssistantTargetIssue'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import {
   createPublicScannerAccount,
@@ -18,7 +19,6 @@ import {
   activeScannerResultBatchSettingKey,
   scanResultHandleSettingKey,
 } from '../scanner/resultHandoff'
-import type { ScannerAssistantSnapshot, useScannerAssistantRuntime } from '../scanner/runtime'
 import { readScannerResultWithDeadline } from '../scanner/resultRead'
 import {
   clearScannerTargetAccountBinding,
@@ -28,37 +28,13 @@ import {
   validateScannerTargetAccountBinding,
   type ScannerTargetAccountBinding,
 } from '../scanner/targetAccountBinding'
-import type { ScannerAccounts } from './ScannerAccountHydrationGate'
 import type { HandoffState } from './scannerAssistantPresentation'
 import {
   completedScannerImportKey,
   discardedScannerResultHandleKey,
-  type CompletedScannerImport,
 } from './scannerAssistantStatePresentation'
 
-type ScannerTargetBindingOptions = {
-  account: {
-    accountState: ScannerAccounts
-    refreshAccounts: () => void
-    selectedAccount: ScannerAccounts['accounts'][number] | undefined
-    newAccountName: string
-    selectedJson: File | null
-  }
-  runtime: {
-    snapshot: ScannerAssistantSnapshot
-    commands: ReturnType<typeof useScannerAssistantRuntime>['commands']
-    runScannerAction: (action: () => void | Promise<void>) => Promise<void>
-    stageFocusRequestedRef: { current: boolean }
-  }
-  update: {
-    setSelectedAccountId: (id: string) => void
-    setNewAccountName: (name: string) => void
-    setAccountMessage: (msg: string) => void
-    setCompletedImport: (val: CompletedScannerImport | null) => void
-    setPreparingAnotherScan: (val: boolean) => void
-    setInlineImportOpen: (val: boolean) => void
-  }
-}
+import type { ScannerTargetBindingOptions } from './scannerAssistantBindingOptions'
 
 export function useScannerTargetBinding({ account, runtime, update }: ScannerTargetBindingOptions) {
   const { accountState, refreshAccounts, selectedAccount, newAccountName, selectedJson } = account
@@ -82,6 +58,10 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
   })
   const readRef = useRef<AbortController | null>(null)
   const startingScanRef = useRef(false)
+  const startPendingRef = useRef(false)
+  const [startPending, setStartPending] = useState(false)
+  const bindingPendingRef = useRef(false)
+  const readGenerationRef = useRef(0)
   const previousSnapshotRef = useRef(snapshot)
   const latestSnapshotRef = useRef(snapshot)
   useLayoutEffect(() => {
@@ -90,6 +70,8 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
   }, [snapshot])
 
   function cancelResultRead() {
+    readGenerationRef.current += 1
+    bindingPendingRef.current = false
     readRef.current?.abort()
     readRef.current = null
   }
@@ -141,43 +123,10 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
     })
   }, [accountState, targetBinding])
 
-  const frozenTargetIssue = useMemo(() => {
-    if (!targetBinding || frozenTargetValidation.valid) return null
-    const activeName = accountState?.activeAccount?.displayName ?? '尚未选择账户'
-    const currentTarget = accountState?.accounts.find(
-      (account) => account.id === targetBinding.accountId,
-    )
-    const currentDiscCount = accountState?.discCounts.get(targetBinding.accountId)
-    const issueCode =
-      'code' in frozenTargetValidation ? frozenTargetValidation.code : 'binding_missing'
-    switch (issueCode) {
-      case 'active_account_changed':
-        return {
-          title: '扫描目标与当前账户不一致',
-          message: `本次扫描锁定“${targetBinding.displayName}”，当前账户为“${activeName}”。`,
-        }
-      case 'baseline_changed':
-        return {
-          title: '目标账户的仓库已经变化',
-          message: `本次扫描锁定“${targetBinding.displayName}”时有 ${targetBinding.baselineDiscCount} 张驱动盘，当前为 ${currentDiscCount ?? 0} 张。`,
-        }
-      case 'target_account_changed':
-        return {
-          title: '目标账户资料已经变化',
-          message: `本次扫描锁定“${targetBinding.displayName}”，当前账户名称为“${currentTarget?.displayName ?? activeName}”。`,
-        }
-      case 'target_account_missing':
-        return {
-          title: '扫描目标账户已不可用',
-          message: `本次扫描锁定“${targetBinding.displayName}”，但该账户已不存在或不可用。`,
-        }
-      default:
-        return {
-          title: '需要重新确认扫描目标',
-          message: `本次扫描原先锁定“${targetBinding.displayName}”。`,
-        }
-    }
-  }, [accountState, frozenTargetValidation, targetBinding])
+  const frozenTargetIssue = useMemo(
+    () => createFrozenScannerTargetIssue(targetBinding, frozenTargetValidation, accountState),
+    [accountState, frozenTargetValidation, targetBinding],
+  )
 
   const completedBindingIssue =
     targetBinding && !frozenTargetValidation.valid ? frozenTargetIssue : null
@@ -186,15 +135,18 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
     ? { source: '既有扫描绑定', value: targetBinding.displayName }
     : { source: '当前结果未提供', value: '未知' }
 
-  async function freezeSelectedTarget() {
+  async function freezeSelectedTarget(assertCurrent: () => void = () => {}) {
     if (!selectedAccount) throw new Error('请先选择本次扫描要更新的账户。')
     const current = await database.accounts.get(selectedAccount.id)
+    assertCurrent()
     if (!current || current.status !== 'active') throw new Error('目标账户已不存在，请重新选择。')
     await setPublicScannerActiveAccount(current.id, database)
+    assertCurrent()
     const baselineDiscCount = await database.accountDriveDiscs
       .where('accountId')
       .equals(current.id)
       .count()
+    assertCurrent()
     const binding = createScannerTargetAccountBinding({ account: current, baselineDiscCount })
     saveScannerTargetAccountBinding(binding)
     setTargetBinding(binding)
@@ -204,10 +156,18 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
   }
 
   async function startBoundScan() {
+    if (startPendingRef.current) return
+    startPendingRef.current = true
+    setStartPending(true)
+    cancelResultRead()
+    const generation = readGenerationRef.current
+    const assertCurrent = () => {
+      if (generation !== readGenerationRef.current)
+        throw new DOMException('Cancelled', 'AbortError')
+    }
     setAccountMessage('')
     try {
-      await freezeSelectedTarget()
-      cancelResultRead()
+      await freezeSelectedTarget(assertCurrent)
       setHandoffState({ status: 'idle' })
       startingScanRef.current = true
       setPreparingAnotherScan(false)
@@ -223,7 +183,11 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
         }
       })
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') return
       setAccountMessage(error instanceof Error ? error.message : '无法锁定扫描目标账户。')
+    } finally {
+      startPendingRef.current = false
+      setStartPending(false)
     }
   }
 
@@ -317,6 +281,7 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
       }, controller.signal)
       assertCurrent()
       phase = 'handoff'
+      setHandoffState({ status: 'working', message: '正在保存本次结果，尚未更新账户。' })
       const staged = await stageAccountPaddleScanImport(binding.accountId, staging, database)
       assertCurrent()
       if (result)
@@ -324,12 +289,18 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
           key: scanResultHandleSettingKey(binding.accountId, staged.batch.id),
           value: result.resultFileHandle,
         })
+      assertCurrent()
       await database.settings.put({
         key: activeScannerResultBatchSettingKey(binding.accountId),
         value: staged.batch.id,
       })
+      assertCurrent()
       if (!publicScannerDriveDiscData)
         throw new Error('游戏资料尚未加载完成，请稍后重新查看扫描结果。')
+      setHandoffState({
+        status: 'working',
+        message: `正在检查 ${staged.summary.total} 张驱动盘，尚未更新账户。`,
+      })
       const preflight = await preflightAccountScanReviewBatch(
         binding.accountId,
         staged.batch.id,
@@ -414,41 +385,57 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
   }
 
   async function bindCompletedResultToSelectedAccount() {
-    if (handoffState.status === 'working') return
+    if (bindingPendingRef.current || readRef.current || handoffState.status === 'working') return
     if (!selectedAccount) {
       const message = '请先选择本次扫描结果归属的账户。'
       setAccountMessage(message)
       setHandoffState({ status: 'error', message })
       return
     }
+    bindingPendingRef.current = true
+    const generation = readGenerationRef.current
+    const sourceHandle = snapshot.summary?.resultFileHandle
+    const assertCurrent = () => {
+      if (
+        generation !== readGenerationRef.current ||
+        sourceHandle !== latestSnapshotRef.current.summary?.resultFileHandle
+      )
+        throw new DOMException('Cancelled', 'AbortError')
+    }
+    setHandoffState({ status: 'working', message: '正在确认接收账户。' })
     try {
-      const current = await database.accounts.get(selectedAccount.id)
-      if (!current || current.status !== 'active') throw new Error('所选账户已不可用，请重新选择。')
-      await setPublicScannerActiveAccount(current.id, database)
-      const baselineDiscCount = await database.accountDriveDiscs
-        .where('accountId')
-        .equals(current.id)
-        .count()
-      const binding = createScannerTargetAccountBinding({ account: current, baselineDiscCount })
-      saveScannerTargetAccountBinding(binding)
-      setTargetBinding(binding)
-      refreshAccounts()
+      const binding = await freezeSelectedTarget(assertCurrent)
       setAccountMessage(`已确认“${binding.displayName}”作为本次已有结果的归属账户。`)
       await handOffResult(binding)
     } catch (error) {
+      if (error instanceof Error && error.name === 'AbortError') return
       const message = error instanceof Error ? error.message : '无法确认本次扫描结果归属。'
       setAccountMessage(message)
       setHandoffState({ status: 'error', message })
+    } finally {
+      if (generation === readGenerationRef.current) bindingPendingRef.current = false
     }
   }
 
   async function handOffFallbackJson() {
+    if (!selectedJson || bindingPendingRef.current || readRef.current) return
+    bindingPendingRef.current = true
+    const generation = readGenerationRef.current
+    const assertCurrent = () => {
+      if (generation !== readGenerationRef.current)
+        throw new DOMException('Cancelled', 'AbortError')
+    }
+    setHandoffState({ status: 'working', message: '正在确认接收账户。' })
     try {
-      if (!selectedJson) return
-      const binding = await freezeSelectedTarget()
+      const binding = await freezeSelectedTarget(assertCurrent)
       await handOffResult(binding, selectedJson)
     } catch (error) {
-      setAccountMessage(error instanceof Error ? error.message : '无法锁定扫描目标账户。')
+      if (error instanceof Error && error.name === 'AbortError') return
+      const message = error instanceof Error ? error.message : '无法锁定扫描目标账户。'
+      setAccountMessage(message)
+      setHandoffState({ status: 'error', message })
+    } finally {
+      if (generation === readGenerationRef.current) bindingPendingRef.current = false
     }
   }
 
@@ -469,6 +456,7 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
       discardedCompletedResultHandle,
     },
     actions: {
+      startPending,
       startBoundScan,
       createTargetAccount,
       returnToTargetSelection,

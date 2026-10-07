@@ -17,7 +17,6 @@ export class AppErrorBoundary extends Component<{ children: ReactNode }, State> 
     if (this.state.error) {
       return (
         <main className="fatal-error" role="alert">
-          <span className="eyebrow">RECOVERY MODE</span>
           <h1>应用未能正常启动</h1>
           <p>请重新加载页面后再试。此操作不会清除账户资料。</p>
           <div className="app-entry-state__actions">

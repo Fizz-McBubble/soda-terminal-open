@@ -6,6 +6,7 @@ import { preloadPlayerRoute } from '../routes/preloadPlayerRoute'
 import { useDetailsDisclosureMotion } from '../motion/useDetailsDisclosureMotion'
 import { useStateTransitionMotion } from '../motion/useStateTransitionMotion'
 import { SponsorProvider, SponsorRail } from './SponsorSupport'
+import { ReleaseNotes } from './ReleaseNotes'
 
 const narrowNavigationQuery = '(max-width: 960px)'
 const publicBuild = import.meta.env.VITE_SODA_PUBLIC_BUILD === 'true'
@@ -230,17 +231,20 @@ function F5VisualShellContent({
           <div className="f5v-location" aria-label="当前位置">
             <strong>{currentTitle}</strong>
           </div>
-          <div className="f5v-account-strip" aria-label="账号状态">
-            <strong>本地账户</strong>
-            <span>
-              {account.hydrating ? '读取中' : account.hasAccount ? account.name : '尚未创建账户'}
-            </span>
-            <span>
-              {account.hydrating
-                ? '读取中'
-                : `${account.agentCount} 代理人 · ${account.discCount} 驱动盘`}
-            </span>
-            <b>版本 {currentVersion}</b>
+          <div className="f5v-topbar-tools">
+            <ReleaseNotes key={currentPath} />
+            <div className="f5v-account-strip" aria-label="账号状态">
+              <strong>本地账户</strong>
+              <span>
+                {account.hydrating ? '读取中' : account.hasAccount ? account.name : '尚未创建账户'}
+              </span>
+              <span>
+                {account.hydrating
+                  ? '读取中'
+                  : `${account.agentCount} 代理人 · ${account.discCount} 驱动盘`}
+              </span>
+              <b>版本 {currentVersion}</b>
+            </div>
           </div>
         </header>
         <div className={`f5v-page-content ${isWorkspaceRoute ? 'is-workspace' : 'is-page'}`}>

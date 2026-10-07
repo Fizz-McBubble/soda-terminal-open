@@ -1,3 +1,4 @@
+import './asset-dialog.css'
 import { useEffect, useRef, useState } from 'react'
 import type { AssetGoldenProps, BackupPreview } from './types'
 import { SelectMenu } from './SelectMenu'
@@ -135,7 +136,7 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
           <div>
             <span className="kicker">账户管理</span>
             <h2 id="account-management-title">管理本机账户</h2>
-            <p>新账户从“扫描与导入”建立；这里负责切换、备份、恢复和永久删除。</p>
+            <p>新建账户请前往扫描与导入。</p>
           </div>
           <button
             className="primary"
@@ -268,6 +269,7 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
         </section>
       </section>
       <dialog
+        className="soda-asset-dialog"
         ref={dialogRef}
         open={restoreDialogOpen || undefined}
         aria-labelledby="restore-title"
@@ -345,6 +347,7 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
         </form>
       </dialog>
       <dialog
+        className="soda-asset-dialog"
         ref={deleteDialogRef}
         open={deleteDialogOpen || undefined}
         aria-labelledby="delete-account-title"

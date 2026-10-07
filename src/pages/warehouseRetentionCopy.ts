@@ -84,13 +84,25 @@ export function readableDetail(detail: string) {
     unknown_error: '暂时无法读取完整盘记录',
   }
   if (recordMessages[detail]) return recordMessages[detail]
-  return detail
+  // This reviewed image branch is explicitly scoped to potential 6/6 and these
+  // two teams. Keep those conditions while replacing collection landmarks.
+  const illustratedLycaon =
+    '73045858-1.png：激发潜能ON；驱动盘推荐分区6冲击力/能量恢复；下方莱卡恩+苍角+雅、莱卡恩+雨果+莱特。'
+  if (detail === illustratedLycaon)
+    return '需核对莱卡恩激发潜能是否达到6/6，以及用途是否适用于莱卡恩+苍角+雅或莱卡恩+雨果+莱特队伍；6号位冲击力或能量自动回复仅作候选方向，需结合整套配装确认。'
+  const text = detail
+    .replace(/(?:[\w-]+\/)*[\w.-]+\.(?:png|jpe?g|webp)\s*[:：]?\s*/gi, '')
+    .replace(/激发潜能\s*ON\b/gi, '需开启激发潜能')
+    .replace(/激发潜能\s*OFF\b/gi, '未开启激发潜能的构筑')
+    .replace(/驱动盘推荐分区([456])/g, '$1号位可选')
+    .replace(/([；;]|^)(?:下方|上方)(?=[^；;。]*\+)/g, '$1适用队伍：')
     .replace(/已收藏，按(?:明确|你的)保留(?:意图|选择)保护。/g, '已有保留记录。')
     .replace(/\b[a-z0-9_-]+:(?:base-\d+|condition-\d+):[a-f0-9]{8,}\b/gi, '相关构筑')
     .replace(/\b(?:mainStats\.\d+\.[a-z0-9_]+|functionalTarget|numericWeights)\b/g, (field) =>
       readableField(field),
     )
     .replace(/\b[a-z][a-z0-9_]*\b/g, (stat) => getPublicStatLabel(stat) ?? stat)
+  return text.trim() || '具体条件待核对。'
 }
 
 export function blockerText(blocker: RetentionBlocker) {

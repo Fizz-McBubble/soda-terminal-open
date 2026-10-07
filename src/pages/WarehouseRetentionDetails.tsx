@@ -51,11 +51,12 @@ export function RetentionSourceDetails({
   use?: Use
 }) {
   if (evidence.reasonKind === 'approved_rarity_cleanup' || !blockers.length) return null
+  const conditions = [...new Set(blockers.map(blockerText))]
   return (
     <div role="group" aria-label="全部待确认事项">
       <ul>
-        {blockers.map((blocker, index) => (
-          <li key={`${blocker.predicateId}-${index}`}>{blockerText(blocker)}</li>
+        {conditions.map((condition) => (
+          <li key={condition}>{condition}</li>
         ))}
       </ul>
     </div>

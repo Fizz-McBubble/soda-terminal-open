@@ -128,26 +128,31 @@ export function diagnosticFromSnapshot(
 ): ScanDiagnosticReport {
   const raw = object((snapshot as ScannerAssistantSnapshot & { diagnostics?: unknown }).diagnostics)
   const code = issueCode ?? raw.code ?? snapshot.error?.diagnosticCode
+  const connectionIssue = Boolean(issueCode && stages[issueCode] === 'connection')
   return sanitizeScanDiagnostic({
     ...raw,
     schema: 1,
     reportId: !issueCode && isReportId(raw.reportId) ? raw.reportId : attemptId,
     release: import.meta.env.VITE_SODA_RELEASE_ID || 'local-development',
-    outcome: raw.outcome ?? (snapshot.state === 'completed' ? 'completed' : 'failed'),
+    outcome: connectionIssue
+      ? 'failed'
+      : (raw.outcome ?? (snapshot.state === 'completed' ? 'completed' : 'failed')),
     stage: (issueCode ? stages[issueCode] : (raw.stage ?? stages[String(code)])) ?? 'unknown',
     code,
     versions: raw.versions ?? {},
-    counts: raw.counts ?? {
-      processed: snapshot.progress?.processed ?? null,
-      total: snapshot.progress?.total ?? null,
-    },
-    durationMs: raw.durationMs ?? null,
+    counts: connectionIssue
+      ? {}
+      : (raw.counts ?? {
+          processed: snapshot.progress?.processed ?? null,
+          total: snapshot.progress?.total ?? null,
+        }),
+    durationMs: connectionIssue ? null : (raw.durationMs ?? null),
     environment: {
       ...snapshot.prepare?.geometry?.client,
       ...object(raw.environment),
       ...browserDiagnostic(navigator.userAgent),
     },
-    evidence: raw.evidence,
+    evidence: connectionIssue ? {} : raw.evidence,
   })!
 }
 export function diagnosticJson(report: ScanDiagnosticReport) {

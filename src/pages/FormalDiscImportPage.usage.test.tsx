@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -35,6 +36,39 @@ vi.mock('../db/accountScanImport', () => ({
 import { FormalDiscImportPage } from './FormalDiscImportPage'
 import { createSyntheticFormalImportCurrent as currentState } from './formalDiscImportTestFixture'
 describe('FormalDiscImportPage usage', () => {
+  it('keeps a committed import successful when clearing browser storage or notifying the parent fails', async () => {
+    const user = userEvent.setup()
+    const onError = vi.fn()
+    const onImportSuccess = vi.fn(() => {
+      throw new Error('presentation failed')
+    })
+    render(
+      <BrowserRouter>
+        <FormalDiscImportPage
+          embedded
+          compact
+          onError={onError}
+          onImportSuccess={onImportSuccess}
+        />
+      </BrowserRouter>,
+    )
+    const remove = vi.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
+      throw new DOMException('Storage disabled', 'SecurityError')
+    })
+    try {
+      await user.click(screen.getByRole('button', { name: '确认更新驱动盘' }))
+      expect(
+        await screen.findByRole('heading', { name: '已更新 343 张驱动盘' }),
+      ).toBeInTheDocument()
+      expect(mocks.replace).toHaveBeenCalledTimes(1)
+      expect(onImportSuccess).toHaveBeenCalledWith(343)
+      expect(onError).not.toHaveBeenCalled()
+      expect(screen.queryByText(/更新失败/)).not.toBeInTheDocument()
+    } finally {
+      remove.mockRestore()
+    }
+  })
+
   it('does not record opening and cancelling the confirmation dialog', () => {
     render(
       <BrowserRouter>

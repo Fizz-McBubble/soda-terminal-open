@@ -310,6 +310,44 @@ describe('team rematch lifecycle', () => {
       delayedRoute.mockRestore()
     }
   }, 30_000)
+  it('cancels a late rematch as soon as the browser route changes before page cleanup', async () => {
+    await seedTeamWarehouse()
+    const originalRoute = localCalculationQueryClient.queryTeamRoutePresentation.bind(
+      localCalculationQueryClient,
+    )
+    let releaseRoute!: () => void
+    const pending = new Promise<void>((resolve) => {
+      releaseRoute = resolve
+    })
+    const delayedRoute = vi
+      .spyOn(localCalculationQueryClient, 'queryTeamRoutePresentation')
+      .mockImplementation(async (query) => {
+        await pending
+        return originalRoute(query)
+      })
+    const fit = vi.spyOn(localCalculationQueryClient, 'calculateTargetTeamWarehouseFit')
+    window.history.pushState(
+      {},
+      '',
+      '/loadouts/team?reanalyze=1&rematchTeam=formation%3Aagent-dialyn%2Bagent-lucia%2Bagent-yixuan',
+    )
+    render(<App />)
+    try {
+      await waitFor(() => expect(delayedRoute).toHaveBeenCalledTimes(1))
+      // Hold the existing React page mounted while browser navigation is already committed,
+      // as happens while the destination's lazy module is still loading.
+      await act(async () => {
+        window.history.pushState({}, '', '/development')
+        releaseRoute()
+        await delayedRoute.mock.results[0]!.value
+      })
+      expect(window.location.pathname).toBe('/development')
+      expect(fit).not.toHaveBeenCalled()
+    } finally {
+      releaseRoute()
+      delayedRoute.mockRestore()
+    }
+  }, 30_000)
   it('keeps a stale team detail visible but blocks its parameter changes and save until it is recomputed', async () => {
     await seedTeamWarehouse()
     window.history.pushState({}, '', '/loadouts/team')

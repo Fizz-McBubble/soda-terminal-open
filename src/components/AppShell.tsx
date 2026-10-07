@@ -3,7 +3,11 @@ import { useEffect, useInsertionEffect, useLayoutEffect, useState, type ReactNod
 import { Archive, Menu, ShieldCheck, Users, X } from 'lucide-react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { BackNavigation } from './BackNavigation'
-import { getActiveAccount, getAccountRoster } from '../accounts/repository'
+import {
+  getActiveAccount,
+  getAccountRoster,
+  getAccountSelectionDiagnostic,
+} from '../accounts/repository'
 import { database } from '../db/databaseCore'
 import { useAppHealth } from '../appHealthContext'
 import {
@@ -13,7 +17,7 @@ import {
   navigationGroups,
 } from '../navigation'
 import { useUiStore } from '../store/useUiStore'
-import { applyRouteStyleScope } from '../styles/routeStyles'
+import { applyRouteStyleScope, getRouteStyleScope } from '../styles/routeStyles'
 import { preloadPlayerRoute } from '../routes/preloadPlayerRoute'
 import { SodaMark } from './SodaMark'
 import { F5VisualShell } from './F5VisualShell'
@@ -44,9 +48,19 @@ export function AppShell({
               database.accountRosters,
             ],
             async () => {
-              const account = await getActiveAccount()
+              const [account, accountDiagnostic] = await Promise.all([
+                getActiveAccount(),
+                getAccountSelectionDiagnostic(),
+              ])
               if (!account)
-                return { accountId: null, name: '', discCount: 0, agentCount: 0, hasAccount: false }
+                return {
+                  accountId: null,
+                  name: '',
+                  discCount: 0,
+                  agentCount: 0,
+                  hasAccount: false,
+                  accountDiagnostic,
+                }
               const [discCount, roster] = await Promise.all([
                 database.accountDriveDiscs.where('accountId').equals(account.id).count(),
                 getAccountRoster(account.id),
@@ -57,6 +71,7 @@ export function AppShell({
                 discCount,
                 agentCount: roster.agents.filter((agent) => agent.owned).length,
                 hasAccount: true,
+                accountDiagnostic,
               }
             },
           )
@@ -66,16 +81,7 @@ export function AppShell({
   const systemReady = dataStatus === 'ready' && databaseStatus === 'ready'
   const systemFailed = dataStatus === 'error' || databaseStatus === 'error'
   const accountHydrating = accountSummary === undefined
-  const isF5Slice =
-    location.pathname === '/' ||
-    location.pathname === '/system/scanner' ||
-    location.pathname === '/system/help' ||
-    location.pathname === '/system/data/import-discs' ||
-    location.pathname.startsWith('/assets') ||
-    location.pathname.startsWith('/development') ||
-    location.pathname.startsWith('/loadouts/team') ||
-    location.pathname.startsWith('/loadouts/plans/') ||
-    location.pathname === '/warehouse/discs'
+  const isF5Slice = getRouteStyleScope(location.pathname) === 'f5'
   const showOnlineCalculationCard =
     Boolean(onAllowOnlineCalculation) &&
     /^\/(?:development|loadouts|warehouse|optimizer|workbench)(?:\/|$)/.test(location.pathname)
@@ -210,6 +216,13 @@ export function AppShell({
               <strong>游戏数据未能安全加载</strong>
               <span>内置规则或数据文件未通过校验。</span>
               <p>鉴定入口会保留页面说明，但请先修复数据文件后再生成新评价。</p>
+            </section>
+          ) : null}
+          {accountSummary?.accountDiagnostic ? (
+            <section className="database-error-banner" role="alert">
+              <strong>本地账户需要确认</strong>
+              <p>{accountSummary.accountDiagnostic.message}</p>
+              <Link to="/assets/account">查看账户与备份</Link>
             </section>
           ) : null}
           {showOnlineCalculationCard && onAllowOnlineCalculation ? (

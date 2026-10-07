@@ -97,6 +97,9 @@ export function useTeamAnalysisFlow({
   releaseRun: ReturnType<typeof useReleaseAccountDecisionRun>
   navigate: NavigateFunction
 }) {
+  // Browser navigation commits before a suspended destination replaces this page. Do not let
+  // its still-mounted async work advance while React is waiting to run the effect cleanup.
+  const isCurrentRoute = () => window.location.pathname === '/loadouts/team'
   const continueRematch = async (result: TeamAnalysisResult, plans: AccountPlanningDraft[]) => {
     const request = rematchRequest.current
     traceTeamRematch('continue.enter', {
@@ -111,10 +114,11 @@ export function useTeamAnalysisFlow({
       const checks = {
         analysisCurrent: analysisGeneration === analysisRequest.current,
         prepareCurrent: generation === prepareRequest.current,
+        routeCurrent: isCurrentRoute(),
       }
-      if (!checks.analysisCurrent || !checks.prepareCurrent)
+      if (!checks.analysisCurrent || !checks.prepareCurrent || !checks.routeCurrent)
         traceTeamRematch('continue.reject.generation', checks)
-      return checks.analysisCurrent && checks.prepareCurrent
+      return checks.analysisCurrent && checks.prepareCurrent && checks.routeCurrent
     }
     const hasCurrentSession = () => {
       const session = currentTeamAnalysisSession
@@ -224,7 +228,7 @@ export function useTeamAnalysisFlow({
     const request = ++analysisRequest.current
     traceTeamRematch('analysis.start', { generation: request })
     const isCurrentRequest = () => {
-      const current = request === analysisRequest.current
+      const current = request === analysisRequest.current && isCurrentRoute()
       if (!current)
         traceTeamRematch('analysis.reject.generation', {
           expected: request,
@@ -362,7 +366,7 @@ export function useTeamAnalysisFlow({
     remainingRunning.current = true
     const requestId = ++remainingRequest.current
     const accountId = accountSummary.accountId
-    const isCurrentRequest = () => remainingRequest.current === requestId
+    const isCurrentRequest = () => remainingRequest.current === requestId && isCurrentRoute()
     setRemainingBoxError(null)
     setAnalysis({ kind: 'running', stage: 1 })
     let uncommittedRunId: string | null = null
@@ -450,7 +454,7 @@ export function useTeamAnalysisFlow({
             discId: contextDiscId,
           })
         : currentOverview
-    if (request !== analysisRequest.current) {
+    if (request !== analysisRequest.current || !isCurrentRoute()) {
       traceTeamRematch('reuse.reject.generation', {
         expected: request,
         actual: analysisRequest.current,
@@ -478,7 +482,7 @@ export function useTeamAnalysisFlow({
         current: request === analysisRequest.current,
         hasRequest: Boolean(rematchRequest.current),
       })
-      if (request !== analysisRequest.current) return
+      if (request !== analysisRequest.current || !isCurrentRoute()) return
       setLastCompleteAnalysis(nextAnalysis)
       releasePreviousDetached(run.runId)
       setCurrentTeamAnalysisSession(nextAnalysis)

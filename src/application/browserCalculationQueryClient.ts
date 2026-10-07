@@ -53,6 +53,7 @@ export function createBrowserCalculationQueryClient(options: {
   let worker: WorkerPort | null = null
   let workerReady = false
   let workerReadyTimer: ReturnType<typeof setTimeout> | null = null
+  let activeRequestTimer: ReturnType<typeof setTimeout> | null = null
   let generation = 0
   let activeRequestId: number | null = null
   let nextRequestId = 1
@@ -65,6 +66,8 @@ export function createBrowserCalculationQueryClient(options: {
     generation += 1
     if (workerReadyTimer) clearTimeout(workerReadyTimer)
     workerReadyTimer = null
+    if (activeRequestTimer) clearTimeout(activeRequestTimer)
+    activeRequestTimer = null
     if (worker) {
       worker.onmessage = null
       worker.onerror = null
@@ -124,7 +127,7 @@ export function createBrowserCalculationQueryClient(options: {
           if (response.status !== 'succeeded') throw new Error(response.error ?? '计算失败。')
           request.resolve(response.result as never)
         } catch (error) {
-          if (workerGeneration !== generation) return
+          if (workerGeneration !== generation || pending.get(response.requestId) !== request) return
           if (
             error instanceof Error &&
             (response.status === 'succeeded' || /游戏资料/.test(error.message))
@@ -134,7 +137,13 @@ export function createBrowserCalculationQueryClient(options: {
           }
           request.reject(error instanceof Error ? error : new Error('计算失败。'))
         } finally {
-          if (workerGeneration === generation) {
+          if (
+            workerGeneration === generation &&
+            activeRequestId === response.requestId &&
+            pending.get(response.requestId) === request
+          ) {
+            if (activeRequestTimer) clearTimeout(activeRequestTimer)
+            activeRequestTimer = null
             request.removeAbortListener()
             pending.delete(response.requestId)
             activeRequestId = null
@@ -144,6 +153,7 @@ export function createBrowserCalculationQueryClient(options: {
       })()
     }
     created.onerror = (event) => {
+      if (workerGeneration !== generation) return
       invalidate(
         queryError(
           'BrowserCalculationWorkerError',
@@ -152,6 +162,7 @@ export function createBrowserCalculationQueryClient(options: {
       )
     }
     created.onmessageerror = () => {
+      if (workerGeneration !== generation) return
       invalidate(queryError('BrowserCalculationMessageError', '计算结果无法读取，请重新分析。'))
     }
     worker = created
@@ -188,6 +199,14 @@ export function createBrowserCalculationQueryClient(options: {
     const request = pending.get(requestId)!
     activeRequestId = requestId
     const dispatchGeneration = generation
+    // Cover both runtime reads and the Worker operation. A ready Worker that stops
+    // responding must not leave the initial account world or queued panels pending forever.
+    activeRequestTimer = setTimeout(() => {
+      if (dispatchGeneration !== generation || activeRequestId !== requestId) return
+      invalidate(
+        queryError('BrowserCalculationTimeoutError', '本机计算超时，可在当前页面重新分析。'),
+      )
+    }, 120_000)
     void (async () => {
       try {
         const runtime = await options.readRuntimeSelection()

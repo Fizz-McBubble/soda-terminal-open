@@ -1,85 +1,19 @@
+import {
+  connectionFailure,
+  isAuthenticationFailure,
+  isCompatibilityFailure,
+} from './runtimeConnectionErrors'
 import type { ScannerAssistantCommands } from './runtimeCommands'
 export type { ScannerAssistantCommands } from './runtimeCommands'
 import { useEffect, useMemo, useState } from 'react'
-import type { ScannerDistributionSnapshot } from './distribution'
-import type { ScannerAttemptDiagnostics } from './diagnostics'
 import { connectingSnapshot, createDevSnapshot, failedSnapshot } from './runtimeSnapshots'
 import { resolveScannerHelperSessionToken } from './scannerSessionToken'
 import { createDevelopmentScannerCommands } from './runtimeDevelopmentCommands'
 import { readScannerResultWithDeadline } from './resultRead'
+import { withScannerRequestDeadline } from './requestDeadline'
 
-export type ScannerAssistantState =
-  | 'unchecked'
-  | 'connecting'
-  | 'checking'
-  | 'awaiting_elevation'
-  | 'connection_failed'
-  | 'ready'
-  | 'scanning'
-  | 'paused'
-  | 'completed'
-
-export type ScannerAssistantSnapshot = {
-  state: ScannerAssistantState
-  permission: 'checking' | 'granted' | 'denied'
-  readiness: {
-    helperConnected: boolean
-    gameFrameReadable: boolean
-    accountWriteEnabled: false
-  }
-  prepare?: {
-    observedTotal?: number | null
-    expectedTotal?: number | null
-    totalSource?: string
-    requiresElevation?: boolean
-    geometry?: {
-      client?: {
-        width?: number
-        height?: number
-      }
-    }
-    errors?: string[]
-    checkedAt?: string
-    gameProcessId?: number | null
-    /** Read-only preparation facts passed to the native capture gate. */
-    playerChecks?: {
-      filtersClear: boolean | null
-      overlayClear: boolean | null
-      inventoryCapacity: number | null
-    }
-  }
-  config: {
-    scopeLabel: string
-    localOnly: true
-    reviewPolicyLabel: string
-    safeStopAvailable: true
-  }
-  progress?: {
-    processed: number
-    total: number | null
-    stageLabel: string
-    etaSeconds: number | null
-  }
-  summary?: {
-    reliable: number
-    needsReview: number
-    unreadable: number
-    resultFileHandle: string
-    resultStatus: 'ready_for_review' | 'needs_review' | 'blocked_import'
-    uniqueRecords: number
-    totalSeconds: number
-  }
-  error?: {
-    title?: string
-    userMessage: string
-    remedy?: string
-    recoveryAction: 'retry' | 'request_elevated_scan' | 'open_permission_help' | 'export_diagnostic'
-    diagnosticCode?: string
-  }
-  distribution?: ScannerDistributionSnapshot
-  /** Per-attempt, allowlisted technical facts from Helper; no raw log or account data. */
-  diagnostics?: ScannerAttemptDiagnostics
-}
+import type { ScannerAssistantSnapshot } from './runtimeSnapshotTypes'
+export type { ScannerAssistantSnapshot, ScannerAssistantState } from './runtimeSnapshotTypes'
 
 export function createScannerAssistantRuntime(
   options: {
@@ -94,6 +28,8 @@ export function createScannerAssistantRuntime(
     deferInitialConnection?: boolean
     launchProtocol?: (uri: string) => void
     resultRequestTimeoutMs?: number
+    helperRequestTimeoutMs?: number
+    streamIdleTimeoutMs?: number
   } = {},
 ) {
   const baseUrl = options.baseUrl ?? 'http://127.0.0.1:43127'
@@ -104,6 +40,7 @@ export function createScannerAssistantRuntime(
   const EventSourceImpl = options.EventSourceImpl ?? null
   const reconnectDelayMs = options.reconnectDelayMs ?? 250
   const maxReconnectAttempts = options.maxReconnectAttempts ?? 20
+  const helperRequestTimeoutMs = options.helperRequestTimeoutMs ?? 30000
   const createObjectURL = options.createObjectURL ?? ((blob: Blob) => URL.createObjectURL(blob))
   const revokeObjectURL = options.revokeObjectURL ?? ((url: string) => URL.revokeObjectURL(url))
   let activeSubscription: {
@@ -112,10 +49,41 @@ export function createScannerAssistantRuntime(
     abort: AbortController | null
     reconnectAttempts: number
     disposed: boolean
+    interrupted: boolean
   } | null = null
+
+  function withHelperDeadline<T>(
+    operation: (signal: AbortSignal) => Promise<T>,
+    signal?: AbortSignal,
+  ) {
+    return withScannerRequestDeadline(operation, signal, helperRequestTimeoutMs, () => {
+      const error = new Error(
+        '连接尚未完成。请确认助手已运行；若浏览器显示本机设备权限，请先允许，再重新连接。',
+      )
+      error.name = 'ScannerHelperTimeoutError'
+      return error
+    })
+  }
+
+  function publishSnapshot(value: unknown) {
+    const next = value as ScannerAssistantSnapshot | undefined
+    if (
+      next?.state &&
+      next.readiness &&
+      next.config &&
+      activeSubscription &&
+      !activeSubscription.disposed
+    )
+      activeSubscription.listener(
+        next.state === 'paused'
+          ? { ...next, state: 'ready', progress: undefined, error: undefined }
+          : next,
+      )
+  }
 
   function connectEvents(subscription: NonNullable<typeof activeSubscription>, issued: string) {
     if (subscription.disposed) return
+    subscription.interrupted = false
     subscription.events?.close()
     subscription.abort?.abort()
     if (!EventSourceImpl) {
@@ -141,6 +109,7 @@ export function createScannerAssistantRuntime(
     }
     events.onerror = () => {
       if (subscription.disposed || subscription.events !== events) return
+      subscription.interrupted = true
       if (!document.hidden) subscription.listener(failedSnapshot)
     }
   }
@@ -150,25 +119,35 @@ export function createScannerAssistantRuntime(
     issued: string,
     controller: AbortController,
   ) {
+    let reader: ReadableStreamDefaultReader<Uint8Array> | undefined
     try {
-      const response = await fetchImpl(`${baseUrl}/api/events`, {
-        headers: { 'X-Soda-Scanner-Token': issued },
-        signal: controller.signal,
-        cache: 'no-store',
-      })
+      const response = await withHelperDeadline(
+        () =>
+          fetchImpl(`${baseUrl}/api/events`, {
+            headers: { 'X-Soda-Scanner-Token': issued },
+            signal: controller.signal,
+            cache: 'no-store',
+          }),
+        controller.signal,
+      )
       if (!response.ok || !response.body) throw new Error(`helper_events_failed_${response.status}`)
       subscription.reconnectAttempts = 0
-      const reader = response.body.getReader()
+      reader = response.body.getReader()
       const decoder = new TextDecoder()
       let pending = ''
       while (!controller.signal.aborted) {
-        const { done, value } = await reader.read()
+        const { done, value } = await withScannerRequestDeadline(
+          () => reader!.read(),
+          controller.signal,
+          options.streamIdleTimeoutMs ?? 45000,
+          () => new Error('helper_events_timeout'),
+        )
         if (done) break
         pending += decoder.decode(value, { stream: true })
-        let boundary = pending.indexOf('\n\n')
-        while (boundary >= 0) {
-          const frame = pending.slice(0, boundary).replaceAll('\r', '')
-          pending = pending.slice(boundary + 2)
+        let separator = /\r?\n\r?\n/.exec(pending)
+        while (separator) {
+          const frame = pending.slice(0, separator.index).replaceAll('\r', '')
+          pending = pending.slice(separator.index + separator[0].length)
           const data = frame
             .split('\n')
             .filter((line) => line.startsWith('data:'))
@@ -182,12 +161,16 @@ export function createScannerAssistantRuntime(
                 : next,
             )
           }
-          boundary = pending.indexOf('\n\n')
+          separator = /\r?\n\r?\n/.exec(pending)
         }
       }
       if (!controller.signal.aborted) throw new Error('helper_events_disconnected')
     } catch (error) {
-      if (!controller.signal.aborted && !subscription.disposed && !document.hidden) {
+      if (subscription.disposed || subscription.abort !== controller) return
+      if (controller.signal.aborted) return
+      subscription.interrupted = true
+      controller.abort()
+      if (!document.hidden) {
         subscription.listener(failedSnapshot)
         if (subscription.reconnectAttempts++ < maxReconnectAttempts) {
           window.setTimeout(() => {
@@ -196,12 +179,16 @@ export function createScannerAssistantRuntime(
               token = ''
               tokenResolved = false
             }
-            void ensureSessionToken()
+            void withHelperDeadline((signal) => ensureSessionToken(signal))
               .then((next) => connectEvents(subscription, next))
-              .catch(() => subscription.listener(failedSnapshot))
+              .catch(() => {
+                if (!subscription.disposed) subscription.listener(failedSnapshot)
+              })
           }, reconnectDelayMs)
         }
       }
+    } finally {
+      if (reader) void reader.cancel().catch(() => {})
     }
   }
 
@@ -213,10 +200,11 @@ export function createScannerAssistantRuntime(
     signal?.throwIfAborted()
     const response = await fetchImpl(`${baseUrl}/`, signal ? { signal } : undefined)
     const identity = response.ok ? await response.json() : null
+    signal?.throwIfAborted()
     if (
       !identity ||
       identity.service !== 'soda-terminal-scanner-helper' ||
-      !['2.3.1', '2.3.2', '2.3.3', '2.3.4', '2.3.5', '2.3.6'].includes(identity.version) ||
+      !['2.3.1', '2.3.2', '2.3.3', '2.3.4', '2.3.5', '2.3.6', '2.3.7'].includes(identity.version) ||
       identity.protocolVersion !== 5 ||
       identity.transport !== 'direct-fork-http' ||
       identity.accountWriteEnabled !== false ||
@@ -229,8 +217,9 @@ export function createScannerAssistantRuntime(
     nativeIdentityVerified = true
   }
 
-  async function ensureSessionToken() {
-    if (!nativeIdentityVerified) await verifyNativeHelper()
+  async function ensureSessionToken(signal?: AbortSignal) {
+    signal?.throwIfAborted()
+    if (!nativeIdentityVerified) await verifyNativeHelper(signal)
     if (tokenResolved && token) return token
     token = await resolveScannerHelperSessionToken({
       baseUrl,
@@ -238,15 +227,24 @@ export function createScannerAssistantRuntime(
       fetchImpl,
       origin: window.location.origin,
       fallbackErrorCode: 'helper_token_request_failed',
+      signal,
     })
+    signal?.throwIfAborted()
     tokenResolved = true
     return token
   }
 
   async function command(path: string, method = 'POST', signal?: AbortSignal) {
+    return withHelperDeadline(
+      (requestSignal) => executeCommand(path, method, requestSignal),
+      signal,
+    )
+  }
+
+  async function executeCommand(path: string, method: string, signal: AbortSignal) {
     await verifyNativeHelper(signal)
     signal?.throwIfAborted()
-    await ensureSessionToken()
+    await ensureSessionToken(signal)
     signal?.throwIfAborted()
     const request = () =>
       fetchImpl(`${baseUrl}${path}`, {
@@ -262,14 +260,16 @@ export function createScannerAssistantRuntime(
       token = ''
       tokenResolved = false
       nativeIdentityVerified = false
-      await ensureSessionToken()
+      await ensureSessionToken(signal)
       signal?.throwIfAborted()
       response = await request()
       signal?.throwIfAborted()
       if (response.ok) reconnectActiveSubscription()
     }
     if (!response.ok) throw new Error(`helper_request_failed_${response.status}`)
-    return response.json()
+    const body = await response.json()
+    signal.throwIfAborted()
+    return body
   }
 
   async function readResult(path: string, method: string, signal?: AbortSignal) {
@@ -281,63 +281,48 @@ export function createScannerAssistantRuntime(
   }
 
   async function readAuthenticatedImage(path: string) {
-    await ensureSessionToken()
-    const response = await fetchImpl(new URL(path, baseUrl).toString(), {
-      headers: { 'X-Soda-Scanner-Token': token },
+    await withHelperDeadline((signal) => ensureSessionToken(signal))
+    const imageUrl = new URL(path, baseUrl)
+    if (
+      imageUrl.origin !== new URL(baseUrl).origin ||
+      !imageUrl.pathname.startsWith('/api/result/')
+    )
+      throw new Error('helper_evidence_origin_invalid')
+    const blob = await withHelperDeadline(async (signal) => {
+      const response = await fetchImpl(imageUrl.toString(), {
+        headers: { 'X-Soda-Scanner-Token': token },
+        signal,
+      })
+      const contentType = response.headers.get('content-type')?.toLowerCase() ?? ''
+      if (!response.ok) throw new Error(`helper_evidence_request_failed_${response.status}`)
+      if (!contentType.startsWith('image/')) throw new Error('helper_evidence_content_type_invalid')
+      const image = await response.blob()
+      signal.throwIfAborted()
+      return image
     })
-    const contentType = response.headers.get('content-type')?.toLowerCase() ?? ''
-    if (!response.ok) throw new Error(`helper_evidence_request_failed_${response.status}`)
-    if (!contentType.startsWith('image/')) throw new Error('helper_evidence_content_type_invalid')
-    return createObjectURL(await response.blob())
+    return createObjectURL(blob)
   }
 
   async function retryUntilConnected() {
-    let lastError: unknown
-    for (let attempt = 0; attempt < maxReconnectAttempts; attempt += 1) {
-      try {
-        await command('/api/retry')
-        return
-      } catch (error) {
-        if (isAuthenticationFailure(error) || isCompatibilityFailure(error)) throw error
-        lastError = error
-        if (attempt + 1 < maxReconnectAttempts)
-          await new Promise((resolve) => window.setTimeout(resolve, reconnectDelayMs))
-      }
-    }
-    throw lastError instanceof Error ? lastError : new Error('helper_unavailable')
-  }
-
-  function isAuthenticationFailure(error: unknown) {
-    return (
-      error instanceof Error &&
-      (error.message === 'helper_request_failed_401' || error.message === 'helper_pairing_denied')
-    )
-  }
-
-  function isCompatibilityFailure(error: unknown) {
-    return error instanceof Error && error.name === 'ScannerHelperCompatibilityError'
-  }
-
-  function connectionFailure(error: unknown) {
-    if (error instanceof Error && error.message === 'helper_pairing_denied')
-      return {
-        ...failedSnapshot,
-        error: {
-          ...failedSnapshot.error!,
-          userMessage: '扫描助手拒绝了此网站，请更新扫描助手后重新连接。',
-          diagnosticCode: 'helper_pairing_denied',
-        },
-      }
-    return isCompatibilityFailure(error)
-      ? {
-          ...failedSnapshot,
-          error: {
-            ...failedSnapshot.error!,
-            userMessage: (error as Error).message,
-            diagnosticCode: 'helper_incompatible',
-          },
+    return withHelperDeadline(async (signal) => {
+      let lastError: unknown
+      for (let attempt = 0; attempt < maxReconnectAttempts; attempt += 1) {
+        signal.throwIfAborted()
+        try {
+          const snapshot = await command('/api/retry', 'POST', signal)
+          signal.throwIfAborted()
+          publishSnapshot(snapshot)
+          return
+        } catch (error) {
+          signal.throwIfAborted()
+          if (isAuthenticationFailure(error) || isCompatibilityFailure(error)) throw error
+          lastError = error
+          if (attempt + 1 < maxReconnectAttempts)
+            await new Promise((resolve) => window.setTimeout(resolve, reconnectDelayMs))
         }
-      : failedSnapshot
+      }
+      throw lastError instanceof Error ? lastError : new Error('helper_unavailable')
+    })
   }
 
   return {
@@ -349,12 +334,27 @@ export function createScannerAssistantRuntime(
         abort: null as AbortController | null,
         reconnectAttempts: 0,
         disposed: false,
+        interrupted: false,
       }
       activeSubscription = subscription
+      const onVisible = () => {
+        if (!document.hidden && subscription.interrupted && !subscription.disposed) {
+          subscription.interrupted = false
+          void withHelperDeadline((signal) => ensureSessionToken(signal))
+            .then((issued) => connectEvents(subscription, issued))
+            .catch((error) => {
+              if (!subscription.disposed) {
+                subscription.interrupted = true
+                listener(connectionFailure(error))
+              }
+            })
+        }
+      }
+      document.addEventListener('visibilitychange', onVisible)
       // A public HTTPS page must explain local-device access before the first
       // loopback fetch, which can trigger the browser's local-network prompt.
       if (!options.deferInitialConnection)
-        void ensureSessionToken()
+        void withHelperDeadline((signal) => ensureSessionToken(signal))
           .then((issued) => {
             connectEvents(subscription, issued)
           })
@@ -363,6 +363,7 @@ export function createScannerAssistantRuntime(
           })
       return () => {
         subscription.disposed = true
+        document.removeEventListener('visibilitychange', onVisible)
         subscription.events?.close()
         subscription.abort?.abort()
         if (activeSubscription === subscription) activeSubscription = null
@@ -403,10 +404,10 @@ export function createScannerAssistantRuntime(
         reconnectActiveSubscription()
       },
       async startScan() {
-        await command('/api/start')
+        publishSnapshot(await command('/api/start'))
       },
       async safeStop() {
-        await command('/api/stop')
+        publishSnapshot(await command('/api/stop'))
       },
       async revokePairing() {
         await command('/api/revoke')

@@ -8,12 +8,14 @@ export function ExplanationPopover({
   children,
   className = '',
   align = 'end',
+  closeLabel = '关闭说明',
 }: {
   label: string
   title?: string
   children: ReactNode
   className?: string
   align?: 'start' | 'end'
+  closeLabel?: string
 }) {
   const id = useId()
   const trigger = useRef<HTMLButtonElement>(null)
@@ -77,7 +79,12 @@ export function ExplanationPopover({
       >
         <header className="explanation-popover__header">
           <strong>{title}</strong>
-          <button type="button" popoverTarget={id} popoverTargetAction="hide" aria-label="关闭说明">
+          <button
+            type="button"
+            popoverTarget={id}
+            popoverTargetAction="hide"
+            aria-label={closeLabel}
+          >
             ×
           </button>
         </header>

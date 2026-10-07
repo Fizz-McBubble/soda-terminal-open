@@ -1,5 +1,5 @@
 import { useContext, useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { beginUsageOperation } from '../usageStatistics/client'
 import type { CoreWarehouse } from '../accounts/coreFlow'
 import type {
@@ -42,6 +42,7 @@ export function useTeamRematch({
   readOnly: boolean
 }) {
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const calculationClient = useContext(CalculationQueryClientContext)
   const decisionWorld = useAccountDecisionWorld()
   const [rematching, setRematching] = useState(false)
@@ -63,7 +64,8 @@ export function useTeamRematch({
     if (!previousSession) return
     const previousFit = currentTargetTeamFit
     const generation = ++rematchGeneration.current
-    const active = () => generation === rematchGeneration.current
+    const active = () =>
+      generation === rematchGeneration.current && window.location.pathname === pathname
     rematchPending.current = true
     setRematching(true)
     setAlternativeError(null)

@@ -41,10 +41,16 @@ export function getScannerStateCopy(
   prepareGateReady: boolean,
 ) {
   switch (snapshot.state) {
+    case 'connecting':
+      return {
+        eyebrow: '正在连接',
+        title: '扫描助手正在准备',
+        body: '请保持本机助手运行。连接完成后，选择账户并点击开始扫描。',
+      }
     case 'unchecked':
       return {
         eyebrow: '等待本机助手',
-        title: '确认数据归属，然后检查并开始',
+        title: '连接助手，选择账户后开始扫描',
         body:
           window.location.protocol === 'https:'
             ? '连接后选择账户，检查游戏并开始扫描。'

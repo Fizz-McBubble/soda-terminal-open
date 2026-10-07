@@ -134,7 +134,7 @@ export function ScannerHandoffSection({
           <p className="visually-hidden">{completedBindingIssue.message}</p>
           <dl className="scanner-account-evidence" aria-label="账户归属比较" role="group">
             <div>
-              <dt>扫描识别账户</dt>
+              <dt>扫描时选择的账户</dt>
               <dd title={`${scanIdentityEvidence.source}：${scanIdentityEvidence.value}`}>
                 <strong>{scanIdentityEvidence.value}</strong>
               </dd>

@@ -21,7 +21,14 @@ const diagnosticStages = [
 ] as const
 
 function diagnosticText(stage: string) {
-  return `Soda Terminal 版本：${releaseId}\n错误阶段：${stage}\n可重试提示：刷新页面后重试；涉及账户资料时，先保存现有备份。`
+  const retryHints: Record<string, string> = {
+    页面启动: '重新加载页面；请保留浏览器中的账户资料，不要清除站点数据。',
+    本机计算: '使用结果区域的重试或重新搭配按钮；尚未保存的编辑请先保留。',
+    图片加载: '在首页图片卡片重试下载，或进入管理图片查看下载状态。',
+    本机扫描连接: '先启动扫描助手，允许本站连接本机，再点击重新连接。',
+    备份导入或导出: '导出请检查浏览器下载列表；恢复失败时保留原文件并重新选择。',
+  }
+  return `Soda Terminal 版本：${releaseId}\n错误阶段：${stage}\n可重试提示：${retryHints[stage] ?? retryHints.页面启动}`
 }
 
 export function HelpAndPrivacyPage() {
@@ -76,7 +83,7 @@ export function HelpAndPrivacyPage() {
           <div className="help-privacy__content">
             <p>
               本机扫描仅支持 Windows 版《绝区零》；Mac 和云·绝区零不支持扫描。已有扫描结果可通过
-              JSON 文件导入。
+              JSON 文件导入。自动扫描只收集 S 级驱动盘，A、B 级会跳过。
             </p>
             <p>
               Windows

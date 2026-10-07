@@ -7,6 +7,9 @@ import { PlayerSelect } from '../../PlayerSelect'
 import type { AssetGoldenProps, CatalogItem, CatalogKind, DiscItem } from './types'
 import { preloadVisualEntityImage } from '../../../assets/visualEntityImageSource'
 import { DiscWorkspaceModeSwitch } from '../../DiscWorkspaceModeSwitch'
+import { DiscBulkDeleteDialog } from './DiscBulkDeleteDialog'
+import { CatalogPagination } from './CatalogPagination'
+import { useCatalogPagination } from './useCatalogPagination'
 import { publicDiscSetOrder } from '../../../application/publicDiscSetOrder'
 import { publicStatOrder } from '../../../application/publicCandidateLabels'
 import { compareDiscCatalogOrder, compareDiscLevelOrder } from '../../../domain/discOrdering'
@@ -50,7 +53,12 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
         })
       : props.catalog[kind]
   const ids = rows.map((row) => row.stableId)
-  const incomingDiscId = incomingDiscSelection(kind, props.accountId, window.location.search)
+  const discSearch = new URLSearchParams(window.location.search)
+  const incomingDiscId =
+    incomingDiscSelection(kind, props.accountId, window.location.search) ??
+    (kind === 'discs' && !discSearch.has('account')
+      ? (discSearch.get('selected') ?? undefined)
+      : undefined)
   const [selectedId, setSelectedId] = useReconciledSelection(
     ids,
     incomingDiscId ?? props.initialSelection?.[kind],
@@ -64,9 +72,7 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
   const [pendingDelete, setPendingDelete] = useState<Array<{ stableId: string; revision: string }>>(
     [],
   )
-  const [deleteConfirmation, setDeleteConfirmation] = useState('')
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [deleting, setDeleting] = useState(false)
   const editorRef = useRef<HTMLElement>(null)
   const currentSelectedDiscs = new Set([...selectedDiscs].filter((id) => ids.includes(id)))
 
@@ -147,6 +153,10 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
   }
   const showSelectedInList = () => {
     clearFilters()
+    pagination.reveal(
+      rows.findIndex((row) => row.stableId === selectedId),
+      JSON.stringify(['', 'all', 'all', 'all', discSortMode]),
+    )
     window.requestAnimationFrame(() => {
       const card = gridRef.current?.querySelector<HTMLButtonElement>('[aria-selected="true"]')
       card?.focus()
@@ -190,25 +200,13 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
     )
   })
   const selected = rows.find((row) => row.stableId === selectedId)
-  const move = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (!['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp'].includes(event.key)) return
-    const cards = [...(gridRef.current?.querySelectorAll<HTMLButtonElement>('.object-card') ?? [])]
-    const current = cards.indexOf(document.activeElement as HTMLButtonElement)
-    const tracks = gridRef.current
-      ? getComputedStyle(gridRef.current).gridTemplateColumns.trim()
-      : ''
-    const visibleColumns = tracks && tracks !== 'none' ? tracks.split(/\s+/).length : columns[kind]
-    const step =
-      event.key === 'ArrowRight'
-        ? 1
-        : event.key === 'ArrowLeft'
-          ? -1
-          : event.key === 'ArrowDown'
-            ? visibleColumns
-            : -visibleColumns
-    cards[Math.max(0, Math.min(cards.length - 1, current + step))]?.focus()
-    event.preventDefault()
-  }
+  const pagination = useCatalogPagination(
+    filtered,
+    JSON.stringify([query, statusFilter, primaryFilter, secondaryFilter, discSortMode]),
+    selectedId,
+    gridRef,
+    columns[kind],
+  )
   const openDeleteDialog = () => {
     const dialog = deleteDialogRef.current
     if (typeof dialog?.showModal === 'function') dialog.showModal()
@@ -219,7 +217,6 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
     if (typeof dialog?.close === 'function') dialog.close()
     else setDeleteDialogOpen(false)
     setPendingDelete([])
-    setDeleteConfirmation('')
   }
   return (
     <>
@@ -231,12 +228,12 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
                 {{ agents: '代理人', wengines: '音擎', bangboos: '邦布', discs: '驱动盘' }[kind]}
               </h1>
               <p>
-                {props.accountId === 'no-account' && kind !== 'discs'
+                {props.accountId === 'no-account' && kind === 'agents'
                   ? '浏览图鉴；创建本机账户后可记录拥有情况与养成资料。'
                   : {
                       agents: '选择代理人，查看或修改等级、技能与当前装备。',
                       wengines: '查看音擎使用情况；在代理人资料中更换装备。',
-                      bangboos: '选择邦布，记录拥有情况、等级与星级。',
+                      bangboos: '查看邦布技能与适配条件；在队伍配装中选择并确认星级。',
                       discs: '查看驱动盘词条，按套装、号位或使用情况筛选。',
                     }[kind]}
               </p>
@@ -272,12 +269,14 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
               value={query}
               onChange={(event) => setQuery(event.target.value)}
             />
-            <SelectMenu
-              label={kind === 'discs' || kind === 'wengines' ? '使用状态' : '拥有状态'}
-              value={statusFilter}
-              options={statusOptions}
-              onChange={setStatusFilter}
-            />
+            {kind !== 'bangboos' ? (
+              <SelectMenu
+                label={kind === 'discs' || kind === 'wengines' ? '使用状态' : '拥有状态'}
+                value={statusFilter}
+                options={statusOptions}
+                onChange={setStatusFilter}
+              />
+            ) : null}
             <SelectMenu
               label={kind === 'discs' ? '套装' : '稀有度'}
               value={primaryFilter}
@@ -297,7 +296,7 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
             className={`object-grid ${kind}${bulk ? ' bulk' : ''}`}
             role="listbox"
             aria-multiselectable={(kind === 'discs' && bulk) || undefined}
-            onKeyDown={move}
+            onKeyDown={pagination.move}
           >
             {filtered.length === 0 && (
               <div className="empty-state" role="status">
@@ -314,7 +313,7 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
               </div>
             )}
             {kind === 'discs'
-              ? (filtered as DiscItem[]).map((item) => (
+              ? (pagination.visible as DiscItem[]).map((item) => (
                   <DiscCard
                     key={item.stableId}
                     item={item}
@@ -336,7 +335,7 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
                     }}
                   />
                 ))
-              : (filtered as CatalogItem[]).map((item) => (
+              : (pagination.visible as CatalogItem[]).map((item) => (
                   <CatalogCard
                     key={item.stableId}
                     kind={kind}
@@ -347,6 +346,7 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
                   />
                 ))}
           </div>
+          <CatalogPagination pagination={pagination} total={filtered.length} />
           {kind === 'discs' && (
             <footer className="catalog-foot">
               <button
@@ -370,7 +370,6 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
                           .filter((disc) => currentSelectedDiscs.has(disc.stableId))
                           .map(({ stableId, revision }) => ({ stableId, revision })),
                       )
-                      setDeleteConfirmation('')
                       openDeleteDialog()
                     }}
                   >
@@ -382,13 +381,17 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
           )}
         </section>
         <aside ref={editorRef} className="editor">
-          {selected && !filtered.some((row) => row.stableId === selectedId) ? (
+          {selected && !pagination.visible.some((row) => row.stableId === selectedId) ? (
             <p className="selection-context" role="status">
               仍在查看：
               {kind === 'discs'
                 ? `${(selected as DiscItem).set.playerName} · ${(selected as DiscItem).slot}号位`
                 : (selected as CatalogItem).playerName}
-              <span>此对象不在当前筛选结果中。</span>
+              <span>
+                {filtered.some((row) => row.stableId === selectedId)
+                  ? '此对象不在当前页。'
+                  : '此对象不在当前筛选结果中。'}
+              </span>
               <button className="text-action" type="button" onClick={showSelectedInList}>
                 在列表中显示
               </button>
@@ -404,75 +407,18 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
           )}
         </aside>
       </div>
-      <dialog
-        ref={deleteDialogRef}
-        open={deleteDialogOpen || undefined}
-        aria-labelledby="bulk-delete-title"
-        onCancel={(event) => {
-          if (deleting) event.preventDefault()
+      <DiscBulkDeleteDialog
+        dialogRef={deleteDialogRef}
+        open={deleteDialogOpen}
+        pending={pendingDelete}
+        onNativeClose={() => setDeleteDialogOpen(false)}
+        onClose={closeDeleteDialog}
+        onDelete={props.onDeleteDiscs}
+        onDeleted={() => {
+          setSelectedDiscs(new Set())
+          setBulk(false)
         }}
-        onClose={() => setDeleteDialogOpen(false)}
-      >
-        <form>
-          <header>
-            <div>
-              <small>删除确认</small>
-              <h2 id="bulk-delete-title">删除 {pendingDelete.length} 张驱动盘？</h2>
-            </div>
-            <button
-              type="button"
-              className="icon-button"
-              aria-label="关闭"
-              disabled={deleting}
-              onClick={closeDeleteDialog}
-            >
-              ×
-            </button>
-          </header>
-          <p>
-            将从当前账户移除这 {pendingDelete.length} 张驱动盘。关联鉴定记录会一并删除，
-            当前装备和候选方案不再引用已删条目。
-          </p>
-          <p>页面内不能撤销；如需回退，请使用删除前导出的账户备份。</p>
-          <label className="field">
-            删除确认
-            <input
-              aria-label="删除确认"
-              value={deleteConfirmation}
-              placeholder={`输入“删除 ${pendingDelete.length} 张”`}
-              onChange={(event) => setDeleteConfirmation(event.target.value)}
-            />
-          </label>
-          <footer>
-            <button type="button" className="quiet" disabled={deleting} onClick={closeDeleteDialog}>
-              取消
-            </button>
-            <button
-              type="button"
-              className="danger"
-              disabled={deleting || deleteConfirmation !== `删除 ${pendingDelete.length} 张`}
-              onClick={() => {
-                setDeleting(true)
-                void props
-                  .onDeleteDiscs(
-                    pendingDelete.map((disc) => disc.stableId),
-                    Object.fromEntries(pendingDelete.map((disc) => [disc.stableId, disc.revision])),
-                  )
-                  .then((deleted) => {
-                    if (deleted) {
-                      setSelectedDiscs(new Set())
-                      setBulk(false)
-                      closeDeleteDialog()
-                    }
-                  })
-                  .finally(() => setDeleting(false))
-              }}
-            >
-              确认删除 {pendingDelete.length} 张驱动盘
-            </button>
-          </footer>
-        </form>
-      </dialog>
+      />
     </>
   )
 }

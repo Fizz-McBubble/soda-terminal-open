@@ -1,0 +1,37 @@
+.r6-golden dialog.soda-asset-dialog {
+  background: var(--soda-surface, #fff);
+  color: var(--soda-text, #352d50);
+  color-scheme: light;
+  font: var(--soda-font-body)/var(--soda-leading-body) var(--soda-font-ui);
+  max-height: calc(100dvh - 40px);
+  overflow: auto;
+}
+
+.r6-golden .soda-asset-dialog :is(h2, h3, label) {
+  color: var(--soda-text, #352d50);
+}
+
+.r6-golden .soda-asset-dialog :is(input:not([type='checkbox']), select) {
+  min-width: 0;
+  min-height: var(--soda-control-height, 38px);
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--soda-radius-control);
+  color: var(--soda-text, #352d50);
+  background: var(--soda-surface, #fff);
+  font: inherit;
+}
+
+.r6-golden .soda-asset-dialog :is(input, select):focus-visible {
+  outline: 3px solid rgba(107, 85, 170, 0.48);
+  outline-offset: 2px;
+}
+
+.r6-golden .soda-asset-dialog button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.r6-golden .soda-asset-dialog footer {
+  flex-wrap: wrap;
+}

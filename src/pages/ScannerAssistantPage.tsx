@@ -51,6 +51,7 @@ function HydratedScannerAssistantPage({
   const [newAccountName, setNewAccountName] = useState('')
   const [accountMessage, setAccountMessage] = useState('')
   const [actionFeedback, setActionFeedback] = useState<string | null>(null)
+  const [actionIssueCode, setActionIssueCode] = useState<string | null>(null)
   const [actionPending, setActionPending] = useState(false)
   const actionPendingRef = useRef(false)
   const [inlineImportOpen, setInlineImportOpen] = useState(false)
@@ -106,16 +107,29 @@ function HydratedScannerAssistantPage({
     stageFocusRequestedRef.current = false
   }, [snapshot.state])
 
-  async function runScannerAction(action: () => void | Promise<void>) {
+  async function runScannerAction(
+    action: () => void | Promise<void>,
+    issueCode = 'scanner_failure',
+  ) {
     stageFocusRequestedRef.current = true
     setActionFeedback(null)
+    setActionIssueCode(null)
     try {
       await action()
     } catch (error) {
+      setActionIssueCode(
+        error instanceof Error && error.name === 'ScannerHelperCompatibilityError'
+          ? 'helper_incompatible'
+          : error instanceof Error && error.message === 'helper_pairing_denied'
+            ? 'helper_pairing_denied'
+            : issueCode,
+      )
       setActionFeedback(
         error instanceof Error && error.message.includes('扫描')
           ? error.message
-          : '扫描助手未就绪，可重新连接。',
+          : window.location.protocol === 'https:'
+            ? '未能连接扫描助手。请确认助手已运行，并允许本站连接本机设备后重试。'
+            : '未能连接扫描助手，请确认助手已运行后重试。',
       )
     }
   }
@@ -134,7 +148,7 @@ function HydratedScannerAssistantPage({
           finishUsage('failure')
           throw error
         }
-      })
+      }, 'helper_unavailable')
     } finally {
       actionPendingRef.current = false
       setActionPending(false)
@@ -158,6 +172,7 @@ function HydratedScannerAssistantPage({
       discardedCompletedResultHandle,
     },
     actions: {
+      startPending,
       startBoundScan,
       createTargetAccount,
       returnToTargetSelection,
@@ -185,7 +200,7 @@ function HydratedScannerAssistantPage({
     handoffState.status === 'error'
       ? (handoffState.issueCode ?? 'scan_import_handoff_failed')
       : actionFeedback
-        ? 'scanner_failure'
+        ? actionIssueCode
         : null,
   )
   const jsonReadRef = useRef(0)
@@ -339,7 +354,7 @@ function HydratedScannerAssistantPage({
           <ScannerJourneyCards currentStep={journeyStep} />
           <p className="scanner-task__platform-support">
             本机扫描仅支持 Windows 版《绝区零》；Mac 和云·绝区零不支持扫描。已有扫描结果可通过 JSON
-            文件导入。
+            文件导入。自动扫描只收集 S 级驱动盘，A、B 级会跳过。
           </p>
           <ScannerPrepareSection
             showImportComplete={showImportComplete}
@@ -362,7 +377,7 @@ function HydratedScannerAssistantPage({
             preparingNewScan={preparingNewScan}
             inlineImportOpen={inlineImportOpen}
             presentedStateCopy={presentedStateCopy}
-            actionPending={actionPending}
+            actionPending={actionPending || startPending}
             targetReady={targetReady}
             installer={installer}
             accountDisclosure={accountDisclosure}
@@ -432,7 +447,13 @@ function HydratedScannerAssistantPage({
                   attemptReportId: snapshot.diagnostics?.reportId,
                   resultFileHandle: snapshot.summary?.resultFileHandle,
                 }
-                window.localStorage.setItem(completedScannerImportKey, JSON.stringify(next))
+                // The committed import and live UI remain authoritative when
+                // optional browser storage is full or disabled.
+                try {
+                  window.localStorage.setItem(completedScannerImportKey, JSON.stringify(next))
+                } catch {
+                  // Formal import proof in IndexedDB can restore completion.
+                }
                 setImportedThisVisit(true)
                 setCompletedImport(next)
                 setInlineImportOpen(false)
