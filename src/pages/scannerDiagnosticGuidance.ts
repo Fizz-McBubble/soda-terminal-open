@@ -16,7 +16,7 @@ const guidance: Record<string, Guidance> = {
   },
   ppocrv6_detail_geometry_incompatible: {
     problem: '当前游戏画面尺寸或驱动盘详情布局不适合扫描。',
-    nextAction: '尝试 1920 × 1080 的窗口或无边框模式，打开驱动仓库完整列表后重试。',
+    nextAction: '在游戏中选择 1920 × 1080 的窗口模式，打开驱动仓库完整列表后重试。',
   },
   helper_unavailable: {
     problem: '网页暂时没有连接到本机扫描助手。',
