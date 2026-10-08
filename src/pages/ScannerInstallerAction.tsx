@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Download } from 'lucide-react'
+import { Check, Download, X } from 'lucide-react'
 import {
   scannerDistributionManifest,
   type ScannerDistributionSnapshot,
@@ -8,7 +8,6 @@ import { downloadScannerInstaller } from '../scanner/installerDownload'
 import './scanner-installer-action.css'
 
 type DownloadState = 'idle' | 'downloading' | 'saving' | 'save_requested' | 'error' | 'cancelled'
-const megabytes = (bytes: number) => (bytes / 1_000_000).toFixed(1)
 
 export function ScannerInstallerAction({
   distribution,
@@ -21,9 +20,11 @@ export function ScannerInstallerAction({
 }) {
   const [state, setState] = useState<DownloadState>('idle')
   const [bytes, setBytes] = useState(0)
-  const [connecting, setConnecting] = useState(false)
   const [timedOut, setTimedOut] = useState(false)
   const [connectionNotice, setConnectionNotice] = useState('')
+  const downloadButton = useRef<HTMLButtonElement | null>(null)
+  const cancelButton = useRef<HTMLButtonElement | null>(null)
+  const restoreDownloadFocus = useRef(false)
   const request = useRef<AbortController | null>(null)
   const connectPending = useRef(false)
   const completedDownload = useRef(false)
@@ -43,7 +44,13 @@ export function ScannerInstallerAction({
   const complete = state === 'save_requested'
   const expectedSize = scannerDistributionManifest.helper.size
   const percent = Math.min(100, Math.floor((bytes / expectedSize) * 100))
-  const progressText = `${percent}% · ${megabytes(bytes)} / ${megabytes(expectedSize)} MB`
+  const progressText = state === 'saving' ? '正在准备文件' : `下载中 ${percent}%`
+  useEffect(() => {
+    if (!pending && restoreDownloadFocus.current) {
+      restoreDownloadFocus.current = false
+      downloadButton.current?.focus({ preventScroll: true })
+    }
+  }, [pending])
   const update = Boolean(
     (distribution.installedVersion &&
       distribution.installedVersion !== scannerDistributionManifest.runtime.version) ||
@@ -53,16 +60,13 @@ export function ScannerInstallerAction({
     if (connectPending.current || !onConnect) return
     connectPending.current = true
     autoConnectAttempted.current = true
-    setConnecting(true)
     setConnectionNotice('')
     try {
       await onConnect()
     } catch {
-      if (mounted.current)
-        setConnectionNotice('暂未连接，请确认安装包已打开且助手已启动，再次连接。')
+      if (mounted.current) setConnectionNotice('启动助手后点击连接')
     } finally {
       connectPending.current = false
-      if (mounted.current) setConnecting(false)
     }
   }, [onConnect])
 
@@ -129,12 +133,14 @@ export function ScannerInstallerAction({
       })
       if (current()) {
         completedDownload.current = true
+        restoreDownloadFocus.current = document.activeElement === cancelButton.current
         setState(result)
       }
     } catch (error) {
       if (!current()) return
       const cancelled =
         controller.signal.aborted || (error instanceof DOMException && error.name === 'AbortError')
+      restoreDownloadFocus.current = document.activeElement === cancelButton.current
       setTimedOut(error instanceof DOMException && error.name === 'TimeoutError')
       setState(cancelled ? 'cancelled' : 'error')
     } finally {
@@ -143,85 +149,82 @@ export function ScannerInstallerAction({
   }
 
   const message =
-    state === 'save_requested'
-      ? `安装包已接收。请在浏览器下载列表中确认保存并打开 ${scannerDistributionManifest.helper.entry}，首次打开会自动安装并启动助手；返回本页后会尝试连接。`
+    connectionNotice ||
+    (complete
+      ? '在下载列表打开安装包'
       : state === 'cancelled'
-        ? '下载已取消，可以重新下载。'
+        ? '下载已取消'
         : state === 'error'
           ? timedOut
-            ? '下载超时，请重试或使用浏览器直接下载。'
-            : '下载未完成，请重试或使用浏览器直接下载。'
-          : ''
+            ? '下载超时'
+            : '下载未完成'
+          : '')
 
   return (
-    <div className={`scanner-installer${state !== 'idle' ? ' is-active' : ''}`}>
-      <div className="scanner-installer__actions">
+    <div className="scanner-installer">
+      <div
+        className={`scanner-installer__control${pending ? ' is-pending' : ''}${complete ? ' is-complete' : ''}`}
+      >
         <button
+          ref={downloadButton}
           className="button button--quiet scanner-prepare__download"
           type="button"
           onClick={() => void download()}
           disabled={pending}
         >
-          <Download aria-hidden="true" size={17} />
-          {pending ? '正在下载…' : complete ? '重新下载' : update ? '更新扫描助手' : '下载扫描助手'}
+          {complete ? (
+            <Check aria-hidden="true" size={16} />
+          ) : (
+            <Download aria-hidden="true" size={17} />
+          )}
+          <span>
+            {pending
+              ? progressText
+              : complete
+                ? '重新下载'
+                : update
+                  ? '更新扫描助手'
+                  : '下载扫描助手'}
+          </span>
         </button>
         {pending ? (
-          <button
-            className="button button--quiet"
-            type="button"
-            onClick={() => request.current?.abort()}
-          >
-            取消下载
-          </button>
+          <>
+            <progress
+              className="scanner-installer__progress"
+              aria-label="扫描助手下载进度"
+              aria-valuetext={progressText}
+              value={bytes}
+              max={expectedSize}
+            />
+            <button
+              ref={cancelButton}
+              className="scanner-installer__cancel"
+              type="button"
+              aria-label="取消下载"
+              title="取消下载"
+              onClick={() => {
+                restoreDownloadFocus.current = document.activeElement === cancelButton.current
+                request.current?.abort()
+              }}
+            >
+              <X aria-hidden="true" size={15} />
+            </button>
+          </>
         ) : null}
       </div>
-      {pending || complete ? (
-        <div className="scanner-installer__progress">
-          <progress
-            aria-label="扫描助手下载进度"
-            aria-valuetext={progressText}
-            value={bytes}
-            max={expectedSize}
-          />
-          <span>{progressText}</span>
-          {pending ? (
-            <span role="status">
-              {state === 'saving' ? '下载完成，正在保存…' : '正在接收安装包…'}
-            </span>
+      {message ? (
+        <div className="scanner-installer__feedback" role="status">
+          <span className="scanner-installer__notice">{message}</span>
+          {state === 'error' || state === 'cancelled' ? (
+            <a
+              className="scanner-installer__fallback"
+              href={scannerDistributionManifest.helper.downloadUrl}
+              download={scannerDistributionManifest.helper.entry}
+            >
+              直接下载
+            </a>
           ) : null}
         </div>
-      ) : null}
-      {message ? (
-        <p className="scanner-installer__notice" role="status">
-          {message}
-        </p>
-      ) : null}
-      {state === 'idle' ? (
-        <p className="scanner-installer__notice">首次打开安装包后会自动安装并启动助手。</p>
-      ) : null}
-      {connectionNotice ? (
-        <p className="scanner-installer__notice" role="status">
-          {connectionNotice}
-        </p>
-      ) : null}
-      {complete && onConnect ? (
-        <button
-          className="button button--quiet"
-          type="button"
-          disabled={connecting}
-          onClick={() => void connect()}
-        >
-          {connecting ? '正在连接…' : '已打开，连接助手'}
-        </button>
-      ) : null}
-      {state === 'error' || state === 'cancelled' ? (
-        <a
-          className="scanner-installer__fallback"
-          href={scannerDistributionManifest.helper.downloadUrl}
-          download={scannerDistributionManifest.helper.entry}
-        >
-          浏览器直接下载
-        </a>
       ) : null}
     </div>
   )

@@ -2,54 +2,138 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 8px;
+  gap: 6px;
+  width: 168px;
   min-width: 0;
-  flex: 0 1 220px;
+  flex: 0 0 168px;
 }
 .f5v-shell .scanner-task .scanner-prepare__actions:has(> .scanner-installer) {
   align-items: flex-start;
 }
-.scanner-installer.is-active {
-  flex: 1 1 220px;
-  max-width: 520px;
+.f5v-shell .scanner-task .scanner-prepare__actions:has(> .scanner-installer) > button {
+  width: 168px;
+  min-width: 168px;
+  flex: 0 0 168px;
+  white-space: nowrap;
 }
-.scanner-installer__actions {
+.scanner-installer__control {
+  position: relative;
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  width: 100%;
+  height: 40px;
 }
-.f5v-shell .scanner-task .scanner-installer .button {
+.f5v-shell .scanner-task .scanner-installer .scanner-prepare__download {
+  width: 100%;
   height: 40px;
   min-height: 40px;
-  padding-block: 0;
+  min-width: 0;
+  padding: 0 12px;
+  gap: 6px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 .f5v-shell .scanner-task .scanner-installer .scanner-prepare__download > svg {
   display: none;
 }
+.f5v-shell .scanner-task .scanner-installer .is-complete .scanner-prepare__download > svg {
+  display: block;
+}
+.f5v-shell .scanner-task .scanner-installer .is-pending .scanner-prepare__download {
+  padding-right: 34px;
+  color: var(--soda-accent, #705a9e);
+  background: var(--soda-lavender, #f1edf7);
+  opacity: 1;
+}
 .scanner-installer__progress {
+  position: absolute;
+  left: 1px;
+  bottom: 1px;
+  width: calc(100% - 2px);
+  height: 3px;
+  margin: 0;
+  border: 0;
+  border-radius: 0 0 8px 8px;
+  overflow: hidden;
+  appearance: none;
+  pointer-events: none;
+  background: transparent;
+  accent-color: var(--soda-accent, #705a9e);
+}
+.scanner-installer__progress::-webkit-progress-bar {
+  background: transparent;
+}
+.scanner-installer__progress::-webkit-progress-value {
+  background: var(--soda-accent, #705a9e);
+}
+.scanner-installer__progress::-moz-progress-bar {
+  background: var(--soda-accent, #705a9e);
+}
+.f5v-shell .scanner-task .scanner-installer .scanner-installer__cancel {
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  min-width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 6px;
+  padding: 0;
+  background: transparent;
+  color: var(--soda-accent, #705a9e);
+  cursor: pointer;
+}
+.scanner-installer__cancel:hover {
+  background: #e4ddec;
+}
+.scanner-installer__cancel:focus-visible {
+  outline: 2px solid var(--soda-accent, #705a9e);
+  outline-offset: -2px;
+}
+.scanner-installer__feedback {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px 12px;
-  width: 100%;
-  color: var(--f5-muted);
+  align-items: baseline;
+  gap: 4px 8px;
+  max-width: 100%;
   font-size: 12px;
-}
-.scanner-installer__progress progress {
-  flex-basis: 100%;
-  width: 100%;
-  height: 7px;
-  accent-color: var(--f5-accent, #77d7d4);
-}
-.scanner-installer__notice,
-.scanner-installer__fallback {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.6;
-  overflow-wrap: anywhere;
+  line-height: 1.5;
 }
 .scanner-installer__notice {
   color: var(--f5-muted);
 }
 .scanner-installer__fallback {
-  color: var(--f5-accent, #77d7d4);
+  color: var(--soda-accent, #705a9e);
+  text-underline-offset: 3px;
+}
+
+@media (max-width: 600px) {
+  .f5v-shell .scanner-task .scanner-prepare__actions:has(> .scanner-installer) {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    width: 100%;
+  }
+  .f5v-shell .scanner-task .scanner-prepare__actions:has(> .scanner-installer) > button {
+    width: 100%;
+    min-width: 0;
+    padding-inline: 8px;
+  }
+  .f5v-shell .scanner-task .scanner-prepare__actions > .scanner-installer {
+    width: 100%;
+    min-width: 0;
+    flex: 0 1 auto;
+  }
+  .f5v-shell .scanner-task .scanner-installer .scanner-prepare__download {
+    padding-inline: 8px;
+  }
+  .f5v-shell .scanner-task .scanner-installer .is-pending .scanner-prepare__download {
+    padding-right: 34px;
+  }
+}
+@media (max-width: 359px) {
+  .f5v-shell .scanner-task .scanner-prepare__actions:has(> .scanner-installer) {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

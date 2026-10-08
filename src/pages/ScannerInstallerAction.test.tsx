@@ -70,15 +70,13 @@ it('starts fetching in the click task without calling an exposed non-settling sa
   fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
   expect(fetcher).toHaveBeenCalledOnce()
   expect(picker).not.toHaveBeenCalled()
-  fireEvent.click(screen.getByRole('button', { name: '正在下载…' }))
+  fireEvent.click(screen.getByRole('button', { name: /下载中/ }))
   expect(fetcher).toHaveBeenCalledOnce()
   await act(async () => {
     streamController.enqueue(executableFixture)
     streamController.close()
   })
-  await waitFor(() =>
-    expect(screen.getByRole('status')).toHaveTextContent('浏览器下载列表中确认保存'),
-  )
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('在下载列表打开安装包'))
   expect(createObjectURL.mock.calls[0][0].size).toBe(8)
 })
 it('shows streamed bytes before EOF and requests browser save only after all bytes arrive', async () => {
@@ -92,16 +90,14 @@ it('shows streamed bytes before EOF and requests browser save only after all byt
   await waitFor(() => expect(progress).toHaveAttribute('value', '4'))
   expect(progress).toHaveAttribute('max', '8')
   expect(progress).toHaveAttribute('aria-valuetext', expect.stringContaining('50%'))
-  expect(screen.getByRole('button', { name: '正在下载…' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: /下载中/ })).toBeDisabled()
   expect(createObjectURL).not.toHaveBeenCalled()
   await act(async () => {
     streamController.enqueue(executableFixture.subarray(4))
     streamController.close()
   })
-  await waitFor(() =>
-    expect(screen.getByRole('status')).toHaveTextContent('浏览器下载列表中确认保存'),
-  )
-  expect(progress).toHaveAttribute('value', '8')
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('在下载列表打开安装包'))
+  expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
   expect(screen.queryByText(/下载完成。打开/)).not.toBeInTheDocument()
 })
 it.each([
@@ -114,7 +110,7 @@ it.each([
   fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('下载未完成'))
   expect(createObjectURL).not.toHaveBeenCalled()
-  expect(screen.getByRole('link', { name: '浏览器直接下载' })).toHaveAttribute(
+  expect(screen.getByRole('link', { name: '直接下载' })).toHaveAttribute(
     'href',
     scannerDistributionManifest.helper.downloadUrl,
   )
@@ -136,7 +132,7 @@ it('cancels a partial stream and permits a fresh download', async () => {
   expect(fetcher.mock.calls[0][1].signal.aborted).toBe(true)
   fetcher.mockResolvedValue(new Response(executableFixture))
   fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
-  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('安装包已接收'))
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('在下载列表打开安装包'))
   expect(fetcher).toHaveBeenCalledTimes(2)
 })
 it('ends a non-settling host fetch immediately on cancellation and ignores a late result', async () => {
@@ -152,15 +148,15 @@ it('ends a non-settling host fetch immediately on cancellation and ignores a lat
   fireEvent.click(screen.getByRole('button', { name: '取消下载' }))
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('下载已取消'))
   expect(screen.queryByRole('button', { name: '取消下载' })).not.toBeInTheDocument()
-  expect(screen.getByRole('link', { name: '浏览器直接下载' })).toBeVisible()
+  expect(screen.getByRole('link', { name: '直接下载' })).toBeVisible()
   fetcher.mockResolvedValue(new Response(executableFixture))
   fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
-  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('安装包已接收'))
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('在下载列表打开安装包'))
   await act(async () => {
     finishFetch(new Response(executableFixture))
   })
   expect(createObjectURL).toHaveBeenCalledOnce()
-  expect(screen.getByRole('status')).toHaveTextContent('安装包已接收')
+  expect(screen.getByRole('status')).toHaveTextContent('在下载列表打开安装包')
 })
 it('ends a stalled fetch at ten minutes and offers direct download', async () => {
   vi.useFakeTimers()
@@ -173,7 +169,7 @@ it('ends a stalled fetch at ten minutes and offers direct download', async () =>
   })
   expect(screen.getByRole('status')).toHaveTextContent('下载超时')
   expect(screen.getByRole('button', { name: '下载扫描助手' })).toBeEnabled()
-  expect(screen.getByRole('link', { name: '浏览器直接下载' })).toBeVisible()
+  expect(screen.getByRole('link', { name: '直接下载' })).toBeVisible()
   expect(fetcher.mock.calls[0][1].signal.aborted).toBe(true)
   expect(createObjectURL).not.toHaveBeenCalled()
 })
@@ -193,19 +189,17 @@ it('aborts the stream and releases the reader on unmount', async () => {
   expect(body.locked).toBe(false)
   expect(createObjectURL).not.toHaveBeenCalled()
 })
-it('only connects manually after the user chooses connect', async () => {
+it('leaves manual connection to the existing parent action after requesting save', async () => {
   const onConnect = vi.fn().mockResolvedValue(undefined)
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(executableFixture)))
   render(
     <ScannerInstallerAction distribution={initialDistributionSnapshot} onConnect={onConnect} />,
   )
   fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
-  await waitFor(() =>
-    expect(screen.getByRole('button', { name: '已打开，连接助手' })).toBeVisible(),
-  )
+  await waitFor(() => expect(screen.getByRole('status')).toBeVisible())
+  expect(screen.getAllByRole('button')).toHaveLength(1)
+  expect(screen.getByRole('button', { name: '重新下载' })).toBeEnabled()
   expect(onConnect).not.toHaveBeenCalled()
-  fireEvent.click(screen.getByRole('button', { name: '已打开，连接助手' }))
-  await waitFor(() => expect(onConnect).toHaveBeenCalledOnce())
 })
 it('ignores premature focus and connects once after leaving the completed download', async () => {
   const { streamController } = streamedDownload()
@@ -226,15 +220,12 @@ it('ignores premature focus and connects once after leaving the completed downlo
     streamController.enqueue(executableFixture)
     streamController.close()
   })
-  await waitFor(() =>
-    expect(screen.getByRole('button', { name: '已打开，连接助手' })).toBeVisible(),
-  )
+  await waitFor(() => expect(screen.getByRole('button', { name: '重新下载' })).toBeVisible())
   fireEvent.focus(window)
   expect(onConnect).not.toHaveBeenCalled()
   fireEvent.blur(window)
   fireEvent.focus(window)
   fireEvent.focus(window)
-  fireEvent.click(screen.getByRole('button', { name: '正在连接…' }))
   expect(onConnect).toHaveBeenCalledOnce()
   await act(async () => {
     finishConnect()
@@ -242,27 +233,23 @@ it('ignores premature focus and connects once after leaving the completed downlo
   fireEvent.blur(window)
   fireEvent.focus(window)
   expect(onConnect).toHaveBeenCalledOnce()
-  fireEvent.click(screen.getByRole('button', { name: '已打开，连接助手' }))
-  expect(onConnect).toHaveBeenCalledTimes(2)
   unmount()
   fireEvent.blur(window)
   fireEvent.focus(window)
-  expect(onConnect).toHaveBeenCalledTimes(2)
+  expect(onConnect).toHaveBeenCalledOnce()
 })
-it('handles rejected automatic connection and retains manual retry', async () => {
+it('handles rejected automatic connection without repeating attempts on focus', async () => {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(executableFixture)))
   const onConnect = vi.fn().mockRejectedValue(new Error('helper_not_ready'))
   render(
     <ScannerInstallerAction distribution={initialDistributionSnapshot} onConnect={onConnect} />,
   )
   fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
-  await waitFor(() =>
-    expect(screen.getByRole('button', { name: '已打开，连接助手' })).toBeVisible(),
-  )
+  await waitFor(() => expect(screen.getByRole('button', { name: '重新下载' })).toBeVisible())
   fireEvent.blur(window)
   fireEvent.focus(window)
-  await waitFor(() => expect(screen.getByText(/暂未连接/)).toBeVisible())
-  expect(screen.getByRole('button', { name: '已打开，连接助手' })).toBeEnabled()
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('启动助手后点击连接'))
+  expect(screen.getByRole('button', { name: '重新下载' })).toBeEnabled()
   fireEvent.blur(window)
   fireEvent.focus(window)
   expect(onConnect).toHaveBeenCalledOnce()
@@ -315,4 +302,27 @@ it('connects once after a visible return and resets eligibility for a new downlo
   fireEvent.blur(window)
   fireEvent.focus(window)
   await waitFor(() => expect(onConnect).toHaveBeenCalledTimes(2))
+})
+
+it('restores keyboard focus to download when the compact cancel action disappears', async () => {
+  streamedDownload()
+  render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
+  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  const cancelButton = screen.getByRole('button', { name: '取消下载' })
+  cancelButton.focus()
+  fireEvent.click(cancelButton)
+  await waitFor(() => expect(screen.getByRole('button', { name: '下载扫描助手' })).toHaveFocus())
+  expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
+})
+
+it('preserves keyboard focus when completion removes the cancel action', async () => {
+  const { streamController } = streamedDownload()
+  render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
+  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  screen.getByRole('button', { name: '取消下载' }).focus()
+  await act(async () => {
+    streamController.enqueue(executableFixture)
+    streamController.close()
+  })
+  await waitFor(() => expect(screen.getByRole('button', { name: '重新下载' })).toHaveFocus())
 })
