@@ -6,7 +6,7 @@ import {
 } from './distribution'
 
 describe('scanner distribution contract', () => {
-  it('locks the published RC8.4 dual-origin direct-fork identity and makes v6 the single OCR runtime', () => {
+  it('locks the published RC8.5 dual-origin direct-fork identity and makes v6 the single OCR runtime', () => {
     expect(scannerDistributionManifest.helper.sha256).toMatch(/^[a-f0-9]{64}$/)
     expect(scannerDistributionManifest.helper.size).toBeGreaterThan(
       scannerDistributionManifest.runtime.packageSize,
@@ -16,14 +16,14 @@ describe('scanner distribution contract', () => {
     expect(scannerDistributionManifest.runtime.packageSha256).toHaveLength(64)
     expect(scannerDistributionManifest.runtime.releaseState).toBe('published')
     expect(scannerDistributionManifest.runtime.packageUrl).toBe(
-      'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.4/soda-scanner-runtime-18-rc8-4-win-x64.zip',
+      'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.5/soda-scanner-runtime-18-rc8-5-win-x64.zip',
     )
     expect(scannerDistributionManifest.runtime.packageUrl).not.toContain('/latest/')
     expect(scannerDistributionManifest.runtime.excludedRuntimeFamilies).toEqual(
       expect.arrayContaining(['paddlepaddle', 'paddleocr', 'paddlex', 'opencv', 'python', 'venv']),
     )
     expect(scannerDistributionManifest.runtime.nativeCapture).toMatchObject({
-      componentVersion: 'ZZZ-Scanner.Next-1.0.49-soda-r23',
+      componentVersion: 'ZZZ-Scanner.Next-1.0.49-soda-r24',
       schemaVersion: 'soda.zzz-scanner-next.direct-r4.v1',
       selfContained: true,
       publishAot: false,
@@ -96,7 +96,7 @@ describe('scanner distribution contract', () => {
     ).toMatchObject({ state: 'update_available', action: 'update' })
     expect(
       resolveDistributionSnapshot({
-        installedVersion: 'soda-scanner-zzz-next-ppocrv6-18-rc8-4',
+        installedVersion: 'soda-scanner-zzz-next-ppocrv6-18-rc8-5',
         integrity: 'valid',
       }),
     ).toMatchObject({ state: 'ready', action: 'open' })
