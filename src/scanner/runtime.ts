@@ -213,6 +213,7 @@ export function createScannerAssistantRuntime(
         '2.3.5',
         '2.3.6',
         '2.3.7',
+        '2.3.8',
         scannerDistributionManifest.helper.version,
       ].includes(identity.version) ||
       identity.protocolVersion !== 5 ||

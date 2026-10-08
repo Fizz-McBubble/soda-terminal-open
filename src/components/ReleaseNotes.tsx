@@ -4,6 +4,16 @@ import './ReleaseNotes.css'
 // Keep player-facing changes with the release that ships them, newest first.
 const releases = [
   {
+    date: '2026-10-09',
+    title: '相同属性盘与 2K 扫描修复',
+    changes: [
+      '修复多张驱动盘属性完全相同时提前停止的问题，保留每张盘。',
+      '修复 2K 全屏回到顶部后重复滚动的问题，统一不同尺寸下的选中边缘检测。',
+      '修复月光骑士颂识别后无法对应套装的问题。',
+      '反馈保留具体中断原因与出错盘序号，便于定位问题。',
+    ],
+  },
+  {
     date: '2026-10-08',
     title: '扫描稳定性与窗口适配',
     changes: [

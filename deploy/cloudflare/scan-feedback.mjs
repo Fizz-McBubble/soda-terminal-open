@@ -184,6 +184,11 @@ export function sanitizeScanFeedbackPayload(payload, expectedRelease) {
         return { status: 400 }
       }
       sanitizedEvidence[k] = v
+    } else if (k === 'targetVerificationKind') {
+      if (typeof v !== 'string' || !contract.targetVerificationKinds.includes(v)) {
+        return { status: 400 }
+      }
+      sanitizedEvidence[k] = v
     } else if (k === 'firstMissingRoi') {
       if (typeof v !== 'string' || !contract.missingRois.includes(v)) {
         return { status: 400 }

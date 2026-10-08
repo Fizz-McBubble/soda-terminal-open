@@ -62,7 +62,9 @@ it('copies, downloads and restores the acknowledged ID after a conflict retry', 
   Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: createObjectURL })
   Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: vi.fn() })
   let filename = ''
-  vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+  vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (
+    this: HTMLAnchorElement,
+  ) {
     filename = this.download
   })
   render(<ScannerDiagnosticFeedback report={report} />)
@@ -229,6 +231,27 @@ it('keeps unknown failures neutral and omits unknown metadata', () => {
   expect(screen.getByLabelText('本次扫描概况')).toBeEmptyDOMElement()
   expect(screen.queryByText(/未知|权限|未打开|错误码/)).not.toBeInTheDocument()
   expect(document.querySelector('pre')).toBeNull()
+})
+
+it('explains duplicate protection, preserves its diagnosis, and waits for explicit submission', () => {
+  const report = sanitizeScanDiagnostic({
+    ...makeReport(),
+    code: 'duplicate_guard',
+    stage: 'ocr',
+    counts: { processed: 507, total: 2566, visited: 509, queued: 508, failed: 0 },
+    evidence: { itemIndex: 508, targetVerificationKind: 'ChangedText' },
+  })!
+  const fetcher = vi.fn()
+  vi.stubGlobal('fetch', fetcher)
+  render(<ScannerDiagnosticFeedback report={report} />)
+  expect(fetcher).not.toHaveBeenCalled()
+  fireEvent.click(screen.getByText('查看诊断信息'))
+  expect(screen.getByText(/将相同属性判断为重复/)).toBeVisible()
+  expect(screen.getByText(/更新扫描助手后重试/)).toBeVisible()
+  expect(screen.queryByText(/权限|未能及时读取/)).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: '反馈此问题' })).toBeEnabled()
+  saveLastScanDiagnostic(report)
+  expect(readLastScanDiagnostic()?.evidence).toEqual(report.evidence)
 })
 
 it('collapses details when a new report arrives and hides old local messages', async () => {

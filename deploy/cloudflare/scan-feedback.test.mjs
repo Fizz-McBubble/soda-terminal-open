@@ -111,6 +111,49 @@ function makeRequest(
   })
 }
 
+test('preserves duplicate guard safe browser projection and concrete stop evidence in durable storage', async () => {
+  const { env, kv } = makeEnv()
+  const handler = createScanFeedbackReceiver()
+  for (const targetVerificationKind of contract.targetVerificationKinds) {
+    const report = {
+      ...validReport,
+      reportId: crypto.randomUUID(),
+      code: 'duplicate_guard',
+      stage: 'ocr',
+      counts: { processed: 507, total: 2566, visited: 509, queued: 508, failed: 0 },
+      evidence: { itemIndex: 508, targetVerificationKind },
+    }
+    const response = await handler(makeRequest(report), env)
+    assert.equal(response.status, 200)
+    const stored = JSON.parse(kv.store.get(report.reportId).value)
+    const { receivedAt, ...record } = stored
+    assert.equal(typeof receivedAt, 'string')
+    assert.deepEqual(record, report)
+    const legacy = { ...report, reportId: crypto.randomUUID(), evidence: {} }
+    assert.equal((await handler(makeRequest(legacy), env)).status, 200)
+    assert.deepEqual(JSON.parse(kv.store.get(legacy.reportId).value).evidence, {})
+  }
+})
+
+test('rejects untrusted duplicate codes, item indices, verification types and extra free text without storing', async () => {
+  const { env, kv } = makeEnv()
+  const handler = createScanFeedbackReceiver()
+  const report = { ...validReport, code: 'duplicate_guard', stage: 'ocr' }
+  for (const mutation of [
+    { code: 'duplicate_guard private/path' },
+    { code: 42 },
+    ...[-1, 100001, 508.5, '508', null, {}].map((itemIndex) => ({ evidence: { itemIndex } })),
+    ...['private/path', 'ChangedText.private', 42, null, {}].map((targetVerificationKind) => ({
+      evidence: { targetVerificationKind },
+    })),
+    { evidence: { itemIndex: 508, targetVerificationKind: 'ChangedText', rawLog: 'private' } },
+  ]) {
+    const response = await handler(makeRequest({ ...report, ...mutation }), env)
+    assert.equal(response.status, 400)
+  }
+  assert.equal(kv.getPutCount(), 0)
+})
+
 test('disabled, unbound and nonproduction collectors return 404 without reading bodies', async () => {
   const handler = createScanFeedbackReceiver()
   const { kv } = makeEnv()

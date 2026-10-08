@@ -46,6 +46,10 @@ const guidance: Record<string, Guidance> = {
     problem: '未能及时读取到可识别的驱动盘画面。',
     nextAction: '确认游戏仓库画面可见、没有弹窗遮挡，再重试；仍失败时可反馈。',
   },
+  duplicate_guard: {
+    problem: '扫描器将相同属性判断为重复，停止了扫描。',
+    nextAction: '更新扫描助手后重试；若仍中断，请反馈此问题。',
+  },
   warehouse_context_lost: {
     problem: '暂时无法确认驱动仓库画面，扫描已停止。',
     nextAction: '关闭遮挡并保持游戏在前台，再重新扫描。',

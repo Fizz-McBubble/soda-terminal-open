@@ -65,6 +65,11 @@ export function sanitizeScanDiagnostic(value: unknown): ScanDiagnosticReport | n
     if (typeof rawEvidence[key] === 'boolean') evidence[key] = rawEvidence[key]
   }
   if (
+    typeof rawEvidence.targetVerificationKind === 'string' &&
+    contract.targetVerificationKinds.includes(rawEvidence.targetVerificationKind)
+  )
+    evidence.targetVerificationKind = rawEvidence.targetVerificationKind
+  if (
     typeof rawEvidence.firstMissingRoi === 'string' &&
     contract.missingRois.includes(rawEvidence.firstMissingRoi)
   )
@@ -110,6 +115,7 @@ const stages: Record<string, string> = {
   elevation_cancelled: 'permission',
   game_process_not_found: 'preflight',
   panel_capture_timeout: 'capture',
+  duplicate_guard: 'ocr',
   scan_navigation_failed: 'scroll',
   visual_preflight_failed: 'preflight',
   ocr_worker_failed: 'ocr',

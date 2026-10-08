@@ -6,12 +6,14 @@ import {
   sanitizeScanDiagnostic,
 } from './diagnostics'
 import { connectingSnapshot } from './runtimeSnapshots'
+import { readLastScanDiagnostic, saveLastScanDiagnostic } from './scanFeedback'
+import { sanitizeScanFeedbackPayload } from '../../deploy/cloudflare/scan-feedback.mjs'
 const reportId = '10f44460-1234-4123-8123-abc123abc123'
 export const validReport = {
   schema: 1,
   reportId,
   release: 'test-release',
-  outcome: 'failed',
+  outcome: 'failed' as const,
   stage: 'capture',
   code: 'panel_capture_timeout',
   versions: { helper: '1.2.3' },
@@ -22,6 +24,82 @@ export const validReport = {
 }
 
 describe('allowlisted diagnostic privacy boundary', () => {
+  it('preserves duplicate guard finalization evidence through browser projection and local storage', () => {
+    const report = diagnosticFromSnapshot(
+      {
+        ...connectingSnapshot,
+        state: 'connection_failed',
+        error: {
+          userMessage: '连续读到相同驱动盘，扫描已保护性停止。',
+          diagnosticCode: 'duplicate_guard',
+          recoveryAction: 'retry',
+        },
+        diagnostics: {
+          ...validReport,
+          code: 'duplicate_guard',
+          stage: 'ocr',
+          counts: { processed: 507, total: 2566, visited: 509, queued: 508, failed: 0 },
+          evidence: { itemIndex: 508, targetVerificationKind: 'ChangedText' },
+        },
+      },
+      reportId,
+    )
+    expect(report).toMatchObject({
+      code: 'duplicate_guard',
+      stage: 'ocr',
+      outcome: 'failed',
+      counts: { processed: 507, total: 2566, visited: 509, queued: 508, failed: 0 },
+      evidence: { itemIndex: 508, targetVerificationKind: 'ChangedText' },
+    })
+    saveLastScanDiagnostic(report)
+    expect(readLastScanDiagnostic()).toEqual(report)
+    expect(JSON.parse(diagnosticJson(report))).toEqual(report)
+    const received = sanitizeScanFeedbackPayload(JSON.parse(diagnosticJson(report)))
+    expect(received).toEqual({ ok: true, record: report })
+    localStorage.clear()
+    const legacy = diagnosticFromSnapshot(
+      {
+        ...connectingSnapshot,
+        state: 'connection_failed',
+        error: {
+          userMessage: 'private',
+          diagnosticCode: 'duplicate_guard',
+          recoveryAction: 'retry',
+        },
+      },
+      reportId,
+    )
+    expect(legacy.stage).toBe('ocr')
+    expect(legacy.evidence).toEqual({})
+  })
+  it.each(['ChangedText', 'IdenticalNeighborRoundTrip', 'Unknown'])(
+    'retains bounded duplicate stop verification kind %s',
+    (targetVerificationKind) => {
+      const report = sanitizeScanDiagnostic({
+        ...validReport,
+        code: 'duplicate_guard',
+        evidence: { itemIndex: 508, targetVerificationKind },
+      })!
+      expect(report.evidence).toEqual({ itemIndex: 508, targetVerificationKind })
+    },
+  )
+  it.each([
+    [-1, 'private/path'],
+    [100001, 'ChangedText.private'],
+    [508.5, 42],
+    ['508', {}],
+  ])(
+    'omits invalid duplicate stop fields %s / %s and arbitrary codes',
+    (itemIndex, targetVerificationKind) => {
+      const report = sanitizeScanDiagnostic({
+        ...validReport,
+        code: 'duplicate_guard private/path',
+        evidence: { itemIndex, targetVerificationKind, accountId: 'private' },
+      })!
+      expect(report.code).toBe('unknown')
+      expect(report.evidence).toEqual({})
+    },
+  )
   it.each([
     'game_window_not_foreground',
     'game_window_not_visible',
