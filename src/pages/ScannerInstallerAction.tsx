@@ -159,7 +159,9 @@ export function ScannerInstallerAction({
           ? timedOut
             ? '下载超时'
             : '下载未完成'
-          : '')
+          : update && !pending
+            ? `新版本 ${scannerDistributionManifest.helper.installerVersion}`
+            : '')
 
   return (
     <div className="scanner-installer">

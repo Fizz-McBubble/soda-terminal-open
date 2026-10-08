@@ -11,6 +11,7 @@ import { resolveScannerHelperSessionToken } from './scannerSessionToken'
 import { createDevelopmentScannerCommands } from './runtimeDevelopmentCommands'
 import { readScannerResultWithDeadline } from './resultRead'
 import { withScannerRequestDeadline } from './requestDeadline'
+import { scannerDistributionManifest } from './distribution'
 
 import type { ScannerAssistantSnapshot } from './runtimeSnapshotTypes'
 export type { ScannerAssistantSnapshot, ScannerAssistantState } from './runtimeSnapshotTypes'
@@ -204,7 +205,16 @@ export function createScannerAssistantRuntime(
     if (
       !identity ||
       identity.service !== 'soda-terminal-scanner-helper' ||
-      !['2.3.1', '2.3.2', '2.3.3', '2.3.4', '2.3.5', '2.3.6', '2.3.7'].includes(identity.version) ||
+      ![
+        '2.3.1',
+        '2.3.2',
+        '2.3.3',
+        '2.3.4',
+        '2.3.5',
+        '2.3.6',
+        '2.3.7',
+        scannerDistributionManifest.helper.version,
+      ].includes(identity.version) ||
       identity.protocolVersion !== 5 ||
       identity.transport !== 'direct-fork-http' ||
       identity.accountWriteEnabled !== false ||

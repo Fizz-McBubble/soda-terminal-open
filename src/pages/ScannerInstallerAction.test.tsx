@@ -51,6 +51,9 @@ it('offers an upgrade only for a detected old installation', () => {
     />,
   )
   expect(screen.getByRole('button', { name: '更新扫描助手' })).toBeVisible()
+  expect(screen.getByRole('status')).toHaveTextContent(
+    `新版本 ${scannerDistributionManifest.helper.installerVersion}`,
+  )
   rerender(
     <ScannerInstallerAction
       distribution={{
@@ -61,6 +64,7 @@ it('offers an upgrade only for a detected old installation', () => {
     />,
   )
   expect(screen.queryByRole('button')).not.toBeInTheDocument()
+  expect(screen.queryByRole('status')).not.toBeInTheDocument()
 })
 it('starts fetching in the click task without calling an exposed non-settling save picker', async () => {
   const picker = vi.fn().mockReturnValue(new Promise(() => {}))

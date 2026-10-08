@@ -119,7 +119,7 @@ describe('warehouse favorite and actual usage presentation', () => {
     await userEvent.click(screen.getByRole('option', { name: '培养优先' }))
     expect(screen.getByRole('combobox', { name: '排序方式' })).toHaveValue('development')
     await userEvent.click(screen.getByRole('button', { name: '清除全部筛选' }))
-    expect(screen.getByRole('combobox', { name: '排序方式' })).toHaveValue('catalog')
+    expect(screen.getByRole('combobox', { name: '排序方式' })).toHaveValue('game')
     expect(screen.getByText('驱动盘 · 2 张')).toBeInTheDocument()
     expect(actions).toEqual(before)
   })

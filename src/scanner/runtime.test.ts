@@ -1,6 +1,7 @@
 import { registerRuntimeResultTests } from './runtimeResultTests'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createScannerAssistantRuntime } from './runtime'
+import { scannerDistributionManifest } from './distribution'
 import {
   createNativeFixtureRuntime,
   FakeEventSource,
@@ -99,7 +100,7 @@ describe('direct upstream scanner runtime', () => {
 
   it.each([
     { ...nativeIdentity, version: '2.2.0' },
-    { ...nativeIdentity, version: '2.3.8' },
+    { ...nativeIdentity, version: '99.0.0' },
     { ...nativeIdentity, transport: 'node-compatibility' },
     { ...nativeIdentity, protocolVersion: 4 },
     { ...nativeIdentity, accountWriteEnabled: true },
@@ -119,7 +120,7 @@ describe('direct upstream scanner runtime', () => {
     },
   )
 
-  it.each(['2.3.4', '2.3.5', '2.3.6', '2.3.7'])(
+  it.each(['2.3.4', '2.3.5', '2.3.6', '2.3.7', scannerDistributionManifest.helper.version])(
     'connects to published Helper %s',
     async (version) => {
       const otherRequests = helperFetch()
