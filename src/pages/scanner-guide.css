@@ -1,22 +1,28 @@
-.scanner-guide {
+.scanner-prepare__details-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.f5v-shell .scanner-prepare__details-heading > h3 {
+  margin: 0;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.scanner-guide.explanation {
   min-width: 0;
-  margin-block: 8px;
+  flex: 0 0 auto;
+}
+
+.f5v-shell .scanner-guide > .explanation__trigger {
+  min-height: 24px;
+  padding: 0;
   font-size: 13px;
-  line-height: 1.6;
-  overflow-wrap: anywhere;
+  white-space: nowrap;
 }
 
-.scanner-guide > summary {
-  width: fit-content;
-  cursor: pointer;
-  color: var(--soda-text-muted, #687181);
-}
-
-.scanner-guide > summary:focus-visible {
-  outline: 2px solid currentColor;
-  outline-offset: 3px;
-}
-
-.scanner-guide > div > p {
-  margin-block: 8px;
+.scanner-guide .explanation-popover[popover] {
+  width: min(380px, calc(100vw - 24px));
 }

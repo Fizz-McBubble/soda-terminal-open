@@ -117,8 +117,10 @@ export function PrepareChecklist({
       ) : null}
 
       <section className="scanner-prepare__details" aria-label="本机准备条件">
-        <h3>本机准备条件</h3>
-        <ScannerGuide />
+        <div className="scanner-prepare__details-heading">
+          <h3>本机准备条件</h3>
+          <ScannerGuide />
+        </div>
         {accountDisclosure ? (
           <div className="scanner-prepare__account-disclosure">{accountDisclosure}</div>
         ) : null}
