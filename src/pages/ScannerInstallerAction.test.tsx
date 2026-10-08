@@ -78,6 +78,9 @@ it('starts fetching in the click task without calling an exposed non-settling sa
   })
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('在下载列表打开安装包'))
   expect(createObjectURL.mock.calls[0][0].size).toBe(8)
+  expect(
+    (vi.mocked(HTMLAnchorElement.prototype.click).mock.instances[0] as HTMLAnchorElement).download,
+  ).toBe(`Soda-Scanner-Setup-${scannerDistributionManifest.helper.installerVersion}.exe`)
 })
 it('shows streamed bytes before EOF and requests browser save only after all bytes arrive', async () => {
   const { streamController } = streamedDownload()
@@ -113,6 +116,10 @@ it.each([
   expect(screen.getByRole('link', { name: '直接下载' })).toHaveAttribute(
     'href',
     scannerDistributionManifest.helper.downloadUrl,
+  )
+  expect(screen.getByRole('link', { name: '直接下载' })).toHaveAttribute(
+    'download',
+    `Soda-Scanner-Setup-${scannerDistributionManifest.helper.installerVersion}.exe`,
   )
   expect(screen.getByRole('button', { name: '下载扫描助手' })).toBeEnabled()
 })

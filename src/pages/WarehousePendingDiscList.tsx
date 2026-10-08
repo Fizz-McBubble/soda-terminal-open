@@ -1,4 +1,8 @@
-import { compareDiscCatalogOrder, compareDiscLevelOrder } from '../domain/discOrdering'
+import {
+  compareDiscCatalogOrder,
+  compareDiscGameOrder,
+  compareDiscLevelOrder,
+} from '../domain/discOrdering'
 import { useMemo, useRef, useState, useLayoutEffect, type KeyboardEvent } from 'react'
 import type { DriveDisc } from '../domain/schemas'
 import type { FilterState } from './warehouseDiscPresentation'
@@ -36,7 +40,9 @@ export function WarehousePendingDiscList({
         .sort((a, b) =>
           filters.sort === 'level'
             ? compareDiscLevelOrder(a, b, defaultWarehouseActionListOrder)
-            : compareDiscCatalogOrder(a, b, defaultWarehouseActionListOrder),
+            : filters.sort === 'catalog'
+              ? compareDiscCatalogOrder(a, b, defaultWarehouseActionListOrder)
+              : compareDiscGameOrder(a, b, defaultWarehouseActionListOrder),
         ),
     [discs, filters.setId, filters.slot, filters.mainStat, filters.level, filters.sort],
   )

@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { downloadScannerInstaller } from './installerDownload'
+import { downloadScannerInstaller, scannerInstallerFileName } from './installerDownload'
 const executable = new Uint8Array([0x4d, 0x5a, 1, 2, 3, 4, 5, 6])
 const createObjectURL = vi.fn().mockReturnValue('blob:installer')
 const revokeObjectURL = vi.fn()
 function options(signal = new AbortController().signal) {
   return {
     url: '/downloads/Soda-Scanner-Setup.exe',
-    fileName: 'Soda-Scanner-Setup.exe',
+    fileName: scannerInstallerFileName('1.0.6'),
     expectedSize: 8,
     signal,
     onProgress: vi.fn(),
@@ -25,6 +25,14 @@ beforeEach(() => {
   )
   vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
 })
+it('derives the save filename from the installer version', () => {
+  expect(scannerInstallerFileName('1.0.5')).toBe('Soda-Scanner-Setup-1.0.5.exe')
+  expect(scannerInstallerFileName('1.0.6')).toBe('Soda-Scanner-Setup-1.0.6.exe')
+})
+it.each(['latest', '1.0', '1.0.6-beta', '1.0.6\r\nX-Injected: yes', '../1.0.6', '1.0.6\n'])(
+  'rejects an unsafe or unsupported installer version %j',
+  (version) => expect(() => scannerInstallerFileName(version)).toThrow('invalid_installer_version'),
+)
 afterEach(() => {
   vi.useRealTimers()
   vi.restoreAllMocks()
@@ -44,6 +52,9 @@ it('receives split MZ bytes and only requests save after the complete pinned fil
   expect(input.onProgress.mock.calls.flat()).toEqual([1, 4, 8])
   expect(input.onSaving).toHaveBeenCalledOnce()
   expect(createObjectURL.mock.calls[0][0].size).toBe(8)
+  expect(
+    (vi.mocked(HTMLAnchorElement.prototype.click).mock.instances[0] as HTMLAnchorElement).download,
+  ).toBe('Soda-Scanner-Setup-1.0.6.exe')
 })
 it.each([
   ['truncated', executable.subarray(0, 7)],

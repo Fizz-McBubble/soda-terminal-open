@@ -2,6 +2,7 @@ import { type ReactNode, type RefObject } from 'react'
 import { AlertTriangle, Check, ChevronRight, LoaderCircle, ScanLine } from 'lucide-react'
 import { type ScannerAssistantSnapshot } from '../scanner/runtime'
 import { createPrepareChecks } from './scannerPrepareChecks'
+import { ScannerGuide } from './ScannerGuide'
 
 export function PrepareChecklist({
   snapshot,
@@ -103,8 +104,8 @@ export function PrepareChecklist({
                 : snapshot.state === 'checking'
                   ? '正在检查'
                   : snapshot.state === 'connection_failed'
-                    ? '重新切换游戏并开始扫描'
-                    : '切换游戏并开始扫描'}
+                    ? '重新扫描'
+                    : '开始扫描'}
             <ChevronRight aria-hidden="true" size={18} />
           </button>
           {installer}
@@ -117,6 +118,7 @@ export function PrepareChecklist({
 
       <section className="scanner-prepare__details" aria-label="本机准备条件">
         <h3>本机准备条件</h3>
+        <ScannerGuide />
         {accountDisclosure ? (
           <div className="scanner-prepare__account-disclosure">{accountDisclosure}</div>
         ) : null}

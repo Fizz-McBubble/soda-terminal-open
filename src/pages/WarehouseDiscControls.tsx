@@ -44,7 +44,7 @@ function WarehouseActionSummary({
                 action: nextAction,
                 sort:
                   current.sort === 'development' && nextAction !== 'enhance'
-                    ? 'catalog'
+                    ? 'game'
                     : current.sort,
               }
             })
@@ -220,6 +220,7 @@ export function WarehouseDiscControls({
                 updateFilters((current) => ({ ...current, sort: value as FilterState['sort'] }))
               }
             >
+              <option value="game">游戏顺序</option>
               <option value="catalog">套装号位</option>
               <option value="level">强化等级</option>
               {filters.action === 'enhance' ? <option value="development">培养优先</option> : null}
@@ -271,7 +272,7 @@ export function WarehouseDiscControls({
                 onClick={() =>
                   updateFilters((current) => ({
                     ...initialFilters,
-                    sort: current.sort === 'development' ? 'catalog' : current.sort,
+                    sort: current.sort === 'development' ? 'game' : current.sort,
                   }))
                 }
               >

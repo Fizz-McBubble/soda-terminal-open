@@ -17,6 +17,7 @@ export const incremental32CommunityTests = Object.freeze([
 ])
 
 export const communityTests = Object.freeze([
+  'src/domain/discOrdering.test.ts',
   'src/components/F5VisualShell.test.tsx',
   'src/components/assets/r6/CatalogPagination.test.tsx',
   'src/application/browserCalculationQueryClient.reliability.test.ts',
@@ -72,6 +73,8 @@ export const communityTests = Object.freeze([
   'src/accounts/backup.restore-validation.test.ts',
   'src/pages/HelpAndPrivacyPage.test.tsx',
   'src/pages/ScannerDiagnosticFeedback.test.tsx',
+  'src/pages/ScannerGuide.test.tsx',
+  'src/pages/scannerPrepareChecks.test.ts',
   'src/pages/ScannerInstallerAction.test.tsx',
   'src/scanner/installerDownload.test.ts',
   'src/scanner/diagnostics.test.ts',

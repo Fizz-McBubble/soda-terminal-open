@@ -111,7 +111,7 @@ export function createInstallerDownload({
       const headers = {
         'content-type': 'application/vnd.microsoft.portable-executable',
         'content-length': String(length),
-        'content-disposition': 'attachment; filename="Soda-Scanner-Setup.exe"',
+        'content-disposition': `attachment; filename="Soda-Scanner-Setup-${manifest.version}.exe"`,
         'cache-control': 'public, max-age=0, must-revalidate',
         etag: `"${manifest.sha256}"`,
         'accept-ranges': 'bytes',

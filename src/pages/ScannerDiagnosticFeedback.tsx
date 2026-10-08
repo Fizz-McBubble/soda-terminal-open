@@ -9,7 +9,13 @@ import { ExplanationPopover } from '../components/ExplanationPopover'
 import { scannerDiagnosticGuidance } from './scannerDiagnosticGuidance'
 import './scanner-diagnostic-feedback.css'
 
-type FeedbackState = { reportId: string; pending?: boolean; message: string; receivedAt?: string }
+type FeedbackState = {
+  reportId: string
+  pending?: boolean
+  message: string
+  receivedAt?: string
+  receivedReportId?: string
+}
 const stageLabels: Record<string, string> = {
   connection: '连接助手',
   permission: '确认权限',
@@ -32,7 +38,10 @@ export function ScannerDiagnosticFeedback({ report }: { report: ScanDiagnosticRe
   }, [safe?.reportId])
   if (!safe) return null
   const currentState = state?.reportId === safe.reportId ? state : null
-  const text = diagnosticJson(safe)
+  const receivedReport = currentState?.receivedReportId
+    ? { ...safe, reportId: currentState.receivedReportId }
+    : safe
+  const text = diagnosticJson(receivedReport)
   const guidance = scannerDiagnosticGuidance(safe)
 
   async function submit() {
@@ -43,7 +52,12 @@ export function ScannerDiagnosticFeedback({ report }: { report: ScanDiagnosticRe
     try {
       const receipt = await submitScanFeedback(safe)
       if (currentId.current === reportId)
-        setState({ reportId, message: '反馈已收到，谢谢。', receivedAt: receipt.receivedAt })
+        setState({
+          reportId,
+          message: '反馈已收到，谢谢。',
+          receivedAt: receipt.receivedAt,
+          receivedReportId: receipt.reportId,
+        })
     } catch (error) {
       if (currentId.current === reportId)
         setState({
@@ -76,7 +90,7 @@ export function ScannerDiagnosticFeedback({ report }: { report: ScanDiagnosticRe
       const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }))
       const anchor = document.createElement('a')
       anchor.href = url
-      anchor.download = `soda-scan-diagnostic-${safe.reportId}.json`
+      anchor.download = `soda-scan-diagnostic-${receivedReport.reportId}.json`
       anchor.click()
       URL.revokeObjectURL(url)
       setLocalMessage({ reportId: safe.reportId, text: '诊断下载已开始。' })

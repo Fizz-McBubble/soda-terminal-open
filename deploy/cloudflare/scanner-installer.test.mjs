@@ -41,12 +41,34 @@ test('streams the exact pinned asset and forwards no user credentials or source 
   assert.deepEqual(new Uint8Array(await response.arrayBuffer()), bytes)
   assert.equal(
     response.headers.get('content-disposition'),
-    'attachment; filename="Soda-Scanner-Setup.exe"',
+    'attachment; filename="Soda-Scanner-Setup-1.0.0.exe"',
   )
   assert.equal(calls[0].url, manifest.assetUrl)
   assert.deepEqual(calls[0].init.headers, {})
   assert.equal((await download(request({}, '?source=https://foreign.invalid'))).status, 400)
   assert.equal(calls.length, 1)
+})
+
+test('a new pinned installer version changes the save name while preserving the stable route', async () => {
+  const version = '1.0.6'
+  const releaseTag = `scanner-installer-v${version}`
+  const download = createInstallerDownload({
+    manifest: {
+      ...manifest,
+      version,
+      releaseTag,
+      assetUrl: `https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/${releaseTag}/${manifest.assetName}`,
+    },
+    fetcher: async () => upstream(),
+  })
+  assert.equal(installerPath, '/downloads/Soda-Scanner-Setup.exe')
+  const response = await download(request())
+  assert.equal(response.status, 200)
+  assert.equal(
+    response.headers.get('content-disposition'),
+    'attachment; filename="Soda-Scanner-Setup-1.0.6.exe"',
+  )
+  await response.arrayBuffer()
 })
 
 test('HEAD and valid byte ranges preserve download metadata without reading a full package', async () => {
@@ -89,6 +111,8 @@ test('rejects unpublished, malformed and foreign manifests before a network requ
     { size: NaN },
     { sha256: 'bad' },
     { version: 'latest' },
+    { version: '1.0.0\r\nX-Injected: yes' },
+    { version: '1.0.0\n' },
     { releaseTag: 'latest' },
     { assetName: 'other.exe' },
     { assetUrl: 'https://foreign.invalid/file.exe' },

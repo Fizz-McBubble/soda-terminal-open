@@ -1,0 +1,22 @@
+.scanner-guide {
+  min-width: 0;
+  margin-block: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.scanner-guide > summary {
+  width: fit-content;
+  cursor: pointer;
+  color: var(--soda-text-muted, #687181);
+}
+
+.scanner-guide > summary:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+.scanner-guide > div > p {
+  margin-block: 8px;
+}

@@ -2,6 +2,7 @@ import type { WarehouseActionItem } from '../application/warehouseActionProjecti
 import type { DriveDisc } from '../domain/schemas'
 import {
   compareDiscCatalogOrder,
+  compareDiscGameOrder,
   compareDiscLevelOrder,
   type DiscOrderContext,
   type DiscSortMode,
@@ -63,7 +64,9 @@ export function projectWarehouseActionListJoin(
     left: { item: WarehouseActionItem; disc: DriveDisc },
     right: { item: WarehouseActionItem; disc: DriveDisc },
   ) => compareDiscCatalogOrder(left.disc, right.disc, options)
-  if (options.sortMode === 'development') {
+  if (options.sortMode === 'game') {
+    rows.sort((left, right) => compareDiscGameOrder(left.disc, right.disc, options))
+  } else if (options.sortMode === 'development') {
     rows.sort(
       (left, right) =>
         compareWarehouseDevelopmentAdvice(

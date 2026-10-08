@@ -72,6 +72,15 @@ function asDiscItem(disc: DriveDisc, relations: { equipped: boolean; planned: bo
     slot: disc.slot,
     level: disc.level,
     mainStat: publicAssetStatLabel(disc.mainStat),
+    mainStatKey: disc.mainStat,
+    importBatchId: disc.importBatchId,
+    importSource: disc.importSource
+      ? {
+          adapter: disc.importSource.adapter,
+          sourceId: disc.importSource.sourceId,
+          capturedAt: disc.importSource.capturedAt,
+        }
+      : undefined,
     mainValue: displayDiscMainValue(disc),
     subStats: disc.subStats.map((item) => ({
       stat: publicAssetStatLabel(item.stat),

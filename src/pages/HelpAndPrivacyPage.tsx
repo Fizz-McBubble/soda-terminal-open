@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { PlayerSelect } from '../components/PlayerSelect'
 import { readLastScanDiagnostic } from '../scanner/scanFeedback'
 import { ScannerDiagnosticFeedback } from './ScannerDiagnosticFeedback'
+import { ScannerGuide } from './ScannerGuide'
 import { UsageStatisticsPreference } from '../usageStatistics/UsageStatistics'
 import './help-and-privacy.css'
 
@@ -81,10 +82,8 @@ export function HelpAndPrivacyPage() {
         <section aria-labelledby="help-scanner-heading">
           <h2 id="help-scanner-heading">本机扫描</h2>
           <div className="help-privacy__content">
-            <p>
-              本机扫描仅支持 Windows 版《绝区零》；Mac 和云·绝区零不支持扫描。已有扫描结果可通过
-              JSON 文件导入。自动扫描只收集 S 级驱动盘，A、B 级会跳过。
-            </p>
+            <p>本机扫描用于 Windows 本地版《绝区零》，只收集 S 级驱动盘，跳过 A/B 级。</p>
+            <ScannerGuide />
             <p>
               Windows
               扫描助手通过本机回环地址连接，读取可见的游戏画面。扫描结果须经你检查并确认导入，才会更新

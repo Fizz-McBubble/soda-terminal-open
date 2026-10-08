@@ -12,7 +12,12 @@ import { CatalogPagination } from './CatalogPagination'
 import { useCatalogPagination } from './useCatalogPagination'
 import { publicDiscSetOrder } from '../../../application/publicDiscSetOrder'
 import { publicStatOrder } from '../../../application/publicCandidateLabels'
-import { compareDiscCatalogOrder, compareDiscLevelOrder } from '../../../domain/discOrdering'
+import {
+  compareDiscCatalogOrder,
+  compareDiscGameOrder,
+  compareDiscLevelOrder,
+  type DiscSortMode,
+} from '../../../domain/discOrdering'
 import {
   discWorkspacePath,
   factsLabel,
@@ -28,7 +33,7 @@ const discMainStatOrder = new Map(publicStatOrder.map((stat, index) => [stat, in
 const columns: Record<CatalogKind, number> = { agents: 9, wengines: 10, bangboos: 10, discs: 10 }
 
 export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kind: CatalogKind }) {
-  const [discSortMode, setDiscSortMode] = useState<'catalog' | 'level'>('catalog')
+  const [discSortMode, setDiscSortMode] = useState<Exclude<DiscSortMode, 'development'>>('game')
   const rows =
     kind === 'discs'
       ? [...props.discs].sort((left, right) => {
@@ -36,20 +41,26 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
             id: left.stableId,
             setId: left.set.stableId,
             slot: left.slot,
-            mainStat: left.mainStat,
+            mainStat: left.mainStatKey ?? left.mainStat,
             level: left.level,
+            importBatchId: left.importBatchId,
+            importSource: left.importSource,
           }
           const rightKey = {
             id: right.stableId,
             setId: right.set.stableId,
             slot: right.slot,
-            mainStat: right.mainStat,
+            mainStat: right.mainStatKey ?? right.mainStat,
             level: right.level,
+            importBatchId: right.importBatchId,
+            importSource: right.importSource,
           }
           const context = { setOrder: discSetOrder, mainStatOrder: discMainStatOrder }
-          return discSortMode === 'level'
-            ? compareDiscLevelOrder(leftKey, rightKey, context)
-            : compareDiscCatalogOrder(leftKey, rightKey, context)
+          return discSortMode === 'game'
+            ? compareDiscGameOrder(leftKey, rightKey, context)
+            : discSortMode === 'level'
+              ? compareDiscLevelOrder(leftKey, rightKey, context)
+              : compareDiscCatalogOrder(leftKey, rightKey, context)
         })
       : props.catalog[kind]
   const ids = rows.map((row) => row.stableId)
@@ -244,8 +255,11 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
                   <PlayerSelect
                     aria-label="排序方式"
                     value={discSortMode}
-                    onChange={(value) => setDiscSortMode(value as 'catalog' | 'level')}
+                    onChange={(value) =>
+                      setDiscSortMode(value as Exclude<DiscSortMode, 'development'>)
+                    }
                   >
+                    <option value="game">游戏顺序</option>
                     <option value="catalog">套装号位</option>
                     <option value="level">强化等级</option>
                   </PlayerSelect>

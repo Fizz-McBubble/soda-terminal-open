@@ -2,6 +2,22 @@ import type { ScanDiagnosticReport } from '../scanner/diagnostics'
 
 type Guidance = { problem: string; nextAction: string }
 const guidance: Record<string, Guidance> = {
+  game_window_not_foreground: {
+    problem: '游戏窗口未保持在前台。',
+    nextAction: '切回绝区零的驱动仓库后重试，扫描期间不要切换窗口。',
+  },
+  window_geometry_changed: {
+    problem: '扫描期间游戏窗口的位置或尺寸发生了变化。',
+    nextAction: '保持窗口位置和尺寸固定，重新开始扫描。',
+  },
+  game_window_not_visible: {
+    problem: '游戏画面未完整显示在屏幕内。',
+    nextAction: '恢复游戏窗口并使画面完整可见，关闭遮挡后重试。',
+  },
+  ppocrv6_detail_geometry_incompatible: {
+    problem: '当前游戏画面尺寸或驱动盘详情布局不适合扫描。',
+    nextAction: '尝试 1920 × 1080 的窗口或无边框模式，打开驱动仓库完整列表后重试。',
+  },
   helper_unavailable: {
     problem: '网页暂时没有连接到本机扫描助手。',
     nextAction: '确认扫描助手已启动，再点击重新连接。',
@@ -29,6 +45,10 @@ const guidance: Record<string, Guidance> = {
   panel_capture_timeout: {
     problem: '未能及时读取到可识别的驱动盘画面。',
     nextAction: '确认游戏仓库画面可见、没有弹窗遮挡，再重试；仍失败时可反馈。',
+  },
+  warehouse_context_lost: {
+    problem: '暂时无法确认驱动仓库画面，扫描已停止。',
+    nextAction: '关闭遮挡并保持游戏在前台，再重新扫描。',
   },
   scan_navigation_failed: {
     problem: '扫描时未能按预期翻动仓库。',

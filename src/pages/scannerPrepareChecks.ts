@@ -31,8 +31,19 @@ export function createPrepareChecks(snapshot: ScannerAssistantSnapshot): Prepare
   const foregroundReady =
     gameFound &&
     !errors.includes('game_window_not_foreground') &&
+    !errors.includes('game_window_not_visible') &&
     !errors.includes('window_geometry_changed')
-  const clientReady = clientWidth === 1920 && clientHeight === 1080
+  // Mirror the native local-client geometry gate; a size alone cannot override its rejection.
+  const clientReady =
+    typeof clientWidth === 'number' &&
+    typeof clientHeight === 'number' &&
+    clientWidth >= 1280 &&
+    clientWidth <= 3840 &&
+    clientHeight >= 720 &&
+    clientHeight <= 2161 &&
+    Math.abs(clientHeight - (clientWidth * 9) / 16) <= 1 &&
+    !errors.includes('client_size_changed') &&
+    !errors.includes('ppocrv6_detail_geometry_incompatible')
   const warehouseReady =
     Boolean(snapshot.prepare) &&
     observedTotal !== null &&
@@ -62,7 +73,7 @@ export function createPrepareChecks(snapshot: ScannerAssistantSnapshot): Prepare
       id: 'warehouse-ready',
       label: '启动绝区零',
       status: checkStatus(snapshot, warehouseTaskReady),
-      instruction: '使用 1920 × 1080 无边框窗口打开“驱动仓库”完整列表',
+      instruction: '打开“驱动仓库”完整列表，画面要求见扫描指南',
       feedback: warehouseTaskResult,
     },
     {

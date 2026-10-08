@@ -133,7 +133,26 @@ it('resolves a native attempt ID collision once, with a bounded no-cookie retry 
   expect(fetcher).toHaveBeenCalledTimes(2)
   expect(sent[1]).toEqual({ ...report, reportId: receipt.reportId })
   expect(receipt.reportId).not.toBe(report.reportId)
+  expect(readLastScanDiagnostic()).toEqual(sent[1])
   expect(fetcher.mock.calls[1][1]).toMatchObject({ credentials: 'omit' })
+})
+it('does not replace a newer cached failure when an older feedback submission succeeds', async () => {
+  const report = makeReport()
+  const newer = makeReport()
+  saveLastScanDiagnostic(newer)
+  await submitScanFeedback(
+    report,
+    vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          status: 'received',
+          reportId: report.reportId,
+          receivedAt: '2026-10-07T00:00:00Z',
+        }),
+      ),
+    ),
+  )
+  expect(readLastScanDiagnostic()).toEqual(newer)
 })
 it('requires a durable matching acknowledgement, supports retry and bounds unresponsive fetch', async () => {
   const report = makeReport()

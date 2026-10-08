@@ -269,7 +269,7 @@ export function WarehouseDiscsPage() {
         setId: detailDisc.setId,
         slot: String(detailDisc.slot),
         mainStat: detailDisc.mainStat,
-        sort: filters.sort === 'development' ? 'catalog' : filters.sort,
+        sort: filters.sort === 'development' ? 'game' : filters.sort,
       },
     })
     setComparison(null)

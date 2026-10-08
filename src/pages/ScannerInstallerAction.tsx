@@ -4,7 +4,7 @@ import {
   scannerDistributionManifest,
   type ScannerDistributionSnapshot,
 } from '../scanner/distribution'
-import { downloadScannerInstaller } from '../scanner/installerDownload'
+import { downloadScannerInstaller, scannerInstallerFileName } from '../scanner/installerDownload'
 import './scanner-installer-action.css'
 
 type DownloadState = 'idle' | 'downloading' | 'saving' | 'save_requested' | 'error' | 'cancelled'
@@ -43,6 +43,7 @@ export function ScannerInstallerAction({
   const pending = state === 'downloading' || state === 'saving'
   const complete = state === 'save_requested'
   const expectedSize = scannerDistributionManifest.helper.size
+  const fileName = scannerInstallerFileName(scannerDistributionManifest.helper.installerVersion)
   const percent = Math.min(100, Math.floor((bytes / expectedSize) * 100))
   const progressText = state === 'saving' ? '正在准备文件' : `下载中 ${percent}%`
   useEffect(() => {
@@ -121,7 +122,7 @@ export function ScannerInstallerAction({
     try {
       const result = await downloadScannerInstaller({
         url: scannerDistributionManifest.helper.downloadUrl,
-        fileName: scannerDistributionManifest.helper.entry,
+        fileName,
         expectedSize,
         signal: controller.signal,
         onProgress: (received) => {
@@ -219,7 +220,7 @@ export function ScannerInstallerAction({
             <a
               className="scanner-installer__fallback"
               href={scannerDistributionManifest.helper.downloadUrl}
-              download={scannerDistributionManifest.helper.entry}
+              download={fileName}
             >
               直接下载
             </a>

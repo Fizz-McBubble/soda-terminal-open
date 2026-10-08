@@ -453,7 +453,7 @@ export function createStandardImportFromStaging(
       adapter: 'soda-terminal-scan-staging',
       sourceFile: batch.sourceReport,
       capturedAt: batch.createdAt,
-      detailPanel: { resolution: '1920x1080', region: 'DETAIL' },
+      detailPanel: { resolution: batch.manifest?.viewport ?? undefined, region: 'DETAIL' },
     },
     batch: { id: batch.id, note: `识别版本 ${batch.recognitionVersion}` },
     discs: ready.map((item) => ({

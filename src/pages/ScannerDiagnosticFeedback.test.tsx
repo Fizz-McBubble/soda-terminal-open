@@ -4,6 +4,7 @@ import { ScannerDiagnosticFeedback } from './ScannerDiagnosticFeedback'
 import { sanitizeScanDiagnostic } from '../scanner/diagnostics'
 import contract from '../scanner/scanFeedback.contract.json'
 import { scannerDiagnosticGuidance } from './scannerDiagnosticGuidance'
+import { readLastScanDiagnostic, saveLastScanDiagnostic } from '../scanner/scanFeedback'
 // jsdom does not implement the native Popover API. The browser regression covers
 // its actual positioning, dismissal and unchanged page geometry.
 vi.mock('../components/ExplanationPopover', () => ({
@@ -31,8 +32,57 @@ const makeReport = () =>
     counts: { processed: 4, total: null },
   })!
 afterEach(() => {
+  localStorage.clear()
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
+})
+it('copies, downloads and restores the acknowledged ID after a conflict retry', async () => {
+  const report = makeReport()
+  saveLastScanDiagnostic(report)
+  let receivedId = ''
+  const fetcher = vi.fn().mockImplementation((_url, init) => {
+    const outgoing = JSON.parse(init.body)
+    if (fetcher.mock.calls.length === 1)
+      return Promise.resolve(new Response('conflict', { status: 409 }))
+    receivedId = outgoing.reportId
+    return Promise.resolve(
+      new Response(
+        JSON.stringify({
+          status: 'received',
+          reportId: receivedId,
+          receivedAt: '2026-10-07T00:00:00Z',
+        }),
+      ),
+    )
+  })
+  vi.stubGlobal('fetch', fetcher)
+  const writeText = vi.fn().mockResolvedValue(undefined)
+  Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText } })
+  const createObjectURL = vi.fn().mockReturnValue('blob:diagnostic')
+  Object.defineProperty(URL, 'createObjectURL', { configurable: true, value: createObjectURL })
+  Object.defineProperty(URL, 'revokeObjectURL', { configurable: true, value: vi.fn() })
+  let filename = ''
+  vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function (this: HTMLAnchorElement) {
+    filename = this.download
+  })
+  render(<ScannerDiagnosticFeedback report={report} />)
+  fireEvent.click(screen.getByRole('button', { name: '反馈此问题' }))
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('反馈已收到'))
+  fireEvent.click(screen.getByText('查看诊断信息'))
+  fireEvent.click(screen.getByRole('button', { name: '复制诊断' }))
+  await waitFor(() => expect(writeText).toHaveBeenCalledOnce())
+  expect(JSON.parse(writeText.mock.calls[0][0])).toEqual({ ...report, reportId: receivedId })
+  fireEvent.click(screen.getByRole('button', { name: '下载诊断' }))
+  expect(filename).toBe(`soda-scan-diagnostic-${receivedId}.json`)
+  const downloaded = await new Promise<string>((resolve) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result))
+    reader.readAsText(createObjectURL.mock.calls[0][0])
+  })
+  expect(JSON.parse(downloaded).reportId).toBe(receivedId)
+  expect(readLastScanDiagnostic()).toEqual({ ...report, reportId: receivedId })
+  expect(receivedId).not.toBe(report.reportId)
+  expect(fetcher).toHaveBeenCalledTimes(2)
 })
 
 it('keeps submission explicit, disables duplicate pending clicks, and shows only a matching receipt', async () => {

@@ -124,6 +124,10 @@ export async function submitScanFeedback(
           !Number.isFinite(Date.parse(receipt.receivedAt))
         )
           throw new Error('invalid-receipt')
+        // Keep the Help-page copy aligned with the durable receipt without letting
+        // a late submission overwrite a newer failure captured in another attempt.
+        const stored = readLastScanDiagnostic()
+        if (!stored || stored.reportId === safe.reportId) saveLastScanDiagnostic(outgoing)
         return { reportId: outgoing.reportId, receivedAt: receipt.receivedAt }
       })(),
     ])

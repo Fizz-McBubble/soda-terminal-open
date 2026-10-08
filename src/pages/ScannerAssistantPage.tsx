@@ -354,7 +354,7 @@ function HydratedScannerAssistantPage({
           </header>
           <ScannerJourneyCards currentStep={journeyStep} />
           <p className="scanner-task__platform-support">
-            仅支持 Windows 版《绝区零》，不支持 Mac 和云·绝区零。仅扫描 S 级驱动盘，跳过 A/B 级。
+            Windows 本地版扫描 S 级驱动盘，跳过 A/B 级；其他环境与画面要求见扫描指南。
           </p>
           <ScannerPrepareSection
             showImportComplete={showImportComplete}

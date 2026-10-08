@@ -4,6 +4,8 @@ export type DiscOrderKey = {
   slot: number
   mainStat: string
   level: number
+  importBatchId?: string
+  importSource?: { adapter: string; sourceId?: string; capturedAt?: string }
 }
 
 export type DiscOrderContext = {
@@ -11,10 +13,48 @@ export type DiscOrderContext = {
   mainStatOrder?: ReadonlyMap<string, number>
 }
 
-export type DiscSortMode = 'catalog' | 'level' | 'development'
+export type DiscSortMode = 'game' | 'catalog' | 'level' | 'development'
+
+function scanPosition(disc: DiscOrderKey) {
+  if (disc.importSource?.adapter !== 'soda-terminal-scan-staging' || !disc.importBatchId)
+    return null
+  // The native R4 identity carries the captured sequence after the image hash.
+  // Arbitrary external IDs must not be interpreted as a position in the game.
+  const match = /^sha256:[a-f0-9]{64}:(\d+)$/i.exec(disc.importSource.sourceId ?? '')
+  const sequence = match ? Number(match[1]) : 0
+  if (!Number.isSafeInteger(sequence) || sequence <= 0) return null
+  const capturedAt = Date.parse(disc.importSource.capturedAt ?? '')
+  return {
+    batch: disc.importBatchId,
+    capturedAt: Number.isFinite(capturedAt) ? capturedAt : 0,
+    sequence,
+  }
+}
+
+/** Restore the game's order at capture time without changing stored account data. */
+export function compareDiscGameOrder(
+  left: DiscOrderKey,
+  right: DiscOrderKey,
+  context: DiscOrderContext = {},
+) {
+  const leftPosition = scanPosition(left)
+  const rightPosition = scanPosition(right)
+  if (leftPosition && rightPosition) {
+    // Different scans cannot establish a common in-game order. Keep each batch
+    // together, newest first, using one total order (never pairwise fallbacks).
+    return (
+      rightPosition.capturedAt - leftPosition.capturedAt ||
+      leftPosition.batch.localeCompare(rightPosition.batch) ||
+      leftPosition.sequence - rightPosition.sequence ||
+      compareDiscLevelOrder(left, right, context)
+    )
+  }
+  if (leftPosition || rightPosition) return leftPosition ? -1 : 1
+  return compareDiscLevelOrder(left, right, context)
+}
 
 /**
- * Player-facing default: keep each set together, then slot, main stat and
+ * Explicit catalog view: keep each set together, then slot, main stat and
  * enhancement level. The physical id is the final stable tie breaker.
  */
 export function compareDiscCatalogOrder(

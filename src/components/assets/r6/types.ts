@@ -1,4 +1,5 @@
 import type { AccountRoster } from '../../../assault/types'
+import type { DiscOrderKey } from '../../../domain/discOrdering'
 
 export type AssetTab = 'account' | 'agents' | 'wengines' | 'bangboos' | 'discs'
 export type CatalogKind = Exclude<AssetTab, 'account'>
@@ -19,6 +20,9 @@ export type DiscItem = {
   slot: number
   level: number
   mainStat: string
+  mainStatKey?: string
+  importBatchId?: DiscOrderKey['importBatchId']
+  importSource?: DiscOrderKey['importSource']
   mainValue?: string
   subStats: Array<{ stat: string; value: string; upgrades: number }>
   locked: boolean

@@ -28,7 +28,7 @@ export const initialFilters: FilterState = {
   fit: '',
   level: '',
   referenced: 'all',
-  sort: 'catalog',
+  sort: 'game',
 }
 export const actionKinds: WarehouseActionKind[] = ['keep', 'enhance', 'cleanup']
 export const statusLabels: Partial<Record<WarehouseActionStatus, string>> = {

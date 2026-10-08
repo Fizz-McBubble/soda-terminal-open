@@ -1,5 +1,10 @@
 export type InstallerDownloadResult = 'save_requested'
 
+export function scannerInstallerFileName(version: string): string {
+  if (!/^\d+\.\d+\.\d+$/u.test(version)) throw new Error('invalid_installer_version')
+  return `Soda-Scanner-Setup-${version}.exe`
+}
+
 function waitForAbortable<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const aborted = () => {

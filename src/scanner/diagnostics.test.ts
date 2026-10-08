@@ -22,6 +22,21 @@ export const validReport = {
 }
 
 describe('allowlisted diagnostic privacy boundary', () => {
+  it.each([
+    'game_window_not_foreground',
+    'game_window_not_visible',
+    'window_geometry_changed',
+    'ppocrv6_detail_geometry_incompatible',
+    'warehouse_context_lost',
+  ])('preserves actionable window failure %s without copying raw details', (code) => {
+    const report = sanitizeScanDiagnostic({
+      ...validReport,
+      code,
+      rawError: 'private path and window title',
+    })!
+    expect(report.code).toBe(code)
+    expect(report).not.toHaveProperty('rawError')
+  })
   it('reports a connection failure without copying a retained completed scan', () => {
     const report = diagnosticFromSnapshot(
       {
