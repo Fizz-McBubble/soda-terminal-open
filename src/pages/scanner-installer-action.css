@@ -1,11 +1,10 @@
 .scanner-installer {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 6px;
-  width: 168px;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
   min-width: 0;
-  flex: 0 0 168px;
+  flex: 1 1 168px;
 }
 .f5v-shell .scanner-task .scanner-prepare__actions:has(> .scanner-installer) {
   align-items: flex-start;
@@ -19,7 +18,8 @@
 .scanner-installer__control {
   position: relative;
   display: flex;
-  width: 100%;
+  width: 168px;
+  flex: 0 0 168px;
   height: 40px;
 }
 .f5v-shell .scanner-task .scanner-installer .scanner-prepare__download {
@@ -124,6 +124,10 @@
     width: 100%;
     min-width: 0;
     flex: 0 1 auto;
+  }
+  .scanner-installer__control {
+    width: 100%;
+    flex-basis: 100%;
   }
   .f5v-shell .scanner-task .scanner-installer .scanner-prepare__download {
     padding-inline: 8px;
