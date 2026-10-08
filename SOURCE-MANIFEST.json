@@ -1026,7 +1026,7 @@
     "src/pages/savedTeamRatingPresentation.ts": "3c76b559bd5503d7fb444860b0d5563dc609b4463a23ad66f6aeb78e1d118be3",
     "src/pages/savedTeamRatingPresentationLocal.ts": "c53bc1a129631663e6c14ec792571bb1fb632443bb2cebbdf092b7b04f4acf9b",
     "src/pages/scanner-diagnostic-feedback.css": "2d0e0dff5ebb84efbc436919a0ec2c3872cfe7b79e91f3a0d548284c4ea262bf",
-    "src/pages/scanner-installer-action.css": "6b1bd4e55fccaf349c1eefd0c200086592beb1f19dfcbd3c0da4517efc0ff0e9",
+    "src/pages/scanner-installer-action.css": "0e44004fc299f9403c51e8b5414a8eeee4b1c50ea0192bf68ff80bdad8e621f3",
     "src/pages/ScannerAccountHydrationGate.tsx": "eb7c016552c10bc6603f58a562af36b4e56ccb60056ee952a4d9ca3bb933963f",
     "src/pages/scannerAssistantBindingOptions.ts": "d0a6c4a7b0f02302c51b9e7ddcb09c87ea1e4b9ea8c26a2156e5ca241b995059",
     "src/pages/ScannerAssistantPage.rescan.test.tsx": "35e4baed0ed030c8cf5c11d3b37d0187af24d70175cb1e3ce988256e6c6d63ef",
