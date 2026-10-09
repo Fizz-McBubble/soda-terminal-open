@@ -7,7 +7,7 @@ import { noFunctionalSubstatGoalMethod } from './absoluteDiscRetentionContract'
 
 export { noFunctionalSubstatGoalMethod } from './absoluteDiscRetentionContract'
 
-export const retentionWeightPolicyId = 'retention-goal-roll-quality-r2'
+export const retentionWeightPolicyId = 'retention-goal-roll-quality-r3-promoted-base'
 /** Calibrated roll-quality proxies. These are not damage ratios or exact marginal DPS. */
 export const retentionWeightParameters = Object.freeze({ scaling: 0.75, secondaryPen: 0.3 })
 
@@ -26,6 +26,7 @@ export function resolveRetentionQualityWeights(
   const standard = driveDiscData?.rules.subStatStepsByRarity.S ?? []
   const step = (stat: string) => standard.find((entry) => entry.stat === stat)?.baseValue ?? 0
   const weights: Record<string, number> = {}
+  let missingScalingBase = false
   const qualityInputEvidence: Record<string, NonNullable<Profile['qualityInputEvidence']>[string]> =
     {}
   // Core lines are the objective's quality inputs, not the stat granted by core-skill promotion.
@@ -65,16 +66,31 @@ export function resolveRetentionQualityWeights(
     if (!functionalInput(`${kind}_`, [percent, flat])) continue
     const scaleWeight = isFunction ? 1 : retentionWeightParameters.scaling
     weights[percent] = scaleWeight
-    if (mechanic) {
-      const base = mechanic.baseStats[`${kind}_base`] + mechanic.baseStats[`${kind}_growth`] * 59
-      // Convert an S flat roll and an S percentage roll against a fixed source-bound level60 base.
-      // The reference has no account equipment/ownership or inventory-relative normalization.
-      const percentRoll = (base * step(percent)) / 100
-      if (percentRoll > 0)
-        weights[flat] = Math.min(
-          1,
-          Math.round(((scaleWeight * step(flat)) / percentRoll) * 1e6) / 1e6,
-        )
+    const promotion = mechanic?.promotionStats[5]?.[kind]
+    const base =
+      !mechanic || promotion === undefined
+        ? null
+        : mechanic.baseStats[`${kind}_base`] + mechanic.baseStats[`${kind}_growth`] * 59 + promotion
+    // The fixed level60 character reference includes its five promotions, as in
+    // the shared panel projection. It excludes weapons, core and account state.
+    // The reference has no account equipment/ownership or inventory-relative normalization.
+    const percentRoll = base === null ? null : (base * step(percent)) / 100
+    if (percentRoll !== null && Number.isFinite(percentRoll) && percentRoll > 0)
+      weights[flat] = Math.min(
+        1,
+        Math.round(((scaleWeight * step(flat)) / percentRoll) * 1e6) / 1e6,
+      )
+    else {
+      // Keep an optimistic input until its conversion is known; never let a
+      // missing base silently turn this legal stat into a zero-benefit line.
+      weights[flat] = 1
+      missingScalingBase = true
+      qualityInputEvidence[flat] = {
+        state: 'missing_fact',
+        predicateId: `${agentId}:quality:${flat}:promoted-base`,
+        evidenceIds: mechanic ? [mechanic.source.statsSha256] : facts.sourceIds,
+        detail: '缺少60级突破后的基础属性，固定词条收益尚未完成换算。',
+      }
     }
     if (isFunction || isAnomaly) {
       coreStats.add(percent)
@@ -112,6 +128,7 @@ export function resolveRetentionQualityWeights(
       ['valid', 'incidental', 'incompatible'].includes(facts.effects[effect]?.state ?? ''),
     )
   const known =
+    !missingScalingBase &&
     facts.goal !== 'unknown' &&
     (noSubstatGoal || (Object.values(weights).some((value) => value > 0) && coreStats.size > 0))
   const sourceIds = [
@@ -121,7 +138,10 @@ export function resolveRetentionQualityWeights(
       : []),
   ]
   return {
-    weights: known ? weights : Object.fromEntries([...directions].map((stat) => [stat, 1])),
+    weights:
+      known || missingScalingBase
+        ? weights
+        : Object.fromEntries([...directions].map((stat) => [stat, 1])),
     coreStats: [...coreStats].filter((stat) => (weights[stat] ?? 0) >= 0.5),
     qualityInputEvidence,
     weightEvidence: {

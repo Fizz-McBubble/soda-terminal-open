@@ -33,7 +33,7 @@ import type {
   UtilityEvidence,
 } from './absoluteDiscRetentionKernel'
 
-const policyVersion = 'absolute-disc-retention-3.1-stage-r4'
+const policyVersion = 'absolute-disc-retention-3.2-stage-r5-mechanism-inputs'
 const calibratedCutoffs = { cleanupBelow: 48, keepFrom: 60, premiumFrom: 67 } as const
 const calibratedRarities = ['S'] as const
 const rarityCleanup = {

@@ -439,7 +439,9 @@ export function analyzeAccountWarehouse(input: WarehouseAnalysisInput): Warehous
   return {
     accountId: input.accountId,
     ruleVersion: warehouseAnalysisRuleVersion,
-    dataVersion: input.dataVersion ?? '3.1-candidate-warehouse',
+    dataVersion:
+      input.dataVersion ??
+      `${absoluteDiscRetentionCatalog.assessmentGameVersion}-candidate-warehouse`,
     assetSnapshot,
     planSnapshot,
     createdAt: input.now ?? new Date().toISOString(),
