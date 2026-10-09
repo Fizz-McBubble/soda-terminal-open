@@ -360,39 +360,44 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
                   />
                 ))}
           </div>
-          <CatalogPagination pagination={pagination} total={filtered.length} />
-          {kind === 'discs' && (
-            <footer className="catalog-foot">
-              <button
-                className="quiet"
-                onClick={() => {
-                  setBulk(!bulk)
-                  setSelectedDiscs(new Set())
-                }}
-              >
-                {bulk ? '退出批量' : '批量删除驱动盘'}
-              </button>
-              {bulk && (
+          <CatalogPagination
+            pagination={pagination}
+            total={filtered.length}
+            actions={
+              kind === 'discs' ? (
                 <>
-                  <span>{currentSelectedDiscs.size} 张已选择</span>
                   <button
-                    className="danger"
-                    disabled={currentSelectedDiscs.size === 0}
+                    className={bulk ? 'quiet' : 'danger'}
                     onClick={() => {
-                      setPendingDelete(
-                        props.discs
-                          .filter((disc) => currentSelectedDiscs.has(disc.stableId))
-                          .map(({ stableId, revision }) => ({ stableId, revision })),
-                      )
-                      openDeleteDialog()
+                      setBulk(!bulk)
+                      setSelectedDiscs(new Set())
                     }}
                   >
-                    删除所选驱动盘
+                    {bulk ? '退出批量' : '批量删除驱动盘'}
                   </button>
+                  {bulk && (
+                    <>
+                      <span>{currentSelectedDiscs.size} 张已选择</span>
+                      <button
+                        className="danger"
+                        disabled={currentSelectedDiscs.size === 0}
+                        onClick={() => {
+                          setPendingDelete(
+                            props.discs
+                              .filter((disc) => currentSelectedDiscs.has(disc.stableId))
+                              .map(({ stableId, revision }) => ({ stableId, revision })),
+                          )
+                          openDeleteDialog()
+                        }}
+                      >
+                        删除所选驱动盘
+                      </button>
+                    </>
+                  )}
                 </>
-              )}
-            </footer>
-          )}
+              ) : undefined
+            }
+          />
         </section>
         <aside ref={editorRef} className="editor">
           {selected && !pagination.visible.some((row) => row.stableId === selectedId) ? (

@@ -130,6 +130,8 @@
 }
 
 .f5v-shell .scanner-task .scanner-prepare__details {
+  --scanner-guide-label-width: 7rem;
+  container: scanner-guide / inline-size;
   margin: 0;
   padding: var(--scanner-panel-padding);
 }
@@ -185,17 +187,58 @@
 .f5v-shell .scanner-prepare__details .scanner-prepare__checks {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 0;
+  gap: 20px;
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(107, 96, 140, 0.12);
+  font-size: 0.8rem;
+  line-height: 1.6;
 }
-@media (min-width: 1280px) {
-  .f5v-shell .scanner-prepare__details .scanner-prepare__checks {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 4px 16px;
-  }
+.f5v-shell .scanner-prepare__details .scanner-prepare__checks > li {
+  position: relative;
+  display: block;
+  padding: 0;
+  border: 0;
 }
 .f5v-shell .scanner-prepare__check > div {
   display: grid;
-  gap: 3px;
+  grid-template-columns: var(--scanner-guide-label-width) minmax(0, 1fr);
+  align-items: baseline;
+  gap: 4px 16px;
+}
+.f5v-shell .scanner-prepare__check > div > strong {
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+.f5v-shell .scanner-prepare__check > .scanner-prepare__check-icon {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 20px;
+  height: 20px;
+}
+.f5v-shell .scanner-prepare__check:not(.is-unchecked) > div > strong {
+  padding-left: 28px;
+}
+.f5v-shell .scanner-prepare__check > div > small {
+  grid-column: 2;
+}
+@container scanner-guide (max-width: 420px) {
+  .f5v-shell .scanner-prepare__guide-item,
+  .f5v-shell .scanner-prepare__check > div {
+    display: block;
+  }
+  .f5v-shell .scanner-prepare__guide-label,
+  .f5v-shell .scanner-prepare__check > div > strong {
+    margin-right: 12px;
+  }
+  .f5v-shell .scanner-prepare__guide-item p,
+  .f5v-shell .scanner-prepare__check .scanner-prepare__instruction-row {
+    display: inline;
+  }
+  .f5v-shell .scanner-prepare__check > div > small {
+    display: block;
+  }
 }
 .f5v-shell .scanner-prepare__details .scanner-prepare__summary {
   display: flex;
@@ -293,23 +336,9 @@
   flex-wrap: wrap;
   gap: 12px;
 }
-@media (max-width: 760px) {
-  .f5v-shell .scanner-prepare__details .scanner-prepare__checks {
-    grid-template-columns: 1fr;
-  }
-}
-
 /* Avoid empty grid rows and oversized gaps in the preparation screen. */
 .f5v-shell .scanner-task .scanner-prepare {
   row-gap: 12px;
-}
-.f5v-shell .scanner-prepare__details .scanner-prepare__checks {
-  margin-top: 24px;
-  row-gap: 16px;
-}
-.f5v-shell .scanner-prepare__details .scanner-prepare__checks > li {
-  padding-block: 0;
-  border: 0;
 }
 .f5v-shell .scanner-task .scanner-prepare__account {
   padding-block: 0;

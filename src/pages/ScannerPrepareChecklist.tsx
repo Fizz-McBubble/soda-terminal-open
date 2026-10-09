@@ -158,7 +158,7 @@ export function PrepareChecklist({
           <div className="scanner-prepare__guide-card">
             <div className="scanner-prepare__guide-item">
               <span className="scanner-prepare__guide-label">画面环境</span>
-              <p>窗口建议 1920 × 1080 或 1600 × 900（16:9）；全屏也可，无需固定窗口位置。</p>
+              <p>建议 1920 × 1080 或 1600 × 900（16:9）窗口；也可全屏，位置不限。</p>
             </div>
             <div className="scanner-prepare__guide-item">
               <span className="scanner-prepare__guide-label">扫描</span>
@@ -176,11 +176,8 @@ export function PrepareChecklist({
           </div>
 
           <ol className="scanner-prepare__checks" aria-label="本机准备检查项">
-            {checks.map((check, index) => (
-              <li
-                className={`scanner-prepare__check is-${check.status}${index % 2 ? ' is-right-column' : ''}${index >= 2 ? ' is-lower-row' : ''}`}
-                key={check.id}
-              >
+            {checks.map((check) => (
+              <li className={`scanner-prepare__check is-${check.status}`} key={check.id}>
                 {check.status === 'unchecked' ? null : (
                   <span className="scanner-prepare__check-icon" aria-hidden="true">
                     {check.status === 'ready' ? (

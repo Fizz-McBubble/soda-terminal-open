@@ -396,7 +396,7 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 10px;
-  margin-bottom: 18px;
+  margin-bottom: 24px;
 }
 
 .f5v-shell .scanner-prepare__details-heading h3 {
@@ -411,7 +411,7 @@
 .f5v-shell .scanner-prepare__guide-card {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 20px;
   padding: 0;
   border: 0;
   border-radius: 0;
@@ -421,11 +421,11 @@
 
 .f5v-shell .scanner-prepare__guide-item {
   display: grid;
-  grid-template-columns: 4em minmax(0, 1fr);
+  grid-template-columns: var(--scanner-guide-label-width) minmax(0, 1fr);
   align-items: baseline;
-  gap: 10px;
+  gap: 16px;
   font-size: 0.8rem;
-  line-height: 1.45;
+  line-height: 1.6;
 }
 
 .f5v-shell .scanner-prepare__guide-label {

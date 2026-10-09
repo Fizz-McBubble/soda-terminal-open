@@ -73,7 +73,7 @@ export function createPrepareChecks(snapshot: ScannerAssistantSnapshot): Prepare
       id: 'warehouse-ready',
       label: '启动绝区零',
       status: checkStatus(snapshot, warehouseTaskReady),
-      instruction: '打开“驱动仓库”完整列表，画面要求见扫描指南',
+      instruction: '打开“驱动仓库”完整列表',
       feedback: warehouseTaskResult,
     },
     {

@@ -201,15 +201,60 @@
   width: 100%;
 }
 
-/* The catalog's grid row must reserve the full height of its controls.  A 30px
-   footer cannot contain either the 38px secondary action or the 42px destructive
-   action, which made the action bar paint over the final disc row. */
+/* Reserve the control height so footer actions do not overlap the last disc row. */
 .r6-golden .catalog-foot {
   height: auto;
   min-height: 50px;
   padding-top: 8px;
   align-items: center;
   gap: var(--soda-space-3);
+  flex-wrap: wrap;
+}
+
+.r6-golden .catalog-foot > [role='status'] {
+  flex: 1;
+  min-width: 160px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.r6-golden .catalog-foot__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--soda-space-2);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.r6-golden .catalog-foot--actions-only {
+  justify-content: flex-end;
+}
+
+.r6-golden .catalog-foot .danger {
+  height: 38px;
+  padding-inline: 12px;
+}
+
+@media (max-width: 540px) {
+  .r6-golden .catalog-foot {
+    gap: 8px;
+  }
+
+  .r6-golden .catalog-foot > [role='status'] {
+    flex-basis: 100%;
+    order: -1;
+  }
+
+  .r6-golden .catalog-foot__actions {
+    flex: 1;
+  }
+
+  .r6-golden .catalog-foot :is(.quiet, .danger) {
+    padding-inline: 8px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
 }
 
 .r6-golden .filter-select {
