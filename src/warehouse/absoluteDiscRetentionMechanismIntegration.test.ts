@@ -7,6 +7,7 @@ import { resolveRetentionQualityWeights } from './absoluteDiscRetentionWeights'
 import { absoluteDiscRetentionCatalog } from './absoluteDiscRetentionCatalog'
 import { sourcedFunctionalMains } from './absoluteDiscRetentionFunctions'
 import { analyzeAccountWarehouse } from './discWarehouseAnalysis'
+import { warehouseAnalysisRuleVersion } from './warehousePolicyVersion'
 import type { DriveDisc } from '../domain/schemas'
 
 afterEach(() => vi.restoreAllMocks())
@@ -98,7 +99,7 @@ describe('warehouse quality consumes the adopted game mechanisms', () => {
     const before = JSON.stringify(input)
     const snapshot = analyzeAccountWarehouse(input)
     expect(JSON.stringify(input)).toBe(before)
-    expect(snapshot.ruleVersion).toContain('mechanism-inputs')
+    expect(snapshot.ruleVersion).toBe(warehouseAnalysisRuleVersion)
     expect(snapshot.dataVersion).toBe(
       `${absoluteDiscRetentionCatalog.assessmentGameVersion}-candidate-warehouse`,
     )
