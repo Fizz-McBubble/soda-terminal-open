@@ -81,6 +81,7 @@ export const communityTests = Object.freeze([
   'src/appHealth.test.tsx',
   'src/calculation/calculationContext.bangboo.test.ts',
   'src/warehouse/absoluteDiscRetentionVersionIdentity.test.ts',
+  'src/warehouse/absoluteDiscRetentionMechanismIntegration.test.ts',
   'src/testing/publicCalculationTransport.test.ts',
   'src/application/publicWarehouseActionTransport.test.ts',
   'src/application/publicDataProjection.test.ts',
