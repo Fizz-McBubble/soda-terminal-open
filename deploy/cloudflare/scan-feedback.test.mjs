@@ -3,8 +3,7 @@ import test from 'node:test'
 import contract from '../../src/scanner/scanFeedback.contract.json' with { type: 'json' }
 import { createScanFeedbackReceiver, sanitizeScanFeedbackPayload } from './scan-feedback.mjs'
 
-const origin = 'https://app.sodaterminal.workers.dev'
-const customOrigin = 'https://sodaterminal.com'
+const origin = 'https://sodaterminal.com'
 const releaseId = 'soda-release-20261007'
 
 function createFakeKv({ getDelay = 0, putDelay = 0, failGet = false, failPut = false } = {}) {
@@ -176,6 +175,7 @@ test('disabled, unbound and nonproduction collectors return 404 without reading 
     { SODA_PUBLIC_ORIGIN: `${origin}/` },
     { SODA_PUBLIC_ORIGIN: 'http://127.0.0.1:8787' },
     { SODA_PUBLIC_ORIGIN: 'https://preview.invalid' },
+    { SODA_PUBLIC_ORIGIN: 'https://app.sodaterminal.workers.dev' },
   ]) {
     const { env } = makeEnv(overrides, kv)
     const req = makeRequest()
@@ -183,7 +183,11 @@ test('disabled, unbound and nonproduction collectors return 404 without reading 
     assert.equal(res.status, 404)
     assert.equal(req.bodyUsed, false)
   }
-  for (const host of ['http://127.0.0.1:8787', 'https://preview.invalid']) {
+  for (const host of [
+    'http://127.0.0.1:8787',
+    'https://preview.invalid',
+    'https://app.sodaterminal.workers.dev',
+  ]) {
     const { env } = makeEnv({}, kv)
     const req = new Request(`${host}${contract.endpoint}`, makeRequest())
     const res = await handler(req, env)
@@ -193,11 +197,10 @@ test('disabled, unbound and nonproduction collectors return 404 without reading 
   assert.equal(kv.getPutCount(), 0)
 })
 
-test('both production origins supported with expected headers and durable KV storage', async () => {
-  for (const publicOrigin of [origin, customOrigin]) {
+test('the sole production origin supports expected headers and durable KV storage', async () => {
+  for (const publicOrigin of [origin]) {
     const kv = createFakeKv()
-    // One deployed Worker serves the canonical domain and the retained old entry.
-    const { env } = makeEnv({ SODA_PUBLIC_ORIGIN: customOrigin }, kv)
+    const { env } = makeEnv({ SODA_PUBLIC_ORIGIN: origin }, kv)
     const handler = createScanFeedbackReceiver()
     const report = { ...validReport, reportId: crypto.randomUUID() }
     const req = makeRequest(report, {}, publicOrigin)

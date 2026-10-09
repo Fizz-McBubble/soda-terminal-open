@@ -58,7 +58,7 @@ function reserved(path) {
     return true
   }
 }
-const usageOrigins = new Set(['https://app.sodaterminal.workers.dev', 'https://sodaterminal.com'])
+const usageOrigins = new Set(['https://sodaterminal.com'])
 const usagePageCategories = new Set([
   'home',
   'assets',

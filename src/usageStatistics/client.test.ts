@@ -15,7 +15,7 @@ function setup() {
         values.set(key, value)
       },
     } as Storage,
-    location: { origin: 'https://app.sodaterminal.workers.dev' },
+    location: { origin: 'https://sodaterminal.com' },
     navigator: { onLine: true, doNotTrack: null as string | null, globalPrivacyControl: false },
     performance: { now: () => now },
     setTimeout: window.setTimeout.bind(window),
@@ -36,7 +36,7 @@ function setup() {
 }
 
 describe('Cloudflare anonymous usage boundary', () => {
-  it.each(['https://app.sodaterminal.workers.dev', 'https://sodaterminal.com'])(
+  it.each(['https://sodaterminal.com'])(
     'reports to the same-origin endpoint on the approved entry %s',
     (origin) => {
       const { runtime, create, fetch } = setup()
@@ -48,6 +48,14 @@ describe('Cloudflare anonymous usage boundary', () => {
       expect(fetch.mock.calls[0][0]).toBe('/_soda/usage')
     },
   )
+  it('does not send usage from the retired workers.dev entry', () => {
+    const { runtime, create, fetch } = setup()
+    runtime.location.origin = 'https://app.sodaterminal.workers.dev'
+    const stats = create()
+    expect(stats.configured()).toBe(false)
+    stats.page('/')
+    expect(fetch).not.toHaveBeenCalled()
+  })
   it('classifies parameterized routes without retaining their identities or counting query changes', async () => {
     const { stats, fetch } = setup()
     stats.page('/loadouts/team/formation:private-account-name')

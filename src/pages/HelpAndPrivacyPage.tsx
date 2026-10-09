@@ -68,14 +68,6 @@ export function HelpAndPrivacyPage() {
               在<Link to="/assets/account">我的资产 · 账户</Link>
               导出或恢复备份。清除站点数据、更换浏览器前，请先导出备份并妥善保管；恢复时须选择文件并确认。
             </p>
-            <p>
-              新入口为 <a href="https://sodaterminal.com">sodaterminal.com</a>。
-              浏览器按网址分别保存资料；若此前使用旧入口，请先在
-              <a href="https://app.sodaterminal.workers.dev/assets/account">旧入口的账户页</a>
-              导出备份，再到新入口的
-              <a href="https://sodaterminal.com/assets/account#restore-backup">账户页恢复备份</a>。
-              原资料仍留在旧入口，恢复前请检查备份内容。
-            </p>
             <UsageStatisticsPreference />
           </div>
         </section>

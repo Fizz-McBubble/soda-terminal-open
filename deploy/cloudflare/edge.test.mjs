@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createEdge } from './edge.mjs'
 
-const origin = 'https://app.sodaterminal.workers.dev'
+const origin = 'https://sodaterminal.com'
 const env = {
   SODA_USAGE_STATISTICS: 'enabled',
   SODA_PUBLIC_ORIGIN: origin,
@@ -85,6 +85,7 @@ test('disabled, unbound and nonproduction collectors return 404 without reading 
     { SODA_PUBLIC_ORIGIN: undefined },
     { SODA_PUBLIC_ORIGIN: `${origin}/` },
     { SODA_PUBLIC_ORIGIN: 'https://preview.invalid' },
+    { SODA_PUBLIC_ORIGIN: 'https://app.sodaterminal.workers.dev' },
   ]) {
     const req = request()
     assert.equal((await edge.fetch(req, { ...env, ...overrides })).status, 404)
@@ -94,6 +95,7 @@ test('disabled, unbound and nonproduction collectors return 404 without reading 
     'http://127.0.0.1:8787',
     'https://preview.invalid',
     'http://app.sodaterminal.workers.dev',
+    'https://app.sodaterminal.workers.dev',
     'http://sodaterminal.com',
     'https://sodaterminal.com.evil.invalid',
   ]) {

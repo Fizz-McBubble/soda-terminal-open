@@ -225,13 +225,11 @@ export async function prepare({
   customDomain,
 }) {
   if (!dist || !out) throw new Error('dist_and_out_required')
+  if (origin === 'https://app.sodaterminal.workers.dev') throw new Error('public_origin_retired')
   if (!/^[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$/u.test(name)) throw new Error('worker_name_invalid')
   if (accountId && !/^[a-f0-9]{32}$/u.test(accountId)) throw new Error('account_id_invalid')
   if (typeof usageStatistics !== 'boolean') throw new Error('usage_statistics_flag_invalid')
-  if (
-    usageStatistics &&
-    !['https://app.sodaterminal.workers.dev', 'https://sodaterminal.com'].includes(origin)
-  )
+  if (usageStatistics && origin !== 'https://sodaterminal.com')
     throw new Error('usage_statistics_requires_production_origin')
   if (typeof scanFeedback !== 'boolean') throw new Error('scan_feedback_flag_invalid')
   if (scanFeedback) {

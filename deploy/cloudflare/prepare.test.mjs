@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url'
 import test from 'node:test'
 import { prepare } from './prepare.mjs'
 
-const origin = 'https://app.sodaterminal.workers.dev'
+const origin = 'https://sodaterminal.com'
 async function fixture(root) {
   const dist = join(root, 'dist')
   await mkdir(join(dist, 'assets'), { recursive: true })
@@ -90,7 +90,7 @@ test('default and explicit disabled recovery packages cannot inherit collection 
   }
 })
 
-test('the owned domain is a reproducible custom route with the old workers.dev entry retained', async () => {
+test('the owned domain is the sole public route and workers.dev stays disabled', async () => {
   const root = await mkdtemp(join(tmpdir(), 'soda-owned-domain-'))
   try {
     const dist = await fixture(root)
@@ -104,13 +104,14 @@ test('the owned domain is a reproducible custom route with the old workers.dev e
     })
     const config = JSON.parse(await readFile(join(out, 'wrangler.json'), 'utf8'))
     assert.deepEqual(config.routes, [{ pattern: 'sodaterminal.com', custom_domain: true }])
-    assert.equal(config.workers_dev, true)
+    assert.equal(config.workers_dev, false)
+    assert.equal(config.preview_urls, false)
     assert.equal(config.vars.SODA_PUBLIC_ORIGIN, 'https://sodaterminal.com')
     assert.equal(config.vars.SODA_USAGE_STATISTICS, 'enabled')
     for (const [customDomain, entry] of [
       ['preview.invalid', 'https://preview.invalid'],
       ['*.sodaterminal.com', 'https://sodaterminal.com'],
-      ['sodaterminal.com', origin],
+      ['sodaterminal.com', 'https://other.invalid'],
     ]) {
       await assert.rejects(
         prepare({ dist, out: join(root, 'invalid'), customDomain, origin: entry }),
@@ -126,6 +127,17 @@ test('enabled packaging rejects missing/local/preview origin and nonboolean flag
   const root = await mkdtemp(join(tmpdir(), 'soda-usage-origin-'))
   try {
     const dist = await fixture(root)
+    for (const usageStatistics of [false, true]) {
+      await assert.rejects(
+        prepare({
+          dist,
+          out: join(root, 'retired'),
+          origin: 'https://app.sodaterminal.workers.dev',
+          usageStatistics,
+        }),
+        /public_origin_retired/u,
+      )
+    }
     for (const value of [
       undefined,
       'http://127.0.0.1:8787',
@@ -173,9 +185,9 @@ test('CLI --usage-statistics switch is explicit and value-free', async () => {
   }
 })
 
-test('scan-feedback packaging configures KV binding, copies handler/contract dependencies and supports both origins', async () => {
+test('scan-feedback packaging configures KV binding and copies handler/contract for the sole origin', async () => {
   const validNamespace = '0123456789abcdef0123456789abcdef'
-  for (const allowedOrigin of [origin, 'https://sodaterminal.com']) {
+  for (const allowedOrigin of [origin]) {
     const root = await mkdtemp(join(tmpdir(), 'soda-feedback-package-'))
     try {
       const dist = await fixture(root)

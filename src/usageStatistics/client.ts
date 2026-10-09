@@ -21,10 +21,7 @@ type UsageEvent =
 
 const preferenceKey = 'soda-usage-statistics-v1'
 const preferenceChanged = 'soda-usage-statistics-changed'
-const configuredOrigins = new Set([
-  'https://app.sodaterminal.workers.dev',
-  'https://sodaterminal.com',
-])
+const configuredOrigins = new Set(['https://sodaterminal.com'])
 const maxDuration = 3_600_000
 
 // Never return or transmit a route parameter, query, fragment, title, or account field.

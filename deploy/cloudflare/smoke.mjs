@@ -21,7 +21,7 @@ const env = {
 }
 const temp = await mkdtemp(join(tmpdir(), 'soda-cf-preflight-'))
 const scannerTemplate = resolve(dirname(fileURLToPath(import.meta.url)), '../../public/downloads')
-const scannerOrigin = 'https://app.sodaterminal.workers.dev'
+const scannerOrigin = 'https://sodaterminal.com'
 let seq = 0
 async function fixture() {
   const root = join(temp, `dist-${seq++}`)
@@ -471,7 +471,7 @@ check('Scanner download is materialized and pinned to its HTTPS origin', async (
   await assert.rejects(prepare({ dist: root, out }), /scanner_public_origin_required/)
   const report = await prepare({ dist: root, out, origin: scannerOrigin })
   const command = await readFile(join(out, 'web/downloads/Soda-Scanner-Bootstrap.cmd'), 'utf8')
-  assert.match(command, /set "ORIGIN=https:\/\/app\.sodaterminal\.workers\.dev"/u)
+  assert.match(command, /set "ORIGIN=https:\/\/sodaterminal\.com"/u)
   assert.match(command, /if not "%ORIGIN:~0,8%"=="https:\/\/"/u)
   assert.doesNotMatch(command, /__SODA_[A-Z0-9_]+__/u)
   assert.equal(
