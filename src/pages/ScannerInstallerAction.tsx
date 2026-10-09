@@ -4,7 +4,8 @@ import {
   scannerDistributionManifest,
   type ScannerDistributionSnapshot,
 } from '../scanner/distribution'
-import { downloadScannerInstaller, scannerInstallerFileName } from '../scanner/installerDownload'
+import { downloadScannerInstaller } from '../scanner/installerDownload'
+import { readInstallerRelease, type InstallerRelease } from '../scanner/installerRelease'
 import './scanner-installer-action.css'
 
 type DownloadState = 'idle' | 'downloading' | 'saving' | 'save_requested' | 'error' | 'cancelled'
@@ -22,6 +23,7 @@ export function ScannerInstallerAction({
   const [bytes, setBytes] = useState(0)
   const [timedOut, setTimedOut] = useState(false)
   const [connectionNotice, setConnectionNotice] = useState('')
+  const [release, setRelease] = useState<InstallerRelease | null>(null)
   const downloadButton = useRef<HTMLButtonElement | null>(null)
   const cancelButton = useRef<HTMLButtonElement | null>(null)
   const restoreDownloadFocus = useRef(false)
@@ -42,10 +44,9 @@ export function ScannerInstallerAction({
   }, [])
   const pending = state === 'downloading' || state === 'saving'
   const complete = state === 'save_requested'
-  const expectedSize = scannerDistributionManifest.helper.size
-  const installerVersion = scannerDistributionManifest.helper.installerVersion
-  const fileName = scannerInstallerFileName(installerVersion)
-  const versionDescription = `安装包 v${installerVersion}（助手 v${scannerDistributionManifest.helper.version}）`
+  const expectedSize = release?.size ?? scannerDistributionManifest.helper.size
+  const installerVersion = release?.version ?? scannerDistributionManifest.helper.installerVersion
+  const versionDescription = `安装包 v${installerVersion}（助手 v${release?.helperVersion ?? scannerDistributionManifest.helper.version}）`
   const percent = Math.min(100, Math.floor((bytes / expectedSize) * 100))
   const progressText = state === 'saving' ? '正在准备文件' : `下载中 ${percent}%`
   useEffect(() => {
@@ -116,6 +117,10 @@ export function ScannerInstallerAction({
     request.current = controller
     completedDownload.current = false
     const current = () => mounted.current && request.current === controller
+    const deadline = setTimeout(
+      () => controller.abort(new DOMException('download_timeout', 'TimeoutError')),
+      10 * 60 * 1000,
+    )
     setState('downloading')
     setBytes(0)
     setTimedOut(false)
@@ -123,10 +128,14 @@ export function ScannerInstallerAction({
     leftAfterDownload.current = false
     autoConnectAttempted.current = false
     try {
+      const latestRelease = await readInstallerRelease(controller.signal)
+      if (!current()) return
+      setRelease(latestRelease)
       const result = await downloadScannerInstaller({
-        url: scannerDistributionManifest.helper.downloadUrl,
-        fileName,
-        expectedSize,
+        url: latestRelease.downloadUrl,
+        fileName: latestRelease.fileName,
+        expectedSize: latestRelease.size,
+        expectedSha256: latestRelease.sha256,
         signal: controller.signal,
         onProgress: (received) => {
           if (current()) setBytes(received)
@@ -142,12 +151,16 @@ export function ScannerInstallerAction({
       }
     } catch (error) {
       if (!current()) return
+      const timeout = error instanceof DOMException && error.name === 'TimeoutError'
       const cancelled =
-        controller.signal.aborted || (error instanceof DOMException && error.name === 'AbortError')
+        !timeout &&
+        (controller.signal.aborted ||
+          (error instanceof DOMException && error.name === 'AbortError'))
       restoreDownloadFocus.current = document.activeElement === cancelButton.current
-      setTimedOut(error instanceof DOMException && error.name === 'TimeoutError')
+      setTimedOut(timeout)
       setState(cancelled ? 'cancelled' : 'error')
     } finally {
+      clearTimeout(deadline)
       if (request.current === controller) request.current = null
     }
   }
@@ -226,15 +239,6 @@ export function ScannerInstallerAction({
       {message ? (
         <div className="scanner-installer__feedback" role="status">
           <span className="scanner-installer__notice">{message}</span>
-          {state === 'error' || state === 'cancelled' ? (
-            <a
-              className="scanner-installer__fallback"
-              href={scannerDistributionManifest.helper.downloadUrl}
-              download={fileName}
-            >
-              直接下载
-            </a>
-          ) : null}
         </div>
       ) : null}
     </div>

@@ -40,6 +40,8 @@ export function readableField(field: string) {
   if (stat && stat !== field) return stat
   const main = /^mainStats\.(\d+)\.([a-z0-9_]+)$/.exec(field)
   if (main) return `${main[1]} 号位·${getPublicStatLabel(main[2]) ?? '主词条'}`
+  const investmentCapacity = /^investment\.capacity\.(\d+)\./.exec(field)
+  if (investmentCapacity) return `${investmentCapacity[1]} 号位投入门槛`
   if (field.startsWith('twoPiece.requires.')) return '两件套使用前提'
   if (field.startsWith('twoPiece.')) return '两件套用途'
   if (field.startsWith('fourPiece.')) return '四件套条件'
@@ -123,13 +125,16 @@ export function playerRetentionCopy(
   const uncalibrated = evidence.blockedBy?.some(
     (blocker) => blocker.kind === 'policy' && blocker.field === 'calibration',
   )
+  const investmentPending = evidence.blockedBy?.some(
+    (blocker) => blocker.kind === 'policy' && blocker.field.startsWith('investment.capacity.'),
+  )
   const trial = action?.kind === 'try_upgrade' && discLevel < 15 && action.targetLevel !== null
   const titles = {
     keep: '保留',
     try_upgrade: trial ? `先强化到 +${action!.targetLevel}` : '已满级，核对结果',
     review_quality: discLevel >= 15 ? '暂留，结合配装比较' : '暂留，先别急着强化',
     check_condition: '先确认使用条件',
-    complete_data: '暂留，等待资料确认',
+    complete_data: investmentPending ? '暂留，投入门槛待校准' : '暂留，等待资料确认',
     manual_cleanup: reason === 'approved_rarity_cleanup' ? '可清理' : '复核后可清理',
   }
   const explanations: Record<RetentionReasonKind, string> = {
@@ -158,11 +163,13 @@ export function playerRetentionCopy(
     title: `下一步：${reason === 'invalid_record' ? '核对词条记录' : action ? titles[action.kind] : '暂留，核对盘记录'}`,
     explanation: protectedKeep
       ? readableDetail(action!.detail)
-      : uncalibrated
-        ? '这一类盘的清理标准尚未校准，目前只作观察，不建议清理。'
-        : reason
-          ? explanations[reason]
-          : '暂时无法确认适合的用途，先保留现状。',
+      : investmentPending
+        ? '该用途的投入门槛需单独校准，暂不建议强化或清理。'
+        : uncalibrated
+          ? '这一类盘的清理标准尚未校准，目前只作观察，不建议清理。'
+          : reason
+            ? explanations[reason]
+            : '暂时无法确认适合的用途，先保留现状。',
     stop,
   }
 }

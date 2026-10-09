@@ -246,7 +246,7 @@ describe('absolute retention evidence', () => {
     expect(screen.getByText(/这一类盘的清理标准尚未校准/)).toBeVisible()
   })
 
-  it('names every blocker even when the affected profile is outside the first three score rows', () => {
+  it('preserves expandable alternative blockers outside the first three score rows', async () => {
     render(
       <WarehouseRetentionEvidence
         discLevel={6}
@@ -273,6 +273,8 @@ describe('absolute retention evidence', () => {
         })}
       />,
     )
+    expect(screen.getByText(/需要核对四件套队伍条件/)).not.toBeVisible()
+    await userEvent.click(screen.getByText('其他用途待确认事项'))
     expect(screen.getByText(/需要核对四件套队伍条件/)).toBeVisible()
     expect(screen.queryByText(/查看来源/)).not.toBeInTheDocument()
     expect(screen.getAllByText('3 次')).toHaveLength(1)

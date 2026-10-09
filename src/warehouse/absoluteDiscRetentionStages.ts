@@ -207,19 +207,55 @@ export function enrichRetentionEvidence(input: {
     Object.keys(profile.weights).length === 0 &&
     !profile.coreStats?.length &&
     functionalState === 'none'
+  const policyBlockers: RetentionBlocker[] = []
+  if (
+    applicable &&
+    configured &&
+    input.remainingNodes > 0 &&
+    functionalState !== 'needs_level' &&
+    functionalState !== 'ready' &&
+    !noSubstatInvestmentGoal
+  ) {
+    const legalMeaningful = Object.entries(native.steps)
+      .filter(
+        ([stat, step]) =>
+          stat !== disc.mainStat &&
+          Number.isFinite(step) &&
+          step > 0 &&
+          (profile.weights[stat] ?? 0) >= investment!.meaningfulWeightFrom,
+      )
+      .map(([stat]) => stat)
+    const meaningfulCapacity = Math.min(rules.maxSubStats, legalMeaningful.length)
+    const coreCapacity = Math.min(
+      rules.maxSubStats,
+      legalMeaningful.filter((stat) => profile.coreStats?.includes(stat)).length,
+    )
+    if (meaningfulCapacity < minimumLines! || coreCapacity < investment!.minimumCoreLines)
+      policyBlockers.push({
+        kind: 'policy',
+        profileId: profile.id,
+        agentId: profile.agentId,
+        field: `investment.capacity.${disc.slot}.${disc.mainStat}`,
+        predicateId: `${investment!.id}:${profile.id}:${disc.slot}:${disc.mainStat}:capacity`,
+        detail: `该目标合法有效副词最多 ${meaningfulCapacity} 条、核心最多 ${coreCapacity} 条，投入要求 ${minimumLines} 条有效副词和 ${investment!.minimumCoreLines} 条核心；该号位的投入门槛需单独校准。`,
+        sourceIds: [...new Set([...profile.sourceIds, ...rules.sourceIds])],
+      })
+  }
   const qualified = !input.remainingNodes
     ? false
     : functionalState === 'needs_level'
       ? true
       : noSubstatInvestmentGoal
         ? false
-        : configured && progressFloor !== null
-          ? meaningfulStats.length >= minimumLines! &&
-            coreStats.length >= investment!.minimumCoreLines &&
-            input.currentScore + 1e-8 >= progressFloor &&
-            potentialTarget !== null &&
-            input.possibleUpper + 1e-8 >= potentialTarget
-          : null
+        : policyBlockers.length
+          ? null
+          : configured && progressFloor !== null
+            ? meaningfulStats.length >= minimumLines! &&
+              coreStats.length >= investment!.minimumCoreLines &&
+              input.currentScore + 1e-8 >= progressFloor &&
+              potentialTarget !== null &&
+              input.possibleUpper + 1e-8 >= potentialTarget
+            : null
   return {
     functionalState,
     functionDetail,
@@ -244,6 +280,7 @@ export function enrichRetentionEvidence(input: {
         : null,
       progressFloor,
       potentialTarget,
+      policyBlockers,
     },
   }
 }

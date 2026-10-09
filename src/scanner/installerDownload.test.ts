@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
+import { webcrypto } from 'node:crypto'
 import { downloadScannerInstaller, scannerInstallerFileName } from './installerDownload'
 const executable = new Uint8Array([0x4d, 0x5a, 1, 2, 3, 4, 5, 6])
 const createObjectURL = vi.fn().mockReturnValue('blob:installer')
@@ -8,12 +9,14 @@ function options(signal = new AbortController().signal) {
     url: '/downloads/Soda-Scanner-Setup.exe',
     fileName: scannerInstallerFileName('1.0.6'),
     expectedSize: 8,
+    expectedSha256: '9f36b7c45ed5f988cdccc31daef10be8d5b0d55fdfc6181df5eff666a9c4f2db',
     signal,
     onProgress: vi.fn(),
     onSaving: vi.fn(),
   }
 }
 beforeEach(() => {
+  vi.stubGlobal('crypto', webcrypto)
   createObjectURL.mockClear()
   revokeObjectURL.mockClear()
   vi.stubGlobal(
@@ -69,6 +72,38 @@ it.each([
 it('does not treat an HTTP failure as a download', async () => {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(executable, { status: 503 })))
   await expect(downloadScannerInstaller(options())).rejects.toThrow('download_failed')
+  expect(createObjectURL).not.toHaveBeenCalled()
+})
+it('rejects tampered bytes with the same size and MZ header before creating a save URL', async () => {
+  const tampered = new Uint8Array(executable)
+  tampered[tampered.length - 1] ^= 1
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(tampered)))
+  await expect(downloadScannerInstaller(options())).rejects.toThrow('invalid_download_sha256')
+  expect(createObjectURL).not.toHaveBeenCalled()
+  expect(HTMLAnchorElement.prototype.click).not.toHaveBeenCalled()
+})
+it('cancels promptly during a non-settling full-file hash without requesting save', async () => {
+  vi.stubGlobal('crypto', { subtle: { digest: vi.fn().mockReturnValue(new Promise(() => {})) } })
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(executable)))
+  const controller = new AbortController()
+  const input = options(controller.signal)
+  const pending = downloadScannerInstaller(input)
+  const rejected = expect(pending).rejects.toMatchObject({ name: 'AbortError' })
+  await vi.waitFor(() => expect(crypto.subtle.digest).toHaveBeenCalledOnce())
+  controller.abort()
+  await rejected
+  expect(createObjectURL).not.toHaveBeenCalled()
+})
+it('also applies the ten-minute deadline while SHA-256 is pending', async () => {
+  vi.useFakeTimers()
+  vi.stubGlobal('crypto', { subtle: { digest: vi.fn().mockReturnValue(new Promise(() => {})) } })
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(executable)))
+  const pending = downloadScannerInstaller(options())
+  const rejected = expect(pending).rejects.toMatchObject({ name: 'TimeoutError' })
+  await vi.advanceTimersByTimeAsync(0)
+  expect(crypto.subtle.digest).toHaveBeenCalledOnce()
+  await vi.advanceTimersByTimeAsync(10 * 60 * 1000)
+  await rejected
   expect(createObjectURL).not.toHaveBeenCalled()
 })
 it('releases a partial stream on a network failure without requesting save', async () => {

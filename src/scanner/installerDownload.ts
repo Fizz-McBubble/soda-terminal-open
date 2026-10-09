@@ -5,7 +5,7 @@ export function scannerInstallerFileName(version: string): string {
   return `Soda-Scanner-Setup-${version}.exe`
 }
 
-function waitForAbortable<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
+export function waitForAbortable<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const aborted = () => {
       signal.removeEventListener('abort', aborted)
@@ -26,11 +26,12 @@ function waitForAbortable<T>(promise: Promise<T>, signal: AbortSignal): Promise<
   })
 }
 
-/** Fetch bytes directly; the release size bounds the buffer before browser saving. */
+/** Bound bytes by the release size and verify their full identity before browser saving. */
 export async function downloadScannerInstaller({
   url,
   fileName,
   expectedSize,
+  expectedSha256,
   signal,
   onProgress,
   onSaving,
@@ -38,12 +39,14 @@ export async function downloadScannerInstaller({
   url: string
   fileName: string
   expectedSize: number
+  expectedSha256: string
   signal: AbortSignal
   onProgress: (bytes: number) => void
   onSaving: () => void
 }): Promise<InstallerDownloadResult> {
   if (!Number.isSafeInteger(expectedSize) || expectedSize < 2)
     throw new Error('invalid_download_size')
+  if (!/^[a-f0-9]{64}$/u.test(expectedSha256)) throw new Error('invalid_download_sha256')
   const controller = new AbortController()
   let reader: ReadableStreamDefaultReader<Uint8Array> | undefined
   const chunks: Uint8Array<ArrayBuffer>[] = []
@@ -61,7 +64,13 @@ export async function downloadScannerInstaller({
   try {
     if (signal.aborted) cancel()
     controller.signal.throwIfAborted()
-    const responsePromise = fetch(url, { credentials: 'omit', signal: controller.signal })
+    const responsePromise = fetch(url, {
+      credentials: 'omit',
+      cache: 'no-store',
+      mode: 'same-origin',
+      redirect: 'error',
+      signal: controller.signal,
+    })
     // Fetch honors abort in ordinary browsers. Consume a late response too if a
     // host failed to reject the fetch, without waiting for it to release the UI.
     void responsePromise.then(
@@ -72,7 +81,7 @@ export async function downloadScannerInstaller({
     )
     const response = await waitForAbortable(responsePromise, controller.signal)
     controller.signal.throwIfAborted()
-    if (!response.ok || !response.body) throw new Error('download_failed')
+    if (!response.ok || !response.body || response.redirected) throw new Error('download_failed')
     reader = response.body.getReader()
     const signature: number[] = []
     let bytes = 0
@@ -95,6 +104,14 @@ export async function downloadScannerInstaller({
     controller.signal.throwIfAborted()
     const blob = new Blob(chunks, { type: 'application/octet-stream' })
     chunks.length = 0
+    const buffer = await waitForAbortable(blob.arrayBuffer(), controller.signal)
+    controller.signal.throwIfAborted()
+    const hash = await waitForAbortable(crypto.subtle.digest('SHA-256', buffer), controller.signal)
+    controller.signal.throwIfAborted()
+    const sha256 = Array.from(new Uint8Array(hash), (byte) =>
+      byte.toString(16).padStart(2, '0'),
+    ).join('')
+    if (sha256 !== expectedSha256) throw new Error('invalid_download_sha256')
     const objectUrl = URL.createObjectURL(blob)
     try {
       const anchor = document.createElement('a')

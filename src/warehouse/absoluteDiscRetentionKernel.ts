@@ -18,6 +18,7 @@ import {
   twoPieceApplicability,
 } from './absoluteDiscRetentionScoring'
 import { approvedRarityRetention } from './approvedRarityRetention'
+import { selectRetentionWitnesses } from './absoluteDiscRetentionSelection'
 export type * from './absoluteDiscRetentionContract'
 export { twoPieceApplicability } from './absoluteDiscRetentionScoring'
 const EPS = 1e-8
@@ -205,38 +206,15 @@ export function assessDisc(
     ])
     const materialGaps = [...gaps, ...missing.flatMap((row) => row.blockers)]
     sourceCoverage = materialGaps.length ? 'partial' : 'complete'
-    const winner = usable.find(
-      (row) => row.cutoffs && row.currentScore + EPS >= row.cutoffs.keepFrom,
-    )
-    const readyFunction = usable.find(
-      (row) => row.functionalState === 'ready' && row.useState === 'valid',
-    )
-    const growingFunction = usable.find(
-      (row) =>
-        row.functionalState === 'needs_level' &&
-        row.useState === 'valid' &&
-        row.investment.remainingNodes > 0 &&
-        row.investment.qualified === true,
-    )
-    const borderline = usable.find(
-      (row) => row.cutoffs && row.currentScore + EPS >= row.cutoffs.cleanupBelow,
-    )
-    const trial = usable.find(
-      (row) =>
-        row.cutoffs &&
-        row.investment.remainingNodes > 0 &&
-        row.possibleFinalScore.upper + EPS >= row.cutoffs.cleanupBelow &&
-        (row.investment.qualified === true ||
-          (!policy.investment && row.investment.qualified === null)),
-    )
     const calibrated =
       policy.calibration === 'approved' &&
       (!policy.calibratedRarities || policy.calibratedRarities.includes(disc.rarity))
-    const strictLow =
-      usable.length > 0 &&
-      usable.every(
-        (row) => row.cutoffs && row.possibleFinalScore.upper + EPS < row.cutoffs.cleanupBelow,
-      )
+    const { winner, readyFunction, growingFunction, borderline, trial, investmentGaps, strictLow } =
+      selectRetentionWitnesses(usable, policy, {
+        materialComplete: !materialGaps.length,
+        functionalContextComplete: !functionalBlockers.length,
+        cleanupCalibrated: calibrated,
+      })
     if (winner) {
       disposition = 'keep'
       witnesses = [winner]
@@ -351,6 +329,16 @@ export function assessDisc(
           : `仅建议试到 +${trial.investment.nextLevel}，记录结果后重新分析。`,
         '若用途前提、核心结构或已获得品质未达到该阶段门槛，停止继续投入；不是一路强化到满级。',
         trial.useState === 'conditional' ? null : trial.investment.nextLevel,
+      )
+    } else if (investmentGaps.length) {
+      reasonKind = 'missing_fact'
+      reasons = ['investment_policy_capacity_not_calibrated']
+      witnesses = investmentGaps
+      blockedBy = investmentGaps.flatMap((row) => row.investment.policyBlockers ?? [])
+      nextAction = action(
+        'complete_data',
+        '该目标的合法副词容量无法满足当前投入门槛；补齐具名投入校准后重新分析。',
+        '校准未闭合时暂停投入和清理，不自动放宽原有门槛。',
       )
     } else if (borderline) {
       disposition = 'observe'

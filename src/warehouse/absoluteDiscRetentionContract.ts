@@ -225,6 +225,8 @@ export interface QualityEvidence {
     readonly nextLevel: number | null
     readonly progressFloor: number | null
     readonly potentialTarget: number | null
+    /** An unsatisfiable stage policy cannot reject a use or erase sufficient quality/function. */
+    readonly policyBlockers?: readonly RetentionBlocker[]
   }
   readonly cutoffs: Cutoffs | null
   readonly contributors: readonly {

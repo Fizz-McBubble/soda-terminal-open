@@ -19,19 +19,26 @@ export function WarehouseRetentionEvidence({
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const copy = playerRetentionCopy(evidence, discLevel)
   const owned = new Set(evidence.ownedUseAgentIds)
-  const uses = [...new Map(evidence.leadingUses.map((use) => [use.agentId, use])).values()]
-    .sort((a, b) => Number(owned.has(b.agentId)) - Number(owned.has(a.agentId)))
+  const witnesses = new Set(evidence.witnessProfileIds ?? [])
+  const uses = [...evidence.leadingUses]
+    .sort(
+      (a, b) =>
+        Number(witnesses.has(b.profileId)) - Number(witnesses.has(a.profileId)) ||
+        Number(owned.has(b.agentId)) - Number(owned.has(a.agentId)),
+    )
+    .filter((use, index, rows) => rows.findIndex((row) => row.agentId === use.agentId) === index)
     .slice(0, 3)
   const selected = uses.find((use) => use.profileId === selectedId) ?? uses[0]
-  const blockers = [
+  const blockers = [...(evidence.blockedBy ?? [])]
+  const blockerKey = (blocker: (typeof blockers)[number]) =>
+    `${blocker.profileId ?? ''}|${blocker.field}|${blocker.predicateId}`
+  const decisionBlockers = new Set(blockers.map(blockerKey))
+  const alternativeBlockers = [
     ...new Map(
-      [
-        ...(evidence.blockedBy ?? []),
-        ...evidence.leadingUses.flatMap((use) => use.blockers ?? []),
-      ].map((blocker) => [
-        `${blocker.profileId ?? ''}|${blocker.field}|${blocker.predicateId}`,
-        blocker,
-      ]),
+      evidence.leadingUses
+        .flatMap((use) => use.blockers ?? [])
+        .filter((blocker) => !decisionBlockers.has(blockerKey(blocker)))
+        .map((blocker) => [blockerKey(blocker), blocker]),
     ).values(),
   ]
   return (
@@ -65,6 +72,13 @@ export function WarehouseRetentionEvidence({
       {selected ? <WarehouseRetentionUse use={selected} disc={disc} discLevel={discLevel} /> : null}
       <RetentionScoreDetails evidence={evidence} use={selected} />
       <RetentionSourceDetails evidence={evidence} blockers={blockers} use={selected} />
+      {alternativeBlockers.length ? (
+        <details className="warehouse-retention__details">
+          <summary>其他用途待确认事项</summary>
+          <p>这些条件只影响相应用途，不改变上方建议。</p>
+          <RetentionSourceDetails evidence={evidence} blockers={alternativeBlockers} />
+        </details>
+      ) : null}
     </section>
   )
 }

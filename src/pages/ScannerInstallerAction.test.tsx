@@ -1,18 +1,31 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
+import { webcrypto } from 'node:crypto'
+import installerManifest from '../../public/downloads/scanner-installer-release.v1.json'
+import { installerReleaseUrl } from '../scanner/installerRelease'
 import { ScannerInstallerAction } from './ScannerInstallerAction'
 import { initialDistributionSnapshot, scannerDistributionManifest } from '../scanner/distribution'
 const executableFixture = new Uint8Array([0x4d, 0x5a, 1, 2, 3, 4, 5, 6])
-vi.mock('../scanner/distribution', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../scanner/distribution')>()
-  return {
-    ...actual,
-    scannerDistributionManifest: {
-      ...actual.scannerDistributionManifest,
-      helper: { ...actual.scannerDistributionManifest.helper, size: 8 },
-    },
-  }
-})
+const freshRelease = {
+  ...installerManifest,
+  version: '1.0.9',
+  helperVersion: '2.3.11',
+  releaseTag: 'scanner-installer-v1.0.9',
+  assetUrl:
+    'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-installer-v1.0.9/Soda-Scanner-Setup.exe',
+  size: 8,
+  sha256: '9f36b7c45ed5f988cdccc31daef10be8d5b0d55fdfc6181df5eff666a9c4f2db',
+}
+function setDownloadFetcher(fetcher: typeof fetch) {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn((url: RequestInfo | URL, init?: RequestInit) =>
+      url === installerReleaseUrl
+        ? Promise.resolve(Response.json(freshRelease))
+        : fetcher(url, init),
+    ),
+  )
+}
 const createObjectURL = vi.fn().mockReturnValue('blob:installer')
 function streamedDownload() {
   let streamController!: ReadableStreamDefaultController<Uint8Array>
@@ -24,10 +37,11 @@ function streamedDownload() {
     cancel,
   })
   const fetcher = vi.fn().mockResolvedValue(new Response(body))
-  vi.stubGlobal('fetch', fetcher)
+  setDownloadFetcher(fetcher)
   return { streamController, cancel, fetcher, body }
 }
 beforeEach(() => {
+  vi.stubGlobal('crypto', webcrypto)
   createObjectURL.mockClear()
   vi.stubGlobal(
     'URL',
@@ -93,7 +107,19 @@ it('starts fetching in the click task without calling an exposed non-settling sa
     .replace(/^v/, '')
   expect(displayedVersion).toBe(scannerDistributionManifest.helper.installerVersion)
   fireEvent.click(downloadButton)
-  expect(fetcher).toHaveBeenCalledOnce()
+  expect(fetch).toHaveBeenCalledOnce()
+  await waitFor(() => expect(fetcher).toHaveBeenCalledOnce())
+  expect(downloadButton).toHaveAttribute('title', '安装包 v1.0.9（助手 v2.3.11）')
+  expect(fetch).toHaveBeenNthCalledWith(
+    1,
+    installerReleaseUrl,
+    expect.objectContaining({
+      credentials: 'omit',
+      cache: 'no-store',
+      mode: 'same-origin',
+      redirect: 'error',
+    }),
+  )
   expect(picker).not.toHaveBeenCalled()
   fireEvent.click(screen.getByRole('button', { name: /下载中/ }))
   expect(fetcher).toHaveBeenCalledOnce()
@@ -103,9 +129,80 @@ it('starts fetching in the click task without calling an exposed non-settling sa
   })
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('在下载列表打开安装包'))
   expect(createObjectURL.mock.calls[0][0].size).toBe(8)
+  expect(screen.getByText('v1.0.9')).toBeVisible()
   expect(
     (vi.mocked(HTMLAnchorElement.prototype.click).mock.instances[0] as HTMLAnchorElement).download,
-  ).toBe(`Soda-Scanner-Setup-${displayedVersion}.exe`)
+  ).toBe(`Soda-Scanner-Setup-${freshRelease.version}.exe`)
+})
+it('rejects a bad refreshed release without fetching or saving installer bytes', async () => {
+  const fetcher = vi.fn().mockResolvedValue(Response.json({ ...freshRelease, sha256: 'invalid' }))
+  vi.stubGlobal('fetch', fetcher)
+  render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
+  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('下载未完成'))
+  expect(fetcher).toHaveBeenCalledOnce()
+  expect(fetcher.mock.calls[0][0]).toBe(installerReleaseUrl)
+  expect(createObjectURL).not.toHaveBeenCalled()
+  expect(screen.queryByRole('link')).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: '下载扫描助手' })).toBeEnabled()
+})
+it('rejects an alias that changed between the release refresh and byte download without retrying', async () => {
+  const tampered = new Uint8Array(executableFixture)
+  tampered[7] ^= 1
+  const fetcher = vi.fn().mockResolvedValue(new Response(tampered))
+  setDownloadFetcher(fetcher)
+  render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
+  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('下载未完成'))
+  expect(fetcher).toHaveBeenCalledOnce()
+  expect(createObjectURL).not.toHaveBeenCalled()
+  expect(screen.getByText('v1.0.9')).toBeVisible()
+})
+it('includes the manifest refresh in the ten-minute total deadline', async () => {
+  vi.useFakeTimers()
+  let finish!: (response: Response) => void
+  const fetcher = vi
+    .fn()
+    .mockReturnValueOnce(
+      new Promise<Response>((resolve) => {
+        finish = resolve
+      }),
+    )
+    .mockReturnValue(new Promise(() => {}))
+  vi.stubGlobal('fetch', fetcher)
+  render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
+  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(9 * 60 * 1000)
+  })
+  await act(async () => {
+    finish(Response.json(freshRelease))
+  })
+  expect(fetcher).toHaveBeenCalledTimes(2)
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(60 * 1000)
+  })
+  expect(screen.getByRole('status')).toHaveTextContent('下载超时')
+  expect(fetcher.mock.calls[1][1].signal.aborted).toBe(true)
+  expect(createObjectURL).not.toHaveBeenCalled()
+})
+it('cancels an unmounted manifest refresh and ignores its late release', async () => {
+  let finish!: (response: Response) => void
+  const fetcher = vi.fn().mockReturnValue(
+    new Promise<Response>((resolve) => {
+      finish = resolve
+    }),
+  )
+  vi.stubGlobal('fetch', fetcher)
+  const { unmount } = render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
+  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  unmount()
+  expect(fetcher.mock.calls[0][1].signal.aborted).toBe(true)
+  await act(async () => {
+    finish(Response.json(freshRelease))
+  })
+  expect(fetcher).toHaveBeenCalledOnce()
+  expect(createObjectURL).not.toHaveBeenCalled()
 })
 it('shows streamed bytes before EOF and requests browser save only after all bytes arrive', async () => {
   const { streamController } = streamedDownload()
@@ -132,20 +229,13 @@ it.each([
   ['invalid', new Uint8Array([60, 104, 116, 109, 108])],
   ['truncated', executableFixture.subarray(0, 7)],
   ['oversized', new Uint8Array([...executableFixture, 9])],
-])('rejects a %s installer and offers explicit native recovery', async (_, bytes) => {
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(bytes)))
+])('rejects a %s installer and permits only a verified retry', async (_, bytes) => {
+  setDownloadFetcher(vi.fn().mockResolvedValue(new Response(bytes)))
   render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
   fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('下载未完成'))
   expect(createObjectURL).not.toHaveBeenCalled()
-  expect(screen.getByRole('link', { name: '直接下载' })).toHaveAttribute(
-    'href',
-    scannerDistributionManifest.helper.downloadUrl,
-  )
-  expect(screen.getByRole('link', { name: '直接下载' })).toHaveAttribute(
-    'download',
-    `Soda-Scanner-Setup-${scannerDistributionManifest.helper.installerVersion}.exe`,
-  )
+  expect(screen.queryByRole('link', { name: '直接下载' })).not.toBeInTheDocument()
   expect(screen.getByRole('button', { name: '下载扫描助手' })).toBeEnabled()
 })
 it('cancels a partial stream and permits a fresh download', async () => {
@@ -174,13 +264,14 @@ it('ends a non-settling host fetch immediately on cancellation and ignores a lat
       finishFetch = resolve
     }),
   )
-  vi.stubGlobal('fetch', fetcher)
+  setDownloadFetcher(fetcher)
   render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
   fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  await waitFor(() => expect(fetcher).toHaveBeenCalledOnce())
   fireEvent.click(screen.getByRole('button', { name: '取消下载' }))
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('下载已取消'))
   expect(screen.queryByRole('button', { name: '取消下载' })).not.toBeInTheDocument()
-  expect(screen.getByRole('link', { name: '直接下载' })).toBeVisible()
+  expect(screen.queryByRole('link', { name: '直接下载' })).not.toBeInTheDocument()
   fetcher.mockResolvedValue(new Response(executableFixture))
   fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('在下载列表打开安装包'))
@@ -190,10 +281,10 @@ it('ends a non-settling host fetch immediately on cancellation and ignores a lat
   expect(createObjectURL).toHaveBeenCalledOnce()
   expect(screen.getByRole('status')).toHaveTextContent('在下载列表打开安装包')
 })
-it('ends a stalled fetch at ten minutes and offers direct download', async () => {
+it('ends a stalled fetch at ten minutes and permits a verified retry', async () => {
   vi.useFakeTimers()
   const fetcher = vi.fn().mockReturnValue(new Promise(() => {}))
-  vi.stubGlobal('fetch', fetcher)
+  setDownloadFetcher(fetcher)
   render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
   fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
   await act(async () => {
@@ -201,7 +292,7 @@ it('ends a stalled fetch at ten minutes and offers direct download', async () =>
   })
   expect(screen.getByRole('status')).toHaveTextContent('下载超时')
   expect(screen.getByRole('button', { name: '下载扫描助手' })).toBeEnabled()
-  expect(screen.getByRole('link', { name: '直接下载' })).toBeVisible()
+  expect(screen.queryByRole('link', { name: '直接下载' })).not.toBeInTheDocument()
   expect(fetcher.mock.calls[0][1].signal.aborted).toBe(true)
   expect(createObjectURL).not.toHaveBeenCalled()
 })
@@ -223,7 +314,7 @@ it('aborts the stream and releases the reader on unmount', async () => {
 })
 it('leaves manual connection to the existing parent action after requesting save', async () => {
   const onConnect = vi.fn().mockResolvedValue(undefined)
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(executableFixture)))
+  setDownloadFetcher(vi.fn().mockResolvedValue(new Response(executableFixture)))
   render(
     <ScannerInstallerAction distribution={initialDistributionSnapshot} onConnect={onConnect} />,
   )
@@ -271,7 +362,7 @@ it('ignores premature focus and connects once after leaving the completed downlo
   expect(onConnect).toHaveBeenCalledOnce()
 })
 it('handles rejected automatic connection without repeating attempts on focus', async () => {
-  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(executableFixture)))
+  setDownloadFetcher(vi.fn().mockResolvedValue(new Response(executableFixture)))
   const onConnect = vi.fn().mockRejectedValue(new Error('helper_not_ready'))
   render(
     <ScannerInstallerAction distribution={initialDistributionSnapshot} onConnect={onConnect} />,
@@ -311,7 +402,7 @@ it('keeps a pending download cancellable when the runtime becomes ready', async 
 })
 it('connects once after a visible return and resets eligibility for a new download', async () => {
   const fetcher = vi.fn().mockImplementation(async () => new Response(executableFixture))
-  vi.stubGlobal('fetch', fetcher)
+  setDownloadFetcher(fetcher)
   const onConnect = vi.fn().mockResolvedValue(undefined)
   render(
     <ScannerInstallerAction distribution={initialDistributionSnapshot} onConnect={onConnect} />,
