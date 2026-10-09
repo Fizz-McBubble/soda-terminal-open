@@ -266,6 +266,36 @@ function HydratedScannerAssistantPage({
     !inlineImportOpen &&
     !restartingAfterCompletedResult &&
     !preparingNewScan
+  const showPreparation =
+    !showImportComplete &&
+    !inlineImportOpen &&
+    ([
+      'unchecked',
+      'connecting',
+      'checking',
+      'awaiting_elevation',
+      'connection_failed',
+      'ready',
+    ].includes(snapshot.state) ||
+      restartingAfterCompletedResult ||
+      preparingNewScan)
+  const fallbackJson =
+    !showImportComplete &&
+    !inlineImportOpen &&
+    !['scanning', 'paused', 'checking', 'awaiting_elevation'].includes(snapshot.state) &&
+    (snapshot.state !== 'completed' ||
+      preparingNewScan ||
+      restartingAfterCompletedResult ||
+      handoffState.status === 'error') ? (
+      <ScannerFallbackJsonSection
+        selectedJson={selectedJson}
+        assessment={assessment}
+        targetReady={targetReady}
+        busy={handoffState.status === 'working'}
+        onInspectJson={(file) => void inspectJson(file)}
+        onHandOffFallbackJson={() => void handOffFallbackJson()}
+      />
+    ) : null
   const visualState =
     restartingAfterCompletedResult || preparingNewScan
       ? 'ready'
@@ -365,6 +395,8 @@ function HydratedScannerAssistantPage({
           </header>
           <ScannerJourneyCards currentStep={journeyStep} />
           <ScannerPrepareSection
+            showPreparation={showPreparation}
+            fallbackJson={fallbackJson}
             showImportComplete={showImportComplete}
             importedThisVisit={importedThisVisit}
             completedImportCount={completedImportCount}
@@ -477,22 +509,7 @@ function HydratedScannerAssistantPage({
             />
           ) : null}
 
-          {!showImportComplete &&
-          !inlineImportOpen &&
-          !['scanning', 'paused', 'checking', 'awaiting_elevation'].includes(snapshot.state) &&
-          (snapshot.state !== 'completed' ||
-            preparingNewScan ||
-            restartingAfterCompletedResult ||
-            handoffState.status === 'error') ? (
-            <ScannerFallbackJsonSection
-              selectedJson={selectedJson}
-              assessment={assessment}
-              targetReady={targetReady}
-              busy={handoffState.status === 'working'}
-              onInspectJson={(file) => void inspectJson(file)}
-              onHandOffFallbackJson={() => void handOffFallbackJson()}
-            />
-          ) : null}
+          {showPreparation ? null : fallbackJson}
         </section>
       }
     />

@@ -332,13 +332,26 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--scanner-column-gap);
-  align-items: start;
+  align-items: stretch;
+}
+
+.f5v-shell .scanner-prepare__left {
+  display: flex;
+  flex-direction: column;
+  gap: var(--scanner-column-gap);
+  min-width: 0;
+}
+
+.f5v-shell .scanner-prepare__left > .scanner-web__fallback-trigger {
+  width: 100%;
+  margin-top: 0;
 }
 
 .f5v-shell .scanner-prepare__operations {
   container: scanner-operations / inline-size;
   display: flex;
   flex-direction: column;
+  flex: 1;
   gap: 24px;
   min-width: 0;
   padding: var(--scanner-panel-padding);

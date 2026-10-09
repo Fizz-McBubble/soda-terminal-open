@@ -8,6 +8,8 @@ import { PrepareChecklist } from './ScannerPrepareChecklist'
 import { ScannerTargetAccountPicker } from './ScannerTargetAccountPicker'
 
 export function ScannerPrepareSection({
+  showPreparation,
+  fallbackJson,
   showImportComplete,
   importedThisVisit,
   completedImportCount,
@@ -38,6 +40,8 @@ export function ScannerPrepareSection({
   onRevokePairing,
   onStartBoundScan,
 }: {
+  showPreparation: boolean
+  fallbackJson: React.ReactNode
   showImportComplete: boolean
   importedThisVisit: boolean
   completedImportCount: number | null
@@ -142,19 +146,9 @@ export function ScannerPrepareSection({
         </div>
       ) : null}
 
-      {!showImportComplete &&
-      !inlineImportOpen &&
-      ([
-        'unchecked',
-        'connecting',
-        'checking',
-        'awaiting_elevation',
-        'connection_failed',
-        'ready',
-      ].includes(snapshot.state) ||
-        restartingAfterCompletedResult ||
-        preparingNewScan) ? (
+      {showPreparation ? (
         <PrepareChecklist
+          fallbackJson={fallbackJson}
           snapshot={snapshot}
           diagnosticFeedback={diagnosticFeedback}
           actionPending={actionPending}
