@@ -25,6 +25,8 @@ import { database } from '../db/databaseCore'
 import { isLegacyScanImportBatch } from '../domain/scanImportStaging'
 import { clearScannerTargetAccountBinding } from '../scanner/targetAccountBinding'
 import { beginUsageOperation } from '../usageStatistics/client'
+import type { ScannerAssistantSnapshot } from '../scanner/runtime'
+import { ScannerImportReviewFeedback } from './ScannerImportReviewFeedback'
 
 type ImportState = { mode: 'idle' | 'success' | 'error'; message: string }
 
@@ -34,12 +36,14 @@ export function FormalDiscImportPage({
   onImportSuccess,
   onError,
   secondaryAction,
+  scannerSnapshot,
 }: {
   embedded?: boolean
   compact?: boolean
   onImportSuccess?: (imported: number) => void
   onError?: (issueCode: 'scan_import_failed' | 'scan_file_invalid', message: string) => void
   secondaryAction?: ReactNode
+  scannerSnapshot?: ScannerAssistantSnapshot
 } = {}) {
   const searchParams = new URLSearchParams(window.location.search)
   const successSampleMode = import.meta.env.DEV && searchParams.get('successSample') === '400'
@@ -372,21 +376,21 @@ export function FormalDiscImportPage({
       <Navigate replace to="/assets/discs" />
     )
 
-  if (current.summary.needsReview > 0)
+  if (current.summary.needsReview || current.summary.invalid || current.summary.duplicate)
     return embedded ? (
-      <div className="scanner-inline-import">
-        <p className="danger-note" role="alert">
-          本次识别仍有 {current.summary.needsReview} 条需要重新扫描；未检查、未导入。
-        </p>
-        {secondaryAction}
-      </div>
+      <ScannerImportReviewFeedback
+        key={current.batch?.id}
+        current={current}
+        snapshot={scannerSnapshot}
+        secondaryAction={secondaryAction}
+      />
     ) : (
       <Navigate
         replace
         to="/system/scanner"
         state={{
           scanImportBlocked: true,
-          reason: `本次识别仍有 ${current.summary.needsReview} 条需要重新扫描；未检查、未导入。`,
+          reason: '部分驱动盘未通过检查；尚未导入。请查看扫描结果并反馈问题。',
         }}
       />
     )

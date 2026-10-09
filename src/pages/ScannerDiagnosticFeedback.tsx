@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import {
   diagnosticJson,
   sanitizeScanDiagnostic,
@@ -32,7 +32,13 @@ const stageLabels: Record<string, string> = {
   import: '检查与导入',
   unknown: '尚未确定',
 }
-export function ScannerDiagnosticFeedback({ report }: { report: ScanDiagnosticReport | null }) {
+export function ScannerDiagnosticFeedback({
+  report,
+  secondaryAction,
+}: {
+  report: ScanDiagnosticReport | null
+  secondaryAction?: ReactNode
+}) {
   const safe = useMemo(() => sanitizeScanDiagnostic(report), [report])
   const reportKey = safe ? JSON.stringify(safe) : null
   const [state, setState] = useState<FeedbackState | null>(null)
@@ -128,6 +134,7 @@ export function ScannerDiagnosticFeedback({ report }: { report: ScanDiagnosticRe
         >
           {currentState?.pending ? '发送中…' : currentState?.receivedAt ? '已反馈' : '反馈此问题'}
         </button>
+        {secondaryAction}
         <p>仅在点击时发送，不含账户和驱动盘资料。</p>
       </div>
       {currentState?.message ? <p role="status">{currentState.message}</p> : null}
@@ -150,6 +157,9 @@ export function ScannerDiagnosticFeedback({ report }: { report: ScanDiagnosticRe
         </div>
         <ul className="scanner-diagnostic-feedback__metadata" aria-label="本次扫描概况">
           {safe.stage !== 'unknown' ? <li>{stageLabels[safe.stage]}</li> : null}
+          {typeof safe.counts.reviewRequired === 'number' && safe.counts.reviewRequired > 0 ? (
+            <li>需校准 {safe.counts.reviewRequired} 张</li>
+          ) : null}
           {safe.counts.processed !== null ? (
             <li>
               已处理 {safe.counts.processed}

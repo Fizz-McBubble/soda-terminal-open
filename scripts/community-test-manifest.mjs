@@ -17,6 +17,11 @@ export const incremental32CommunityTests = Object.freeze([
 ]);
 
 export const communityTests = Object.freeze([
+  "src/db/scanManualCalibration.database.test.ts",
+  "src/pages/ScannerAssistantPage.calibration.test.tsx",
+  "src/pages/ScannerAssistantPage.import-review.test.tsx",
+  "src/pages/ScannerCalibrationEvidence.test.tsx",
+  "src/scanner/importReviewDiagnostic.test.ts",
   "src/components/floatingLayerGeometry.test.ts",
   "src/components/assets/r6/SelectMenu.test.tsx",
   "src/gameDataPacks/reviewedBangbooSourceContract.test.ts",

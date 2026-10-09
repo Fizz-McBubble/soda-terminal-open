@@ -18,6 +18,7 @@ export * from './scanImportStagingSchemas'
 import { z } from 'zod'
 import { contentHash } from '../application/contentHash'
 import type { StatKey } from './schemas'
+import { applyScanReviewFields, validateScanReviewPatch } from './scanManualCalibration'
 export { summarizeScanImportItems } from './scanImportSummary'
 
 export function isLegacyScanImportBatch(
@@ -187,7 +188,9 @@ function confirmedFieldNames(candidate: ScanImportItem['candidate']) {
     'setName',
     'slot',
     'level',
+    'rarity',
     'mainStat',
+    'mainStatValue',
     'lockState',
     ...candidate.subStats.map((_, index) => `subStats.${index}`),
   ]
@@ -204,7 +207,14 @@ function markUserConfirmedFields(
     setName: patch.candidate.setName,
     slot: patch.candidate.slot,
     level: patch.candidate.level,
+    rarity: patch.candidate.rarity,
     mainStat: patch.candidate.mainStat,
+    mainStatValue: patch.candidate.mainStatValue,
+    subStats: patch.candidate.subStats.map(({ stat, value, upgrades }) => ({
+      stat,
+      value,
+      upgrades,
+    })),
     lockState: patch.lockState,
   }
   patch.candidate.subStats.forEach((subStat, index) => {
@@ -241,7 +251,15 @@ function reviewFieldValue(snapshot: z.infer<typeof scanReviewSnapshotSchema>, fi
     return { setId: snapshot.candidate.setId, setName: snapshot.candidate.setName }
   if (field === 'slot') return snapshot.candidate.slot
   if (field === 'level') return snapshot.candidate.level
+  if (field === 'rarity') return snapshot.candidate.rarity
   if (field === 'mainStat') return snapshot.candidate.mainStat
+  if (field === 'mainStatValue') return snapshot.candidate.mainStatValue
+  if (field === 'subStats')
+    return snapshot.candidate.subStats.map(({ stat, value, upgrades }) => ({
+      stat,
+      value,
+      upgrades,
+    }))
   if (field === 'lockState') return snapshot.lockState
   const subStatIndex = field.match(/^subStats\.(\d+)$/)?.[1]
   if (subStatIndex === undefined) return undefined
@@ -256,25 +274,8 @@ function applyConfirmedReviewFields(
   sourceAfter: z.infer<typeof scanReviewSnapshotSchema>,
   fields: string[],
 ) {
-  const candidate = structuredClone(target.candidate)
-  let lockState = target.lockState
-  for (const field of fields) {
-    if (field === 'setName') {
-      candidate.setId = sourceAfter.candidate.setId
-      candidate.setName = sourceAfter.candidate.setName
-    } else if (field === 'slot') candidate.slot = sourceAfter.candidate.slot
-    else if (field === 'level') candidate.level = sourceAfter.candidate.level
-    else if (field === 'mainStat') candidate.mainStat = sourceAfter.candidate.mainStat
-    else if (field === 'lockState') lockState = sourceAfter.lockState
-    else {
-      const subStatIndex = field.match(/^subStats\.(\d+)$/)?.[1]
-      if (subStatIndex === undefined) continue
-      const sourceSubStat = sourceAfter.candidate.subStats[Number(subStatIndex)]
-      if (sourceSubStat)
-        candidate.subStats[Number(subStatIndex)] = { ...sourceSubStat, confidence: 'high' }
-    }
-  }
-  return { candidate: normalizeCandidate(candidate), lockState }
+  const result = applyScanReviewFields(target, sourceAfter, fields)
+  return { ...result, candidate: normalizeCandidate(result.candidate) }
 }
 
 export function confirmScanImportItem(
@@ -282,31 +283,41 @@ export function confirmScanImportItem(
   patch: ScanImportReviewPatch,
   context: ScanImportAssessmentContext,
   confirmedAt = new Date().toISOString(),
+  declaredFieldsOnly = false,
 ) {
   const fields = patch.fields ?? confirmedFieldNames(patch.candidate)
-  const confirmedCandidate = normalizeCandidate({
-    ...patch.candidate,
-    subStats: patch.candidate.subStats.map((subStat) => ({
-      ...subStat,
-      confidence: 'high' as const,
-    })),
-  })
+  const parsed = validateScanReviewPatch(input, patch)
+  // Legacy recovery consumers use whole-snapshot confirmation. Account review
+  // explicitly selects the bounded declared-field contract after DB guards.
+  const applied = declaredFieldsOnly
+    ? applyScanReviewFields(input, parsed, fields)
+    : {
+        ...parsed,
+        candidate: {
+          ...parsed.candidate,
+          subStats: parsed.candidate.subStats.map((row) => ({
+            ...row,
+            confidence: 'high' as const,
+          })),
+        },
+      }
+  const confirmedCandidate = normalizeCandidate(applied.candidate)
   const confirmation = {
     contract: 'user_confirmed.v1' as const,
     confirmedAt,
     source: 'user' as const,
     fields,
     before: { candidate: input.candidate, lockState: input.lockState },
-    after: { candidate: confirmedCandidate, lockState: patch.lockState },
+    after: { candidate: confirmedCandidate, lockState: applied.lockState },
   }
   return assessScanImportItem(
     {
       ...input,
       candidate: confirmedCandidate,
-      lockState: patch.lockState,
+      lockState: applied.lockState,
       fields: markUserConfirmedFields(
         input,
-        { candidate: confirmedCandidate, lockState: patch.lockState },
+        { candidate: confirmedCandidate, lockState: applied.lockState },
         confirmedAt,
         fields,
       ),

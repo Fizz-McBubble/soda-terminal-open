@@ -237,6 +237,34 @@ it.each([
   },
 )
 
+it('matches review guidance to manual calibration and displays the affected count without requiring feedback', () => {
+  const report = {
+    ...makeReport(),
+    code: 'scan_import_review_required',
+    stage: 'import',
+    counts: { processed: 12, total: 12, reviewRequired: 11 },
+  }
+  const fetcher = vi.fn()
+  vi.stubGlobal('fetch', fetcher)
+  render(<ScannerDiagnosticFeedback report={report} />)
+  fireEvent.click(screen.getByText('查看诊断信息'))
+  expect(screen.getByText(/对照盘面手动校准，再确认导入/)).toBeVisible()
+  expect(screen.getByText('需校准 11 张')).toBeVisible()
+  expect(fetcher).not.toHaveBeenCalled()
+})
+
+it('does not suggest accepting an incomplete batch or force a particular supported resolution', () => {
+  expect(
+    scannerDiagnosticGuidance({ ...makeReport(), code: 'direct_fork_partial' }).nextAction,
+  ).toContain('暂不能更新仓库')
+  const geometry = scannerDiagnosticGuidance({
+    ...makeReport(),
+    code: 'ppocrv6_detail_geometry_incompatible',
+  })
+  expect(geometry.nextAction).toContain('16:9')
+  expect(geometry.nextAction).not.toContain('1920')
+})
+
 it('keeps unknown failures neutral and omits unknown metadata', () => {
   const report = sanitizeScanDiagnostic({
     ...makeReport(),

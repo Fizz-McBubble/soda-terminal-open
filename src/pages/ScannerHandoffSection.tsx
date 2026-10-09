@@ -73,6 +73,7 @@ export function ScannerHandoffSection({
         <FormalDiscImportPage
           embedded
           compact
+          scannerSnapshot={snapshot}
           secondaryAction={
             <button
               className="button button--quiet"
@@ -256,7 +257,7 @@ export function ScannerHandoffSection({
           </div>
         </section>
       )}
-      {handoffState.status !== 'idle' && handoffState.status !== 'success' ? (
+      {handoffState.status === 'working' || handoffState.status === 'error' ? (
         <p role={handoffState.status === 'error' ? 'alert' : 'status'} aria-live="polite">
           {playerResultMessage(handoffState.message)}
         </p>

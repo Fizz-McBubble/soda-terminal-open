@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { AlertTriangle, ShieldCheck } from 'lucide-react'
 import { F5ScannerGoldenView } from '../components/F5GoldenViews'
 import { assessScannerAssistantInput } from '../scanner/assistant'
 import { initialDistributionSnapshot, scannerDistributionManifest } from '../scanner/distribution'
@@ -19,10 +18,10 @@ import {
 import { ScannerFallbackJsonSection } from './ScannerFallbackJsonSection'
 import { ScannerHandoffSection } from './ScannerHandoffSection'
 import { ScannerJourneyCards } from './ScannerJourneyCards'
+import { ScannerCompletedSummary } from './ScannerCompletedSummary'
 import { ScannerPrepareSection } from './ScannerPrepareSection'
 import { createPrepareChecks } from './scannerPrepareChecks'
 import { ScannerScanningSection } from './ScannerScanningSection'
-import { getAverageScannerRate } from './scannerAssistantPresentation'
 import { useScannerTargetBinding } from './useScannerTargetBinding'
 import { beginUsageOperation } from '../usageStatistics/client'
 import { detectLocalDataFileKind } from '../application/localDataFile'
@@ -355,31 +354,15 @@ function HydratedScannerAssistantPage({
             ? 2
             : ['scanning', 'paused'].includes(snapshot.state)
               ? 1
-              : 0
+              : ['capture', 'scroll', 'ocr'].includes(failureDiagnostic?.stage ?? '')
+                ? 1
+                : ['result', 'import'].includes(failureDiagnostic?.stage ?? '')
+                  ? 2
+                  : 0
 
-  const averageRate = getAverageScannerRate(snapshot)
-  const resultSummary =
-    snapshot.state === 'completed' ? (
-      <div className="scanner-web__summary" aria-label="驱动盘导入摘要">
-        <article>
-          <AlertTriangle aria-hidden="true" size={20} />
-          <span>本次结果{averageRate == null ? '' : ` · 平均 ${averageRate} 张/分钟`}</span>
-          <strong>{snapshot.summary?.uniqueRecords ?? 0}</strong>
-          <small>
-            可直接导入 {snapshot.summary?.reliable ?? 0} · 待检查{' '}
-            {snapshot.summary?.needsReview ?? 0}
-          </small>
-        </article>
-        <article>
-          <ShieldCheck aria-hidden="true" size={20} />
-          <span>更新账户</span>
-          <strong>{completedImportCount ?? 0}</strong>
-          <small>
-            {completedImportCount === null ? '确认导入前不会改动账户' : '当前账户已更新'}
-          </small>
-        </article>
-      </div>
-    ) : null
+  const resultSummary = (
+    <ScannerCompletedSummary snapshot={snapshot} completedImportCount={completedImportCount} />
+  )
 
   return (
     <F5ScannerGoldenView

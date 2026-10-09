@@ -1,6 +1,7 @@
 import { database, type SodaDatabase } from './databaseCore'
 import { assertActiveAccountScope, assertReadyScanReview } from './accountScanImportScope'
 import { warehouseFactHash } from './discReplacementFacts'
+import { isScanCalibrationField, validateScanReviewPatch } from '../domain/scanManualCalibration'
 import {
   confirmScanImportItem,
   isLegacyScanImportBatch,
@@ -150,6 +151,7 @@ export async function reviewAccountScanImportItem(
   context: ScanImportAssessmentContext,
   db: SodaDatabase = database,
   expectedRevision?: number,
+  mode: 'issue_fields' | 'manual_calibration' = 'issue_fields',
 ) {
   return db.transaction(
     'rw',
@@ -159,6 +161,15 @@ export async function reviewAccountScanImportItem(
       const current = await db.accountScanImportItems.get(getScopedId(accountId, itemId))
       if (!current || current.batchId !== batchId) throw new Error('当前账号中不存在该复核记录。')
       if (current.state === 'imported') throw new Error('已导入记录不可再次修改。')
+      if (mode === 'manual_calibration') {
+        if (expectedRevision === undefined) throw new Error('人工校准必须提供当前复核版本。')
+        if (current.state !== 'needs_review' && current.state !== 'invalid')
+          throw new Error('人工校准仅适用于识别失败或待复核记录。')
+        const activeBatch = await db.settings.get(`scanner-active-result-batch:${accountId}`)
+        if (activeBatch && activeBatch.value !== batchId)
+          throw new Error('当前扫描批次已变化，请重读后重新校准。')
+        if (patch.lockState !== current.lockState) throw new Error('人工校准不可修改游戏锁定证据。')
+      }
       const batch = await db.accountScanImportBatches
         .where('[accountId+id]')
         .equals([accountId, batchId])
@@ -173,10 +184,18 @@ export async function reviewAccountScanImportItem(
           issue.field === 'setId' ? 'setName' : issue.field.replace(/\.(stat|value|upgrades)$/, ''),
         ),
       )
-      if (!patch.fields?.length || patch.fields.some((field) => !reviewableFields.has(field)))
+      if (
+        !patch.fields?.length ||
+        patch.fields.some((field) =>
+          mode === 'manual_calibration'
+            ? !isScanCalibrationField(field, patch.candidate)
+            : !reviewableFields.has(field),
+        )
+      )
         throw new Error('手动修正只能写入当前待复核字段。')
+      validateScanReviewPatch(current, patch, true)
       const next = {
-        ...confirmScanImportItem(current, patch, context),
+        ...confirmScanImportItem(current, patch, context, new Date().toISOString(), true),
         scopedId: current.scopedId,
         accountId: current.accountId,
         sourceLegacyId: current.sourceLegacyId,
