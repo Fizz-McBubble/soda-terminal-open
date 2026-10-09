@@ -4,6 +4,7 @@ import { F5ScannerGoldenView } from '../components/F5GoldenViews'
 import { assessScannerAssistantInput } from '../scanner/assistant'
 import { initialDistributionSnapshot, scannerDistributionManifest } from '../scanner/distribution'
 import { useScannerAssistantRuntime } from '../scanner/runtime'
+import { useScannerHelperAction } from '../scanner/runtimeHelperVersion'
 import { useScannerFailureDiagnostic } from '../scanner/scanFeedback'
 import { ScannerDiagnosticFeedback } from './ScannerDiagnosticFeedback'
 import { ScannerInstallerAction } from './ScannerInstallerAction'
@@ -45,7 +46,7 @@ function HydratedScannerAssistantPage({
   accountState: ScannerAccounts
   refreshAccounts: () => void
 }) {
-  const { snapshot, commands } = useScannerAssistantRuntime()
+  const { snapshot: runtimeSnapshot, commands } = useScannerAssistantRuntime()
   const [assessment, setAssessment] = useState(() => assessScannerAssistantInput({ kind: 'empty' }))
   const [selectedJson, setSelectedJson] = useState<File | null>(null)
   const [selectedAccountId, setSelectedAccountId] = useState('')
@@ -53,6 +54,7 @@ function HydratedScannerAssistantPage({
   const [accountMessage, setAccountMessage] = useState('')
   const [actionFeedback, setActionFeedback] = useState<string | null>(null)
   const [actionIssueCode, setActionIssueCode] = useState<string | null>(null)
+  const snapshot = useScannerHelperAction(runtimeSnapshot, actionIssueCode)
   const [actionPending, setActionPending] = useState(false)
   const actionPendingRef = useRef(false)
   const [inlineImportOpen, setInlineImportOpen] = useState(false)
@@ -357,6 +359,10 @@ function HydratedScannerAssistantPage({
           <ScannerJourneyCards currentStep={journeyStep} />
           <p className="scanner-task__platform-support">
             Windows 本地版扫描 S 级驱动盘，跳过 A/B 级；其他环境与画面要求见扫描指南。
+          </p>
+          {/* RC8.8 full-inventory reference: 2953 S discs in 1275.020 s, about 139/min. */}
+          <p className="scanner-task__platform-support" aria-label="扫描耗时参考">
+            参考扫描速度：约 140 张/分钟
           </p>
           <ScannerPrepareSection
             showImportComplete={showImportComplete}

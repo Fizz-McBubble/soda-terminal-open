@@ -344,7 +344,10 @@ test('scan-feedback edge route integrates before generic /_soda 404 and preserve
   const ack = await res.json()
   assert.equal(ack.status, 'received')
   assert.equal(ack.reportId, feedbackReport.reportId)
-  assert(store.has(feedbackReport.reportId))
+  const storedKeys = [...store.keys()]
+  assert.equal(storedKeys.length, 1)
+  assert.match(storedKeys[0], new RegExp(`^${feedbackReport.reportId}:[a-f0-9]{64}$`, 'u'))
+  assert.equal(JSON.parse(store.get(storedKeys[0])).reportId, feedbackReport.reportId)
 
   // 2. Disabled feedback returns 404
   const disabledReq = new Request(`${origin}/_soda/scan-feedback`, {

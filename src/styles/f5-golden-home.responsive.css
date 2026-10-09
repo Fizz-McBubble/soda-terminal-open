@@ -173,18 +173,15 @@
 /* Preserve the original square composition; compact only surrounding space. */
 @media (min-width: 1021px) {
   .f5v-shell .soda-home--golden .home-focus {
-    height: auto;
-    min-height: clamp(560px, calc(var(--soda-viewport-height) - 220px), 640px);
+    height: clamp(560px, calc(var(--soda-viewport-height) - 220px), 604px);
   }
   .f5v-shell .soda-home--golden .focus-copy {
     padding-top: 32px;
-    width: min(50%, 42rem);
   }
   .f5v-shell .soda-home--golden .home-scene {
     inset: 50% 250px auto auto;
     width: 730px;
-    height: auto;
-    aspect-ratio: 1;
+    height: 730px;
     transform: translateY(-50%);
     margin: 0;
   }
@@ -196,10 +193,10 @@
     object-position: center;
   }
   .f5v-shell .soda-home--golden .home-readiness {
-    right: clamp(16px, 1.25rem, 28px);
-    bottom: clamp(16px, 1.25rem, 28px);
-    width: clamp(256px, 17.5rem, 300px);
-    padding: clamp(15px, 1.1rem, 20px);
+    right: 24px;
+    bottom: 20px;
+    width: 264px;
+    padding: 16px;
     border: 1px solid rgba(103, 90, 144, 0.12);
     border-radius: var(--soda-radius-surface);
     background: rgba(255, 255, 255, 0.9);
@@ -218,13 +215,13 @@
 @media (min-width: 1021px) and (max-width: 1400px) {
   .f5v-shell .soda-home--golden .home-scene {
     inset: 50% 80px auto auto;
-    width: min(650px, 54%);
+    width: min(650px, 56%);
     height: auto;
     aspect-ratio: 1;
   }
 
   .f5v-shell .soda-home--golden .home-readiness {
-    width: 250px;
+    width: 248px;
     right: 16px;
   }
 }

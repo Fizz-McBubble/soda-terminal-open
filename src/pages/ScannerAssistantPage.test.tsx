@@ -214,6 +214,7 @@ describe('ScannerAssistantPage', () => {
     runtimeMock.snapshot = createScannerRuntimeSnapshot('connection_failed')
     render(<App />)
     await screen.findByText('已有扫描结果文件？')
+    expect(screen.getByLabelText('扫描耗时参考')).toBeVisible()
     expect(screen.getByRole('list', { name: '本机准备检查项' })).toHaveTextContent('启动绝区零')
     expect(screen.getAllByText('启动绝区零')).toHaveLength(1)
     expect(screen.getAllByText(/\d \/ 5 项准备已通过/)).toHaveLength(1)
@@ -236,6 +237,7 @@ describe('ScannerAssistantPage', () => {
           'Windows 本地版扫描 S 级驱动盘，跳过 A/B 级；其他环境与画面要求见扫描指南。',
         ),
       ).toBeVisible()
+      expect(screen.getByLabelText('扫描耗时参考')).toBeVisible()
       expect(screen.queryByText('辅助信息与备用导入')).not.toBeInTheDocument()
     },
   )

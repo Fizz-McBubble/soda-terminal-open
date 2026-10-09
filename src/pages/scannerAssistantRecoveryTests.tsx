@@ -3,6 +3,7 @@ import { expect, it, vi } from 'vitest'
 import type { ComponentType } from 'react'
 import { createAccount, setActiveAccount } from '../accounts/repository'
 import { database } from '../db/database'
+import { baseScannerSnapshot as baseSnapshot } from './scannerAssistantTestFixture'
 import { readLastScanDiagnostic } from '../scanner/scanFeedback'
 import {
   createScannerTargetAccountBinding,
@@ -25,6 +26,45 @@ export function registerScannerRecoveryTests({
   }
   setRuntimeState: (state: string) => void
 }) {
+  it('offers updating a connected old Helper and prevents starting another scan', async () => {
+    const account = await createAccount('主账号', database, { id: 'account-main' })
+    await setActiveAccount(account.id, database)
+    setRuntimeState('ready')
+    runtimeMock.snapshot = {
+      ...runtimeMock.snapshot,
+      distribution: {
+        ...baseSnapshot.distribution,
+        state: 'update_available',
+        action: 'update',
+        message: '请更新扫描助手后再扫描。',
+      },
+    }
+    render(<App />)
+    await screen.findByRole('status', { name: '本次扫描保存到' })
+    expect(screen.getByRole('button', { name: '更新扫描助手' })).toBeVisible()
+    expect(screen.getByRole('button', { name: '开始扫描' })).toBeDisabled()
+    expect(screen.getByText('请更新扫描助手后再扫描')).toBeInTheDocument()
+    expect(runtimeMock.commands.startScan).not.toHaveBeenCalled()
+  })
+
+  it('offers updating and blocks another start when the connected Helper becomes outdated', async () => {
+    const account = await createAccount('主账号', database, { id: 'account-main' })
+    await setActiveAccount(account.id, database)
+    setRuntimeState('ready')
+    const error = new Error('请更新扫描助手后再扫描。')
+    error.name = 'ScannerHelperCompatibilityError'
+    runtimeMock.commands.startScan.mockRejectedValueOnce(error)
+    render(<App />)
+    await screen.findByRole('status', { name: '本次扫描保存到' })
+    const start = screen.getByRole('button', { name: '开始扫描' })
+    await waitFor(() => expect(start).toBeEnabled())
+    fireEvent.click(start)
+    await screen.findByRole('button', { name: '更新扫描助手' })
+    expect(start).toBeDisabled()
+    expect(await screen.findByRole('alert')).toHaveTextContent('请更新扫描助手后再扫描')
+    expect(runtimeMock.commands.startScan).toHaveBeenCalledTimes(1)
+  })
+
   it('hides JSON recovery while a scan is running', async () => {
     setRuntimeState('scanning')
     render(<App />)

@@ -58,6 +58,16 @@ it('offers an upgrade only for a detected old installation', () => {
     <ScannerInstallerAction
       distribution={{
         ...initialDistributionSnapshot,
+        state: 'update_available',
+        installedVersion: scannerDistributionManifest.runtime.version,
+      }}
+    />,
+  )
+  expect(screen.getByRole('button', { name: '更新扫描助手' })).toBeVisible()
+  rerender(
+    <ScannerInstallerAction
+      distribution={{
+        ...initialDistributionSnapshot,
         state: 'ready',
         installedVersion: scannerDistributionManifest.runtime.version,
       }}

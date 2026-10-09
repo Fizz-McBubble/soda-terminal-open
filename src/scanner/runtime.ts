@@ -11,7 +11,11 @@ import { resolveScannerHelperSessionToken } from './scannerSessionToken'
 import { createDevelopmentScannerCommands } from './runtimeDevelopmentCommands'
 import { readScannerResultWithDeadline } from './resultRead'
 import { withScannerRequestDeadline } from './requestDeadline'
-import { scannerDistributionManifest } from './distribution'
+import {
+  presentScannerHelperSnapshot,
+  requireCurrentScannerHelper,
+  verifyScannerHelperIdentity,
+} from './runtimeHelperVersion'
 
 import type { ScannerAssistantSnapshot } from './runtimeSnapshotTypes'
 export type { ScannerAssistantSnapshot, ScannerAssistantState } from './runtimeSnapshotTypes'
@@ -37,6 +41,7 @@ export function createScannerAssistantRuntime(
   let token = options.token ?? import.meta.env.VITE_SCANNER_HELPER_TOKEN ?? ''
   let tokenResolved = false
   let nativeIdentityVerified = false
+  let nativeHelperVersion: string | null = null
   const fetchImpl = options.fetchImpl ?? fetch
   const EventSourceImpl = options.EventSourceImpl ?? null
   const reconnectDelayMs = options.reconnectDelayMs ?? 250
@@ -75,11 +80,7 @@ export function createScannerAssistantRuntime(
       activeSubscription &&
       !activeSubscription.disposed
     )
-      activeSubscription.listener(
-        next.state === 'paused'
-          ? { ...next, state: 'ready', progress: undefined, error: undefined }
-          : next,
-      )
+      activeSubscription.listener(presentScannerHelperSnapshot(next, nativeHelperVersion))
   }
 
   function connectEvents(subscription: NonNullable<typeof activeSubscription>, issued: string) {
@@ -102,11 +103,7 @@ export function createScannerAssistantRuntime(
     events.onmessage = (event) => {
       if (subscription.disposed || subscription.events !== events) return
       const next = JSON.parse(event.data) as ScannerAssistantSnapshot
-      subscription.listener(
-        next.state === 'paused'
-          ? { ...next, state: 'ready', progress: undefined, error: undefined }
-          : next,
-      )
+      subscription.listener(presentScannerHelperSnapshot(next, nativeHelperVersion))
     }
     events.onerror = () => {
       if (subscription.disposed || subscription.events !== events) return
@@ -156,11 +153,7 @@ export function createScannerAssistantRuntime(
             .join('\n')
           if (data && !subscription.disposed && subscription.abort === controller) {
             const next = JSON.parse(data) as ScannerAssistantSnapshot
-            subscription.listener(
-              next.state === 'paused'
-                ? { ...next, state: 'ready', progress: undefined, error: undefined }
-                : next,
-            )
+            subscription.listener(presentScannerHelperSnapshot(next, nativeHelperVersion))
           }
           separator = /\r?\n\r?\n/.exec(pending)
         }
@@ -202,29 +195,7 @@ export function createScannerAssistantRuntime(
     const response = await fetchImpl(`${baseUrl}/`, signal ? { signal } : undefined)
     const identity = response.ok ? await response.json() : null
     signal?.throwIfAborted()
-    if (
-      !identity ||
-      identity.service !== 'soda-terminal-scanner-helper' ||
-      ![
-        '2.3.1',
-        '2.3.2',
-        '2.3.3',
-        '2.3.4',
-        '2.3.5',
-        '2.3.6',
-        '2.3.7',
-        '2.3.8',
-        scannerDistributionManifest.helper.version,
-      ].includes(identity.version) ||
-      identity.protocolVersion !== 5 ||
-      identity.transport !== 'direct-fork-http' ||
-      identity.accountWriteEnabled !== false ||
-      identity.importAccess !== false
-    ) {
-      const error = new Error('扫描助手未就绪，请更新扫描助手后重新连接。')
-      error.name = 'ScannerHelperCompatibilityError'
-      throw error
-    }
+    nativeHelperVersion = verifyScannerHelperIdentity(identity)
     nativeIdentityVerified = true
   }
 
@@ -255,14 +226,17 @@ export function createScannerAssistantRuntime(
   async function executeCommand(path: string, method: string, signal: AbortSignal) {
     await verifyNativeHelper(signal)
     signal?.throwIfAborted()
+    if (path === '/api/start') requireCurrentScannerHelper(nativeHelperVersion)
     await ensureSessionToken(signal)
     signal?.throwIfAborted()
-    const request = () =>
-      fetchImpl(`${baseUrl}${path}`, {
+    const request = () => {
+      if (path === '/api/start') requireCurrentScannerHelper(nativeHelperVersion)
+      return fetchImpl(`${baseUrl}${path}`, {
         method,
         headers: { 'X-Soda-Scanner-Token': token },
         ...(signal ? { signal } : {}),
       })
+    }
     let response = await request()
     signal?.throwIfAborted()
     if (response.status === 401) {

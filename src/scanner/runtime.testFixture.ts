@@ -1,9 +1,10 @@
 import { vi } from 'vitest'
 import { createScannerAssistantRuntime, type ScannerAssistantSnapshot } from './runtime'
+import { scannerDistributionManifest } from './distribution'
 
 export const nativeIdentity = {
   service: 'soda-terminal-scanner-helper',
-  version: '2.3.1',
+  version: scannerDistributionManifest.helper.version,
   protocolVersion: 5,
   transport: 'direct-fork-http',
   accountWriteEnabled: false,

@@ -254,6 +254,23 @@ export function recordsEqual(a, b) {
   return semanticEqual(a, b)
 }
 
+function canonicalJson(value) {
+  if (value === null || typeof value !== 'object') return JSON.stringify(value)
+  return `{${Object.keys(value)
+    .sort()
+    .map((key) => `${JSON.stringify(key)}:${canonicalJson(value[key])}`)
+    .join(',')}}`
+}
+
+async function contentStorageKey(record) {
+  const bytes = new TextEncoder().encode(canonicalJson(record))
+  const digest = await crypto.subtle.digest('SHA-256', bytes)
+  const hash = Array.from(new Uint8Array(digest), (byte) =>
+    byte.toString(16).padStart(2, '0'),
+  ).join('')
+  return `${record.reportId}:${hash}`
+}
+
 export async function readScanFeedbackBody(request, timeoutMs) {
   const length = request.headers.get('content-length')
   if (length && (!/^\d+$/u.test(length) || Number(length) > contract.maxBytes)) {
@@ -382,7 +399,9 @@ export function createScanFeedbackReceiver({
         return reply(400, 'Invalid scan feedback')
       }
       const record = validation.record
-      const key = record.reportId
+      // Content addressing protects different reports with a colliding ID even
+      // when independent isolates both observe a KV cache miss.
+      const key = await contentStorageKey(record)
 
       if (inFlight.has(key)) {
         const current = inFlight.get(key)
@@ -412,7 +431,12 @@ export function createScanFeedbackReceiver({
       try {
         let existingRaw = null
         try {
-          existingRaw = await withTimeout(kv.get(key), kvTimeoutMs)
+          // Bare reportId keys are legacy records. Keep their original receipt
+          // or conflict behavior; never migrate or overwrite them.
+          existingRaw = await withTimeout(kv.get(record.reportId), kvTimeoutMs)
+          if (existingRaw === null || existingRaw === undefined) {
+            existingRaw = await withTimeout(kv.get(key), kvTimeoutMs)
+          }
         } catch {
           resolveInflight({ status: 503 })
           return reply(503, 'Persistence unavailable')

@@ -2,6 +2,7 @@ import { Check, ChevronDown } from 'lucide-react'
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import type { VisualAssetConsumer } from '../../../assets/visualAssetSlots'
+import { fitFloatingLayer, getEffectiveZoom } from '../../floatingLayerGeometry'
 
 const VisualEntityImage =
   import.meta.env.VITE_SODA_PUBLIC_BUILD === 'true'
@@ -68,33 +69,27 @@ export function SelectMenu({
   const menuPositionReady = Boolean(menuStyle)
   const updateMenuPosition = useCallback(() => {
     const bounds = trigger.current?.getBoundingClientRect()
-    if (!bounds) return
-    const viewportGap = 12
-    const desiredHeight = Math.min(360, Math.max(132, enabledOptionCount * 48 + 44))
-    const spaceBelow = window.innerHeight - bounds.bottom - viewportGap
-    const openAbove = spaceBelow < Math.min(desiredHeight, 220) && bounds.top > spaceBelow
-    const maxHeight = Math.max(
-      132,
-      Math.min(desiredHeight, (openAbove ? bounds.top : spaceBelow) - 8),
-    )
+    if (!bounds || !portalContext) return
+    const scale = getEffectiveZoom(trigger.current)
+    const desiredHeight = Math.min(360, Math.max(132, enabledOptionCount * 48 + 44)) * scale
     const labelWidth = Math.min(
       360,
       Math.max(120, ...options.map((option) => option.label.length * 14 + 56)),
     )
-    const menuWidth = Math.min(
-      window.innerWidth - viewportGap * 2,
-      Math.max(bounds.width, labelWidth),
-    )
     setMenuStyle({
-      left: Math.max(
-        viewportGap,
-        Math.min(bounds.left, window.innerWidth - menuWidth - viewportGap),
-      ),
-      top: openAbove ? Math.max(viewportGap, bounds.top - maxHeight - 6) : bounds.bottom + 6,
-      width: menuWidth,
-      maxHeight,
+      ...fitFloatingLayer({
+        anchor: bounds,
+        width: Math.max(bounds.width, labelWidth * scale),
+        height: desiredHeight,
+        scale,
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
+        minimumHeight: 220 * scale,
+      }),
+      // Body portals need the trigger's zoom; dialog portals already inherit it.
+      zoom: scale / getEffectiveZoom(portalContext.target),
     })
-  }, [enabledOptionCount, options])
+  }, [enabledOptionCount, options, portalContext])
 
   useEffect(() => {
     if (!open) return
@@ -130,9 +125,12 @@ export function SelectMenu({
     const reposition = () => updateMenuPosition()
     window.addEventListener('resize', reposition)
     window.addEventListener('scroll', reposition, true)
+    const observer = typeof ResizeObserver === 'function' ? new ResizeObserver(reposition) : null
+    if (trigger.current) observer?.observe(trigger.current)
     return () => {
       window.removeEventListener('resize', reposition)
       window.removeEventListener('scroll', reposition, true)
+      observer?.disconnect()
     }
   }, [open, options.length, updateMenuPosition])
 

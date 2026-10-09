@@ -79,6 +79,14 @@ const validReport = {
   },
 }
 
+function storedFor(kv, reportId) {
+  const matches = [...kv.store.entries()].filter(([key]) => key.startsWith(reportId + ':'))
+  assert.equal(matches.length, 1)
+  assert.match(matches[0][0], new RegExp(`^${reportId}:[0-9a-f]{64}$`))
+  assert.equal(kv.store.has(reportId), false)
+  return matches[0][1]
+}
+
 function makeEnv(overrides = {}, kv = createFakeKv()) {
   return {
     env: {
@@ -125,13 +133,13 @@ test('preserves duplicate guard safe browser projection and concrete stop eviden
     }
     const response = await handler(makeRequest(report), env)
     assert.equal(response.status, 200)
-    const stored = JSON.parse(kv.store.get(report.reportId).value)
+    const stored = JSON.parse(storedFor(kv, report.reportId).value)
     const { receivedAt, ...record } = stored
     assert.equal(typeof receivedAt, 'string')
     assert.deepEqual(record, report)
     const legacy = { ...report, reportId: crypto.randomUUID(), evidence: {} }
     assert.equal((await handler(makeRequest(legacy), env)).status, 200)
-    assert.deepEqual(JSON.parse(kv.store.get(legacy.reportId).value).evidence, {})
+    assert.deepEqual(JSON.parse(storedFor(kv, legacy.reportId).value).evidence, {})
   }
 })
 
@@ -208,7 +216,7 @@ test('both production origins supported with expected headers and durable KV sto
     assert(Number.isFinite(Date.parse(ack.receivedAt)))
 
     assert.equal(kv.getPutCount(), 1)
-    const stored = kv.store.get(report.reportId)
+    const stored = storedFor(kv, report.reportId)
     assert(stored)
     assert.equal(stored.options.expirationTtl, 30 * 86400)
     const parsed = JSON.parse(stored.value)
@@ -399,7 +407,7 @@ test('validates and sanitizes nested fields (enums, limits, formats, nullables)'
   for (const payload of nullableCases) {
     const res = await handler(makeRequest(payload), env)
     assert.equal(res.status, 200)
-    const stored = JSON.parse(kv.store.get(payload.reportId).value)
+    const stored = JSON.parse(storedFor(kv, payload.reportId).value)
     assert.equal(stored.durationMs, payload.durationMs)
     assert.equal(stored.counts.processed, payload.counts.processed)
     assert.equal(stored.counts.total, payload.counts.total)
@@ -413,7 +421,7 @@ test('cached pages and saved failures remain submitable after a release update',
   const res = await handler(makeRequest(stale), env)
   assert.equal(res.status, 200)
   const receipt = await res.json()
-  assert.equal(JSON.parse(kv.store.get(stale.reportId).value).release, stale.release)
+  assert.equal(JSON.parse(storedFor(kv, stale.reportId).value).release, stale.release)
   const retry = await handler(makeRequest(stale), {
     ...env,
     SODA_RELEASE_ID: 'new-release-20261008',
@@ -496,7 +504,7 @@ test('persistence failure, missing binding and timeouts fail closed with 503; no
   assert.equal((await timeoutHandler(makeRequest(), timeoutGetEnv)).status, 503)
 })
 
-test('idempotent same payload retry returns original receipt without extra KV write; conflict returns 409', async () => {
+test('idempotent same payload retry returns original receipt; different content has its own record', async () => {
   const kv = createFakeKv()
   const { env } = makeEnv({}, kv)
   let time = 1700000000000
@@ -514,9 +522,9 @@ test('idempotent same payload retry returns original receipt without extra KV wr
   assert.equal(firstAck.receivedAt, new Date(time).toISOString())
   assert.equal(kv.getPutCount(), 1)
 
-  // Advance time: idempotent retry with exact same payload
+  // Advance time and use a fresh isolate: retry must reuse durable evidence.
   time += 5000
-  const retryRes = await handler(makeRequest(report), env)
+  const retryRes = await createScanFeedbackReceiver({ now: () => time })(makeRequest(report), env)
   assert.equal(retryRes.status, 200)
   const retryAck = await retryRes.json()
   assert.equal(retryAck.status, 'received')
@@ -526,14 +534,18 @@ test('idempotent same payload retry returns original receipt without extra KV wr
   // Must NOT have written to KV again!
   assert.equal(kv.getPutCount(), 1)
 
-  // Conflicting submission with same reportId but altered field
+  // Different content with the same reportId must not overwrite the first report
   const conflictingReport = { ...report, outcome: 'completed' }
   const conflictRes = await handler(makeRequest(conflictingReport), env)
-  assert.equal(conflictRes.status, 409)
-  assert.equal(kv.getPutCount(), 1)
+  assert.equal(conflictRes.status, 200)
+  assert.equal(kv.getPutCount(), 2)
+  assert.deepEqual([...kv.store.values()].map(({ value }) => JSON.parse(value).outcome).sort(), [
+    'completed',
+    'failed',
+  ])
 })
 
-test('concurrent in-flight requests in isolate share receipt or conflict cleanly', async () => {
+test('concurrent in-flight requests share identical receipts and preserve differing content', async () => {
   const kv = createFakeKv({ putDelay: 30 })
   const { env } = makeEnv({}, kv)
   const handler = createScanFeedbackReceiver()
@@ -562,7 +574,8 @@ test('concurrent in-flight requests in isolate share receipt or conflict cleanly
     handler(makeRequest({ ...validReport, reportId: conflictId, outcome: 'completed' }), env),
   ])
   const statuses = [cRes1.status, cRes2.status].sort()
-  assert.deepEqual(statuses, [200, 409])
+  assert.deepEqual(statuses, [200, 200])
+  assert.equal(kv.store.size, 3)
 })
 
 test('per-isolate rate limit window is bounded and resets', async () => {
@@ -771,12 +784,12 @@ test('terminal details reach durable KV and return the complete lookup ID', asyn
   const response = await createScanFeedbackReceiver()(makeRequest(report), env)
   assert.equal(response.status, 200)
   assert.equal((await response.json()).reportId, report.reportId)
-  assert.deepEqual(JSON.parse(kv.store.get(report.reportId).value).evidence, evidence)
+  assert.deepEqual(JSON.parse(storedFor(kv, report.reportId).value).evidence, evidence)
 })
 test('strictly rejects unknown fields, unbounded numbers and path-like enum values', () => {
   for (const evidence of [
-    { privatePath: 'C:/private' },
-    { phase: 'C:/private' },
+    { privatePath: '/synthetic/private' },
+    { phase: '/synthetic/private' },
     { reason: 'scrollbar_position_missing/path' },
     { diagnosticSource: 'raw_log' },
     { acceptGateReason: 'required_core_missing UID=42' },
@@ -790,4 +803,132 @@ test('strictly rejects unknown fields, unbounded numbers and path-like enum valu
 test('schema 1 reports with empty or old evidence remain accepted', () => {
   for (const evidence of [{}, validReport.evidence])
     assert.equal(sanitizeScanFeedbackPayload({ ...validReport, evidence }).ok, true)
+})
+
+test('independent isolates with simultaneous misses preserve colliding IDs across spaced writes', async () => {
+  const store = new Map()
+  let contentReads = 0
+  let releaseReads
+  const bothMissed = new Promise((resolve) => {
+    releaseReads = resolve
+  })
+  let writes = 0
+  let firstWritten
+  const firstPut = new Promise((resolve) => {
+    firstWritten = resolve
+  })
+  const writeTimes = []
+  const kv = {
+    async get(key) {
+      if (!key.includes(':')) return null
+      // Hold both content reads until both isolates have observed no record.
+      const existing = store.get(key)?.value ?? null
+      contentReads += 1
+      if (contentReads === 2) releaseReads()
+      await bothMissed
+      return existing
+    },
+    async put(key, value, options) {
+      writes += 1
+      if (writes === 2) {
+        await firstPut
+        await new Promise((resolve) => setTimeout(resolve, 1100))
+      }
+      writeTimes.push(Date.now())
+      store.set(key, { value, options })
+      firstWritten()
+    },
+  }
+  const { env } = makeEnv({}, kv)
+  const reports = [
+    validReport,
+    { ...validReport, environment: { ...validReport.environment, browser: 'edge' } },
+  ]
+  const receivers = reports.map(() => createScanFeedbackReceiver({ kvTimeoutMs: 4000 }))
+  const responses = await Promise.all(
+    reports.map((report, i) => receivers[i](makeRequest(report), env)),
+  )
+  assert.deepEqual(
+    responses.map((response) => response.status),
+    [200, 200],
+  )
+  assert.equal(contentReads, 2)
+  assert.equal(writes, 2)
+  assert(writeTimes[1] - writeTimes[0] > 1000)
+  assert.equal(store.size, 2)
+  assert.equal(store.has(validReport.reportId), false)
+  const records = [...store.entries()].map(([key, { value, options }]) => {
+    assert.match(key, new RegExp(`^${validReport.reportId}:[0-9a-f]{64}$`))
+    assert.equal(options.expirationTtl, 30 * 86400)
+    const { receivedAt, ...record } = JSON.parse(value)
+    assert(Number.isFinite(Date.parse(receivedAt)))
+    return record
+  })
+  assert.deepEqual(
+    records.sort((a, b) => a.environment.browser.localeCompare(b.environment.browser)),
+    reports,
+  )
+})
+
+test('legacy bare keys preserve original receipts and reject different content without writes', async () => {
+  const kv = createFakeKv()
+  const { env } = makeEnv({}, kv)
+  const receivedAt = '2026-10-08T00:00:00.000Z'
+  const value = JSON.stringify({ ...validReport, receivedAt })
+  kv.store.set(validReport.reportId, { value, options: {} })
+  const handler = createScanFeedbackReceiver()
+  const response = await handler(makeRequest(validReport), env)
+  assert.equal(response.status, 200)
+  assert.deepEqual(await response.json(), {
+    status: 'received',
+    reportId: validReport.reportId,
+    receivedAt,
+  })
+  assert.equal(
+    (await handler(makeRequest({ ...validReport, outcome: 'completed' }), env)).status,
+    409,
+  )
+  assert.equal(kv.getPutCount(), 0)
+  assert.equal(kv.store.size, 1)
+  assert.equal(kv.store.get(validReport.reportId).value, value)
+})
+
+test('damaged content keys and second read errors fail closed without overwriting storage', async () => {
+  const kv = createFakeKv()
+  const { env } = makeEnv({}, kv)
+  const handler = createScanFeedbackReceiver()
+  assert.equal((await handler(makeRequest(validReport), env)).status, 200)
+  const [key] = kv.store.keys()
+  for (const value of [
+    'not-json',
+    JSON.stringify({ ...validReport, receivedAt: 'invalid-date' }),
+    JSON.stringify({ ...validReport, outcome: 'invalid', receivedAt: new Date().toISOString() }),
+  ]) {
+    kv.store.set(key, { value, options: {} })
+    assert.equal((await handler(makeRequest(validReport), env)).status, 503)
+    assert.equal(kv.store.get(key).value, value)
+    assert.equal(kv.getPutCount(), 1)
+  }
+  const badReadKv = {
+    get: async (key) => {
+      if (key.includes(':')) throw new Error('content_read_failed')
+      return null
+    },
+    put: async () => assert.fail('must not write after failed content read'),
+  }
+  assert.equal((await handler(makeRequest(), makeEnv({}, badReadKv).env)).status, 503)
+})
+
+test('asynchronous content digest errors return 503 and release the concurrency slot', async (t) => {
+  const kv = createFakeKv()
+  const { env } = makeEnv({}, kv)
+  const handler = createScanFeedbackReceiver({ concurrency: 1 })
+  const digestMock = t.mock.method(crypto.subtle, 'digest', async () => {
+    throw new Error('digest_unavailable')
+  })
+  assert.equal((await handler(makeRequest(), env)).status, 503)
+  assert.equal(kv.getGetCount(), 0)
+  assert.equal(kv.getPutCount(), 0)
+  digestMock.mock.restore()
+  assert.equal((await handler(makeRequest(), env)).status, 200)
 })

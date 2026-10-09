@@ -1,4 +1,5 @@
 import { useLayoutEffect, useId, useRef, useState, type ReactNode } from 'react'
+import { fitFloatingLayer, getEffectiveZoom } from './floatingLayerGeometry'
 import './ExplanationPopover.css'
 
 /** Native top-layer disclosure: outside click, Escape and focus return stay browser-owned. */
@@ -28,17 +29,22 @@ export function ExplanationPopover({
       const anchor = trigger.current?.getBoundingClientRect()
       const content = panel.current
       if (!anchor || !content) return
-      const gap = 12
+      const scale = getEffectiveZoom(content)
+      content.style.maxWidth = `${Math.max(1, window.innerWidth - 24) / scale}px`
       const bounds = content.getBoundingClientRect()
-      const below = window.innerHeight - anchor.bottom - gap
-      const above = anchor.top - gap
-      const top =
-        below >= bounds.height || below >= above
-          ? anchor.bottom + 6
-          : anchor.top - bounds.height - 6
-      const left = align === 'start' ? anchor.left : anchor.right - bounds.width
-      content.style.left = `${Math.max(gap, Math.min(left, window.innerWidth - bounds.width - gap))}px`
-      content.style.top = `${Math.max(gap, Math.min(top, window.innerHeight - bounds.height - gap))}px`
+      const position = fitFloatingLayer({
+        anchor,
+        width: bounds.width,
+        height:
+          content.scrollHeight * scale + Math.max(0, bounds.height - content.clientHeight * scale),
+        scale,
+        viewportWidth: window.innerWidth,
+        viewportHeight: window.innerHeight,
+        align,
+      })
+      content.style.left = `${position.left}px`
+      content.style.top = `${position.top}px`
+      content.style.maxHeight = `${position.maxHeight}px`
       content.style.visibility = 'visible'
     }
     position()
@@ -46,6 +52,7 @@ export function ExplanationPopover({
     window.addEventListener('scroll', position, true)
     const observer = new ResizeObserver(position)
     if (panel.current) observer.observe(panel.current)
+    if (trigger.current) observer.observe(trigger.current)
     return () => {
       window.removeEventListener('resize', position)
       window.removeEventListener('scroll', position, true)

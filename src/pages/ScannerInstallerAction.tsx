@@ -53,6 +53,7 @@ export function ScannerInstallerAction({
     }
   }, [pending])
   const update = Boolean(
+    distribution.state === 'update_available' ||
     (distribution.installedVersion &&
       distribution.installedVersion !== scannerDistributionManifest.runtime.version) ||
     ['helper_incompatible', 'helper_pairing_denied'].includes(issueCode ?? ''),

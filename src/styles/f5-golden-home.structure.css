@@ -45,8 +45,7 @@
 .f5v-shell .focus-copy {
   position: relative;
   z-index: 5;
-  width: min(46%, 42rem);
-  max-width: 42rem;
+  width: 46%;
   padding: 48px 0 0 48px;
 }
 
@@ -87,7 +86,7 @@
   margin: 26px 0 0;
   color: var(--f5-ink);
   font-size: 3rem;
-  line-height: 1.05;
+  line-height: 1.02;
   letter-spacing: -0.035em;
   width: auto !important;
   max-width: none !important;

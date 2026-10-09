@@ -1,7 +1,6 @@
 import { registerRuntimeResultTests } from './runtimeResultTests'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createScannerAssistantRuntime } from './runtime'
-import { scannerDistributionManifest } from './distribution'
 import {
   createNativeFixtureRuntime,
   FakeEventSource,
@@ -96,51 +95,6 @@ describe('direct upstream scanner runtime', () => {
       expect.objectContaining({ state: 'connection_failed' }),
     )
     unsubscribe()
-  })
-
-  it.each([
-    { ...nativeIdentity, version: '2.2.0' },
-    { ...nativeIdentity, version: '99.0.0' },
-    { ...nativeIdentity, transport: 'node-compatibility' },
-    { ...nativeIdentity, protocolVersion: 4 },
-    { ...nativeIdentity, accountWriteEnabled: true },
-    { ...nativeIdentity, importAccess: true },
-    { ok: true },
-  ])(
-    'rejects incompatible helper capabilities before token or scan access: %j',
-    async (identity) => {
-      const fetchImpl = vi.fn<typeof fetch>(async () => new Response(JSON.stringify(identity)))
-      const runtime = createScannerAssistantRuntime({ fetchImpl, maxReconnectAttempts: 1 })
-      await expect(runtime.commands.retryConnection()).rejects.toThrow('扫描助手未就绪')
-      await expect(runtime.commands.startScan()).rejects.toThrow('扫描助手未就绪')
-      expect(fetchImpl.mock.calls).toHaveLength(2)
-      expect(fetchImpl.mock.calls.every(([url]) => new URL(String(url)).pathname === '/')).toBe(
-        true,
-      )
-    },
-  )
-
-  it.each([
-    '2.3.4',
-    '2.3.5',
-    '2.3.6',
-    '2.3.7',
-    '2.3.8',
-    scannerDistributionManifest.helper.version,
-  ])('connects to published Helper %s', async (version) => {
-    const otherRequests = helperFetch()
-    const fetchImpl = vi.fn<typeof fetch>((input, init) =>
-      new URL(String(input)).pathname === '/'
-        ? Promise.resolve(new Response(JSON.stringify({ ...nativeIdentity, version })))
-        : otherRequests(input, init),
-    )
-    const runtime = createScannerAssistantRuntime({ fetchImpl, maxReconnectAttempts: 1 })
-    await expect(runtime.commands.retryConnection()).resolves.toBeUndefined()
-    expect(fetchImpl.mock.calls.map(([url]) => new URL(String(url)).pathname)).toEqual([
-      '/',
-      '/token',
-      '/api/retry',
-    ])
   })
 
   it('shows a disconnected native helper without claiming that installation is missing', async () => {

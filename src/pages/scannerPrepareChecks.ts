@@ -107,13 +107,17 @@ export function createPrepareChecks(snapshot: ScannerAssistantSnapshot): Prepare
       instruction: snapshot.readiness.helperConnected
         ? distributionReady
           ? '扫描助手已连接'
-          : '扫描组件未就绪，修复后重新连接'
+          : snapshot.distribution?.state === 'update_available'
+            ? '请更新扫描助手后再扫描'
+            : '扫描组件未就绪，修复后重新连接'
         : '扫描助手未就绪，可重新连接',
       feedback:
         snapshot.readiness.helperConnected && distributionReady
           ? '扫描组件已准备好'
           : snapshot.readiness.helperConnected
-            ? '扫描组件未通过检查'
+            ? snapshot.distribution?.state === 'update_available'
+              ? '扫描助手需要更新'
+              : '扫描组件未通过检查'
             : '尚未连接扫描助手',
     },
   ]

@@ -17,6 +17,8 @@ export const incremental32CommunityTests = Object.freeze([
 ])
 
 export const communityTests = Object.freeze([
+  'src/components/floatingLayerGeometry.test.ts',
+  'src/components/assets/r6/SelectMenu.test.tsx',
   'src/gameDataPacks/reviewedBangbooSourceContract.test.ts',
   'src/calculation/reviewedPanIncomingTransfer32.test.ts',
   'src/decision/teamDynamicIndependentCalibration.test.ts',
@@ -101,10 +103,12 @@ export const communityTests = Object.freeze([
   'src/pages/ScannerGuide.test.tsx',
   'src/pages/scannerPrepareChecks.test.ts',
   'src/pages/ScannerInstallerAction.test.tsx',
+  'src/pages/ScannerAssistantPage.test.tsx',
   'src/scanner/installerDownload.test.ts',
   'src/scanner/diagnostics.test.ts',
   'src/scanner/scanFeedback.test.tsx',
   'src/scanner/runtime.test.ts',
+  'src/scanner/runtimeHelperVersion.test.ts',
   'src/warehouse/absoluteDiscRetention.test.ts',
   'src/warehouse/approvedRarityRetention.test.ts',
   'src/warehouse/reviewedRetentionActionKits.test.ts',
