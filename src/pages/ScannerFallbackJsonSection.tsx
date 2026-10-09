@@ -27,8 +27,8 @@ export function ScannerFallbackJsonSection({
     >
       <FileJson aria-hidden="true" size={18} />
       <span>
-        <strong id="scanner-json-recovery-heading">已有扫描结果文件？</strong>
-        <small>检查 JSON 后再确认导入</small>
+        <strong id="scanner-json-recovery-heading">已有扫描结果或账户备份？</strong>
+        <small>自动识别文件，检查后再由你确认导入或恢复</small>
       </span>
       <button
         className="button button--quiet scanner-web__file-picker"
@@ -37,17 +37,20 @@ export function ScannerFallbackJsonSection({
         onClick={() => inputRef.current?.click()}
       >
         <Upload aria-hidden="true" size={18} />
-        <span>选择 JSON 文件</span>
+        <span>选择本机文件（JSON）</span>
       </button>
       <input
         className="visually-hidden"
         tabIndex={-1}
         aria-hidden="true"
-        aria-label="选择扫描结果文件（JSON）"
+        aria-label="选择本机文件（JSON）"
         ref={inputRef}
         accept="application/json,.json"
         type="file"
-        onChange={(event) => void onInspectJson(event.target.files?.[0])}
+        onChange={(event) => {
+          void onInspectJson(event.target.files?.[0])
+          event.currentTarget.value = ''
+        }}
       />
       {assessment.state !== 'idle' ? (
         <StatusBanner

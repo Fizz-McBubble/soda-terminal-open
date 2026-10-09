@@ -1,5 +1,6 @@
 import './asset-dialog.css'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useEffectEvent, useRef, useState } from 'react'
+import { detectLocalDataFileKind } from '../../../application/localDataFile'
 import type { AssetGoldenProps, BackupPreview } from './types'
 import { SelectMenu } from './SelectMenu'
 
@@ -50,6 +51,14 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
     setPreview(null)
     setOperationError(null)
     try {
+      if (props.onOpenScanFile) {
+        const kind = detectLocalDataFileKind(await file.text())
+        if (generation !== inspectionGeneration.current) return
+        if (kind === 'scan-result') {
+          props.onOpenScanFile(file)
+          return
+        }
+      }
       const next = await props.onInspectBackup(file)
       if (generation !== inspectionGeneration.current) return
       setPreview(next)
@@ -66,6 +75,22 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
       if (generation === inspectionGeneration.current) setInspecting(false)
     }
   }
+  const receiveBackup = useEffectEvent((file: File) => {
+    void choose(file)
+    props.onIncomingBackupHandled?.()
+  })
+  useEffect(() => {
+    const file = props.incomingBackupFile
+    if (!file) return
+    let active = true
+    // Deliver the transferred selection after mounting; a cancelled mount must not inspect it.
+    queueMicrotask(() => {
+      if (active) receiveBackup(file)
+    })
+    return () => {
+      active = false
+    }
+  }, [props.incomingBackupFile])
   const closeRestoreDialog = () => {
     inspectionGeneration.current += 1
     setPreview(null)
@@ -224,7 +249,7 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
             <div className="backup-row">
               <span>
                 <strong>从本机选择备份文件</strong>
-                <small>选择 Soda 导出的账户备份（.json）</small>
+                <small>账户备份或扫描结果（JSON），自动识别后检查</small>
               </span>
               <button ref={openerRef} className="quiet" onClick={() => inputRef.current?.click()}>
                 {inspecting ? '正在检查，可重新选择' : '选择并检查'}
