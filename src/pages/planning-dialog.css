@@ -3,7 +3,7 @@
   inset: 0;
   margin: auto;
   width: min(480px, calc(100vw - 32px));
-  max-height: calc(100dvh - 48px);
+  max-height: calc(var(--soda-viewport-height) - 48px);
   overflow: auto;
   box-sizing: border-box;
   padding: 24px;

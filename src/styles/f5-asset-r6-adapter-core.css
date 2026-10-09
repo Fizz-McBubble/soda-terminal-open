@@ -398,7 +398,7 @@
   /* Keep complete rows visible at short/zoomed viewports. The stacked page
      scrolls; its catalog must not shrink below a readable selection area. */
   .r6-golden .catalog {
-    height: clamp(420px, 58dvh, 520px);
+    height: clamp(420px, calc(var(--soda-viewport-height) * 0.58), 520px);
     min-height: 420px;
     max-height: none;
   }

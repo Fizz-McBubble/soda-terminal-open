@@ -403,9 +403,9 @@
   }
 
   .r6-golden .catalog {
-    height: min(58dvh, 520px);
+    height: min(calc(var(--soda-viewport-height) * 0.58), 520px);
     min-height: 420px;
-    max-height: min(58dvh, 520px);
+    max-height: min(calc(var(--soda-viewport-height) * 0.58), 520px);
   }
 
   .r6-golden .editor {

@@ -238,7 +238,7 @@
 
 .team-execution__wengine-drawer {
   width: min(560px, 100%);
-  max-height: min(720px, calc(100vh - 40px));
+  max-height: min(720px, calc(var(--soda-viewport-height) - 40px));
   padding: 20px;
   overflow: visible;
   border: 1px solid var(--soda-line-strong);

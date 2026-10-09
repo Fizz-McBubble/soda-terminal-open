@@ -262,7 +262,7 @@
   background: var(--f5-wash);
 }
 .f5v-shell .f5-route-boundary {
-  min-height: min(560px, calc(100dvh - 116px));
+  min-height: min(560px, calc(var(--soda-viewport-height) - 116px));
   display: grid;
   align-content: center;
   justify-items: start;

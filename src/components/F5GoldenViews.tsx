@@ -94,7 +94,7 @@ export function F5HomeGoldenView({
             className="home-version-hero"
             src={heroSrc}
             srcSet={heroSrcSet}
-            sizes="(min-width: 1920px) and (min-height: 900px) min(42vw, 1080px), (max-width: 960px) 90vw, (max-width: 1400px) 530px, 690px"
+            sizes="(max-width: 960px) 90vw, (max-width: 1400px) 530px, (min-width: 1921px) min(36vw, 1035px), 690px"
             width={1536}
             height={2048}
             fetchPriority="high"

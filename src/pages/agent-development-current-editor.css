@@ -1,6 +1,6 @@
 .planning-dialog:has(.agent-development-current-editor) {
   width: min(760px, calc(100vw - 32px));
-  max-height: calc(100dvh - 32px);
+  max-height: calc(var(--soda-viewport-height) - 32px);
 }
 
 .planning-dialog .agent-development-current-editor {
