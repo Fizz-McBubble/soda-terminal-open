@@ -184,6 +184,11 @@ export function sanitizeScanFeedbackPayload(payload, expectedRelease) {
         return { status: 400 }
       }
       sanitizedEvidence[k] = v
+    } else if (Object.hasOwn(contract.evidenceEnums, k)) {
+      if (typeof v !== 'string' || !contract.evidenceEnums[k].includes(v)) {
+        return { status: 400 }
+      }
+      sanitizedEvidence[k] = v
     } else if (k === 'targetVerificationKind') {
       if (typeof v !== 'string' || !contract.targetVerificationKinds.includes(v)) {
         return { status: 400 }

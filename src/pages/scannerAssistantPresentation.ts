@@ -1,5 +1,22 @@
 import type { ScannerAssistantSnapshot } from '../scanner/runtime'
 
+export function getAverageScannerRate(snapshot: ScannerAssistantSnapshot): number | null {
+  const recognized =
+    snapshot.state === 'completed'
+      ? snapshot.summary?.uniqueRecords
+      : snapshot.diagnostics?.counts.processed
+  const elapsedMs = snapshot.diagnostics?.durationMs ?? (snapshot.summary?.totalSeconds ?? 0) * 1000
+  if (
+    typeof recognized !== 'number' ||
+    !Number.isFinite(recognized) ||
+    recognized <= 0 ||
+    !Number.isFinite(elapsedMs) ||
+    elapsedMs <= 0
+  )
+    return null
+  return Math.round((recognized * 60000) / elapsedMs)
+}
+
 export const scannerSteps = [
   { id: 'account', label: '选择账户' },
   { id: 'helper', label: '启动 Helper' },

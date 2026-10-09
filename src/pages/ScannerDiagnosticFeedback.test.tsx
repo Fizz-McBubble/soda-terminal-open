@@ -67,7 +67,7 @@ it('copies, downloads and restores the acknowledged ID after a conflict retry', 
   ) {
     filename = this.download
   })
-  render(<ScannerDiagnosticFeedback report={report} />)
+  const { unmount } = render(<ScannerDiagnosticFeedback report={report} />)
   fireEvent.click(screen.getByRole('button', { name: '反馈此问题' }))
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('反馈已收到'))
   fireEvent.click(screen.getByText('查看诊断信息'))
@@ -85,6 +85,23 @@ it('copies, downloads and restores the acknowledged ID after a conflict retry', 
   expect(readLastScanDiagnostic()).toEqual({ ...report, reportId: receivedId })
   expect(receivedId).not.toBe(report.reportId)
   expect(fetcher).toHaveBeenCalledTimes(2)
+  unmount()
+  const restored = readLastScanDiagnostic()!
+  const helpCard = render(<ScannerDiagnosticFeedback report={restored} />)
+  expect(screen.getByRole('button', { name: '已反馈' })).toBeDisabled()
+  fireEvent.click(screen.getByText('查看诊断信息'))
+  expect(screen.getByText(receivedId)).toBeVisible()
+  fireEvent.click(screen.getByRole('button', { name: '复制诊断' }))
+  await waitFor(() => expect(writeText).toHaveBeenCalledTimes(2))
+  expect(JSON.parse(writeText.mock.calls[1][0])).toEqual(restored)
+  fireEvent.click(screen.getByRole('button', { name: '下载诊断' }))
+  expect(filename).toBe(`soda-scan-diagnostic-${receivedId}.json`)
+  expect(fetcher).toHaveBeenCalledTimes(2)
+  helpCard.unmount()
+  render(<ScannerDiagnosticFeedback report={report} />)
+  expect(screen.getByRole('button', { name: '已反馈' })).toBeDisabled()
+  fireEvent.click(screen.getByText('查看诊断信息'))
+  expect(screen.getByText(receivedId)).toBeVisible()
 })
 
 it('keeps submission explicit, disables duplicate pending clicks, and shows only a matching receipt', async () => {
@@ -120,8 +137,10 @@ it('keeps submission explicit, disables duplicate pending clicks, and shows only
   )
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('反馈已收到'))
   expect(screen.getByRole('button', { name: '已反馈' })).toBeDisabled()
-  expect(screen.queryByText(report.reportId)).not.toBeInTheDocument()
-  expect(screen.queryByText(/回执编号/)).not.toBeInTheDocument()
+  expect(screen.getByText(report.reportId)).not.toBeVisible()
+  expect(screen.getByText('回执编号')).not.toBeVisible()
+  fireEvent.click(screen.getByText('查看诊断信息'))
+  expect(screen.getByText(report.reportId)).toBeVisible()
 })
 it('retains report and copy/download options after a network failure, then retries in-page', async () => {
   const report = makeReport()
@@ -152,7 +171,7 @@ it('retains report and copy/download options after a network failure, then retri
   fireEvent.click(screen.getByText('查看诊断信息'))
   expect(screen.getByText(/已处理 4 张/)).toBeVisible()
   expect(screen.getByText(/未能及时读取/)).toBeVisible()
-  expect(screen.getByText(/确认游戏仓库画面可见/)).toBeVisible()
+  expect(screen.getByText(/更新扫描助手后重试/)).toBeVisible()
   expect(screen.getByText(/保留 30 天/)).toBeVisible()
   expect(screen.queryByText(/未知|错误码|Cloudflare/)).not.toBeInTheDocument()
   expect(screen.queryByText(report.code)).not.toBeInTheDocument()
@@ -278,3 +297,136 @@ it.each(contract.codes.filter((code) => !['none', 'unknown'].includes(code)))(
     expect(result.problem).not.toContain(code)
   },
 )
+
+it.each([
+  [
+    'panel_capture_timeout',
+    'acceptGateReason',
+    'waiting_for_target_selection_stability',
+    '没有确认目标盘已稳定选中',
+  ],
+  ['panel_capture_timeout', 'acceptGateReason', 'required_core_missing', '必要文字不完整'],
+  ['scan_navigation_failed', 'reason', 'scrollbar_position_missing', '未能确认仓库滚动条'],
+  ['scan_navigation_failed', 'reason', 'unexpected_scroll_during_row', '非预期的仓库滚动'],
+  ['scan_navigation_failed', 'reason', 'scroll_top_position_unconfirmed', '未能确认已回到仓库顶部'],
+])(
+  'explains observed diagnostic detail without claiming the underlying cause: %s/%s',
+  (code, key, value, problem) => {
+    const report = sanitizeScanDiagnostic({ ...makeReport(), code, evidence: { [key]: value } })!
+    const result = scannerDiagnosticGuidance(report)
+    expect(result.problem).toContain(problem)
+    expect(result.problem).not.toMatch(/截图|权限|用户|遮挡/)
+    expect(result.nextAction).toContain('更新扫描助手后重试')
+  },
+)
+
+it('binds the receipt to exact submitted content when terminal details arrive with the same ID', async () => {
+  const report = { ...makeReport(), code: 'scanner_failure' }
+  vi.stubGlobal(
+    'fetch',
+    vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          status: 'received',
+          reportId: report.reportId,
+          receivedAt: '2026-10-07T00:00:00Z',
+        }),
+      ),
+    ),
+  )
+  const { rerender } = render(<ScannerDiagnosticFeedback report={report} />)
+  fireEvent.click(screen.getByRole('button', { name: '反馈此问题' }))
+  await waitFor(() => expect(screen.getByRole('button', { name: '已反馈' })).toBeDisabled())
+  rerender(
+    <ScannerDiagnosticFeedback
+      report={{
+        ...report,
+        code: 'panel_capture_timeout',
+        evidence: {
+          diagnosticSource: 'terminal_details',
+          acceptGateReason: 'required_core_missing',
+        },
+      }}
+    />,
+  )
+  expect(screen.getByRole('button', { name: '反馈此问题' })).toBeEnabled()
+  expect(screen.queryByText('回执编号')).not.toBeInTheDocument()
+  expect(screen.queryByRole('status')).not.toBeInTheDocument()
+})
+
+it('ignores a stale pending receipt after the same attempt is enriched', async () => {
+  const report = makeReport()
+  let resolve!: (response: Response) => void
+  vi.stubGlobal(
+    'fetch',
+    vi.fn().mockImplementation(
+      () =>
+        new Promise<Response>((done) => {
+          resolve = done
+        }),
+    ),
+  )
+  const { rerender } = render(<ScannerDiagnosticFeedback report={report} />)
+  fireEvent.click(screen.getByRole('button', { name: '反馈此问题' }))
+  rerender(
+    <ScannerDiagnosticFeedback
+      report={{ ...report, evidence: { acceptGateReason: 'required_core_missing' } }}
+    />,
+  )
+  await act(async () =>
+    resolve(
+      new Response(
+        JSON.stringify({
+          status: 'received',
+          reportId: report.reportId,
+          receivedAt: '2026-10-07T00:00:00Z',
+        }),
+      ),
+    ),
+  )
+  expect(screen.getByRole('button', { name: '反馈此问题' })).toBeEnabled()
+  expect(screen.queryByText('回执编号')).not.toBeInTheDocument()
+})
+
+it.each(['terminal_details', 'legacy_log', 'unavailable'])(
+  'chooses a supported next action for the same concrete reason from %s',
+  (diagnosticSource) => {
+    const report = sanitizeScanDiagnostic({
+      ...makeReport(),
+      code: 'scan_navigation_failed',
+      evidence: { diagnosticSource, reason: 'scroll_top_position_unconfirmed' },
+    })!
+    const result = scannerDiagnosticGuidance(report)
+    expect(result.problem).toBe('未能确认已回到仓库顶部。')
+    if (diagnosticSource === 'terminal_details') {
+      expect(result.nextAction).toBe('请反馈此问题；准备好后可重新扫描。')
+      expect(result.nextAction).not.toContain('更新')
+    } else expect(result.nextAction).toContain('更新扫描助手后重试')
+  },
+)
+it.each([
+  ['native_edge_position_unverified', '翻行后仓库位置未能确认。'],
+  ['native_edge_position_release_unverified', '翻行后仓库稳定位置未能确认。'],
+])('describes the observed row-transition confirmation %s accurately', (reason, problem) => {
+  const result = scannerDiagnosticGuidance({
+    ...makeReport(),
+    code: 'scan_navigation_failed',
+    evidence: { reason, diagnosticSource: 'terminal_details' },
+  })
+  expect(result.problem).toBe(problem)
+  expect(result.nextAction).toBe('请反馈此问题；准备好后可重新扫描。')
+})
+it.each([
+  'panel_capture_timeout',
+  'scan_navigation_failed',
+  'warehouse_context_lost',
+  'visual_preflight_failed',
+])('does not prescribe a helper update for structured current failure %s', (code) => {
+  expect(
+    scannerDiagnosticGuidance({
+      ...makeReport(),
+      code,
+      evidence: { diagnosticSource: 'terminal_details' },
+    }).nextAction,
+  ).toBe('请反馈此问题；准备好后可重新扫描。')
+})

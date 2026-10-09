@@ -110,3 +110,15 @@
   font-size: 12px;
   line-height: 1.5;
 }
+
+.scanner-diagnostic-feedback__receipt {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.scanner-diagnostic-feedback__receipt span {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  font-family: monospace;
+  user-select: all;
+}
