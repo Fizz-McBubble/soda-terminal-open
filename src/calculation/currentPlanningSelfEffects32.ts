@@ -82,7 +82,20 @@ export function compileCurrentPlanningSelfEffects32(input: {
   for (const entry of currentAgentPlanningEffectBlueprints.filter(
     (row) => row.providerAgentId === input.member.agentId,
   )) {
-    if (knownInactivePlanningEffect32(entry, input.member, input.references)) {
+    const roxyPreparedEnemyEffect =
+      input.member.agentId === 'agent-roxy' &&
+      input.references?.roxyPreparedHeld32 === 'personal' &&
+      ['agent-roxy:m1_resRed_', 'agent-roxy:m2_stun_'].includes(entry.effectKey)
+    // Contact starts false but changes within the reviewed packet. Preserve the
+    // effect for its existing per-event binder; static mindscape gates still reduce.
+    const inactiveReferences = roxyPreparedEnemyEffect
+      ? Object.fromEntries(
+          Object.entries(input.references ?? {}).filter(
+            ([key]) => !['kindlyHits', 'chillHits'].includes(key),
+          ),
+        )
+      : input.references
+    if (knownInactivePlanningEffect32(entry, input.member, inactiveReferences)) {
       resolvedInactiveEffectKeys.push(entry.effectKey)
       continue
     }
@@ -98,10 +111,6 @@ export function compileCurrentPlanningSelfEffects32(input: {
         'agent-koleda:potential_crit_dmg_',
         'agent-koleda:potential_laceration_dmg_',
       ].includes(entry.effectKey)
-    const roxyPreparedEnemyEffect =
-      input.member.agentId === 'agent-roxy' &&
-      input.references?.roxyPreparedHeld32 === 'personal' &&
-      ['agent-roxy:m1_resRed_', 'agent-roxy:m2_stun_'].includes(entry.effectKey)
     if (metadata.receiverPath?.includes('.initial.')) continue
     if (
       (!metadata.receiverPath?.startsWith('ownBuff.') &&
