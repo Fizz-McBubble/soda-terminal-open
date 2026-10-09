@@ -77,9 +77,31 @@
 }
 
 .f5v-shell .scanner-task .scanner-prepare__intro {
-  padding: 0;
+  padding: 16px 0 0;
   border: 0;
   background: transparent;
+}
+
+.f5v-shell .scanner-task .scanner-prepare__intro h2 {
+  margin: 0;
+  line-height: 1.35;
+}
+
+.f5v-shell .scanner-prepare__primary {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.f5v-shell .scanner-task .scanner-prepare__account-disclosure {
+  margin: 0;
+}
+
+.f5v-shell .scanner-prepare__primary > p {
+  margin: 0;
+  color: var(--f5-muted);
+  font-size: 0.8125rem;
+  line-height: 1.6;
 }
 
 .f5v-shell .scanner-task .scanner-prepare__account {
@@ -94,13 +116,14 @@
 }
 
 .f5v-shell .scanner-task .scanner-prepare__actions > :is(button, a) {
-  height: 40px;
-  min-height: 40px;
+  height: var(--soda-control-height);
+  min-height: var(--soda-control-height);
   padding-block: 0;
 }
 
 .f5v-shell .scanner-task .scanner-prepare__details {
   margin: 0;
+  padding: 16px;
 }
 
 @media (max-width: 860px) {
@@ -120,7 +143,7 @@
 
 .f5v-shell .scanner-target-account__create > button {
   justify-self: start;
-  height: 40px;
+  height: var(--soda-control-height);
   margin: 0;
 }
 
@@ -268,9 +291,6 @@
 .f5v-shell .scanner-task .scanner-prepare {
   row-gap: 12px;
 }
-.f5v-shell .scanner-task .scanner-prepare__details {
-  padding-top: 12px;
-}
 .f5v-shell .scanner-prepare__details .scanner-prepare__checks {
   margin-top: 10px;
   row-gap: 0;
@@ -295,9 +315,6 @@
   .f5v-shell .scanner-task .scanner-prepare {
     margin-top: 8px;
     row-gap: 8px;
-  }
-  .f5v-shell .scanner-task .scanner-prepare__details {
-    padding-top: 6px;
   }
   .f5v-shell .scanner-prepare__details .scanner-prepare__checks {
     margin-top: 6px;

@@ -46,6 +46,7 @@
 }
 
 .f5v-shell .scanner-task {
+  --scanner-column-gap: 16px;
   padding: 34px 40px;
 }
 
@@ -115,7 +116,7 @@
 }
 
 .f5v-shell .scanner-prepare__account {
-  max-width: 620px;
+  max-width: none;
   margin: 0;
   padding: 18px 0;
   border-top: 0;
@@ -143,8 +144,9 @@
   display: none;
 }
 
-.f5v-shell .scanner-account-picker__trigger {
-  min-height: 46px;
+.f5v-shell .scanner-account-picker__trigger,
+.f5v-shell .scanner-account-picker__selected {
+  min-height: var(--soda-control-height);
   margin-top: 8px;
   padding-inline: 14px;
   background: #fff;

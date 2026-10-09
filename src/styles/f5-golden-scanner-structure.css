@@ -178,7 +178,7 @@
 .f5v-shell .scanner-journey-cards {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  gap: var(--scanner-column-gap);
   max-width: none;
   margin: 22px 0 0;
   padding: 0;
@@ -330,8 +330,8 @@
 
 .f5v-shell .scanner-prepare__layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.06fr);
-  gap: 20px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--scanner-column-gap);
   align-items: start;
 }
 
