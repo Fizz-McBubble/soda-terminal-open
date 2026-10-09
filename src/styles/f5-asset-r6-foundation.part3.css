@@ -1,5 +1,5 @@
 .r6-golden .account-source {
-  grid-column: 1/-1;
+  grid-area: source;
   display: flex;
   align-items: end;
   justify-content: space-between;
@@ -31,7 +31,6 @@
   font-weight: 760;
 }
 .r6-golden .account-range {
-  grid-column: 1;
   display: grid;
   grid-template-columns: 170px minmax(0, 1fr);
   gap: 18px;
@@ -49,9 +48,10 @@
 }
 .r6-golden .range-facts {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--soda-space-4);
   margin: 0;
+  max-width: 420px;
 }
 .r6-golden .range-facts div {
   display: grid;
@@ -62,9 +62,8 @@
   color: #463b64;
 }
 .r6-golden .account-switcher {
-  grid-column: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(210px, 0.72fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 18px;
   align-items: end;
   padding: 20px 0;
@@ -96,7 +95,6 @@
   font: inherit;
 }
 .r6-golden .account-management {
-  grid-column: 1;
   padding: 20px 0;
   border: 0;
 }
@@ -163,7 +161,6 @@
   font-size: var(--soda-font-caption);
 }
 .r6-golden .acceptance-recovery {
-  grid-column: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -186,21 +183,22 @@
   flex: 0 0 auto;
 }
 .r6-golden .backup-create {
-  grid-column: 2;
-  grid-row: 2/4;
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 24px;
   align-self: start;
-  padding: 22px 0 22px 24px;
+  padding: 22px 0;
   border: 0;
 }
 .r6-golden .backup-create p {
-  max-width: 31ch;
+  max-width: 60ch;
   color: var(--muted);
   font-size: var(--soda-font-body);
   line-height: 1.5;
   margin: 10px 0 16px;
 }
 .r6-golden .backup-history {
-  grid-column: 1;
   padding: 22px 0 0;
   border: 0;
 }
@@ -352,9 +350,6 @@
   .r6-golden .backup-history {
     padding-top: 18px;
   }
-  .r6-golden .backup-create {
-    padding-left: 20px;
-  }
   .r6-golden .account-source dl {
     gap: 22px;
   }
@@ -379,6 +374,7 @@
 
   .r6-golden .account-overview.account-flow {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'source' 'sidebar' 'main';
     padding: 18px;
     overflow-x: hidden;
   }
@@ -393,6 +389,7 @@
   }
 
   .r6-golden .backup-create {
+    display: block;
     padding-left: 0;
   }
 

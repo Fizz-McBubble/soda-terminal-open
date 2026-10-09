@@ -378,8 +378,7 @@ export function AssetCenterPage() {
   async function selectAccount(accountId: string) {
     if (accountId === propsData.account?.id) return
     const account = await setActiveAccount(accountId)
-    setMessage(`已切换到“${account.displayName}”。资产和队伍配装会按该账户重新读取。`)
-    setRevision((value) => value + 1)
+    setMessage(`已切换到“${account.displayName}”。`)
   }
 
   async function deleteLocalAccount(accountId: string) {
@@ -433,7 +432,6 @@ export function AssetCenterPage() {
 
   return (
     <AssetMaintenanceGolden
-      key={propsData.account?.id ?? 'no-account'}
       accountId={propsData.account?.id ?? 'no-account'}
       accountName={propsData.account?.displayName ?? '尚未选择账户'}
       accountUpdatedAt={propsData.account?.updatedAt ?? new Date(0).toISOString()}

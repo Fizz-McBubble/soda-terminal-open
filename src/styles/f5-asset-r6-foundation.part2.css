@@ -420,8 +420,21 @@
   padding: 22px 26px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(300px, 0.42fr);
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-areas:
+    'source source'
+    'main sidebar';
   gap: 0 28px;
   align-content: start;
+  align-items: start;
   overflow: auto;
+}
+
+.r6-golden .account-main {
+  grid-area: main;
+  min-width: 0;
+}
+
+.r6-golden .account-sidebar {
+  grid-area: sidebar;
+  min-width: 0;
 }

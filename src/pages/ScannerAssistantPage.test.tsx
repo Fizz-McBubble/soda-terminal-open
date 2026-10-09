@@ -232,11 +232,7 @@ describe('ScannerAssistantPage', () => {
         'type',
         'file',
       )
-      expect(
-        screen.getByText(
-          'Windows 本地版扫描 S 级驱动盘，跳过 A/B 级；其他环境与画面要求见扫描指南。',
-        ),
-      ).toBeVisible()
+      expect(screen.getByText('Windows 本地版扫描 S 级驱动盘，跳过 A/B 级。')).toBeVisible()
       expect(screen.getByLabelText('扫描耗时参考')).toBeVisible()
       expect(screen.queryByText('辅助信息与备用导入')).not.toBeInTheDocument()
     },
@@ -358,7 +354,8 @@ describe('ScannerAssistantPage', () => {
     await screen.findByRole('status', { name: '本次扫描保存到' })
     expect(screen.getByRole('button', { name: '连接扫描助手' })).toBeEnabled()
     const checks = screen.getByRole('list', { name: '本机准备检查项' })
-    expect(screen.getByText('先连接本机扫描助手')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '扫描准备指南' })).toBeInTheDocument()
+    expect(screen.getAllByText('参考扫描速度：约 140 张/分钟')).toHaveLength(1)
     expect(checks).toHaveTextContent('启动绝区零')
     expect(checks).toHaveTextContent('打开“驱动仓库”完整列表，画面要求见扫描指南')
     expect(checks).toHaveTextContent('准备本机扫描')

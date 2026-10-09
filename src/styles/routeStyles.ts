@@ -52,12 +52,16 @@ export function applyRouteStyleScope(
     const stylesheet = documentRoot.getElementById(routeStyles[scope].id)
     if (!(stylesheet instanceof HTMLLinkElement)) continue
     const active = scope === activeScope
-    stylesheet.disabled = !active
-    stylesheet.media = active ? 'all' : 'not all'
-    stylesheet.setAttribute('aria-disabled', String(!active))
+    const media = active ? 'all' : 'not all'
+    const ariaDisabled = String(!active)
+    if (stylesheet.disabled !== !active) stylesheet.disabled = !active
+    if (stylesheet.media !== media) stylesheet.media = media
+    if (stylesheet.getAttribute('aria-disabled') !== ariaDisabled)
+      stylesheet.setAttribute('aria-disabled', ariaDisabled)
   }
 
-  documentRoot.documentElement.dataset.sodaStyleScope = activeScope
+  if (documentRoot.documentElement.dataset.sodaStyleScope !== activeScope)
+    documentRoot.documentElement.dataset.sodaStyleScope = activeScope
   return activeScope
 }
 

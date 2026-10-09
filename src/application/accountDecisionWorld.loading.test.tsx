@@ -1,7 +1,7 @@
 import Dexie from 'dexie'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { createAccount } from '../accounts/repository'
+import { createAccount, setActiveAccount } from '../accounts/repository'
 import { database } from '../db/database'
 import { ensureBundledGameDataPacks } from '../gameDataPacks/repository'
 import { sampleDiscs } from '../evaluation/fixtures'
@@ -16,6 +16,7 @@ function Probe() {
     <output
       data-status={world.status}
       data-run={world.run?.runId ?? ''}
+      data-account-id={world.run?.input.warehouse.accountId ?? ''}
       data-phase={world.calculation?.phase ?? ''}
       data-cancelled={world.calculationCancelled ?? false}
     >
@@ -28,7 +29,7 @@ function Probe() {
 
 async function setup() {
   await database.open()
-  await createAccount('等待体验合成账户')
+  const account = await createAccount('等待体验合成账户')
   await ensureBundledGameDataPacks()
   let delayed = true
   const pending: Array<{ run: AccountDecisionRun; resolve: () => void }> = []
@@ -41,6 +42,7 @@ async function setup() {
     },
   )
   return {
+    account,
     pending,
     calculate,
     release,
@@ -60,6 +62,49 @@ afterEach(async () => {
 })
 
 describe('account-owned loading lifecycle', () => {
+  it('keeps the visible page mounted while switching accounts and rejects a late previous result', async () => {
+    const { account: first, client, pending, release, stopDelaying } = await setup()
+    const second = await createAccount('切换过渡合成账户')
+    await setActiveAccount(first.id)
+    render(
+      <AccountDecisionWorldProvider queryClient={client}>
+        <input aria-label="页面上下文" defaultValue="保留位置" />
+        <Probe />
+      </AccountDecisionWorldProvider>,
+    )
+    await waitFor(() => expect(pending).toHaveLength(1))
+    const input = screen.getByLabelText('页面上下文')
+    fireEvent.change(input, { target: { value: '切换前的上下文' } })
+    await act(async () => {
+      await setActiveAccount(second.id)
+    })
+    await waitFor(() => expect(pending).toHaveLength(2))
+    expect(screen.getByLabelText('页面上下文')).toBe(input)
+    expect(input).toHaveValue('切换前的上下文')
+    expect(screen.getByRole('status')).toHaveAttribute('data-run', '')
+    expect(release).toHaveBeenCalledWith(pending[0]!.run.runId)
+    stopDelaying()
+    await act(async () => {
+      pending[1]!.resolve()
+    })
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveAttribute('data-account-id', second.id),
+    )
+    const secondRun = screen.getByRole('status').getAttribute('data-run')
+    await act(async () => {
+      pending[0]!.resolve()
+    })
+    expect(screen.getByRole('status')).toHaveAttribute('data-run', secondRun)
+    await act(async () => {
+      await setActiveAccount(first.id)
+    })
+    await waitFor(() =>
+      expect(screen.getByRole('status')).toHaveAttribute('data-account-id', first.id),
+    )
+    expect(screen.getByLabelText('页面上下文')).toBe(input)
+    expect(screen.getByRole('status')).not.toHaveAttribute('data-run', pending[0]!.run.runId)
+  })
+
   it('marks a lost Worker handle stale without parent input or route changes', async () => {
     const { client, stopDelaying, calculate } = await setup()
     stopDelaying()

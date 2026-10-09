@@ -113,160 +113,164 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
             <p>先建立独立本机账户，再录入代理人和驱动盘；音擎、邦布只在方案需要时确认。</p>
           )}
         </header>
-        {hasAccount ? (
-          <section className="account-range" aria-labelledby="range-title">
-            <div>
-              <h2 id="range-title">账户资产</h2>
-            </div>
-            <dl className="range-facts">
-              <div>
-                <dt>代理人</dt>
-                <dd>
-                  {ownedAgents} / {props.catalog.agents.length}
-                </dd>
-              </div>
-              <div>
-                <dt>驱动盘</dt>
-                <dd>{props.discs.length} 张</dd>
-              </div>
-            </dl>
-          </section>
-        ) : null}
-        <section className="account-management" aria-labelledby="account-management-title">
-          <div>
-            <span className="kicker">账户管理</span>
-            <h2 id="account-management-title">管理本机账户</h2>
-            <p>新建账户请前往扫描与导入。</p>
-          </div>
-          <button
-            className="primary"
-            type="button"
-            onClick={() => props.onPrimaryNavigate('/system/scanner')}
-          >
-            前往扫描与导入
-          </button>
+        <aside className="account-sidebar" aria-label="本机账户">
           {props.accountOptions.length ? (
-            <ul className="account-management-list" aria-label="本机账户列表">
-              {props.accountOptions.map((account) => (
-                <li key={account.id}>
-                  <span>
-                    <strong>{account.displayName}</strong>
-                    <small>{account.id === props.accountId ? '当前账户' : '本机账户'}</small>
-                  </span>
-                  <button
-                    className="danger"
-                    type="button"
-                    onClick={() => openDeleteDialog(account)}
-                  >
-                    删除账户
-                  </button>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="account-empty-note">当前没有本机账户。</p>
-          )}
-        </section>
-        {props.accountOptions.length ? (
-          <section className="account-switcher" aria-labelledby="account-switcher-title">
+            <section className="account-switcher" aria-labelledby="account-switcher-title">
+              <div>
+                <span className="kicker">本机账户</span>
+                <h2 id="account-switcher-title">切换当前账户</h2>
+                <p>切换只改变此设备当前查看的账户，不会合并、导入或修改任何资产。</p>
+              </div>
+              <label>
+                当前查看账户
+                <SelectMenu
+                  label="当前查看账户"
+                  value={props.accountId}
+                  options={props.accountOptions.map((account) => ({
+                    value: account.id,
+                    label: account.displayName,
+                  }))}
+                  onChange={(accountId) => {
+                    setOperationError(null)
+                    void Promise.resolve(props.onSelectAccount(accountId)).catch((error) =>
+                      setOperationError(
+                        error instanceof Error ? error.message : '无法切换当前账户。',
+                      ),
+                    )
+                  }}
+                />
+              </label>
+            </section>
+          ) : null}
+          <section className="account-management" aria-labelledby="account-management-title">
             <div>
-              <span className="kicker">本机账户</span>
-              <h2 id="account-switcher-title">切换当前账户</h2>
-              <p>切换只改变此设备当前查看的账户，不会合并、导入或修改任何资产。</p>
-            </div>
-            <label>
-              当前查看账户
-              <SelectMenu
-                label="当前查看账户"
-                value={props.accountId}
-                options={props.accountOptions.map((account) => ({
-                  value: account.id,
-                  label: account.displayName,
-                }))}
-                onChange={(accountId) => {
-                  setOperationError(null)
-                  void Promise.resolve(props.onSelectAccount(accountId)).catch((error) =>
-                    setOperationError(
-                      error instanceof Error ? error.message : '无法切换当前账户。',
-                    ),
-                  )
-                }}
-              />
-            </label>
-          </section>
-        ) : null}
-        {props.onRestoreAcceptanceAccount ? (
-          <section className="acceptance-recovery" aria-labelledby="acceptance-recovery-title">
-            <div>
-              <span className="kicker">产品验收</span>
-              <h2 id="acceptance-recovery-title">恢复隔离的完整验收账户</h2>
-              <p>
-                显式重建 57 名代理人、当前音擎目录、41 名邦布与 400
-                张测试驱动盘；不会覆盖其他账户或已保存方案。
-              </p>
+              <span className="kicker">账户管理</span>
+              <h2 id="account-management-title">管理本机账户</h2>
+              <p>新建账户请前往扫描与导入。</p>
             </div>
             <button
               className="primary"
               type="button"
-              onClick={() => void props.onRestoreAcceptanceAccount?.()}
+              onClick={() => props.onPrimaryNavigate('/system/scanner')}
             >
-              恢复 N2 验收账户
+              前往扫描与导入
             </button>
+            {props.accountOptions.length ? (
+              <ul className="account-management-list" aria-label="本机账户列表">
+                {props.accountOptions.map((account) => (
+                  <li key={account.id}>
+                    <span>
+                      <strong>{account.displayName}</strong>
+                      <small>{account.id === props.accountId ? '当前账户' : '本机账户'}</small>
+                    </span>
+                    <button
+                      className="danger"
+                      type="button"
+                      onClick={() => openDeleteDialog(account)}
+                    >
+                      删除账户
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="account-empty-note">当前没有本机账户。</p>
+            )}
           </section>
-        ) : null}
-        {hasAccount ? (
-          <section className="backup-create">
-            <div>
-              <span className="kicker">创建备份</span>
-              <h2>保存当前资料</h2>
-              <p>将当前账户资料下载到本机，方便之后恢复。</p>
+        </aside>
+        <div className="account-main">
+          {hasAccount ? (
+            <section className="account-range" aria-labelledby="range-title">
+              <div>
+                <h2 id="range-title">账户资产</h2>
+              </div>
+              <dl className="range-facts">
+                <div>
+                  <dt>代理人</dt>
+                  <dd>
+                    {ownedAgents} / {props.catalog.agents.length}
+                  </dd>
+                </div>
+                <div>
+                  <dt>驱动盘</dt>
+                  <dd>{props.discs.length} 张</dd>
+                </div>
+              </dl>
+            </section>
+          ) : null}
+          {hasAccount ? (
+            <section className="backup-create">
+              <div>
+                <span className="kicker">创建备份</span>
+                <h2>保存当前资料</h2>
+                <p>将当前账户资料下载到本机，方便之后恢复。</p>
+              </div>
+              <button
+                className="primary"
+                onClick={() => {
+                  setOperationError(null)
+                  void props
+                    .onCreateBackup()
+                    .catch((error) =>
+                      setOperationError(
+                        error instanceof Error ? error.message : '无法导出当前账户备份。',
+                      ),
+                    )
+                }}
+              >
+                导出备份文件
+              </button>
+            </section>
+          ) : null}
+          <section className="backup-history" id="restore-backup" ref={backupSectionRef}>
+            <header>
+              <div>
+                <span className="kicker">恢复资料</span>
+                <h2>选择本机备份</h2>
+              </div>
+              <small>先检查备份内容，确认恢复后才会改动账户。</small>
+            </header>
+            <div className="backup-row">
+              <span>
+                <strong>从本机选择备份文件</strong>
+                <small>选择 Soda 导出的账户备份（.json）</small>
+              </span>
+              <button ref={openerRef} className="quiet" onClick={() => inputRef.current?.click()}>
+                {inspecting ? '正在检查，可重新选择' : '选择并检查'}
+              </button>
+              <input
+                ref={inputRef}
+                hidden
+                type="file"
+                accept="application/json,.json"
+                onChange={(event) => {
+                  const file = event.target.files?.[0]
+                  if (file) void choose(file)
+                  event.currentTarget.value = ''
+                }}
+              />
             </div>
-            <button
-              className="primary"
-              onClick={() => {
-                setOperationError(null)
-                void props
-                  .onCreateBackup()
-                  .catch((error) =>
-                    setOperationError(
-                      error instanceof Error ? error.message : '无法导出当前账户备份。',
-                    ),
-                  )
-              }}
-            >
-              导出备份文件
-            </button>
           </section>
-        ) : null}
-        <section className="backup-history" id="restore-backup" ref={backupSectionRef}>
-          <header>
-            <div>
-              <span className="kicker">恢复资料</span>
-              <h2>选择本机备份</h2>
-            </div>
-            <small>先检查备份内容，确认恢复后才会改动账户。</small>
-          </header>
-          <div className="backup-row">
-            <span>
-              <strong>从本机选择备份文件</strong>
-              <small>选择 Soda 导出的账户备份（.json）</small>
-            </span>
-            <button ref={openerRef} className="quiet" onClick={() => inputRef.current?.click()}>
-              {inspecting ? '正在检查，可重新选择' : '选择并检查'}
-            </button>
-            <input
-              ref={inputRef}
-              hidden
-              type="file"
-              accept="application/json,.json"
-              onChange={(event) => {
-                const file = event.target.files?.[0]
-                if (file) void choose(file)
-                event.currentTarget.value = ''
-              }}
-            />
-          </div>
-        </section>
+          {props.onRestoreAcceptanceAccount ? (
+            <section className="acceptance-recovery" aria-labelledby="acceptance-recovery-title">
+              <div>
+                <span className="kicker">产品验收</span>
+                <h2 id="acceptance-recovery-title">恢复隔离的完整验收账户</h2>
+                <p>
+                  显式重建 57 名代理人、当前音擎目录、41 名邦布与 400
+                  张测试驱动盘；不会覆盖其他账户或已保存方案。
+                </p>
+              </div>
+              <button
+                className="primary"
+                type="button"
+                onClick={() => void props.onRestoreAcceptanceAccount?.()}
+              >
+                恢复 N2 验收账户
+              </button>
+            </section>
+          ) : null}
+        </div>
       </section>
       <dialog
         className="soda-asset-dialog"

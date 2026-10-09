@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import type { AccountDecisionRun, CalculationQueryClient } from './calculationQueryContract'
 import {
   createAccountDecisionRun,
@@ -42,6 +42,14 @@ export function useAccountDecisionCalculation({
   const [calculation, setCalculation] =
     useState<AccountDecisionWorldContextValue['calculation']>(null)
   const [cancelled, setCancelled] = useState(false)
+  const [previousClient, setPreviousClient] = useState(client)
+  if (previousClient !== client) {
+    setPreviousClient(client)
+    setRun(null)
+    setError(null)
+    setCalculation(null)
+    setCancelled(false)
+  }
   const cancelledRef = useRef(false)
   const active = useRef(true)
   const generation = useRef(0)
@@ -57,13 +65,17 @@ export function useAccountDecisionCalculation({
     if (task) client.releaseAccountDecisionRun?.(task.runId)
   }, [client])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     active.current = true
+    runRef.current = null
+    cancelledRef.current = false
     return () => {
       active.current = false
       discardPending()
+      if (runRef.current) client.releaseAccountDecisionRun?.(runRef.current.runId)
+      runRef.current = null
     }
-  }, [discardPending])
+  }, [accountId, client, discardPending])
 
   const begin = useCallback(
     (capturedInput?: AccountDecisionWorldInput) => {

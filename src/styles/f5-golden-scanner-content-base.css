@@ -363,3 +363,63 @@
   font-size: 0.75rem;
   line-height: 1.55;
 }
+
+.f5v-shell .scanner-prepare__details-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.f5v-shell .scanner-prepare__details-heading h3 {
+  margin: 0;
+  color: var(--f5-ink);
+  font-size: 1.05rem;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+
+.f5v-shell .scanner-prepare__guide-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid rgba(107, 96, 140, 0.1);
+  border-radius: var(--soda-radius-control);
+  background: rgba(247, 245, 251, 0.72);
+  margin-bottom: 14px;
+}
+
+.f5v-shell .scanner-prepare__guide-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
+.f5v-shell .scanner-prepare__guide-label {
+  font-weight: 700;
+  color: var(--f5-accent);
+  white-space: nowrap;
+  font-size: 0.75rem;
+}
+
+.f5v-shell .scanner-prepare__guide-item p {
+  margin: 0;
+  color: var(--f5-ink);
+}
+
+.f5v-shell .scanner-prepare__guide-speed {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 6px;
+  border-radius: var(--soda-radius-control);
+  background: rgba(107, 96, 140, 0.08);
+  color: var(--f5-accent);
+  font-weight: 600;
+  font-size: 0.75rem;
+}

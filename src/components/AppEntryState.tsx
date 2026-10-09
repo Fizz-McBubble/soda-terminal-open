@@ -3,13 +3,21 @@ import { useAppHealth } from '../appHealthContext'
 import { AppShell } from './AppShell'
 
 /** Brief reads should resolve without introducing a separate page into the visual journey. */
-export function AppLoadingState({ title, compact = false }: { title: string; compact?: boolean }) {
+export function AppLoadingState({
+  title,
+  heading,
+  compact = false,
+}: {
+  title: string
+  heading?: string
+  compact?: boolean
+}) {
   const [visible, setVisible] = useState(false)
   useEffect(() => {
     const timeout = window.setTimeout(() => setVisible(true), 1200)
     return () => window.clearTimeout(timeout)
   }, [])
-  if (!visible) return null
+  if (!visible && !heading) return null
   return (
     <section
       className={compact ? 'panel' : 'app-loading-status'}
@@ -17,7 +25,8 @@ export function AppLoadingState({ title, compact = false }: { title: string; com
       aria-live="polite"
       aria-busy="true"
     >
-      <p>{title}</p>
+      {heading ? <h1>{heading}</h1> : null}
+      {visible ? <p>{title}</p> : null}
     </section>
   )
 }

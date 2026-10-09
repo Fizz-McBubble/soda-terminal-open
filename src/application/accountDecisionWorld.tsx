@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components -- provider and its typed consumer hooks form one application boundary */
 import { useLiveQuery } from 'dexie-react-hooks'
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { type AccountDecisionRun, type CalculationQueryClient } from './calculationQueryContract'
 import { getActiveAccount } from '../accounts/repository'
 import { AppLoadingState } from '../components/AppEntryState'
@@ -63,7 +63,6 @@ export function AccountDecisionWorldProvider({
   const account = identity.account
   return (
     <AccountScopedDecisionWorldProvider
-      key={account?.id ?? 'no-account'}
       accountId={account?.id ?? null}
       queryClient={queryClient}
       runtimeSelectionReader={runtimeSelectionReader}
@@ -90,16 +89,34 @@ function AccountScopedDecisionWorldProvider({
   repairRuntimeSelection: (() => Promise<unknown>) | null
   autoCalculate: boolean
 }) {
-  const liveInput = useLiveQuery(async () => {
+  const observedInput = useLiveQuery(async () => {
     const input = await loadWorldInput()
     return input?.warehouse.accountId === accountId ? input : null
   }, [accountId])
-  const scope = useRef({ active: true, epoch: 0, runs: new Set<string>() })
+  const liveInput =
+    observedInput === undefined
+      ? undefined
+      : observedInput?.warehouse.accountId === accountId
+        ? observedInput
+        : null
+  // Replace the calculation scope while leaving the visible page mounted.
+  const accountIdentity = useMemo(() => ({ accountId }), [accountId])
+  const scope = useRef({
+    identity: accountIdentity,
+    active: true,
+    epoch: 0,
+    runs: new Set<string>(),
+  })
   const scopedClient = useMemo<CalculationQueryClient>(() => {
     const state = scope.current
     const assertCurrent = async (epoch: number) => {
       const current = await getActiveAccount()
-      if (!state.active || state.epoch !== epoch || current?.id !== accountId)
+      if (
+        !state.active ||
+        state.identity !== accountIdentity ||
+        state.epoch !== epoch ||
+        current?.id !== accountId
+      )
         throw new Error('账户已切换，请在当前账户重新分析。')
     }
     const guarded = async <T,>(operation: () => Promise<T>) => {
@@ -163,9 +180,10 @@ function AccountScopedDecisionWorldProvider({
             )
         : undefined,
     }
-  }, [accountId, queryClient])
-  useEffect(() => {
+  }, [accountId, queryClient, accountIdentity])
+  useLayoutEffect(() => {
     const state = scope.current
+    state.identity = accountIdentity
     state.active = true
     return () => {
       state.active = false
@@ -173,7 +191,7 @@ function AccountScopedDecisionWorldProvider({
       for (const id of state.runs) queryClient.releaseAccountDecisionRun?.(id)
       state.runs.clear()
     }
-  }, [queryClient])
+  }, [queryClient, accountIdentity])
   const [repairError, setRepairError] = useState<string | null>(null)
   const [runtimeSelectionRevision, setRuntimeSelectionRevision] = useState(0)
   const runtimeObservation = useLiveQuery(

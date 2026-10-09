@@ -73,29 +73,20 @@
 
 .f5v-shell .scanner-task .scanner-prepare {
   max-width: none;
-  display: grid;
-  grid-template-columns: minmax(0, 620px) minmax(220px, 1fr);
-  align-items: start;
-  gap: var(--soda-space-4) var(--soda-space-6);
+  display: block;
 }
 
 .f5v-shell .scanner-task .scanner-prepare__intro {
-  grid-column: 1 / -1;
-  grid-row: 1;
   padding: 0;
   border: 0;
   background: transparent;
 }
 
 .f5v-shell .scanner-task .scanner-prepare__account {
-  grid-column: 1;
-  grid-row: 2;
   margin: 0;
 }
 
 .f5v-shell .scanner-task .scanner-prepare__actions {
-  grid-column: 1 / -1;
-  grid-row: 3;
   margin: 0;
   align-self: start;
   flex-wrap: wrap;
@@ -109,8 +100,6 @@
 }
 
 .f5v-shell .scanner-task .scanner-prepare__details {
-  grid-column: 1 / -1;
-  grid-row: 4;
   margin: 0;
 }
 
@@ -160,8 +149,14 @@
 }
 .f5v-shell .scanner-prepare__details .scanner-prepare__checks {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px 20px;
+  grid-template-columns: 1fr;
+  gap: 0;
+}
+@media (min-width: 1280px) {
+  .f5v-shell .scanner-prepare__details .scanner-prepare__checks {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 4px 16px;
+  }
 }
 .f5v-shell .scanner-prepare__check > div {
   display: grid;

@@ -30,7 +30,7 @@ export function AssetMaintenanceGolden(props: AssetGoldenProps) {
         </p>
       )}
       {tab === 'account' ? (
-        <AccountWorkspace props={props} />
+        <AccountWorkspace key={props.accountId} props={props} />
       ) : (
         <CatalogWorkspace key={`${props.accountId}:${tab}`} props={props} kind={tab} />
       )}

@@ -44,6 +44,20 @@ describe('route style isolation', () => {
     expect(document.querySelectorAll('link[data-soda-route-styles]')).toHaveLength(2)
   })
 
+  it('leaves the active stylesheet untouched while navigating within the same shell', () => {
+    applyRouteStyleScope('/')
+    const link = stylesheet('f5')
+    const observer = new MutationObserver(() => undefined)
+    observer.observe(document.head, { attributes: true, childList: true, subtree: true })
+    observer.observe(document.documentElement, { attributes: true })
+    for (const path of ['/assets/account', '/system/scanner', '/development', '/loadouts/team']) {
+      applyRouteStyleScope(path)
+      expect(stylesheet('f5')).toBe(link)
+    }
+    expect(observer.takeRecords()).toHaveLength(0)
+    observer.disconnect()
+  })
+
   it('keeps invalid URLs and old redirects in the current public stylesheet', () => {
     for (const path of [
       '/missing-page',

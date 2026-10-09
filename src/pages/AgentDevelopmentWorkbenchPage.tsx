@@ -173,7 +173,8 @@ export function AgentDevelopmentWorkbenchPage() {
   // A saved plan is a local record. Reading it must not depend on a new online calculation.
   if (decisionWorld.status === 'error' && !(requestedPlanId && currentInput))
     return <AgentDevelopmentReadError message={decisionWorld.message} />
-  if (data === undefined) return <AppLoadingState title="正在读取当前账户…" compact />
+  if (data === undefined)
+    return <AppLoadingState heading="代理人养成" title="正在读取当前账户…" compact />
   if (!data) return <AccountRequiredState title="先创建或选择账户" />
   if (!data.account) return <p role="status">暂时无法整理养成建议，请刷新页面重试。</p>
   const account = data.account
@@ -304,7 +305,7 @@ export function AgentDevelopmentWorkbenchPage() {
           <BackNavigation to="/development" />
         </section>
       )
-    return <AppLoadingState title="正在整理当前养成资料…" compact />
+    return <AppLoadingState heading="代理人养成" title="正在整理当前养成资料…" compact />
   }
   const workbenchData = createAgentDevelopmentWorkbenchData({
     agentId,

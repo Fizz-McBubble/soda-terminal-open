@@ -78,7 +78,8 @@ export function AgentDevelopmentGoldenDirectoryPage() {
 
   if (decisionWorld.status === 'error')
     return <AgentDevelopmentReadError message={decisionWorld.message} />
-  if (data === undefined) return <AppLoadingState title="正在读取当前账户…" compact />
+  if (data === undefined)
+    return <AppLoadingState heading="代理人养成" title="正在读取当前账户…" compact />
   if (!data) {
     return <AccountRequiredState title="先创建或选择账户" />
   }
@@ -203,7 +204,8 @@ export function AgentDevelopmentGoldenDirectoryPage() {
     )
 
   if (!directoryAgents.length && !catalogJoin.unmappedOwnedAgentIds.length) {
-    if (advicePending) return <AppLoadingState title="正在整理养成建议…" compact />
+    if (advicePending)
+      return <AppLoadingState heading="代理人养成" title="正在整理养成建议…" compact />
     return (
       <section className="panel">
         <h1>还没有已拥有代理人</h1>

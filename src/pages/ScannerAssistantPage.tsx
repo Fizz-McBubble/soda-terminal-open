@@ -357,13 +357,6 @@ function HydratedScannerAssistantPage({
             </div>
           </header>
           <ScannerJourneyCards currentStep={journeyStep} />
-          <p className="scanner-task__platform-support">
-            Windows 本地版扫描 S 级驱动盘，跳过 A/B 级；其他环境与画面要求见扫描指南。
-          </p>
-          {/* RC8.8 full-inventory reference: 2953 S discs in 1275.020 s, about 139/min. */}
-          <p className="scanner-task__platform-support" aria-label="扫描耗时参考">
-            参考扫描速度：约 140 张/分钟
-          </p>
           <ScannerPrepareSection
             showImportComplete={showImportComplete}
             importedThisVisit={importedThisVisit}

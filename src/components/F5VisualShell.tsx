@@ -4,7 +4,6 @@ import { Link } from 'react-router-dom'
 import { mobileNavigation, navigationGroups } from '../navigation'
 import { preloadPlayerRoute } from '../routes/preloadPlayerRoute'
 import { useDetailsDisclosureMotion } from '../motion/useDetailsDisclosureMotion'
-import { useStateTransitionMotion } from '../motion/useStateTransitionMotion'
 import { SponsorProvider, SponsorRail } from './SponsorSupport'
 import { ReleaseNotes } from './ReleaseNotes'
 
@@ -88,11 +87,6 @@ function F5VisualShellContent({
     currentPath.startsWith('/assets') ||
     currentPath.startsWith('/development') ||
     currentPath === '/warehouse/discs'
-  useStateTransitionMotion({
-    scope: pageFrameRef,
-    stateKey: currentPath,
-    includeScope: true,
-  })
   useDetailsDisclosureMotion({ scope: pageFrameRef })
 
   useEffect(() => {
