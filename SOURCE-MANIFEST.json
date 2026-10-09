@@ -1414,7 +1414,7 @@
     "src/warehouse/discWarehouseAnalysis.ts": "56a8d3f55bf8fcf0953898e6fede333c225c4f84246fec5b99bb8cdb3118663f",
     "src/warehouse/discWarehouseEvidence.ts": "c8eaee438e70a3deb589230ecf9e2d1f3d5ab4dfaa785eb75a5dfe34de41ea4f",
     "src/warehouse/discWarehousePlanAssignments.ts": "b33e51a96988be5a1dd884e2ca571589218f3c6330ae97ec8698c3b5add55f4e",
-    "src/warehouse/discWarehouseProtection.test.tsx": "5bbb3475fcd083aae287c3896125f09172b160fc414b38464a97c233eb9e254c",
+    "src/warehouse/discWarehouseProtection.test.tsx": "3e29cd7dbb3a071fbf45018da45ac0403db3ac8eef19da6e1353c155b9d65c16",
     "src/warehouse/retentionFunctionalStatEvidence.ts": "3bc6f9e5a73ccfb4b14c6f77907b842a09aea3cb317fe162f40fc5a1a071980f",
     "src/warehouse/reviewed-action-source-continuity.v1.json": "20cc659606bef0ee464d5676f975774d1b2b7b570a7886e2293b4ec6421843f0",
     "src/warehouse/reviewed-normal-use-adoptions.v1.json": "fa892c1ec5eee6560ecf6d4ff61a57ab4e396ac6325e732f9c37a137e352664f",

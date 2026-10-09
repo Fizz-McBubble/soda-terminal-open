@@ -114,7 +114,7 @@ describe('current protection action and intrinsic quality', () => {
     },
   )
 
-  it('keeps a high flat-defense disc for the sourced unowned Claret future use', () => {
+  it('reviews an unowned Claret flat-defense use with the promoted-base quality', () => {
     const source = input()
     source.discs[0] = warehouseTestDisc('unowned-claret-defense-use', {
       setId: 'set-woodpecker-electro',
@@ -129,17 +129,28 @@ describe('current protection action and intrinsic quality', () => {
     })
     const before = structuredClone(source)
     const evidence = analyzeAccountWarehouse(source).decisions[0]!.absoluteRetention!
-    // Source DEF 35 + 4.8155 * 59 makes each flat DEF roll worth 0.734454.
+    // Pinned Claret DEF at level60 includes the cumulative fifth promotion.
+    // Keep this arithmetic independent of the production weight resolver.
+    const baseDefense = 35 + 4.8155 * 59 + 122
+    const flatDefenseRollWeight = Math.round(((0.75 * 15) / (baseDefense * 0.048)) * 1e6) / 1e6
     // This is an explicit future use, even though Claret is not owned.
     const use = evidence.leadingUses.find((row) => row.agentId === 'agent-claret')
     expect(use).toBeDefined()
+    expect(use!.useState).toBe('valid')
     expect(use!.currentScore).toBeCloseTo(
-      ((1 + 6 * 0.734454) / (5 + 1 + 1 + 0.75 + 0.734454)) * 100,
+      ((1 + 6 * flatDefenseRollWeight) / (5 + 1 + 1 + 0.75 + flatDefenseRollWeight)) * 100,
       5,
     )
     expect(evidence.unownedUseAgentIds).toContain('agent-claret')
-    expect(evidence.disposition).toBe('keep')
-    expect(project(source).action).toBe('keep')
+    // The independent score is between the unchanged cleanup and keep lines.
+    // A sourced future use survives, but it must not overstate this disc's quality.
+    expect(evidence.disposition).toBe('observe')
+    expect(evidence.reasonKind).toBe('quality_borderline')
+    expect(evidence.nextAction).toMatchObject({ kind: 'review_quality', targetLevel: null })
+    expect(evidence.nextAction?.stopWhen).toContain('已满级')
+    const action = project(source)
+    expect(action.action).toBe('enhance')
+    expect(action.absoluteRetention?.nextAction?.kind).toBe('review_quality')
     expect(source).toEqual(before)
   })
 
