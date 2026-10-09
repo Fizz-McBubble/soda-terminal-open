@@ -309,7 +309,7 @@
   border-radius: var(--soda-radius-surface);
   border: 1px solid rgba(107, 96, 140, 0.12);
   color: var(--f5-accent);
-  background: rgba(255, 255, 255, 0.68);
+  background: #fff;
 }
 
 .f5v-shell .scanner-web__fallback-trigger > span {
@@ -414,7 +414,7 @@
   padding: 12px 14px;
   border: 1px solid rgba(107, 96, 140, 0.1);
   border-radius: var(--soda-radius-control);
-  background: rgba(247, 245, 251, 0.72);
+  background: #fff;
   margin-bottom: 14px;
 }
 

@@ -41,7 +41,7 @@
   min-height: 0;
   padding: 28px 22px;
   overflow: auto;
-  background: rgba(255, 255, 255, 0.42);
+  background: #fff;
 }
 
 .f5v-shell .scanner-route {
@@ -193,7 +193,7 @@
   padding: 6px 10px;
   border: 0;
   border-radius: var(--soda-radius-surface);
-  background: rgba(255, 255, 255, 0.62);
+  background: #fff;
 }
 .f5v-shell .scanner-journey-card > span {
   display: grid;
@@ -281,7 +281,7 @@
   padding: 14px 16px;
   border: 1px solid rgba(107, 96, 140, 0.12);
   border-radius: var(--soda-radius-surface);
-  background: rgba(255, 255, 255, 0.68);
+  background: #fff;
 }
 .f5v-shell .scanner-task__state-copy > span {
   color: var(--f5-accent) !important;
@@ -325,7 +325,7 @@
   padding: 14px 16px;
   border: 1px solid rgba(107, 96, 140, 0.12);
   border-radius: var(--soda-radius-surface);
-  background: rgba(255, 255, 255, 0.68);
+  background: #fff;
 }
 
 .f5v-shell .scanner-prepare__layout {
@@ -346,7 +346,7 @@
   padding: 10px 14px;
   border: 1px solid rgba(107, 96, 140, 0.12);
   border-radius: var(--soda-radius-control);
-  background: rgba(255, 255, 255, 0.52);
+  background: #fff;
 }
 
 .f5v-shell .scanner-prepare__details {
@@ -355,7 +355,7 @@
   padding: 16px 18px;
   border: 1px solid rgba(107, 96, 140, 0.12);
   border-radius: var(--soda-radius-surface);
-  background: rgba(255, 255, 255, 0.68);
+  background: #fff;
   min-width: 0;
 }
 
@@ -413,7 +413,7 @@
   border: 1px solid rgba(103, 90, 144, 0.24);
   border-radius: var(--soda-radius-control);
   color: var(--f5-ink);
-  background: rgba(255, 255, 255, 0.72);
+  background: #fff;
 }
 .f5v-shell .scanner-account-picker__selected {
   display: flex;
@@ -424,7 +424,7 @@
   border: 1px solid rgba(103, 90, 144, 0.2);
   border-radius: var(--soda-radius-control);
   color: var(--f5-ink);
-  background: rgba(255, 255, 255, 0.72);
+  background: #fff;
 }
 .f5v-shell .scanner-account-picker__selected small {
   margin-left: 6px;

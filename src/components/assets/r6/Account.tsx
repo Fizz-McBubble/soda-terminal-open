@@ -116,45 +116,36 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
         <aside className="account-sidebar" aria-label="本机账户">
           {props.accountOptions.length ? (
             <section className="account-switcher" aria-labelledby="account-switcher-title">
-              <div>
-                <span className="kicker">本机账户</span>
-                <h2 id="account-switcher-title">切换当前账户</h2>
-                <p>仅切换当前查看账户，不改动资产。</p>
-              </div>
-              <label>
-                当前查看账户
-                <SelectMenu
-                  label="当前查看账户"
-                  value={props.accountId}
-                  options={props.accountOptions.map((account) => ({
-                    value: account.id,
-                    label: account.displayName,
-                  }))}
-                  onChange={(accountId) => {
-                    setOperationError(null)
-                    void Promise.resolve(props.onSelectAccount(accountId)).catch((error) =>
-                      setOperationError(
-                        error instanceof Error ? error.message : '无法切换当前账户。',
-                      ),
-                    )
-                  }}
-                />
-              </label>
+              <h2 id="account-switcher-title">切换当前账户</h2>
+              <SelectMenu
+                label="当前查看账户"
+                value={props.accountId}
+                options={props.accountOptions.map((account) => ({
+                  value: account.id,
+                  label: account.displayName,
+                }))}
+                onChange={(accountId) => {
+                  setOperationError(null)
+                  void Promise.resolve(props.onSelectAccount(accountId)).catch((error) =>
+                    setOperationError(
+                      error instanceof Error ? error.message : '无法切换当前账户。',
+                    ),
+                  )
+                }}
+              />
             </section>
           ) : null}
           <section className="account-management" aria-labelledby="account-management-title">
-            <div>
-              <span className="kicker">账户管理</span>
-              <h2 id="account-management-title">管理本机账户</h2>
-              <p>新建账户请前往扫描与导入。</p>
-            </div>
-            <button
-              className="primary"
-              type="button"
-              onClick={() => props.onPrimaryNavigate('/system/scanner')}
-            >
-              前往扫描与导入
-            </button>
+            <header className="account-management__header">
+              <h2 id="account-management-title">账户管理</h2>
+              <button
+                className="primary"
+                type="button"
+                onClick={() => props.onPrimaryNavigate('/system/scanner')}
+              >
+                新建账户
+              </button>
+            </header>
             {props.accountOptions.length ? (
               <ul className="account-management-list" aria-label="本机账户列表">
                 {props.accountOptions.map((account) => (
