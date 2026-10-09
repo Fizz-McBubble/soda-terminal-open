@@ -77,11 +77,5 @@
   --radius-control: 12px;
   --radius-pill: 999px;
   --blur-glass: 16px;
-  --soda-content-max-width: 110rem;
-}
-
-@media (min-width: 1921px) {
-  :root {
-    font-size: clamp(1rem, 0.625rem + 0.3125vw, 1.25rem);
-  }
+  --soda-viewport-height: 100dvh;
 }

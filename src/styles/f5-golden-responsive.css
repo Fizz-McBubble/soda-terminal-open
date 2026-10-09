@@ -15,8 +15,8 @@
     grid-template-columns: clamp(190px, 12rem, 230px) minmax(0, 1fr) clamp(260px, 17rem, 320px);
   }
   .f5v-shell .f5v-box-team-overview {
-    max-width: var(--soda-content-max-width, 110rem);
-    margin-inline: auto;
+    max-width: none;
+    margin-inline: 0;
   }
 }
 
@@ -27,10 +27,10 @@
 }
 
 @media (max-width: 1400px) {
-  .f5v-shell {
+  .f5v-shell[data-slice-theme='bright-muted'] {
     grid-template-columns: 166px minmax(0, 1fr);
   }
-  .f5v-shell .f5v-page-content {
+  .f5v-shell :is(.f5v-topbar, .f5v-page-content) {
     padding-inline: 20px;
   }
   .f5v-shell :is(.home-focus, .soda-home--golden .home-focus) {
@@ -138,7 +138,7 @@
     z-index: 80;
     inset: 0 auto 0 0;
     width: min(280px, 84vw);
-    min-height: 100dvh;
+    min-height: var(--soda-viewport-height);
     border-radius: 0 var(--soda-radius-surface) var(--soda-radius-surface) 0;
     transform: translateX(-102%);
     transition: transform 180ms ease;
@@ -258,20 +258,14 @@
   }
 }
 
-/* Keep the existing home together on large, tall viewports without stretching every page. */
-@media (min-width: 1920px) and (min-height: 900px) {
-  .f5v-shell .soda-home--golden {
-    min-height: 100%;
-    align-content: center;
-    gap: var(--soda-space-5);
-  }
-
+/* The desktop keeps the original type and control proportions. Only the
+   available height arranges the existing copy and support block. */
+@media (min-width: 1401px) {
   .f5v-shell .soda-home--golden .home-focus {
     display: grid !important;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) !important;
     grid-template-rows: minmax(min-content, 1fr) auto;
-    min-height: clamp(42rem, calc(100dvh - 18rem), 58rem);
-    padding-bottom: var(--soda-space-6);
+    min-height: clamp(604px, calc(var(--soda-viewport-height) - 260px), 840px);
   }
 
   .f5v-shell .soda-home--golden .focus-copy {
@@ -279,33 +273,8 @@
     grid-row: 1;
     align-self: center;
     width: auto;
-    max-width: none;
-    padding: 3rem 2rem 3rem 3.5rem;
-  }
-
-  .f5v-shell .soda-home--golden .focus-copy h1 {
-    font-size: clamp(3.5rem, 3vw, 4.5rem);
-  }
-
-  .f5v-shell .soda-home--golden .home-focus__lead {
-    max-width: 30rem;
-    margin-block: var(--soda-space-5) var(--soda-space-6);
-    font-size: 1.125rem;
-  }
-
-  .f5v-shell .soda-home--golden .home-primary-action {
-    min-height: 3.25rem;
-    font-size: 1rem;
-  }
-
-  .f5v-shell .soda-home--golden .home-next-signal {
-    max-width: 30rem;
-    grid-template-columns: 5.5rem minmax(0, 1fr);
-    margin-top: var(--soda-space-6);
-  }
-
-  .f5v-shell .soda-home--golden .home-next-signal strong {
-    font-size: 1rem;
+    max-width: 42rem;
+    padding: 32px 24px 24px 48px;
   }
 
   .f5v-shell .soda-home--golden .home-focus > .sponsor-support--home {
@@ -314,62 +283,11 @@
     left: auto;
     width: auto;
     max-width: 38rem;
-    margin: 0 2rem 0 3.5rem;
-  }
-
-  .f5v-shell .soda-home--golden .home-scene {
-    width: clamp(42rem, min(42vw, 80dvh), 56rem);
-    right: 18rem;
-  }
-
-  .f5v-shell .soda-home--golden .home-readiness {
-    right: var(--soda-space-6);
-    bottom: var(--soda-space-6);
-    width: 20rem;
-    padding: var(--soda-space-5);
-  }
-
-  .f5v-shell .soda-home--golden .home-readiness :is(dt, dd),
-  .f5v-shell .soda-home--golden .home-catalog-cache :is(strong, small),
-  .f5v-shell .soda-home--golden .home-catalog-cache__action {
-    font-size: 0.875rem;
-  }
-
-  .f5v-shell .soda-home--golden .home-catalog-cache__action {
-    min-height: 2.5rem;
+    margin: 0 24px 0 48px;
   }
 
   .f5v-shell .soda-home--golden .home-journey {
-    margin-top: 0;
-    padding: 0;
-  }
-
-  .f5v-shell .soda-home--golden .home-section-heading {
-    height: 3.5rem;
-  }
-
-  .f5v-shell .soda-home--golden .home-section-heading h2 {
-    font-size: 1.25rem;
-  }
-
-  .f5v-shell .soda-home--golden .journey-item {
-    min-height: 5.5rem !important;
-    padding: 1.25rem 1.25rem 1.25rem 3.5rem !important;
-  }
-
-  .f5v-shell .soda-home--golden .home-journey__number {
-    top: 1.5rem;
-    left: 1rem;
-    width: 2rem;
-    height: 2rem;
-  }
-
-  .f5v-shell .soda-home--golden .home-journey__copy strong {
-    font-size: 1rem;
-  }
-
-  .f5v-shell .soda-home--golden .home-journey__copy small {
-    font-size: 0.875rem;
+    padding-inline: 0;
   }
 }
 

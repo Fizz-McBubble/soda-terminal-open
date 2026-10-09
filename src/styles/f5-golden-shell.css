@@ -1,18 +1,26 @@
 .f5v-shell[data-slice-theme='bright-muted'] {
   color-scheme: light;
   --f5-shadow: 0 10px 20px rgba(78, 64, 112, 0.1), 0 2px 6px rgba(93, 76, 130, 0.05);
-  height: 100dvh;
+  --soda-viewport-height: calc(100dvh / var(--soda-ui-scale, 1));
+  zoom: var(--soda-ui-scale, 1);
+  height: var(--soda-viewport-height);
   min-height: 0;
   min-width: 0;
   width: 100%;
   box-sizing: border-box;
   display: grid;
-  grid-template-columns: clamp(178px, 11.25rem, 220px) minmax(0, 1fr);
+  grid-template-columns: 178px minmax(0, 1fr);
   padding: 12px;
   border-radius: var(--soda-radius-surface);
   overflow: hidden;
   background: var(--f5-canvas);
   color: var(--f5-ink);
+}
+
+@supports not (zoom: 1) {
+  .f5v-shell[data-slice-theme='bright-muted'] {
+    --soda-ui-scale: 1 !important;
+  }
 }
 
 /* Independent F5 visual shell: Home and Scanner never render the legacy tactical sidebar tree. */
@@ -256,7 +264,7 @@
 
 .f5v-page-content {
   min-height: 0;
-  padding: var(--soda-space-4) clamp(16px, 1.5vw, 32px);
+  padding: var(--soda-space-4) var(--soda-space-5);
   overflow: hidden;
   color: var(--f5-ink);
   background: var(--f5-paper);
@@ -266,8 +274,8 @@
   width: 100%;
   height: 100%;
   min-height: 0;
-  max-width: var(--soda-content-max-width, 110rem);
-  margin-inline: auto;
+  max-width: none;
+  margin-inline: 0;
   margin-block: 0;
   padding: 0;
   overflow: auto;

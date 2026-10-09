@@ -2,8 +2,7 @@
   position: relative;
   min-width: 0;
   min-height: 0 !important;
-  padding: clamp(10px, 0.75rem, 14px) clamp(12px, 0.85rem, 18px) clamp(10px, 0.75rem, 14px)
-    clamp(44px, 3rem, 50px) !important;
+  padding: 10px 12px 10px 44px !important;
   border: 0;
   border-radius: var(--soda-radius-control);
   background: transparent;
@@ -35,13 +34,13 @@
 
 .f5v-shell .home-journey__number {
   position: absolute;
-  left: clamp(10px, 0.75rem, 14px);
-  top: clamp(10px, 0.75rem, 14px);
+  left: 10px;
+  top: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: clamp(25px, 1.75rem, 30px);
-  height: clamp(25px, 1.75rem, 30px);
+  width: 25px;
+  height: 25px;
   border-radius: 999px;
   color: var(--f5-muted);
   background: #eceaf1;
@@ -104,7 +103,7 @@
 
 .f5v-shell .home-asset-dialog {
   width: min(420px, calc(100vw - 32px));
-  max-height: calc(100dvh - 32px);
+  max-height: calc(var(--soda-viewport-height) - 32px);
   overflow: auto;
   padding: 24px;
   border: 1px solid rgba(103, 90, 144, 0.28);
@@ -175,15 +174,15 @@
 @media (min-width: 1021px) {
   .f5v-shell .soda-home--golden .home-focus {
     height: auto;
-    min-height: clamp(560px, calc(100dvh - 220px), 640px);
+    min-height: clamp(560px, calc(var(--soda-viewport-height) - 220px), 640px);
   }
   .f5v-shell .soda-home--golden .focus-copy {
-    padding-top: clamp(28px, 2.5vw, 40px);
+    padding-top: 32px;
     width: min(50%, 42rem);
   }
   .f5v-shell .soda-home--golden .home-scene {
-    inset: 50% clamp(200px, 15.5rem, 280px) auto auto;
-    width: clamp(620px, 44vw, 760px);
+    inset: 50% 250px auto auto;
+    width: 730px;
     height: auto;
     aspect-ratio: 1;
     transform: translateY(-50%);

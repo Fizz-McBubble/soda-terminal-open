@@ -45,9 +45,9 @@
 .f5v-shell .focus-copy {
   position: relative;
   z-index: 5;
-  width: min(52%, 42rem);
+  width: min(46%, 42rem);
   max-width: 42rem;
-  padding: clamp(32px, 3vw, 48px) 0 0 clamp(32px, 3vw, 48px);
+  padding: 48px 0 0 48px;
 }
 
 .f5v-shell .home-next-action__context {
@@ -86,7 +86,7 @@
 .f5v-shell .focus-copy h1 {
   margin: 26px 0 0;
   color: var(--f5-ink);
-  font-size: clamp(2.6rem, 2rem + 1.2vw, 3.5rem);
+  font-size: 3rem;
   line-height: 1.05;
   letter-spacing: -0.035em;
   width: auto !important;
@@ -99,10 +99,10 @@
 }
 
 .f5v-shell .home-focus__lead {
-  max-width: 32rem;
+  max-width: 31rem;
   margin: 18px 0 24px;
   color: var(--f5-muted);
-  font-size: clamp(0.95rem, 0.88rem + 0.2vw, 1.125rem);
+  font-size: 1rem;
   line-height: 1.68;
 }
 
@@ -117,8 +117,8 @@
   display: inline-flex;
   align-items: center;
   gap: var(--soda-space-3);
-  min-height: clamp(46px, 3rem, 52px);
-  padding: 0 clamp(19px, 1.4rem, 26px);
+  min-height: 46px;
+  padding: 0 19px;
   text-decoration: none;
   font-weight: 750;
 }

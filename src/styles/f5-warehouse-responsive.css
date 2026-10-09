@@ -165,7 +165,7 @@
     right: auto;
     left: 0;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    max-height: min(420px, calc(100dvh - 160px));
+    max-height: min(420px, calc(var(--soda-viewport-height) - 160px));
     overflow-y: auto;
   }
   .f5v-shell .warehouse-action-drawer {
@@ -360,7 +360,7 @@
     flex-wrap: wrap;
   }
   .f5v-shell .warehouse-action-list {
-    height: min(60dvh, 540px);
+    height: min(calc(var(--soda-viewport-height) * 0.6), 540px);
     min-height: 320px;
   }
   .f5v-shell .warehouse-action-list__body {

@@ -177,7 +177,7 @@
   display: grid;
   gap: 6px;
   margin-top: 8px;
-  max-height: min(280px, 36dvh);
+  max-height: min(280px, calc(var(--soda-viewport-height) * 0.36));
   overflow-y: auto;
   overscroll-behavior: contain;
   padding: 0 4px 0 0;

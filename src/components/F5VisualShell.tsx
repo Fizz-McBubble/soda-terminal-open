@@ -1,4 +1,4 @@
-import { useEffect, useRef, useSyncExternalStore, type ReactNode } from 'react'
+import { useEffect, useRef, useSyncExternalStore, type CSSProperties, type ReactNode } from 'react'
 import { Menu, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { mobileNavigation, navigationGroups } from '../navigation'
@@ -17,6 +17,17 @@ function subscribeNavigationWidth(onChange: () => void) {
 }
 function isNarrowNavigation() {
   return window.matchMedia?.(narrowNavigationQuery).matches ?? window.innerWidth <= 960
+}
+
+function subscribeDesktopScale(onChange: () => void) {
+  window.addEventListener('resize', onChange)
+  return () => window.removeEventListener('resize', onChange)
+}
+
+function desktopScale() {
+  // Keep the accepted desktop density through 1920 CSS px. Wider windows share
+  // one bounded scale for the entire shell, including fixed-size controls.
+  return Math.min(1.5, Math.max(1, window.innerWidth / 1920))
 }
 
 type F5VisualShellProps = {
@@ -64,6 +75,7 @@ function F5VisualShellContent({
   const closeRef = useRef<HTMLButtonElement>(null)
   const restoreMenuFocusRef = useRef(false)
   const narrowNavigation = useSyncExternalStore(subscribeNavigationWidth, isNarrowNavigation)
+  const scale = useSyncExternalStore(subscribeDesktopScale, desktopScale)
   const navigationDialogOpen = narrowNavigation && sidebarOpen
   const dismissNavigation = () => {
     restoreMenuFocusRef.current = narrowNavigation
@@ -96,7 +108,11 @@ function F5VisualShellContent({
   }, [navigationDialogOpen, narrowNavigation])
 
   return (
-    <div className="f5v-shell" data-slice-theme="bright-muted">
+    <div
+      className="f5v-shell"
+      data-slice-theme="bright-muted"
+      style={{ '--soda-ui-scale': scale } as CSSProperties}
+    >
       <aside
         ref={railRef}
         id="primary-navigation-panel"

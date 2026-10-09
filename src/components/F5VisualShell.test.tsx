@@ -69,6 +69,23 @@ afterEach(() => {
 })
 
 describe('F5VisualShell narrow navigation', () => {
+  it('resets the shared desktop scale when a wide window becomes a compact window', () => {
+    mockWidth(false)
+    vi.stubGlobal('innerWidth', 2560)
+    const { container } = setup()
+    const shell = container.querySelector<HTMLElement>('.f5v-shell')!
+    expect(Number(shell.style.getPropertyValue('--soda-ui-scale'))).toBeCloseTo(4 / 3)
+    const navigation = screen.getByRole('navigation', { name: '主导航' })
+    vi.stubGlobal('innerWidth', 1366)
+    fireEvent.resize(window)
+    expect(shell.style.getPropertyValue('--soda-ui-scale')).toBe('1')
+    expect(screen.getByRole('navigation', { name: '主导航' })).toBe(navigation)
+    expect(within(navigation).getByRole('link', { name: '首页' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+  })
+
   it('warms a destination on navigation intent without loading every page on render', () => {
     mockWidth(false)
     setup()

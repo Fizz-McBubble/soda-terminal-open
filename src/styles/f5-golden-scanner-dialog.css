@@ -1,6 +1,6 @@
 .f5v-shell .scanner-web__fallback-dialog {
   width: min(620px, calc(100vw - 40px));
-  max-height: calc(100vh - 40px);
+  max-height: calc(var(--soda-viewport-height) - 40px);
   padding: 0;
   overflow: auto;
   border: 0;

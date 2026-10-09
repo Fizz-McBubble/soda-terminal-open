@@ -18,7 +18,7 @@
  * making light surfaces render with light text. */
 .f5v-content:has(.optimizer-plan),
 .f5v-content:has(.optimizer-portfolio) {
-  min-height: calc(100vh - 70px);
+  min-height: calc(var(--soda-viewport-height) - 70px);
   background: #f7f6fb;
 }
 

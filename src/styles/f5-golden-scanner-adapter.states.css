@@ -57,7 +57,7 @@
 
 .f5v-shell dialog.scanner-task__confirmation {
   width: min(640px, calc(100vw - 48px));
-  max-height: calc(100vh - 48px);
+  max-height: calc(var(--soda-viewport-height) - 48px);
   box-sizing: border-box;
   overflow: auto;
   padding: 24px;
