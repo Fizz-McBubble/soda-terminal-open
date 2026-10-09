@@ -15,7 +15,11 @@ import type { BangbooSelection } from '../teamEngine/contracts'
 import { projectTeamEquipmentRecommendations } from './teamEquipmentRecommendations'
 import { optimizerOptionsFromBuildIntent, type TeamJointBuildIntent } from './buildIntent'
 import type { TeamAssignmentObjective } from '../optimizer/selectTeamObjectiveAssignment'
-import { compareCandidatePanelObjective } from '../optimizer/candidatePanelObjective'
+import {
+  improvesCompletePlan,
+  targetTeamPlanCompletion,
+  completeTargetTeamPlan,
+} from './targetTeamWarehouseFitComparison'
 import { candidateTeamSetScore } from '../optimizer/candidateTeamSetScore'
 import {
   candidateSetPlanPriority,
@@ -39,34 +43,31 @@ type SourceBranchOptions = {
   remainingBranches: CandidateWarehouseRecommendation[]
 }
 
+type SourceTeamSolveResult = {
+  plan: CandidateWarehousePlan
+  branchSearch: {
+    attempts: number
+    budget: number
+    completePlansCompared?: number
+    searchComplete?: boolean
+  } & (
+    | {
+        status: 'preferred' | 'conflict_fallback' | 'source_preferred_partial' | 'not_needed'
+        preferredMemberCount: number
+      }
+    | {
+        status: 'dynamic_objective' | 'completion_fallback' | 'budget_fallback'
+        preferredMemberCount: null
+      }
+  )
+}
+
 function sourceBranchChoiceIdentity(choice: SourceBranchChoice) {
   const constraint = choice.recommendation.constraint
   const plan = constraint ? candidateSetPlansForConstraint(constraint)[0] : undefined
   return plan
     ? candidateSetPlanIdentity(plan)
     : `${choice.recommendation.agentId}|no-executable-source-plan`
-}
-
-function targetTeamPlanCompletion(plan: CandidateWarehousePlan, memberIds: readonly string[]) {
-  const discIds = plan.loadouts.flatMap((loadout) => loadout.discs.map((choice) => choice.disc.id))
-  return {
-    completeMemberCount: memberIds.filter(
-      (agentId) =>
-        plan.loadouts.filter((loadout) => loadout.agentId === agentId).length === 1 &&
-        plan.loadouts.find((loadout) => loadout.agentId === agentId)?.discs.length === 6,
-    ).length,
-    uniqueDiscCount: new Set(discIds).size,
-  }
-}
-
-function completeTargetTeamPlan(plan: CandidateWarehousePlan, memberIds: readonly string[]) {
-  const discIds = plan.loadouts.flatMap((loadout) => loadout.discs.map((choice) => choice.disc.id))
-  const completion = targetTeamPlanCompletion(plan, memberIds)
-  return (
-    completion.completeMemberCount === memberIds.length &&
-    discIds.length === memberIds.length * 6 &&
-    completion.uniqueDiscCount === discIds.length
-  )
 }
 
 function improvesTargetTeamCompletion(
@@ -198,48 +199,58 @@ function orderedBranchCombinations(choicesByAgent: readonly SourceBranchChoice[]
   )
 }
 
-function improvesCompletePlan(
-  candidate: { plan: CandidateWarehousePlan; combination: SourceBranchChoice[] },
-  baseline: { plan: CandidateWarehousePlan; combination: SourceBranchChoice[] },
-  objective?: TeamAssignmentObjective,
-) {
-  const uncertain = (plan: CandidateWarehousePlan) =>
-    plan.loadouts.filter((item) => item.degraded).length
-  const uncertaintyDelta = uncertain(candidate.plan) - uncertain(baseline.plan)
-  if (uncertaintyDelta !== 0) return uncertaintyDelta < 0
-  const priority = (choices: SourceBranchChoice[]) =>
-    choices.reduce((sum, choice) => sum + choice.sourceRank, 0)
-  const priorityDelta = priority(candidate.combination) - priority(baseline.combination)
-  if (priorityDelta !== 0) return priorityDelta < 0
-  const panelComparisons = candidate.plan.loadouts.map((loadout) =>
-    compareCandidatePanelObjective(
-      loadout.panelObjective,
-      baseline.plan.loadouts.find((item) => item.agentId === loadout.agentId)?.panelObjective,
-    ),
-  )
-  // Never trade away one member's accepted cultivation objective for another member's scalar score.
-  if (panelComparisons.some((value) => value > 0)) return false
-  if (panelComparisons.some((value) => value < 0)) return true
-  const candidateValue = objective?.evaluate(candidate.plan.loadouts)
-  const baselineValue = objective?.evaluate(baseline.plan.loadouts)
-  if (
-    typeof candidateValue === 'number' &&
-    Number.isFinite(candidateValue) &&
-    typeof baselineValue === 'number' &&
-    Number.isFinite(baselineValue) &&
-    candidateValue !== baselineValue
-  )
-    return candidateValue > baselineValue
-  return (
-    candidateTeamSetScore(candidate.plan.loadouts) > candidateTeamSetScore(baseline.plan.loadouts)
-  )
-}
-
 function solveSourceOrderedTargetTeam(input: {
   warehouse: CoreWarehouse
   buildIntent: TeamJointBuildIntent
   options: CandidateWarehouseOptions
-}) {
+}): SourceTeamSolveResult {
+  if (input.options.teamAssignmentObjective?.domain === 'game_legal_inventory') {
+    const source = solveSourceOrderedTargetTeam({
+      ...input,
+      options: { ...input.options, teamAssignmentObjective: undefined },
+    })
+    const objective = input.options.teamAssignmentObjective
+    const plan = solveCandidateWarehouse(
+      input.warehouse.discs,
+      [...input.buildIntent.agentIds],
+      'team',
+      {
+        ...input.options,
+        teamAssignmentObjective: {
+          ...objective,
+          baselineDiscIdsByAgent: objective.baselineDiscIdsByAgent,
+          sourceDiscIdsByAgent: Object.fromEntries(
+            source.plan.loadouts.map((loadout) => [
+              loadout.agentId,
+              loadout.discs.map((item) => item.disc.id),
+            ]),
+          ),
+        },
+      },
+      input.buildIntent.recommendations,
+    )
+    const isComplete = (value: typeof plan) =>
+      value.loadouts.length === 3 &&
+      value.loadouts.every((loadout) => loadout.discs.length === 6) &&
+      new Set(value.loadouts.flatMap((loadout) => loadout.discs.map((item) => item.disc.id)))
+        .size === 18
+    if (
+      !isComplete(plan) ||
+      (isComplete(source.plan) &&
+        (!plan.solver?.search || plan.solver.search.status === 'unsupported'))
+    ) {
+      return source
+    }
+    return {
+      plan,
+      branchSearch: {
+        status: 'dynamic_objective' as const,
+        attempts: source.branchSearch.attempts + 1,
+        budget: sourceBranchTeamSolveBudget + 1,
+        preferredMemberCount: null,
+      },
+    }
+  }
   const options = {
     ...input.options,
     candidateGenerationCache: createAccountCandidateGenerationCache(input.warehouse.discs),

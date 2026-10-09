@@ -99,24 +99,26 @@ export async function refreshDevelopmentCandidatesAfterSave({
 }) {
   const run = await refresh()
   if (!run) throw new Error('方案已保存，匹配结果暂未更新，请稍后重新匹配。')
-  const result = await query(run.runId, agentId)
+  // The saved physical solution may exist only under its chosen parameters.
+  // Search that scenario before matching IDs; an account-default search can omit it.
+  const result = comparisonParameters
+    ? await query(run.runId, agentId, { 1: comparisonParameters })
+    : await query(run.runId, agentId)
   if (
     result.accountId !== accountId ||
     result.agentId !== agentId ||
     !cacheDevelopmentCandidateSnapshot(result)
   )
     throw new Error('方案已保存，匹配结果暂未更新，请稍后重新匹配。')
-  const selectedIds = discIds.toSorted().join('|')
+  const selectedIds = JSON.stringify(discIds.toSorted())
   const rank =
     result.candidates.findIndex(
       (candidate) =>
-        candidate.loadouts[0]?.discs
-          .map((choice) => choice.disc.id)
-          .toSorted()
-          .join('|') === selectedIds,
+        JSON.stringify(candidate.loadouts[0]?.discs.map((choice) => choice.disc.id).toSorted()) ===
+        selectedIds,
     ) + 1
   if (!rank) throw new Error('方案已保存；当前推荐已有变化，请查看新的匹配结果。')
-  if (comparisonParameters) {
+  if (comparisonParameters && rank !== 1) {
     const rebound = await query(run.runId, agentId, { [rank]: comparisonParameters })
     if (
       rebound.accountId !== accountId ||

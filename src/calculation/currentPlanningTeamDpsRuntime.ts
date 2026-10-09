@@ -185,9 +185,19 @@ export function evaluateSourceBackedPersonalPlanningDps(
       : null,
     effectBuckets,
     sourceEffectExclusions: effectExclusions,
+    sourceResolvedInactiveEffectKeys:
+      self?.status === 'supported' ? self.resolvedInactiveEffectKeys : [],
     equipmentModifierBuckets: [...(input.equipmentModifierBuckets ?? [])],
     directEquipmentEffectBucketCount: (input.equipmentModifierBuckets ?? []).filter(
-      (bucket) => bucket.application !== 'outside_direct_event_formula',
+      (bucket) =>
+        ![
+          'outside_direct_event_formula',
+          'shield_percent',
+          'daze_increase',
+          'daze_reduction',
+          'energy_regen_percent',
+          'energy_regen_flat',
+        ].includes(bucket.application),
     ).length,
     boundary:
       '单代理人固定事件只比较同一已确认音擎下的六盘变化，并消费已来源化且进入直接伤害公式的装备 bucket；静态盘面不重复叠加，队伍效果和未观测条件效果保持排除。',

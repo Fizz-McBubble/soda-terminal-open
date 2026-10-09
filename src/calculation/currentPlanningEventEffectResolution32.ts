@@ -6,6 +6,7 @@ import { stableContentHash } from '../gameDataPacks/types'
 import { getCurrentWEngineStaticData } from '../gameDataPacks/currentWEngineStaticCatalog'
 import { getCurrentAgentEventContract } from './currentAgentMechanicContracts'
 import { applyReviewedWEngineReceiverSemantics32 } from './reviewedWEngineReceiverSemantics32'
+import { applyReviewedSpringEmbraceReceivers32 } from './reviewedSpringEmbraceReceivers32'
 import { evaluateCurrentPlanningEffectEntries32 } from './currentPlanningEffectRuntime'
 import { statReferences, type PlanningEffectRuntimeMember } from './currentPlanningEffectDomain'
 import {
@@ -22,6 +23,8 @@ import {
   recipientIds,
   matchesEventScope,
   type SourceBackedPlanningEffectBucket,
+  bindPanMeridianFlowRecipient32,
+  panMeridianFlowEffectKey32,
 } from './currentPlanningDamageModifiers'
 import { planningRuntimeEffectBuckets32 } from './currentPlanningSelfEffects32'
 import { bindReviewedClaretIntrinsicAction32 } from './reviewedClaretIntrinsicAction32'
@@ -94,6 +97,26 @@ export function resolveCurrentPlanningEventEffects32(input: {
       },
     ]),
   )
+  for (const bucket of input.buckets.filter(
+    (row) => row.effectKey === panMeridianFlowEffectKey32,
+  )) {
+    const bound = bindPanMeridianFlowRecipient32({
+      value: bucket.value,
+      memberIds: input.memberIds,
+      references: references[bucket.providerAgentId],
+    })
+    if (bound.status !== 'supported') return bound
+    if (
+      bucket.value !== 0 &&
+      (bucket.providerAgentId !== 'agent-pan-yinhu' ||
+        bucket.recipientAgentIds.length !== 1 ||
+        bucket.recipientAgentIds[0] !== bound.recipientAgentIds[0])
+    )
+      return {
+        status: 'unsupported' as const,
+        blockers: ['经络舒畅事件桶与唯一入场受益者不一致。'],
+      }
+  }
   // Stat dependencies can use another member's unconditional combat stat, but cannot infer that member's action.
   const scoped = input.buckets.filter((bucket) =>
     bucket.recipientAgentIds.includes(input.ownerAgentId)
@@ -109,6 +132,23 @@ export function resolveCurrentPlanningEventEffects32(input: {
   }> = []
   const actorKeys = new Set<string>()
   for (const entry of input.entries) {
+    const panTransfer = entry.effectKey === panMeridianFlowEffectKey32
+    let declaredRecipientAgentIds: readonly string[] | undefined
+    if (panTransfer) {
+      const transfer = evaluateCurrentPlanningEffectEntries32(
+        {
+          memberIds: input.memberIds,
+          members: input.members,
+          baselineReferencesByAgentId: references,
+        },
+        [entry],
+      )
+      if (transfer.status !== 'supported') return transfer
+      const effect = transfer.results.find((row) => row.effectKey === entry.effectKey)
+      if (effect?.status !== 'supported')
+        return { status: 'unsupported' as const, blockers: ['经络舒畅缺少来源绑定。'] }
+      declaredRecipientAgentIds = effect.recipientAgentIds
+    }
     const extracted = extractUpstreamEffectValueIr(entry.numericExpression.expressionIr)
     if (extracted.status !== 'supported') return extracted
     // Extraction returns a subtree of the already typed source root, not an evaluated scalar.
@@ -152,7 +192,8 @@ export function resolveCurrentPlanningEventEffects32(input: {
       !intrinsic.active &&
       !semantics.active &&
       !roxyWindow.active &&
-      !roxyTrigger.active
+      !roxyTrigger.active &&
+      !panTransfer
     )
       continue
     const reviewed = getCurrentAgentPlanningEffectBlueprint(entry.effectKey)
@@ -187,6 +228,8 @@ export function resolveCurrentPlanningEventEffects32(input: {
       providerAgentId: entry.providerAgentId,
       memberIds: input.memberIds,
       receiverPath: meta.receiverPath,
+      effectKey: entry.effectKey,
+      declaredRecipientAgentIds,
     })
     const scope = {
       effectKey: entry.effectKey,
@@ -363,13 +406,14 @@ export function resolveCurrentPlanningEventEffects32(input: {
   const equipment = uniqueDiscs.buckets
     .filter((row) => row.receiverPath === null && row.damageType === null)
     .map((row) => ({ ...row, receiverPath: null, damageType: null }))
-  const receivers = applyReviewedWEngineReceiverSemantics32(equipment)
+  const springReceivers = applyReviewedSpringEmbraceReceivers32(equipment)
+  const receivers = applyReviewedWEngineReceiverSemantics32(springReceivers.buckets)
   return {
     ...result,
     buckets: [
       ...uniqueDiscs.buckets.filter((row) => row.receiverPath !== null || row.damageType !== null),
       ...receivers.buckets,
     ],
-    exclusions: [...receivers.exclusions, ...semanticExclusions],
+    exclusions: [...springReceivers.exclusions, ...receivers.exclusions, ...semanticExclusions],
   }
 }

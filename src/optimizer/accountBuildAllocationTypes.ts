@@ -13,7 +13,7 @@ export type AccountLoadout = {
   discs: AccountDiscChoice[]
   totalScore: number
   setCounts: Record<string, number>
-  setPattern: '4+2' | '2+2+2'
+  setPattern: '4+2' | '2+2+2' | 'scattered'
   confidence: AgentDiscProfile['confidence']
   scenario: string
   contextRationale: string[]

@@ -242,13 +242,18 @@ export function AgentLoadoutComparisonPage() {
     defaultStats = coreStats.length ? coreStats : allStats.slice(0, 5)
     finalStatsFor = (discs, rank) => ({ ...panelFor(discs, rank)?.values })
   }
-  const setSummaryFor = (discs: typeof warehouse.discs, pattern?: '4+2' | '2+2+2') => {
+  const setSummaryFor = (
+    discs: typeof warehouse.discs,
+    pattern?: '4+2' | '2+2+2' | 'scattered',
+  ) => {
     const counts = new Map<string, number>()
     for (const disc of discs) counts.set(disc.setId, (counts.get(disc.setId) ?? 0) + 1)
     const pieces = [...counts.entries()]
       .toSorted(([, left], [, right]) => right - left)
       .map(([setId, count]) => `${displayDriveDiscSet(setId)} ${count}件`)
-    return pattern ? `${pattern}：${pieces.join(' + ')}` : pieces.join(' + ')
+    return pattern
+      ? `${pattern === 'scattered' ? '散搭' : pattern}：${pieces.join(' + ')}`
+      : pieces.join(' + ')
   }
   const baselineFinalStats = finalStatsFor(comparisonDiscs)
   const allDiscIds = [
@@ -325,7 +330,7 @@ export function AgentLoadoutComparisonPage() {
       rank,
       label: plan?.inventoryTransition ? `${label} · 副套待补齐` : label,
       fit: plan ? plan.totalScore.toFixed(2) : '比较基准',
-      panel: loadout?.setPattern ?? '当前方案',
+      panel: loadout?.setPattern === 'scattered' ? '散搭' : (loadout?.setPattern ?? '当前方案'),
       sets: setSummaryFor(selectedDiscs, loadout?.setPattern),
       effective: loadout
         ? String(loadout.discs.reduce((total, item) => total + item.effectiveRolls, 0))

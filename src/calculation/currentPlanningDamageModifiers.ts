@@ -18,6 +18,13 @@ export type SourceBackedPlanningEffectBucket = {
     | 'defense_flat'
     | 'hp_percent'
     | 'hp_flat'
+    | 'impact_percent'
+    | 'impact_flat'
+    | 'energy_regen_percent'
+    | 'energy_regen_flat'
+    | 'shield_percent'
+    | 'daze_increase'
+    | 'daze_reduction'
     | 'laceration_damage'
     | 'sharp_damage_bonus'
     | 'sheer_force'
@@ -37,6 +44,13 @@ export type SourceBackedPlanningEffectBucket = {
     | 'penetration_ratio'
     | 'outside_direct_event_formula'
   sourceRefs: string[]
+  /** Current observed holder of a transferable passive; never a team-wide grant. */
+  sourceReceiverObservation?: {
+    engineId: string
+    memberIds: string[]
+    recipientAgentId?: string
+    activeProviderAgentId?: string
+  }
   /** Locked four-piece node evaluated against the provider's event-final panel. */
   sourceDiscFormula?: {
     setId: string
@@ -78,6 +92,8 @@ type DirectDamageModifiers = {
   defenseFlat: number
   hpPercent: number
   hpFlat: number
+  impactPercent: number
+  impactFlat: number
   lacerationDamage: number
   sharpDamageBonus: number
   sheerForce: number
@@ -137,12 +153,47 @@ export function getPlanningDamageEventSemantics(event: {
   return null
 }
 
+export const panMeridianFlowIncomingReference32 = 'panMeridianFlowIncomingAgentId32'
+export const panMeridianFlowEffectKey32 = 'agent-pan-yinhu:core_sheerForce'
+
+/** A single observed transfer is never inferred from a notOwnBuff receiver. */
+export function bindPanMeridianFlowRecipient32(input: {
+  value: unknown
+  memberIds: readonly string[]
+  references?: Readonly<Record<string, unknown>>
+}) {
+  if (input.value === 0) return { status: 'supported' as const, recipientAgentIds: [] as string[] }
+  const target = input.references?.[panMeridianFlowIncomingReference32]
+  if (
+    typeof input.value !== 'number' ||
+    !Number.isFinite(input.value) ||
+    typeof target !== 'string' ||
+    target === 'agent-pan-yinhu' ||
+    !input.memberIds.includes(target) ||
+    !input.memberIds.includes('agent-pan-yinhu') ||
+    new Set(input.memberIds).size !== input.memberIds.length
+  )
+    return {
+      status: 'unsupported' as const,
+      blockers: ['潘引壶经络舒畅非零转交须明确唯一的下一位合格入场成员，不能广播到队伍。'],
+    }
+  return { status: 'supported' as const, recipientAgentIds: [target] }
+}
+
 export function recipientIds(input: {
   targetKinds: readonly string[]
   providerAgentId: string
   memberIds: readonly string[]
   receiverPath?: string | null
+  effectKey?: string
+  declaredRecipientAgentIds?: readonly string[]
 }) {
+  if (input.effectKey === panMeridianFlowEffectKey32) {
+    const ids = input.declaredRecipientAgentIds
+    return ids?.length === 1 && ids[0] !== input.providerAgentId && input.memberIds.includes(ids[0])
+      ? [...ids]
+      : []
+  }
   if (input.receiverPath?.startsWith('notOwnBuff.'))
     return input.memberIds.filter((id) => id !== input.providerAgentId)
   if (input.targetKinds.includes('self')) return [input.providerAgentId]
@@ -190,6 +241,17 @@ export function applicationForReceiver(receiverPath: string | null) {
     return 'attack_flat' as const
   if (/(ownBuff|notOwnBuff|teamBuff)\..*\.hp_$/.test(receiverPath)) return 'hp_percent' as const
   if (/(ownBuff|notOwnBuff|teamBuff)\..*\.hp$/.test(receiverPath)) return 'hp_flat' as const
+  if (/(ownBuff|notOwnBuff|teamBuff)\..*\.impact_$/.test(receiverPath))
+    return 'impact_percent' as const
+  if (/(ownBuff|notOwnBuff|teamBuff)\..*\.impact$/.test(receiverPath)) return 'impact_flat' as const
+  if (/(ownBuff|notOwnBuff|teamBuff)\..*\.enerRegen_$/.test(receiverPath))
+    return 'energy_regen_percent' as const
+  if (/(ownBuff|notOwnBuff|teamBuff)\..*\.enerRegen$/.test(receiverPath))
+    return 'energy_regen_flat' as const
+  if (/(ownBuff|notOwnBuff|teamBuff)\..*\.dazeInc_$/.test(receiverPath))
+    return 'daze_increase' as const
+  if (/(ownBuff|notOwnBuff|teamBuff)\..*\.dazeRed_$/.test(receiverPath))
+    return 'daze_reduction' as const
   if (/(ownBuff|teamBuff|enemyDebuff)\..*(common_dmg_|dmgInc_|\.dmg_|\.buff_$)/.test(receiverPath))
     return 'damage_bonus' as const
   return 'outside_direct_event_formula' as const
@@ -203,6 +265,8 @@ export function emptyModifiers(): DirectDamageModifiers {
     defenseFlat: 0,
     hpPercent: 0,
     hpFlat: 0,
+    impactPercent: 0,
+    impactFlat: 0,
     lacerationDamage: 0,
     sharpDamageBonus: 0,
     sheerForce: 0,
@@ -227,13 +291,23 @@ export function addModifier(
   target: DirectDamageModifiers,
   bucket: SourceBackedPlanningEffectBucket,
 ) {
-  if (bucket.application === 'outside_direct_event_formula') return
+  if (
+    bucket.application === 'outside_direct_event_formula' ||
+    bucket.application === 'shield_percent' ||
+    bucket.application === 'daze_increase' ||
+    bucket.application === 'daze_reduction' ||
+    bucket.application === 'energy_regen_percent' ||
+    bucket.application === 'energy_regen_flat'
+  )
+    return
   if (bucket.application === 'attack_percent') target.attackPercent += bucket.value
   if (bucket.application === 'attack_flat') target.attackFlat += bucket.value
   if (bucket.application === 'defense_percent') target.defensePercent += bucket.value
   if (bucket.application === 'defense_flat') target.defenseFlat += bucket.value
   if (bucket.application === 'hp_percent') target.hpPercent += bucket.value
   if (bucket.application === 'hp_flat') target.hpFlat += bucket.value
+  if (bucket.application === 'impact_percent') target.impactPercent += bucket.value
+  if (bucket.application === 'impact_flat') target.impactFlat += bucket.value
   if (bucket.application === 'laceration_damage') target.lacerationDamage += bucket.value
   if (bucket.application === 'sharp_damage_bonus') target.sharpDamageBonus += bucket.value
   if (bucket.application === 'sheer_force') target.sheerForce += bucket.value

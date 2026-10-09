@@ -26,6 +26,7 @@ function* roundRobin<T>(streams: Generator<T>[]): Generator<T> {
 export function* teamSearchNeighborhood<D extends CandidateSearchDisc>(
   selected: readonly Loadout<D>[],
   domains: readonly Domain<D>[],
+  visitHint?: (disc: D, agentId: string) => number,
 ): Generator<D[][]> {
   const current = domains.map((domain) =>
     [...(selected.find((row) => row.agentId === domain.agentId)?.discs ?? [])]
@@ -68,7 +69,11 @@ export function* teamSearchNeighborhood<D extends CandidateSearchDisc>(
         ...new Map(
           slot.filter((disc) => !used.has(disc.id)).map((disc) => [disc.id, disc]),
         ).values(),
-      ].sort(compareCandidateDiscFacts),
+      ].sort(
+        (a, b) =>
+          (visitHint?.(b, domains[member]!.agentId) ?? 0) -
+            (visitHint?.(a, domains[member]!.agentId) ?? 0) || compareCandidateDiscFacts(a, b),
+      ),
     })),
   )
   function* replacements() {

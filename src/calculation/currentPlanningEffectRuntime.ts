@@ -1,7 +1,6 @@
 import {
-  bindPlanningEffectRuntimePotentialReference,
+  planningProviderReferences32,
   teamCounts,
-  statReferences,
   effectRuntimeReferences,
   type PlanningEffectRuntimeMember,
 } from './currentPlanningEffectDomain'
@@ -13,24 +12,32 @@ export type {
   PlanningEffectRuntimeStats,
   PlanningEffectRuntimeMember,
 } from './currentPlanningEffectDomain'
-import { evaluateInitialCritConversion32 } from './currentInitialCritConversion32'
+export { evaluateInitialCritConversion32 as evaluateCurrentPlanningInitialCritConversion32 } from './currentInitialCritConversion32'
 import { bindReviewedRoxyEnergyConversion32 } from './reviewedRoxyEnergyConversion32'
+import { knownInactivePlanningEffect32 } from './planningKnownInactiveEffects32'
+import { planningEffectObservation32 } from './currentPlanningEffectObservation32'
+import {
+  bindPanMeridianFlowRecipient32,
+  panMeridianFlowEffectKey32,
+} from './currentPlanningDamageModifiers'
 import { requiredReferences, effectReceiverMetadata } from './currentPlanningEffectExpressions'
 import type { CurrentAgentPlanningEffectBlueprint } from './currentAgentPlanningEffectBlueprint'
 import type { PlanningEffectRuntimeStats } from './currentPlanningEffectDomain'
 import { stableContentHash } from '../gameDataPacks/types'
 import { reviewedInlineAbilityEffectSources } from '../gameDataPacks/reviewedTeammateActivationMinimum'
 import { getCurrentAgentDecisionMechanicContract } from './currentAgentDecisionMechanicContracts'
-import {
-  evaluateCurrentAgentTeamActivation,
-  getCurrentAgentEventContract,
-} from './currentAgentMechanicContracts'
+import { evaluateCurrentAgentTeamActivation } from './currentAgentMechanicContracts'
 import { compileFormationPlanningEffectBlueprints } from './currentAgentPlanningEffectBlueprint'
 import {
   reviewedPotentialEffectBlueprints,
   reviewedPotentialParameterBlueprints,
 } from './reviewedPotentialEffectBlueprints'
 import { compileCurrentPlanningBaselineTimelineContracts } from './currentPlanningBaselineObservations'
+import {
+  isVerifiedFormationTimeline,
+  type FormationTimeline,
+} from './verifiedPlanningFormationTimeline'
+export { compileCurrentPlanningFormationEffectTimeline } from './verifiedPlanningFormationTimeline'
 import { compileSourceBackedPlanningInteractionContracts } from './currentPlanningInteractionMechanicIR'
 import { currentNormalizedPlanningBaseline } from './currentNormalizedPlanningBaseline'
 import type { PlanningEffectDisposition } from './planningCalculationContextCompiler'
@@ -50,16 +57,6 @@ const potentialValueOnlyKeys = new Set(
 
 function unique(values: readonly string[]) {
   return [...new Set(values)]
-}
-
-/** Typed runtime wrapper around the same pure panel conversion. */
-export function evaluateCurrentPlanningInitialCritConversion32(
-  member: PlanningEffectRuntimeMember,
-) {
-  return evaluateInitialCritConversion32({
-    agentId: member.agentId,
-    initialStats: member.initialStats,
-  })
 }
 
 export function evaluateCurrentPlanningFormationEffects(input: {
@@ -128,34 +125,12 @@ function evaluateFormationEffects(
           agentId,
           {
             activation,
-            baseReferences: bindPlanningEffectRuntimePotentialReference({
-              agentId,
-              potential: provider.potential,
-              references: {
-                ...contract.effectContract.runtimeDefaults.references,
-                'char.mindscape': provider.mindscape,
-                'char.core': Math.max(0, provider.coreLevel - 1),
-                'char.basic': Math.max(0, (provider.skillLevels.basic ?? 1) - 1),
-                'char.dodge': Math.max(0, (provider.skillLevels.dodge ?? 1) - 1),
-                'char.assist': Math.max(0, (provider.skillLevels.assist ?? 1) - 1),
-                'char.special': Math.max(0, (provider.skillLevels.special ?? 1) - 1),
-                'char.chain': Math.max(0, (provider.skillLevels.chain ?? 1) - 1),
-                'team.common.count': {},
-                ...Object.fromEntries(
-                  Object.entries(counts.attribute).map(([key, value]) => [
-                    `team.common.count.${key}`,
-                    value,
-                  ]),
-                ),
-                ...statReferences('own.initial', provider.initialStats),
-                ...statReferences('own.final', provider.finalStats),
-                ...(input.baselineReferencesByAgentId?.[agentId] ?? {}),
-                ...(provider.level === undefined ? {} : { 'char.lvl': provider.level }),
-                ...(input.finalStatsByAgentId?.[agentId]
-                  ? statReferences('own.final', input.finalStatsByAgentId[agentId])
-                  : {}),
-                'char.specialty': getCurrentAgentEventContract(agentId)?.identity.specialty,
-              },
+            baseReferences: planningProviderReferences32({
+              member: provider,
+              sourceReferences: contract.effectContract.runtimeDefaults.references,
+              attributeCounts: counts.attribute,
+              observations: input.baselineReferencesByAgentId?.[agentId],
+              finalStats: input.finalStatsByAgentId?.[agentId],
             }),
           },
         ] as const,
@@ -164,6 +139,42 @@ function evaluateFormationEffects(
   )
   const evaluatedEntries = entries.map((blueprint) => {
     const provider = memberById.get(blueprint.providerAgentId)!
+    if (blueprint.numericExpression.todoBoundary?.startsWith('reconciliation_drift:'))
+      return {
+        effectKey: blueprint.effectKey,
+        status: 'unsupported' as const,
+        blockers: [blueprint.numericExpression.todoBoundary],
+      }
+    const provided = input.baselineReferencesByAgentId?.[blueprint.providerAgentId] ?? {}
+    const requiredExplicit = blueprint.numericExpression.requiredExplicitRuntimeReferences ?? []
+    if (
+      requiredExplicit.length &&
+      !knownInactivePlanningEffect32(blueprint, provider, provided, input.memberIds)
+    ) {
+      const sourceDefaults = getCurrentAgentDecisionMechanicContract(provider.agentId)!
+        .effectContract.runtimeDefaults.references
+      const missing = requiredExplicit.filter((reference) => {
+        const value = provided[reference]
+        const maximum =
+          reference === 'elation'
+            ? Number(sourceDefaults['dm.ability.stacks'])
+            : Number.POSITIVE_INFINITY
+        return (
+          !Object.hasOwn(provided, reference) ||
+          typeof value !== 'number' ||
+          !Number.isInteger(value) ||
+          value < 0 ||
+          value > maximum ||
+          Number.isNaN(maximum)
+        )
+      })
+      if (missing.length)
+        return {
+          effectKey: blueprint.effectKey,
+          status: 'unsupported' as const,
+          blockers: [`缺少合法的明确观测，不能用中性零值代替：${missing.join(', ')}`],
+        }
+    }
     const target =
       input.members.find((member) => member.agentId !== blueprint.providerAgentId) ?? provider
     const extracted = extractUpstreamEffectValueIr(blueprint.numericExpression.expressionIr)
@@ -173,19 +184,26 @@ function evaluateFormationEffects(
         status: 'unsupported' as const,
         blockers: extracted.blockers,
       }
-    const expression = extracted.value as UpstreamExpressionIR
     const metadata = effectReceiverMetadata(blueprint.numericExpression.expressionIr)
+    const observation = planningEffectObservation32({
+      entry: blueprint,
+      expression: extracted.value as UpstreamExpressionIR,
+      member: provider,
+      memberIds: input.memberIds,
+      references: provided,
+    })
+    const expression = observation.expression
     const isUnboundGenericPlaceholder =
       blueprint.numericExpression.sourceStatus === 'declarative_baseline_input' &&
       !parameterKeys.has(blueprint.effectKey) &&
       !potentialValueOnlyKeys.has(blueprint.effectKey)
-    if (isUnboundGenericPlaceholder) {
+    if (isUnboundGenericPlaceholder || observation.missing.length) {
       const provided = input.baselineReferencesByAgentId?.[blueprint.providerAgentId] ?? {}
       const required = new Set(requiredReferences(expression))
       const selectedReferences = Object.keys(provided).filter((reference) =>
         required.has(reference),
       )
-      if (selectedReferences.length > 0)
+      if (isUnboundGenericPlaceholder && selectedReferences.length > 0)
         return {
           effectKey: blueprint.effectKey,
           status: 'unsupported' as const,
@@ -235,7 +253,7 @@ function evaluateFormationEffects(
       providerRuntime.activation.status === 'supported' &&
       !providerRuntime.activation.active
     const evaluated = evaluateUpstreamExpressionIr(
-      blockedByReviewedAbility ? { kind: 'literal', value: 0 } : expression,
+      blockedByReviewedAbility || observation.inactive ? { kind: 'literal', value: 0 } : expression,
       createPlanningExpressionDomainRuntime({
         references,
         teamCounts: { specialty: counts.specialty, faction: counts.faction },
@@ -254,6 +272,16 @@ function evaluateFormationEffects(
         status: 'unsupported' as const,
         blockers: evaluated.blockers,
       }
+    const boundRecipient =
+      blueprint.effectKey === panMeridianFlowEffectKey32
+        ? bindPanMeridianFlowRecipient32({
+            value: evaluated.value,
+            memberIds: input.memberIds,
+            references: provided,
+          })
+        : null
+    if (boundRecipient?.status === 'unsupported')
+      return { effectKey: blueprint.effectKey, ...boundRecipient }
     const recipientValues: Array<{ agentId: string; value: unknown }> = []
     if (requiredReferences(expression).some((ref) => ref.startsWith('target.'))) {
       for (const recipient of input.members) {
@@ -265,7 +293,9 @@ function evaluateFormationEffects(
           requiredReferences: requiredReferences(expression),
         })
         const recipientResult = evaluateUpstreamExpressionIr(
-          blockedByReviewedAbility ? { kind: 'literal', value: 0 } : expression,
+          blockedByReviewedAbility || observation.inactive
+            ? { kind: 'literal', value: 0 }
+            : expression,
           createPlanningExpressionDomainRuntime({
             references: recipientReferences,
             teamCounts: { specialty: counts.specialty, faction: counts.faction },
@@ -298,6 +328,7 @@ function evaluateFormationEffects(
       damageType: metadata.damageType,
       status: 'supported' as const,
       value: evaluated.value,
+      recipientAgentIds: boundRecipient?.recipientAgentIds,
       recipientValues,
       active:
         !potentialValueOnlyKeys.has(blueprint.effectKey) &&
@@ -332,15 +363,24 @@ function evaluateFormationEffects(
       }
 }
 
-export function compileCurrentPlanningFormationEffectObservations(input: {
-  memberIds: readonly [string, string, string]
-  members: readonly PlanningEffectRuntimeMember[]
-  baselineReferencesByAgentId?: Readonly<Record<string, Readonly<Record<string, unknown>>>>
-}) {
+export function compileCurrentPlanningFormationEffectObservations(
+  input: {
+    memberIds: readonly [string, string, string]
+    members: readonly PlanningEffectRuntimeMember[]
+    baselineReferencesByAgentId?: Readonly<Record<string, Readonly<Record<string, unknown>>>>
+  },
+  reusedTimeline?: FormationTimeline,
+) {
+  if (reusedTimeline !== undefined && !isVerifiedFormationTimeline(reusedTimeline, input.memberIds))
+    return {
+      status: 'unsupported' as const,
+      blockers: ['PlanningBaseline timeline 复用需要同一已验证成员绑定与未改写来源合同。'],
+    }
   const blueprints = compileFormationPlanningEffectBlueprints(input.memberIds)
   const runtime = evaluateFormationEffects(input, blueprints)
   if (runtime.status === 'unsupported') return runtime
-  const timeline = compileCurrentPlanningBaselineTimelineContracts(input.memberIds)
+  const timeline =
+    reusedTimeline ?? compileCurrentPlanningBaselineTimelineContracts(input.memberIds)
   if (timeline.status === 'unsupported') return timeline
   if (blueprints.status === 'unsupported') return blueprints
   const blueprintByKey = new Map(blueprints.entries.map((entry) => [entry.effectKey, entry]))
@@ -369,7 +409,7 @@ export function compileCurrentPlanningFormationEffectObservations(input: {
         activeSeconds: 0,
         targetAgentId: null,
         reason:
-          'The upstream generic conditional has no reviewed source-bound selection, so its value is unknown and excluded from this comparison.',
+          'The source effect has no explicit condition observation or reviewed source-bound selection; its value remains unknown in this comparison.',
         evidenceRefs: unique([...result.sourceRefs, baselineRef]),
       })
       continue
@@ -380,7 +420,9 @@ export function compileCurrentPlanningFormationEffectObservations(input: {
       )
       continue
     }
-    const targetAgentId = blueprint.targetKinds.includes('active_agent') ? activeAgentId : null
+    const targetAgentId =
+      result.recipientAgentIds?.[0] ??
+      (blueprint.targetKinds.includes('active_agent') ? activeAgentId : null)
     const evidenceRefs = unique([...result.sourceRefs, baselineRef])
     dispositions.push({
       effectKey: result.effectKey,
@@ -393,11 +435,13 @@ export function compileCurrentPlanningFormationEffectObservations(input: {
       evidenceRefs,
     })
     if (!result.active) continue
-    const recipientAgentIds = blueprint.targetKinds.includes('self')
-      ? [result.providerAgentId]
-      : blueprint.targetKinds.includes('active_agent')
-        ? [activeAgentId]
-        : [...input.memberIds]
+    const recipientAgentIds =
+      result.recipientAgentIds ??
+      (blueprint.targetKinds.includes('self')
+        ? [result.providerAgentId]
+        : blueprint.targetKinds.includes('active_agent')
+          ? [activeAgentId]
+          : [...input.memberIds])
     contracts.push({
       contractId: `${currentNormalizedPlanningBaseline.baselineId}:${result.effectKey}`,
       operator: 'team_effect_resolution',

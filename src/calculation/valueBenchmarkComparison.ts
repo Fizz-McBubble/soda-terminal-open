@@ -1,6 +1,7 @@
 import { stableContentHash } from '../gameDataPacks/types'
 import type { qualifyReviewedPreparedBenchmark32 } from './reviewedPreparedBenchmark32'
 import type { qualifyReviewedPreparedTeamBenchmark32 } from './reviewedPreparedTeamBenchmark32'
+import type { evaluateReviewedFunctionalCapacity32 } from './reviewedFunctionalCapacity32'
 import {
   hasWellFormedValueBenchmarkCoverage,
   valueBenchmarkEvidencePolicy,
@@ -16,10 +17,15 @@ export type ValueBenchmarkEffectExclusion = {
   reason: string
   fields: string[]
   sourceRefs: string[]
+  effectPath?: string | null
+  recipientAgentIds?: string[] | null
+  writeFields?: string[]
+  resolvedInactive?: boolean
+  action?: string | null
 }
 
 export type ValueBenchmarkCoverage = {
-  domain: 'fixed_event_direct_damage'
+  domain: 'fixed_event_direct_damage' | 'prepared_anomaly_settlement'
   includedEffectKeys: string[]
   excludedEffects: ValueBenchmarkEffectExclusion[]
   exclusionContextFingerprint: string
@@ -47,6 +53,13 @@ export type ValueBenchmarkSide = {
   calculationFingerprint: string | null
   reasons: string[]
   coverage?: ValueBenchmarkCoverage
+  /** Internal same-action non-regression evidence; never a damage-equivalent score. */
+  functionalCapacities32?: ReturnType<typeof evaluateReviewedFunctionalCapacity32>
+  /** Actual projected inputs for functional domains not covered by a numeric outcome. */
+  functionalStats32?: { impact: number; enerRegen: number; anomMas: number; anomProf: number }
+  sourceResourceProduction32?: ReturnType<
+    typeof import('./sourceResourceProduction32').summarizeSourceResourceProduction32
+  >
   modelQualification32?: NonNullable<ReturnType<typeof qualifyReviewedPreparedBenchmark32>>
   memberModelQualification32?: NonNullable<
     ReturnType<typeof qualifyReviewedPreparedTeamBenchmark32>
@@ -68,7 +81,7 @@ export type ValueBenchmarkComparisonBasis = {
     candidate: ValueBenchmarkState
     comparison: ValueBenchmarkState
   }
-  rankingMethod: 'fixed_event_planning_dps_delta'
+  rankingMethod: 'fixed_event_planning_dps_delta' | 'prepared_anomaly_settlement_damage_delta'
 }
 
 export type ValueBenchmarkComparison = ReturnType<typeof compareValueBenchmarkSides>
@@ -189,15 +202,27 @@ export function compareValueBenchmarkSides(input: {
   ])
   const bothSupported =
     input.baseline.state === 'supported' && input.candidate.state === 'supported'
-  const numeric = [
-    input.baseline.totalDamage,
-    input.baseline.planningDps,
-    input.candidate.totalDamage,
-    input.candidate.planningDps,
-  ].every((value) => typeof value === 'number' && Number.isFinite(value) && value >= 0)
+  const preparedAnomaly =
+    input.baseline.coverage?.domain === 'prepared_anomaly_settlement' &&
+    input.candidate.coverage?.domain === 'prepared_anomaly_settlement'
+  const crossDomain =
+    input.baseline.coverage?.domain !== input.candidate.coverage?.domain &&
+    (input.baseline.coverage?.domain === 'prepared_anomaly_settlement' ||
+      input.candidate.coverage?.domain === 'prepared_anomaly_settlement')
+  const numeric = (
+    preparedAnomaly
+      ? [input.baseline.totalDamage, input.candidate.totalDamage]
+      : [
+          input.baseline.totalDamage,
+          input.baseline.planningDps,
+          input.candidate.totalDamage,
+          input.candidate.planningDps,
+        ]
+  ).every((value) => typeof value === 'number' && Number.isFinite(value) && value >= 0)
   const comparable =
     bothSupported &&
     numeric &&
+    !crossDomain &&
     !sideEvidenceIssues.length &&
     !invalidChangedDimensions.length &&
     baselineKey === candidateKey
@@ -237,12 +262,16 @@ export function compareValueBenchmarkSides(input: {
   )
   const generalConclusionRisk = Boolean(
     comparable &&
-    (!declaredCoverage ||
+    (preparedAnomaly ||
+      !declaredCoverage ||
       !coverageDomainsMatch ||
       changedExcludedEffectKeys.length ||
       (hasExcludedEffects && exclusionContextChanged)),
   )
   const coverageReasons = unique([
+    ...(preparedAnomaly
+      ? ['单次异常比较只覆盖已声明结算；直伤、积蓄与循环收益尚未完整建模，不能推导整体最佳。']
+      : []),
     ...(incompleteDeclaredCoverage ? ['数值覆盖声明不完整，不能推导配装整体优劣。'] : []),
     ...(!declaredCoverage && !incompleteDeclaredCoverage
       ? ['两侧尚未完整声明数值覆盖范围，仅保留固定事件数值差。']
@@ -258,16 +287,25 @@ export function compareValueBenchmarkSides(input: {
   const totalDamageDelta = comparable
     ? input.candidate.totalDamage! - input.baseline.totalDamage!
     : null
-  const planningDpsDelta = comparable
-    ? input.candidate.planningDps! - input.baseline.planningDps!
-    : null
+  const planningDpsDelta =
+    comparable && !preparedAnomaly
+      ? input.candidate.planningDps! - input.baseline.planningDps!
+      : null
   const rawPlanningDpsPercentDelta =
-    comparable && input.baseline.planningDps !== 0
+    comparable && !preparedAnomaly && input.baseline.planningDps !== 0
       ? (planningDpsDelta! / input.baseline.planningDps!) * 100
       : null
   const planningDpsPercentDelta =
     rawPlanningDpsPercentDelta !== null && Number.isFinite(rawPlanningDpsPercentDelta)
       ? rawPlanningDpsPercentDelta
+      : null
+  const rawTotalDamagePercentDelta =
+    comparable && input.baseline.totalDamage !== 0
+      ? (totalDamageDelta! / input.baseline.totalDamage!) * 100
+      : null
+  const totalDamagePercentDelta =
+    rawTotalDamagePercentDelta !== null && Number.isFinite(rawTotalDamagePercentDelta)
+      ? rawTotalDamagePercentDelta
       : null
   const status = comparable
     ? ('supported' as const)
@@ -278,12 +316,13 @@ export function compareValueBenchmarkSides(input: {
     changedDimensions.length === 1 && input.independentCounterfactual
       ? ('single_variable' as const)
       : ('combination' as const)
+  const comparisonDelta = preparedAnomaly ? totalDamageDelta : planningDpsDelta
   const verdict =
-    planningDpsDelta === null
+    comparisonDelta === null
       ? ('not_comparable' as const)
-      : planningDpsDelta > 0
+      : comparisonDelta > 0
         ? ('candidate_better' as const)
-        : planningDpsDelta < 0
+        : comparisonDelta < 0
           ? ('baseline_better' as const)
           : ('equivalent' as const)
   const candidateDisposition = generalConclusionRisk
@@ -309,7 +348,9 @@ export function compareValueBenchmarkSides(input: {
       candidate: input.candidate.state,
       comparison: status,
     },
-    rankingMethod: 'fixed_event_planning_dps_delta',
+    rankingMethod: preparedAnomaly
+      ? 'prepared_anomaly_settlement_damage_delta'
+      : 'fixed_event_planning_dps_delta',
   }
   const core = {
     contract: valueBenchmarkComparisonContract,
@@ -323,6 +364,7 @@ export function compareValueBenchmarkSides(input: {
     baseline: input.baseline,
     candidate: input.candidate,
     totalDamageDelta,
+    totalDamagePercentDelta,
     planningDpsDelta,
     planningDpsPercentDelta,
     coverage: {
@@ -348,17 +390,18 @@ export function compareValueBenchmarkSides(input: {
     verdict,
     candidateDisposition,
     direction:
-      planningDpsDelta === null
+      comparisonDelta === null
         ? null
-        : planningDpsDelta > 0
+        : comparisonDelta > 0
           ? ('higher' as const)
-          : planningDpsDelta < 0
+          : comparisonDelta < 0
             ? ('lower' as const)
             : ('equal' as const),
     reasons: comparable
       ? []
       : unique([
           ...reasons,
+          ...(crossDomain ? ['单次异常比较与固定事件输出属于不同数值域，不能直接比较。'] : []),
           ...(!numeric && bothSupported ? ['supported 两侧仍缺少有限且非负的数值。'] : []),
         ]),
     boundary:

@@ -19,7 +19,7 @@ const records = memberIds.map((id) =>
  * Source move coefficients and legal transitions are unchanged. Coverage is a
  * condition of this model; 30s is its denominator, not invented move timing. */
 export const reviewedPreparedTeamConditions32 = Object.freeze({
-  policyId: 'team-claret-roxy-koleda-prepared-fixed-30s-r1',
+  policyId: 'team-claret-roxy-koleda-prepared-fixed-30s-r2',
   declaredDurationSeconds: 30,
   provenance: 'derived_under_versioned_baseline',
   actionOrder: [
@@ -29,6 +29,7 @@ export const reviewedPreparedTeamConditions32 = Object.freeze({
   ],
   sameTarget: true,
   allDeclaredContacts: true,
+  enemyStunned: false,
   noInterruptWithinMemberPacket: true,
   preparationDamageIncluded: false,
   repeatedRotation: false,
@@ -114,7 +115,9 @@ type SourcePacket = {
 
 // Only these named non-damage fields can be outside this finite damage model.
 // Unknown direct buffs, additions, equipment conditions, etc. fail qualification.
-function isOutsideMemberDamage(row: ValueBenchmarkCoverage['excludedEffects'][number]) {
+export function isReviewedPreparedMemberDamageExclusion32(
+  row: ValueBenchmarkCoverage['excludedEffects'][number],
+) {
   return (
     (row.effectKey === 'agent-claret:core_initial_crit_' &&
       row.fields.includes('ownBuff.initial.crit_')) ||
@@ -176,13 +179,14 @@ export function qualifyReviewedPreparedTeamBenchmark32(input: {
     !isDamageFormula32Version(input.context.gameVersion) ||
     input.context.accountSnapshot.stale ||
     input.context.cycle?.durationSeconds !== 30 ||
+    input.context.scenario.enemy?.stunMultiplier !== 1 ||
     input.context.scope.kind !== 'team' ||
     input.context.scope.agentIds.length !== 3 ||
     input.members.length !== 3 ||
     input.sourcePackets.length !== 3 ||
     input.eventUsages.length !== records.reduce((sum, row) => sum + row!.rows.length, 0) ||
     memberIds.some((id) => !input.context.scope.agentIds.includes(id)) ||
-    input.coverage.excludedEffects.some((row) => !isOutsideMemberDamage(row))
+    input.coverage.excludedEffects.some((row) => !isReviewedPreparedMemberDamageExclusion32(row))
   )
     return null
   for (const id of memberIds) {

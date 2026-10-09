@@ -60,7 +60,7 @@ export type OptimizedBuild = {
   setScore: number
   effectiveRolls: number
   setCounts: Record<string, number>
-  setPattern: '4+2' | '2+2+2'
+  setPattern: '4+2' | '2+2+2' | 'scattered'
   tieBreakKey: string
   panelObjective?: CandidatePanelObjective
   panelObjectiveStatus?: 'applied' | 'limited' | 'unsupported'

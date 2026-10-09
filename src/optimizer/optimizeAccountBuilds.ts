@@ -22,7 +22,9 @@ import {
 } from './selectTeamObjectiveAssignment'
 import { searchTeamAssignments, type TeamSearchEvidence } from './searchTeamAssignments'
 import { isAllowedMainStat } from './buildKnowledge'
-import { hasCandidatePanelObjective } from './candidatePanelObjective'
+import { candidatePanelInputForAgent } from './optimizeAccountBuildsPanelInput'
+export { candidatePanelInputForAgent } from './optimizeAccountBuildsPanelInput'
+import { dynamicLegalInventory, compileDynamicCandidateLoadout } from './teamDynamicDomain'
 import type { AccountBuildResult, UnavailableDiagnosis } from './accountBuildAllocationTypes'
 export type {
   AccountBuildResult,
@@ -30,39 +32,6 @@ export type {
   AccountLoadout,
   UnavailableDiagnosis,
 } from './accountBuildAllocationTypes'
-
-export function candidatePanelInputForAgent(
-  agent:
-    | Pick<RosterAgent, 'agentId' | 'level' | 'skillLevels' | 'wEngineDetails' | 'mindscape'>
-    | undefined,
-): CandidatePanelInput | undefined {
-  if (
-    !agent ||
-    !hasCandidatePanelObjective(agent.agentId) ||
-    agent.level !== 60 ||
-    agent.skillLevels.core !== 7 ||
-    !agent.wEngineDetails.id ||
-    agent.wEngineDetails.level !== 60 ||
-    !Number.isInteger(agent.wEngineDetails.refinement) ||
-    agent.wEngineDetails.refinement == null ||
-    agent.wEngineDetails.refinement < 1 ||
-    agent.wEngineDetails.refinement > 5
-  )
-    return undefined
-  return {
-    agentId: agent.agentId,
-    level: agent.level,
-    ascension: 5,
-    core: agent.skillLevels.core - 2,
-    mindscape: agent.mindscape,
-    wEngine: {
-      id: agent.wEngineDetails.id,
-      level: agent.wEngineDetails.level,
-      ascension: 5,
-      refinement: agent.wEngineDetails.refinement,
-    },
-  }
-}
 
 export type AccountOptimizerOptions = {
   priorityAgentIds?: string[]
@@ -227,12 +196,18 @@ export function optimizeAccountBuilds(
     profilesInput.some((profile) => profile.agentId === id),
   )
   const excluded = new Set(options.excludedDiscIds ?? [])
+  const dynamicDomain = options.teamAssignmentObjective?.domain === 'game_legal_inventory'
+  if (dynamicDomain) {
+    const legalIds = new Set(dynamicLegalInventory(discs).map((disc) => disc.id))
+    for (const disc of discs) if (!legalIds.has(disc.id)) excluded.add(disc.id)
+  }
   const fixed = new Map(Object.entries(options.fixedDiscByAgent ?? {}))
   for (const [agentId, discId] of fixed) {
     if (!profilesInput.some((profile) => profile.agentId === agentId))
       throw new Error(`固定盘目标 ${agentId} 不在当前可计算角色中。`)
     if (!discs.some((disc) => disc.id === discId)) throw new Error('固定的驱动盘已不存在。')
-    if (excluded.has(discId)) throw new Error('同一张盘不能同时固定和排除。')
+    if (options.excludedDiscIds?.includes(discId)) throw new Error('同一张盘不能同时固定和排除。')
+    if (excluded.has(discId)) throw new Error('固定盘被排除或不具备可验证的合法强化记录。')
   }
   if (new Set(fixed.values()).size !== fixed.size)
     throw new Error('同一张固定盘不能分配给多个代理人。')
@@ -316,8 +291,8 @@ export function optimizeAccountBuilds(
         profile,
         seed?.degraded ? fallbackMainStats(available, profile) : configuredMainStats(profile),
       )
-      const patterns = allowedSetCountPatterns(knowledge)
-      const setIds = new Set(patterns.flatMap((pattern) => Object.keys(pattern)))
+      const patterns = dynamicDomain ? undefined : allowedSetCountPatterns(knowledge)
+      const setIds = new Set(patterns?.flatMap((pattern) => Object.keys(pattern)) ?? [])
       const fixedDisc = available.find((disc) => disc.id === fixed.get(agentId))
       return {
         agentId,
@@ -326,12 +301,19 @@ export function optimizeAccountBuilds(
           available.filter(
             (disc) =>
               disc.slot === index + 1 &&
-              setIds.has(disc.setId) &&
-              isAllowedMainStat(knowledge, disc.slot, disc.mainStat) &&
+              (dynamicDomain ||
+                (setIds.has(disc.setId) &&
+                  isAllowedMainStat(knowledge, disc.slot, disc.mainStat))) &&
               (!fixedDisc || fixedDisc.slot !== disc.slot || fixedDisc.id === disc.id),
           ),
         ),
         compile: (selection: DriveDisc[]) => {
+          if (dynamicDomain)
+            return compileDynamicCandidateLoadout(
+              selection,
+              profile,
+              options.panelInputsByAgent?.[profile.agentId],
+            )
           const build = optimizeBuild(
             selection,
             toBuildProfile(profile),
@@ -349,12 +331,57 @@ export function optimizeAccountBuilds(
         },
       }
     })
-    const result = searchTeamAssignments(global, domains, options.teamAssignmentObjective)
+    const dynamicObjective = options.teamAssignmentObjective
+    const equipped = dynamicDomain
+      ? domains.flatMap((domain) => {
+          const ids = options.teamAssignmentObjective?.baselineDiscIdsByAgent?.[domain.agentId]
+          if (!ids || ids.length !== 6) return []
+          const selection = ids.flatMap(
+            (id) => domain.slots.flat().find((disc) => disc.id === id) ?? [],
+          )
+          const compiled = selection.length === 6 ? domain.compile(selection) : null
+          return compiled ? [compiled] : []
+        })
+      : []
+    const sourceSeed =
+      dynamicDomain && dynamicObjective?.sourceDiscIdsByAgent
+        ? domains.flatMap((domain) => {
+            const ids = dynamicObjective.sourceDiscIdsByAgent?.[domain.agentId]
+            if (!ids || ids.length !== 6) return []
+            const selection = ids.flatMap(
+              (id) => domain.slots.flat().find((disc) => disc.id === id) ?? [],
+            )
+            const compiled = selection.length === 6 ? domain.compile(selection) : null
+            return compiled ? [compiled] : []
+          })
+        : []
+    const validSourceSeed =
+      sourceSeed.length === 3 &&
+      new Set(sourceSeed.flatMap((row) => row.discs.map((item) => item.disc.id))).size === 18
+        ? sourceSeed
+        : undefined
+    const baseline =
+      equipped.length === 3 &&
+      new Set(equipped.flatMap((row) => row.discs.map((item) => item.disc.id))).size === 18
+        ? equipped
+        : (validSourceSeed ?? global)
+    const seeds = validSourceSeed ? [validSourceSeed] : undefined
+    const result = searchTeamAssignments(
+      baseline,
+      domains,
+      options.teamAssignmentObjective,
+      undefined,
+      seeds,
+    )
     teamSearch = result.evidence
-    global.splice(0, global.length, ...result.selected)
+    const finalSelected =
+      result.evidence.status === 'unsupported' && validSourceSeed
+        ? validSourceSeed
+        : result.selected
+    global.splice(0, global.length, ...finalSelected)
     // A raw-domain result can also recover a personal build discarded before
     // assignment. Its feasible six-disc result supersedes an unavailable flag.
-    for (const build of result.selected) {
+    for (const build of finalSelected) {
       if (!independent.some((item) => item.agentId === build.agentId)) independent.push(build)
     }
     used.clear()

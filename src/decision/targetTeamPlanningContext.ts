@@ -2,11 +2,17 @@ import { compileTargetTeamPlanningCoverage } from './targetTeamPlanningCoverage'
 import type { CoreWarehouse } from '../accounts/coreFlow'
 import { compileCurrentDriveDiscPlanningEffects } from '../calculation/currentDriveDiscPlanningEffects'
 import { resolvePotentialImage, supportsPotentialImage } from '../assault/agentCapabilities'
+import { summarizeSourceResourceProduction32 } from '../calculation/sourceResourceProduction32'
+import {
+  summarizeSourceMechanismResourceGrants32,
+  type SourceResourceGrantDeclaration32,
+} from '../calculation/sourceMechanismResourceGrants32'
 import {
   compileNormalizedAgentEventSchedule,
   currentNormalizedPlanningBaseline,
 } from '../calculation/currentNormalizedPlanningBaseline'
 import { type PlanningEffectRuntimeMember } from '../calculation/currentPlanningEffectRuntime'
+import { mergePlanningReferenceMaps32 } from '../calculation/currentPlanningEffectDomain'
 import { compileCurrentPlanningInteractionBundle } from '../calculation/currentPlanningInteractionBundle'
 import { evaluateSourceBackedPlanningTeamDps } from '../calculation/currentPlanningTeamDpsRuntime'
 import {
@@ -38,10 +44,10 @@ import type { TargetTeamWarehouseFit } from './targetTeamWarehouseFit'
 import { compileTargetTeamKoledaFixedConditions32 } from './targetTeamKoledaFixedConditions32'
 import { compileIncremental32PlanningSourceSelection } from './incremental32PlanningSourceSelection'
 import { qualifyReviewedPreparedTeamBenchmark32 } from '../calculation/reviewedPreparedTeamBenchmark32'
+import type { StandardSubstatProbe } from '../calculation/standardSubstatProbe'
+import { evaluateReviewedFunctionalCapacity32 } from '../calculation/reviewedFunctionalCapacity32'
 
-function unique(values: readonly string[]) {
-  return [...new Set(values)]
-}
+const unique = (values: readonly string[]) => [...new Set(values)]
 
 export function compileTargetTeamPlanningContext(input: {
   warehouse: CoreWarehouse
@@ -56,6 +62,16 @@ export function compileTargetTeamPlanningContext(input: {
   warehouseHash: string
   planningHash: string
   capturedAt: string
+  /** Internal, read-only sensitivity probe; never a saved physical loadout. */
+  statProbesByAgentId?: Readonly<Record<string, StandardSubstatProbe>>
+  /** Explicit independent fixture conditions, never populated from source UI
+   * defaults or promoted to a player/account observation. */
+  calibrationObservations?: {
+    authority: 'independent_calibration'
+    id: string
+    referencesByAgentId: Readonly<Record<string, Readonly<Record<string, unknown>>>>
+    resourceGrantDeclaration32?: SourceResourceGrantDeclaration32
+  }
 }) {
   const blockers: string[] = []
   const unresolvedScenario = hasUnresolvedAuthorityScenario(input.candidate)
@@ -148,6 +164,9 @@ export function compileTargetTeamPlanningContext(input: {
       },
       engineId: parameter.engineId,
       discs,
+      ...(input.statProbesByAgentId?.[agentId]
+        ? { statProbe: input.statProbesByAgentId[agentId] }
+        : {}),
     })
     const stats = projection.status === 'supported' ? projection.stats : null
     if (schedule.status === 'unsupported') blockers.push(...schedule.blockers)
@@ -212,6 +231,11 @@ export function compileTargetTeamPlanningContext(input: {
     }
   eventUsages.splice(0, eventUsages.length, ...sourceSelection.eventUsages)
 
+  const sourceReferences = mergePlanningReferenceMaps32(
+    sourceSelection.referencesByAgentId,
+    input.calibrationObservations?.referencesByAgentId,
+  )
+
   const koledaConditions = compileTargetTeamKoledaFixedConditions32({
     members: effectRuntimeMembers,
     eventUsages,
@@ -247,6 +271,10 @@ export function compileTargetTeamPlanningContext(input: {
       ...koledaMetadata,
     }
 
+  const observedReferences = mergePlanningReferenceMaps32(
+    sourceReferences,
+    koledaConditions.references,
+  )
   const modifierProjection = projectTargetTeamEquipmentModifiers({
     memberIds: input.fit.memberIds,
     parameters: input.parameters,
@@ -281,10 +309,7 @@ export function compileTargetTeamPlanningContext(input: {
   const interactions = compileCurrentPlanningInteractionBundle({
     memberIds: [...input.fit.memberIds],
     members: effectRuntimeMembers,
-    baselineReferencesByAgentId: {
-      ...sourceSelection.referencesByAgentId,
-      ...koledaConditions.references,
-    },
+    baselineReferencesByAgentId: observedReferences,
   })
   if (interactions.status === 'unsupported')
     return {
@@ -345,6 +370,7 @@ export function compileTargetTeamPlanningContext(input: {
       modifierFingerprint: input.modifierProjection.fingerprint,
       discEffectFingerprint: discEffects.fingerprint,
       sourceSelection: sourceSelection.fingerprint,
+      calibrationObservations: input.calibrationObservations ?? null,
       ...(input.parameters.koledaFixedEventConditions32
         ? { koledaFixedEventConditions32: input.parameters.koledaFixedEventConditions32 }
         : {}),
@@ -364,10 +390,7 @@ export function compileTargetTeamPlanningContext(input: {
     eventUsages,
     baseline: currentNormalizedPlanningBaseline,
     equipmentModifierBuckets: [...modifierProjection.directRuntime.buckets, ...discEffects.buckets],
-    baselineReferencesByAgentId: {
-      ...sourceSelection.referencesByAgentId,
-      ...koledaConditions.references,
-    },
+    baselineReferencesByAgentId: observedReferences,
   })
   if (runtime.status === 'unsupported')
     return {
@@ -395,22 +418,29 @@ export function compileTargetTeamPlanningContext(input: {
     effectRuntimeMembers,
     sourceBoundaries: sourceSelection.sourcePackets.map((row) => row.boundary),
   })
+  const mechanismGrants32 = summarizeSourceMechanismResourceGrants32({
+    members: effectRuntimeMembers,
+    declaration: input.calibrationObservations?.resourceGrantDeclaration32,
+  })
   const core = {
     ...koledaMetadata,
     coverage,
     modifierProjection,
     eventSetHash: stableContentHash(eventUsages),
     sourcePackets: sourceSelection.sourcePackets,
-    memberModelQualification32: qualifyReviewedPreparedTeamBenchmark32({
-      context: compilation.context,
-      members: effectRuntimeMembers,
-      eventUsages,
-      sourcePackets: sourceSelection.sourcePackets,
-      conditions: sourceSelection.preparedTeamConditions,
-      references: { ...sourceSelection.referencesByAgentId, ...koledaConditions.references },
-      coverage,
-      memberDamage: runtime.memberDamage,
-    }),
+    memberModelQualification32:
+      input.statProbesByAgentId || input.calibrationObservations
+        ? null
+        : qualifyReviewedPreparedTeamBenchmark32({
+            context: compilation.context,
+            members: effectRuntimeMembers,
+            eventUsages,
+            sourcePackets: sourceSelection.sourcePackets,
+            conditions: sourceSelection.preparedTeamConditions,
+            references: observedReferences,
+            coverage,
+            memberDamage: runtime.memberDamage,
+          }),
     progressionHash: stableContentHash(
       input.fit.memberIds.map((id) => {
         const row = input.warehouse.roster.agents.find((agent) => agent.agentId === id)!
@@ -440,6 +470,29 @@ export function compileTargetTeamPlanningContext(input: {
       anomMas: finalStats.anomMas,
       anomProf: finalStats.anomProf,
     })),
+    memberFunctionalCapacities32: effectRuntimeMembers.map((member) =>
+      evaluateReviewedFunctionalCapacity32({
+        member,
+        members: effectRuntimeMembers,
+        eventUsages,
+        equipmentModifierBuckets: [
+          ...modifierProjection.directRuntime.buckets,
+          ...discEffects.buckets,
+        ],
+        equipmentExclusions: [
+          ...modifierProjection.directRuntime.exclusions,
+          ...discEffects.exclusions,
+        ],
+        baselineReferencesByAgentId: observedReferences,
+      }),
+    ),
+    memberSourceResourceProduction32: effectRuntimeMembers.map((member) =>
+      summarizeSourceResourceProduction32({
+        agentId: member.agentId,
+        eventUsages,
+        mechanismGrants32,
+      }),
+    ),
     interactionBundleHash: interactions.bundleHash,
     interactionStateHash: compilation.interactionStateHash,
     interactionOperatorCoverage: compilation.interactionOperatorCoverage,

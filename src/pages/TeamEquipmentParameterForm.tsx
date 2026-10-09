@@ -66,6 +66,8 @@ export function TeamSchemeWEngineControl({
             const next = options.find((item) => item.engineId === value)
             update({
               engineId: value,
+              level: next?.level,
+              ascension: next?.ascension,
               refinement: next?.refinement ?? current.refinement,
             })
           }}

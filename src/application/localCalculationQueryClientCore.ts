@@ -283,7 +283,8 @@ export function createLocalCalculationQueryClientCore(options: {
       if (!run) throw new Error(`Account Decision run is unavailable: ${query.runId}.`)
       const accountId = run.input.warehouse.accountId
       if (!accountId) throw new Error(`Account Decision run has no account: ${query.runId}.`)
-      const projection = projectDevelopmentCandidateAlternatives(run.input, query.agentId)
+      const baseProjection = projectDevelopmentCandidateAlternatives(run.input, query.agentId)
+      const projection = { ...baseProjection, candidates: [...baseProjection.candidates] }
       const explicit = query.candidateParametersByRank ?? {}
       if (
         Object.keys(explicit).some(
@@ -294,6 +295,22 @@ export function createLocalCalculationQueryClientCore(options: {
         )
       )
         throw new Error('显式比较参数必须绑定本次存在的候选序号。')
+      // A rank is one comparison scenario. Regenerate its legal six-disc search
+      // under the exact chosen engine/potential, preserving the other scenarios.
+      const generated = new Map<
+        string,
+        ReturnType<typeof projectDevelopmentCandidateAlternatives>
+      >()
+      for (const [rank, parameters] of Object.entries(explicit)) {
+        const key = stableContentHash(parameters)
+        if (!generated.has(key))
+          generated.set(
+            key,
+            projectDevelopmentCandidateAlternatives(run.input, query.agentId, parameters),
+          )
+        const candidate = generated.get(key)!.candidates[0]
+        if (candidate) projection.candidates[Number(rank) - 1] = candidate
+      }
       const valueBenchmarks = projectDevelopmentValueBenchmarks({
         warehouse: run.input.warehouse,
         agentId: query.agentId,

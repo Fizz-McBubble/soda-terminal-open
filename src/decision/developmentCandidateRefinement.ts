@@ -32,10 +32,15 @@ import {
   toAbsoluteRetentionDisc,
 } from '../warehouse/absoluteDiscRetentionCatalog'
 import { history } from '../warehouse/absoluteDiscRetentionScoring'
-import { evaluateDevelopmentValueBenchmarkSide } from './developmentValueBenchmark'
+import {
+  evaluateDevelopmentValueBenchmarkSide,
+  type DevelopmentComparisonParameters,
+} from './developmentValueBenchmark'
 import { optimizerOptionsFromBuildIntent, type AgentIndependentBuildIntent } from './buildIntent'
+import { evaluateDevelopmentStatWeights } from './developmentStatWeights'
+import { dynamicDiscProposals } from '../optimizer/dynamicDiscProposals'
 
-export const developmentCandidateRefinementVersion = 'source-priority-compatible-objective-local-r3'
+export const developmentCandidateRefinementVersion = 'dynamic-marginal-source-compatible-local-r4'
 const proposalBudget = 24
 const sourceNote =
   '本候选按已核对的来源词条层级细化，且已建模片段数值不下降；未建模效果仍未验证，不据此宣称整体伤害提升。'
@@ -79,6 +84,7 @@ export function refineDevelopmentCandidates(input: {
   agentId: string
   candidates: readonly CandidateWarehousePlan[]
   buildIntent: AgentIndependentBuildIntent
+  parameters?: DevelopmentComparisonParameters
 }): CandidateWarehousePlan[] {
   const originals = [...input.candidates]
   if (!originals.length) return originals
@@ -123,6 +129,7 @@ export function refineDevelopmentCandidates(input: {
           agentId: input.agentId,
           discs: plan.loadouts[0]!.discs.map((row) => row.disc),
           stale: false,
+          parameters: input.parameters,
         }),
       )
     return sideCache.get(id)!
@@ -178,6 +185,15 @@ export function refineDevelopmentCandidates(input: {
   const proposalLists = new Map<string, DriveDisc[]>()
   const lanes = originals.flatMap((plan) => {
     if ((!comparable(plan, plan) && !canExploreSource(plan)) || plan.inventoryTransition) return []
+    const weights = direct
+      ? evaluateDevelopmentStatWeights({
+          warehouse: input.warehouse,
+          agentId: input.agentId,
+          discs: plan.loadouts[0]!.discs.map((row) => row.disc),
+          stale: false,
+          parameters: input.parameters,
+        })
+      : null
     return plan.loadouts[0]!.discs.flatMap(({ disc: current }) => {
       if (options.fixedDiscByAgent?.[input.agentId] === current.id) return []
       const allowedMain =
@@ -203,11 +219,27 @@ export function refineDevelopmentCandidates(input: {
           ),
         )
       }
+      const sourceChoices = proposalLists.get(poolKey)!.filter((disc) => disc.id !== current.id)
+      const dynamicChoices = weights ? dynamicDiscProposals(available, current, weights) : []
+      // Preserve source/extreme proposals alongside sensitivity proposals. Local weights are
+      // never an upper bound, and every physical proposal still faces the full comparison gate.
+      const choices = [
+        ...new Map(
+          [
+            dynamicChoices[0],
+            sourceChoices[0],
+            ...dynamicChoices.slice(1),
+            ...sourceChoices.slice(1),
+          ]
+            .filter((disc): disc is DriveDisc => Boolean(disc))
+            .map((disc) => [disc.id, disc]),
+        ).values(),
+      ]
       return [
         {
           plan,
           current,
-          choices: proposalLists.get(poolKey)!.filter((disc) => disc.id !== current.id),
+          choices,
         },
       ]
     })

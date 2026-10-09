@@ -25,6 +25,12 @@ export function compileTargetTeamPlanningCoverage({
   effectRuntimeMembers: readonly PlanningEffectRuntimeMember[]
   sourceBoundaries: readonly string[]
 }) {
+  // A source preparation can bind a varying operand only at the actual event
+  // (for example Koleda's consumed Furnace Fire). The coarse formation pass
+  // cannot replace that successful event computation with an "unknown" label.
+  // Any event-level failure still wins, even if another occurrence consumed it.
+  const consumedAtEvents = new Set(runtime.effectBuckets.map((row) => row.effectKey))
+  const unresolvedAtEvents = new Set(runtime.sourceEffectExclusions.map((row) => row.effectKey))
   const coverage = {
     domain: 'fixed_event_direct_damage' as const,
     includedEffectKeys: [
@@ -41,7 +47,11 @@ export function compileTargetTeamPlanningCoverage({
     excludedEffects: [
       ...runtime.sourceEffectExclusions,
       ...interactions.effectDispositions
-        .filter((row) => row.disposition === 'excluded_unknown')
+        .filter(
+          (row) =>
+            row.disposition === 'excluded_unknown' &&
+            (!consumedAtEvents.has(row.effectKey) || unresolvedAtEvents.has(row.effectKey)),
+        )
         .map((row) => ({
           effectKey: row.effectKey,
           reason: row.reason,

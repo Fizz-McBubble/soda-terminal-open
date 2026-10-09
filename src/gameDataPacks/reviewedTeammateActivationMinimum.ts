@@ -37,4 +37,6 @@ export function reviewedTeammateActivationTerms(
 // Piper's adopted formula embeds the old count check instead of abilityCheck.
 export const reviewedInlineAbilityEffectSources: Readonly<Record<string, string>> = {
   'agent-piper:ability_common_dmg_': 'miyoushe-66657195-piper-additional-ability',
+  'agent-claret:ability_laceration_dmg_':
+    'frzyc/genshin-optimizer@3456cd0f6f5bea10e168074502460dac2fcd6df4:libs/zzz/dm-localization/assets/locales/en/char_Claret_gen.json#2aea405b533c0fcb93fa8f28cf753f23cec305dc:ability',
 }

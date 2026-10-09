@@ -1,4 +1,6 @@
 import { evaluateInitialCritConversion32 } from './currentInitialCritConversion32'
+import { evaluateReviewedDialynInitialImpact32 } from './reviewedFunctionalInitialImpact32'
+import { applyPlanningNaturalEnergyModifiers32 } from './planningNaturalEnergyModifiers32'
 import type {
   PlanningEffectRuntimeMember,
   PlanningEffectRuntimeStats,
@@ -28,6 +30,10 @@ const statByApplication: Partial<
   defense_flat: 'def',
   hp_percent: 'hp',
   hp_flat: 'hp',
+  impact_percent: 'impact',
+  energy_regen_percent: 'enerRegen',
+  energy_regen_flat: 'enerRegen',
+  impact_flat: 'impact',
   crit_rate: 'crit_',
   crit_damage: 'crit_dmg_',
   laceration_damage: 'lacerationDamage',
@@ -67,19 +73,64 @@ function resolvedStats(
       initialStats: member.initialStats,
     })
     if (conversion.status !== 'supported') return conversion
+    const trace = member.finalStats.initialImpactConversion32
+    if (trace) {
+      const rebound = evaluateReviewedDialynInitialImpact32({
+        initialCritRate: member.initialStats.crit_,
+        coreLevel: member.coreLevel,
+        potential: member.potential,
+      })
+      if (
+        member.agentId !== 'agent-dialyn' ||
+        rebound.status !== 'supported' ||
+        trace.effectKey !== rebound.effectKey ||
+        trace.impactIncrease !== rebound.impactIncrease ||
+        trace.bindingHash !== rebound.bindingHash
+      )
+        return {
+          status: 'unsupported' as const,
+          blockers: ['琉音已投影冲击转换身份漂移，不能重复或复用旧值。'],
+        }
+    }
     const mods = emptyModifiers()
-    buckets
-      .filter((row) => row.recipientAgentIds.includes(member.agentId))
-      .forEach((row) => addModifier(mods, row))
+    const admitted = buckets.filter((row) => row.recipientAgentIds.includes(member.agentId))
+    const projected = trace ? admitted.filter((row) => row.effectKey === trace.effectKey) : []
+    if (
+      projected.length > 1 ||
+      projected.some(
+        (row) =>
+          row.providerAgentId !== member.agentId ||
+          row.application !== 'impact_flat' ||
+          row.value !== trace!.impactIncrease,
+      )
+    )
+      return {
+        status: 'unsupported' as const,
+        blockers: ['琉音冲击转换来源桶重复或与投影不一致。'],
+      }
+    admitted.forEach((row) => {
+      if (trace && row.effectKey === trace.effectKey) {
+        return // The matching source conversion is already in the projected final panel.
+      }
+      addModifier(mods, row)
+    })
     const panel = member.finalStats
+    const energy = applyPlanningNaturalEnergyModifiers32(
+      member.initialStats.enerRegen,
+      panel.enerRegen,
+      admitted,
+    )
+    if (energy.status !== 'supported') return energy
     stats[member.agentId] = {
       ...panel,
       atk: panel.atk + member.initialStats.atk * mods.attackPercent + mods.attackFlat,
       def: panel.def + member.initialStats.def * mods.defensePercent + mods.defenseFlat,
       hp: panel.hp + member.initialStats.hp * mods.hpPercent + mods.hpFlat,
+      impact: panel.impact + member.initialStats.impact * mods.impactPercent + mods.impactFlat,
       crit_: panel.crit_ + conversion.critRate + mods.critRate,
       crit_dmg_: panel.crit_dmg_ + mods.critDamage,
       pen_: panel.pen_ + mods.penetrationRatio,
+      enerRegen: energy.value,
       ...(panel.lacerationDamage === undefined
         ? {}
         : { lacerationDamage: panel.lacerationDamage + mods.lacerationDamage }),

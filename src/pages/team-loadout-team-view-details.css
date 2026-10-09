@@ -214,7 +214,19 @@
   }
 
   .team-execution__all-members > article > header {
-    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+
+  .team-execution__all-member-engine {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    justify-content: start;
+  }
+
+  .team-execution__member-detail-action {
+    grid-column: 2;
+    grid-row: 1;
   }
 
   .team-execution__all-members ol {

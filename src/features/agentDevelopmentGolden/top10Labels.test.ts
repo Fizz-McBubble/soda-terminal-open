@@ -41,4 +41,23 @@ describe('output model summary', () => {
     expect(benchmarkScopeNote(value)).toBeNull()
     expect(benchmarkLabel(value, false)).toBe('暂无输出对比')
   })
+  it('labels single anomaly damage without presenting it as same-window output or DPS', () => {
+    const value = {
+      ...comparison(false),
+      totalDamageDelta: 12834,
+      totalDamagePercentDelta: 10,
+      planningDpsDelta: null,
+      planningDpsPercentDelta: null,
+      coverage: {
+        ...comparison(false).coverage,
+        domain: 'prepared_anomaly_settlement' as const,
+        generalConclusion: 'limited' as const,
+      },
+    }
+    expect(benchmarkLabel(value, false)).toBe('单次异常比较 +10.00%')
+    expect(benchmarkScopeNote(value)).toContain('同一准备条件')
+    value.totalDamageDelta = 0
+    value.totalDamagePercentDelta = 0
+    expect(benchmarkLabel(value, false)).toBe('单次异常比较持平')
+  })
 })

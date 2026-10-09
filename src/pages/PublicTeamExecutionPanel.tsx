@@ -339,6 +339,8 @@ export function PublicTeamExecutionPanel({
                                   ? {
                                       ...item,
                                       engineId: value,
+                                      level: option?.level,
+                                      ascension: option?.ascension,
                                       refinement: option?.refinement ?? item.refinement,
                                     }
                                   : item,

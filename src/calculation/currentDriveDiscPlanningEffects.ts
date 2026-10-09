@@ -1,4 +1,7 @@
-import { getCurrentDriveDiscFormulaData } from '../gameDataPacks/currentDriveDiscFormulaCatalog'
+import {
+  currentDriveDiscFormulaCatalog,
+  getCurrentDriveDiscFormulaData,
+} from '../gameDataPacks/currentDriveDiscFormulaCatalog'
 import { stableContentHash } from '../gameDataPacks/types'
 import { getCurrentAgentEventContract } from './currentAgentMechanicContracts'
 import {
@@ -8,16 +11,32 @@ import {
 } from './currentFormulaMechanicContracts'
 import type { PlanningEffectRuntimeMember } from './currentPlanningEffectRuntime'
 import type { SourceBackedEquipmentModifierBucket } from './currentPlanningTeamDpsRuntime'
+import {
+  functionalEffectMetadata32,
+  sourceEquipmentEffectPath32,
+  sourceEquipmentEffectMetadata32,
+  type FunctionalEffectMetadata32,
+  hasReviewedShieldConsumer32,
+} from './reviewedFunctionalEquipmentDependencies32'
 
-export const currentDriveDiscPlanningEffectVersion = 'disc-fixed-event-passives-r1'
+export const currentDriveDiscPlanningEffectVersion = 'disc-fixed-event-and-functional-passives-r2'
 
 const directStats: Record<string, SourceBackedEquipmentModifierBucket['application']> = {
   'combat.crit_dmg_': 'crit_damage',
   'combat.crit_': 'crit_rate',
   'combat.dmg_': 'damage_bonus',
   'combat.common_dmg_': 'damage_bonus',
+  'combat.dazeInc_': 'daze_increase',
+  'combat.dazeRed_': 'daze_reduction',
+  'combat.enerRegen_': 'energy_regen_percent',
+  'combat.enerRegen': 'energy_regen_flat',
 }
-const actions: Record<string, string> = { basic: 'basic_attack', dash: 'dash', ult: 'ultimate' }
+const actions: Record<string, string> = {
+  basic: 'basic_attack',
+  dash: 'dash',
+  dodgeCounter: 'dodge_counter',
+  ult: 'ultimate',
+}
 
 // Locked game descriptions: both triggers belong to any squad member and the
 // same-name passive cannot stack. Keeping one wearer preserves this unknown
@@ -57,13 +76,15 @@ export function compileCurrentDriveDiscPlanningEffects(input: {
   preparedQuickAssist?: 'none_in_preceding_15s_or_counted_events'
 }) {
   const buckets: SourceBackedEquipmentModifierBucket[] = []
-  const exclusions: Array<{
-    agentId: string
-    setId: string
-    reason: string
-    fields: string[]
-    sourceRefs: string[]
-  }> = []
+  const exclusions: Array<
+    FunctionalEffectMetadata32 & {
+      agentId: string
+      setId: string
+      reason: string
+      fields: string[]
+      sourceRefs: string[]
+    }
+  > = []
   const blockers: string[] = []
   for (const loadout of input.loadouts) {
     const member = input.members.find((item) => item.agentId === loadout.agentId)
@@ -75,20 +96,81 @@ export function compileCurrentDriveDiscPlanningEffects(input: {
     const counts = new Map<string, number>()
     for (const disc of loadout.discs) counts.set(disc.setId, (counts.get(disc.setId) ?? 0) + 1)
     for (const [setId, count] of counts) {
-      if (count < 4) continue
+      if (count < 2) continue
       const source = getCurrentDriveDiscFormulaData(setId)
       const requirements = getCurrentFormulaContractRequirements('drive_disc', setId)
       if (!source || !requirements) {
         blockers.push(`四件套缺少来源：${setId}`)
         continue
       }
+      for (const modifier of source.twoPieceModifiers) {
+        const application =
+          modifier.stat === 'shield_'
+            ? 'shield_percent'
+            : modifier.stat === 'dazeInc_'
+              ? 'daze_increase'
+              : null
+        if (!application) continue // Other two-piece fields are already in the initial panel.
+        const sourceRefs = [
+          `current-drive-disc-formula-catalog:${currentDriveDiscFormulaCatalog.contentHash}`,
+          `source-commit:${currentDriveDiscFormulaCatalog.generatedFrom.commit}`,
+          source.fourPieceFormula.path,
+          source.fourPieceFormula.sha256,
+        ]
+        if (application === 'shield_percent' && !hasReviewedShieldConsumer32(member.agentId)) {
+          exclusions.push({
+            agentId: member.agentId,
+            setId,
+            reason: 'shield_consumer_unmodeled',
+            fields: [modifier.stat],
+            sourceRefs,
+            ...functionalEffectMetadata32(
+              `own.combat.${modifier.stat}`,
+              member.agentId,
+              input.members.map((row) => row.agentId),
+            ),
+          })
+          continue
+        }
+        buckets.push({
+          bucketId: `disc:${member.agentId}:${setId}:two-piece:${modifier.stat}`,
+          effectKey: `disc:${setId}:two-piece:${modifier.stat}`,
+          providerAgentId: member.agentId,
+          recipientAgentIds: [member.agentId],
+          receiverPath: null,
+          damageType: null,
+          action: null,
+          attribute: null,
+          application,
+          value: modifier.value,
+          sourceRefs,
+        })
+      }
+      if (count < 4) continue
       const sourceRefs = [
         source.fourPieceFormula.path,
         source.fourPieceFormula.sha256,
         currentFormulaMechanicContractHash,
       ]
-      const exclude = (reason: string, fields: string[]) =>
-        exclusions.push({ agentId: member.agentId, setId, reason, fields, sourceRefs })
+      const exclude = (
+        reason: string,
+        fields: string[],
+        effectPath: string | null = null,
+        resolvedInactive = false,
+      ) =>
+        exclusions.push({
+          agentId: member.agentId,
+          setId,
+          reason,
+          fields,
+          sourceRefs,
+          ...functionalEffectMetadata32(
+            effectPath,
+            member.agentId,
+            input.members.map((row) => row.agentId),
+          ),
+          resolvedInactive,
+        })
       const flags: Record<string, boolean> = {}
       for (const flag of requirements.flags) {
         const match = /^eq:own.char.(attribute|specialty):(.+)$/.exec(flag)
@@ -99,7 +181,7 @@ export function compileCurrentDriveDiscPlanningEffects(input: {
       // excluded trigger explicitly. This is not an observed enemy state.
       if (source.upstreamKey === 'PolarMetal') {
         flags['PolarMetal:freeze_shatter'] = false
-        exclude('unobserved_condition', ['PolarMetal:freeze_shatter'])
+        exclude('unobserved_condition', ['PolarMetal:freeze_shatter'], 'own.combat.dmg_')
       }
       // Source text: stacks require a Quick Assist within 15s. This exact
       // preparation explicitly has none; zero is proven, never a missing-value default.
@@ -129,15 +211,36 @@ export function compileCurrentDriveDiscPlanningEffects(input: {
         blockers.push(`四件套公式版本需要重新核对：${setId}`)
         continue
       }
-      for (const item of result.exclusions) exclude('unobserved_condition', item.reasons)
+      for (const item of result.exclusions) {
+        exclude(
+          'unobserved_condition',
+          item.reasons,
+          sourceEquipmentEffectPath32('drive_disc', setId, item.effectIndex),
+        )
+        Object.assign(
+          exclusions[exclusions.length - 1],
+          sourceEquipmentEffectMetadata32(
+            'drive_disc',
+            setId,
+            item.effectIndex,
+            member.agentId,
+            input.members.map((row) => row.agentId),
+          ),
+        )
+      }
       if (!result.effects.length && !result.exclusions.length && !knownInactiveAstral)
-        exclude('static_condition_not_met', requirements.flags.concat(requirements.numbers))
+        exclude(
+          'static_condition_not_met',
+          requirements.flags.concat(requirements.numbers),
+          null,
+          true,
+        )
       for (const [index, effect] of result.effects.entries()) {
         const stat = String(effect.stat)
         const attribute = /^combat.dmg_.(fire|electric|ice|ether|physical)$/.exec(stat)?.[1] ?? null
         const application = attribute ? 'damage_bonus' : directStats[stat]
         if (!application) {
-          exclude('outside_direct_damage_domain', [stat])
+          exclude('outside_direct_damage_domain', [stat], `${effect.target}.${stat}`)
           continue
         }
         if (
@@ -176,7 +279,7 @@ export function compileCurrentDriveDiscPlanningEffects(input: {
     preparedQuickAssist: input.preparedQuickAssist ?? null,
     blockers,
     boundary:
-      '仅消费固定比较基线中可证明的四件套直接伤害效果；未观测触发、叠层、时窗及非直接伤害效果逐项排除。没有模拟全队四件套联动或证明18盘最优。',
+      '两件套护盾与失衡加成交给具名功能消费者，其他静态字段由初始面板消费；四件套只采用可证明的效果。未观测触发、叠层、时窗及未适配功能保持缺口。没有模拟全队四件套联动或证明18盘最优。',
   }
   return { ...core, fingerprint: stableContentHash(core) }
 }

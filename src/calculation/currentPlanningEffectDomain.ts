@@ -11,6 +11,13 @@ export type PlanningEffectRuntimeStats = {
   anomMas: number
   anomProf: number
   impact: number
+  /** Source-bound unconditional initial CR conversion already included in final impact once. */
+  initialImpactConversion32?: {
+    effectKey: string
+    impactIncrease: number
+    bindingHash: string
+    sourceRefs: string[]
+  }
   pen_: number
   /** Flat penetration; pen_ is the separate fractional penetration ratio. */
   pen?: number
@@ -67,13 +74,21 @@ export function bindPlanningEffectRuntimePotentialReference(input: {
     // This deliberate final binding prevents named baseline fixtures from
     // replacing an observed account value.
     'char.potential': upstreamLevel,
+    'own.char.potential': upstreamLevel,
   }
 }
 
 export function teamCounts(memberIds: readonly string[]) {
   const specialty: Record<string, number> = {}
   const faction: Record<string, number> = {}
-  const attribute: Record<string, number> = {}
+  const attribute: Record<string, number> = {
+    physical: 0,
+    fire: 0,
+    ice: 0,
+    electric: 0,
+    ether: 0,
+    wind: 0,
+  }
   for (const agentId of memberIds) {
     const identity = getCurrentAgentEventContract(agentId)?.identity
     if (!identity) continue
@@ -84,26 +99,90 @@ export function teamCounts(memberIds: readonly string[]) {
   return { specialty, faction, attribute }
 }
 
+export function planningCharacterReferences32(member: PlanningEffectRuntimeMember) {
+  const references: Record<string, number> = {
+    'char.mindscape': member.mindscape,
+    'own.char.mindscape': member.mindscape,
+    'char.core': member.coreLevel - 1,
+    'own.char.core': member.coreLevel - 1,
+  }
+  for (const [skill, level] of Object.entries(member.skillLevels)) {
+    if (!['basic', 'dodge', 'assist', 'special', 'chain'].includes(skill)) continue
+    references[`char.${skill}`] = level - 1
+    references[`own.char.${skill}`] = level - 1
+  }
+  return references
+}
+
+/** Combine different condition providers without discarding the same actor's
+ * already resolved preparation. Later providers replace only matching keys. */
+export function mergePlanningReferenceMaps32(
+  ...maps: (Readonly<Record<string, Readonly<Record<string, unknown>>>> | undefined)[]
+) {
+  const result: Record<string, Readonly<Record<string, unknown>>> = {}
+  for (const map of maps)
+    for (const [agentId, references] of Object.entries(map ?? {}))
+      result[agentId] = { ...result[agentId], ...references }
+  return result
+}
+
+/** Bind factual character/party identities and source constants separately from
+ * the explicitly supplied combat observations. No missing trigger is invented. */
+export function planningProviderReferences32(input: {
+  member: PlanningEffectRuntimeMember
+  sourceReferences: Readonly<Record<string, unknown>>
+  attributeCounts: Readonly<Record<string, number>>
+  observations?: Readonly<Record<string, unknown>>
+  finalStats?: PlanningEffectRuntimeStats
+}) {
+  const member = input.member
+  const identity = getCurrentAgentEventContract(member.agentId)?.identity
+  return bindPlanningEffectRuntimePotentialReference({
+    agentId: member.agentId,
+    potential: member.potential,
+    references: {
+      ...Object.fromEntries(
+        Object.entries(input.sourceReferences).filter(([key]) => key.startsWith('dm.')),
+      ),
+      'team.common.count': input.attributeCounts,
+      ...Object.fromEntries(
+        Object.entries(input.attributeCounts).map(([key, value]) => [
+          `team.common.count.${key}`,
+          value,
+        ]),
+      ),
+      ...statReferences('own.initial', member.initialStats),
+      ...statReferences('own.final', member.finalStats),
+      ...input.observations,
+      ...planningCharacterReferences32(member),
+      ...(member.level === undefined ? {} : { 'char.lvl': member.level }),
+      ...(input.finalStats ? statReferences('own.final', input.finalStats) : {}),
+      'char.specialty': identity?.specialty,
+      'char.attribute': identity?.attribute,
+      'char.faction': identity?.faction,
+      'own.char.specialty': identity?.specialty,
+      'own.char.attribute': identity?.attribute,
+      'own.char.faction': identity?.faction,
+    },
+  })
+}
+
 export function statReferences(
   prefix: 'own.initial' | 'own.final' | 'target.final',
   stats: PlanningEffectRuntimeStats,
 ) {
-  return {
-    ...Object.fromEntries(Object.entries(stats).map(([key, value]) => [`${prefix}.${key}`, value])),
-    ...(stats.lacerationDamage === undefined
-      ? {}
-      : { [`${prefix}.laceration_dmg_`]: stats.lacerationDamage }),
-    ...(stats.sharpDamageBonus === undefined
-      ? {}
-      : { [`${prefix}.sharp_dmg_`]: stats.sharpDamageBonus }),
-    ...(stats.sheerDamageBonus === undefined
-      ? {}
-      : { [`${prefix}.sheer_dmg_`]: stats.sheerDamageBonus }),
-    ...(stats.directDamageBonus === undefined
-      ? {}
-      : { [`${prefix}.direct_dmg_`]: stats.directDamageBonus }),
-    ...(stats.buffBonus === undefined ? {} : { [`${prefix}.buff_`]: stats.buffBonus }),
-  }
+  const references: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(stats)) references[`${prefix}.${key}`] = value
+  if (stats.lacerationDamage !== undefined)
+    references[`${prefix}.laceration_dmg_`] = stats.lacerationDamage
+  if (stats.sharpDamageBonus !== undefined)
+    references[`${prefix}.sharp_dmg_`] = stats.sharpDamageBonus
+  if (stats.sheerDamageBonus !== undefined)
+    references[`${prefix}.sheer_dmg_`] = stats.sheerDamageBonus
+  if (stats.directDamageBonus !== undefined)
+    references[`${prefix}.direct_dmg_`] = stats.directDamageBonus
+  if (stats.buffBonus !== undefined) references[`${prefix}.buff_`] = stats.buffBonus
+  return references
 }
 
 export function effectRuntimeReferences(input: {
@@ -118,17 +197,8 @@ export function effectRuntimeReferences(input: {
     'target.char.attribute': getCurrentAgentEventContract(input.target.agentId)?.identity.attribute,
     'target.char.faction': getCurrentAgentEventContract(input.target.agentId)?.identity.faction,
   }
-  // A named neutral PlanningBaseline explicitly leaves non-selected event and
-  // state triggers off. Numeric conditions therefore resolve to 0; callers can
-  // override any selected condition with baselineReferences.
-  for (const reference of input.requiredReferences)
-    if (
-      !Object.hasOwn(references, reference) &&
-      !reference.startsWith('dm.') &&
-      !/^(own|target)\.(initial|final)\./.test(reference) &&
-      reference !== 'char.lvl'
-    )
-      references[reference] = 0
+  // Missing observations remain absent. The effect compiler distinguishes a
+  // source-proven inactive branch from an unobserved conditional.
   return references
 }
 

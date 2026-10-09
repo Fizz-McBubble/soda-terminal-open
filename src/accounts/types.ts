@@ -114,7 +114,7 @@ export type AccountPlanningDraft = {
       totalScore: number
       discIds: string[]
       effectiveRolls: number
-      setPattern: '4+2' | '2+2+2'
+      setPattern: '4+2' | '2+2+2' | 'scattered'
       degraded: boolean
     }>
     boundary: string

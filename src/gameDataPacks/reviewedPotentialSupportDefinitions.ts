@@ -83,7 +83,9 @@ export const rinaPotentialDefinition = definePotential({
       effectId: 'potential_team_attack_per_penetration',
       targetKind: 'team',
       activationKey: inactive,
-      activationRequirement: 'The potential meter window is active.',
+      // Source article 76974843 and locked Rina potential.desc require the
+      // Core Passive buff, independently of the separate 13-second meter.
+      activationRequirement: "Rina's Core Passive PEN Ratio buff is active.",
       unit: 'flat_attack_per_0.01_penetration_ratio',
       valueKind: 'conversion',
       valueSemantics: 'final_coefficient_per_input_step',
@@ -96,7 +98,7 @@ export const rinaPotentialDefinition = definePotential({
       },
       formulaBinding: {
         bucket: 'team_stat',
-        requiredStates: ['rina_potential_meter_window'],
+        requiredStates: ['rina_core_penetration_buff'],
         requiredActionFamilies: [],
         requiredTargetStates: [],
         multiplier: { kind: 'per_input_step' },
@@ -108,7 +110,7 @@ export const rinaPotentialDefinition = definePotential({
       effectId: 'potential_team_defense_per_penetration',
       targetKind: 'team',
       activationKey: inactive,
-      activationRequirement: 'The potential meter window is active.',
+      activationRequirement: "Rina's Core Passive PEN Ratio buff is active.",
       unit: 'flat_defense_per_0.01_penetration_ratio',
       valueKind: 'conversion',
       valueSemantics: 'final_coefficient_per_input_step',
@@ -121,7 +123,7 @@ export const rinaPotentialDefinition = definePotential({
       },
       formulaBinding: {
         bucket: 'team_stat',
-        requiredStates: ['rina_potential_meter_window'],
+        requiredStates: ['rina_core_penetration_buff'],
         requiredActionFamilies: [],
         requiredTargetStates: [],
         multiplier: { kind: 'per_input_step' },

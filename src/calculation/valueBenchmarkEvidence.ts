@@ -38,6 +38,15 @@ export function valueBenchmarkSideEvidenceIssues(
     if (!nonEmptyString(side.dimensions?.[dimension])) issues.push(`缺少比较上下文：${dimension}。`)
   }
   if (!nonEmptyString(side.calculationFingerprint)) issues.push('缺少计算结果指纹。')
+  if (side.coverage?.domain === 'prepared_anomaly_settlement') {
+    if (!hasWellFormedValueBenchmarkCoverage(side.coverage))
+      issues.push('单次异常比较缺少完整覆盖声明。')
+    if (side.planningDps !== null) issues.push('单次异常结算不能声明循环DPS。')
+    if (side.dimensions.duration !== 'not_applicable')
+      issues.push('单次异常结算不适用固定窗口时长。')
+    if (side.modelQualification32 || side.memberModelQualification32)
+      issues.push('单次异常结算不能复用完整动作模型资格。')
+  }
   return issues
 }
 
@@ -47,7 +56,8 @@ export function hasWellFormedValueBenchmarkCoverage(
   if (!value || typeof value !== 'object') return false
   const coverage = value as Partial<ValueBenchmarkCoverage>
   return (
-    coverage.domain === 'fixed_event_direct_damage' &&
+    (coverage.domain === 'fixed_event_direct_damage' ||
+      coverage.domain === 'prepared_anomaly_settlement') &&
     nonEmptyString(coverage.boundary) &&
     nonEmptyString(coverage.exclusionContextFingerprint) &&
     stringArray(coverage.includedEffectKeys) &&

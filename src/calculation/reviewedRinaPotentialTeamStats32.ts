@@ -6,7 +6,8 @@ import {
   type PotentialInitialStatsProvenance,
 } from './potentialApplicationBinding'
 
-/** The occurrence producer must evidence the source's 13s meter window.
+/** The occurrence producer must evidence the source's Core Passive PEN buff.
+ * The separate 13s potential meter does not establish this condition.
  * No trigger, elapsed time, potential level or initial panel is inferred here.
  */
 export function bindReviewedRinaPotentialTeamStats32(input: {

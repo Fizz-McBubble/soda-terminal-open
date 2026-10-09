@@ -62,7 +62,7 @@ const candidateWarehouseSchema = z.object({
       totalScore: z.number(),
       discIds: z.array(z.string().min(1)),
       effectiveRolls: z.number(),
-      setPattern: z.enum(['4+2', '2+2+2']),
+      setPattern: z.enum(['4+2', '2+2+2', 'scattered']),
       degraded: z.boolean(),
     }),
   ),

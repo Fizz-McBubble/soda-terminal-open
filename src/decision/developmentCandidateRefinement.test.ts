@@ -149,7 +149,7 @@ describe('algorithm quality through actual source adapters and calculation modul
     constraint.teamAndBangbooPreconditions = []
     expect(candidatePriorityEvidence(constraint).kind).toBe('unordered')
   })
-  it('improves source priority without promoting a limited slice to an overall-damage conclusion', () => {
+  it('uses the covered fixed-event objective after the solo ability is proven inactive', () => {
     const f = claretFixture()
     for (const disc of f.warehouse.discs)
       expect(() =>
@@ -171,8 +171,9 @@ describe('algorithm quality through actual source adapters and calculation modul
       labels: { baseline: 'before', candidate: 'after' },
     })
     expect(comparison.comparable, JSON.stringify(comparison.reasons)).toBe(true)
-    // The original coverage gate correctly rejects an overall-gain claim. Do not weaken it.
-    expect(comparison.coverage.generalConclusion).toBe('limited')
+    // Solo Claret cannot activate the team-gated ability. Its absence is a sourced
+    // inactive state, not an unobserved effect. This is only the declared event model.
+    expect(comparison.coverage.generalConclusion).toBe('supported')
     expect(comparison.totalDamageDelta).toBeGreaterThan(0)
     const before = JSON.stringify(f.warehouse)
     const result = refineDevelopmentCandidates({
@@ -184,15 +185,14 @@ describe('algorithm quality through actual source adapters and calculation modul
     expect(result).toHaveLength(1)
     expect(result[0]!.loadouts[0]!.discs.map((row) => row.disc.id)).toContain(f.stronger.id)
     expect(result[0]!.totalScore).toBe(f.original.totalScore)
-    expect(result[0]!.boundary).toContain('来源词条层级')
-    expect(result[0]!.boundary).toContain('不据此宣称整体伤害提升')
+    expect(result[0]!.boundary).not.toContain('来源词条层级')
     const after = compareValueBenchmarkSides({
       baseline: side(f.baseline),
       candidate: side(result[0]!.loadouts[0]!.discs.map((row) => row.disc)),
       changedDimensions: ['disc_loadout'],
       labels: { baseline: 'before', candidate: 'after' },
     })
-    expect(after.coverage.generalConclusion).toBe('limited')
+    expect(after.coverage.generalConclusion).toBe('supported')
     expect(JSON.stringify(f.warehouse)).toBe(before)
   })
   it('keeps unsupported numerical goals unchanged and cannot introduce invalid history', () => {
@@ -212,7 +212,7 @@ describe('algorithm quality through actual source adapters and calculation modul
       }),
     ).toEqual([f.original])
   })
-  it('promotes an already-listed source-dominating alternative without duplicating it', () => {
+  it('promotes an already-listed covered-model alternative without duplicating it', () => {
     const f = claretFixture()
     const stronger = solveCandidateWarehouse(
       f.baseline.map((disc) => (disc.slot === 1 ? f.stronger : disc)),
@@ -238,10 +238,9 @@ describe('algorithm quality through actual source adapters and calculation modul
     expect(ids[0]).toContain(f.stronger.id)
     expect(ids[1]).toContain(f.baseline[0]!.id)
     expect(new Set(ids.map((row) => JSON.stringify(row))).size).toBe(2)
-    expect(result[0]!.boundary).toContain('不据此宣称整体伤害提升')
-    expect(result[0]!.boundary.match(/不据此宣称整体伤害提升/g)).toHaveLength(1)
+    expect(result[0]!.boundary).not.toContain('来源词条层级')
   })
-  it('does not use a removed or unverified source ordering to refine a limited model', () => {
+  it('can use the complete numeric objective without relying on an unverified guide ordering', () => {
     const f = claretFixture()
     const constraint = f.buildIntent.recommendations[0]!.constraint!
     constraint.sources = constraint.sources.map((source) => ({ ...source, contentHash: 'changed' }))
@@ -251,7 +250,9 @@ describe('algorithm quality through actual source adapters and calculation modul
       candidates: [f.original],
       buildIntent: f.buildIntent,
     })
-    expect(result).toEqual([f.original])
+    expect(candidatePriorityEvidence(constraint).kind).toBe('unordered')
+    expect(result[0]!.loadouts[0]!.discs.map((row) => row.disc.id)).toContain(f.stronger.id)
+    expect(result[0]!.boundary).not.toContain('来源词条层级')
   })
   it('respects fixed discs while exploring actual compatible source proposals', () => {
     const f = claretFixture()

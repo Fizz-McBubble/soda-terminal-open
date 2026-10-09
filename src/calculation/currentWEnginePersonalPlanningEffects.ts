@@ -18,6 +18,13 @@ import {
   retainPlanningWEngineDependencies32,
 } from './currentPlanningWEngineDependencies32'
 import type { PlanningEffectRuntimeStats } from './currentPlanningEffectDomain'
+import {
+  functionalEffectMetadata32,
+  hasReviewedShieldConsumer32,
+  sourceEquipmentEffectPath32,
+  sourceEquipmentEffectMetadata32,
+} from './reviewedFunctionalEquipmentDependencies32'
+import { applyReviewedSpringEmbraceReceivers32 } from './reviewedSpringEmbraceReceivers32'
 
 export const currentWEnginePersonalPlanningEffectVersion =
   'wengine-personal-event-final-dependency-r2'
@@ -28,6 +35,7 @@ export type CurrentWEngineFormulaRuntime = {
   flags?: Readonly<Record<string, boolean>>
   numbers?: Readonly<Record<string, number>>
   accumulators?: Readonly<Record<string, number>>
+  recipients?: Readonly<Record<string, string>>
 }
 
 export function bindCurrentWEngineFormulaRuntime(input: {
@@ -75,11 +83,7 @@ export function compileCurrentWEnginePersonalPlanningEffects(input: {
   engineId: string
   refinement: number
   member?: PlanningEffectRuntimeMember
-  runtime?: {
-    flags?: Readonly<Record<string, boolean>>
-    numbers?: Readonly<Record<string, number>>
-    accumulators?: Readonly<Record<string, number>>
-  }
+  runtime?: CurrentWEngineFormulaRuntime
 }) {
   const source = getCurrentWEngineStaticData(input.engineId)
   const identity = getCurrentAgentEventContract(input.agentId)?.identity
@@ -95,8 +99,19 @@ export function compileCurrentWEnginePersonalPlanningEffects(input: {
         currentFormulaMechanicContractHash,
       ]
     : []
-  const exclude = (effectKey: string, reason: string, fields: string[]) =>
-    exclusions.push({ effectKey, reason, fields, sourceRefs })
+  const exclude = (
+    effectKey: string,
+    reason: string,
+    fields: string[],
+    effectPath: string | null = null,
+  ) =>
+    exclusions.push({
+      effectKey,
+      reason,
+      fields,
+      sourceRefs,
+      ...functionalEffectMetadata32(effectPath, input.agentId, [input.agentId]),
+    })
 
   if (!source || !identity) {
     blockers.push(
@@ -133,8 +148,22 @@ export function compileCurrentWEnginePersonalPlanningEffects(input: {
           `wengine:${input.engineId}:formula:${item.effectIndex}`,
           '固定事件缺少被动触发条件或累计状态，未假定效果已激活。',
           item.reasons,
+          sourceEquipmentEffectPath32('wengine', input.engineId, item.effectIndex),
         ),
       )
+      for (const item of result.exclusions)
+        Object.assign(
+          exclusions.find(
+            (row) => row.effectKey === `wengine:${input.engineId}:formula:${item.effectIndex}`,
+          )!,
+          sourceEquipmentEffectMetadata32(
+            'wengine',
+            input.engineId,
+            item.effectIndex,
+            input.agentId,
+            [input.agentId],
+          ),
+        )
       result.effects.forEach((raw, index) => {
         const effect = raw as Record<string, unknown>
         const key = `wengine:${input.engineId}:resolved:${index}`
@@ -145,17 +174,32 @@ export function compileCurrentWEnginePersonalPlanningEffects(input: {
           )
         const attribute = channel?.[2] ?? null
         const application = channel ? directStats[`combat.${channel[1]}`] : directStats[stat]
-        if (effect.kind !== 'modifier' || effect.target !== 'own' || !application) {
+        const effectPath =
+          typeof effect.target === 'string' && stat ? `${effect.target}.${stat}` : null
+        if (application === 'shield_percent' && !hasReviewedShieldConsumer32(input.agentId)) {
+          exclude(key, '已解析护盾增益缺少该角色的有限护盾消费者。', [stat], effectPath)
+          return
+        }
+        const transferableEnergy =
+          input.engineId === 'wengine-13011' &&
+          effect.target === 'team' &&
+          application === 'energy_regen_percent'
+        if (
+          effect.kind !== 'modifier' ||
+          (effect.target !== 'own' && !transferableEnergy) ||
+          !application
+        ) {
           exclude(
             key,
             '效果不属于当前个人固定事件直接伤害公式域。',
             [stat, String(effect.target ?? '')].filter(Boolean),
+            effectPath,
           )
           return
         }
         const action = effect.action === undefined ? null : actions[String(effect.action)]
         if (effect.action !== undefined && !action) {
-          exclude(key, '当前固定事件表没有该音擎动作类型。', [String(effect.action)])
+          exclude(key, '当前固定事件表没有该音擎动作类型。', [String(effect.action)], effectPath)
           return
         }
         if (typeof effect.value !== 'number' || !Number.isFinite(effect.value)) {
@@ -174,6 +218,17 @@ export function compileCurrentWEnginePersonalPlanningEffects(input: {
           value: effect.value,
           application,
           sourceRefs,
+          ...(transferableEnergy
+            ? {
+                sourceReceiverObservation: {
+                  engineId: input.engineId,
+                  memberIds: [input.agentId],
+                  recipientAgentId: input.runtime?.recipients?.['SpringEmbrace:recipientAgentId'],
+                  activeProviderAgentId:
+                    input.runtime?.recipients?.['SpringEmbrace:activeProviderAgentId'],
+                },
+              }
+            : {}),
         })
       })
     }
@@ -184,6 +239,8 @@ export function compileCurrentWEnginePersonalPlanningEffects(input: {
         source.formulaAdoption.todoMarkers,
       )
   }
+  const receivers = applyReviewedSpringEmbraceReceivers32(buckets)
+  exclusions.push(...receivers.exclusions)
   const core = {
     version: currentWEnginePersonalPlanningEffectVersion,
     formulaContractHash: currentFormulaMechanicContractHash,
@@ -194,7 +251,7 @@ export function compileCurrentWEnginePersonalPlanningEffects(input: {
       !blockers.length &&
       source.specialty === (identity?.specialty === 'attack' ? 'damage' : identity?.specialty)
         ? retainPlanningWEngineDependencies32({
-            buckets,
+            buckets: receivers.buckets,
             agentId: input.agentId,
             engineId: input.engineId,
             refinement: input.refinement,
@@ -204,7 +261,7 @@ export function compileCurrentWEnginePersonalPlanningEffects(input: {
             target: 'own',
             recipientAgentIds: [input.agentId],
           })
-        : buckets,
+        : receivers.buckets,
     passiveInactive,
     exclusions,
     blockers,

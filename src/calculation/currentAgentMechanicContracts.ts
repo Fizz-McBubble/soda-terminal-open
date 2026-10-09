@@ -7,6 +7,10 @@ import {
   reviewedTeammateActivationMinimum,
   reviewedTeammateActivationTerms,
 } from '../gameDataPacks/reviewedTeammateActivationMinimum'
+import {
+  currentAgentResourceEventIdentity32,
+  getCurrentAgentResourceEvent32,
+} from './currentAgentResourceEvents32'
 
 export type AgentEventOperator =
   | {
@@ -178,13 +182,61 @@ export function resolveCurrentAgentEvent(input: {
     damageMultiplier: damageMultiplier.value,
     dazeMultiplier: dazeMultiplier.value,
     anomalyBuildup: anomalyBuildup.value,
+    resourceRecovery: resolveCurrentAgentResourceEvent32(input),
     formulaFamily: event.formulaFamily,
     scalingAttribute: event.scalingAttribute,
     damageType: event.damageType,
+    eventModifierRefs: event.eventModifierRefs,
     attribute: event.attribute,
     formulaProjection: event.formulaProjection,
     catalogIdentity: currentAgentMechanicIdentity,
     source: contract.source,
+  }
+}
+
+export function resolveCurrentAgentResourceEvent32(input: {
+  stableId: string
+  eventId: string
+  skillLevel: number
+}) {
+  const agent = getCurrentAgentEventContract(input.stableId)
+  const row = agent && getCurrentAgentResourceEvent32(agent.upstreamKey, input.eventId)
+  if (
+    !agent ||
+    !row ||
+    row.source.statsSha256 !== agent.source.statsSha256 ||
+    row.source.statsPath !== agent.source.statsPath ||
+    currentAgentResourceEventIdentity32.sourceCommit !== agent.source.commit
+  )
+    return { status: 'unsupported' as const, blockers: ['resource_event_source_identity_unbound'] }
+  const operator = (value: { base: number; growthPerLevel: number }): AgentEventOperator => ({
+    kind: 'linear_skill_level',
+    ...value,
+    minimumLevel: 1,
+    maximumLevel: 16,
+  })
+  const energy = evaluateAgentEventOperator(operator(row.event.energy), input.skillLevel)
+  const decibels = evaluateAgentEventOperator(operator(row.event.decibels), input.skillLevel)
+  if (energy.status !== 'supported' || decibels.status !== 'supported')
+    return {
+      status: 'unsupported' as const,
+      blockers: [
+        ...(energy.status !== 'supported' ? energy.blockers : []),
+        ...(decibels.status !== 'supported' ? decibels.blockers : []),
+      ],
+    }
+  if (![energy.value, decibels.value].every((value) => Number.isFinite(value) && value >= 0))
+    return { status: 'unsupported' as const, blockers: ['invalid_source_resource_value'] }
+  return {
+    status: 'supported' as const,
+    stableId: input.stableId,
+    eventId: input.eventId,
+    skillLevel: input.skillLevel,
+    energy: { value: energy.value, unit: 'upstream_SpRecovery' as const },
+    decibels: { value: decibels.value, unit: 'upstream_FeverRecovery' as const },
+    gamePointConversion: 'unverified' as const,
+    sourceRefs: [`${row.source.statsPath}#${row.source.statsSha256}#${input.eventId}`],
+    sourceIdentity: currentAgentResourceEventIdentity32,
   }
 }
 

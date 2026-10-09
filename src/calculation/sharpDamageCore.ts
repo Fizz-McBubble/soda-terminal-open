@@ -1,15 +1,17 @@
 import { resolveAttackerLevelDefenseCoefficient } from './directDamageCore'
+import { boundedLacerationMultipliers } from './dynamic/lacerationProbability'
 
 export const isDamageFormula32Version = (version: string) =>
   version === '3.2' || version === '3.2-phase-ii'
 
 /** Adapted from frzyc/genshin-optimizer, MIT; see upstream/genshinOptimizer/NOTICE.md. */
 export const damageFormula32Identity = Object.freeze({
-  version: 'soda-damage-formula-3.2-v1',
+  version: 'soda-damage-formula-3.2-v3-source-zero-direct-event',
   upstreamRepository: 'frzyc/genshin-optimizer',
   upstreamCommit: '3456cd0f6f5bea10e168074502460dac2fcd6df4',
   license: 'MIT',
   evidenceRefs: [
+    'GO:Claret-core-text:git-blob:2aea405b533c0fcb93fa8f28cf753f23cec305dc:one-additional-check',
     'GO:common/dmg.ts:sha256:43C1755F8DECECB32F5710F815A8A67C76B4C05F2AD0467A9D3F9714C0B1A3E5',
     'GO:common/prep.ts:sha256:45D051C23C6055A75EE0B6A894659244754BCE298683F409667419B43E58ADF9',
     'GO:char/util.ts:sha256:0CD0429E53E7523AFE601A98BA09F3507F132FF820C09942B7B4993BADFBBF21',
@@ -32,28 +34,29 @@ export type SharpDamageCoreInput = Omit<TypedDirectDamageCoreInput, 'critDamage'
   sharpDamageBonus: number
 }
 
-/** The upstream second roll uses max(CR-1,0), without a second cap. */
+/** Source-text reconciliation: one additional critical check is a probability.
+ * Keep the full stat untouched; cap only this damage channel's two checks.
+ * This differs from the pinned upstream extrapolation above 200% CR.
+ */
 export function sharpLacerationMultipliers(critRate: number, lacerationDamage: number) {
-  if (!Number.isFinite(critRate) || critRate < 0)
-    throw new Error('sharp critRate must be finite and nonnegative')
-  if (!Number.isFinite(lacerationDamage) || lacerationDamage < 0)
-    throw new Error('lacerationDamage must be finite and nonnegative')
-  const critical = 1 + lacerationDamage
-  return {
-    nonCritical: 1,
-    critical,
-    doubleCritical: critical * critical,
-    expected:
-      (1 + Math.min(1, critRate) * lacerationDamage) *
-      (1 + Math.max(critRate - 1, 0) * lacerationDamage),
-  }
+  const { nonCritical, critical, doubleCritical, expected } = boundedLacerationMultipliers(
+    critRate,
+    lacerationDamage,
+  )
+  return { nonCritical, critical, doubleCritical, expected }
 }
 
-function commonFactors(input: Omit<TypedDirectDamageCoreInput, 'critDamage' | 'flatDamage'>) {
+function commonFactors(
+  input: Omit<TypedDirectDamageCoreInput, 'critDamage' | 'flatDamage'>,
+  allowZeroMultiplier = false,
+) {
   for (const [field, value] of Object.entries(input))
     if (!Number.isFinite(value)) throw new Error(`damage input ${field} must be finite`)
   if (input.scalingValue <= 0) throw new Error('scalingValue must be positive')
-  if (input.multiplier <= 0) throw new Error('multiplier must be positive')
+  if (input.multiplier < 0 || (!allowZeroMultiplier && input.multiplier === 0))
+    throw new Error(
+      allowZeroMultiplier ? 'multiplier must be nonnegative' : 'multiplier must be positive',
+    )
   if (!Number.isInteger(input.hitCount) || input.hitCount < 1)
     throw new Error('hitCount must be a positive integer')
   if (input.enemyDefense < 0 || input.penetrationFlat < 0)
@@ -102,7 +105,10 @@ function nonCritBase(
 
 /** 3.2 standard damage: attack/defense selection belongs to the sourced event. */
 export function calculateTypedDirectDamageCore32(input: TypedDirectDamageCoreInput) {
-  const factors = commonFactors(input)
+  // Source-registered daze/buildup rows (e.g. Caesar parry hit-1) can have
+  // exactly zero direct MV. Keep every observation validated and retain flat
+  // damage in the ordinary formula rather than skipping the source event.
+  const factors = commonFactors(input, true)
   if (input.critDamage < 0) throw new Error('critDamage must be nonnegative')
   const nonCriticalDamage = nonCritBase(input, factors, input.flatDamage)
   const expectedCritMultiplier = 1 + Math.min(1, Math.max(0, input.critRate)) * input.critDamage

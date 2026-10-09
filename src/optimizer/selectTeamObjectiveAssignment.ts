@@ -1,13 +1,22 @@
 import type { AccountLoadout } from './optimizeAccountBuilds'
-import { compareCandidatePanelPriority, type SearchPanelObjective } from './candidateSearchFacts'
+import type { SearchPanelObjective } from './candidateSearchFacts'
+import type { DriveDisc } from '../domain/schemas'
 
 export type TeamAssignmentObjective = {
   fingerprint: string
   evaluate: (loadouts: readonly AccountLoadout[]) => number | null
+  /** Production objectives request the game domain; test/oracle callers can supply narrower domains. */
+  domain?: 'game_legal_inventory'
+  baselineDiscIdsByAgent?: Readonly<Record<string, readonly string[]>>
+  /** Complete source recommendation seed/fallback, separate from actual equipment. */
+  sourceDiscIdsByAgent?: Readonly<Record<string, readonly string[]>>
+  /** Marginal visitation hint only. It cannot accept or prune a full assignment. */
+  visitHint?: (disc: DriveDisc, agentId: string) => number
+  hintProbeEvaluations?: () => number
 }
 
 export const teamAssignmentObjectivePolicy =
-  'target-team-raw-domain-search-r8-functional-members-atomic-exchanges'
+  'target-team-game-legal-search-r12-source-fallback-and-seed'
 
 /** Missing or differently configured functional goals are not equality. */
 export function preservesTeamPanelObjectives(
@@ -29,7 +38,10 @@ export function preservesTeamPanelObjectives(
     return (
       stat === (left.priorityStat ?? 'anomalyProficiency') &&
       [left.attackDeficit, right.attackDeficit, left[stat], right[stat]].every(Number.isFinite) &&
-      compareCandidatePanelPriority(left, right) === 0
+      // Safe fallback: allow component-wise improvements, not unknown trades.
+      // A lower attack deficit must never purchase a loss of the priority stat.
+      left.attackDeficit <= right.attackDeficit &&
+      left[stat]! >= right[stat]!
     )
   })
 }

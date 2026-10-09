@@ -45,7 +45,9 @@ describe('3.2 typed sharp arithmetic', () => {
     [1, 1.5],
     [1.5, 1.875],
     [2, 2.25],
-    [2.5, 2.625],
+    // Both independent checks are certain at 200% CR: 1.5 × 1.5 = 2.25.
+    // Further CR cannot create a probability above one.
+    [2.5, 2.25],
   ])('has independently calculated laceration expectation at CR=%s', (crit, expected) => {
     expect(sharpLacerationMultipliers(crit, 0.5).expected).toBe(expected)
   })
@@ -138,5 +140,33 @@ describe('3.2 typed sharp arithmetic', () => {
         sheerDamageBonus: 0.2,
       }).expectedDamage,
     ).toBeCloseTo(2376)
+  })
+
+  it('accepts typed direct zero MV without dropping flat damage or bypassing validation', () => {
+    const zeroDirect: DamageFormulaInput = {
+      ...dispatch,
+      family: 'direct',
+      formulaVersion: '3.2',
+      scalingAttribute: 'attack',
+      multiplier: 0,
+      flatDamage: 0,
+      critRate: 0,
+      critDamage: 0,
+    }
+    expect(calculateDamageFormula(zeroDirect).expectedDamage).toBe(0)
+    // Additive100 × two hits × level1DEF(50/(50+50)) = 100.
+    expect(calculateDamageFormula({ ...zeroDirect, flatDamage: 100 }).expectedDamage).toBe(100)
+    for (const patch of [
+      { multiplier: -1 },
+      { attack: Number.NaN },
+      { attack: 0 },
+      { attackerLevel: 61 },
+      { enemyDefense: -1 },
+      { flatDamage: Number.NaN },
+      { hitCount: 0 },
+    ])
+      expect(() => calculateDamageFormula({ ...zeroDirect, ...patch })).toThrow()
+    expect(() => calculateDamageFormula({ ...zeroDirect, formulaVersion: 'legacy' })).toThrow()
+    expect(() => calculateDamageFormula({ ...dispatch, multiplier: 0 })).toThrow()
   })
 })

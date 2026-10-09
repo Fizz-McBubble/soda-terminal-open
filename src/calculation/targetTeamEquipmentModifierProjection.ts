@@ -2,6 +2,7 @@ import { currentAgentDirectory } from '../assault/catalog'
 import { getCurrentWEngineStaticData } from '../gameDataPacks/currentWEngineStaticCatalog'
 import { stableContentHash } from '../gameDataPacks/types'
 import { applyReviewedWEngineReceiverSemantics32 } from './reviewedWEngineReceiverSemantics32'
+import { applyReviewedSpringEmbraceReceivers32 } from './reviewedSpringEmbraceReceivers32'
 import type { TargetTeamEquipmentParameterSelection } from '../decision/targetTeamAccountBoundBenchmark'
 import type { SourceBackedEquipmentModifierBucket } from './currentPlanningTeamDpsRuntime'
 import { evaluateCurrentBangbooPlanningParameter } from './currentBangbooPlanningAdapter'
@@ -17,6 +18,11 @@ import {
   retainPlanningWEngineDependencies32,
 } from './currentPlanningWEngineDependencies32'
 import { currentCombatPlanningModifierTargets } from './currentCombatPlanningModifierTargets'
+import {
+  functionalEffectMetadata32,
+  hasReviewedShieldConsumer32,
+  sourceEquipmentEffectMetadata32,
+} from './reviewedFunctionalEquipmentDependencies32'
 
 const agentSpecialtyById = new Map(
   currentAgentDirectory.map((agent) => [agent.id, agent.specialty] as const),
@@ -51,11 +57,20 @@ function compileDirectRuntimeBuckets(input: {
     blockers: string[]
     exclusions: Array<Record<string, unknown>>
     sourceRefs: string[]
+    runtime?: CurrentWEngineFormulaRuntime
   }>
 }) {
   const blockers = input.wEngines.flatMap((item) => item.blockers)
   const exclusions: Array<Record<string, unknown>> = input.wEngines.flatMap((item) =>
     item.exclusions.map((exclusion) => ({
+      ...sourceEquipmentEffectMetadata32(
+        'wengine',
+        item.engineId,
+        exclusion.effectIndex,
+        item.agentId,
+        input.memberIds,
+        typeof exclusion.recipientAgentId === 'string' ? exclusion.recipientAgentId : undefined,
+      ),
       engineId: item.engineId,
       agentId: item.agentId,
       reason: 'unobserved_conditional_effect',
@@ -85,9 +100,15 @@ function compileDirectRuntimeBuckets(input: {
       const application = channel
         ? directApplicationByStat[`combat.${channel[1]}` as keyof typeof directApplicationByStat]
         : directApplicationByStat[stat as keyof typeof directApplicationByStat]
+      const metadata = functionalEffectMetadata32(
+        typeof effect.target === 'string' ? `${effect.target}.${stat}` : null,
+        item.agentId,
+        input.memberIds,
+      )
       if (!application) {
         if (explicitlyExcludedDirectStats.has(String(effect.stat))) {
           exclusions.push({
+            ...metadata,
             engineId: item.engineId,
             agentId: item.agentId,
             effectIndex: index,
@@ -113,6 +134,7 @@ function compileDirectRuntimeBuckets(input: {
       const action = effect.action == null ? null : directActionBySource[String(effect.action)]
       if (effect.action != null && !action) {
         exclusions.push({
+          ...metadata,
           engineId: item.engineId,
           agentId: item.agentId,
           effectIndex: index,
@@ -121,17 +143,35 @@ function compileDirectRuntimeBuckets(input: {
         })
         return
       }
+      const recipientAgentIds = Array.isArray(effect.recipientAgentIds)
+        ? effect.recipientAgentIds.filter(
+            (id): id is string => typeof id === 'string' && input.memberIds.includes(id),
+          )
+        : effect.target === 'team'
+          ? [...input.memberIds]
+          : [item.agentId]
+      if (application === 'shield_percent') {
+        for (const recipient of recipientAgentIds.filter((id) => !hasReviewedShieldConsumer32(id)))
+          exclusions.push({
+            ...metadata,
+            recipientAgentIds: [recipient],
+            engineId: item.engineId,
+            agentId: item.agentId,
+            effectIndex: index,
+            reason: 'shield_consumer_unmodeled',
+            stat,
+          })
+      }
+      const modeledRecipients =
+        application === 'shield_percent'
+          ? recipientAgentIds.filter(hasReviewedShieldConsumer32)
+          : recipientAgentIds
+      if (!modeledRecipients.length) return
       buckets.push({
         bucketId: `wengine:${item.agentId}:${item.engineId}:${index}`,
         effectKey: `wengine:${item.engineId}:P:${index}`,
         providerAgentId: item.agentId,
-        recipientAgentIds: Array.isArray(effect.recipientAgentIds)
-          ? effect.recipientAgentIds.filter(
-              (id): id is string => typeof id === 'string' && input.memberIds.includes(id),
-            )
-          : effect.target === 'team'
-            ? [...input.memberIds]
-            : [item.agentId],
+        recipientAgentIds: modeledRecipients,
         receiverPath: null,
         damageType: null,
         action: action ?? null,
@@ -139,6 +179,17 @@ function compileDirectRuntimeBuckets(input: {
         value: effect.value,
         application,
         sourceRefs: item.sourceRefs,
+        ...(item.engineId === 'wengine-13011' && application === 'energy_regen_percent'
+          ? {
+              sourceReceiverObservation: {
+                engineId: item.engineId,
+                memberIds: [...input.memberIds],
+                recipientAgentId: item.runtime?.recipients?.['SpringEmbrace:recipientAgentId'],
+                activeProviderAgentId:
+                  item.runtime?.recipients?.['SpringEmbrace:activeProviderAgentId'],
+              },
+            }
+          : {}),
       })
     })
   }
@@ -248,6 +299,7 @@ export function projectTargetTeamWEngineModifiers(input: {
         : []
     const core = {
       agentId: selection.agentId,
+      runtime: input.runtimeByAgentId?.[selection.agentId],
       engineId: selection.engineId,
       level: declaredLevel ?? 60,
       levelAuthority:
@@ -302,11 +354,16 @@ export function projectTargetTeamWEngineModifiers(input: {
       }
     }
   }
-  const receivers = applyReviewedWEngineReceiverSemantics32(dependencyBuckets)
+  const springReceivers = applyReviewedSpringEmbraceReceivers32(dependencyBuckets)
+  const receivers = applyReviewedWEngineReceiverSemantics32(springReceivers.buckets)
   const directRuntimeCore = {
     ...initialDirectRuntime,
     buckets: receivers.buckets,
-    exclusions: [...initialDirectRuntime.exclusions, ...receivers.exclusions],
+    exclusions: [
+      ...initialDirectRuntime.exclusions,
+      ...springReceivers.exclusions,
+      ...receivers.exclusions,
+    ],
   }
   const directRuntime = { ...directRuntimeCore, fingerprint: stableContentHash(directRuntimeCore) }
   const memberSetValid =

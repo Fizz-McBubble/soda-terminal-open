@@ -3,11 +3,11 @@ import { getCurrentAgentDecisionMechanicContract } from './currentAgentDecisionM
 import { getCurrentAgentEventContract } from './currentAgentMechanicContracts'
 import {
   compileCurrentPlanningBaselineResourceContracts,
-  compileCurrentPlanningBaselineTimelineContracts,
   currentPlanningBaselineAgentObservations,
 } from './currentPlanningBaselineObservations'
 import {
   compileCurrentPlanningFormationEffectObservations,
+  compileCurrentPlanningFormationEffectTimeline,
   type PlanningEffectRuntimeMember,
 } from './currentPlanningEffectRuntime'
 import { compileSourceBackedPlanningInteractionContracts } from './currentPlanningInteractionMechanicIR'
@@ -90,11 +90,11 @@ export function compileCurrentPlanningInteractionBundle(input: {
   members: readonly PlanningEffectRuntimeMember[]
   baselineReferencesByAgentId?: Readonly<Record<string, Readonly<Record<string, unknown>>>>
 }) {
-  const timeline = compileCurrentPlanningBaselineTimelineContracts(input.memberIds)
+  const timeline = compileCurrentPlanningFormationEffectTimeline(input.memberIds)
   if (timeline.status === 'unsupported') return timeline
   const resources = compileCurrentPlanningBaselineResourceContracts(input.memberIds)
   if (resources.status === 'unsupported') return resources
-  const effects = compileCurrentPlanningFormationEffectObservations(input)
+  const effects = compileCurrentPlanningFormationEffectObservations(input, timeline)
   if (effects.status === 'unsupported') return effects
   const auxiliary = compileAuxiliaryContracts(input.memberIds)
   const contracts = [

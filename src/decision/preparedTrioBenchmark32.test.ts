@@ -174,12 +174,18 @@ describe('shared prepared three-agent fixed benchmark', () => {
     }
     const neutral = compileTargetTeamPlanningContext(neutralDiscs)
     if (neutral.status !== 'supported') throw new Error(neutral.blockers.join(';'))
-    expect(neutral.memberModelQualification32).toMatchObject({
+    expect(
+      neutral.memberModelQualification32,
+      JSON.stringify(neutral.coverage.excludedEffects),
+    ).toMatchObject({
       status: 'formal',
       capability: 'formal_dps',
       bangbooIncluded: false,
       importReady: false,
     })
+    expect(
+      neutral.coverage.excludedEffects.some((row) => row.fields.includes('combat_conditions')),
+    ).toBe(false)
     expect(neutral.memberModelQualification32!.totalDamage).toBeCloseTo(
       neutral.memberDamage.reduce((sum, row) => sum + row.totalDamage, 0),
       8,

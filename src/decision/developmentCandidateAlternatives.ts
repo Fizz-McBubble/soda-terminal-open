@@ -1,6 +1,8 @@
 import { refineDevelopmentCandidates } from './developmentCandidateRefinement'
+import { searchDevelopmentDynamicCandidates } from './developmentDynamicSearch'
 import type { CoreWarehouse } from '../accounts/coreFlow'
 import type { DriveDisc } from '../domain/schemas'
+import type { DevelopmentComparisonParameters } from './developmentValueBenchmark'
 import { candidatePanelInputForAgent } from '../optimizer/optimizeAccountBuilds'
 import {
   solveCandidateAgentAlternatives,
@@ -38,9 +40,26 @@ type DevelopmentCandidateAlternativesInput = {
 export function projectDevelopmentCandidateAlternatives(
   input: DevelopmentCandidateAlternativesInput,
   agentId: string,
+  parameters?: DevelopmentComparisonParameters,
 ): DevelopmentCandidateAlternativesProjection {
   const agent = input.warehouse.roster.agents.find((item) => item.agentId === agentId)
-  const panelInput = candidatePanelInputForAgent(agent)
+  const panelInput = candidatePanelInputForAgent(
+    agent && parameters
+      ? {
+          ...agent,
+          potentialImage: parameters.potential ?? agent.potentialImage,
+          wEngineDetails: parameters.wEngine
+            ? {
+                id: parameters.wEngine.engineId,
+                name: parameters.wEngine.engineId,
+                level: parameters.wEngine.level,
+                ascension: parameters.wEngine.ascension,
+                refinement: parameters.wEngine.refinement,
+              }
+            : agent.wEngineDetails,
+        }
+      : agent,
+  )
   const buildIntent = compileAgentBuildIntent({
     agentId,
     developmentPriorityAgentIds: input.developmentPriorityAgentIds,
@@ -66,6 +85,20 @@ export function projectDevelopmentCandidateAlternatives(
     optimizerOptionsFromBuildIntent(buildIntent),
     buildIntent.recommendations,
   )
+  candidates = refineDevelopmentCandidates({
+    warehouse: input.warehouse,
+    agentId,
+    candidates,
+    buildIntent,
+    parameters,
+  })
+  candidates = searchDevelopmentDynamicCandidates({
+    warehouse: input.warehouse,
+    agentId,
+    candidates,
+    buildIntent,
+    parameters,
+  }).candidates
   if (!candidates.length) {
     const diagnostic = solveCandidateWarehouse(
       input.warehouse.discs,
@@ -82,12 +115,6 @@ export function projectDevelopmentCandidateAlternatives(
       gaps: diagnostic.gaps.length ? diagnostic.gaps : ['仓库中暂未找到符合建议的完整六盘配装。'],
     }
   }
-  candidates = refineDevelopmentCandidates({
-    warehouse: input.warehouse,
-    agentId,
-    candidates,
-    buildIntent,
-  })
   return {
     status: 'ready',
     baseline,

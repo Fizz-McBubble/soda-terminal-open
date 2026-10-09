@@ -55,6 +55,13 @@ export function compileIncremental32PlanningSourceSelection(input: {
       contamination: false,
       windswept: false,
       exSpecialUsed: true,
+      // The prepared packet explicitly lands its contacts. This binds the
+      // source predicate, rather than replacing an omitted trigger with zero.
+      enemyHit: reviewedPreparedTeamConditions32.allDeclaredContacts,
+    }
+    referencesByAgentId['agent-koleda'] = {
+      ...referencesByAgentId['agent-koleda'],
+      isStunned: reviewedPreparedTeamConditions32.enemyStunned,
     }
   }
   const sourcePackets = selections.map(({ agentId, selected }) => ({

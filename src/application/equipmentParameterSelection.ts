@@ -1,4 +1,5 @@
 import { targetTeamEquipmentParametersFingerprint } from './publicTargetTeamEquipmentFingerprint'
+import { currentWEngineDirectory } from '../assault/planningCatalog'
 import type {
   TargetTeamEquipmentParameterSelection,
   TargetTeamWarehouseFitQueryResult,
@@ -7,9 +8,21 @@ import type {
 type EquipmentRecommendations = TargetTeamWarehouseFitQueryResult['equipmentRecommendations']
 
 export function wEngineOptions(recommendation: EquipmentRecommendations['wEngines'][number]) {
-  return [recommendation.recommendedPrimary, ...recommendation.recommendedAlternatives].filter(
-    (item): item is NonNullable<typeof item> => Boolean(item),
+  const options = [
+    recommendation.recommendedPrimary,
+    ...recommendation.recommendedAlternatives,
+  ].filter((item): item is NonNullable<typeof item> => Boolean(item))
+  const current = recommendation.current
+  if (
+    current &&
+    !options.some((item) => item.engineId === current.engineId) &&
+    currentWEngineDirectory.some(
+      (item) =>
+        item.id === current.engineId && item.releaseState === 'released' && item.accountOwnable,
+    )
   )
+    options.push(current)
+  return options
 }
 
 /** Pure selection adapter shared by the equipment form and the private Query producer. */
@@ -34,6 +47,12 @@ export function equipmentParameterSelection({
     return {
       agentId,
       engineId: selected?.engineId ?? '',
+      ...(selected && selected.source !== 'recommendation'
+        ? {
+            level: selected.level,
+            ...(selected.ascension === undefined ? {} : { ascension: selected.ascension }),
+          }
+        : {}),
       ...(selected?.engineId === effective?.engineId
         ? {
             ...(effective?.level === undefined ? {} : { level: effective.level }),

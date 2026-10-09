@@ -11,8 +11,9 @@ import {
 } from './teamRatingEvaluator'
 import { projectCurrent31TeamStrength } from './current31TeamStrengthCalibration'
 import { resolveCurrent31BangbooVariant } from './current31TeamCoreAggregation'
+import { stableContentHash } from '../gameDataPacks/types'
 
-export const current31TeamRatingContractId = 'soda-current-3.1-team-rating/v2' as const
+export const current31TeamRatingContractId = 'soda-current-3.1-team-rating/v3' as const
 
 function benchmarkForThreeAgentRating(benchmark: BenchmarkEvidence): BenchmarkEvidence {
   if (benchmark.status === 'complete') return benchmark
@@ -52,8 +53,11 @@ export function evaluateCurrent31TeamRating(input: {
     memberIds,
     members: memberIds.map(createLevel60NeutralEffectRuntimeMember),
   })
-  if (interaction.status === 'unsupported')
-    throw new Error(`current 3.1 interaction bundle 未闭合：${interaction.blockers.join('；')}`)
+  const interactionHash =
+    interaction.status === 'supported'
+      ? interaction.bundleHash
+      : stableContentHash({ memberIds, blockers: interaction.blockers })
+  const interactionEvidenceId = `${interaction.status === 'supported' ? 'interaction-bundle' : 'interaction-unavailable'}:${interactionHash}`
   const benchmark = benchmarkForThreeAgentRating(input.benchmark)
   const outputPotentialBand =
     benchmark.status === 'unavailable' ? ('unknown' as const) : input.outputPotentialBand
@@ -65,16 +69,27 @@ export function evaluateCurrent31TeamRating(input: {
     mechanicState,
     outputPotentialBand,
     benchmark,
-    unsupportedIssues: [],
+    unsupportedIssues:
+      interaction.status === 'supported'
+        ? []
+        : interaction.blockers.map((impact, index) => ({
+            issueId: `interaction-unavailable:${index}:${interactionHash}`,
+            conditionKey: 'planning-interaction-observation',
+            classification: 'benchmark_relevant' as const,
+            impact,
+            evidenceRefs: [interactionEvidenceId],
+          })),
     hardPrunes: input.hardPrunes?.filter((prune) => !prune.subjectId.startsWith('bangboo-')),
     additionalEvidence: [
       {
-        evidenceId: `interaction-bundle:${interaction.bundleHash}`,
+        evidenceId: interactionEvidenceId,
         provenance: 'derived_state',
         reference: `current-3.1-interaction:${memberIds.join('+')}`,
         explanation:
-          '由 source-backed Mechanic IR、PlanningBaseline observation 与六类共享 interaction operator 编译。',
-        contentHash: interaction.bundleHash,
+          interaction.status === 'supported'
+            ? '由 source-backed Mechanic IR、PlanningBaseline observation 与六类共享 interaction operator 编译。'
+            : `机制比较缺少条件；保留独立来源评级，不将未知效果按零：${interaction.blockers.join('；')}`,
+        contentHash: interactionHash,
       },
     ],
   })
@@ -101,8 +116,10 @@ export function evaluateCurrent31TeamRating(input: {
     realityCheck: strength.realityCheck,
     rating: strength.teamStrength,
     interaction: {
-      requiredOperators: interaction.requiredOperators,
-      bundleHash: interaction.bundleHash,
+      status: interaction.status,
+      requiredOperators: interaction.status === 'supported' ? interaction.requiredOperators : [],
+      bundleHash: interaction.status === 'supported' ? interaction.bundleHash : null,
+      blockers: interaction.status === 'supported' ? [] : interaction.blockers,
     },
   }
 }

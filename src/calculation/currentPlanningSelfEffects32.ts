@@ -18,6 +18,7 @@ import {
   recipientIds,
   type SourceBackedPlanningEffectBucket,
 } from './currentPlanningDamageModifiers'
+import { knownInactivePlanningEffect32 } from './planningKnownInactiveEffects32'
 
 type EffectResult = Extract<
   ReturnType<typeof evaluateCurrentPlanningEffectEntries32>,
@@ -35,6 +36,8 @@ export function planningRuntimeEffectBuckets32(
       providerAgentId: effect.providerAgentId,
       memberIds,
       receiverPath: effect.receiverPath,
+      effectKey: effect.effectKey,
+      declaredRecipientAgentIds: effect.recipientAgentIds,
     })
     const values = effect.recipientValues.length
       ? effect.recipientValues.filter((row) => recipients.includes(row.agentId))
@@ -69,6 +72,7 @@ export function compileCurrentPlanningSelfEffects32(input: {
   references?: Readonly<Record<string, unknown>>
 }) {
   const entries: CurrentAgentPlanningEffectBlueprint[] = []
+  const resolvedInactiveEffectKeys: string[] = []
   const exclusions: Array<{
     effectKey: string
     reason: string
@@ -78,6 +82,10 @@ export function compileCurrentPlanningSelfEffects32(input: {
   for (const entry of currentAgentPlanningEffectBlueprints.filter(
     (row) => row.providerAgentId === input.member.agentId,
   )) {
+    if (knownInactivePlanningEffect32(entry, input.member, input.references)) {
+      resolvedInactiveEffectKeys.push(entry.effectKey)
+      continue
+    }
     const metadata = effectReceiverMetadata(entry.numericExpression.expressionIr)
     const preparedKoleda =
       input.member.agentId === 'agent-koleda' &&
@@ -157,6 +165,7 @@ export function compileCurrentPlanningSelfEffects32(input: {
     : {
         ...result,
         entries,
+        resolvedInactiveEffectKeys,
         exclusions,
         buckets: planningRuntimeEffectBuckets32(result.results, [input.member.agentId]),
       }

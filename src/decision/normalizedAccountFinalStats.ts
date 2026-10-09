@@ -1,6 +1,9 @@
 import type { AccountRoster } from '../assault/types'
 import type { PlanningEffectRuntimeStats } from '../calculation/currentPlanningEffectDomain'
 import { evaluateSourceBoundSheerForce32 } from '../calculation/currentSourceBoundSheerForce32'
+import { evaluateReviewedBenInitialAttackConversion32 } from '../calculation/reviewedBenInitialAttackConversion32'
+import { evaluateReviewedDialynInitialImpact32 } from '../calculation/reviewedFunctionalInitialImpact32'
+import { resolvePotentialImage } from '../assault/agentCapabilities'
 import { resolveCurrentAgentCoreGrowth } from '../gameDataPacks/panel/currentPanelData'
 import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
 import {
@@ -8,6 +11,10 @@ import {
   resolveDriveDiscMainStatValue,
 } from '../calculation/outOfCombatPanel'
 import type { DriveDisc, StatKey } from '../domain/schemas'
+import {
+  isStandardSubstatProbe,
+  type StandardSubstatProbe,
+} from '../calculation/standardSubstatProbe'
 import { resolveCurrentDriveDiscTwoPieceModifiers } from '../gameDataPacks/currentDriveDiscFormulaCatalog'
 import { getCurrentWEngineStaticData } from '../gameDataPacks/currentWEngineStaticCatalog'
 import {
@@ -144,7 +151,10 @@ export function projectNormalizedAccountFinalStatsDetailed(input: {
   agent: AccountRoster['agents'][number]
   engineId: string
   discs: DriveDisc[]
+  statProbe?: StandardSubstatProbe
 }) {
+  if (input.statProbe && !isStandardSubstatProbe(input.statProbe))
+    return { status: 'unsupported' as const, reasons: ['词条试算只允许一档已采用的 S 级副词条。'] }
   const contract = getCurrentAgentEventContract(input.agent.agentId)
   const engine = getCurrentWEngineStaticData(input.engineId)
   // This path reads the catalog's independent base/promotion source, never the
@@ -185,6 +195,14 @@ export function projectNormalizedAccountFinalStatsDetailed(input: {
     }
 
   const explicitEngineLevel = input.agent.wEngineDetails?.level
+  const explicitEngineRefinement = input.agent.wEngineDetails?.refinement
+  if (
+    explicitEngineRefinement != null &&
+    (!Number.isInteger(explicitEngineRefinement) ||
+      explicitEngineRefinement < 1 ||
+      explicitEngineRefinement > 5)
+  )
+    return { status: 'unsupported' as const, reasons: ['音擎改装必须在 1 到 5 之间。'] }
   let engineLevel: number
   if (explicitEngineLevel !== undefined && explicitEngineLevel !== null) {
     if (
@@ -234,9 +252,12 @@ export function projectNormalizedAccountFinalStatsDetailed(input: {
   const engineBaseAttack = engine.staticStats.baseStat.key === 'atk' ? engineBaseValue : 0
   const engineBaseDefense = engine.staticStats.baseStat.key === 'def' ? engineBaseValue : 0
 
+  const coreLevel = input.agent.skillLevels?.core
+  if (typeof coreLevel !== 'number')
+    return { status: 'unsupported' as const, reasons: ['当前试算缺少代理人核心技等级。'] }
   const coreGrowth = resolveCurrentAgentCoreGrowth({
     agentId: input.agent.agentId,
-    coreLevel: input.agent.skillLevels?.core ?? Number.NaN,
+    coreLevel,
     basis: 'source_growth',
   })
   if (coreGrowth.status === 'unsupported')
@@ -276,32 +297,33 @@ export function projectNormalizedAccountFinalStatsDetailed(input: {
   if (secondary.secondaryStatKey === 'pen_') penetrationRatio += engineSecondaryValue
 
   const damageKey = `${contract.identity.attribute}_dmg` as StatKey
-  for (const disc of input.discs) {
+  const discStats = input.discs.flatMap((disc) => {
     const main = resolveDriveDiscMainStatValue(disc)
-    const stats = [...disc.subStats, ...(main ? [{ ...main, upgrades: 0 }] : [])]
-    for (const stat of stats) {
-      const value = stat.value
-      if (stat.stat === 'hp_percent') percentages.hp += value / 100
-      if (stat.stat === 'atk_percent') percentages.atk += value / 100
-      if (stat.stat === 'def_percent') percentages.def += value / 100
-      if (stat.stat === 'hp_flat') hpFlat += value
-      if (stat.stat === 'atk_flat') attackFlat += value
-      if (stat.stat === 'def_flat') defenseFlat += value
-      if (stat.stat === 'crit_rate') critRate += value / 100
-      if (stat.stat === 'crit_dmg') critDamage += value / 100
-      if (stat.stat === damageKey) damageBonus.value += value / 100
-      if (stat.stat.endsWith('_dmg')) {
-        const attribute = stat.stat.slice(0, -4)
-        if (Object.hasOwn(damageBonusesByAttribute, attribute))
-          damageBonusesByAttribute[attribute] += value / 100
-      }
-      if (stat.stat === 'anomaly_mastery') percentages.anomMas += value / 100
-      if (stat.stat === 'anomaly_proficiency') anomalyProficiency += value
-      if (stat.stat === 'pen') penetration += value
-      if (stat.stat === 'pen_ratio') penetrationRatio += value / 100
-      if (stat.stat === 'energy_regen') percentages.enerRegen += value / 100
-      if (stat.stat === 'impact') percentages.impact += value / 100
+    return [...disc.subStats, ...(main ? [{ ...main, upgrades: 0 }] : [])]
+  })
+  // Apply before initial-stat conversions and combat effects; never perturb finalStats directly.
+  for (const stat of [...discStats, ...(input.statProbe ? [input.statProbe] : [])]) {
+    const value = stat.value
+    if (stat.stat === 'hp_percent') percentages.hp += value / 100
+    if (stat.stat === 'atk_percent') percentages.atk += value / 100
+    if (stat.stat === 'def_percent') percentages.def += value / 100
+    if (stat.stat === 'hp_flat') hpFlat += value
+    if (stat.stat === 'atk_flat') attackFlat += value
+    if (stat.stat === 'def_flat') defenseFlat += value
+    if (stat.stat === 'crit_rate') critRate += value / 100
+    if (stat.stat === 'crit_dmg') critDamage += value / 100
+    if (stat.stat === damageKey) damageBonus.value += value / 100
+    if (stat.stat.endsWith('_dmg')) {
+      const attribute = stat.stat.slice(0, -4)
+      if (Object.hasOwn(damageBonusesByAttribute, attribute))
+        damageBonusesByAttribute[attribute] += value / 100
     }
+    if (stat.stat === 'anomaly_mastery') percentages.anomMas += value / 100
+    if (stat.stat === 'anomaly_proficiency') anomalyProficiency += value
+    if (stat.stat === 'pen') penetration += value
+    if (stat.stat === 'pen_ratio') penetrationRatio += value / 100
+    if (stat.stat === 'energy_regen') percentages.enerRegen += value / 100
+    if (stat.stat === 'impact') percentages.impact += value / 100
   }
   const twoPieceProjection = addStaticTwoPieceModifiers({
     discs: input.discs,
@@ -334,8 +356,20 @@ export function projectNormalizedAccountFinalStatsDetailed(input: {
   const initialAttack = characterAttack + engineBaseAttack
   const initialDefense = characterDefense + engineBaseDefense
 
-  const attack = initialAttack * (1 + percentages.atk) + attackFlat
   const defense = initialDefense * (1 + percentages.def) + defenseFlat
+  const initialAttackConversion32 =
+    input.agent.agentId === 'agent-ben'
+      ? evaluateReviewedBenInitialAttackConversion32({
+          coreLevel,
+          initialDefense: defense,
+        })
+      : null
+  if (initialAttackConversion32?.status === 'unsupported')
+    return { status: 'unsupported' as const, reasons: initialAttackConversion32.blockers }
+  const attack =
+    initialAttack * (1 + percentages.atk) +
+    attackFlat +
+    (initialAttackConversion32?.attackIncrease ?? 0)
 
   const baseAttack = initialAttack
   const baseDefense = initialDefense
@@ -378,6 +412,16 @@ export function projectNormalizedAccountFinalStatsDetailed(input: {
       sourceRefs: sheer.sourceRefs,
     }
   }
+  const initialImpactConversion32 =
+    input.agent.agentId === 'agent-dialyn'
+      ? evaluateReviewedDialynInitialImpact32({
+          initialCritRate: initialStats.crit_,
+          coreLevel,
+          potential: resolvePotentialImage(input.agent.agentId, input.agent.potentialImage),
+        })
+      : null
+  if (initialImpactConversion32?.status === 'unsupported')
+    return { status: 'unsupported' as const, reasons: initialImpactConversion32.blockers }
   const finalStats = {
     ...initialStats,
     atk: attack,
@@ -387,7 +431,8 @@ export function projectNormalizedAccountFinalStatsDetailed(input: {
     crit_dmg_: Math.max(0, critDamage),
     anomMas: initialStats.anomMas,
     anomProf: anomalyProficiency,
-    impact: initialStats.impact,
+    impact: initialStats.impact + (initialImpactConversion32?.impactIncrease ?? 0),
+    ...(initialImpactConversion32 ? { initialImpactConversion32 } : {}),
     pen_: penetrationRatio,
     enerRegen: initialStats.enerRegen,
     damageBonus: Math.max(0, damageBonus.value),
@@ -415,6 +460,7 @@ export function projectNormalizedAccountFinalStatsDetailed(input: {
     sharpDamageBonus,
     progression: { agentLevel, agentAscension, engineLevel, engineAscension },
     baseStatsSource: currentFormulaBaseStatsSource,
+    initialAttackConversion32,
     coreGrowth: {
       ...coreGrowth,
       coreIncluded: true as const,
@@ -424,7 +470,7 @@ export function projectNormalizedAccountFinalStatsDetailed(input: {
     finalStats,
     twoPieceProjection,
     boundary:
-      '角色来源成长 + 一条累计核心静态成长 + 方案音擎静态值 + 六张实体盘；来源贯穿力初始转换单独纳入，其他核心战斗效果、音擎被动与条件四件套仍显式排除。未复用含核心与影画的菜单观测锚，不宣称完整战斗面板资格。',
+      '角色来源成长 + 一条累计核心静态成长 + 方案音擎静态值 + 六张实体盘；来源贯穿力和本的初始防御转攻击各纳入一次，其他核心战斗效果、音擎被动与条件四件套仍显式排除。未复用含核心与影画的菜单观测锚，不宣称完整战斗面板资格。',
   }
   if (twoPieceProjection.status === 'partial')
     return {
