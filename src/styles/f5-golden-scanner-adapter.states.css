@@ -158,6 +158,12 @@
 }
 
 @media (max-width: 640px) {
+  .f5v-shell .scanner-prepare__account .scanner-target-account__content {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .f5v-shell .scanner-prepare__account .scanner-target-account__create > button {
+    grid-column: 1;
+  }
   .f5v-shell .scanner-task {
     --scanner-column-gap: 16px;
     --scanner-panel-padding: 16px;

@@ -3,6 +3,7 @@ import { registerScannerDataFileCompatibilityTests } from './scannerDataFileComp
 import { registerScannerCompletedResultTests } from './scannerAssistantCompletedResultTests'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { choosePlayerSelect } from '../testing/choosePlayerSelect'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../App'
 import { createAccount, setActiveAccount } from '../accounts/repository'
@@ -465,8 +466,7 @@ describe('ScannerAssistantPage', () => {
     })
   })
 
-  it('uses the native scanner account selector without loading account imagery', async () => {
-    const user = userEvent.setup()
+  it('uses the shared scanner account selector without loading account imagery', async () => {
     const alphaName = 'F4X Current HEAD 完整主账户名称'
     const betaName = 'F4X Current HEAD 完整备用账户名称'
     const alpha = await createAccount(alphaName, database, { id: 'account-alpha' })
@@ -475,11 +475,15 @@ describe('ScannerAssistantPage', () => {
     setRuntimeState('ready')
     render(<App />)
 
-    const picker = await screen.findByRole('combobox', { name: '本次扫描保存到' })
+    const picker = await screen.findByRole(
+      'combobox',
+      { name: '本次扫描保存到' },
+      { timeout: 5000 },
+    )
     expect(picker).toHaveTextContent(alphaName)
-    await user.selectOptions(picker, 'account-beta')
+    await choosePlayerSelect(picker, 'account-beta')
     expect(picker).toHaveValue('account-beta')
-    expect(screen.getByRole('option', { name: new RegExp(betaName) })).toBeInTheDocument()
+    expect(picker).toHaveTextContent(betaName)
     expect(picker).toHaveFocus()
   })
 

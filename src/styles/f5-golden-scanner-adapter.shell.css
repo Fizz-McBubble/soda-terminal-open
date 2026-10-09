@@ -134,7 +134,9 @@
 .f5v-shell .scanner-prepare__account .scanner-target-account__content {
   --scanner-label-width: 96px;
   display: grid;
-  gap: 20px;
+  grid-template-columns: minmax(0, 29rem) auto;
+  justify-content: start;
+  gap: 20px 12px;
   width: 100%;
 }
 
@@ -143,7 +145,18 @@
   grid-template-columns: var(--scanner-label-width) minmax(0, 1fr);
   align-items: center;
   gap: 12px;
-  width: min(100%, 29rem);
+  grid-column: 1;
+  width: 100%;
+}
+
+.f5v-shell .scanner-prepare__account .scanner-target-account__create {
+  display: contents;
+}
+.f5v-shell .scanner-prepare__account .scanner-target-account__create > label {
+  grid-column: 1;
+}
+.f5v-shell .scanner-prepare__account .scanner-target-account__create > button {
+  grid-column: 2;
 }
 
 .f5v-shell .scanner-prepare__account .scanner-account-picker__label {
@@ -152,7 +165,7 @@
 
 .f5v-shell
   .scanner-prepare__account
-  :is(.scanner-account-picker__trigger, .scanner-account-picker__selected) {
+  :is(.scanner-account-picker__control, .scanner-account-picker__selected) {
   min-width: 0;
   margin-top: 0;
 }
@@ -173,7 +186,6 @@
   display: none;
 }
 
-.f5v-shell .scanner-account-picker__trigger,
 .f5v-shell .scanner-account-picker__selected {
   min-height: var(--soda-control-height);
   margin-top: 8px;

@@ -41,18 +41,19 @@ export function ScannerTargetAccountPicker({
   return (
     <div className="scanner-account-picker">
       <span className="scanner-account-picker__label">本次扫描保存到</span>
-      <select
-        className="scanner-account-picker__trigger"
+      <PlayerSelect
+        className="scanner-account-picker__control"
         aria-label="本次扫描保存到"
         value={selectedAccount.id}
-        onChange={(event) => onSelect(event.target.value)}
+        onChange={onSelect}
       >
         {accounts.map((account) => (
           <option key={account.id} value={account.id}>
             {account.displayName} · {account.discCount} 张驱动盘
           </option>
         ))}
-      </select>
+      </PlayerSelect>
     </div>
   )
 }
+import { PlayerSelect } from '../components/PlayerSelect'

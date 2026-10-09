@@ -424,14 +424,9 @@
   color: var(--f5-muted) !important;
   font-size: 0.75rem;
 }
-.f5v-shell .scanner-account-picker__trigger {
+.f5v-shell .scanner-account-picker__control {
+  min-width: 0;
   width: 100%;
-  min-height: 40px;
-  margin-top: 5px;
-  border: 1px solid rgba(103, 90, 144, 0.24);
-  border-radius: var(--soda-radius-control);
-  color: var(--f5-ink);
-  background: #fff;
 }
 .f5v-shell .scanner-account-picker__selected {
   display: flex;
