@@ -1,11 +1,13 @@
 import { Clock3, LoaderCircle } from 'lucide-react'
 import type { ScannerAssistantSnapshot } from '../scanner/runtime'
+import { getAverageScannerRate } from './scannerAssistantPresentation'
 
 export function ScannerProgress({ snapshot }: { snapshot: ScannerAssistantSnapshot }) {
   const processed = snapshot.progress?.processed ?? 0
   const total = snapshot.progress?.total
   const hasTotal = total != null && total > 0
   const progress = hasTotal ? Math.min(100, Math.round((processed / total) * 100)) : null
+  const averageRate = getAverageScannerRate(snapshot)
 
   return (
     <div
@@ -36,10 +38,12 @@ export function ScannerProgress({ snapshot }: { snapshot: ScannerAssistantSnapsh
           <LoaderCircle aria-hidden="true" size={16} />
           {snapshot.progress?.stageLabel}
         </span>
-        <span>
-          <Clock3 aria-hidden="true" size={16} />
-          暂时无法估算剩余时间
-        </span>
+        {averageRate == null ? null : (
+          <span>
+            <Clock3 aria-hidden="true" size={16} />
+            平均 {averageRate} 张/分钟
+          </span>
+        )}
       </div>
     </div>
   )

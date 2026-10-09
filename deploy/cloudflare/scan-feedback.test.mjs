@@ -755,3 +755,39 @@ test('a rejected body from an old minute cannot release the new minute budget', 
     429,
   )
 })
+
+test('terminal details reach durable KV and return the complete lookup ID', async () => {
+  const evidence = {
+    diagnosticSource: 'terminal_details',
+    phase: 'row_scroll',
+    reason: 'unexpected_scroll_during_row',
+    expectedThumbStart: 120,
+    actualThumbStart: 180,
+    positionFound: true,
+    elapsedMs: 4000,
+  }
+  const report = { ...validReport, code: 'scan_navigation_failed', stage: 'scroll', evidence }
+  const { env, kv } = makeEnv()
+  const response = await createScanFeedbackReceiver()(makeRequest(report), env)
+  assert.equal(response.status, 200)
+  assert.equal((await response.json()).reportId, report.reportId)
+  assert.deepEqual(JSON.parse(kv.store.get(report.reportId).value).evidence, evidence)
+})
+test('strictly rejects unknown fields, unbounded numbers and path-like enum values', () => {
+  for (const evidence of [
+    { privatePath: 'C:/private' },
+    { phase: 'C:/private' },
+    { reason: 'scrollbar_position_missing/path' },
+    { diagnosticSource: 'raw_log' },
+    { acceptGateReason: 'required_core_missing UID=42' },
+    { actualThumbStart: 20001 },
+    { elapsedMs: -1 },
+    { tick: 0.5 },
+    { positionFound: 'true' },
+  ])
+    assert.equal(sanitizeScanFeedbackPayload({ ...validReport, evidence }).status, 400)
+})
+test('schema 1 reports with empty or old evidence remain accepted', () => {
+  for (const evidence of [{}, validReport.evidence])
+    assert.equal(sanitizeScanFeedbackPayload({ ...validReport, evidence }).ok, true)
+})

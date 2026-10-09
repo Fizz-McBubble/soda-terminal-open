@@ -4,13 +4,18 @@ import {
   sanitizeScanDiagnostic,
   type ScanDiagnosticReport,
 } from '../scanner/diagnostics'
-import { ScanFeedbackSubmissionError, submitScanFeedback } from '../scanner/scanFeedback'
+import {
+  readScanFeedbackReceipt,
+  ScanFeedbackSubmissionError,
+  submitScanFeedback,
+} from '../scanner/scanFeedback'
 import { ExplanationPopover } from '../components/ExplanationPopover'
 import { scannerDiagnosticGuidance } from './scannerDiagnosticGuidance'
 import './scanner-diagnostic-feedback.css'
 
 type FeedbackState = {
   reportId: string
+  reportKey: string
   pending?: boolean
   message: string
   receivedAt?: string
@@ -29,15 +34,28 @@ const stageLabels: Record<string, string> = {
 }
 export function ScannerDiagnosticFeedback({ report }: { report: ScanDiagnosticReport | null }) {
   const safe = useMemo(() => sanitizeScanDiagnostic(report), [report])
+  const reportKey = safe ? JSON.stringify(safe) : null
   const [state, setState] = useState<FeedbackState | null>(null)
-  const [localMessage, setLocalMessage] = useState<{ reportId: string; text: string } | null>(null)
+  const [localMessage, setLocalMessage] = useState<{ reportKey: string; text: string } | null>(null)
   const currentId = useRef<string | null>(null)
   const pendingId = useRef<string | null>(null)
   useLayoutEffect(() => {
-    currentId.current = safe?.reportId ?? null
-  }, [safe?.reportId])
-  if (!safe) return null
-  const currentState = state?.reportId === safe.reportId ? state : null
+    currentId.current = reportKey
+  }, [reportKey])
+  if (!safe || !reportKey) return null
+  const savedReceipt = readScanFeedbackReceipt(safe)
+  const currentState: FeedbackState | null =
+    state?.reportKey === reportKey
+      ? state
+      : savedReceipt
+        ? {
+            reportId: safe.reportId,
+            reportKey,
+            message: '反馈已收到，谢谢。',
+            receivedAt: savedReceipt.receivedAt,
+            receivedReportId: savedReceipt.report.reportId,
+          }
+        : null
   const receivedReport = currentState?.receivedReportId
     ? { ...safe, reportId: currentState.receivedReportId }
     : safe
@@ -45,23 +63,25 @@ export function ScannerDiagnosticFeedback({ report }: { report: ScanDiagnosticRe
   const guidance = scannerDiagnosticGuidance(safe)
 
   async function submit() {
-    if (!safe || pendingId.current === safe.reportId || currentState?.receivedAt) return
+    if (!safe || !reportKey || pendingId.current === reportKey || currentState?.receivedAt) return
     const reportId = safe.reportId
-    pendingId.current = reportId
-    setState({ reportId, pending: true, message: '正在发送反馈…' })
+    pendingId.current = reportKey
+    setState({ reportId, reportKey, pending: true, message: '正在发送反馈…' })
     try {
       const receipt = await submitScanFeedback(safe)
-      if (currentId.current === reportId)
+      if (currentId.current === reportKey)
         setState({
           reportId,
+          reportKey,
           message: '反馈已收到，谢谢。',
           receivedAt: receipt.receivedAt,
           receivedReportId: receipt.reportId,
         })
     } catch (error) {
-      if (currentId.current === reportId)
+      if (currentId.current === reportKey)
         setState({
           reportId,
+          reportKey,
           message:
             error instanceof ScanFeedbackSubmissionError && error.reason === 'unavailable'
               ? '反馈暂时无法发送，请稍后再试。'
@@ -70,22 +90,21 @@ export function ScannerDiagnosticFeedback({ report }: { report: ScanDiagnosticRe
                 : '发送失败，请再试一次。',
         })
     } finally {
-      if (pendingId.current === reportId) pendingId.current = null
+      if (pendingId.current === reportKey) pendingId.current = null
     }
   }
   async function copy() {
-    if (!safe) return
-    const reportId = safe.reportId
+    if (!safe || !reportKey) return
     try {
       await navigator.clipboard.writeText(text)
-      if (currentId.current === reportId) setLocalMessage({ reportId, text: '诊断已复制。' })
+      if (currentId.current === reportKey) setLocalMessage({ reportKey, text: '诊断已复制。' })
     } catch {
-      if (currentId.current === reportId)
-        setLocalMessage({ reportId, text: '复制失败，可下载诊断文件。' })
+      if (currentId.current === reportKey)
+        setLocalMessage({ reportKey, text: '复制失败，可下载诊断文件。' })
     }
   }
   function download() {
-    if (!safe) return
+    if (!safe || !reportKey) return
     try {
       const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }))
       const anchor = document.createElement('a')
@@ -93,9 +112,9 @@ export function ScannerDiagnosticFeedback({ report }: { report: ScanDiagnosticRe
       anchor.download = `soda-scan-diagnostic-${receivedReport.reportId}.json`
       anchor.click()
       URL.revokeObjectURL(url)
-      setLocalMessage({ reportId: safe.reportId, text: '诊断下载已开始。' })
+      setLocalMessage({ reportKey, text: '诊断下载已开始。' })
     } catch {
-      setLocalMessage({ reportId: safe.reportId, text: '下载失败，可复制诊断或稍后重试。' })
+      setLocalMessage({ reportKey, text: '下载失败，可复制诊断或稍后重试。' })
     }
   }
   return (
@@ -141,6 +160,12 @@ export function ScannerDiagnosticFeedback({ report }: { report: ScanDiagnosticRe
           ) : null}
           {safe.durationMs !== null ? <li>耗时 {(safe.durationMs / 1000).toFixed(1)} 秒</li> : null}
         </ul>
+        {currentState?.receivedReportId ? (
+          <p className="scanner-diagnostic-feedback__receipt">
+            <strong>回执编号</strong>
+            <span>{currentState.receivedReportId}</span>
+          </p>
+        ) : null}
         <p className="scanner-diagnostic-feedback__privacy">仅发送问题信息，保留 30 天。</p>
         <div className="scanner-diagnostic-feedback__actions">
           <button className="button button--quiet" type="button" onClick={() => void copy()}>
@@ -150,7 +175,7 @@ export function ScannerDiagnosticFeedback({ report }: { report: ScanDiagnosticRe
             下载诊断
           </button>
         </div>
-        {localMessage?.reportId === safe.reportId ? (
+        {localMessage?.reportKey === reportKey ? (
           <p aria-live="polite">{localMessage.text}</p>
         ) : null}
       </ExplanationPopover>

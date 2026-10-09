@@ -21,6 +21,7 @@ import { ScannerJourneyCards } from './ScannerJourneyCards'
 import { ScannerPrepareSection } from './ScannerPrepareSection'
 import { createPrepareChecks } from './scannerPrepareChecks'
 import { ScannerScanningSection } from './ScannerScanningSection'
+import { getAverageScannerRate } from './scannerAssistantPresentation'
 import { useScannerTargetBinding } from './useScannerTargetBinding'
 import { beginUsageOperation } from '../usageStatistics/client'
 
@@ -317,12 +318,13 @@ function HydratedScannerAssistantPage({
               ? 1
               : 0
 
+  const averageRate = getAverageScannerRate(snapshot)
   const resultSummary =
     snapshot.state === 'completed' ? (
       <div className="scanner-web__summary" aria-label="驱动盘导入摘要">
         <article>
           <AlertTriangle aria-hidden="true" size={20} />
-          <span>本次结果</span>
+          <span>本次结果{averageRate == null ? '' : ` · 平均 ${averageRate} 张/分钟`}</span>
           <strong>{snapshot.summary?.uniqueRecords ?? 0}</strong>
           <small>
             可直接导入 {snapshot.summary?.reliable ?? 0} · 待检查{' '}

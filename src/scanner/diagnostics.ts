@@ -64,6 +64,10 @@ export function sanitizeScanDiagnostic(value: unknown): ScanDiagnosticReport | n
   for (const key of contract.evidenceBooleans) {
     if (typeof rawEvidence[key] === 'boolean') evidence[key] = rawEvidence[key]
   }
+  for (const [key, allowed] of Object.entries(contract.evidenceEnums)) {
+    if (typeof rawEvidence[key] === 'string' && allowed.includes(rawEvidence[key]))
+      evidence[key] = rawEvidence[key]
+  }
   if (
     typeof rawEvidence.targetVerificationKind === 'string' &&
     contract.targetVerificationKinds.includes(rawEvidence.targetVerificationKind)
@@ -114,6 +118,8 @@ const stages: Record<string, string> = {
   permission_denied: 'permission',
   elevation_cancelled: 'permission',
   game_process_not_found: 'preflight',
+  inventory_count_ocr_failed: 'preflight',
+  scan_no_importable_s_discs: 'result',
   panel_capture_timeout: 'capture',
   duplicate_guard: 'ocr',
   scan_navigation_failed: 'scroll',
@@ -133,7 +139,14 @@ export function diagnosticFromSnapshot(
   issueCode?: string | null,
 ): ScanDiagnosticReport {
   const raw = object((snapshot as ScannerAssistantSnapshot & { diagnostics?: unknown }).diagnostics)
-  const code = issueCode ?? raw.code ?? snapshot.error?.diagnosticCode
+  const candidates = [issueCode, raw.code, snapshot.error?.diagnosticCode]
+  const code =
+    candidates.find(
+      (value) =>
+        typeof value === 'string' &&
+        contract.codes.includes(value) &&
+        !['scanner_failure', 'scanner_exit', 'unknown', 'none'].includes(value),
+    ) ?? candidates.find((value) => typeof value === 'string' && contract.codes.includes(value))
   const connectionIssue = Boolean(issueCode && stages[issueCode] === 'connection')
   return sanitizeScanDiagnostic({
     ...raw,
@@ -143,7 +156,7 @@ export function diagnosticFromSnapshot(
     outcome: connectionIssue
       ? 'failed'
       : (raw.outcome ?? (snapshot.state === 'completed' ? 'completed' : 'failed')),
-    stage: (issueCode ? stages[issueCode] : (raw.stage ?? stages[String(code)])) ?? 'unknown',
+    stage: stages[String(code)] ?? raw.stage ?? 'unknown',
     code,
     versions: raw.versions ?? {},
     counts: connectionIssue

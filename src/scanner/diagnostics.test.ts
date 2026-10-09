@@ -190,3 +190,85 @@ describe('allowlisted diagnostic privacy boundary', () => {
     expect(browserDiagnostic('unknown private')).toEqual({ browser: 'unknown' })
   })
 })
+
+it('carries bounded terminal evidence through projection, storage, copy and strict receiver', () => {
+  const evidence = {
+    diagnosticSource: 'terminal_details',
+    phase: 'capture',
+    acceptGateReason: 'waiting_for_target_selection_stability',
+    reason: 'scrollbar_position_missing',
+    actualThumbStart: 128,
+    expectedThumbStart: 120,
+    elapsedMs: 4600,
+    timeoutMs: 4500,
+    positionFound: false,
+    captureHealthy: true,
+    windowForeground: true,
+  }
+  const report = diagnosticFromSnapshot(
+    {
+      ...connectingSnapshot,
+      state: 'connection_failed',
+      diagnostics: { ...validReport, code: 'panel_capture_timeout', evidence },
+    },
+    reportId,
+  )
+  expect(report.evidence).toEqual(evidence)
+  saveLastScanDiagnostic(report)
+  expect(readLastScanDiagnostic()).toEqual(report)
+  expect(sanitizeScanFeedbackPayload(JSON.parse(diagnosticJson(report)))).toEqual({
+    ok: true,
+    record: report,
+  })
+  expect(new TextEncoder().encode(diagnosticJson(report)).length).toBeLessThanOrEqual(4096)
+  localStorage.clear()
+})
+
+it.each(['scanner_failure', 'unknown', 'none', 'scanner_exit'])(
+  'prefers a specific terminal code over generic diagnostic %s',
+  (code) => {
+    const report = diagnosticFromSnapshot(
+      {
+        ...connectingSnapshot,
+        state: 'connection_failed',
+        diagnostics: { ...validReport, code, stage: 'unknown' },
+        error: {
+          userMessage: 'private',
+          recoveryAction: 'retry',
+          diagnosticCode: 'inventory_count_ocr_failed',
+        },
+      },
+      reportId,
+    )
+    expect(report).toMatchObject({ code: 'inventory_count_ocr_failed', stage: 'preflight' })
+    expect(
+      diagnosticFromSnapshot(
+        {
+          ...connectingSnapshot,
+          state: 'connection_failed',
+          diagnostics: { ...validReport, code: 'scan_no_importable_s_discs', stage: 'unknown' },
+        },
+        reportId,
+      ),
+    ).toMatchObject({ code: 'scan_no_importable_s_discs', stage: 'result' })
+  },
+)
+
+it('drops unknown, path-like and out-of-range new evidence values in browser projection', () => {
+  expect(
+    sanitizeScanDiagnostic({
+      ...validReport,
+      evidence: {
+        phase: "soda-source-ref:11722a25453694ffb98f9398fd5716d7",
+        diagnosticSource: 'raw_log',
+        reason: 'scrollbar_position_missing/path',
+        acceptGateReason: 'waiting_for_target_selection_stability UID=42',
+        actualThumbEnd: 20001,
+        elapsedMs: -1,
+        tick: 0.5,
+        captureHealthy: 'yes',
+        privatePath: "soda-source-ref:11722a25453694ffb98f9398fd5716d7",
+      },
+    })!.evidence,
+  ).toEqual({})
+})
