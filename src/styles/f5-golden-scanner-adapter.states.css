@@ -218,7 +218,7 @@
 }
 .f5v-shell .scanner-result-ready__facts .scanner-web__summary {
   flex: 1 1 280px;
-  grid-template-columns: repeat(2, minmax(100px, 1fr));
+  grid-template-columns: minmax(0, 2fr) minmax(5rem, 1fr);
   min-width: 0;
   margin: 0;
 }
