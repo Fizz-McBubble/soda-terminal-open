@@ -160,9 +160,7 @@ export function ScannerInstallerAction({
           ? timedOut
             ? '下载超时'
             : '下载未完成'
-          : update && !pending
-            ? `新版本 ${scannerDistributionManifest.helper.installerVersion}`
-            : '')
+          : '')
 
   return (
     <div className="scanner-installer">
@@ -175,6 +173,7 @@ export function ScannerInstallerAction({
           type="button"
           onClick={() => void download()}
           disabled={pending}
+          aria-description={`可下载扫描助手版本 ${scannerDistributionManifest.helper.version}`}
         >
           {complete ? (
             <Check aria-hidden="true" size={16} />
@@ -190,6 +189,11 @@ export function ScannerInstallerAction({
                   ? '更新扫描助手'
                   : '下载扫描助手'}
           </span>
+          {!pending ? (
+            <small className="scanner-installer__version" aria-hidden="true">
+              v{scannerDistributionManifest.helper.version}
+            </small>
+          ) : null}
         </button>
         {pending ? (
           <>

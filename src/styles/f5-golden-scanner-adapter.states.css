@@ -3,12 +3,15 @@
   align-items: center;
   flex-wrap: wrap;
   gap: var(--soda-space-2);
+  justify-content: flex-end;
+  flex-shrink: 0;
+  margin-left: auto;
 }
 
 .f5v-shell .scanner-task .scanner-import-complete__next > :is(button, a) {
   flex: 0 0 auto;
-  height: 40px;
-  min-height: 40px;
+  height: var(--soda-control-height);
+  min-height: var(--soda-control-height);
   margin: 0;
   padding-block: 0;
 }
@@ -19,8 +22,20 @@
 
 @media (max-width: 760px) {
   .f5v-shell .scanner-import-complete {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: stretch;
     gap: 20px;
+  }
+
+  .f5v-shell .scanner-import-complete__next {
+    align-self: start;
+    justify-content: flex-start;
+    margin-left: 0;
+  }
+
+  .f5v-shell .scanner-task .scanner-import-complete__next > :is(button, a) {
+    padding-inline: 12px;
+    font-size: 0.8125rem;
   }
 }
 
@@ -45,14 +60,7 @@
 }
 
 .f5v-shell .scanner-import-complete {
-  grid-template-columns: minmax(280px, 1fr) minmax(320px, 540px);
   padding-bottom: 0;
-}
-
-@media (max-width: 760px) {
-  .f5v-shell .scanner-import-complete {
-    grid-template-columns: 1fr;
-  }
 }
 
 .f5v-shell dialog.scanner-task__confirmation {
@@ -77,7 +85,7 @@
 }
 
 .f5v-shell .scanner-task .scanner-prepare__intro {
-  padding: 16px 0 0;
+  padding: 0;
   border: 0;
   background: transparent;
 }
@@ -90,7 +98,7 @@
 .f5v-shell .scanner-prepare__primary {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 20px;
 }
 
 .f5v-shell .scanner-task .scanner-prepare__account-disclosure {
@@ -123,7 +131,7 @@
 
 .f5v-shell .scanner-task .scanner-prepare__details {
   margin: 0;
-  padding: 16px;
+  padding: var(--scanner-panel-padding);
 }
 
 @media (max-width: 860px) {
@@ -148,6 +156,10 @@
 }
 
 @media (max-width: 640px) {
+  .f5v-shell .scanner-task {
+    --scanner-column-gap: 16px;
+    --scanner-panel-padding: 16px;
+  }
   .f5v-shell .scanner-task .scanner-prepare__actions > :is(button, a) {
     padding-inline: 12px;
   }
@@ -292,34 +304,16 @@
   row-gap: 12px;
 }
 .f5v-shell .scanner-prepare__details .scanner-prepare__checks {
-  margin-top: 10px;
-  row-gap: 0;
+  margin-top: 24px;
+  row-gap: 16px;
 }
 .f5v-shell .scanner-prepare__details .scanner-prepare__checks > li {
-  padding-block: 10px;
+  padding-block: 0;
+  border: 0;
 }
 .f5v-shell .scanner-task .scanner-prepare__account {
   padding-block: 0;
 }
 .f5v-shell .scanner-task .scanner-prepare__actions {
   gap: 12px;
-}
-
-@media (min-width: 1551px) and (min-height: 821px) and (max-height: 950px) {
-  .f5v-shell .scanner-task {
-    padding-block: 24px;
-  }
-  .f5v-shell .scanner-task .scanner-journey-cards {
-    margin-top: 14px;
-  }
-  .f5v-shell .scanner-task .scanner-prepare {
-    margin-top: 8px;
-    row-gap: 8px;
-  }
-  .f5v-shell .scanner-prepare__details .scanner-prepare__checks {
-    margin-top: 6px;
-  }
-  .f5v-shell .scanner-prepare__details .scanner-prepare__checks > li {
-    padding-block: 7px;
-  }
 }

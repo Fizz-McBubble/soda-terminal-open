@@ -51,8 +51,9 @@ it('offers an upgrade only for a detected old installation', () => {
     />,
   )
   expect(screen.getByRole('button', { name: '更新扫描助手' })).toBeVisible()
-  expect(screen.getByRole('status')).toHaveTextContent(
-    `新版本 ${scannerDistributionManifest.helper.installerVersion}`,
+  expect(screen.getByText(`v${scannerDistributionManifest.helper.version}`)).toBeVisible()
+  expect(screen.getByRole('button', { name: '更新扫描助手' })).toHaveAccessibleDescription(
+    `可下载扫描助手版本 ${scannerDistributionManifest.helper.version}`,
   )
   rerender(
     <ScannerInstallerAction

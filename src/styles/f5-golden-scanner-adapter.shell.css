@@ -46,7 +46,8 @@
 }
 
 .f5v-shell .scanner-task {
-  --scanner-column-gap: 16px;
+  --scanner-column-gap: 24px;
+  --scanner-panel-padding: 24px;
   padding: 34px 40px;
 }
 
@@ -79,7 +80,7 @@
 
 .f5v-shell .scanner-task__state-copy,
 .f5v-shell .scanner-prepare {
-  margin-top: 14px;
+  margin-top: 24px;
 }
 
 .f5v-shell .scanner-prepare__intro {
@@ -131,13 +132,41 @@
 }
 
 .f5v-shell .scanner-prepare__account .scanner-target-account__content {
-  display: block;
+  --scanner-label-width: 96px;
+  display: grid;
+  gap: 20px;
   width: 100%;
 }
 
 .f5v-shell .scanner-prepare__account .scanner-account-picker {
-  width: 100%;
-  max-width: none;
+  display: grid;
+  grid-template-columns: var(--scanner-label-width) minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  width: min(100%, 29rem);
+}
+
+.f5v-shell .scanner-prepare__account .scanner-account-picker__label {
+  white-space: nowrap;
+}
+
+.f5v-shell
+  .scanner-prepare__account
+  :is(.scanner-account-picker__trigger, .scanner-account-picker__selected) {
+  min-width: 0;
+  margin-top: 0;
+}
+
+.f5v-shell .scanner-prepare__account .scanner-account-picker__selected strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.f5v-shell .scanner-prepare__account .scanner-account-picker__selected small {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .f5v-shell .scanner-prepare__account .scanner-prepare__check-icon {
@@ -169,18 +198,38 @@
 .f5v-shell .scanner-target-account__create {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
+  align-items: center;
   gap: var(--soda-space-3);
-  margin-top: 12px;
+  width: min(100%, 38rem);
+  margin-top: 0;
   padding-top: 0;
   border-top: 0;
 }
 
 .f5v-shell .scanner-target-account__create > label {
   display: grid;
-  gap: var(--soda-space-2);
+  grid-template-columns: var(--scanner-label-width) minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
   color: var(--f5-muted);
   font-size: 0.75rem;
+}
+
+.f5v-shell .scanner-target-account__create > label > span {
+  white-space: nowrap;
+}
+
+@container scanner-operations (max-width: 420px) {
+  .f5v-shell .scanner-prepare__account .scanner-account-picker,
+  .f5v-shell .scanner-target-account__create > label {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .f5v-shell .scanner-target-account__create {
+    align-items: end;
+  }
 }
 
 .f5v-shell .scanner-prepare__actions {
@@ -409,19 +458,24 @@
 }
 
 .f5v-shell .scanner-import-complete {
-  display: grid;
-  grid-template-columns: minmax(280px, 1fr) minmax(320px, 1fr);
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: var(--soda-space-6);
+  gap: 24px;
   padding: 28px 0;
 }
 
 .f5v-shell .scanner-import-complete .scanner-task__completion {
+  min-width: 0;
   margin: 0;
   padding: 0;
   border: 0;
   background: transparent;
   align-items: flex-start;
+}
+
+.f5v-shell .scanner-import-complete .scanner-task__completion > div {
+  min-width: 0;
 }
 
 .f5v-shell .scanner-import-complete h2 {
