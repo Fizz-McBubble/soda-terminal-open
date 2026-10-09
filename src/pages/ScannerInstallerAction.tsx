@@ -43,7 +43,9 @@ export function ScannerInstallerAction({
   const pending = state === 'downloading' || state === 'saving'
   const complete = state === 'save_requested'
   const expectedSize = scannerDistributionManifest.helper.size
-  const fileName = scannerInstallerFileName(scannerDistributionManifest.helper.installerVersion)
+  const installerVersion = scannerDistributionManifest.helper.installerVersion
+  const fileName = scannerInstallerFileName(installerVersion)
+  const versionDescription = `安装包 v${installerVersion}（助手 v${scannerDistributionManifest.helper.version}）`
   const percent = Math.min(100, Math.floor((bytes / expectedSize) * 100))
   const progressText = state === 'saving' ? '正在准备文件' : `下载中 ${percent}%`
   useEffect(() => {
@@ -173,7 +175,8 @@ export function ScannerInstallerAction({
           type="button"
           onClick={() => void download()}
           disabled={pending}
-          aria-description={`可下载扫描助手版本 ${scannerDistributionManifest.helper.version}`}
+          aria-description={versionDescription}
+          title={versionDescription}
         >
           {complete ? (
             <Check aria-hidden="true" size={16} />
@@ -191,7 +194,7 @@ export function ScannerInstallerAction({
           </span>
           {!pending ? (
             <small className="scanner-installer__version" aria-hidden="true">
-              v{scannerDistributionManifest.helper.version}
+              v{installerVersion}
             </small>
           ) : null}
         </button>

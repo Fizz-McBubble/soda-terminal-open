@@ -51,9 +51,13 @@ it('offers an upgrade only for a detected old installation', () => {
     />,
   )
   expect(screen.getByRole('button', { name: '更新扫描助手' })).toBeVisible()
-  expect(screen.getByText(`v${scannerDistributionManifest.helper.version}`)).toBeVisible()
+  expect(screen.getByText(`v${scannerDistributionManifest.helper.installerVersion}`)).toBeVisible()
   expect(screen.getByRole('button', { name: '更新扫描助手' })).toHaveAccessibleDescription(
-    `可下载扫描助手版本 ${scannerDistributionManifest.helper.version}`,
+    `安装包 v${scannerDistributionManifest.helper.installerVersion}（助手 v${scannerDistributionManifest.helper.version}）`,
+  )
+  expect(screen.getByRole('button', { name: '更新扫描助手' })).toHaveAttribute(
+    'title',
+    `安装包 v${scannerDistributionManifest.helper.installerVersion}（助手 v${scannerDistributionManifest.helper.version}）`,
   )
   rerender(
     <ScannerInstallerAction
@@ -82,7 +86,13 @@ it('starts fetching in the click task without calling an exposed non-settling sa
   Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: picker })
   const { streamController, fetcher } = streamedDownload()
   render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
-  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  const downloadButton = screen.getByRole('button', { name: '下载扫描助手' })
+  const displayedVersion = downloadButton
+    .querySelector('.scanner-installer__version')
+    ?.textContent?.trim()
+    .replace(/^v/, '')
+  expect(displayedVersion).toBe(scannerDistributionManifest.helper.installerVersion)
+  fireEvent.click(downloadButton)
   expect(fetcher).toHaveBeenCalledOnce()
   expect(picker).not.toHaveBeenCalled()
   fireEvent.click(screen.getByRole('button', { name: /下载中/ }))
@@ -95,7 +105,7 @@ it('starts fetching in the click task without calling an exposed non-settling sa
   expect(createObjectURL.mock.calls[0][0].size).toBe(8)
   expect(
     (vi.mocked(HTMLAnchorElement.prototype.click).mock.instances[0] as HTMLAnchorElement).download,
-  ).toBe(`Soda-Scanner-Setup-${scannerDistributionManifest.helper.installerVersion}.exe`)
+  ).toBe(`Soda-Scanner-Setup-${displayedVersion}.exe`)
 })
 it('shows streamed bytes before EOF and requests browser save only after all bytes arrive', async () => {
   const { streamController } = streamedDownload()
