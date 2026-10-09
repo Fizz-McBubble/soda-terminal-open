@@ -1,4 +1,5 @@
 import { registerScannerRecoveryTests } from './scannerAssistantRecoveryTests'
+import { registerScannerDataFileCompatibilityTests } from './scannerDataFileCompatibilityTests'
 import { registerScannerCompletedResultTests } from './scannerAssistantCompletedResultTests'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -213,14 +214,14 @@ describe('ScannerAssistantPage', () => {
   it('keeps the JSON fallback in the page-level recovery area rather than the result dialog', async () => {
     runtimeMock.snapshot = createScannerRuntimeSnapshot('connection_failed')
     render(<App />)
-    await screen.findByText('已有扫描结果文件？')
+    await screen.findByText('已有扫描结果或账户备份？')
     expect(screen.getByLabelText('扫描耗时参考')).toBeVisible()
     expect(screen.getByRole('list', { name: '本机准备检查项' })).toHaveTextContent('启动绝区零')
     expect(screen.getAllByText('启动绝区零')).toHaveLength(1)
     expect(screen.getAllByText(/\d \/ 5 项准备已通过/)).toHaveLength(1)
     expect(document.querySelector('.scanner-task dialog')).toBeNull()
-    expect(await screen.findByText('已有扫描结果文件？')).toBeInTheDocument()
-    expect(screen.getByLabelText('选择扫描结果文件（JSON）')).toHaveAttribute('type', 'file')
+    expect(await screen.findByText('已有扫描结果或账户备份？')).toBeInTheDocument()
+    expect(screen.getByLabelText('选择本机文件（JSON）')).toHaveAttribute('type', 'file')
     expect(document.querySelector('.scanner-task dialog')).toBeNull()
   })
   it.each(['unchecked', 'ready'])(
@@ -228,10 +229,7 @@ describe('ScannerAssistantPage', () => {
     async (state) => {
       setRuntimeState(state)
       render(<App />)
-      expect(await screen.findByLabelText('选择扫描结果文件（JSON）')).toHaveAttribute(
-        'type',
-        'file',
-      )
+      expect(await screen.findByLabelText('选择本机文件（JSON）')).toHaveAttribute('type', 'file')
       expect(screen.getByText('Windows 本地版扫描 S 级驱动盘，跳过 A/B 级。')).toBeVisible()
       expect(screen.getByLabelText('扫描耗时参考')).toBeVisible()
       expect(screen.queryByText('辅助信息与备用导入')).not.toBeInTheDocument()
@@ -487,4 +485,5 @@ describe('ScannerAssistantPage', () => {
 
   registerScannerCompletedResultTests({ App, runtimeMock, setRuntimeState })
   registerScannerRecoveryTests({ App, runtimeMock, setRuntimeState })
+  registerScannerDataFileCompatibilityTests({ App, setRuntimeState })
 })

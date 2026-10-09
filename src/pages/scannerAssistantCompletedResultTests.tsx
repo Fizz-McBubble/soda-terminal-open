@@ -149,7 +149,7 @@ export function registerScannerCompletedResultTests({
       /reliable|needsReview|unreadable|resultFileHandle|resultStatus|uniqueRecords|totalSeconds/,
     )
     expect(document.querySelector('.scanner-task dialog')).toBeNull()
-    expect(screen.queryByText('已有扫描结果文件？')).not.toBeInTheDocument()
+    expect(screen.queryByText('已有扫描结果或账户备份？')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: '确认账户并继续' })).toBeEnabled()
   })
 }

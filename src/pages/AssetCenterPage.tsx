@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useOptionalAccountDecisionWorld } from '../application/accountDecisionWorld'
+import { useLocalDataFileHandoff } from '../application/useLocalDataFileHandoff'
 import { publicAssetCatalog, publicAssetDiscSetById } from '../application/publicAssetCatalog'
 import { publicAssetStatLabel } from '../application/publicAssetStatLabels'
 import { isN2AcceptanceRecoveryAvailable } from '../accounts/acceptanceAccountRecoveryEntry'
@@ -152,6 +153,8 @@ export function AssetCenterPage() {
   const [searchParams] = useSearchParams()
   const params = useParams()
   const navigate = useNavigate()
+  const [incomingBackupFile, setIncomingBackupFile] = useState<File | null>(null)
+  const forwardDataFile = useLocalDataFileHandoff('account-backup', setIncomingBackupFile)
   const [revision, setRevision] = useState(0)
   const [message, setMessageState] = useState({ text: '', transient: false, revision: 0 })
   const [acceptanceRecoveryAvailable, setAcceptanceRecoveryAvailable] = useState(false)
@@ -459,6 +462,9 @@ export function AssetCenterPage() {
       onDeleteDiscs={deleteDiscs}
       onCreateBackup={createBackup}
       onInspectBackup={inspectBackup}
+      incomingBackupFile={incomingBackupFile}
+      onIncomingBackupHandled={() => setIncomingBackupFile(null)}
+      onOpenScanFile={(file) => forwardDataFile(file, 'scan-result')}
       onRestore={restore}
       onSelectAccount={selectAccount}
       onDeleteAccount={deleteLocalAccount}

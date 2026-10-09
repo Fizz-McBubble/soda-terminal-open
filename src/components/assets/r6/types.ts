@@ -89,6 +89,9 @@ export type AssetGoldenProps = {
   onDeleteDiscs: (stableIds: string[], baseRevisions: Record<string, string>) => Promise<boolean>
   onCreateBackup: () => Promise<void>
   onInspectBackup: (file: File) => Promise<BackupPreview>
+  incomingBackupFile?: File | null
+  onIncomingBackupHandled?: () => void
+  onOpenScanFile?: (file: File) => void
   onRestore: (preview: BackupPreview) => Promise<void>
   onSelectAccount: (accountId: string) => Promise<void>
   onDeleteAccount: (accountId: string) => Promise<boolean>

@@ -25,6 +25,8 @@ import { ScannerScanningSection } from './ScannerScanningSection'
 import { getAverageScannerRate } from './scannerAssistantPresentation'
 import { useScannerTargetBinding } from './useScannerTargetBinding'
 import { beginUsageOperation } from '../usageStatistics/client'
+import { detectLocalDataFileKind } from '../application/localDataFile'
+import { useScannerDataFileHandoff } from '../scanner/useScannerDataFileHandoff'
 
 export function ScannerAssistantPage() {
   return (
@@ -55,6 +57,7 @@ function HydratedScannerAssistantPage({
   const [actionFeedback, setActionFeedback] = useState<string | null>(null)
   const [actionIssueCode, setActionIssueCode] = useState<string | null>(null)
   const snapshot = useScannerHelperAction(runtimeSnapshot, actionIssueCode)
+  const forwardDataFile = useScannerDataFileHandoff(snapshot.state, inspectJson)
   const [actionPending, setActionPending] = useState(false)
   const actionPendingRef = useRef(false)
   const [inlineImportOpen, setInlineImportOpen] = useState(false)
@@ -63,7 +66,6 @@ function HydratedScannerAssistantPage({
   const [completedImport, setCompletedImport] = useState<CompletedScannerImport | null>(
     readCompletedScannerImport,
   )
-
   const stageHeadingRef = useRef<HTMLHeadingElement>(null)
   const stageFocusRequestedRef = useRef(false)
   const distribution = snapshot.distribution ?? initialDistributionSnapshot
@@ -222,8 +224,13 @@ function HydratedScannerAssistantPage({
     try {
       const text = await file.text()
       if (requestId !== jsonReadRef.current) return
+      if (detectLocalDataFileKind(text) === 'account-backup') {
+        forwardDataFile(file, 'account-backup')
+        return
+      }
       const next = assessScannerAssistantInput({ kind: 'json', name: file.name, text })
       setAssessment(next)
+      setPreparingAnotherScan(true)
       if (next.canHandOff) {
         setSelectedJson(file)
         setHandoffState({ status: 'idle' })

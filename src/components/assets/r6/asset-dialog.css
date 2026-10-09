@@ -35,3 +35,12 @@
 .r6-golden .soda-asset-dialog footer {
   flex-wrap: wrap;
 }
+
+.r6-golden .soda-asset-dialog .restore-facts dt {
+  flex-shrink: 0;
+}
+
+.r6-golden .soda-asset-dialog .restore-facts dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

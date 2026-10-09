@@ -69,7 +69,7 @@ export function registerScannerRecoveryTests({
     setRuntimeState('scanning')
     render(<App />)
     await screen.findByRole('button', { name: '停止本次扫描' })
-    expect(screen.queryByLabelText('选择扫描结果文件（JSON）')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('选择本机文件（JSON）')).not.toBeInTheDocument()
   })
   it.each([500, 401])(
     'recovers a completed result HTTP %s without exposing raw helper errors',
@@ -87,7 +87,7 @@ export function registerScannerRecoveryTests({
       fireEvent.click(await screen.findByRole('button', { name: '检查需确认的记录' }))
       expect(await screen.findByText(/暂时无法读取本次扫描结果。请重试/)).toBeInTheDocument()
       expect(screen.getByRole('button', { name: '检查需确认的记录' })).toBeEnabled()
-      expect(screen.getByLabelText('选择扫描结果文件（JSON）')).toBeInTheDocument()
+      expect(screen.getByLabelText('选择本机文件（JSON）')).toBeInTheDocument()
       expect(screen.getByRole('button', { name: '反馈此问题' })).toBeEnabled()
       await waitFor(() => expect(readLastScanDiagnostic()?.code).toBe('scan_result_read_failed'))
       expect(screen.queryByLabelText('扫描技术诊断内容')).not.toBeInTheDocument()
