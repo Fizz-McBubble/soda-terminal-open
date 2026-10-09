@@ -202,7 +202,6 @@ export function SponsorRail() {
   const { channel, setChannel, amount, openDialog } = useSponsor()
   return (
     <section className="sponsor-rail" aria-label="支持 Soda">
-      <strong>支持 Soda</strong>
       <div className="sponsor-rail__channels" role="group" aria-label="收款渠道">
         {(Object.keys(channels) as Channel[]).map((option) => (
           <button

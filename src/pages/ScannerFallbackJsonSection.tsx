@@ -28,7 +28,7 @@ export function ScannerFallbackJsonSection({
       <FileJson aria-hidden="true" size={18} />
       <span>
         <strong id="scanner-json-recovery-heading">已有扫描结果文件？</strong>
-        <small>可使用本机已有的 JSON，检查后再确认导入</small>
+        <small>检查 JSON 后再确认导入</small>
       </span>
       <button
         className="button button--quiet scanner-web__file-picker"
@@ -37,7 +37,7 @@ export function ScannerFallbackJsonSection({
         onClick={() => inputRef.current?.click()}
       >
         <Upload aria-hidden="true" size={18} />
-        <span>选择扫描结果文件（JSON）</span>
+        <span>选择 JSON 文件</span>
       </button>
       <input
         className="visually-hidden"

@@ -441,18 +441,31 @@ export function getVisualAssetPackState() {
   return readBrowserState()
 }
 
-export async function resolveCachedVisualAsset(asset: VisualAsset) {
+export async function resolveCachedVisualAsset(
+  asset: VisualAsset,
+  validateSource?: (source: string) => Promise<unknown>,
+) {
   if (!asset.remoteUrl || !('caches' in window)) return null
   const state = readBrowserState()
   const cacheNames =
     asset.entityType === 'wengine'
       ? [state.activeCaches?.wengine, state.wEngineCache, state.activeCache]
       : [state.activeCaches?.[asset.entityType], state.activeCache]
-  for (const cacheName of cacheNames) {
+  for (const cacheName of new Set(cacheNames)) {
     if (!cacheName) continue
-    const cache = await caches.open(cacheName)
-    const response = await cache.match(asset.remoteUrl)
-    if (response) return URL.createObjectURL(await response.blob())
+    let source: string | null = null
+    try {
+      const cache = await caches.open(cacheName)
+      const response = await cache.match(asset.remoteUrl)
+      if (!response || !response.ok) continue
+      source = URL.createObjectURL(await response.blob())
+      await validateSource?.(source)
+      return source
+    } catch {
+      // A damaged or temporarily unreadable domain entry must not hide a
+      // usable copy in another already approved active cache.
+      if (source) URL.revokeObjectURL(source)
+    }
   }
   return null
 }

@@ -55,11 +55,10 @@ export async function resolveSessionVisualSource(asset: VisualAsset) {
 
   const generation = sourceGeneration
   let allocatedUrl: string | null = null
-  const resolution = resolveCachedVisualAsset(asset)
+  const resolution = resolveCachedVisualAsset(asset, decodeVisualSource)
     .then(async (objectUrl) => {
       if (!objectUrl) return null
       allocatedUrl = objectUrl
-      await decodeVisualSource(objectUrl)
       if (generation !== sourceGeneration) {
         URL.revokeObjectURL(objectUrl)
         return null

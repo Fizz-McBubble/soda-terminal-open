@@ -355,7 +355,7 @@ describe('ScannerAssistantPage', () => {
     expect(screen.getByRole('button', { name: '连接扫描助手' })).toBeEnabled()
     const checks = screen.getByRole('list', { name: '本机准备检查项' })
     expect(screen.getByRole('heading', { name: '扫描准备指南' })).toBeInTheDocument()
-    expect(screen.getAllByText('参考扫描速度：约 140 张/分钟')).toHaveLength(1)
+    expect(screen.getAllByText('约 140 张/分钟')).toHaveLength(1)
     expect(checks).toHaveTextContent('启动绝区零')
     expect(checks).toHaveTextContent('打开“驱动仓库”完整列表，画面要求见扫描指南')
     expect(checks).toHaveTextContent('准备本机扫描')

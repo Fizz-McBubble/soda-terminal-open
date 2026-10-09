@@ -119,7 +119,7 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
               <div>
                 <span className="kicker">本机账户</span>
                 <h2 id="account-switcher-title">切换当前账户</h2>
-                <p>切换只改变此设备当前查看的账户，不会合并、导入或修改任何资产。</p>
+                <p>仅切换当前查看账户，不改动资产。</p>
               </div>
               <label>
                 当前查看账户
@@ -228,7 +228,7 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
                 <span className="kicker">恢复资料</span>
                 <h2>选择本机备份</h2>
               </div>
-              <small>先检查备份内容，确认恢复后才会改动账户。</small>
+              <small>检查后再确认恢复。</small>
             </header>
             <div className="backup-row">
               <span>

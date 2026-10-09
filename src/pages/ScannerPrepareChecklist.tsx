@@ -165,7 +165,7 @@ export function PrepareChecklist({
               <p>
                 <span>Windows 本地版扫描 S 级驱动盘，跳过 A/B 级。</span>
                 <span className="scanner-prepare__guide-speed" aria-label="扫描耗时参考">
-                  参考扫描速度：约 140 张/分钟
+                  约 140 张/分钟
                 </span>
               </p>
             </div>

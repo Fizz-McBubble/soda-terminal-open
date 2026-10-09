@@ -419,7 +419,7 @@
   min-height: 450px;
   padding: 22px 26px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(300px, 0.42fr);
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
   grid-template-areas:
     'source source'
     'main sidebar';
@@ -431,10 +431,14 @@
 
 .r6-golden .account-main {
   grid-area: main;
+  display: grid;
+  gap: 16px;
   min-width: 0;
 }
 
 .r6-golden .account-sidebar {
   grid-area: sidebar;
+  display: grid;
+  gap: 16px;
   min-width: 0;
 }

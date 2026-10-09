@@ -1,5 +1,5 @@
 import './visual-entity-image.css'
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { type VisualAssetEntityType } from '../assets/visualAssets'
 import {
   resolveSessionVisualSource,
@@ -70,6 +70,14 @@ export function VisualEntityImage({
   }, [eager, nearViewport, imageElement])
   const shouldResolve = eager || nearViewport
   const assetKey = asset ? visualSourceKey(asset) : null
+  const retryKey = `${assetKey ?? ''}:${cacheVersion ?? ''}`
+  const retries = useRef({ key: retryKey, count: 0 })
+  const currentImage = useRef('')
+  const imageIdentity = `${retryKey}:${runtimeRevision}`
+  useLayoutEffect(() => {
+    if (retries.current.key !== retryKey) retries.current = { key: retryKey, count: 0 }
+    currentImage.current = imageIdentity
+  }, [retryKey, imageIdentity])
   const sessionSource = assetKey ? sessionVisualSources.get(assetKey) : null
   const [cachedSource, setCachedSource] = useState<{
     assetKey: string
@@ -117,6 +125,21 @@ export function VisualEntityImage({
       active = false
     }
   }, [asset, assetKey, bundledSource, cacheVersion, runtimeRevision, shouldResolve])
+
+  useEffect(() => {
+    // Cache access and browser decoding can fail transiently. Retry only this
+    // mounted image, without downloading assets or restarting the whole pack.
+    if (!asset?.remoteUrl || !shouldResolve || resolving || !failed || retries.current.count >= 2)
+      return
+    const identity = imageIdentity
+    const delay = retries.current.count === 0 ? 300 : 1200
+    const timer = setTimeout(() => {
+      if (currentImage.current !== identity) return
+      retries.current.count += 1
+      setRuntimeRevision((value) => value + 1)
+    }, delay)
+    return () => clearTimeout(timer)
+  }, [asset?.remoteUrl, shouldResolve, resolving, failed, imageIdentity])
 
   if (!source || failed) {
     const fallbackLabel = resolving
@@ -181,7 +204,10 @@ export function VisualEntityImage({
             }
           : undefined
       }
-      onError={() => setFailedSource({ assetKey, source, revision: runtimeRevision, cacheVersion })}
+      onError={() => {
+        if (currentImage.current === imageIdentity)
+          setFailedSource({ assetKey, source, revision: runtimeRevision, cacheVersion })
+      }}
     />
   )
 }

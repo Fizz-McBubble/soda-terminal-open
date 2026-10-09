@@ -296,16 +296,20 @@
   font-size: 0.75rem;
 }
 .f5v-shell .scanner-web__fallback-trigger {
-  align-self: stretch;
+  align-self: start;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 8px 10px;
+  gap: 12px;
+  width: calc((100% - 20px) / 2.06);
+  box-sizing: border-box;
   min-height: 0;
-  padding: 12px 0;
-  border: 0;
+  margin-top: 20px;
+  padding: 16px 18px;
+  border-radius: var(--soda-radius-surface);
+  border: 1px solid rgba(107, 96, 140, 0.12);
   color: var(--f5-accent);
-  background: transparent;
+  background: rgba(255, 255, 255, 0.68);
 }
 
 .f5v-shell .scanner-web__fallback-trigger > span {
@@ -314,9 +318,31 @@
   gap: 2px;
 }
 
-.f5v-shell .scanner-web__fallback-trigger .scanner-web__file-picker,
+.f5v-shell .scanner-web__fallback-trigger .scanner-web__file-picker {
+  grid-column: 3;
+  justify-self: start;
+  width: fit-content;
+  max-width: 100%;
+  white-space: nowrap;
+}
+
 .f5v-shell .scanner-web__fallback-trigger :is(.sea-status-banner, .scanner-web__json-handoff) {
-  grid-column: 2;
+  grid-column: 2 / -1;
+}
+
+@media (max-width: 640px) {
+  .f5v-shell .scanner-web__fallback-trigger {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .f5v-shell .scanner-web__fallback-trigger .scanner-web__file-picker {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 960px) {
+  .f5v-shell .scanner-web__fallback-trigger {
+    width: 100%;
+  }
 }
 
 .f5v-shell .scanner-context dl {
@@ -422,4 +448,5 @@
   color: var(--f5-accent);
   font-weight: 600;
   font-size: 0.75rem;
+  white-space: nowrap;
 }

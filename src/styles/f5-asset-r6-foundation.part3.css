@@ -32,7 +32,7 @@
 }
 .r6-golden .account-range {
   display: grid;
-  grid-template-columns: 170px minmax(0, 1fr);
+  grid-template-columns: minmax(100px, 0.5fr) minmax(0, 1fr);
   gap: 18px;
   align-items: center;
   padding: 22px 0;
@@ -66,7 +66,7 @@
   grid-template-columns: minmax(0, 1fr);
   gap: 18px;
   align-items: end;
-  padding: 20px 0;
+  padding: 20px;
   border: 0;
 }
 .r6-golden .account-switcher h2 {
@@ -95,7 +95,7 @@
   font: inherit;
 }
 .r6-golden .account-management {
-  padding: 20px 0;
+  padding: 20px;
   border: 0;
 }
 .r6-golden .account-management > div > p,
@@ -183,10 +183,10 @@
   flex: 0 0 auto;
 }
 .r6-golden .backup-create {
-  display: flex;
+  display: grid;
   align-items: start;
-  justify-content: space-between;
-  gap: 24px;
+  justify-items: start;
+  gap: 12px;
   align-self: start;
   padding: 22px 0;
   border: 0;
@@ -196,7 +196,7 @@
   color: var(--muted);
   font-size: var(--soda-font-body);
   line-height: 1.5;
-  margin: 10px 0 16px;
+  margin: 10px 0 0;
 }
 .r6-golden .backup-history {
   padding: 22px 0 0;
@@ -206,12 +206,28 @@
   display: flex;
   align-items: end;
   justify-content: space-between;
-  gap: 20px;
+  gap: 12px;
   margin-bottom: 9px;
 }
 .r6-golden .backup-history > header > small {
   font-size: var(--soda-font-caption);
   color: var(--muted);
+}
+.r6-golden :is(.account-main, .account-sidebar) > section {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid rgba(107, 96, 140, 0.12);
+  border-radius: var(--soda-radius-surface);
+  background: rgba(247, 245, 251, 0.48);
+}
+.r6-golden :is(.account-main, .account-sidebar) button {
+  flex: 0 0 auto;
+  width: fit-content;
+  max-width: 100%;
+  white-space: nowrap;
+}
+.r6-golden .account-management > button {
+  margin-top: 12px;
 }
 .r6-golden .backup-row {
   display: grid;
@@ -337,7 +353,7 @@
   }
   .r6-golden .account-overview.account-flow {
     padding: 18px 22px;
-    gap: 0 22px;
+    gap: 16px 22px;
   }
   .r6-golden .account-source {
     padding-bottom: 14px;
@@ -377,6 +393,7 @@
     grid-template-areas: 'source' 'sidebar' 'main';
     padding: 18px;
     overflow-x: hidden;
+    gap: 16px;
   }
 
   .r6-golden .account-range,
@@ -389,8 +406,7 @@
   }
 
   .r6-golden .backup-create {
-    display: block;
-    padding-left: 0;
+    display: grid;
   }
 
   .r6-golden .split {

@@ -222,11 +222,6 @@
   }
 }
 
-.sponsor-rail > strong {
-  justify-self: start;
-  font-size: 0.75rem;
-}
-
 .sponsor-rail__channels {
   width: 100%;
 }
