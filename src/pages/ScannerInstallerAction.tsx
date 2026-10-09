@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Check, Download, X } from 'lucide-react'
 import {
   scannerDistributionManifest,
@@ -72,7 +72,7 @@ export function ScannerInstallerAction({
     }
   }, [onConnect])
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!complete || !onConnect) return
     const left = () => {
       if (completedDownload.current) leftAfterDownload.current = true

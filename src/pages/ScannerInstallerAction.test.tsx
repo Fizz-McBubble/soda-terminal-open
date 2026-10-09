@@ -269,6 +269,7 @@ it('handles rejected automatic connection without repeating attempts on focus', 
   await waitFor(() => expect(screen.getByRole('button', { name: '重新下载' })).toBeVisible())
   fireEvent.blur(window)
   fireEvent.focus(window)
+  expect(onConnect).toHaveBeenCalledOnce()
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('启动助手后点击连接'))
   expect(screen.getByRole('button', { name: '重新下载' })).toBeEnabled()
   fireEvent.blur(window)
