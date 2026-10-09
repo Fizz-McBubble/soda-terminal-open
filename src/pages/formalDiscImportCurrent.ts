@@ -10,7 +10,10 @@ import {
   readScannerTargetAccountBinding,
   validateScannerTargetAccountBinding,
 } from '../scanner/targetAccountBinding'
-import { activeScannerResultBatchSettingKey } from '../scanner/resultHandoff'
+import {
+  activeScannerResultBatchSettingKey,
+  scanResultHandleSettingKey,
+} from '../scanner/resultHandoff'
 import { hasCompletedFormalImportProof } from './formalDiscImportProof'
 export async function loadFormalImportCurrent(successSampleMode: boolean) {
   if (successSampleMode) return null
@@ -71,6 +74,9 @@ export async function loadFormalImportCurrent(successSampleMode: boolean) {
     }
   }
   const summary = summarizeScanImportItems(items)
+  const resultHandleSetting = batch
+    ? await database.settings.get(scanResultHandleSettingKey(account.id, batch.id))
+    : null
   if (!bindingResult.valid) {
     const expectedTotal =
       batch?.manifest?.expectedTotal ??
@@ -99,6 +105,8 @@ export async function loadFormalImportCurrent(successSampleMode: boolean) {
     batch: batch ?? null,
     items,
     summary,
+    resultFileHandle:
+      typeof resultHandleSetting?.value === 'string' ? resultHandleSetting.value : null,
   }
 }
 export type FormalImportCurrent = Awaited<ReturnType<typeof loadFormalImportCurrent>>

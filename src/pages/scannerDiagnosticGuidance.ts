@@ -16,7 +16,7 @@ const guidance: Record<string, Guidance> = {
   },
   ppocrv6_detail_geometry_incompatible: {
     problem: '当前游戏画面尺寸或驱动盘详情布局不适合扫描。',
-    nextAction: '在游戏中选择 1920 × 1080 的窗口模式，打开驱动仓库完整列表后重试。',
+    nextAction: '按扫描指南使用支持的 16:9 画面，打开驱动仓库完整列表，保持画面完整可见后重试。',
   },
   helper_unavailable: {
     problem: '网页暂时没有连接到本机扫描助手。',
@@ -24,7 +24,7 @@ const guidance: Record<string, Guidance> = {
   },
   helper_incompatible: {
     problem: '本机扫描助手与当前网页版本不匹配。',
-    nextAction: '按页面提示更新扫描助手，然后重新连接。',
+    nextAction: '刷新页面并重新连接；仍提示版本不匹配时，按页面提示更新扫描助手。',
   },
   helper_pairing_denied: {
     problem: '扫描助手拒绝了此网站的连接。',
@@ -80,7 +80,7 @@ const guidance: Record<string, Guidance> = {
   },
   direct_fork_partial: {
     problem: '本次扫描只取得了部分结果。',
-    nextAction: '查看页面对结果完整性的提示，确认后再继续；需要完整仓库时重新扫描。',
+    nextAction: '本次结果不完整，暂不能更新仓库；可反馈问题，再重新完整扫描。',
   },
   previous_scan_recovery_failed: {
     problem: '上一次扫描结果未能恢复。',
@@ -88,23 +88,27 @@ const guidance: Record<string, Guidance> = {
   },
   scan_result_timeout: {
     problem: '等待扫描结果的时间过长，本次未取得结果。',
-    nextAction: '确认扫描助手状态后重试；若持续发生，请反馈此问题。',
+    nextAction: '确认扫描助手状态后重试读取结果；若持续发生，可反馈此问题。',
   },
   scan_result_read_failed: {
     problem: '扫描结果未能正常读取。',
     nextAction: '重试读取或重新扫描；若持续失败，请反馈此问题。',
   },
   scan_import_handoff_failed: {
-    problem: '扫描结果未能送到导入页面。',
-    nextAction: '重试打开导入；若已保存结果文件，可从页面导入入口继续。',
+    problem: '扫描结果未能进入检查。',
+    nextAction: '在当前页重新检查结果；若已保存结果文件，可使用结果文件入口继续。',
   },
   scan_import_failed: {
     problem: '扫描结果未能完成导入。',
-    nextAction: '查看导入页面的提示后重试；若仍失败，请反馈此问题。',
+    nextAction: '重新核对接收账户和导入检查，再确认更新；仍失败时可反馈问题。',
+  },
+  scan_import_review_required: {
+    problem: '部分驱动盘的套装、词条或其他信息未通过检查，账户仓库尚未更新。',
+    nextAction: '对照盘面手动校准，再确认导入；无法确认时可反馈问题或重新扫描。',
   },
   scan_file_invalid: {
-    problem: '所选文件未通过扫描结果格式检查。',
-    nextAction: '选择扫描生成的结果文件；若原文件仍无法导入，请反馈此问题。',
+    problem: '所选文件未通过格式检查。',
+    nextAction: '选择完整、未损坏的原始文件后重试；若仍无法读取，可反馈此问题。',
   },
   scanner_exit: {
     problem: '扫描程序在完成前退出，现有诊断信息不足以确定原因。',
@@ -205,6 +209,6 @@ export function scannerDiagnosticGuidance(report: ScanDiagnosticReport): Guidanc
     }
   return {
     problem: '本次没有取得足够信息，暂时无法确定原因。',
-    nextAction: '更新扫描助手后重试；若问题持续，请反馈此问题帮助排查。',
+    nextAction: '可反馈问题，或按当前页面提示重试；页面提示版本不匹配时，再更新扫描助手。',
   }
 }

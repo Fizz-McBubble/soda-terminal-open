@@ -317,10 +317,10 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
       setPreparingAnotherScan(false)
       setInlineImportOpen(true)
       setHandoffState({
-        status: 'success',
+        status: preflight.complete ? 'success' : 'review_required',
         message: preflight.complete
           ? `已检查 ${staged.summary.total} 张驱动盘，请确认更新账户。`
-          : `已保留 ${staged.summary.total} 条结果，其中 ${preflight.needsReview} 条需要重新扫描；尚未更新账户。`,
+          : `已保留 ${staged.summary.total} 条结果；请检查需确认的记录，可对照盘面手动校准，尚未更新账户。`,
       })
     } catch (error) {
       if (readRef.current !== controller || (error instanceof Error && error.name === 'AbortError'))

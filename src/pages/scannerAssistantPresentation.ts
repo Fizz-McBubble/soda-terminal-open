@@ -50,6 +50,7 @@ export type HandoffState =
   | { status: 'idle' }
   | { status: 'working'; message: string }
   | { status: 'success'; message: string }
+  | { status: 'review_required'; message: string }
   | {
       status: 'error'
       message: string
