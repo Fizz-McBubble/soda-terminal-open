@@ -4,7 +4,7 @@ export function getAverageScannerRate(snapshot: ScannerAssistantSnapshot): numbe
   const recognized =
     snapshot.state === 'completed'
       ? snapshot.summary?.uniqueRecords
-      : snapshot.diagnostics?.counts.processed
+      : snapshot.diagnostics?.counts?.processed
   const elapsedMs = snapshot.diagnostics?.durationMs ?? (snapshot.summary?.totalSeconds ?? 0) * 1000
   if (
     typeof recognized !== 'number' ||

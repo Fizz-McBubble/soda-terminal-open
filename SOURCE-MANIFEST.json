@@ -1108,7 +1108,7 @@
     "src/pages/ScannerAssistantPage.test.tsx": "78481d69a09478fd69091beec31bc7e0910278ad84491b141c955c893fd8dffa",
     "src/pages/ScannerAssistantPage.tsx": "c8fbb8df56c87a5eb6199ff02436152c055ae161b7b9bf14da2f2f225eb6d1a4",
     "src/pages/scannerAssistantPageTestSupport.ts": "22ac23c13742a6803e980e61337938810bf7c6fef382b0f5f3d13c79b43b1ac4",
-    "src/pages/scannerAssistantPresentation.ts": "40a5cdea574cb7ba6292c82158977e383f894bf23990a084f464a0df9eab9cd9",
+    "src/pages/scannerAssistantPresentation.ts": "801f812158a5b43cb4cd76fd4e28ae127f1b0a55379e0c34bcc826ce942ca01a",
     "src/pages/scannerAssistantRecoveryTests.tsx": "558cbd5de5bef2981bbdbd93de33a75aae41f3ca6394ce3081182fcdd0736074",
     "src/pages/scannerAssistantStatePresentation.ts": "6de8d228368e67f5c597396aaae406872ce8d9f67a35b823a1986c6e8ee1ed75",
     "src/pages/scannerAssistantTargetIssue.ts": "0ae57905c406eb031e4e41d9815899b9d9872e9c14e592e783818ad8613d5cbe",
