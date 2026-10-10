@@ -195,6 +195,12 @@ export function enrichRetentionEvidence(input: {
   const minimumLines =
     namedCalibration?.minimumLines ??
     (disc.slot <= 3 ? investment?.leftSlotMinimumLines : investment?.rightSlotMinimumLines)
+  const minimumCoreLines = namedCalibration?.minimumCoreLines ?? investment?.minimumCoreLines
+  const secondaryStats = namedCalibration?.requiredSecondaryStat
+    ? disc.subStats
+        .filter((line) => line.stat === namedCalibration.requiredSecondaryStat)
+        .map((line) => line.stat)
+    : []
   const potentialTarget =
     functionalState === 'needs_level' || functionalState === 'ready'
       ? null
@@ -233,14 +239,14 @@ export function enrichRetentionEvidence(input: {
       rules.maxSubStats,
       legalMeaningful.filter((stat) => profile.coreStats?.includes(stat)).length,
     )
-    if (meaningfulCapacity < minimumLines! || coreCapacity < investment!.minimumCoreLines)
+    if (meaningfulCapacity < minimumLines! || coreCapacity < minimumCoreLines!)
       policyBlockers.push({
         kind: 'policy',
         profileId: profile.id,
         agentId: profile.agentId,
         field: `investment.capacity.${disc.slot}.${disc.mainStat}`,
         predicateId: `${investment!.id}:${profile.id}:${disc.slot}:${disc.mainStat}:capacity`,
-        detail: `该目标合法有效副词最多 ${meaningfulCapacity} 条、核心最多 ${coreCapacity} 条，投入要求 ${minimumLines} 条有效副词和 ${investment!.minimumCoreLines} 条核心；该号位的投入门槛需单独校准。`,
+        detail: `该目标合法有效副词最多 ${meaningfulCapacity} 条、核心最多 ${coreCapacity} 条，投入要求 ${minimumLines} 条有效副词和 ${minimumCoreLines} 条核心；该号位的投入门槛需单独校准。`,
         sourceIds: [...new Set([...profile.sourceIds, ...rules.sourceIds])],
       })
   }
@@ -254,8 +260,10 @@ export function enrichRetentionEvidence(input: {
           ? null
           : configured && progressFloor !== null
             ? meaningfulStats.length >= minimumLines! &&
-              coreStats.length >= investment!.minimumCoreLines &&
-              (!namedCalibration || coreStats.includes(namedCalibration.requiredCoreStat)) &&
+              coreStats.length >= minimumCoreLines! &&
+              (!namedCalibration?.requiredCoreStat ||
+                coreStats.includes(namedCalibration.requiredCoreStat)) &&
+              (!namedCalibration?.requiredSecondaryStat || secondaryStats.length > 0) &&
               input.currentScore + 1e-8 >= progressFloor &&
               potentialTarget !== null &&
               input.possibleUpper + 1e-8 >= potentialTarget
@@ -276,7 +284,15 @@ export function enrichRetentionEvidence(input: {
       policyId: investment?.id ?? null,
       calibrationId: namedCalibration?.id ?? null,
       minimumLines: minimumLines ?? null,
-      requiredCoreStats: namedCalibration ? [namedCalibration.requiredCoreStat] : [],
+      minimumCoreLines: minimumCoreLines ?? null,
+      requiredCoreStats: namedCalibration?.requiredCoreStat
+        ? [namedCalibration.requiredCoreStat]
+        : [],
+      requiredSecondaryStats: namedCalibration?.requiredSecondaryStat
+        ? [namedCalibration.requiredSecondaryStat]
+        : [],
+      secondaryStats,
+      calibrationSourceIds: namedCalibration?.sourceIds ?? [],
       qualified,
       meaningfulStats,
       coreStats,

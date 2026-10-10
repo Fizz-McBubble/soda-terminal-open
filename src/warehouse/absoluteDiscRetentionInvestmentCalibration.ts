@@ -1,9 +1,10 @@
 import { stableContentHash } from '../gameDataPacks/types'
 import type { Disc, GameRules, Profile, QualityPolicy } from './absoluteDiscRetentionContract'
+import { reviewedHpRetentionEvidence } from './reviewedHpRetentionEvidence'
 
 const attackSlot = { '2': 'atk_flat' }
 const healthSlots = { '1': 'hp_flat', '2': 'atk_flat', '3': 'def_flat' }
-/** Approved 24 combinations only; identities bind the reviewed goal, weights, core and sources. */
+/** Named combinations only; identities bind the reviewed goal, weights, core and sources. */
 const namedPolicies: Readonly<Record<string, readonly [string, string, Record<string, string>]>> = {
   'agent-soukaku:base-0:fnv1a-788b': ['45a5c4f7', 'atk_percent', attackSlot],
   'agent-soukaku:base-1:fnv1a-f9a2': ['45a5c4f7', 'atk_percent', attackSlot],
@@ -15,30 +16,47 @@ const namedPolicies: Readonly<Record<string, readonly [string, string, Record<st
   'agent-seth:main-alt-0:short_fight': ['4b14e79c', 'atk_percent', attackSlot],
   'agent-astra:base-0:fnv1a-210f': ['f88f9c8', 'atk_percent', attackSlot],
   'agent-astra:base-1:fnv1a-77cc': ['f88f9c8', 'atk_percent', attackSlot],
-  'agent-zhao:base-0:fnv1a-2a59': ['44a7cae4', 'hp_percent', healthSlots],
-  'agent-zhao:base-1:fnv1a-f244': ['44a7cae4', 'hp_percent', healthSlots],
+  'agent-zhao:base-0:fnv1a-2a59': ['370eab2a', 'hp_percent', healthSlots],
+  'agent-zhao:base-1:fnv1a-f244': ['370eab2a', 'hp_percent', healthSlots],
   'agent-yuzuha:base-0:fnv1a-c737': ['c46e81af', 'atk_percent', attackSlot],
   'agent-yuzuha:base-1:fnv1a-6e0c': ['c46e81af', 'atk_percent', attackSlot],
   'agent-pan-yinhu:base-0:fnv1a-79f0': ['9f66bde5', 'atk_percent', attackSlot],
   'agent-pan-yinhu:base-1:fnv1a-792d': ['9f66bde5', 'atk_percent', attackSlot],
-  'agent-lucia:base-0:fnv1a-782d': ['e12e99e8', 'hp_percent', healthSlots],
+  'agent-lucia:base-0:fnv1a-782d': ['340ac385', 'hp_percent', healthSlots],
   'agent-sunna:base-0:fnv1a-e37e': ['a141f52c', 'atk_percent', attackSlot],
 }
+const secondaryHpProfiles = new Set([
+  'agent-zhao:base-0:fnv1a-2a59',
+  'agent-zhao:base-1:fnv1a-f244',
+  'agent-lucia:base-0:fnv1a-782d',
+])
 
 export function resolveNamedInvestmentCalibration(
   disc: Disc,
   profile: Profile,
   rules: GameRules,
   policy: QualityPolicy,
-): { id: string; minimumLines: 1; requiredCoreStat: string } | null {
+): {
+  id: string
+  minimumLines: number
+  minimumCoreLines: number
+  requiredCoreStat: string | null
+  requiredSecondaryStat: string | null
+  sourceIds: readonly string[]
+} | null {
   const named = namedPolicies[profile.id]
+  const secondaryHp =
+    secondaryHpProfiles.has(profile.id) &&
+    disc.slot >= 4 &&
+    disc.slot <= 6 &&
+    disc.mainStat === 'hp_percent'
   const investment = policy.investment
   const cutoffs = policy.byProfile[profile.id]?.[String(disc.slot)]
   if (
     !named ||
     !profile.verified ||
     !profile.id.startsWith(`${profile.agentId}:`) ||
-    named[2][String(disc.slot)] !== disc.mainStat ||
+    (!secondaryHp && named[2][String(disc.slot)] !== disc.mainStat) ||
     disc.rarity !== 'S' ||
     policy.calibration !== 'approved' ||
     !policy.calibratedRarities?.includes('S') ||
@@ -71,9 +89,32 @@ export function resolveNamedInvestmentCalibration(
     },
   })
   if (identity !== `fnv1a-${named[0]}`) return null
+  if (secondaryHp) {
+    const hp = reviewedHpRetentionEvidence(profile.agentId)
+    if (
+      !hp ||
+      profile.goal !== 'functional' ||
+      profile.weights.hp_percent !== 1 ||
+      !(profile.weights.hp_flat! > 0 && profile.weights.hp_flat! < 0.5)
+    )
+      return null
+    return {
+      id: `named-secondary-hp-investment-r1:${profile.id}:S:${disc.slot}:${disc.mainStat}`,
+      // HP% cannot recur as a substat on this main. The positive flat input is
+      // reviewed separately; it is never promoted into the global core list.
+      minimumLines: 0,
+      minimumCoreLines: 0,
+      requiredCoreStat: null,
+      requiredSecondaryStat: 'hp_flat',
+      sourceIds: hp.sourceIds,
+    }
+  }
   return {
     id: `named-single-core-investment-r1:${profile.id}:S:${disc.slot}:${disc.mainStat}`,
     minimumLines: 1,
+    minimumCoreLines: 1,
     requiredCoreStat: named[1],
+    requiredSecondaryStat: null,
+    sourceIds: profile.sourceIds,
   }
 }

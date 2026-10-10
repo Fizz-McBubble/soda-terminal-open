@@ -58,12 +58,21 @@ export const reviewedFunctionalStatInputs = [
     agentId: 'agent-zhao',
     upstreamKey: 'Zhao',
     sha256: '422023A95ACBBDD953967757BFA0650061F89A0EBE15602CF959F88AE67F7734',
-    inputs: [] as string[],
+    inputs: ['hp_'],
     incidental: ['atk_', 'anomProf', 'crit_', 'crit_dmg_'],
-    locators: ['core.desc[0].0', 'core.desc[0].5', 'core.desc[0].6', 'ability.desc.1'],
+    locators: [
+      'core.desc[0].0',
+      'core.desc[0].5',
+      'core.desc[0].6',
+      'ability.desc.0',
+      'ability.desc.1',
+      'special.SpecialAttackShatterfrostSurge.desc.2',
+    ],
     semantic:
-      'Source reads initial Max HP for CR and team DMG; team ATK is a core-tier constant. Granting CR does not read owner CR. HP/ER functional uses remain separate.',
-    flag: null,
+      '初始生命参与凝聚力团队增伤；特殊技治疗读取最大生命。需确认对应技能已触发，团队增伤另需符合队伍与帷幕条件；战斗生命增益不计入初始生命。给予暴击不代表读取自身暴击。',
+    flag: 'reviewed.zhao.crystallization',
+    alternateFlag: 'reviewed.zhao.hp_healing',
+    policyId: 'reviewed-zhao-hp-functional-input-3.2-r1',
   },
 ] as const
 
@@ -88,7 +97,17 @@ export function resolveReviewedFunctionalStatInput(input: {
   const base = input.mindscape === 0 && input.potential === 0
   const provenInput = row?.inputs.some((stat) => stat === input.effectStat)
   const excluded = row?.incidental.some((stat) => stat === input.effectStat)
-  const enabled = row?.flag ? input.flags?.[row.flag] : undefined
+  const flags = row
+    ? [row.flag, ...('alternateFlag' in row ? [row.alternateFlag] : [])].filter(
+        (flag) => flag !== null,
+      )
+    : []
+  const enabled = flags.some((flag) => input.flags?.[flag] === true)
+    ? true
+    : flags.length && flags.every((flag) => input.flags?.[flag] === false)
+      ? false
+      : undefined
+  const policy = row && 'policyId' in row ? row.policyId : reviewedFunctionalStatInputsPolicy
   const state =
     !binding || !base
       ? 'missing_fact'
@@ -104,22 +123,20 @@ export function resolveReviewedFunctionalStatInput(input: {
   const sourceLocators = row
     ? row.locators.map((locator) => `${root}char_${row.upstreamKey}_gen.json#${locator}`)
     : []
-  const evidenceIds = row
-    ? [`reviewed-localization:${commit}:${row.sha256}`, reviewedFunctionalStatInputsPolicy]
-    : []
+  const evidenceIds = row ? [`reviewed-localization:${commit}:${row.sha256}`, policy] : []
   return {
     state,
-    predicateId: `${reviewedFunctionalStatInputsPolicy}:${input.effectStat}`,
+    predicateId: `${policy}:${input.effectStat}`,
     evidenceIds,
     sourceLocators,
     detail:
       state === 'missing_fact'
         ? '当前版本、源哈希或非M0/P0上下文未覆盖；保持缺事实。'
         : state === 'conditional'
-          ? `${row!.semantic} Required actual state: ${row!.flag}; parameter is qualitative, not a consumed numerical formula.`
+          ? `${row!.semantic} Required actual state: ${flags.join(' or ')}; parameter is qualitative, not a consumed numerical formula.`
           : row!.semantic,
     fingerprint: stableContentHash({
-      policy: reviewedFunctionalStatInputsPolicy,
+      policy,
       input,
       row,
       commit,

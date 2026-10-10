@@ -89,7 +89,8 @@ export function retentionUseGuidance(
         ? policy.investment?.leftSlotMinimumLines
         : policy.investment?.rightSlotMinimumLines) ??
       null,
-    minimumCoreLines: policy.investment?.minimumCoreLines ?? null,
+    minimumCoreLines:
+      use.investment.minimumCoreLines ?? policy.investment?.minimumCoreLines ?? null,
     twoPieceEffect: set?.twoPieceEffect ?? null,
     fourPieceEffect: set?.fourPieceEffect ?? null,
     sources: [...new Map(sources.map((source) => [source.url, source])).values()],

@@ -7,6 +7,7 @@ import type { CandidateWarehouseConstraint } from '../gameDataPacks/candidateWar
 import { currentDriveDiscFormulaCatalog } from '../gameDataPacks/currentDriveDiscFormulaCatalog'
 import type { Profile } from './absoluteDiscRetentionContract'
 import { getCandidatePanelPolicy } from '../gameDataPacks/candidatePanelPolicy'
+import { reviewedHpRetentionEvidence } from './reviewedHpRetentionEvidence'
 
 const mainByInput: Record<string, string> = {
   atk: 'atk_percent',
@@ -100,6 +101,11 @@ export function sourcedFunctionalMains(
       )
     }
   }
+  const hp = goal === 'functional' ? reviewedHpRetentionEvidence(agentId) : null
+  // Zhao's pinned sheet has placeholders; the reviewed localization proves HP
+  // input and its conditions without pretending to supply a numerical effect IR.
+  if (hp && agentId === 'agent-zhao' && !functionSources.has('hp_percent'))
+    functionSources.set('hp_percent', hp.sourceIds[1]!)
   // This branch's four-piece team buff has an explicit 50% crit-rate threshold.
   // A matching two-piece disc can supply the main while the four other slots supply the set.
   if (fourPieceIds.includes('set-king-of-the-summit')) {
@@ -135,9 +141,11 @@ export function sourcedFunctionalMains(
             ? '核对完整配装中的暴击率达到 50%；一张暴击主词盘不保证四件套门槛。'
             : stat === 'def_percent' && fourPieceIds.includes('set-34200')
               ? '核对四件套的初始防御 1000 / 1800 门槛；战斗中防御增益不替代初始面板。'
-              : stat === 'atk_percent' && panel
-                ? `核对完整面板攻击力 ${panel.minimumAttack}、核心技等级${panel.requiredCoreLevel ?? '按机制'}及所需套装前提。`
-                : `${potential ? `需要潜影 ${potential}，并` : ''}在完整配装中核对 ${stat} 对来源机制的实际贡献与目标；单盘主词不能证明整套功能完成。`
+              : stat === 'hp_percent' && hp
+                ? hp.detail
+                : stat === 'atk_percent' && panel
+                  ? `核对完整面板攻击力 ${panel.minimumAttack}、核心技等级${panel.requiredCoreLevel ?? '按机制'}及所需套装前提。`
+                  : `${potential ? `需要潜影 ${potential}，并` : ''}在完整配装中核对 ${stat} 对来源机制的实际贡献与目标；单盘主词不能证明整套功能完成。`
       return sourceId
         ? [
             {

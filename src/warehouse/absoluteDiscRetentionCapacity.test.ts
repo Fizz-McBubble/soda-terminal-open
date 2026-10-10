@@ -254,8 +254,13 @@ describe('investment policy respects legal substat capacity', () => {
           )
           if (evidence.investment.calibrationId) {
             expect(evidence.investment.qualified, `${profile.id}/${slot}/${main}`).toBe(true)
-            expect(evidence.investment.minimumLines).toBe(1)
+            expect(evidence.investment.minimumLines).toBe(core.length ? 1 : 0)
             expect(evidence.investment.requiredCoreStats).toEqual(core)
+            if (!core.length) {
+              expect(evidence.investment.requiredSecondaryStats).toEqual(['hp_flat'])
+              expect(evidence.investment.meaningfulStats).toEqual([])
+              expect(evidence.investment.coreStats).toEqual([])
+            }
             expect(evidence.investment.policyBlockers).toEqual([])
             calibrated += 1
           } else {
@@ -275,7 +280,7 @@ describe('investment policy respects legal substat capacity', () => {
       }
     }
     expect(affected).toBe(33)
-    expect(calibrated).toBe(24)
-    expect(pending).toBe(9)
+    expect(calibrated).toBe(33)
+    expect(pending).toBe(0)
   })
 })

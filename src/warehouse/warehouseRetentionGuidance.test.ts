@@ -11,11 +11,11 @@ import { scoreProfile, twoPieceApplicability } from './absoluteDiscRetentionScor
 import { retentionUseGuidance } from './warehouseRetentionGuidance'
 
 describe('player stat explanations from the actual scored build', () => {
-  it('projects the named effective investment minimum while unresolved HP mains retain their positive minor stat', () => {
+  it('projects the named core or secondary investment minimum without relabeling small HP', () => {
     const catalog = absoluteDiscRetentionCatalog
     for (const [id, slot, main, minimum] of [
       ['agent-seth:base-0:fnv1a-f5ec', 2, 'atk_flat', 1],
-      ['agent-zhao:base-0:fnv1a-2a59', 4, 'hp_percent', 1],
+      ['agent-zhao:base-0:fnv1a-2a59', 4, 'hp_percent', 0],
     ] as const) {
       const profile = catalog.profiles.find((row) => row.id === id)!
       const set = catalog.sets.find(
@@ -44,15 +44,16 @@ describe('player stat explanations from the actual scored build', () => {
       )
       const guide = retentionUseGuidance(disc, use, profile, absoluteDiscRetentionPolicy)!
       expect(guide.minimumLines).toBe(minimum)
-      expect(guide.minimumCoreLines).toBe(1)
+      expect(guide.minimumCoreLines).toBe(slot === 2 ? 1 : 0)
       if (slot === 2) {
         expect(use.investment.calibrationId).toBeTruthy()
         expect(use.investment.qualified).toBe(true)
         expect(guide.subStats).toEqual(['atk_percent'])
         expect(absoluteDiscRetentionPolicy.investment!.leftSlotMinimumLines).toBe(2)
       } else {
-        expect(use.investment.calibrationId).toBeNull()
-        expect(use.investment.qualified).toBeNull()
+        expect(use.investment.calibrationId).toContain('named-secondary-hp-investment-r1:')
+        expect(use.investment.qualified).toBe(true)
+        expect(use.investment.requiredSecondaryStats).toEqual(['hp_flat'])
         expect(guide.minorStats).toContain('hp_flat')
         expect(guide.unusedStats).not.toContain('hp_flat')
       }

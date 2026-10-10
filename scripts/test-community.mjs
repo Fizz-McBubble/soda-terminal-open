@@ -13,6 +13,7 @@ const projectionTests = spawnSync(
     '--test',
     resolve(root, 'build/communitySourceProjection.node-test.mjs'),
     resolve(root, 'scripts/source-manifest.test.mjs'),
+    resolve(root, 'scripts/current-agent-effect-compiler.test.mjs'),
     resolve(root, 'deploy/cloudflare/edge.test.mjs'),
     resolve(root, 'deploy/cloudflare/scan-feedback.test.mjs'),
     resolve(root, 'deploy/cloudflare/scanner-installer.test.mjs'),

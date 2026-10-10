@@ -220,7 +220,12 @@ export interface QualityEvidence {
     /** Local approved exception; the global investment policy identity is retained. */
     readonly calibrationId?: string | null
     readonly minimumLines?: number | null
+    readonly minimumCoreLines?: number | null
     readonly requiredCoreStats?: readonly string[]
+    /** A positive secondary input remains distinct from the global core/meaningful stats. */
+    readonly requiredSecondaryStats?: readonly string[]
+    readonly secondaryStats?: readonly string[]
+    readonly calibrationSourceIds?: readonly string[]
     readonly qualified: boolean | null
     readonly meaningfulStats: readonly string[]
     readonly coreStats: readonly string[]
