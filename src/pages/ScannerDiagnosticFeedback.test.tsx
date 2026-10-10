@@ -171,7 +171,7 @@ it('retains report and copy/download options after a network failure, then retri
   fireEvent.click(screen.getByText('查看诊断信息'))
   expect(screen.getByText(/已处理 4 张/)).toBeVisible()
   expect(screen.getByText(/未能及时读取/)).toBeVisible()
-  expect(screen.getByText(/更新扫描助手后重试/)).toBeVisible()
+  expect(screen.getByText(/更新画面扫描后重试/)).toBeVisible()
   expect(screen.getByText(/保留 30 天/)).toBeVisible()
   expect(screen.queryByText(/未知|错误码|Cloudflare/)).not.toBeInTheDocument()
   expect(screen.queryByText(report.code)).not.toBeInTheDocument()
@@ -294,7 +294,7 @@ it('explains duplicate protection, preserves its diagnosis, and waits for explic
   expect(fetcher).not.toHaveBeenCalled()
   fireEvent.click(screen.getByText('查看诊断信息'))
   expect(screen.getByText(/将相同属性判断为重复/)).toBeVisible()
-  expect(screen.getByText(/更新扫描助手后重试/)).toBeVisible()
+  expect(screen.getByText(/更新画面扫描后重试/)).toBeVisible()
   expect(screen.queryByText(/权限|未能及时读取/)).not.toBeInTheDocument()
   expect(screen.getByRole('button', { name: '反馈此问题' })).toBeEnabled()
   saveLastScanDiagnostic(report)
@@ -344,7 +344,7 @@ it.each([
     const result = scannerDiagnosticGuidance(report)
     expect(result.problem).toContain(problem)
     expect(result.problem).not.toMatch(/截图|权限|用户|遮挡/)
-    expect(result.nextAction).toContain('更新扫描助手后重试')
+    expect(result.nextAction).toContain('更新画面扫描后重试')
   },
 )
 
@@ -429,7 +429,7 @@ it.each(['terminal_details', 'legacy_log', 'unavailable'])(
     if (diagnosticSource === 'terminal_details') {
       expect(result.nextAction).toBe('请反馈此问题；准备好后可重新扫描。')
       expect(result.nextAction).not.toContain('更新')
-    } else expect(result.nextAction).toContain('更新扫描助手后重试')
+    } else expect(result.nextAction).toContain('更新画面扫描后重试')
   },
 )
 it.each([

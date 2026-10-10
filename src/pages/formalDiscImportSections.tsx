@@ -49,7 +49,7 @@ export function FormalImportFileDropzone({
       >
         <strong>{dropActive ? '松开以载入 JSON' : '拖拽 JSON 到这里，或点击选择文件'}</strong>
         <span id="formal-dropzone-note" aria-live="polite">
-          选择扫描器导出的结果文件（.json）；载入后仍需检查并确认更新。
+          选择画面扫描导出的结果文件（.json）；载入后仍需检查并确认更新。
         </span>
         <input
           ref={fileInputRef}

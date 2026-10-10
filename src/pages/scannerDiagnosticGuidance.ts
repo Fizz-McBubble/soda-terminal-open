@@ -16,22 +16,23 @@ const guidance: Record<string, Guidance> = {
   },
   ppocrv6_detail_geometry_incompatible: {
     problem: '当前游戏画面尺寸或驱动盘详情布局不适合扫描。',
-    nextAction: '按扫描指南使用支持的 16:9 画面，打开驱动仓库完整列表，保持画面完整可见后重试。',
+    nextAction:
+      '按画面扫描指南使用支持的 16:9 画面，打开驱动仓库完整列表，保持画面完整可见后重试。',
   },
   helper_unavailable: {
-    problem: '网页暂时没有连接到本机扫描助手。',
-    nextAction: '确认扫描助手已启动，再点击重新连接。',
+    problem: '网页暂时没有连接到画面扫描。',
+    nextAction: '确认画面扫描已启动，再点击重新连接。',
   },
   helper_incompatible: {
-    problem: '本机扫描助手与当前网页版本不匹配。',
-    nextAction: '刷新页面并重新连接；仍提示版本不匹配时，按页面提示更新扫描助手。',
+    problem: '画面扫描与当前网页版本不匹配。',
+    nextAction: '刷新页面并重新连接；仍提示版本不匹配时，按页面提示更新画面扫描。',
   },
   helper_pairing_denied: {
-    problem: '扫描助手拒绝了此网站的连接。',
+    problem: '画面扫描拒绝了此网站的连接。',
     nextAction: '重新连接；若仍被拒绝，请反馈此问题。',
   },
   permission_denied: {
-    problem: '扫描助手未获得本次操作所需的权限。',
+    problem: '画面扫描未获得本次操作所需的权限。',
     nextAction: '重新开始，留意 Windows 对本次扫描的权限提示；仍失败时可反馈。',
   },
   elevation_cancelled: {
@@ -39,7 +40,7 @@ const guidance: Record<string, Guidance> = {
     nextAction: '准备继续扫描时重新开始，并确认本次权限提示。',
   },
   game_process_not_found: {
-    problem: '扫描助手暂时没有找到正在运行的游戏。',
+    problem: '画面扫描暂时没有找到正在运行的游戏。',
     nextAction: '打开绝区零并进入游戏，再尝试扫描。',
   },
   inventory_count_ocr_failed: {
@@ -52,23 +53,23 @@ const guidance: Record<string, Guidance> = {
   },
   panel_capture_timeout: {
     problem: '未能及时读取到可识别的驱动盘画面。',
-    nextAction: '更新扫描助手后重试；仍失败时请反馈此问题。',
+    nextAction: '更新画面扫描后重试；仍失败时请反馈此问题。',
   },
   duplicate_guard: {
-    problem: '扫描器将相同属性判断为重复，停止了扫描。',
-    nextAction: '更新扫描助手后重试；若仍中断，请反馈此问题。',
+    problem: '画面扫描将相同属性判断为重复，停止了扫描。',
+    nextAction: '更新画面扫描后重试；若仍中断，请反馈此问题。',
   },
   warehouse_context_lost: {
     problem: '暂时无法确认驱动仓库画面，扫描已停止。',
-    nextAction: '更新扫描助手后重试；若仍停止，请反馈此问题。',
+    nextAction: '更新画面扫描后重试；若仍停止，请反馈此问题。',
   },
   scan_navigation_failed: {
     problem: '扫描时未能按预期翻动仓库。',
-    nextAction: '更新扫描助手后重试；若仍中断，请反馈此问题。',
+    nextAction: '更新画面扫描后重试；若仍中断，请反馈此问题。',
   },
   visual_preflight_failed: {
     problem: '开始扫描前，游戏画面检查没有通过。',
-    nextAction: '查看页面的具体检查提示后重试；没有具体提示时，可更新扫描助手再试。',
+    nextAction: '查看页面的具体检查提示后重试；没有具体提示时，可更新画面扫描再试。',
   },
   ocr_worker_failed: {
     problem: '扫描中的文字识别没有正常完成。',
@@ -88,7 +89,7 @@ const guidance: Record<string, Guidance> = {
   },
   scan_result_timeout: {
     problem: '等待扫描结果的时间过长，本次未取得结果。',
-    nextAction: '确认扫描助手状态后重试读取结果；若持续发生，可反馈此问题。',
+    nextAction: '确认画面扫描状态后重试读取结果；若持续发生，可反馈此问题。',
   },
   scan_result_read_failed: {
     problem: '扫描结果未能正常读取。',
@@ -112,16 +113,16 @@ const guidance: Record<string, Guidance> = {
   },
   scanner_exit: {
     problem: '扫描程序在完成前退出，现有诊断信息不足以确定原因。',
-    nextAction: '更新扫描助手后重试；若再次退出，请反馈此问题。',
+    nextAction: '更新画面扫描后重试；若再次退出，请反馈此问题。',
   },
   scanner_failure: {
     problem: '扫描程序未能完成本次任务，现有诊断信息不足以确定原因。',
-    nextAction: '更新扫描助手后重试；若仍失败，请反馈此问题。',
+    nextAction: '更新画面扫描后重试；若仍失败，请反馈此问题。',
   },
 }
 
 const retry = '请反馈此问题；准备好后可重新扫描。'
-const legacyRetry = '更新扫描助手后重试；若仍中断，请反馈此问题。'
+const legacyRetry = '更新画面扫描后重试；若仍中断，请反馈此问题。'
 const detailGuidance: Record<string, Guidance> = {
   waiting_for_panel_change: { problem: '等待期间没有确认到目标盘面的变化。', nextAction: retry },
   waiting_for_target_selection_stability: {
@@ -195,7 +196,7 @@ export function scannerDiagnosticGuidance(report: ScanDiagnosticReport): Guidanc
     if (
       report.evidence.diagnosticSource === 'terminal_details' &&
       !['helper_incompatible', 'duplicate_guard'].includes(report.code) &&
-      result.nextAction.includes('更新扫描助手')
+      result.nextAction.includes('更新画面扫描')
     )
       return { ...result, nextAction: retry }
     return result
@@ -209,6 +210,6 @@ export function scannerDiagnosticGuidance(report: ScanDiagnosticReport): Guidanc
     }
   return {
     problem: '本次没有取得足够信息，暂时无法确定原因。',
-    nextAction: '可反馈问题，或按当前页面提示重试；页面提示版本不匹配时，再更新扫描助手。',
+    nextAction: '可反馈问题，或按当前页面提示重试；页面提示版本不匹配时，再更新画面扫描。',
   }
 }

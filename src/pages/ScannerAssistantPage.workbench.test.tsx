@@ -113,10 +113,10 @@ async function prepareQuick() {
   fireEvent.change(screen.getByLabelText('游戏安装目录'), {
     target: { value: "soda-source-ref:ee09b7b910b89ca3d044849bf8cbb524" },
   })
-  await act(async () => fireEvent.click(screen.getByRole('button', { name: '连接独立工具' })))
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '连接资产快读' })))
   fireEvent.click(screen.getByRole('button', { name: '开始读取' }))
   fireEvent.click(screen.getByRole('checkbox', { name: /我已阅读上述风险/ }))
-  await act(async () => fireEvent.click(screen.getByRole('button', { name: '开始本次快读' })))
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '开始本次资产快读' })))
 }
 
 it('presents one account area, both acquisition methods and exactly one file input without an initial task', async () => {
@@ -150,7 +150,7 @@ it('shows an empty target selector beside account creation before allowing acqui
   expect(within(target).getByRole('combobox')).toHaveTextContent('请先创建账户')
   expect(within(target).getByLabelText('新账户名称')).toBeVisible()
   expect(screen.getByRole('button', { name: '开始扫描' })).toBeDisabled()
-  await act(async () => fireEvent.click(screen.getByRole('button', { name: '连接独立工具' })))
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '连接资产快读' })))
   expect(screen.getByRole('button', { name: '开始读取' })).toBeDisabled()
 })
 
@@ -161,7 +161,7 @@ it('drops a quick snapshot into the existing shared inspection without connectin
     dataTransfer: { files: [quickFile()], types: ['Files'] },
   })
   await screen.findByRole('heading', { name: '检查本次读取结果' })
-  expect(screen.getByRole('button', { name: '确认导入本次快读结果' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '确认导入本次资产快读结果' })).toBeDisabled()
   expect(bridge.connect).not.toHaveBeenCalled()
   expect(bridge.start).not.toHaveBeenCalled()
   expect(await facts()).toEqual(before)
@@ -192,20 +192,20 @@ it('recognizes a synthetic quick snapshot from the shared file without connectin
   expect(bridge.start).not.toHaveBeenCalled()
   expect(commands.startScan).not.toHaveBeenCalled()
   expect(await facts()).toEqual(before)
-  expect(screen.getByRole('button', { name: '确认导入本次快读结果' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '确认导入本次资产快读结果' })).toBeDisabled()
   expect(screen.getByRole('button', { name: '开始扫描' })).toBeDisabled()
   expect(screen.getByLabelText('选择本机文件（JSON）')).toBeDisabled()
   const scannerTools = screen.getByText('扫描准备与工具').closest('details')!
-  const quickTools = screen.getByText('快读准备与工具').closest('details')!
+  const quickTools = screen.getByText('资产快读准备').closest('details')!
   expect(scannerTools).not.toHaveAttribute('open')
   expect(quickTools).not.toHaveAttribute('open')
   fireEvent.click(screen.getByText('扫描准备与工具'))
-  fireEvent.click(screen.getByText('快读准备与工具'))
+  fireEvent.click(screen.getByText('资产快读准备'))
   expect(scannerTools).toHaveAttribute('open')
   expect(quickTools).toHaveAttribute('open')
   expect(screen.getByLabelText('游戏安装目录')).toBeVisible()
   expect(screen.queryByRole('button', { name: '开始读取' })).not.toBeInTheDocument()
-  expect(screen.getByText('快读指南')).toBeVisible()
+  expect(screen.getByText('资产快读指南')).toBeVisible()
   assertRiskLast()
 })
 
@@ -217,14 +217,14 @@ it('keeps an existing installer download mounted and cancellable when a quick fi
   vi.stubGlobal('fetch', vi.fn().mockReturnValue(new Promise(() => {})))
   const before = await facts()
   await showPage()
-  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
-  const progress = await screen.findByRole('progressbar', { name: '扫描助手下载进度' })
+  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
+  const progress = await screen.findByRole('progressbar', { name: '画面扫描下载进度' })
   const cancel = screen.getByRole('button', { name: '取消下载' })
   fireEvent.change(screen.getByLabelText('选择本机文件（JSON）'), {
     target: { files: [quickFile()] },
   })
   await screen.findByRole('heading', { name: '检查本次读取结果' })
-  expect(screen.getByRole('progressbar', { name: '扫描助手下载进度' })).toBe(progress)
+  expect(screen.getByRole('progressbar', { name: '画面扫描下载进度' })).toBe(progress)
   expect(screen.getByRole('button', { name: '取消下载' })).toBe(cancel)
   expect(cancel).toBeVisible()
   expect(cancel).toBeEnabled()
@@ -259,8 +259,8 @@ it.each(['starting', 'capturing'] as const)(
       dataTransfer: { files: [quickFile()], types: ['Files'] },
     })
     expect(screen.queryByRole('heading', { name: '检查本次读取结果' })).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '停止本次快读' })).toBeEnabled()
-    await act(async () => fireEvent.click(screen.getByRole('button', { name: '停止本次快读' })))
+    expect(screen.getByRole('button', { name: '停止本次资产快读' })).toBeEnabled()
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: '停止本次资产快读' })))
     expect(bridge.cancel).toHaveBeenCalledWith(job.jobId)
     expect(commands.startScan).not.toHaveBeenCalled()
     expect(await facts()).toEqual(before)
@@ -271,7 +271,7 @@ it.each(['starting', 'capturing'] as const)(
 it('blocks quick actions and shared file while OCR owns an active scan', async () => {
   runtimeState.snapshot = createScannerRuntimeSnapshot('scanning')
   await showPage()
-  expect(screen.getByRole('button', { name: '连接独立工具' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '连接资产快读' })).toBeDisabled()
   expect(screen.getByRole('combobox', { name: '目标账户' })).toBeDisabled()
   expect(screen.getByLabelText('选择本机文件（JSON）')).toBeDisabled()
   expect(screen.getByRole('region', { name: '本次任务' })).toHaveTextContent(
@@ -295,7 +295,7 @@ it('keeps the shared account picker focused while invalidating an old quick cand
   expect(screen.getByRole('combobox', { name: '目标账户' })).toBe(picker)
   expect(picker).toHaveFocus()
   expect(screen.queryByRole('heading', { name: '检查本次读取结果' })).not.toBeInTheDocument()
-  expect(screen.queryByRole('button', { name: '确认导入本次快读结果' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: '确认导入本次资产快读结果' })).not.toBeInTheDocument()
   expect(await facts()).toEqual(before)
   expect(bridge.start).not.toHaveBeenCalled()
   assertRiskLast()
@@ -323,7 +323,7 @@ it.each([false, true])(
       target: { files: [quickFile()] },
     })
     await screen.findByRole('heading', { name: '检查本次读取结果' })
-    expect(screen.getByRole('button', { name: '确认导入本次快读结果' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: '确认导入本次资产快读结果' })).toBeDisabled()
     expect(await facts()).toEqual(before)
     assertRiskLast()
   },

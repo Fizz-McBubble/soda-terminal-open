@@ -54,6 +54,6 @@ export async function awaitAssetQuickReadService<T>({
     }
   }
   throw new Error(
-    '独立工具尚未启动。请先下载并完成安装，再点击连接；允许浏览器打开独立工具和访问本机设备。',
+    '资产快读尚未启动。请先下载并完成安装，再点击连接；允许浏览器打开资产快读和访问本机设备。',
   )
 }

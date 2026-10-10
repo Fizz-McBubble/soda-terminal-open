@@ -73,7 +73,7 @@ export function PrepareChecklist({
     ? '点击后会切换到游戏，检查画面和仓库是否就绪；检查通过后才开始扫描。'
     : !targetReady
       ? '请先选择本次扫描要更新的账户。'
-      : '本机扫描组件与助手可用后即可检查并开始。'
+      : '画面扫描连接后即可检查并开始。'
 
   return (
     <section
@@ -122,10 +122,10 @@ export function PrepareChecklist({
             <ScanLine aria-hidden="true" size={19} />
             {!startReady && needsConnection
               ? actionPending
-                ? '正在连接扫描助手'
+                ? '正在连接画面扫描'
                 : unchecked
-                  ? '连接扫描助手'
-                  : '重新连接扫描助手'
+                  ? '连接画面扫描'
+                  : '重新连接画面扫描'
               : snapshot.state === 'awaiting_elevation'
                 ? '等待 Windows 权限确认'
                 : snapshot.state === 'checking'
@@ -206,7 +206,7 @@ export function PrepareChecklist({
               {waitingForPlayer && targetReady
                 ? '点击后检查游戏是否就绪'
                 : unchecked || needsConnection
-                  ? '先连接本机扫描助手'
+                  ? '先连接画面扫描'
                   : checksReady && targetReady
                     ? `${totalChecks} 项准备全部通过`
                     : `${totalReady} / ${totalChecks} 项准备已通过`}
@@ -217,7 +217,7 @@ export function PrepareChecklist({
                 : startReady
                   ? '点击后自动检查'
                   : checking
-                    ? '正在连接助手'
+                    ? '正在连接画面扫描'
                     : unchecked
                       ? '点击连接'
                       : '暂不可开始'}

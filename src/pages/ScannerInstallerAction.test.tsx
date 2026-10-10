@@ -64,14 +64,14 @@ it('offers an upgrade only for a detected old installation', () => {
       distribution={{ ...initialDistributionSnapshot, state: 'ready', installedVersion: 'old' }}
     />,
   )
-  expect(screen.getByRole('button', { name: '更新扫描助手' })).toBeVisible()
+  expect(screen.getByRole('button', { name: '更新画面扫描' })).toBeVisible()
   expect(screen.getByText(`v${scannerDistributionManifest.helper.installerVersion}`)).toBeVisible()
-  expect(screen.getByRole('button', { name: '更新扫描助手' })).toHaveAccessibleDescription(
-    `安装包 v${scannerDistributionManifest.helper.installerVersion}（助手 v${scannerDistributionManifest.helper.version}）`,
+  expect(screen.getByRole('button', { name: '更新画面扫描' })).toHaveAccessibleDescription(
+    `画面扫描安装包 v${scannerDistributionManifest.helper.installerVersion}`,
   )
-  expect(screen.getByRole('button', { name: '更新扫描助手' })).toHaveAttribute(
+  expect(screen.getByRole('button', { name: '更新画面扫描' })).toHaveAttribute(
     'title',
-    `安装包 v${scannerDistributionManifest.helper.installerVersion}（助手 v${scannerDistributionManifest.helper.version}）`,
+    `画面扫描安装包 v${scannerDistributionManifest.helper.installerVersion}`,
   )
   rerender(
     <ScannerInstallerAction
@@ -82,7 +82,7 @@ it('offers an upgrade only for a detected old installation', () => {
       }}
     />,
   )
-  expect(screen.getByRole('button', { name: '更新扫描助手' })).toBeVisible()
+  expect(screen.getByRole('button', { name: '更新画面扫描' })).toBeVisible()
   rerender(
     <ScannerInstallerAction
       distribution={{
@@ -100,7 +100,7 @@ it('starts fetching in the click task without calling an exposed non-settling sa
   Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: picker })
   const { streamController, fetcher } = streamedDownload()
   render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
-  const downloadButton = screen.getByRole('button', { name: '下载扫描助手' })
+  const downloadButton = screen.getByRole('button', { name: '下载画面扫描' })
   const displayedVersion = downloadButton
     .querySelector('.scanner-installer__version')
     ?.textContent?.trim()
@@ -109,7 +109,7 @@ it('starts fetching in the click task without calling an exposed non-settling sa
   fireEvent.click(downloadButton)
   expect(fetch).toHaveBeenCalledOnce()
   await waitFor(() => expect(fetcher).toHaveBeenCalledOnce())
-  expect(downloadButton).toHaveAttribute('title', '安装包 v1.0.9（助手 v2.3.11）')
+  expect(downloadButton).toHaveAttribute('title', '画面扫描安装包 v1.0.9')
   expect(fetch).toHaveBeenNthCalledWith(
     1,
     installerReleaseUrl,
@@ -132,19 +132,19 @@ it('starts fetching in the click task without calling an exposed non-settling sa
   expect(screen.getByText('v1.0.9')).toBeVisible()
   expect(
     (vi.mocked(HTMLAnchorElement.prototype.click).mock.instances[0] as HTMLAnchorElement).download,
-  ).toBe(`Soda-Scanner-Setup-${freshRelease.version}.exe`)
+  ).toBe(`Soda-画面扫描-${freshRelease.version}.exe`)
 })
 it('rejects a bad refreshed release without fetching or saving installer bytes', async () => {
   const fetcher = vi.fn().mockResolvedValue(Response.json({ ...freshRelease, sha256: 'invalid' }))
   vi.stubGlobal('fetch', fetcher)
   render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
-  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('下载未完成'))
   expect(fetcher).toHaveBeenCalledOnce()
   expect(fetcher.mock.calls[0][0]).toBe(installerReleaseUrl)
   expect(createObjectURL).not.toHaveBeenCalled()
   expect(screen.queryByRole('link')).not.toBeInTheDocument()
-  expect(screen.getByRole('button', { name: '下载扫描助手' })).toBeEnabled()
+  expect(screen.getByRole('button', { name: '下载画面扫描' })).toBeEnabled()
 })
 it('rejects an alias that changed between the release refresh and byte download without retrying', async () => {
   const tampered = new Uint8Array(executableFixture)
@@ -152,7 +152,7 @@ it('rejects an alias that changed between the release refresh and byte download 
   const fetcher = vi.fn().mockResolvedValue(new Response(tampered))
   setDownloadFetcher(fetcher)
   render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
-  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('下载未完成'))
   expect(fetcher).toHaveBeenCalledOnce()
   expect(createObjectURL).not.toHaveBeenCalled()
@@ -171,7 +171,7 @@ it('includes the manifest refresh in the ten-minute total deadline', async () =>
     .mockReturnValue(new Promise(() => {}))
   vi.stubGlobal('fetch', fetcher)
   render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
-  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
   await act(async () => {
     await vi.advanceTimersByTimeAsync(9 * 60 * 1000)
   })
@@ -195,7 +195,7 @@ it('cancels an unmounted manifest refresh and ignores its late release', async (
   )
   vi.stubGlobal('fetch', fetcher)
   const { unmount } = render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
-  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
   unmount()
   expect(fetcher.mock.calls[0][1].signal.aborted).toBe(true)
   await act(async () => {
@@ -207,11 +207,11 @@ it('cancels an unmounted manifest refresh and ignores its late release', async (
 it('shows streamed bytes before EOF and requests browser save only after all bytes arrive', async () => {
   const { streamController } = streamedDownload()
   render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
-  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
   await act(async () => {
     streamController.enqueue(executableFixture.subarray(0, 4))
   })
-  const progress = screen.getByRole('progressbar', { name: '扫描助手下载进度' })
+  const progress = screen.getByRole('progressbar', { name: '画面扫描下载进度' })
   await waitFor(() => expect(progress).toHaveAttribute('value', '4'))
   expect(progress).toHaveAttribute('max', '8')
   expect(progress).toHaveAttribute('aria-valuetext', expect.stringContaining('50%'))
@@ -232,16 +232,16 @@ it.each([
 ])('rejects a %s installer and permits only a verified retry', async (_, bytes) => {
   setDownloadFetcher(vi.fn().mockResolvedValue(new Response(bytes)))
   render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
-  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('下载未完成'))
   expect(createObjectURL).not.toHaveBeenCalled()
   expect(screen.queryByRole('link', { name: '直接下载' })).not.toBeInTheDocument()
-  expect(screen.getByRole('button', { name: '下载扫描助手' })).toBeEnabled()
+  expect(screen.getByRole('button', { name: '下载画面扫描' })).toBeEnabled()
 })
 it('cancels a partial stream and permits a fresh download', async () => {
   const { streamController, cancel, fetcher, body } = streamedDownload()
   render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
-  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
   await act(async () => {
     streamController.enqueue(executableFixture.subarray(0, 4))
   })
@@ -253,7 +253,7 @@ it('cancels a partial stream and permits a fresh download', async () => {
   expect(createObjectURL).not.toHaveBeenCalled()
   expect(fetcher.mock.calls[0][1].signal.aborted).toBe(true)
   fetcher.mockResolvedValue(new Response(executableFixture))
-  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('在下载列表打开安装包'))
   expect(fetcher).toHaveBeenCalledTimes(2)
 })
@@ -266,14 +266,14 @@ it('ends a non-settling host fetch immediately on cancellation and ignores a lat
   )
   setDownloadFetcher(fetcher)
   render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
-  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
   await waitFor(() => expect(fetcher).toHaveBeenCalledOnce())
   fireEvent.click(screen.getByRole('button', { name: '取消下载' }))
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('下载已取消'))
   expect(screen.queryByRole('button', { name: '取消下载' })).not.toBeInTheDocument()
   expect(screen.queryByRole('link', { name: '直接下载' })).not.toBeInTheDocument()
   fetcher.mockResolvedValue(new Response(executableFixture))
-  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('在下载列表打开安装包'))
   await act(async () => {
     finishFetch(new Response(executableFixture))
@@ -286,12 +286,12 @@ it('ends a stalled fetch at ten minutes and permits a verified retry', async () 
   const fetcher = vi.fn().mockReturnValue(new Promise(() => {}))
   setDownloadFetcher(fetcher)
   render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
-  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
   await act(async () => {
     await vi.advanceTimersByTimeAsync(10 * 60 * 1000)
   })
   expect(screen.getByRole('status')).toHaveTextContent('下载超时')
-  expect(screen.getByRole('button', { name: '下载扫描助手' })).toBeEnabled()
+  expect(screen.getByRole('button', { name: '下载画面扫描' })).toBeEnabled()
   expect(screen.queryByRole('link', { name: '直接下载' })).not.toBeInTheDocument()
   expect(fetcher.mock.calls[0][1].signal.aborted).toBe(true)
   expect(createObjectURL).not.toHaveBeenCalled()
@@ -299,7 +299,7 @@ it('ends a stalled fetch at ten minutes and permits a verified retry', async () 
 it('aborts the stream and releases the reader on unmount', async () => {
   const { streamController, cancel, fetcher, body } = streamedDownload()
   const { unmount } = render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
-  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
   await act(async () => {
     streamController.enqueue(executableFixture.subarray(0, 4))
   })
@@ -318,7 +318,7 @@ it('leaves manual connection to the existing parent action after requesting save
   render(
     <ScannerInstallerAction distribution={initialDistributionSnapshot} onConnect={onConnect} />,
   )
-  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
   await waitFor(() => expect(screen.getByRole('status')).toBeVisible())
   expect(screen.getAllByRole('button')).toHaveLength(1)
   expect(screen.getByRole('button', { name: /重新下载/ })).toBeEnabled()
@@ -336,7 +336,7 @@ it('defers installation return connection while another task owns the workbench'
       onAttentionChange={onAttentionChange}
     />,
   )
-  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
   await screen.findByRole('button', { name: /重新下载/ })
   expect(onAttentionChange).toHaveBeenLastCalledWith(true)
   fireEvent.blur(window)
@@ -365,7 +365,7 @@ it('ignores premature focus and connects once after leaving the completed downlo
   const { unmount } = render(
     <ScannerInstallerAction distribution={initialDistributionSnapshot} onConnect={onConnect} />,
   )
-  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
   fireEvent.blur(window)
   fireEvent.focus(window)
   expect(onConnect).not.toHaveBeenCalled()
@@ -397,12 +397,14 @@ it('handles rejected automatic connection without repeating attempts on focus', 
   render(
     <ScannerInstallerAction distribution={initialDistributionSnapshot} onConnect={onConnect} />,
   )
-  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
   await waitFor(() => expect(screen.getByRole('button', { name: /重新下载/ })).toBeVisible())
   fireEvent.blur(window)
   fireEvent.focus(window)
   expect(onConnect).toHaveBeenCalledOnce()
-  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('启动助手后点击连接'))
+  await waitFor(() =>
+    expect(screen.getByRole('status')).toHaveTextContent('启动画面扫描后点击连接'),
+  )
   expect(screen.getByRole('button', { name: /重新下载/ })).toBeEnabled()
   fireEvent.blur(window)
   fireEvent.focus(window)
@@ -411,7 +413,7 @@ it('handles rejected automatic connection without repeating attempts on focus', 
 it('keeps a pending download cancellable when the runtime becomes ready', async () => {
   const { streamController, cancel } = streamedDownload()
   const { rerender } = render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
-  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
   await act(async () => {
     streamController.enqueue(executableFixture.subarray(0, 4))
   })
@@ -437,7 +439,7 @@ it('connects once after a visible return and resets eligibility for a new downlo
   render(
     <ScannerInstallerAction distribution={initialDistributionSnapshot} onConnect={onConnect} />,
   )
-  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
   await waitFor(() => expect(screen.getByRole('button', { name: /重新下载/ })).toBeEnabled())
   const visibility = vi.spyOn(document, 'visibilityState', 'get')
   visibility.mockReturnValue('hidden')
@@ -461,18 +463,18 @@ it('connects once after a visible return and resets eligibility for a new downlo
 it('restores keyboard focus to download when the compact cancel action disappears', async () => {
   streamedDownload()
   render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
-  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
   const cancelButton = screen.getByRole('button', { name: '取消下载' })
   cancelButton.focus()
   fireEvent.click(cancelButton)
-  await waitFor(() => expect(screen.getByRole('button', { name: '下载扫描助手' })).toHaveFocus())
+  await waitFor(() => expect(screen.getByRole('button', { name: '下载画面扫描' })).toHaveFocus())
   expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
 })
 
 it('preserves keyboard focus when completion removes the cancel action', async () => {
   const { streamController } = streamedDownload()
   render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
-  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
   screen.getByRole('button', { name: '取消下载' }).focus()
   await act(async () => {
     streamController.enqueue(executableFixture)

@@ -18,7 +18,7 @@ export async function downloadAssetQuickReadInstaller({
   return downloadScannerInstaller({
     ...options,
     url: release.downloadUrl,
-    fileName: release.fileName,
+    fileName: `Soda-资产快读-${release.version}.exe`,
     expectedSize: release.size!,
     expectedSha256: release.sha256!,
   })

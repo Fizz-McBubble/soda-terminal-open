@@ -344,7 +344,7 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
           : phase === 'read'
             ? file
               ? '无法读取这份扫描结果文件，请选择有效的 JSON 文件。账户仓库尚未更新。'
-              : '暂时无法读取本次扫描结果。请重试；仍失败时重新连接扫描助手，或选择扫描结果文件（JSON）。账户仓库尚未更新。'
+              : '暂时无法读取本次扫描结果。请重试；仍失败时重新连接画面扫描，或选择扫描结果文件（JSON）。账户仓库尚未更新。'
             : error instanceof Error
               ? error.message
               : '暂时无法检查本次扫描结果，请重试。'

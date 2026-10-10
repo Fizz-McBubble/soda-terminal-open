@@ -54,7 +54,7 @@ export function assessScannerAssistantInput(
       state: 'needs_manual_structuring',
       title: '截图已通过结构检查',
       message:
-        '当前本地助手未捆绑 OCR 模型。请用离线识别器生成扫描暂存 JSON，或在下方选择已有 JSON；低置信截图不会生成可导入结果。',
+        '当前画面扫描未捆绑 OCR 模型。请用离线识别器生成扫描暂存 JSON，或在下方选择已有 JSON；低置信截图不会生成可导入结果。',
       canHandOff: false,
       diagnostic: {
         input: 'screenshot',
@@ -81,7 +81,8 @@ export function assessScannerAssistantInput(
       return {
         state: 'blocked',
         title: '扫描结果文件暂不能导入',
-        message: '文件须包含完整且不重复的本机识别结果；请使用扫描器导出的原始文件。账户未被修改。',
+        message:
+          '文件须包含完整且不重复的本机识别结果；请使用画面扫描导出的原始文件。账户未被修改。',
         canHandOff: false,
         diagnostic: {
           input: 'json',

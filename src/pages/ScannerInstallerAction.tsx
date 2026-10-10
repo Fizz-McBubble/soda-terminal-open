@@ -50,7 +50,7 @@ export function ScannerInstallerAction({
   const complete = state === 'save_requested'
   const expectedSize = release?.size ?? scannerDistributionManifest.helper.size
   const installerVersion = release?.version ?? scannerDistributionManifest.helper.installerVersion
-  const versionDescription = `安装包 v${installerVersion}（助手 v${release?.helperVersion ?? scannerDistributionManifest.helper.version}）`
+  const versionDescription = `画面扫描安装包 v${installerVersion}`
   useEffect(() => {
     onAttentionChange?.(state !== 'idle')
     return () => onAttentionChange?.(false)
@@ -77,7 +77,7 @@ export function ScannerInstallerAction({
     try {
       await onConnect()
     } catch {
-      if (mounted.current) setConnectionNotice('启动助手后点击连接')
+      if (mounted.current) setConnectionNotice('启动画面扫描后点击连接')
     } finally {
       connectPending.current = false
     }
@@ -211,8 +211,8 @@ export function ScannerInstallerAction({
               : complete
                 ? '重新下载'
                 : update
-                  ? '更新扫描助手'
-                  : '下载扫描助手'}
+                  ? '更新画面扫描'
+                  : '下载画面扫描'}
           </span>
           {!pending ? (
             <small className="scanner-installer__version" aria-hidden="true">
@@ -224,7 +224,7 @@ export function ScannerInstallerAction({
           <>
             <progress
               className="scanner-installer__progress"
-              aria-label="扫描助手下载进度"
+              aria-label="画面扫描下载进度"
               aria-valuetext={progressText}
               value={bytes}
               max={expectedSize}

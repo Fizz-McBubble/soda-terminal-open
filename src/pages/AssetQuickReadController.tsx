@@ -54,7 +54,7 @@ type Reviewed = {
 const message = (error: unknown) =>
   error instanceof Error && !error.name.startsWith('Zod')
     ? error.message
-    : '结果结构不符合当前快读合同，未写入账户。'
+    : '结果结构不符合当前资产快读合同，未写入账户。'
 const active = (job: AssetBridgeJob | null) =>
   job?.state === 'starting' || job?.state === 'capturing'
 
@@ -193,13 +193,13 @@ function AccountBoundQuickRead({
         setRecoveryNotice(
           saved
             ? (saved.unavailableReason ??
-                `已保存 ${new Date(saved.createdAt).toLocaleString('zh-CN')} 的快读导入恢复副本。`)
+                `已保存 ${new Date(saved.createdAt).toLocaleString('zh-CN')} 的资产快读导入恢复副本。`)
             : '',
         )
       })
       .catch(() => {
         if (!cancelled)
-          setRecoveryNotice('暂时无法读取快读恢复副本，请重新进入本页再试；账户未修改。')
+          setRecoveryNotice('暂时无法读取资产快读恢复副本，请重新进入本页再试；账户未修改。')
       })
     return () => {
       cancelled = true
@@ -235,7 +235,7 @@ function AccountBoundQuickRead({
           const latest = await client.status(currentJob.jobId)
           if (!valid()) return
           if (latest.jobId !== currentJob.jobId || latest.targetAccountId !== targetAccountId)
-            throw new Error('独立工具任务与当前接收账户不一致，未采用结果。')
+            throw new Error('资产快读任务与当前接收账户不一致，未采用结果。')
           ownedJob.current = latest
           if (latest.state === 'received') {
             const result = await client.result(latest.jobId)
@@ -248,7 +248,7 @@ function AccountBoundQuickRead({
             setJob(latest)
             setState(latest.state)
             if (latest.state === 'error')
-              setError('独立工具未完成本次读取，请核对游戏目录、管理员授权与准备状态后再试。')
+              setError('资产快读未完成本次读取，请核对游戏目录、管理员授权与准备状态后再试。')
           }
         } catch (failure) {
           if (valid()) {
@@ -432,7 +432,7 @@ function AccountBoundQuickRead({
       setCompletion('已恢复到本次导入前，恢复副本继续保留。')
       setRecoveryKey('')
       setRecoveryAvailable(false)
-      setRecoveryNotice('已恢复到这次快读导入前，恢复副本继续保留。')
+      setRecoveryNotice('已恢复到这次资产快读导入前，恢复副本继续保留。')
       setRestoreArmed(false)
       onImported?.()
     } catch (failure) {
@@ -533,19 +533,19 @@ function AccountBoundQuickRead({
     <>
       {state === 'error' && active(job) && (
         <div className="asset-quick-read__recovery">
-          <p>连接失败时工具可能仍在等待；先尝试停止本次独立任务，再重新连接。</p>
+          <p>连接失败时工具可能仍在等待；先尝试停止本次资产快读，再重新连接。</p>
           <button
             type="button"
             className="button button--quiet"
             onClick={() => void stop().catch(() => undefined)}
           >
-            尝试停止本次独立任务
+            尝试停止本次资产快读
           </button>
         </div>
       )}
       {targetAccountId && !accountReady && !active(job) && (
         <div className="asset-quick-read__recovery">
-          <p>先将“{targetAccountName}”设为当前接收账户，再开始快读或确认结果。</p>
+          <p>先将“{targetAccountName}”设为当前接收账户，再开始资产快读或确认结果。</p>
           <button
             type="button"
             className="button button--quiet"
@@ -571,7 +571,7 @@ function AccountBoundQuickRead({
                 disabled={blocked || busy || !accountReady || !recoveryAvailable}
                 onClick={() => setRestoreArmed(true)}
               >
-                {state === 'completed' ? '恢复本次导入' : '恢复上次快读导入'}
+                {state === 'completed' ? '恢复本次导入' : '恢复上次资产快读导入'}
               </button>
               {restoreArmed && (
                 <div>
@@ -656,7 +656,7 @@ function AccountBoundQuickRead({
         (connected && !targetAccountId
           ? '请先在页面顶部选择目标账户。'
           : connected && !directory.trim() && state === 'idle'
-            ? '请填写游戏安装目录后准备快读。'
+            ? '请填写游戏安装目录后准备资产快读。'
             : '')
       }
       completionMessage={completion}
@@ -675,7 +675,7 @@ function AccountBoundQuickRead({
                   <>
                     {parts.task ??
                       (operation === 'file' ? (
-                        <p role="status">正在检查本机快读文件，账户尚未修改。</p>
+                        <p role="status">正在检查本机资产快读文件，账户尚未修改。</p>
                       ) : null)}
                     {taskExtras}
                   </>

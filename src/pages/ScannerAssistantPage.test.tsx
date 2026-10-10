@@ -111,10 +111,10 @@ describe('ScannerAssistantPage', () => {
     }
     render(<App />)
     expect(
-      await screen.findByRole('button', { name: '下载扫描助手' }, { timeout: 10000 }),
+      await screen.findByRole('button', { name: '下载画面扫描' }, { timeout: 10000 }),
     ).toBeEnabled()
-    expect(screen.getAllByRole('button', { name: '连接扫描助手' })).toHaveLength(1)
-    await user.click(screen.getByRole('button', { name: '连接扫描助手' }))
+    expect(screen.getAllByRole('button', { name: '连接画面扫描' })).toHaveLength(1)
+    await user.click(screen.getByRole('button', { name: '连接画面扫描' }))
     await waitFor(() => expect(runtimeMock.commands.openHelper).toHaveBeenCalledWith(true))
     expect(runtimeMock.commands.startScan).not.toHaveBeenCalled()
     expect(await database.accountDriveDiscs.count()).toBe(0)
@@ -136,12 +136,12 @@ describe('ScannerAssistantPage', () => {
       },
     }
     render(<App />)
-    await user.click(await screen.findByRole('button', { name: '连接扫描助手' }))
+    await user.click(await screen.findByRole('button', { name: '连接画面扫描' }))
     expect(runtimeMock.commands.retryConnection).toHaveBeenCalledTimes(1)
     expect(screen.queryByText('正在处理…')).not.toBeInTheDocument()
-    expect(screen.queryByText('已重新连接扫描助手。')).not.toBeInTheDocument()
+    expect(screen.queryByText('已重新连接画面扫描。')).not.toBeInTheDocument()
     expect(runtimeMock.commands.startScan).not.toHaveBeenCalled()
-    expect(screen.queryByRole('button', { name: '下载扫描助手' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '下载画面扫描' })).not.toBeInTheDocument()
     expect(await database.accountDriveDiscs.count()).toBe(0)
   })
 
@@ -149,7 +149,7 @@ describe('ScannerAssistantPage', () => {
     const user = userEvent.setup()
     setRuntimeState('ready')
     render(<App />)
-    expect(await screen.findByRole('heading', { name: '扫描助手已连接' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: '画面扫描已连接' })).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: '新账户名称' })).toBeVisible()
     expect(screen.getByRole('button', { name: '开始扫描' })).toBeDisabled()
     expect(
@@ -177,7 +177,7 @@ describe('ScannerAssistantPage', () => {
       },
     }
     render(<App />)
-    await user.click(await screen.findByRole('button', { name: '重新连接扫描助手' }))
+    await user.click(await screen.findByRole('button', { name: '重新连接画面扫描' }))
     await waitFor(() => expect(runtimeMock.commands.openHelper).toHaveBeenCalledTimes(1))
     expect(runtimeMock.commands.retryConnection).not.toHaveBeenCalled()
     expect(await database.accountDriveDiscs.count()).toBe(0)
@@ -192,10 +192,10 @@ describe('ScannerAssistantPage', () => {
     }
     runtimeMock.commands.openHelper.mockRejectedValueOnce(new Error('helper_request_failed_503'))
     render(<App />)
-    await user.click(await screen.findByRole('button', { name: '重新连接扫描助手' }))
+    await user.click(await screen.findByRole('button', { name: '重新连接画面扫描' }))
     await waitFor(() =>
       expect(document.querySelector('.scanner-task__feedback')).toHaveTextContent(
-        '未能连接扫描助手，请确认助手已运行后重试。',
+        '未能连接画面扫描，请确认画面扫描已运行后重试。',
       ),
     )
     expect(screen.queryByText('helper_request_failed_503')).not.toBeInTheDocument()
@@ -206,7 +206,7 @@ describe('ScannerAssistantPage', () => {
         outcome: 'failed',
       }),
     )
-    expect(screen.getByText('网页暂时没有连接到本机扫描助手。')).toBeInTheDocument()
+    expect(screen.getByText('网页暂时没有连接到画面扫描。')).toBeInTheDocument()
     expect(runtimeMock.commands.startScan).not.toHaveBeenCalled()
     expect(await database.accountDriveDiscs.count()).toBe(0)
   })
@@ -229,15 +229,15 @@ describe('ScannerAssistantPage', () => {
       setRuntimeState(state)
       render(<App />)
       expect(await screen.findByLabelText('选择本机文件（JSON）')).toHaveAttribute('type', 'file')
-      expect(screen.getByText('S 级驱动盘 · 无需重新登录')).toBeVisible()
+      expect(screen.getByText('S 级驱动盘 · 无需重新登录 · 约 140 张/分钟')).toBeVisible()
       expect(screen.queryByText('辅助信息与备用导入')).not.toBeInTheDocument()
     },
   )
 
   it.each([
     ['connection_failed', '本次扫描未完成', '重新扫描'],
-    ['ready', '扫描助手已连接', '开始扫描'],
-    ['checking', '本机助手正在检查游戏与权限', '正在检查'],
+    ['ready', '画面扫描已连接', '开始扫描'],
+    ['checking', '画面扫描正在检查游戏与权限', '正在检查'],
     ['awaiting_elevation', '请确认管理员权限提示', '等待 Windows 权限确认'],
     ['scanning', '正在读取游戏中的资产', '停止本次扫描'],
     ['completed', '创建账户后检查本次结果', '确认账户并继续'],
@@ -323,7 +323,7 @@ describe('ScannerAssistantPage', () => {
     render(<App />)
     const start = await screen.findByRole('button', { name: '开始扫描' })
     await waitFor(() => expect(start).toBeEnabled())
-    expect(screen.getByRole('heading', { name: '扫描助手已连接' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '画面扫描已连接' })).toBeInTheDocument()
     expect(screen.queryByText('仍有筛选条件')).not.toBeInTheDocument()
     expect(screen.queryByText(/项准备全部通过/)).not.toBeInTheDocument()
     await user.click(start)
@@ -349,14 +349,14 @@ describe('ScannerAssistantPage', () => {
     }
     render(<App />)
     await screen.findByRole('combobox', { name: '目标账户' })
-    expect(screen.getByRole('button', { name: '连接扫描助手' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: '连接画面扫描' })).toBeEnabled()
     const requirements = screen.getByRole('region', { name: '扫描前必需条件' })
     expect(requirements).toHaveTextContent('打开“驱动仓库”完整列表')
     expect(requirements).toHaveTextContent('清除筛选')
-    expect(screen.getByRole('heading', { name: '扫描助手未连接' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '画面扫描未连接' })).toBeInTheDocument()
     expect(screen.queryByRole('region', { name: '实际准备检查结果' })).not.toBeInTheDocument()
-    expect(screen.getAllByRole('button', { name: '连接扫描助手' })).toHaveLength(1)
-    expect(screen.getByText('本机扫描组件与助手可用后即可检查并开始。')).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: '连接画面扫描' })).toHaveLength(1)
+    expect(screen.getByText('画面扫描连接后即可检查并开始。')).toBeInTheDocument()
     expect(runtimeMock.commands.startScan).not.toHaveBeenCalled()
   })
 

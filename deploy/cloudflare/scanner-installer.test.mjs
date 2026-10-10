@@ -41,7 +41,7 @@ test('streams the exact pinned asset and forwards no user credentials or source 
   assert.deepEqual(new Uint8Array(await response.arrayBuffer()), bytes)
   assert.equal(
     response.headers.get('content-disposition'),
-    'attachment; filename="Soda-Scanner-Setup-1.0.0.exe"',
+    `attachment; filename="Soda-Scanner-Setup-1.0.0.exe"; filename*=UTF-8''${encodeURIComponent('Soda-画面扫描-1.0.0.exe')}`,
   )
   assert.equal(calls[0].url, manifest.assetUrl)
   assert.deepEqual(calls[0].init.headers, {})
@@ -66,7 +66,7 @@ test('a new pinned installer version changes the save name while preserving the 
   assert.equal(response.status, 200)
   assert.equal(
     response.headers.get('content-disposition'),
-    'attachment; filename="Soda-Scanner-Setup-1.0.6.exe"',
+    `attachment; filename="Soda-Scanner-Setup-1.0.6.exe"; filename*=UTF-8''${encodeURIComponent('Soda-画面扫描-1.0.6.exe')}`,
   )
   await response.arrayBuffer()
 })

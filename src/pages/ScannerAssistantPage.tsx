@@ -157,8 +157,8 @@ function HydratedScannerAssistantPage({
         error instanceof Error && error.message.includes('扫描')
           ? error.message
           : window.location.protocol === 'https:'
-            ? '未能连接扫描助手。请确认助手已运行，并允许本站连接本机设备后重试。'
-            : '未能连接扫描助手，请确认助手已运行后重试。',
+            ? '未能连接画面扫描。请确认画面扫描已运行，并允许本站连接本机设备后重试。'
+            : '未能连接画面扫描，请确认画面扫描已运行后重试。',
       )
     }
   }
@@ -820,8 +820,8 @@ function HydratedScannerAssistantPage({
                             eyebrow={presentedStateCopy.eyebrow}
                             title={
                               snapshot.readiness.helperConnected
-                                ? '扫描助手已连接'
-                                : '扫描助手未连接'
+                                ? '画面扫描已连接'
+                                : '画面扫描未连接'
                             }
                             body={
                               (hasScannerTask && snapshot.state === 'connection_failed'
@@ -829,9 +829,9 @@ function HydratedScannerAssistantPage({
                                 : snapshot.error?.userMessage) ??
                               (snapshot.readiness.helperConnected
                                 ? snapshot.distribution?.state === 'ready'
-                                  ? '开始扫描后，助手会自动检查游戏画面。'
+                                  ? '开始扫描后，画面扫描会自动检查游戏画面。'
                                   : (snapshot.distribution?.message ?? presentedStateCopy.body)
-                                : '首次使用先下载并安装扫描助手，再连接。')
+                                : '首次使用先下载并安装画面扫描，再连接。')
                             }
                             headingRef={stageHeadingRef}
                             targetReady={targetReady}

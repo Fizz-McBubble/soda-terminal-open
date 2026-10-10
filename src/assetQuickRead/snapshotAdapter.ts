@@ -316,7 +316,7 @@ export function convertAssetSnapshot(
     if (rarity !== 5 || slot < 1 || slot > 6)
       issue(
         'unsupported_disc_catalog',
-        '当前快读仅接收已核对的S级1至6号驱动盘。',
+        '当前资产快读仅接收已核对的S级1至6号驱动盘。',
         'discs',
         index,
         'catalog_id',

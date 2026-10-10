@@ -76,26 +76,26 @@ export interface AssetQuickReadEntryProps {
 }
 
 const stateCopy: Record<AssetQuickReadState, string> = {
-  idle: '本次快读尚未启动。',
-  starting: '独立工具正在准备。请保持游戏客户端完全退出，等待工具就绪后再启动并登录。',
+  idle: '本次资产快读尚未启动。',
+  starting: '资产快读正在准备。请保持游戏客户端完全退出，等待工具就绪后再启动并登录。',
   capturing:
-    '工具已就绪，请完整启动游戏并登录。最长等待 3 分钟；收到所需数据后立即反馈，不必等满 3 分钟。',
+    '资产快读已就绪，请完整启动游戏并登录。最长等待 3 分钟；收到所需数据后立即反馈，不必等满 3 分钟。',
   received: '已收到数据，待核对。尚未导入 Soda 账户；请核对目标账户、读取数量和内容，再确认导入。',
-  timed_out: '本次等待已结束，未收到所需的完整数据。请检查游戏准备情况后再尝试，或继续使用扫描。',
-  stopped: '本次快读已停止。已保存的本地结果不会自动删除，网络驱动也不会自动卸载。',
-  error: '本次快读未完成。请检查独立工具状态，或继续使用扫描。',
-  completed: '本次快读结果已导入。',
+  timed_out: '本次等待已结束，未收到所需的完整数据。请检查游戏准备情况后再尝试，或改用画面扫描。',
+  stopped: '本次资产快读已停止。已保存的本地结果不会自动删除，网络驱动也不会自动卸载。',
+  error: '本次资产快读未完成。请检查资产快读状态，或改用画面扫描。',
+  completed: '本次资产快读结果已导入。',
 }
 
 type PendingAction = 'connect' | 'start' | 'import' | 'export' | 'inspect' | 'discard'
 const actionErrors: Record<PendingAction | 'stop', string> = {
-  connect: '工具连接未完成，请检查安装目录后重试。',
-  start: '启动请求未完成，请检查独立工具状态后重试。',
+  connect: '资产快读连接未完成，请检查安装目录后重试。',
+  start: '启动请求未完成，请检查资产快读状态后重试。',
   import: '导入请求未完成。请检查结果和目标账户，再次确认后重试。',
   export: '导出请求未完成，请重试。',
   inspect: '候选文件检查未完成，请重试。',
   discard: '关闭结果检查未完成，请重试；账户未修改。',
-  stop: '停止请求未完成，请重试或检查独立工具状态。',
+  stop: '停止请求未完成，请重试或检查资产快读状态。',
 }
 
 function suppliedSeconds(value: number | undefined) {
@@ -266,12 +266,12 @@ export function AssetQuickReadEntry({
         )}
         {renderParts ? (
           <ExplanationPopover
-            label="快读指南"
-            closeLabel="关闭快读指南"
+            label="资产快读指南"
+            closeLabel="关闭资产快读指南"
             className="asset-quick-read__guide-entry"
             align="start"
           >
-            <p>快读工具 v{assetQuickReadRelease.version}；目前已验证国服 Windows 3.2。</p>
+            <p>资产快读 v{assetQuickReadRelease.version}；目前已验证国服 Windows 3.2。</p>
             <p>先完成游戏更新及首次着色器编译（Shader），再完全退出游戏客户端。</p>
             <p>
               工具实际就绪后，才完整启动游戏并登录。最长等待 180
@@ -279,10 +279,10 @@ export function AssetQuickReadEntry({
             </p>
             <p>
               游戏安装目录是包含 ZenlessZoneZero_Data
-              的客户端目录，用于独立工具定位游戏；不是账户或结果文件目录。
+              的客户端目录，用于资产快读定位游戏；不是账户或结果文件目录。
             </p>
             <p>
-              首次使用先下载独立安装包并打开，完成安装后回到本页连接。已安装时，点击连接会尝试打开独立工具，不会开始采集。
+              首次使用先下载资产快读安装包并打开，完成安装后回到本页连接。已安装时，点击连接会尝试打开资产快读，不会开始采集。
             </p>
             <p>
               <a
@@ -290,12 +290,12 @@ export function AssetQuickReadEntry({
                 target="_blank"
                 rel="noreferrer"
               >
-                查看独立工具源码与版本
+                查看资产快读源码与版本
               </a>
             </p>
           </ExplanationPopover>
         ) : (
-          <span className="asset-quick-read__badge">独立工具 · 默认关闭</span>
+          <span className="asset-quick-read__badge">资产快读 · 默认关闭</span>
         )}
       </div>
     </>
@@ -337,14 +337,14 @@ export function AssetQuickReadEntry({
       <div className="asset-quick-read__status" role="status" aria-live="polite" aria-atomic="true">
         {renderParts && state === 'idle' ? (
           <strong className="asset-quick-read__tool-status">
-            {capability === 'ready' ? '独立工具已连接' : '独立工具未连接'}
+            {capability === 'ready' ? '资产快读已连接' : '资产快读未连接'}
           </strong>
         ) : capability !== 'ready' && state === 'idle' ? (
-          '独立工具尚未接通，当前暂不可用。'
+          '资产快读尚未接通，当前暂不可用。'
         ) : state === 'completed' ? (
           (completionMessage ?? stateCopy.completed)
         ) : renderParts && state === 'idle' && capability === 'ready' ? (
-          '独立工具已连接，可准备本次快读。'
+          '资产快读已连接，可准备本次资产快读。'
         ) : (
           stateCopy[state]
         )}
@@ -354,7 +354,7 @@ export function AssetQuickReadEntry({
         {pendingAction === 'start' && state === 'idle' && (
           <p>正在提交本次启动请求，请等待工具反馈。</p>
         )}
-        {pendingAction === 'connect' && <p>正在检查独立工具连接；本步骤不请求管理员权限。</p>}
+        {pendingAction === 'connect' && <p>正在检查资产快读连接；本步骤不请求管理员权限。</p>}
         {pendingAction === 'import' && <p>正在提交确认后的导入，请等待结果。</p>}
         {errorMessage && <p>{errorMessage}</p>}
         {actionError && <p>{actionErrors[actionError]}</p>}
@@ -374,10 +374,10 @@ export function AssetQuickReadEntry({
         }}
       >
         {pendingAction === 'connect'
-          ? '连接检查中…'
+          ? '正在连接资产快读'
           : capability === 'ready'
-            ? '重新检查连接'
-            : '连接独立工具'}
+            ? '重新连接资产快读'
+            : '连接资产快读'}
       </button>
     </>
   )
@@ -389,7 +389,7 @@ export function AssetQuickReadEntry({
             {!renderParts && (
               <h3>
                 <Plug aria-hidden="true" size={20} />
-                连接独立工具
+                连接资产快读
               </h3>
             )}
             {renderParts && installationDirectory && !directoryOpen && (
@@ -436,7 +436,7 @@ export function AssetQuickReadEntry({
             <p className="asset-quick-read__muted">
               {renderParts
                 ? '连接仅检查工具；开始读取时才请求管理员权限。'
-                : '先单独运行资产快读工具。这里只填写游戏目录，不读取账号密码。连接仅探测工具；开始读取时才请求管理员权限。'}
+                : '先单独运行资产快读。这里只填写游戏目录，不读取账号密码。连接仅探测工具；开始读取时才请求管理员权限。'}
             </p>
             <div className="asset-quick-read__actions">
               {!renderParts && connectionButton}
@@ -449,7 +449,7 @@ export function AssetQuickReadEntry({
                     if (!preparationBlocked) void runAction('inspect', onInspectFile)
                   }}
                 >
-                  检查独立快读 JSON 候选
+                  检查资产快读 JSON 候选
                 </button>
               )}
             </div>
@@ -463,11 +463,11 @@ export function AssetQuickReadEntry({
             <div className="asset-quick-read__panel">
               <h3>
                 <ShieldCheck aria-hidden="true" size={20} />
-                快读准备指南
+                资产快读准备指南
               </h3>
               <ol className="asset-quick-read__checklist">
                 <li>先完成游戏更新及首次着色器编译。</li>
-                <li>完全退出游戏客户端，再准备独立工具。</li>
+                <li>完全退出游戏客户端，再准备资产快读。</li>
                 <li>工具实际就绪后，才完整启动游戏并登录。</li>
               </ol>
               <p className="asset-quick-read__muted">
@@ -522,14 +522,14 @@ export function AssetQuickReadEntry({
           <p>
             {state === 'capturing'
               ? '请现在完整启动游戏并登录，收到所需数据后即可进入检查。'
-              : '请保持游戏退出，等待独立工具实际就绪。'}
+              : '请保持游戏退出，等待资产快读实际就绪。'}
           </p>
           <div className="asset-quick-read__timing">
             {elapsed !== undefined && <span>已等待 {elapsed} 秒</span>}
             {remaining !== undefined && <span>剩余 {remaining} 秒</span>}
           </div>
           {elapsed === undefined && remaining === undefined && (
-            <p className="asset-quick-read__muted">等待时间由独立工具反馈，当前尚未提供。</p>
+            <p className="asset-quick-read__muted">等待时间由资产快读反馈，当前尚未提供。</p>
           )}
         </div>
       )}
@@ -612,7 +612,7 @@ export function AssetQuickReadEntry({
                   disabled={!importAvailable || !confirmedImport || actionBlocked}
                   onClick={importResult}
                 >
-                  {pendingAction === 'import' ? '导入中…' : '确认导入本次快读结果'}
+                  {pendingAction === 'import' ? '导入中…' : '确认导入本次资产快读结果'}
                 </button>
                 {exportButton}
                 {discardButton}
@@ -620,7 +620,7 @@ export function AssetQuickReadEntry({
             </>
           ) : (
             <>
-              <p>等待独立工具提供可核对的结果预览。当前不能导入。</p>
+              <p>等待资产快读提供可核对的结果预览。当前不能导入。</p>
               <div className="asset-quick-read__actions">{discardButton}</div>
             </>
           )}
@@ -631,7 +631,7 @@ export function AssetQuickReadEntry({
           <CheckCircle2 aria-hidden="true" size={25} />
           <div>
             <h3>导入完成</h3>
-            <p>{completionMessage ?? '本次快读结果已进入所选账户。'}</p>
+            <p>{completionMessage ?? '本次资产快读结果已进入所选账户。'}</p>
             <strong>{targetAccountName}</strong>
             <div className="asset-quick-read__actions">
               {onViewAssets && (
@@ -660,7 +660,7 @@ export function AssetQuickReadEntry({
           if (!preparationBlocked && !targetMissing) setDisclosureOpen(true)
         }}
       >
-        {renderParts && capability === 'ready' ? '开始读取' : '查看风险并准备快读'}
+        {renderParts && capability === 'ready' ? '开始读取' : '准备资产快读'}
       </button>
     </>
   )
@@ -675,7 +675,7 @@ export function AssetQuickReadEntry({
           {beginButton}
           {onContinueScanning && (
             <button className="button button--quiet" type="button" onClick={onContinueScanning}>
-              继续使用扫描
+              改用画面扫描
             </button>
           )}
         </div>
@@ -708,7 +708,7 @@ export function AssetQuickReadEntry({
                 缺少公开封号报告也不能证明安全。
               </p>
               <p>
-                独立工具需要管理员权限和本地网络驱动；配置查询需要联网。采集只接收网络数据副本，不修改游戏文件、不注入游戏进程，不修改或重放游戏通信。
+                资产快读需要管理员权限和本地网络驱动；配置查询需要联网。采集只接收网络数据副本，不修改游戏文件、不注入游戏进程，不修改或重放游戏通信。
               </p>
               <p>
                 资产结果保存在本地，不上传资产快照、账号凭据、原始流量或密钥，不执行装备、升级或拆解。本次采集不写入
@@ -735,7 +735,7 @@ export function AssetQuickReadEntry({
                 setAcknowledgedAccount(event.target.checked ? riskAccountKey : null)
               }
             />
-            <span>我已阅读上述风险，自主选择开始本次快读</span>
+            <span>我已阅读上述风险，自主选择开始本次资产快读</span>
           </label>
           {!renderParts && (
             <div className="asset-quick-read__actions">
@@ -745,7 +745,7 @@ export function AssetQuickReadEntry({
                 disabled={!available || !acknowledged || preparationBlocked}
                 onClick={() => void start()}
               >
-                开始本次快读
+                开始本次资产快读
               </button>
               <button className="button button--quiet" type="button" onClick={closeDisclosure}>
                 关闭风险告知
@@ -759,7 +759,7 @@ export function AssetQuickReadEntry({
                     onContinueScanning()
                   }}
                 >
-                  继续使用扫描或手动录入
+                  改用画面扫描或手动录入
                 </button>
               )}
             </div>
@@ -777,14 +777,14 @@ export function AssetQuickReadEntry({
               disabled={!available || !acknowledged || preparationBlocked}
               onClick={() => void start()}
             >
-              开始本次快读
+              开始本次资产快读
             </button>
           ) : (
             beginButton
           )}
           {disclosureOpen && capability !== 'ready' && (
             <button className="button button--primary" type="button" disabled>
-              开始本次快读
+              开始本次资产快读
             </button>
           )}
           {installer}
@@ -802,7 +802,7 @@ export function AssetQuickReadEntry({
                 onContinueScanning()
               }}
             >
-              继续使用扫描或手动录入
+              改用画面扫描或手动录入
             </button>
           )}
         </div>
@@ -818,7 +818,7 @@ export function AssetQuickReadEntry({
           disabled={stopPending}
           onClick={() => void stop()}
         >
-          {stopPending ? '正在停止…' : '停止本次快读'}
+          {stopPending ? '正在停止…' : '停止本次资产快读'}
         </button>
       )}
     </>
@@ -832,7 +832,7 @@ export function AssetQuickReadEntry({
         if (condensed) setPreparationExpanded(event.currentTarget.open)
       }}
     >
-      <summary hidden={!condensed}>快读准备与工具</summary>
+      <summary hidden={!condensed}>资产快读准备</summary>
       {preparation}
     </details>
   )
@@ -857,7 +857,7 @@ export function AssetQuickReadEntry({
             status
           ) : (
             <p className="asset-quick-read__tool-status">
-              <strong>{capability === 'ready' ? '独立工具已连接' : '独立工具未连接'}</strong>
+              <strong>{capability === 'ready' ? '资产快读已连接' : '资产快读未连接'}</strong>
               {capability === 'ready' && toolVersion && (
                 <span className="asset-quick-read__tool-version">v{toolVersion}</span>
               )}
@@ -867,7 +867,7 @@ export function AssetQuickReadEntry({
             <p className="asset-quick-read__muted">
               {downloadAvailable
                 ? '首次使用先下载安装包，再回到本页连接；已安装时点击连接即可打开工具。'
-                : '独立安装包尚未发布，当前不能下载；已安装用户可点击连接打开工具。'}
+                : '资产快读安装包尚未发布，当前不能下载；已安装用户可点击连接打开工具。'}
             </p>
           )}
           {capability === 'ready'

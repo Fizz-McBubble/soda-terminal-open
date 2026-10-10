@@ -4,8 +4,8 @@ import './scanner-guide.css'
 export function ScannerGuide() {
   return (
     <ExplanationPopover
-      label="扫描指南"
-      closeLabel="关闭扫描指南"
+      label="画面扫描指南"
+      closeLabel="关闭画面扫描指南"
       className="scanner-guide"
       align="start"
     >

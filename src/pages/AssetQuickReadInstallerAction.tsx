@@ -67,7 +67,7 @@ export function AssetQuickReadInstallerAction({
       try {
         await callback()
       } catch {
-        if (mounted.current) setNotice('尚未连接。完成安装后，点击连接独立工具继续。')
+        if (mounted.current) setNotice('尚未连接。完成安装后，点击连接资产快读继续。')
       } finally {
         connectPending.current = false
         if (mounted.current) setConnecting(false)
@@ -151,7 +151,11 @@ export function AssetQuickReadInstallerAction({
         ref={downloadButton}
         className="button button--quiet asset-quick-read-installer__download"
         type="button"
-        title={!available ? '独立安装包尚未发布，当前不能下载。' : `独立工具 v${release.version}`}
+        title={
+          !available
+            ? '资产快读安装包尚未发布，当前不能下载。'
+            : `资产快读安装包 v${release.version}`
+        }
         disabled={!available || blocked || pending || connecting}
         onClick={() => void download()}
       >
@@ -159,10 +163,10 @@ export function AssetQuickReadInstallerAction({
         {pending
           ? progress
           : state === 'save_requested'
-            ? '重新下载独立工具'
+            ? '重新下载'
             : connected
-              ? '更新独立工具'
-              : '下载独立工具'}
+              ? '更新资产快读'
+              : '下载资产快读'}
         {!pending && available && (
           <small className="asset-quick-read-installer__version" aria-hidden="true">
             v{release.version}
@@ -173,7 +177,7 @@ export function AssetQuickReadInstallerAction({
         <>
           <progress
             className="asset-quick-read-installer__progress"
-            aria-label="独立工具下载进度"
+            aria-label="资产快读下载进度"
             aria-valuetext={progress}
             value={bytes}
             max={release.size ?? 1}
@@ -182,7 +186,7 @@ export function AssetQuickReadInstallerAction({
             ref={cancelButton}
             className="button button--quiet"
             type="button"
-            aria-label="取消独立工具下载"
+            aria-label="取消资产快读下载"
             onClick={() => {
               restoreFocus.current = document.activeElement === cancelButton.current
               request.current?.abort()

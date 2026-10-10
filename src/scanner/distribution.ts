@@ -130,7 +130,7 @@ export function scannerDistributionActionLabel(snapshot: ScannerDistributionSnap
     case 'update':
       return '更新组件'
     case 'open':
-      return '打开助手'
+      return '打开画面扫描'
     default:
       return '当前不可用'
   }

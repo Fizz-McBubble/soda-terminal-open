@@ -22,13 +22,13 @@ export function verifyScannerHelperIdentity(value: unknown): string {
     identity.accountWriteEnabled !== false ||
     identity.importAccess !== false
   )
-    throw compatibilityError('扫描助手未就绪，请更新扫描助手后重新连接。')
+    throw compatibilityError('画面扫描未就绪，请更新画面扫描后重新连接。')
   return identity.version
 }
 
 export function requireCurrentScannerHelper(version: string | null) {
   if (version !== scannerDistributionManifest.helper.version)
-    throw compatibilityError('请更新扫描助手后再扫描。')
+    throw compatibilityError('请更新画面扫描后再扫描。')
 }
 
 export function presentScannerHelperUpdate(
@@ -41,7 +41,7 @@ export function presentScannerHelperUpdate(
       targetVersion: scannerDistributionManifest.runtime.version,
       state: 'update_available',
       action: 'update',
-      message: '请更新扫描助手后再扫描。',
+      message: '请更新画面扫描后再扫描。',
     },
   }
 }

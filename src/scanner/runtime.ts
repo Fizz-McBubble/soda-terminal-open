@@ -64,7 +64,7 @@ export function createScannerAssistantRuntime(
   ) {
     return withScannerRequestDeadline(operation, signal, helperRequestTimeoutMs, () => {
       const error = new Error(
-        '连接尚未完成。请确认助手已运行；若浏览器显示本机设备权限，请先允许，再重新连接。',
+        '连接尚未完成。请确认画面扫描已运行；若浏览器显示本机设备权限，请先允许，再重新连接。',
       )
       error.name = 'ScannerHelperTimeoutError'
       return error

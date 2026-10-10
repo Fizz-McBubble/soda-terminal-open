@@ -36,14 +36,14 @@ export function registerScannerRecoveryTests({
         ...baseSnapshot.distribution,
         state: 'update_available',
         action: 'update',
-        message: '请更新扫描助手后再扫描。',
+        message: '请更新画面扫描后再扫描。',
       },
     }
     render(<App />)
     await screen.findByRole('combobox', { name: '目标账户' }, { timeout: 5000 })
-    expect(screen.getByRole('button', { name: '更新扫描助手' })).toBeVisible()
+    expect(screen.getByRole('button', { name: '更新画面扫描' })).toBeVisible()
     expect(screen.getByRole('button', { name: '开始扫描' })).toBeDisabled()
-    expect(screen.getByText(/请更新扫描助手后再扫描/)).toBeInTheDocument()
+    expect(screen.getByText(/请更新画面扫描后再扫描/)).toBeInTheDocument()
     expect(runtimeMock.commands.startScan).not.toHaveBeenCalled()
   })
 
@@ -51,7 +51,7 @@ export function registerScannerRecoveryTests({
     const account = await createAccount('主账号', database, { id: 'account-main' })
     await setActiveAccount(account.id, database)
     setRuntimeState('ready')
-    const error = new Error('请更新扫描助手后再扫描。')
+    const error = new Error('请更新画面扫描后再扫描。')
     error.name = 'ScannerHelperCompatibilityError'
     runtimeMock.commands.startScan.mockRejectedValueOnce(error)
     render(<App />)
@@ -59,9 +59,9 @@ export function registerScannerRecoveryTests({
     const start = screen.getByRole('button', { name: '开始扫描' })
     await waitFor(() => expect(start).toBeEnabled())
     fireEvent.click(start)
-    await screen.findByRole('button', { name: '更新扫描助手' })
+    await screen.findByRole('button', { name: '更新画面扫描' })
     expect(screen.getByRole('button', { name: '开始扫描' })).toBeDisabled()
-    expect(await screen.findByRole('alert')).toHaveTextContent('请更新扫描助手后再扫描')
+    expect(await screen.findByRole('alert')).toHaveTextContent('请更新画面扫描后再扫描')
     expect(runtimeMock.commands.startScan).toHaveBeenCalledTimes(1)
   })
 
@@ -161,7 +161,7 @@ export function registerScannerRecoveryTests({
     fireEvent.click(await screen.findByRole('button', { name: '检查需确认的记录' }))
     await waitFor(() => expect(runtimeMock.commands.requestResultStaging).toHaveBeenCalled())
     fireEvent.click(screen.getByRole('button', { name: '取消读取并返回准备' }))
-    expect(await screen.findByRole('heading', { name: '扫描助手已连接' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: '画面扫描已连接' })).toBeInTheDocument()
     setRuntimeState('scanning')
     await setActiveAccount(account.id, database)
     rendered.rerender(<App />)

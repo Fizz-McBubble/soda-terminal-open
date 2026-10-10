@@ -66,7 +66,7 @@ it('keeps the local data and confirmed-import boundaries in a concise three-sect
   expect(screen.getAllByRole('heading', { level: 2 })).toHaveLength(3)
   expect(screen.getByRole('heading', { name: '资料保存与备份' })).toBeInTheDocument()
   expect(screen.getByRole('heading', { name: '本机扫描' })).toBeInTheDocument()
-  expect(screen.getByText('扫描指南').closest('details')).not.toHaveAttribute('open')
+  expect(screen.getByText('画面扫描指南').closest('details')).not.toHaveAttribute('open')
   expect(screen.getByText(/已实测 1920 × 1080 和 1600 × 900/)).not.toBeVisible()
   expect(screen.getByText(/计算在本机完成，不上传账户或资产资料/)).toBeInTheDocument()
   expect(screen.getByText(/清除站点数据、更换浏览器前，请先导出备份/)).toBeInTheDocument()

@@ -4,7 +4,7 @@ import { ScannerGuide } from './ScannerGuide'
 
 it('provides the supported scanning instructions through the shared popover', () => {
   render(<ScannerGuide />)
-  const trigger = screen.getByRole('button', { name: '扫描指南' })
+  const trigger = screen.getByRole('button', { name: '画面扫描指南' })
   expect(trigger).toHaveAttribute('aria-haspopup', 'dialog')
   expect(trigger).toHaveAttribute('aria-expanded', 'false')
   expect(screen.getByText(/无需放在默认桌面位置/)).toBeInTheDocument()

@@ -21,8 +21,8 @@ describe('scanner Helper version and update policy', () => {
     async (identity) => {
       const fetchImpl = vi.fn<typeof fetch>(async () => new Response(JSON.stringify(identity)))
       const runtime = createScannerAssistantRuntime({ fetchImpl, maxReconnectAttempts: 1 })
-      await expect(runtime.commands.retryConnection()).rejects.toThrow('扫描助手未就绪')
-      await expect(runtime.commands.startScan()).rejects.toThrow('扫描助手未就绪')
+      await expect(runtime.commands.retryConnection()).rejects.toThrow('画面扫描未就绪')
+      await expect(runtime.commands.startScan()).rejects.toThrow('画面扫描未就绪')
       expect(fetchImpl.mock.calls).toHaveLength(2)
       expect(fetchImpl.mock.calls.every(([url]) => new URL(String(url)).pathname === '/')).toBe(
         true,
@@ -64,7 +64,7 @@ describe('scanner Helper version and update policy', () => {
           : otherRequests(input, init),
       )
       const runtime = createScannerAssistantRuntime({ fetchImpl, maxReconnectAttempts: 1 })
-      await expect(runtime.commands.startScan()).rejects.toThrow('请更新扫描助手后再扫描')
+      await expect(runtime.commands.startScan()).rejects.toThrow('请更新画面扫描后再扫描')
       expect(otherRequests).not.toHaveBeenCalled()
       await expect(runtime.commands.requestResultFile()).resolves.toEqual(
         expect.objectContaining({ resultFileHandle: 'scanner-r10c-test' }),
@@ -124,7 +124,7 @@ describe('scanner Helper version and update policy', () => {
       }
     })
     const runtime = createScannerAssistantRuntime({ fetchImpl })
-    await expect(runtime.commands.startScan()).rejects.toThrow('请更新扫描助手后再扫描')
+    await expect(runtime.commands.startScan()).rejects.toThrow('请更新画面扫描后再扫描')
     expect(identities).toBe(2)
     expect(scanRequests).toBe(1)
   })

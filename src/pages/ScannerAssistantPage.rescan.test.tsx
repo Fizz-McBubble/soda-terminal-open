@@ -58,7 +58,7 @@ describe('preparing another scan', () => {
     await userEvent.setup().click(await screen.findByRole('button', { name: '重新扫描' }))
     runtime.snapshot = { ...oldCompleted }
     rendered.rerender(page())
-    expect(screen.getByRole('heading', { name: '扫描助手已连接' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '画面扫描已连接' })).toBeInTheDocument()
     runtime.snapshot = {
       ...createScannerRuntimeSnapshot('scanning'),
       diagnostics: { reportId: newId },
@@ -99,7 +99,7 @@ describe('preparing another scan', () => {
     expect(
       await screen.findByRole('heading', { name: '结果已生成，先检查再导入' }),
     ).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: '扫描助手已连接' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: '画面扫描已连接' })).not.toBeInTheDocument()
     expect(await database.accountDriveDiscs.count()).toBe(0)
   })
 
@@ -166,13 +166,13 @@ describe('preparing another scan', () => {
       runtime.snapshot = createScannerRuntimeSnapshot(initialState)
       const rendered = render(page())
       await user.click(await screen.findByRole('button', { name: '重新扫描' }))
-      expect(await screen.findByRole('heading', { name: '扫描助手已连接' })).toBeInTheDocument()
+      expect(await screen.findByRole('heading', { name: '画面扫描已连接' })).toBeInTheDocument()
 
       // Reconnection can return the previous result after the user has restarted.
       runtime.snapshot = createScannerRuntimeSnapshot('completed')
       rendered.rerender(page())
       expect(screen.queryByRole('heading', { name: '上次导入已完成' })).not.toBeInTheDocument()
-      expect(screen.getByRole('heading', { name: '扫描助手已连接' })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: '画面扫描已连接' })).toBeInTheDocument()
       expect(runtime.commands.startScan).not.toHaveBeenCalled()
       expect(await database.accountDriveDiscs.toArray()).toEqual(before)
 
@@ -181,7 +181,7 @@ describe('preparing another scan', () => {
       runtime.snapshot = createScannerRuntimeSnapshot('checking')
       rendered.rerender(page())
       expect(
-        screen.getByRole('heading', { name: '本机助手正在检查游戏与权限' }),
+        screen.getByRole('heading', { name: '画面扫描正在检查游戏与权限' }),
       ).toBeInTheDocument()
       expect(screen.queryByRole('heading', { name: '上次导入已完成' })).not.toBeInTheDocument()
       expect(await database.accountDriveDiscs.toArray()).toEqual(before)

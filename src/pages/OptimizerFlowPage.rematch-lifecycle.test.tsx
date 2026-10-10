@@ -46,9 +46,15 @@ describe('team rematch lifecycle', () => {
         })),
         potentialByAgentId: { 'agent-yixuan': 2 },
       }
-      await database.accountPlanningDrafts.update(stored.scopedId, {
-        teamEquipmentParameters: parameters,
+      await act(async () => {
+        await database.accountPlanningDrafts.update(stored.scopedId, {
+          teamEquipmentParameters: parameters,
+        })
       })
+      // A committed IndexedDB write precedes the live-query render. Wait for
+      // the player's stale-result notice before requesting a new analysis;
+      // otherwise the test can reuse the previous world while it is changing.
+      await screen.findByRole('status', { name: '账户数据已更新' })
       const before = {
         rosters: await database.accountRosters.toArray(),
         discs: await database.accountDriveDiscs.toArray(),
@@ -56,12 +62,14 @@ describe('team rematch lifecycle', () => {
       }
       const replay = vi.spyOn(localCalculationQueryClient, 'querySavedTeamPlanReplay')
       const fit = vi.spyOn(localCalculationQueryClient, 'calculateTargetTeamWarehouseFit')
-      window.history.pushState(
-        {},
-        '',
-        `/loadouts/team?reanalyze=1&rematchPlan=${encodeURIComponent(stored.id)}`,
-      )
-      window.dispatchEvent(new PopStateEvent('popstate'))
+      await act(async () => {
+        window.history.pushState(
+          {},
+          '',
+          `/loadouts/team?reanalyze=1&rematchPlan=${encodeURIComponent(stored.id)}`,
+        )
+        window.dispatchEvent(new PopStateEvent('popstate'))
+      })
       await waitFor(() => expect(fit).toHaveBeenCalledTimes(1), { timeout: 20_000 })
       await findTeamEquipmentHeading()
       expect(replay).toHaveBeenCalled()

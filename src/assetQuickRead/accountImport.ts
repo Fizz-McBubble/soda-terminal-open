@@ -124,7 +124,7 @@ export function readLatestAssetQuickReadRecovery(
           ? {
               unavailableReason:
                 currentHash === recovery.beforeHash
-                  ? '这次快读导入已恢复，恢复副本继续保留。'
+                  ? '这次资产快读导入已恢复，恢复副本继续保留。'
                   : '导入后账户已有其他修改，恢复副本保留，不能直接覆盖。',
             }
           : {}),
@@ -143,7 +143,7 @@ async function readFacts(accountId: string, db: SodaDatabase): Promise<AccountFa
 async function assertScope(accountId: string, db: SodaDatabase) {
   accountIdSchema.parse(accountId)
   const account = await db.accounts.get(accountId)
-  if (!account || account.status !== 'active') throw new Error('快读目标账户已不存在或已归档。')
+  if (!account || account.status !== 'active') throw new Error('资产快读目标账户已不存在或已归档。')
   await assertActiveAccountScope(accountId, db)
 }
 
@@ -193,7 +193,7 @@ function mergeRoster(
           if (parent === 'skillLevels') next.skillLevels = { ...next.skillLevels, [child]: value }
           else if (parent === 'wEngineDetails')
             next.wEngineDetails = { ...next.wEngineDetails, [child]: value }
-          else throw new Error('快读字段不在可导入范围内。')
+          else throw new Error('资产快读字段不在可导入范围内。')
         } else {
           Object.assign(next, { [parent]: value })
         }
@@ -208,7 +208,7 @@ function mergeRoster(
           snapshotSha256: candidate.snapshotSha256,
         }
         if (!hasObservedAgentField(next, field))
-          throw new Error('快读代理人字段未通过值与来源检查，未导入。')
+          throw new Error('资产快读代理人字段未通过值与来源检查，未导入。')
         adopted = true
         adoptedFields.add(field)
       }
@@ -248,7 +248,7 @@ function createPlan(
   before: AccountFacts,
 ): AssetQuickReadImportPlan {
   if (!candidate.importable || candidate.issues.length)
-    throw new Error('快读结果存在未解决的问题，不能导入。')
+    throw new Error('资产快读结果存在未解决的问题，不能导入。')
   const data = publicScannerDriveDiscData
   if (!data) throw new Error('当前驱动盘规则不可用，请先完成数据加载。')
   const parsed = candidate.discs.discs.length
@@ -297,7 +297,9 @@ function createPlan(
     const staleObservation =
       previousCapturedAt && Date.parse(candidate.capturedAt) <= Date.parse(previousCapturedAt)
     if (previous && staleObservation && !unchangedFacts)
-      throw new Error('文件中的驱动盘数据早于或冲突于已保存的快读结果，请重新读取，未写入账户。')
+      throw new Error(
+        '文件中的驱动盘数据早于或冲突于已保存的资产快读结果，请重新读取，未写入账户。',
+      )
     // An identical older observation can still resolve equipment IDs, but must not rewind its provenance.
     if (previous && staleObservation) {
       sourceToId.set(disc.importSource!.sourceId!, id)

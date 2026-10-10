@@ -65,7 +65,7 @@ export async function loadFormalImportCurrent(successSampleMode: boolean) {
         .toArray()
     : []
   if (batch?.manifest?.schemaVersion === 1)
-    return { bindingError: '这份扫描结果来自旧版扫描器，请返回扫描页重新扫描。' }
+    return { bindingError: '这份扫描结果来自旧版画面扫描，请返回扫描页重新扫描。' }
   if (batch?.manifest?.schemaVersion === 2) {
     try {
       resolveScanBatchManifest(batch, items)

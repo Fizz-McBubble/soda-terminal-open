@@ -22,7 +22,7 @@ type FeedbackState = {
   receivedReportId?: string
 }
 const stageLabels: Record<string, string> = {
-  connection: '连接助手',
+  connection: '连接画面扫描',
   permission: '确认权限',
   preflight: '检查游戏画面',
   capture: '读取盘面',

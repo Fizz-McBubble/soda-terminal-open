@@ -5,20 +5,20 @@ import { AssetQuickReadEntry, type AssetQuickReadPreview } from './AssetQuickRea
 vi.mock('../components/ExplanationPopover', () => import('../testing/ExplanationPopoverStub'))
 
 function openDisclosure() {
-  fireEvent.click(screen.getByRole('button', { name: /查看风险并准备快读|开始读取/ }))
+  fireEvent.click(screen.getByRole('button', { name: /准备资产快读|开始读取/ }))
 }
 
 it('defaults to unavailable without starting any tool', () => {
   const onStart = vi.fn()
   render(<AssetQuickReadEntry onStart={onStart} />)
-  expect(screen.getByRole('status')).toHaveTextContent('独立工具尚未接通')
-  expect(screen.getByRole('button', { name: /查看风险并准备快读|开始读取/ })).toBeEnabled()
+  expect(screen.getByRole('status')).toHaveTextContent('资产快读尚未接通')
+  expect(screen.getByRole('button', { name: /准备资产快读|开始读取/ })).toBeEnabled()
   expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
   openDisclosure()
   expect(screen.getByRole('checkbox')).toBeDisabled()
   expect(screen.getByRole('checkbox')).not.toBeChecked()
-  expect(screen.getByRole('button', { name: '开始本次快读' })).toBeDisabled()
-  fireEvent.click(screen.getByRole('button', { name: '开始本次快读' }))
+  expect(screen.getByRole('button', { name: '开始本次资产快读' })).toBeDisabled()
+  fireEvent.click(screen.getByRole('button', { name: '开始本次资产快读' }))
   expect(onStart).not.toHaveBeenCalled()
 })
 
@@ -27,7 +27,7 @@ it('requires a fresh active risk acknowledgement before starting', async () => {
   render(<AssetQuickReadEntry capability="ready" onStart={onStart} />)
   openDisclosure()
   expect(screen.getByRole('checkbox')).not.toBeChecked()
-  const start = screen.getByRole('button', { name: '开始本次快读' })
+  const start = screen.getByRole('button', { name: '开始本次资产快读' })
   expect(start).toBeDisabled()
   fireEvent.click(start)
   expect(onStart).not.toHaveBeenCalled()
@@ -61,13 +61,13 @@ it('prevents repeated starts while a request is pending or capture is running', 
   const { rerender } = render(<AssetQuickReadEntry capability="ready" onStart={onStart} />)
   openDisclosure()
   fireEvent.click(screen.getByRole('checkbox'))
-  fireEvent.click(screen.getByRole('button', { name: '开始本次快读' }))
-  fireEvent.click(screen.getByRole('button', { name: '开始本次快读' }))
+  fireEvent.click(screen.getByRole('button', { name: '开始本次资产快读' }))
+  fireEvent.click(screen.getByRole('button', { name: '开始本次资产快读' }))
   expect(onStart).toHaveBeenCalledOnce()
-  expect(screen.getByRole('button', { name: '开始本次快读' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '开始本次资产快读' })).toBeDisabled()
   rerender(<AssetQuickReadEntry capability="ready" state="capturing" onStart={onStart} />)
   await act(async () => resolve())
-  expect(screen.getByRole('button', { name: '开始本次快读' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '开始本次资产快读' })).toBeDisabled()
   expect(screen.getByRole('checkbox')).toBeDisabled()
 })
 
@@ -98,16 +98,16 @@ it('releases pending after a rejected start and requires a fresh acknowledgement
   render(<AssetQuickReadEntry capability="ready" onStart={onStart} />)
   openDisclosure()
   fireEvent.click(screen.getByRole('checkbox'))
-  fireEvent.click(screen.getByRole('button', { name: '开始本次快读' }))
+  fireEvent.click(screen.getByRole('button', { name: '开始本次资产快读' }))
   expect(screen.getByRole('checkbox')).toBeDisabled()
   await act(async () => reject(new Error('tool unavailable')))
   expect(screen.getByRole('status')).toHaveTextContent('启动请求未完成')
   expect(screen.getByRole('status')).not.toHaveTextContent('正在提交')
   expect(screen.getByRole('checkbox')).toBeEnabled()
   expect(screen.getByRole('checkbox')).not.toBeChecked()
-  expect(screen.getByRole('button', { name: '开始本次快读' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '开始本次资产快读' })).toBeDisabled()
   fireEvent.click(screen.getByRole('checkbox'))
-  await act(async () => fireEvent.click(screen.getByRole('button', { name: '开始本次快读' })))
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '开始本次资产快读' })))
   expect(onStart).toHaveBeenCalledTimes(2)
   expect(screen.getByRole('status')).not.toHaveTextContent('启动请求未完成')
 })
@@ -124,13 +124,13 @@ it('continuing scanning and stopping use only their explicit callbacks', () => {
       onStop={onStop}
     />,
   )
-  fireEvent.click(screen.getByRole('button', { name: '继续使用扫描' }))
+  fireEvent.click(screen.getByRole('button', { name: '改用画面扫描' }))
   expect(onContinueScanning).toHaveBeenCalledOnce()
   expect(onStart).not.toHaveBeenCalled()
   rerender(
     <AssetQuickReadEntry capability="ready" state="capturing" onStart={onStart} onStop={onStop} />,
   )
-  fireEvent.click(screen.getByRole('button', { name: '停止本次快读' }))
+  fireEvent.click(screen.getByRole('button', { name: '停止本次资产快读' }))
   expect(onStop).toHaveBeenCalledOnce()
   expect(onStart).not.toHaveBeenCalled()
 })
@@ -174,12 +174,12 @@ it('connection is a guarded probe and never grants readiness or starts capture i
     target: { value: "soda-source-ref:16dfa6bd3bf689677b9ad670b46317a1" },
   })
   expect(onDirectoryChange).toHaveBeenCalledWith("soda-source-ref:16dfa6bd3bf689677b9ad670b46317a1")
-  fireEvent.click(screen.getByRole('button', { name: '连接独立工具' }))
-  fireEvent.click(screen.getByRole('button', { name: '连接检查中…' }))
+  fireEvent.click(screen.getByRole('button', { name: '连接资产快读' }))
+  fireEvent.click(screen.getByRole('button', { name: '正在连接资产快读' }))
   expect(onConnect).toHaveBeenCalledOnce()
   expect(screen.getByRole('status')).toHaveTextContent('不请求管理员权限')
   await act(async () => resolve())
-  expect(screen.getByRole('status')).toHaveTextContent('独立工具尚未接通')
+  expect(screen.getByRole('status')).toHaveTextContent('资产快读尚未接通')
   openDisclosure()
   expect(screen.getByRole('checkbox')).toBeDisabled()
   expect(onStart).not.toHaveBeenCalled()
@@ -218,7 +218,7 @@ it('requires both import capability and explicit account/count confirmation, whi
     onExport,
   }
   const { rerender } = render(<AssetQuickReadEntry {...props} />)
-  const button = screen.getByRole('button', { name: '确认导入本次快读结果' })
+  const button = screen.getByRole('button', { name: '确认导入本次资产快读结果' })
   expect(button).toBeDisabled()
   expect(screen.getByRole('checkbox')).toBeDisabled()
   rerender(<AssetQuickReadEntry {...props} canImport />)
@@ -270,7 +270,7 @@ it('guards async import, restores controls on failure and requires fresh account
     />,
   )
   fireEvent.click(screen.getByRole('checkbox'))
-  fireEvent.click(screen.getByRole('button', { name: '确认导入本次快读结果' }))
+  fireEvent.click(screen.getByRole('button', { name: '确认导入本次资产快读结果' }))
   fireEvent.click(screen.getByRole('button', { name: '导入中…' }))
   expect(onImport).toHaveBeenCalledOnce()
   expect(screen.getByRole('checkbox')).toBeDisabled()
@@ -278,10 +278,10 @@ it('guards async import, restores controls on failure and requires fresh account
   expect(screen.getByRole('status')).toHaveTextContent('导入请求未完成')
   expect(screen.getByRole('checkbox')).toBeEnabled()
   expect(screen.getByRole('checkbox')).not.toBeChecked()
-  expect(screen.getByRole('button', { name: '确认导入本次快读结果' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '确认导入本次资产快读结果' })).toBeDisabled()
   fireEvent.click(screen.getByRole('checkbox'))
   await act(async () =>
-    fireEvent.click(screen.getByRole('button', { name: '确认导入本次快读结果' })),
+    fireEvent.click(screen.getByRole('button', { name: '确认导入本次资产快读结果' })),
   )
   expect(onImport).toHaveBeenCalledTimes(2)
   expect(screen.getByRole('status')).not.toHaveTextContent('导入请求未完成')
@@ -305,7 +305,7 @@ it('allows a valid offline candidate to be explicitly imported without connectin
     />,
   )
   const confirm = screen.getByRole('checkbox')
-  const button = screen.getByRole('button', { name: '确认导入本次快读结果' })
+  const button = screen.getByRole('button', { name: '确认导入本次资产快读结果' })
   expect(confirm).toBeEnabled()
   expect(confirm).not.toBeChecked()
   expect(button).toBeDisabled()
@@ -335,8 +335,8 @@ it('allows a guarded stop while the initial start request is still pending', asy
   render(<AssetQuickReadEntry capability="ready" onStart={onStart} onStop={onStop} />)
   openDisclosure()
   fireEvent.click(screen.getByRole('checkbox'))
-  fireEvent.click(screen.getByRole('button', { name: '开始本次快读' }))
-  fireEvent.click(screen.getByRole('button', { name: '停止本次快读' }))
+  fireEvent.click(screen.getByRole('button', { name: '开始本次资产快读' }))
+  fireEvent.click(screen.getByRole('button', { name: '停止本次资产快读' }))
   fireEvent.click(screen.getByRole('button', { name: '正在停止…' }))
   expect(onStop).toHaveBeenCalledOnce()
   expect(onStart).toHaveBeenCalledOnce()
@@ -353,7 +353,7 @@ it('shows completion only when the adapter reports completed and exposes offline
     <AssetQuickReadEntry onInspectFile={onInspectFile} onStart={onStart} />,
   )
   await act(async () =>
-    fireEvent.click(screen.getByRole('button', { name: '检查独立快读 JSON 候选' })),
+    fireEvent.click(screen.getByRole('button', { name: '检查资产快读 JSON 候选' })),
   )
   expect(onInspectFile).toHaveBeenCalledOnce()
   expect(onStart).not.toHaveBeenCalled()
@@ -384,22 +384,24 @@ it('keeps compact preparation concise with a native guide and fresh risk consent
     />,
   )
   expect(screen.getByRole('heading', { name: '资产快读（实验）' })).toBeInTheDocument()
-  expect(screen.queryByRole('heading', { name: '连接独立工具' })).not.toBeInTheDocument()
-  expect(screen.queryByText('独立工具 · 默认关闭')).not.toBeInTheDocument()
-  const guide = screen.getByText('快读指南').closest('details')
+  expect(screen.queryByRole('heading', { name: '连接资产快读' })).not.toBeInTheDocument()
+  expect(screen.queryByText('资产快读 · 默认关闭')).not.toBeInTheDocument()
+  const guide = screen.getByText('资产快读指南').closest('details')
   expect(guide).not.toHaveAttribute('open')
-  expect(screen.getByText('代理人养成与 S 级驱动盘 · 需重启登录')).toBeInTheDocument()
+  expect(
+    screen.getByText('代理人养成与 S 级驱动盘 · 需重启登录 · 最长 3 分钟，读到即完成'),
+  ).toBeInTheDocument()
   expect(screen.getByText(/最长等待 180 秒/)).toBeInTheDocument()
   openDisclosure()
   const consent = screen.getByRole('checkbox', { name: /我已阅读上述风险/ })
-  const start = screen.getByRole('button', { name: '开始本次快读' })
+  const start = screen.getByRole('button', { name: '开始本次资产快读' })
   expect(consent.closest('.asset-quick-read__disclosure')).toContainElement(start)
   expect(start).toBeDisabled()
   fireEvent.click(consent)
   await act(async () => fireEvent.click(start))
   expect(onStart).toHaveBeenCalledOnce()
   expect(screen.getByRole('checkbox', { name: /我已阅读上述风险/ })).not.toBeChecked()
-  expect(screen.getByRole('button', { name: '开始本次快读' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '开始本次资产快读' })).toBeDisabled()
 })
 
 it('focuses a new received candidate once without stealing focus on ordinary rerenders', () => {
@@ -458,7 +460,7 @@ it('groups import, export and discard together while retaining discard without a
   )
   const discard = screen.getByRole('button', { name: '放弃本次结果' })
   const actions = discard.closest('.asset-quick-read__actions')
-  expect(actions).toContainElement(screen.getByRole('button', { name: '确认导入本次快读结果' }))
+  expect(actions).toContainElement(screen.getByRole('button', { name: '确认导入本次资产快读结果' }))
   expect(actions).toContainElement(screen.getByRole('button', { name: '导出本次读取结果' }))
   expect(screen.getAllByRole('button', { name: '放弃本次结果' })).toHaveLength(1)
   view.rerender(<AssetQuickReadEntry state="received" onDiscard={onDiscard} />)
@@ -490,8 +492,8 @@ it('condenses preparation only for a task, keeping mounted directory and reachab
     renderParts,
   }
   const view = render(<AssetQuickReadEntry {...props} />)
-  const tools = screen.getByText('快读准备与工具').closest('details')!
-  expect(screen.getByText('快读准备与工具')).not.toBeVisible()
+  const tools = screen.getByText('资产快读准备').closest('details')!
+  expect(screen.getByText('资产快读准备')).not.toBeVisible()
   expect(tools).toHaveAttribute('open')
   fireEvent.click(screen.getByRole('button', { name: '修改游戏目录' }))
   const directory = screen.getByLabelText('游戏安装目录')
@@ -503,13 +505,13 @@ it('condenses preparation only for a task, keeping mounted directory and reachab
   expect(screen.queryByLabelText('游戏安装目录')).not.toBeInTheDocument()
   view.rerender(<AssetQuickReadEntry {...props} preparationCondensed />)
   expect(tools).not.toHaveAttribute('open')
-  expect(screen.getByText('快读准备与工具')).toBeVisible()
+  expect(screen.getByText('资产快读准备')).toBeVisible()
   await act(async () => {
     tools.open = true
     fireEvent(tools, new Event('toggle'))
   })
   expect(screen.getByRole('button', { name: '修改游戏目录' })).toBeVisible()
-  expect(screen.getByText('快读指南')).toBeVisible()
+  expect(screen.getByText('资产快读指南')).toBeVisible()
   openDisclosure()
   fireEvent.click(screen.getByRole('checkbox', { name: /我已阅读上述风险/ }))
   view.rerender(
@@ -520,9 +522,9 @@ it('condenses preparation only for a task, keeping mounted directory and reachab
   view.rerender(
     <AssetQuickReadEntry {...props} state="capturing" preparationCondensed onStop={vi.fn()} />,
   )
-  expect(screen.getByRole('button', { name: '停止本次快读' })).toBeEnabled()
+  expect(screen.getByRole('button', { name: '停止本次资产快读' })).toBeEnabled()
   expect(screen.getByRole('heading', { name: '读取登录数据' }).closest('details')).toBeNull()
-  expect(screen.queryByRole('button', { name: '开始本次快读' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: '开始本次资产快读' })).not.toBeInTheDocument()
 })
 
 it('shows completion navigation and export with visible retryable export failure outside condensed tools', async () => {
@@ -544,7 +546,7 @@ it('shows completion navigation and export with visible retryable export failure
       )}
     />,
   )
-  const tools = screen.getByText('快读准备与工具').closest('details')!
+  const tools = screen.getByText('资产快读准备').closest('details')!
   expect(tools).not.toHaveAttribute('open')
   const viewAssets = screen.getByRole('button', { name: '查看我的资产' })
   const exportResult = screen.getByRole('button', { name: '导出本次读取结果' })
@@ -579,10 +581,10 @@ it('provides one compact guide and linked short risk acknowledgement while guard
     ),
   }
   const view = render(<AssetQuickReadEntry {...props} capability="ready" blocked />)
-  expect(screen.getAllByText('快读指南')).toHaveLength(1)
-  expect(screen.queryByText('快读准备指南')).not.toBeInTheDocument()
+  expect(screen.getAllByText('资产快读指南')).toHaveLength(1)
+  expect(screen.queryByText('资产快读准备指南')).not.toBeInTheDocument()
   expect(screen.queryByText(/当前已装备音擎详情用于现有配装/)).not.toBeInTheDocument()
-  const guide = screen.getByText('快读指南').closest('details')!
+  const guide = screen.getByText('资产快读指南').closest('details')!
   guide.open = true
   expect(screen.getByText(/先完成游戏更新及首次着色器编译（Shader）/)).toBeVisible()
   expect(screen.getByText(/工具实际就绪后，才完整启动游戏并登录/)).toBeVisible()
@@ -600,10 +602,10 @@ it('provides one compact guide and linked short risk acknowledgement while guard
   expect(screen.getByText(/非官方实验方式；存在服务受限或账号封禁风险/)).toBeVisible()
   expect(screen.queryByText(/采集可停止，但已发出的配置请求不能撤回/)).not.toBeInTheDocument()
   expect(screen.getByRole('checkbox', { name: /我已阅读上述风险/ })).toBeDisabled()
-  expect(screen.getByRole('button', { name: '开始本次快读' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '开始本次资产快读' })).toBeDisabled()
   view.rerender(<AssetQuickReadEntry {...props} capability="unavailable" />)
   expect(screen.getByRole('checkbox', { name: /我已阅读上述风险/ })).toBeDisabled()
-  fireEvent.click(screen.getByRole('button', { name: '开始本次快读' }))
+  fireEvent.click(screen.getByRole('button', { name: '开始本次资产快读' }))
   expect(onStart).not.toHaveBeenCalled()
 })
 
@@ -629,14 +631,14 @@ it('shows success-critical game preparation and real package instructions direct
     ),
   }
   const view = render(<AssetQuickReadEntry {...props} state="error" errorMessage="合成工具错误" />)
-  expect(screen.getByText('快读准备与工具').closest('details')).not.toHaveAttribute('open')
+  expect(screen.getByText('资产快读准备').closest('details')).not.toHaveAttribute('open')
   const requirement = screen.getByText('等待页面显示工具就绪，再完整启动游戏并登录。')
   expect(requirement).toBeVisible()
   expect(requirement.closest('details')).toBeNull()
   expect(screen.getAllByText('提前完成游戏更新与首次着色器编译。')).toHaveLength(1)
-  expect(screen.getByText(/独立安装包尚未发布，当前不能下载/)).toBeVisible()
+  expect(screen.getByText(/资产快读安装包尚未发布，当前不能下载/)).toBeVisible()
   expect(screen.getByText('合成工具错误')).toBeVisible()
-  const connect = screen.getByRole('button', { name: '连接独立工具' })
+  const connect = screen.getByRole('button', { name: '连接资产快读' })
   expect(connect).toHaveClass('button--primary')
   expect(connect.parentElement?.firstElementChild).toBe(connect)
   await act(async () => fireEvent.click(connect))
@@ -645,14 +647,14 @@ it('shows success-critical game preparation and real package instructions direct
   const begin = screen.getByRole('button', { name: '开始读取' })
   expect(begin).toHaveClass('button--primary')
   expect(begin.parentElement?.firstElementChild).toBe(begin)
-  expect(screen.queryByRole('button', { name: '重新检查连接' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: '重新连接资产快读' })).not.toBeInTheDocument()
   fireEvent.click(begin)
-  expect(screen.getByRole('button', { name: '开始本次快读' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '开始本次资产快读' })).toBeDisabled()
   fireEvent.click(screen.getByRole('checkbox', { name: /我已阅读上述风险/ }))
-  await act(async () => fireEvent.click(screen.getByRole('button', { name: '开始本次快读' })))
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '开始本次资产快读' })))
   expect(onStart).toHaveBeenCalledOnce()
   expect(screen.getByRole('checkbox', { name: /我已阅读上述风险/ })).not.toBeChecked()
-  expect(screen.getByRole('button', { name: '开始本次快读' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '开始本次资产快读' })).toBeDisabled()
 })
 
 it('orders compact preparation before real tool status and directory settings', () => {
@@ -668,7 +670,7 @@ it('orders compact preparation before real tool status and directory settings', 
     />,
   )
   const requirement = screen.getByRole('heading', { name: '准备游戏' }).parentElement!
-  const status = screen.getByText('独立工具已连接')
+  const status = screen.getByText('资产快读已连接')
   const directory = screen.getByLabelText('游戏安装目录')
   expect(
     requirement.compareDocumentPosition(status) & Node.DOCUMENT_POSITION_FOLLOWING,
@@ -683,7 +685,7 @@ it('aligns compact connection and download actions, then reveals risk only after
   const props = {
     onConnect,
     onStart,
-    installer: <button className="button button--quiet">下载独立工具</button>,
+    installer: <button className="button button--quiet">下载资产快读</button>,
     renderParts: (parts: { preparation: React.ReactNode; task: React.ReactNode }) => (
       <>
         {parts.preparation}
@@ -692,21 +694,21 @@ it('aligns compact connection and download actions, then reveals risk only after
     ),
   }
   const { rerender } = render(<AssetQuickReadEntry {...props} />)
-  const connect = screen.getByRole('button', { name: '连接独立工具' })
-  const download = screen.getByRole('button', { name: '下载独立工具' })
+  const connect = screen.getByRole('button', { name: '连接资产快读' })
+  const download = screen.getByRole('button', { name: '下载资产快读' })
   expect(connect).toHaveClass('button--primary')
   expect(download.parentElement).toBe(connect.parentElement)
-  expect(screen.queryByRole('button', { name: '查看风险并准备快读' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: '准备资产快读' })).not.toBeInTheDocument()
   expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
   rerender(<AssetQuickReadEntry {...props} capability="ready" />)
   expect(screen.getByRole('button', { name: '开始读取' })).toHaveClass('button--primary')
-  expect(screen.getByRole('button', { name: '下载独立工具' }).parentElement).toBe(
+  expect(screen.getByRole('button', { name: '下载资产快读' }).parentElement).toBe(
     screen.getByRole('button', { name: '开始读取' }).parentElement,
   )
   fireEvent.click(screen.getByRole('button', { name: '开始读取' }))
-  expect(screen.getByRole('button', { name: '下载独立工具' })).toBe(download)
+  expect(screen.getByRole('button', { name: '下载资产快读' })).toBe(download)
   expect(screen.getByRole('checkbox')).not.toBeChecked()
-  expect(screen.getByRole('button', { name: '开始本次快读' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '开始本次资产快读' })).toBeDisabled()
   expect(onStart).not.toHaveBeenCalled()
 })
 
@@ -727,13 +729,13 @@ it('blocks preparation entry for a received candidate and in-flight connection w
       onStart={onStart}
     />,
   )
-  const received = screen.getByRole('button', { name: '查看风险并准备快读' })
+  const received = screen.getByRole('button', { name: '准备资产快读' })
   expect(received).toBeDisabled()
   fireEvent.click(received)
   expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
   view.rerender(<AssetQuickReadEntry capability="ready" onConnect={onConnect} onStart={onStart} />)
-  fireEvent.click(screen.getByRole('button', { name: '重新检查连接' }))
-  const pending = screen.getByRole('button', { name: '查看风险并准备快读' })
+  fireEvent.click(screen.getByRole('button', { name: '重新连接资产快读' }))
+  const pending = screen.getByRole('button', { name: '准备资产快读' })
   expect(pending).toBeDisabled()
   fireEvent.click(pending)
   expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()

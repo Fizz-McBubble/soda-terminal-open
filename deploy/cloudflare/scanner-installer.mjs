@@ -45,6 +45,7 @@ export function createPinnedInstallerDownload({
   manifest,
   validateManifest,
   fileName,
+  downloadName = fileName,
   timeoutMs = 600_000,
   concurrency = 32,
 } = {}) {
@@ -53,7 +54,11 @@ export function createPinnedInstallerDownload({
     if (!['GET', 'HEAD'].includes(request.method))
       return new Response(null, { status: 405, headers: { allow: 'GET, HEAD' } })
     if (new URL(request.url).search) return new Response(null, { status: 400 })
-    if (!validateManifest(manifest) || !/^[A-Za-z0-9._-]+\.exe$/u.test(fileName))
+    if (
+      !validateManifest(manifest) ||
+      !/^[A-Za-z0-9._-]+\.exe$/u.test(fileName) ||
+      !/^[\p{L}\p{N}._-]+\.exe$/u.test(downloadName)
+    )
       return unavailable()
     const ifRange = request.headers.get('if-range')
     const range = rangeFor(
@@ -117,7 +122,11 @@ export function createPinnedInstallerDownload({
       const headers = {
         'content-type': 'application/vnd.microsoft.portable-executable',
         'content-length': String(length),
-        'content-disposition': `attachment; filename="${fileName}"`,
+        'content-disposition':
+          `attachment; filename="${fileName}"` +
+          (downloadName !== fileName
+            ? `; filename*=UTF-8''${encodeURIComponent(downloadName)}`
+            : ''),
         'cache-control': 'public, max-age=0, must-revalidate',
         etag: `"${manifest.sha256}"`,
         'accept-ranges': 'bytes',
@@ -189,5 +198,6 @@ export function createInstallerDownload({ manifest = release, ...options } = {})
     manifest,
     validateManifest: validScannerManifest,
     fileName: `Soda-Scanner-Setup-${manifest.version}.exe`,
+    downloadName: `Soda-画面扫描-${manifest.version}.exe`,
   })
 }

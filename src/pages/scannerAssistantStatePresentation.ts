@@ -44,13 +44,13 @@ export function getScannerStateCopy(
     case 'connecting':
       return {
         eyebrow: '正在连接',
-        title: '扫描助手正在准备',
-        body: '请保持本机助手运行。连接完成后，选择账户并点击开始扫描。',
+        title: '画面扫描正在准备',
+        body: '请保持画面扫描运行。连接完成后，选择账户并点击开始扫描。',
       }
     case 'unchecked':
       return {
-        eyebrow: '等待本机助手',
-        title: '连接助手，选择账户后开始扫描',
+        eyebrow: '等待画面扫描',
+        title: '连接画面扫描，选择账户后开始扫描',
         body:
           window.location.protocol === 'https:'
             ? '连接后选择账户，检查游戏并开始扫描。'
@@ -65,8 +65,8 @@ export function getScannerStateCopy(
           }
         : {
             eyebrow: '连接恢复',
-            title: '本机扫描助手尚未连接',
-            body: `${snapshot.error?.userMessage ?? '扫描助手未就绪，可重新连接。'}${window.location.protocol === 'https:' ? ' 首次连接时，请允许浏览器访问本机设备；如果曾拒绝，请到此网站的浏览器权限设置中改为允许，再点击重新连接。' : ''}`,
+            title: '画面扫描尚未连接',
+            body: `${snapshot.error?.userMessage ?? '画面扫描未就绪，可重新连接。'}${window.location.protocol === 'https:' ? ' 首次连接时，请允许浏览器访问本机设备；如果曾拒绝，请到此网站的浏览器权限设置中改为允许，再点击重新连接。' : ''}`,
           }
     case 'ready':
       return {
@@ -78,19 +78,19 @@ export function getScannerStateCopy(
         title: targetReady ? '切换到游戏，开始本地扫描' : '选择账户，再检查游戏',
         body: targetReady
           ? '已选择接收结果的本地账户。扫描只在本机读取，正式导入前仍会让你检查。'
-          : '扫描助手已连接。选择接收结果的账户后，再检查游戏并开始扫描。',
+          : '画面扫描已连接。选择接收结果的账户后，再检查游戏并开始扫描。',
       }
     case 'checking':
       return {
         eyebrow: '正在核验',
-        title: '本机助手正在检查游戏与权限',
+        title: '画面扫描正在检查游戏与权限',
         body: '请求处理中不会重复创建扫描会话；检查通过后会自动进入扫描。',
       }
     case 'awaiting_elevation':
       return {
         eyebrow: '等待 Windows 权限',
         title: '请确认管理员权限提示',
-        body: '常驻助手仍使用普通权限；只会为本次扫描启动一次受控的管理员子进程。',
+        body: '画面扫描保持普通权限；只会为本次扫描启动一次受控的管理员子进程。',
       }
     case 'scanning':
       return {
@@ -107,8 +107,8 @@ export function getScannerStateCopy(
     default:
       return {
         eyebrow: '正在接管并核验',
-        title: '本机助手正在检查游戏画面',
-        body: '助手会在全部准备门通过后立即开始；未通过时保持零输入并给出原因。',
+        title: '画面扫描正在检查游戏画面',
+        body: '画面扫描会在全部准备门通过后立即开始；未通过时保持零输入并给出原因。',
       }
   }
 }

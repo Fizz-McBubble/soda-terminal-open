@@ -153,7 +153,7 @@ describe('completed scan with rejected OCR records', () => {
       expect(await database.accounts.toArray()).toEqual(before)
       expect(await database.accountDriveDiscs.count()).toBe(0)
       await user.click(screen.getByRole('button', { name: '返回准备，重新扫描' }))
-      await screen.findByRole('heading', { name: '扫描助手已连接' })
+      await screen.findByRole('heading', { name: '画面扫描已连接' })
       expect(screen.queryByRole('region', { name: '本次任务' })).not.toBeInTheDocument()
       expect(screen.queryByLabelText('扫描与导入进度')).not.toBeInTheDocument()
       expect(screen.getByLabelText('选择本机文件（JSON）')).toBeEnabled()

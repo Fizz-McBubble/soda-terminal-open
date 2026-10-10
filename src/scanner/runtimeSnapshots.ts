@@ -134,7 +134,7 @@ export const failedSnapshot: ScannerAssistantSnapshot = {
   state: 'connection_failed',
   permission: 'denied',
   error: {
-    userMessage: '扫描助手未就绪，可重新连接。仍无法连接时，请重新打开 Soda Terminal。',
+    userMessage: '画面扫描未就绪，可重新连接。仍无法连接时，请重新打开画面扫描。',
     recoveryAction: 'retry',
     diagnosticCode: 'helper_unavailable',
   },

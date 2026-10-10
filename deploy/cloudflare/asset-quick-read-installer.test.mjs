@@ -47,7 +47,7 @@ test('GET streams a pinned large package without buffering and cancellation rele
   assert.equal(response.headers.get('etag'), `"${release.sha256}"`)
   assert.equal(
     response.headers.get('content-disposition'),
-    `attachment; filename="${release.fileName}"`,
+    `attachment; filename="${release.fileName}"; filename*=UTF-8''${encodeURIComponent(`Soda-资产快读-${release.version}.exe`)}`,
   )
   assert.equal((await download(request())).status, 429)
   const reader = response.body.getReader()

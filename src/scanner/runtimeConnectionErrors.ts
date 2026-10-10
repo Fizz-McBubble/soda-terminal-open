@@ -20,7 +20,7 @@ export function connectionFailure(error: unknown) {
       ...failedSnapshot,
       error: {
         ...failedSnapshot.error!,
-        userMessage: '扫描助手拒绝了此网站，请更新扫描助手后重新连接。',
+        userMessage: '画面扫描拒绝了此网站，请更新画面扫描后重新连接。',
         diagnosticCode: 'helper_pairing_denied',
       },
     }

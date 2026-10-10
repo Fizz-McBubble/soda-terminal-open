@@ -124,13 +124,13 @@ async function prepareStart() {
   fireEvent.change(screen.getByLabelText('游戏安装目录'), {
     target: { value: "soda-source-ref:24d5780e541a1a1ad1393e8962be6e18" },
   })
-  await act(async () => fireEvent.click(screen.getByRole('button', { name: '连接独立工具' })))
-  fireEvent.click(screen.getByRole('button', { name: /查看风险并准备快读|开始读取/ }))
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '连接资产快读' })))
+  fireEvent.click(screen.getByRole('button', { name: /准备资产快读|开始读取/ }))
   fireEvent.click(screen.getByRole('checkbox', { name: /我已阅读上述风险/ }))
 }
 async function startAndReceive() {
   await prepareStart()
-  await act(async () => fireEvent.click(screen.getByRole('button', { name: '开始本次快读' })))
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '开始本次资产快读' })))
   await act(async () => vi.advanceTimersByTimeAsync(1000))
 }
 
@@ -151,7 +151,7 @@ it('uses the independent bridge and reviews early success without any account mu
   expect(persistence.prepare).toHaveBeenCalledWith(targetAccountId, converted.candidate)
   expect(persistence.confirm).not.toHaveBeenCalled()
   expect(persistence.activate).not.toHaveBeenCalled()
-  expect(screen.getByRole('button', { name: '确认导入本次快读结果' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '确认导入本次资产快读结果' })).toBeDisabled()
   await act(async () => vi.advanceTimersByTimeAsync(180000))
   expect(client.status).toHaveBeenCalledOnce()
 })
@@ -171,7 +171,7 @@ it('imports only after a separate account and count confirmation and offers guar
   await startAndReceive()
   fireEvent.click(screen.getByRole('checkbox', { name: /我确认这是同一个游戏账户/ }))
   await act(async () =>
-    fireEvent.click(screen.getByRole('button', { name: '确认导入本次快读结果' })),
+    fireEvent.click(screen.getByRole('button', { name: '确认导入本次资产快读结果' })),
   )
   expect(persistence.confirm).toHaveBeenCalledOnce()
   expect(persistence.confirm.mock.calls[0][2]).toEqual({
@@ -209,7 +209,7 @@ it('cancels a late start response after the selected account changes', async () 
     />,
   )
   await prepareStart()
-  act(() => fireEvent.click(screen.getByRole('button', { name: '开始本次快读' })))
+  act(() => fireEvent.click(screen.getByRole('button', { name: '开始本次资产快读' })))
   rerender(
     <AssetQuickReadController
       client={client}
@@ -243,12 +243,12 @@ it('stops during reading and ignores a result already in flight', async () => {
     />,
   )
   await prepareStart()
-  await act(async () => fireEvent.click(screen.getByRole('button', { name: '开始本次快读' })))
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '开始本次资产快读' })))
   await act(async () => {
     vi.advanceTimersByTime(1000)
     await Promise.resolve()
   })
-  await act(async () => fireEvent.click(screen.getByRole('button', { name: '停止本次快读' })))
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '停止本次资产快读' })))
   await act(async () =>
     resolveResult({ jobId, targetAccountId, snapshot: {}, sha256: 'a'.repeat(64) }),
   )
@@ -293,11 +293,11 @@ it('disarms failed imports and rechecks without retrying writes', async () => {
   await startAndReceive()
   fireEvent.click(screen.getByRole('checkbox', { name: /我确认这是同一个游戏账户/ }))
   await act(async () =>
-    fireEvent.click(screen.getByRole('button', { name: '确认导入本次快读结果' })),
+    fireEvent.click(screen.getByRole('button', { name: '确认导入本次资产快读结果' })),
   )
   expect(persistence.confirm).toHaveBeenCalledOnce()
   expect(persistence.prepare).toHaveBeenCalledTimes(2)
-  expect(screen.getByRole('button', { name: '确认导入本次快读结果' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '确认导入本次资产快读结果' })).toBeDisabled()
   expect(screen.getByRole('status')).toHaveTextContent('账户在检查后发生了变化')
 })
 
@@ -314,9 +314,9 @@ it('keeps cancellation available when transport and automatic cancellation both 
     />,
   )
   await startAndReceive()
-  expect(screen.getByRole('button', { name: '重新检查连接' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '重新连接资产快读' })).toBeDisabled()
   await act(async () =>
-    fireEvent.click(screen.getByRole('button', { name: '尝试停止本次独立任务' })),
+    fireEvent.click(screen.getByRole('button', { name: '尝试停止本次资产快读' })),
   )
   expect(client.cancel).toHaveBeenCalledTimes(2)
   expect(screen.getByRole('status')).toHaveTextContent('已停止')
@@ -342,8 +342,8 @@ it('offers persisted recovery after remounting without pairing, capture or autom
     ),
   )
   expect(persistence.readRecovery).toHaveBeenCalledWith(targetAccountId)
-  expect(screen.getByRole('button', { name: '恢复上次快读导入' })).toBeEnabled()
-  fireEvent.click(screen.getByRole('button', { name: '恢复上次快读导入' }))
+  expect(screen.getByRole('button', { name: '恢复上次资产快读导入' })).toBeEnabled()
+  fireEvent.click(screen.getByRole('button', { name: '恢复上次资产快读导入' }))
   expect(screen.getByRole('button', { name: '确认恢复到导入前' })).toBeEnabled()
   expect(persistence.restore).not.toHaveBeenCalled()
   expect(persistence.confirm).not.toHaveBeenCalled()
@@ -369,7 +369,7 @@ it('shows the retained receipt but disables undo when later account changes are 
     ),
   )
   expect(screen.getByText(/恢复副本保留，不能直接覆盖/)).toBeInTheDocument()
-  expect(screen.getByRole('button', { name: '恢复上次快读导入' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '恢复上次资产快读导入' })).toBeDisabled()
   expect(persistence.restore).not.toHaveBeenCalled()
 })
 
@@ -405,7 +405,7 @@ it('ignores a saved-recovery lookup arriving after the selected account changes'
       canRestore: true,
     }),
   )
-  expect(screen.queryByRole('button', { name: '恢复上次快读导入' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: '恢复上次资产快读导入' })).not.toBeInTheDocument()
   expect(persistence.restore).not.toHaveBeenCalled()
 })
 
@@ -455,7 +455,7 @@ it('renders workbench parts without duplicate steps or file buttons and inspects
     expect(harness.read().task).toBeNull()
     expect(harness.read().hasTask).toBe(false)
     expect(screen.queryByRole('list', { name: '资产快读与导入进度' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: '检查独立快读 JSON 候选' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '检查资产快读 JSON 候选' })).not.toBeInTheDocument()
     await act(async () => harness.read().inspectFile(syntheticFile()))
     expect(client.connect).not.toHaveBeenCalled()
     expect(harness.read().state).toBe('received')
@@ -482,18 +482,18 @@ it('blocks new file, connect and import actions while keeping an owned capture s
     workbench: harness.render,
   }
   const rendered = render(<AssetQuickReadController {...props} blocked />)
-  expect(screen.getByRole('button', { name: '连接独立工具' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '连接资产快读' })).toBeDisabled()
   await act(async () => harness.read().inspectFile(syntheticFile()))
   expect(persistence.prepare).not.toHaveBeenCalled()
   rendered.rerender(<AssetQuickReadController {...props} />)
   await prepareStart()
-  await act(async () => fireEvent.click(screen.getByRole('button', { name: '开始本次快读' })))
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '开始本次资产快读' })))
   expect(harness.read().busy).toBe(true)
   rendered.rerender(<AssetQuickReadController {...props} blocked />)
-  expect(screen.getByRole('button', { name: '停止本次快读' })).toBeEnabled()
+  expect(screen.getByRole('button', { name: '停止本次资产快读' })).toBeEnabled()
   await act(async () => harness.read().inspectFile(syntheticFile()))
   expect(persistence.prepare).not.toHaveBeenCalled()
-  await act(async () => fireEvent.click(screen.getByRole('button', { name: '停止本次快读' })))
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '停止本次资产快读' })))
   expect(client.cancel).toHaveBeenCalledWith(jobId)
   expect(harness.read().state).toBe('stopped')
   expect(harness.read().busy).toBe(false)
@@ -525,12 +525,12 @@ it('reports connection in flight as busy without making it a task, and historica
       />,
     ),
   )
-  expect(screen.getByTestId('recovery')).toHaveTextContent('恢复上次快读导入')
+  expect(screen.getByTestId('recovery')).toHaveTextContent('恢复上次资产快读导入')
   expect(harness.read().hasTask).toBe(false)
-  act(() => fireEvent.click(screen.getByRole('button', { name: '连接独立工具' })))
+  act(() => fireEvent.click(screen.getByRole('button', { name: '连接资产快读' })))
   expect(harness.read().busy).toBe(true)
   expect(harness.read().hasTask).toBe(false)
-  expect(screen.getByRole('button', { name: '恢复上次快读导入' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '恢复上次资产快读导入' })).toBeDisabled()
   await act(async () => finish())
   expect(harness.read().busy).toBe(false)
   expect(harness.read().hasTask).toBe(false)
@@ -553,7 +553,7 @@ it('blocks a reviewed candidate import and emits task start only for adopted new
   expect(onTaskStart).toHaveBeenCalledOnce()
   fireEvent.click(screen.getByRole('checkbox', { name: /我确认这是同一个游戏账户/ }))
   rendered.rerender(<AssetQuickReadController {...props} blocked />)
-  expect(screen.getByRole('button', { name: '确认导入本次快读结果' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '确认导入本次资产快读结果' })).toBeDisabled()
   await act(async () => harness.read().inspectFile(syntheticFile()))
   expect(onTaskStart).toHaveBeenCalledOnce()
   expect(persistence.confirm).not.toHaveBeenCalled()
@@ -633,8 +633,8 @@ it('ignores a pending stop response after the stable workbench changes account b
   }
   const rendered = render(<AssetQuickReadController {...props} />)
   await prepareStart()
-  await act(async () => fireEvent.click(screen.getByRole('button', { name: '开始本次快读' })))
-  act(() => fireEvent.click(screen.getByRole('button', { name: '停止本次快读' })))
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '开始本次资产快读' })))
+  act(() => fireEvent.click(screen.getByRole('button', { name: '停止本次资产快读' })))
   rendered.rerender(
     <AssetQuickReadController
       {...props}
@@ -668,17 +668,17 @@ it('abandons only the candidate while retaining connected tools and discovered h
   )
   await startAndReceive()
   await act(async () => Promise.resolve())
-  expect(screen.getByRole('button', { name: '恢复上次快读导入' })).toBeEnabled()
+  expect(screen.getByRole('button', { name: '恢复上次资产快读导入' })).toBeEnabled()
   await act(async () => fireEvent.click(screen.getByRole('button', { name: '放弃本次结果' })))
   expect(harness.read().state).toBe('idle')
   expect(harness.read().hasTask).toBe(false)
   expect(harness.read().busy).toBe(false)
   expect(screen.getByLabelText('游戏安装目录')).toHaveValue("soda-source-ref:24d5780e541a1a1ad1393e8962be6e18")
   expect(screen.getByRole('button', { name: '开始读取' })).toBeEnabled()
-  expect(screen.getByRole('button', { name: '恢复上次快读导入' })).toBeEnabled()
-  fireEvent.click(screen.getByRole('button', { name: /查看风险并准备快读|开始读取/ }))
+  expect(screen.getByRole('button', { name: '恢复上次资产快读导入' })).toBeEnabled()
+  fireEvent.click(screen.getByRole('button', { name: /准备资产快读|开始读取/ }))
   expect(screen.getByRole('checkbox', { name: /我已阅读上述风险/ })).not.toBeChecked()
-  expect(screen.getByRole('button', { name: '开始本次快读' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '开始本次资产快读' })).toBeDisabled()
   expect(persistence.confirm).not.toHaveBeenCalled()
   expect(persistence.restore).not.toHaveBeenCalled()
 })
@@ -696,8 +696,8 @@ it('connects an installed tool on explicit click without an account or game dire
   const { rerender } = render(
     <AssetQuickReadController client={client} workbench={harness.render} />,
   )
-  expect(screen.getByRole('button', { name: '连接独立工具' })).toBeEnabled()
-  fireEvent.click(screen.getByRole('button', { name: '连接独立工具' }))
+  expect(screen.getByRole('button', { name: '连接资产快读' })).toBeEnabled()
+  fireEvent.click(screen.getByRole('button', { name: '连接资产快读' }))
   expect(client.connect).toHaveBeenCalledOnce()
   const input = client.connect.mock.calls[0]?.[0]
   if (!input?.signal) throw new Error('Expected cancellable connection options')
@@ -714,7 +714,7 @@ it('connects an installed tool on explicit click without an account or game dire
   )
   expect(input.signal.aborted).toBe(true)
   await act(async () => finish(health))
-  expect(screen.getByRole('button', { name: '连接独立工具' })).toBeEnabled()
+  expect(screen.getByRole('button', { name: '连接资产快读' })).toBeEnabled()
   expect(harness.read().busy).toBe(false)
   expect(persistence.confirm).not.toHaveBeenCalled()
 })

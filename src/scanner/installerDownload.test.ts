@@ -29,8 +29,8 @@ beforeEach(() => {
   vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
 })
 it('derives the save filename from the installer version', () => {
-  expect(scannerInstallerFileName('1.0.5')).toBe('Soda-Scanner-Setup-1.0.5.exe')
-  expect(scannerInstallerFileName('1.0.6')).toBe('Soda-Scanner-Setup-1.0.6.exe')
+  expect(scannerInstallerFileName('1.0.5')).toBe('Soda-画面扫描-1.0.5.exe')
+  expect(scannerInstallerFileName('1.0.6')).toBe('Soda-画面扫描-1.0.6.exe')
 })
 it.each(['latest', '1.0', '1.0.6-beta', '1.0.6\r\nX-Injected: yes', '../1.0.6', '1.0.6\n'])(
   'rejects an unsafe or unsupported installer version %j',
@@ -57,7 +57,7 @@ it('receives split MZ bytes and only requests save after the complete pinned fil
   expect(createObjectURL.mock.calls[0][0].size).toBe(8)
   expect(
     (vi.mocked(HTMLAnchorElement.prototype.click).mock.instances[0] as HTMLAnchorElement).download,
-  ).toBe('Soda-Scanner-Setup-1.0.6.exe')
+  ).toBe('Soda-画面扫描-1.0.6.exe')
 })
 it.each([
   ['truncated', executable.subarray(0, 7)],

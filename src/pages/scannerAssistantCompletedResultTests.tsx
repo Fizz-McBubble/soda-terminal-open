@@ -73,7 +73,7 @@ export function registerScannerCompletedResultTests({
     expect(readScannerTargetAccountBinding()).toMatchObject({ valid: false })
     expect(await screen.findByRole('textbox', { name: '新账户名称' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '创建并用于本次操作' })).toBeDisabled()
-    expect(screen.getByRole('heading', { name: '扫描助手已连接' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: '画面扫描已连接' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '开始扫描' })).toBeDisabled()
     rendered.unmount()
     render(<App />)

@@ -33,12 +33,12 @@ it('does not pretend a missing release is downloadable', () => {
   const fetcher = vi.fn()
   vi.stubGlobal('fetch', fetcher)
   render(<AssetQuickReadInstallerAction release={{ ...release, size: null }} />)
-  expect(screen.getByRole('button', { name: '下载独立工具' })).toBeDisabled()
-  expect(screen.getByRole('button', { name: '下载独立工具' })).toHaveAttribute(
+  expect(screen.getByRole('button', { name: '下载资产快读' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '下载资产快读' })).toHaveAttribute(
     'title',
     expect.stringContaining('尚未发布'),
   )
-  fireEvent.click(screen.getByRole('button', { name: '下载独立工具' }))
+  fireEvent.click(screen.getByRole('button', { name: '下载资产快读' }))
   expect(fetcher).not.toHaveBeenCalled()
 })
 it('streams exact installer bytes, supports cancel/retry and prepares a file without claiming installation', async () => {
@@ -56,23 +56,23 @@ it('streams exact installer bytes, supports cancel/retry and prepares a file wit
   )
   vi.stubGlobal('fetch', fetcher)
   render(<AssetQuickReadInstallerAction release={release} />)
-  expect(screen.getByRole('button', { name: '下载独立工具' })).toHaveAttribute(
+  expect(screen.getByRole('button', { name: '下载资产快读' })).toHaveAttribute(
     'title',
-    `独立工具 v${release.version}`,
+    `资产快读安装包 v${release.version}`,
   )
   expect(screen.getByText(`v${release.version}`)).toBeInTheDocument()
-  fireEvent.click(screen.getByRole('button', { name: '下载独立工具' }))
+  fireEvent.click(screen.getByRole('button', { name: '下载资产快读' }))
   await act(async () => stream.enqueue(executable.subarray(0, 4)))
   await waitFor(() => expect(screen.getByRole('progressbar')).toHaveAttribute('value', '4'))
   expect(save).not.toHaveBeenCalled()
-  const cancelButton = screen.getByRole('button', { name: '取消独立工具下载' })
+  const cancelButton = screen.getByRole('button', { name: '取消资产快读下载' })
   cancelButton.focus()
   fireEvent.click(cancelButton)
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('下载已取消'))
   expect(cancel).toHaveBeenCalled()
-  expect(screen.getByRole('button', { name: '下载独立工具' })).toHaveFocus()
+  expect(screen.getByRole('button', { name: '下载资产快读' })).toHaveFocus()
   fetcher.mockResolvedValue(new Response(executable))
-  fireEvent.click(screen.getByRole('button', { name: '下载独立工具' }))
+  fireEvent.click(screen.getByRole('button', { name: '下载资产快读' }))
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('文件已准备'))
   expect(screen.getByRole('status')).toHaveTextContent('打开安装包')
   expect(screen.queryByText('安装完成')).not.toBeInTheDocument()
@@ -80,15 +80,15 @@ it('streams exact installer bytes, supports cancel/retry and prepares a file wit
   expect(fetcher).toHaveBeenCalledTimes(2)
   expect(
     (vi.mocked(HTMLAnchorElement.prototype.click).mock.instances[0] as HTMLAnchorElement).download,
-  ).toBe(release.fileName)
+  ).toBe(`Soda-资产快读-${release.version}.exe`)
 })
 it('rejects truncated bytes and exposes retry without preparing a wrong file', async () => {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(executable.subarray(0, 6))))
   render(<AssetQuickReadInstallerAction release={release} />)
-  fireEvent.click(screen.getByRole('button', { name: '下载独立工具' }))
+  fireEvent.click(screen.getByRole('button', { name: '下载资产快读' }))
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('下载未完成'))
   expect(save).not.toHaveBeenCalled()
-  expect(screen.getByRole('button', { name: '下载独立工具' })).toBeEnabled()
+  expect(screen.getByRole('button', { name: '下载资产快读' })).toBeEnabled()
 })
 it('returning after an installer download probes once, never invokes the explicit launch callback automatically', async () => {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(executable)))
@@ -101,7 +101,7 @@ it('returning after an installer download probes once, never invokes the explici
       onReturnConnect={onReturnConnect}
     />,
   )
-  fireEvent.click(screen.getByRole('button', { name: '下载独立工具' }))
+  fireEvent.click(screen.getByRole('button', { name: '下载资产快读' }))
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('文件已准备'))
   fireEvent(window, new Event('focus'))
   expect(onReturnConnect).not.toHaveBeenCalled()
@@ -117,11 +117,11 @@ it('returning after an installer download probes once, never invokes the explici
 it('blocks new download and continuation while keeping an in-flight cancel accessible', async () => {
   vi.stubGlobal('fetch', vi.fn().mockReturnValue(new Promise(() => {})))
   const view = render(<AssetQuickReadInstallerAction release={release} blocked />)
-  expect(screen.getByRole('button', { name: '下载独立工具' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '下载资产快读' })).toBeDisabled()
   view.rerender(<AssetQuickReadInstallerAction release={release} />)
-  fireEvent.click(screen.getByRole('button', { name: '下载独立工具' }))
+  fireEvent.click(screen.getByRole('button', { name: '下载资产快读' }))
   view.rerender(<AssetQuickReadInstallerAction release={release} blocked />)
-  expect(screen.getByRole('button', { name: '取消独立工具下载' })).toBeEnabled()
-  fireEvent.click(screen.getByRole('button', { name: '取消独立工具下载' }))
+  expect(screen.getByRole('button', { name: '取消资产快读下载' })).toBeEnabled()
+  fireEvent.click(screen.getByRole('button', { name: '取消资产快读下载' }))
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('下载已取消'))
 })

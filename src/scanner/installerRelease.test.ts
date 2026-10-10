@@ -15,7 +15,7 @@ it('binds the published version, save name, same-origin alias, size and full has
   await expect(readInstallerRelease(signal)).resolves.toEqual({
     version: release.version,
     helperVersion: release.helperVersion,
-    fileName: `Soda-Scanner-Setup-${release.version}.exe`,
+    fileName: `Soda-画面扫描-${release.version}.exe`,
     downloadUrl: '/downloads/Soda-Scanner-Setup.exe',
     size: release.size,
     sha256: release.sha256,
