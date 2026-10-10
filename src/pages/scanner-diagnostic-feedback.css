@@ -25,9 +25,14 @@
 .scanner-diagnostic-feedback__main p {
   margin: 0;
 }
+.scanner-diagnostic-feedback__main > p {
+  flex: 1;
+  min-width: 120px;
+}
 .scanner-diagnostic-feedback__details {
-  display: block;
-  margin-top: 10px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  margin: 0;
 }
 .scanner-diagnostic-feedback__details > .explanation-popover[popover] {
   width: min(26rem, calc(100vw - 24px));

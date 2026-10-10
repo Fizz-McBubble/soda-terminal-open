@@ -1,0 +1,5 @@
+.account-overview .backup-history[data-file-dragging='true'] .backup-row {
+  outline: 2px dashed var(--f5-accent, #716398);
+  outline-offset: 4px;
+  background: var(--f5-accent-soft, #f0edf8);
+}

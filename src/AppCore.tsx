@@ -51,6 +51,7 @@ function PlayerDecisionWorld({
   decisionEnvironment: DecisionEnvironment
 }) {
   const { pathname, search } = useLocation()
+  const isScannerRoute = pathname.replace(/\/+$/, '').toLowerCase() === '/system/scanner'
   const onlineMode = decisionEnvironment.mode === 'remote'
   const [onlineAllowed, setOnlineAllowed] = useState(() => {
     try {
@@ -88,17 +89,22 @@ function PlayerDecisionWorld({
     >
       <AppInitializationGate>
         <UsageStatistics />
-        <AccountDecisionWorldProvider
-          queryClient={queryClient}
-          runtimeSelectionReader={decisionEnvironment.runtimeSelectionReader}
-          repairRuntimeSelection={decisionEnvironment.repairRuntimeSelection}
-          autoCalculate={
-            (!onlineMode || onlineAllowed) &&
-            shouldAutoCalculateAccountDecision(pathname, search, decisionEnvironment.mode)
-          }
-        >
+        {isScannerRoute ? (
+          // Intake owns its account guards and receipts; changing the active account must not remount its task.
           <Outlet />
-        </AccountDecisionWorldProvider>
+        ) : (
+          <AccountDecisionWorldProvider
+            queryClient={queryClient}
+            runtimeSelectionReader={decisionEnvironment.runtimeSelectionReader}
+            repairRuntimeSelection={decisionEnvironment.repairRuntimeSelection}
+            autoCalculate={
+              (!onlineMode || onlineAllowed) &&
+              shouldAutoCalculateAccountDecision(pathname, search, decisionEnvironment.mode)
+            }
+          >
+            <Outlet />
+          </AccountDecisionWorldProvider>
+        )}
       </AppInitializationGate>
     </AppShell>
   )

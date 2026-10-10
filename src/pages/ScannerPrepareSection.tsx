@@ -39,6 +39,7 @@ export function ScannerPrepareSection({
   onConnectRetry,
   onRevokePairing,
   onStartBoundScan,
+  taskOnly = false,
 }: {
   showPreparation: boolean
   fallbackJson: React.ReactNode
@@ -71,6 +72,7 @@ export function ScannerPrepareSection({
   onConnectRetry: () => void
   onRevokePairing: () => void
   onStartBoundScan: () => void
+  taskOnly?: boolean
 }) {
   const newAccountControls = (
     <div className="scanner-target-account__create">
@@ -135,7 +137,11 @@ export function ScannerPrepareSection({
       ) : null}
       {!showImportComplete &&
       !inlineImportOpen &&
-      ['scanning', 'completed'].includes(snapshot.state) &&
+      (['scanning', 'completed'].includes(snapshot.state) ||
+        (taskOnly &&
+          ['checking', 'awaiting_elevation', 'paused', 'connection_failed'].includes(
+            snapshot.state,
+          ))) &&
       !restartingAfterCompletedResult &&
       !preparingNewScan ? (
         <div className="scanner-task__state-copy">
@@ -146,7 +152,9 @@ export function ScannerPrepareSection({
         </div>
       ) : null}
 
-      {showPreparation ? (
+      {taskOnly && snapshot.state === 'connection_failed' && diagnosticFeedback}
+
+      {!taskOnly && showPreparation ? (
         <PrepareChecklist
           fallbackJson={fallbackJson}
           snapshot={snapshot}

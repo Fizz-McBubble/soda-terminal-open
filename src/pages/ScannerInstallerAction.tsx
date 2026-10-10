@@ -14,10 +14,14 @@ export function ScannerInstallerAction({
   distribution,
   issueCode,
   onConnect,
+  connectionBlocked = false,
+  onAttentionChange,
 }: {
   distribution: ScannerDistributionSnapshot
   issueCode?: string
   onConnect?: () => void | Promise<void>
+  connectionBlocked?: boolean
+  onAttentionChange?: (active: boolean) => void
 }) {
   const [state, setState] = useState<DownloadState>('idle')
   const [bytes, setBytes] = useState(0)
@@ -47,6 +51,10 @@ export function ScannerInstallerAction({
   const expectedSize = release?.size ?? scannerDistributionManifest.helper.size
   const installerVersion = release?.version ?? scannerDistributionManifest.helper.installerVersion
   const versionDescription = `安装包 v${installerVersion}（助手 v${release?.helperVersion ?? scannerDistributionManifest.helper.version}）`
+  useEffect(() => {
+    onAttentionChange?.(state !== 'idle')
+    return () => onAttentionChange?.(false)
+  }, [onAttentionChange, state])
   const percent = Math.min(100, Math.floor((bytes / expectedSize) * 100))
   const progressText = state === 'saving' ? '正在准备文件' : `下载中 ${percent}%`
   useEffect(() => {
@@ -62,7 +70,7 @@ export function ScannerInstallerAction({
     ['helper_incompatible', 'helper_pairing_denied'].includes(issueCode ?? ''),
   )
   const connect = useCallback(async () => {
-    if (connectPending.current || !onConnect) return
+    if (connectionBlocked || connectPending.current || !onConnect) return
     connectPending.current = true
     autoConnectAttempted.current = true
     setConnectionNotice('')
@@ -73,7 +81,7 @@ export function ScannerInstallerAction({
     } finally {
       connectPending.current = false
     }
-  }, [onConnect])
+  }, [connectionBlocked, onConnect])
 
   useLayoutEffect(() => {
     if (!complete || !onConnect) return
@@ -84,6 +92,7 @@ export function ScannerInstallerAction({
       if (
         !completedDownload.current ||
         !leftAfterDownload.current ||
+        connectionBlocked ||
         autoConnectAttempted.current ||
         connectPending.current
       )
@@ -103,7 +112,7 @@ export function ScannerInstallerAction({
       window.removeEventListener('focus', returned)
       document.removeEventListener('visibilitychange', visibilityChanged)
     }
-  }, [complete, onConnect, connect])
+  }, [complete, connectionBlocked, onConnect, connect])
 
   if (
     scannerDistributionManifest.runtime.releaseState !== 'published' ||

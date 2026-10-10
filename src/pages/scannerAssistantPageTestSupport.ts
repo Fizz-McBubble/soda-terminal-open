@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import Dexie from 'dexie'
+import { publicScannerDriveDiscData } from '../application/publicScannerCatalog'
 import { database } from '../db/database'
 import { createScanBatchManifest, scanImportStagingBatchSchema } from '../domain/scanImportStaging'
 import type { vi } from 'vitest'
@@ -96,10 +97,15 @@ export function createReadyScannerStaging(total = 1) {
   })
   const ready = source.items.find((item) => item.state === 'ready')!
   const batch = {
-    ...source.batch,
     id: `scanner-inline-ready-${total}`,
+    source: 'synthetic-local-sample',
+    createdAt: at,
+    updatedAt: at,
+    dataVersion: publicScannerDriveDiscData!.dataVersion,
     total,
     recognitionVersion: 'paddleocr-pp-ocrv6-small',
+    sourceReport: 'synthetic-local-sample',
+    importHistory: [],
   }
   const items = Array.from({ length: total }, (_, index) => ({
     ...ready,
@@ -109,20 +115,20 @@ export function createReadyScannerStaging(total = 1) {
     sourceIdentity: `scanner-inline-ready-source-${index + 1}`,
     fingerprint: `scanner-inline-ready-fingerprint-${index + 1}`,
   }))
-  return {
-    format: source.format,
-    formatVersion: source.formatVersion,
+  return scanImportStagingBatchSchema.parse({
+    format: 'soda-terminal-scan-staging',
+    formatVersion: 1,
     batch: {
       ...batch,
       manifest: createScanBatchManifest(batch, items, {
         expectedTotal: total,
-        gameVersion: '3.1',
+        gameVersion: publicScannerDriveDiscData!.gameVersion,
         scanConfigIdentity: 'viewport-1920x1080-disc-page',
         viewport: '1920x1080',
       }),
     },
     items,
-  }
+  })
 }
 
 export function createScannerRuntimeCommands(fn: typeof vi.fn) {

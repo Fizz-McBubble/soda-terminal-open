@@ -15,7 +15,7 @@ async function fixture(run) {
     await mkdir(join(root, 'src'))
     await writeFile(join(root, 'package.json'), '{"name":"soda-terminal-open","type":"module"}\n')
     await writeFile(join(root, 'src/formula.ts'), 'export const critical = 1 + 0.25\n')
-    for (const name of ['build-community.mjs', 'source-manifest.mjs'])
+    for (const name of ['build-community.mjs', 'source-manifest.mjs', 'derived-build-storage.mjs'])
       await writeFile(join(root, 'scripts', name), await readFile(new URL(name, import.meta.url)))
     await writeFile(
       join(root, 'scripts/build-community-dist.mjs'),
@@ -27,6 +27,7 @@ async function fixture(run) {
       'src/formula.ts',
       'scripts/build-community.mjs',
       'scripts/source-manifest.mjs',
+      'scripts/derived-build-storage.mjs',
       'scripts/build-community-dist.mjs',
     ])
       files[path] = hash(await readFile(join(root, path)))
@@ -43,7 +44,7 @@ async function fixture(run) {
 test('unchanged public source passes and build dispatches its pinned release', async () => {
   await fixture(async (root) => {
     const { releaseId, count } = await verifySourceManifest(root)
-    assert.equal(count, 5)
+    assert.equal(count, 6)
     const result = spawnSync(process.execPath, [join(root, 'scripts/build-community.mjs')], {
       encoding: 'utf8',
     })

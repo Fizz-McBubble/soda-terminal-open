@@ -9,11 +9,8 @@ import {
   type ScanImportStagingBatch,
 } from '../domain/scanImportStaging'
 import type { DriveDiscDataManifest, DriveDiscSet } from '../domain/schemas'
-import {
-  preflightAccountBackupAgainstDatabase,
-  preflightVaultBackupAgainstDatabase,
-  type AccountBackupPreflight,
-} from './backup'
+import { preflightVaultBackupAgainstDatabase, type AccountBackupPreflight } from './backup'
+import { recognizeAccountBackupFile } from './accountBackupRecognition'
 import { preflightBackup, type BackupPreflight } from '../domain/backup'
 import { accountIdSchema, getScopedId } from './types'
 
@@ -87,26 +84,7 @@ export async function recognizeDataCenterFile(
 ): Promise<DataCenterFileRecognition> {
   const format = topLevelFormat(input)
   if (format === 'soda-terminal-account-backup') {
-    const backupPreflight = await preflightAccountBackupAgainstDatabase(input, db)
-    const backup = backupPreflight.backup
-    return {
-      kind: 'account_backup',
-      label: '单账号备份',
-      targetAccountId: backup?.account.id ?? null,
-      targetAccountName: backup?.account.displayName ?? null,
-      counts: {
-        ...emptyCounts,
-        total: backup?.counts.driveDiscs ?? 0,
-        add: backup?.counts.driveDiscs ?? 0,
-        failed: backupPreflight.errors.length,
-      },
-      preservesOriginal: false,
-      replacementScope: backup ? `仅完整替换账号“${backup.account.displayName}”` : null,
-      errors: backupPreflight.errors,
-      risks: [...backupPreflight.risks, ...backupPreflight.conflicts],
-      input,
-      backupPreflight,
-    }
+    return recognizeAccountBackupFile(input, db)
   }
   if (format === 'soda-terminal-vault-backup') {
     const vaultPreflight = await preflightVaultBackupAgainstDatabase(input, db)

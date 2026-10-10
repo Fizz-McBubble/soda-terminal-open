@@ -1,0 +1,357 @@
+.asset-quick-read {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  margin-top: 24px;
+  padding: clamp(18px, 3vw, 28px);
+  border: 1px solid var(--f5-line, var(--color-border, #dedbe6));
+  border-radius: 18px;
+  background: var(--surface, #fff);
+  color: var(--f5-ink, var(--color-text, #252332));
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.asset-quick-read__heading,
+.asset-quick-read__actions,
+.asset-quick-read__disclosure h3 {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.asset-quick-read__heading h2,
+.asset-quick-read__heading h3 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.asset-quick-read__badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #f0edf7;
+  color: #514964;
+  font-size: 0.8rem;
+}
+
+.asset-quick-read__status {
+  margin: 18px 0;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: #f5f3f8;
+}
+
+.asset-quick-read__disclosure {
+  margin-top: 18px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border, #dedbe6);
+}
+
+.asset-quick-read__disclosure h3 {
+  font-size: 1rem;
+}
+
+.asset-quick-read__confirmation {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 22px 0;
+  cursor: pointer;
+}
+
+.asset-quick-read__confirmation input {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  margin-top: 4px;
+}
+
+.asset-quick-read__actions .button {
+  white-space: normal;
+}
+
+.asset-quick-read__steps {
+  max-width: none;
+  margin: 22px 0;
+}
+
+.asset-quick-read__prepare {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 18px;
+  margin-bottom: 20px;
+}
+
+.asset-quick-read__panel {
+  min-width: 0;
+  padding: 20px;
+  margin-bottom: 18px;
+  border: 1px solid var(--f5-line, #dedbe6);
+  border-radius: 14px;
+  background: #faf9fc;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.asset-quick-read__panel p,
+.asset-quick-read__panel li {
+  font-size: inherit;
+}
+
+.asset-quick-read__recovery {
+  padding: 18px;
+  margin-top: 12px;
+  border: 1px solid var(--f5-line, #dedbe6);
+  border-radius: 14px;
+}
+
+.asset-quick-read__panel h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 16px;
+  font-size: 1rem;
+}
+
+.asset-quick-read__checklist {
+  margin: 0;
+  padding-left: 22px;
+}
+
+.asset-quick-read__checklist li + li {
+  margin-top: 10px;
+}
+
+.asset-quick-read__muted {
+  color: var(--f5-muted, #6b6777);
+  font-size: 0.875rem;
+}
+
+.asset-quick-read__directory {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.asset-quick-read__input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+}
+
+.asset-quick-read__target {
+  margin: 18px 0 0;
+}
+
+.asset-quick-read__counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 32px;
+  margin: 0 0 18px;
+}
+
+.asset-quick-read__counts dt {
+  color: var(--f5-muted, #6b6777);
+  font-size: 0.875rem;
+}
+
+.asset-quick-read__counts dd {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.asset-quick-read__agent-rows {
+  list-style: none;
+  padding: 0;
+  margin: 18px 0;
+}
+
+.asset-quick-read__agent-rows li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--f5-line, #dedbe6);
+}
+
+.asset-quick-read__issues {
+  margin: 16px 0;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: #fff4df;
+}
+
+.asset-quick-read__issues h4 {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.asset-quick-read__timing {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-variant-numeric: tabular-nums;
+}
+
+.asset-quick-read__complete {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 20px;
+  padding: 18px;
+  border-radius: 14px;
+  background: #e8f8f1;
+  color: #145b43;
+}
+
+.asset-quick-read__complete h3,
+.asset-quick-read__complete p {
+  margin: 0 0 8px;
+}
+
+@media (max-width: 700px) {
+  .asset-quick-read__prepare {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .asset-quick-read__panel {
+    padding: 16px;
+  }
+}
+
+.asset-quick-read--compact {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: 14px;
+}
+
+.asset-quick-read--compact .asset-quick-read__heading h2,
+.asset-quick-read--compact .asset-quick-read__heading h3 {
+  font-size: 16px;
+}
+
+.asset-quick-read--compact .asset-quick-read__prepare {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.asset-quick-read--compact .asset-quick-read__panel {
+  padding: 0;
+  margin: 12px 0;
+  border: 0;
+  background: transparent;
+}
+
+.asset-quick-read--compact .asset-quick-read__panel h3 {
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.asset-quick-read--compact .asset-quick-read__muted,
+.asset-quick-read--compact .asset-quick-read__badge {
+  font-size: 14px;
+}
+
+.asset-quick-read__directory-summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.asset-quick-read__task {
+  min-width: 0;
+  font-size: 14px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.asset-quick-read__task details summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.asset-quick-read--compact .asset-quick-read__status {
+  margin: 12px 0;
+  padding: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.asset-quick-read__tools > summary {
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 12px;
+}
+
+.asset-quick-read__tools > summary[hidden] {
+  display: none;
+}
+
+.asset-quick-read__complete .asset-quick-read__actions {
+  margin-top: 12px;
+}
+
+.asset-quick-read__guide-entry {
+  margin-left: auto;
+}
+
+.asset-quick-read--compact .asset-quick-read__heading {
+  gap: 8px;
+}
+
+.asset-quick-read__game-preparation {
+  margin: 14px 0;
+  font-size: 14px;
+}
+
+.asset-quick-read__game-preparation h4 {
+  margin: 0 0 6px;
+  font-size: 14px;
+}
+
+.asset-quick-read__game-preparation ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.asset-quick-read--compact .asset-quick-read__actions {
+  gap: 8px;
+}
+
+.asset-quick-read__tool-status {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.asset-quick-read__program-name {
+  overflow-wrap: anywhere;
+}
+
+/* Match the scanner's shared button contract, overriding the older quick-read surface rule. */
+.asset-quick-read.asset-quick-read--compact .button.button--primary,
+.asset-quick-read__task .button.button--primary {
+  background: var(--button-primary-background, #7960ad);
+  border: 1px solid var(--button-primary-background, #7960ad);
+  color: #fff;
+}
+
+.asset-quick-read.asset-quick-read--compact .button.button--quiet,
+.asset-quick-read__task .button.button--quiet {
+  background: #fff;
+  border: 1px solid var(--f5-line, #dedbe6);
+  color: var(--f5-ink, #252332);
+}
+
+.asset-quick-read.asset-quick-read--compact .asset-quick-read__actions > .button,
+.asset-quick-read__task .asset-quick-read__actions > .button {
+  min-height: 40px;
+  font-size: 14px;
+}

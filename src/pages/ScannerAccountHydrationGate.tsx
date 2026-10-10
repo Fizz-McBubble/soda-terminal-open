@@ -18,20 +18,7 @@ async function loadScannerAccountState() {
       ),
     ),
   )
-  const assetCounts = new Map(
-    await Promise.all(
-      accounts.map(async (account) => {
-        const roster = (await database.accountRosters.get(account.id))?.roster
-        return [
-          account.id,
-          {
-            agents: roster?.agents.filter((agent) => agent.owned).length ?? 0,
-          },
-        ] as const
-      }),
-    ),
-  )
-  return { activeAccount, accounts, discCounts, assetCounts }
+  return { activeAccount, accounts, discCounts }
 }
 
 export type ScannerAccounts = Awaited<ReturnType<typeof loadScannerAccountState>>
@@ -42,8 +29,14 @@ export function ScannerAccountGate({
   children: (accountState: ScannerAccounts, refreshAccounts: () => void) => ReactNode
 }) {
   const [accountRevision, setAccountRevision] = useState(0)
+  const [lastAccountState, setLastAccountState] = useState<ScannerAccounts>()
   const hydrationFocused = useRef(false)
   const accountState = useLiveQuery(loadScannerAccountState, [accountRevision])
+  if (accountState !== undefined && accountState !== lastAccountState) {
+    setLastAccountState(accountState)
+  }
+  // A refresh must preserve the mounted task and its completion receipt.
+  const displayedAccountState = accountState ?? lastAccountState
   useLayoutEffect(() => {
     if (accountState === undefined || hydrationFocused.current) return
     hydrationFocused.current = true
@@ -52,7 +45,7 @@ export function ScannerAccountGate({
     heading.tabIndex = -1
     heading.focus({ preventScroll: true })
   }, [accountState])
-  if (accountState === undefined)
+  if (displayedAccountState === undefined)
     return (
       <div className="sea-page scanner-web">
         <PageHeader
@@ -66,5 +59,5 @@ export function ScannerAccountGate({
         </section>
       </div>
     )
-  return children(accountState, () => setAccountRevision((value) => value + 1))
+  return children(displayedAccountState, () => setAccountRevision((value) => value + 1))
 }

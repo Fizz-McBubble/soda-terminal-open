@@ -4,9 +4,22 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { communityTests } from './community-test-manifest.mjs'
 import { runAlgorithmQualityTests } from './run-algorithm-quality-tests.mjs'
+import {
+  resolveBuildStorage,
+  prepareDerivedTemporaryEnvironment,
+  enterDerivedTemporaryEnvironment,
+} from './derived-build-storage.mjs'
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const algorithmStatus = runAlgorithmQualityTests()
+const storage = resolveBuildStorage(root)
+const testEnvironment = prepareDerivedTemporaryEnvironment('community-test', root)
+const restoreAlgorithmTemporary = enterDerivedTemporaryEnvironment('community-test')
+let algorithmStatus
+try {
+  algorithmStatus = runAlgorithmQualityTests()
+} finally {
+  restoreAlgorithmTemporary()
+}
 const projectionTests = spawnSync(
   process.execPath,
   [
@@ -17,10 +30,12 @@ const projectionTests = spawnSync(
     resolve(root, 'deploy/cloudflare/edge.test.mjs'),
     resolve(root, 'deploy/cloudflare/scan-feedback.test.mjs'),
     resolve(root, 'deploy/cloudflare/scanner-installer.test.mjs'),
+    resolve(root, 'deploy/cloudflare/asset-quick-read-installer.test.mjs'),
     resolve(root, 'deploy/cloudflare/prepare.test.mjs'),
   ],
   {
     cwd: root,
+    env: testEnvironment,
     stdio: 'inherit',
   },
 )
@@ -37,10 +52,10 @@ const result = spawnSync(
   {
     cwd: root,
     env: {
-      ...process.env,
+      ...testEnvironment,
       VITE_SODA_PUBLIC_BUILD: 'false',
       VITE_SODA_COMMUNITY_BUILD: 'true',
-      SODA_DERIVED_ROOT: resolve(root, 'node_modules/.tmp/soda-derived'),
+      SODA_DERIVED_ROOT: storage.derivedRoot,
     },
     stdio: 'inherit',
   },

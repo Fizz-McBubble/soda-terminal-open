@@ -36,6 +36,7 @@ export function ScannerHandoffSection({
   onSetDiscardDraftConfirmationOpen,
   onDiscardIncompleteDraftAndRetry,
   onRepairCompletedBatchAndRetry,
+  sharedTargetSelection = false,
 }: {
   inlineImportOpen: boolean
   snapshot: ScannerAssistantSnapshot
@@ -65,6 +66,7 @@ export function ScannerHandoffSection({
   onSetDiscardDraftConfirmationOpen: (open: boolean) => void
   onDiscardIncompleteDraftAndRetry: () => void
   onRepairCompletedBatchAndRetry: () => void
+  sharedTargetSelection?: boolean
 }) {
   const discardTriggerRef = useRef<HTMLButtonElement>(null)
   return (
@@ -147,7 +149,7 @@ export function ScannerHandoffSection({
               </dd>
             </div>
           </dl>
-          {accountState?.accounts.length ? (
+          {!sharedTargetSelection && accountState?.accounts.length ? (
             <ScannerTargetAccountPicker
               accounts={accountState.accounts.map((account) => ({
                 id: account.id,
@@ -183,7 +185,9 @@ export function ScannerHandoffSection({
         </section>
       ) : (
         <section className="scanner-completed-review" aria-label="已完成扫描结果">
-          {accountState?.accounts.length ? (
+          {sharedTargetSelection ? (
+            !selectedAccount && <p>请先在页面顶部创建或选择目标账户，再继续检查。</p>
+          ) : accountState?.accounts.length ? (
             <ScannerTargetAccountPicker
               accounts={accountState.accounts.map((account) => ({
                 id: account.id,

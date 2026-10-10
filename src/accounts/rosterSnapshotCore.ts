@@ -1,5 +1,12 @@
 import { z } from 'zod'
 import type { AccountRoster } from '../assault/types'
+import {
+  getObservedAgentFieldValue,
+  normalizeObservedAgentFacts,
+  observedAgentFactsSchema,
+  observedAgentFields,
+} from './observedAgentFacts'
+import type { ObservedAgentFacts, RosterAgent } from '../assault/types'
 
 export const rosterSnapshotSchema = z.object({
   format: z.literal('soda-terminal-roster'),
@@ -21,6 +28,10 @@ export const rosterSnapshotSchema = z.object({
       agentVersion: z.string().min(1),
       completeness: z.enum(['complete', 'partial', 'missing']),
       currentEquipment: z.enum(['known', 'unknown']),
+      source: z
+        .enum(['manual', 'roster_snapshot', 'showcase', 'external_export', 'asset_quick_read'])
+        .optional(),
+      observedFacts: z.preprocess(normalizeObservedAgentFacts, observedAgentFactsSchema.optional()),
       manualSource: z.enum(['manual_initial_default', 'manual_override']).nullable().optional(),
       potentialImage: z.number().int().min(0).max(6).nullable().optional(),
       progressionManuallySet: z.boolean().optional(),
@@ -113,6 +124,8 @@ function toSnapshotAgent(agent: AccountRoster['agents'][number]): RosterSnapshot
     agentVersion: agent.agentVersion,
     completeness: agent.completeness,
     currentEquipment: agent.currentEquipment,
+    source: agent.source,
+    observedFacts: normalizeObservedAgentFacts(agent.observedFacts),
     manualSource: agent.manualSource,
     potentialImage: agent.potentialImage,
     progressionManuallySet: agent.progressionManuallySet,
@@ -174,8 +187,17 @@ export function createRosterSnapshotAdapter({
       sourceCompleteness: snapshot.completeness,
       agents: current.agents.map((existing) => {
         const next = incoming.get(existing.agentId)
-        if (!next)
-          return partial ? existing : { ...existing, owned: false, source: 'roster_snapshot' }
+        if (!next) {
+          if (partial) return existing
+          const facts = normalizeObservedAgentFacts(existing.observedFacts)
+          if (existing.owned && facts) delete facts.fields.owned
+          return {
+            ...existing,
+            owned: false,
+            source: 'roster_snapshot',
+            observedFacts: normalizeObservedAgentFacts(facts),
+          }
+        }
         const allowed = Object.entries(next).filter(
           ([field]) =>
             !existing.lockedFields.includes(field) &&
@@ -184,13 +206,39 @@ export function createRosterSnapshotAdapter({
             field !== 'wEngine' &&
             field !== 'refinement',
         )
-        return {
+        const result: RosterAgent = {
           ...existing,
           ...Object.fromEntries(allowed),
           manualSource: next.manualSource ?? existing.manualSource,
           source: snapshot.source === 'showcase' ? 'showcase' : 'roster_snapshot',
           lockedFields: existing.lockedFields,
         }
+        // Generic merges retain their source policy. Provenance follows only values actually
+        // adopted; excluded equipment or replaced facts cannot inherit a mismatched marker.
+        const previousFacts = normalizeObservedAgentFacts(existing.observedFacts)
+        const incomingFacts = normalizeObservedAgentFacts(next.observedFacts)
+        const fields: ObservedAgentFacts['fields'] = {}
+        for (const field of observedAgentFields) {
+          const actual = JSON.stringify(getObservedAgentFieldValue(result, field))
+          if (
+            incomingFacts?.fields[field] &&
+            actual === JSON.stringify(getObservedAgentFieldValue(next, field))
+          ) {
+            fields[field] = incomingFacts.fields[field]
+          } else if (
+            previousFacts?.fields[field] &&
+            actual === JSON.stringify(getObservedAgentFieldValue(existing, field))
+          ) {
+            fields[field] = previousFacts.fields[field]
+          }
+        }
+        result.observedFacts = normalizeObservedAgentFacts({
+          schemaVersion: 1,
+          source: 'asset_quick_read',
+          protocolVersion: '3.2',
+          fields,
+        })
+        return result
       }),
       bangboos: current.bangboos.map((existing) => {
         const next = snapshot.bangboos.find((item) => item.bangbooId === existing.bangbooId)

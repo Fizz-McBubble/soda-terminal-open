@@ -1,7 +1,18 @@
 import { Check } from 'lucide-react'
 
-export function ScannerJourneyCards({ currentStep }: { currentStep: number }) {
-  const steps = [{ label: '准备' }, { label: '扫描' }, { label: '检查' }, { label: '完成' }]
+export function ScannerJourneyCards({
+  currentStep,
+  shared = false,
+}: {
+  currentStep: number
+  shared?: boolean
+}) {
+  const steps = [
+    { label: '准备' },
+    { label: shared ? '获取' : '扫描' },
+    { label: '检查' },
+    { label: '完成' },
+  ]
 
   return (
     <ol className="scanner-journey-cards" aria-label="扫描与导入进度">

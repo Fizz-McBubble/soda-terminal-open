@@ -1,0 +1,107 @@
+.asset-capture-methods {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  margin-top: 24px;
+  padding: clamp(18px, 3vw, 28px);
+  border: 1px solid var(--color-border, #dedbe6);
+  border-radius: 18px;
+  background: var(--surface, #fff);
+  color: var(--color-text, #252332);
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.asset-capture-methods h2 {
+  margin: 0 0 18px;
+  font-size: 1.2rem;
+}
+
+.asset-capture-methods__common {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 12px;
+  background: #f0edf7;
+}
+
+.asset-capture-methods__common > svg {
+  flex-shrink: 0;
+  margin-top: 4px;
+  color: #635279;
+}
+
+.asset-capture-methods__common p {
+  margin: 0 0 10px;
+}
+
+.asset-capture-methods__common a {
+  color: #64417d;
+  text-underline-offset: 3px;
+}
+
+.asset-capture-methods__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.asset-capture-methods__card {
+  min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--color-border, #dedbe6);
+  border-radius: 12px;
+  background: #faf9fc;
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.asset-capture-methods__card p,
+.asset-capture-methods__card li {
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.asset-capture-methods__card h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.asset-capture-methods__summary {
+  color: var(--color-text-muted, #6b6777);
+  margin: 10px 0 18px;
+}
+
+.asset-capture-methods__card h4 {
+  margin: 18px 0 6px;
+  font-size: 0.9rem;
+}
+
+.asset-capture-methods__card ul {
+  padding-left: 20px;
+  margin: 6px 0 0;
+}
+
+.asset-capture-methods__card li + li {
+  margin-top: 8px;
+}
+
+.asset-capture-methods__handling {
+  margin: 18px 0 0;
+  color: var(--color-text-muted, #6b6777);
+}
+
+@media (max-width: 640px) {
+  .asset-capture-methods__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .asset-capture-methods__card {
+    padding: 16px;
+  }
+}

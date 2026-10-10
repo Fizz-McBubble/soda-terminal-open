@@ -136,59 +136,61 @@ export function ScannerDiagnosticFeedback({
         </button>
         {secondaryAction}
         <p>仅在点击时发送，不含账户和驱动盘资料。</p>
+        <ExplanationPopover
+          key={safe.reportId}
+          label="查看诊断信息"
+          title="扫描诊断"
+          align="start"
+          className="scanner-diagnostic-feedback__details"
+        >
+          <div className="scanner-diagnostic-feedback__guidance">
+            <p>
+              <strong>遇到的问题</strong>
+              <span>{guidance.problem}</span>
+            </p>
+            <p>
+              <strong>可以这样做</strong>
+              <span>{guidance.nextAction}</span>
+            </p>
+          </div>
+          <ul className="scanner-diagnostic-feedback__metadata" aria-label="本次扫描概况">
+            {safe.stage !== 'unknown' ? <li>{stageLabels[safe.stage]}</li> : null}
+            {typeof safe.counts.reviewRequired === 'number' && safe.counts.reviewRequired > 0 ? (
+              <li>需校准 {safe.counts.reviewRequired} 张</li>
+            ) : null}
+            {safe.counts.processed !== null ? (
+              <li>
+                已处理 {safe.counts.processed}
+                {safe.counts.total !== null ? ` / ${safe.counts.total}` : ''} 张
+              </li>
+            ) : safe.counts.total !== null ? (
+              <li>共 {safe.counts.total} 张</li>
+            ) : null}
+            {safe.durationMs !== null ? (
+              <li>耗时 {(safe.durationMs / 1000).toFixed(1)} 秒</li>
+            ) : null}
+          </ul>
+          {currentState?.receivedReportId ? (
+            <p className="scanner-diagnostic-feedback__receipt">
+              <strong>回执编号</strong>
+              <span>{currentState.receivedReportId}</span>
+            </p>
+          ) : null}
+          <p className="scanner-diagnostic-feedback__privacy">仅发送问题信息，保留 30 天。</p>
+          <div className="scanner-diagnostic-feedback__actions">
+            <button className="button button--quiet" type="button" onClick={() => void copy()}>
+              复制诊断
+            </button>
+            <button className="button button--quiet" type="button" onClick={download}>
+              下载诊断
+            </button>
+          </div>
+          {localMessage?.reportKey === reportKey ? (
+            <p aria-live="polite">{localMessage.text}</p>
+          ) : null}
+        </ExplanationPopover>
       </div>
       {currentState?.message ? <p role="status">{currentState.message}</p> : null}
-      <ExplanationPopover
-        key={safe.reportId}
-        label="查看诊断信息"
-        title="扫描诊断"
-        align="start"
-        className="scanner-diagnostic-feedback__details"
-      >
-        <div className="scanner-diagnostic-feedback__guidance">
-          <p>
-            <strong>遇到的问题</strong>
-            <span>{guidance.problem}</span>
-          </p>
-          <p>
-            <strong>可以这样做</strong>
-            <span>{guidance.nextAction}</span>
-          </p>
-        </div>
-        <ul className="scanner-diagnostic-feedback__metadata" aria-label="本次扫描概况">
-          {safe.stage !== 'unknown' ? <li>{stageLabels[safe.stage]}</li> : null}
-          {typeof safe.counts.reviewRequired === 'number' && safe.counts.reviewRequired > 0 ? (
-            <li>需校准 {safe.counts.reviewRequired} 张</li>
-          ) : null}
-          {safe.counts.processed !== null ? (
-            <li>
-              已处理 {safe.counts.processed}
-              {safe.counts.total !== null ? ` / ${safe.counts.total}` : ''} 张
-            </li>
-          ) : safe.counts.total !== null ? (
-            <li>共 {safe.counts.total} 张</li>
-          ) : null}
-          {safe.durationMs !== null ? <li>耗时 {(safe.durationMs / 1000).toFixed(1)} 秒</li> : null}
-        </ul>
-        {currentState?.receivedReportId ? (
-          <p className="scanner-diagnostic-feedback__receipt">
-            <strong>回执编号</strong>
-            <span>{currentState.receivedReportId}</span>
-          </p>
-        ) : null}
-        <p className="scanner-diagnostic-feedback__privacy">仅发送问题信息，保留 30 天。</p>
-        <div className="scanner-diagnostic-feedback__actions">
-          <button className="button button--quiet" type="button" onClick={() => void copy()}>
-            复制诊断
-          </button>
-          <button className="button button--quiet" type="button" onClick={download}>
-            下载诊断
-          </button>
-        </div>
-        {localMessage?.reportKey === reportKey ? (
-          <p aria-live="polite">{localMessage.text}</p>
-        ) : null}
-      </ExplanationPopover>
     </section>
   )
 }

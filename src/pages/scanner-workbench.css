@@ -1,0 +1,516 @@
+.f5v-shell .scanner-task.scanner-workbench {
+  padding: 28px 32px;
+  font-size: 14px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+.f5v-shell .scanner-workbench__page-heading {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  margin: 0;
+}
+.f5v-shell .scanner-workbench .asset-capture-risk {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 12px;
+  margin: 0 0 20px;
+  font-size: 14px;
+  color: var(--f5-muted);
+}
+.f5v-shell .scanner-workbench .asset-capture-risk > svg {
+  flex-shrink: 0;
+}
+.f5v-shell .scanner-workbench .asset-capture-risk a {
+  color: var(--f5-accent);
+  text-underline-offset: 3px;
+}
+
+.f5v-shell .scanner-workbench__heading,
+.f5v-shell .scanner-workbench__method-heading,
+.f5v-shell .scanner-workbench__task-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.f5v-shell .scanner-workbench__heading h1 {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.25;
+}
+.f5v-shell .scanner-workbench__heading p {
+  display: block;
+  margin: 6px 0 0;
+  color: var(--f5-muted);
+}
+.f5v-shell .scanner-workbench__heading {
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.f5v-shell .scanner-workbench__target {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px 20px;
+  margin: 0 0 18px;
+  padding: 0 0 18px;
+  border-bottom: 1px solid var(--f5-line);
+}
+
+.f5v-shell .scanner-workbench__account {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  min-width: 0;
+}
+.f5v-shell .scanner-workbench .scanner-account-picker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  min-width: 0;
+}
+.f5v-shell .scanner-workbench .scanner-account-picker__control {
+  width: clamp(150px, 22vw, 260px);
+  height: 40px;
+  min-height: 40px;
+  max-width: 100%;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+.f5v-shell .scanner-workbench .scanner-account-picker__control .select-menu {
+  width: 100%;
+  min-width: 0;
+}
+.f5v-shell .scanner-workbench .scanner-account-picker__control .filter-select__trigger {
+  height: 40px;
+  min-height: 40px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+.f5v-shell .scanner-workbench .scanner-account-picker__label {
+  flex-shrink: 0;
+  margin: 0;
+  color: var(--f5-muted);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.f5v-shell .scanner-workbench__account-message {
+  flex-basis: 100%;
+  margin: 0;
+}
+.f5v-shell .scanner-workbench__new-account {
+  min-width: 0;
+}
+.f5v-shell .scanner-workbench summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.f5v-shell .scanner-workbench__new-account > summary {
+  color: var(--f5-accent);
+}
+.f5v-shell .scanner-workbench__new-account form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+}
+.f5v-shell .scanner-workbench__new-account.is-empty form {
+  margin-top: 0;
+}
+.f5v-shell .scanner-workbench__new-account.is-empty,
+.f5v-shell .scanner-workbench__new-account.is-empty form {
+  display: contents;
+}
+.f5v-shell .scanner-workbench__new-account input {
+  width: clamp(150px, 22vw, 260px);
+  height: 40px;
+  min-height: 40px;
+}
+.f5v-shell .scanner-workbench__new-account label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  color: var(--f5-muted);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.f5v-shell .scanner-workbench__new-account form > button {
+  height: 40px;
+  min-height: 40px;
+}
+.f5v-shell .scanner-workbench__file-button {
+  width: 168px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0 12px;
+  justify-content: center;
+  white-space: nowrap;
+}
+.f5v-shell .scanner-workbench[data-file-dragging='true'] .scanner-workbench__file-button {
+  outline: 2px dashed var(--f5-accent);
+  outline-offset: 4px;
+  background: var(--f5-accent-soft, #f0edf8);
+}
+.f5v-shell .scanner-workbench input,
+.f5v-shell .scanner-workbench select {
+  max-width: 100%;
+  min-width: 0;
+}
+
+.f5v-shell .scanner-workbench__acquisition > h2,
+.f5v-shell .scanner-workbench__task-heading > h2 {
+  margin: 0 0 14px;
+  font-size: 18px;
+}
+.f5v-shell .scanner-workbench__methods {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 20px;
+  align-items: stretch;
+}
+.f5v-shell .scanner-workbench__method {
+  box-sizing: border-box;
+  min-width: 0;
+  margin: 0;
+  padding: 22px;
+  border: 1px solid var(--f5-line);
+  border-radius: 14px;
+  background: #fff;
+}
+.f5v-shell .scanner-workbench__method-heading h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 16px;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__heading,
+.f5v-shell .scanner-workbench__method-heading {
+  min-height: 30px;
+}
+.f5v-shell .scanner-workbench__method-heading .explanation__trigger,
+.f5v-shell .scanner-workbench .asset-quick-read__guide-entry .explanation__trigger {
+  font-size: 14px;
+  min-height: 30px;
+}
+.f5v-shell .scanner-workbench__scope {
+  margin: 10px 0 14px;
+  color: var(--f5-muted);
+}
+.f5v-shell .scanner-workbench .asset-quick-read--compact > .scanner-workbench__scope {
+  margin: 10px 0 14px;
+  color: var(--f5-muted);
+}
+.f5v-shell .scanner-workbench .scanner-prepare--compact .scanner-prepare__actions,
+.f5v-shell .scanner-workbench .asset-quick-read--compact .asset-quick-read__actions {
+  gap: 10px;
+  margin-top: 0;
+}
+.f5v-shell .scanner-workbench .scanner-prepare--compact .scanner-prepare__actions > button,
+.f5v-shell .scanner-workbench .asset-quick-read--compact .asset-quick-read__actions > .button {
+  box-sizing: border-box;
+  width: 168px;
+  min-width: 0;
+  min-height: 40px;
+  max-width: 100%;
+  padding: 0 12px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.f5v-shell .scanner-workbench .asset-quick-read.asset-quick-read--compact .button.button--primary {
+  border: 0;
+  background: linear-gradient(135deg, #75689f, #625685);
+  color: #fff;
+}
+.f5v-shell .scanner-workbench .asset-quick-read.asset-quick-read--compact .button.button--quiet {
+  color: var(--f5-accent);
+  background: rgba(255, 255, 255, 0.68);
+}
+.f5v-shell .scanner-workbench .asset-quick-read__tool-status {
+  font-weight: 700;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__game-preparation h4,
+.f5v-shell .scanner-workbench .asset-quick-read--compact .asset-quick-read__status {
+  line-height: 1.6;
+}
+.f5v-shell .scanner-workbench .asset-quick-read--compact .asset-quick-read__status {
+  margin: 0 0 6px;
+}
+.f5v-shell .scanner-workbench .asset-quick-read--compact > .asset-quick-read__muted {
+  margin: 0 0 14px;
+  line-height: 1.6;
+}
+.f5v-shell .scanner-workbench .scanner-prepare--compact .scanner-prepare__intro > p:first-of-type,
+.f5v-shell .scanner-workbench .asset-quick-read--compact > .asset-quick-read__muted {
+  min-height: 44.8px;
+}
+.f5v-shell .scanner-workbench__controls {
+  min-width: 0;
+}
+
+.f5v-shell .scanner-workbench__preparation > summary {
+  color: var(--f5-accent);
+  font-size: 14px;
+}
+.f5v-shell .scanner-workbench__preparation[data-condensed='true'][open] > summary {
+  margin-bottom: 14px;
+}
+.f5v-shell .scanner-workbench__preparation > summary[hidden] {
+  display: none;
+}
+.f5v-shell .scanner-workbench__preparation:not([open]) > :not(summary) {
+  display: none;
+}
+.f5v-shell .scanner-workbench__ocr > .scanner-workbench__controls {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.f5v-shell .scanner-workbench__controls:disabled {
+  opacity: 0.72;
+}
+.f5v-shell .scanner-workbench .scanner-prepare--compact {
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.f5v-shell .scanner-workbench .scanner-prepare--compact .scanner-prepare__intro {
+  margin: 0 0 14px;
+}
+.f5v-shell .scanner-workbench .scanner-prepare--compact h4 {
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0 0 6px;
+}
+.f5v-shell .scanner-workbench .scanner-prepare--compact .scanner-prepare__primary {
+  display: block;
+}
+.f5v-shell .scanner-workbench .scanner-prepare--compact .scanner-prepare__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 0;
+}
+.f5v-shell .scanner-workbench .scanner-prepare__requirements {
+  margin: 14px 0;
+}
+.f5v-shell .scanner-workbench .scanner-prepare__requirements ul,
+.f5v-shell .scanner-workbench .scanner-prepare__observations ul {
+  margin: 0;
+  padding-left: 20px;
+}
+.f5v-shell .scanner-workbench .scanner-prepare__gate--compact {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.f5v-shell .scanner-workbench .scanner-prepare__observations {
+  margin: 16px 0 0;
+}
+.f5v-shell .scanner-workbench .scanner-prepare__observations p {
+  margin: 6px 0 0;
+}
+.f5v-shell .scanner-workbench .scanner-prepare--compact .scanner-prepare__feedback {
+  margin-top: 14px;
+}
+
+.f5v-shell .scanner-workbench__file-button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  overflow: hidden;
+  margin-left: auto;
+}
+.f5v-shell .scanner-workbench__file-button input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+}
+.f5v-shell .scanner-workbench__file-button:focus-within {
+  outline: 2px solid var(--f5-accent);
+  outline-offset: 3px;
+}
+.f5v-shell .scanner-workbench__file-button.is-disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+.f5v-shell .scanner-workbench__task {
+  border-top: 1px solid var(--f5-line);
+  padding: 24px 0;
+}
+.f5v-shell .scanner-workbench__task-heading {
+  margin-bottom: 14px;
+}
+.f5v-shell .scanner-workbench__task-heading > h2 {
+  margin: 0;
+}
+.f5v-shell .scanner-workbench__task-heading > span {
+  color: var(--f5-muted);
+}
+.f5v-shell .scanner-workbench__task > .scanner-journey-cards {
+  margin: 0 0 20px;
+}
+.f5v-shell .scanner-workbench__file-check > button {
+  margin: 12px 10px 0 0;
+}
+.f5v-shell .scanner-workbench .scanner-backup-review {
+  padding: 0;
+  background: transparent;
+  border: 0;
+}
+.f5v-shell .scanner-workbench .asset-capture-methods {
+  font-size: 14px;
+  margin-top: 12px;
+  padding: 24px 0 0;
+  border: 0;
+  border-top: 1px solid var(--f5-line);
+  border-radius: 0;
+  background: transparent;
+  scroll-margin-top: 24px;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__recovery {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin: 20px 0 0;
+  padding: 14px 0 0;
+  border: 0;
+  border-top: 1px solid var(--f5-line);
+  border-radius: 0;
+  background: transparent;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__recovery > p {
+  margin: 0;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__recovery > div {
+  flex-basis: 100%;
+}
+.f5v-shell .scanner-workbench .asset-capture-methods h2 {
+  font-size: 18px;
+}
+.f5v-shell .scanner-workbench .asset-capture-methods__card h3 {
+  font-size: 16px;
+}
+.f5v-shell .scanner-workbench .asset-capture-methods__card p,
+.f5v-shell .scanner-workbench .asset-capture-methods__card li {
+  font-size: 14px;
+}
+
+@supports (grid-template-rows: subgrid) {
+  @media (min-width: 641px) {
+    .f5v-shell .scanner-workbench .asset-capture-methods__grid {
+      row-gap: 0;
+    }
+    .f5v-shell .scanner-workbench .asset-capture-methods__card {
+      display: grid;
+      grid-template-rows: subgrid;
+      grid-row: span 6;
+    }
+    .f5v-shell .scanner-workbench .asset-capture-methods__card > h4 {
+      margin: 0 0 6px;
+    }
+    .f5v-shell .scanner-workbench .asset-capture-methods__card > ul {
+      margin: 0;
+    }
+    .f5v-shell .scanner-workbench .asset-capture-methods__card > ul + h4 {
+      margin-top: 18px;
+    }
+  }
+}
+
+@media (max-width: 900px) {
+  .f5v-shell .scanner-task.scanner-workbench {
+    padding: 24px;
+  }
+  .f5v-shell .scanner-workbench__methods {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 520px) {
+  .f5v-shell .scanner-task.scanner-workbench {
+    padding: 18px 14px;
+  }
+  .f5v-shell .scanner-workbench__heading h1 {
+    font-size: 24px;
+  }
+  .f5v-shell .scanner-workbench__account,
+  .f5v-shell .scanner-workbench .scanner-account-picker {
+    width: 100%;
+  }
+  .f5v-shell .scanner-workbench .scanner-account-picker {
+    gap: 8px;
+  }
+  .f5v-shell .scanner-workbench .scanner-account-picker__label {
+    width: 84px;
+  }
+  .f5v-shell .scanner-workbench .scanner-account-picker__control {
+    flex: 1;
+    width: 0;
+  }
+  .f5v-shell .scanner-workbench__method {
+    padding: 18px 14px;
+  }
+  .f5v-shell .scanner-workbench .scanner-prepare--compact .scanner-prepare__actions,
+  .f5v-shell .scanner-workbench .asset-quick-read--compact .asset-quick-read__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .f5v-shell .scanner-workbench .scanner-prepare--compact .scanner-prepare__actions > button,
+  .f5v-shell .scanner-workbench .scanner-prepare--compact .scanner-installer,
+  .f5v-shell .scanner-workbench .scanner-prepare--compact .scanner-installer__control,
+  .f5v-shell .scanner-workbench .scanner-prepare--compact .scanner-prepare__download,
+  .f5v-shell .scanner-workbench .asset-quick-read--compact .asset-quick-read__actions > .button {
+    width: 100%;
+    min-width: 0;
+    flex: 0 0 auto;
+  }
+  .f5v-shell .scanner-workbench__file-button {
+    width: 100%;
+    justify-content: center;
+  }
+  .f5v-shell .scanner-workbench__new-account form > label {
+    width: 100%;
+    gap: 8px;
+  }
+  .f5v-shell .scanner-workbench__new-account input {
+    flex: 1;
+    width: 0;
+  }
+  .f5v-shell .scanner-workbench__new-account form > button {
+    width: 100%;
+  }
+  .f5v-shell .scanner-workbench .scanner-journey-card {
+    padding: 8px;
+    gap: 6px;
+  }
+}

@@ -1,6 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { getActiveAccount } from '../../accounts/repository'
-import { database } from '../../db/database'
+import { database } from '../../db/databaseCore'
 import { lastFullBackupPreference, type AccountState } from './dataCenterTypes'
 
 export function useDataCenterAccountState(revision: number): AccountState {

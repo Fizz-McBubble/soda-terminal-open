@@ -25,7 +25,7 @@ describe('ScannerTargetAccountPicker', () => {
     expect(onSelect).toHaveBeenCalledWith('account-b')
   })
 
-  it('shows one account without a selector', () => {
+  it('keeps a selector visible with only one account', () => {
     render(
       <ScannerTargetAccountPicker
         accounts={[accounts[0]]}
@@ -33,7 +33,39 @@ describe('ScannerTargetAccountPicker', () => {
         onSelect={vi.fn()}
       />,
     )
-    expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
-    expect(screen.getByText('· 12 张驱动盘')).toBeInTheDocument()
+    expect(screen.getByRole('combobox', { name: '本次扫描保存到' })).toHaveValue('account-a')
+    expect(screen.getByRole('combobox')).toHaveTextContent('账户 A · 12 张驱动盘')
+  })
+
+  it('shows account names without repeating counts when the shared row hides counts', () => {
+    render(
+      <ScannerTargetAccountPicker
+        accounts={accounts}
+        selectedAccountId="account-b"
+        onSelect={vi.fn()}
+        showCount={false}
+      />,
+    )
+    expect(screen.getByRole('combobox')).toHaveValue('account-b')
+    expect(screen.getByRole('combobox')).toHaveTextContent('账户 B')
+    expect(screen.queryByText(/张驱动盘/)).not.toBeInTheDocument()
+  })
+
+  it('keeps an empty disabled selector before an account is created', () => {
+    render(<ScannerTargetAccountPicker accounts={[]} selectedAccountId="" onSelect={vi.fn()} />)
+    expect(screen.getByRole('combobox')).toBeDisabled()
+    expect(screen.getByRole('combobox')).toHaveTextContent('请先创建账户')
+  })
+
+  it('locks the selector during a task even with only one account', () => {
+    render(
+      <ScannerTargetAccountPicker
+        accounts={[accounts[0]]}
+        selectedAccountId="account-a"
+        onSelect={vi.fn()}
+        disabled
+      />,
+    )
+    expect(screen.getByRole('combobox')).toBeDisabled()
   })
 })

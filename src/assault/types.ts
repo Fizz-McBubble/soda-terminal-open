@@ -34,6 +34,22 @@ export type OptimizationScenario = {
   }
 }
 
+export type ObservedAgentField =
+  | 'owned'
+  | 'level'
+  | 'ascension'
+  | 'mindscape'
+  | `skillLevels.${'basic' | 'dodge' | 'assist' | 'special' | 'chain' | 'core'}`
+  | `wEngineDetails.${'id' | 'name' | 'level' | 'ascension' | 'refinement'}`
+  | 'equippedDiscIds'
+
+export type ObservedAgentFacts = {
+  schemaVersion: 1
+  source: 'asset_quick_read'
+  protocolVersion: '3.2'
+  fields: Partial<Record<ObservedAgentField, { capturedAt: string; snapshotSha256: string }>>
+}
+
 export type RosterAgent = {
   agentId: string
   owned: boolean
@@ -50,7 +66,9 @@ export type RosterAgent = {
   agentVersion: string
   completeness: 'complete' | 'partial' | 'missing'
   currentEquipment: 'known' | 'unknown'
-  source: 'manual' | 'roster_snapshot' | 'showcase' | 'external_export'
+  source: 'manual' | 'roster_snapshot' | 'showcase' | 'external_export' | 'asset_quick_read'
+  /** Per-field provenance from an explicitly confirmed observation, never a manual override. */
+  observedFacts?: ObservedAgentFacts
   manualSource: 'manual_initial_default' | 'manual_override' | null
   /** Distinguishes a deliberate progression edit from the account baseline projection. */
   progressionManuallySet?: boolean

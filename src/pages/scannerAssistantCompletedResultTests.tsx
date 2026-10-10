@@ -29,7 +29,7 @@ export function registerScannerCompletedResultTests({
     await setActiveAccount(alpha.id, database)
     setRuntimeState('ready')
     const rendered = render(<App />)
-    await screen.findByRole('combobox', { name: '本次扫描保存到' })
+    await screen.findByRole('combobox', { name: '目标账户' })
     const start = screen.getByRole('button', { name: '开始扫描' })
     await waitFor(() => expect(start).toBeEnabled())
     await user.click(start)
@@ -72,8 +72,9 @@ export function registerScannerCompletedResultTests({
     await waitFor(() => expect(runtimeMock.commands.retryConnection).toHaveBeenCalledTimes(1))
     expect(readScannerTargetAccountBinding()).toMatchObject({ valid: false })
     expect(await screen.findByRole('textbox', { name: '新账户名称' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '创建并用于本次扫描' })).toBeDisabled()
-    expect(screen.getByRole('heading', { name: '创建账户，然后开始本地扫描' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '创建并用于本次操作' })).toBeDisabled()
+    expect(screen.getByRole('heading', { name: '扫描助手已连接' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '开始扫描' })).toBeDisabled()
     rendered.unmount()
     render(<App />)
     expect(await screen.findByRole('textbox', { name: '新账户名称' })).toBeInTheDocument()
@@ -117,7 +118,7 @@ export function registerScannerCompletedResultTests({
       'completed',
     )
     expect(screen.queryByRole('group', { name: '账户归属比较' })).not.toBeInTheDocument()
-    const accountPicker = screen.getByRole('status', { name: '本次扫描保存到' })
+    const accountPicker = screen.getByRole('combobox', { name: '目标账户' })
     expect(accountPicker).toHaveTextContent('波子汽水')
     expect(screen.getByRole('button', { name: '确认账户并继续' })).toBeEnabled()
     expect(screen.getByRole('button', { name: '放弃此结果并重新扫描' })).toBeEnabled()
@@ -149,7 +150,7 @@ export function registerScannerCompletedResultTests({
       /reliable|needsReview|unreadable|resultFileHandle|resultStatus|uniqueRecords|totalSeconds/,
     )
     expect(document.querySelector('.scanner-task dialog')).toBeNull()
-    expect(screen.queryByText('已有扫描结果或账户备份？')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('选择本机文件（JSON）')).toBeDisabled()
     expect(screen.getByRole('button', { name: '确认账户并继续' })).toBeEnabled()
   })
 }

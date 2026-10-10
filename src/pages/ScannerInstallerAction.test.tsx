@@ -321,8 +321,38 @@ it('leaves manual connection to the existing parent action after requesting save
   fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
   await waitFor(() => expect(screen.getByRole('status')).toBeVisible())
   expect(screen.getAllByRole('button')).toHaveLength(1)
-  expect(screen.getByRole('button', { name: '重新下载' })).toBeEnabled()
+  expect(screen.getByRole('button', { name: /重新下载/ })).toBeEnabled()
   expect(onConnect).not.toHaveBeenCalled()
+})
+it('defers installation return connection while another task owns the workbench', async () => {
+  const onConnect = vi.fn().mockResolvedValue(undefined)
+  const onAttentionChange = vi.fn()
+  setDownloadFetcher(vi.fn().mockResolvedValue(new Response(executableFixture)))
+  const { rerender } = render(
+    <ScannerInstallerAction
+      distribution={initialDistributionSnapshot}
+      onConnect={onConnect}
+      connectionBlocked
+      onAttentionChange={onAttentionChange}
+    />,
+  )
+  fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
+  await screen.findByRole('button', { name: /重新下载/ })
+  expect(onAttentionChange).toHaveBeenLastCalledWith(true)
+  fireEvent.blur(window)
+  fireEvent.focus(window)
+  expect(onConnect).not.toHaveBeenCalled()
+  rerender(
+    <ScannerInstallerAction
+      distribution={initialDistributionSnapshot}
+      onConnect={onConnect}
+      onAttentionChange={onAttentionChange}
+    />,
+  )
+  fireEvent.focus(window)
+  await waitFor(() => expect(onConnect).toHaveBeenCalledOnce())
+  fireEvent.focus(window)
+  expect(onConnect).toHaveBeenCalledOnce()
 })
 it('ignores premature focus and connects once after leaving the completed download', async () => {
   const { streamController } = streamedDownload()
@@ -343,7 +373,7 @@ it('ignores premature focus and connects once after leaving the completed downlo
     streamController.enqueue(executableFixture)
     streamController.close()
   })
-  await waitFor(() => expect(screen.getByRole('button', { name: '重新下载' })).toBeVisible())
+  await waitFor(() => expect(screen.getByRole('button', { name: /重新下载/ })).toBeVisible())
   fireEvent.focus(window)
   expect(onConnect).not.toHaveBeenCalled()
   fireEvent.blur(window)
@@ -368,12 +398,12 @@ it('handles rejected automatic connection without repeating attempts on focus', 
     <ScannerInstallerAction distribution={initialDistributionSnapshot} onConnect={onConnect} />,
   )
   fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
-  await waitFor(() => expect(screen.getByRole('button', { name: '重新下载' })).toBeVisible())
+  await waitFor(() => expect(screen.getByRole('button', { name: /重新下载/ })).toBeVisible())
   fireEvent.blur(window)
   fireEvent.focus(window)
   expect(onConnect).toHaveBeenCalledOnce()
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('启动助手后点击连接'))
-  expect(screen.getByRole('button', { name: '重新下载' })).toBeEnabled()
+  expect(screen.getByRole('button', { name: /重新下载/ })).toBeEnabled()
   fireEvent.blur(window)
   fireEvent.focus(window)
   expect(onConnect).toHaveBeenCalledOnce()
@@ -408,7 +438,7 @@ it('connects once after a visible return and resets eligibility for a new downlo
     <ScannerInstallerAction distribution={initialDistributionSnapshot} onConnect={onConnect} />,
   )
   fireEvent.click(screen.getByRole('button', { name: '下载扫描助手' }))
-  await waitFor(() => expect(screen.getByRole('button', { name: '重新下载' })).toBeEnabled())
+  await waitFor(() => expect(screen.getByRole('button', { name: /重新下载/ })).toBeEnabled())
   const visibility = vi.spyOn(document, 'visibilityState', 'get')
   visibility.mockReturnValue('hidden')
   fireEvent(document, new Event('visibilitychange'))
@@ -418,9 +448,9 @@ it('connects once after a visible return and resets eligibility for a new downlo
   fireEvent(document, new Event('visibilitychange'))
   fireEvent.focus(window)
   expect(onConnect).toHaveBeenCalledOnce()
-  fireEvent.click(screen.getByRole('button', { name: '重新下载' }))
+  fireEvent.click(screen.getByRole('button', { name: /重新下载/ }))
   await waitFor(() => expect(fetcher).toHaveBeenCalledTimes(2))
-  await waitFor(() => expect(screen.getByRole('button', { name: '重新下载' })).toBeEnabled())
+  await waitFor(() => expect(screen.getByRole('button', { name: /重新下载/ })).toBeEnabled())
   fireEvent.focus(window)
   expect(onConnect).toHaveBeenCalledOnce()
   fireEvent.blur(window)
@@ -448,5 +478,5 @@ it('preserves keyboard focus when completion removes the cancel action', async (
     streamController.enqueue(executableFixture)
     streamController.close()
   })
-  await waitFor(() => expect(screen.getByRole('button', { name: '重新下载' })).toHaveFocus())
+  await waitFor(() => expect(screen.getByRole('button', { name: /重新下载/ })).toHaveFocus())
 })

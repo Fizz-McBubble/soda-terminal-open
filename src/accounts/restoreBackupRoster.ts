@@ -2,6 +2,7 @@ import { createPublicScannerEmptyRoster as createEmptyRoster } from './publicSca
 import { applyRosterSnapshot, type RosterSnapshot } from './publicRosterSnapshot'
 import type { AccountRoster } from '../assault/types'
 import { makeWEngineCopyId } from './publicWEngineInstances'
+import { normalizeObservedAgentFacts } from './observedAgentFacts'
 
 /** Explicit backup restoration is not a partial scanner/showcase merge.
  * Requires the phase-preserving snapshot schema and unknown-identity hydration.
@@ -65,6 +66,8 @@ export function restoreBackupRoster(
       if (!saved) return agent
       const restoredAgent = {
         ...agent,
+        source: saved.source ?? agent.source,
+        observedFacts: normalizeObservedAgentFacts(saved.observedFacts),
         wEngine: saved.wEngine,
         refinement: saved.refinement,
         wEngineCopyId: saved.wEngineCopyId ?? null,

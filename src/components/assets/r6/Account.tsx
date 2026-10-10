@@ -3,6 +3,8 @@ import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import { detectLocalDataFileKind } from '../../../application/localDataFile'
 import type { AssetGoldenProps, BackupPreview } from './types'
 import { SelectMenu } from './SelectMenu'
+import { JsonFileDropTarget } from '../../JsonFileDropTarget'
+import './account-file-drop.css'
 
 export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
   const backupSectionRef = useRef<HTMLElement>(null)
@@ -238,20 +240,34 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
               </button>
             </section>
           ) : null}
-          <section className="backup-history" id="restore-backup" ref={backupSectionRef}>
+          <JsonFileDropTarget
+            className="backup-history"
+            id="restore-backup"
+            ref={backupSectionRef}
+            aria-label="选择或拖入本机备份"
+            disabled={restoring || Boolean(preview)}
+            onFile={choose}
+            onRejected={setOperationError}
+          >
             <header>
               <div>
                 <span className="kicker">恢复资料</span>
                 <h2>选择本机备份</h2>
               </div>
-              <small>检查后再确认恢复。</small>
+              <small>先检查备份内容，确认恢复后才会改动账户。</small>
             </header>
             <div className="backup-row">
               <span>
-                <strong>从本机选择备份文件</strong>
+                <strong>选择或拖入备份文件</strong>
                 <small>账户备份或扫描结果（JSON），自动识别后检查</small>
               </span>
-              <button ref={openerRef} className="quiet" onClick={() => inputRef.current?.click()}>
+              <button
+                ref={openerRef}
+                className="quiet"
+                disabled={restoring}
+                title="支持直接拖入一个 JSON 文件，检查后再确认恢复"
+                onClick={() => inputRef.current?.click()}
+              >
                 {inspecting ? '正在检查，可重新选择' : '选择并检查'}
               </button>
               <input
@@ -266,7 +282,7 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
                 }}
               />
             </div>
-          </section>
+          </JsonFileDropTarget>
           {props.onRestoreAcceptanceAccount ? (
             <section className="acceptance-recovery" aria-labelledby="acceptance-recovery-title">
               <div>

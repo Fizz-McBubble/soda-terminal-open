@@ -4,22 +4,27 @@ import { existsSync, unlinkSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { prepareCommunityShell } from './prepare-community-shell.mjs'
+import {
+  resolveBuildStorage,
+  prepareDerivedTemporaryEnvironment,
+} from './derived-build-storage.mjs'
 
 const appRoot = resolve(fileURLToPath(new URL('..', import.meta.url)))
+const storage = resolveBuildStorage(appRoot)
 const releaseId = process.env.VITE_SODA_RELEASE_ID
 if (!/^[A-Za-z0-9._-]{8,80}$/u.test(releaseId ?? ''))
   throw new Error('VITE_SODA_RELEASE_ID must identify this browser-compute candidate')
-const dist = resolve(process.env.SODA_COMMUNITY_DIST ?? resolve(appRoot, 'node_modules/.tmp/soda-community-dist'))
+const dist = resolve(storage.communityDist)
 const result = spawnSync(
   process.execPath,
   [resolve(appRoot, 'node_modules/vite/bin/vite.js'), 'build', '--outDir', dist, '--emptyOutDir'],
   {
     cwd: appRoot,
     env: {
-      ...process.env,
+      ...prepareDerivedTemporaryEnvironment('community-build', appRoot),
       VITE_SODA_PUBLIC_BUILD: 'false',
       VITE_SODA_COMMUNITY_BUILD: 'true',
-      SODA_DERIVED_ROOT: process.env.SODA_DERIVED_ROOT ?? resolve(appRoot, 'node_modules/.tmp/soda-community'),
+      SODA_DERIVED_ROOT: storage.derivedRoot,
     },
     stdio: 'inherit',
   },

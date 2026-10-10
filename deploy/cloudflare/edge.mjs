@@ -2,6 +2,10 @@
 import reviewed32MediaUrls from '../../src/assets/reviewed32-media-urls.json' with { type: 'json' }
 import { createScanFeedbackReceiver } from './scan-feedback.mjs'
 import { createInstallerDownload, installerPath } from './scanner-installer.mjs'
+import {
+  createAssetQuickReadInstallerDownload,
+  assetQuickReadInstallerPath,
+} from './asset-quick-read-installer.mjs'
 
 const reviewedImageUrls = new Set(Object.values(reviewed32MediaUrls))
 const sources = [
@@ -182,10 +186,12 @@ export function createEdge({
     feedbackStore,
   })
   const installerDownload = createInstallerDownload({ fetcher })
+  const assetQuickReadDownload = createAssetQuickReadInstallerDownload({ fetcher })
   return {
     async fetch(request, env) {
       const url = new URL(request.url)
       if (url.pathname === installerPath) return installerDownload(request)
+      if (url.pathname === assetQuickReadInstallerPath) return assetQuickReadDownload(request)
       if (url.pathname === '/api' || url.pathname.startsWith('/api/'))
         return reply(410, '此站仅提供本机计算，不提供或转发在线计算 API。')
       if (url.pathname === '/_soda/usage') {

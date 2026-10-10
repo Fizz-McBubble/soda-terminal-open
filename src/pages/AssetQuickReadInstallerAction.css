@@ -1,0 +1,20 @@
+.asset-quick-read-installer__download {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.asset-quick-read-installer__progress {
+  width: 120px;
+  max-width: 100%;
+  height: 6px;
+  accent-color: var(--f5-purple, #7d64b4);
+}
+.asset-quick-read-installer__feedback {
+  flex-basis: 100%;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 14px;
+}

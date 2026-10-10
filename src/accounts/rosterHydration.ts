@@ -13,6 +13,8 @@ import {
   resolveRosterPotentialImage,
 } from './rosterFacts'
 import { resolveCurrentReleasedIdentity } from '../gameDataPacks/currentReleasedIdentityMap'
+import { hasObservedAgentField, normalizeObservedAgentFacts } from './observedAgentFacts'
+import type { ObservedAgentField } from '../assault/types'
 
 /**
  * Accepted account projection for a new roster. Defaults are planning inputs, not scanned game
@@ -86,25 +88,39 @@ export function hydrateRosterDefaults(
         const rarity = rosterAgentRarity(fallback.agentId)
         const progressionIsManual =
           existing.progressionManuallySet === true || existing.manualSource === 'manual_override'
+        const observedFacts = normalizeObservedAgentFacts(existing.observedFacts)
         const shouldApplyOwnedBaseline = existing.owned && !progressionIsManual
-        const defaultMindscape = shouldApplyOwnedBaseline && rarity === 'A' ? 6 : existing.mindscape
+        const preserveField = (field: ObservedAgentField) =>
+          // Keep legacy repair behavior for older rows, but never repair deliberate manual
+          // progression in a newly provenance-bearing record as if it were a default fingerprint.
+          (progressionIsManual && Boolean(observedFacts)) ||
+          existing.lockedFields?.includes(field) ||
+          existing.lockedFields?.includes(field.split('.')[0]) ||
+          hasObservedAgentField(existing, field)
+        const defaultMindscape =
+          shouldApplyOwnedBaseline && rarity === 'A' && !preserveField('mindscape')
+            ? 6
+            : existing.mindscape
         const baselineSkillLevels = getDefaultAgentSkillLevels(rarity, defaultMindscape)
         const repairedSkillLevels = repairLegacyMindscapeSkillLevels(
           rarity,
           defaultMindscape,
           existing.skillLevels,
         )
+        const skillLevels = shouldApplyOwnedBaseline
+          ? { ...baselineSkillLevels, core: 7 }
+          : { ...fallback.skillLevels, ...repairedSkillLevels }
+        for (const field of ['basic', 'dodge', 'assist', 'special', 'chain', 'core'] as const) {
+          if (preserveField(`skillLevels.${field}`))
+            skillLevels[field] = existing.skillLevels[field]
+        }
         return {
           ...fallback,
           ...existing,
           agentId: fallback.agentId,
           mindscape: defaultMindscape,
-          skillLevels: shouldApplyOwnedBaseline
-            ? {
-                ...baselineSkillLevels,
-                core: 7,
-              }
-            : { ...fallback.skillLevels, ...repairedSkillLevels },
+          skillLevels,
+          observedFacts,
           potentialImage:
             supportsPotential && existing.owned
               ? resolveRosterPotentialImage(fallback.agentId, existing.potentialImage)
@@ -117,6 +133,7 @@ export function hydrateRosterDefaults(
         .filter((item) => !defaultAgents.has(resolveCurrentReleasedIdentity(item.agentId)))
         .map((item) => ({
           ...item,
+          observedFacts: normalizeObservedAgentFacts(item.observedFacts),
           skillLevels: { ...item.skillLevels },
           wEngineDetails: { ...item.wEngineDetails },
         })),

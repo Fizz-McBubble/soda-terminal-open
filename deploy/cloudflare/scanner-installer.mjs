@@ -25,10 +25,26 @@ function rangeFor(header, size) {
   return { start, end, partial: true }
 }
 
+function validScannerManifest(manifest) {
+  return !(
+    manifest.releaseState !== 'published' ||
+    !Number.isSafeInteger(manifest.size) ||
+    manifest.size <= 0 ||
+    !/^[a-f0-9]{64}$/u.test(manifest.sha256 ?? '') ||
+    !/^\d+\.\d+\.\d+$/u.test(manifest.version ?? '') ||
+    manifest.releaseTag !== `scanner-installer-v${manifest.version}` ||
+    manifest.assetName !== 'Soda-Scanner-Setup.exe' ||
+    manifest.assetUrl !==
+      `https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/${manifest.releaseTag}/${manifest.assetName}`
+  )
+}
+
 /** Stream the one pinned release asset. Never buffer the complete offline package in an isolate. */
-export function createInstallerDownload({
+export function createPinnedInstallerDownload({
   fetcher = globalThis.fetch,
-  manifest = release,
+  manifest,
+  validateManifest,
+  fileName,
   timeoutMs = 600_000,
   concurrency = 32,
 } = {}) {
@@ -37,17 +53,7 @@ export function createInstallerDownload({
     if (!['GET', 'HEAD'].includes(request.method))
       return new Response(null, { status: 405, headers: { allow: 'GET, HEAD' } })
     if (new URL(request.url).search) return new Response(null, { status: 400 })
-    if (
-      manifest.releaseState !== 'published' ||
-      !Number.isSafeInteger(manifest.size) ||
-      manifest.size <= 0 ||
-      !/^[a-f0-9]{64}$/u.test(manifest.sha256 ?? '') ||
-      !/^\d+\.\d+\.\d+$/u.test(manifest.version ?? '') ||
-      manifest.releaseTag !== `scanner-installer-v${manifest.version}` ||
-      manifest.assetName !== 'Soda-Scanner-Setup.exe' ||
-      manifest.assetUrl !==
-        `https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/${manifest.releaseTag}/${manifest.assetName}`
-    )
+    if (!validateManifest(manifest) || !/^[A-Za-z0-9._-]+\.exe$/u.test(fileName))
       return unavailable()
     const ifRange = request.headers.get('if-range')
     const range = rangeFor(
@@ -111,7 +117,7 @@ export function createInstallerDownload({
       const headers = {
         'content-type': 'application/vnd.microsoft.portable-executable',
         'content-length': String(length),
-        'content-disposition': `attachment; filename="Soda-Scanner-Setup-${manifest.version}.exe"`,
+        'content-disposition': `attachment; filename="${fileName}"`,
         'cache-control': 'public, max-age=0, must-revalidate',
         etag: `"${manifest.sha256}"`,
         'accept-ranges': 'bytes',
@@ -174,4 +180,14 @@ export function createInstallerDownload({
       return unavailable()
     }
   }
+}
+
+/** Keep the reviewed OCR API and release policy unchanged. */
+export function createInstallerDownload({ manifest = release, ...options } = {}) {
+  return createPinnedInstallerDownload({
+    ...options,
+    manifest,
+    validateManifest: validScannerManifest,
+    fileName: `Soda-Scanner-Setup-${manifest.version}.exe`,
+  })
 }

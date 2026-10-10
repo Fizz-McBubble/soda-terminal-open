@@ -40,10 +40,10 @@ export function registerScannerRecoveryTests({
       },
     }
     render(<App />)
-    await screen.findByRole('status', { name: '本次扫描保存到' })
+    await screen.findByRole('combobox', { name: '目标账户' }, { timeout: 5000 })
     expect(screen.getByRole('button', { name: '更新扫描助手' })).toBeVisible()
     expect(screen.getByRole('button', { name: '开始扫描' })).toBeDisabled()
-    expect(screen.getByText('请更新扫描助手后再扫描')).toBeInTheDocument()
+    expect(screen.getByText(/请更新扫描助手后再扫描/)).toBeInTheDocument()
     expect(runtimeMock.commands.startScan).not.toHaveBeenCalled()
   })
 
@@ -55,21 +55,21 @@ export function registerScannerRecoveryTests({
     error.name = 'ScannerHelperCompatibilityError'
     runtimeMock.commands.startScan.mockRejectedValueOnce(error)
     render(<App />)
-    await screen.findByRole('status', { name: '本次扫描保存到' })
+    await screen.findByRole('combobox', { name: '目标账户' }, { timeout: 5000 })
     const start = screen.getByRole('button', { name: '开始扫描' })
     await waitFor(() => expect(start).toBeEnabled())
     fireEvent.click(start)
     await screen.findByRole('button', { name: '更新扫描助手' })
-    expect(start).toBeDisabled()
+    expect(screen.getByRole('button', { name: '开始扫描' })).toBeDisabled()
     expect(await screen.findByRole('alert')).toHaveTextContent('请更新扫描助手后再扫描')
     expect(runtimeMock.commands.startScan).toHaveBeenCalledTimes(1)
   })
 
-  it('hides JSON recovery while a scan is running', async () => {
+  it('keeps the shared file entry disabled while a scan is running', async () => {
     setRuntimeState('scanning')
     render(<App />)
     await screen.findByRole('button', { name: '停止本次扫描' })
-    expect(screen.queryByLabelText('选择本机文件（JSON）')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('选择本机文件（JSON）')).toBeDisabled()
   })
   it.each([500, 401])(
     'recovers a completed result HTTP %s without exposing raw helper errors',
@@ -161,9 +161,7 @@ export function registerScannerRecoveryTests({
     fireEvent.click(await screen.findByRole('button', { name: '检查需确认的记录' }))
     await waitFor(() => expect(runtimeMock.commands.requestResultStaging).toHaveBeenCalled())
     fireEvent.click(screen.getByRole('button', { name: '取消读取并返回准备' }))
-    expect(
-      await screen.findByRole('heading', { name: '确认账户，然后开始本地扫描' }),
-    ).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: '扫描助手已连接' })).toBeInTheDocument()
     setRuntimeState('scanning')
     await setActiveAccount(account.id, database)
     rendered.rerender(<App />)

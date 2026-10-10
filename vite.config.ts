@@ -6,6 +6,8 @@ import type { Connect, Plugin } from 'vite'
 import { catalogCodeSplitting } from './build/catalogCodeSplitting'
 import { publicBoundaryAliases } from './build/publicBoundaryBinding'
 import { projectCommunitySourceText } from './build/communitySourceProjection.mjs'
+import { resolveBuildStorage } from './scripts/derived-build-storage.mjs'
+import { assetQuickReadInstallerMiddleware } from './scripts/materialize-asset-quick-read-installer.mjs'
 
 function selectedBoundaryAliases() {
   const isRemotePublic = process.env.VITE_SODA_PUBLIC_BUILD === 'true'
@@ -44,7 +46,7 @@ const officialAssetSources = [
 ] as const
 /** Desktop dev/build cache root. Overridable so a portable or CI checkout never needs the author's
  * absolute path; the production single entry does not use this root at all. */
-const derivedStorageRoot = process.env.SODA_DERIVED_ROOT ?? 'node_modules/.tmp/soda-derived'
+const derivedStorageRoot = resolveBuildStorage().derivedRoot
 
 /**
  * `vite preview` serves the real public dist on an isolated port for the public journey harness.
@@ -188,6 +190,7 @@ export default defineConfig({
       ? { proxy: { '/api': { target: previewApiTarget, changeOrigin: false } } }
       : undefined,
   build: {
+    copyPublicDir: process.env.SODA_FILTER_PUBLIC_DOWNLOADS !== 'true',
     outDir: `${derivedStorageRoot}/vite/dist`,
     emptyOutDir: true,
     rolldownOptions: {
@@ -221,6 +224,12 @@ export default defineConfig({
         : [],
   },
   plugins: [
+    {
+      name: 'soda-asset-quick-read-download',
+      configureServer(server) {
+        server.middlewares.use(assetQuickReadInstallerMiddleware())
+      },
+    },
     communitySourceProjectionPlugin(),
     react(),
     publicEntryPlugin(),

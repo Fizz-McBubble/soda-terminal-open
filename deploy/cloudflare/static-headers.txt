@@ -1,4 +1,4 @@
 /*
   X-Content-Type-Options: nosniff
   Referrer-Policy: no-referrer
-  Content-Security-Policy: default-src 'self'; script-src 'self'; worker-src 'self'; connect-src 'self' http://127.0.0.1:43127; img-src 'self' blob: data: http://127.0.0.1:43127; font-src 'self'; style-src 'self' 'unsafe-inline'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; script-src 'self'; worker-src 'self'; connect-src 'self' http://127.0.0.1:43127 http://127.0.0.1:50609; img-src 'self' blob: data: http://127.0.0.1:43127; font-src 'self'; style-src 'self' 'unsafe-inline'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'

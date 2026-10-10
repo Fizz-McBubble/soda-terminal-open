@@ -4,11 +4,66 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { spawnSync } from 'node:child_process'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import test from 'node:test'
 import { prepare } from './prepare.mjs'
 
 const origin = 'https://sodaterminal.com'
+
+test('quick-read proxy is packaged and routed before assets without a static executable', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'soda-quick-read-package-'))
+  try {
+    const dist = await fixture(root),
+      out = join(root, 'candidate')
+    const report = await prepare({ dist, out, origin })
+    const config = JSON.parse(await readFile(join(out, 'wrangler.json'), 'utf8'))
+    assert(config.assets.run_worker_first.includes('/downloads/Soda-Asset-Quick-Read-Setup.exe'))
+    assert(config.assets.run_worker_first.includes('/downloads/Soda-Scanner-Setup.exe'))
+    assert.equal(report.assetQuickReadInstallerProxy.size, 117896485)
+    for (const path of [
+      'deploy/cloudflare/asset-quick-read-installer.mjs',
+      'deploy/cloudflare/asset-quick-read-release.mjs',
+      'src/assetQuickRead/releaseManifest.json',
+    ])
+      assert((await readFile(join(out, path))).length > 0)
+    const { createEdge } = await import(pathToFileURL(join(out, 'deploy/cloudflare/edge.mjs')).href)
+    let fetched
+    const edge = createEdge({
+      fetcher: async (url) => {
+        fetched = url
+        return new Response(null, {
+          headers: { 'content-type': 'application/octet-stream', 'content-length': '117896485' },
+        })
+      },
+    })
+    const response = await edge.fetch(
+      new Request(`${origin}/downloads/Soda-Asset-Quick-Read-Setup.exe`, { method: 'HEAD' }),
+      {
+        ASSETS: {
+          fetch: () => {
+            throw new Error('must not fall back to assets')
+          },
+        },
+      },
+    )
+    assert.equal(response.status, 200)
+    assert.equal(fetched, report.assetQuickReadInstallerProxy.url)
+    assert(!report.files.some((file) => file.path.endsWith('.exe')))
+    await mkdir(join(dist, 'downloads'))
+    const bytes = new Uint8Array([0x4d, 0x5a, 1, 2, 3, 4, 5, 6])
+    await writeFile(join(dist, 'downloads/Soda-Asset-Quick-Read-Setup.exe'), bytes)
+    await assert.rejects(
+      prepare({ dist, out: join(root, 'invalid'), origin }),
+      /asset_quick_read_installer_size_mismatch/,
+    )
+    assert.deepEqual(
+      new Uint8Array(await readFile(join(dist, 'downloads/Soda-Asset-Quick-Read-Setup.exe'))),
+      bytes,
+    )
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
 async function fixture(root) {
   const dist = join(root, 'dist')
   await mkdir(join(dist, 'assets'), { recursive: true })
@@ -59,7 +114,10 @@ test('explicit production switch enables custom logs without invocation logs/tra
     assert(config.assets.run_worker_first.includes('/_soda/*'))
     const headers = await readFile(join(out, 'web/_headers'), 'utf8')
     assert.equal(headers.match(/script-src ([^;]+)/u)?.[1], "'self'")
-    assert.equal(headers.match(/connect-src ([^;]+)/u)?.[1], "'self' http://127.0.0.1:43127")
+    assert.equal(
+      headers.match(/connect-src ([^;]+)/u)?.[1],
+      "'self' http://127.0.0.1:43127 http://127.0.0.1:50609",
+    )
     assert.equal(config.analytics_engine_datasets, undefined)
     assert.equal(config.d1_databases, undefined)
   } finally {

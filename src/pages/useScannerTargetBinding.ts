@@ -199,7 +199,7 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
       setSelectedAccountId(account.id)
       setNewAccountName('')
       refreshAccounts()
-      setAccountMessage(`已创建独立账户“${account.displayName}”，请确认后开始扫描。`)
+      setAccountMessage(`已创建“${account.displayName}”，本次操作将保存到此账户。`)
     } catch (error) {
       setAccountMessage(error instanceof Error ? error.message : '无法创建账户。')
     }
@@ -417,8 +417,9 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
     }
   }
 
-  async function handOffFallbackJson() {
-    if (!selectedJson || bindingPendingRef.current || readRef.current) return
+  async function handOffFallbackJson(file?: File) {
+    const candidate = file ?? selectedJson
+    if (!candidate || bindingPendingRef.current || readRef.current) return
     bindingPendingRef.current = true
     const generation = readGenerationRef.current
     const assertCurrent = () => {
@@ -428,7 +429,7 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
     setHandoffState({ status: 'working', message: '正在确认接收账户。' })
     try {
       const binding = await freezeSelectedTarget(assertCurrent)
-      await handOffResult(binding, selectedJson)
+      await handOffResult(binding, candidate)
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') return
       const message = error instanceof Error ? error.message : '无法锁定扫描目标账户。'

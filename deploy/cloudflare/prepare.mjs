@@ -7,6 +7,13 @@ import {
   validatePublicOrigin,
 } from '../../scripts/materialize-scanner-distribution.mjs'
 import scanFeedbackContract from '../../src/scanner/scanFeedback.contract.json' with { type: 'json' }
+import {
+  assetQuickReadInstallerPath,
+  assetQuickReadInstallerRelease,
+  assetQuickReadInstallerUrl,
+  validAssetQuickReadRelease,
+} from './asset-quick-read-release.mjs'
+import { verifyBundledAssetQuickReadInstaller } from './asset-quick-read-distribution.mjs'
 
 export const wranglerVersion = '4.141.0'
 const here = dirname(fileURLToPath(import.meta.url))
@@ -62,7 +69,7 @@ function forbidden(path, isDirectory = false) {
     ['package.json', 'pnpm-lock.yaml', 'package-lock.json'].includes(path)
   )
 }
-async function inventory(root, base = '') {
+async function inventory(root, base = '', allowAssetQuickReadInstaller = false) {
   const result = []
   for (const item of await readdir(resolve(root, base), { withFileTypes: true })) {
     const path = base ? `${base}/${item.name}` : item.name
@@ -70,8 +77,13 @@ async function inventory(root, base = '') {
     const info = await lstat(full)
     if (info.isSymbolicLink() || (!info.isFile() && !info.isDirectory()))
       throw new Error(`asset_not_regular:${path}`)
+    if (allowAssetQuickReadInstaller && path === assetQuickReadInstallerPath.slice(1)) {
+      await verifyBundledAssetQuickReadInstaller(full)
+      continue
+    }
     if (forbidden(path, info.isDirectory())) throw new Error(`non_distribution_file:${path}`)
-    if (info.isDirectory()) result.push(...(await inventory(root, path)))
+    if (info.isDirectory())
+      result.push(...(await inventory(root, path, allowAssetQuickReadInstaller)))
     else {
       if (info.size > MAX_FILE) throw new Error(`asset_over_25MiB:${path}`)
       const bytes = await readFile(full)
@@ -89,11 +101,14 @@ function browserMarker(html) {
       /\bcontent\s*=\s*['"]browser['"]/iu.test(tag),
   )
 }
-export async function inspectDist(dist, { allowScannerTemplate = false, origin } = {}) {
+export async function inspectDist(
+  dist,
+  { allowScannerTemplate = false, allowAssetQuickReadInstaller = false, origin } = {},
+) {
   const root = resolve(dist)
   if (!(await lstat(root)).isDirectory() || (await lstat(root)).isSymbolicLink())
     throw new Error('dist_must_be_real_directory')
-  const files = await inventory(root)
+  const files = await inventory(root, '', allowAssetQuickReadInstaller)
   const scannerFiles = [
     'downloads/Soda-Scanner-Bootstrap.cmd',
     'downloads/scanner-runtime-bootstrap.ps1',
@@ -252,12 +267,18 @@ export async function prepare({
     output = resolve(out)
   if (within(output, input) || within(input, output) || within(output, here))
     throw new Error('output_overlaps_input_or_tools')
-  const report = await inspectDist(input, { allowScannerTemplate: true })
+  if (!validAssetQuickReadRelease()) throw new Error('asset_quick_read_release_invalid')
+  const report = await inspectDist(input, {
+    allowScannerTemplate: true,
+    allowAssetQuickReadInstaller: true,
+  })
   if (report.files.some((file) => file.path === 'downloads/Soda-Scanner-Bootstrap.cmd'))
     validatePublicOrigin(origin)
   const config = JSON.parse(await readFile(resolve(here, 'wrangler.template.json'), 'utf8'))
   const staticHeaders = await readFile(resolve(here, 'static-headers.txt'), 'utf8')
   config.name = name
+  if (!config.assets.run_worker_first.includes(assetQuickReadInstallerPath))
+    config.assets.run_worker_first.push(assetQuickReadInstallerPath)
   if (customDomain) config.routes = [{ pattern: customDomain, custom_domain: true }]
   if (accountId) config.account_id = accountId
   config.vars = { SODA_RELEASE_ID: report.releaseId }
@@ -284,7 +305,13 @@ export async function prepare({
   // Exclusive destination: never overwrite a previous candidate.
   await mkdir(output)
   try {
-    await cp(input, resolve(output, 'web'), { recursive: true, errorOnExist: true, force: false })
+    await cp(input, resolve(output, 'web'), {
+      recursive: true,
+      errorOnExist: true,
+      force: false,
+      filter: (source) =>
+        relative(input, source).split(sep).join('/') !== assetQuickReadInstallerPath.slice(1),
+    })
     // Recheck the copied tree rather than assume input stayed unchanged during copy.
     const web = resolve(output, 'web')
     const copied = await inspectDist(web, { allowScannerTemplate: true })
@@ -309,12 +336,21 @@ export async function prepare({
       ...upload,
       sourceInventorySha256: report.inventorySha256,
       staticHeadersSha256: hash(staticHeaders),
+      assetQuickReadInstallerProxy: {
+        path: assetQuickReadInstallerPath,
+        url: assetQuickReadInstallerUrl,
+        size: assetQuickReadInstallerRelease.size,
+        sha256: assetQuickReadInstallerRelease.sha256,
+      },
     }
     // Preserve module-relative imports and copy only the edge's reviewed policy and scanner contract dependencies.
     for (const path of [
       'deploy/cloudflare/edge.mjs',
       'deploy/cloudflare/scan-feedback.mjs',
       'deploy/cloudflare/scanner-installer.mjs',
+      'deploy/cloudflare/asset-quick-read-installer.mjs',
+      'deploy/cloudflare/asset-quick-read-release.mjs',
+      'src/assetQuickRead/releaseManifest.json',
       'public/downloads/scanner-installer-release.v1.json',
       'src/assets/reviewed32-media-urls.json',
       'src/scanner/scanFeedback.contract.json',

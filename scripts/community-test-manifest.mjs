@@ -17,6 +17,19 @@ export const incremental32CommunityTests = Object.freeze([
 ])
 
 export const communityTests = Object.freeze([
+  'src/accounts/observedAgentFacts.test.ts',
+  'src/components/JsonFileDropTarget.test.tsx',
+  'src/components/assets/r6/Account.file-drop.test.tsx',
+  'src/pages/AssetCaptureMethodsNotice.test.tsx',
+  'src/assetQuickRead/snapshotAdapter.test.ts',
+  'src/assetQuickRead/accountImport.test.ts',
+  'src/assetQuickRead/bridgeClient.test.ts',
+  'src/assetQuickRead/launcher.test.ts',
+  'src/pages/AssetQuickReadController.test.tsx',
+  'src/pages/AssetQuickReadEntry.test.tsx',
+  'src/pages/AssetQuickReadInstallerAction.test.tsx',
+  'src/pages/ScannerAccountBackupReview.test.tsx',
+  'src/pages/ScannerAssistantPage.workbench.test.tsx',
   'src/db/scanManualCalibration.database.test.ts',
   'src/pages/ScannerAssistantPage.calibration.test.tsx',
   'src/pages/ScannerAssistantPage.import-review.test.tsx',
