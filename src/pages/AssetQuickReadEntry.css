@@ -348,6 +348,15 @@
   white-space: nowrap;
 }
 
+.asset-quick-read--compact .asset-quick-read-installer__download {
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.asset-quick-read--compact .asset-quick-read-installer__download > svg {
+  display: none;
+}
+
 /* Match the scanner's shared button contract, overriding the older quick-read surface rule. */
 .asset-quick-read.asset-quick-read--compact .button.button--primary,
 .asset-quick-read__task .button.button--primary {
