@@ -23,7 +23,7 @@
     "deploy/cloudflare/scan-feedback.test.mjs": "4145fda3e4f0e3c4657b62966f5e4c8be2c986ce441429c19c7276f728871e0f",
     "deploy/cloudflare/scanner-installer.mjs": "686920261dc0ceceaa151955b85996f4e3202f85c5cfcb8133cd3007645cc105",
     "deploy/cloudflare/scanner-installer.test.mjs": "ec1954669585386325f28339c87affa5941cbcbbc5294d241e118a8cd4888d79",
-    "deploy/cloudflare/smoke.mjs": "2a14c2149a8f9ca3709b2025a0708f370f2e07333f4808677e8ea550696f692f",
+    "deploy/cloudflare/smoke.mjs": "9f75af90a7ca62f6d1809800642063ee44e16cdb511cb93b016e83797516ab40",
     "deploy/cloudflare/static-headers.txt": "3d08aeb91fe9c3ad4e17ddfaed3b6a885998a245cbe231493ff0d3512b5b783f",
     "deploy/cloudflare/wrangler.template.json": "cfa3a9bb679468b6141df5931adb6656079f75073cc39d5cb21eadeeaaef1644",
     "deploy/open-source/LICENSE": "c93eb75f7bdb2b310fd10fb5c9064e0716b1d17397979fb562c4848e2ec1f8bf",
