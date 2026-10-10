@@ -217,6 +217,10 @@ export interface QualityEvidence {
   readonly weightEvidence: Profile['weightEvidence'] | null
   readonly investment: {
     readonly policyId: string | null
+    /** Local approved exception; the global investment policy identity is retained. */
+    readonly calibrationId?: string | null
+    readonly minimumLines?: number | null
+    readonly requiredCoreStats?: readonly string[]
     readonly qualified: boolean | null
     readonly meaningfulStats: readonly string[]
     readonly coreStats: readonly string[]

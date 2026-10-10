@@ -122,6 +122,7 @@ export const communityTests = Object.freeze([
   "src/warehouse/absoluteDiscRetentionUseFacts.test.ts",
   "src/warehouse/absoluteDiscRetentionStages.test.ts",
   "src/warehouse/absoluteDiscRetentionCapacity.test.ts",
+  "src/warehouse/absoluteDiscRetentionInvestmentCalibration.test.ts",
   "src/warehouse/absoluteDiscRetentionWitness.test.ts",
   "src/warehouse/absoluteDiscRetentionFunctionalGrowth.test.ts",
   "src/warehouse/absoluteDiscRetentionCompiler.test.ts",

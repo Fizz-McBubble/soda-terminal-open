@@ -8,6 +8,7 @@ import type {
   SetFacts,
 } from './absoluteDiscRetentionContract'
 import { noFunctionalSubstatGoalMethod } from './absoluteDiscRetentionContract'
+import { resolveNamedInvestmentCalibration } from './absoluteDiscRetentionInvestmentCalibration'
 
 /** Named dependencies are returned in full, rather than hidden behind the top three scores. */
 export function enrichRetentionEvidence(input: {
@@ -190,8 +191,10 @@ export function enrichRetentionEvidence(input: {
     floorFraction <= 1
       ? cutoffs.cleanupBelow * floorFraction
       : null
+  const namedCalibration = resolveNamedInvestmentCalibration(disc, profile, rules, policy)
   const minimumLines =
-    disc.slot <= 3 ? investment?.leftSlotMinimumLines : investment?.rightSlotMinimumLines
+    namedCalibration?.minimumLines ??
+    (disc.slot <= 3 ? investment?.leftSlotMinimumLines : investment?.rightSlotMinimumLines)
   const potentialTarget =
     functionalState === 'needs_level' || functionalState === 'ready'
       ? null
@@ -252,6 +255,7 @@ export function enrichRetentionEvidence(input: {
           : configured && progressFloor !== null
             ? meaningfulStats.length >= minimumLines! &&
               coreStats.length >= investment!.minimumCoreLines &&
+              (!namedCalibration || coreStats.includes(namedCalibration.requiredCoreStat)) &&
               input.currentScore + 1e-8 >= progressFloor &&
               potentialTarget !== null &&
               input.possibleUpper + 1e-8 >= potentialTarget
@@ -270,6 +274,9 @@ export function enrichRetentionEvidence(input: {
     weightEvidence: profile.weightEvidence ?? null,
     investment: {
       policyId: investment?.id ?? null,
+      calibrationId: namedCalibration?.id ?? null,
+      minimumLines: minimumLines ?? null,
+      requiredCoreStats: namedCalibration ? [namedCalibration.requiredCoreStat] : [],
       qualified,
       meaningfulStats,
       coreStats,

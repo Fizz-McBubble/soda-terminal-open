@@ -84,9 +84,11 @@ export function retentionUseGuidance(
       .filter((entry) => !matched.includes(entry.stat))
       .map((entry) => entry.stat),
     minimumLines:
+      use.investment.minimumLines ??
       (disc.slot <= 3
         ? policy.investment?.leftSlotMinimumLines
-        : policy.investment?.rightSlotMinimumLines) ?? null,
+        : policy.investment?.rightSlotMinimumLines) ??
+      null,
     minimumCoreLines: policy.investment?.minimumCoreLines ?? null,
     twoPieceEffect: set?.twoPieceEffect ?? null,
     fourPieceEffect: set?.fourPieceEffect ?? null,
