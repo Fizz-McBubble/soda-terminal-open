@@ -119,6 +119,7 @@ function AccountBoundQuickRead({
 }: Props) {
   const [client] = useState<Bridge>(() => suppliedClient ?? new AssetQuickReadBridgeClient())
   const [connected, setConnected] = useState(false)
+  const [toolVersion, setToolVersion] = useState<string | undefined>()
   const [directory, setDirectory] = useState('')
   const [state, setState] = useState<AssetQuickReadState>('idle')
   const [job, setJob] = useState<AssetBridgeJob | null>(null)
@@ -273,8 +274,9 @@ function AccountBoundQuickRead({
     connectionAbort.current = controller
     setError('')
     try {
-      await client.connect({ launchIfMissing, signal: controller.signal })
+      const health = await client.connect({ launchIfMissing, signal: controller.signal })
       if (scope === generation.current) {
+        setToolVersion(health.version)
         setConnected(true)
         setState('idle')
       }
@@ -627,6 +629,7 @@ function AccountBoundQuickRead({
       riskNoticeHref={riskNoticeHref}
       blocked={blocked || operation !== null || restoring || selecting || downloading}
       capability={connected ? 'ready' : 'unavailable'}
+      toolVersion={connected ? toolVersion : undefined}
       state={state}
       installationDirectory={directory}
       onDirectoryChange={setDirectory}

@@ -56,6 +56,11 @@ it('streams exact installer bytes, supports cancel/retry and prepares a file wit
   )
   vi.stubGlobal('fetch', fetcher)
   render(<AssetQuickReadInstallerAction release={release} />)
+  expect(screen.getByRole('button', { name: '下载独立工具' })).toHaveAttribute(
+    'title',
+    `独立工具 v${release.version}`,
+  )
+  expect(screen.getByText(`v${release.version}`)).toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: '下载独立工具' }))
   await act(async () => stream.enqueue(executable.subarray(0, 4)))
   await waitFor(() => expect(screen.getByRole('progressbar')).toHaveAttribute('value', '4'))

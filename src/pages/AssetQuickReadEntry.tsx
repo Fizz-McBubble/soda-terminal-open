@@ -9,6 +9,7 @@ import {
   ShieldCheck,
 } from 'lucide-react'
 import { ExplanationPopover } from '../components/ExplanationPopover'
+import { assetQuickReadRelease } from '../assetQuickRead/distribution'
 import './AssetQuickReadEntry.css'
 
 export type AssetQuickReadState =
@@ -40,6 +41,7 @@ export interface AssetQuickReadPreview {
 export interface AssetQuickReadEntryProps {
   /** Only the real independent tool adapter may report ready. */
   capability?: 'unavailable' | 'ready'
+  toolVersion?: string
   /** Controlled by the adapter; this component never simulates capture or a deadline. */
   state?: AssetQuickReadState
   onConnect?: () => void | Promise<void>
@@ -132,6 +134,7 @@ export function AssetQuickReadEntry({
   riskNoticeHref,
   installer,
   downloadAvailable = false,
+  toolVersion,
   renderParts,
 }: AssetQuickReadEntryProps) {
   const headingId = useId()
@@ -268,6 +271,7 @@ export function AssetQuickReadEntry({
             className="asset-quick-read__guide-entry"
             align="start"
           >
+            <p>快读工具 v{assetQuickReadRelease.version}；目前已验证国服 Windows 3.2。</p>
             <p>先完成游戏更新及首次着色器编译（Shader），再完全退出游戏客户端。</p>
             <p>
               工具实际就绪后，才完整启动游戏并登录。最长等待 180
@@ -317,7 +321,9 @@ export function AssetQuickReadEntry({
   const scope = (
     <>
       {renderParts ? (
-        <p className="scanner-workbench__scope">代理人养成与 S 级驱动盘 · 需重启登录</p>
+        <p className="scanner-workbench__scope">
+          代理人养成与 S 级驱动盘 · 需重启登录 · 最长 3 分钟，读到即完成
+        </p>
       ) : (
         <p>
           读取已拥有代理人的真实养成和 S
@@ -341,6 +347,9 @@ export function AssetQuickReadEntry({
           '独立工具已连接，可准备本次快读。'
         ) : (
           stateCopy[state]
+        )}
+        {capability === 'ready' && state === 'idle' && toolVersion && (
+          <span className="asset-quick-read__tool-version">v{toolVersion}</span>
         )}
         {pendingAction === 'start' && state === 'idle' && (
           <p>正在提交本次启动请求，请等待工具反馈。</p>
@@ -849,6 +858,9 @@ export function AssetQuickReadEntry({
           ) : (
             <p className="asset-quick-read__tool-status">
               <strong>{capability === 'ready' ? '独立工具已连接' : '独立工具未连接'}</strong>
+              {capability === 'ready' && toolVersion && (
+                <span className="asset-quick-read__tool-version">v{toolVersion}</span>
+              )}
             </p>
           )}
           {capability !== 'ready' && (

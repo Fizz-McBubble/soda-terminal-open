@@ -151,7 +151,7 @@ export function AssetQuickReadInstallerAction({
         ref={downloadButton}
         className="button button--quiet asset-quick-read-installer__download"
         type="button"
-        title={!available ? '独立安装包尚未发布，当前不能下载。' : undefined}
+        title={!available ? '独立安装包尚未发布，当前不能下载。' : `独立工具 v${release.version}`}
         disabled={!available || blocked || pending || connecting}
         onClick={() => void download()}
       >
@@ -163,6 +163,11 @@ export function AssetQuickReadInstallerAction({
             : connected
               ? '更新独立工具'
               : '下载独立工具'}
+        {!pending && available && (
+          <small className="asset-quick-read-installer__version" aria-hidden="true">
+            v{release.version}
+          </small>
+        )}
       </button>
       {pending && (
         <>

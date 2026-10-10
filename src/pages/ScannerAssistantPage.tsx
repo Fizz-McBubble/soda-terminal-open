@@ -786,7 +786,9 @@ function HydratedScannerAssistantPage({
                         </h3>
                         <ScannerGuide />
                       </header>
-                      <p className="scanner-workbench__scope">S 级驱动盘 · 无需重新登录</p>
+                      <p className="scanner-workbench__scope">
+                        S 级驱动盘 · 无需重新登录 · 约 140 张/分钟
+                      </p>
                       {scannerReviewPending ? (
                         <p role="status">扫描结果已收到，请在下方完成检查或放弃本次结果。</p>
                       ) : scannerBusy && !actionPending ? (
