@@ -1040,7 +1040,7 @@
     "src/pages/AssetCenterPage.tsx": "29e543cc949241b5b01974832f354b19fb11301f6f3149859dd46f982208479f",
     "src/pages/AssetQuickReadController.test.tsx": "756c7ec9c870d6a6169803a93ee1f77963cc2f522bd2ea1ce957facca8e6e565",
     "src/pages/AssetQuickReadController.tsx": "76275d7db01923a2615219e33f511fca2d29fe0bc2acfafa86f767f4ed4005ae",
-    "src/pages/AssetQuickReadEntry.css": "4c081c1fc6d365dcbca8ab7e7c1bb86ec6b436b27b31e03222d24a83593b2a9f",
+    "src/pages/AssetQuickReadEntry.css": "382e054dcab0b9ddbb220fc767f54ff55f5a790afcc58bedbf146832c29c9a9c",
     "src/pages/AssetQuickReadEntry.test.tsx": "ab8805d595c0eaaf8a5dce883345c68b37ade0c570f95079f26a69e410f6a337",
     "src/pages/AssetQuickReadEntry.tsx": "0e910913afbfb3563e6ff1313b6d72d2bde6e9d5ee2515790a195e9cfb418cd0",
     "src/pages/AssetQuickReadInstallerAction.css": "88791bbb70dcd11b1d756ef5cb412c6f27f2edf91966e89dddbf01770f472820",

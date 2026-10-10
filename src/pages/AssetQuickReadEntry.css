@@ -374,6 +374,6 @@
 
 .asset-quick-read.asset-quick-read--compact .asset-quick-read__actions > .button,
 .asset-quick-read__task .asset-quick-read__actions > .button {
-  min-height: 40px;
+  min-height: 42px;
   font-size: 14px;
 }
