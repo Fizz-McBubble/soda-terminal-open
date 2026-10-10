@@ -1150,7 +1150,7 @@
     "src/pages/scanner-guide.css": "c1afa24d67f77111de05d505d98e5c9fb5063d165c07534e0cb4ebf437dda926",
     "src/pages/scanner-installer-action.css": "82fba730eda1cb6f0820d721dfc9c286199aa0b0e19d9d0553b2e4d01593096d",
     "src/pages/scanner-manual-calibration.css": "c2bd0401f33fbd00fe0539751552d3ac96c80cb7a8dedb16fa624993f741ccb2",
-    "src/pages/scanner-workbench.css": "eb44c143bfbfc42cc36828cba12bb3be37f48842501ab067bb876947678cdfcb",
+    "src/pages/scanner-workbench.css": "49197a91fd923c393153058b09ef61a547e1d20d8a85a501faf88ee75d1c1f61",
     "src/pages/ScannerAccountBackupReview.test.tsx": "f4f59eecf5236685ec96ba0a440b9a75be461321e91f4fcf0d873558cfb5c5a1",
     "src/pages/ScannerAccountBackupReview.tsx": "c758dc54c0cdf5fa9f0dbe834ce3fc2396ed0f8c31a0a324f7de61193ffe3f87",
     "src/pages/ScannerAccountHydrationGate.tsx": "1fd59630eb56c3e7f603c893861300eef8f5257c60275fa23b19c518690fd271",

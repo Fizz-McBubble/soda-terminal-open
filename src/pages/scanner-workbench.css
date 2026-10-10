@@ -229,7 +229,7 @@
   box-sizing: border-box;
   width: 168px;
   min-width: 0;
-  min-height: 40px;
+  min-height: var(--soda-control-height, 42px);
   max-width: 100%;
   padding: 0 12px;
   font-size: 14px;
