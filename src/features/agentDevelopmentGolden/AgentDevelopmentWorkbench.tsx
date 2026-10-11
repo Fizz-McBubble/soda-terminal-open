@@ -286,7 +286,7 @@ export function Workbench({
             </div>
           )}
           <div className="loadout-recommendation-grid" data-motion-scheme-content>
-            <DevelopmentDiscGuide guide={subject.graduation.discs} />
+            <DevelopmentDiscGuide key={subject.agentId} guide={subject.graduation.discs} />
           </div>
         </section>
       </div>

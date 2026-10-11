@@ -1,4 +1,4 @@
-import { getVisualAsset, visualAssetManifest } from '../assets/visualAssets'
+import { getVisualAsset } from '../assets/visualAssets'
 import { agentCatalog, bangbooCatalog } from '../assault/catalogData'
 import wEngineCatalog from '../assault/data/wEngineCatalog.3.0.json'
 import { driveDiscData } from '../data/gameData'
@@ -160,7 +160,9 @@ const namedReleaseDateGaps = namedCatalogFacts
 
 const core = {
   gameVersion: '3.0' as const,
-  sourceVersion: `${visualAssetManifest.packVersion}+asset-source-ledger.v${sourceLedger.schemaVersion}`,
+  // Preserve the released catalog identity when only image/cache variants change.
+  // The entries and their source hashes still bind actual catalog-data changes.
+  sourceVersion: `zzz-visual-assets-3.1.12+asset-source-ledger.v${sourceLedger.schemaVersion}`,
   entries: [...entries, ...namedCatalogFacts],
   missing: [...missingReleaseDates, ...namedReleaseDateGaps, ...missingOfficialWEngines],
 }

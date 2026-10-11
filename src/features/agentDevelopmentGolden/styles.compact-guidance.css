@@ -179,6 +179,20 @@
   font-weight: 650;
   user-select: none;
 }
+.f5v-shell .disc-guide .disc-guide__more {
+  width: max-content;
+  padding: 2px 6px;
+  border: 0;
+  background: transparent;
+  color: var(--soda-text-2);
+  font-size: var(--soda-type-meta);
+  line-height: 1.6;
+  cursor: pointer;
+}
+.f5v-shell .disc-guide .disc-guide__more:hover {
+  color: var(--soda-text);
+  text-decoration: underline;
+}
 .f5v-shell .disc-guide .recommendation-square-group {
   width: max-content;
   gap: 2px;

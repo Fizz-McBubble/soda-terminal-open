@@ -1,4 +1,4 @@
-import { Fragment } from 'react'
+import { Fragment, useState } from 'react'
 import { VisualEntityImage } from '../../components/VisualEntityImage'
 import { ExplanationPopover } from '../../components/ExplanationPopover'
 import { EffectDescription } from '../../components/EffectDescription'
@@ -26,6 +26,19 @@ type DiscOption = Pick<
 const effectKey = (piece: { entityId: string; count: number; effect: string }) =>
   JSON.stringify([piece.entityId, piece.count, piece.effect])
 
+const purposeOrder = (option: DiscOption) =>
+  option.recommendationPurpose === 'historical'
+    ? 2
+    : option.recommendationPurpose === 'conditional'
+      ? 1
+      : 0
+const sourcePriority = (option: DiscOption) =>
+  option.recommendationExplicitlyRanked && Number.isFinite(option.recommendationPriority)
+    ? option.recommendationPriority!
+    : Infinity
+const secondaryOrder = (option: DiscOption) => option.twoPiecePriority?.order ?? Infinity
+const previewLimit = 3
+
 function optionPriorityLabel(set: DiscOption, hasSharedPrimary: boolean) {
   if (set.recommendationPurpose === 'conditional') return '条件搭配'
   if (set.recommendationPurpose === 'historical') return '历史参考'
@@ -38,6 +51,18 @@ function optionPriorityLabel(set: DiscOption, hasSharedPrimary: boolean) {
 
 /** Keep choices visible and the complete explanation beside the choice it describes. */
 export function DevelopmentDiscGuide({ guide }: { guide: DiscGuide }) {
+  const guideKey = JSON.stringify(guide)
+  const [expansion, setExpansion] = useState({
+    guideKey,
+    directions: false,
+    secondary: [] as string[],
+  })
+  const currentExpansion =
+    expansion.guideKey === guideKey
+      ? expansion
+      : { guideKey, directions: false, secondary: [] as string[] }
+  if (expansion.guideKey !== guideKey) setExpansion(currentExpansion)
+  const showAllDirections = currentExpansion.directions
   const rawOptions: DiscOption[] = guide.sets.map((set) =>
     set.pieces
       ? { ...set, pieces: set.pieces }
@@ -49,12 +74,23 @@ export function DevelopmentDiscGuide({ guide }: { guide: DiscGuide }) {
           ],
         },
   )
+  // Source priority is only a presentation order, never a calculated output ranking.
+  rawOptions.sort(
+    (left, right) =>
+      purposeOrder(left) - purposeOrder(right) ||
+      sourcePriority(left) - sourcePriority(right) ||
+      secondaryOrder(left) - secondaryOrder(right),
+  )
   const commonPrimary =
     rawOptions.length > 0 &&
     rawOptions.every((option) => option.fourPiece?.entityId === rawOptions[0]?.fourPiece?.entityId)
   const groups = new Map<string, typeof rawOptions>()
   for (const option of rawOptions) {
-    const key = commonPrimary ? option.label : (option.recommendationGroup ?? option.label)
+    const key = JSON.stringify([
+      option.recommendationPurpose,
+      option.recommendationConditionHint,
+      commonPrimary ? option.label : (option.recommendationGroup ?? option.label),
+    ])
     groups.set(key, [...(groups.get(key) ?? []), option])
   }
   const options: DiscOption[] = [...groups.values()].map((group): DiscOption => {
@@ -90,69 +126,73 @@ export function DevelopmentDiscGuide({ guide }: { guide: DiscGuide }) {
   )
     ? '首选'
     : '主套'
-  const renderOption = (set: DiscOption) => (
-    <li className="disc-guide__option" key={set.label}>
-      <span className="recommendation-square-group" aria-hidden="true">
-        {set.pieces
-          .filter((piece) => piece.entityId && !sharedKeys.has(effectKey(piece)))
-          // One visual marker per direction; all set names and effects remain in the copy.
-          .slice(0, 1)
-          .map((piece) => (
-            <VisualEntityImage
-              key={piece.entityId}
-              className="recommendation-item-icon"
-              entityType="drive_disc_set"
-              entityId={piece.entityId}
-              name={piece.name}
-            />
-          ))}
-      </span>
-      <div className="disc-guide__option-copy">
-        <div className="disc-guide__option-heading">
-          <small className="disc-priority">{optionPriorityLabel(set, shared.length > 0)}</small>
-          <b>
-            {distinctDirections && set.fourPiece
-              ? `${set.fourPiece.name} 4件`
-              : shared.length && set.pieces.filter((piece) => piece.count === 2).length > 1
-                ? '两件套搭配'
-                : shared.some((piece) => piece.count === 4) && set.twoPiece
-                  ? `${set.twoPiece.name} 2件套`
-                  : set.label}
-          </b>
-          {set.recommendationConditionHint ? (
-            <span className="disc-guide__condition">{set.recommendationConditionHint}</span>
-          ) : null}
-        </div>
-        <ExplanationPopover label="搭配说明" title={set.label}>
-          {set.recommendationExplanation && (
-            <p>
-              <EffectDescription text={set.recommendationExplanation} />
-            </p>
-          )}
-          {set.twoPiecePriority && (
-            <p>
-              <EffectDescription text={set.twoPiecePriority.reason} />
-            </p>
-          )}
-          <dl>
-            {set.pieces
-              .filter((piece) => piece.effect)
-              .map((piece) => (
-                <div key={effectKey(piece)}>
-                  <dt>
-                    {piece.name} {piece.count}件套
-                  </dt>
-                  <dd>
-                    <EffectDescription text={piece.effect} />
-                  </dd>
-                </div>
-              ))}
-          </dl>
-        </ExplanationPopover>
-        <div className="disc-guide__secondary-options" aria-label="搭配效果">
+  const renderOption = (set: DiscOption) => {
+    const secondary = set.pieces.filter(
+      (piece) => piece.count === 2 && !sharedKeys.has(effectKey(piece)),
+    )
+    const expansionKey = JSON.stringify([guideKey, set.label])
+    const showAllSecondary = currentExpansion.secondary.includes(expansionKey)
+    return (
+      <li className="disc-guide__option" key={set.label}>
+        <span className="recommendation-square-group" aria-hidden="true">
           {set.pieces
-            .filter((piece) => piece.count === 2 && !sharedKeys.has(effectKey(piece)))
-            .map((piece, index) => (
+            .filter((piece) => piece.entityId && !sharedKeys.has(effectKey(piece)))
+            // One visual marker per direction; all set names and effects remain in the copy.
+            .slice(0, 1)
+            .map((piece) => (
+              <VisualEntityImage
+                key={piece.entityId}
+                className="recommendation-item-icon"
+                entityType="drive_disc_set"
+                entityId={piece.entityId}
+                name={piece.name}
+              />
+            ))}
+        </span>
+        <div className="disc-guide__option-copy">
+          <div className="disc-guide__option-heading">
+            <small className="disc-priority">{optionPriorityLabel(set, shared.length > 0)}</small>
+            <b>
+              {distinctDirections && set.fourPiece
+                ? `${set.fourPiece.name} 4件`
+                : shared.length && set.pieces.filter((piece) => piece.count === 2).length > 1
+                  ? '两件套搭配'
+                  : shared.some((piece) => piece.count === 4) && set.twoPiece
+                    ? `${set.twoPiece.name} 2件套`
+                    : set.label}
+            </b>
+            {set.recommendationConditionHint ? (
+              <span className="disc-guide__condition">{set.recommendationConditionHint}</span>
+            ) : null}
+          </div>
+          <ExplanationPopover label="搭配说明" title={set.label}>
+            {set.recommendationExplanation && (
+              <p>
+                <EffectDescription text={set.recommendationExplanation} />
+              </p>
+            )}
+            {set.twoPiecePriority && (
+              <p>
+                <EffectDescription text={set.twoPiecePriority.reason} />
+              </p>
+            )}
+            <dl>
+              {set.pieces
+                .filter((piece) => piece.effect)
+                .map((piece) => (
+                  <div key={effectKey(piece)}>
+                    <dt>
+                      {piece.name} {piece.count}件套
+                    </dt>
+                    <dd>
+                      <EffectDescription text={piece.effect} />
+                    </dd>
+                  </div>
+                ))}
+            </dl>
+          </ExplanationPopover>
+          <div className="disc-guide__secondary-options" aria-label="搭配效果">
+            {secondary.slice(0, showAllSecondary ? undefined : previewLimit).map((piece, index) => (
               <Fragment key={effectKey(piece)}>
                 {index > 0 ? (
                   <span className="disc-guide__secondary-separator" aria-hidden="true">
@@ -172,10 +212,28 @@ export function DevelopmentDiscGuide({ guide }: { guide: DiscGuide }) {
                 </span>
               </Fragment>
             ))}
+            {secondary.length > previewLimit ? (
+              <button
+                type="button"
+                className="disc-guide__more"
+                aria-expanded={showAllSecondary}
+                onClick={() =>
+                  setExpansion({
+                    ...currentExpansion,
+                    secondary: showAllSecondary
+                      ? currentExpansion.secondary.filter((key) => key !== expansionKey)
+                      : [...currentExpansion.secondary, expansionKey],
+                  })
+                }
+              >
+                {showAllSecondary ? '收起' : `更多搭配（${secondary.length - previewLimit}）`}
+              </button>
+            ) : null}
+          </div>
         </div>
-      </div>
-    </li>
-  )
+      </li>
+    )
+  }
   return (
     <article className="loadout-recommendation-card loadout-recommendation-card--discs disc-guide">
       <header className="disc-guide__heading">
@@ -214,8 +272,18 @@ export function DevelopmentDiscGuide({ guide }: { guide: DiscGuide }) {
       </header>
       {guide.unavailableReason && <p role="status">{guide.unavailableReason}</p>}
       <ol className={`loadout-disc-options${distinctDirections ? ' has-distinct-directions' : ''}`}>
-        {currentOptions.map(renderOption)}
+        {currentOptions.slice(0, showAllDirections ? undefined : previewLimit).map(renderOption)}
       </ol>
+      {currentOptions.length > previewLimit ? (
+        <button
+          type="button"
+          className="disc-guide__more"
+          aria-expanded={showAllDirections}
+          onClick={() => setExpansion({ ...currentExpansion, directions: !showAllDirections })}
+        >
+          {showAllDirections ? '收起' : `更多搭配（${currentOptions.length - previewLimit}）`}
+        </button>
+      ) : null}
       <dl className="loadout-main-stat-priority" aria-label="4、5、6号位主词条建议">
         {guide.mainStats.map((stat) => (
           <div key={stat.slot}>

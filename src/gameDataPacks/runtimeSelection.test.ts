@@ -1,5 +1,5 @@
 import Dexie from 'dexie'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { SodaDatabase } from '../db/database'
 import { gameBase30Formal, gameBase32Current } from './baseline'
 import { createManifest } from './types'
@@ -7,6 +7,15 @@ import {
   currentGameDataRuntimeSelectionContract,
   readCurrentGameDataRuntimeSelection,
 } from './runtimeSelection'
+
+// Future image-cache updates must not change the released game-data identity.
+vi.mock('../assets/visualAssets', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../assets/visualAssets')>()
+  return {
+    ...actual,
+    visualAssetManifest: { ...actual.visualAssetManifest, packVersion: 'zzz-visual-assets-3.1.99' },
+  }
+})
 
 const names: string[] = []
 
@@ -21,54 +30,71 @@ afterEach(async () => {
 })
 
 describe('current game-data runtime selection', () => {
-  it('opens the known pre-correction 3.2 manifest without rewriting stored data', async () => {
-    const db = createDatabase()
-    const previous = createManifest({
-      ...gameBase32Current,
-      sources: gameBase32Current.sources.map((source) => ({
-        ...source,
-        verification:
-          source.verification === 'community_reference' ||
-          source.verification === 'derived_reference'
-            ? 'official_reference'
-            : source.verification,
-      })),
-    })
-    // Literal identity of the released 719fd5b6 manifest, not a new generated expectation.
-    expect(previous.contentHash).toBe('fnv1a-142ef3e7')
-    await db.gameDataPacks.put(previous)
-    await db.gameDataPackState.put({
-      id: 'active-game-data-packs',
-      activeFormalByKind: { 'game-base': previous.id },
-      expiredCalculationPackageIds: [],
-      updatedAt: '2026-10-03T00:00:00.000Z',
-    })
-    const before = await Promise.all(db.tables.map((table) => table.toArray()))
-    await expect(readCurrentGameDataRuntimeSelection(db)).resolves.toMatchObject({
-      status: 'compiled_current',
-      source: 'active_formal_package',
-    })
-    expect(await Promise.all(db.tables.map((table) => table.toArray()))).toEqual(before)
+  it.each(['source-labels', 'avatar-cache'] as const)(
+    'opens the released %s 3.2 manifest without rewriting stored data',
+    async (release) => {
+      const db = createDatabase()
+      expect(gameBase32Current.contentHash).toBe('fnv1a-55673acf')
+      const previous =
+        release === 'avatar-cache'
+          ? createManifest(
+              JSON.parse(
+                JSON.stringify(gameBase32Current)
+                  .replaceAll('zzz-visual-assets-3.1.12', 'zzz-visual-assets-3.1.13')
+                  .replaceAll('fnv1a-54fa1e79', 'fnv1a-c6b535be')
+                  .replaceAll('fnv1a-34a56a5d', 'fnv1a-24c243a0'),
+              ),
+            )
+          : createManifest({
+              ...gameBase32Current,
+              sources: gameBase32Current.sources.map((source) => ({
+                ...source,
+                verification:
+                  source.verification === 'community_reference' ||
+                  source.verification === 'derived_reference'
+                    ? 'official_reference'
+                    : source.verification,
+              })),
+            })
+      // Literal identities of released 719fd5b6 / 3c886248, not generated expectations.
+      // The latter changed only image-version provenance and its propagated hashes.
+      expect(previous.contentHash).toBe(
+        release === 'avatar-cache' ? 'fnv1a-fd1d9bb8' : 'fnv1a-142ef3e7',
+      )
+      await db.gameDataPacks.put(previous)
+      await db.gameDataPackState.put({
+        id: 'active-game-data-packs',
+        activeFormalByKind: { 'game-base': previous.id },
+        expiredCalculationPackageIds: [],
+        updatedAt: '2026-10-03T00:00:00.000Z',
+      })
+      const before = await Promise.all(db.tables.map((table) => table.toArray()))
+      await expect(readCurrentGameDataRuntimeSelection(db)).resolves.toMatchObject({
+        status: 'compiled_current',
+        source: 'active_formal_package',
+      })
+      expect(await Promise.all(db.tables.map((table) => table.toArray()))).toEqual(before)
 
-    await db.gameDataPacks.put({ ...previous, changesFromPreviousFormal: ['tampered'] })
-    await expect(readCurrentGameDataRuntimeSelection(db)).resolves.toMatchObject({
-      status: 'unbound',
-      reason: 'active_manifest_invalid',
-    })
-    await db.gameDataPacks.put(createManifest({ ...previous, migrationNotes: ['other content'] }))
-    await expect(readCurrentGameDataRuntimeSelection(db)).resolves.toMatchObject({
-      status: 'unbound',
-      reason: 'active_package_not_compiled_artifact',
-    })
-    await db.gameDataPacks.put(previous)
-    await db.gameDataPackState.update('active-game-data-packs', {
-      expiredCalculationPackageIds: [previous.id],
-    })
-    await expect(readCurrentGameDataRuntimeSelection(db)).resolves.toMatchObject({
-      status: 'unbound',
-      reason: 'active_package_expired',
-    })
-  })
+      await db.gameDataPacks.put({ ...previous, changesFromPreviousFormal: ['tampered'] })
+      await expect(readCurrentGameDataRuntimeSelection(db)).resolves.toMatchObject({
+        status: 'unbound',
+        reason: 'active_manifest_invalid',
+      })
+      await db.gameDataPacks.put(createManifest({ ...previous, migrationNotes: ['other content'] }))
+      await expect(readCurrentGameDataRuntimeSelection(db)).resolves.toMatchObject({
+        status: 'unbound',
+        reason: 'active_package_not_compiled_artifact',
+      })
+      await db.gameDataPacks.put(previous)
+      await db.gameDataPackState.update('active-game-data-packs', {
+        expiredCalculationPackageIds: [previous.id],
+      })
+      await expect(readCurrentGameDataRuntimeSelection(db)).resolves.toMatchObject({
+        status: 'unbound',
+        reason: 'active_package_expired',
+      })
+    },
+  )
 
   it('uses the compiled baseline only when no persisted selection exists, without writing', async () => {
     const db = createDatabase()
