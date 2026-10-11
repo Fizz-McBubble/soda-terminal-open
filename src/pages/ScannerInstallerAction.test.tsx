@@ -36,7 +36,7 @@ it('replaces compact preparation feedback instead of adding a download status ro
   render(
     <PrepareChecklist
       snapshot={{
-        ...baseScannerSnapshot,
+        ...(baseScannerSnapshot as ScannerAssistantSnapshot),
         state: 'unchecked',
         readiness: {
           ...baseScannerSnapshot.readiness,
