@@ -118,7 +118,7 @@ export function PrepareChecklist({
         aria-labelledby={headingId}
         data-prepare-gate={startReady ? 'ready' : 'blocked'}
       >
-        {compact && !needsConnection && !checking && observedFailures.length === 0 && (
+        {compact && !checking && observedFailures.length === 0 && (
           <section className="scanner-prepare__requirements" aria-label="扫描前必需条件">
             <h4>准备游戏</h4>
             <ul>

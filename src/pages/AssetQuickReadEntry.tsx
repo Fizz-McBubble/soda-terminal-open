@@ -840,15 +840,13 @@ export function AssetQuickReadEntry({
               <ScannerMethodSteps method="读取" currentStep={currentStep} />
               {!stageActive && (
                 <div className="scanner-workbench__body scanner-workbench__body--prepare">
-                  {capability === 'ready' && (
-                    <div className="asset-quick-read__game-preparation">
-                      <h4>准备游戏</h4>
-                      <ul>
-                        <li>游戏更新完成后，完全退出本机游戏客户端。</li>
-                        <li>点击读取，等页面显示“已就绪”后再启动游戏并登录。</li>
-                      </ul>
-                    </div>
-                  )}
+                  <div className="asset-quick-read__game-preparation">
+                    <h4>准备游戏</h4>
+                    <ul>
+                      <li>完成游戏更新及首次着色器编译，然后完全退出客户端。</li>
+                      <li>点击读取，等页面显示“已就绪”后再启动游戏并登录。</li>
+                    </ul>
+                  </div>
                   <div className="asset-quick-read__connection-summary">{status}</div>
                   {preparationActions}
                   {preparationTools}

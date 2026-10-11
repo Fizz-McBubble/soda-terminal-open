@@ -604,10 +604,13 @@ it('links full risk information and guards blocked or unavailable compact starts
     ),
   }
   const view = render(<AssetQuickReadEntry {...props} capability="ready" blocked />)
+  expect(screen.getByText('完成游戏更新及首次着色器编译，然后完全退出客户端。')).toBeVisible()
   expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
   expect(screen.queryByText(/读取需管理员权限和网络驱动/)).not.toBeInTheDocument()
   expect(screen.getByRole('button', { name: '一键读取' })).toBeDisabled()
   view.rerender(<AssetQuickReadEntry {...props} capability="unavailable" />)
+  expect(screen.getByText('完成游戏更新及首次着色器编译，然后完全退出客户端。')).toBeVisible()
+  expect(screen.getByText('点击读取，等页面显示“已就绪”后再启动游戏并登录。')).toBeVisible()
   expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
   expect(screen.queryByRole('button', { name: '一键读取' })).not.toBeInTheDocument()
   expect(onStart).not.toHaveBeenCalled()
