@@ -82,6 +82,39 @@
 .f5v-shell .scanner-workbench .asset-quick-read__connection-summary {
   margin: 0 0 8px;
 }
+.f5v-shell
+  .scanner-task.scanner-workbench
+  .scanner-prepare--compact
+  .scanner-prepare__actions:has(> .scanner-installer),
+.f5v-shell
+  .scanner-task.scanner-workbench
+  .asset-quick-read__actions:has(> .asset-quick-read-installer) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 168px));
+  align-items: start;
+  gap: 10px;
+}
+.f5v-shell
+  .scanner-task.scanner-workbench
+  .scanner-prepare--compact
+  .scanner-prepare__actions
+  > .scanner-installer {
+  display: contents;
+}
+.f5v-shell
+  .scanner-task.scanner-workbench
+  .scanner-prepare--compact
+  .scanner-prepare__actions:has(> .scanner-installer)
+  > button,
+.f5v-shell .scanner-task.scanner-workbench .scanner-installer__control,
+.f5v-shell
+  .scanner-task.scanner-workbench
+  .asset-quick-read__actions:has(> .asset-quick-read-installer)
+  > button {
+  width: 100%;
+  min-width: 0;
+  flex-basis: auto;
+}
 .f5v-shell .scanner-workbench .asset-quick-read__connection-summary > .asset-quick-read__muted {
   margin: 0;
   min-height: 23px;

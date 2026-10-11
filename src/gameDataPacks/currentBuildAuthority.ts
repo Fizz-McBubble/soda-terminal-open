@@ -7,7 +7,7 @@ import {
 } from './gameData31RemielleEquipmentIntake'
 import { getGameData31CatalogEntity } from './gameData31CatalogIntake'
 import currentDecisionMechanicSupplements from './data/current-agent-decision-mechanic-supplements.3.1.json'
-import reviewedBuildPatchImpact from './data/reviewed-build-patch-impact.3.1.json'
+import { getReviewedBuildVersionImpact32 } from './reviewedBuildVersionImpact32'
 import { stableContentHash } from './types'
 import { isPotentialGuideReference } from './reviewedPotentialGuideReferences'
 import { reviewedTargetPanelGuidance } from './reviewedTargetPanelGuidance'
@@ -75,93 +75,6 @@ function fieldState(
   if (field.currentApplicability !== 'continuous' || field.gameVersion !== targetVersion)
     return 'stale'
   return 'ready'
-}
-
-const reviewedImpactRows = new Map(
-  reviewedBuildPatchImpact.rows.map((row) => [row.agentId, row] as const),
-)
-if (
-  reviewedImpactRows.size !== reviewedBuildPatchImpact.rows.length ||
-  reviewedBuildPatchImpact.rows.some((row) => !row.agentId)
-) {
-  throw new Error('Reviewed build patch impact does not cover the current agent projection.')
-}
-
-const reviewedImpactSources: AgentProfileField['sourceRefs'] = [
-  {
-    id: 'P31-en',
-    url: 'https://zenless.gg/version-3-1-the-long-goodbye-update-announcement/',
-    sourceVersion: '3.1',
-    checkedAt: '2026-09-23',
-    contentHash: null,
-    licenseBoundary: 'Readable announcement reproduction; original publisher body was unavailable.',
-  },
-  {
-    id: 'P31-zh',
-    url: 'https://news.4399.com/jqlsy/zixun/m/1014339.html',
-    sourceVersion: '3.1',
-    checkedAt: '2026-09-23',
-    contentHash: null,
-    licenseBoundary: 'Second announcement reproduction; no copied prose or media.',
-  },
-  {
-    id: 'R-inventory',
-    url: "soda-source-ref:57603c053ba7c2130fbb8e786a0d3861",
-    sourceVersion: '3.1',
-    checkedAt: '2026-09-23',
-    contentHash: null,
-    licenseBoundary: 'Pinned repository baseline for current guidance scope, not game truth.',
-  },
-]
-
-const reviewedImpactLabels: Record<string, string> = {
-  '31-miyabi-activation': '额外能力队友条件扩展',
-  '31-aria-activation': '额外能力队友条件扩展',
-  '31-piper-activation': '额外能力队友条件扩展',
-  '31-rina-timing': '技能衔接时序调整',
-  '31-zero-anby-hit-fix': '终结技命中可靠性修正',
-  '31-matrix-only-fixes': '零号空洞矩阵玩法限定修正',
-  '31-minor-presentation': '表现或未指明动作修正',
-  '31-new-agents': '3.1 新增代理人',
-}
-
-function reviewedVersionImpact(agentId: string): AgentProfileField | undefined {
-  const row = reviewedImpactRows.get(agentId)
-  if (!row) return undefined
-  const introduced = row.directChangeIds.includes('31-new-agents')
-  const named = row.directChangeIds.length > 0
-  const impact = named
-    ? row.directChangeIds.map((id) => reviewedImpactLabels[id] ?? id).join('、')
-    : '已查公告指定章节未见具名代理人变化'
-  return {
-    group: 'build_guidance',
-    path: 'build.version_change_impact',
-    value: {
-      baseVersion: introduced ? null : reviewedBuildPatchImpact.baseVersion,
-      targetVersion: reviewedBuildPatchImpact.targetVersion,
-      evidenceScope: reviewedBuildPatchImpact.evidenceScope,
-      directChangeIds: row.directChangeIds,
-    },
-    status: 'candidate',
-    gameVersion: reviewedBuildPatchImpact.targetVersion,
-    originalSourceVersion: introduced ? null : reviewedBuildPatchImpact.baseVersion,
-    lastChangeVersion: named ? reviewedBuildPatchImpact.targetVersion : null,
-    currentApplicability: 'affected_pending',
-    sourceRefs: reviewedImpactSources,
-    verifiedAt: null,
-    conflict: null,
-    reason: introduced
-      ? `${impact}；3.0 同角色字段对比不适用，3.1 当前构筑字段、分支和热修复仍待核验。`
-      : `${impact}；尚缺 3.0→3.1 逐字段值、攻略分支排序和热修复核验，不能据此确认整套构筑未变。`,
-    conditions: [
-      introduced
-        ? '新代理人没有 3.0 同角色构筑；仅核对 3.1 当前字段。'
-        : '公告指定章节的有限核对不代表完整版本连续性。',
-      ...(row.directChangeIds.includes('31-matrix-only-fixes')
-        ? ['矩阵玩法限定修正不作为常规战斗数值增益。']
-        : []),
-    ],
-  }
 }
 
 const remielleWEngineSourceIds = new Set([
@@ -284,8 +197,22 @@ const sigridWEngineGuidanceField: AgentProfileField = {
     '3.1 当前攻略方向与已发布 stable W-Engine identity 14159 交叉一致；仅提供音擎方向，不推断账户副本、等级或精炼。',
 }
 
-function adoptedCurrentField(agentId: string, fieldId: CurrentBuildFieldId) {
-  if (fieldId === 'build.version_change_impact') return reviewedVersionImpact(agentId)
+function adoptedCurrentField(
+  agentId: string,
+  fieldId: CurrentBuildFieldId,
+): AgentProfileField | undefined {
+  if (fieldId === 'build.version_change_impact')
+    return getReviewedBuildVersionImpact32(
+      agentId,
+      currentBuildFieldIds.flatMap((path) => {
+        if (path === 'build.version_change_impact') return []
+        const fields = getAgentProfile(agentId).fields
+        const selected = selectedGuidanceField(path, fields, agentId)
+        if (!selected) return []
+        const adopted = authorityField(path, fields, agentId)
+        return [{ ...selected, value: adopted.value, authorityState: adopted.state }]
+      }),
+    )
   if (fieldId === 'build.wengines' && agentId === 'agent-remielle')
     return remielleWEngineGuidanceField
   if (fieldId === 'build.wengines' && agentId === 'agent-sigrid') return sigridWEngineGuidanceField
@@ -303,7 +230,7 @@ function selectedGuidanceField(
   fieldId: CurrentBuildFieldId,
   fields: readonly AgentProfileField[],
   agentId: string,
-) {
+): AgentProfileField | undefined {
   return (
     projectedReviewedBuild32Fields(agentId).find((field) => field.path === fieldId) ??
     adoptedCurrentField(agentId, fieldId) ??
@@ -412,7 +339,7 @@ function buildProfile(asset: (typeof currentAssetProjection.agents)[number]) {
 const profiles = currentAssetProjection.agents.map(buildProfile)
 const authorityCore = {
   schema: 'soda-current-build-authority/v1' as const,
-  id: 'current-build-authority-3.1-r1' as const,
+  id: `current-build-authority-${currentVersionProjection.gameVersion}-r2`,
   gameVersion: currentVersionProjection.gameVersion,
   scopeManifestId: currentAssetProjection.scopeManifestId,
   profiles,

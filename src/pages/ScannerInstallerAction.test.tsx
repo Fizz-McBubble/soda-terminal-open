@@ -5,6 +5,10 @@ import installerManifest from '../../public/downloads/scanner-installer-release.
 import { installerReleaseUrl } from '../scanner/installerRelease'
 import { ScannerInstallerAction } from './ScannerInstallerAction'
 import { initialDistributionSnapshot, scannerDistributionManifest } from '../scanner/distribution'
+import { createRef } from 'react'
+import { PrepareChecklist } from './ScannerPrepareChecklist'
+import { baseScannerSnapshot } from './scannerAssistantTestFixture'
+import type { ScannerAssistantSnapshot } from '../scanner/runtime'
 const executableFixture = new Uint8Array([0x4d, 0x5a, 1, 2, 3, 4, 5, 6])
 const freshRelease = {
   ...installerManifest,
@@ -27,6 +31,95 @@ function setDownloadFetcher(fetcher: typeof fetch) {
   )
 }
 const createObjectURL = vi.fn().mockReturnValue('blob:installer')
+it('replaces compact preparation feedback instead of adding a download status row', async () => {
+  setDownloadFetcher(vi.fn().mockResolvedValue(new Response(executableFixture)))
+  render(
+    <PrepareChecklist
+      snapshot={{
+        ...baseScannerSnapshot,
+        state: 'unchecked',
+        readiness: { ...baseScannerSnapshot.readiness, helperConnected: false },
+        distribution: initialDistributionSnapshot,
+      }}
+      headingRef={createRef()}
+      eyebrow="准备"
+      title="画面扫描未连接"
+      body="旧连接提示"
+      targetReady
+      targetPanel={null}
+      accountDisclosure={null}
+      onStart={vi.fn()}
+      onReconnect={vi.fn()}
+      compact
+      installer={<ScannerInstallerAction distribution={initialDistributionSnapshot} />}
+    />,
+  )
+  expect(screen.queryByRole('heading', { name: '准备游戏' })).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: /下载画面扫描/ }))
+  await waitFor(() =>
+    expect(screen.getByRole('heading', { name: '在下载列表打开安装包' })).toBeVisible(),
+  )
+  expect(screen.queryByRole('status')).not.toBeInTheDocument()
+  expect(screen.queryByText('旧连接提示')).not.toBeInTheDocument()
+  expect(screen.queryByText('画面扫描未连接')).not.toBeInTheDocument()
+})
+it('replaces prepared-download feedback after a new connection fails and accepts a later download', async () => {
+  setDownloadFetcher(
+    vi.fn().mockImplementation(() => Promise.resolve(new Response(executableFixture))),
+  )
+  const snapshot: ScannerAssistantSnapshot = {
+    ...(baseScannerSnapshot as ScannerAssistantSnapshot),
+    state: 'unchecked',
+    readiness: { ...baseScannerSnapshot.readiness, helperConnected: false },
+    distribution: initialDistributionSnapshot,
+  }
+  const props = {
+    headingRef: createRef<HTMLHeadingElement>(),
+    eyebrow: '准备',
+    title: '画面扫描未连接',
+    body: '连接后继续',
+    targetReady: true,
+    targetPanel: null,
+    accountDisclosure: null,
+    onStart: vi.fn(),
+    onReconnect: vi.fn(),
+    compact: true,
+    installer: <ScannerInstallerAction distribution={initialDistributionSnapshot} />,
+  }
+  const view = render(<PrepareChecklist {...props} snapshot={snapshot} />)
+  fireEvent.click(screen.getByRole('button', { name: /下载画面扫描/ }))
+  await waitFor(() =>
+    expect(screen.getByRole('heading', { name: '在下载列表打开安装包' })).toBeVisible(),
+  )
+  view.rerender(
+    <PrepareChecklist
+      {...props}
+      snapshot={{ ...snapshot, state: 'connecting' }}
+      actionPending
+      title="正在连接画面扫描"
+    />,
+  )
+  expect(screen.queryByText('在下载列表打开安装包')).not.toBeInTheDocument()
+  const failed: ScannerAssistantSnapshot = {
+    ...snapshot,
+    state: 'connection_failed',
+    error: {
+      userMessage: '本次连接失败',
+      remedy: '重新打开画面扫描后连接。',
+      recoveryAction: 'retry',
+    },
+  }
+  view.rerender(<PrepareChecklist {...props} snapshot={failed} title="本次连接失败" />)
+  expect(screen.getByRole('heading', { name: '本次连接失败' })).toBeVisible()
+  expect(screen.getByText('重新打开画面扫描后连接。')).toBeVisible()
+  expect(screen.queryByText('在下载列表打开安装包')).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: '重新下载' }))
+  await waitFor(() =>
+    expect(screen.getByRole('heading', { name: '在下载列表打开安装包' })).toBeVisible(),
+  )
+  expect(screen.queryByRole('heading', { name: '本次连接失败' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('status')).not.toBeInTheDocument()
+})
 it('offers repair for incomplete components without calling it a version mismatch', () => {
   render(
     <ScannerInstallerAction

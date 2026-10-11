@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Check, Download, X } from 'lucide-react'
 import {
   scannerDistributionManifest,
@@ -8,6 +8,7 @@ import { downloadScannerInstaller } from '../scanner/installerDownload'
 import { readInstallerRelease, type InstallerRelease } from '../scanner/installerRelease'
 import './scanner-installer-action.css'
 import { compareToolVersion } from '../scanner/toolUpgradeNotice'
+import { ScannerPreparationStatus } from './ScannerPreparationStatus'
 
 type DownloadState = 'idle' | 'downloading' | 'saving' | 'save_requested' | 'error' | 'cancelled'
 
@@ -27,6 +28,7 @@ export function ScannerInstallerAction({
   upgradeNotice?: string | null
 }) {
   const [state, setState] = useState<DownloadState>('idle')
+  const publishStatus = useContext(ScannerPreparationStatus)
   const [bytes, setBytes] = useState(0)
   const [timedOut, setTimedOut] = useState(false)
   const [connectionNotice, setConnectionNotice] = useState('')
@@ -118,12 +120,6 @@ export function ScannerInstallerAction({
     }
   }, [complete, connectionBlocked, onConnect, connect])
 
-  if (
-    scannerDistributionManifest.runtime.releaseState !== 'published' ||
-    (distribution.state === 'ready' && !update && !pending)
-  )
-    return null
-
   async function download() {
     if (request.current) return
     const controller = new AbortController()
@@ -190,6 +186,15 @@ export function ScannerInstallerAction({
             : '下载未完成'
           : upgradeNotice ||
             (update && distribution.message.includes('有新版本') ? distribution.message : ''))
+  const hidden =
+    scannerDistributionManifest.runtime.releaseState !== 'published' ||
+    (distribution.state === 'ready' && !update && !pending)
+  const preparationMessage = hidden ? '' : pending ? progressText : message
+  useEffect(() => {
+    publishStatus?.({ text: preparationMessage, pending })
+    return () => publishStatus?.({ text: '', pending: false })
+  }, [publishStatus, preparationMessage, pending])
+  if (hidden) return null
 
   return (
     <div className="scanner-installer">
@@ -252,7 +257,7 @@ export function ScannerInstallerAction({
           </>
         ) : null}
       </div>
-      {message ? (
+      {message && !publishStatus ? (
         <div className="scanner-installer__feedback" role="status">
           <span className="scanner-installer__notice">{message}</span>
         </div>

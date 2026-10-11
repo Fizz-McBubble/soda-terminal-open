@@ -14,6 +14,7 @@ import { AssetQuickReadGuide, AssetQuickReadDirectoryGuide } from './AssetQuickR
 import { AssetCaptureRiskDetails } from './AssetCaptureMethodsNotice'
 import { ScannerMethodSteps } from './ScannerMethodSteps'
 import { AssetQuickReadConsentStage } from './AssetQuickReadConsentDialog'
+import { ScannerPreparationStatus, type PreparationStatus } from './ScannerPreparationStatus'
 
 export type AssetQuickReadState =
   | 'idle'
@@ -164,6 +165,16 @@ export function AssetQuickReadEntry({
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
   const [stopPending, setStopPending] = useState(false)
   const [actionError, setActionError] = useState<PendingAction | 'stop' | null>(null)
+  const [installerStatus, setInstallerStatus] = useState<PreparationStatus>({
+    text: '',
+    pending: false,
+  })
+  const [reportedFailure, setReportedFailure] = useState({ message: errorMessage, state })
+  if (reportedFailure.message !== errorMessage || reportedFailure.state !== state) {
+    setReportedFailure({ message: errorMessage, state })
+    if (errorMessage || ['error', 'timed_out', 'stopped'].includes(state))
+      setInstallerStatus({ text: '', pending: false })
+  }
   const pendingActionRef = useRef(false)
   const stopPendingRef = useRef(false)
   const captureBusy = state === 'starting' || state === 'capturing' || pendingAction === 'start'
@@ -215,9 +226,11 @@ export function AssetQuickReadEntry({
     pendingActionRef.current = true
     setPendingAction(action)
     setActionError(null)
+    if (action === 'connect' || action === 'start') setInstallerStatus({ text: '', pending: false })
     try {
       await callback()
     } catch {
+      setInstallerStatus({ text: '', pending: false })
       setActionError(action)
     } finally {
       pendingActionRef.current = false
@@ -320,12 +333,43 @@ export function AssetQuickReadEntry({
       )}
     </>
   )
+  const compactStatus =
+    pendingAction === 'connect'
+      ? '正在检查资产快读连接。'
+      : pendingAction === 'start'
+        ? '正在提交读取请求，请保持游戏退出。'
+        : pendingAction === 'import'
+          ? '正在导入，请等待结果。'
+          : currentStep === 0 && installerStatus.text
+            ? installerStatus.text
+            : actionError
+              ? actionErrors[actionError]
+              : errorMessage ||
+                (state === 'completed'
+                  ? completionMessage?.split('。', 1)[0] || stateCopy.completed
+                  : state === 'idle'
+                    ? capability === 'ready'
+                      ? '资产快读已连接'
+                      : '资产快读未连接'
+                    : stateCopy[state])
   const status = (
     <>
       <div className="asset-quick-read__status" role="status" aria-live="polite" aria-atomic="true">
-        {renderParts && state === 'idle' ? (
+        {renderParts ? (
           <strong className="asset-quick-read__tool-status">
-            {capability === 'ready' ? '资产快读已连接' : '资产快读未连接'}
+            {compactStatus}
+            {state === 'idle' &&
+              capability !== 'ready' &&
+              !installerStatus.text &&
+              !pendingAction &&
+              !errorMessage &&
+              !actionError && (
+                <span className="asset-quick-read__status-hint">
+                  {downloadAvailable
+                    ? '首次使用先安装，再连接。'
+                    : '已安装可连接；安装包暂不可下载。'}
+                </span>
+              )}
           </strong>
         ) : capability !== 'ready' && state === 'idle' ? (
           '资产快读尚未接通，当前暂不可用。'
@@ -345,13 +389,15 @@ export function AssetQuickReadEntry({
         {capability === 'ready' && state === 'idle' && toolVersion && (
           <span className="asset-quick-read__tool-version">v{toolVersion}</span>
         )}
-        {pendingAction === 'start' && state === 'idle' && (
+        {!renderParts && pendingAction === 'start' && state === 'idle' && (
           <p>正在提交本次启动请求，请等待工具反馈。</p>
         )}
-        {pendingAction === 'connect' && <p>正在检查资产快读连接；本步骤不请求管理员权限。</p>}
-        {pendingAction === 'import' && <p>正在提交确认后的导入，请等待结果。</p>}
-        {errorMessage && <p>{errorMessage}</p>}
-        {actionError && <p>{actionErrors[actionError]}</p>}
+        {!renderParts && pendingAction === 'connect' && (
+          <p>正在检查资产快读连接；本步骤不请求管理员权限。</p>
+        )}
+        {!renderParts && pendingAction === 'import' && <p>正在提交确认后的导入，请等待结果。</p>}
+        {!renderParts && errorMessage && <p>{errorMessage}</p>}
+        {!renderParts && actionError && <p>{actionErrors[actionError]}</p>}
       </div>
     </>
   )
@@ -364,7 +410,9 @@ export function AssetQuickReadEntry({
         type="button"
         disabled={!onConnect || preparationBlocked}
         onClick={() => {
-          if (onConnect && !preparationBlocked) void runAction('connect', onConnect)
+          if (onConnect && !preparationBlocked) {
+            void runAction('connect', onConnect)
+          }
         }}
       >
         {pendingAction === 'connect'
@@ -778,76 +826,79 @@ export function AssetQuickReadEntry({
   )
   const preparationActions = !captureBusy && state !== 'received' ? disclosure : null
   if (renderParts)
-    return renderParts({
-      stageActive,
-      preparation: (
-        <section className="asset-quick-read asset-quick-read--compact" aria-labelledby={headingId}>
-          {heading}
-          {scope}
-          <ScannerMethodSteps method="读取" currentStep={currentStep} />
-          {!stageActive && (
-            <div className="scanner-workbench__body scanner-workbench__body--prepare">
-              <div className="asset-quick-read__game-preparation">
-                <h4>准备游戏</h4>
-                <ul>
-                  <li>游戏更新完成后，完全退出本机游戏客户端。</li>
-                  <li>点击读取，等页面显示“已就绪”后再启动游戏并登录。</li>
-                </ul>
-              </div>
-              <div className="asset-quick-read__connection-summary">
-                {status}
-                {capability !== 'ready' && (
-                  <p className="asset-quick-read__muted">
-                    {downloadAvailable
-                      ? '首次使用先下载安装；已安装可直接连接。'
-                      : '资产快读安装包尚未发布，当前不能下载；已安装用户可点击连接打开工具。'}
-                  </p>
-                )}
-              </div>
-              {preparationActions}
-              {preparationTools}
+    return (
+      <ScannerPreparationStatus.Provider value={setInstallerStatus}>
+        {renderParts({
+          stageActive,
+          preparation: (
+            <section
+              className="asset-quick-read asset-quick-read--compact"
+              aria-labelledby={headingId}
+            >
+              {heading}
+              {scope}
+              <ScannerMethodSteps method="读取" currentStep={currentStep} />
+              {!stageActive && (
+                <div className="scanner-workbench__body scanner-workbench__body--prepare">
+                  {capability === 'ready' && (
+                    <div className="asset-quick-read__game-preparation">
+                      <h4>准备游戏</h4>
+                      <ul>
+                        <li>游戏更新完成后，完全退出本机游戏客户端。</li>
+                        <li>点击读取，等页面显示“已就绪”后再启动游戏并登录。</li>
+                      </ul>
+                    </div>
+                  )}
+                  <div className="asset-quick-read__connection-summary">{status}</div>
+                  {preparationActions}
+                  {preparationTools}
+                  {workbenchExtras}
+                </div>
+              )}
+            </section>
+          ),
+          task: stageActive ? (
+            <div className="asset-quick-read__task">
+              {pendingInspection ? (
+                <p role="status">正在检查本机资产快读文件，账户尚未修改。</p>
+              ) : consentOpen ? (
+                <AssetQuickReadConsentStage
+                  acknowledged={acknowledged}
+                  disabled={preparationBlocked || !available}
+                  targetAccountName={targetAccountName}
+                  onAcknowledge={(checked) =>
+                    setAcknowledgedAccount(checked ? riskAccountKey : null)
+                  }
+                  onCancel={() => {
+                    setDisclosureOpen(false)
+                    setAcknowledgedAccount(null)
+                    requestAnimationFrame(() =>
+                      startTriggerRef.current?.focus({ preventScroll: true }),
+                    )
+                  }}
+                  onStart={start}
+                />
+              ) : (
+                <>
+                  {state !== 'completed' &&
+                    (state !== 'received' || pendingAction || errorMessage || actionError) &&
+                    status}
+                  {taskContent}
+                  {stopButton}
+                  {['error', 'stopped', 'timed_out'].includes(state) && (
+                    <div className="asset-quick-read__retry">
+                      {disclosure}
+                      {preparationTools}
+                    </div>
+                  )}
+                </>
+              )}
               {workbenchExtras}
             </div>
-          )}
-        </section>
-      ),
-      task: stageActive ? (
-        <div className="asset-quick-read__task">
-          {pendingInspection ? (
-            <p role="status">正在检查本机资产快读文件，账户尚未修改。</p>
-          ) : consentOpen ? (
-            <AssetQuickReadConsentStage
-              acknowledged={acknowledged}
-              disabled={preparationBlocked || !available}
-              targetAccountName={targetAccountName}
-              onAcknowledge={(checked) => setAcknowledgedAccount(checked ? riskAccountKey : null)}
-              onCancel={() => {
-                setDisclosureOpen(false)
-                setAcknowledgedAccount(null)
-                requestAnimationFrame(() => startTriggerRef.current?.focus({ preventScroll: true }))
-              }}
-              onStart={start}
-            />
-          ) : (
-            <>
-              {state !== 'completed' &&
-                (state !== 'received' || pendingAction || errorMessage || actionError) &&
-                status}
-              {taskContent}
-              {stopButton}
-              {['error', 'stopped', 'timed_out'].includes(state) && (
-                <details className="asset-quick-read__retry">
-                  <summary>重新读取</summary>
-                  {preparationTools}
-                  {disclosure}
-                </details>
-              )}
-            </>
-          )}
-          {workbenchExtras}
-        </div>
-      ) : null,
-    })
+          ) : null,
+        })}
+      </ScannerPreparationStatus.Provider>
+    )
   return (
     <section className="asset-quick-read" aria-labelledby={headingId}>
       {heading}

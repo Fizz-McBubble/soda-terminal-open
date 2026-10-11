@@ -888,18 +888,6 @@ function HydratedScannerAssistantPage({
                                 void startBoundScan()
                               }}
                             />
-                            {preparingNewScan &&
-                              snapshot.state === 'completed' &&
-                              snapshot.summary?.resultFileHandle &&
-                              !startPending && (
-                                <button
-                                  className="scanner-link"
-                                  type="button"
-                                  onClick={() => setPreparingAnotherScan(false)}
-                                >
-                                  查看上次扫描结果
-                                </button>
-                              )}
                             {actionFeedback && !failureDiagnostic && (
                               <p className="scanner-task__feedback is-error" role="alert">
                                 {actionFeedback}
@@ -911,6 +899,20 @@ function HydratedScannerAssistantPage({
                           report={failureDiagnostic}
                           snapshot={snapshot}
                           compact
+                          secondaryAction={
+                            preparingNewScan &&
+                            snapshot.state === 'completed' &&
+                            snapshot.summary?.resultFileHandle &&
+                            !startPending ? (
+                              <button
+                                className="button button--quiet"
+                                type="button"
+                                onClick={() => setPreparingAnotherScan(false)}
+                              >
+                                上次结果
+                              </button>
+                            ) : undefined
+                          }
                         />
                       </div>
                     </section>

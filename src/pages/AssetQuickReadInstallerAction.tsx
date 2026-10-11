@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Download, X } from 'lucide-react'
 import {
   assetQuickReadDownloadAvailable,
@@ -9,6 +9,7 @@ import { downloadAssetQuickReadInstaller } from '../assetQuickRead/installerDown
 import './scanner-installer-action.css'
 import './AssetQuickReadInstallerAction.css'
 import { assetQuickReadUpgradeNotice } from '../assetQuickRead/upgradeNotice'
+import { ScannerPreparationStatus } from './ScannerPreparationStatus'
 
 type State = 'idle' | 'downloading' | 'saving' | 'save_requested' | 'error' | 'cancelled'
 export function AssetQuickReadInstallerAction({
@@ -29,6 +30,7 @@ export function AssetQuickReadInstallerAction({
   toolVersion?: string | null
 }) {
   const [state, setState] = useState<State>('idle')
+  const publishStatus = useContext(ScannerPreparationStatus)
   const [bytes, setBytes] = useState(0)
   const [notice, setNotice] = useState('')
   const [connecting, setConnecting] = useState(false)
@@ -143,15 +145,23 @@ export function AssetQuickReadInstallerAction({
     state === 'saving'
       ? '正在准备文件'
       : `下载中 ${Math.min(100, Math.floor((bytes / (release.size ?? 1)) * 100))}%`
-  const feedback =
-    notice ||
-    (state === 'save_requested'
-      ? '文件已准备，请打开安装包，完成后点击连接。'
-      : state === 'cancelled'
-        ? '下载已取消，可重新下载。'
-        : state === 'error'
-          ? '下载未完成，请重试。'
-          : upgradeNotice || '')
+  const feedback = pending
+    ? progress
+    : connected
+      ? upgradeNotice || ''
+      : notice ||
+        (state === 'save_requested'
+          ? '文件已准备，请打开安装包，完成后点击连接。'
+          : state === 'cancelled'
+            ? '下载已取消，可重新下载。'
+            : state === 'error'
+              ? '下载未完成，请重试。'
+              : '')
+  useEffect(() => {
+    publishStatus?.({ text: feedback, pending })
+    return () => publishStatus?.({ text: '', pending: false })
+  }, [publishStatus, feedback, pending])
+  if (connected && !upgradeNotice && !pending) return null
   return (
     <div className="scanner-installer asset-quick-read-installer">
       <div className={`scanner-installer__control${pending ? ' is-pending' : ''}`}>
@@ -205,7 +215,7 @@ export function AssetQuickReadInstallerAction({
           </>
         )}
       </div>
-      {feedback && (
+      {feedback && !publishStatus && (
         <div className="asset-quick-read-installer__feedback" role="status">
           {feedback}
         </div>

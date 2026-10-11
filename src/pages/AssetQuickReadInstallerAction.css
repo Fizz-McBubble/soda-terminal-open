@@ -14,15 +14,20 @@
   line-height: 1.5;
 }
 .f5v-shell .scanner-workbench .asset-quick-read__actions:has(> .asset-quick-read-installer) {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 168px));
+  align-items: start;
   gap: 8px 10px;
 }
 .f5v-shell .scanner-workbench .asset-quick-read__actions > .asset-quick-read-installer {
   display: contents;
 }
 .f5v-shell .scanner-workbench .asset-quick-read__actions > button:first-child {
-  flex: 0 0 168px;
-  width: 168px;
+  width: 100%;
+  min-width: 0;
+}
+
+.f5v-shell .scanner-workbench .asset-quick-read-installer .scanner-installer__control {
+  width: 100%;
+  min-width: 0;
 }

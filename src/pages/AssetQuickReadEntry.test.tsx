@@ -631,7 +631,7 @@ it('keeps failed task retry available without repeating idle preparation', async
   expect(screen.queryByRole('heading', { name: '准备游戏' })).not.toBeInTheDocument()
   expect(screen.queryByText(/资产快读安装包尚未发布，当前不能下载/)).not.toBeInTheDocument()
   expect(screen.getByText('合成工具错误')).toBeVisible()
-  fireEvent.click(screen.getByText('重新读取', { selector: 'summary' }))
+  expect(screen.queryByText('重新读取', { selector: 'summary' })).not.toBeInTheDocument()
   const connect = screen.getByRole('button', { name: '连接资产快读' })
   expect(connect).toBeVisible()
   expect(connect).toHaveClass('button--primary')

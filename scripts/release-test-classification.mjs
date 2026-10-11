@@ -1,6 +1,7 @@
 import { algorithmQualityTests } from './algorithm-quality-manifest.mjs'
 
 export const currentVitest = [
+  'src/gameDataPacks/reviewedBuildVersionImpact32.test.ts',
   'src/pages/AgentDevelopmentWorkbenchPage.current-record.test.tsx',
   'src/gameDataPacks/gameData32SourceCloseout.test.ts',
   'src/scanner/runtimeConnectionErrors.test.ts',

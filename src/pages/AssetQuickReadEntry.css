@@ -402,6 +402,12 @@
   font-weight: 600;
 }
 
+.asset-quick-read__status-hint {
+  display: block;
+  font-weight: 400;
+  color: var(--f5-muted, #6b6777);
+}
+
 .asset-quick-read__program-name {
   overflow-wrap: anywhere;
 }

@@ -204,6 +204,7 @@ export function ScannerDiagnosticFeedback({
           <button className="button button--quiet" type="button" onClick={download}>
             下载诊断
           </button>
+          {compact ? secondaryAction : null}
         </>
       }
     />

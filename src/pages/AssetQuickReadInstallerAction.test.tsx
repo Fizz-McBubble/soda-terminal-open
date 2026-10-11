@@ -4,6 +4,7 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { AssetQuickReadInstallerAction } from './AssetQuickReadInstallerAction'
 import { assetQuickReadRelease } from '../assetQuickRead/distribution'
+import { AssetQuickReadEntry } from './AssetQuickReadEntry'
 const executable = new Uint8Array([0x4d, 0x5a, 1, 2, 3, 4, 5, 6])
 const release = {
   ...assetQuickReadRelease,
@@ -28,6 +29,95 @@ beforeEach(() => {
 afterEach(() => {
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
+})
+it('replaces the disconnected status with download feedback and removes installation copy once connected', async () => {
+  vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(executable)))
+  const props = {
+    onConnect: vi.fn(),
+    onStart: vi.fn(),
+    downloadAvailable: true,
+    renderParts: ({
+      preparation,
+      task,
+    }: {
+      preparation: React.ReactNode
+      task: React.ReactNode
+    }) => (
+      <>
+        {preparation}
+        {task}
+      </>
+    ),
+  }
+  const view = render(
+    <AssetQuickReadEntry
+      {...props}
+      errorMessage="旧连接错误"
+      installer={<AssetQuickReadInstallerAction release={release} />}
+    />,
+  )
+  expect(screen.queryByRole('heading', { name: '准备游戏' })).not.toBeInTheDocument()
+  expect(screen.getAllByRole('status')).toHaveLength(1)
+  fireEvent.click(screen.getByRole('button', { name: '下载资产快读' }))
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('文件已准备'))
+  expect(screen.getAllByRole('status')).toHaveLength(1)
+  expect(screen.queryByText('旧连接错误')).not.toBeInTheDocument()
+  expect(screen.queryByText(/首次使用先/)).not.toBeInTheDocument()
+  expect(screen.getByLabelText('游戏安装目录')).toBeVisible()
+  view.rerender(
+    <AssetQuickReadEntry
+      {...props}
+      capability="ready"
+      installer={
+        <AssetQuickReadInstallerAction
+          release={release}
+          connected
+          toolVersion={release.bridgeVersion}
+        />
+      }
+    />,
+  )
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('资产快读已连接'))
+  expect(screen.queryByText(/文件已准备/)).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: '重新下载' })).not.toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: '准备游戏' })).toBeVisible()
+})
+it('replaces prepared-download feedback with a new failure and lets a later download become current', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn().mockImplementation(() => Promise.resolve(new Response(executable))),
+  )
+  const props = {
+    onConnect: vi.fn().mockRejectedValue(new Error('synthetic connection failed')),
+    onStart: vi.fn(),
+    downloadAvailable: true,
+    installer: <AssetQuickReadInstallerAction release={release} />,
+    renderParts: ({
+      preparation,
+      task,
+    }: {
+      preparation: React.ReactNode
+      task: React.ReactNode
+    }) => (
+      <>
+        {preparation}
+        {task}
+      </>
+    ),
+  }
+  const view = render(<AssetQuickReadEntry {...props} />)
+  fireEvent.click(screen.getByRole('button', { name: '下载资产快读' }))
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('文件已准备'))
+  view.rerender(<AssetQuickReadEntry {...props} errorMessage="本次实际读取失败" />)
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('本次实际读取失败'))
+  expect(screen.queryByText(/文件已准备/)).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: '重新下载' }))
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('文件已准备'))
+  expect(screen.queryByText('本次实际读取失败')).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: '连接资产快读' }))
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('资产快读连接未完成'))
+  expect(screen.queryByText(/文件已准备/)).not.toBeInTheDocument()
+  expect(screen.getAllByRole('status')).toHaveLength(1)
 })
 it('uses the connected version for upgrade prompts instead of connection alone', () => {
   const candidate = {
