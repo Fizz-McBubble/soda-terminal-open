@@ -43,7 +43,7 @@ export function registerScannerRecoveryTests({
     await screen.findByRole('combobox', { name: '目标账户' }, { timeout: 5000 })
     expect(screen.getByRole('button', { name: '更新画面扫描' })).toBeVisible()
     expect(screen.getByRole('button', { name: '开始扫描' })).toBeDisabled()
-    expect(screen.getByText(/请更新画面扫描后再扫描/)).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: '更新画面扫描' })).toHaveLength(1)
     expect(runtimeMock.commands.startScan).not.toHaveBeenCalled()
   })
 

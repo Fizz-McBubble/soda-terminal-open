@@ -251,7 +251,8 @@ it('keeps an existing installer download mounted and cancellable when a quick fi
     ...createScannerRuntimeSnapshot('ready'),
     distribution: initialDistributionSnapshot,
   }
-  vi.stubGlobal('fetch', vi.fn().mockReturnValue(new Promise(() => {})))
+  const fetcher = vi.fn().mockReturnValue(new Promise(() => {}))
+  vi.stubGlobal('fetch', fetcher)
   const before = await facts()
   await showPage()
   fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
@@ -267,7 +268,12 @@ it('keeps an existing installer download mounted and cancellable when a quick fi
   expect(cancel).toBeEnabled()
   expect(progress.closest('details')).toBeNull()
   fireEvent.click(cancel)
-  await waitFor(() => expect(screen.getByText('下载已取消')).toBeVisible())
+  await waitFor(() =>
+    expect(screen.queryByRole('progressbar', { name: '画面扫描下载进度' })).not.toBeInTheDocument(),
+  )
+  expect(fetcher.mock.calls[0][1].signal.aborted).toBe(true)
+  expect(screen.queryByRole('button', { name: '取消下载' })).not.toBeInTheDocument()
+  expect(screen.getByRole('button', { name: '下载画面扫描' })).toBeEnabled()
   expect(screen.getByRole('heading', { name: '本次读取结果' })).toBeVisible()
   expect(await facts()).toEqual(before)
   expect(bridge.start).not.toHaveBeenCalled()
