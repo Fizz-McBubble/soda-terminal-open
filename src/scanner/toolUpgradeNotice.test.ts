@@ -50,7 +50,7 @@ it('accepts both frozen download identities but rejects mismatched or unrecogniz
   expect(assetQuickReadDownloadAvailable(assetQuickReadRelease)).toBe(true)
   expect(assetQuickReadDownloadAvailable(candidate)).toBe(true)
   expect(
-    assetQuickReadDownloadAvailable({ ...candidate, fileName: assetQuickReadRelease.fileName }),
+    assetQuickReadDownloadAvailable({ ...candidate, fileName: 'Soda-Asset-Quick-Read-Setup.exe' }),
   ).toBe(false)
   expect(assetQuickReadDownloadAvailable({ ...candidate, version: '9.0.0' })).toBe(false)
 })

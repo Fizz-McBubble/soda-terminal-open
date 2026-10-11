@@ -127,7 +127,7 @@ describe('preparing another scan', () => {
     runtime.commands.startScan.mockRejectedValueOnce(new Error('扫描启动失败，请重试。'))
     const rendered = render(page())
     await userEvent.setup().click(await screen.findByRole('button', { name: '开始扫描' }))
-    expect(await screen.findByRole('button', { name: '查看诊断信息' })).toBeEnabled()
+    expect(await screen.findByRole('button', { name: '查看诊断' })).toBeEnabled()
     expect(readScannerTargetAccountBinding()).toMatchObject({ valid: true })
     runtime.snapshot = {
       ...createScannerRuntimeSnapshot('scanning'),

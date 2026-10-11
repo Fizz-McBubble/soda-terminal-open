@@ -120,8 +120,10 @@ it('keeps a failed connection in one diagnosis without a duplicate alert or stag
   commands.openHelper.mockRejectedValueOnce(new Error('helper_request_failed_503'))
   await showPage()
   await act(async () => fireEvent.click(screen.getByRole('button', { name: '连接画面扫描' })))
-  const diagnosis = await screen.findByRole('region', { name: '扫描问题反馈' })
-  expect(within(diagnosis).getByText('网页暂时没有连接到画面扫描。')).toBeInTheDocument()
+  const diagnosis = await screen.findByRole('region', { name: '扫描诊断' })
+  expect(diagnosis.querySelector('.scanner-diagnostic-entry__status')).toHaveTextContent(
+    '网页暂时没有连接到画面扫描。',
+  )
   expect(document.querySelector('.scanner-task__feedback')).toBeNull()
   expect(within(diagnosis).queryByText('连接画面扫描')).not.toBeInTheDocument()
   expect(commands.startScan).not.toHaveBeenCalled()
@@ -129,11 +131,12 @@ it('keeps a failed connection in one diagnosis without a duplicate alert or stag
 })
 async function prepareQuick() {
   fireEvent.change(screen.getByLabelText('游戏安装目录'), {
-    target: { value: "soda-source-ref:ee09b7b910b89ca3d044849bf8cbb524" },
+    target: { value: 'D:\\SyntheticGame' },
   })
   await act(async () => fireEvent.click(screen.getByRole('button', { name: '连接资产快读' })))
+  fireEvent.click(screen.getByRole('button', { name: '一键读取' }))
   fireEvent.click(screen.getByRole('checkbox', { name: /我已阅读上述风险/ }))
-  await act(async () => fireEvent.click(screen.getByRole('button', { name: '一键读取' })))
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '开始读取' })))
 }
 
 it('presents one account area, both acquisition methods and exactly one file input without an initial task', async () => {

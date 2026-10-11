@@ -33,7 +33,10 @@ test('quick-read proxy is packaged and routed before assets without a static exe
       fetcher: async (url) => {
         fetched = url
         return new Response(null, {
-          headers: { 'content-type': 'application/octet-stream', 'content-length': String(assetQuickReadInstallerRelease.size) },
+          headers: {
+            'content-type': 'application/octet-stream',
+            'content-length': String(assetQuickReadInstallerRelease.size),
+          },
         })
       },
     })

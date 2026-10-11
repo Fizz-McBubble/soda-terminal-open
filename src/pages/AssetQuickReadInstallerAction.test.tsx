@@ -98,7 +98,7 @@ it('streams exact installer bytes, supports cancel/retry and prepares a file wit
   expect(fetcher).toHaveBeenCalledTimes(2)
   expect(
     (vi.mocked(HTMLAnchorElement.prototype.click).mock.instances[0] as HTMLAnchorElement).download,
-  ).toBe(`Soda-资产快读-${release.version}.exe`)
+  ).toBe(release.fileName)
 })
 it('rejects truncated bytes and exposes retry without preparing a wrong file', async () => {
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(executable.subarray(0, 6))))
