@@ -38,7 +38,11 @@ it('replaces compact preparation feedback instead of adding a download status ro
       snapshot={{
         ...baseScannerSnapshot,
         state: 'unchecked',
-        readiness: { ...baseScannerSnapshot.readiness, helperConnected: false },
+        readiness: {
+          ...baseScannerSnapshot.readiness,
+          helperConnected: false,
+          accountWriteEnabled: false,
+        },
         distribution: initialDistributionSnapshot,
       }}
       headingRef={createRef()}
@@ -70,7 +74,11 @@ it('replaces prepared-download feedback after a new connection fails and accepts
   const snapshot: ScannerAssistantSnapshot = {
     ...(baseScannerSnapshot as ScannerAssistantSnapshot),
     state: 'unchecked',
-    readiness: { ...baseScannerSnapshot.readiness, helperConnected: false },
+    readiness: {
+      ...baseScannerSnapshot.readiness,
+      helperConnected: false,
+      accountWriteEnabled: false,
+    },
     distribution: initialDistributionSnapshot,
   }
   const props = {

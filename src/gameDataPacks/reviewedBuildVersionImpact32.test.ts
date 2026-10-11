@@ -89,7 +89,11 @@ describe('reviewed 3.2 build impact production adoption', () => {
   it.each([1, 2, 3, 4, 5, 6])(
     'matches Koleda potential %s with actual split recipient values',
     (potential) => {
-      const memberIds = ['agent-koleda', 'agent-claret', 'agent-roxy']
+      const memberIds: readonly [string, string, string] = [
+        'agent-koleda',
+        'agent-claret',
+        'agent-roxy',
+      ]
       const result = evaluateCurrentPlanningFormationEffects({
         memberIds,
         members: memberIds.map((id) => ({
