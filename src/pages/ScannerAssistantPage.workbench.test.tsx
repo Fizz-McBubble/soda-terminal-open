@@ -329,8 +329,11 @@ it('keeps the shared account picker focused while invalidating an old quick cand
   expect(picker).toBeEnabled()
   picker.focus()
   await choosePlayerSelect(picker, 'account-workbench-other')
+  await waitFor(() => expect(picker).toHaveValue('account-workbench-other'))
   expect(screen.getByRole('combobox', { name: '目标账户' })).toBe(picker)
   expect(picker).toHaveFocus()
+  // Once the shared picker presents the committed account, the layout reset has
+  // already invalidated the former candidate; no navigation or refresh is needed.
   expect(screen.queryByRole('heading', { name: '本次读取结果' })).not.toBeInTheDocument()
   expect(screen.queryByRole('button', { name: '导入' })).not.toBeInTheDocument()
   expect(await facts()).toEqual(before)

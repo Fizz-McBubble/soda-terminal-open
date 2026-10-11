@@ -2,6 +2,14 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createScannerAssistantRuntime } from './runtime'
 import { helperFetch, nativeIdentity, readySnapshot } from './runtime.testFixture'
 
+const connectedReadySnapshot = {
+  ...readySnapshot,
+  connectedVersions: {
+    helper: nativeIdentity.version,
+    protocol: String(nativeIdentity.protocolVersion),
+  },
+}
+
 describe('scanner connection recovery', () => {
   afterEach(() => vi.restoreAllMocks())
 
@@ -75,7 +83,7 @@ describe('scanner connection recovery', () => {
     const listener = vi.fn()
     const unsubscribe = runtime.subscribe(listener)
     try {
-      await vi.waitFor(() => expect(listener).toHaveBeenCalledWith(readySnapshot))
+      await vi.waitFor(() => expect(listener).toHaveBeenCalledWith(connectedReadySnapshot))
       expect(listener).toHaveBeenCalledTimes(1)
     } finally {
       unsubscribe()
@@ -114,7 +122,7 @@ describe('scanner connection recovery', () => {
       expect(listener).not.toHaveBeenCalled()
       hidden.mockReturnValue(false)
       document.dispatchEvent(new Event('visibilitychange'))
-      await vi.waitFor(() => expect(listener).toHaveBeenCalledWith(readySnapshot))
+      await vi.waitFor(() => expect(listener).toHaveBeenCalledWith(connectedReadySnapshot))
       expect(streamCount).toBe(2)
     } finally {
       unsubscribe()
@@ -134,11 +142,11 @@ describe('scanner connection recovery', () => {
     const unsubscribe = runtime.subscribe(listener)
     try {
       await runtime.commands.retryConnection()
-      expect(listener).toHaveBeenLastCalledWith(readySnapshot)
+      expect(listener).toHaveBeenLastCalledWith(connectedReadySnapshot)
       await runtime.commands.startScan()
       expect(listener).toHaveBeenLastCalledWith(expect.objectContaining({ state: 'scanning' }))
       await runtime.commands.safeStop()
-      expect(listener).toHaveBeenLastCalledWith(readySnapshot)
+      expect(listener).toHaveBeenLastCalledWith(connectedReadySnapshot)
     } finally {
       unsubscribe()
     }
@@ -176,7 +184,7 @@ describe('scanner connection recovery', () => {
       const listener = vi.fn()
       const unsubscribe = runtime.subscribe(listener)
       try {
-        await vi.waitFor(() => expect(listener).toHaveBeenCalledWith(readySnapshot))
+        await vi.waitFor(() => expect(listener).toHaveBeenCalledWith(connectedReadySnapshot))
         expect(streamCount).toBeGreaterThanOrEqual(2)
         const initialEventsRequest = fetchImpl.mock.calls.find(([url]) =>
           String(url).endsWith('/api/events'),

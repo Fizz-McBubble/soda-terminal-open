@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { expect, it, vi } from 'vitest'
 import type { ComponentType } from 'react'
 import { createAccount, setActiveAccount } from '../accounts/repository'
@@ -61,7 +61,9 @@ export function registerScannerRecoveryTests({
     fireEvent.click(start)
     await screen.findByRole('button', { name: '更新画面扫描' })
     expect(screen.getByRole('button', { name: '开始扫描' })).toBeDisabled()
-    expect(await screen.findByText('查看诊断')).toBeVisible()
+    expect(
+      within(await screen.findByRole('region', { name: '扫描诊断' })).getByText('查看诊断'),
+    ).toBeVisible()
     expect(runtimeMock.commands.startScan).toHaveBeenCalledTimes(1)
   })
 
@@ -92,7 +94,9 @@ export function registerScannerRecoveryTests({
       expect(screen.getByRole('button', { name: '反馈此问题' })).toBeEnabled()
       await waitFor(() => expect(readLastScanDiagnostic()?.code).toBe('scan_result_read_failed'))
       expect(screen.queryByLabelText('扫描技术诊断内容')).not.toBeInTheDocument()
-      expect(screen.getByText('查看诊断')).toBeVisible()
+      expect(
+        within(screen.getByRole('region', { name: '扫描诊断' })).getByText('查看诊断'),
+      ).toBeVisible()
       expect(screen.queryByText(`helper_request_failed_${status}`)).not.toBeInTheDocument()
       expect(await database.accountDriveDiscs.count()).toBe(0)
       expect(await database.accountScanImportBatches.count()).toBe(0)

@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import Dexie from 'dexie'
@@ -33,6 +33,30 @@ describe('preparing another scan', () => {
   afterEach(async () => {
     database.close()
     await Dexie.delete(database.name)
+  })
+
+  it('preserves a connection failure after initial connection preparation', async () => {
+    const connecting = createScannerRuntimeSnapshot('connecting')
+    runtime.snapshot = {
+      ...connecting,
+      readiness: { ...connecting.readiness, helperConnected: false },
+    }
+    const rendered = render(page())
+    await screen.findByLabelText('选择本机文件（JSON）', {}, { timeout: 10000 })
+    const failure = createScannerRuntimeSnapshot('connection_failed')
+    runtime.snapshot = {
+      ...failure,
+      readiness: { ...failure.readiness, helperConnected: false },
+    }
+    rendered.rerender(page())
+    expect(await screen.findByRole('heading', { name: '画面扫描尚未连接' })).toBeVisible()
+    expect(document.querySelector('.scanner-golden')).toHaveAttribute(
+      'data-scanner-visual-state',
+      'connection_failed',
+    )
+    expect(screen.queryByRole('heading', { name: '画面扫描已连接' })).not.toBeInTheDocument()
+    expect(runtime.commands.startScan).not.toHaveBeenCalled()
+    expect(await database.accountDriveDiscs.count()).toBe(0)
   })
 
   it('does not promote a replayed completed result while a new start is pending', async () => {
@@ -159,7 +183,11 @@ describe('preparing another scan', () => {
     runtime.commands.startScan.mockRejectedValueOnce(new Error('扫描启动失败，请重试。'))
     const rendered = render(page())
     await userEvent.setup().click(await screen.findByRole('button', { name: '开始扫描' }))
-    expect(await screen.findByRole('button', { name: '查看诊断' })).toBeEnabled()
+    expect(
+      within(await screen.findByRole('region', { name: '扫描诊断' })).getByRole('button', {
+        name: '查看诊断',
+      }),
+    ).toBeEnabled()
     expect(readScannerTargetAccountBinding()).toMatchObject({ valid: true })
     runtime.snapshot = {
       ...createScannerRuntimeSnapshot('scanning'),

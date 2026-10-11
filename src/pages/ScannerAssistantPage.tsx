@@ -95,7 +95,15 @@ function HydratedScannerAssistantPage({
   const [inlineImportOpen, setInlineImportOpen] = useState(false)
   const [importedThisVisit, setImportedThisVisit] = useState(false)
   const [preparingAnotherScan, setPreparingAnotherScan] = useState(
-    () => !['completed', 'scanning', 'paused'].includes(runtimeSnapshot.state),
+    () =>
+      ![
+        'completed',
+        'checking',
+        'awaiting_elevation',
+        'scanning',
+        'paused',
+        'connection_failed',
+      ].includes(runtimeSnapshot.state),
   )
   const [completedImport, setCompletedImport] = useState<CompletedScannerImport | null>(
     readCompletedScannerImport,
@@ -406,15 +414,17 @@ function HydratedScannerAssistantPage({
       />
     ) : null
   const visualState =
-    restartingAfterCompletedResult || preparingNewScan
-      ? 'ready'
-      : snapshot.state === 'completed'
-        ? completedBindingIssue
-          ? 'review_required'
-          : frozenTargetValidation.valid && resultEligibleForFormalReview
-            ? 'import_ready'
-            : 'completed'
-        : snapshot.state
+    snapshot.state === 'connection_failed'
+      ? 'connection_failed'
+      : restartingAfterCompletedResult || preparingNewScan
+        ? 'ready'
+        : snapshot.state === 'completed'
+          ? completedBindingIssue
+            ? 'review_required'
+            : frozenTargetValidation.valid && resultEligibleForFormalReview
+              ? 'import_ready'
+              : 'completed'
+          : snapshot.state
   const currentReceivingAccountName = selectedAccount?.displayName ?? '尚未选择接收账户'
   const accountDisclosure = selectedAccount ? (
     <p className="scanner-target-account__summary">
@@ -846,9 +856,11 @@ function HydratedScannerAssistantPage({
                               actionPending={actionPending || startPending}
                               eyebrow={presentedStateCopy.eyebrow}
                               title={
-                                snapshot.readiness.helperConnected
-                                  ? '画面扫描已连接'
-                                  : '画面扫描未连接'
+                                snapshot.state === 'connection_failed'
+                                  ? stateCopy.title
+                                  : snapshot.readiness.helperConnected
+                                    ? '画面扫描已连接'
+                                    : '画面扫描未连接'
                               }
                               body={getScannerPreparationBody(
                                 snapshot,

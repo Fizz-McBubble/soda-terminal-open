@@ -35,6 +35,11 @@ export function registerScannerCompletedResultTests({
     await user.click(start)
     await waitFor(() => expect(runtimeMock.commands.startScan).toHaveBeenCalledTimes(1))
 
+    // A real start acknowledges an active attempt before its terminal result.
+    setRuntimeState('scanning')
+    rendered.rerender(<App />)
+    await screen.findByRole('progressbar')
+
     await setActiveAccount(beta.id, database)
     setRuntimeState('completed')
     rendered.rerender(<App />)

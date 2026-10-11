@@ -33,6 +33,7 @@ it('uses the connected version for upgrade prompts instead of connection alone',
   const candidate = {
     ...release,
     version: '1.0.1',
+    bridgeVersion: '1.0.1',
     fileName: 'SodaTerminal-AssetReader-Setup-1.0.1.exe',
     releaseTag: 'v1.0.1',
   }

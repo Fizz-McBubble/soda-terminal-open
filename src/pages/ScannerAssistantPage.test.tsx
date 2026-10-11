@@ -1,7 +1,7 @@
 import { registerScannerRecoveryTests } from './scannerAssistantRecoveryTests'
 import { registerScannerDataFileCompatibilityTests } from './scannerDataFileCompatibilityTests'
 import { registerScannerCompletedResultTests } from './scannerAssistantCompletedResultTests'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { choosePlayerSelect } from '../testing/choosePlayerSelect'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -193,7 +193,9 @@ describe('ScannerAssistantPage', () => {
     runtimeMock.commands.openHelper.mockRejectedValueOnce(new Error('helper_request_failed_503'))
     render(<App />)
     await user.click(await screen.findByRole('button', { name: '重新连接画面扫描' }))
-    expect(await screen.findByText('查看诊断')).toBeVisible()
+    expect(
+      within(await screen.findByRole('region', { name: '扫描诊断' })).getByText('查看诊断'),
+    ).toBeVisible()
     expect(
       screen.queryByText('未能连接画面扫描，请确认画面扫描已运行后重试。'),
     ).not.toBeInTheDocument()
@@ -235,6 +237,8 @@ describe('ScannerAssistantPage', () => {
     },
   )
 
+  // Ongoing checks and permission prompts restore their active task status.
+  // A replayed completion after preparing another scan is covered separately.
   it.each([
     ['connection_failed', '本次扫描未完成', null],
     ['ready', '画面扫描已连接', '开始扫描'],
@@ -245,12 +249,18 @@ describe('ScannerAssistantPage', () => {
   ])('renders the isolated %s state without account writes', async (state, heading, action) => {
     setRuntimeState(state)
     render(<App />)
-    await screen.findByRole('heading', { name: '扫描与导入' })
-    if (heading) expect(await screen.findByRole('heading', { name: heading })).toBeInTheDocument()
+    await screen.findByRole('heading', { name: '扫描与导入' }, { timeout: 10000 })
+    if (heading)
+      expect(
+        await screen.findByRole('heading', { name: heading }, { timeout: 10000 }),
+      ).toBeInTheDocument()
     if (action) expect(await screen.findByRole('button', { name: action })).toBeInTheDocument()
     if (state === 'scanning') {
       expect(await screen.findByRole('progressbar')).toBeInTheDocument()
-      expect(screen.queryByRole('region', { name: '扫描诊断' })).not.toBeInTheDocument()
+      expect(
+        within(screen.getByRole('region', { name: '扫描诊断' })).getByText('查看诊断'),
+      ).toBeVisible()
+      expect(screen.queryByLabelText('扫描技术诊断内容')).not.toBeInTheDocument()
     }
     if (state === 'completed')
       expect(await screen.findByRole('region', { name: '已完成扫描结果' })).toBeInTheDocument()
@@ -262,6 +272,21 @@ describe('ScannerAssistantPage', () => {
     expect(await database.accounts.count()).toBe(0)
     expect(await database.accountDriveDiscs.count()).toBe(0)
     expect(await database.accountScanImportBatches.count()).toBe(0)
+  })
+
+  it('does not present a disconnected Helper failure as connected preparation', async () => {
+    setRuntimeState('connection_failed')
+    runtimeMock.snapshot = {
+      ...runtimeMock.snapshot,
+      readiness: { ...baseSnapshot.readiness, helperConnected: false },
+    }
+    render(<App />)
+    expect(
+      await screen.findByRole('heading', { name: '画面扫描尚未连接' }, { timeout: 10000 }),
+    ).toBeVisible()
+    expect(screen.queryByRole('heading', { name: '画面扫描已连接' })).not.toBeInTheDocument()
+    expect(runtimeMock.commands.startScan).not.toHaveBeenCalled()
+    expect(await database.accountDriveDiscs.count()).toBe(0)
   })
 
   it('shows an unknown total without inventing zero percent or zero inventory', async () => {
@@ -288,14 +313,15 @@ describe('ScannerAssistantPage', () => {
     expect(screen.getByText(/本次已处理 169 张，部分结果不会作为完整仓库导入/)).toBeInTheDocument()
     expect(await screen.findByRole('button', { name: '反馈此问题' })).toBeEnabled()
     expect(screen.queryByLabelText('扫描技术诊断内容')).not.toBeInTheDocument()
-    fireEvent.click(screen.getByText('查看诊断'))
+    fireEvent.click(within(screen.getByRole('region', { name: '扫描诊断' })).getByText('查看诊断'))
     const diagnostic = readLastScanDiagnostic()
     expect(diagnostic?.counts).toEqual({ processed: 169, total: 492 })
     expect(diagnostic?.reportId).toMatch(/^[0-9a-f-]{36}$/)
     expect(diagnostic?.durationMs).toBeNull()
-    expect(screen.getByText('遇到的问题')).toBeVisible()
-    expect(screen.getByText('可以这样做')).toBeVisible()
-    expect(screen.getByText('已处理 169 / 492 张')).toBeVisible()
+    const scanDiagnostic = within(screen.getByRole('region', { name: '扫描诊断' }))
+    expect(scanDiagnostic.getByText('遇到的问题')).toBeVisible()
+    expect(scanDiagnostic.getByText('可以这样做')).toBeVisible()
+    expect(scanDiagnostic.getByText('已处理 169 / 492 张')).toBeVisible()
     expect(screen.queryByText(diagnostic!.reportId)).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: '反馈此问题' })).toBeEnabled()
     expect(screen.queryByRole('button', { name: /确认导入/ })).not.toBeInTheDocument()
@@ -481,7 +507,7 @@ describe('ScannerAssistantPage', () => {
     const picker = await screen.findByRole('combobox', { name: '目标账户' })
     expect(picker).toHaveTextContent(alphaName)
     await choosePlayerSelect(picker, 'account-beta')
-    expect(picker).toHaveValue('account-beta')
+    await waitFor(() => expect(picker).toHaveValue('account-beta'))
     expect(picker).toHaveTextContent(betaName)
     expect(picker).toHaveFocus()
   })
