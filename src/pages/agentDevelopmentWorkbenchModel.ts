@@ -180,6 +180,24 @@ function skillTargetsFromDirections(directions: readonly string[]) {
     核心技: 'core',
   }
   for (const direction of directions) {
+    // A declared cap is a target, even when several skills share it. Do not
+    // downgrade the third/fourth named skill through the ordinal budget bands.
+    const maxClauses = direction
+      .split(/[；。，]/u)
+      .filter(
+        (clause) =>
+          /(?:先拉满|推荐点满)/u.test(clause) && !/(?:不|无需).*(?:拉满|点满)/u.test(clause),
+      )
+    const allMax = /所有技能[^。；]*全部点满/u.test(direction)
+    for (const key of fallbackSkillPriority) {
+      if (
+        allMax ||
+        maxClauses.some((clause) =>
+          skillPriorityAliases[key].some((alias) => clause.includes(alias)),
+        )
+      )
+        targets[key] = key === 'core' ? 'F' : '12'
+    }
     const match =
       /^(普通攻击|普攻|闪避|支援技|特殊技|终结技|连携技|核心技)\s*(?:优先升至\s*)?(F|(?:1[0-5]|[1-9])\+?)$/.exec(
         direction.trim(),

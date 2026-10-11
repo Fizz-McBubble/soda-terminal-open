@@ -1,5 +1,6 @@
 import type { PlayerBuildSource } from './playerBuildProfiles'
 import { stableContentHash } from './types'
+import { reviewedGuideSkillTargets20261011 } from './reviewedGuideSkillTargets20261011'
 
 /** Field-only adoption of reviewed public guide facts, not an entire build override. */
 const harumasaPrydwenSkillPriorityFact = {
@@ -283,4 +284,5 @@ export const reviewedGuideSkillDirections: Partial<
       verified: true,
     },
   },
+  ...reviewedGuideSkillTargets20261011,
 }

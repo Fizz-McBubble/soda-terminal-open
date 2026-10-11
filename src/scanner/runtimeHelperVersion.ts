@@ -75,11 +75,28 @@ export function presentScannerHelperSnapshot(
     snapshot.state === 'paused'
       ? { ...snapshot, state: 'ready' as const, progress: undefined, error: undefined }
       : snapshot
+  // Older helpers also used helper_incompatible for missing/corrupt payloads.
+  // The observed repair state distinguishes that failure from a protocol mismatch.
+  const repairedClassification =
+    next.distribution?.state === 'repair_required' &&
+    next.error?.diagnosticCode === 'helper_incompatible'
+      ? {
+          ...next,
+          error: {
+            ...next.error,
+            diagnosticCode: 'runtime_repair_required',
+            userMessage: '画面扫描组件不完整，请修复安装后重新连接。',
+          },
+          diagnostics: next.diagnostics
+            ? { ...next.diagnostics, code: 'runtime_repair_required' }
+            : next.diagnostics,
+        }
+      : next
   const notice = scannerToolUpgradeNotice(
     { ...connectedVersions, helper: helperVersion },
     targetVersions,
   )
-  if (!notice) return next
-  const updated = presentScannerHelperUpdate(next)
+  if (!notice) return repairedClassification
+  const updated = presentScannerHelperUpdate(repairedClassification)
   return { ...updated, distribution: { ...updated.distribution!, message: notice } }
 }

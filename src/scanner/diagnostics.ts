@@ -114,6 +114,7 @@ export function browserDiagnostic(userAgent: string) {
 const stages: Record<string, string> = {
   helper_unavailable: 'connection',
   helper_incompatible: 'connection',
+  runtime_repair_required: 'connection',
   helper_pairing_denied: 'connection',
   permission_denied: 'permission',
   elevation_cancelled: 'permission',

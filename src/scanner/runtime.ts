@@ -42,6 +42,7 @@ export function createScannerAssistantRuntime(
   let tokenResolved = false
   let nativeIdentityVerified = false
   let nativeHelperVersion: string | null = null
+  let nativeInstallerVersion: string | null = null
   const fetchImpl = options.fetchImpl ?? fetch
   const EventSourceImpl = options.EventSourceImpl ?? null
   const reconnectDelayMs = options.reconnectDelayMs ?? 250
@@ -89,6 +90,7 @@ export function createScannerAssistantRuntime(
       nativeHelperVersion,
       next.readiness.helperConnected
         ? {
+            installer: next.connectedVersions?.installer ?? nativeInstallerVersion,
             runtime: next.connectedVersions?.runtime ?? next.distribution?.installedVersion,
             scanner: next.connectedVersions?.scanner,
           }
@@ -209,6 +211,11 @@ export function createScannerAssistantRuntime(
     const identity = response.ok ? await response.json() : null
     signal?.throwIfAborted()
     nativeHelperVersion = verifyScannerHelperIdentity(identity)
+    nativeInstallerVersion =
+      typeof identity.installerVersion === 'string' &&
+      /^\d{1,3}\.\d{1,3}\.\d{1,3}$/u.test(identity.installerVersion)
+        ? identity.installerVersion
+        : null
     nativeIdentityVerified = true
   }
 

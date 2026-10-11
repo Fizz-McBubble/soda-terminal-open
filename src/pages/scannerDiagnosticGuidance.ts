@@ -39,6 +39,10 @@ const guidance: Record<string, Guidance> = {
     problem: '画面扫描与当前网页版本不匹配。',
     nextAction: '刷新页面并重新连接；仍提示版本不匹配时，按页面提示更新画面扫描。',
   },
+  runtime_repair_required: {
+    problem: '画面扫描组件不完整，暂时无法扫描。',
+    nextAction: '下载并运行安装包，完成修复后重新连接。',
+  },
   helper_pairing_denied: {
     problem: '画面扫描拒绝了此网站的连接。',
     nextAction: '重新连接；若仍被拒绝，请反馈此问题。',

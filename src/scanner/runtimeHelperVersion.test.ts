@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { createScannerAssistantRuntime } from './runtime'
 import { scannerDistributionManifest } from './distribution'
+import { presentScannerHelperSnapshot } from './runtimeHelperVersion'
 import { FakeEventSource, helperFetch, nativeIdentity, readySnapshot } from './runtime.testFixture'
 
 describe('scanner Helper version and update policy', () => {
@@ -101,7 +102,7 @@ describe('scanner Helper version and update policy', () => {
     unsubscribe()
   })
 
-  it.each(['2.3.11', '2.3.999'])(
+  it.each([scannerDistributionManifest.helper.version, '2.3.999'])(
     'allows a newer compatible Helper %s to start without a downgrade prompt',
     async (version) => {
       const requests = helperFetch()
@@ -117,6 +118,29 @@ describe('scanner Helper version and update policy', () => {
       ).toBe(true)
     },
   )
+
+  it('classifies an old helper payload failure as repair, independently of its version', () => {
+    const snapshot = {
+      ...readySnapshot,
+      state: 'connection_failed' as const,
+      distribution: {
+        ...readySnapshot.distribution!,
+        state: 'repair_required' as const,
+        action: 'repair' as const,
+      },
+      error: {
+        diagnosticCode: 'helper_incompatible',
+        userMessage: '当前锁定扫描组件尚未就绪。',
+        recoveryAction: 'retry' as const,
+      },
+    }
+    const result = presentScannerHelperSnapshot(
+      snapshot,
+      scannerDistributionManifest.helper.version,
+    )
+    expect(result.error?.diagnosticCode).toBe('runtime_repair_required')
+    expect(result.distribution?.action).toBe('repair')
+  })
 
   it('does not retry a scan if the restarted Helper requires updating', async () => {
     let identities = 0

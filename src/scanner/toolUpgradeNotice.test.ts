@@ -2,6 +2,7 @@ import { expect, it } from 'vitest'
 import { requireCurrentScannerHelper, verifyScannerHelperIdentity } from './runtimeHelperVersion'
 import { compareToolVersion, scannerToolUpgradeNotice } from './toolUpgradeNotice'
 import { assetQuickReadUpgradeNotice } from '../assetQuickRead/upgradeNotice'
+import { scannerDistributionManifest } from './distribution'
 import {
   assetQuickReadDownloadAvailable,
   assetQuickReadRelease,
@@ -35,6 +36,15 @@ it('names only outdated scanner layers against the injected locked release', () 
   expect(scannerToolUpgradeNotice(target, target)).toBeNull()
   expect(scannerToolUpgradeNotice({}, target)).toBeNull()
 })
+it('uses the observed installed product version for installer-only updates', () => {
+  const target = { installer: '1.0.10', helper: '2.3.12' }
+  expect(scannerToolUpgradeNotice({ installer: '1.0.9', helper: '2.3.12' }, target)).toBe(
+    '画面扫描有新版本（v1.0.10），请更新。',
+  )
+  expect(scannerToolUpgradeNotice({ installer: '1.0.10', helper: '2.3.12' }, target)).toBeNull()
+  expect(scannerToolUpgradeNotice({ installer: '1.0.11', helper: '2.3.999' }, target)).toBeNull()
+  expect(scannerToolUpgradeNotice({ helper: '2.3.12' }, target)).toBeNull()
+})
 it('prompts compatible old asset bridges, but never current or unknown bridges', () => {
   expect(assetQuickReadUpgradeNotice('1.0.0', '1.0.1')).toBe('资产快读有新版本，请更新资产快读。')
   expect(assetQuickReadUpgradeNotice('1.0.1', '1.0.1')).toBeNull()
@@ -64,7 +74,9 @@ it('connects a newer compatible Helper without asking the player to downgrade', 
     importAccess: false,
   }
   expect(verifyScannerHelperIdentity(identity)).toBe('2.3.11')
-  expect(() => requireCurrentScannerHelper('2.3.11')).not.toThrow()
+  expect(() =>
+    requireCurrentScannerHelper(scannerDistributionManifest.helper.version),
+  ).not.toThrow()
   expect(() => requireCurrentScannerHelper('2.3.9')).toThrow()
   expect(() => requireCurrentScannerHelper('2.4.1')).toThrow()
   expect(() => requireCurrentScannerHelper(null)).toThrow()

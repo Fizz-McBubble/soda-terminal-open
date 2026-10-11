@@ -20,11 +20,13 @@ export function compareToolVersion(installed: string | null | undefined, target:
 }
 
 export type ScannerToolVersions = {
+  installer?: string | null
   helper?: string | null
   runtime?: string | null
   scanner?: string | null
 }
 export const scannerToolReleaseVersions = {
+  installer: scannerDistributionManifest.helper.installerVersion,
   helper: scannerDistributionManifest.helper.version,
   runtime: scannerDistributionManifest.runtime.version,
   scanner: scannerDistributionManifest.runtime.nativeCapture.componentVersion,
@@ -35,11 +37,18 @@ export function scannerToolUpgradeNotice(
   installed: ScannerToolVersions,
   target: ScannerToolVersions = scannerToolReleaseVersions,
 ) {
-  const labels = { helper: '扫描助手', scanner: '扫描核心', runtime: '扫描组件' }
+  const labels = {
+    installer: '画面扫描',
+    helper: '扫描助手',
+    scanner: '扫描核心',
+    runtime: '扫描组件',
+  }
   const outdated = (Object.keys(labels) as (keyof typeof labels)[]).filter(
     (key) => target[key] && compareToolVersion(installed[key], target[key]!) === -1,
   )
   return outdated.length
-    ? `${outdated.map((key) => labels[key]).join('、')}有新版本，请更新画面扫描。`
+    ? target.installer
+      ? `画面扫描有新版本（v${target.installer}），请更新。`
+      : `${outdated.map((key) => labels[key]).join('、')}有新版本，请更新画面扫描。`
     : null
 }

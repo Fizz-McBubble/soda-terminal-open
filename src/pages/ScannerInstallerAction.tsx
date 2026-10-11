@@ -72,6 +72,7 @@ export function ScannerInstallerAction({
     upgradeNotice ||
     issueCode === 'helper_incompatible',
   )
+  const repair = distribution.state === 'repair_required' || issueCode === 'runtime_repair_required'
   const connect = useCallback(async () => {
     if (connectionBlocked || connectPending.current || !onConnect) return
     connectPending.current = true
@@ -216,7 +217,9 @@ export function ScannerInstallerAction({
                 ? '重新下载'
                 : update
                   ? '更新画面扫描'
-                  : '下载画面扫描'}
+                  : repair
+                    ? '修复画面扫描'
+                    : '下载画面扫描'}
           </span>
           {!pending ? (
             <small className="scanner-installer__version" aria-hidden="true">

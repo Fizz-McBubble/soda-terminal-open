@@ -27,6 +27,16 @@ function setDownloadFetcher(fetcher: typeof fetch) {
   )
 }
 const createObjectURL = vi.fn().mockReturnValue('blob:installer')
+it('offers repair for incomplete components without calling it a version mismatch', () => {
+  render(
+    <ScannerInstallerAction
+      distribution={{ ...initialDistributionSnapshot, state: 'repair_required', action: 'repair' }}
+      issueCode="runtime_repair_required"
+    />,
+  )
+  expect(screen.getByRole('button', { name: /修复画面扫描/ })).toBeEnabled()
+  expect(screen.queryByRole('button', { name: /更新画面扫描/ })).not.toBeInTheDocument()
+})
 function streamedDownload() {
   let streamController!: ReadableStreamDefaultController<Uint8Array>
   const cancel = vi.fn()
