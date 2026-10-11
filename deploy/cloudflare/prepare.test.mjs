@@ -7,6 +7,7 @@ import { spawnSync } from 'node:child_process'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import test from 'node:test'
 import { prepare } from './prepare.mjs'
+import { assetQuickReadInstallerRelease } from './asset-quick-read-release.mjs'
 
 const origin = 'https://sodaterminal.com'
 
@@ -19,7 +20,7 @@ test('quick-read proxy is packaged and routed before assets without a static exe
     const config = JSON.parse(await readFile(join(out, 'wrangler.json'), 'utf8'))
     assert(config.assets.run_worker_first.includes('/downloads/Soda-Asset-Quick-Read-Setup.exe'))
     assert(config.assets.run_worker_first.includes('/downloads/Soda-Scanner-Setup.exe'))
-    assert.equal(report.assetQuickReadInstallerProxy.size, 117896485)
+    assert.equal(report.assetQuickReadInstallerProxy.size, assetQuickReadInstallerRelease.size)
     for (const path of [
       'deploy/cloudflare/asset-quick-read-installer.mjs',
       'deploy/cloudflare/asset-quick-read-release.mjs',
@@ -32,7 +33,7 @@ test('quick-read proxy is packaged and routed before assets without a static exe
       fetcher: async (url) => {
         fetched = url
         return new Response(null, {
-          headers: { 'content-type': 'application/octet-stream', 'content-length': '117896485' },
+          headers: { 'content-type': 'application/octet-stream', 'content-length': String(assetQuickReadInstallerRelease.size) },
         })
       },
     })
