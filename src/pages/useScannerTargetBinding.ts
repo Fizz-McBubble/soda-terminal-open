@@ -232,7 +232,7 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
     clearScannerTargetAccountBinding()
     setTargetBinding(null)
     setSelectedAccountId(accountState?.activeAccount?.id ?? '')
-    setAccountMessage('请重新确认本次扫描保存到哪个账户。')
+    setAccountMessage('')
     stageFocusRequestedRef.current = true
     try {
       if (snapshot.state === 'scanning') await commands.safeStop()

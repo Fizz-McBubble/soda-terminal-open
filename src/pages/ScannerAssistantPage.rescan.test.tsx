@@ -115,6 +115,7 @@ describe('preparing another scan', () => {
     )
     const rendered = render(page())
     await userEvent.setup().click(await screen.findByRole('button', { name: '重新扫描' }))
+    expect(document.querySelector('.scanner-workbench__account-message')).toBeNull()
     runtime.snapshot = { ...oldCompleted }
     rendered.rerender(page())
     expect(screen.getByRole('heading', { name: '画面扫描已连接' })).toBeInTheDocument()
