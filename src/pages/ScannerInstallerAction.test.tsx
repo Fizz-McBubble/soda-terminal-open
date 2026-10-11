@@ -9,6 +9,7 @@ import { createRef } from 'react'
 import { PrepareChecklist } from './ScannerPrepareChecklist'
 import { baseScannerSnapshot } from './scannerAssistantTestFixture'
 import type { ScannerAssistantSnapshot } from '../scanner/runtime'
+import { presentScannerHelperSnapshot } from '../scanner/runtimeHelperVersion'
 const executableFixture = new Uint8Array([0x4d, 0x5a, 1, 2, 3, 4, 5, 6])
 const freshRelease = {
   ...installerManifest,
@@ -31,6 +32,41 @@ function setDownloadFetcher(fetcher: typeof fetch) {
   )
 }
 const createObjectURL = vi.fn().mockReturnValue('blob:installer')
+it('shows the connected old Helper upgrade in the compact preparation status', async () => {
+  const snapshot = presentScannerHelperSnapshot(
+    {
+      ...(baseScannerSnapshot as ScannerAssistantSnapshot),
+      state: 'ready',
+      readiness: {
+        ...baseScannerSnapshot.readiness,
+        helperConnected: true,
+        accountWriteEnabled: false,
+      },
+      distribution: { ...initialDistributionSnapshot, state: 'ready' },
+    },
+    '2.3.15',
+  )
+  render(
+    <PrepareChecklist
+      snapshot={snapshot}
+      headingRef={createRef()}
+      eyebrow="准备"
+      title="画面扫描已连接"
+      body="连接就绪"
+      targetReady
+      targetPanel={null}
+      accountDisclosure={null}
+      onStart={vi.fn()}
+      onReconnect={vi.fn()}
+      compact
+      installer={<ScannerInstallerAction distribution={snapshot.distribution!} />}
+    />,
+  )
+  expect(await screen.findByRole('heading', { name: /画面扫描有新版本.*请更新/ })).toBeVisible()
+  expect(screen.getByRole('button', { name: '更新画面扫描' })).toBeEnabled()
+  expect(screen.getByRole('button', { name: '开始扫描' })).toBeDisabled()
+  expect(screen.queryByText('连接就绪')).not.toBeInTheDocument()
+})
 it('replaces compact preparation feedback instead of adding a download status row', async () => {
   setDownloadFetcher(vi.fn().mockResolvedValue(new Response(executableFixture)))
   render(
@@ -41,7 +77,7 @@ it('replaces compact preparation feedback instead of adding a download status ro
         readiness: {
           ...baseScannerSnapshot.readiness,
           helperConnected: false,
-          accountWriteEnabled: false,
+        accountWriteEnabled: false,
         },
         distribution: initialDistributionSnapshot,
       }}

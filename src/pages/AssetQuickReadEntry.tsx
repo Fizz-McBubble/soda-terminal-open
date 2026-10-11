@@ -90,7 +90,7 @@ const stateCopy: Record<AssetQuickReadState, string> = {
   idle: '本次资产快读尚未启动。',
   starting: '资产快读正在准备。请保持游戏客户端完全退出，等待工具就绪后再启动并登录。',
   capturing:
-    '资产快读已就绪，请完整启动游戏并登录。最长等待 3 分钟；收到所需数据后立即反馈，不必等满 3 分钟。',
+    '资产快读已就绪，请完整启动游戏并登录。最长等待 3 分钟；收到所需数据后立即反馈。',
   received: '已收到数据，尚未导入当前账户。',
   timed_out: '本次等待已结束，未收到所需的完整数据。请检查游戏准备情况后再尝试，或改用画面扫描。',
   stopped: '本次资产快读已停止。已保存的本地结果不会自动删除，网络驱动也不会自动卸载。',
@@ -547,7 +547,7 @@ export function AssetQuickReadEntry({
         </div>
       )}
       {state === 'received' && (
-        <div className="asset-quick-read__panel">
+        <div className="asset-quick-read__panel asset-quick-read__result-panel">
           <h3 ref={resultHeading} tabIndex={-1}>
             本次读取结果
           </h3>

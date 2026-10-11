@@ -163,7 +163,6 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
     saveScannerTargetAccountBinding(binding)
     setTargetBinding(binding)
     refreshAccounts()
-    setAccountMessage(`已锁定“${current.displayName}”，导入时将再次确认完整替换。`)
     return binding
   }
 

@@ -83,6 +83,11 @@ describe('preparing another scan', () => {
     )
     await userEvent.setup().click(screen.getByRole('button', { name: '开始扫描' }))
     await waitFor(() => expect(runtime.commands.startScan).toHaveBeenCalledOnce())
+    expect(readScannerTargetAccountBinding()).toMatchObject({
+      valid: true,
+      binding: { accountId: account.id },
+    })
+    expect(screen.queryByText(/已锁定.*导入时将再次确认/)).not.toBeInTheDocument()
     rendered.rerender(page())
     expect(screen.queryByRole('region', { name: '已完成扫描结果' })).not.toBeInTheDocument()
     expect(await database.accountScanImportBatches.count()).toBe(0)

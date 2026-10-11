@@ -82,6 +82,12 @@
 .f5v-shell .scanner-workbench .asset-quick-read__connection-summary {
   margin: 0 0 8px;
 }
+.f5v-shell .scanner-workbench .scanner-prepare--compact .scanner-prepare__intro,
+.f5v-shell .scanner-workbench .asset-quick-read__connection-summary {
+  box-sizing: border-box;
+  min-height: 56px;
+  margin: 0 0 8px;
+}
 .f5v-shell
   .scanner-task.scanner-workbench
   .scanner-prepare--compact
@@ -121,7 +127,9 @@
 }
 .f5v-shell .scanner-workbench .scanner-prepare__requirements,
 .f5v-shell .scanner-workbench .asset-quick-read__game-preparation {
-  margin: 0 0 12px;
+  box-sizing: border-box;
+  min-height: 100px;
+  margin: 0 0 8px;
 }
 .f5v-shell .scanner-workbench .scanner-prepare__intro p,
 .f5v-shell .scanner-workbench .asset-quick-read__connection-summary p {
@@ -182,6 +190,62 @@
 .f5v-shell .scanner-workbench .scanner-dialog-import__actions {
   margin-top: auto;
   padding-top: 16px;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__consent-stage > .asset-quick-read__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-self: flex-start;
+  width: min(100%, 346px);
+  gap: 10px;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__result-panel > .asset-quick-read__actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-self: flex-start;
+  width: min(100%, 524px);
+  gap: 10px;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__task > .asset-quick-read__result-panel {
+  min-height: min-content;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__result-panel > h3 {
+  margin: 0 0 10px;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__result-panel > .asset-quick-read__target,
+.f5v-shell .scanner-workbench .asset-quick-read__result-panel > .asset-quick-read__counts,
+.f5v-shell .scanner-workbench .asset-quick-read__result-panel > .asset-quick-read__summary {
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__result-panel > .asset-quick-read__issues {
+  margin: 0;
+  padding: 10px 12px;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__result-panel > .asset-quick-read__issues h4 {
+  margin: 0 0 6px;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__result-panel > .asset-quick-read__issues ul {
+  margin: 0;
+  padding-left: 20px;
+}
+.f5v-shell
+  .scanner-workbench
+  .asset-quick-read__result-panel
+  > .asset-quick-read__actions
+  > .button,
+.f5v-shell
+  .scanner-workbench
+  .asset-quick-read__consent-stage
+  > .asset-quick-read__actions
+  > .button {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--soda-control-height, 42px);
+  margin: 0;
+  padding: 0 12px;
+  font-size: 14px;
+  line-height: 1.4;
 }
 .f5v-shell .scanner-workbench .asset-quick-read__task > .button,
 .f5v-shell .scanner-workbench .scanner-web__scan-actions,

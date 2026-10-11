@@ -119,24 +119,51 @@ it('replaces prepared-download feedback with a new failure and lets a later down
   expect(screen.queryByText(/文件已准备/)).not.toBeInTheDocument()
   expect(screen.getAllByRole('status')).toHaveLength(1)
 })
-it('uses the connected version for upgrade prompts instead of connection alone', () => {
+it('uses the connected bridge version independently of the installer version', () => {
   const candidate = {
     ...release,
-    version: '1.0.1',
-    bridgeVersion: '1.0.1',
-    fileName: 'SodaTerminal-AssetReader-Setup-1.0.1.exe',
-    releaseTag: 'v1.0.1',
+    version: '1.0.7',
+    bridgeVersion: '1.0.3',
+    fileName: 'SodaTerminal-AssetReader-Setup-1.0.7.exe',
+    releaseTag: 'v1.0.7',
   }
   const view = render(
-    <AssetQuickReadInstallerAction release={candidate} connected toolVersion="1.0.0" />,
+    <AssetQuickReadInstallerAction release={candidate} connected toolVersion="1.0.2" />,
   )
   expect(screen.getByRole('button', { name: '更新资产快读' })).toBeEnabled()
   expect(screen.getByRole('status')).toHaveTextContent('资产快读有新版本')
-  view.rerender(<AssetQuickReadInstallerAction release={candidate} connected toolVersion="1.0.1" />)
+  view.rerender(<AssetQuickReadInstallerAction release={candidate} connected toolVersion="1.0.3" />)
   expect(screen.queryByText('资产快读有新版本，请更新资产快读。')).not.toBeInTheDocument()
   expect(screen.queryByRole('button', { name: '更新资产快读' })).not.toBeInTheDocument()
   view.rerender(<AssetQuickReadInstallerAction release={candidate} connected />)
   expect(screen.queryByRole('button', { name: '更新资产快读' })).not.toBeInTheDocument()
+})
+it('shows the connected old Bridge upgrade in the compact preparation status', async () => {
+  render(
+    <AssetQuickReadEntry
+      capability="ready"
+      onConnect={vi.fn()}
+      onStart={vi.fn()}
+      installer={
+        <AssetQuickReadInstallerAction
+          release={{ ...release, version: '1.0.7', bridgeVersion: '1.0.3' }}
+          connected
+          toolVersion="1.0.2"
+        />
+      }
+      renderParts={({ preparation, task }) => (
+        <>
+          {preparation}
+          {task}
+        </>
+      )}
+    />,
+  )
+  await waitFor(() =>
+    expect(screen.getByRole('status')).toHaveTextContent('资产快读有新版本，请更新资产快读。'),
+  )
+  expect(screen.getByRole('button', { name: '更新资产快读' })).toBeEnabled()
+  expect(screen.getAllByRole('status')).toHaveLength(1)
 })
 it('does not pretend a missing release is downloadable', () => {
   const fetcher = vi.fn()

@@ -1,6 +1,7 @@
 import type { AccountDriveDisc, AccountRosterRecord } from '../accounts/types'
 import { accountIdSchema, getScopedId } from '../accounts/types'
 import { hydrateRosterDefaults } from '../accounts/rosterHydration'
+import { resolvePlanningDiscReferences } from '../accounts/planningDiscReferences'
 import {
   publicScannerDriveDiscData,
   publicScannerSetIdentities,
@@ -174,6 +175,7 @@ function createPlan(
   accountId: string,
   candidate: AssetQuickReadCandidate,
   before: AccountFacts,
+  planningDiscIds: Set<string>,
 ): AssetQuickReadImportPlan {
   if (
     !Number.isFinite(Date.parse(candidate.capturedAt)) ||
@@ -224,6 +226,57 @@ function createPlan(
       incomingSources.has(disc.importSource.sourceId),
   )
   const reconciled = reconcileAccountReplacementDiscs(parsed.readyDiscs, eligible)
+  // Legacy scans have no physical UID. Equal-sized groups without player
+  // annotations can keep all local IDs without moving any per-copy metadata.
+  // This remains an inferred link; unequal or annotated groups stay unresolved.
+  const reconciledIds = new Set(reconciled.discs.map((disc) => disc.id))
+  const availableLegacyByFact = new Map<string, AccountDriveDisc[]>()
+  for (const disc of eligible) {
+    if (reconciledIds.has(disc.id) || disc.importSource?.sourceId?.startsWith('asset-quick-read:'))
+      continue
+    const identity = driveDiscFactIdentity(disc)
+    const group = availableLegacyByFact.get(identity) ?? []
+    group.push(disc)
+    availableLegacyByFact.set(identity, group)
+  }
+  const knownIds = new Set(before.discs.map((disc) => disc.id))
+  const protectedDiscIds = new Set([
+    ...planningDiscIds,
+    ...(before.roster?.roster.agents.flatMap((agent) => agent.equippedDiscIds ?? []) ?? []),
+  ])
+  const unmatchedByFact = new Map<string, number[]>()
+  for (const [index, disc] of reconciled.discs.entries()) {
+    if (knownIds.has(disc.id)) continue
+    const identity = driveDiscFactIdentity(disc)
+    const group = unmatchedByFact.get(identity) ?? []
+    group.push(index)
+    unmatchedByFact.set(identity, group)
+  }
+  for (const [identity, indexes] of unmatchedByFact) {
+    const legacy = availableLegacyByFact.get(identity) ?? []
+    if (
+      legacy.length !== indexes.length ||
+      legacy.length < 2 ||
+      legacy.some((disc) => disc.favorite || disc.tags.length > 0 || protectedDiscIds.has(disc.id))
+    )
+      continue
+    const orderedLegacy = legacy.toSorted((a, b) => a.id.localeCompare(b.id))
+    const orderedIndexes = indexes.toSorted((a, b) =>
+      reconciled.discs[a]!.importSource!.sourceId!.localeCompare(
+        reconciled.discs[b]!.importSource!.sourceId!,
+      ),
+    )
+    orderedIndexes.forEach((index, position) => {
+      const old = orderedLegacy[position]!
+      reconciled.discs[index] = {
+        ...reconciled.discs[index]!,
+        id: old.id,
+        favorite: old.favorite,
+        tags: [...old.tags],
+        createdAt: old.createdAt,
+      }
+    })
+  }
   const knownById = new Map(before.discs.map((disc) => [disc.id, disc]))
   const matchedIds = new Set<string>()
   const sourceToId = new Map<string, string>()
@@ -283,9 +336,7 @@ function createPlan(
       (disc) => !matchedIds.has(disc.id) && retainedLegacyFacts.has(driveDiscFactIdentity(disc)),
     )
   )
-    throw new Error(
-      '旧扫描盘与本次物理实例存在数量不一致的同属性记录，请先核对，未自动合并或删除。',
-    )
+    throw new Error('旧盘中有同属性记录暂无法确认对应关系，未自动合并或删除。')
   const current = hydrateRosterDefaults(before.roster?.roster ?? {})
   const knownAgentIds = new Set(current.agents.map((agent) => agent.agentId))
   if (candidate.agents.some((agent) => !knownAgentIds.has(agent.agentId)))
@@ -323,6 +374,18 @@ function createPlan(
   }
 }
 
+async function readPlanningDiscIds(accountId: string, db: SodaDatabase) {
+  const drafts = await db.accountPlanningDrafts.where('accountId').equals(accountId).toArray()
+  return new Set(
+    drafts.flatMap((draft) => [
+      ...resolvePlanningDiscReferences(draft).referenceIds,
+      ...(draft.teamPortfolioDiscChoices?.loadouts.flatMap((loadout) =>
+        loadout.choices.map((choice) => choice.discId),
+      ) ?? []),
+    ]),
+  )
+}
+
 export function prepareAssetQuickReadImport(
   accountId: string,
   candidate: AssetQuickReadCandidate,
@@ -330,11 +393,23 @@ export function prepareAssetQuickReadImport(
 ) {
   return db.transaction(
     'r',
-    [db.accounts, db.settings, db.accountDriveDiscs, db.accountRosters, db.accountPreferences],
+    [
+      db.accounts,
+      db.settings,
+      db.accountDriveDiscs,
+      db.accountRosters,
+      db.accountPreferences,
+      db.accountPlanningDrafts,
+    ],
     async () => {
       await assertScope(accountId, db)
       await assertSnapshotAvailable(accountId, candidate.snapshotSha256, db)
-      return createPlan(accountId, candidate, await readFacts(accountId, db))
+      return createPlan(
+        accountId,
+        candidate,
+        await readFacts(accountId, db),
+        await readPlanningDiscIds(accountId, db),
+      )
     },
   )
 }
@@ -352,7 +427,14 @@ export function confirmAssetQuickReadImport(
 ) {
   return db.transaction(
     'rw',
-    [db.accounts, db.settings, db.accountDriveDiscs, db.accountRosters, db.accountPreferences],
+    [
+      db.accounts,
+      db.settings,
+      db.accountDriveDiscs,
+      db.accountRosters,
+      db.accountPreferences,
+      db.accountPlanningDrafts,
+    ],
     async () => {
       if (
         confirmation.sameGameAccountAndCounts !== true ||
@@ -365,7 +447,12 @@ export function confirmAssetQuickReadImport(
       const before = await readFacts(plan.accountId, db)
       if (factHash(before) !== plan.beforeHash)
         throw new Error('账户在检查后发生了变化，请重新检查，未写入。')
-      const fresh = createPlan(plan.accountId, candidate, before)
+      const fresh = createPlan(
+        plan.accountId,
+        candidate,
+        before,
+        await readPlanningDiscIds(plan.accountId, db),
+      )
       const key = `asset-quick-read-recovery-${candidate.snapshotSha256.toLowerCase()}`
       const scopedId = getScopedId(plan.accountId, key)
       await assertSnapshotAvailable(plan.accountId, candidate.snapshotSha256, db)

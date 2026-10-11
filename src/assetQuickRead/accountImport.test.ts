@@ -241,6 +241,129 @@ describe('asset quick read isolated account transactions', () => {
       { favorite: false, tags: ['测试'], createdAt: earlier, sourceLegacyId: 'synthetic-legacy' },
     ])
   })
+  it('keeps every unannotated legacy ID for equal-sized identical groups without adding copies', async () => {
+    const legacy = ['local-b', 'local-a'].map((id) => ({
+      ...storedDisc(id, `scanner:${id}`),
+      favorite: false,
+      tags: [],
+    }))
+    await db.accountDriveDiscs.bulkPut(legacy)
+    const input = candidate()
+    input.discs.discs.push({
+      ...structuredClone(input.discs.discs[0]),
+      sourceId: 'asset-quick-read:880002',
+    })
+    input.counts.discs = input.counts.sDiscs = 2
+    const plan = await prepareAssetQuickReadImport(accountId, input, db)
+    const reversed = structuredClone(input)
+    reversed.discs.discs.reverse()
+    const reversedPlan = await prepareAssetQuickReadImport(accountId, reversed, db)
+    const binding = (value: typeof plan) =>
+      value.next.discs.map((disc) => [disc.id, disc.importSource?.sourceId]).toSorted()
+    expect(binding(plan)).toEqual(binding(reversedPlan))
+    expect(plan.summary).toMatchObject({ newDiscs: 0, updatedDiscs: 2, inferredDiscLinks: 2 })
+    const receipt = await apply(input)
+    expect(receipt).toMatchObject({ newDiscs: 0, updatedDiscs: 2, totalDiscs: 2 })
+    const after = await db.accountDriveDiscs.where('accountId').equals(accountId).sortBy('id')
+    expect(after.map((disc) => disc.id)).toEqual(['local-a', 'local-b'])
+    expect(after.map((disc) => disc.importSource?.sourceId)).toEqual([
+      'asset-quick-read:880001',
+      'asset-quick-read:880002',
+    ])
+    expect(after.every((disc) => !disc.favorite && disc.tags.length === 0)).toBe(true)
+    expect((await agent()).equippedDiscIds).toEqual(['local-a'])
+    await restoreAssetQuickReadImport(
+      accountId,
+      receipt.recoveryKey,
+      'restore_asset_quick_read',
+      db,
+    )
+    expect(await db.accountDriveDiscs.where('accountId').equals(accountId).sortBy('id')).toEqual(
+      legacy.toSorted((a, b) => a.id.localeCompare(b.id)),
+    )
+  })
+  it('still refuses unequal identical legacy groups without changing account facts', async () => {
+    await db.accountDriveDiscs.bulkPut(
+      ['local-a', 'local-b'].map((id) => ({
+        ...storedDisc(id, `scanner:${id}`),
+        favorite: false,
+        tags: [],
+      })),
+    )
+    const before = await facts()
+    await expect(apply()).rejects.toThrow('暂无法确认对应关系')
+    expect(await facts()).toEqual(before)
+  })
+  it('does not infer interchangeable copies used by current equipment', async () => {
+    await db.accountDriveDiscs.bulkPut(
+      ['local-a', 'local-b'].map((id) => ({
+        ...storedDisc(id, `scanner:${id}`),
+        favorite: false,
+        tags: [],
+      })),
+    )
+    await patchAgent({ equippedDiscIds: ['local-a'] })
+    const input = candidate()
+    input.discs.discs.push({
+      ...structuredClone(input.discs.discs[0]),
+      sourceId: 'asset-quick-read:880002',
+    })
+    input.counts.discs = input.counts.sDiscs = 2
+    const before = await facts()
+    await expect(apply(input)).rejects.toThrow('暂无法确认对应关系')
+    expect(await facts()).toEqual(before)
+  })
+  it('rechecks a plan reference added after preparation before binding interchangeable copies', async () => {
+    await db.accountDriveDiscs.bulkPut(
+      ['local-a', 'local-b'].map((id) => ({
+        ...storedDisc(id, `scanner:${id}`),
+        favorite: false,
+        tags: [],
+      })),
+    )
+    const input = candidate()
+    input.discs.discs.push({
+      ...structuredClone(input.discs.discs[0]),
+      sourceId: 'asset-quick-read:880002',
+    })
+    input.counts.discs = input.counts.sDiscs = 2
+    const plan = await prepareAssetQuickReadImport(accountId, input, db)
+    await db.accountPlanningDrafts.put({
+      id: 'protected-copy-plan',
+      scopedId: `${accountId}:protected-copy-plan`,
+      accountId,
+      kind: 'agent',
+      name: 'Synthetic protected copy',
+      state: 'saved',
+      selection: { agentIds: [agentId], bangbooId: null, scenario: 'synthetic' },
+      manualOverrides: {
+        wEngineDirection: '',
+        discDirection: '',
+        progressionDirection: '',
+        notes: '',
+      },
+      knowledgeRefs: [],
+      warehouseRefs: ['local-a'],
+      comparisonCapability: 'direction',
+      createdAt: earlier,
+      updatedAt: earlier,
+      revision: 1,
+    })
+    const before = await facts()
+    await expect(
+      confirmAssetQuickReadImport(
+        input,
+        plan,
+        { accountId, snapshotSha256: input.snapshotSha256, sameGameAccountAndCounts: true },
+        db,
+      ),
+    ).rejects.toThrow('暂无法确认对应关系')
+    expect(await facts()).toEqual(before)
+    await expect(prepareAssetQuickReadImport(accountId, input, db)).rejects.toThrow(
+      '暂无法确认对应关系',
+    )
+    expect((await db.accountPlanningDrafts.toArray())[0]?.warehouseRefs).toEqual(['local-a'])
+  })
   it('keeps the local ID and metadata when a stable UID is upgraded', async () => {
     await db.accountDriveDiscs.put(storedDisc('my-retained-local-id', 'asset-quick-read:880001'))
     const input = candidate()

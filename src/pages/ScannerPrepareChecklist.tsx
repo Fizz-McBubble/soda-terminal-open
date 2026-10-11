@@ -104,7 +104,9 @@ export function PrepareChecklist({
     !requestInFlight &&
     !checking &&
     Boolean(installerStatus.text) &&
-    (needsConnection || installerStatus.pending)
+    (needsConnection ||
+      installerStatus.pending ||
+      snapshot.distribution?.state === 'update_available')
   const currentBody = compact
     ? snapshot.state === 'connection_failed'
       ? snapshot.error?.remedy || body
