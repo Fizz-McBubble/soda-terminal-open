@@ -17,6 +17,7 @@ export const incremental32CommunityTests = Object.freeze([
 ])
 
 export const communityTests = Object.freeze([
+  'src/components/SelectedAgentAvatar.test.tsx',
   'src/assetQuickRead/snapshotAdapter.potential.test.ts',
   'src/assetQuickRead/accountImport.potential.test.ts',
   'src/optimizer/optimizeAccountBuildsPanelInput.potential.test.ts',

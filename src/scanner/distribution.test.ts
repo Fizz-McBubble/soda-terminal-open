@@ -6,7 +6,7 @@ import {
 } from './distribution'
 
 describe('scanner distribution contract', () => {
-  it('locks the published RC8.9 direct-fork identity and makes v6 the single OCR runtime', () => {
+  it('locks the published RC8.10 direct-fork identity and makes v6 the single OCR runtime', () => {
     expect(scannerDistributionManifest.helper.sha256).toMatch(/^[a-f0-9]{64}$/)
     expect(scannerDistributionManifest.helper.size).toBeGreaterThan(
       scannerDistributionManifest.runtime.packageSize,
@@ -16,7 +16,7 @@ describe('scanner distribution contract', () => {
     expect(scannerDistributionManifest.runtime.packageSha256).toHaveLength(64)
     expect(scannerDistributionManifest.runtime.releaseState).toBe('published')
     expect(scannerDistributionManifest.runtime.packageUrl).toBe(
-      'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.9-local.20261011/soda-scanner-runtime-18-rc8-9-local-20261011-win-x64.zip',
+      'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.10-local.20261011/soda-scanner-runtime-18-rc8-10-local-20261011-win-x64.zip',
     )
     expect(scannerDistributionManifest.runtime.packageUrl).not.toContain('/latest/')
     expect(scannerDistributionManifest.runtime.excludedRuntimeFamilies).toEqual(

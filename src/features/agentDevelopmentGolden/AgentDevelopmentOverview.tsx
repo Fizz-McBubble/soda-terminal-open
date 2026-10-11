@@ -5,11 +5,9 @@ import {
 } from '../../components/assets/r6/useCatalogBrowseState'
 import { Star } from 'lucide-react'
 import { VisualEntityImage } from '../../components/VisualEntityImage'
+import { preloadSelectedAgentAvatar } from '../../components/SelectedAgentAvatar'
 import { SelectMenu } from '../../components/assets/r6/SelectMenu'
-import {
-  createLatestVisualSelection,
-  preloadVisualEntityImage,
-} from '../../assets/visualEntityImageSource'
+import { createLatestVisualSelection } from '../../assets/visualEntityImageSource'
 import { AgentVisualSlot } from './agentVisualSlot'
 import type { AgentSummary } from './types'
 import './styles.overview-scroll.css'
@@ -102,12 +100,7 @@ function getDirectoryProgress(agent: AgentSummary) {
 }
 
 function preloadRecommendationAvatar(agentId: string) {
-  void preloadVisualEntityImage({
-    entityType: 'agent',
-    entityId: agentId,
-    slotId: 'agent.square-avatar',
-    consumer: 'agent-development.overview',
-  })
+  void preloadSelectedAgentAvatar(agentId, 'agent-development.overview')
 }
 
 export function AgentDevelopmentOverview({
@@ -175,7 +168,11 @@ export function AgentDevelopmentOverview({
     'selection',
     ordered[0]?.agentId ?? '',
   )
-  const detailSelection = useRef(createLatestVisualSelection()).current
+  const detailSelection = useRef(
+    createLatestVisualSelection((request) =>
+      preloadSelectedAgentAvatar(request.entityId, 'agent-development.overview'),
+    ),
+  ).current
 
   const selectAgentDetail = async (agentId: string) => {
     if (agentId === selectedAgentId) return
@@ -183,7 +180,7 @@ export function AgentDevelopmentOverview({
       {
         entityType: 'agent',
         entityId: agentId,
-        slotId: 'agent.square-avatar',
+        slotId: 'agent.selected-summary',
         consumer: 'agent-development.overview',
       },
       () => setSelectedAgentId(agentId),

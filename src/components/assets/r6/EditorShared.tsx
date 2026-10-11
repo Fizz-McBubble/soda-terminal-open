@@ -1,4 +1,5 @@
 import { VisualEntityImage } from '../../VisualEntityImage'
+import { SelectedAgentAvatar } from '../../SelectedAgentAvatar'
 import { useState } from 'react'
 import type { CatalogItem } from './types'
 
@@ -45,22 +46,29 @@ export function Field({
 export function Identity(item: CatalogItem, meta: string, scopeLabel = '当前账户') {
   return (
     <header className={`identity identity--${item.entityType}`}>
-      <VisualEntityImage
-        entityType={item.entityType}
-        entityId={item.stableId}
-        slotId={
-          item.entityType === 'agent'
-            ? 'agent.square-avatar'
-            : item.entityType === 'wengine'
+      {item.entityType === 'agent' ? (
+        <SelectedAgentAvatar
+          agentId={item.stableId}
+          name={item.playerName}
+          consumer="assets.editor"
+          className="identity-image"
+        />
+      ) : (
+        <VisualEntityImage
+          entityType={item.entityType}
+          entityId={item.stableId}
+          slotId={
+            item.entityType === 'wengine'
               ? 'wengine.editor-identity'
               : item.entityType === 'bangboo'
                 ? 'bangboo.editor-identity'
                 : undefined
-        }
-        consumer={item.entityType === 'drive_disc_set' ? undefined : 'assets.editor'}
-        name={item.playerName}
-        className="identity-image"
-      />
+          }
+          consumer={item.entityType === 'drive_disc_set' ? undefined : 'assets.editor'}
+          name={item.playerName}
+          className="identity-image"
+        />
+      )}
       <div>
         <small>{scopeLabel}</small>
         <h2>{item.playerName}</h2>

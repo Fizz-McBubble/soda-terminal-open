@@ -5,7 +5,7 @@ import { useReconciledSelection } from './state'
 import { SelectMenu, type SelectMenuOption } from './SelectMenu'
 import { PlayerSelect } from '../../PlayerSelect'
 import type { AssetGoldenProps, CatalogItem, CatalogKind, DiscItem } from './types'
-import { preloadVisualEntityImage } from '../../../assets/visualEntityImageSource'
+import { preloadSelectedAgentAvatar } from '../../SelectedAgentAvatar'
 import { DiscWorkspaceModeSwitch } from '../../DiscWorkspaceModeSwitch'
 import { DiscBulkDeleteDialog } from './DiscBulkDeleteDialog'
 import { CatalogPagination } from './CatalogPagination'
@@ -124,12 +124,7 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
   }
   useEffect(() => {
     if (kind !== 'agents' || !selectedId) return
-    void preloadVisualEntityImage({
-      entityType: 'agent',
-      entityId: selectedId,
-      slotId: 'agent.square-avatar',
-      consumer: 'assets.editor',
-    })
+    void preloadSelectedAgentAvatar(selectedId, 'assets.editor')
   }, [kind, selectedId])
   const gridRef = useRef<HTMLDivElement>(null)
   useCatalogBrowseScroll(browseKey, gridRef)

@@ -22,7 +22,7 @@ export const agentDevelopmentGoldenContract = {
       ],
       assetSlots: {
         compactAgent: 'agent.factual-card',
-        recommendationIdentity: 'agent.square-avatar',
+        recommendationIdentity: 'agent.selected-summary',
       },
     },
     workbench: {

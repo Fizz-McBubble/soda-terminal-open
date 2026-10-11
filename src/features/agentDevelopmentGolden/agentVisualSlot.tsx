@@ -1,4 +1,5 @@
 import { VisualEntityImage } from '../../components/VisualEntityImage'
+import { SelectedAgentAvatar } from '../../components/SelectedAgentAvatar'
 import type { VisualAssetConsumer, VisualAssetSlotId } from '../../assets/visualAssetSlots'
 
 export type AgentVisualSlot = 'compact-agent' | 'recommendation-identity' | 'hero-agent'
@@ -12,7 +13,7 @@ const slotSpec: Record<
     consumer: 'agent-development.overview',
   },
   'recommendation-identity': {
-    slotId: 'agent.square-avatar',
+    slotId: 'agent.selected-summary',
     consumer: 'agent-development.overview',
   },
   'hero-agent': { slotId: 'agent.hero', consumer: 'agent-development.workbench' },
@@ -30,6 +31,16 @@ export function AgentVisualSlot({
   className?: string
 }) {
   const spec = slotSpec[slot]
+  if (slot === 'recommendation-identity') {
+    return (
+      <SelectedAgentAvatar
+        agentId={agentId}
+        name={name}
+        className={className}
+        consumer="agent-development.overview"
+      />
+    )
+  }
   return (
     <VisualEntityImage
       className={className}

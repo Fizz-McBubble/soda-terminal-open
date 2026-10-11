@@ -205,11 +205,11 @@ describe('investment policy respects legal substat capacity', () => {
     expect(result.blockedBy).toEqual([])
   })
 
-  it('identifies every current production combination with an impossible nonzero substat policy', () => {
+  it('calibrates every current production combination with an impossible nonzero substat policy', () => {
     const investment = productionPolicy.investment!
     let affected = 0
     let calibrated = 0
-    let pending = 0
+
     for (const profile of productionCatalog.profiles) {
       if (
         !profileValid(profile, productionCatalog.rules) ||
@@ -252,35 +252,22 @@ describe('investment policy respects legal substat capacity', () => {
             productionCatalog.rules,
             productionPolicy,
           )
-          if (evidence.investment.calibrationId) {
-            expect(evidence.investment.qualified, `${profile.id}/${slot}/${main}`).toBe(true)
-            expect(evidence.investment.minimumLines).toBe(core.length ? 1 : 0)
-            expect(evidence.investment.requiredCoreStats).toEqual(core)
-            if (!core.length) {
-              expect(evidence.investment.requiredSecondaryStats).toEqual(['hp_flat'])
-              expect(evidence.investment.meaningfulStats).toEqual([])
-              expect(evidence.investment.coreStats).toEqual([])
-            }
-            expect(evidence.investment.policyBlockers).toEqual([])
-            calibrated += 1
-          } else {
-            expect(evidence.investment.qualified, `${profile.id}/${slot}/${main}`).toBeNull()
-            expect(evidence.investment.policyBlockers).toEqual([
-              expect.objectContaining({
-                kind: 'policy',
-                profileId: profile.id,
-                field: `investment.capacity.${slot}.${main}`,
-              }),
-            ])
-            expect(profile.weights.hp_flat).toBeGreaterThan(0)
-            pending += 1
+          expect(evidence.investment.calibrationId, `${profile.id}/${slot}/${main}`).toBeTruthy()
+          expect(evidence.investment.qualified, `${profile.id}/${slot}/${main}`).toBe(true)
+          expect(evidence.investment.minimumLines).toBe(core.length ? 1 : 0)
+          expect(evidence.investment.requiredCoreStats).toEqual(core)
+          if (!core.length) {
+            expect(evidence.investment.requiredSecondaryStats).toEqual(['hp_flat'])
+            expect(evidence.investment.meaningfulStats).toEqual([])
+            expect(evidence.investment.coreStats).toEqual([])
           }
+          expect(evidence.investment.policyBlockers).toEqual([])
+          calibrated += 1
           affected += 1
         }
       }
     }
     expect(affected).toBe(33)
     expect(calibrated).toBe(33)
-    expect(pending).toBe(0)
   })
 })

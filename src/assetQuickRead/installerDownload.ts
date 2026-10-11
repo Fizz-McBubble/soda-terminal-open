@@ -19,7 +19,7 @@ export async function downloadAssetQuickReadInstaller({
     ...options,
     url: release.downloadUrl,
     fileName:
-      release.version === '1.0.1' ? release.fileName : `Soda-资产快读-${release.version}.exe`,
+      release.version === '1.0.0' ? `Soda-资产快读-${release.version}.exe` : release.fileName,
     expectedSize: release.size!,
     expectedSha256: release.sha256!,
   })
