@@ -23,6 +23,33 @@ type Recovery = {
   before: AccountFacts
   beforeHash: string
   afterHash: string
+  restoredAt?: string
+}
+
+export const assetQuickReadRecoveryLimit = 10
+
+async function assertSnapshotAvailable(
+  accountId: string,
+  snapshotSha256: string,
+  db: SodaDatabase,
+) {
+  const key = `asset-quick-read-recovery-${snapshotSha256.toLowerCase()}`
+  const existing = await db.accountPreferences.get(getScopedId(accountId, key))
+  if (
+    existing &&
+    (!validRecovery(existing.value, accountId) ||
+      !existing.value.restoredAt ||
+      factHash(await readFacts(accountId, db)) !== existing.value.beforeHash)
+  )
+    throw new Error('这份快照已导入或恢复后账户已有其他修改，请使用新的读取结果。')
+  if (
+    !existing &&
+    (await db.accountPreferences.where('accountId').equals(accountId).toArray()).filter((row) =>
+      row.key.startsWith('asset-quick-read-recovery-'),
+    ).length >= assetQuickReadRecoveryLimit
+  )
+    throw new Error('资产快读恢复副本已达 10 份，请先在账户与备份保管恢复副本后再继续。')
+  return existing
 }
 
 export type AssetQuickReadImportPlan = {
@@ -111,7 +138,7 @@ export function readLatestAssetQuickReadRecovery(
       if (!saved) return null
       const recovery = saved.value as Recovery
       const currentHash = factHash(await readFacts(accountId, db))
-      const canRestore = currentHash === recovery.afterHash
+      const canRestore = !recovery.restoredAt && currentHash === recovery.afterHash
       return {
         recoveryKey: saved.key,
         createdAt: recovery.createdAt,
@@ -148,6 +175,24 @@ function createPlan(
   candidate: AssetQuickReadCandidate,
   before: AccountFacts,
 ): AssetQuickReadImportPlan {
+  if (
+    !Number.isFinite(Date.parse(candidate.capturedAt)) ||
+    (before.roster &&
+      (!Number.isFinite(Date.parse(before.roster.updatedAt)) ||
+        !Number.isFinite(Date.parse(before.roster.roster.updatedAt)) ||
+        before.roster.roster.agents.some((agent) =>
+          Object.values(agent.observedFacts?.fields ?? {}).some(
+            (field) => field && !Number.isFinite(Date.parse(field.capturedAt)),
+          ),
+        ))) ||
+    before.discs.some(
+      (disc) =>
+        !Number.isFinite(Date.parse(disc.updatedAt)) ||
+        (disc.importSource?.capturedAt !== undefined &&
+          !Number.isFinite(Date.parse(disc.importSource.capturedAt))),
+    )
+  )
+    throw new Error('驱动盘或快照时间无效，无法核对数据顺序，未写入账户。')
   if (!candidate.importable || candidate.issues.length)
     throw new Error('资产快读结果存在未解决的问题，不能导入。')
   const data = publicScannerDriveDiscData
@@ -288,12 +333,7 @@ export function prepareAssetQuickReadImport(
     [db.accounts, db.settings, db.accountDriveDiscs, db.accountRosters, db.accountPreferences],
     async () => {
       await assertScope(accountId, db)
-      const recoveryId = getScopedId(
-        accountId,
-        `asset-quick-read-recovery-${candidate.snapshotSha256.toLowerCase()}`,
-      )
-      if (await db.accountPreferences.get(recoveryId))
-        throw new Error('这份快照已导入，请使用新的读取结果。')
+      await assertSnapshotAvailable(accountId, candidate.snapshotSha256, db)
       return createPlan(accountId, candidate, await readFacts(accountId, db))
     },
   )
@@ -328,8 +368,7 @@ export function confirmAssetQuickReadImport(
       const fresh = createPlan(plan.accountId, candidate, before)
       const key = `asset-quick-read-recovery-${candidate.snapshotSha256.toLowerCase()}`
       const scopedId = getScopedId(plan.accountId, key)
-      if (await db.accountPreferences.get(scopedId))
-        throw new Error('这份快照已导入并保留恢复副本，请勿重复导入。')
+      await assertSnapshotAvailable(plan.accountId, candidate.snapshotSha256, db)
       const recovery: Recovery = {
         format: 'soda-asset-quick-read-recovery',
         schemaVersion: 1,
@@ -339,7 +378,7 @@ export function confirmAssetQuickReadImport(
         beforeHash: factHash(before),
         afterHash: factHash(fresh.next),
       }
-      await db.accountPreferences.add({
+      await db.accountPreferences.put({
         scopedId,
         accountId: plan.accountId,
         key,
@@ -398,7 +437,33 @@ export function restoreAssetQuickReadImport(
       else await db.accountRosters.delete(accountId)
       if (factHash(await readFacts(accountId, db)) !== recovery.beforeHash)
         throw new Error('恢复守恒校验失败，事务已回滚。')
+      await db.accountPreferences.put({
+        ...stored!,
+        value: { ...recovery, restoredAt: new Date().toISOString() },
+      })
       return { accountId, restoredDiscs: recovery.before.discs.length }
     },
   )
+}
+
+export async function removeSavedAssetQuickReadRecovery(
+  accountId: string,
+  recoveryKey: string,
+  expectedHash: string,
+  confirmation: 'downloaded_and_keep_external_copy',
+  db: SodaDatabase = database,
+) {
+  if (
+    confirmation !== 'downloaded_and_keep_external_copy' ||
+    !/^asset-quick-read-recovery-[a-f0-9]{64}$/.test(recoveryKey)
+  )
+    throw new Error('请明确确认已下载并保管此恢复副本。')
+  return db.transaction('rw', [db.accounts, db.settings, db.accountPreferences], async () => {
+    await assertScope(accountId, db)
+    const key = getScopedId(accountId, recoveryKey)
+    const saved = await db.accountPreferences.get(key)
+    if (!saved || saved.accountId !== accountId || contentHash(saved.value) !== expectedHash)
+      throw new Error('恢复副本已变化，未移除。')
+    await db.accountPreferences.delete(key)
+  })
 }

@@ -36,6 +36,8 @@ function manuallyProtected(agent: RosterAgent, field: ObservedAgentField) {
 
 function hasNewerObservation(agent: RosterAgent, field: ObservedAgentField, capturedAt: string) {
   const timestamp = agent.observedFacts?.fields[field]?.capturedAt
+  if (timestamp && !Number.isFinite(Date.parse(timestamp)))
+    throw new Error('已保存的观察时间无效，请先核对来源时间，未写入账户。')
   // Dates can carry different UTC offsets, so lexical order is not chronological order.
   return Boolean(timestamp && Date.parse(timestamp) > Date.parse(capturedAt))
 }
@@ -46,6 +48,12 @@ export function mergeAssetQuickReadRoster(
   sourceToId: Map<string, string>,
   manualUpdatedAt: string | undefined,
 ) {
+  if (
+    !Number.isFinite(Date.parse(candidate.capturedAt)) ||
+    (manualUpdatedAt !== undefined && !Number.isFinite(Date.parse(manualUpdatedAt))) ||
+    !Number.isFinite(Date.parse(current.updatedAt))
+  )
+    throw new Error('账户或快照时间无效，无法核对手动修改顺序，未写入账户。')
   let protectedFields = 0
   let syncedManualProgressionFields = 0
   const incoming = new Map(candidate.agents.map((agent) => [agent.agentId, agent]))

@@ -8,6 +8,7 @@ import {
   restoreAccountBackup,
   restoreAccountBackupIndependently,
   restoreVaultBackup,
+  preflightVaultBackupAgainstDatabase,
 } from '../../accounts/backup'
 import { restoreBackup } from '../../domain/backup'
 import { persistScanImportStaging, reassessScanImportBatch } from '../../db/database'
@@ -44,10 +45,10 @@ export function useDataCenterFileOperations({
   const accountId = accountState?.active?.id ?? null
   const capturePageScope = usePageOperationScope(accountId ?? 'no-account')
   useEffect(() => {
-    inspectionGeneration.current += 1
+    const generation = ++inspectionGeneration.current
     let active = true
     queueMicrotask(() => {
-      if (!active) return
+      if (!active || generation !== inspectionGeneration.current) return
       setFileState(idleFileState)
       setRestoreConfirmation(null)
     })
@@ -160,7 +161,24 @@ export function useDataCenterFileOperations({
         setRestoreDisplayName(`${recognition.targetAccountName ?? '玩家账户'}（恢复副本）`)
         setRestoreConfirmation(identity === 'same_name_different_id' ? 'independent' : 'replace')
       } else if (recognition.kind === 'vault_backup') {
-        const count = await restoreVaultBackup(recognition.input)
+        const fresh = await preflightVaultBackupAgainstDatabase(recognition.input)
+        if (
+          JSON.stringify(fresh.conflicts) !== JSON.stringify(recognition.vaultPreflight.conflicts)
+        ) {
+          throw new Error('本机账户范围已变化，请重新检查备份并确认所有受影响账户。')
+        }
+        if (
+          !window.confirm(
+            `完整替换本机保险库？\n${fresh.conflicts.join('\n')}\n恢复前会保存全部账户副本。`,
+          )
+        )
+          return
+        const count = await restoreVaultBackup(
+          recognition.input,
+          undefined,
+          undefined,
+          fresh.affectedAccounts ?? [],
+        )
         setFileState((current) => ({
           ...current,
           phase: 'success',
@@ -203,7 +221,14 @@ export function useDataCenterFileOperations({
           ? await restoreAccountBackupIndependently(recognition.input, {
               displayName: restoreDisplayName,
             })
-          : { counts: await restoreAccountBackup(recognition.input) }
+          : {
+              counts: await restoreAccountBackup(
+                recognition.input,
+                undefined,
+                undefined,
+                recognition.backupPreflight.identity,
+              ),
+            }
       setRestoreConfirmation(null)
       setFileState((current) => ({
         ...current,
@@ -212,8 +237,8 @@ export function useDataCenterFileOperations({
           title: '账号恢复完成',
           detail:
             restoreConfirmation === 'independent'
-              ? `已作为独立玩家账户恢复 ${result.counts.driveDiscs} 张正式驱动盘，并设为当前账户。`
-              : `已完整替换目标玩家账户：${result.counts.driveDiscs} 张正式驱动盘，并设为当前账户。`,
+              ? `已作为独立玩家账户恢复 ${result.counts.driveDiscs} 张正式驱动盘。${recognition.backupPreflight.backup?.account.status === 'archived' ? '此账户保持归档，未设为当前账户。' : '已设为当前账户。'}`
+              : `已恢复目标玩家账户：${result.counts.driveDiscs} 张正式驱动盘。${recognition.backupPreflight.backup?.account.status === 'archived' ? '此账户保持归档，当前账户选择保留。' : '已设为当前账户。'}恢复前副本可在账户与备份下载。`,
         },
       }))
       setRevision((current) => current + 1)

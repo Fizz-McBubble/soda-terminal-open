@@ -331,11 +331,14 @@ export function AssetCenterPage() {
       exportedAt: backup.exportedAt,
       scope: `${backup.counts.roster ? '代理人/音擎/邦布' : '无养成资料'} · ${backup.counts.driveDiscs} 张驱动盘`,
       payload: input,
+      identity: preflight.identity,
+      archived: backup.account.status === 'archived',
+      replacementNotice: preflight.conflicts.join(' '),
     }
   }
 
   async function restore(preview: BackupPreview) {
-    await restoreAccountBackup(preview.payload)
+    await restoreAccountBackup(preview.payload, undefined, undefined, preview.identity)
     const refreshed = decisionWorld ? await decisionWorld.refresh() : true
     setMessage(
       refreshed

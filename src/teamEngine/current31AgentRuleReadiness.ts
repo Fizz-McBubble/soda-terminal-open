@@ -1,6 +1,7 @@
 import { currentAgentEventContracts } from '../calculation/currentAgentMechanicContracts'
 import { getCurrentAgentDecisionMechanicContract } from '../calculation/currentAgentDecisionMechanicContracts'
 import { currentAssetProjection } from '../gameDataPacks/currentAssetProjection'
+import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
 import type { AgentRule } from './contracts'
 import { current31TeamEngineD1Pack } from './current31D1Pack'
 
@@ -87,7 +88,7 @@ const idsWhere = (
 
 export const current31AgentRuleReadiness = {
   contract: 'soda-current-agent-rule-readiness/v1',
-  gameVersion: '3.1-phase-ii',
+  gameVersion: currentVersionProjection.gameVersion,
   population: current31AgentRuleReadinessEntries.length,
   recommendationExecutableAgentIds: idsWhere((entry) => entry.recommendationExecutable),
   activationDecisionReadyAgentIds: idsWhere((entry) => entry.activationDecisionReady),

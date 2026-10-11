@@ -44,10 +44,20 @@ export function reconcileAccountReplacementDiscs(
     matches.push(disc)
     existingBySourceIdentity.set(sourceIdentity, matches)
   }
+  const incomingSourceCounts = new Map<string, number>()
+  for (const disc of incomingDiscs) {
+    const source = disc.importSource?.sourceId
+    if (source) incomingSourceCounts.set(source, (incomingSourceCounts.get(source) ?? 0) + 1)
+  }
   const matchedExisting = new Map<number, AccountDriveDisc>()
   for (const [index, disc] of incomingDiscs.entries()) {
     const matches = existingBySourceIdentity.get(disc.importSource?.sourceId ?? '') ?? []
-    if (matches.length !== 1 || !availableExisting.has(matches[0]!.id)) continue
+    if (
+      incomingSourceCounts.get(disc.importSource?.sourceId ?? '') !== 1 ||
+      matches.length !== 1 ||
+      !availableExisting.has(matches[0]!.id)
+    )
+      continue
     matchedExisting.set(index, matches[0]!)
     availableExisting.delete(matches[0]!.id)
   }
@@ -69,7 +79,9 @@ export function reconcileAccountReplacementDiscs(
   }
   for (const [identity, incomingIndexes] of remainingIncomingByFact) {
     const existingMatches = remainingExistingByFact.get(identity) ?? []
-    if (incomingIndexes.length !== existingMatches.length) continue
+    // Attributes cannot distinguish identical physical copies. Never guess which
+    // copy owns the player's tags or favorite flag by sorting generated IDs.
+    if (incomingIndexes.length !== 1 || existingMatches.length !== 1) continue
     const sortedIncomingIndexes = incomingIndexes.toSorted((left, right) =>
       incomingDiscs[left]!.id.localeCompare(incomingDiscs[right]!.id),
     )
@@ -87,7 +99,6 @@ export function reconcileAccountReplacementDiscs(
         ? {
             ...disc,
             id: existing.id,
-            locked: existing.locked,
             favorite: existing.favorite,
             tags: [...existing.tags],
             createdAt: existing.createdAt,

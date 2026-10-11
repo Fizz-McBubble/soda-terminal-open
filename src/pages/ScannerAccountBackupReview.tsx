@@ -203,7 +203,12 @@ export function ScannerAccountBackupReview({
               beforeCommit,
             )
           : {
-              counts: await restoreAccountBackup(recognition.input, undefined, beforeCommit),
+              counts: await restoreAccountBackup(
+                recognition.input,
+                undefined,
+                beforeCommit,
+                fresh.backupPreflight.identity,
+              ),
               account: fresh.backupPreflight.backup.account,
             }
       const { counts } = result
@@ -211,7 +216,7 @@ export function ScannerAccountBackupReview({
       setReview({
         ...current,
         state: 'completed',
-        message: `恢复完成：${counts.driveDiscs} 张正式驱动盘、${counts.discEvaluations} 条评价、${counts.scanBatches} 个扫描批次、${counts.scanItems} 条暂存、${counts.optimizationResults} 个配装结果、${counts.planningDrafts} 份规划草稿、${counts.preferences} 项偏好。${mode === 'independent' ? '独立恢复账户' : '备份对应账户'}“${result.account.displayName}”（识别码 …${result.account.id.slice(-6)}）已设为当前账户。`,
+        message: `恢复完成：${counts.driveDiscs} 张正式驱动盘、${counts.discEvaluations} 条评价、${counts.scanBatches} 个扫描批次、${counts.scanItems} 条暂存、${counts.optimizationResults} 个配装结果、${counts.planningDrafts} 份规划草稿、${counts.preferences} 项偏好。${mode === 'independent' ? '独立恢复账户' : '备份对应账户'}“${result.account.displayName}”（识别码 …${result.account.id.slice(-6)}）${result.account.status === 'archived' ? '保持归档，未设为当前账户' : '已设为当前账户'}。恢复前副本可在账户与备份下载。`,
       })
       callbacks.current.onStateChange?.('completed')
       callbacks.current.onRestored()

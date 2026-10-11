@@ -1,0 +1,61 @@
+.restore-recovery__dialog.soda-asset-dialog {
+  width: min(520px, calc(100vw - 40px));
+  max-height: calc(100dvh - 40px);
+  overflow: auto;
+  padding: 20px;
+  border: 0;
+  border-radius: var(--soda-radius-surface, 16px);
+  background: var(--soda-surface, #fff);
+  color: var(--soda-text, #352d50);
+  box-shadow: 0 22px 60px rgba(35, 27, 55, 0.28);
+  font: inherit;
+}
+
+.restore-recovery__dialog::backdrop {
+  background: rgba(28, 22, 43, 0.36);
+}
+
+.restore-recovery__dialog > header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.restore-recovery__dialog h2 {
+  margin: 0;
+}
+
+.restore-recovery__dialog p {
+  margin: 12px 0;
+  color: var(--muted, #746983);
+}
+
+.restore-recovery__row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0;
+  border-top: 1px solid var(--line, #e6e0f0);
+}
+
+.restore-recovery__row p {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+}
+
+.restore-recovery__row button {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+@media (max-width: 680px) {
+  .restore-recovery__row {
+    flex-wrap: wrap;
+  }
+
+  .restore-recovery__row p {
+    flex-basis: 100%;
+  }
+}

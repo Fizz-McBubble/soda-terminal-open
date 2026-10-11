@@ -113,7 +113,12 @@ export function DataCenterRestoreConfirmationDialog({
             <h3>不会覆盖</h3>
             <p>其他玩家账户、旧单账号数据和游戏数据包。</p>
             <h3>恢复后</h3>
-            <p>目标账户会成为当前账户。恢复失败时，此账号仍保持恢复前的数据。</p>
+            <p>
+              {pendingBackup.account.status === 'archived'
+                ? '此账户保持归档，不会设为当前账户。'
+                : '目标账户会成为当前账户。'}
+              恢复前会保存完整副本，可在账户与备份下载；失败时原数据保持不变。
+            </p>
           </section>
         )}
         <div className="data-center-actions">

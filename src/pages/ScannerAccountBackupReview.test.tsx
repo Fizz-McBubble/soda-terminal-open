@@ -93,6 +93,7 @@ describe('scanner single-account backup review', () => {
       { format: 'soda-terminal-account-backup' },
       undefined,
       expect.any(Function),
+      'same_id',
     )
     expect(screen.getByText(/恢复完成：3 张正式驱动盘/)).toBeInTheDocument()
     expect(window.location.pathname).toBe('/system/scanner')

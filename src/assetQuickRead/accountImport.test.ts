@@ -11,6 +11,7 @@ import {
   prepareAssetQuickReadImport,
   readLatestAssetQuickReadRecovery,
   restoreAssetQuickReadImport,
+  removeSavedAssetQuickReadRecovery,
 } from './accountImport'
 import {
   accountId,
@@ -22,6 +23,7 @@ import {
   storedDisc,
   createQuickReadTestDatabase,
 } from './accountImport.fixtures'
+import { contentHash } from '../application/contentHash'
 
 describe('asset quick read isolated account transactions', () => {
   let db: SodaDatabase
@@ -211,7 +213,7 @@ describe('asset quick read isolated account transactions', () => {
     expect(imported.observedFacts?.fields.level).toBeUndefined()
     expect(imported.observedFacts?.fields['wEngineDetails.id']).toBeUndefined()
   })
-  it('keeps identical-property physical copies and matched legacy metadata', async () => {
+  it('refuses guessing metadata ownership among identical legacy physical copies', async () => {
     await db.accountDriveDiscs.bulkPut([
       storedDisc('local-a', 'scanner:synthetic-a'),
       { ...storedDisc('local-b', 'scanner:synthetic-b'), favorite: false, tags: ['测试'] },
@@ -222,13 +224,9 @@ describe('asset quick read isolated account transactions', () => {
       sourceId: 'asset-quick-read:880002',
     })
     input.counts.discs = input.counts.sDiscs = 2
-    const result = await apply(input)
-    expect(result).toMatchObject({
-      totalDiscs: 2,
-      newDiscs: 0,
-      updatedDiscs: 2,
-      inferredDiscLinks: 2,
-    })
+    const before = await facts()
+    await expect(apply(input)).rejects.toThrow('同属性记录')
+    expect(await facts()).toEqual(before)
     const discs = await db.accountDriveDiscs.where('accountId').equals(accountId).sortBy('id')
     expect(discs.map((row) => row.id)).toEqual(['local-a', 'local-b'])
     expect(
@@ -242,7 +240,6 @@ describe('asset quick read isolated account transactions', () => {
       { favorite: true, tags: ['保留'], createdAt: earlier, sourceLegacyId: 'synthetic-legacy' },
       { favorite: false, tags: ['测试'], createdAt: earlier, sourceLegacyId: 'synthetic-legacy' },
     ])
-    expect(new Set(discs.map((row) => row.importSource?.sourceId)).size).toBe(2)
   })
   it('keeps the local ID and metadata when a stable UID is upgraded', async () => {
     await db.accountDriveDiscs.put(storedDisc('my-retained-local-id', 'asset-quick-read:880001'))
@@ -255,7 +252,7 @@ describe('asset quick read isolated account transactions', () => {
     expect(disc).toMatchObject({
       id: 'my-retained-local-id',
       level: 15,
-      locked: true,
+      locked: false,
       favorite: true,
       tags: ['保留'],
     })
@@ -387,6 +384,53 @@ describe('asset quick read isolated account transactions', () => {
     ).rejects.toThrow('明确确认')
     await expect(prepareAssetQuickReadImport(accountId, input, db)).rejects.toThrow('已导入')
     expect(await facts()).toEqual(after)
+  })
+  it('allows the same snapshot again only after explicit restore to exactly its original facts', async () => {
+    const input = candidate()
+    const first = await apply(input)
+    await restoreAssetQuickReadImport(accountId, first.recoveryKey, 'restore_asset_quick_read', db)
+    const second = await apply(input)
+    expect(second.recoveryKey).toBe(first.recoveryKey)
+    expect(await db.accountPreferences.count()).toBe(1)
+    await restoreAssetQuickReadImport(accountId, second.recoveryKey, 'restore_asset_quick_read', db)
+    await patchAgent({ priority: 1 })
+    await expect(apply(input)).rejects.toThrow('其他修改')
+  })
+  it('keeps at most ten saved quick-read receipts and never silently removes one', async () => {
+    for (let i = 0; i < 10; i++) {
+      const input = candidate()
+      input.snapshotSha256 = i.toString(16).repeat(64)
+      input.capturedAt = new Date(Date.parse(now) + i * 1000).toISOString()
+      await apply(input)
+    }
+    const before = await facts()
+    const next = candidate()
+    next.snapshotSha256 = 'f'.repeat(64)
+    next.capturedAt = new Date(Date.parse(now) + 11_000).toISOString()
+    await expect(apply(next)).rejects.toThrow('已达 10 份')
+    expect(await facts()).toEqual(before)
+    const copy = (await db.accountPreferences.toArray())[0]
+    await removeSavedAssetQuickReadRecovery(
+      accountId,
+      copy.key,
+      contentHash(copy.value),
+      'downloaded_and_keep_external_copy',
+      db,
+    )
+    await apply(next)
+    expect(await db.accountPreferences.count()).toBe(10)
+  })
+  it('refuses invalid existing manual and disc times rather than silently superseding them', async () => {
+    await patchAgent({ manualSource: 'manual_override', level: 40 })
+    await db.accountRosters.update(accountId, { updatedAt: 'invalid-manual-time' })
+    const before = await facts()
+    await expect(apply()).rejects.toThrow('时间无效')
+    expect(await facts()).toEqual(before)
+    await db.accountRosters.update(accountId, { updatedAt: earlier })
+    const disc = storedDisc('invalid-time', 'asset-quick-read:880001')
+    disc.updatedAt = 'invalid-disc-time'
+    await db.accountDriveDiscs.put(disc)
+    await expect(apply()).rejects.toThrow('时间无效')
   })
   it('refuses a changed recovery payload without affecting current assets', async () => {
     const result = await apply()

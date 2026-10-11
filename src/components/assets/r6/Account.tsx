@@ -5,6 +5,7 @@ import type { AssetGoldenProps, BackupPreview } from './types'
 import { SelectMenu } from './SelectMenu'
 import { JsonFileDropTarget } from '../../JsonFileDropTarget'
 import './account-file-drop.css'
+import { RestoreRecoveryCopies } from '../../dataCenter/RestoreRecoveryCopies'
 
 export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
   const backupSectionRef = useRef<HTMLElement>(null)
@@ -254,7 +255,7 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
                 <span className="kicker">恢复资料</span>
                 <h2>选择本机备份</h2>
               </div>
-              <small>先检查备份内容，确认恢复后才会改动账户。</small>
+              <RestoreRecoveryCopies accountId={hasAccount ? props.accountId : undefined} />
             </header>
             <div className="backup-row">
               <span>
@@ -335,8 +336,16 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
               <p>
                 将恢复“{preview.accountName}”在 {new Date(preview.exportedAt).toLocaleString()}{' '}
                 导出的资料。若备份对应的账户已存在，其资料将被完整替换；其他账户不受影响。
+                替换前会自动保存完整恢复副本，可在账户与备份下载。
+                {preview.archived ? '此账户保持归档，不会设为当前账户。' : null}
               </p>
               <dl className="restore-facts">
+                {preview.replacementNotice ? (
+                  <div>
+                    <dt>目标账户</dt>
+                    <dd>{preview.replacementNotice}</dd>
+                  </div>
+                ) : null}
                 <div>
                   <dt>文件</dt>
                   <dd>{preview.fileName}</dd>

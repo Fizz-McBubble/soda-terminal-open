@@ -26,6 +26,7 @@ import {
   type VaultBackup,
 } from './backupSchemas'
 import { validateTeamPortfolioPlanningDraft } from './teamPortfolioPlanning'
+import { saveRestoreRecovery } from './restoreRecovery'
 
 export {
   accountBackupFormat,
@@ -175,6 +176,10 @@ export async function preflightAccountBackupAgainstDatabase(
       : sameName.length
         ? [`本机已有同名玩家账户；此备份会作为独立账户恢复，不会合并或覆盖现有账户。`]
         : [],
+    risks: [
+      ...preflight.risks,
+      ...(existing ? ['恢复前将自动保存目标账户的完整恢复副本，可在账户与备份下载。'] : []),
+    ],
   }
 }
 
@@ -299,17 +304,41 @@ export async function restoreAccountBackup(
   input: unknown,
   db: SodaDatabase = database,
   beforeCommit?: () => void,
+  expectedIdentity?: AccountBackupIdentity,
 ) {
   const preflight = preflightAccountBackup(input)
   if (!preflight.success || !preflight.backup) {
     throw new Error(preflight.errors[0] ?? '账号备份预检失败。')
   }
   await db.transaction('rw', accountTables(db), async () => {
+    const existing = await db.accounts.get(preflight.backup!.account.id)
+    if (expectedIdentity && Boolean(existing) !== (expectedIdentity === 'same_id'))
+      throw new Error('目标账户身份已变化，请重新检查并确认恢复范围。')
+    if (existing)
+      await saveRestoreRecovery(
+        await createAccountBackup(existing.id, db),
+        `账户“${existing.displayName}”`,
+        db,
+      )
     await replaceAccountBackupData(preflight.backup!, db)
-    await db.settings.put({ key: 'active-account-id', value: preflight.backup!.account.id })
+    await selectRestoredActiveAccount(preflight.backup!.account.id, db)
     beforeCommit?.()
   })
   return preflight.backup.counts
+}
+
+async function selectRestoredActiveAccount(accountId: string, db: SodaDatabase) {
+  if ((await db.accounts.get(accountId))?.status === 'active') {
+    await db.settings.put({ key: 'active-account-id', value: accountId })
+    return
+  }
+  const currentId = (await db.settings.get('active-account-id'))?.value
+  if (typeof currentId === 'string' && (await db.accounts.get(currentId))?.status === 'active')
+    return
+  const active = await db.accounts.filter((account) => account.status === 'active').toArray()
+  const next = active.find((account) => account.isDefault) ?? active[0]
+  if (next) await db.settings.put({ key: 'active-account-id', value: next.id })
+  else await db.settings.delete('active-account-id')
 }
 
 function rescopeBackupForIndependentRestore(
@@ -380,7 +409,7 @@ export async function restoreAccountBackupIndependently(
       throw new Error('该备份的稳定账号已存在；请使用完整替换确认，而不是创建副本。')
     if (await db.accounts.get(accountId)) throw new Error('恢复副本标识已存在，请重新确认。')
     await replaceAccountBackupData(restored, db)
-    await db.settings.put({ key: 'active-account-id', value: accountId })
+    await selectRestoredActiveAccount(accountId, db)
     beforeCommit?.()
   })
   return { account: restored.account, counts: restored.counts }
@@ -430,21 +459,40 @@ export async function preflightVaultBackupAgainstDatabase(
   db: SodaDatabase = database,
 ) {
   const preflight = preflightVaultBackup(input)
-  if (!preflight.backup) return { ...preflight, conflicts: [] }
-  const existingIds = new Set((await db.accounts.toArray()).map((account) => account.id))
+  if (!preflight.backup) return { ...preflight, conflicts: [], affectedAccounts: [] }
+  const existing = await db.accounts.toArray()
+  const existingIds = new Set(existing.map((account) => account.id))
+  const incomingIds = new Set(preflight.backup.accounts.map((item) => item.account.id))
   const conflicts = preflight.backup.accounts
     .filter((account) => existingIds.has(account.account.id))
     .map(
       (account) =>
         `账号 ${account.account.displayName}（${account.account.id}）已存在；确认后保险库恢复将替换它。`,
     )
-  return { ...preflight, conflicts }
+  const removed = existing.filter((account) => !incomingIds.has(account.id))
+  return {
+    ...preflight,
+    conflicts: [
+      ...conflicts,
+      ...removed.map(
+        (account) =>
+          `账户“${account.displayName}”（${account.id}）不在此备份中；恢复会移除它，完整资料将保存在恢复前副本中。`,
+      ),
+    ],
+    affectedAccounts: existing.map((account) => ({
+      id: account.id,
+      displayName: account.displayName,
+      action: incomingIds.has(account.id) ? ('replace' as const) : ('remove' as const),
+    })),
+    risks: [...preflight.risks, '恢复前将自动保存本机全部账户的完整副本，可在账户与备份下载。'],
+  }
 }
 
 export async function restoreVaultBackup(
   input: unknown,
   db: SodaDatabase = database,
   beforeCommit?: () => void,
+  expectedAccounts?: Array<{ id: string; displayName: string }>,
 ) {
   const preflight = preflightVaultBackup(input)
   if (!preflight.success || !preflight.backup) {
@@ -457,6 +505,18 @@ export async function restoreVaultBackup(
     preflight.backup.accounts.find((backup) => backup.account.status === 'active')?.account ??
     null
   await db.transaction('rw', accountTables(db), async () => {
+    if (expectedAccounts) {
+      const identity = (items: Array<{ id: string; displayName: string }>) =>
+        JSON.stringify(
+          items
+            .map(({ id, displayName }) => ({ id, displayName }))
+            .sort((a, b) => a.id.localeCompare(b.id)),
+        )
+      if (identity(await db.accounts.toArray()) !== identity(expectedAccounts))
+        throw new Error('本机账户范围已变化，请重新检查保险库并明确确认。')
+    }
+    if (await db.accounts.count())
+      await saveRestoreRecovery(await createVaultBackup(db), '全部账户保险库', db)
     await Promise.all(
       accountTables(db)
         .filter((table) => table !== db.settings)

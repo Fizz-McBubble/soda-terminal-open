@@ -11,6 +11,7 @@ import { database, databaseSchemaVersion, type Setting, type SodaDatabase } from
 import { gameData } from '../data/gameData'
 import { replaceRuntimeProfiles } from '../evaluation/rules'
 import { validateTemplateReferences } from './templates'
+import { saveRestoreRecovery } from '../accounts/restoreRecovery'
 
 export const backupFormat = 'soda-terminal-backup'
 export const backupFormatVersion = 1
@@ -175,11 +176,24 @@ export async function restoreBackup(
     db.buildProfiles,
     db.settings,
     async () => {
+      if (
+        (await db.driveDiscs.count()) ||
+        (await db.buildProfiles.count()) ||
+        (await db.discEvaluations.count()) ||
+        (await db.settings
+          .where('key')
+          .anyOf([...backedUpSettingKeys])
+          .count())
+      )
+        await saveRestoreRecovery(await createBackup(db), '旧版单账号资料', db)
       await Promise.all([
         db.driveDiscs.clear(),
         db.discEvaluations.clear(),
         db.buildProfiles.clear(),
-        db.settings.clear(),
+        db.settings
+          .where('key')
+          .anyOf([...backedUpSettingKeys])
+          .delete(),
       ])
       await db.driveDiscs.bulkAdd(data.driveDiscs as DriveDisc[])
       await db.discEvaluations.bulkAdd(data.discEvaluations as DiscEvaluation[])

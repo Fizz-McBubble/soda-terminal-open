@@ -162,6 +162,12 @@ export function FileIntake({
               {risk}
             </p>
           ))}
+          {state.recognition.kind === 'vault_backup' &&
+            state.recognition.vaultPreflight.conflicts.map((conflict) => (
+              <p key={conflict} className="danger-note">
+                {conflict}
+              </p>
+            ))}
           <div className="data-center-actions">
             {state.phase === 'error' ? (
               <button className="button button--primary" type="button" onClick={onReset}>

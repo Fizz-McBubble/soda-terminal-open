@@ -65,6 +65,9 @@ export type BackupPreview = {
   exportedAt: string
   scope: string
   payload: unknown
+  identity?: 'same_id' | 'same_name_different_id' | 'new_account'
+  archived?: boolean
+  replacementNotice?: string
 }
 
 export type LocalAccountOption = {

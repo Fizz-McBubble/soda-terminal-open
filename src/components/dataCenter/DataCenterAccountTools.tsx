@@ -1,6 +1,7 @@
 import type { KeyboardEvent, RefObject } from 'react'
 import type { AccountState, FilePhase, FileState } from './dataCenterTypes'
 import { FileIntake } from './FileIntake'
+import { RestoreRecoveryCopies } from './RestoreRecoveryCopies'
 
 export function DataCenterAccountTools({
   accountState,
@@ -167,6 +168,7 @@ export function DataCenterAccountTools({
           >
             {restoringAccount ? '取消恢复' : '恢复账户'}
           </button>
+          <RestoreRecoveryCopies accountId={accountState?.active?.id} />
         </div>
         {creatingAccount && (
           <section
