@@ -456,3 +456,27 @@
 .f5v-shell .comparison-detail[hidden] {
   display: none;
 }
+
+.f5v-shell .workbench--single-page .current-overview {
+  align-items: start;
+  align-content: start;
+}
+.f5v-shell .workbench--single-page .current-overview::after {
+  content: none;
+}
+.f5v-shell .workbench--single-page .current-overview__state,
+.f5v-shell .workbench--single-page .current-overview__panel {
+  height: auto;
+  grid-template-rows: auto auto;
+  align-content: start;
+}
+.f5v-shell .workbench--single-page .current-status-details {
+  grid-template-rows: none;
+  grid-auto-rows: auto;
+}
+.f5v-shell .workbench--single-page .current-overview > .panel-graduation-targets {
+  grid-column: 1 / -1;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--soda-line);
+}

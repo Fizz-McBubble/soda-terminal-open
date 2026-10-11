@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { type CoreWarehouse } from '../accounts/coreFlow'
 import { resolvePotentialImage } from '../assault/agentCapabilities'
-import { getCandidateStatLabels } from '../application/publicCandidateLabels'
+import { formatCandidateSubStatDirections } from '../application/publicCandidateLabels'
 import {
   playerFacingAgentLabel,
   playerFacingBangbooLabel,
@@ -20,7 +20,15 @@ export function CandidateReferenceDirection({ profile }: { profile: PlanningProf
       <summary>{profile.agentName}资料与方案条件</summary>
       <p>适用场景：{playerFacingLabel(profile.scenario)}。</p>
       <p>
-        来源：{profile.sources.map((source) => playerFacingLabel(source.label)).join('、')}。假设：
+        来源：
+        {profile.sources
+          .map((source) => {
+            if (source.label.startsWith('prydwen-')) return 'Prydwen'
+            if (source.label.startsWith('gachabase-release-')) return 'Gachabase'
+            return playerFacingLabel(source.label)
+          })
+          .join('、')}
+        。假设：
         {profile.assumptions.map(playerFacingLabel).join('；') || '资料待补齐'}
       </p>
       {profile.recommendation ? (
@@ -29,7 +37,7 @@ export function CandidateReferenceDirection({ profile }: { profile: PlanningProf
           <li>驱动盘与主词条方向：{direction.discDirection}。</li>
           <li>
             关键副词条：
-            {getCandidateStatLabels(profile.recommendation.subStats, '副词条').join('、')}。
+            {formatCandidateSubStatDirections(profile.recommendation.subStats).join('、')}。
           </li>
           <li>养成建议：{direction.progressionDirection}</li>
           <li>

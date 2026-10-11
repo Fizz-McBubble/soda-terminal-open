@@ -7,7 +7,7 @@ import {
 } from '../../application/warehouseMatchFeedback'
 import { WarehouseMatchMessage } from '../../components/WarehouseMatchMessage'
 import { DevelopmentDiscCard } from './DevelopmentDiscCard'
-import { WorkbenchPanelSnapshot } from './WorkbenchPanelSnapshot'
+import { WorkbenchGraduationTargets, WorkbenchPanelSnapshot } from './WorkbenchPanelSnapshot'
 import { DevelopmentDiscGuide } from './DevelopmentDiscGuide'
 import { useStateTransitionMotion } from '../../motion/useStateTransitionMotion'
 import { VisualEntityImage } from '../../components/VisualEntityImage'
@@ -276,6 +276,7 @@ export function Workbench({
             </div>
           </section>
           <WorkbenchPanelSnapshot subject={subject} />
+          <WorkbenchGraduationTargets subject={subject} />
         </section>
 
         <section className="loadout-recommendations" aria-label="配装建议">

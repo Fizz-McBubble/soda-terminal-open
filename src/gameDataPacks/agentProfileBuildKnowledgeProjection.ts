@@ -25,13 +25,26 @@ export function buildField(profile: AgentProfile, path: string) {
 }
 
 function buildMainStats(value: unknown) {
+  const mainStats =
+    value && typeof value === 'object' && !Array.isArray(value) && 'mainStats' in value
+      ? value.mainStats
+      : value
   const lines = strings(value)
   return Object.fromEntries(
-    (['4', '5', '6'] as const).map((slot) => [
-      slot,
-      lines.filter((line) => line.includes(`${slot}号位`)),
-    ]),
+    (['4', '5', '6'] as const).map((slot) => {
+      const keyed =
+        mainStats && typeof mainStats === 'object' && !Array.isArray(mainStats) && slot in mainStats
+          ? strings((mainStats as Record<string, unknown>)[slot])
+          : null
+      return [slot, keyed ?? lines.filter((line) => line.includes(`${slot}号位`))]
+    }),
   )
+}
+
+function buildSubStats(value: unknown) {
+  if (value && typeof value === 'object' && !Array.isArray(value) && 'subStats' in value)
+    return strings(value.subStats)
+  return strings(value).filter((item) => !/[456]号位/.test(item))
 }
 
 export function projectBuildKnowledgeProfile(
@@ -125,7 +138,7 @@ export function projectBuildKnowledgeProfile(
           wEngines,
           sets,
           mainStats: buildMainStats(mainSub),
-          subStats: strings(mainSub).filter((item) => !/[456]号位/.test(item)),
+          subStats: buildSubStats(mainSub),
           skillPriority: progression,
           coreTarget: 1,
           teammates: team,

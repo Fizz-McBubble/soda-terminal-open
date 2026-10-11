@@ -16,7 +16,7 @@ export type TargetPanelMetricKey = (typeof targetPanelMetricKeys)[number]
 export type TargetPanelMetricSemantic = {
   requirement: 'required' | 'optional'
   boundary: 'minimum' | 'cap'
-  observation: 'out_of_combat' | 'in_combat'
+  observation: 'out_of_combat' | 'in_combat' | 'reference'
 }
 
 export type TargetPanelSemantics = Partial<Record<TargetPanelMetricKey, TargetPanelMetricSemantic>>
@@ -27,7 +27,9 @@ function isTargetPanelMetricSemantic(value: unknown): value is TargetPanelMetric
   return (
     (semantic.requirement === 'required' || semantic.requirement === 'optional') &&
     (semantic.boundary === 'minimum' || semantic.boundary === 'cap') &&
-    (semantic.observation === 'out_of_combat' || semantic.observation === 'in_combat')
+    (semantic.observation === 'out_of_combat' ||
+      semantic.observation === 'in_combat' ||
+      semantic.observation === 'reference')
   )
 }
 

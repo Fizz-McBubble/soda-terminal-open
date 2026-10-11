@@ -240,14 +240,16 @@ export function targetPanelDisplayValue(panel: TargetPanel, label: CharacterPane
       : null
   }
   const { value, semantic } = target
+  // Preserve guide precision separately from the current game's menu rounding.
+  const displayTarget = (number: number) => `${number}${usesPercent(label) ? '%' : ''}`
   const base =
     typeof value === 'number'
-      ? displayPanelValue(label, value)
+      ? displayTarget(value)
       : value.min === undefined
-        ? `≤${displayPanelValue(label, value.max!)}`
+        ? `≤${displayTarget(value.max!)}`
         : value.max === undefined
-          ? `${displayPanelValue(label, value.min)}+`
-          : `${displayPanelValue(label, value.min)}–${displayPanelValue(label, value.max)}${value.upperOpen ? '+' : ''}`
+          ? `${displayTarget(value.min)}+`
+          : `${displayTarget(value.min)}–${displayTarget(value.max)}${value.upperOpen ? '+' : ''}`
   const qualifiers = [
     ...(semantic.requirement === 'optional' ? ['可选'] : []),
     ...(semantic.observation === 'in_combat' ? ['战斗内'] : []),

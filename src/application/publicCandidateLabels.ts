@@ -1,4 +1,5 @@
 import labels from './publicCandidateLabels.data.json'
+import { adoptedBuildIntentWEngineIds } from './publicBuildIntentWEngineAliases'
 
 export const publicStatOrder: readonly string[] = labels.statOrder
 
@@ -31,7 +32,10 @@ export function getCandidateWEngineLabels(ids: string[]) {
   return ids.map((id) =>
     presentCandidateValue(
       id,
-      (candidate) => labels.wEngines[candidate as keyof typeof labels.wEngines],
+      (candidate) =>
+        labels.wEngines[
+          (adoptedBuildIntentWEngineIds[candidate] ?? candidate) as keyof typeof labels.wEngines
+        ] ?? Object.values(labels.wEngines).find((name) => name === candidate),
       '音擎',
     ),
   )
@@ -49,6 +53,30 @@ export function getCandidateSetLabels(ids: string[]) {
 
 export function getCandidateStatLabels(ids: string[], category: '主词条' | '副词条') {
   return ids.map((id) => presentCandidateValue(id, getPublicStatLabel, category))
+}
+
+/** Reviewed profile directions may already be prose; raw fact labels still require catalog keys. */
+function presentReviewedDirection(value: string, mapped: string | undefined, category: string) {
+  if (mapped) return mapped
+  return /\p{Script=Han}/u.test(value) && !/(?:agent-|wengine-|set-|bangboo-)/i.test(value)
+    ? value
+    : `${category}资料待补齐`
+}
+
+export function formatCandidateSetDirections(directions: string[]) {
+  return directions.map((direction) =>
+    presentReviewedDirection(
+      direction,
+      labels.driveDiscSets[direction as keyof typeof labels.driveDiscSets],
+      '驱动盘套装',
+    ),
+  )
+}
+
+export function formatCandidateSubStatDirections(directions: string[]) {
+  return directions.map((direction) =>
+    presentReviewedDirection(direction, getPublicStatLabel(direction), '副词条'),
+  )
 }
 
 export function getCandidateSkillLabels(ids: string[]) {
@@ -71,7 +99,10 @@ export function formatCandidateSkillDirections(directions: readonly string[] = [
 export function formatCandidateMainStats(mainStats: Record<string, string[]>) {
   return Object.entries(mainStats)
     .map(([slot, values]) => {
-      const labels = getCandidateStatLabels(values, '主词条')
+      const labels = values.map((value) => {
+        const direction = presentReviewedDirection(value, getPublicStatLabel(value), '主词条')
+        return direction.replace(new RegExp(`^${slot}号位[：:]?\\s*`), '')
+      })
       return `${slot}号位 ${labels.length ? labels.join('/') : '主词条资料待补齐'}`
     })
     .join('；')

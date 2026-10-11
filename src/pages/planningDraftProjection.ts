@@ -4,7 +4,7 @@ import { localizedAgentNames } from '../application/savedPlanDisplayName'
 import type { AccountDecisionSnapshot } from '../application/calculationQueryContract'
 import {
   formatCandidateMainStats,
-  getCandidateSetLabels,
+  formatCandidateSetDirections,
   formatCandidateSkillDirections,
   getCandidateWEngineLabels,
 } from '../application/publicCandidateLabels'
@@ -47,7 +47,9 @@ export function decisionTeamWarehousePlan(
 
 export function directionFor(profile: PlanningProfile) {
   const recommendation = profile.recommendation
-  const setLabels = recommendation ? [...new Set(getCandidateSetLabels(recommendation.sets))] : []
+  const setLabels = recommendation
+    ? [...new Set(formatCandidateSetDirections(recommendation.sets))]
+    : []
   return {
     wEngineDirection: recommendation
       ? getCandidateWEngineLabels(recommendation.wEngines).join('、')
