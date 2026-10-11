@@ -14,7 +14,7 @@
     "deploy/cloudflare/asset-quick-read-distribution.mjs": "c02a900f24f2dad3ab28b9e79fbb0e7a125b1dd597c25937c0fa2503ef94dc6b",
     "deploy/cloudflare/asset-quick-read-installer.mjs": "6fb3721ea3ad149664803029ff211bd0611653255499c792d488d6ad7b674b97",
     "deploy/cloudflare/asset-quick-read-installer.test.mjs": "1b40b6859d65c24ec9d9ea70991a57ab10c648cafb0dd277ba769114d213e770",
-    "deploy/cloudflare/asset-quick-read-release.mjs": "e33f4ed5e8efee6cfd102d3eab97dd8857e955a080856090cb4cf205763818c4",
+    "deploy/cloudflare/asset-quick-read-release.mjs": "fabffb6f250f91f4ac1e21f234650b0aa70254f2ce21cbfe5b1b9d6ee7eda411",
     "deploy/cloudflare/edge.mjs": "1e7400b3fe2506d428275ecc08a625c94ffa88ccd05c92b58c8a0dce7b464923",
     "deploy/cloudflare/edge.test.mjs": "2174fb25b5e5ad81cd654f39e11232af54c305b4f1570bc948a75d2b4fe363ec",
     "deploy/cloudflare/prepare.mjs": "fab334fb89be4b510eaf5184fe2c0772c21e33c54eebf88fb5976297e866d27a",
