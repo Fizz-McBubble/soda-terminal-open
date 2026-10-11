@@ -1097,7 +1097,7 @@
     "src/pages/AssetQuickReadWorkspace.test.tsx": "40adf810dbc1ce7ab30b9c67edf0ce0d28c026ab300e8a8186ac4be6ef61e2cb",
     "src/pages/BangbooActivationDetails.tsx": "725a6a630c64b8981427a33ca27eee8eb35af0e56af7354fd3d56245e80091d0",
     "src/pages/BangbooConditionDetailsView.tsx": "ffeb82fbd4984ed08b1b4764c986e738fbfafb72384678d058c8372290311497",
-    "src/pages/candidateDiscRecommendations.ts": "87b6ea72a3cd7d8ce43ca812f89660cc814cdb605a8b1f4add01ae46770ba1b2",
+    "src/pages/candidateDiscRecommendations.ts": "1fcd40d349080e4074f86a0f59f2d2531f418503e249c5915748ca9c24f9664a",
     "src/pages/CandidateWarehouseResult.tsx": "d2452ff0ebafb793f5a652e1daeace0617824cdaa42f2930139a0aff746943ea",
     "src/pages/comparisonStatUnits.ts": "1888aa18aabf41e5468e8137ca6e35b95782e0b8b02e86ac8ab1ed9df517d102",
     "src/pages/createAgentDevelopmentWorkbenchData.ts": "423ebb61298c5b40e8d9655b67fd8141712e24cf70c932121276f1080a3da146",
