@@ -1271,7 +1271,7 @@
     "src/pages/ScannerManualCalibration.tsx": "bf5e10eb3cd3b0ff5cf2cb337034f6556ef422bc3bc6a7e34f6e9b62b75dcc15",
     "src/pages/ScannerMethodSteps.tsx": "7dafe14014585f22bfcc9095291a80bc05ae38af57864adfa31bdf14be49817c",
     "src/pages/ScannerPreparationStatus.ts": "855d25730e4298d222232bb8061640d5fece2635c54a4ebfd5ee9f9dd733e348",
-    "src/pages/ScannerPrepareChecklist.tsx": "44f5e5f39c04a9d05061c4a9252ecbe1614eaa14696b389b13cea274fce03595",
+    "src/pages/ScannerPrepareChecklist.tsx": "df43097f2a3963bbaef898a21dcd8945990da29c0b602ca82e880123426e5861",
     "src/pages/scannerPrepareChecks.test.ts": "5b6a13375b3750ddfa611bcd2b33b38dd168310d53430ac934f55d7d53741fa2",
     "src/pages/scannerPrepareChecks.ts": "e942c7d8ada5701829ddaff6daf2d592dac3b47e68ddfa9512f0df7efe1f624f",
     "src/pages/ScannerPrepareSection.tsx": "6027bf187f7762695be17453ec4804ca043acd326fb1eaf82a917a0647e4dce3",

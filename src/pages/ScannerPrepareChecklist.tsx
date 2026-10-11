@@ -123,6 +123,7 @@ export function PrepareChecklist({
             <h4>准备游戏</h4>
             <ul>
               <li>打开“驱动仓库”，清除筛选并关闭弹窗和侧栏。</li>
+              <li>云绝优先使用大尺寸窗口；本地建议使用 1080p 窗口模式。</li>
               <li>保持游戏画面完整可见，扫描时暂不操作键鼠或切换窗口。</li>
             </ul>
           </section>
