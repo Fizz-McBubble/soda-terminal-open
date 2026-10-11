@@ -36,7 +36,8 @@ function Read-SodaRuntimeManifest {
     $pinnedAssets = @(
         'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.2/soda-scanner-runtime-18-rc8-2-win-x64.zip',
         'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.3/soda-scanner-runtime-18-rc8-3-win-x64.zip',
-        'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.5/soda-scanner-runtime-18-rc8-5-win-x64.zip'
+        'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.5/soda-scanner-runtime-18-rc8-5-win-x64.zip',
+        'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.9-local.20261011/soda-scanner-runtime-18-rc8-9-local-20261011-win-x64.zip'
     )
     $sameOrigin = $manifest.assetUrl -ceq ('/downloads/' + $manifest.assetName)
     $pinnedGitHub = ($manifest.assetUrl -ceq $pinnedAssets[0] -and
@@ -47,7 +48,10 @@ function Read-SodaRuntimeManifest {
         $manifest.releaseTag -ceq 'scanner-runtime-v18.0.0-rc.8.3') -or
         ($manifest.assetUrl -ceq $pinnedAssets[2] -and
         $manifest.assetName -ceq 'soda-scanner-runtime-18-rc8-5-win-x64.zip' -and
-        $manifest.releaseTag -ceq 'scanner-runtime-v18.0.0-rc.8.5')
+        $manifest.releaseTag -ceq 'scanner-runtime-v18.0.0-rc.8.5') -or
+        ($manifest.assetUrl -ceq $pinnedAssets[3] -and
+        $manifest.assetName -ceq 'soda-scanner-runtime-18-rc8-9-local-20261011-win-x64.zip' -and
+        $manifest.releaseTag -ceq 'scanner-runtime-v18.0.0-rc.8.9-local.20261011')
     if ($manifest.assetName -notmatch '^[a-zA-Z0-9._-]+\.zip$' -or
         -not ($sameOrigin -or $pinnedGitHub)) {
         throw 'release_manifest_asset_url_invalid'

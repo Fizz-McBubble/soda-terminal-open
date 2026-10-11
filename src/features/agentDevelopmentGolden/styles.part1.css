@@ -391,7 +391,7 @@
   list-style: none;
 }
 
-@media (min-width: 961px) and (max-width: 1500px) {
+@container soda-viewport (min-width: 961px) and (max-width: 1500px) {
   .agent-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }

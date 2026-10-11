@@ -3,6 +3,21 @@ import type { ScannerAssistantSnapshot } from '../scanner/runtime'
 export const discardedScannerResultHandleKey = 'soda.scanner.discardedResultHandle'
 export const completedScannerImportKey = 'soda.scanner.completedImport'
 
+export function getScannerPreparationBody(
+  snapshot: ScannerAssistantSnapshot,
+  hasScannerTask: boolean,
+  fallbackBody: string,
+) {
+  if (hasScannerTask && snapshot.state === 'connection_failed') {
+    return '本次扫描未完成，处理情况与恢复操作见下方任务。'
+  }
+  if (snapshot.error?.userMessage != null) return snapshot.error.userMessage
+  if (!snapshot.readiness.helperConnected) return '首次使用先下载并安装画面扫描，再连接。'
+  return snapshot.distribution?.state === 'ready'
+    ? '点击开始扫描，自动检查游戏画面后读取。'
+    : (snapshot.distribution?.message ?? fallbackBody)
+}
+
 export function playerResultMessage(message: string) {
   if (message.includes('不完整的同源识别结果'))
     return '上次保存的扫描结果不完整。可以重新读取本次结果，账户仓库尚未更新。'

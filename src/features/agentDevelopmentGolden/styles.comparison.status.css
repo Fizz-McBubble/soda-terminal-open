@@ -54,7 +54,7 @@
   grid-template-columns: minmax(0, 230px) minmax(72px, 90px);
 }
 
-@media (max-width: 900px) {
+@container soda-viewport (max-width: 900px) {
   .f5v-shell .top10-layout.comparison-workbench {
     grid-template-columns: 1fr;
   }
@@ -84,13 +84,13 @@
   }
 }
 
-@media (max-width: 1100px) {
+@container soda-viewport (max-width: 1100px) {
   .comparison-stat-table:not(.is-candidate-only) {
     grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 600px) {
+@container soda-viewport (max-width: 600px) {
   .comparison-stat-table {
     grid-template-columns: 1fr;
   }

@@ -8,9 +8,12 @@ import {
   Plug,
   ShieldCheck,
 } from 'lucide-react'
-import { ExplanationPopover } from '../components/ExplanationPopover'
-import { assetQuickReadRelease } from '../assetQuickRead/distribution'
 import './AssetQuickReadEntry.css'
+import { focusScannerWorkspaceTarget } from './scannerWorkbenchNavigation'
+import { AssetQuickReadGuide, AssetQuickReadDirectoryGuide } from './AssetQuickReadGuide'
+import { AssetCaptureRiskDetails } from './AssetCaptureMethodsNotice'
+import { ScannerMethodSteps } from './ScannerMethodSteps'
+import { AssetQuickReadConsentStage } from './AssetQuickReadConsentDialog'
 
 export type AssetQuickReadState =
   | 'idle'
@@ -69,10 +72,17 @@ export interface AssetQuickReadEntryProps {
   blocked?: boolean
   preparationCondensed?: boolean
   onViewAssets?: () => void
+  completionActions?: ReactNode
   riskNoticeHref?: string
   installer?: ReactNode
   downloadAvailable?: boolean
-  renderParts?: (parts: { preparation: ReactNode; task: ReactNode | null }) => ReactNode
+  workbenchExtras?: ReactNode
+  pendingInspection?: boolean
+  renderParts?: (parts: {
+    preparation: ReactNode
+    task: ReactNode | null
+    stageActive: boolean
+  }) => ReactNode
 }
 
 const stateCopy: Record<AssetQuickReadState, string> = {
@@ -80,7 +90,7 @@ const stateCopy: Record<AssetQuickReadState, string> = {
   starting: '资产快读正在准备。请保持游戏客户端完全退出，等待工具就绪后再启动并登录。',
   capturing:
     '资产快读已就绪，请完整启动游戏并登录。最长等待 3 分钟；收到所需数据后立即反馈，不必等满 3 分钟。',
-  received: '已收到数据，待核对。尚未导入 Soda 账户；请核对目标账户、读取数量和内容，再确认导入。',
+  received: '已收到数据，尚未导入当前账户。',
   timed_out: '本次等待已结束，未收到所需的完整数据。请检查游戏准备情况后再尝试，或改用画面扫描。',
   stopped: '本次资产快读已停止。已保存的本地结果不会自动删除，网络驱动也不会自动卸载。',
   error: '本次资产快读未完成。请检查资产快读状态，或改用画面扫描。',
@@ -129,20 +139,21 @@ export function AssetQuickReadEntry({
   onClose,
   onContinueScanning,
   blocked = false,
-  preparationCondensed = false,
   onViewAssets,
+  completionActions,
   riskNoticeHref,
   installer,
   downloadAvailable = false,
   toolVersion,
   renderParts,
+  workbenchExtras,
+  pendingInspection = false,
 }: AssetQuickReadEntryProps) {
   const headingId = useId()
   const disclosureId = useId()
   const directoryId = useId()
   const resultHeading = useRef<HTMLHeadingElement>(null)
-  const [preparationExpanded, setPreparationExpanded] = useState(false)
-  const [directoryOpen, setDirectoryOpen] = useState(!installationDirectory)
+  const startTriggerRef = useRef<HTMLButtonElement>(null)
   const [disclosureOpen, setDisclosureOpen] = useState(false)
   const [acknowledgedAccount, setAcknowledgedAccount] = useState<string | null>(null)
   const riskAccountKey = JSON.stringify([targetAccountId, targetAccountName])
@@ -150,15 +161,17 @@ export function AssetQuickReadEntry({
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null)
   const [stopPending, setStopPending] = useState(false)
   const [actionError, setActionError] = useState<PendingAction | 'stop' | null>(null)
-  const [importConfirmation, setImportConfirmation] = useState<string | null>(null)
   const pendingActionRef = useRef(false)
   const stopPendingRef = useRef(false)
   const captureBusy = state === 'starting' || state === 'capturing' || pendingAction === 'start'
   const busy = captureBusy || pendingAction !== null || stopPending
   const actionBlocked = busy || blocked
   const hasTask = state !== 'idle' || pendingAction === 'start'
+  const consentOpen = Boolean(
+    renderParts && disclosureOpen && !captureBusy && state !== 'received' && state !== 'completed',
+  )
+  const stageActive = hasTask || consentOpen || pendingInspection
   const preparationBlocked = actionBlocked || state === 'received'
-  const condensed = hasTask || preparationCondensed
   const targetMissing = targetRequired && !targetAccountId
   const available = capability === 'ready' && Boolean(onStart) && !targetMissing
   const currentStep =
@@ -169,25 +182,22 @@ export function AssetQuickReadEntry({
         : state === 'starting' || state === 'capturing'
           ? 1
           : 0
-  const confirmationKey = JSON.stringify([
-    targetAccountId ?? targetAccountName,
-    targetAccountName,
-    preview?.snapshotId,
-    preview?.counts.agents,
-    preview?.counts.discs,
-  ])
-  const confirmedImport = importConfirmation === confirmationKey
   const importAvailable =
     state === 'received' &&
     Boolean(preview?.snapshotId) &&
+    Boolean(targetAccountId) &&
     Boolean(targetAccountName.trim()) &&
     canImport &&
     Boolean(onImport)
   const elapsed = suppliedSeconds(elapsedSeconds)
   const remaining = suppliedSeconds(remainingSeconds)
+  const resultSummary = (preview?.validSummary ?? []).filter(
+    (summary) => !renderParts || !summary.startsWith('本次仅检查已出现的代理人和S级盘'),
+  )
 
   useEffect(() => {
-    if (state === 'received' && preview?.snapshotId) resultHeading.current?.focus()
+    if (state === 'received' && preview?.snapshotId)
+      focusScannerWorkspaceTarget(resultHeading.current, true)
   }, [state, preview?.snapshotId])
 
   function closeDisclosure() {
@@ -223,20 +233,13 @@ export function AssetQuickReadEntry({
     )
       return
     setAcknowledgedAccount(null)
-    setImportConfirmation(null)
+    if (renderParts) setDisclosureOpen(false)
     void runAction('start', onStart!)
   }
 
   function importResult() {
-    if (
-      !importAvailable ||
-      !confirmedImport ||
-      actionBlocked ||
-      pendingActionRef.current ||
-      stopPendingRef.current
-    )
+    if (!importAvailable || actionBlocked || pendingActionRef.current || stopPendingRef.current)
       return
-    setImportConfirmation(null)
     void runAction('import', onImport!)
   }
 
@@ -260,40 +263,22 @@ export function AssetQuickReadEntry({
       <div className="asset-quick-read__heading">
         <Database aria-hidden="true" size={22} />
         {renderParts ? (
-          <h3 id={headingId}>资产快读（实验）</h3>
+          <h3 id={headingId}>
+            资产快读{' '}
+            <small className="f5v-beta" aria-label="测试版">
+              Beta
+            </small>
+          </h3>
         ) : (
-          <h2 id={headingId}>资产快读（实验）</h2>
+          <h2 id={headingId}>
+            资产快读{' '}
+            <small className="f5v-beta" aria-label="测试版">
+              Beta
+            </small>
+          </h2>
         )}
         {renderParts ? (
-          <ExplanationPopover
-            label="资产快读指南"
-            closeLabel="关闭资产快读指南"
-            className="asset-quick-read__guide-entry"
-            align="start"
-          >
-            <p>资产快读 v{assetQuickReadRelease.version}；目前已验证国服 Windows 3.2。</p>
-            <p>先完成游戏更新及首次着色器编译（Shader），再完全退出游戏客户端。</p>
-            <p>
-              工具实际就绪后，才完整启动游戏并登录。最长等待 180
-              秒；收到所需完整数据后立即完成，不必等满 180 秒。
-            </p>
-            <p>
-              游戏安装目录是包含 ZenlessZoneZero_Data
-              的客户端目录，用于资产快读定位游戏；不是账户或结果文件目录。
-            </p>
-            <p>
-              首次使用先下载资产快读安装包并打开，完成安装后回到本页连接。已安装时，点击连接会尝试打开资产快读，不会开始采集。
-            </p>
-            <p>
-              <a
-                href="https://github.com/Fizz-McBubble/soda-terminal-asset-quick-read"
-                target="_blank"
-                rel="noreferrer"
-              >
-                查看资产快读源码与版本
-              </a>
-            </p>
-          </ExplanationPopover>
+          <AssetQuickReadGuide />
         ) : (
           <span className="asset-quick-read__badge">资产快读 · 默认关闭</span>
         )}
@@ -322,7 +307,7 @@ export function AssetQuickReadEntry({
     <>
       {renderParts ? (
         <p className="scanner-workbench__scope">
-          代理人养成与 S 级驱动盘 · 需重启登录 · 最长 3 分钟，读到即完成
+          S 级驱动盘 · 代理人养成 <span className="scanner-workbench__metric">一键读取</span>
         </p>
       ) : (
         <p>
@@ -341,8 +326,14 @@ export function AssetQuickReadEntry({
           </strong>
         ) : capability !== 'ready' && state === 'idle' ? (
           '资产快读尚未接通，当前暂不可用。'
+        ) : renderParts && state === 'received' ? (
+          '已收到读取结果。'
         ) : state === 'completed' ? (
-          (completionMessage ?? stateCopy.completed)
+          renderParts ? (
+            completionMessage?.split('。', 1)[0] || stateCopy.completed
+          ) : (
+            (completionMessage ?? stateCopy.completed)
+          )
         ) : renderParts && state === 'idle' && capability === 'ready' ? (
           '资产快读已连接，可准备本次资产快读。'
         ) : (
@@ -392,52 +383,28 @@ export function AssetQuickReadEntry({
                 连接资产快读
               </h3>
             )}
-            {renderParts && installationDirectory && !directoryOpen && (
-              <div className="asset-quick-read__directory-summary">
-                <span>游戏目录：{installationDirectory}</span>
-                <button
-                  className="button button--quiet"
-                  type="button"
-                  disabled={preparationBlocked}
-                  onClick={() => setDirectoryOpen(true)}
-                >
-                  修改游戏目录
-                </button>
-              </div>
+            <div className="asset-quick-read__directory-row">
+              <label className="asset-quick-read__directory" htmlFor={directoryId}>
+                <Folder aria-hidden="true" size={17} />
+                游戏安装目录
+              </label>
+              <AssetQuickReadDirectoryGuide />
+            </div>
+            <input
+              id={directoryId}
+              className="scanner-input asset-quick-read__input"
+              value={installationDirectory}
+              readOnly={!onDirectoryChange}
+              disabled={preparationBlocked}
+              maxLength={2048}
+              placeholder="粘贴从启动器找到的游戏目录路径"
+              onChange={(event) => onDirectoryChange?.(event.target.value)}
+            />
+            {!renderParts && (
+              <p className="asset-quick-read__muted">
+                先单独运行资产快读。这里只填写游戏目录，不读取账号密码。连接仅探测工具；开始读取时才请求管理员权限。
+              </p>
             )}
-            {(!renderParts || directoryOpen || !installationDirectory) && (
-              <>
-                <label className="asset-quick-read__directory" htmlFor={directoryId}>
-                  <Folder aria-hidden="true" size={17} />
-                  游戏安装目录
-                </label>
-                <input
-                  id={directoryId}
-                  className="scanner-input asset-quick-read__input"
-                  value={installationDirectory}
-                  readOnly={!onDirectoryChange}
-                  disabled={preparationBlocked}
-                  maxLength={2048}
-                  placeholder="选择包含 ZenlessZoneZero_Data 的游戏目录"
-                  onChange={(event) => onDirectoryChange?.(event.target.value)}
-                />
-                {renderParts && installationDirectory.trim() && (
-                  <button
-                    className="button button--quiet"
-                    type="button"
-                    disabled={preparationBlocked}
-                    onClick={() => setDirectoryOpen(false)}
-                  >
-                    收起目录编辑
-                  </button>
-                )}
-              </>
-            )}
-            <p className="asset-quick-read__muted">
-              {renderParts
-                ? '连接仅检查工具；开始读取时才请求管理员权限。'
-                : '先单独运行资产快读。这里只填写游戏目录，不读取账号密码。连接仅探测工具；开始读取时才请求管理员权限。'}
-            </p>
             <div className="asset-quick-read__actions">
               {!renderParts && connectionButton}
               {onInspectFile && !renderParts && (
@@ -471,8 +438,7 @@ export function AssetQuickReadEntry({
                 <li>工具实际就绪后，才完整启动游戏并登录。</li>
               </ol>
               <p className="asset-quick-read__muted">
-                最长等待 180 秒；所需数据齐全后立即反馈。本机国服 3.2
-                的关键字段已核对，潜能和最终面板未采集。
+                最长等待 180 秒；所需数据齐全后立即反馈。游戏面板仅用于开发校对，不采集或导入。
               </p>
             </div>
           )}
@@ -489,13 +455,12 @@ export function AssetQuickReadEntry({
           disabled={actionBlocked}
           onClick={() => {
             if (actionBlocked) return
-            setImportConfirmation(null)
             setAcknowledgedAccount(null)
             setDisclosureOpen(false)
             void runAction('discard', onDiscard)
           }}
         >
-          放弃本次结果
+          放弃
         </button>
       )}
     </>
@@ -510,7 +475,7 @@ export function AssetQuickReadEntry({
           if (onExport && !busy) void runAction('export', onExport)
         }}
       >
-        {pendingAction === 'export' ? '导出中…' : '导出本次读取结果'}
+        {pendingAction === 'export' ? '导出中…' : '导出'}
       </button>
     </>
   )
@@ -518,12 +483,14 @@ export function AssetQuickReadEntry({
     <>
       {currentStep === 1 && (
         <div className="asset-quick-read__panel">
-          <h3>读取登录数据</h3>
-          <p>
-            {state === 'capturing'
-              ? '请现在完整启动游戏并登录，收到所需数据后即可进入检查。'
-              : '请保持游戏退出，等待资产快读实际就绪。'}
-          </p>
+          {!renderParts && <h3>读取登录数据</h3>}
+          {!renderParts && (
+            <p>
+              {state === 'capturing'
+                ? '请现在完整启动游戏并登录，收到所需数据后即可进入检查。'
+                : '请保持游戏退出，等待资产快读实际就绪。'}
+            </p>
+          )}
           <div className="asset-quick-read__timing">
             {elapsed !== undefined && <span>已等待 {elapsed} 秒</span>}
             {remaining !== undefined && <span>剩余 {remaining} 秒</span>}
@@ -536,10 +503,13 @@ export function AssetQuickReadEntry({
       {state === 'received' && (
         <div className="asset-quick-read__panel">
           <h3 ref={resultHeading} tabIndex={-1}>
-            检查本次读取结果
+            本次读取结果
           </h3>
           {preview ? (
             <>
+              <p className="asset-quick-read__target">
+                导入目标：<strong>{targetAccountName || '尚未选择目标账户'}</strong>
+              </p>
               <dl className="asset-quick-read__counts">
                 <div>
                   <dt>代理人</dt>
@@ -550,16 +520,16 @@ export function AssetQuickReadEntry({
                   <dd>{preview.counts.discs} 张</dd>
                 </div>
               </dl>
-              {preview.validSummary.length > 0 && (
+              {resultSummary.length > 0 && (
                 <ul className="asset-quick-read__summary">
-                  {preview.validSummary.map((summary, index) => (
+                  {resultSummary.map((summary, index) => (
                     <li key={index}>{summary}</li>
                   ))}
                 </ul>
               )}
-              {preview.issues.length > 0 && (
+              {!importAvailable && preview.issues.length > 0 && (
                 <div className="asset-quick-read__issues">
-                  <h4>需要核对的问题</h4>
+                  <h4>暂时不能导入</h4>
                   <ul>
                     {preview.issues.map((issue, index) => (
                       <li key={index}>{issue}</li>
@@ -567,52 +537,18 @@ export function AssetQuickReadEntry({
                   </ul>
                 </div>
               )}
-              {preview.agents.length > 0 && (
-                <details open={!renderParts}>
-                  <summary>代理人读取详情（{preview.agents.length} 位）</summary>
-                  <ul className="asset-quick-read__agent-rows" aria-label="代理人读取预览">
-                    {preview.agents.map((agent) => (
-                      <li key={agent.agentId}>
-                        <strong>{agent.name}</strong>
-                        <span>
-                          等级 {agent.level} · 影画 M{agent.mindscape}
-                        </span>
-                        {agent.skills && <span>{agent.skills}</span>}
-                        {agent.wEngine && <span>当前音擎：{agent.wEngine}</span>}
-                      </li>
-                    ))}
-                  </ul>
-                </details>
-              )}
-              <p className="asset-quick-read__target">
-                导入目标：<strong>{targetAccountName || '尚未选择目标账户'}</strong>
-              </p>
-              {transactionNotice && <p>{transactionNotice}</p>}
+              {!renderParts && transactionNotice && <p>{transactionNotice}</p>}
               {!onImport && (
                 <p className="asset-quick-read__muted">当前导入尚未接通，可先核对结果。</p>
               )}
-              <label className="asset-quick-read__confirmation">
-                <input
-                  type="checkbox"
-                  checked={confirmedImport}
-                  disabled={!importAvailable || actionBlocked}
-                  onChange={(event) =>
-                    setImportConfirmation(event.target.checked ? confirmationKey : null)
-                  }
-                />
-                <span>
-                  我确认这是同一个游戏账户，已核对代理人和驱动盘读取数量，导入到“
-                  {targetAccountName || '未选择账户'}”
-                </span>
-              </label>
               <div className="asset-quick-read__actions">
                 <button
-                  className="button"
+                  className="button button--primary"
                   type="button"
-                  disabled={!importAvailable || !confirmedImport || actionBlocked}
+                  disabled={!importAvailable || actionBlocked}
                   onClick={importResult}
                 >
-                  {pendingAction === 'import' ? '导入中…' : '确认导入本次资产快读结果'}
+                  {pendingAction === 'import' ? '导入中…' : '导入'}
                 </button>
                 {exportButton}
                 {discardButton}
@@ -631,7 +567,7 @@ export function AssetQuickReadEntry({
           <CheckCircle2 aria-hidden="true" size={25} />
           <div>
             <h3>导入完成</h3>
-            <p>{completionMessage ?? '本次资产快读结果已进入所选账户。'}</p>
+            {status}
             <strong>{targetAccountName}</strong>
             <div className="asset-quick-read__actions">
               {onViewAssets && (
@@ -640,6 +576,7 @@ export function AssetQuickReadEntry({
                 </button>
               )}
               {onExport && exportButton}
+              {completionActions}
             </div>
           </div>
         </div>
@@ -667,7 +604,7 @@ export function AssetQuickReadEntry({
   const disclosure = (
     <div
       key="quick-read-actions"
-      className={disclosureOpen ? 'asset-quick-read__disclosure' : undefined}
+      className={disclosureOpen || renderParts ? 'asset-quick-read__disclosure' : undefined}
       id={disclosureId}
     >
       {!renderParts && !disclosureOpen && (
@@ -680,21 +617,16 @@ export function AssetQuickReadEntry({
           )}
         </div>
       )}
-      {disclosureOpen && (
+      {disclosureOpen && !renderParts && (
         <div>
           <h3>
             <AlertTriangle aria-hidden="true" size={20} />
-            启用前，请阅读风险告知
+            读取前确认
           </h3>
           {renderParts && riskNoticeHref ? (
             <>
-              <p>本次采集代理人养成与 S 级驱动盘，结果先在本机检查，确认导入前不写入 Soda 账户。</p>
-              <p>
-                非官方实验方式；存在服务受限或账号封禁风险，处罚概率未知，不能保证账号安全。开始读取需要管理员权限与本地网络驱动。
-              </p>
-              <p>
-                <a href={riskNoticeHref}>阅读完整采集方式与风险说明</a>
-              </p>
+              <p>读取需管理员权限和网络驱动；数据先供检查，确认导入后才更新账户。</p>
+              <AssetCaptureRiskDetails label="完整风险说明" />
             </>
           ) : (
             <>
@@ -715,8 +647,7 @@ export function AssetQuickReadEntry({
                 Soda 账户；后续须先核对目标账户、数量和内容，再由你另行确认导入。
               </p>
               <p>
-                本机国服 3.2
-                的两次读取及关键显示字段已核对。其他账号、后续版本、完整响应状态与遗漏规则仍未验证；潜能和最终面板未采集。游戏更新、驱动兼容性和解析问题可能导致失败、缺失或错误。
+                未读到的潜能保留原值，游戏面板不采集。游戏更新或解析问题可能导致读取失败、缺失或错误。
               </p>
               <p>
                 采集可停止，但已发出的配置请求不能撤回；已保存的本地结果不会自动删除，退出工具不等于卸载网络驱动。
@@ -770,25 +701,24 @@ export function AssetQuickReadEntry({
         <div className="asset-quick-read__actions">
           {capability !== 'ready' ? (
             connectionButton
-          ) : disclosureOpen ? (
+          ) : (
             <button
+              ref={startTriggerRef}
               className="button button--primary"
               type="button"
-              disabled={!available || !acknowledged || preparationBlocked}
-              onClick={() => void start()}
+              disabled={!available || preparationBlocked}
+              onClick={() => setDisclosureOpen(true)}
             >
-              开始本次资产快读
+              一键读取
             </button>
-          ) : (
-            beginButton
           )}
-          {disclosureOpen && capability !== 'ready' && (
+          {!renderParts && disclosureOpen && capability !== 'ready' && (
             <button className="button button--primary" type="button" disabled>
               开始本次资产快读
             </button>
           )}
           {installer}
-          {disclosureOpen && (
+          {!renderParts && disclosureOpen && (
             <button className="button button--quiet" type="button" onClick={closeDisclosure}>
               关闭风险告知
             </button>
@@ -824,62 +754,79 @@ export function AssetQuickReadEntry({
     </>
   )
   const preparationTools = (
-    <details
-      key="quick-read-preparation"
-      className="asset-quick-read__tools"
-      open={!condensed || preparationExpanded}
-      onToggle={(event) => {
-        if (condensed) setPreparationExpanded(event.currentTarget.open)
-      }}
-    >
-      <summary hidden={!condensed}>资产快读准备</summary>
+    <div key="quick-read-preparation" className="asset-quick-read__tools">
       {preparation}
-    </details>
+    </div>
   )
   const preparationActions = !captureBusy && state !== 'received' ? disclosure : null
   if (renderParts)
     return renderParts({
+      stageActive,
       preparation: (
         <section className="asset-quick-read asset-quick-read--compact" aria-labelledby={headingId}>
           {heading}
           {scope}
-          {['idle', 'error', 'stopped', 'timed_out'].includes(state) && (
-            <div className="asset-quick-read__game-preparation">
-              <h4>准备游戏</h4>
-              <ul>
-                <li>提前完成游戏更新与首次着色器编译。</li>
-                <li>完全退出游戏客户端。</li>
-                <li>等待页面显示工具就绪，再完整启动游戏并登录。</li>
-              </ul>
+          <ScannerMethodSteps method="读取" currentStep={currentStep} />
+          {!stageActive && (
+            <div className="scanner-workbench__body scanner-workbench__body--prepare">
+              <div className="asset-quick-read__game-preparation">
+                <h4>准备游戏</h4>
+                <ul>
+                  <li>游戏更新完成后，完全退出本机游戏客户端。</li>
+                  <li>点击读取，等页面显示“已就绪”后再启动游戏并登录。</li>
+                </ul>
+              </div>
+              <div className="asset-quick-read__connection-summary">
+                {status}
+                {capability !== 'ready' && (
+                  <p className="asset-quick-read__muted">
+                    {downloadAvailable
+                      ? '首次使用先下载安装；已安装可直接连接。'
+                      : '资产快读安装包尚未发布，当前不能下载；已安装用户可点击连接打开工具。'}
+                  </p>
+                )}
+              </div>
+              {preparationActions}
+              {workbenchExtras}
+              {preparationTools}
             </div>
           )}
-          {!hasTask ? (
-            status
-          ) : (
-            <p className="asset-quick-read__tool-status">
-              <strong>{capability === 'ready' ? '资产快读已连接' : '资产快读未连接'}</strong>
-              {capability === 'ready' && toolVersion && (
-                <span className="asset-quick-read__tool-version">v{toolVersion}</span>
-              )}
-            </p>
-          )}
-          {capability !== 'ready' && (
-            <p className="asset-quick-read__muted">
-              {downloadAvailable
-                ? '首次使用先下载安装包，再回到本页连接；已安装时点击连接即可打开工具。'
-                : '资产快读安装包尚未发布，当前不能下载；已安装用户可点击连接打开工具。'}
-            </p>
-          )}
-          {capability === 'ready'
-            ? [preparationTools, preparationActions]
-            : [preparationActions, preparationTools]}
         </section>
       ),
-      task: hasTask ? (
+      task: stageActive ? (
         <div className="asset-quick-read__task">
-          {status}
-          {taskContent}
-          {stopButton}
+          {pendingInspection ? (
+            <p role="status">正在检查本机资产快读文件，账户尚未修改。</p>
+          ) : consentOpen ? (
+            <AssetQuickReadConsentStage
+              acknowledged={acknowledged}
+              disabled={preparationBlocked || !available}
+              targetAccountName={targetAccountName}
+              onAcknowledge={(checked) => setAcknowledgedAccount(checked ? riskAccountKey : null)}
+              onCancel={() => {
+                setDisclosureOpen(false)
+                setAcknowledgedAccount(null)
+                requestAnimationFrame(() => startTriggerRef.current?.focus({ preventScroll: true }))
+              }}
+              onStart={start}
+            />
+          ) : (
+            <>
+              {state !== 'completed' &&
+                (state !== 'received' || pendingAction || errorMessage || actionError) &&
+                status}
+              {taskContent}
+              {stopButton}
+              {['error', 'stopped', 'timed_out'].includes(state) && (
+                <details className="asset-quick-read__retry">
+                  <summary>重新读取</summary>
+                  {preparationTools}
+                  {disclosure}
+                </details>
+              )}
+              {workbenchExtras}
+            </>
+          )}
         </div>
       ) : null,
     })
@@ -888,7 +835,7 @@ export function AssetQuickReadEntry({
       {heading}
       {steps}
       {scope}
-      {status}
+      {state !== 'completed' && status}
       {preparation}
       {taskContent}
       {disclosure}

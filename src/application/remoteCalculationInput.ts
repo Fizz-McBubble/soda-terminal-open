@@ -1,3 +1,4 @@
+import { hasCurrentWEngineProgression } from '../accounts/observedAgentFacts'
 import type { AccountDecisionQueryInput } from './calculationQueryContract'
 import { normalizeTargetTeamEquipmentParameters } from './publicTargetTeamEquipmentFingerprint'
 
@@ -28,43 +29,46 @@ export function projectRemoteAccountDecisionInput(
       roster: {
         schemaVersion: input.warehouse.roster.schemaVersion,
         sourceCompleteness: input.warehouse.roster.sourceCompleteness,
-        agents: input.warehouse.roster.agents.map((agent) => ({
-          agentId: agent.agentId,
-          owned: agent.owned,
-          priority: agent.priority,
-          level: agent.level,
-          ascension: agent.ascension,
-          mindscape: agent.mindscape,
-          potentialImage: agent.potentialImage,
-          skills: '',
-          wEngine: '',
-          refinement: agent.refinement,
-          agentVersion: agent.agentVersion,
-          completeness: agent.completeness,
-          currentEquipment: agent.currentEquipment,
-          source: agent.source,
-          manualSource: agent.manualSource,
-          progressionManuallySet: agent.progressionManuallySet,
-          syncedAt: agent.syncedAt,
-          lockedFields: [],
-          skillLevels: {
-            basic: agent.skillLevels.basic,
-            dodge: agent.skillLevels.dodge,
-            assist: agent.skillLevels.assist,
-            special: agent.skillLevels.special,
-            chain: agent.skillLevels.chain,
-            core: agent.skillLevels.core,
-          },
-          wEngineDetails: {
-            id: agent.wEngineDetails.id,
-            name: null,
-            level: agent.wEngineDetails.level,
-            ascension: agent.wEngineDetails.ascension,
-            refinement: agent.wEngineDetails.refinement,
-          },
-          wEngineCopyId: agent.wEngineCopyId,
-          equippedDiscIds: agent.equippedDiscIds ? [...agent.equippedDiscIds] : null,
-        })),
+        agents: input.warehouse.roster.agents.map((agent) => {
+          const currentEngineKnown = hasCurrentWEngineProgression(agent)
+          return {
+            agentId: agent.agentId,
+            owned: agent.owned,
+            priority: agent.priority,
+            level: agent.level,
+            ascension: agent.ascension,
+            mindscape: agent.mindscape,
+            potentialImage: agent.potentialImage,
+            skills: '',
+            wEngine: '',
+            refinement: agent.refinement,
+            agentVersion: agent.agentVersion,
+            completeness: agent.completeness,
+            currentEquipment: agent.currentEquipment,
+            source: agent.source,
+            manualSource: agent.manualSource,
+            progressionManuallySet: agent.progressionManuallySet,
+            syncedAt: agent.syncedAt,
+            lockedFields: [],
+            skillLevels: {
+              basic: agent.skillLevels.basic,
+              dodge: agent.skillLevels.dodge,
+              assist: agent.skillLevels.assist,
+              special: agent.skillLevels.special,
+              chain: agent.skillLevels.chain,
+              core: agent.skillLevels.core,
+            },
+            wEngineDetails: {
+              id: agent.wEngineDetails.id,
+              name: null,
+              level: currentEngineKnown ? agent.wEngineDetails.level : null,
+              ascension: currentEngineKnown ? agent.wEngineDetails.ascension : undefined,
+              refinement: currentEngineKnown ? agent.wEngineDetails.refinement : null,
+            },
+            wEngineCopyId: currentEngineKnown ? agent.wEngineCopyId : null,
+            equippedDiscIds: agent.equippedDiscIds ? [...agent.equippedDiscIds] : null,
+          }
+        }),
         bangboos: input.warehouse.roster.bangboos.map((bangboo) => ({
           bangbooId: bangboo.bangbooId,
           owned: bangboo.owned,

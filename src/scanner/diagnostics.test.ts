@@ -101,6 +101,7 @@ describe('allowlisted diagnostic privacy boundary', () => {
     },
   )
   it.each([
+    'game_window_ambiguous',
     'game_window_not_foreground',
     'game_window_not_visible',
     'window_geometry_changed',
@@ -114,6 +115,23 @@ describe('allowlisted diagnostic privacy boundary', () => {
     })!
     expect(report.code).toBe(code)
     expect(report).not.toHaveProperty('rawError')
+  })
+  it('keeps an ambiguous window actionable through legacy snapshot diagnostics', () => {
+    const report = diagnosticFromSnapshot(
+      {
+        ...connectingSnapshot,
+        state: 'connection_failed',
+        error: {
+          userMessage: '检测到多个游戏窗口。请将本次要扫描的驱动仓库切到前台后重试。',
+          remedy: 'private path and window title',
+          diagnosticCode: 'game_window_ambiguous',
+          recoveryAction: 'retry',
+        },
+      },
+      reportId,
+    )
+    expect(report).toMatchObject({ code: 'game_window_ambiguous', stage: 'preflight' })
+    expect(JSON.stringify(report)).not.toContain('private')
   })
   it('reports a connection failure without copying a retained completed scan', () => {
     const report = diagnosticFromSnapshot(

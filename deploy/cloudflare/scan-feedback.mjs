@@ -1,11 +1,8 @@
-import contract from '../../src/scanner/scanFeedback.contract.json' with { type: 'json' }
+import baseContract from '../../src/scanner/scanFeedback.contract.json' with { type: 'json' }
 
+const contract = baseContract
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 const RELEASE_PATTERN = new RegExp(contract.releasePattern, 'u')
-
-const versionRegexes = Object.fromEntries(
-  Object.entries(contract.versionPatterns).map(([k, p]) => [k, new RegExp(p, 'u')]),
-)
 
 const KNOWN_TOP_LEVEL_KEYS = [
   'schema',
@@ -40,14 +37,17 @@ export function sanitizeScanFeedbackPayload(payload, expectedRelease) {
     return { status: 400 }
   }
 
+  const isAsset = payload.tool === 'asset_quick_read'
+  const contract = isAsset ? { ...baseContract, ...baseContract.assetQuickRead } : baseContract
+  const versionRegexes = Object.fromEntries(
+    Object.entries(contract.versionPatterns).map(([k, p]) => [k, new RegExp(p, 'u')]),
+  )
+  const allowedKeys = isAsset ? [...KNOWN_TOP_LEVEL_KEYS, 'tool'] : KNOWN_TOP_LEVEL_KEYS
   const keys = Object.keys(payload)
-  if (
-    keys.length !== KNOWN_TOP_LEVEL_KEYS.length ||
-    keys.some((k) => !KNOWN_TOP_LEVEL_KEYS.includes(k))
-  ) {
+  if (keys.length !== allowedKeys.length || keys.some((k) => !allowedKeys.includes(k))) {
     return { status: 400 }
   }
-  for (const k of KNOWN_TOP_LEVEL_KEYS) {
+  for (const k of allowedKeys) {
     if (!Object.hasOwn(payload, k)) {
       return { status: 400 }
     }
@@ -206,6 +206,7 @@ export function sanitizeScanFeedbackPayload(payload, expectedRelease) {
 
   const record = {
     schema: 1,
+    ...(isAsset ? { tool: 'asset_quick_read' } : {}),
     reportId: payload.reportId,
     release: payload.release,
     outcome: payload.outcome,

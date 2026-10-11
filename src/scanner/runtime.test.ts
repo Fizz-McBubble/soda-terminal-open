@@ -26,7 +26,7 @@ describe('direct upstream scanner runtime', () => {
     )
     await reconnect
   })
-  it('waits for a user action before an HTTPS page reaches the loopback helper', async () => {
+  it('waits for a user action before a deferred page reaches the loopback helper', async () => {
     FakeEventSource.latest = null
     const fetchImpl = helperFetch()
     const runtime = createNativeFixtureRuntime({

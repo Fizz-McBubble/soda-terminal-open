@@ -218,7 +218,7 @@ export function AgentDevelopmentGoldenDirectoryPage() {
   }
 
   return (
-    <>
+    <div className="agent-development-directory">
       {advicePending ? (
         <p className="panel" role="status" aria-live="polite">
           正在核对养成建议；代理人资料与已保存方案可先查看。
@@ -256,6 +256,7 @@ export function AgentDevelopmentGoldenDirectoryPage() {
       {directoryAgents.length ? (
         <AgentDevelopmentGolden
           key={data.accountId}
+          browseAccountId={data.accountId}
           initialView="overview"
           directoryAgents={directoryAgents}
           onDeleteAgentPlan={(agentId) => {
@@ -319,7 +320,7 @@ export function AgentDevelopmentGoldenDirectoryPage() {
           </Link>
         </section>
       ) : null}
-    </>
+    </div>
   )
 }
 

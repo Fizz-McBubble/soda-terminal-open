@@ -9,6 +9,7 @@ import { preloadVisualEntityImage } from '../../../assets/visualEntityImageSourc
 import { DiscWorkspaceModeSwitch } from '../../DiscWorkspaceModeSwitch'
 import { DiscBulkDeleteDialog } from './DiscBulkDeleteDialog'
 import { CatalogPagination } from './CatalogPagination'
+import { useCatalogBrowseState, useCatalogBrowseScroll } from './useCatalogBrowseState'
 import { useCatalogPagination } from './useCatalogPagination'
 import { publicDiscSetOrder } from '../../../application/publicDiscSetOrder'
 import { publicStatOrder } from '../../../application/publicCandidateLabels'
@@ -33,7 +34,10 @@ const discMainStatOrder = new Map(publicStatOrder.map((stat, index) => [stat, in
 const columns: Record<CatalogKind, number> = { agents: 9, wengines: 10, bangboos: 10, discs: 10 }
 
 export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kind: CatalogKind }) {
-  const [discSortMode, setDiscSortMode] = useState<Exclude<DiscSortMode, 'development'>>('game')
+  const browseKey = `assets:${props.accountId}:${kind}`
+  const [discSortMode, setDiscSortMode] = useCatalogBrowseState<
+    Exclude<DiscSortMode, 'development'>
+  >(browseKey, 'sort', 'game')
   const rows =
     kind === 'discs'
       ? [...props.discs].sort((left, right) => {
@@ -70,14 +74,29 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
     (kind === 'discs' && !discSearch.has('account')
       ? (discSearch.get('selected') ?? undefined)
       : undefined)
+  const incomingCatalogId =
+    (kind === 'agents' || kind === 'wengines') &&
+    (!discSearch.has('account') || discSearch.get('account') === props.accountId)
+      ? (discSearch.get('selected') ?? undefined)
+      : undefined
+  const [savedSelection, saveSelection] = useCatalogBrowseState<string | undefined>(
+    browseKey,
+    'selection',
+    undefined,
+  )
   const [selectedId, setSelectedId] = useReconciledSelection(
     ids,
-    incomingDiscId ?? props.initialSelection?.[kind],
+    incomingDiscId ?? incomingCatalogId ?? savedSelection ?? props.initialSelection?.[kind],
   )
-  const [query, setQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
-  const [primaryFilter, setPrimaryFilter] = useState('all')
-  const [secondaryFilter, setSecondaryFilter] = useState('all')
+  useEffect(() => saveSelection(selectedId), [selectedId, saveSelection])
+  const [query, setQuery] = useCatalogBrowseState(browseKey, 'query', '')
+  const [statusFilter, setStatusFilter] = useCatalogBrowseState(browseKey, 'statusFilter', 'all')
+  const [primaryFilter, setPrimaryFilter] = useCatalogBrowseState(browseKey, 'primaryFilter', 'all')
+  const [secondaryFilter, setSecondaryFilter] = useCatalogBrowseState(
+    browseKey,
+    'secondaryFilter',
+    'all',
+  )
   const [bulk, setBulk] = useState(false)
   const [selectedDiscs, setSelectedDiscs] = useState<Set<string>>(new Set())
   const [pendingDelete, setPendingDelete] = useState<Array<{ stableId: string; revision: string }>>(
@@ -113,6 +132,7 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
     })
   }, [kind, selectedId])
   const gridRef = useRef<HTMLDivElement>(null)
+  useCatalogBrowseScroll(browseKey, gridRef)
   const deleteDialogRef = useRef<HTMLDialogElement>(null)
   const primaryOptions = [
     ...new Set(
@@ -217,6 +237,7 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
     selectedId,
     gridRef,
     columns[kind],
+    browseKey,
   )
   const openDeleteDialog = () => {
     const dialog = deleteDialogRef.current

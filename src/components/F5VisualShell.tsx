@@ -24,9 +24,9 @@ function subscribeDesktopScale(onChange: () => void) {
 }
 
 function desktopScale() {
-  // Keep the accepted desktop density through 1920 CSS px. Wider windows share
-  // one bounded scale for the entire shell, including fixed-size controls.
-  return Math.min(1.5, Math.max(1, window.innerWidth / 1920))
+  // The user's 1920px desktop is the composition baseline. Common PC windows
+  // scale the whole composition; compact windows retain their existing layout.
+  return window.innerWidth >= 1280 ? Math.min(1.5, window.innerWidth / 1920) : 1
 }
 
 type F5VisualShellProps = {
@@ -88,10 +88,6 @@ function F5VisualShellContent({
     currentPath.startsWith('/development') ||
     currentPath === '/warehouse/discs'
   useDetailsDisclosureMotion({ scope: pageFrameRef })
-
-  useEffect(() => {
-    pageFrameRef.current?.scrollTo?.({ top: 0, left: 0 })
-  }, [currentPath])
 
   useEffect(() => {
     if (navigationDialogOpen) closeRef.current?.focus()

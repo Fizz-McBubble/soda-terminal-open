@@ -11,6 +11,7 @@ function OfficialIcon({ id, name }: { id: string; name: string }) {
       variant="icon"
       name={name}
       className="official-icon"
+      compactFallback
     />
   )
 }

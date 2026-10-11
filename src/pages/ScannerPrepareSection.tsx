@@ -108,7 +108,11 @@ export function ScannerPrepareSection({
             <CheckCircle2 aria-hidden="true" size={28} />
             <div>
               <h2 id="scanner-stage-heading" ref={stageHeadingRef} tabIndex={-1}>
-                {importedThisVisit ? '驱动盘已进入当前账户' : '上次导入已完成'}
+                {taskOnly
+                  ? '导入完成'
+                  : importedThisVisit
+                    ? '驱动盘已进入当前账户'
+                    : '上次导入已完成'}
               </h2>
               <span>
                 {completedImportCount} 张驱动盘已更新至
@@ -137,7 +141,7 @@ export function ScannerPrepareSection({
       ) : null}
       {!showImportComplete &&
       !inlineImportOpen &&
-      (['scanning', 'completed'].includes(snapshot.state) ||
+      ((!taskOnly && ['scanning', 'completed'].includes(snapshot.state)) ||
         (taskOnly &&
           ['checking', 'awaiting_elevation', 'paused', 'connection_failed'].includes(
             snapshot.state,

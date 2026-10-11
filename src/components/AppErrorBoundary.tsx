@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
+import './AppEntryState.css'
 
 type State = { error: Error | null }
 
@@ -19,8 +20,8 @@ export class AppErrorBoundary extends Component<{ children: ReactNode }, State> 
         <main className="fatal-error" role="alert">
           <h1>应用未能正常启动</h1>
           <p>请重新加载页面后再试。此操作不会清除账户资料。</p>
-          <div className="app-entry-state__actions">
-            <button className="back-navigation" onClick={() => window.location.reload()}>
+          <div className="app-entry-state__actions app-recovery-actions">
+            <button className="button button--primary" onClick={() => window.location.reload()}>
               重新加载
             </button>
           </div>

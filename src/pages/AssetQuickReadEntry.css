@@ -52,6 +52,25 @@
   font-size: 1rem;
 }
 
+.asset-quick-read__consent-stage h3 {
+  margin: 0 0 12px;
+}
+.asset-quick-read__consent-stage p {
+  margin: 0 0 12px;
+}
+.asset-quick-read__consent-stage .asset-quick-read__confirmation {
+  margin: 14px 0;
+  font-size: 14px;
+}
+
+.asset-quick-read__confirmation {
+  margin: 18px 0;
+  font-size: 14px;
+}
+.asset-quick-read__consent-dialog .asset-quick-read__actions {
+  justify-content: flex-end;
+}
+
 .asset-quick-read__confirmation {
   display: flex;
   align-items: flex-start;
@@ -163,20 +182,6 @@
   font-weight: 700;
 }
 
-.asset-quick-read__agent-rows {
-  list-style: none;
-  padding: 0;
-  margin: 18px 0;
-}
-
-.asset-quick-read__agent-rows li {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 16px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--f5-line, #dedbe6);
-}
-
 .asset-quick-read__issues {
   margin: 16px 0;
   padding: 12px 16px;
@@ -277,6 +282,72 @@
   font-weight: 600;
 }
 
+/* The method card owns the surface; task states stay inline within it. */
+.asset-quick-read__task .asset-quick-read__panel,
+.asset-quick-read__task .asset-quick-read__complete {
+  margin: 10px 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+}
+
+.asset-quick-read__task .asset-quick-read__status {
+  margin: 10px 0;
+  padding: 0;
+  background: transparent;
+}
+
+.asset-quick-read__task .asset-quick-read__panel h3,
+.asset-quick-read__task .asset-quick-read__complete h3 {
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.asset-quick-read__task .asset-quick-read__target {
+  margin: 0 0 8px;
+}
+
+.asset-quick-read__task .asset-quick-read__counts {
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.asset-quick-read__task .asset-quick-read__counts > div {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--soda-surface-muted, #f3eff9);
+}
+
+.asset-quick-read__task .asset-quick-read__counts dd {
+  font-size: 14px;
+}
+
+.asset-quick-read__task .asset-quick-read__summary {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.asset-quick-read__task .asset-quick-read__confirmation {
+  margin: 10px 0;
+}
+
+.asset-quick-read__task .asset-quick-read__actions {
+  gap: 8px;
+}
+
+.asset-quick-read__retry {
+  margin: 10px 0;
+}
+
+.asset-quick-read__task .asset-quick-read__complete > div {
+  min-width: 0;
+}
+
 .asset-quick-read--compact .asset-quick-read__status {
   margin: 12px 0;
   padding: 0;
@@ -374,6 +445,8 @@
 
 .asset-quick-read.asset-quick-read--compact .asset-quick-read__actions > .button,
 .asset-quick-read__task .asset-quick-read__actions > .button {
+  flex: 0 0 auto;
+  width: auto;
   min-height: 42px;
   font-size: 14px;
 }

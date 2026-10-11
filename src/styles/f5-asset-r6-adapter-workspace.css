@@ -352,7 +352,7 @@
   color: #6b57a1;
 }
 
-@media (max-width: 520px) {
+@container soda-viewport (max-width: 520px) {
   .f5v-wengine-assignment .wengine-assignment-field__levels {
     grid-template-columns: 1fr;
   }
@@ -370,7 +370,7 @@
   background: #f4f1f9;
 }
 
-@media (max-width: 1390px) {
+@container soda-viewport (max-width: 1390px) {
   .r6-golden .filterbar {
     grid-template-columns: minmax(145px, 200px) repeat(3, minmax(96px, max-content));
   }
@@ -380,7 +380,7 @@
 }
 
 /* A split catalog on a small laptop cannot fit four legible filters. */
-@media (min-width: 961px) and (max-width: 1200px) {
+@container soda-viewport (min-width: 961px) and (max-width: 1200px) {
   .r6-golden .filterbar,
   .r6-golden .filterbar--discs {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -389,7 +389,7 @@
 
 /* This file is imported after adapter-core. Keep its desktop compression rule
    from restoring four fixed controls inside the narrow two-column catalog. */
-@media (max-width: 960px) {
+@container soda-viewport (max-width: 960px) {
   .f5v-wengine-assignment .wengine-assignment-field__selector > small {
     white-space: normal;
     overflow-wrap: anywhere;

@@ -311,7 +311,7 @@
   outline: 3px solid rgba(107, 85, 170, 0.48);
   outline-offset: 2px;
 }
-@media (max-width: 1400px) {
+@container soda-viewport (max-width: 1400px) {
   .r6-golden {
     font-size: var(--soda-font-small);
   }
@@ -375,7 +375,7 @@
   }
 }
 
-@media (max-width: 960px) {
+@container soda-viewport (max-width: 960px) {
   .r6-golden.r6-golden--content-only .asset-tabs {
     box-sizing: border-box;
     width: 100%;

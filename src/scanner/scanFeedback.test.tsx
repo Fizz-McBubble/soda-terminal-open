@@ -377,21 +377,19 @@ it('persists only a matching successful receipt and keeps the acknowledged ID th
   saveLastScanDiagnostic(report)
   const receivedId = crypto.randomUUID()
   let calls = 0
-  const fetcher = vi
-    .fn()
-    .mockImplementation(() =>
-      Promise.resolve(
-        ++calls === 1
-          ? new Response('conflict', { status: 409 })
-          : new Response(
-              JSON.stringify({
-                status: 'received',
-                reportId: receivedId,
-                receivedAt: '2026-10-07T00:00:00Z',
-              }),
-            ),
-      ),
-    )
+  const fetcher = vi.fn().mockImplementation(() =>
+    Promise.resolve(
+      ++calls === 1
+        ? new Response('conflict', { status: 409 })
+        : new Response(
+            JSON.stringify({
+              status: 'received',
+              reportId: receivedId,
+              receivedAt: '2026-10-07T00:00:00Z',
+            }),
+          ),
+    ),
+  )
   vi.spyOn(crypto, 'randomUUID').mockReturnValue(receivedId)
   await submitScanFeedback(report, fetcher)
   const stored = readLastScanDiagnostic()!

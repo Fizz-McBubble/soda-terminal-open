@@ -56,7 +56,7 @@ describe('FormalDiscImportPage usage', () => {
       throw new DOMException('Storage disabled', 'SecurityError')
     })
     try {
-      await user.click(screen.getByRole('button', { name: '确认更新驱动盘' }))
+      await user.click(screen.getByRole('button', { name: '导入' }))
       expect(
         await screen.findByRole('heading', { name: '已更新 343 张驱动盘' }),
       ).toBeInTheDocument()
@@ -125,7 +125,7 @@ describe('FormalDiscImportPage usage', () => {
         <FormalDiscImportPage embedded compact onImportSuccess={callback} />
       </BrowserRouter>,
     )
-    fireEvent.click(screen.getByRole('button', { name: '确认更新驱动盘' }))
+    fireEvent.click(screen.getByRole('button', { name: '导入' }))
     await waitFor(() => expect(callback).toHaveBeenCalledOnce())
     expect(mocks.usageBegin.mock.calls).toEqual([['disc_import']])
     expect(mocks.usageOutcome.mock.calls).toEqual([['success']])
@@ -144,7 +144,7 @@ describe('FormalDiscImportPage usage', () => {
         <FormalDiscImportPage embedded compact />
       </BrowserRouter>,
     )
-    const confirm = screen.getByRole('button', { name: '确认更新驱动盘' })
+    const confirm = screen.getByRole('button', { name: '导入' })
     fireEvent.click(confirm)
     fireEvent.click(confirm)
     await waitFor(() => expect(mocks.replace).toHaveBeenCalledOnce())

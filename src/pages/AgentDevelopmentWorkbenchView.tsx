@@ -27,6 +27,7 @@ import {
 import { createAgentDevelopmentSavedPlan } from './agentDevelopmentSavedPlan'
 import { rememberDevelopmentWorkbenchRoute } from './developmentWorkbenchRouteCache'
 import { usePageOperationScope } from '../components/usePageOperationScope'
+import { WarehouseMatchError } from '../application/warehouseMatchFeedback'
 
 type CandidateSnapshot = NonNullable<ReturnType<typeof readDevelopmentCandidateSnapshot>>
 type EditingPresentation = { accountId: string; presentation: GoldenWorkbenchData }
@@ -179,7 +180,7 @@ export function AgentDevelopmentWorkbenchView({
                     result.runId !== currentRun.runId ||
                     result.inputFingerprint !== currentRun.inputFingerprint
                   )
-                    throw new Error(result.gaps[0] ?? '当前账户无法生成完整的六张候选盘。')
+                    throw new WarehouseMatchError(result.gaps)
                   const index = Math.min(
                     selectedCandidateRank - 1,
                     Math.max(result.candidates.length - 1, 0),
@@ -221,7 +222,7 @@ export function AgentDevelopmentWorkbenchView({
                   )
                     throw new Error('本次配装资料已变化，请重新搭配；尚未保存。')
                   if (!cacheDevelopmentCandidateSnapshot(result))
-                    throw new Error(result.gaps[0] ?? '当前账户无法生成完整的六张候选盘。')
+                    throw new WarehouseMatchError(result.gaps)
                   const key = contentHash([
                     currentRun.runId,
                     currentRun.inputFingerprint,

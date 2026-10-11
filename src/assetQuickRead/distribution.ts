@@ -15,9 +15,11 @@ export function assetQuickReadDownloadAvailable(
 ) {
   return (
     release.available &&
-    release.version === '1.0.0' &&
-    release.fileName === 'Soda-Asset-Quick-Read-Setup-1.0.0.exe' &&
-    release.releaseTag === 'v1.0.0' &&
+    ((release.version === '1.0.0' &&
+      release.fileName === 'Soda-Asset-Quick-Read-Setup-1.0.0.exe') ||
+      (release.version === '1.0.1' &&
+        release.fileName === 'SodaTerminal-AssetReader-Setup-1.0.1.exe')) &&
+    release.releaseTag === `v${release.version}` &&
     release.repo === 'Fizz-McBubble/soda-terminal-asset-quick-read' &&
     release.downloadUrl === '/downloads/Soda-Asset-Quick-Read-Setup.exe' &&
     Number.isSafeInteger(release.size) &&

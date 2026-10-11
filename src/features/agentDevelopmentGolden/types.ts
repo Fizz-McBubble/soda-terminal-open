@@ -248,6 +248,7 @@ export type GoldenTop10Data = {
 }
 
 export type AgentDevelopmentGoldenProps = {
+  browseAccountId?: string
   initialView?: JourneyView
   scenario?: JourneyScenario
   directoryAgents?: AgentSummary[]

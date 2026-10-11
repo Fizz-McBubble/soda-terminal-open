@@ -383,7 +383,7 @@
   line-height: 1.5;
 }
 
-@media (max-width: 760px) {
+@container soda-viewport (max-width: 760px) {
   .f5v-box-team-completion__member-row {
     grid-template-columns: 1fr;
     gap: 3px;
@@ -407,7 +407,7 @@
   display: none;
 }
 
-@media (max-width: 980px) {
+@container soda-viewport (max-width: 980px) {
   .f5v-box-team-overview .button.f5v-box-team-mobile-navigation {
     display: inline-flex;
     margin-bottom: 12px;

@@ -29,6 +29,7 @@ beforeEach(() => {
   vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
 })
 it('derives the save filename from the installer version', () => {
+  expect(scannerInstallerFileName('1.0.9')).toBe('SodaTerminal-Scanner-Setup-1.0.9.exe')
   expect(scannerInstallerFileName('1.0.5')).toBe('Soda-画面扫描-1.0.5.exe')
   expect(scannerInstallerFileName('1.0.6')).toBe('Soda-画面扫描-1.0.6.exe')
 })

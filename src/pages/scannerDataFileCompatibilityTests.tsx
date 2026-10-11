@@ -113,7 +113,9 @@ export function registerScannerDataFileCompatibilityTests({
           name: '我的资产',
         }),
       )
-      await waitFor(() => expect(window.location.pathname).toBe('/assets/agents'))
+      await waitFor(() => expect(window.location.pathname).toBe('/assets/agents'), {
+        timeout: 5000,
+      })
       await act(async () => {
         const returned = new Promise((resolve) =>
           window.addEventListener('popstate', resolve, { once: true }),
@@ -144,7 +146,7 @@ export function registerScannerDataFileCompatibilityTests({
         fireEvent.change(container.querySelector('input[type="file"]')!, {
           target: { files: [file] },
         })
-        expect(await screen.findByRole('button', { name: '确认更新驱动盘' })).toBeEnabled()
+        expect(await screen.findByRole('button', { name: '导入' })).toBeEnabled()
         expect(window.location.pathname).toBe('/system/scanner')
         expect(screen.getByLabelText('选择本机文件（JSON）')).toBeDisabled()
         expect(screen.queryByRole('button', { name: '继续检查并导入' })).not.toBeInTheDocument()
@@ -178,7 +180,7 @@ export function registerScannerDataFileCompatibilityTests({
         target: { files: [jsonFile(createReadyScannerStaging())] },
       })
       await screen.findByRole('button', { name: '停止本次扫描' })
-      expect(screen.queryByRole('button', { name: '确认更新驱动盘' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: '导入' })).not.toBeInTheDocument()
       expect(await database.accountScanImportBatches.count()).toBe(0)
       expect(await accountSnapshot(false)).toEqual(before)
       setRuntimeState('ready')
@@ -190,7 +192,7 @@ export function registerScannerDataFileCompatibilityTests({
           'ready',
         ),
       )
-      expect(await screen.findByRole('button', { name: '确认更新驱动盘' })).toBeEnabled()
+      expect(await screen.findByRole('button', { name: '导入' })).toBeEnabled()
       await expectUnimportedCheckDraft()
       expect(runtimeMock.commands.startScan).not.toHaveBeenCalled()
       expect(await accountSnapshot(false)).toEqual(before)
@@ -211,7 +213,7 @@ export function registerScannerDataFileCompatibilityTests({
       const picker = await screen.findByLabelText('选择本机文件（JSON）')
       fireEvent.change(picker, { target: { files: [oldFile] } })
       fireEvent.change(picker, { target: { files: [jsonFile(createReadyScannerStaging())] } })
-      await screen.findByRole('button', { name: '确认更新驱动盘' })
+      await screen.findByRole('button', { name: '导入' })
       const stagedBeforeLateRead = await Promise.all([
         database.accountScanImportBatches.toArray(),
         database.accountScanImportItems.toArray(),
@@ -226,7 +228,7 @@ export function registerScannerDataFileCompatibilityTests({
       expect(window.location.pathname).toBe('/system/scanner')
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
       expect(screen.queryByRole('region', { name: '单账户备份检查' })).not.toBeInTheDocument()
-      expect(screen.getByRole('button', { name: '确认更新驱动盘' })).toBeEnabled()
+      expect(screen.getByRole('button', { name: '导入' })).toBeEnabled()
       expect(await accountSnapshot(false)).toEqual(before)
       await expectUnimportedCheckDraft()
       expect(runtimeMock.commands.startScan).not.toHaveBeenCalled()

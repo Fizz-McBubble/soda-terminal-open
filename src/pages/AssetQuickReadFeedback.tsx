@@ -1,0 +1,130 @@
+import { useLayoutEffect, useRef, useState } from 'react'
+import { sanitizeAssetDiagnostic, type AssetDiagnosticReport } from '../assetQuickRead/diagnostics'
+import { readAssetReceipt, submitAssetFeedback } from '../assetQuickRead/feedback'
+import { DiagnosticEntry, DiagnosticPopover } from './DiagnosticFeedbackPresentation'
+import './scanner-guide.css'
+import './scanner-diagnostic-feedback.css'
+
+export function AssetQuickReadFeedback({ report }: { report: AssetDiagnosticReport | null }) {
+  const safe = sanitizeAssetDiagnostic(report)
+  const key = safe ? JSON.stringify(safe) : ''
+  const current = useRef(key)
+  const pending = useRef<string | null>(null)
+  const [state, setState] = useState<{
+    key: string
+    message: string
+    pending?: boolean
+    receivedAt?: string
+  } | null>(null)
+  useLayoutEffect(() => {
+    current.current = key
+  }, [key])
+  if (!safe) return null
+  const receipt = readAssetReceipt(safe)
+  const shown = state?.key === key ? state : null
+  const receivedAt = shown?.receivedAt ?? receipt?.receivedAt
+  async function send() {
+    if (!safe || pending.current === key || receivedAt) return
+    pending.current = key
+    setState({ key, message: '正在发送…', pending: true })
+    try {
+      const ack = await submitAssetFeedback(safe)
+      if (current.current === key)
+        setState({ key, message: '已收到反馈。', receivedAt: ack.receivedAt })
+    } catch {
+      if (current.current === key) setState({ key, message: '暂未收到回执，请重试或复制诊断。' })
+    } finally {
+      if (pending.current === key) pending.current = null
+    }
+  }
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(safe, null, 2))
+      if (current.current === key) setState({ key, message: '已复制诊断。', receivedAt })
+    } catch {
+      if (current.current === key)
+        setState({ key, message: '复制未完成，可下载诊断。', receivedAt })
+    }
+  }
+  function download() {
+    const url = URL.createObjectURL(
+      new Blob([JSON.stringify(safe, null, 2)], { type: 'application/json' }),
+    )
+    const anchor = document.createElement('a')
+    anchor.href = url
+    anchor.download = `soda-asset-diagnostic-${safe!.reportId}.json`
+    anchor.click()
+    setTimeout(() => URL.revokeObjectURL(url), 0)
+  }
+  const guidance: Record<string, { problem: string; nextAction: string }> = {
+    connection: {
+      problem: '资产快读未能连接。',
+      nextAction: '确认工具已安装，并允许浏览器访问本机设备后重新连接。',
+    },
+    permission: {
+      problem: '资产快读权限确认没有完成。',
+      nextAction: '重新连接或开始读取，留意本次 Windows 权限提示。',
+    },
+    startup: {
+      problem: '资产快读未能启动本次读取。',
+      nextAction: '检查游戏目录，完全退出游戏后重新读取。',
+    },
+    waiting: {
+      problem: '资产快读未收到完整数据。',
+      nextAction: '确认已完整启动游戏并登录；仍未收到数据时可重新读取。',
+    },
+    result: {
+      problem: '资产快读结果未通过读取检查。',
+      nextAction: '重新读取或选择完整的结果文件；仍失败时可反馈。',
+    },
+    import: {
+      problem: '资产快读结果未完成导入。',
+      nextAction: '检查当前接收账户和结果，再重新确认导入。',
+    },
+  }
+  const hint = guidance[safe.stage] ?? {
+    problem: '资产快读未完成本次操作。',
+    nextAction: '检查工具准备状态后重试；仍失败时可反馈。',
+  }
+  const metadata: string[] = []
+  if (safe.versions.bridge) metadata.push(`资产快读 ${safe.versions.bridge}`)
+  if (typeof safe.evidence.remainingSeconds === 'number')
+    metadata.push(`剩余等待 ${safe.evidence.remainingSeconds} 秒`)
+  if (safe.counts.processed !== null) metadata.push(`已处理 ${safe.counts.processed}`)
+  return (
+    <DiagnosticEntry title="资产快读诊断" status={receivedAt ? '本次反馈已发送。' : hint.problem}>
+      <DiagnosticPopover
+        key={key}
+        title="资产快读诊断"
+        problem={hint.problem}
+        nextAction={hint.nextAction}
+        metadata={metadata}
+        receiptId={receivedAt ? safe.reportId : undefined}
+        message={shown?.message ?? (receivedAt ? '已收到反馈。' : undefined)}
+        actions={
+          <>
+            <button
+              type="button"
+              className="button button--quiet"
+              disabled={Boolean(shown?.pending) || Boolean(receivedAt)}
+              onClick={() => void send()}
+            >
+              {receivedAt ? '已发送' : shown?.pending ? '发送中…' : '发送反馈'}
+            </button>
+            <button
+              type="button"
+              className="button button--quiet"
+              disabled={Boolean(shown?.pending)}
+              onClick={() => void copy()}
+            >
+              复制诊断
+            </button>
+            <button type="button" className="button button--quiet" onClick={download}>
+              下载诊断
+            </button>
+          </>
+        }
+      />
+    </DiagnosticEntry>
+  )
+}

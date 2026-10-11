@@ -19,7 +19,7 @@ import {
   calculateWEngineSecondaryStat,
 } from '../gameDataPacks/panel/wEngineGrowth'
 import { getCurrentAgentEventContract } from './currentAgentMechanicContracts'
-import { evaluateInitialCritConversion32 } from './currentInitialCritConversion32'
+import { projectOutOfCombatInitialModifiers } from './outOfCombatInitialModifiers'
 import {
   getReviewedAgentMenuBaseStats,
   getReviewedWEngineMenuBaseStat,
@@ -50,6 +50,7 @@ export type PanelInput = {
    * missing/NaN never select this zero row. */
   core: number
   mindscape?: number
+  potentialImage?: number | null
   wEngine: { id: string; level: number; ascension: number; refinement: number }
   discs: DriveDisc[]
 }
@@ -462,21 +463,14 @@ export function projectOutOfCombatPanel(
     }
   }
 
-  const initialCritConversion = evaluateInitialCritConversion32({
+  const initialModifiers = projectOutOfCombatInitialModifiers({
     agentId: input.agentId,
-    initialStats: { crit_dmg_: (values.critDamage + postFlat.critDamage) / 100 },
+    potentialImage: input.potentialImage,
+    critDamage: values.critDamage + postFlat.critDamage,
   })
-  if (initialCritConversion.status === 'unsupported')
-    return unsupported(initialCritConversion.blockers.join('；'))
-  if (initialCritConversion.critRate !== 0)
-    add(
-      postFlat,
-      trace,
-      'critRate',
-      initialCritConversion.critRate * 100,
-      initialCritConversion.sourceRefs.join('|'),
-      'post_flat',
-    )
+  if (initialModifiers.status === 'unsupported') return unsupported(initialModifiers.reason)
+  for (const modifier of initialModifiers.modifiers)
+    add(postFlat, trace, modifier.key, modifier.value, modifier.source, 'post_flat')
   ;(['hp', 'atk', 'def', 'impact', 'anomalyMastery', 'energyRegen'] as const).forEach((key) => {
     values[key] = values[key] * (1 + percent[key] / 100) + postFlat[key]
     trace.push({ key, source: 'base×percent+post_flat', operation: 'final', value: values[key] })

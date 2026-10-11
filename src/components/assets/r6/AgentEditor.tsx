@@ -25,6 +25,7 @@ export function AgentEditor({
     skillLevels: { ...source.skillLevels },
     wEngineRefinement: source.wEngineDetails.refinement,
     wEngineLevel: source.wEngineDetails.level,
+    wEngineLevelManuallySet: false,
     wEngineCatalogId: source.wEngineDetails.id,
     wEngineRefinementManuallySet: false,
   }

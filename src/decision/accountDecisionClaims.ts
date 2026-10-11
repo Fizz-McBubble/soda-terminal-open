@@ -44,7 +44,12 @@ export function teamEngineClaim(result: TeamEngineResult): DecisionClaim {
       blockers: [
         ...new Set([
           ...result.rejected.flatMap((candidate) =>
-            candidate.failures.map((failure) => failure.detail),
+            candidate.failures
+              .filter(
+                (failure) =>
+                  failure.code !== 'missing_core_agent' && failure.code !== 'no_eligible_third',
+              )
+              .map((failure) => failure.detail),
           ),
           ...(result.assembleOnly.length ? ['旧模板仅证明可组成，不能代替当前版本机制推荐。'] : []),
         ]),

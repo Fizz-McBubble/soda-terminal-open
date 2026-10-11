@@ -1,4 +1,4 @@
-@media (max-width: 1600px) {
+@container soda-viewport (max-width: 1600px) {
   .f5v-shell .warehouse-action-summary {
     gap: 6px;
   }
@@ -26,7 +26,7 @@
   }
 }
 
-@media (max-width: 1400px) {
+@container soda-viewport (max-width: 1400px) {
   .f5v-shell .warehouse-action-list__header,
   .f5v-shell .warehouse-action-row {
     grid-template-columns: minmax(115px, 0.8fr) minmax(260px, 1.65fr) minmax(82px, 0.5fr) minmax(
@@ -45,7 +45,7 @@
   }
 }
 
-@media (max-width: 1100px) {
+@container soda-viewport (max-width: 1100px) {
   .f5v-shell .warehouse-action-controls {
     display: grid;
   }
@@ -60,7 +60,7 @@
   }
 }
 
-@media (max-width: 760px) {
+@container soda-viewport (max-width: 760px) {
   .f5v-shell .warehouse-workbench {
     width: calc(100vw - 40px);
     max-width: calc(100vw - 40px);
@@ -217,7 +217,7 @@
   display: none;
 }
 
-@media (max-width: 760px) {
+@container soda-viewport (max-width: 760px) {
   .f5v-shell .warehouse-workbench .button.warehouse-mobile-return {
     display: inline-flex;
     margin-bottom: 12px;
@@ -243,7 +243,7 @@
 }
 
 /* Summary and primary controls share one desktop row and control height. */
-@media (min-width: 1101px) {
+@container soda-viewport (min-width: 1101px) {
   .f5v-shell .warehouse-action-controls {
     display: flex;
     gap: 8px;
@@ -352,7 +352,7 @@
 .f5v-shell .warehouse-pending-detail {
   padding: 16px;
 }
-@media (max-width: 760px) {
+@container soda-viewport (max-width: 760px) {
   .f5v-shell .warehouse-workbench__actions {
     grid-template-columns: 1fr;
   }

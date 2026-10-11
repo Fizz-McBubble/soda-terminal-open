@@ -64,17 +64,17 @@ describe('preparing another scan', () => {
       diagnostics: { reportId: newId },
     }
     rendered.rerender(page())
-    expect(await screen.findByRole('heading', { name: '正在读取游戏中的资产' })).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: '上次导入已完成' })).not.toBeInTheDocument()
+    expect(
+      await screen.findByRole('progressbar', { name: '已处理 128，共 384' }),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: '导入完成' })).not.toBeInTheDocument()
     runtime.snapshot = {
       ...createScannerRuntimeSnapshot('completed'),
       diagnostics: { reportId: newId },
       summary: { ...oldCompleted.summary!, resultFileHandle: 'new-staging.json' },
     }
     rendered.rerender(page())
-    expect(
-      await screen.findByRole('heading', { name: '结果已生成，先检查再导入' }),
-    ).toBeInTheDocument()
+    expect(await screen.findByRole('region', { name: '已完成扫描结果' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '确认账户并继续' })).toBeEnabled()
     expect(runtime.commands.startScan).not.toHaveBeenCalled()
     expect(await database.accountDriveDiscs.count()).toBe(0)
@@ -87,18 +87,14 @@ describe('preparing another scan', () => {
     await setActiveAccount(account.id, database)
     runtime.snapshot = createScannerRuntimeSnapshot('completed')
     const rendered = render(page())
-    await userEvent
-      .setup()
-      .click(await screen.findByRole('button', { name: '放弃此结果并重新扫描' }))
+    await userEvent.setup().click(await screen.findByRole('button', { name: '放弃' }))
     const next = createScannerRuntimeSnapshot('completed')
     runtime.snapshot = {
       ...next,
       summary: { ...next.summary!, resultFileHandle: 'another-staging.json' },
     }
     rendered.rerender(page())
-    expect(
-      await screen.findByRole('heading', { name: '结果已生成，先检查再导入' }),
-    ).toBeInTheDocument()
+    expect(await screen.findByRole('region', { name: '已完成扫描结果' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: '画面扫描已连接' })).not.toBeInTheDocument()
     expect(await database.accountDriveDiscs.count()).toBe(0)
   })
@@ -114,10 +110,8 @@ describe('preparing another scan', () => {
     )
     runtime.snapshot = createScannerRuntimeSnapshot('completed')
     render(page())
-    expect(
-      await screen.findByRole('heading', { name: '结果已生成，先检查再导入' }),
-    ).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: '上次导入已完成' })).not.toBeInTheDocument()
+    expect(await screen.findByRole('region', { name: '已完成扫描结果' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: '导入完成' })).not.toBeInTheDocument()
     expect(await database.accountDriveDiscs.count()).toBe(0)
   })
 
@@ -133,14 +127,16 @@ describe('preparing another scan', () => {
     runtime.commands.startScan.mockRejectedValueOnce(new Error('扫描启动失败，请重试。'))
     const rendered = render(page())
     await userEvent.setup().click(await screen.findByRole('button', { name: '开始扫描' }))
-    expect(await screen.findByRole('alert')).toHaveTextContent('扫描启动失败')
+    expect(await screen.findByRole('button', { name: '查看诊断信息' })).toBeEnabled()
     expect(readScannerTargetAccountBinding()).toMatchObject({ valid: true })
     runtime.snapshot = {
       ...createScannerRuntimeSnapshot('scanning'),
       diagnostics: { reportId: '00000000-0000-4000-8000-000000000004' },
     }
     rendered.rerender(page())
-    expect(await screen.findByRole('heading', { name: '正在读取游戏中的资产' })).toBeInTheDocument()
+    expect(
+      await screen.findByRole('progressbar', { name: '已处理 128，共 384' }),
+    ).toBeInTheDocument()
     expect(readScannerTargetAccountBinding()).toMatchObject({ valid: false })
     expect(await database.accountDriveDiscs.count()).toBe(0)
   })
@@ -171,7 +167,7 @@ describe('preparing another scan', () => {
       // Reconnection can return the previous result after the user has restarted.
       runtime.snapshot = createScannerRuntimeSnapshot('completed')
       rendered.rerender(page())
-      expect(screen.queryByRole('heading', { name: '上次导入已完成' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('heading', { name: '导入完成' })).not.toBeInTheDocument()
       expect(screen.getByRole('heading', { name: '画面扫描已连接' })).toBeInTheDocument()
       expect(runtime.commands.startScan).not.toHaveBeenCalled()
       expect(await database.accountDriveDiscs.toArray()).toEqual(before)
@@ -183,7 +179,7 @@ describe('preparing another scan', () => {
       expect(
         screen.getByRole('heading', { name: '画面扫描正在检查游戏与权限' }),
       ).toBeInTheDocument()
-      expect(screen.queryByRole('heading', { name: '上次导入已完成' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('heading', { name: '导入完成' })).not.toBeInTheDocument()
       expect(await database.accountDriveDiscs.toArray()).toEqual(before)
     },
   )

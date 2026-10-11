@@ -4,6 +4,7 @@ import { AgentDevelopmentOverview } from './AgentDevelopmentOverview'
 import { Workbench } from './AgentDevelopmentWorkbench'
 import type { AgentDevelopmentGoldenProps, JourneyView } from './types'
 export function AgentDevelopmentGolden({
+  browseAccountId,
   initialView = 'workbench',
   scenario = 'current',
   directoryAgents = [],
@@ -30,6 +31,7 @@ export function AgentDevelopmentGolden({
     </section>
   ) : view === 'overview' ? (
     <AgentDevelopmentOverview
+      browseAccountId={browseAccountId}
       openAgent={(agentId) => (onOpenAgent ? onOpenAgent(agentId) : setView('workbench'))}
       openSavedAgent={onOpenSavedAgent}
       directoryAgents={directoryAgents}

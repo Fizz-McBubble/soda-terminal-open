@@ -1,6 +1,5 @@
 import { displayDiscMainValue, formatDiscStatValue } from './publicDiscFacts'
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { useLiveQuery } from 'dexie-react-hooks'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useOptionalAccountDecisionWorld } from '../application/accountDecisionWorld'
 import { useLocalDataFileHandoff } from '../application/useLocalDataFileHandoff'
@@ -17,7 +16,6 @@ import {
 import {
   deleteAccount,
   getAccountRoster,
-  getAccountPreference,
   getActiveAccount,
   setActiveAccount,
   deleteAccountDriveDiscs,
@@ -28,7 +26,6 @@ import {
 } from '../accounts/repository'
 import { createPublicScannerEmptyRoster as createEmptyRoster } from '../accounts/publicScannerAccountCreation'
 import { saveAgentWEngineAssignment } from '../accounts/wEngineAssignment'
-import { listAccountPlanningDrafts } from '../accounts/planningDrafts'
 import { AssetMaintenanceGolden } from '../components/assets/r6/AssetMaintenanceGolden'
 import type {
   AssetTab,
@@ -40,9 +37,11 @@ import { database } from '../db/databaseCore'
 import type { DriveDisc } from '../domain/schemas'
 import { normalizeDiscTags } from '../domain/discTags'
 import type { AccountPlanningDraft } from '../accounts/types'
+import { lastSelectedAgentPreference } from './assetCenterData'
+import { useAssetCenterData } from './useAssetCenterData'
+import { AssetCenterReadFeedback } from './AssetCenterReadFeedback'
 
 const lastFullBackupPreference = 'data-center-last-full-backup-v1'
-const lastSelectedAgentPreference = 'assets.agents.last-selected-agent-v1'
 const loadAcceptanceRecovery =
   import.meta.env.VITE_SODA_PUBLIC_BUILD === 'true'
     ? null
@@ -111,31 +110,6 @@ function downloadJson(value: unknown, filename: string) {
   URL.revokeObjectURL(url)
 }
 
-async function loadAssetData() {
-  const account = await getActiveAccount()
-  if (!account)
-    return {
-      account: null,
-      roster: createEmptyRoster(),
-      discs: [] as DriveDisc[],
-      planningDrafts: [] as AccountPlanningDraft[],
-      lastSelectedAgentId: null,
-    }
-  const [roster, discs, planningDrafts, preferredAgent] = await Promise.all([
-    getAccountRoster(account.id),
-    database.accountDriveDiscs.where('accountId').equals(account.id).toArray(),
-    listAccountPlanningDrafts(account.id),
-    getAccountPreference(account.id, lastSelectedAgentPreference),
-  ])
-  return {
-    account,
-    roster,
-    discs: discs as DriveDisc[],
-    planningDrafts,
-    lastSelectedAgentId: typeof preferredAgent === 'string' ? preferredAgent : null,
-  }
-}
-
 function defaultAgentSelection(
   roster: ReturnType<typeof createEmptyRoster>,
   preferredAgentId: string | null,
@@ -158,19 +132,10 @@ export function AssetCenterPage() {
   const [revision, setRevision] = useState(0)
   const [message, setMessageState] = useState({ text: '', transient: false, revision: 0 })
   const [acceptanceRecoveryAvailable, setAcceptanceRecoveryAvailable] = useState(false)
-  const data = useLiveQuery(loadAssetData, [revision])
-  const accountOptions = useLiveQuery(
-    () =>
-      database.accounts
-        .filter((account) => account.status === 'active')
-        .toArray()
-        .then((accounts) =>
-          accounts
-            .sort((left, right) => left.displayName.localeCompare(right.displayName, 'zh-CN'))
-            .map((account) => ({ id: account.id, displayName: account.displayName })),
-        ),
-    [],
-  )
+  const reads = useAssetCenterData(revision)
+  const currentData = reads.assets.data
+  const data = currentData ?? reads.assets.retainedData
+  const accountOptions = reads.accounts.data
   const propsData =
     data ??
     ({
@@ -259,6 +224,7 @@ export function AssetCenterPage() {
           const {
             wEngineCatalogId,
             wEngineLevel,
+            wEngineLevelManuallySet,
             wEngineRefinement,
             wEngineRefinementManuallySet,
             ...agentDraft
@@ -271,6 +237,7 @@ export function AssetCenterPage() {
               wEngineCopyId: payload.draft.wEngineCopyId,
               wEngineCatalogId,
               wEngineLevel,
+              wEngineLevelManuallySet,
               wEngineRefinement,
               wEngineRefinementManuallySet,
             },
@@ -381,7 +348,8 @@ export function AssetCenterPage() {
   async function selectAccount(accountId: string) {
     if (accountId === propsData.account?.id) return
     const account = await setActiveAccount(accountId)
-    setMessage(`已切换到“${account.displayName}”。`)
+    setMessage(`已切换到“${account.displayName}”。资产和队伍配装会按该账户重新读取。`)
+    setRevision((value) => value + 1)
   }
 
   async function deleteLocalAccount(accountId: string) {
@@ -425,53 +393,52 @@ export function AssetCenterPage() {
     }
   }
 
-  if (!data) {
-    return (
-      <section className="asset-center-loading" role="status" aria-live="polite">
-        正在读取当前账户资料…
-      </section>
-    )
-  }
+  if (!data || !accountOptions) return <AssetCenterReadFeedback reads={reads} />
 
   return (
-    <AssetMaintenanceGolden
-      accountId={propsData.account?.id ?? 'no-account'}
-      accountName={propsData.account?.displayName ?? '尚未选择账户'}
-      accountUpdatedAt={propsData.account?.updatedAt ?? new Date(0).toISOString()}
-      accountOptions={accountOptions ?? []}
-      catalog={catalog}
-      discs={discs}
-      roster={propsData.roster}
-      initialTab={
-        propsData.account || activeTab(params.assetType) !== 'discs'
-          ? activeTab(params.assetType)
-          : 'account'
-      }
-      initialSelection={{
-        agents:
-          searchParams.get('selected') ??
-          defaultAgentSelection(propsData.roster, propsData.lastSelectedAgentId) ??
-          undefined,
-        wengines: searchParams.get('selected') ?? undefined,
-      }}
-      message={message.text}
-      onNavigate={(tab) => navigate(tab === 'account' ? '/assets/account' : `/assets/${tab}`)}
-      onPrimaryNavigate={(path) => navigate(path)}
-      onSelectAgent={selectAgent}
-      onSave={save}
-      onDeleteDiscs={deleteDiscs}
-      onCreateBackup={createBackup}
-      onInspectBackup={inspectBackup}
-      incomingBackupFile={incomingBackupFile}
-      onIncomingBackupHandled={() => setIncomingBackupFile(null)}
-      onOpenScanFile={(file) => forwardDataFile(file, 'scan-result')}
-      onRestore={restore}
-      onSelectAccount={selectAccount}
-      onDeleteAccount={deleteLocalAccount}
-      onRestoreAcceptanceAccount={
-        acceptanceRecoveryAvailable ? restoreAcceptanceAccount : undefined
-      }
-    />
+    <>
+      <AssetCenterReadFeedback reads={reads} />
+      <div hidden={!currentData} inert={reads.blocked}>
+        <AssetMaintenanceGolden
+          accountId={propsData.account?.id ?? 'no-account'}
+          accountName={propsData.account?.displayName ?? '尚未选择账户'}
+          accountUpdatedAt={propsData.account?.updatedAt ?? new Date(0).toISOString()}
+          accountOptions={accountOptions ?? []}
+          catalog={catalog}
+          discs={discs}
+          roster={propsData.roster}
+          initialTab={
+            propsData.account || activeTab(params.assetType) !== 'discs'
+              ? activeTab(params.assetType)
+              : 'account'
+          }
+          initialSelection={{
+            agents:
+              searchParams.get('selected') ??
+              defaultAgentSelection(propsData.roster, propsData.lastSelectedAgentId) ??
+              undefined,
+            wengines: searchParams.get('selected') ?? undefined,
+          }}
+          message={message.text}
+          onNavigate={(tab) => navigate(tab === 'account' ? '/assets/account' : `/assets/${tab}`)}
+          onPrimaryNavigate={(path) => navigate(path)}
+          onSelectAgent={selectAgent}
+          onSave={save}
+          onDeleteDiscs={deleteDiscs}
+          onCreateBackup={createBackup}
+          onInspectBackup={inspectBackup}
+          incomingBackupFile={incomingBackupFile}
+          onIncomingBackupHandled={() => setIncomingBackupFile(null)}
+          onOpenScanFile={(file) => forwardDataFile(file, 'scan-result')}
+          onRestore={restore}
+          onSelectAccount={selectAccount}
+          onDeleteAccount={deleteLocalAccount}
+          onRestoreAcceptanceAccount={
+            acceptanceRecoveryAvailable ? restoreAcceptanceAccount : undefined
+          }
+        />
+      </div>
+    </>
   )
 }
 import { resolvePlanningDiscReferences } from '../accounts/planningDiscReferences'

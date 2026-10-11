@@ -21,7 +21,7 @@ export function ScannerScanningSection({
     <>
       {targetBinding ? (
         <p className="scanner-target-account__frozen" role="status">
-          本次扫描目标：{targetBinding.displayName} · 替换前 {targetBinding.baselineDiscCount} 张
+          目标账户：{targetBinding.displayName}
         </p>
       ) : (
         <p className="danger-note" role="alert">
@@ -48,10 +48,7 @@ export function ScannerScanningSection({
       ) : null}
       <div className="scanner-web__interaction-lock" role="alert">
         <AlertTriangle aria-hidden="true" size={20} />
-        <p>
-          <strong>扫描期间请不要操作游戏</strong>
-          <span>不要使用鼠标键盘、切换游戏页面或最小化窗口。</span>
-        </p>
+        <p>扫描期间请不要操作、切换或最小化游戏。</p>
       </div>
       <ScannerProgress snapshot={snapshot} />
       <div className="scanner-web__scan-actions">
@@ -59,7 +56,7 @@ export function ScannerScanningSection({
           <CircleStop aria-hidden="true" size={17} />
           停止本次扫描
         </button>
-        <small>停止后不会生成或导入结果；你可以回到准备步骤重新开始。</small>
+        <small>停止后不会导入，可重新扫描。</small>
       </div>
     </>
   )

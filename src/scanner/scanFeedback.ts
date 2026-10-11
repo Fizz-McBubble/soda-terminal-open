@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { withFeedbackTimeout } from './feedbackRequest'
 import type { ScannerAssistantSnapshot } from './runtime'
 import {
   diagnosticFromSnapshot,
@@ -168,70 +169,55 @@ export async function submitScanFeedback(
 ) {
   const safe = sanitizeScanDiagnostic(report)
   if (!safe) throw new Error('invalid-diagnostic')
-  const controller = new AbortController()
-  let timer: ReturnType<typeof setTimeout> | undefined
-  const timeout = new Promise<never>((_, reject) => {
-    timer = setTimeout(() => {
-      controller.abort()
-      reject(new Error('timeout'))
-    }, timeoutMs)
+  return withFeedbackTimeout(timeoutMs, async (signal) => {
+    let outgoing = readScanFeedbackReceipt(safe)?.report ?? safe
+    const send = () =>
+      fetcher(contract.endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(outgoing),
+        signal,
+        credentials: 'omit',
+      })
+    let response = await send()
+    if (signal.aborted) throw new Error('timeout')
+    // Two tabs can observe the same native attempt with different browser facts.
+    // Preserve retry idempotency, but resolve that ID collision within this click.
+    if (response.status === 409) {
+      outgoing = { ...safe, reportId: crypto.randomUUID() }
+      response = await send()
+      if (signal.aborted) throw new Error('timeout')
+    }
+    if (!response.ok)
+      throw new ScanFeedbackSubmissionError(
+        response.status === 404
+          ? 'unavailable'
+          : response.status === 409
+            ? 'release_changed'
+            : 'retry',
+      )
+    const ack: unknown = await response.json()
+    if (signal.aborted) throw new Error('timeout')
+    if (!ack || typeof ack !== 'object') throw new Error('invalid-receipt')
+    const receipt = ack as Record<string, unknown>
+    if (
+      receipt.status !== 'received' ||
+      receipt.reportId !== outgoing.reportId ||
+      typeof receipt.receivedAt !== 'string' ||
+      !Number.isFinite(Date.parse(receipt.receivedAt))
+    )
+      throw new Error('invalid-receipt')
+    // Keep the Help-page copy aligned with the durable receipt without letting
+    // a late submission overwrite a newer failure captured in another attempt.
+    const stored = readLastScanDiagnostic()
+    if (
+      !stored ||
+      JSON.stringify(stored) === JSON.stringify(safe) ||
+      JSON.stringify(stored) === JSON.stringify(outgoing)
+    ) {
+      saveScanFeedbackReceipt(safe.reportId, outgoing, receipt.receivedAt)
+      saveLastScanDiagnostic(outgoing)
+    }
+    return { reportId: outgoing.reportId, receivedAt: receipt.receivedAt }
   })
-  try {
-    return await Promise.race([
-      timeout,
-      (async () => {
-        let outgoing = readScanFeedbackReceipt(safe)?.report ?? safe
-        const send = () =>
-          fetcher(contract.endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(outgoing),
-            signal: controller.signal,
-            credentials: 'omit',
-          })
-        let response = await send()
-        if (controller.signal.aborted) throw new Error('timeout')
-        // Two tabs can observe the same native attempt with different browser facts.
-        // Preserve retry idempotency, but resolve that ID collision within this click.
-        if (response.status === 409) {
-          outgoing = { ...safe, reportId: crypto.randomUUID() }
-          response = await send()
-          if (controller.signal.aborted) throw new Error('timeout')
-        }
-        if (!response.ok)
-          throw new ScanFeedbackSubmissionError(
-            response.status === 404
-              ? 'unavailable'
-              : response.status === 409
-                ? 'release_changed'
-                : 'retry',
-          )
-        const ack: unknown = await response.json()
-        if (controller.signal.aborted) throw new Error('timeout')
-        if (!ack || typeof ack !== 'object') throw new Error('invalid-receipt')
-        const receipt = ack as Record<string, unknown>
-        if (
-          receipt.status !== 'received' ||
-          receipt.reportId !== outgoing.reportId ||
-          typeof receipt.receivedAt !== 'string' ||
-          !Number.isFinite(Date.parse(receipt.receivedAt))
-        )
-          throw new Error('invalid-receipt')
-        // Keep the Help-page copy aligned with the durable receipt without letting
-        // a late submission overwrite a newer failure captured in another attempt.
-        const stored = readLastScanDiagnostic()
-        if (
-          !stored ||
-          JSON.stringify(stored) === JSON.stringify(safe) ||
-          JSON.stringify(stored) === JSON.stringify(outgoing)
-        ) {
-          saveScanFeedbackReceipt(safe.reportId, outgoing, receipt.receivedAt)
-          saveLastScanDiagnostic(outgoing)
-        }
-        return { reportId: outgoing.reportId, receivedAt: receipt.receivedAt }
-      })(),
-    ])
-  } finally {
-    clearTimeout(timer)
-  }
 }

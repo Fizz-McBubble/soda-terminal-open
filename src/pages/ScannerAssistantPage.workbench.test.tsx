@@ -88,9 +88,10 @@ async function showPage() {
   await screen.findByRole('region', { name: '本次操作目标账户' })
   return result
 }
-function assertRiskLast() {
-  const risk = screen.getByRole('region', { name: '采集方式与风险说明' })
-  expect(risk.parentElement?.lastElementChild).toBe(risk)
+function assertFocusedWorkspace() {
+  expect(screen.getByRole('complementary', { name: '非官方工具风险提示' })).toBeVisible()
+  expect(document.getElementById('scanner-workbench-guides')).toBeNull()
+  expect(screen.getByRole('region', { name: '采集方式与风险说明' })).toBeVisible()
 }
 async function facts() {
   return {
@@ -109,14 +110,30 @@ function quickFile(snapshot = syntheticWorkbenchQuickSnapshot()) {
   })
   return file
 }
+
+it('keeps a failed connection in one diagnosis without a duplicate alert or stage badge', async () => {
+  const snapshot = createScannerRuntimeSnapshot('unchecked')
+  runtimeState.snapshot = {
+    ...snapshot,
+    readiness: { ...snapshot.readiness, helperConnected: false },
+  }
+  commands.openHelper.mockRejectedValueOnce(new Error('helper_request_failed_503'))
+  await showPage()
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '连接画面扫描' })))
+  const diagnosis = await screen.findByRole('region', { name: '扫描问题反馈' })
+  expect(within(diagnosis).getByText('网页暂时没有连接到画面扫描。')).toBeInTheDocument()
+  expect(document.querySelector('.scanner-task__feedback')).toBeNull()
+  expect(within(diagnosis).queryByText('连接画面扫描')).not.toBeInTheDocument()
+  expect(commands.startScan).not.toHaveBeenCalled()
+  expect(await database.accountDriveDiscs.count()).toBe(0)
+})
 async function prepareQuick() {
   fireEvent.change(screen.getByLabelText('游戏安装目录'), {
     target: { value: "soda-source-ref:ee09b7b910b89ca3d044849bf8cbb524" },
   })
   await act(async () => fireEvent.click(screen.getByRole('button', { name: '连接资产快读' })))
-  fireEvent.click(screen.getByRole('button', { name: '开始读取' }))
   fireEvent.click(screen.getByRole('checkbox', { name: /我已阅读上述风险/ }))
-  await act(async () => fireEvent.click(screen.getByRole('button', { name: '开始本次资产快读' })))
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '一键读取' })))
 }
 
 it('presents one account area, both acquisition methods and exactly one file input without an initial task', async () => {
@@ -125,11 +142,11 @@ it('presents one account area, both acquisition methods and exactly one file inp
   expect(screen.getAllByRole('combobox', { name: '目标账户' })).toHaveLength(1)
   const acquisition = screen.getByRole('region', { name: '获取资产' })
   expect(within(acquisition).getByRole('heading', { name: '画面扫描' })).toBeInTheDocument()
-  expect(within(acquisition).getByRole('heading', { name: '资产快读（实验）' })).toBeInTheDocument()
+  expect(within(acquisition).getByRole('heading', { name: /资产快读.*测试版/ })).toBeInTheDocument()
   expect(result.container.querySelectorAll('input[type="file"]')).toHaveLength(1)
   expect(screen.queryByRole('region', { name: '本次任务' })).not.toBeInTheDocument()
   expect(result.container.querySelector('.scanner-journey-cards')).toBeNull()
-  assertRiskLast()
+  assertFocusedWorkspace()
 })
 
 it('keeps account selection in the shared action area with only one account', async () => {
@@ -138,7 +155,7 @@ it('keeps account selection in the shared action area with only one account', as
   const target = screen.getByRole('region', { name: '本次操作目标账户' })
   expect(within(target).getByRole('combobox', { name: '目标账户' })).toHaveValue(accountId)
   expect(within(target).getByRole('combobox')).toHaveTextContent('合成主账户')
-  expect(within(target).getByText('新建账户')).toBeInTheDocument()
+  expect(within(target).getByLabelText('新账户名称')).toBeVisible()
   expect(within(target).getByLabelText('选择本机文件（JSON）')).toBeInTheDocument()
 })
 
@@ -151,7 +168,7 @@ it('shows an empty target selector beside account creation before allowing acqui
   expect(within(target).getByLabelText('新账户名称')).toBeVisible()
   expect(screen.getByRole('button', { name: '开始扫描' })).toBeDisabled()
   await act(async () => fireEvent.click(screen.getByRole('button', { name: '连接资产快读' })))
-  expect(screen.getByRole('button', { name: '开始读取' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '一键读取' })).toBeDisabled()
 })
 
 it('drops a quick snapshot into the existing shared inspection without connecting or writing accounts', async () => {
@@ -160,8 +177,8 @@ it('drops a quick snapshot into the existing shared inspection without connectin
   fireEvent.drop(screen.getByRole('region', { name: '扫描与导入' }), {
     dataTransfer: { files: [quickFile()], types: ['Files'] },
   })
-  await screen.findByRole('heading', { name: '检查本次读取结果' })
-  expect(screen.getByRole('button', { name: '确认导入本次资产快读结果' })).toBeDisabled()
+  await screen.findByRole('heading', { name: '本次读取结果' })
+  expect(screen.getByRole('button', { name: '导入' })).toBeEnabled()
   expect(bridge.connect).not.toHaveBeenCalled()
   expect(bridge.start).not.toHaveBeenCalled()
   expect(await facts()).toEqual(before)
@@ -184,29 +201,30 @@ it('recognizes a synthetic quick snapshot from the shared file without connectin
   fireEvent.change(screen.getByLabelText('选择本机文件（JSON）'), {
     target: { files: [quickFile()] },
   })
-  const task = await screen.findByRole('region', { name: '本次任务' })
-  await within(task).findByRole('heading', { name: '检查本次读取结果' })
-  expect(within(task).getByRole('heading', { name: '检查本次读取结果' })).toHaveFocus()
-  expect(within(task).getByText('资产快读 · 合成主账户')).toBeInTheDocument()
+  const task = await screen.findByRole('region', { name: '资产快读操作与结果' })
+  await within(task).findByRole('heading', { name: '本次读取结果' })
+  expect(within(task).getByRole('heading', { name: '本次读取结果' })).toHaveFocus()
+  expect(within(task).getByText('合成主账户')).toBeInTheDocument()
+  expect(task.closest('#scanner-quick-read')).not.toBeNull()
+  expect(screen.queryByRole('region', { name: '本次任务' })).not.toBeInTheDocument()
+  expect(
+    within(screen.getByRole('list', { name: '读取步骤' }))
+      .getByText('导入')
+      .closest('li'),
+  ).toHaveAttribute('aria-current', 'step')
   expect(bridge.connect).not.toHaveBeenCalled()
   expect(bridge.start).not.toHaveBeenCalled()
   expect(commands.startScan).not.toHaveBeenCalled()
   expect(await facts()).toEqual(before)
-  expect(screen.getByRole('button', { name: '确认导入本次资产快读结果' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '导入' })).toBeEnabled()
   expect(screen.getByRole('button', { name: '开始扫描' })).toBeDisabled()
   expect(screen.getByLabelText('选择本机文件（JSON）')).toBeDisabled()
-  const scannerTools = screen.getByText('扫描准备与工具').closest('details')!
-  const quickTools = screen.getByText('资产快读准备').closest('details')!
-  expect(scannerTools).not.toHaveAttribute('open')
-  expect(quickTools).not.toHaveAttribute('open')
-  fireEvent.click(screen.getByText('扫描准备与工具'))
-  fireEvent.click(screen.getByText('资产快读准备'))
-  expect(scannerTools).toHaveAttribute('open')
-  expect(quickTools).toHaveAttribute('open')
-  expect(screen.getByLabelText('游戏安装目录')).toBeVisible()
-  expect(screen.queryByRole('button', { name: '开始读取' })).not.toBeInTheDocument()
+  expect(screen.queryByLabelText('游戏安装目录')).not.toBeInTheDocument()
+  expect(screen.getByRole('region', { name: '扫描前必需条件' }).closest('details')).toBeNull()
   expect(screen.getByText('资产快读指南')).toBeVisible()
-  assertRiskLast()
+  expect(screen.queryByRole('heading', { name: '资产快读指南' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('list', { name: '代理人读取预览' })).not.toBeInTheDocument()
+  assertFocusedWorkspace()
 })
 
 it('keeps an existing installer download mounted and cancellable when a quick file becomes the task', async () => {
@@ -223,18 +241,18 @@ it('keeps an existing installer download mounted and cancellable when a quick fi
   fireEvent.change(screen.getByLabelText('选择本机文件（JSON）'), {
     target: { files: [quickFile()] },
   })
-  await screen.findByRole('heading', { name: '检查本次读取结果' })
+  await screen.findByRole('heading', { name: '本次读取结果' })
   expect(screen.getByRole('progressbar', { name: '画面扫描下载进度' })).toBe(progress)
   expect(screen.getByRole('button', { name: '取消下载' })).toBe(cancel)
   expect(cancel).toBeVisible()
   expect(cancel).toBeEnabled()
-  expect(screen.getByText('扫描准备与工具').closest('details')).toHaveAttribute('open')
+  expect(progress.closest('details')).toBeNull()
   fireEvent.click(cancel)
   await waitFor(() => expect(screen.getByText('下载已取消')).toBeVisible())
-  expect(screen.getByRole('heading', { name: '检查本次读取结果' })).toBeVisible()
+  expect(screen.getByRole('heading', { name: '本次读取结果' })).toBeVisible()
   expect(await facts()).toEqual(before)
   expect(bridge.start).not.toHaveBeenCalled()
-  assertRiskLast()
+  assertFocusedWorkspace()
 })
 
 it.each(['starting', 'capturing'] as const)(
@@ -249,22 +267,22 @@ it.each(['starting', 'capturing'] as const)(
     const before = await facts()
     await showPage()
     await prepareQuick()
-    expect(screen.getByRole('region', { name: '本次任务' })).toHaveTextContent(
-      '资产快读 · 合成主账户',
-    )
+    expect(
+      screen.getByRole('region', { name: '资产快读操作与结果' }).closest('#scanner-quick-read'),
+    ).not.toBeNull()
     expect(screen.getByRole('button', { name: '开始扫描' })).toBeDisabled()
     expect(screen.getByRole('combobox', { name: '目标账户' })).toBeDisabled()
     expect(screen.getByLabelText('选择本机文件（JSON）')).toBeDisabled()
     fireEvent.drop(screen.getByRole('region', { name: '扫描与导入' }), {
       dataTransfer: { files: [quickFile()], types: ['Files'] },
     })
-    expect(screen.queryByRole('heading', { name: '检查本次读取结果' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: '本次读取结果' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: '停止本次资产快读' })).toBeEnabled()
     await act(async () => fireEvent.click(screen.getByRole('button', { name: '停止本次资产快读' })))
     expect(bridge.cancel).toHaveBeenCalledWith(job.jobId)
     expect(commands.startScan).not.toHaveBeenCalled()
     expect(await facts()).toEqual(before)
-    assertRiskLast()
+    assertFocusedWorkspace()
   },
 )
 
@@ -274,11 +292,11 @@ it('blocks quick actions and shared file while OCR owns an active scan', async (
   expect(screen.getByRole('button', { name: '连接资产快读' })).toBeDisabled()
   expect(screen.getByRole('combobox', { name: '目标账户' })).toBeDisabled()
   expect(screen.getByLabelText('选择本机文件（JSON）')).toBeDisabled()
-  expect(screen.getByRole('region', { name: '本次任务' })).toHaveTextContent(
-    '画面扫描 · 合成主账户',
-  )
+  expect(
+    screen.getByRole('region', { name: '画面扫描操作与结果' }).closest('#scanner-ocr'),
+  ).not.toBeNull()
   expect(bridge.start).not.toHaveBeenCalled()
-  assertRiskLast()
+  assertFocusedWorkspace()
 })
 
 it('keeps the shared account picker focused while invalidating an old quick candidate on account change', async () => {
@@ -287,18 +305,76 @@ it('keeps the shared account picker focused while invalidating an old quick cand
   fireEvent.change(screen.getByLabelText('选择本机文件（JSON）'), {
     target: { files: [quickFile()] },
   })
-  await screen.findByRole('heading', { name: '检查本次读取结果' })
+  await screen.findByRole('heading', { name: '本次读取结果' })
   const picker = screen.getByRole('combobox', { name: '目标账户' })
   expect(picker).toBeEnabled()
   picker.focus()
   await choosePlayerSelect(picker, 'account-workbench-other')
   expect(screen.getByRole('combobox', { name: '目标账户' })).toBe(picker)
   expect(picker).toHaveFocus()
-  expect(screen.queryByRole('heading', { name: '检查本次读取结果' })).not.toBeInTheDocument()
-  expect(screen.queryByRole('button', { name: '确认导入本次资产快读结果' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('heading', { name: '本次读取结果' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: '导入' })).not.toBeInTheDocument()
   expect(await facts()).toEqual(before)
   expect(bridge.start).not.toHaveBeenCalled()
-  assertRiskLast()
+  assertFocusedWorkspace()
+})
+
+it('automatically imports newer observed progression and current equipment over older manual values', async () => {
+  const record = (await database.accountRosters.get(accountId))!
+  const agent = record.roster.agents.find((row) => row.agentId === 'agent-koleda')!
+  Object.assign(agent, {
+    owned: true,
+    manualSource: 'manual_override',
+    progressionManuallySet: true,
+    level: 40,
+    ascension: 3,
+    mindscape: 2,
+    skillLevels: { basic: 8, dodge: 8, assist: 8, special: 8, chain: 8, core: 4 },
+    wEngineDetails: { id: 'manual-engine', name: '手动音擎意图', level: 40, refinement: 3 },
+  })
+  record.updatedAt = record.roster.updatedAt = '2026-10-08T00:00:00.000Z'
+  await database.accountRosters.put(record)
+  const before = await facts()
+  await showPage()
+  fireEvent.change(screen.getByLabelText('选择本机文件（JSON）'), {
+    target: { files: [quickFile()] },
+  })
+  await screen.findByRole('heading', { name: '本次读取结果' })
+  expect(screen.queryByRole('region', { name: '同步手动养成' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('list', { name: '代理人读取预览' })).not.toBeInTheDocument()
+  expect(
+    screen.queryByRole('checkbox', { name: /我确认这是同一个游戏账户/ }),
+  ).not.toBeInTheDocument()
+  const importButton = screen.getByRole('button', { name: '导入' })
+  expect(importButton).toBeEnabled()
+  expect(screen.queryByRole('checkbox', { name: /同时用本次读取值/ })).not.toBeInTheDocument()
+  expect(await facts()).toEqual(before)
+  fireEvent.click(importButton)
+  fireEvent.click(importButton)
+  await screen.findByRole('heading', { name: '导入完成' })
+  const imported = (await database.accountRosters.get(accountId))!.roster.agents.find(
+    (row) => row.agentId === 'agent-koleda',
+  )!
+  expect(imported).toMatchObject({
+    level: 60,
+    ascension: 5,
+    mindscape: 0,
+    skillLevels: { basic: 11, dodge: 11, assist: 11, special: 11, chain: 11, core: 7 },
+    wEngineDetails: { id: 'wengine-14110', name: '燃狱齿轮', level: 60, refinement: 1 },
+    manualSource: 'manual_override',
+    progressionManuallySet: true,
+  })
+  expect(imported.observedFacts?.fields['skillLevels.core']).toBeDefined()
+  expect(await database.accountDriveDiscs.where('accountId').equals(accountId).count()).toBe(1)
+  expect(
+    await database.accountPreferences
+      .where('accountId')
+      .equals(accountId)
+      .filter((row) => row.key.startsWith('asset-quick-read-recovery-'))
+      .count(),
+  ).toBe(1)
+  expect(bridge.start).not.toHaveBeenCalled()
+  expect(commands.startScan).not.toHaveBeenCalled()
 })
 
 it.each([false, true])(
@@ -311,10 +387,10 @@ it.each([false, true])(
     fireEvent.change(screen.getByLabelText('选择本机文件（JSON）'), {
       target: { files: [quickFile(snapshot)] },
     })
-    await screen.findByRole('heading', { name: '检查本次读取结果' })
-    if (withIssues) expect(screen.getByText('需要核对的问题')).toBeInTheDocument()
+    await screen.findByRole('heading', { name: '本次读取结果' })
+    if (withIssues) expect(screen.getByText('暂时不能导入')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '开始扫描' })).toBeDisabled()
-    await act(async () => fireEvent.click(screen.getByRole('button', { name: '放弃本次结果' })))
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: '放弃' })))
     expect(screen.queryByRole('region', { name: '本次任务' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: '开始扫描' })).toBeEnabled()
     expect(screen.getByLabelText('选择本机文件（JSON）')).toBeEnabled()
@@ -322,9 +398,9 @@ it.each([false, true])(
     fireEvent.change(screen.getByLabelText('选择本机文件（JSON）'), {
       target: { files: [quickFile()] },
     })
-    await screen.findByRole('heading', { name: '检查本次读取结果' })
-    expect(screen.getByRole('button', { name: '确认导入本次资产快读结果' })).toBeDisabled()
+    await screen.findByRole('heading', { name: '本次读取结果' })
+    expect(screen.getByRole('button', { name: '导入' })).toBeEnabled()
     expect(await facts()).toEqual(before)
-    assertRiskLast()
+    assertFocusedWorkspace()
   },
 )

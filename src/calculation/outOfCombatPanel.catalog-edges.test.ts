@@ -67,7 +67,7 @@ describe('catalog panel edge cases', () => {
   })
 
   it('keeps Rina core penetration additive with a penetration main', () => {
-    const result = projectOutOfCombatPanel({ ...input, agentId: 'agent-rina' })
+    const result = projectOutOfCombatPanel({ ...input, agentId: 'agent-rina', potentialImage: 0 })
     expect(result.status).toBe('ok')
     expect(result.values.penRatio).toBeCloseTo(38.4, 8)
   })

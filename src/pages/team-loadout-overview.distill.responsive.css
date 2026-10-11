@@ -73,7 +73,7 @@
   flex: initial;
 }
 
-@media (min-width: 1024px) {
+@container soda-viewport (min-width: 1024px) {
   .f5v-box-team-overview .f5v-box-team-preview {
     display: flex;
     flex-direction: column;
@@ -120,7 +120,7 @@
   color: #a5464f !important;
 }
 
-@media (min-width: 981px) {
+@container soda-viewport (min-width: 981px) {
   .f5v-box-team-overview .f5v-box-team-decision-card {
     grid-template-columns: 240px minmax(0, 1fr) auto;
   }
@@ -232,7 +232,7 @@
 .f5v-box-team-completion__member-identity > .visual-entity-image {
   display: none;
 }
-@media (max-width: 640px) {
+@container soda-viewport (max-width: 640px) {
   .f5v-box-team-overview .f5v-box-team-completion li {
     grid-template-columns: 126px minmax(0, 1fr);
     padding-inline: 0;

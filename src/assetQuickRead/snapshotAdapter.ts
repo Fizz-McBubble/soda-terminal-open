@@ -4,6 +4,10 @@ import { standardDriveDiscImportSchema } from '../domain/discImport'
 import type { StatKey } from '../domain/schemas'
 import { publicScannerDriveDiscData } from '../application/publicScannerCatalog'
 import identities from './catalogIdentityProjection.json'
+import { assetSnapshotSchema, type SnapshotObservation } from './snapshotProtocolSchema'
+import { observePotentialDetail } from './potentialDetailObservation'
+import { convertSnapshotAgentSkills } from './snapshotAgentSkills'
+export { assetSnapshotSchema } from './snapshotProtocolSchema'
 
 export type StandardAssetDiscImport = z.infer<typeof standardDriveDiscImportSchema>
 export type AssetQuickReadIssue = {
@@ -40,97 +44,6 @@ export type AssetQuickReadCandidate = {
   fullInventoryVerified: false
 }
 
-const uint = z.number().int().min(0).max(0xffffffff)
-const observation = z.discriminatedUnion('presence', [
-  z.object({ presence: z.literal('present'), value: uint }),
-  z.object({ presence: z.literal('omitted'), value: z.null() }),
-])
-const stat = z.object({ key: observation, base_value: observation, add_value: observation })
-const discRecord = z.object({
-  uid: observation,
-  catalog_id: observation,
-  level: observation,
-  main_stat: stat.nullable(),
-  substats: z.array(stat).max(4),
-})
-const engineRecord = z.object({
-  uid: observation,
-  catalog_id: observation,
-  level: observation,
-  phase: observation,
-  modification: observation,
-})
-const agentRecord = z.object({
-  catalog_id: observation,
-  level: observation,
-  promotion: observation,
-  weapon_uid: observation,
-  mindscape: observation,
-  skills: z.array(z.object({ skill_type: observation, level: observation })).max(6),
-  dressed_equips: z.array(z.object({ uid: observation, slot: observation })).max(6),
-})
-/** Unknown transport/security fields are stripped and never copied into account candidates. */
-export const assetSnapshotSchema = z.object({
-  schema: z.literal('soda-asset-snapshot-probe/v1'),
-  status: z.enum(['staged_for_field_review', 'response_semantics_unverified']),
-  source: z.object({
-    upstream_commit: z.literal('4853f07c8fb5322c12b9b580d6364b577c2ac96a'),
-    protocol_version: z.literal('3.2'),
-    requested_game_region: z.literal('CN'),
-    mode: z.literal('live_copy_only_client_cn_configuration_candidate'),
-    capture_started_unix_seconds: z.number().int().positive().max(253402300799),
-  }),
-  coverage: z.object({
-    disc_load_received: z.literal(true),
-    engine_load_received: z.literal(true),
-    agent_load_received: z.literal(true),
-  }),
-  counts: z.object({
-    discs: uint.max(3000),
-    s_discs: uint.max(3000),
-    a_discs: uint.max(3000),
-    b_discs: uint.max(3000),
-    unknown_rarity_discs: uint.max(3000),
-    engines: uint.max(10000),
-    agents: uint.max(1000),
-  }),
-  counters: z.object({ decoded_messages: uint.min(3) }),
-  response_observations: z
-    .array(
-      z.object({
-        kind: z.enum(['discs', 'engines', 'agents']),
-        command_id: uint,
-        status_field: uint,
-        status_value: z.number().int().nullable(),
-        status_presence: z.enum(['present', 'omitted']),
-        assessment: z.enum(['zero_semantics_unverified', 'omitted_semantics_unverified']),
-        status_semantics_verified: z.boolean(),
-      }),
-    )
-    .length(3),
-  issues: z.array(z.object({ code: z.string(), asset: z.string(), field: z.string() })).max(100),
-  assets: z.object({
-    discs: z.array(discRecord).max(3000),
-    engines: z.array(engineRecord).max(10000),
-    agents: z.array(agentRecord).max(1000),
-  }),
-  independent_inventory_total_verified: z.boolean(),
-  full_inventory_verified: z.boolean(),
-  ready_for_account_import: z.boolean(),
-  account_write_enabled: z.literal(false),
-  raw_traffic_saved: z.literal(false),
-  response_status_semantics_verified: z.boolean(),
-})
-
-// Protocol enum, not the positional 0..5 indices used by upstream ZOD export.
-const skillsByType: Record<number, keyof RosterAgent['skillLevels']> = {
-  0: 'basic',
-  1: 'special',
-  2: 'dodge',
-  3: 'chain',
-  5: 'core',
-  6: 'assist',
-}
 const statsById: Record<number, [StatKey, boolean]> = {
   11102: ['hp_percent', true],
   11103: ['hp_flat', false],
@@ -261,7 +174,7 @@ export function convertAssetSnapshot(
     responseKinds.add(response.kind)
   }
   const value = (
-    ob: z.infer<typeof observation>,
+    ob: SnapshotObservation,
     min: number,
     max: number,
     kind: AssetQuickReadIssue['kind'],
@@ -276,10 +189,7 @@ export function convertAssetSnapshot(
     }
     return number
   }
-  const ids = <T extends { uid: z.infer<typeof observation> }>(
-    records: T[],
-    kind: 'discs' | 'engines',
-  ) => {
+  const ids = <T extends { uid: SnapshotObservation }>(records: T[], kind: 'discs' | 'engines') => {
     const indexed = new Map<number, T>()
     records.forEach((record, index) => {
       const uid = value(record.uid, 1, 0xffffffff, kind, index, 'uid')
@@ -302,6 +212,8 @@ export function convertAssetSnapshot(
       value(engine.modification, 0, 5, 'engines', index, 'modification')
   })
   let actualS = 0
+  let actualA = 0
+  let actualB = 0
   assets.discs.forEach((disc, index) => {
     const before = issues.length
     const catalog = value(disc.catalog_id, 1, 0xffffffff, 'discs', index, 'catalog_id')
@@ -311,17 +223,22 @@ export function convertAssetSnapshot(
     const rarity = (Math.floor(catalog / 10) % 10) + 1
     const setId = setIdentities.get(Math.floor(catalog / 100) * 100)
     if (rarity === 5) actualS++
+    if (rarity === 4) actualA++
+    if (rarity === 3) actualB++
     if (!setId)
       issue('unknown_disc_catalog', '驱动盘套装目录身份未识别。', 'discs', index, 'catalog_id')
-    if (rarity !== 5 || slot < 1 || slot > 6)
-      issue(
-        'unsupported_disc_catalog',
-        '当前资产快读仅接收已核对的S级1至6号驱动盘。',
-        'discs',
-        index,
-        'catalog_id',
-      )
-    const level = value(disc.level, 0, 15, 'discs', index, 'level', 0)
+    if (![3, 4, 5].includes(rarity) || slot < 1 || slot > 6)
+      issue('unsupported_disc_catalog', '驱动盘品级或号位未识别。', 'discs', index, 'catalog_id')
+    const rarityName = rarity === 3 ? 'B' : rarity === 4 ? 'A' : 'S'
+    const level = value(
+      disc.level,
+      0,
+      rarity === 3 ? 9 : rarity === 4 ? 12 : 15,
+      'discs',
+      index,
+      'level',
+      0,
+    )
     const main = disc.main_stat
     const mainInfo = main?.key.value === null || !main ? undefined : statsById[main.key.value]
     if (!mainInfo || !main || level === undefined) {
@@ -329,7 +246,9 @@ export function convertAssetSnapshot(
       return
     }
     const [mainStat, percent] = mainInfo
-    const rule = discData.rules.mainStatBaseByRarity.S.find((row) => row.stat === mainStat)
+    const rule = discData.rules.mainStatBaseByRarity[rarityName].find(
+      (row) => row.stat === mainStat,
+    )
     const allowed = (discData.rules.mainStatsBySlot as Record<string, string[]>)[String(slot)] ?? []
     if (
       !rule ||
@@ -348,7 +267,9 @@ export function convertAssetSnapshot(
     const subStats: StandardAssetDiscImport['discs'][number]['subStats'] = []
     for (const sub of disc.substats) {
       const info = sub.key.value === null ? undefined : statsById[sub.key.value]
-      const step = discData.rules.subStatStepsByRarity.S.find((row) => row.stat === info?.[0])
+      const step = discData.rules.subStatStepsByRarity[rarityName].find(
+        (row) => row.stat === info?.[0],
+      )
       const base = sub.base_value.value
       const add = sub.add_value.value
       if (
@@ -373,8 +294,8 @@ export function convertAssetSnapshot(
       })
     }
     if (
-      subStats.length < 3 ||
-      (level >= 3 && subStats.length !== 4) ||
+      subStats.length < (rarity === 5 ? 3 : rarity === 4 ? 2 : 1) ||
+      (rarity === 5 && level >= 3 && subStats.length !== 4) ||
       subStats.reduce((total, row) => total + row.upgrades, 0) > Math.floor(level / 3)
     )
       issue(
@@ -384,7 +305,7 @@ export function convertAssetSnapshot(
         index,
         'substats',
       )
-    if (issues.length === before && setId)
+    if (issues.length === before && setId && rarity === 5)
       result.discs.discs.push({
         setId,
         slot: slot as 1 | 2 | 3 | 4 | 5 | 6,
@@ -396,7 +317,12 @@ export function convertAssetSnapshot(
         sourceId: sourceId(uid),
       })
   })
-  if (actualS !== counts.s_discs || actualS !== assets.discs.length)
+  if (
+    actualS !== counts.s_discs ||
+    actualA !== counts.a_discs ||
+    actualB !== counts.b_discs ||
+    counts.unknown_rarity_discs !== 0
+  )
     issue('rarity_count_mismatch', 'S级盘分布与目录记录不一致。')
   const seenAgents = new Set<number>()
   const assignedDiscs = new Set<number>()
@@ -422,34 +348,21 @@ export function convertAssetSnapshot(
       mindscape,
     }
     const observedFields: ObservedAgentField[] = ['owned', 'level', 'ascension', 'mindscape']
-    const skillLevels: RosterAgent['skillLevels'] = {
-      basic: null,
-      dodge: null,
-      assist: null,
-      special: null,
-      chain: null,
-      core: null,
+    const potential = observePotentialDetail(agent.potential_detail_id, id)
+    if (potential.level !== undefined) {
+      fields.potentialImage = potential.level
+      observedFields.push('potentialImage')
     }
-    const seenSkills = new Set<string>()
-    for (const skill of agent.skills) {
-      const type = skill.skill_type.value ?? 0
-      const key = skillsByType[type]
-      if (!key || seenSkills.has(key)) {
-        issue('invalid_skill_type', '技能类型未知或重复。', 'agents', index, 'skills')
-        continue
-      }
-      seenSkills.add(key)
-      const base = value(skill.level, 1, key === 'core' ? 7 : 12, 'agents', index, `skills.${key}`)
-      if (base !== undefined && mindscape !== undefined) {
-        skillLevels[key] =
-          base + (key === 'core' ? 0 : (mindscape >= 3 ? 2 : 0) + (mindscape >= 5 ? 2 : 0))
-        observedFields.push(`skillLevels.${key}`)
-      }
-    }
-    if (seenSkills.size !== 6)
-      issue('missing_skills', '缺少六项完整技能观察。', 'agents', index, 'skills')
-    fields.skillLevels = skillLevels
+    if (potential.warning) warnings.push(`${identity.name}${potential.warning}`)
+    fields.skillLevels = convertSnapshotAgentSkills(
+      agent.skills,
+      mindscape,
+      observedFields,
+      (ob, maximum, field) => value(ob, 1, maximum, 'agents', index, field),
+      (code, message) => issue(code, message, 'agents', index, 'skills'),
+    )
     const equippedSourceIds: string[] = []
+    let unsupportedEquippedDisc = false
     const seenSlots = new Set<number>()
     for (const equip of agent.dressed_equips) {
       const uid = value(equip.uid, 1, 0xffffffff, 'agents', index, 'dressed_equips.uid')
@@ -474,10 +387,18 @@ export function convertAssetSnapshot(
       }
       seenSlots.add(slot)
       assignedDiscs.add(uid!)
+      if ((Math.floor(disc.catalog_id.value / 10) % 10) + 1 !== 5) {
+        unsupportedEquippedDisc = true
+        continue
+      }
       equippedSourceIds[slot - 1] = sourceId(uid!)
     }
     const references = equippedSourceIds.filter(Boolean)
-    if (references.length) observedFields.push('equippedDiscIds')
+    if (references.length && !unsupportedEquippedDisc) observedFields.push('equippedDiscIds')
+    if (unsupportedEquippedDisc)
+      warnings.push(
+        `${identity.name}当前装备包含A/B级盘，尚不支持同步该代理人的装备盘关系；保留原记录。`,
+      )
     // An omitted weapon reference is unobserved, not authority to clear an old equipment field.
     const weaponUid = agent.weapon_uid.value
     if (weaponUid !== null && weaponUid !== 0) {

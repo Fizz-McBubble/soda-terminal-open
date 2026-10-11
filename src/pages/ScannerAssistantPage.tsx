@@ -13,6 +13,7 @@ import { ScannerInstallerAction } from './ScannerInstallerAction'
 import { ScannerAccountGate, type ScannerAccounts } from './ScannerAccountHydrationGate'
 import {
   completedScannerImportKey,
+  getScannerPreparationBody,
   getScannerPresentedStateCopy,
   getScannerStateCopy,
   readCompletedScannerImport,
@@ -27,18 +28,23 @@ import {
 import { ScannerTargetAccountPicker } from './ScannerTargetAccountPicker'
 import { PrepareChecklist } from './ScannerPrepareChecklist'
 import { ScannerGuide } from './ScannerGuide'
+import { ScannerWorkbenchNavigation } from './ScannerWorkbenchGuides'
+import { ScannerMethodSteps } from './ScannerMethodSteps'
+import { focusScannerWorkspaceTarget, navigateScannerWorkspace } from './scannerWorkbenchNavigation'
 import { ScannerHandoffSection } from './ScannerHandoffSection'
-import { ScannerJourneyCards } from './ScannerJourneyCards'
 import { ScannerCompletedSummary } from './ScannerCompletedSummary'
 import { ScannerFallbackJsonSection } from './ScannerFallbackJsonSection'
 import { ScannerPrepareSection } from './ScannerPrepareSection'
 import { createPrepareChecks } from './scannerPrepareChecks'
 import { ScannerScanningSection } from './ScannerScanningSection'
 import { useScannerTargetBinding } from './useScannerTargetBinding'
+import { useScannerJsonReadIdentity } from './useScannerJsonReadIdentity'
 import { beginUsageOperation } from '../usageStatistics/client'
 import { detectLocalDataFileKind } from '../application/localDataFile'
 import { useScannerDataFileHandoff } from '../scanner/useScannerDataFileHandoff'
 import './scanner-workbench.css'
+import './scanner-workbench-interaction.css'
+import './scanner-workbench-alignment.css'
 
 export function ScannerAssistantPage() {
   return (
@@ -78,10 +84,8 @@ function HydratedScannerAssistantPage({
   const [newAccountName, setNewAccountName] = useState('')
   const [accountMessage, setAccountMessage] = useState('')
   const [actionFeedback, setActionFeedback] = useState<string | null>(null)
-  const [installerAttention, setInstallerAttention] = useState(false)
   const [actionIssueCode, setActionIssueCode] = useState<string | null>(null)
   const snapshot = useScannerHelperAction(runtimeSnapshot, actionIssueCode)
-  useScannerDataFileHandoff(snapshot.state, inspectJson)
   const [actionPending, setActionPending] = useState(false)
   const actionPendingRef = useRef(false)
   const [inlineImportOpen, setInlineImportOpen] = useState(false)
@@ -92,6 +96,7 @@ function HydratedScannerAssistantPage({
   )
   const stageHeadingRef = useRef<HTMLHeadingElement>(null)
   const stageFocusRequestedRef = useRef(false)
+  const automaticResultChecksRef = useRef(new Set<string>())
   const distribution = snapshot.distribution ?? initialDistributionSnapshot
   const canOpenInstalledHelper =
     !snapshot.readiness.helperConnected &&
@@ -132,7 +137,7 @@ function HydratedScannerAssistantPage({
       snapshot.state === 'awaiting_elevation'
     )
       return
-    stageHeadingRef.current?.focus()
+    focusScannerWorkspaceTarget(stageHeadingRef.current, true)
     stageFocusRequestedRef.current = false
   }, [snapshot.state])
 
@@ -232,30 +237,18 @@ function HydratedScannerAssistantPage({
         ? actionIssueCode
         : null,
   )
-  const jsonReadRef = useRef(0)
-  const jsonTargetRef = useRef(effectiveSelectedAccountId)
-  useEffect(() => {
-    if (['checking', 'awaiting_elevation', 'scanning', 'paused'].includes(snapshot.state))
-      jsonReadRef.current += 1
-    return () => {
-      jsonReadRef.current += 1
-    }
-  }, [snapshot.state, snapshot.diagnostics?.reportId, snapshot.summary?.resultFileHandle])
-  useEffect(() => {
-    const previous = jsonTargetRef.current
-    jsonTargetRef.current = effectiveSelectedAccountId
-    if (previous && previous !== effectiveSelectedAccountId && filePendingRef.current) {
-      jsonReadRef.current += 1
-      filePendingRef.current = false
-      setFilePending(false)
-      setTaskSource('scan-file')
-      setHandoffState({
-        status: 'error',
-        message: '目标账户已变化，请重新选择文件。账户资产尚未更新。',
-        issueCode: 'scan_file_invalid',
-      })
-    }
-  }, [effectiveSelectedAccountId, setHandoffState])
+  const { jsonReadRef, fileReadMountedRef } = useScannerJsonReadIdentity({
+    snapshot,
+    effectiveSelectedAccountId,
+    filePendingRef,
+    setFilePending,
+    setSelectedJson,
+    setTaskSource,
+    setHandoffState,
+  })
+
+  // Invalidate the prior runtime/account request before accepting a newly released handoff.
+  useScannerDataFileHandoff(snapshot.state, inspectJson)
 
   async function inspectJson(
     file: File | undefined,
@@ -270,7 +263,7 @@ function HydratedScannerAssistantPage({
     try {
       if (file.size > 32 * 1024 * 1024) throw new Error('file_too_large')
       const text = await file.text()
-      if (requestId !== jsonReadRef.current) return
+      if (!fileReadMountedRef.current || requestId !== jsonReadRef.current) return
       if (detectLocalDataFileKind(text) === 'account-backup') {
         setTaskSource('backup')
         setBackupState('checking')
@@ -301,7 +294,7 @@ function HydratedScannerAssistantPage({
       } else
         setHandoffState({ status: 'error', message: next.message, issueCode: 'scan_file_invalid' })
     } catch {
-      if (requestId !== jsonReadRef.current) return
+      if (!fileReadMountedRef.current || requestId !== jsonReadRef.current) return
       setTaskSource('scan-file')
       setHandoffState({
         status: 'error',
@@ -309,7 +302,7 @@ function HydratedScannerAssistantPage({
         issueCode: 'scan_file_invalid',
       })
     } finally {
-      if (requestId === jsonReadRef.current) {
+      if (fileReadMountedRef.current && requestId === jsonReadRef.current) {
         filePendingRef.current = false
         setFilePending(false)
       }
@@ -336,6 +329,42 @@ function HydratedScannerAssistantPage({
     !inlineImportOpen &&
     !restartingAfterCompletedResult &&
     !preparingNewScan
+  useEffect(() => {
+    const handle = snapshot.summary?.resultFileHandle
+    if (
+      snapshot.state !== 'completed' ||
+      snapshot.summary?.resultStatus !== 'ready_for_review' ||
+      snapshot.summary.needsReview !== 0 ||
+      !handle ||
+      !frozenTargetValidation.valid ||
+      inlineImportOpen ||
+      showImportComplete ||
+      restartingAfterCompletedResult ||
+      preparingNewScan ||
+      handoffState.status !== 'idle' ||
+      taskSource === 'quick-read' ||
+      taskSource === 'backup'
+    )
+      return
+    const key = JSON.stringify([
+      snapshot.diagnostics?.reportId,
+      handle,
+      frozenTargetValidation.binding.accountId,
+    ])
+    if (automaticResultChecksRef.current.has(key)) return
+    automaticResultChecksRef.current.add(key)
+    void handOffResult()
+  }, [
+    snapshot,
+    frozenTargetValidation,
+    inlineImportOpen,
+    showImportComplete,
+    restartingAfterCompletedResult,
+    preparingNewScan,
+    handoffState.status,
+    taskSource,
+    handOffResult,
+  ])
   const showPreparation =
     !showImportComplete &&
     !inlineImportOpen &&
@@ -400,7 +429,6 @@ function HydratedScannerAssistantPage({
       issueCode={snapshot.error?.diagnosticCode}
       onConnect={() => connectScanner(commands.retryConnection)}
       connectionBlocked={connectionBlocked}
-      onAttentionChange={setInstallerAttention}
     />
   )
   const installer = renderInstaller()
@@ -416,23 +444,6 @@ function HydratedScannerAssistantPage({
     currentReceivingAccountName,
     stateCopy,
   })
-
-  const journeyStep =
-    preparingNewScan || restartingAfterCompletedResult
-      ? 0
-      : inlineImportOpen
-        ? 2
-        : showImportComplete
-          ? 3
-          : snapshot.state === 'completed'
-            ? 2
-            : ['scanning', 'paused'].includes(snapshot.state)
-              ? 1
-              : ['capture', 'scroll', 'ocr'].includes(failureDiagnostic?.stage ?? '')
-                ? 1
-                : ['result', 'import'].includes(failureDiagnostic?.stage ?? '')
-                  ? 2
-                  : 0
 
   const resultSummary = (
     <ScannerCompletedSummary snapshot={snapshot} completedImportCount={completedImportCount} />
@@ -458,6 +469,7 @@ function HydratedScannerAssistantPage({
     showImportComplete ||
     taskSource === 'scan-file' ||
     Boolean(
+      !preparingNewScan &&
       snapshot.error &&
       (snapshot.diagnostics?.reportId ||
         (snapshot.state === 'connection_failed' && snapshot.readiness.helperConnected) ||
@@ -477,12 +489,6 @@ function HydratedScannerAssistantPage({
         onReturnToTargetSelection={() => void returnToTargetSelection()}
         actionFeedback={actionFeedback}
         snapshot={snapshot}
-        diagnosticFeedback={
-          (snapshot.state !== 'completed' || preparingNewScan || restartingAfterCompletedResult) &&
-          failureDiagnostic ? (
-            <ScannerDiagnosticFeedback report={failureDiagnostic} />
-          ) : null
-        }
         restartingAfterCompletedResult={restartingAfterCompletedResult}
         preparingNewScan={preparingNewScan}
         inlineImportOpen={inlineImportOpen}
@@ -540,7 +546,6 @@ function HydratedScannerAssistantPage({
           onSetNewAccountName={setNewAccountName}
           onCreateTargetAccount={() => void createTargetAccount()}
           handoffState={handoffState}
-          diagnosticFeedback={<ScannerDiagnosticFeedback report={failureDiagnostic} />}
           onImportError={(issueCode, message) =>
             setHandoffState({ status: 'error', message, issueCode })
           }
@@ -550,7 +555,17 @@ function HydratedScannerAssistantPage({
             setAccountMessage('')
             setHandoffState({ status: 'idle' })
           }}
-          onReturnToTargetSelection={() => void returnToTargetSelection()}
+          onReturnToTargetSelection={() => {
+            if (taskSource === 'scan-file') {
+              jsonReadRef.current += 1
+              setSelectedJson(null)
+              setAssessment(assessScannerAssistantInput({ kind: 'empty' }))
+              setTaskSource('scanner')
+              filePendingRef.current = false
+              setFilePending(false)
+            }
+            void returnToTargetSelection()
+          }}
           onImportSuccess={(imported) => {
             const next = {
               count: imported,
@@ -628,9 +643,8 @@ function HydratedScannerAssistantPage({
       onImported={refreshAccounts}
       onTaskStart={() => setTaskSource('quick-read')}
       onViewAssets={() => navigate('/assets/agents')}
-      riskNoticeHref="#scanner-capture-methods"
-      preparationCondensed={hasScannerTask || Boolean(backupFile) || filePending}
-      blocked={scannerBusy || scannerReviewPending || backupPending}
+      riskNoticeHref="#scanner-risk-notice"
+      blocked={scannerBusy || scannerReviewPending || backupPending || filePending}
       workbench={(quick) => {
         const quickPending = quick.busy || quick.state === 'received'
         const otherTaskPending = quickPending || backupPending || filePending
@@ -638,31 +652,16 @@ function HydratedScannerAssistantPage({
         const activeTask =
           taskSource === 'backup' && backupFile
             ? 'backup'
-            : taskSource === 'quick-read' && quick.hasTask
+            : (quick.stageActive && quick.state === 'idle') ||
+                (taskSource === 'quick-read' && quick.hasTask)
               ? 'quick-read'
               : hasScannerTask
                 ? taskSource === 'scan-file'
                   ? 'scan-file'
                   : 'scanner'
                 : null
-        const currentStep =
-          activeTask === 'quick-read'
-            ? quick.state === 'completed'
-              ? 3
-              : quick.state === 'received'
-                ? 2
-                : ['starting', 'capturing'].includes(quick.state)
-                  ? 1
-                  : 0
-            : activeTask === 'backup'
-              ? backupState === 'completed'
-                ? 3
-                : 2
-              : journeyStep
-        const condenseScannerPreparation =
-          Boolean(activeTask) &&
-          !installerAttention &&
-          !(activeTask === 'scanner' && snapshot.error)
+        const scannerActive = activeTask === 'scanner' || activeTask === 'scan-file'
+        const methodActive = scannerActive || activeTask === 'quick-read'
         const newAccountForm = (
           <form
             onSubmit={(event) => {
@@ -693,7 +692,7 @@ function HydratedScannerAssistantPage({
               type="submit"
               disabled={accountLocked || creatingAccount || !newAccountName.trim()}
             >
-              {creatingAccount ? '正在创建账户' : '创建并用于本次操作'}
+              {creatingAccount ? '正在创建账户' : '创建并选用'}
             </button>
           </form>
         )
@@ -711,14 +710,17 @@ function HydratedScannerAssistantPage({
               <JsonFileDropTarget
                 className="scanner-task scanner-workbench"
                 aria-labelledby="scanner-page-heading"
+                onClick={navigateScannerWorkspace}
                 disabled={fileLocked}
                 onFile={(file) => inspectJson(file, quick.inspectFile)}
                 onRejected={setAccountMessage}
               >
-                <h1 id="scanner-page-heading" className="scanner-workbench__page-heading">
-                  扫描与导入
-                </h1>
-                <section className="scanner-workbench__target" aria-label="本次操作目标账户">
+                <ScannerWorkbenchNavigation />
+                <section
+                  id="scanner-target"
+                  className="scanner-workbench__target"
+                  aria-label="本次操作目标账户"
+                >
                   <div className="scanner-workbench__account">
                     <ScannerTargetAccountPicker
                       label="目标账户"
@@ -736,17 +738,7 @@ function HydratedScannerAssistantPage({
                       }}
                     />
                   </div>
-                  {accountState.accounts.length > 0 ? (
-                    <details
-                      className="scanner-workbench__new-account"
-                      open={!targetReady || undefined}
-                    >
-                      <summary>新建账户</summary>
-                      {newAccountForm}
-                    </details>
-                  ) : (
-                    <div className="scanner-workbench__new-account is-empty">{newAccountForm}</div>
-                  )}
+                  <div className="scanner-workbench__new-account">{newAccountForm}</div>
                   <label
                     className={`button button--quiet scanner-workbench__file-button${fileLocked ? ' is-disabled' : ''}`}
                     title="点击选择或直接拖入一个 JSON 文件；检查后再确认写入账户"
@@ -771,11 +763,17 @@ function HydratedScannerAssistantPage({
                     </p>
                   )}
                 </section>
-                <AssetCaptureRiskNotice detailHref="#scanner-capture-methods" />
-                <section className="scanner-workbench__acquisition" aria-label="获取资产">
-                  <h2>获取资产</h2>
-                  <div className="scanner-workbench__methods">
+                <AssetCaptureRiskNotice />
+                <section
+                  id="scanner-acquisition"
+                  className="scanner-workbench__acquisition"
+                  aria-label="获取资产"
+                >
+                  <div
+                    className={`scanner-workbench__methods${methodActive ? ' scanner-workbench__methods--active' : ''}`}
+                  >
                     <section
+                      id="scanner-ocr"
                       className="scanner-workbench__method scanner-workbench__ocr"
                       aria-labelledby="scanner-method-heading"
                     >
@@ -787,134 +785,120 @@ function HydratedScannerAssistantPage({
                         <ScannerGuide />
                       </header>
                       <p className="scanner-workbench__scope">
-                        S 级驱动盘 · 无需重新登录 · 约 140 张/分钟
+                        S 级驱动盘 · 无需重新登录{' '}
+                        <span className="scanner-workbench__metric">约 140 张/分钟</span>
                       </p>
-                      {scannerReviewPending ? (
-                        <p role="status">扫描结果已收到，请在下方完成检查或放弃本次结果。</p>
-                      ) : scannerBusy && !actionPending ? (
-                        <>
-                          <p role="status">本次扫描正在进行，进度与停止操作见下方任务。</p>
-                          {['checking', 'awaiting_elevation'].includes(snapshot.state) && (
-                            <button
-                              className="button button--primary"
-                              type="button"
-                              disabled
-                              aria-busy="true"
-                            >
-                              {snapshot.state === 'checking' ? '正在检查' : '等待 Windows 权限确认'}
-                            </button>
-                          )}
-                        </>
-                      ) : (
-                        <details
-                          className="scanner-workbench__controls scanner-workbench__preparation"
-                          open={!condenseScannerPreparation}
-                          data-condensed={Boolean(activeTask)}
-                        >
-                          <summary hidden={!activeTask}>扫描准备与工具</summary>
-                          <PrepareChecklist
-                            compact
-                            blocked={otherTaskPending}
-                            snapshot={snapshot}
-                            actionPending={actionPending || startPending}
-                            eyebrow={presentedStateCopy.eyebrow}
-                            title={
-                              snapshot.readiness.helperConnected
-                                ? '画面扫描已连接'
-                                : '画面扫描未连接'
-                            }
-                            body={
-                              (hasScannerTask && snapshot.state === 'connection_failed'
-                                ? '本次扫描未完成，处理情况与恢复操作见下方任务。'
-                                : snapshot.error?.userMessage) ??
-                              (snapshot.readiness.helperConnected
-                                ? snapshot.distribution?.state === 'ready'
-                                  ? '开始扫描后，画面扫描会自动检查游戏画面。'
-                                  : (snapshot.distribution?.message ?? presentedStateCopy.body)
-                                : '首次使用先下载并安装画面扫描，再连接。')
-                            }
-                            headingRef={stageHeadingRef}
-                            targetReady={targetReady}
-                            targetPanel={null}
-                            installer={renderInstaller(otherTaskPending)}
-                            accountDisclosure={accountDisclosure}
-                            diagnosticFeedback={
-                              failureDiagnostic && !hasScannerTask ? (
-                                <ScannerDiagnosticFeedback report={failureDiagnostic} />
-                              ) : null
-                            }
-                            onRecover={
-                              canOpenInstalledHelper
-                                ? () => void connectScanner(() => commands.openHelper(true))
-                                : undefined
-                            }
-                            onReconnect={() =>
-                              void connectScanner(() => commands.retryConnection())
-                            }
-                            onRevoke={() => void runScannerAction(() => commands.revokePairing())}
-                            onStart={() => {
-                              if (otherTaskPending || filePendingRef.current) return
-                              setTaskSource('scanner')
-                              setSelectedJson(null)
-                              void startBoundScan()
-                            }}
-                          />
-                          {actionFeedback && (
-                            <p className="scanner-task__feedback is-error" role="alert">
-                              {actionFeedback}
-                            </p>
-                          )}
-                        </details>
-                      )}
+                      <ScannerMethodSteps
+                        method="扫描"
+                        currentStep={
+                          showImportComplete
+                            ? 3
+                            : scannerReviewPending || taskSource === 'scan-file'
+                              ? 2
+                              : scannerActive
+                                ? 1
+                                : 0
+                        }
+                      />
+                      <div className="scanner-workbench__body">
+                        {scannerActive ? (
+                          <section
+                            id="scanner-current-task"
+                            className="scanner-workbench__method-task"
+                            aria-label="画面扫描操作与结果"
+                          >
+                            {scannerTask}
+                          </section>
+                        ) : (
+                          <div className="scanner-workbench__controls scanner-workbench__preparation">
+                            <PrepareChecklist
+                              compact
+                              blocked={otherTaskPending}
+                              snapshot={snapshot}
+                              actionPending={actionPending || startPending}
+                              eyebrow={presentedStateCopy.eyebrow}
+                              title={
+                                snapshot.readiness.helperConnected
+                                  ? '画面扫描已连接'
+                                  : '画面扫描未连接'
+                              }
+                              body={getScannerPreparationBody(
+                                snapshot,
+                                hasScannerTask,
+                                presentedStateCopy.body,
+                              )}
+                              headingRef={stageHeadingRef}
+                              targetReady={targetReady}
+                              targetPanel={null}
+                              installer={renderInstaller(otherTaskPending)}
+                              accountDisclosure={accountDisclosure}
+                              onRecover={
+                                canOpenInstalledHelper
+                                  ? () => void connectScanner(() => commands.openHelper(true))
+                                  : undefined
+                              }
+                              onReconnect={() =>
+                                void connectScanner(() => commands.retryConnection())
+                              }
+                              onRevoke={() => void runScannerAction(() => commands.revokePairing())}
+                              onStart={() => {
+                                if (otherTaskPending || filePendingRef.current) return
+                                setTaskSource('scanner')
+                                setSelectedJson(null)
+                                void startBoundScan()
+                              }}
+                            />
+                            {actionFeedback && !failureDiagnostic && (
+                              <p className="scanner-task__feedback is-error" role="alert">
+                                {actionFeedback}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                        {(!hasScannerTask || failureDiagnostic) && (
+                          <ScannerDiagnosticFeedback report={failureDiagnostic} compact />
+                        )}
+                      </div>
                     </section>
-                    <fieldset
+                    <div
+                      id="scanner-quick-read"
                       className="scanner-workbench__method scanner-workbench__quick scanner-workbench__controls"
-                      disabled={filePending}
+                      aria-disabled={filePending || undefined}
                     >
                       {quick.preparation}
-                    </fieldset>
+                      {activeTask === 'quick-read' && (
+                        <section
+                          id="scanner-current-task"
+                          className="scanner-workbench__method-task"
+                          aria-label="资产快读操作与结果"
+                        >
+                          {quick.task}
+                        </section>
+                      )}
+                    </div>
                   </div>
                 </section>
                 {filePending && !activeTask && <p role="status">正在识别本机文件…</p>}
-                {activeTask && (
-                  <section className="scanner-workbench__task" aria-label="本次任务">
-                    <header className="scanner-workbench__task-heading">
-                      <h2>本次任务</h2>
-                      <span>
-                        {activeTask === 'backup'
-                          ? '账户备份'
-                          : activeTask === 'quick-read'
-                            ? '资产快读'
-                            : activeTask === 'scan-file'
-                              ? '扫描文件'
-                              : '画面扫描'}
-                        {activeTask !== 'backup' && selectedAccount
-                          ? ` · ${selectedAccount.displayName}`
-                          : ''}
-                      </span>
-                    </header>
-                    <ScannerJourneyCards shared currentStep={currentStep} />
-                    {activeTask === 'backup' && backupFile ? (
-                      <ScannerAccountBackupReview
-                        file={backupFile}
-                        scopeKey={`backup-file:${backupRevision}`}
-                        disabled={scannerBusy || quickPending}
-                        onStateChange={setBackupState}
-                        onRestored={refreshAccounts}
-                        onClose={() => {
-                          setBackupFile(null)
-                          setTaskSource('scanner')
-                        }}
-                      />
-                    ) : activeTask === 'quick-read' ? (
-                      quick.task
-                    ) : (
-                      scannerTask
-                    )}
+                {activeTask === 'backup' && backupFile && (
+                  <section
+                    id="scanner-current-task"
+                    className="scanner-workbench__task"
+                    aria-label="账户备份恢复"
+                  >
+                    <ScannerAccountBackupReview
+                      file={backupFile}
+                      scopeKey={`backup-file:${backupRevision}`}
+                      disabled={scannerBusy || quickPending}
+                      onStateChange={setBackupState}
+                      onRestored={refreshAccounts}
+                      onClose={() => {
+                        setBackupFile(null)
+                        setTaskSource('scanner')
+                      }}
+                    />
                   </section>
                 )}
-                {quick.recovery}
-                <AssetCaptureMethodsNotice id="scanner-capture-methods" showCommon={false} />
+                <AssetCaptureMethodsNotice />
               </JsonFileDropTarget>
             }
           />

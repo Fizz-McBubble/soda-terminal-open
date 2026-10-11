@@ -37,6 +37,7 @@ export function AgentDevelopmentCurrentEditor({
       const {
         wEngineCatalogId,
         wEngineLevel,
+        wEngineLevelManuallySet,
         wEngineRefinement,
         wEngineRefinementManuallySet,
         ...agentPatch
@@ -49,6 +50,7 @@ export function AgentDevelopmentCurrentEditor({
           wEngineCopyId: payload.draft.wEngineCopyId,
           wEngineCatalogId,
           wEngineLevel,
+          wEngineLevelManuallySet,
           wEngineRefinement,
           wEngineRefinementManuallySet,
         },

@@ -29,6 +29,7 @@ const projectionTests = spawnSync(
     resolve(root, 'scripts/current-agent-effect-compiler.test.mjs'),
     resolve(root, 'deploy/cloudflare/edge.test.mjs'),
     resolve(root, 'deploy/cloudflare/scan-feedback.test.mjs'),
+    resolve(root, 'deploy/cloudflare/asset-feedback.test.mjs'),
     resolve(root, 'deploy/cloudflare/scanner-installer.test.mjs'),
     resolve(root, 'deploy/cloudflare/asset-quick-read-installer.test.mjs'),
     resolve(root, 'deploy/cloudflare/prepare.test.mjs'),

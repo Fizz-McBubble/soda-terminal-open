@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Download, X } from 'lucide-react'
 import {
   assetQuickReadDownloadAvailable,
@@ -6,7 +6,9 @@ import {
   type AssetQuickReadRelease,
 } from '../assetQuickRead/distribution'
 import { downloadAssetQuickReadInstaller } from '../assetQuickRead/installerDownload'
+import './scanner-installer-action.css'
 import './AssetQuickReadInstallerAction.css'
+import { assetQuickReadUpgradeNotice } from '../assetQuickRead/upgradeNotice'
 
 type State = 'idle' | 'downloading' | 'saving' | 'save_requested' | 'error' | 'cancelled'
 export function AssetQuickReadInstallerAction({
@@ -16,6 +18,7 @@ export function AssetQuickReadInstallerAction({
   onConnect,
   onReturnConnect,
   onBusyChange,
+  toolVersion,
 }: {
   connected?: boolean
   blocked?: boolean
@@ -23,6 +26,7 @@ export function AssetQuickReadInstallerAction({
   onConnect?: () => void | Promise<void>
   onReturnConnect?: () => void | Promise<void>
   onBusyChange?: (busy: boolean) => void
+  toolVersion?: string | null
 }) {
   const [state, setState] = useState<State>('idle')
   const [bytes, setBytes] = useState(0)
@@ -37,6 +41,7 @@ export function AssetQuickReadInstallerAction({
   const cancelButton = useRef<HTMLButtonElement>(null)
   const restoreFocus = useRef(false)
   const available = assetQuickReadDownloadAvailable(release)
+  const upgradeNotice = connected ? assetQuickReadUpgradeNotice(toolVersion, release.version) : null
   const pending = state === 'downloading' || state === 'saving'
   useEffect(() => {
     mounted.current = true
@@ -75,7 +80,7 @@ export function AssetQuickReadInstallerAction({
     },
     [blocked, onConnect, onReturnConnect],
   )
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (state !== 'save_requested' || !onReturnConnect) return
     const depart = () => {
       left.current = true
@@ -144,59 +149,60 @@ export function AssetQuickReadInstallerAction({
         ? '下载已取消，可重新下载。'
         : state === 'error'
           ? '下载未完成，请重试。'
-          : '')
+          : upgradeNotice || '')
   return (
-    <>
-      <button
-        ref={downloadButton}
-        className="button button--quiet asset-quick-read-installer__download"
-        type="button"
-        title={
-          !available
-            ? '资产快读安装包尚未发布，当前不能下载。'
-            : `资产快读安装包 v${release.version}`
-        }
-        disabled={!available || blocked || pending || connecting}
-        onClick={() => void download()}
-      >
-        <Download size={17} aria-hidden="true" />
-        {pending
-          ? progress
-          : state === 'save_requested'
-            ? '重新下载'
-            : connected
-              ? '更新资产快读'
-              : '下载资产快读'}
-        {!pending && available && (
-          <small className="asset-quick-read-installer__version" aria-hidden="true">
-            v{release.version}
-          </small>
+    <div className="scanner-installer asset-quick-read-installer">
+      <div className={`scanner-installer__control${pending ? ' is-pending' : ''}`}>
+        <button
+          ref={downloadButton}
+          className="button button--quiet scanner-prepare__download asset-quick-read-installer__download"
+          type="button"
+          title={
+            !available
+              ? '资产快读安装包尚未发布，当前不能下载。'
+              : `资产快读安装包 v${release.version}`
+          }
+          disabled={!available || blocked || pending || connecting}
+          onClick={() => void download()}
+        >
+          <Download size={17} aria-hidden="true" />
+          {pending
+            ? progress
+            : state === 'save_requested'
+              ? '重新下载'
+              : upgradeNotice
+                ? '更新资产快读'
+                : '下载资产快读'}
+          {!pending && available && (
+            <small className="asset-quick-read-installer__version" aria-hidden="true">
+              v{release.version}
+            </small>
+          )}
+        </button>
+        {pending && (
+          <>
+            <progress
+              className="scanner-installer__progress"
+              aria-label="资产快读下载进度"
+              aria-valuetext={progress}
+              value={bytes}
+              max={release.size ?? 1}
+            />
+            <button
+              ref={cancelButton}
+              className="scanner-installer__cancel"
+              type="button"
+              aria-label="取消资产快读下载"
+              onClick={() => {
+                restoreFocus.current = document.activeElement === cancelButton.current
+                request.current?.abort()
+              }}
+            >
+              <X size={16} aria-hidden="true" />
+            </button>
+          </>
         )}
-      </button>
-      {pending && (
-        <>
-          <progress
-            className="asset-quick-read-installer__progress"
-            aria-label="资产快读下载进度"
-            aria-valuetext={progress}
-            value={bytes}
-            max={release.size ?? 1}
-          />
-          <button
-            ref={cancelButton}
-            className="button button--quiet"
-            type="button"
-            aria-label="取消资产快读下载"
-            onClick={() => {
-              restoreFocus.current = document.activeElement === cancelButton.current
-              request.current?.abort()
-            }}
-          >
-            <X size={16} aria-hidden="true" />
-            取消下载
-          </button>
-        </>
-      )}
+      </div>
       {feedback && (
         <div className="asset-quick-read-installer__feedback" role="status">
           {feedback}
@@ -212,6 +218,6 @@ export function AssetQuickReadInstallerAction({
           )}
         </div>
       )}
-    </>
+    </div>
   )
 }

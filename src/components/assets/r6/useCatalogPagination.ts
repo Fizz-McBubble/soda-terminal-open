@@ -1,4 +1,6 @@
-import { useState, type KeyboardEvent, type RefObject } from 'react'
+import { type KeyboardEvent, type RefObject } from 'react'
+
+import { useCatalogBrowseState } from './useCatalogBrowseState'
 
 export const CATALOG_PAGE_SIZE = 120
 
@@ -8,14 +10,15 @@ export function useCatalogPagination<T extends { stableId: string }>(
   selectedId: string | undefined,
   gridRef: RefObject<HTMLDivElement | null>,
   fallbackColumns: number,
+  browseKey?: string,
 ) {
-  const [state, setState] = useState(() => ({
+  const [state, setState] = useCatalogBrowseState(browseKey, 'pagination', {
     key: filterKey,
     page: Math.max(
       0,
       Math.floor(rows.findIndex((row) => row.stableId === selectedId) / CATALOG_PAGE_SIZE),
     ),
-  }))
+  })
   if (state.key !== filterKey) setState({ key: filterKey, page: 0 })
   const pages = Math.max(1, Math.ceil(rows.length / CATALOG_PAGE_SIZE))
   const page = Math.min(pages - 1, state.key === filterKey ? state.page : 0)

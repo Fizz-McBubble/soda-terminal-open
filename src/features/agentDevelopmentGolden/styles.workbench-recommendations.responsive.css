@@ -60,7 +60,7 @@
   overflow-wrap: anywhere;
 }
 
-@media (max-width: 760px) {
+@container soda-viewport (max-width: 760px) {
   .loadout-team-options > li {
     grid-template-columns: minmax(0, 1fr);
     align-items: start;

@@ -68,7 +68,7 @@
   background: var(--soda-surface);
 }
 
-@media (max-width: 720px) {
+@container soda-viewport (max-width: 720px) {
   .f5v-box-team-preview__actions {
     grid-template-columns: 1fr;
   }
@@ -170,7 +170,7 @@
   overflow: visible;
 }
 
-@media (max-width: 980px) {
+@container soda-viewport (max-width: 980px) {
   .f5v-box-team-overview__heading {
     grid-template-columns: 1fr;
     margin-inline: 0;

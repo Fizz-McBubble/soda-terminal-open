@@ -16,6 +16,6 @@ export function createAssetQuickReadInstallerDownload({
     manifest: { ...manifest, assetUrl: assetQuickReadInstallerUrl },
     validateManifest: () => validAssetQuickReadRelease(manifest),
     fileName: manifest.fileName,
-    downloadName: `Soda-资产快读-${manifest.version}.exe`,
+    downloadName: manifest.fileName,
   })
 }

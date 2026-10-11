@@ -7,6 +7,7 @@
   min-height: 0;
   min-width: 0;
   width: 100%;
+  container: soda-viewport / size;
   box-sizing: border-box;
   display: grid;
   grid-template-columns: 178px minmax(0, 1fr);
@@ -120,7 +121,7 @@
   white-space: nowrap;
 }
 
-.f5v-navigation a > .f5v-beta {
+.f5v-shell .f5v-beta {
   padding: 2px 5px;
   border-radius: 4px;
   background: #e9e3f5;
@@ -294,26 +295,4 @@
 
 .f5v-shell h1[tabindex='-1']:focus {
   outline: none;
-}
-
-.f5v-shell :is(.button--primary, .home-primary-action) {
-  border: 0;
-  border-radius: var(--soda-radius-control);
-  color: #fff;
-  background: var(--soda-accent);
-  box-shadow: 0 6px 12px rgba(91, 76, 132, 0.18);
-  cursor: pointer;
-  transition:
-    transform var(--soda-motion-fast) var(--soda-ease-out),
-    box-shadow var(--soda-motion-fast) var(--soda-ease-out);
-}
-
-.f5v-shell :is(.button--primary, .home-primary-action):hover:not(:disabled) {
-  box-shadow: 0 8px 16px rgba(91, 76, 132, 0.24);
-  transform: translateY(-1px);
-}
-
-.f5v-shell :is(.button--primary, .home-primary-action):active:not(:disabled) {
-  box-shadow: 0 3px 6px rgba(91, 76, 132, 0.18);
-  transform: scale(0.985);
 }

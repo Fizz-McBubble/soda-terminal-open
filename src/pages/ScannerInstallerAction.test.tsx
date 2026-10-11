@@ -61,7 +61,11 @@ afterEach(() => {
 it('offers an upgrade only for a detected old installation', () => {
   const { rerender } = render(
     <ScannerInstallerAction
-      distribution={{ ...initialDistributionSnapshot, state: 'ready', installedVersion: 'old' }}
+      distribution={{
+        ...initialDistributionSnapshot,
+        state: 'ready',
+        installedVersion: 'soda-scanner-zzz-next-ppocrv6-18-rc8-7',
+      }}
     />,
   )
   expect(screen.getByRole('button', { name: '更新画面扫描' })).toBeVisible()
@@ -132,7 +136,7 @@ it('starts fetching in the click task without calling an exposed non-settling sa
   expect(screen.getByText('v1.0.9')).toBeVisible()
   expect(
     (vi.mocked(HTMLAnchorElement.prototype.click).mock.instances[0] as HTMLAnchorElement).download,
-  ).toBe(`Soda-画面扫描-${freshRelease.version}.exe`)
+  ).toBe(`SodaTerminal-Scanner-Setup-${freshRelease.version}.exe`)
 })
 it('rejects a bad refreshed release without fetching or saving installer bytes', async () => {
   const fetcher = vi.fn().mockResolvedValue(Response.json({ ...freshRelease, sha256: 'invalid' }))

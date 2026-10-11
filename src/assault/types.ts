@@ -39,6 +39,7 @@ export type ObservedAgentField =
   | 'level'
   | 'ascension'
   | 'mindscape'
+  | 'potentialImage'
   | `skillLevels.${'basic' | 'dodge' | 'assist' | 'special' | 'chain' | 'core'}`
   | `wEngineDetails.${'id' | 'name' | 'level' | 'ascension' | 'refinement'}`
   | 'equippedDiscIds'
@@ -88,6 +89,13 @@ export type RosterAgent = {
     level: number | null
     ascension?: number | null
     refinement: number | null
+    /** Explicit parameter edits, bound to one current equipment identity and exact values. */
+    manualProgression?: {
+      engineId: string
+      level?: number
+      ascension?: number
+      refinement?: number
+    }
   }
   /** Legacy compatibility reference only. New production reads use wEngineDetails. */
   wEngineCopyId: string | null

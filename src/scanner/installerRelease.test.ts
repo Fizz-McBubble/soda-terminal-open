@@ -1,5 +1,6 @@
 import { afterEach, expect, it, vi } from 'vitest'
 import release from '../../public/downloads/scanner-installer-release.v1.json'
+import { scannerInstallerFileName } from './installerDownload'
 import {
   installerReleaseUrl,
   parseInstallerRelease,
@@ -15,7 +16,7 @@ it('binds the published version, save name, same-origin alias, size and full has
   await expect(readInstallerRelease(signal)).resolves.toEqual({
     version: release.version,
     helperVersion: release.helperVersion,
-    fileName: `Soda-画面扫描-${release.version}.exe`,
+    fileName: scannerInstallerFileName(release.version),
     downloadUrl: '/downloads/Soda-Scanner-Setup.exe',
     size: release.size,
     sha256: release.sha256,

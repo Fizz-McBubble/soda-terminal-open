@@ -1,5 +1,5 @@
 /* Preserve the desktop composition while allowing the page to own vertical scrolling. */
-@media (min-width: 1321px) {
+@container soda-viewport (min-width: 1321px) {
   .f5v-shell .workbench--single-page,
   .workbench--single-page {
     grid-template-columns: minmax(300px, 30%) minmax(0, 70%);

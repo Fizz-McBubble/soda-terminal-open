@@ -69,7 +69,7 @@ afterEach(() => {
 })
 
 describe('F5VisualShell narrow navigation', () => {
-  it('resets the shared desktop scale when a wide window becomes a compact window', () => {
+  it('keeps the desktop composition proportional and resets only for compact windows', () => {
     mockWidth(false)
     vi.stubGlobal('innerWidth', 2560)
     const { container } = setup()
@@ -77,6 +77,9 @@ describe('F5VisualShell narrow navigation', () => {
     expect(Number(shell.style.getPropertyValue('--soda-ui-scale'))).toBeCloseTo(4 / 3)
     const navigation = screen.getByRole('navigation', { name: '主导航' })
     vi.stubGlobal('innerWidth', 1366)
+    fireEvent.resize(window)
+    expect(Number(shell.style.getPropertyValue('--soda-ui-scale'))).toBeCloseTo(1366 / 1920)
+    vi.stubGlobal('innerWidth', 1100)
     fireEvent.resize(window)
     expect(shell.style.getPropertyValue('--soda-ui-scale')).toBe('1')
     expect(screen.getByRole('navigation', { name: '主导航' })).toBe(navigation)

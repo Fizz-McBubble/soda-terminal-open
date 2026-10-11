@@ -67,12 +67,12 @@ export function registerScannerCompletedResultTests({
     expect(targetIssue.closest('[role="alert"]')).toHaveTextContent('扫描目标账户已不可用')
     expect(screen.getByRole('button', { name: '确认账户并继续' })).toBeDisabled()
 
-    await user.click(screen.getByRole('button', { name: '放弃此结果并重新扫描' }))
+    await user.click(screen.getByRole('button', { name: '放弃' }))
 
     await waitFor(() => expect(runtimeMock.commands.retryConnection).toHaveBeenCalledTimes(1))
     expect(readScannerTargetAccountBinding()).toMatchObject({ valid: false })
     expect(await screen.findByRole('textbox', { name: '新账户名称' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '创建并用于本次操作' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: '创建并选用' })).toBeDisabled()
     expect(screen.getByRole('heading', { name: '画面扫描已连接' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '开始扫描' })).toBeDisabled()
     rendered.unmount()
@@ -110,9 +110,7 @@ export function registerScannerCompletedResultTests({
     setRuntimeState('completed')
     render(<App />)
 
-    expect(
-      await screen.findByRole('heading', { name: '结果已生成，先检查再导入' }),
-    ).toBeInTheDocument()
+    expect(await screen.findByRole('region', { name: '已完成扫描结果' })).toBeInTheDocument()
     expect(document.querySelector('.scanner-golden')).toHaveAttribute(
       'data-scanner-visual-state',
       'completed',
@@ -121,7 +119,7 @@ export function registerScannerCompletedResultTests({
     const accountPicker = screen.getByRole('combobox', { name: '目标账户' })
     expect(accountPicker).toHaveTextContent('波子汽水')
     expect(screen.getByRole('button', { name: '确认账户并继续' })).toBeEnabled()
-    expect(screen.getByRole('button', { name: '放弃此结果并重新扫描' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: '放弃' })).toBeEnabled()
     expect(screen.queryByRole('button', { name: /正式导入/ })).not.toBeInTheDocument()
     expect(await database.accountDriveDiscs.count()).toBe(0)
     expect(await database.accountScanImportBatches.count()).toBe(0)

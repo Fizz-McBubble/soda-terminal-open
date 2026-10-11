@@ -82,7 +82,7 @@ export function ScannerHandoffSection({
               type="button"
               onClick={onReturnToTargetSelection}
             >
-              返回准备，重新扫描
+              {sharedTargetSelection ? '放弃' : '返回准备，重新扫描'}
             </button>
           }
           onImportSuccess={onImportSuccess}
@@ -97,32 +97,48 @@ export function ScannerHandoffSection({
                 {frozenTargetValidation.binding.displayName}
               </strong>
             </div>
-            {resultSummary}
+            {sharedTargetSelection && snapshot.summary && !snapshot.summary.needsReview ? (
+              <strong>{snapshot.summary.uniqueRecords} 张 S 级驱动盘</strong>
+            ) : (
+              resultSummary
+            )}
           </div>
           <div className="scanner-result-ready__next">
             <div className="scanner-result-ready__actions">
-              <button
-                className="button button--primary scanner-web__primary-action"
-                type="button"
-                disabled={handoffState.status === 'working'}
-                onClick={onHandOffResult}
-              >
-                {handoffState.status === 'working'
-                  ? '正在检查结果'
-                  : snapshot.summary?.needsReview
-                    ? '检查需确认的记录'
-                    : '查看扫描结果'}
-                <ChevronRight aria-hidden="true" size={18} />
-              </button>
+              {!sharedTargetSelection ||
+              snapshot.summary?.needsReview ||
+              handoffState.status === 'error' ? (
+                <button
+                  className="button button--primary scanner-web__primary-action"
+                  type="button"
+                  disabled={handoffState.status === 'working'}
+                  onClick={onHandOffResult}
+                >
+                  {handoffState.status === 'working'
+                    ? '正在检查结果'
+                    : snapshot.summary?.needsReview
+                      ? '检查需确认的记录'
+                      : sharedTargetSelection
+                        ? '重新检查'
+                        : '查看扫描结果'}
+                  <ChevronRight aria-hidden="true" size={18} />
+                </button>
+              ) : (
+                <p role="status">正在检查结果；尚未导入。</p>
+              )}
               <button
                 className="button button--quiet"
                 type="button"
                 onClick={onReturnToTargetSelection}
               >
-                {handoffState.status === 'working' ? '取消读取并返回准备' : '放弃此结果并重新扫描'}
+                {sharedTargetSelection
+                  ? '放弃'
+                  : handoffState.status === 'working'
+                    ? '取消读取并返回准备'
+                    : '放弃此结果并重新扫描'}
               </button>
             </div>
-            <p>确认导入前不会更新账户仓库。</p>
+            {!sharedTargetSelection && <p>确认导入前不会更新账户仓库。</p>}
           </div>
         </section>
       ) : completedBindingIssue ? (
@@ -134,7 +150,7 @@ export function ScannerHandoffSection({
           <h3 className="visually-hidden" id="scanner-target-review-heading">
             {completedBindingIssue.title}
           </h3>
-          <p className="visually-hidden">{completedBindingIssue.message}</p>
+          <p>{completedBindingIssue.message}</p>
           <dl className="scanner-account-evidence" aria-label="账户归属比较" role="group">
             <div>
               <dt>扫描时选择的账户</dt>
@@ -176,7 +192,11 @@ export function ScannerHandoffSection({
               type="button"
               onClick={onReturnToTargetSelection}
             >
-              {handoffState.status === 'working' ? '取消读取并返回准备' : '放弃此结果并重新扫描'}
+              {sharedTargetSelection
+                ? '放弃'
+                : handoffState.status === 'working'
+                  ? '取消读取并返回准备'
+                  : '放弃此结果并重新扫描'}
             </button>
           </div>
           <p className="scanner-target-review__footnote">
@@ -252,9 +272,11 @@ export function ScannerHandoffSection({
                   type="button"
                   onClick={onReturnToTargetSelection}
                 >
-                  {handoffState.status === 'working'
-                    ? '取消读取并返回准备'
-                    : '放弃此结果并重新扫描'}
+                  {sharedTargetSelection
+                    ? '放弃'
+                    : handoffState.status === 'working'
+                      ? '取消读取并返回准备'
+                      : '放弃此结果并重新扫描'}
                 </button>
               </>
             )}

@@ -6,12 +6,14 @@ import {
 } from '../scanner/diagnostics'
 import {
   readScanFeedbackReceipt,
+  readLastScanDiagnostic,
   ScanFeedbackSubmissionError,
   submitScanFeedback,
 } from '../scanner/scanFeedback'
-import { ExplanationPopover } from '../components/ExplanationPopover'
+import { DiagnosticEntry, DiagnosticPopover } from './DiagnosticFeedbackPresentation'
 import { scannerDiagnosticGuidance } from './scannerDiagnosticGuidance'
 import './scanner-diagnostic-feedback.css'
+import './scanner-guide.css'
 
 type FeedbackState = {
   reportId: string
@@ -21,25 +23,19 @@ type FeedbackState = {
   receivedAt?: string
   receivedReportId?: string
 }
-const stageLabels: Record<string, string> = {
-  connection: '连接画面扫描',
-  permission: '确认权限',
-  preflight: '检查游戏画面',
-  capture: '读取盘面',
-  scroll: '翻动仓库',
-  ocr: '识别文字',
-  result: '整理结果',
-  import: '检查与导入',
-  unknown: '尚未确定',
-}
 export function ScannerDiagnosticFeedback({
   report,
   secondaryAction,
+  compact = false,
 }: {
   report: ScanDiagnosticReport | null
   secondaryAction?: ReactNode
+  compact?: boolean
 }) {
-  const safe = useMemo(() => sanitizeScanDiagnostic(report), [report])
+  const safe = useMemo(
+    () => sanitizeScanDiagnostic(report ?? (compact ? readLastScanDiagnostic() : null)),
+    [report, compact],
+  )
   const reportKey = safe ? JSON.stringify(safe) : null
   const [state, setState] = useState<FeedbackState | null>(null)
   const [localMessage, setLocalMessage] = useState<{ reportKey: string; text: string } | null>(null)
@@ -48,7 +44,16 @@ export function ScannerDiagnosticFeedback({
   useLayoutEffect(() => {
     currentId.current = reportKey
   }, [reportKey])
-  if (!safe || !reportKey) return null
+  if (!safe || !reportKey)
+    return compact ? (
+      <DiagnosticEntry title="扫描诊断" status="暂无扫描问题记录。">
+        <DiagnosticPopover
+          title="扫描诊断"
+          problem="暂无扫描问题记录。"
+          nextAction="遇到问题时，可在此查看诊断并反馈。"
+        />
+      </DiagnosticEntry>
+    ) : null
   const savedReceipt = readScanFeedbackReceipt(safe)
   const currentState: FeedbackState | null =
     state?.reportKey === reportKey
@@ -123,72 +128,66 @@ export function ScannerDiagnosticFeedback({
       setLocalMessage({ reportKey, text: '下载失败，可复制诊断或稍后重试。' })
     }
   }
-  return (
+  const sendAction = (
+    <button
+      className={compact ? 'button button--quiet' : 'button button--secondary'}
+      type="button"
+      disabled={Boolean(currentState?.pending || currentState?.receivedAt)}
+      onClick={() => void submit()}
+    >
+      {currentState?.pending ? '发送中…' : currentState?.receivedAt ? '已反馈' : '反馈此问题'}
+    </button>
+  )
+  const metadata: string[] = []
+  if (typeof safe.counts.reviewRequired === 'number' && safe.counts.reviewRequired > 0)
+    metadata.push(`需校准 ${safe.counts.reviewRequired} 张`)
+  if (safe.counts.processed !== null)
+    metadata.push(
+      `已处理 ${safe.counts.processed}${safe.counts.total !== null ? ` / ${safe.counts.total}` : ''} 张`,
+    )
+  else if (safe.counts.total !== null) metadata.push(`共 ${safe.counts.total} 张`)
+  if (safe.durationMs !== null) metadata.push(`耗时 ${(safe.durationMs / 1000).toFixed(1)} 秒`)
+  if (safe.versions.helper) metadata.push(`画面扫描 ${safe.versions.helper}`)
+  const details = (
+    <DiagnosticPopover
+      key={reportKey}
+      title="扫描诊断"
+      label={compact ? '查看诊断' : '查看诊断信息'}
+      problem={guidance.problem}
+      nextAction={guidance.nextAction}
+      metadata={metadata}
+      metadataLabel="本次扫描概况"
+      receiptId={currentState?.receivedReportId}
+      previous={compact && !report}
+      message={compact ? currentState?.message : undefined}
+      localMessage={localMessage?.reportKey === reportKey ? localMessage.text : undefined}
+      actions={
+        <>
+          {compact ? sendAction : null}
+          <button className="button button--quiet" type="button" onClick={() => void copy()}>
+            复制诊断
+          </button>
+          <button className="button button--quiet" type="button" onClick={download}>
+            下载诊断
+          </button>
+        </>
+      }
+    />
+  )
+  return compact ? (
+    <DiagnosticEntry
+      title="扫描诊断"
+      status={currentState?.receivedAt ? '本次反馈已发送。' : guidance.problem}
+    >
+      {details}
+    </DiagnosticEntry>
+  ) : (
     <section className="scanner-diagnostic-feedback" aria-label="扫描问题反馈">
       <div className="scanner-diagnostic-feedback__main">
-        <button
-          className="button button--secondary"
-          type="button"
-          disabled={Boolean(currentState?.pending || currentState?.receivedAt)}
-          onClick={() => void submit()}
-        >
-          {currentState?.pending ? '发送中…' : currentState?.receivedAt ? '已反馈' : '反馈此问题'}
-        </button>
+        {sendAction}
         {secondaryAction}
         <p>仅在点击时发送，不含账户和驱动盘资料。</p>
-        <ExplanationPopover
-          key={safe.reportId}
-          label="查看诊断信息"
-          title="扫描诊断"
-          align="start"
-          className="scanner-diagnostic-feedback__details"
-        >
-          <div className="scanner-diagnostic-feedback__guidance">
-            <p>
-              <strong>遇到的问题</strong>
-              <span>{guidance.problem}</span>
-            </p>
-            <p>
-              <strong>可以这样做</strong>
-              <span>{guidance.nextAction}</span>
-            </p>
-          </div>
-          <ul className="scanner-diagnostic-feedback__metadata" aria-label="本次扫描概况">
-            {safe.stage !== 'unknown' ? <li>{stageLabels[safe.stage]}</li> : null}
-            {typeof safe.counts.reviewRequired === 'number' && safe.counts.reviewRequired > 0 ? (
-              <li>需校准 {safe.counts.reviewRequired} 张</li>
-            ) : null}
-            {safe.counts.processed !== null ? (
-              <li>
-                已处理 {safe.counts.processed}
-                {safe.counts.total !== null ? ` / ${safe.counts.total}` : ''} 张
-              </li>
-            ) : safe.counts.total !== null ? (
-              <li>共 {safe.counts.total} 张</li>
-            ) : null}
-            {safe.durationMs !== null ? (
-              <li>耗时 {(safe.durationMs / 1000).toFixed(1)} 秒</li>
-            ) : null}
-          </ul>
-          {currentState?.receivedReportId ? (
-            <p className="scanner-diagnostic-feedback__receipt">
-              <strong>回执编号</strong>
-              <span>{currentState.receivedReportId}</span>
-            </p>
-          ) : null}
-          <p className="scanner-diagnostic-feedback__privacy">仅发送问题信息，保留 30 天。</p>
-          <div className="scanner-diagnostic-feedback__actions">
-            <button className="button button--quiet" type="button" onClick={() => void copy()}>
-              复制诊断
-            </button>
-            <button className="button button--quiet" type="button" onClick={download}>
-              下载诊断
-            </button>
-          </div>
-          {localMessage?.reportKey === reportKey ? (
-            <p aria-live="polite">{localMessage.text}</p>
-          ) : null}
-        </ExplanationPopover>
+        {details}
       </div>
       {currentState?.message ? <p role="status">{currentState.message}</p> : null}
     </section>

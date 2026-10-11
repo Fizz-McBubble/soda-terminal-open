@@ -1,12 +1,6 @@
-import type { AccountRoster, ObservedAgentField, RosterAgent } from '../assault/types'
 import type { AccountDriveDisc, AccountRosterRecord } from '../accounts/types'
 import { accountIdSchema, getScopedId } from '../accounts/types'
-import {
-  assertBangbooSkillFacts,
-  assertRosterAscensionFacts,
-  hydrateRosterDefaults,
-} from '../accounts/rosterHydration'
-import { getObservedAgentFieldValue, hasObservedAgentField } from '../accounts/observedAgentFacts'
+import { hydrateRosterDefaults } from '../accounts/rosterHydration'
 import {
   publicScannerDriveDiscData,
   publicScannerSetIdentities,
@@ -18,6 +12,7 @@ import { driveDiscFactIdentity, reconcileAccountReplacementDiscs } from '../db/d
 import { preflightDriveDiscImport } from '../domain/discImport'
 import { driveDiscSchema } from '../domain/schemas'
 import type { AssetQuickReadCandidate } from './snapshotAdapter'
+import { mergeAssetQuickReadRoster } from './accountRosterMerge'
 
 type AccountFacts = { discs: AccountDriveDisc[]; roster: AccountRosterRecord | null }
 type Recovery = {
@@ -42,6 +37,7 @@ export type AssetQuickReadImportPlan = {
     retainedDiscs: number
     observedAgents: number
     protectedFields: number
+    syncedManualProgressionFields: number
     inferredDiscLinks: number
   }
   issues: string[]
@@ -147,101 +143,6 @@ async function assertScope(accountId: string, db: SodaDatabase) {
   await assertActiveAccountScope(accountId, db)
 }
 
-function locked(agent: RosterAgent, field: ObservedAgentField) {
-  return (
-    agent.manualSource === 'manual_override' ||
-    agent.lockedFields.includes(field) ||
-    agent.lockedFields.includes(field.split('.')[0]) ||
-    (field.startsWith('skillLevels.') && agent.lockedFields.includes('skills')) ||
-    (field.startsWith('wEngineDetails.') && agent.lockedFields.includes('wEngine')) ||
-    (agent.progressionManuallySet === true &&
-      (['level', 'ascension', 'mindscape'].includes(field) || field.startsWith('skillLevels.')))
-  )
-}
-
-function mergeRoster(
-  current: AccountRoster,
-  candidate: AssetQuickReadCandidate,
-  sourceToId: Map<string, string>,
-) {
-  let protectedFields = 0
-  const incoming = new Map(candidate.agents.map((agent) => [agent.agentId, agent]))
-  const roster: AccountRoster = {
-    ...current,
-    agents: current.agents.map((existing) => {
-      const observation = incoming.get(existing.agentId)
-      if (!observation) return existing
-      const next = structuredClone(existing)
-      let adopted = false
-      const adoptedFields = new Set<ObservedAgentField>()
-      for (const field of observation.observedFields) {
-        if (
-          locked(existing, field) ||
-          (existing.observedFacts?.fields[field]?.capturedAt ?? '') > candidate.capturedAt
-        ) {
-          protectedFields++
-          continue
-        }
-        const value =
-          field === 'equippedDiscIds'
-            ? observation.equippedSourceIds.map((id) => sourceToId.get(id))
-            : getObservedAgentFieldValue(observation.fields, field)
-        if (field === 'equippedDiscIds' && (value as unknown[]).some((id) => !id))
-          throw new Error('代理人装备盘无法对应到本次账户盘库，未导入。')
-        const [parent, child] = field.split('.')
-        if (child) {
-          if (parent === 'skillLevels') next.skillLevels = { ...next.skillLevels, [child]: value }
-          else if (parent === 'wEngineDetails')
-            next.wEngineDetails = { ...next.wEngineDetails, [child]: value }
-          else throw new Error('资产快读字段不在可导入范围内。')
-        } else {
-          Object.assign(next, { [parent]: value })
-        }
-        next.observedFacts ??= {
-          schemaVersion: 1,
-          source: 'asset_quick_read',
-          protocolVersion: '3.2',
-          fields: {},
-        }
-        next.observedFacts.fields[field] = {
-          capturedAt: candidate.capturedAt,
-          snapshotSha256: candidate.snapshotSha256,
-        }
-        if (!hasObservedAgentField(next, field))
-          throw new Error('资产快读代理人字段未通过值与来源检查，未导入。')
-        adopted = true
-        adoptedFields.add(field)
-      }
-      if (adopted) {
-        next.source = 'asset_quick_read'
-        next.syncedAt = candidate.capturedAt
-        next.completeness = 'partial'
-        if (adoptedFields.has('wEngineDetails.name'))
-          next.wEngine = next.wEngineDetails.name ?? next.wEngine
-        if (adoptedFields.has('wEngineDetails.refinement'))
-          next.refinement = next.wEngineDetails.refinement ?? next.refinement
-        if ([...adoptedFields].some((field) => field.startsWith('skillLevels.')))
-          next.skills = '快读实测'
-        if (adoptedFields.has('equippedDiscIds')) next.currentEquipment = 'known'
-      }
-      return next
-    }),
-    updatedAt: candidate.capturedAt,
-  }
-  const physicalOwners = new Map<string, string>()
-  for (const agent of roster.agents) {
-    for (const id of agent.equippedDiscIds ?? []) {
-      const owner = physicalOwners.get(id)
-      if (owner && owner !== agent.agentId)
-        throw new Error('本次装备引用与保留的手动或旧装备记录冲突，请先核对该盘的装备归属。')
-      physicalOwners.set(id, agent.agentId)
-    }
-  }
-  assertBangbooSkillFacts(roster)
-  assertRosterAscensionFacts(roster)
-  return { roster, protectedFields }
-}
-
 function createPlan(
   accountId: string,
   candidate: AssetQuickReadCandidate,
@@ -344,7 +245,7 @@ function createPlan(
   const knownAgentIds = new Set(current.agents.map((agent) => agent.agentId))
   if (candidate.agents.some((agent) => !knownAgentIds.has(agent.agentId)))
     throw new Error('代理人目录未覆盖本次角色，未写入账户。')
-  const merged = mergeRoster(current, candidate, sourceToId)
+  const merged = mergeAssetQuickReadRoster(current, candidate, sourceToId, before.roster?.updatedAt)
   return {
     accountId,
     snapshotSha256: candidate.snapshotSha256,
@@ -357,6 +258,7 @@ function createPlan(
       retainedDiscs: retained.length,
       observedAgents: candidate.agents.length,
       protectedFields: merged.protectedFields,
+      syncedManualProgressionFields: merged.syncedManualProgressionFields,
       inferredDiscLinks,
     },
     issues: [],
@@ -366,7 +268,10 @@ function createPlan(
       roster: {
         accountId,
         roster: merged.roster,
-        updatedAt: candidate.capturedAt,
+        updatedAt:
+          before.roster && Date.parse(before.roster.updatedAt) > Date.parse(candidate.capturedAt)
+            ? before.roster.updatedAt
+            : candidate.capturedAt,
         source: before.roster?.source ?? 'manual',
       },
     },
@@ -380,9 +285,15 @@ export function prepareAssetQuickReadImport(
 ) {
   return db.transaction(
     'r',
-    [db.accounts, db.settings, db.accountDriveDiscs, db.accountRosters],
+    [db.accounts, db.settings, db.accountDriveDiscs, db.accountRosters, db.accountPreferences],
     async () => {
       await assertScope(accountId, db)
+      const recoveryId = getScopedId(
+        accountId,
+        `asset-quick-read-recovery-${candidate.snapshotSha256.toLowerCase()}`,
+      )
+      if (await db.accountPreferences.get(recoveryId))
+        throw new Error('这份快照已导入，请使用新的读取结果。')
       return createPlan(accountId, candidate, await readFacts(accountId, db))
     },
   )
@@ -391,7 +302,11 @@ export function prepareAssetQuickReadImport(
 export function confirmAssetQuickReadImport(
   candidate: AssetQuickReadCandidate,
   plan: AssetQuickReadImportPlan,
-  confirmation: { accountId: string; snapshotSha256: string; sameGameAccountAndCounts: true },
+  confirmation: {
+    accountId: string
+    snapshotSha256: string
+    sameGameAccountAndCounts: true
+  },
   db: SodaDatabase = database,
   beforeCommit?: () => void,
 ) {

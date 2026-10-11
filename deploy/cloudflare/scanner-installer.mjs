@@ -197,7 +197,13 @@ export function createInstallerDownload({ manifest = release, ...options } = {})
     ...options,
     manifest,
     validateManifest: validScannerManifest,
-    fileName: `Soda-Scanner-Setup-${manifest.version}.exe`,
-    downloadName: `Soda-画面扫描-${manifest.version}.exe`,
+    fileName:
+      manifest.version === '1.0.9'
+        ? `SodaTerminal-Scanner-Setup-${manifest.version}.exe`
+        : `Soda-Scanner-Setup-${manifest.version}.exe`,
+    downloadName:
+      manifest.version === '1.0.9'
+        ? `SodaTerminal-Scanner-Setup-${manifest.version}.exe`
+        : `Soda-画面扫描-${manifest.version}.exe`,
   })
 }

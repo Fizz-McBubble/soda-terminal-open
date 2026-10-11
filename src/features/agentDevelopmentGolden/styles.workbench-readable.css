@@ -77,7 +77,7 @@
   white-space: normal;
 }
 
-@media (min-width: 1321px) {
+@container soda-viewport (min-width: 1321px) {
   .workbench--single-page .workbench-main {
     grid-template-rows: auto auto;
     overflow: visible;
@@ -126,7 +126,7 @@
   color: var(--f5-accent);
   font-size: inherit;
 }
-@media (max-width: 900px) {
+@container soda-viewport (max-width: 900px) {
   .workbench--single-page .loadout-disc-options {
     grid-template-columns: 1fr;
   }

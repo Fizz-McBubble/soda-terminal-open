@@ -8,6 +8,52 @@ import { browserCalculationInputFingerprint as fingerprint } from './browserCalc
 import { projectRemoteAccountDecisionInput } from './remoteCalculationInput'
 
 describe('browser calculation fact coverage', () => {
+  it('projects unknown equipment progression and detects same-value manual confirmation without exporting provenance', () => {
+    const value = ascensionInput()
+    const agent = ascensionAgent(value)
+    agent.wEngineDetails = {
+      id: 'wengine-14102',
+      name: '钢铁肉垫',
+      level: 50,
+      ascension: 3,
+      refinement: 2,
+    }
+    agent.wEngineCopyId = 'old-copy'
+    agent.observedFacts = {
+      schemaVersion: 1,
+      source: 'asset_quick_read',
+      protocolVersion: '3.2',
+      fields: {
+        'wEngineDetails.id': {
+          capturedAt: '2026-10-10T00:00:00.000Z',
+          snapshotSha256: 'a'.repeat(64),
+        },
+      },
+    }
+    const before = fingerprint(value)
+    const unobserved = ascensionAgent(projectRemoteAccountDecisionInput(value))
+    expect(unobserved.wEngineDetails).toMatchObject({
+      id: agent.wEngineDetails.id,
+      level: null,
+      refinement: null,
+    })
+    expect(unobserved.wEngineDetails.ascension).toBeUndefined()
+    expect(unobserved.wEngineCopyId).toBeNull()
+    expect(agent.wEngineDetails.level).toBe(50)
+    agent.wEngineDetails.manualProgression = {
+      engineId: agent.wEngineDetails.id!,
+      level: 50,
+      ascension: 3,
+      refinement: 2,
+    }
+    expect(fingerprint(value)).not.toBe(before)
+    const confirmed = ascensionAgent(projectRemoteAccountDecisionInput(value))
+    expect(confirmed.wEngineDetails).toMatchObject({ level: 50, ascension: 3, refinement: 2 })
+    expect(confirmed).not.toHaveProperty('observedFacts')
+    expect(confirmed.wEngineDetails).not.toHaveProperty('manualProgression')
+    agent.wEngineDetails.manualProgression.engineId = 'another-equipment'
+    expect(ascensionAgent(projectRemoteAccountDecisionInput(value)).wEngineDetails.level).toBeNull()
+  })
   it.each(['agent', 'equipped-engine'] as const)(
     'includes explicit %s phases without conflating zero, unknown or omission',
     (target) => {

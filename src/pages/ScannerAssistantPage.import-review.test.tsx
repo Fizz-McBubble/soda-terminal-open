@@ -112,17 +112,14 @@ describe('completed scan with rejected OCR records', () => {
       vi.stubGlobal('fetch', fetcher)
       const before = await database.accounts.toArray()
       const view = render(<App />)
-      await user.click(
-        await screen.findByRole('button', { name: '查看扫描结果' }, { timeout: 10_000 }),
-      )
       await screen.findByText(new RegExp(`${blocked} 张需要校准`))
       expect(
-        screen.getByLabelText('扫描与导入进度').querySelector('[aria-current="step"]'),
-      ).toHaveTextContent('检查')
+        screen.getByLabelText('扫描步骤').querySelector('[aria-current="step"]'),
+      ).toHaveTextContent('导入')
       expect(screen.getByLabelText('未通过检查的原因')).toHaveTextContent(
         missingFields ? '套装名称未确认：11 张' : '词条或等级校验未通过：1 张',
       )
-      expect(screen.queryByRole('button', { name: '确认更新驱动盘' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: '导入' })).not.toBeInTheDocument()
       expect(fetcher).not.toHaveBeenCalled()
       expect(screen.getAllByRole('button', { name: '反馈此问题' })).toHaveLength(1)
       await user.click(screen.getByRole('button', { name: '反馈此问题' }))
@@ -145,17 +142,16 @@ describe('completed scan with rejected OCR records', () => {
       expect(JSON.parse(localStorage.getItem(lastScanDiagnosticKey)!)).toMatchObject(requests[1])
       view.unmount()
       render(<App />)
-      await user.click(
-        await screen.findByRole('button', { name: '查看扫描结果' }, { timeout: 10_000 }),
-      )
       await waitFor(() => expect(screen.getByRole('button', { name: '已反馈' })).toBeDisabled())
       expect(requests).toHaveLength(2)
       expect(await database.accounts.toArray()).toEqual(before)
       expect(await database.accountDriveDiscs.count()).toBe(0)
-      await user.click(screen.getByRole('button', { name: '返回准备，重新扫描' }))
+      await user.click(screen.getByRole('button', { name: '放弃' }))
       await screen.findByRole('heading', { name: '画面扫描已连接' })
       expect(screen.queryByRole('region', { name: '本次任务' })).not.toBeInTheDocument()
-      expect(screen.queryByLabelText('扫描与导入进度')).not.toBeInTheDocument()
+      expect(
+        screen.getByLabelText('扫描步骤').querySelector('[aria-current="step"]'),
+      ).toHaveTextContent('准备')
       expect(screen.getByLabelText('选择本机文件（JSON）')).toBeEnabled()
       expect(screen.getByRole('button', { name: '开始扫描' })).toBeEnabled()
       expect(screen.queryByRole('button', { name: '已反馈' })).not.toBeInTheDocument()

@@ -1,138 +1,24 @@
 import { act, fireEvent, render, screen } from '@testing-library/react'
-import { afterEach, beforeEach, expect, it, vi } from 'vitest'
+import { expect, it, vi } from 'vitest'
+import {
+  persistence,
+  converted,
+  targetAccountId,
+  jobId,
+  job,
+  health,
+  bridge,
+  prepareStart,
+  startAndReceive,
+  type BridgeHealth,
+} from './assetQuickReadControllerTestFixture'
 import {
   AssetQuickReadController,
   type AssetQuickReadWorkbenchView,
 } from './AssetQuickReadController'
-import type { AssetBridgeJob, AssetQuickReadBridgeClient } from '../assetQuickRead/bridgeClient'
-import type { AssetQuickReadCandidate } from '../assetQuickRead/snapshotAdapter'
+import type { AssetBridgeJob } from '../assetQuickRead/bridgeClient'
 
-const persistence = vi.hoisted(() => ({
-  prepare: vi.fn(),
-  confirm: vi.fn(),
-  restore: vi.fn(),
-  readRecovery: vi.fn(),
-  activate: vi.fn(),
-}))
-vi.mock('../assetQuickRead/accountImport', () => ({
-  prepareAssetQuickReadImport: persistence.prepare,
-  confirmAssetQuickReadImport: persistence.confirm,
-  restoreAssetQuickReadImport: persistence.restore,
-  readLatestAssetQuickReadRecovery: persistence.readRecovery,
-}))
-vi.mock('../accounts/publicScannerAccountCreation', () => ({
-  setPublicScannerActiveAccount: persistence.activate,
-}))
-const converted = vi.hoisted(() => ({ candidate: null as unknown as AssetQuickReadCandidate }))
-vi.mock('../assetQuickRead/snapshotAdapter', () => ({
-  convertAssetSnapshot: () => converted.candidate,
-  assetSnapshotSchema: { parse: (raw: unknown) => raw },
-}))
-const targetAccountId = 'account-synthetic'
-const jobId = '1e80b26d-39fa-41a5-afbf-fca374acb6ee'
-const job: AssetBridgeJob = {
-  jobId,
-  targetAccountId,
-  state: 'starting',
-  phase: 'awaiting_elevation',
-  code: null,
-  startedAt: '2026-10-10T00:00:00Z',
-  readyAt: null,
-  deadline: null,
-  remainingSeconds: null,
-  counts: { discs: 0, engines: 0, agents: 0 },
-  candidateAvailable: false,
-}
-type BridgeHealth = Awaited<ReturnType<AssetQuickReadBridgeClient['connect']>>
-const health: BridgeHealth = {
-  service: 'soda-asset-quick-read',
-  version: '1.0.0',
-  protocolVersion: 1,
-  capabilities: ['asset_snapshot', 'explicit_uac_start', 'cancel'],
-  state: 'idle',
-}
-function bridge() {
-  return {
-    connect: vi.fn<AssetQuickReadBridgeClient['connect']>().mockResolvedValue(health),
-    start: vi.fn().mockResolvedValue(job),
-    status: vi.fn().mockResolvedValue({ ...job, state: 'received', candidateAvailable: true }),
-    cancel: vi.fn().mockResolvedValue({ ...job, state: 'stopped' }),
-    result: vi.fn().mockResolvedValue({
-      jobId,
-      targetAccountId,
-      snapshot: { synthetic: true },
-      sha256: 'a'.repeat(64),
-      capturedAt: '2026-10-10T00:00:00Z',
-    }),
-  }
-}
-beforeEach(() => {
-  vi.useFakeTimers()
-  vi.clearAllMocks()
-  converted.candidate = {
-    protocolVersion: '3.2',
-    capturedAt: '2026-10-10T00:00:00Z',
-    snapshotSha256: 'a'.repeat(64),
-    discs: {
-      format: 'soda-terminal-drive-disc-import',
-      formatVersion: 1,
-      source: { adapter: 'asset-quick-read' },
-      batch: {},
-      discs: [],
-    },
-    agents: [
-      {
-        agentId: 'agent-nicole',
-        name: '妮可',
-        fields: { level: 60, mindscape: 0 },
-        observedFields: ['level', 'mindscape'],
-        equippedSourceIds: [],
-      },
-    ],
-    counts: { discs: 0, sDiscs: 0, engines: 0, agents: 1, importableAgents: 1 },
-    issues: [],
-    importable: true,
-    fullInventoryVerified: false,
-  }
-  persistence.prepare.mockResolvedValue({
-    accountId: targetAccountId,
-    importable: true,
-    summary: {
-      observedDiscs: 0,
-      newDiscs: 0,
-      updatedDiscs: 0,
-      retainedDiscs: 0,
-      observedAgents: 1,
-      protectedFields: 0,
-      inferredDiscLinks: 0,
-    },
-  })
-  persistence.confirm.mockResolvedValue({
-    observedAgents: 1,
-    observedDiscs: 0,
-    totalDiscs: 0,
-    recoveryKey: 'synthetic-recovery',
-  })
-  persistence.restore.mockResolvedValue({ restoredDiscs: 0 })
-  persistence.readRecovery.mockResolvedValue(null)
-})
-afterEach(() => {
-  vi.useRealTimers()
-})
-
-async function prepareStart() {
-  fireEvent.change(screen.getByLabelText('游戏安装目录'), {
-    target: { value: "soda-source-ref:24d5780e541a1a1ad1393e8962be6e18" },
-  })
-  await act(async () => fireEvent.click(screen.getByRole('button', { name: '连接资产快读' })))
-  fireEvent.click(screen.getByRole('button', { name: /准备资产快读|开始读取/ }))
-  fireEvent.click(screen.getByRole('checkbox', { name: /我已阅读上述风险/ }))
-}
-async function startAndReceive() {
-  await prepareStart()
-  await act(async () => fireEvent.click(screen.getByRole('button', { name: '开始本次资产快读' })))
-  await act(async () => vi.advanceTimersByTimeAsync(1000))
-}
+vi.mock('../components/ExplanationPopover', () => import('../testing/ExplanationPopoverStub'))
 
 it('uses the independent bridge and reviews early success without any account mutation', async () => {
   const client = bridge()
@@ -146,17 +32,21 @@ it('uses the independent bridge and reviews early success without any account mu
   )
   expect(client.connect).not.toHaveBeenCalled()
   await startAndReceive()
-  expect(screen.getByRole('status')).toHaveTextContent('已收到数据，待核对')
+  expect(screen.getByRole('status')).toHaveTextContent('已收到数据，尚未导入当前账户。')
   expect(client.result).toHaveBeenCalledOnce()
   expect(persistence.prepare).toHaveBeenCalledWith(targetAccountId, converted.candidate)
   expect(persistence.confirm).not.toHaveBeenCalled()
   expect(persistence.activate).not.toHaveBeenCalled()
-  expect(screen.getByRole('button', { name: '确认导入本次资产快读结果' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '导入' })).toBeEnabled()
+  expect(
+    screen.queryByRole('checkbox', { name: /我确认这是同一个游戏账户/ }),
+  ).not.toBeInTheDocument()
   await act(async () => vi.advanceTimersByTimeAsync(180000))
   expect(client.status).toHaveBeenCalledOnce()
+  expect(persistence.confirm).not.toHaveBeenCalled()
 })
 
-it('imports only after a separate account and count confirmation and offers guarded recovery', async () => {
+it('imports only after the explicit import click and offers guarded recovery', async () => {
   const client = bridge()
   const refresh = vi.fn()
   render(
@@ -169,10 +59,8 @@ it('imports only after a separate account and count confirmation and offers guar
     />,
   )
   await startAndReceive()
-  fireEvent.click(screen.getByRole('checkbox', { name: /我确认这是同一个游戏账户/ }))
-  await act(async () =>
-    fireEvent.click(screen.getByRole('button', { name: '确认导入本次资产快读结果' })),
-  )
+  expect(persistence.confirm).not.toHaveBeenCalled()
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '导入' })))
   expect(persistence.confirm).toHaveBeenCalledOnce()
   expect(persistence.confirm.mock.calls[0][2]).toEqual({
     accountId: targetAccountId,
@@ -209,7 +97,7 @@ it('cancels a late start response after the selected account changes', async () 
     />,
   )
   await prepareStart()
-  act(() => fireEvent.click(screen.getByRole('button', { name: '开始本次资产快读' })))
+  act(() => fireEvent.click(screen.getByRole('button', { name: /^(开始本次资产快读|开始读取)$/ })))
   rerender(
     <AssetQuickReadController
       client={client}
@@ -243,7 +131,9 @@ it('stops during reading and ignores a result already in flight', async () => {
     />,
   )
   await prepareStart()
-  await act(async () => fireEvent.click(screen.getByRole('button', { name: '开始本次资产快读' })))
+  await act(async () =>
+    fireEvent.click(screen.getByRole('button', { name: /^(开始本次资产快读|开始读取)$/ })),
+  )
   await act(async () => {
     vi.advanceTimersByTime(1000)
     await Promise.resolve()
@@ -279,7 +169,7 @@ it('rejects a different job or account result before any candidate adoption', as
   expect(persistence.confirm).not.toHaveBeenCalled()
 })
 
-it('disarms failed imports and rechecks without retrying writes', async () => {
+it('rechecks failed imports without retrying writes automatically', async () => {
   const client = bridge()
   persistence.confirm.mockRejectedValueOnce(new Error('账户在检查后发生了变化'))
   render(
@@ -291,13 +181,10 @@ it('disarms failed imports and rechecks without retrying writes', async () => {
     />,
   )
   await startAndReceive()
-  fireEvent.click(screen.getByRole('checkbox', { name: /我确认这是同一个游戏账户/ }))
-  await act(async () =>
-    fireEvent.click(screen.getByRole('button', { name: '确认导入本次资产快读结果' })),
-  )
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '导入' })))
   expect(persistence.confirm).toHaveBeenCalledOnce()
   expect(persistence.prepare).toHaveBeenCalledTimes(2)
-  expect(screen.getByRole('button', { name: '确认导入本次资产快读结果' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '导入' })).toBeEnabled()
   expect(screen.getByRole('status')).toHaveTextContent('账户在检查后发生了变化')
 })
 
@@ -351,27 +238,36 @@ it('offers persisted recovery after remounting without pairing, capture or autom
   expect(client.start).not.toHaveBeenCalled()
 })
 
-it('shows the retained receipt but disables undo when later account changes are detected', async () => {
-  persistence.readRecovery.mockResolvedValue({
-    recoveryKey: 'saved-recovery',
-    createdAt: '2026-10-10T00:00:00Z',
-    canRestore: false,
-    unavailableReason: '导入后账户已有其他修改，恢复副本保留，不能直接覆盖。',
-  })
-  await act(async () =>
-    render(
-      <AssetQuickReadController
-        client={bridge()}
-        targetAccountId={targetAccountId}
-        activeAccountId={targetAccountId}
-        targetAccountName="合成账户"
-      />,
-    ),
-  )
-  expect(screen.getByText(/恢复副本保留，不能直接覆盖/)).toBeInTheDocument()
-  expect(screen.getByRole('button', { name: '恢复上次资产快读导入' })).toBeDisabled()
-  expect(persistence.restore).not.toHaveBeenCalled()
-})
+it.each([false, true])(
+  'keeps a retained receipt protected from later changes (workbench=%s)',
+  async (workbench) => {
+    persistence.readRecovery.mockResolvedValue({
+      recoveryKey: 'saved-recovery',
+      createdAt: '2026-10-10T00:00:00Z',
+      canRestore: false,
+      unavailableReason: '导入后账户已有其他修改，恢复副本保留，不能直接覆盖。',
+    })
+    await act(async () =>
+      render(
+        <AssetQuickReadController
+          client={bridge()}
+          targetAccountId={targetAccountId}
+          activeAccountId={targetAccountId}
+          targetAccountName="合成账户"
+          workbench={workbench ? workbenchHarness().render : undefined}
+        />,
+      ),
+    )
+    if (workbench) {
+      expect(screen.queryByText(/恢复副本保留，不能直接覆盖/)).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: '恢复上次资产快读导入' })).not.toBeInTheDocument()
+    } else {
+      expect(screen.getByText(/恢复副本保留，不能直接覆盖/)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: '恢复上次资产快读导入' })).toBeDisabled()
+    }
+    expect(persistence.restore).not.toHaveBeenCalled()
+  },
+)
 
 it('ignores a saved-recovery lookup arriving after the selected account changes', async () => {
   let resolveSaved!: (value: unknown) => void
@@ -461,10 +357,13 @@ it('renders workbench parts without duplicate steps or file buttons and inspects
     expect(harness.read().state).toBe('received')
     expect(harness.read().hasTask).toBe(true)
     expect(harness.read().busy).toBe(false)
-    expect(screen.getByTestId('task')).toHaveTextContent('检查本次读取结果')
-    expect(screen.getByText('代理人读取详情（1 位）').closest('details')).not.toHaveAttribute(
-      'open',
-    )
+    expect(screen.getByTestId('task')).toHaveTextContent('本次读取结果')
+    expect(screen.getByTestId('task')).toHaveTextContent('合成账户')
+    expect(screen.getByText('1 位')).toBeVisible()
+    expect(screen.getByText('0 张')).toBeVisible()
+    expect(screen.queryByRole('region', { name: '代理人读取详情' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('list', { name: '代理人读取预览' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
     expect(persistence.confirm).not.toHaveBeenCalled()
   } finally {
     vi.unstubAllGlobals()
@@ -487,7 +386,9 @@ it('blocks new file, connect and import actions while keeping an owned capture s
   expect(persistence.prepare).not.toHaveBeenCalled()
   rendered.rerender(<AssetQuickReadController {...props} />)
   await prepareStart()
-  await act(async () => fireEvent.click(screen.getByRole('button', { name: '开始本次资产快读' })))
+  await act(async () =>
+    fireEvent.click(screen.getByRole('button', { name: /^(开始本次资产快读|开始读取)$/ })),
+  )
   expect(harness.read().busy).toBe(true)
   rendered.rerender(<AssetQuickReadController {...props} blocked />)
   expect(screen.getByRole('button', { name: '停止本次资产快读' })).toBeEnabled()
@@ -499,7 +400,99 @@ it('blocks new file, connect and import actions while keeping an owned capture s
   expect(harness.read().busy).toBe(false)
 })
 
-it('reports connection in flight as busy without making it a task, and historical recovery stays separate', async () => {
+it('imports the observed candidate directly once without a manual synchronization choice', async () => {
+  const client = bridge()
+  const harness = workbenchHarness()
+  render(
+    <AssetQuickReadController
+      client={client}
+      targetAccountId={targetAccountId}
+      activeAccountId={targetAccountId}
+      targetAccountName="合成账户"
+      workbench={harness.render}
+    />,
+  )
+  await startAndReceive()
+  expect(screen.queryByRole('region', { name: '同步手动养成' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('checkbox', { name: /同时用本次读取值/ })).not.toBeInTheDocument()
+  expect(
+    screen.queryByRole('checkbox', { name: /我确认这是同一个游戏账户/ }),
+  ).not.toBeInTheDocument()
+  expect(persistence.confirm).not.toHaveBeenCalled()
+  let finish!: (value: unknown) => void
+  persistence.confirm.mockImplementationOnce(
+    () =>
+      new Promise((resolve) => {
+        finish = resolve
+      }),
+  )
+  const button = screen.getByRole('button', { name: '导入' })
+  fireEvent.click(button)
+  fireEvent.click(button)
+  expect(persistence.confirm).toHaveBeenCalledOnce()
+  expect(persistence.confirm.mock.calls[0][2]).toEqual({
+    accountId: targetAccountId,
+    snapshotSha256: 'a'.repeat(64),
+    sameGameAccountAndCounts: true,
+  })
+  expect(screen.getByRole('button', { name: '导入中…' })).toBeDisabled()
+  await act(async () =>
+    finish({
+      observedAgents: 1,
+      observedDiscs: 0,
+      totalDiscs: 0,
+      recoveryKey: 'synthetic-recovery',
+    }),
+  )
+  expect(screen.getByRole('heading', { name: '导入完成' })).toBeVisible()
+  expect(harness.read().recovery).toBeNull()
+  const restore = screen.getByRole('button', { name: '恢复本次导入' })
+  expect(restore.closest('.asset-quick-read__actions')).toContainElement(
+    screen.getByRole('button', { name: '导出' }),
+  )
+  expect(screen.getByTestId('task')).toContainElement(restore)
+  fireEvent.click(restore)
+  expect(persistence.restore).not.toHaveBeenCalled()
+  const confirmRestore = screen.getByRole('button', { name: '确认恢复到导入前' })
+  await act(async () => {
+    fireEvent.click(confirmRestore)
+    fireEvent.click(confirmRestore)
+  })
+  expect(persistence.restore).toHaveBeenCalledExactlyOnceWith(
+    targetAccountId,
+    'synthetic-recovery',
+    'restore_asset_quick_read',
+  )
+})
+
+it('keeps failed planning read-only and ignores a late plan after the account changes', async () => {
+  const props = {
+    client: bridge(),
+    targetAccountId,
+    activeAccountId: targetAccountId,
+    targetAccountName: '合成账户',
+  }
+  persistence.prepare.mockRejectedValueOnce(
+    new Error('本次读取早于代理人后续手动修改，请重新读取，未写入账户。'),
+  )
+  const view = render(<AssetQuickReadController {...props} />)
+  await startAndReceive()
+  expect(screen.getByText(/本次读取早于代理人后续手动修改/)).toBeVisible()
+  expect(screen.getByRole('button', { name: '导入' })).toBeDisabled()
+  expect(persistence.confirm).not.toHaveBeenCalled()
+  view.rerender(
+    <AssetQuickReadController
+      {...props}
+      targetAccountId="account-other"
+      activeAccountId="account-other"
+    />,
+  )
+  expect(screen.queryByRole('heading', { name: '本次读取结果' })).not.toBeInTheDocument()
+  expect(persistence.confirm).not.toHaveBeenCalled()
+  expect(persistence.restore).not.toHaveBeenCalled()
+})
+
+it('reports connection in flight as busy without making it a task, and historical recovery stays internal without a workspace entry', async () => {
   const harness = workbenchHarness()
   const client = bridge()
   let finish!: () => void
@@ -525,12 +518,16 @@ it('reports connection in flight as busy without making it a task, and historica
       />,
     ),
   )
-  expect(screen.getByTestId('recovery')).toHaveTextContent('恢复上次资产快读导入')
+  expect(harness.read().recovery).toBeNull()
+  expect(screen.getByTestId('recovery')).toBeEmptyDOMElement()
+  expect(screen.queryByText('上次导入')).not.toBeInTheDocument()
+  expect(screen.queryByText(/已保存 .*资产快读导入恢复副本/)).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: '恢复上次资产快读导入' })).not.toBeInTheDocument()
   expect(harness.read().hasTask).toBe(false)
   act(() => fireEvent.click(screen.getByRole('button', { name: '连接资产快读' })))
   expect(harness.read().busy).toBe(true)
   expect(harness.read().hasTask).toBe(false)
-  expect(screen.getByRole('button', { name: '恢复上次资产快读导入' })).toBeDisabled()
+  expect(screen.queryByRole('button', { name: '恢复上次资产快读导入' })).not.toBeInTheDocument()
   await act(async () => finish())
   expect(harness.read().busy).toBe(false)
   expect(harness.read().hasTask).toBe(false)
@@ -551,9 +548,8 @@ it('blocks a reviewed candidate import and emits task start only for adopted new
   const rendered = render(<AssetQuickReadController {...props} />)
   await startAndReceive()
   expect(onTaskStart).toHaveBeenCalledOnce()
-  fireEvent.click(screen.getByRole('checkbox', { name: /我确认这是同一个游戏账户/ }))
   rendered.rerender(<AssetQuickReadController {...props} blocked />)
-  expect(screen.getByRole('button', { name: '确认导入本次资产快读结果' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '导入' })).toBeDisabled()
   await act(async () => harness.read().inspectFile(syntheticFile()))
   expect(onTaskStart).toHaveBeenCalledOnce()
   expect(persistence.confirm).not.toHaveBeenCalled()
@@ -633,7 +629,9 @@ it('ignores a pending stop response after the stable workbench changes account b
   }
   const rendered = render(<AssetQuickReadController {...props} />)
   await prepareStart()
-  await act(async () => fireEvent.click(screen.getByRole('button', { name: '开始本次资产快读' })))
+  await act(async () =>
+    fireEvent.click(screen.getByRole('button', { name: /^(开始本次资产快读|开始读取)$/ })),
+  )
   act(() => fireEvent.click(screen.getByRole('button', { name: '停止本次资产快读' })))
   rendered.rerender(
     <AssetQuickReadController
@@ -649,7 +647,7 @@ it('ignores a pending stop response after the stable workbench changes account b
   expect(persistence.prepare).not.toHaveBeenCalled()
 })
 
-it('abandons only the candidate while retaining connected tools and discovered historical recovery', async () => {
+it('abandons only the candidate while retaining connected tools and internal historical recovery without displaying it', async () => {
   const harness = workbenchHarness()
   const client = bridge()
   persistence.readRecovery.mockResolvedValue({
@@ -668,18 +666,20 @@ it('abandons only the candidate while retaining connected tools and discovered h
   )
   await startAndReceive()
   await act(async () => Promise.resolve())
-  expect(screen.getByRole('button', { name: '恢复上次资产快读导入' })).toBeEnabled()
-  await act(async () => fireEvent.click(screen.getByRole('button', { name: '放弃本次结果' })))
+  expect(screen.queryByRole('button', { name: '恢复上次资产快读导入' })).not.toBeInTheDocument()
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '放弃' })))
   expect(harness.read().state).toBe('idle')
   expect(harness.read().hasTask).toBe(false)
   expect(harness.read().busy).toBe(false)
   expect(screen.getByLabelText('游戏安装目录')).toHaveValue("soda-source-ref:24d5780e541a1a1ad1393e8962be6e18")
-  expect(screen.getByRole('button', { name: '开始读取' })).toBeEnabled()
-  expect(screen.getByRole('button', { name: '恢复上次资产快读导入' })).toBeEnabled()
-  fireEvent.click(screen.getByRole('button', { name: /准备资产快读|开始读取/ }))
+  expect(screen.getByRole('button', { name: '一键读取' })).toBeEnabled()
+  expect(screen.queryByRole('button', { name: '恢复上次资产快读导入' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: '一键读取' }))
   expect(screen.getByRole('checkbox', { name: /我已阅读上述风险/ })).not.toBeChecked()
-  expect(screen.getByRole('button', { name: '开始本次资产快读' })).toBeDisabled()
+  expect(screen.getByRole('button', { name: '开始读取' })).toBeDisabled()
   expect(persistence.confirm).not.toHaveBeenCalled()
+  expect(persistence.readRecovery).toHaveBeenCalledWith(targetAccountId)
   expect(persistence.restore).not.toHaveBeenCalled()
 })
 

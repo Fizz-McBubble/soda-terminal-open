@@ -22,7 +22,20 @@
   cursor: pointer;
 }
 /* Only the catalogue scrolls in the two-column desktop directory. */
-@media (min-width: 961px) and (min-height: 600px) {
+@container soda-viewport (min-width: 961px) and (min-height: 600px) {
+  .f5v-shell .agent-development-directory {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+  }
+  .f5v-shell .agent-development-directory > .panel {
+    flex: 0 0 auto;
+  }
+  .f5v-shell .agent-development-directory > .ad-golden:has(> .overview) {
+    flex: 1 1 0;
+    height: auto;
+  }
   .f5v-shell .ad-golden:has(> .overview) {
     height: 100%;
     min-height: 0;
@@ -44,7 +57,7 @@
     display: none;
   }
 }
-@media (min-width: 961px) and (min-height: 600px) and (max-height: 760px) {
+@container soda-viewport (min-width: 961px) and (min-height: 600px) and (max-height: 760px) {
   .f5v-shell .overview > .page-heading {
     padding-block: 12px;
   }

@@ -1,4 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
+import {
+  useCatalogBrowseState,
+  useCatalogBrowseScroll,
+} from '../../components/assets/r6/useCatalogBrowseState'
 import { Star } from 'lucide-react'
 import { VisualEntityImage } from '../../components/VisualEntityImage'
 import { SelectMenu } from '../../components/assets/r6/SelectMenu'
@@ -107,24 +111,33 @@ function preloadRecommendationAvatar(agentId: string) {
 }
 
 export function AgentDevelopmentOverview({
+  browseAccountId,
   openAgent,
   openSavedAgent,
   directoryAgents,
   onToggleFavorite,
   onDeleteAgentPlan,
 }: {
+  browseAccountId?: string
   openAgent: (agentId: string) => void
   openSavedAgent?: (agentId: string) => void
   directoryAgents: AgentSummary[]
   onToggleFavorite?: (agentId: string) => void | Promise<void>
   onDeleteAgentPlan?: (agentId: string) => void
 }) {
+  const browseKey = browseAccountId ? `development:${browseAccountId}` : undefined
+  const gridRef = useRef<HTMLUListElement>(null)
+  useCatalogBrowseScroll(browseKey, gridRef)
   const ordered = directoryAgents
-  const [query, setQuery] = useState('')
-  const [filter, setFilter] = useState<'recommendations' | 'plans'>('recommendations')
-  const [rarity, setRarity] = useState<'all' | 'S' | 'A'>('all')
-  const [attribute, setAttribute] = useState('all')
-  const [specialty, setSpecialty] = useState('all')
+  const [query, setQuery] = useCatalogBrowseState(browseKey, 'query', '')
+  const [filter, setFilter] = useCatalogBrowseState<'recommendations' | 'plans'>(
+    browseKey,
+    'filter',
+    'recommendations',
+  )
+  const [rarity, setRarity] = useCatalogBrowseState<'all' | 'S' | 'A'>(browseKey, 'rarity', 'all')
+  const [attribute, setAttribute] = useCatalogBrowseState(browseKey, 'attribute', 'all')
+  const [specialty, setSpecialty] = useCatalogBrowseState(browseKey, 'specialty', 'all')
   const [favoritePending, setFavoritePending] = useState(false)
   const favoriteInFlight = useRef(false)
   const [favoriteError, setFavoriteError] = useState<string | null>(null)
@@ -157,7 +170,11 @@ export function AgentDevelopmentOverview({
     setSpecialty('all')
     searchInput.current?.focus()
   }
-  const [selectedAgentId, setSelectedAgentId] = useState(() => ordered[0]?.agentId ?? '')
+  const [selectedAgentId, setSelectedAgentId] = useCatalogBrowseState(
+    browseKey,
+    'selection',
+    ordered[0]?.agentId ?? '',
+  )
   const detailSelection = useRef(createLatestVisualSelection()).current
 
   const selectAgentDetail = async (agentId: string) => {
@@ -287,7 +304,7 @@ export function AgentDevelopmentOverview({
           ) : null}
           {favoriteError ? <p role="alert">{favoriteError}</p> : null}
 
-          <ul className="agent-grid" aria-label="代理人养成总览" tabIndex={0}>
+          <ul ref={gridRef} className="agent-grid" aria-label="代理人养成总览" tabIndex={0}>
             {filtered.map((agent) => {
               const progress = getDirectoryProgress(agent)
               const isSelected = selectedAgent?.agentId === agent.agentId

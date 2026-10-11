@@ -112,7 +112,7 @@
   color: var(--f5-muted);
 }
 
-@media (max-width: 900px) {
+@container soda-viewport (max-width: 900px) {
   .f5v-shell .scanner-inline-import .formal-import-handoff__summary {
     grid-template-columns: 1fr;
   }
@@ -330,7 +330,7 @@
   grid-column: 2 / -1;
 }
 
-@media (max-width: 640px) {
+@container soda-viewport (max-width: 640px) {
   .f5v-shell .scanner-web__fallback-trigger {
     grid-template-columns: auto minmax(0, 1fr);
   }
@@ -339,7 +339,7 @@
   }
 }
 
-@media (max-width: 960px) {
+@container soda-viewport (max-width: 960px) {
   .f5v-shell .scanner-web__fallback-trigger {
     width: 100%;
   }

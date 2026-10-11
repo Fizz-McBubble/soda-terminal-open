@@ -1,13 +1,24 @@
 import type { RosterAgent } from '../assault/types'
 import type { CandidatePanelInput } from './optimizeBuild'
 import { hasCandidatePanelObjective } from './candidatePanelObjective'
+import { hasCurrentWEngineProgression } from '../decision/wEngineResolver'
 export function candidatePanelInputForAgent(
   agent:
-    | Pick<RosterAgent, 'agentId' | 'level' | 'skillLevels' | 'wEngineDetails' | 'mindscape'>
+    | Pick<
+        RosterAgent,
+        | 'agentId'
+        | 'level'
+        | 'skillLevels'
+        | 'wEngineDetails'
+        | 'mindscape'
+        | 'potentialImage'
+        | 'observedFacts'
+      >
     | undefined,
 ): CandidatePanelInput | undefined {
   if (
     !agent ||
+    !hasCurrentWEngineProgression(agent) ||
     !hasCandidatePanelObjective(agent.agentId) ||
     agent.level !== 60 ||
     agent.skillLevels.core !== 7 ||
@@ -25,6 +36,7 @@ export function candidatePanelInputForAgent(
     ascension: 5,
     core: agent.skillLevels.core - 2,
     mindscape: agent.mindscape,
+    potentialImage: agent.potentialImage,
     wEngine: {
       id: agent.wEngineDetails.id,
       level: agent.wEngineDetails.level,

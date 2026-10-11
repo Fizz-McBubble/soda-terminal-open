@@ -1,0 +1,110 @@
+.f5v-shell .scanner-prepare__checks {
+  display: grid;
+  gap: 0;
+  margin: 26px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.f5v-shell .scanner-prepare__checks > li {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 10px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(107, 96, 140, 0.12);
+  background: transparent;
+}
+.f5v-shell .scanner-prepare__checks > li.is-unchecked {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+}
+.f5v-shell .scanner-prepare__check-icon {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  color: var(--f5-accent);
+  background: var(--f5-wash);
+}
+.f5v-shell .scanner-target-account__content {
+  min-width: 0;
+}
+.f5v-shell .scanner-account-picker__label {
+  color: var(--f5-muted) !important;
+  font-size: 0.75rem;
+}
+.f5v-shell .scanner-account-picker__control {
+  min-width: 0;
+  width: 100%;
+}
+.f5v-shell .scanner-account-picker__selected {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  margin-top: 5px;
+  padding: 0 12px;
+  border: 1px solid rgba(103, 90, 144, 0.2);
+  border-radius: var(--soda-radius-control);
+  color: var(--f5-ink);
+  background: #fff;
+}
+.f5v-shell .scanner-account-picker__selected small {
+  margin-left: 6px;
+  color: var(--f5-muted);
+}
+.f5v-shell .scanner-account-picker__options {
+  z-index: 20;
+  color: var(--f5-ink);
+  background: #fff;
+}
+
+.f5v-shell .scanner-account-picker__trigger > small,
+.f5v-shell .scanner-task :is(.scanner-web__primary-action, .scanner-web__scan-actions button) > svg,
+.f5v-shell .scanner-prepare__actions > button > svg {
+  display: none;
+}
+
+.f5v-shell
+  .scanner-task
+  :is(
+    .scanner-web__primary-action,
+    .scanner-web__scan-actions button,
+    .scanner-prepare__actions button
+  ) {
+  padding-inline: 19px;
+}
+.f5v-shell .scanner-target-account__summary {
+  margin: 10px 0 0;
+  color: var(--f5-muted);
+  font-size: 0.78rem;
+}
+.f5v-shell .scanner-prepare__action {
+  margin-top: 20px;
+}
+
+.f5v-shell .scanner-prepare--connection-failed > header .scanner-prepare__summary,
+.f5v-shell .scanner-prepare--connection-failed > .status-banner {
+  display: none;
+}
+
+.f5v-shell .scanner-prepare--connection-failed .scanner-prepare__checks {
+  margin-top: 26px;
+  border-block: 0;
+}
+
+.f5v-shell .scanner-prepare--connection-failed .scanner-target-account {
+  grid-template-columns: 1fr;
+  padding: 14px 0;
+  border: 0;
+}
+
+.f5v-shell
+  .scanner-prepare--connection-failed
+  .scanner-target-account
+  > .scanner-prepare__check-icon {
+  display: none;
+}
+
+.f5v-shell .scanner-prepare--connection-failed .scanner-prepare__actions {
+  margin-top: 24px;
+}

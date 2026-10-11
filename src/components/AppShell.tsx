@@ -1,5 +1,12 @@
 import { useLiveQuery } from 'dexie-react-hooks'
-import { useEffect, useInsertionEffect, useLayoutEffect, useState, type ReactNode } from 'react'
+import {
+  useEffect,
+  useInsertionEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ReactNode,
+} from 'react'
 import { Archive, Menu, ShieldCheck, Users, X } from 'lucide-react'
 import { Link, Outlet, useLocation } from 'react-router-dom'
 import { BackNavigation } from './BackNavigation'
@@ -81,6 +88,15 @@ export function AppShell({
   const systemReady = dataStatus === 'ready' && databaseStatus === 'ready'
   const systemFailed = dataStatus === 'error' || databaseStatus === 'error'
   const accountHydrating = accountSummary === undefined
+  const browsePositions = useRef(new Map<string, { frame: number; content: number }>())
+  const browsePositionKey = [
+    '/development',
+    '/assets/agents',
+    '/assets/wengines',
+    '/assets/discs',
+  ].includes(location.pathname)
+    ? `${accountSummary?.accountId ?? 'no-account'}:${location.pathname}${location.search}`
+    : null
   const isF5Slice = getRouteStyleScope(location.pathname) === 'f5'
   const showOnlineCalculationCard =
     Boolean(onAllowOnlineCalculation) &&
@@ -112,6 +128,19 @@ export function AppShell({
   useLayoutEffect(() => {
     // Saving updates the candidate query string without leaving the workbench.
     if (location.state?.preserveWorkbenchPosition) return
+    const positions = browsePositions.current
+    const saved = browsePositionKey ? positions.get(browsePositionKey) : undefined
+    const scrollOwner = document.querySelector<HTMLElement>('[data-f5-scroll-owner]')
+    const pageContent = document.querySelector<HTMLElement>('.f5v-page-content')
+    const remember = () => {
+      if (browsePositionKey)
+        positions.set(browsePositionKey, {
+          frame: scrollOwner?.scrollTop ?? 0,
+          content: pageContent?.scrollTop ?? 0,
+        })
+    }
+    scrollOwner?.addEventListener('scroll', remember, { passive: true })
+    pageContent?.addEventListener('scroll', remember, { passive: true })
     const frame = window.requestAnimationFrame(() => {
       if (location.hash) {
         // Only ordinary anchor fragments participate in route restoration. Tooling
@@ -124,20 +153,25 @@ export function AppShell({
         return
       }
       if (isF5Slice) {
-        const scrollOwner = document.querySelector<HTMLElement>('[data-f5-scroll-owner]')
-        if (typeof scrollOwner?.scrollTo === 'function') scrollOwner.scrollTo({ top: 0 })
-        else if (scrollOwner) scrollOwner.scrollTop = 0
-        const pageContent = document.querySelector<HTMLElement>('.f5v-page-content')
-        if (typeof pageContent?.scrollTo === 'function') pageContent.scrollTo({ top: 0 })
-        else if (pageContent) pageContent.scrollTop = 0
+        if (typeof scrollOwner?.scrollTo === 'function')
+          scrollOwner.scrollTo({ top: saved?.frame ?? 0 })
+        else if (scrollOwner) scrollOwner.scrollTop = saved?.frame ?? 0
+        if (typeof pageContent?.scrollTo === 'function')
+          pageContent.scrollTo({ top: saved?.content ?? 0 })
+        else if (pageContent) pageContent.scrollTop = saved?.content ?? 0
       }
       if (!navigator.userAgent.includes('jsdom')) window.scrollTo({ top: 0, left: 0 })
       document.documentElement.scrollTop = 0
       document.body.scrollTop = 0
     })
-    return () => window.cancelAnimationFrame(frame)
+    return () => {
+      window.cancelAnimationFrame(frame)
+      scrollOwner?.removeEventListener('scroll', remember)
+      pageContent?.removeEventListener('scroll', remember)
+    }
   }, [
     isF5Slice,
+    browsePositionKey,
     location.hash,
     location.pathname,
     location.search,

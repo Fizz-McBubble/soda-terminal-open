@@ -11,7 +11,7 @@ import type {
 } from '../decision/teamExecutionProjection'
 import type { DiscFact } from '../features/agentDevelopmentGolden/types'
 import type { AccountLoadout } from '../optimizer/optimizeAccountBuilds'
-import { readablePhysicalDiscLabel } from './WarehouseManualDecisionLayer'
+import { readablePhysicalDiscLabel } from './warehouseFactLabels'
 import { orderTeamMembers } from '../decision/teamDeployment'
 import {
   displayDriveDiscSet,

@@ -1,0 +1,62 @@
+.app-recovery-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--soda-space-3, 12px);
+  margin-top: var(--soda-space-2, 8px);
+}
+
+.app-recovery-actions > p {
+  flex-basis: 100%;
+  margin: 0;
+}
+
+/* Recovery states can render before AppShell; use the same F5 control tokens. */
+.app-recovery-actions :is(.button, .back-navigation) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--soda-space-2, 8px);
+  box-sizing: border-box;
+  min-height: var(--soda-control-height);
+  padding: 0 16px;
+  border: 1px solid rgba(103, 90, 144, 0.2);
+  border-radius: var(--soda-radius-control);
+  color: var(--f5-ink, var(--soda-text));
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: none;
+  font-family: var(--soda-font-ui);
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.25;
+  text-decoration: none;
+}
+
+.app-recovery-actions :is(.button, .back-navigation):hover:not(:disabled) {
+  background: #fff;
+  border-color: rgba(103, 90, 144, 0.32);
+  box-shadow: 0 2px 6px rgba(45, 35, 70, 0.05);
+}
+
+.app-recovery-actions .button--primary {
+  border-color: transparent;
+  color: #fff;
+  background: var(--soda-accent);
+  box-shadow: 0 6px 12px rgba(91, 76, 132, 0.18);
+}
+
+.app-recovery-actions .button--primary:hover:not(:disabled) {
+  border-color: transparent;
+  background: var(--soda-accent);
+  box-shadow: 0 8px 16px rgba(91, 76, 132, 0.24);
+}
+
+.app-recovery-actions :is(.button, .back-navigation):focus-visible {
+  outline: 2px solid var(--soda-focus);
+  outline-offset: 3px;
+}
+
+.app-recovery-actions :is(.button, .back-navigation):disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}

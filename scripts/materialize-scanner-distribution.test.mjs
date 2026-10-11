@@ -10,6 +10,7 @@ import {
   pinnedScannerAssetUrlRc86,
   pinnedScannerAssetUrlRc87,
   pinnedScannerAssetUrlRc88,
+  pinnedScannerAssetUrlRc89,
   scannerAssetLocation,
 } from './materialize-scanner-distribution.mjs'
 
@@ -23,15 +24,20 @@ const names = [
 const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex')
 
 test('accepts both pinned RC8.7 and RC8.8 assets without accepting mixed identities', () => {
-  for (const [version, assetUrl] of [['7', pinnedScannerAssetUrlRc87], ['8', pinnedScannerAssetUrlRc88]]) {
+  for (const [version, assetUrl] of [
+    ['7', pinnedScannerAssetUrlRc87],
+    ['8', pinnedScannerAssetUrlRc88],
+  ]) {
     const manifest = {
       assetUrl,
       assetName: `soda-scanner-runtime-18-rc8-${version}-win-x64.zip`,
       releaseTag: `scanner-runtime-v18.0.0-rc.8.${version}`,
     }
     assert.equal(scannerAssetLocation(manifest), 'github-release')
-    assert.throws(() => scannerAssetLocation({ ...manifest, assetName: 'different.zip' }),
-      /scanner_release_asset_invalid/)
+    assert.throws(
+      () => scannerAssetLocation({ ...manifest, assetName: 'different.zip' }),
+      /scanner_release_asset_invalid/,
+    )
   }
 })
 
@@ -77,7 +83,7 @@ test('materializes a same-origin bootstrap with a pinned external runtime withou
     assert.equal(rendered.releaseState, 'published')
     const manifest = JSON.parse(await readFile(join(output, names[3]), 'utf8'))
     assert.equal(manifest.releaseState, 'published')
-    assert.equal(manifest.assetUrl, pinnedScannerAssetUrlRc88)
+    assert.equal(manifest.assetUrl, pinnedScannerAssetUrlRc89)
     await assert.rejects(
       materializeScannerDistribution({
         origin: 'https://example.test',

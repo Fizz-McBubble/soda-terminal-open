@@ -1,4 +1,4 @@
-@media (max-width: 900px) {
+@container soda-viewport (max-width: 900px) {
   .comparison-heading {
     align-items: stretch;
     flex-direction: column;
@@ -110,7 +110,7 @@
   color: var(--f5-accent);
 }
 
-@media (max-width: 900px) {
+@container soda-viewport (max-width: 900px) {
   .comparison-stat-table {
     grid-template-columns: 1fr;
   }
@@ -173,7 +173,7 @@
   padding-block: 4px;
 }
 
-@media (min-width: 1100px) {
+@container soda-viewport (min-width: 1100px) {
   .comparison-heading > div {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
@@ -204,13 +204,13 @@
 }
 
 /* Give six fact cards room for unbroken stat names. */
-@media (min-width: 1400px) {
+@container soda-viewport (min-width: 1400px) {
   .f5v-shell .top10-layout.comparison-workbench {
     grid-template-columns: 250px minmax(0, 1fr);
   }
 }
 
-@media (max-width: 1399px) {
+@container soda-viewport (max-width: 1399px) {
   .comparison-disc-strip {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -400,7 +400,7 @@
   width: auto;
 }
 
-@media (max-width: 900px) {
+@container soda-viewport (max-width: 900px) {
   .comparison-detail__summary.comparison-detail__summary--inline {
     grid-template-columns: minmax(0, 1fr) auto;
   }

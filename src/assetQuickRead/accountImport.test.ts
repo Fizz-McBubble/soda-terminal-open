@@ -1,145 +1,32 @@
 import 'fake-indexeddb/auto'
 import Dexie from 'dexie'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { saveAccountRoster } from '../accounts/repository'
 import type { AccountDriveDisc } from '../accounts/types'
 import type { RosterAgent } from '../assault/types'
-import { createEmptyRoster, hydrateRosterDefaults } from '../accounts/rosterHydration'
-import { SodaDatabase } from '../db/databaseCore'
+import { hydrateRosterDefaults } from '../accounts/rosterHydration'
+import type { SodaDatabase } from '../db/databaseCore'
 import {
   confirmAssetQuickReadImport,
   prepareAssetQuickReadImport,
   readLatestAssetQuickReadRecovery,
   restoreAssetQuickReadImport,
 } from './accountImport'
-import type { AssetQuickReadCandidate } from './snapshotAdapter'
-
-const accountId = 'account-synthetic-alpha'
-const otherAccountId = 'account-synthetic-beta'
-const now = '2026-10-10T00:00:00.000Z'
-const earlier = '2026-10-09T00:00:00.000Z'
-const agentId = 'agent-nicole'
-
-/** Entirely invented observation, with catalog identity only from the public current catalog. */
-function candidate(): AssetQuickReadCandidate {
-  return {
-    capturedAt: now,
-    snapshotSha256: 'a'.repeat(64),
-    protocolVersion: '3.2',
-    fullInventoryVerified: false,
-    counts: { discs: 1, sDiscs: 1, engines: 1, agents: 1, importableAgents: 1 },
-    importable: true,
-    issues: [],
-    warnings: [],
-    discs: {
-      format: 'soda-terminal-drive-disc-import',
-      formatVersion: 1,
-      source: { adapter: 'asset-quick-read', capturedAt: now },
-      batch: {},
-      discs: [
-        {
-          setId: 'set-woodpecker-electro',
-          slot: 1,
-          level: 0,
-          rarity: 'S',
-          mainStat: 'hp_flat',
-          subStats: [
-            { stat: 'crit_rate', value: 2.4, upgrades: 0 },
-            { stat: 'atk_percent', value: 3, upgrades: 0 },
-            { stat: 'def_percent', value: 4.8, upgrades: 0 },
-          ],
-          locked: false,
-          sourceId: 'asset-quick-read:880001',
-        },
-      ],
-    },
-    agents: [
-      {
-        agentId,
-        name: '妮可',
-        fields: {
-          owned: true,
-          level: 20,
-          ascension: 1,
-          mindscape: 0,
-          skillLevels: { basic: 3, dodge: 3, assist: 4, special: 4, chain: 4, core: 2 },
-          wEngineDetails: { id: 'wengine-13001', name: '聚宝箱', level: null, refinement: 1 },
-        },
-        observedFields: [
-          'owned',
-          'level',
-          'ascension',
-          'mindscape',
-          'skillLevels.basic',
-          'skillLevels.dodge',
-          'skillLevels.assist',
-          'skillLevels.special',
-          'skillLevels.chain',
-          'skillLevels.core',
-          'wEngineDetails.id',
-          'wEngineDetails.name',
-          'wEngineDetails.refinement',
-          'equippedDiscIds',
-        ],
-        equippedSourceIds: ['asset-quick-read:880001'],
-      },
-    ],
-  }
-}
-
-function storedDisc(id: string, source: string, scope = accountId): AccountDriveDisc {
-  const incoming = candidate().discs.discs[0]
-  return {
-    id,
-    scopedId: `${scope}:${id}`,
-    accountId: scope,
-    sourceLegacyId: 'synthetic-legacy',
-    migratedAt: earlier,
-    setId: incoming.setId!,
-    slot: incoming.slot,
-    level: incoming.level,
-    rarity: 'S',
-    mainStat: 'hp_flat',
-    subStats: incoming.subStats.map((row) => ({
-      ...row,
-      stat: row.stat as 'crit_rate' | 'atk_percent' | 'def_percent',
-    })),
-    locked: true,
-    favorite: true,
-    tags: ['保留'],
-    createdAt: earlier,
-    updatedAt: earlier,
-    dataVersion: 'synthetic-version',
-    discVersion: `old-${id}`,
-    importSource: {
-      adapter: source.startsWith('asset-quick-read:') ? 'asset-quick-read' : 'synthetic-scanner',
-      sourceId: source,
-      capturedAt: earlier,
-    },
-  }
-}
+import {
+  accountId,
+  otherAccountId,
+  now,
+  earlier,
+  agentId,
+  candidate,
+  storedDisc,
+  createQuickReadTestDatabase,
+} from './accountImport.fixtures'
 
 describe('asset quick read isolated account transactions', () => {
   let db: SodaDatabase
   beforeEach(async () => {
-    db = new SodaDatabase(`asset-quick-read-test-${crypto.randomUUID()}`)
-    await db.open()
-    await db.accounts.bulkPut(
-      [accountId, otherAccountId].map((id) => ({
-        id,
-        displayName: '合成测试账户',
-        createdAt: earlier,
-        updatedAt: earlier,
-        isDefault: false,
-        status: 'active' as const,
-        source: 'manual' as const,
-      })),
-    )
-    await db.settings.put({ key: 'active-account-id', value: accountId })
-    await db.accountDriveDiscs.put(
-      storedDisc('unrelated-physical-disc', 'asset-quick-read:889999', otherAccountId),
-    )
-    const roster = createEmptyRoster(earlier)
-    await db.accountRosters.put({ accountId, roster, updatedAt: earlier, source: 'manual' })
+    db = await createQuickReadTestDatabase()
   })
   afterEach(async () => {
     vi.restoreAllMocks()
@@ -234,7 +121,7 @@ describe('asset quick read isolated account transactions', () => {
       unrelated,
     )
   })
-  it('preserves manual_override fields without acquiring new observation provenance', async () => {
+  it('automatically updates older manual progression and observed current engine facts', async () => {
     const before = await patchAgent({
       owned: true,
       manualSource: 'manual_override',
@@ -254,10 +141,35 @@ describe('asset quick read isolated account transactions', () => {
       refinement: 3,
     })
     const imported = await apply()
-    expect(imported.protectedFields).toBe(candidate().agents[0].observedFields.length)
+    expect(imported.protectedFields).toBe(0)
+    expect(imported.syncedManualProgressionFields).toBe(9)
+    const current = await agent()
+    expect(current).toMatchObject({
+      level: 20,
+      ascension: 1,
+      mindscape: 0,
+      skillLevels: candidate().agents[0].fields.skillLevels,
+      wEngineDetails: {
+        ...before.wEngineDetails,
+        ...candidate().agents[0].fields.wEngineDetails,
+        level: 40,
+      },
+      wEngine: '聚宝箱',
+      refinement: 1,
+      manualSource: 'manual_override',
+      equippedDiscIds: ['asset-disc-880001'],
+    })
+    expect(current.observedFacts?.fields.level).toBeDefined()
+    expect(current.observedFacts?.fields['wEngineDetails.id']).toBeDefined()
+    await restoreAssetQuickReadImport(
+      accountId,
+      imported.recoveryKey,
+      'restore_asset_quick_read',
+      db,
+    )
     expect(await agent()).toEqual(before)
   })
-  it('protects deliberate progression while allowing independently observed engine fields', async () => {
+  it('automatically adopts older deliberate progression and independently observed engine fields', async () => {
     await patchAgent({
       owned: true,
       progressionManuallySet: true,
@@ -270,13 +182,13 @@ describe('asset quick read isolated account transactions', () => {
     await apply()
     const imported = await agent()
     expect(imported).toMatchObject({
-      level: 40,
-      ascension: 3,
-      mindscape: 2,
-      skills: '用户技能说明',
-      skillLevels: { basic: 9, dodge: 9, assist: 9, special: 9, chain: 9, core: 4 },
+      level: 20,
+      ascension: 1,
+      mindscape: 0,
+      skills: '快读实测',
+      skillLevels: candidate().agents[0].fields.skillLevels,
     })
-    expect(imported.observedFacts?.fields.level).toBeUndefined()
+    expect(imported.observedFacts?.fields.level).toBeDefined()
     expect(imported.observedFacts?.fields['wEngineDetails.name']).toBeDefined()
   })
   it('protects parent and exact locked fields independently', async () => {
@@ -473,15 +385,7 @@ describe('asset quick read isolated account transactions', () => {
         db,
       ),
     ).rejects.toThrow('明确确认')
-    const plan = await prepareAssetQuickReadImport(accountId, input, db)
-    await expect(
-      confirmAssetQuickReadImport(
-        input,
-        plan,
-        { accountId, snapshotSha256: input.snapshotSha256, sameGameAccountAndCounts: true },
-        db,
-      ),
-    ).rejects.toThrow('已导入')
+    await expect(prepareAssetQuickReadImport(accountId, input, db)).rejects.toThrow('已导入')
     expect(await facts()).toEqual(after)
   })
   it('refuses a changed recovery payload without affecting current assets', async () => {
@@ -626,5 +530,87 @@ describe('asset quick read isolated account transactions', () => {
     expect(result).toMatchObject({ newDiscs: 0, totalDiscs: 1, observedAgents: 1 })
     expect(await db.accountDriveDiscs.toArray()).toEqual(before)
     expect((await agent()).mindscape).toBe(0)
+  })
+  it('rejects a stale candidate conflicting with newer manual progression without any writes', async () => {
+    await patchAgent({
+      manualSource: 'manual_override',
+      progressionManuallySet: true,
+      owned: true,
+      level: 40,
+    })
+    const record = (await db.accountRosters.get(accountId))!
+    record.updatedAt = record.roster.updatedAt = '2026-10-10T00:01:00.000Z'
+    await db.accountRosters.put(record)
+    const before = await facts()
+    await expect(apply()).rejects.toThrow('请重新读取')
+    expect(await facts()).toEqual(before)
+    expect(await readLatestAssetQuickReadRecovery(accountId, db)).toBeNull()
+  })
+  it('keeps newer per-field observations and explicit locks while adopting other older manual progression', async () => {
+    await patchAgent({
+      manualSource: 'manual_override',
+      owned: true,
+      level: 40,
+      mindscape: 2,
+      ascension: 3,
+      lockedFields: ['level', 'skills'],
+      skillLevels: { basic: 9, dodge: 9, assist: 9, special: 9, chain: 9, core: 4 },
+      observedFacts: {
+        schemaVersion: 1,
+        source: 'asset_quick_read',
+        protocolVersion: '3.2',
+        fields: {
+          mindscape: { capturedAt: '2026-10-09T23:00:00-02:00', snapshotSha256: 'b'.repeat(64) },
+        },
+      },
+    })
+    await apply()
+    expect(await agent()).toMatchObject({
+      level: 40,
+      mindscape: 2,
+      ascension: 1,
+      skillLevels: { basic: 9, dodge: 9, assist: 9, special: 9, chain: 9, core: 4 },
+    })
+    expect((await agent()).observedFacts?.fields.mindscape?.snapshotSha256).toBe('b'.repeat(64))
+  })
+  it('allows player edits after automatic synchronization, blocks an old replay and accepts the next newer observation', async () => {
+    const original = await patchAgent({
+      manualSource: 'manual_override',
+      progressionManuallySet: true,
+      owned: true,
+      level: 40,
+    })
+    const receipt = await apply()
+    expect((await agent()).level).toBe(20)
+    const roster = (await db.accountRosters.get(accountId))!.roster
+    const edited = roster.agents.find((row) => row.agentId === agentId)!
+    edited.level = 35
+    edited.skillLevels.basic = 8
+    await saveAccountRoster(accountId, roster, db)
+    expect((await agent()).level).toBe(35)
+    expect(
+      hydrateRosterDefaults((await db.accountRosters.get(accountId))!.roster).agents.find(
+        (row) => row.agentId === agentId,
+      )!.skillLevels.basic,
+    ).toBe(8)
+    const before = await facts()
+    const old = candidate()
+    old.snapshotSha256 = 'b'.repeat(64)
+    await expect(apply(old)).rejects.toThrow('请重新读取')
+    expect(await facts()).toEqual(before)
+    await expect(
+      restoreAssetQuickReadImport(accountId, receipt.recoveryKey, 'restore_asset_quick_read', db),
+    ).rejects.toThrow('已有其他修改')
+    const next = candidate()
+    next.snapshotSha256 = 'c'.repeat(64)
+    next.capturedAt = new Date(Date.now() + 60_000).toISOString()
+    await apply(next)
+    expect(await agent()).toMatchObject({
+      level: 20,
+      skillLevels: next.agents[0].fields.skillLevels,
+      manualSource: 'manual_override',
+      progressionManuallySet: true,
+    })
+    expect(original.level).toBe(40)
   })
 })

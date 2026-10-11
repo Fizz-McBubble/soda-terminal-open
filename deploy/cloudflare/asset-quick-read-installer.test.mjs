@@ -47,7 +47,7 @@ test('GET streams a pinned large package without buffering and cancellation rele
   assert.equal(response.headers.get('etag'), `"${release.sha256}"`)
   assert.equal(
     response.headers.get('content-disposition'),
-    `attachment; filename="${release.fileName}"; filename*=UTF-8''${encodeURIComponent(`Soda-资产快读-${release.version}.exe`)}`,
+    `attachment; filename="${release.fileName}"`,
   )
   assert.equal((await download(request())).status, 429)
   const reader = response.body.getReader()
@@ -88,7 +88,7 @@ test('HEAD and a small range retain exact release size, digest and range metadat
 test('wrong version, repo, asset, release size or checksum fails before fetching', async () => {
   for (const patch of [
     { available: false },
-    { version: '1.0.1' },
+    { version: '1.0.2' },
     { repo: 'foreign/repo' },
     { releaseTag: 'latest' },
     { fileName: 'other.exe' },

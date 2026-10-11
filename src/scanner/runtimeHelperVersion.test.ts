@@ -8,7 +8,6 @@ describe('scanner Helper version and update policy', () => {
     { ...nativeIdentity, version: '2.2.0' },
     { ...nativeIdentity, version: '99.0.0' },
     { ...nativeIdentity, version: '2.3.0' },
-    { ...nativeIdentity, version: '2.3.999' },
     { ...nativeIdentity, version: '2.4.1' },
     { ...nativeIdentity, version: ['2.3.9'] },
     { ...nativeIdentity, transport: 'node-compatibility' },
@@ -101,6 +100,23 @@ describe('scanner Helper version and update policy', () => {
     )
     unsubscribe()
   })
+
+  it.each(['2.3.11', '2.3.999'])(
+    'allows a newer compatible Helper %s to start without a downgrade prompt',
+    async (version) => {
+      const requests = helperFetch()
+      const fetchImpl = vi.fn<typeof fetch>((input, init) =>
+        new URL(String(input)).pathname === '/'
+          ? Promise.resolve(new Response(JSON.stringify({ ...nativeIdentity, version })))
+          : requests(input, init),
+      )
+      const runtime = createScannerAssistantRuntime({ fetchImpl })
+      await expect(runtime.commands.startScan()).resolves.toBeUndefined()
+      expect(
+        fetchImpl.mock.calls.some(([url]) => new URL(String(url)).pathname === '/api/start'),
+      ).toBe(true)
+    },
+  )
 
   it('does not retry a scan if the restarted Helper requires updating', async () => {
     let identities = 0

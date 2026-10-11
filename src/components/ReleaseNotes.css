@@ -22,8 +22,27 @@
 
 .release-notes .explanation-popover[popover] {
   width: min(28rem, calc(100vw - 24px));
-  max-height: min(36rem, calc(100dvh - 96px));
-  padding: 20px;
+  max-height: min(30rem, calc(100dvh - 96px));
+  padding: 16px;
+  overflow: hidden;
+}
+
+.release-notes .explanation-popover[popover]:popover-open {
+  display: flex;
+  flex-direction: column;
+}
+
+.release-notes .explanation-popover__header {
+  flex: 0 0 auto;
+}
+
+.release-notes .explanation-popover__body {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  padding-right: 8px;
 }
 
 .release-notes__list {

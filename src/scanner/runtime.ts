@@ -80,7 +80,20 @@ export function createScannerAssistantRuntime(
       activeSubscription &&
       !activeSubscription.disposed
     )
-      activeSubscription.listener(presentScannerHelperSnapshot(next, nativeHelperVersion))
+      activeSubscription.listener(presentConnectedSnapshot(next))
+  }
+
+  function presentConnectedSnapshot(next: ScannerAssistantSnapshot) {
+    return presentScannerHelperSnapshot(
+      next,
+      nativeHelperVersion,
+      next.readiness.helperConnected
+        ? {
+            runtime: next.connectedVersions?.runtime ?? next.distribution?.installedVersion,
+            scanner: next.connectedVersions?.scanner,
+          }
+        : {},
+    )
   }
 
   function connectEvents(subscription: NonNullable<typeof activeSubscription>, issued: string) {
@@ -103,7 +116,7 @@ export function createScannerAssistantRuntime(
     events.onmessage = (event) => {
       if (subscription.disposed || subscription.events !== events) return
       const next = JSON.parse(event.data) as ScannerAssistantSnapshot
-      subscription.listener(presentScannerHelperSnapshot(next, nativeHelperVersion))
+      subscription.listener(presentConnectedSnapshot(next))
     }
     events.onerror = () => {
       if (subscription.disposed || subscription.events !== events) return
@@ -153,7 +166,7 @@ export function createScannerAssistantRuntime(
             .join('\n')
           if (data && !subscription.disposed && subscription.abort === controller) {
             const next = JSON.parse(data) as ScannerAssistantSnapshot
-            subscription.listener(presentScannerHelperSnapshot(next, nativeHelperVersion))
+            subscription.listener(presentConnectedSnapshot(next))
           }
           separator = /\r?\n\r?\n/.exec(pending)
         }
@@ -336,8 +349,8 @@ export function createScannerAssistantRuntime(
         }
       }
       document.addEventListener('visibilitychange', onVisible)
-      // A public HTTPS page must explain local-device access before the first
-      // loopback fetch, which can trigger the browser's local-network prompt.
+      // User-facing pages explain local-device access before the first loopback
+      // fetch. Explicit background clients may opt into immediate connection.
       if (!options.deferInitialConnection)
         void withHelperDeadline((signal) => ensureSessionToken(signal))
           .then((issued) => {
@@ -451,7 +464,7 @@ export function useScannerAssistantRuntime() {
   const runtime = useMemo(
     () =>
       createScannerAssistantRuntime({
-        deferInitialConnection: window.location.protocol === 'https:',
+        deferInitialConnection: true,
       }),
     [],
   )

@@ -4,6 +4,8 @@ import type { CandidateWarehousePlan } from '../optimizer/candidateWarehouseSolv
 import type { AccountDiscChoice } from '../optimizer/optimizeAccountBuilds'
 import { getCandidateStatLabels } from '../application/publicCandidateLabels'
 import { displayDriveDiscSet } from './discFactPresentation'
+import { warehouseMatchFeedback } from '../application/warehouseMatchFeedback'
+import { WarehouseMatchMessage } from '../components/WarehouseMatchMessage'
 
 // Solver rolls include each initial sub-stat line; the player-facing enhancement
 // count includes only upgrades. Use the captured result instead of re-scoring.
@@ -30,8 +32,7 @@ export function CandidateWarehouseResult({
     return (
       <section className="panel status-card is-warning" aria-label="仓库匹配缺口" role="status">
         <h2>当前仓库暂不能组成完整参考方案</h2>
-        <p>{active?.gaps.join('；') || '缺少可用的六个号位驱动盘。'}</p>
-        <p>你可以调整成员或补充缺少的号位后重新匹配。</p>
+        <WarehouseMatchMessage feedback={warehouseMatchFeedback(active?.gaps ?? [])} />
       </section>
     )
   return (

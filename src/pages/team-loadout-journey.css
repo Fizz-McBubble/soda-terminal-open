@@ -173,7 +173,7 @@
   background: #fff0f1;
 }
 
-@media (max-width: 1400px) {
+@container soda-viewport (max-width: 1400px) {
   .f5v-page-frame:has(.optimizer-plan) {
     padding: 14px 0 28px;
   }
@@ -288,13 +288,13 @@
   letter-spacing: 0.04em;
 }
 
-@media (max-width: 1100px) {
+@container soda-viewport (max-width: 1100px) {
   .optimizer-portfolio__teams {
     grid-template-columns: 1fr;
   }
 }
 
-@media (max-width: 760px) {
+@container soda-viewport (max-width: 760px) {
   .optimizer-plan__team-heading,
   .optimizer-plan__team-actions {
     display: grid;

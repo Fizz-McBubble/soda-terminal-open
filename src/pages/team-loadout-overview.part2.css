@@ -377,7 +377,7 @@
   color: #b25d68;
 }
 
-@media (max-width: 1400px) {
+@container soda-viewport (max-width: 1400px) {
   .f5v-box-team-overview__workspace {
     grid-template-columns: minmax(0, 1fr) 392px;
     gap: 20px;
@@ -407,7 +407,7 @@
   }
 }
 
-@media (max-width: 980px) {
+@container soda-viewport (max-width: 980px) {
   .f5v-box-team-overview__workspace {
     grid-template-columns: 1fr;
   }
@@ -422,7 +422,7 @@
   }
 }
 
-@media (max-width: 760px) {
+@container soda-viewport (max-width: 760px) {
   .f5v-box-team-overview {
     padding: 18px 0 32px;
   }

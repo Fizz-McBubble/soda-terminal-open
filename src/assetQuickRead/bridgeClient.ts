@@ -1,3 +1,4 @@
+import { AssetQuickReadRequestError } from './diagnostics'
 import { z } from 'zod'
 import { AssetQuickReadUnavailableError, awaitAssetQuickReadService } from './launcher'
 
@@ -20,9 +21,10 @@ const jobSchema = z.object({
   candidateAvailable: z.boolean(),
 })
 export type AssetBridgeJob = z.infer<typeof jobSchema>
+const bridgeVersionSchema = z.enum(['1.0.0', '1.0.1'])
 const healthSchema = z.object({
   service: z.literal('soda-asset-quick-read'),
-  version: z.literal('1.0.0'),
+  version: bridgeVersionSchema,
   protocolVersion: z.literal(1),
   capabilities: z.array(z.string()),
   state: z.string(),
@@ -111,7 +113,8 @@ export class AssetQuickReadBridgeClient {
       }
       if (!response.ok) {
         const code = z.object({ error: z.object({ code: z.string() }) }).safeParse(result)
-        throw new Error(
+        throw new AssetQuickReadRequestError(
+          code.success ? code.data.error.code : 'unknown',
           code.success
             ? (errorMessages[code.data.error.code] ??
                 '资产快读未完成本次请求，请核对准备条件后重试。')
@@ -143,7 +146,10 @@ export class AssetQuickReadBridgeClient {
       !parsed.data.capabilities.includes('asset_snapshot') ||
       !parsed.data.capabilities.includes('cancel')
     )
-      throw new Error('资产快读版本不兼容，请更新工具。')
+      throw new AssetQuickReadRequestError(
+        'bridge_incompatible',
+        '资产快读版本不兼容，请更新工具。',
+      )
     return parsed.data
   }
 
@@ -162,7 +168,7 @@ export class AssetQuickReadBridgeClient {
     const session = z
       .object({
         token: z.string().min(32).max(256),
-        version: z.literal('1.0.0'),
+        version: bridgeVersionSchema,
         expiresAt: z.string(),
       })
       .parse(await this.request('/connect', 'POST', {}, false, signal))

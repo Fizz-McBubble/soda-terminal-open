@@ -218,7 +218,7 @@
   font-size: 0.72rem;
 }
 
-@media (max-width: 960px) {
+@container soda-viewport (max-width: 960px) {
   .f5v-shell .ad-golden,
   .f5v-shell .overview,
   .f5v-shell .workbench,
@@ -242,7 +242,7 @@
   outline: 3px solid rgba(116, 95, 176, 0.64);
   outline-offset: 2px;
 }
-@media (max-width: 1400px) {
+@container soda-viewport (max-width: 1400px) {
   .ad-golden {
     min-width: 0;
   }
@@ -331,7 +331,7 @@
     column-gap: var(--soda-space-2);
   }
 }
-@media (max-width: 960px) {
+@container soda-viewport (max-width: 960px) {
   .f5v-shell .overview-layout {
     grid-template-columns: minmax(0, 1fr);
     padding-inline: 14px;

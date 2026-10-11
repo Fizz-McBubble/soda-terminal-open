@@ -1,0 +1,130 @@
+/* This route has one scroll owner: the page frame. Children never trap the wheel. */
+.f5v-shell .f5v-page-content:has(.scanner-workbench) {
+  overflow: hidden;
+}
+.f5v-shell .f5v-page-content:has(.scanner-workbench) .f5v-page-frame {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: auto;
+}
+.f5v-shell .scanner-golden:has(.scanner-workbench),
+.f5v-shell .scanner-golden__workbench:has(.scanner-workbench) {
+  height: auto;
+  min-height: 100%;
+  overflow: visible;
+}
+.f5v-shell .scanner-golden__workbench:has(.scanner-workbench) {
+  width: 100%;
+  margin: 0;
+}
+.f5v-shell .scanner-workbench [id] {
+  scroll-margin-block: 20px;
+}
+.f5v-shell .scanner-workbench :is(section, fieldset, h2, h3, h4)[tabindex='-1']:focus {
+  outline: none;
+}
+.f5v-shell .scanner-workbench__navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  padding: 0 0 16px;
+  margin-bottom: 18px;
+  border-bottom: 1px solid var(--f5-line);
+}
+.f5v-shell .scanner-workbench__navigation a,
+.f5v-shell .scanner-workbench__guide-link,
+.f5v-shell .scanner-workbench__task-link {
+  color: var(--f5-accent);
+  text-underline-offset: 4px;
+}
+.f5v-shell .scanner-workbench__guide-link {
+  font-size: 14px;
+}
+.f5v-shell .scanner-workbench .scanner-workbench__metric {
+  display: inline-block;
+  padding: 1px 10px;
+  margin-left: 6px;
+  border-radius: 999px;
+  background: #fce7ef;
+  color: #8a3d61 !important;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.f5v-shell .scanner-workbench .f5v-beta {
+  color: #55427c !important;
+  vertical-align: middle;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__heading h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__directory {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__directory-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 32px;
+  margin: 0 0 8px;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__input {
+  box-sizing: border-box;
+  display: block;
+  width: 100%;
+  margin: 0;
+  border-radius: 8px;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__tools {
+  margin-top: 12px;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__tools .asset-quick-read__prepare,
+.f5v-shell .scanner-workbench .asset-quick-read__tools .asset-quick-read__panel {
+  margin: 0;
+}
+.f5v-shell .scanner-workbench .scanner-diagnostic-entry {
+  grid-template-rows: 32px 42px;
+}
+.f5v-shell .scanner-workbench .scanner-input:focus-visible {
+  outline: 2px solid var(--f5-accent);
+  outline-offset: 2px;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__disclosure {
+  margin-top: 12px;
+  padding: 0;
+  border: 0;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__disclosure h3 {
+  font-size: 14px;
+  margin: 0 0 6px;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__confirmation {
+  margin: 12px 0;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__confirmation input {
+  accent-color: var(--f5-accent);
+}
+.f5v-shell .scanner-workbench .asset-quick-read__task-link {
+  display: inline-block;
+  margin-top: 12px;
+}
+.f5v-shell .scanner-workbench::selection,
+.f5v-shell .scanner-workbench ::selection {
+  background: #ddd2ef;
+  color: #282034;
+}
+@media (max-width: 520px) {
+  .f5v-shell .scanner-workbench__new-account {
+    width: 100%;
+  }
+  .f5v-shell .scanner-workbench .asset-capture-risk {
+    gap: 10px;
+    padding: 14px;
+  }
+}

@@ -85,9 +85,8 @@ export function PrepareChecklist({
         <section className="scanner-prepare__requirements" aria-label="扫描前必需条件">
           <h4>准备游戏</h4>
           <ul>
-            <li>打开“驱动仓库”完整列表，清除筛选并关闭弹窗、筛选面板等遮挡。</li>
-            <li>本机版建议 1920 × 1080 或 1600 × 900 窗口，也可全屏。</li>
-            <li>扫描期间保持画面完整可见，勿切换、缩放窗口或操作游戏。</li>
+            <li>打开“驱动仓库”，清除筛选并关闭弹窗和侧栏。</li>
+            <li>保持游戏画面完整可见，扫描时暂不操作键鼠或切换窗口。</li>
           </ul>
         </section>
       )}
@@ -226,7 +225,7 @@ export function PrepareChecklist({
           <div className="scanner-prepare__guide-card">
             <div className="scanner-prepare__guide-item">
               <span className="scanner-prepare__guide-label">画面环境</span>
-              <p>建议 1920 × 1080 或 1600 × 900（16:9）窗口；也可全屏，位置不限。</p>
+              <p>保持游戏画面完整可见，扫描期间暂不操作键鼠或切换窗口。</p>
             </div>
             <div className="scanner-prepare__guide-item">
               <span className="scanner-prepare__guide-label">扫描</span>

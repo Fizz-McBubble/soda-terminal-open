@@ -20,10 +20,14 @@ export async function materializeAssetQuickReadInstaller({
   )
   if (!manifest.available) return { state: 'not_published' }
   if (
-    manifest.version !== '1.0.0' ||
-    manifest.releaseTag !== 'v1.0.0' ||
+    !(
+      (manifest.version === '1.0.0' &&
+        manifest.fileName === 'Soda-Asset-Quick-Read-Setup-1.0.0.exe') ||
+      (manifest.version === '1.0.1' &&
+        manifest.fileName === 'SodaTerminal-AssetReader-Setup-1.0.1.exe')
+    ) ||
+    manifest.releaseTag !== `v${manifest.version}` ||
     manifest.repo !== 'Fizz-McBubble/soda-terminal-asset-quick-read' ||
-    manifest.fileName !== 'Soda-Asset-Quick-Read-Setup-1.0.0.exe' ||
     manifest.downloadUrl !== '/downloads/Soda-Asset-Quick-Read-Setup.exe' ||
     !Number.isSafeInteger(manifest.size) ||
     manifest.size < 2 ||

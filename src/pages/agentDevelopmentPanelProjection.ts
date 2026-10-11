@@ -1,6 +1,7 @@
 import type { RosterAgent } from '../assault/types'
 import type { DriveDisc } from '../domain/schemas'
 import { defaultAscensionForLevel } from '../gameDataPacks/panel/wEngineGrowth'
+import { hasCurrentWEngineProgression } from '../decision/wEngineResolver'
 import { projectOutOfCombatMenuPanel, type PanelResult } from '../calculation/outOfCombatPanel'
 import {
   getGraduationCandidateProfile,
@@ -100,6 +101,14 @@ export function createAgentDevelopmentPanelProjection(input: {
       graduationCandidate,
     )
   }
+  if (!hasCurrentWEngineProgression(input.agent)) {
+    return unsupported(
+      source,
+      '当前音擎参数尚未同步完整；请重新读取或补充当前音擎的等级与星级。',
+      dataFoundation,
+      graduationCandidate,
+    )
+  }
   if (
     input.agent.skillLevels?.core == null ||
     !input.agent.wEngineDetails.id ||
@@ -133,6 +142,7 @@ export function createAgentDevelopmentPanelProjection(input: {
       level: input.agent.level,
       ascension: input.agent.ascension ?? defaultAscensionForLevel(input.agent.level),
       mindscape: input.agent.mindscape,
+      potentialImage: input.agent.potentialImage,
       // local1 -> explicit source-zero -1; learned2..7 -> A..F indices0..5.
       core: input.agent.skillLevels.core - 2,
       wEngine: {

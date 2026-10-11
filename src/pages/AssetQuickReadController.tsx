@@ -1,15 +1,10 @@
+import { assetFailureDiagnostic, type AssetDiagnosticReport } from '../assetQuickRead/diagnostics'
+import { readAssetDiagnostic, saveAssetDiagnostic } from '../assetQuickRead/feedback'
+import { AssetQuickReadFeedback } from './AssetQuickReadFeedback'
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
-import {
-  AssetQuickReadEntry,
-  type AssetQuickReadPreview,
-  type AssetQuickReadState,
-} from './AssetQuickReadEntry'
+import { AssetQuickReadEntry, type AssetQuickReadState } from './AssetQuickReadEntry'
 import { AssetQuickReadBridgeClient, type AssetBridgeJob } from '../assetQuickRead/bridgeClient'
-import {
-  assetSnapshotSchema,
-  convertAssetSnapshot,
-  type AssetQuickReadCandidate,
-} from '../assetQuickRead/snapshotAdapter'
+import { assetSnapshotSchema, convertAssetSnapshot } from '../assetQuickRead/snapshotAdapter'
 import {
   confirmAssetQuickReadImport,
   prepareAssetQuickReadImport,
@@ -17,10 +12,11 @@ import {
   restoreAssetQuickReadImport,
   type AssetQuickReadImportPlan,
 } from '../assetQuickRead/accountImport'
+import { previewOf, type Reviewed } from './assetQuickReadControllerPreview'
+import { AssetQuickReadRecovery } from './AssetQuickReadRecovery'
 import { AssetQuickReadInstallerAction } from './AssetQuickReadInstallerAction'
 import { assetQuickReadDownloadAvailable } from '../assetQuickRead/distribution'
 import { setPublicScannerActiveAccount } from '../accounts/publicScannerAccountCreation'
-
 type Bridge = Pick<AssetQuickReadBridgeClient, 'connect' | 'start' | 'status' | 'cancel' | 'result'>
 export type AssetQuickReadWorkbenchView = {
   preparation: ReactNode
@@ -29,9 +25,9 @@ export type AssetQuickReadWorkbenchView = {
   state: AssetQuickReadState
   busy: boolean
   hasTask: boolean
+  stageActive: boolean
   inspectFile: (file: File) => Promise<void>
 }
-
 type Props = {
   blocked?: boolean
   preparationCondensed?: boolean
@@ -45,65 +41,16 @@ type Props = {
   onTaskStart?: () => void
   client?: Bridge
 }
-type Reviewed = {
-  raw: unknown
-  candidate: AssetQuickReadCandidate
-  plan: AssetQuickReadImportPlan | null
-  issue?: string
-}
 const message = (error: unknown) =>
   error instanceof Error && !error.name.startsWith('Zod')
     ? error.message
     : '结果结构不符合当前资产快读合同，未写入账户。'
 const active = (job: AssetBridgeJob | null) =>
   job?.state === 'starting' || job?.state === 'capturing'
-
-function previewOf(review: Reviewed): AssetQuickReadPreview {
-  const { candidate, plan } = review
-  return {
-    snapshotId: candidate.snapshotSha256,
-    counts: { agents: candidate.counts.importableAgents, discs: candidate.counts.sDiscs },
-    validSummary: [
-      ...(plan
-        ? [
-            `将新增 ${plan.summary.newDiscs} 张盘、更新 ${plan.summary.updatedDiscs} 张盘；保留未观测的 ${plan.summary.retainedDiscs} 张旧盘。`,
-            `已保护 ${plan.summary.protectedFields} 个手动修改、锁定或较新的字段。`,
-            ...(plan.summary.inferredDiscLinks
-              ? [
-                  `${plan.summary.inferredDiscLinks} 张旧扫描盘按完全相同属性对应物理实例，请同时核对盘数。`,
-                ]
-              : []),
-          ]
-        : []),
-      ...(candidate.warnings ?? []),
-    ],
-    issues: [
-      ...candidate.issues.map((issue) => issue.message),
-      ...(review.issue ? [review.issue] : []),
-    ],
-    agents: candidate.agents.map((agent) => {
-      const skills = agent.fields.skillLevels
-      return {
-        agentId: agent.agentId,
-        name: agent.name,
-        level: agent.fields.level!,
-        mindscape: agent.fields.mindscape!,
-        ...(skills
-          ? {
-              skills: `普攻 ${skills.basic} · 闪避 ${skills.dodge} · 支援 ${skills.assist} · 特殊 ${skills.special} · 连携 ${skills.chain} · 核心 ${String.fromCharCode(64 + (skills.core ?? 1) - 1) === '@' ? '未解锁' : String.fromCharCode(64 + (skills.core ?? 1) - 1)}`,
-            }
-          : {}),
-        ...(agent.fields.wEngineDetails?.name ? { wEngine: agent.fields.wEngineDetails.name } : {}),
-      }
-    }),
-  }
-}
-
 // Keep the workbench DOM stable; the account binding below invalidates owned work synchronously.
 export function AssetQuickReadController(props: Props) {
   return <AccountBoundQuickRead {...props} />
 }
-
 function AccountBoundQuickRead({
   targetAccountId,
   targetAccountName,
@@ -125,6 +72,16 @@ function AccountBoundQuickRead({
   const [job, setJob] = useState<AssetBridgeJob | null>(null)
   const [review, setReview] = useState<Reviewed | null>(null)
   const [error, setError] = useState('')
+  const [diagnostic, setDiagnostic] = useState<AssetDiagnosticReport | null>(readAssetDiagnostic)
+  const recordFailure = (
+    stage: Parameters<typeof assetFailureDiagnostic>[0],
+    failure?: unknown,
+    failedJob = job,
+  ) => {
+    const report = assetFailureDiagnostic(stage, failure, failedJob, toolVersion)
+    saveAssetDiagnostic(report)
+    setDiagnostic(report)
+  }
   const [completion, setCompletion] = useState('')
   const [recoveryKey, setRecoveryKey] = useState('')
   const [recoveryNotice, setRecoveryNotice] = useState('')
@@ -142,7 +99,6 @@ function AccountBoundQuickRead({
   const generation = useRef(0)
   const ownedJob = useRef<AssetBridgeJob | null>(null)
   const fileInput = useRef<HTMLInputElement>(null)
-
   useLayoutEffect(() => {
     generation.current++
     connectionAbort.current?.abort()
@@ -169,7 +125,6 @@ function AccountBoundQuickRead({
     setRestoring(false)
     setSelecting(false)
   }, [targetAccountId, client])
-
   useEffect(() => {
     const guard = generation
     guard.current++
@@ -180,7 +135,6 @@ function AccountBoundQuickRead({
       if (active(owned)) void client.cancel(owned!.jobId).catch(() => undefined)
     }
   }, [client])
-
   useEffect(() => {
     if (!targetAccountId || !accountReady || recoveryBusy || (state === 'completed' && recoveryKey))
       return
@@ -205,7 +159,6 @@ function AccountBoundQuickRead({
       cancelled = true
     }
   }, [targetAccountId, accountReady, recoveryBusy, state, recoveryKey])
-
   async function inspect(raw: unknown, sha256: string, scope: number) {
     if (generation.current !== scope) return
     const candidate = convertAssetSnapshot(raw, { snapshotSha256: sha256 })
@@ -219,15 +172,17 @@ function AccountBoundQuickRead({
       }
     } else if (!targetAccountId) issue = '请先在页面顶部选择目标账户，再检查这份文件。'
     if (generation.current !== scope) return
+    if (issue || !candidate.importable) recordFailure('import')
     setReview({ raw, candidate, plan, issue })
     setState('received')
   }
-
   useEffect(() => {
     if (!job || !active(job)) return
     let cancelled = false
     const scope = generation.current
     const currentJob = job
+    let failureStage: 'startup' | 'waiting' | 'result' =
+      currentJob.state === 'capturing' ? 'waiting' : 'startup'
     const valid = () => !cancelled && generation.current === scope
     const timer = setTimeout(() => {
       void (async () => {
@@ -238,6 +193,7 @@ function AccountBoundQuickRead({
             throw new Error('资产快读任务与当前接收账户不一致，未采用结果。')
           ownedJob.current = latest
           if (latest.state === 'received') {
+            failureStage = 'result'
             const result = await client.result(latest.jobId)
             if (!valid()) return
             if (result.jobId !== latest.jobId || result.targetAccountId !== targetAccountId)
@@ -247,11 +203,18 @@ function AccountBoundQuickRead({
           } else {
             setJob(latest)
             setState(latest.state)
+            if (latest.state === 'error' || latest.state === 'timed_out')
+              recordFailure(
+                latest.state === 'timed_out' || latest.readyAt ? 'waiting' : 'startup',
+                undefined,
+                latest,
+              )
             if (latest.state === 'error')
               setError('资产快读未完成本次读取，请核对游戏目录、管理员授权与准备状态后再试。')
           }
         } catch (failure) {
           if (valid()) {
+            recordFailure(failureStage, failure)
             setError(message(failure))
             setState('error')
             if (active(ownedJob.current))
@@ -267,7 +230,6 @@ function AccountBoundQuickRead({
     // The binding generation invalidates results when the selected account changes.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [client, job, targetAccountId])
-
   async function performConnect(launchIfMissing = true) {
     const scope = generation.current
     const controller = new AbortController()
@@ -283,6 +245,7 @@ function AccountBoundQuickRead({
     } catch (failure) {
       if (scope === generation.current) {
         setConnected(false)
+        recordFailure('connection', failure, null)
         setError(message(failure))
       }
       throw failure
@@ -290,7 +253,6 @@ function AccountBoundQuickRead({
       if (connectionAbort.current === controller) connectionAbort.current = null
     }
   }
-
   async function performStart() {
     if (!targetAccountId || !directory.trim()) throw new Error('请先选择账户并填写游戏安装目录。')
     const scope = ++generation.current
@@ -302,6 +264,7 @@ function AccountBoundQuickRead({
     setRecoveryNotice('')
     setRestoreArmed(false)
     setCompletion('')
+    setDiagnostic(null)
     setState('starting')
     try {
       const started = await client.start(directory, targetAccountId)
@@ -314,15 +277,17 @@ function AccountBoundQuickRead({
       ownedJob.current = started
       setJob(started)
       setState(started.state)
+      if (started.state === 'error' || started.state === 'timed_out')
+        recordFailure(started.state === 'timed_out' ? 'waiting' : 'startup', undefined, started)
     } catch (failure) {
       if (scope === generation.current) {
+        recordFailure('startup', failure)
         setError(message(failure))
         setState('error')
       }
       throw failure
     }
   }
-
   async function performStop() {
     const scope = ++generation.current
     const owned = ownedJob.current
@@ -342,7 +307,6 @@ function AccountBoundQuickRead({
       throw failure
     }
   }
-
   async function performInspectFile(file: File) {
     const scope = ++generation.current
     onTaskStart?.()
@@ -363,6 +327,7 @@ function AccountBoundQuickRead({
       await inspect(JSON.parse(new TextDecoder().decode(bytes)), sha, scope)
     } catch (failure) {
       if (scope === generation.current) {
+        recordFailure('result', failure)
         setError(
           failure instanceof SyntaxError ? '文件不是有效的 JSON，未读取。' : message(failure),
         )
@@ -370,7 +335,6 @@ function AccountBoundQuickRead({
       }
     }
   }
-
   async function performImportResult() {
     if (!review?.plan || !targetAccountId) return
     const scope = generation.current
@@ -391,13 +355,13 @@ function AccountBoundQuickRead({
       onImported?.()
     } catch (failure) {
       if (scope === generation.current) {
+        recordFailure('import', failure)
         setError(message(failure))
         await inspect(review.raw, review.candidate.snapshotSha256, scope)
       }
       throw failure
     }
   }
-
   function exportResult() {
     if (!review) return
     // Whitelist the native asset structure; pairing/session/security fields are stripped.
@@ -411,7 +375,6 @@ function AccountBoundQuickRead({
     anchor.click()
     setTimeout(() => URL.revokeObjectURL(url), 0)
   }
-
   async function performRestore() {
     const scope = generation.current
     if (
@@ -441,7 +404,6 @@ function AccountBoundQuickRead({
       if (scope === generation.current) setRestoring(false)
     }
   }
-
   async function performSelectTarget() {
     if (!targetAccountId || selecting || active(ownedJob.current)) return
     const scope = generation.current
@@ -458,7 +420,6 @@ function AccountBoundQuickRead({
       if (scope === generation.current) setSelecting(false)
     }
   }
-
   const busy = recoveryBusy || operation !== null || restoring || selecting || downloading
   const hasTask = state !== 'idle' || Boolean(review) || operation === 'file'
   async function runOperation(name: string, action: () => Promise<void>) {
@@ -514,7 +475,6 @@ function AccountBoundQuickRead({
       }
     }
   }
-
   const filePicker = (
     <input
       ref={fileInput}
@@ -529,8 +489,13 @@ function AccountBoundQuickRead({
       }}
     />
   )
+  const showFailureDiagnostic =
+    state === 'error' ||
+    Boolean(error) ||
+    (state === 'received' && Boolean(review?.issue || (review && !review.candidate.importable)))
   const taskExtras = (
     <>
+      <AssetQuickReadFeedback report={showFailureDiagnostic ? diagnostic : null} />
       {state === 'error' && active(job) && (
         <div className="asset-quick-read__recovery">
           <p>连接失败时工具可能仍在等待；先尝试停止本次资产快读，再重新连接。</p>
@@ -558,50 +523,22 @@ function AccountBoundQuickRead({
       )}
     </>
   )
-  const recovery = (
-    <>
-      {recoveryNotice && !recoveryBusy && (
-        <div className="asset-quick-read__recovery">
-          <p>{recoveryNotice}</p>
-          {recoveryKey && (
-            <>
-              <button
-                type="button"
-                className="button button--quiet"
-                disabled={blocked || busy || !accountReady || !recoveryAvailable}
-                onClick={() => setRestoreArmed(true)}
-              >
-                {state === 'completed' ? '恢复本次导入' : '恢复上次资产快读导入'}
-              </button>
-              {restoreArmed && (
-                <div>
-                  <p>
-                    将恢复到本次导入前的代理人和盘库。导入后若有其他修改，会停止恢复，避免覆盖。
-                  </p>
-                  <button
-                    type="button"
-                    className="button"
-                    disabled={blocked || busy || !accountReady || !recoveryAvailable}
-                    onClick={() => void restore()}
-                  >
-                    {restoring ? '恢复中…' : '确认恢复到导入前'}
-                  </button>
-                  <button
-                    type="button"
-                    className="button button--quiet"
-                    disabled={restoring}
-                    onClick={() => setRestoreArmed(false)}
-                  >
-                    取消恢复
-                  </button>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      )}
-    </>
-  )
+  const recovery =
+    recoveryNotice && !recoveryBusy && (!workbench || state === 'completed') ? (
+      <AssetQuickReadRecovery
+        key={`${targetAccountId}:${recoveryKey}`}
+        mode={workbench ? 'current' : 'legacy'}
+        restoreLabel={state === 'completed' ? '恢复本次导入' : '恢复上次资产快读导入'}
+        notice={recoveryNotice}
+        hasRecovery={Boolean(recoveryKey)}
+        disabled={blocked || busy || !accountReady || !recoveryAvailable}
+        armed={restoreArmed}
+        restoring={restoring}
+        onArm={() => setRestoreArmed(true)}
+        onCancel={() => setRestoreArmed(false)}
+        onRestore={restore}
+      />
+    ) : null
   const entry = (
     <AssetQuickReadEntry
       targetRequired
@@ -612,6 +549,7 @@ function AccountBoundQuickRead({
         workbench ? (
           <AssetQuickReadInstallerAction
             connected={connected}
+            toolVersion={connected ? toolVersion : null}
             blocked={
               blocked ||
               recoveryBusy ||
@@ -650,7 +588,7 @@ function AccountBoundQuickRead({
           : undefined
       }
       remainingSeconds={job?.readyAt ? (job.remainingSeconds ?? undefined) : undefined}
-      transactionNotice="确认后会先保存本机恢复副本，再在同一事务中导入；保留手动修改、锁定字段与盘标签，不删除本次未观测资产。"
+      transactionNotice="导入会更新本次读到的代理人养成与驱动盘，之后仍可自行修改。导入前自动保存恢复副本；未读取的资产与盘标签保留。"
       errorMessage={
         error ||
         (connected && !targetAccountId
@@ -660,30 +598,27 @@ function AccountBoundQuickRead({
             : '')
       }
       completionMessage={completion}
+      completionActions={workbench && state === 'completed' ? recovery : undefined}
+      workbenchExtras={workbench ? taskExtras : undefined}
+      pendingInspection={Boolean(workbench && operation === 'file')}
       renderParts={
         workbench
           ? (parts) =>
               workbench({
                 ...parts,
-                preparation: (
-                  <>
-                    {parts.preparation}
-                    {!hasTask && taskExtras}
-                  </>
-                ),
-                task: hasTask ? (
-                  <>
-                    {parts.task ??
-                      (operation === 'file' ? (
-                        <p role="status">正在检查本机资产快读文件，账户尚未修改。</p>
-                      ) : null)}
-                    {taskExtras}
-                  </>
-                ) : null,
-                recovery: recoveryNotice && !recoveryBusy ? recovery : null,
+                task:
+                  hasTask || parts.stageActive ? (
+                    <>
+                      {parts.task ??
+                        (operation === 'file' ? (
+                          <p role="status">正在检查本机资产快读文件，账户尚未修改。</p>
+                        ) : null)}
+                    </>
+                  ) : null,
+                recovery: null,
                 state,
                 busy,
-                hasTask,
+                hasTask: hasTask || parts.stageActive,
                 inspectFile,
               })
           : undefined

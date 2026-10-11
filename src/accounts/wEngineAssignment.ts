@@ -1,6 +1,7 @@
 import type { AccountRoster } from '../assault/types'
 import { updateAccountRoster } from './repository'
 import { database, type SodaDatabase } from '../db/databaseCore'
+import { normalizeObservedAgentFacts } from './observedAgentFacts'
 
 export type WEngineCatalogEntry = {
   stableId: string
@@ -14,6 +15,7 @@ export type AgentWEngineDraft = {
   wEngineCopyId: string | null
   wEngineCatalogId?: string | null
   wEngineLevel?: number | null
+  wEngineLevelManuallySet?: boolean
   wEngineAscension?: number | null
   wEngineRefinement?: number | null
   wEngineRefinementManuallySet?: boolean
@@ -99,6 +101,48 @@ export function applyAgentWEngineAssignment({
         }
       : agent,
   )
+  const previous = roster.agents.find((agent) => agent.agentId === agentId)
+  const next = agentsNext.find((agent) => agent.agentId === agentId)
+  if (previous && next) {
+    const facts = normalizeObservedAgentFacts(structuredClone(previous.observedFacts))
+    const sameIdentity = selectedEngine?.stableId === previous.wEngineDetails.id
+    if (!sameIdentity && facts)
+      for (const field of Object.keys(facts.fields))
+        if (field.startsWith('wEngineDetails.'))
+          delete facts.fields[field as keyof typeof facts.fields]
+    if (selectedEngine) {
+      const oldManual = previous.wEngineDetails.manualProgression
+      const manual: NonNullable<
+        AccountRoster['agents'][number]['wEngineDetails']['manualProgression']
+      > =
+        sameIdentity && oldManual?.engineId === selectedEngine.stableId
+          ? { ...oldManual }
+          : { engineId: selectedEngine.stableId }
+      const fields = [
+        ['level', draft.wEngineLevel, draft.wEngineLevelManuallySet],
+        ['refinement', draft.wEngineRefinement, draft.wEngineRefinementManuallySet],
+        ['ascension', draft.wEngineAscension, 'wEngineAscension' in draft ? true : false],
+      ] as const
+      for (const [field, value, explicitlyEdited] of fields) {
+        // The UI marks edits explicitly; a selector's defaults are deliberately false.
+        // Older programmatic callers express a targeted edit by providing a changed value.
+        const confirmed =
+          typeof value === 'number' &&
+          (explicitlyEdited === true ||
+            (explicitlyEdited === undefined &&
+              (!sameIdentity || value !== previous.wEngineDetails[field])))
+        if (confirmed) {
+          manual[field] = value
+          if (facts) delete facts.fields[`wEngineDetails.${field}`]
+        } else if (manual[field] !== next.wEngineDetails[field]) delete manual[field]
+      }
+      // Legacy maintained rows retain their existing contract. New identities and observed
+      // rows require field-specific evidence; unrelated saves cannot confirm retained values.
+      if (oldManual || previous.observedFacts?.fields['wEngineDetails.id'])
+        next.wEngineDetails.manualProgression = manual
+    }
+    next.observedFacts = normalizeObservedAgentFacts(facts)
+  }
   return { ...roster, agents: agentsNext }
 }
 

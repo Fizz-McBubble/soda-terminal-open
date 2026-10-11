@@ -1,6 +1,6 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useEffect, useRef, useState } from 'react'
-import { Database, RefreshCw, ScanLine, ShieldCheck, Sparkles, Users, X } from 'lucide-react'
+import { Database, RefreshCw, ScanLine, ShieldCheck, Sparkles, Users } from 'lucide-react'
 import ramielHero from '../assets/golden-sample/ramiel-user-cutout-1152.webp'
 import ramielHeroSmall from '../assets/golden-sample/ramiel-user-cutout-576.webp'
 import ramielHeroLarge from '../assets/golden-sample/ramiel-user-cutout-1536.webp'
@@ -17,6 +17,7 @@ import {
   getOfficialCatalogInstallProgress,
   subscribeOfficialCatalogInstallProgress,
 } from '../assets/visualAssetInstallCoordinator'
+import { HomeAssetDialog } from './HomeAssetDialog'
 import { F5HomeGoldenView } from '../components/F5GoldenViews'
 import { database } from '../db/databaseCore'
 import { useAccountDecisionWorld } from '../application/accountDecisionWorld'
@@ -206,7 +207,7 @@ export function DashboardPage() {
       return {
         eyebrow: '从首次扫描开始',
         title: '创建账户并扫描',
-        description: '在扫描页创建或选择本机账户，完成扫描、检查并确认导入。',
+        description: '在扫描页创建或选择本机账户，完成扫描，软件校验后点击导入。',
         label: '前往扫描与导入',
         path: '/system/scanner',
         icon: Database,
@@ -215,8 +216,8 @@ export function DashboardPage() {
       return {
         eyebrow: '已有待确认数据',
         title: '继续正式导入',
-        description: `${pendingStaging} 份扫描结果等待检查，确认导入后才会更新账户。`,
-        label: '检查并确认导入',
+        description: `${pendingStaging} 份扫描结果等待导入，点击导入后才会更新账户。`,
+        label: '导入',
         path: '/system/data/import-discs',
         icon: ScanLine,
       }
@@ -224,7 +225,7 @@ export function DashboardPage() {
       return {
         eyebrow: '仓库尚未建立',
         title: '扫描或导入本地数据',
-        description: '前往扫描页，读取游戏中的驱动盘。检查结果并确认导入后，即可开始配装。',
+        description: '前往扫描页，读取游戏中的驱动盘。软件校验后点击导入，即可开始配装。',
         label: '继续：扫描与导入',
         path: '/system/scanner',
         icon: ScanLine,
@@ -235,6 +236,25 @@ export function DashboardPage() {
         title: '记录代理人资料',
         description: '标记当前账户拥有的代理人，才能把驱动盘仓库与养成目标关联起来。',
         label: '查看我的资产',
+        path: '/assets/agents',
+        icon: Users,
+      }
+    if (
+      decisionWorld.status === 'current' &&
+      decisionWorld.run?.teamPresentation &&
+      !decisionWorld.run.teamPresentation.overviewModel.groups.some(
+        (group) => group.kind === 'recommended' && group.items.length,
+      ) &&
+      !savedTeamPlans.length
+    )
+      return {
+        eyebrow: '队伍建议仍待补齐',
+        title: '记录代理人资料',
+        description:
+          ownedAgents.length < 3
+            ? '已记录的代理人不足三名，请先补充已拥有代理人。'
+            : '当前已记录的代理人暂未形成支持的队伍，请补充或更新资产资料。',
+        label: '前往代理人资产',
         path: '/assets/agents',
         icon: Users,
       }
@@ -456,45 +476,15 @@ export function DashboardPage() {
         onManageImages={() => assetDialog.current?.showModal()}
         journey={journey}
       />
-      <dialog
-        id="home-asset-dialog"
-        ref={assetDialog}
-        className="home-asset-dialog"
-        aria-labelledby="home-asset-dialog-title"
-        aria-describedby="home-asset-dialog-note"
-      >
-        <header>
-          <h2 id="home-asset-dialog-title">图鉴图片</h2>
-          <button
-            type="button"
-            className="button button--quiet home-asset-dialog__close"
-            aria-label="关闭图片管理"
-            onClick={() => assetDialog.current?.close()}
-          >
-            <X size={18} aria-hidden="true" />
-          </button>
-        </header>
-        <p role="status">{assetCacheLabel}</p>
-        <p id="home-asset-dialog-note">仅删除图片，不影响账户资料。</p>
-        <footer>
-          <button
-            className="button button--quiet"
-            type="button"
-            disabled={assetOperationPending}
-            onClick={() => void removeVisualAssets()}
-          >
-            {removingImages ? '正在删除图片' : '删除本机图片缓存'}
-          </button>
-          <button
-            className="home-primary-action"
-            type="button"
-            disabled={assetOperationPending}
-            onClick={() => void downloadVisualAssets()}
-          >
-            {assetDownloadLabel}
-          </button>
-        </footer>
-      </dialog>
+      <HomeAssetDialog
+        assetDialog={assetDialog}
+        assetCacheLabel={assetCacheLabel}
+        assetOperationPending={assetOperationPending}
+        removeVisualAssets={removeVisualAssets}
+        removingImages={removingImages}
+        downloadVisualAssets={downloadVisualAssets}
+        assetDownloadLabel={assetDownloadLabel}
+      />
     </>
   )
 }

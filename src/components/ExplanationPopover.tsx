@@ -31,6 +31,9 @@ export function ExplanationPopover({
       if (!anchor || !content) return
       const scale = getEffectiveZoom(content)
       content.style.maxWidth = `${Math.max(1, window.innerWidth - 24) / scale}px`
+      // Measure against the CSS cap, not the previous fitted height. Otherwise
+      // rounded scroll metrics can progressively shrink an inner scrolling body.
+      content.style.maxHeight = ''
       const bounds = content.getBoundingClientRect()
       const position = fitFloatingLayer({
         anchor,
@@ -70,7 +73,8 @@ export function ExplanationPopover({
         aria-haspopup="dialog"
         aria-expanded={open}
       >
-        <span aria-hidden="true">{open ? '▾' : '▸'}</span> {label}
+        <span aria-hidden="true">{open ? '▾' : '▸'}</span>
+        <span className="explanation__label">{label}</span>
       </button>
       <div
         id={id}

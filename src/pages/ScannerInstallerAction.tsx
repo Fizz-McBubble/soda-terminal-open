@@ -7,6 +7,7 @@ import {
 import { downloadScannerInstaller } from '../scanner/installerDownload'
 import { readInstallerRelease, type InstallerRelease } from '../scanner/installerRelease'
 import './scanner-installer-action.css'
+import { compareToolVersion } from '../scanner/toolUpgradeNotice'
 
 type DownloadState = 'idle' | 'downloading' | 'saving' | 'save_requested' | 'error' | 'cancelled'
 
@@ -16,12 +17,14 @@ export function ScannerInstallerAction({
   onConnect,
   connectionBlocked = false,
   onAttentionChange,
+  upgradeNotice,
 }: {
   distribution: ScannerDistributionSnapshot
   issueCode?: string
   onConnect?: () => void | Promise<void>
   connectionBlocked?: boolean
   onAttentionChange?: (active: boolean) => void
+  upgradeNotice?: string | null
 }) {
   const [state, setState] = useState<DownloadState>('idle')
   const [bytes, setBytes] = useState(0)
@@ -65,9 +68,9 @@ export function ScannerInstallerAction({
   }, [pending])
   const update = Boolean(
     distribution.state === 'update_available' ||
-    (distribution.installedVersion &&
-      distribution.installedVersion !== scannerDistributionManifest.runtime.version) ||
-    ['helper_incompatible', 'helper_pairing_denied'].includes(issueCode ?? ''),
+    compareToolVersion(distribution.installedVersion, distribution.targetVersion) === -1 ||
+    upgradeNotice ||
+    issueCode === 'helper_incompatible',
   )
   const connect = useCallback(async () => {
     if (connectionBlocked || connectPending.current || !onConnect) return
@@ -184,7 +187,8 @@ export function ScannerInstallerAction({
           ? timedOut
             ? '下载超时'
             : '下载未完成'
-          : '')
+          : upgradeNotice ||
+            (update && distribution.message.includes('有新版本') ? distribution.message : ''))
 
   return (
     <div className="scanner-installer">

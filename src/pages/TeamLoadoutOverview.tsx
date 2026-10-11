@@ -361,7 +361,7 @@ export function TeamLoadoutOverview({
       ) : (
         <section className="f5v-box-team-empty" role="status">
           <h2>当前没有可展示的队伍建议</h2>
-          <p>现有账户事实还不足以形成可靠建议，不会用过期资料补齐答案。</p>
+          <p>{answer.summary}</p>
           <button className="f5v-box-team-primary" type="button" onClick={onEmptyAction}>
             前往代理人资产
           </button>

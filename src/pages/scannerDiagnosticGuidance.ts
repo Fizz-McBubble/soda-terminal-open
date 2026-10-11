@@ -2,6 +2,18 @@ import type { ScanDiagnosticReport } from '../scanner/diagnostics'
 
 type Guidance = { problem: string; nextAction: string }
 const guidance: Record<string, Guidance> = {
+  scan_start_timeout: {
+    problem: '扫描未能开始，已停止等待。',
+    nextAction: '确认游戏停留在驱动仓库后重试；若仍无反应，请反馈此问题。',
+  },
+  scan_progress_timeout: {
+    problem: '扫描长时间没有推进，已停止等待。',
+    nextAction: '检查游戏画面后重试；若再次中断，请反馈此问题。',
+  },
+  game_window_ambiguous: {
+    problem: '检测到多个候选游戏画面，无法确定本次扫描对象。',
+    nextAction: '只保留本次要扫描的游戏窗口，将其置于前台后重试。',
+  },
   game_window_not_foreground: {
     problem: '游戏窗口未保持在前台。',
     nextAction: '切回绝区零的驱动仓库后重试，扫描期间不要切换窗口。',

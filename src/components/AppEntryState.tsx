@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { useAppHealth } from '../appHealthContext'
 import { AppShell } from './AppShell'
+import './AppEntryState.css'
 
 /** Brief reads should resolve without introducing a separate page into the visual journey. */
 export function AppLoadingState({
@@ -45,12 +46,12 @@ function EntryError({
       <span>SODA TERMINAL</span>
       <h1>{title}</h1>
       <p>{description}</p>
-      <div className="app-entry-state__actions">
+      <div className="app-entry-state__actions app-recovery-actions">
         {children}
-        <button className="back-navigation" onClick={() => window.location.reload()}>
+        <button className="button button--primary" onClick={() => window.location.reload()}>
           重新加载
         </button>
-        <a className="back-navigation" href="/">
+        <a className="button" href="/">
           返回首页
         </a>
       </div>
@@ -102,7 +103,7 @@ export function AppInitializationGate({
         description="请重新加载页面后再试。现有账户资料不会因此被清除。"
       >
         {canRepairApplicationData && repairApplicationData ? (
-          <button className="back-navigation" onClick={repair} disabled={repairing}>
+          <button className="button" onClick={repair} disabled={repairing}>
             {repairing
               ? '正在恢复应用自带资料…'
               : `恢复应用自带 ${currentVersion.gameVersion} 资料`}

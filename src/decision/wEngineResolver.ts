@@ -1,3 +1,4 @@
+import { hasCurrentWEngineProgression } from '../accounts/observedAgentFacts'
 import { currentWEngineDirectory } from '../assault/planningCatalog'
 import type { AccountRoster, RosterAgent } from '../assault/types'
 import { getProjectedBuildKnowledgeProfile } from '../gameDataPacks/agentProfile'
@@ -25,6 +26,8 @@ export type WEngineMatchStatus =
 
 const directoryById = new Map(currentWEngineDirectory.map((engine) => [engine.id, engine]))
 
+export { hasCurrentWEngineProgression } from '../accounts/observedAgentFacts'
+
 export function defaultWEngineRefinement(rarity: string | null | undefined) {
   return rarity === 'S' ? 1 : 5
 }
@@ -48,6 +51,7 @@ function currentFact(
 ): ResolvedWEngine | null {
   if (!agent) return null
   const details = agent.wEngineDetails
+  if (!hasCurrentWEngineProgression(agent)) return null
   if (
     details.id &&
     details.level !== null &&
@@ -69,7 +73,7 @@ function currentFact(
 
   // Compatibility only: old accounts may not yet have wEngineDetails populated.
   const copy = legacyWEngines?.find((item) => item.copyId === agent.wEngineCopyId)
-  if (!copy) return null
+  if (!copy || (details.id && details.id !== copy.engineId)) return null
   const engine = directoryById.get(copy.engineId)
   return {
     engineId: copy.engineId,

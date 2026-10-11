@@ -143,12 +143,25 @@ function asGaps(
   agentIds: string[],
   resolvedIds: string[],
   diagnostics: ReturnType<typeof optimizeAccountBuilds>['diagnostics'],
+  filtered: boolean,
 ) {
   return [
     ...agentIds
       .filter((agentId) => !resolvedIds.includes(agentId))
       .map(() => '该角色缺少可消费的候选仓库约束。'),
-    ...diagnostics.flatMap((item) => item.reasons),
+    ...diagnostics.flatMap((item) => [
+      ...item.reasons.map((reason) =>
+        reason
+          .replace('该场景允许的套装盘', '推荐套装的驱动盘')
+          .replace('Profile允许的完整', '推荐的完整'),
+      ),
+      ...item.actions.filter(
+        (action) =>
+          !action.includes('切换') &&
+          !action.includes('场景') &&
+          (filtered || !action.includes('取消')),
+      ),
+    ]),
   ]
 }
 
@@ -291,6 +304,13 @@ export function solveCandidateWarehouse(
   })
   const alternatives = scope === 'agent' ? loadouts.slice(1) : []
   const gaps = [
+    ...(!loadouts.length
+      ? !discs.length
+        ? ['当前账户还没有驱动盘，请先扫描或导入仓库。']
+        : options.excludedDiscIds?.length || Object.keys(options.fixedDiscByAgent ?? {}).length
+          ? ['当前固定或排除条件下没有完整配装；可取消冲突条件后重新搭配。']
+          : ['当前仓库暂不满足推荐套装与六个号位的组合；请补充以下库存后重新搭配。']
+      : []),
     ...sourceConditionGaps,
     ...rejectedConditions
       .filter(
@@ -306,6 +326,9 @@ export function solveCandidateWarehouse(
         agentIds,
         profiles.map((profile) => profile.agentId),
         result.diagnostics,
+        Boolean(
+          options.excludedDiscIds?.length || Object.keys(options.fixedDiscByAgent ?? {}).length,
+        ),
       ),
     )
     .concat(loadouts.flatMap((loadout) => loadout.degradeReasons))
@@ -323,7 +346,10 @@ export function solveCandidateWarehouse(
     totalScore:
       Math.round(loadouts.reduce((total, item) => total + item.totalScore, 0) * 100) / 100,
     alternatives,
-    gaps: [...new Set(gaps)],
+    gaps:
+      !discs.length && !loadouts.length
+        ? ['当前账户还没有驱动盘，请先扫描或导入仓库。']
+        : [...new Set(gaps)],
     solver: {
       method: 'bounded_heuristic',
       exactWithinModel: false,

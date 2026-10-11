@@ -1,6 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
+import { Link, useInRouterContext } from 'react-router-dom'
 import { playerErrorMessage } from '../../application/playerErrorMessage'
+import {
+  warehouseActionFeedback,
+  type WarehouseMatchFeedback,
+} from '../../application/warehouseMatchFeedback'
+import { WarehouseMatchMessage } from '../../components/WarehouseMatchMessage'
 import { DevelopmentDiscCard } from './DevelopmentDiscCard'
+import { WorkbenchPanelSnapshot } from './WorkbenchPanelSnapshot'
 import { DevelopmentDiscGuide } from './DevelopmentDiscGuide'
 import { useStateTransitionMotion } from '../../motion/useStateTransitionMotion'
 import { VisualEntityImage } from '../../components/VisualEntityImage'
@@ -29,13 +36,14 @@ export function Workbench({
   onSavePlan?: AgentDevelopmentGoldenProps['onSavePlan']
   onAnalyzeWarehouse?: AgentDevelopmentGoldenProps['onAnalyzeWarehouse']
 }) {
+  const routed = useInRouterContext()
   const [savedPlanKey, setSavedPlanKey] = useState<string | null>(null)
   const [savingPlan, setSavingPlan] = useState(false)
   const [savePlanError, setSavePlanError] = useState<string | null>(null)
   const [warehouseAction, setWarehouseAction] = useState<{
     agentId: string
     state: 'idle' | 'running' | 'error'
-    error: string | null
+    error: WarehouseMatchFeedback | null
   }>({ agentId: data.agentId, state: 'idle', error: null })
   const warehouseActionState =
     warehouseAction.agentId === data.agentId ? warehouseAction.state : 'idle'
@@ -92,7 +100,7 @@ export function Workbench({
       setWarehouseAction({
         agentId: data.agentId,
         state: 'error',
-        error: playerErrorMessage(error, '搭配未完成，请重新分析后重试。'),
+        error: warehouseActionFeedback(error),
       })
     } finally {
       if (warehouseRequestRunning.current?.token === token) warehouseRequestRunning.current = null
@@ -267,49 +275,7 @@ export function Workbench({
               </section>
             </div>
           </section>
-          <section
-            className="panel-snapshot current-overview__panel"
-            aria-labelledby="panel-snapshot-title"
-            tabIndex={0}
-          >
-            <header>
-              <div>
-                <h2 id="panel-snapshot-title">当前面板</h2>
-              </div>
-            </header>
-            {subject.currentPanel.availability === 'available' ? (
-              <dl className="stat-grid">
-                {subject.panelFacts.map((fact) => (
-                  <div className={fact.focus ? 'focus' : undefined} key={fact.name}>
-                    <dt>{fact.name}</dt>
-                    <dd>{fact.value}</dd>
-                  </div>
-                ))}
-              </dl>
-            ) : (
-              <p className="panel-snapshot__unavailable">{subject.currentPanel.summary}</p>
-            )}
-            <section className="panel-graduation-targets" aria-labelledby="panel-target-title">
-              <small id="panel-target-title">毕业面板推荐</small>
-              <div>
-                {subject.graduation.panel.map((fact) => (
-                  <span key={fact.name}>
-                    <small>{fact.name}</small>
-                    <b>{fact.value}</b>
-                  </span>
-                ))}
-              </div>
-              {subject.graduation.panelConditions?.length ? (
-                <ExplanationPopover label="适用条件" title="毕业面板适用条件">
-                  <ul>
-                    {subject.graduation.panelConditions.map((condition) => (
-                      <li key={condition}>{condition}</li>
-                    ))}
-                  </ul>
-                </ExplanationPopover>
-              ) : null}
-            </section>
-          </section>
+          <WorkbenchPanelSnapshot subject={subject} />
         </section>
 
         <section className="loadout-recommendations" aria-label="配装建议">
@@ -419,9 +385,18 @@ export function Workbench({
                 </button>
               ) : null}
               {warehouseActionError ? (
-                <span className="warehouse-action-feedback" role="status">
-                  {warehouseActionError}
-                </span>
+                <div className="warehouse-action-feedback" role="status">
+                  <WarehouseMatchMessage feedback={warehouseActionError} />
+                  {routed ? (
+                    <Link className="text-action" to="/assets/discs">
+                      查看仓库
+                    </Link>
+                  ) : (
+                    <a className="text-action" href="/assets/discs">
+                      查看仓库
+                    </a>
+                  )}
+                </div>
               ) : null}
               {!isSavedView && (onSavePlan || !canCompare || savingPlan) ? (
                 <button

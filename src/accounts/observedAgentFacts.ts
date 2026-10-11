@@ -6,6 +6,7 @@ export const observedAgentFields = [
   'level',
   'ascension',
   'mindscape',
+  'potentialImage',
   'skillLevels.basic',
   'skillLevels.dodge',
   'skillLevels.assist',
@@ -83,11 +84,14 @@ export function hasObservedAgentField(agent: RosterAgent, field: ObservedAgentFi
   if (field === 'wEngineDetails.id' || field === 'wEngineDetails.name')
     return typeof value === 'string' && value.trim().length > 0
   const min =
-    field === 'mindscape' || field.endsWith('ascension') || field === 'wEngineDetails.refinement'
+    field === 'mindscape' ||
+    field === 'potentialImage' ||
+    field.endsWith('ascension') ||
+    field === 'wEngineDetails.refinement'
       ? 0
       : 1
   const max =
-    field === 'mindscape'
+    field === 'mindscape' || field === 'potentialImage'
       ? 6
       : field.endsWith('ascension') || field === 'wEngineDetails.refinement'
         ? 5
@@ -97,4 +101,32 @@ export function hasObservedAgentField(agent: RosterAgent, field: ObservedAgentFi
             ? 16
             : 60
   return typeof value === 'number' && Number.isInteger(value) && value >= min && value <= max
+}
+
+/** Retained values from a previous equipment identity are not current item facts. */
+export function hasCurrentWEngineProgression(
+  agent: Pick<RosterAgent, 'observedFacts' | 'wEngineDetails'>,
+) {
+  const facts = agent.observedFacts?.fields
+  const identity = facts?.['wEngineDetails.id']
+  const manual = agent.wEngineDetails.manualProgression
+  if (!identity && !manual) return true // Existing manual/legacy maintenance contract.
+  const fields: Array<'level' | 'refinement' | 'ascension'> = ['level', 'refinement']
+  if (agent.wEngineDetails.ascension != null) fields.push('ascension')
+  return fields.every((field) => {
+    const fact = facts?.[`wEngineDetails.${field}`]
+    if (
+      manual?.engineId === agent.wEngineDetails.id &&
+      typeof manual[field] === 'number' &&
+      manual[field] === agent.wEngineDetails[field]
+    )
+      return true
+    return Boolean(
+      identity &&
+      fact &&
+      (Date.parse(fact.capturedAt) > Date.parse(identity.capturedAt) ||
+        (fact.capturedAt === identity.capturedAt &&
+          fact.snapshotSha256 === identity.snapshotSha256)),
+    )
+  })
 }

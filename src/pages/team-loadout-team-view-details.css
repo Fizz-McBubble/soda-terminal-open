@@ -196,7 +196,7 @@
   color: var(--soda-text-2);
 }
 
-@media (max-width: 640px) {
+@container soda-viewport (max-width: 640px) {
   .team-execution__loadout-summary dl {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }

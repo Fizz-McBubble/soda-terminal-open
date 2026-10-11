@@ -107,7 +107,7 @@
   color: var(--muted, #655d73);
 }
 
-@media (max-width: 1080px) {
+@container soda-viewport (max-width: 1080px) {
   .decision-guide {
     grid-template-columns: 1fr;
   }

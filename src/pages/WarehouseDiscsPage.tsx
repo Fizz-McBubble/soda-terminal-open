@@ -26,6 +26,7 @@ import {
   warehouseActionWindowSize,
 } from './warehouseActionListConfig'
 import { WarehouseWorkbenchHeader } from './WarehouseWorkbenchHeader'
+import '../components/AppEntryState.css'
 
 export function WarehouseDiscsPage() {
   const [searchParams] = useSearchParams()
@@ -330,7 +331,7 @@ export function WarehouseDiscsPage() {
         <h1>驱动盘分析</h1>
         <p>{decisionWorld.message}</p>
         {decisionWorld.canRepairApplicationData ? (
-          <div className="warehouse-empty__actions">
+          <div className="warehouse-empty__actions app-recovery-actions">
             <p>仅修复应用资料，不修改账户资产。</p>
             <button
               className="button button--primary"
@@ -342,7 +343,7 @@ export function WarehouseDiscsPage() {
             </button>
           </div>
         ) : (
-          <div className="warehouse-empty__actions">
+          <div className="warehouse-empty__actions app-recovery-actions">
             <button
               className="button button--primary"
               type="button"
@@ -363,9 +364,11 @@ export function WarehouseDiscsPage() {
         <Archive size={28} />
         <h1>还没有可分析的驱动盘</h1>
         <p>先扫描或导入当前账户的驱动盘；有数据后，这里会给出保留、观察和清理候选建议。</p>
-        <Link className="button button--primary" to="/system/scanner">
-          前往扫描与导入
-        </Link>
+        <div className="app-recovery-actions">
+          <Link className="button button--primary" to="/system/scanner">
+            前往扫描与导入
+          </Link>
+        </div>
       </section>
     )
   return (

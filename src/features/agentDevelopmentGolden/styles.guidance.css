@@ -279,7 +279,7 @@
   border-radius: var(--soda-radius-control);
 }
 
-@media (max-width: 1320px) {
+@container soda-viewport (max-width: 1320px) {
   .graduation-advice-grid {
     grid-template-areas:
       'teams engines'

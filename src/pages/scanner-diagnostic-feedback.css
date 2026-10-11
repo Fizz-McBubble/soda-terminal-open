@@ -40,7 +40,26 @@
 .scanner-diagnostic-feedback__actions {
   display: flex;
   gap: 8px;
+  flex-wrap: nowrap;
+}
+.scanner-diagnostic-feedback__footer {
+  display: flex;
   flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 12px;
+}
+.scanner-diagnostic-feedback__footer > .scanner-diagnostic-feedback__privacy {
+  margin: 0;
+  white-space: nowrap;
+}
+.f5v-shell .scanner-diagnostic-feedback__actions > button {
+  min-width: 0;
+  min-height: 32px;
+  padding: 6px 8px;
+  font-size: 12px;
+  white-space: nowrap;
 }
 .scanner-diagnostic-feedback__guidance {
   margin-top: 10px;
@@ -126,4 +145,45 @@
   word-break: break-word;
   font-family: monospace;
   user-select: all;
+}
+.scanner-diagnostic-entry {
+  display: grid;
+  grid-template-rows: 22px 42px;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  font-size: 14px;
+}
+.scanner-diagnostic-entry__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+}
+.scanner-diagnostic-entry__heading > strong {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: inherit;
+  font-weight: 400;
+}
+.scanner-diagnostic-entry .scanner-guide {
+  margin: 0;
+}
+.scanner-diagnostic-entry > .scanner-diagnostic-entry__status {
+  height: 42px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0 14px;
+  border: 1px solid rgba(103, 90, 144, 0.24);
+  border-radius: 8px;
+  font: inherit;
+  color: var(--f5-ink);
+  background: rgba(255, 255, 255, 0.82);
+  overflow: hidden;
+  white-space: nowrap;
+  min-width: 0;
 }

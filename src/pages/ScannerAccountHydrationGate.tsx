@@ -50,7 +50,7 @@ export function ScannerAccountGate({
       <div className="sea-page scanner-web">
         <PageHeader
           title="扫描与导入"
-          description="扫描游戏中的驱动盘，核对结果后，由你确认导入当前账户。"
+          description="读取游戏资产，再导入当前账户。"
           scope={{ kind: 'local', label: '仅本机处理 · 不自动写入账户' }}
         />
         <section className="panel" role="status" aria-live="polite">

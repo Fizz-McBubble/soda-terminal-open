@@ -62,6 +62,14 @@ export const rosterSnapshotSchema = z.object({
           level: z.number().int().min(1).max(60).nullable(),
           ascension: z.number().int().min(0).max(5).nullable().optional(),
           refinement: z.number().int().min(0).max(5).nullable(),
+          manualProgression: z
+            .object({
+              engineId: z.string().min(1),
+              level: z.number().int().min(1).max(60).optional(),
+              ascension: z.number().int().min(0).max(5).optional(),
+              refinement: z.number().int().min(1).max(5).optional(),
+            })
+            .optional(),
         })
         .optional(),
       wEngineCopyId: z.string().min(1).nullable().optional(),

@@ -1,4 +1,4 @@
-@media (min-width: 1401px) {
+@container soda-viewport (min-width: 1401px) {
   .f5v-shell .scanner-golden__workbench {
     grid-template-columns: clamp(190px, 12rem, 230px) minmax(0, 1fr) clamp(260px, 17rem, 320px);
   }
@@ -8,19 +8,22 @@
   }
 }
 
-@media (min-width: 961px) and (max-width: 1180px) {
+@container soda-viewport (min-width: 961px) and (max-width: 1180px) {
   .f5v-shell .journey-list--five {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 1400px) {
+@media (max-width: 1279px) {
   .f5v-shell[data-slice-theme='bright-muted'] {
     grid-template-columns: 166px minmax(0, 1fr);
   }
   .f5v-shell :is(.f5v-topbar, .f5v-page-content) {
     padding-inline: 20px;
   }
+}
+
+@container soda-viewport (max-width: 1400px) {
   .f5v-shell :is(.home-focus, .soda-home--golden .home-focus) {
     height: auto;
     min-height: 560px;
@@ -154,6 +157,9 @@
   .f5v-content {
     border-radius: 0;
   }
+}
+
+@container soda-viewport (max-width: 960px) {
   .f5v-shell .scanner-golden__workbench {
     height: auto;
     grid-template-columns: 1fr;
@@ -206,11 +212,13 @@
   }
 }
 
-@media (max-width: 600px) {
+@container soda-viewport (max-width: 600px) {
   .f5v-shell :is(.home-scene, .soda-home--golden .home-scene) {
     display: none;
   }
+}
 
+@media (max-width: 600px) {
   .f5v-topbar {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
@@ -247,7 +255,7 @@
 }
 
 /* Keep the accepted desktop composition when the whole shell is zoomed. */
-@media (min-width: 1401px) {
+@container soda-viewport (min-width: 1401px) {
   .f5v-shell .soda-home--golden .home-focus {
     height: 604px;
   }

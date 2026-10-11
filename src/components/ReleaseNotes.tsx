@@ -4,6 +4,16 @@ import './ReleaseNotes.css'
 // Keep player-facing changes with the release that ships them, newest first.
 const releases = [
   {
+    date: '2026-10-10',
+    title: '资产快读 Beta 与导入体验修复',
+    changes: [
+      '新增资产快读 Beta，可读取代理人养成与 S 级驱动盘，提供独立安装包。',
+      '代理人等级、影画与技能随快读导入自动更新，之后仍可手动修改；导入前保留恢复副本。',
+      '新建账户与准备工具直接展示，指南按需展开，补全游戏目录指引并修复焦点边框与页面滚动。',
+      '更新日志同步近期改动，固定高度内滚动查看。',
+    ],
+  },
+  {
     date: '2026-10-09',
     title: '扫描提速与问题反馈优化',
     changes: [

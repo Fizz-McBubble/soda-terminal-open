@@ -17,3 +17,108 @@
     opacity: 1;
   }
 }
+
+/* Use opacity for floating content: its position is owned by the anchor/dialog,
+   and moving that box would change pointer and scrolling geometry. */
+@keyframes soda-local-content-enter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+:root .f5v-shell :is(button, .button, summary),
+:root :is(.f5v-select-menu-popover, .explanation-popover) button {
+  transition:
+    color var(--soda-motion-fast) var(--soda-ease-out),
+    background-color var(--soda-motion-fast) var(--soda-ease-out),
+    border-color var(--soda-motion-fast) var(--soda-ease-out),
+    box-shadow var(--soda-motion-fast) var(--soda-ease-out),
+    transform var(--soda-motion-fast) var(--soda-ease-out);
+}
+
+/* Only action controls move. Selection rows and tabs retain their hit geometry. */
+@media (hover: hover) and (pointer: fine) {
+  :root
+    .f5v-shell
+    :is(.button, .filter-select__trigger, .scanner-account-picker__trigger):not(:disabled):not(
+      [aria-disabled='true']
+    ):hover {
+    transform: translateY(-0.5px);
+  }
+}
+
+:root
+  .f5v-shell
+  :is(.button, .filter-select__trigger, .scanner-account-picker__trigger):not(:disabled):not(
+    [aria-disabled='true']
+  ):active {
+  transform: scale(0.985);
+}
+
+/* A focus ring is immediate, including menus portalled outside the shell. */
+:root .f5v-shell :is(button, .button, summary, [role='tab']):focus-visible,
+:root :is(.f5v-select-menu-popover, .explanation-popover) button:focus-visible {
+  outline: 2px solid var(--soda-accent);
+  outline-offset: 2px;
+}
+
+:root .f5v-shell .scanner-account-picker__options,
+:root .f5v-select-menu-popover,
+:root .f5v-shell dialog.soda-asset-dialog[open],
+:root .f5v-shell [role='tabpanel']:not([hidden]),
+:root .f5v-shell :is(.warehouse-calculation-status, .app-loading-status) {
+  animation: soda-local-content-enter var(--soda-motion-fast) var(--soda-ease-out);
+}
+
+:root .explanation-popover[popover] {
+  transition:
+    opacity var(--soda-motion-fast) var(--soda-ease-out),
+    display var(--soda-motion-fast) allow-discrete,
+    overlay var(--soda-motion-fast) allow-discrete;
+}
+
+/* Keep pending images quiet and their existing slot size intact. Never pulse
+   status text, replay animation for elapsed seconds, or simulate progress. */
+:root .f5v-shell .visual-asset-fallback[aria-busy='true'] {
+  color: var(--soda-text-2);
+  background-color: var(--soda-surface-raised);
+}
+
+/* Portals do not inherit shell selectors. Both accessibility and the explicit
+   project override must stop their transitions as well as shell animation. */
+@media (prefers-reduced-motion: reduce) {
+  :root .f5v-shell *,
+  :root .f5v-shell *::before,
+  :root .f5v-shell *::after,
+  :root :is(.f5v-select-menu-popover, .explanation-popover),
+  :root :is(.f5v-select-menu-popover, .explanation-popover) * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+
+  :root
+    .f5v-shell
+    :is(.button, .filter-select__trigger, .scanner-account-picker__trigger):is(:hover, :active) {
+    transform: none !important;
+  }
+}
+
+:root[data-soda-motion='off'] .f5v-shell *,
+:root[data-soda-motion='off'] .f5v-shell *::before,
+:root[data-soda-motion='off'] .f5v-shell *::after,
+:root[data-soda-motion='off'] :is(.f5v-select-menu-popover, .explanation-popover),
+:root[data-soda-motion='off'] :is(.f5v-select-menu-popover, .explanation-popover) * {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+
+:root[data-soda-motion='off']
+  .f5v-shell
+  :is(.button, .filter-select__trigger, .scanner-account-picker__trigger):is(:hover, :active) {
+  transform: none !important;
+}

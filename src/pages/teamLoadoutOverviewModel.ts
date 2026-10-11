@@ -294,7 +294,9 @@ export function buildTeamLoadoutOverviewModel({
   const claim = decision.claims.overall
   const visibleBlockers = [
     ...new Set([
-      ...claim.blockers.map(visibleDecisionText),
+      ...claim.blockers
+        .map(visibleDecisionText)
+        .filter((text) => !/缺少.*(?:成员|agent-)|没有.*第三人|双人核心/.test(text)),
       ...decision.claims.teamEngine.blockers.map(visibleDecisionText),
       ...decision.claims.coordination.blockers.map(visibleDecisionText),
       ...(decision.decisionAuthority.status === 'ready'
@@ -310,15 +312,22 @@ export function buildTeamLoadoutOverviewModel({
       ? '当前 BOX 已形成队伍建议'
       : claim.status === 'unsupported'
         ? '当前 BOX 暂无队伍建议'
-        : claim.status === 'limited'
+        : claim.status === 'limited' && (restrictedFamilies.length || completionCandidates.length)
           ? '当前 BOX 只有待培养方向'
           : '当前 BOX 暂无队伍建议',
     summary: visibleRecommendationFamilies.length
       ? '优先推荐有攻略支持的队伍，选定后搭配装备。'
-      : '可查看下方培养方向，或调整固定成员与邦布。',
+      : restrictedFamilies.length || completionCandidates.length
+        ? '可查看下方培养方向，或调整固定成员与邦布。'
+        : ownedAgentIds && ownedAgentIds.length < 3
+          ? '已记录的代理人不足三名，请先在资产中补充已拥有代理人。'
+          : '当前已记录的代理人暂未形成支持的队伍，请在资产中补充或更新资料。',
     // Once this Run has a real executable answer, capability-boundary diagnostics belong in the
     // selected team detail/Evidence instead of displacing the overview's primary decision.
-    blockers: visibleRecommendationFamilies.length ? [] : visibleBlockers,
+    blockers:
+      visibleRecommendationFamilies.length || (ownedAgentIds && ownedAgentIds.length < 3)
+        ? []
+        : visibleBlockers,
     boundary: visibleDecisionText([...new Set(claim.forbids)].join('；')),
     fingerprint: decision.fingerprint.inputHash,
   } satisfies TeamLoadoutVisibleAnswer

@@ -236,7 +236,7 @@
   padding-inline: 12px;
 }
 
-@media (max-width: 540px) {
+@container soda-viewport (max-width: 540px) {
   .r6-golden .catalog-foot {
     gap: 8px;
   }
@@ -439,7 +439,7 @@
 }
 
 /* Keep the narrow, stacked workspace responsive after the desktop adapter rules. */
-@media (max-width: 960px) {
+@container soda-viewport (max-width: 960px) {
   /* Keep complete rows visible at short/zoomed viewports. The stacked page
      scrolls; its catalog must not shrink below a readable selection area. */
   .r6-golden .catalog {

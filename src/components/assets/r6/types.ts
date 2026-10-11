@@ -44,6 +44,7 @@ export type AgentDraft = Pick<
 > & {
   wEngineCatalogId?: string | null
   wEngineLevel?: number | null
+  wEngineLevelManuallySet?: boolean
   wEngineRefinement?: number | null
   wEngineRefinementManuallySet?: boolean
 }

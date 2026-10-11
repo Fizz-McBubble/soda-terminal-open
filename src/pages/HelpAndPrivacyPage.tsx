@@ -68,18 +68,26 @@ export function HelpAndPrivacyPage() {
               在<Link to="/assets/account">我的资产 · 账户</Link>
               导出或恢复备份。清除站点数据、更换浏览器前，请先导出备份并妥善保管；恢复时须选择文件并确认。
             </p>
+            <p>
+              当前入口为 <a href="https://sodaterminal.com">sodaterminal.com</a>。
+              浏览器按网址分别保存资料，旧入口的数据不会自动迁移。已有备份可在
+              <Link to="/assets/account#restore-backup">账户页恢复</Link>
+              ；若旧入口仍能打开，请先在那里导出备份。
+              无法打开时，请保留原浏览器的站点数据，避免清除后失去恢复机会。
+            </p>
             <UsageStatisticsPreference />
           </div>
         </section>
         <section aria-labelledby="help-scanner-heading">
           <h2 id="help-scanner-heading">本机扫描</h2>
           <div className="help-privacy__content">
-            <p>本机扫描用于 Windows 本地版《绝区零》，只收集 S 级驱动盘，跳过 A/B 级。</p>
+            <p>
+              画面扫描只收集 S 级驱动盘，跳过 A/B 级；资产快读读取代理人养成、当前音擎和驱动盘关系。
+            </p>
             <ScannerGuide />
             <p>
-              Windows
-              画面扫描通过本机回环地址连接，读取可见的游戏画面。扫描结果须经你检查并确认导入，才会更新
-              Soda 账户。
+              Windows 画面扫描通过本机回环地址连接，读取可见的游戏画面。两种工具都由软件校验结果；
+              正常结果显示账户与数量，只有异常资料需要校准。点击“导入”后才会更新 Soda 账户。
             </p>
             {lastScanDiagnostic ? (
               <>

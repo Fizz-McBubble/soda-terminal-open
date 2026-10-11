@@ -1,0 +1,223 @@
+/* Keep the method cards stable while each body switches between workflow steps. */
+.f5v-shell .scanner-workbench__methods,
+.f5v-shell .scanner-workbench__methods--active {
+  grid-template-rows: none;
+  row-gap: 20px;
+}
+.f5v-shell .scanner-workbench__method,
+.f5v-shell .scanner-workbench__methods--active .scanner-workbench__method {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: 30px auto 48px minmax(0, 1fr);
+  height: 465px;
+  min-height: 465px;
+  row-gap: 0;
+}
+.f5v-shell .scanner-workbench__method > *,
+.f5v-shell .scanner-workbench .asset-quick-read--compact > * {
+  grid-column: 1;
+}
+.f5v-shell .scanner-workbench .asset-quick-read--compact,
+.f5v-shell .scanner-workbench__methods--active .asset-quick-read--compact {
+  display: contents;
+}
+.f5v-shell .scanner-workbench__method-heading,
+.f5v-shell .scanner-workbench .asset-quick-read__heading {
+  grid-row: 1;
+}
+.f5v-shell .scanner-workbench__scope {
+  grid-row: 2;
+}
+.f5v-shell .scanner-workbench .scanner-method-steps {
+  grid-row: 3;
+}
+.f5v-shell .scanner-workbench__body,
+.f5v-shell .scanner-workbench__method-task {
+  grid-row: 4;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  overflow: auto;
+}
+.f5v-shell .scanner-workbench__body > .scanner-workbench__preparation,
+.f5v-shell .scanner-workbench .scanner-prepare--compact {
+  display: block;
+}
+.f5v-shell .scanner-workbench__body > .scanner-workbench__method-task {
+  flex: 1;
+  overflow: visible;
+}
+.f5v-shell .scanner-workbench__body > .scanner-diagnostic-entry,
+.f5v-shell .scanner-workbench__body > .asset-quick-read__tools {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding-top: 12px;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__connection-summary {
+  margin: 0 0 14px;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__connection-summary > .asset-quick-read__muted {
+  margin: 0;
+  min-height: 23px;
+}
+.f5v-shell .scanner-workbench .scanner-prepare__requirements,
+.f5v-shell .scanner-workbench .asset-quick-read__game-preparation {
+  margin: 0 0 18px;
+}
+.f5v-shell .scanner-workbench .scanner-prepare__intro p,
+.f5v-shell .scanner-workbench .asset-quick-read__connection-summary p {
+  line-height: 1.65;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__disclosure {
+  margin: 0;
+}
+.f5v-shell .scanner-workbench .scanner-prepare__observations {
+  margin-top: 12px;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__task,
+.f5v-shell .scanner-workbench .asset-quick-read__consent-stage,
+.f5v-shell .scanner-workbench .asset-quick-read__complete > div,
+.f5v-shell .scanner-workbench .scanner-import-complete {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__complete {
+  flex: 1;
+  align-items: stretch;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__complete > svg {
+  align-self: flex-start;
+}
+.f5v-shell .scanner-workbench .scanner-import-complete__next {
+  margin-top: auto;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__task > .asset-quick-read__panel,
+.f5v-shell .scanner-workbench .scanner-web__handoff,
+.f5v-shell .scanner-workbench .scanner-dialog-import {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+}
+.f5v-shell .scanner-workbench .scanner-web__handoff {
+  align-items: stretch;
+  width: 100%;
+  max-width: none;
+}
+.f5v-shell
+  .scanner-workbench
+  .asset-quick-read__task
+  .asset-quick-read__panel
+  > .asset-quick-read__actions,
+.f5v-shell .scanner-workbench .asset-quick-read__consent-stage > .asset-quick-read__actions,
+.f5v-shell .scanner-workbench .scanner-dialog-import__actions {
+  margin-top: auto;
+  padding-top: 16px;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__task > .button,
+.f5v-shell .scanner-workbench .scanner-web__scan-actions,
+.f5v-shell .scanner-workbench .asset-quick-read__complete .asset-quick-read__actions {
+  margin-top: auto;
+  align-self: flex-start;
+}
+.f5v-shell .scanner-workbench__method-task > .scanner-web__interaction-lock {
+  margin: 0 0 16px;
+}
+.f5v-shell .scanner-workbench__method-task .scanner-web__handoff + .scanner-workbench__file-check {
+  margin-top: 16px;
+}
+.f5v-shell .scanner-workbench .scanner-target-account__frozen {
+  margin: 0 0 12px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.f5v-shell .scanner-workbench__method-task > .scanner-web__interaction-lock {
+  align-items: center;
+  margin: 0 0 16px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: #fff4dc;
+  color: #624719;
+}
+.f5v-shell .scanner-workbench .scanner-web__interaction-lock > svg {
+  flex-shrink: 0;
+}
+.f5v-shell .scanner-workbench .scanner-web__interaction-lock p {
+  margin: 0;
+}
+.f5v-shell .scanner-workbench .scanner-web__progress {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid #ddd8ee;
+  border-radius: 12px;
+  color: var(--f5-ink);
+  background: #faf9fd;
+}
+.f5v-shell .scanner-workbench .scanner-web__progress-heading,
+.f5v-shell .scanner-workbench .scanner-web__progress-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 16px;
+}
+.f5v-shell .scanner-workbench .scanner-web__progress-heading > div {
+  display: grid;
+  gap: 2px;
+}
+.f5v-shell .scanner-workbench .scanner-web__progress-heading strong {
+  font-size: 24px;
+  line-height: 1.3;
+  font-variant-numeric: tabular-nums;
+}
+.f5v-shell .scanner-workbench .scanner-web__progress-heading small,
+.f5v-shell .scanner-workbench .scanner-web__progress-meta,
+.f5v-shell .scanner-workbench .scanner-web__progress-heading span {
+  color: var(--f5-muted);
+  font-size: 12px;
+}
+.f5v-shell .scanner-workbench .scanner-web__progress-meta {
+  flex-wrap: wrap;
+}
+.f5v-shell .scanner-workbench .scanner-web__progress-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.f5v-shell .scanner-workbench .scanner-web__progress progress {
+  appearance: none;
+  width: 100%;
+  height: 8px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 4px;
+  background: #eae5f4;
+}
+.f5v-shell .scanner-workbench .scanner-web__progress progress::-webkit-progress-bar {
+  background: #eae5f4;
+}
+.f5v-shell .scanner-workbench .scanner-web__progress progress::-webkit-progress-value {
+  border-radius: 4px;
+  background: var(--f5-accent);
+}
+.f5v-shell .scanner-workbench .scanner-web__progress progress::-moz-progress-bar {
+  border-radius: 4px;
+  background: var(--f5-accent);
+}
+.f5v-shell .scanner-workbench .scanner-web__scan-actions {
+  padding-top: 16px;
+}
+@media (max-width: 900px) {
+  .f5v-shell .scanner-workbench__method,
+  .f5v-shell .scanner-workbench__methods--active .scanner-workbench__method {
+    height: 485px;
+    min-height: 485px;
+  }
+}

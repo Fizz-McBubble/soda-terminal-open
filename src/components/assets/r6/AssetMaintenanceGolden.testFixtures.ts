@@ -1,6 +1,9 @@
-import { vi } from 'vitest'
+import { clearCatalogBrowseContexts } from './useCatalogBrowseState'
+import { beforeEach, vi } from 'vitest'
 import { createEmptyRoster } from '../../../assault/catalog'
 import type { AssetGoldenProps, DiscItem } from './types'
+
+beforeEach(clearCatalogBrowseContexts)
 
 const set = {
   stableId: 'set-a',

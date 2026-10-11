@@ -1,5 +1,5 @@
 /* Desktop density comes from grouped facts and spacing, never clipped text. */
-@media (min-width: 1321px) and (min-height: 760px) {
+@container soda-viewport (min-width: 1321px) and (min-height: 760px) {
   .f5v-shell .ad-golden:has(> .workbench--single-page) {
     height: 100%;
     min-height: 0;

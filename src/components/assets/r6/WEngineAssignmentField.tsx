@@ -83,6 +83,7 @@ export function WEngineAssignmentField({
               wEngineCopyId: null,
               wEngineCatalogId: catalogId,
               wEngineLevel: catalogId ? 60 : null,
+              wEngineLevelManuallySet: false,
               wEngineRefinement: engine ? defaultRefinement(engine) : null,
               wEngineRefinementManuallySet: false,
             })
@@ -100,7 +101,13 @@ export function WEngineAssignmentField({
               min="1"
               max="60"
               value={draft.wEngineLevel ?? 60}
-              onChange={(event) => onChange({ ...draft, wEngineLevel: Number(event.target.value) })}
+              onChange={(event) =>
+                onChange({
+                  ...draft,
+                  wEngineLevel: Number(event.target.value),
+                  wEngineLevelManuallySet: true,
+                })
+              }
             />
           </label>
           <Field

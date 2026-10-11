@@ -193,11 +193,10 @@ describe('ScannerAssistantPage', () => {
     runtimeMock.commands.openHelper.mockRejectedValueOnce(new Error('helper_request_failed_503'))
     render(<App />)
     await user.click(await screen.findByRole('button', { name: '重新连接画面扫描' }))
-    await waitFor(() =>
-      expect(document.querySelector('.scanner-task__feedback')).toHaveTextContent(
-        '未能连接画面扫描，请确认画面扫描已运行后重试。',
-      ),
-    )
+    expect(await screen.findByText('查看诊断')).toBeVisible()
+    expect(
+      screen.queryByText('未能连接画面扫描，请确认画面扫描已运行后重试。'),
+    ).not.toBeInTheDocument()
     expect(screen.queryByText('helper_request_failed_503')).not.toBeInTheDocument()
     await waitFor(() =>
       expect(readLastScanDiagnostic()).toMatchObject({
@@ -206,7 +205,7 @@ describe('ScannerAssistantPage', () => {
         outcome: 'failed',
       }),
     )
-    expect(screen.getByText('网页暂时没有连接到画面扫描。')).toBeInTheDocument()
+    expect(screen.getAllByText('网页暂时没有连接到画面扫描。').length).toBeGreaterThan(0)
     expect(runtimeMock.commands.startScan).not.toHaveBeenCalled()
     expect(await database.accountDriveDiscs.count()).toBe(0)
   })
@@ -215,7 +214,7 @@ describe('ScannerAssistantPage', () => {
     runtimeMock.snapshot = createScannerRuntimeSnapshot('connection_failed')
     render(<App />)
     await screen.findByLabelText('选择本机文件（JSON）')
-    expect(screen.getByRole('region', { name: '扫描前必需条件' })).toHaveTextContent('清除筛选')
+    expect(screen.getByText('S 级驱动盘 · 无需重新登录')).toBeVisible()
     expect(screen.queryByText('扫描准备条件与导入范围')).not.toBeInTheDocument()
     expect(screen.queryByText(/\d \/ 5 项准备已通过/)).not.toBeInTheDocument()
     expect(document.querySelector('.scanner-task dialog')).toBeNull()
@@ -229,23 +228,32 @@ describe('ScannerAssistantPage', () => {
       setRuntimeState(state)
       render(<App />)
       expect(await screen.findByLabelText('选择本机文件（JSON）')).toHaveAttribute('type', 'file')
-      expect(screen.getByText('S 级驱动盘 · 无需重新登录 · 约 140 张/分钟')).toBeVisible()
+      const scope = screen.getByText('S 级驱动盘 · 无需重新登录')
+      expect(scope).toBeVisible()
+      expect(scope).toHaveTextContent('约 140 张/分钟')
       expect(screen.queryByText('辅助信息与备用导入')).not.toBeInTheDocument()
     },
   )
 
   it.each([
-    ['connection_failed', '本次扫描未完成', '重新扫描'],
+    ['connection_failed', '本次扫描未完成', null],
     ['ready', '画面扫描已连接', '开始扫描'],
-    ['checking', '画面扫描正在检查游戏与权限', '正在检查'],
-    ['awaiting_elevation', '请确认管理员权限提示', '等待 Windows 权限确认'],
-    ['scanning', '正在读取游戏中的资产', '停止本次扫描'],
-    ['completed', '创建账户后检查本次结果', '确认账户并继续'],
+    ['checking', '画面扫描正在检查游戏与权限', null],
+    ['awaiting_elevation', '请确认管理员权限提示', null],
+    ['scanning', null, '停止本次扫描'],
+    ['completed', null, '确认账户并继续'],
   ])('renders the isolated %s state without account writes', async (state, heading, action) => {
     setRuntimeState(state)
     render(<App />)
-    expect(await screen.findByRole('heading', { name: heading })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: action })).toBeInTheDocument()
+    await screen.findByRole('heading', { name: '扫描与导入' })
+    if (heading) expect(await screen.findByRole('heading', { name: heading })).toBeInTheDocument()
+    if (action) expect(await screen.findByRole('button', { name: action })).toBeInTheDocument()
+    if (state === 'scanning') {
+      expect(await screen.findByRole('progressbar')).toBeInTheDocument()
+      expect(screen.queryByRole('region', { name: '扫描诊断' })).not.toBeInTheDocument()
+    }
+    if (state === 'completed')
+      expect(await screen.findByRole('region', { name: '已完成扫描结果' })).toBeInTheDocument()
     expect(document.querySelector('.scanner-golden')).toHaveAttribute(
       'data-scanner-visual-state',
       state,
@@ -280,7 +288,7 @@ describe('ScannerAssistantPage', () => {
     expect(screen.getByText(/本次已处理 169 张，部分结果不会作为完整仓库导入/)).toBeInTheDocument()
     expect(await screen.findByRole('button', { name: '反馈此问题' })).toBeEnabled()
     expect(screen.queryByLabelText('扫描技术诊断内容')).not.toBeInTheDocument()
-    fireEvent.click(screen.getByText('查看诊断信息'))
+    fireEvent.click(screen.getByText('查看诊断'))
     const diagnostic = readLastScanDiagnostic()
     expect(diagnostic?.counts).toEqual({ processed: 169, total: 492 })
     expect(diagnostic?.reportId).toMatch(/^[0-9a-f-]{36}$/)
@@ -297,10 +305,10 @@ describe('ScannerAssistantPage', () => {
   it('keeps route focus on the unique page heading during direct state restoration', async () => {
     setRuntimeState('scanning')
     render(<App />)
-    const heading = await screen.findByRole('heading', { name: '正在读取游戏中的资产' })
+    const progress = await screen.findByRole('progressbar', { name: '已处理 128，共 384' })
     const pageHeading = screen.getByRole('heading', { name: '扫描与导入' })
     await waitFor(() => expect(pageHeading).toHaveFocus())
-    expect(heading).not.toHaveFocus()
+    expect(progress).not.toHaveFocus()
     expect(screen.getByRole('progressbar', { name: '已处理 128，共 384' })).toBeInTheDocument()
   })
 
@@ -351,7 +359,7 @@ describe('ScannerAssistantPage', () => {
     await screen.findByRole('combobox', { name: '目标账户' })
     expect(screen.getByRole('button', { name: '连接画面扫描' })).toBeEnabled()
     const requirements = screen.getByRole('region', { name: '扫描前必需条件' })
-    expect(requirements).toHaveTextContent('打开“驱动仓库”完整列表')
+    expect(requirements).toHaveTextContent('打开“驱动仓库”')
     expect(requirements).toHaveTextContent('清除筛选')
     expect(screen.getByRole('heading', { name: '画面扫描未连接' })).toBeInTheDocument()
     expect(screen.queryByRole('region', { name: '实际准备检查结果' })).not.toBeInTheDocument()
@@ -403,7 +411,7 @@ describe('ScannerAssistantPage', () => {
     fireEvent.change(await screen.findByRole('textbox', { name: '新账户名称' }), {
       target: { value: '复扫账号' },
     })
-    const create = screen.getByRole('button', { name: '创建并用于本次操作' })
+    const create = screen.getByRole('button', { name: '创建并选用' })
     await waitFor(() => expect(create).toBeEnabled())
     await user.click(create)
     await waitFor(async () => expect(await database.accounts.count()).toBe(1))
@@ -421,14 +429,12 @@ describe('ScannerAssistantPage', () => {
     setRuntimeState('completed')
     render(<App />)
 
-    expect(
-      await screen.findByRole('heading', { name: '创建账户后检查本次结果' }),
-    ).toBeInTheDocument()
+    expect(await screen.findByRole('region', { name: '已完成扫描结果' })).toBeInTheDocument()
     const result = screen.getByRole('region', { name: '已完成扫描结果' })
     expect(result).toHaveTextContent('本次结果 · 平均 230 张/分钟384可直接导入 350 · 待检查 30')
     expect(screen.getByRole('button', { name: '确认账户并继续' })).toBeDisabled()
     await user.type(screen.getByRole('textbox', { name: '新账户名称' }), '扫描结果账户')
-    await user.click(screen.getByRole('button', { name: '创建并用于本次操作' }))
+    await user.click(screen.getByRole('button', { name: '创建并选用' }))
 
     await waitFor(async () => expect(await database.accounts.count()).toBe(1))
     await waitFor(() =>
@@ -446,11 +452,12 @@ describe('ScannerAssistantPage', () => {
     setRuntimeState('ready')
     render(<App />)
 
-    await user.click(await screen.findByText('新建账户'))
+    await screen.findByRole('textbox', { name: '新账户名称' })
     const accountName = screen.getByRole('textbox', { name: '新账户名称' })
-    expect(accountName.closest('details')).toHaveAttribute('open')
+    expect(accountName).toBeVisible()
+    expect(accountName.closest('details')).toBeNull()
     await user.type(accountName, '真实扫描账户')
-    await user.click(screen.getByRole('button', { name: '创建并用于本次操作' }))
+    await user.click(screen.getByRole('button', { name: '创建并选用' }))
 
     await waitFor(async () => expect(await database.accounts.count()).toBe(2))
     await waitFor(() =>

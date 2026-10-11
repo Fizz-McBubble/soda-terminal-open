@@ -118,6 +118,7 @@ const stages: Record<string, string> = {
   permission_denied: 'permission',
   elevation_cancelled: 'permission',
   game_process_not_found: 'preflight',
+  game_window_ambiguous: 'preflight',
   inventory_count_ocr_failed: 'preflight',
   scan_no_importable_s_discs: 'result',
   panel_capture_timeout: 'capture',

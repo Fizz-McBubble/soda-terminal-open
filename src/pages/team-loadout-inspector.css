@@ -98,13 +98,13 @@
   line-height: 1.4;
 }
 
-@media (max-width: 860px) {
+@container soda-viewport (max-width: 860px) {
   .team-execution__inspector {
     position: static;
   }
 }
 
-@media (max-width: 640px) {
+@container soda-viewport (max-width: 640px) {
   .team-execution__inspector {
     padding: 14px;
   }

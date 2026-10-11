@@ -1,0 +1,58 @@
+.f5v-shell .scanner-method-steps {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 20px;
+  padding: 0;
+  list-style: none;
+  color: var(--f5-muted);
+  font-size: 13px;
+  line-height: 24px;
+}
+
+.f5v-shell .scanner-method-steps > li {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.f5v-shell .scanner-method-steps > li:last-child {
+  flex: 0 0 auto;
+}
+
+.f5v-shell .scanner-method-steps > li:not(:last-child)::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  margin-left: 6px;
+  background: var(--f5-line);
+}
+
+.f5v-shell .scanner-method-steps__number {
+  display: inline-flex;
+  flex: 0 0 20px;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--soda-surface-raised, #f4f2f8);
+  font-size: 12px;
+}
+
+.f5v-shell .scanner-method-steps .is-current {
+  color: var(--button-primary-background, #7960ad);
+  font-weight: 700;
+}
+
+.f5v-shell .scanner-method-steps .is-current .scanner-method-steps__number {
+  background: var(--button-primary-background, #7960ad);
+  color: #fff;
+}
+
+.f5v-shell .scanner-method-steps .is-complete .scanner-method-steps__number {
+  background: #eee8f7;
+  color: var(--button-primary-background, #7960ad);
+}

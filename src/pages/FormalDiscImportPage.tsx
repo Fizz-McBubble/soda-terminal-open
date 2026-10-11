@@ -5,7 +5,7 @@ import {
   FormalImportConfirmationDialog,
 } from './formalDiscImportSections'
 import { loadFormalImportCurrent } from './formalDiscImportCurrent'
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { flushSync } from 'react-dom'
 import { Link, Navigate } from 'react-router-dom'
@@ -27,6 +27,9 @@ import { clearScannerTargetAccountBinding } from '../scanner/targetAccountBindin
 import { beginUsageOperation } from '../usageStatistics/client'
 import type { ScannerAssistantSnapshot } from '../scanner/runtime'
 import { ScannerImportReviewFeedback } from './ScannerImportReviewFeedback'
+import { FormalCompactImportResult } from './FormalCompactImportResult'
+import { useCompactImportPreflight } from './useCompactImportPreflight'
+import { containImportDialogFocus } from './formalImportDialogFocus'
 
 type ImportState = { mode: 'idle' | 'success' | 'error'; message: string }
 
@@ -49,8 +52,10 @@ export function FormalDiscImportPage({
   const successSampleMode = import.meta.env.DEV && searchParams.get('successSample') === '400'
   const [revision, setRevision] = useState(0)
   const [state, setState] = useState<ImportState>({ mode: 'idle', message: '' })
+  const [stateKey, setStateKey] = useState('')
   const [busy, setBusy] = useState(false)
   const importPendingRef = useRef(false)
+  const preflightPendingRef = useRef(false)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [dropActive, setDropActive] = useState(false)
   const cancelRef = useRef<HTMLButtonElement>(null)
@@ -109,6 +114,30 @@ export function FormalDiscImportPage({
       ? expectedTotal
       : null
   })()
+  const preflightKey =
+    current && !('bindingError' in current)
+      ? JSON.stringify([
+          current.account.id,
+          current.batch?.id,
+          current.batch?.reviewState.revision,
+          current.batch?.manifest?.payloadHash,
+          current.resultFileHandle,
+        ])
+      : ''
+  const latestPreflightKey = useRef(preflightKey)
+  useLayoutEffect(() => {
+    latestPreflightKey.current = preflightKey
+  }, [preflightKey])
+  useCompactImportPreflight(
+    preflightKey,
+    embedded &&
+      compact &&
+      readyForPreflight &&
+      !readyForConfirmation &&
+      completedImportedTotal === null,
+    busy,
+    runPreflight,
+  )
 
   useEffect(() => {
     if (dialogOpen) cancelRef.current?.focus()
@@ -141,35 +170,6 @@ export function FormalDiscImportPage({
   function closeConfirmation() {
     flushSync(() => setDialogOpen(false))
     confirmationTriggerRef.current?.focus()
-  }
-
-  function containDialogFocus(event: React.KeyboardEvent<HTMLElement>) {
-    if (event.key === 'Escape') {
-      event.preventDefault()
-      event.stopPropagation()
-      closeConfirmation()
-      return
-    }
-    if (event.key !== 'Tab') return
-    const focusable = Array.from(
-      dialogRef.current?.querySelectorAll<HTMLElement>(
-        'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-      ) ?? [],
-    )
-    if (focusable.length === 0) {
-      event.preventDefault()
-      return
-    }
-    const first = focusable[0]
-    const last = focusable[focusable.length - 1]
-    const active = document.activeElement
-    if (event.shiftKey && (active === first || !dialogRef.current?.contains(active))) {
-      event.preventDefault()
-      last.focus()
-    } else if (!event.shiftKey && (active === last || !dialogRef.current?.contains(active))) {
-      event.preventDefault()
-      first.focus()
-    }
   }
 
   async function loadStaging(file: File | undefined) {
@@ -205,8 +205,18 @@ export function FormalDiscImportPage({
   }
 
   async function runPreflight() {
-    if (!current || 'bindingError' in current || !current.batch || !publicScannerDriveDiscData)
+    if (
+      preflightPendingRef.current ||
+      importPendingRef.current ||
+      !current ||
+      'bindingError' in current ||
+      !current.batch ||
+      !publicScannerDriveDiscData
+    )
       return
+    preflightPendingRef.current = true
+    const checkedKey = preflightKey
+    setStateKey(checkedKey)
     setBusy(true)
     setState({ mode: 'idle', message: '' })
     try {
@@ -222,6 +232,7 @@ export function FormalDiscImportPage({
         database,
         current.batch.reviewState.revision,
       )
+      if (latestPreflightKey.current !== checkedKey) return
       if (!result.complete)
         onError?.('scan_import_failed', '检查未通过，请返回准备步骤重新扫描；账户仓库尚未更新。')
       setState({
@@ -232,12 +243,14 @@ export function FormalDiscImportPage({
       })
       setRevision((value) => value + 1)
     } catch (error) {
+      if (latestPreflightKey.current !== checkedKey) return
       onError?.('scan_import_failed', '重新检查失败，请重试；账户仓库尚未更新。')
       setState({
         mode: 'error',
         message: error instanceof Error ? error.message : '重新检查失败。',
       })
     } finally {
+      preflightPendingRef.current = false
       setBusy(false)
     }
   }
@@ -258,6 +271,7 @@ export function FormalDiscImportPage({
     )
       return
     importPendingRef.current = true
+    setStateKey(preflightKey)
     setBusy(true)
     const finishUsage = beginUsageOperation('disc_import')
     try {
@@ -397,42 +411,19 @@ export function FormalDiscImportPage({
 
   if (embedded && compact)
     return (
-      <div className="scanner-inline-import scanner-dialog-import">
-        {state.message && (
-          <p
-            className={state.mode === 'error' ? 'danger-note' : 'safe-note'}
-            role={state.mode === 'error' ? 'alert' : 'status'}
-            aria-live="polite"
-          >
-            {state.message}
-          </p>
-        )}
-        <section className="scanner-dialog-import__ready" aria-label="确认更新驱动盘">
-          <div className="scanner-dialog-import__impact">
-            <div>
-              <span>更新账户</span>
-              <strong>{current.account.displayName}</strong>
-            </div>
-            <b>
-              {current.binding.baselineDiscCount} → {current.items.length} 张
-            </b>
-          </div>
-          <p>
-            本次结果将替换这个账户的驱动盘仓库。匹配到的旧盘保留标签和方案引用；其他账户与代理人资料不变。
-          </p>
-          <div className="scanner-dialog-import__actions">
-            <button
-              className="button button--primary scanner-result-dialog__primary"
-              type="button"
-              disabled={!readyForConfirmation || busy}
-              onClick={() => void confirmImport()}
-            >
-              {busy ? '正在更新账户' : '确认更新驱动盘'}
-            </button>
-            {secondaryAction}
-          </div>
-        </section>
-      </div>
+      <FormalCompactImportResult
+        accountName={current.account.displayName}
+        baselineCount={current.binding.baselineDiscCount}
+        count={current.items.length}
+        ready={readyForConfirmation}
+        complete={readyForPreflight}
+        busy={busy}
+        error={state.mode === 'error' && stateKey === preflightKey}
+        message={state.message}
+        secondaryAction={secondaryAction}
+        onImport={() => void confirmImport()}
+        onRetry={() => void runPreflight()}
+      />
     )
 
   return (
@@ -489,7 +480,9 @@ export function FormalDiscImportPage({
           busy={busy}
           onClose={closeConfirmation}
           onConfirm={() => void confirmImport()}
-          onKeyDown={containDialogFocus}
+          onKeyDown={(event) =>
+            containImportDialogFocus(event, dialogRef.current, closeConfirmation)
+          }
         />
       )}
     </div>

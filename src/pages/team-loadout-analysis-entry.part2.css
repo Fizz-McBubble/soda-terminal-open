@@ -78,7 +78,7 @@
   cursor: pointer;
 }
 
-@media (max-width: 1020px) {
+@container soda-viewport (max-width: 1020px) {
   .f5v-box-analysis-entry__workspace {
     grid-template-columns: 1fr;
     height: auto;
@@ -94,7 +94,7 @@
   }
 }
 
-@media (max-width: 760px) {
+@container soda-viewport (max-width: 760px) {
   .f5v-box-analysis-entry {
     padding: 28px 18px;
   }
