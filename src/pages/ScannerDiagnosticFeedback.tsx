@@ -148,7 +148,6 @@ export function ScannerDiagnosticFeedback({
   else if (safe.counts.total !== null) metadata.push(`共 ${safe.counts.total} 张`)
   if (safe.durationMs !== null) metadata.push(`耗时 ${(safe.durationMs / 1000).toFixed(1)} 秒`)
   if (safe.versions.installer) metadata.push(`画面扫描 v${safe.versions.installer}`)
-  else if (safe.versions.helper) metadata.push(`助手 v${safe.versions.helper}`)
   const details = (
     <DiagnosticPopover
       key={reportKey}

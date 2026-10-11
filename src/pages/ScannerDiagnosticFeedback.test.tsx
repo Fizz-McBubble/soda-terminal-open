@@ -55,6 +55,22 @@ it('keeps compact empty and recorded diagnostics in the same two-layer footer', 
   fireEvent.click(screen.getByText('查看诊断'))
   expect(screen.getByRole('button', { name: '反馈此问题' })).toBeVisible()
 })
+it('shows only the product version and keeps internal versions out of the summary', () => {
+  const report = makeReport()
+  const view = render(
+    <ScannerDiagnosticFeedback
+      report={{ ...report, versions: { installer: '1.0.10', helper: '2.3.12' } }}
+    />,
+  )
+  fireEvent.click(screen.getByText('查看诊断信息'))
+  expect(screen.getByText('画面扫描 v1.0.10')).toBeVisible()
+  expect(view.container).not.toHaveTextContent('2.3.12')
+  view.rerender(
+    <ScannerDiagnosticFeedback report={{ ...report, versions: { helper: '2.3.11' } }} />,
+  )
+  expect(view.container).not.toHaveTextContent('2.3.11')
+  expect(view.container).not.toHaveTextContent('v1.0.10')
+})
 it('copies, downloads and restores the acknowledged ID after a conflict retry', async () => {
   const report = makeReport()
   saveLastScanDiagnostic(report)
