@@ -8,6 +8,7 @@ import {
   type TargetPanelMetricSemantic,
 } from '../gameDataPacks/targetPanelSemantics'
 import type { PanelResult } from '../calculation/outOfCombatPanel'
+import { formatDevelopmentEntityText } from '../application/publicRosterNames'
 import {
   getL3AgentDevelopmentEvidence,
   type L3AgentDevelopmentEvidenceStatus,
@@ -222,7 +223,22 @@ export function targetPanelLowerBound(panel: TargetPanel, label: CharacterPanelL
 
 export function targetPanelDisplayValue(panel: TargetPanel, label: CharacterPanelLabel) {
   const target = readTargetValue(panel, label)
-  if (target === null) return null
+  if (target === null) {
+    // Reviewed skill-level variants are display guidance, never an unconditional
+    // numeric bound. Keep their conditions when no single target is meaningful.
+    if (!panel || panel.status === 'missing' || !panel.value || typeof panel.value !== 'object')
+      return null
+    const values = panel.value as Record<string, unknown>
+    if (targetKeys[label]?.some((key) => Object.hasOwn(values, key))) return null
+    const variants = values.displayVariants
+    if (!Array.isArray(variants)) return null
+    const matching = variants.filter(
+      (entry): entry is string => typeof entry === 'string' && entry.startsWith(`${label} `),
+    )
+    return matching.length
+      ? matching.map((entry) => entry.slice(label.length).trim()).join(' / ')
+      : null
+  }
   const { value, semantic } = target
   const base =
     typeof value === 'number'
@@ -259,9 +275,9 @@ function candidateReferences(evidence: ReturnType<typeof getL3AgentDevelopmentEv
         id: `${claim.reviewedClaimId ?? 'unreviewed'}:${fact.fieldPath}:${fact.sourceIds.join('|')}`,
         group: candidateReferenceGroup(fact.fieldPath),
         fieldPath: fact.fieldPath,
-        conclusion: fact.value,
+        conclusion: formatDevelopmentEntityText(fact.value),
         strength: claim.strength,
-        conditions: claim.conditions,
+        conditions: claim.conditions.map(formatDevelopmentEntityText),
         sourceIds: fact.sourceIds,
         evidenceId: claim.reviewedClaimId,
         contentHashes: claim.contentHashes,

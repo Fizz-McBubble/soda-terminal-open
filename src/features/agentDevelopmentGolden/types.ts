@@ -128,6 +128,7 @@ export type GoldenWorkbenchData = {
     }
     skillPriority: string[]
     panel: Array<{ name: string; value: string }>
+    panelDirection?: string
     panelConditions?: readonly string[]
     teams: Array<{
       label: string

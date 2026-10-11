@@ -156,6 +156,13 @@ export function Workbench({
                 <h2 id="current-title">当前状态</h2>
               </div>
               <div className="current-state-actions">
+                {subject.graduation.engineConditions?.length ? (
+                  <ExplanationPopover label="音擎说明" title="音擎适用条件">
+                    {subject.graduation.engineConditions.map((condition) => (
+                      <p key={condition}>{condition}</p>
+                    ))}
+                  </ExplanationPopover>
+                ) : null}
                 <span className="account-fact current-level-fact">
                   <b>
                     Lv.{subject.level} · {subject.mindscape} 影
@@ -265,13 +272,6 @@ export function Workbench({
                     </li>
                   ))}
                 </ol>
-                {subject.graduation.engineConditions?.length ? (
-                  <ExplanationPopover label="音擎说明" title="音擎适用条件">
-                    {subject.graduation.engineConditions.map((condition) => (
-                      <p key={condition}>{condition}</p>
-                    ))}
-                  </ExplanationPopover>
-                ) : null}
               </section>
             </div>
           </section>

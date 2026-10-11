@@ -1,4 +1,4 @@
-import { Fragment, useState } from 'react'
+import { Fragment } from 'react'
 import { VisualEntityImage } from '../../components/VisualEntityImage'
 import { ExplanationPopover } from '../../components/ExplanationPopover'
 import { EffectDescription } from '../../components/EffectDescription'
@@ -52,17 +52,6 @@ function optionPriorityLabel(set: DiscOption, hasSharedPrimary: boolean) {
 /** Keep choices visible and the complete explanation beside the choice it describes. */
 export function DevelopmentDiscGuide({ guide }: { guide: DiscGuide }) {
   const guideKey = JSON.stringify(guide)
-  const [expansion, setExpansion] = useState({
-    guideKey,
-    directions: false,
-    secondary: [] as string[],
-  })
-  const currentExpansion =
-    expansion.guideKey === guideKey
-      ? expansion
-      : { guideKey, directions: false, secondary: [] as string[] }
-  if (expansion.guideKey !== guideKey) setExpansion(currentExpansion)
-  const showAllDirections = currentExpansion.directions
   const rawOptions: DiscOption[] = guide.sets.map((set) =>
     set.pieces
       ? { ...set, pieces: set.pieces }
@@ -130,8 +119,6 @@ export function DevelopmentDiscGuide({ guide }: { guide: DiscGuide }) {
     const secondary = set.pieces.filter(
       (piece) => piece.count === 2 && !sharedKeys.has(effectKey(piece)),
     )
-    const expansionKey = JSON.stringify([guideKey, set.label])
-    const showAllSecondary = currentExpansion.secondary.includes(expansionKey)
     return (
       <li className="disc-guide__option" key={set.label}>
         <span className="recommendation-square-group" aria-hidden="true">
@@ -192,7 +179,7 @@ export function DevelopmentDiscGuide({ guide }: { guide: DiscGuide }) {
             </dl>
           </ExplanationPopover>
           <div className="disc-guide__secondary-options" aria-label="搭配效果">
-            {secondary.slice(0, showAllSecondary ? undefined : previewLimit).map((piece, index) => (
+            {secondary.slice(0, previewLimit).map((piece, index) => (
               <Fragment key={effectKey(piece)}>
                 {index > 0 ? (
                   <span className="disc-guide__secondary-separator" aria-hidden="true">
@@ -213,21 +200,23 @@ export function DevelopmentDiscGuide({ guide }: { guide: DiscGuide }) {
               </Fragment>
             ))}
             {secondary.length > previewLimit ? (
-              <button
-                type="button"
+              <ExplanationPopover
+                key={guideKey}
                 className="disc-guide__more"
-                aria-expanded={showAllSecondary}
-                onClick={() =>
-                  setExpansion({
-                    ...currentExpansion,
-                    secondary: showAllSecondary
-                      ? currentExpansion.secondary.filter((key) => key !== expansionKey)
-                      : [...currentExpansion.secondary, expansionKey],
-                  })
-                }
+                label={`更多副套（${secondary.length - previewLimit}）`}
+                title="更多两件套搭配"
               >
-                {showAllSecondary ? '收起' : `更多搭配（${secondary.length - previewLimit}）`}
-              </button>
+                <dl>
+                  {secondary.slice(previewLimit).map((piece) => (
+                    <div key={effectKey(piece)}>
+                      <dt>{piece.name} 2件</dt>
+                      <dd>
+                        <EffectDescription text={piece.effect} />
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </ExplanationPopover>
             ) : null}
           </div>
         </div>
@@ -238,19 +227,6 @@ export function DevelopmentDiscGuide({ guide }: { guide: DiscGuide }) {
     <article className="loadout-recommendation-card loadout-recommendation-card--discs disc-guide">
       <header className="disc-guide__heading">
         <h3>驱动盘建议</h3>
-        {guide.mainStatAlternatives?.length ? (
-          <ExplanationPopover label="词条备选" title="按用途选择词条">
-            {guide.mainStatAlternatives.map((alternative) => (
-              <section key={`${alternative.label}-${alternative.sourceUrl}`}>
-                <strong>{alternative.label}</strong>
-                <p>{alternative.condition}</p>
-                <a href={alternative.sourceUrl} target="_blank" rel="noreferrer">
-                  查看攻略{alternative.sourceVersion ? ` · ${alternative.sourceVersion}` : ''}
-                </a>
-              </section>
-            ))}
-          </ExplanationPopover>
-        ) : null}
         {shared.length ? (
           <div className="disc-guide__shared">
             {shared.map((piece) => (
@@ -260,30 +236,47 @@ export function DevelopmentDiscGuide({ guide }: { guide: DiscGuide }) {
             ))}
           </div>
         ) : null}
-        {guide.directionNote ? (
-          <ExplanationPopover label="选择说明">
-            {guide.directionNote && (
-              <p>
-                <EffectDescription text={guide.directionNote} />
-              </p>
-            )}
-          </ExplanationPopover>
-        ) : null}
+        <div className="disc-guide__actions">
+          {guide.mainStatAlternatives?.length ? (
+            <ExplanationPopover label="词条备选" title="按用途选择词条">
+              {guide.mainStatAlternatives.map((alternative) => (
+                <section key={`${alternative.label}-${alternative.sourceUrl}`}>
+                  <strong>{alternative.label}</strong>
+                  <p>{alternative.condition}</p>
+                  <a href={alternative.sourceUrl} target="_blank" rel="noreferrer">
+                    查看攻略{alternative.sourceVersion ? ` · ${alternative.sourceVersion}` : ''}
+                  </a>
+                </section>
+              ))}
+            </ExplanationPopover>
+          ) : null}
+          {currentOptions.length > previewLimit ? (
+            <ExplanationPopover
+              key={guideKey}
+              className="disc-guide__more"
+              label={`更多搭配（${currentOptions.length - previewLimit}）`}
+              title="更多驱动盘搭配"
+            >
+              <ol className="loadout-disc-options disc-guide__additional-options">
+                {currentOptions.slice(previewLimit).map(renderOption)}
+              </ol>
+            </ExplanationPopover>
+          ) : null}
+          {guide.directionNote ? (
+            <ExplanationPopover label="选择说明">
+              {guide.directionNote && (
+                <p>
+                  <EffectDescription text={guide.directionNote} />
+                </p>
+              )}
+            </ExplanationPopover>
+          ) : null}
+        </div>
       </header>
       {guide.unavailableReason && <p role="status">{guide.unavailableReason}</p>}
       <ol className={`loadout-disc-options${distinctDirections ? ' has-distinct-directions' : ''}`}>
-        {currentOptions.slice(0, showAllDirections ? undefined : previewLimit).map(renderOption)}
+        {currentOptions.slice(0, previewLimit).map(renderOption)}
       </ol>
-      {currentOptions.length > previewLimit ? (
-        <button
-          type="button"
-          className="disc-guide__more"
-          aria-expanded={showAllDirections}
-          onClick={() => setExpansion({ ...currentExpansion, directions: !showAllDirections })}
-        >
-          {showAllDirections ? '收起' : `更多搭配（${currentOptions.length - previewLimit}）`}
-        </button>
-      ) : null}
       <dl className="loadout-main-stat-priority" aria-label="4、5、6号位主词条建议">
         {guide.mainStats.map((stat) => (
           <div key={stat.slot}>

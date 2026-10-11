@@ -9,6 +9,7 @@ import {
   agentCatalog,
   getAgentName,
   getAgentSpecialtyLabel,
+  formatDevelopmentEntityText,
 } from '../application/publicRosterNames'
 import {
   developmentSkillLabels as skillLabels,
@@ -109,13 +110,19 @@ export function createAgentDevelopmentWorkbenchData({
       : ('unavailable' as const)
   const mainStats = equipment?.graduationDisplay.mainStats ?? []
   const displayedGraduationTeams = equipment?.graduationTeams ?? []
-  const graduationEngines = equipment?.graduationEngines ?? [
-    {
-      tier: '候选方向' as const,
-      name: '音擎方向资料待刷新',
-      bonus: '请刷新当前账户的养成分析。',
-    },
-  ]
+  const graduationEngines = (
+    equipment?.graduationEngines ?? [
+      {
+        tier: '候选方向' as const,
+        name: '音擎方向资料待刷新',
+        bonus: '请刷新当前账户的养成分析。',
+      },
+    ]
+  ).map((engine) => ({
+    ...engine,
+    name: formatDevelopmentEntityText(engine.name),
+    bonus: formatDevelopmentEntityText(engine.bonus),
+  }))
   const graduationDiscSets = routeProjection?.setRecommendations ?? []
   const historicalDiscReferences = equipment?.historicalDiscReferences ?? []
   const discSetConditions = equipment?.discSetConditions ?? []
@@ -172,13 +179,14 @@ export function createAgentDevelopmentWorkbenchData({
       skillPriority: skillPriority.length
         ? skillPriority.map((key) => skillLabels[key])
         : ['资料待补齐'],
-      panel: graduationPanel.length ? graduationPanel : [{ name: '毕业面板', value: '资料待补齐' }],
+      panel: graduationPanel,
+      panelDirection: graduationPanel.length ? undefined : equipment?.graduationDisplay.subStats,
       panelConditions: targetPanel?.conditions,
       teams: displayedGraduationTeams.length
         ? displayedGraduationTeams
         : [{ label: '队伍方向资料待补齐', members: catalog.playerName, visuals: [] }],
       engines: graduationEngines,
-      engineConditions: equipment?.engineConditions ?? [],
+      engineConditions: equipment?.engineConditions?.map(formatDevelopmentEntityText) ?? [],
       discs: {
         sets: graduationDiscSets,
         historicalReferences: historicalDiscReferences,

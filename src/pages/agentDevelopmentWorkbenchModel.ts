@@ -1,6 +1,7 @@
 import {
   agentCatalog,
   bangbooCatalog,
+  formatDevelopmentEntityText,
   getAgentSpecialtyLabel,
 } from '../application/publicRosterNames'
 import wEngineCatalog from '../assault/data/wEngineCatalog.3.0.json'
@@ -215,7 +216,7 @@ function engineRecommendation(engineDirection: string) {
   const catalog = wEngineCatalog.items.find(
     (item) => item.id === engineDirection || item.name === engineDirection,
   )
-  const name = current?.playerName ?? catalog?.name ?? engineDirection
+  const name = current?.playerName ?? catalog?.name ?? formatDevelopmentEntityText(engineDirection)
   const rarity = current?.rarity ?? catalog?.rarity ?? null
   const specialty = current?.specialty ?? catalog?.specialty ?? null
   return {

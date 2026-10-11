@@ -2,14 +2,12 @@ import { ExplanationPopover } from '../../components/ExplanationPopover'
 import type { GoldenWorkbenchData } from './types'
 
 export function WorkbenchPanelSnapshot({ subject }: { subject: GoldenWorkbenchData }) {
-  // The displayed qualifier comes from the sourced target requirement; only its
-  // presentation order changes, preserving the source order within each group.
+  // Preserve sourced qualifiers and order, keeping optional targets out of the main row.
   const isOptionalTarget = (fact: GoldenWorkbenchData['graduation']['panel'][number]) =>
     /（可选(?:\s*·|）)/.test(fact.value)
-  const panelTargets = [
-    ...subject.graduation.panel.filter((fact) => !isOptionalTarget(fact)),
-    ...subject.graduation.panel.filter(isOptionalTarget),
-  ]
+  const panelTargets = subject.graduation.panel.filter((fact) => !isOptionalTarget(fact))
+  const optionalTargets = subject.graduation.panel.filter(isOptionalTarget)
+  const hasPanelTargets = subject.graduation.panel.length > 0
   return (
     <section
       className="panel-snapshot current-overview__panel"
@@ -34,21 +32,42 @@ export function WorkbenchPanelSnapshot({ subject }: { subject: GoldenWorkbenchDa
         <p className="panel-snapshot__unavailable">{subject.currentPanel.summary}</p>
       )}
       <section className="panel-graduation-targets" aria-labelledby="panel-target-title">
-        <small id="panel-target-title">毕业面板推荐</small>
+        <small id="panel-target-title">{hasPanelTargets ? '毕业面板推荐' : '副词条方向'}</small>
         <div className="panel-graduation-targets__items">
+          {!hasPanelTargets && subject.graduation.panelDirection ? (
+            <span className="panel-graduation-targets__direction">
+              {subject.graduation.panelDirection}
+            </span>
+          ) : null}
           {panelTargets.map((fact) => (
             <span className="panel-graduation-targets__item" key={fact.name}>
               <small>{fact.name}</small>
               <b>{fact.value}</b>
             </span>
           ))}
-          {subject.graduation.panelConditions?.length ? (
-            <ExplanationPopover label="适用条件" title="毕业面板适用条件">
-              <ul>
-                {subject.graduation.panelConditions.map((condition) => (
-                  <li key={condition}>{condition}</li>
-                ))}
-              </ul>
+          {optionalTargets.length || subject.graduation.panelConditions?.length ? (
+            <ExplanationPopover
+              key={subject.agentId}
+              label={optionalTargets.length ? '更多' : '适用条件'}
+              title={optionalTargets.length ? '毕业面板更多参考' : '毕业面板适用条件'}
+            >
+              {optionalTargets.length ? (
+                <dl className="panel-graduation-targets__optional">
+                  {optionalTargets.map((fact) => (
+                    <div key={fact.name}>
+                      <dt>{fact.name}</dt>
+                      <dd>{fact.value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : null}
+              {subject.graduation.panelConditions?.length ? (
+                <ul>
+                  {subject.graduation.panelConditions.map((condition) => (
+                    <li key={condition}>{condition}</li>
+                  ))}
+                </ul>
+              ) : null}
             </ExplanationPopover>
           ) : null}
         </div>

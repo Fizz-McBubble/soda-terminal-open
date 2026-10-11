@@ -88,6 +88,15 @@
   font-size: var(--soda-font-body);
   line-height: 1.5;
 }
+.f5v-shell .next-training-steps__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.f5v-shell .next-training-steps__heading .explanation__trigger {
+  white-space: nowrap;
+}
 .f5v-shell .next-training-steps p {
   margin-block: 6px;
   font-size: var(--soda-font-body);

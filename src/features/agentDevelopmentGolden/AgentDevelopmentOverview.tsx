@@ -5,6 +5,7 @@ import {
 } from '../../components/assets/r6/useCatalogBrowseState'
 import { Star } from 'lucide-react'
 import { VisualEntityImage } from '../../components/VisualEntityImage'
+import { ExplanationPopover } from '../../components/ExplanationPopover'
 import { preloadSelectedAgentAvatar } from '../../components/SelectedAgentAvatar'
 import { SelectMenu } from '../../components/assets/r6/SelectMenu'
 import { createLatestVisualSelection } from '../../assets/visualEntityImageSource'
@@ -406,15 +407,20 @@ export function AgentDevelopmentOverview({
               ) : null}
               {selectedAgent.nextTrainingSteps?.length ? (
                 <div className="next-training-steps">
-                  <strong>接下来可补的技能</strong>
+                  <div className="next-training-steps__heading">
+                    <strong>接下来可补的技能</strong>
+                    {selectedAgent.nextTrainingSteps.length > 2 ? (
+                      <ExplanationPopover
+                        key={selectedAgent.agentId}
+                        label={`其余 ${selectedAgent.nextTrainingSteps.length - 2} 项`}
+                        title="其余可补技能"
+                      >
+                        <p>{selectedAgent.nextTrainingSteps.slice(2).join('；')}</p>
+                      </ExplanationPopover>
+                    ) : null}
+                  </div>
                   <p>{selectedAgent.nextTrainingSteps.slice(0, 2).join('；')}</p>
                   <small>当前等级 → 养成目标</small>
-                  {selectedAgent.nextTrainingSteps.length > 2 ? (
-                    <details>
-                      <summary>其余 {selectedAgent.nextTrainingSteps.length - 2} 项</summary>
-                      <p>{selectedAgent.nextTrainingSteps.slice(2).join('；')}</p>
-                    </details>
-                  ) : null}
                 </div>
               ) : null}
               <button
