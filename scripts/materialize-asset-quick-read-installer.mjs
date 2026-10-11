@@ -23,8 +23,8 @@ export async function materializeAssetQuickReadInstaller({
     !(
       (manifest.version === '1.0.0' &&
         manifest.fileName === 'Soda-Asset-Quick-Read-Setup-1.0.0.exe') ||
-      (manifest.version === '1.0.1' &&
-        manifest.fileName === 'SodaTerminal-AssetReader-Setup-1.0.1.exe')
+      (/^\d+\.\d+\.\d+$/u.test(manifest.version) &&
+        manifest.fileName === `SodaTerminal-AssetReader-Setup-${manifest.version}.exe`)
     ) ||
     manifest.releaseTag !== `v${manifest.version}` ||
     manifest.repo !== 'Fizz-McBubble/soda-terminal-asset-quick-read' ||

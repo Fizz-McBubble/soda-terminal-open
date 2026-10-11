@@ -2,7 +2,7 @@ export type InstallerDownloadResult = 'save_requested'
 
 export function scannerInstallerFileName(version: string): string {
   if (!/^\d+\.\d+\.\d+$/u.test(version)) throw new Error('invalid_installer_version')
-  return version === '1.0.9'
+  return !/^1\.0\.[0-8]$/u.test(version)
     ? `SodaTerminal-Scanner-Setup-${version}.exe`
     : `Soda-画面扫描-${version}.exe`
 }

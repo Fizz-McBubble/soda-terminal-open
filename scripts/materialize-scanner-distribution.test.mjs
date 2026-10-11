@@ -10,7 +10,7 @@ import {
   pinnedScannerAssetUrlRc86,
   pinnedScannerAssetUrlRc87,
   pinnedScannerAssetUrlRc88,
-  pinnedScannerAssetUrlRc89,
+  pinnedScannerAssetUrlRc810,
   scannerAssetLocation,
 } from './materialize-scanner-distribution.mjs'
 
@@ -83,7 +83,7 @@ test('materializes a same-origin bootstrap with a pinned external runtime withou
     assert.equal(rendered.releaseState, 'published')
     const manifest = JSON.parse(await readFile(join(output, names[3]), 'utf8'))
     assert.equal(manifest.releaseState, 'published')
-    assert.equal(manifest.assetUrl, pinnedScannerAssetUrlRc89)
+    assert.equal(manifest.assetUrl, pinnedScannerAssetUrlRc810)
     await assert.rejects(
       materializeScannerDistribution({
         origin: 'https://example.test',

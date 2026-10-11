@@ -88,7 +88,7 @@ test('HEAD and a small range retain exact release size, digest and range metadat
 test('wrong version, repo, asset, release size or checksum fails before fetching', async () => {
   for (const patch of [
     { available: false },
-    { version: '1.0.2' },
+    { version: '999.0.0' },
     { repo: 'foreign/repo' },
     { releaseTag: 'latest' },
     { fileName: 'other.exe' },
