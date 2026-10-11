@@ -56,7 +56,7 @@ it('replaces the disconnected status with download feedback and removes installa
       installer={<AssetQuickReadInstallerAction release={release} />}
     />,
   )
-  expect(screen.queryByRole('heading', { name: '准备游戏' })).not.toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: '准备游戏' })).toBeVisible()
   expect(screen.getAllByRole('status')).toHaveLength(1)
   fireEvent.click(screen.getByRole('button', { name: '下载资产快读' }))
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('文件已准备'))

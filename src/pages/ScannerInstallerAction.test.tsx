@@ -58,7 +58,7 @@ it('replaces compact preparation feedback instead of adding a download status ro
       installer={<ScannerInstallerAction distribution={initialDistributionSnapshot} />}
     />,
   )
-  expect(screen.queryByRole('heading', { name: '准备游戏' })).not.toBeInTheDocument()
+  expect(screen.getByRole('heading', { name: '准备游戏' })).toBeVisible()
   fireEvent.click(screen.getByRole('button', { name: /下载画面扫描/ }))
   await waitFor(() =>
     expect(screen.getByRole('heading', { name: '在下载列表打开安装包' })).toBeVisible(),
