@@ -45,7 +45,6 @@ export interface AssetQuickReadPreview {
 export interface AssetQuickReadEntryProps {
   /** Only the real independent tool adapter may report ready. */
   capability?: 'unavailable' | 'ready'
-  toolVersion?: string
   /** Controlled by the adapter; this component never simulates capture or a deadline. */
   state?: AssetQuickReadState
   onConnect?: () => void | Promise<void>
@@ -148,7 +147,6 @@ export function AssetQuickReadEntry({
   riskNoticeHref,
   installer,
   downloadAvailable = false,
-  toolVersion,
   renderParts,
   workbenchExtras,
   pendingInspection = false,
@@ -385,9 +383,6 @@ export function AssetQuickReadEntry({
           '资产快读已连接，可准备本次资产快读。'
         ) : (
           stateCopy[state]
-        )}
-        {capability === 'ready' && state === 'idle' && toolVersion && (
-          <span className="asset-quick-read__tool-version">v{toolVersion}</span>
         )}
         {!renderParts && pendingAction === 'start' && state === 'idle' && (
           <p>正在提交本次启动请求，请等待工具反馈。</p>
