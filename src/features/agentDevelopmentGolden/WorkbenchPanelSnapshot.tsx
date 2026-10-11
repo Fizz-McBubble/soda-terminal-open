@@ -25,11 +25,12 @@ export function WorkbenchPanelSnapshot({ subject }: { subject: GoldenWorkbenchDa
       ) : (
         <p className="panel-snapshot__unavailable">{subject.currentPanel.summary}</p>
       )}
+      <WorkbenchGraduationTargets subject={subject} />
     </section>
   )
 }
 
-export function WorkbenchGraduationTargets({ subject }: { subject: GoldenWorkbenchData }) {
+function WorkbenchGraduationTargets({ subject }: { subject: GoldenWorkbenchData }) {
   const isOptionalTarget = (fact: GoldenWorkbenchData['graduation']['panel'][number]) =>
     /（可选(?:\s*·|）)/.test(fact.value)
   const panelTargets = subject.graduation.panel.filter((fact) => !isOptionalTarget(fact))
