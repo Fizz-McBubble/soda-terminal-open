@@ -334,6 +334,7 @@ it('renders workbench parts without duplicate steps or file buttons and inspects
   const harness = workbenchHarness()
   const client = bridge()
   vi.stubGlobal('crypto', {
+    randomUUID: () => '00000000-0000-4000-8000-000000000001',
     subtle: { digest: vi.fn().mockResolvedValue(new Uint8Array(32).buffer) },
   })
   try {
@@ -570,6 +571,7 @@ it('locks file inspection in flight and ignores its late account-bound response'
       }),
   })
   vi.stubGlobal('crypto', {
+    randomUUID: () => '00000000-0000-4000-8000-000000000001',
     subtle: { digest: vi.fn().mockResolvedValue(new Uint8Array(32).buffer) },
   })
   try {
@@ -717,4 +719,81 @@ it('connects an installed tool on explicit click without an account or game dire
   expect(screen.getByRole('button', { name: '连接资产快读' })).toBeEnabled()
   expect(harness.read().busy).toBe(false)
   expect(persistence.confirm).not.toHaveBeenCalled()
+})
+
+it('prepares a second completed read without reconnecting, starting or importing until confirmed', async () => {
+  const client = bridge()
+  client.connect.mockResolvedValue({ ...health, version: '1.0.2' })
+  const harness = workbenchHarness()
+  const refresh = vi.fn()
+  render(
+    <AssetQuickReadController
+      client={client}
+      targetAccountId={targetAccountId}
+      activeAccountId={targetAccountId}
+      targetAccountName="合成账户"
+      workbench={harness.render}
+      onImported={refresh}
+    />,
+  )
+  await startAndReceive()
+  const firstImport = screen.getByRole('button', { name: '导入' })
+  await act(async () => {
+    fireEvent.click(firstImport)
+    fireEvent.click(firstImport)
+  })
+  expect(persistence.confirm).toHaveBeenCalledOnce()
+  persistence.readRecovery.mockResolvedValue({
+    recoveryKey: 'synthetic-recovery',
+    createdAt: '2026-10-10T00:00:00Z',
+    canRestore: true,
+  })
+  const restart = screen.getByRole('button', { name: '重新读取' })
+  await act(async () => {
+    fireEvent.click(restart)
+    fireEvent.click(restart)
+  })
+  expect(harness.read().state).toBe('idle')
+  expect(harness.read().busy).toBe(false)
+  expect(harness.read().hasTask).toBe(false)
+  expect(screen.getByLabelText('游戏安装目录')).toHaveValue("soda-source-ref:24d5780e541a1a1ad1393e8962be6e18")
+  expect(screen.getByText('资产快读已连接')).toBeVisible()
+  expect(screen.queryByRole('button', { name: '恢复上次资产快读导入' })).not.toBeInTheDocument()
+  expect(client.connect).toHaveBeenCalledOnce()
+  expect(client.start).toHaveBeenCalledOnce()
+  expect(client.cancel).not.toHaveBeenCalled()
+  expect(persistence.confirm).toHaveBeenCalledOnce()
+  expect(persistence.restore).not.toHaveBeenCalled()
+  expect(refresh).toHaveBeenCalledOnce()
+
+  fireEvent.click(screen.getByRole('button', { name: '一键读取' }))
+  expect(screen.getByRole('checkbox', { name: /我已阅读上述风险/ })).not.toBeChecked()
+  const secondStart = screen.getByRole('button', { name: '开始读取' })
+  expect(secondStart).toBeDisabled()
+  fireEvent.click(secondStart)
+  expect(client.start).toHaveBeenCalledOnce()
+  converted.candidate = { ...converted.candidate, snapshotSha256: 'b'.repeat(64) }
+  client.result.mockResolvedValue({
+    jobId,
+    targetAccountId,
+    snapshot: { synthetic: true },
+    sha256: 'b'.repeat(64),
+    capturedAt: '2026-10-10T00:01:00Z',
+  })
+  fireEvent.click(screen.getByRole('checkbox', { name: /我已阅读上述风险/ }))
+  await act(async () => fireEvent.click(secondStart))
+  await act(async () => vi.advanceTimersByTimeAsync(1000))
+  expect(client.start).toHaveBeenCalledTimes(2)
+  expect(client.connect).toHaveBeenCalledOnce()
+  expect(persistence.confirm).toHaveBeenCalledOnce()
+  const secondImport = screen.getByRole('button', { name: '导入' })
+  await act(async () => {
+    fireEvent.click(secondImport)
+    fireEvent.click(secondImport)
+  })
+  expect(persistence.confirm).toHaveBeenCalledTimes(2)
+  expect(persistence.confirm.mock.calls[1][2].snapshotSha256).toBe('b'.repeat(64))
+  expect(harness.read().state).toBe('completed')
+  expect(screen.getByRole('button', { name: '恢复本次导入' })).toBeEnabled()
+  expect(refresh).toHaveBeenCalledTimes(2)
 })

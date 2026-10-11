@@ -433,9 +433,11 @@ export function AgentLoadoutComparisonPage() {
           return
         }
         navigate(
-          selectedCandidateRank === undefined
-            ? `/development/${agentId}`
-            : `/development/${agentId}?candidate=${selectedCandidateRank}`,
+          selectedCandidateRank === 0 && currentPlan
+            ? `/development/${agentId}?plan=${encodeURIComponent(currentPlan.id)}`
+            : selectedCandidateRank === undefined
+              ? `/development/${agentId}`
+              : `/development/${agentId}?candidate=${selectedCandidateRank}`,
         )
       }}
       onSavePlan={persist}

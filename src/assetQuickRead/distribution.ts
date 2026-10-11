@@ -2,6 +2,7 @@ import manifest from './releaseManifest.json'
 export type AssetQuickReadRelease = {
   available: boolean
   version: string
+  bridgeVersion?: string
   fileName: string
   releaseTag: string
   repo: string

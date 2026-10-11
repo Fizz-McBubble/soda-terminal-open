@@ -73,5 +73,11 @@ export type ScannerAssistantSnapshot = {
   /** Per-attempt, allowlisted technical facts from Helper; no raw log or account data. */
   diagnostics?: ScannerAttemptDiagnostics
   /** Component identities from the current verified runtime connection, not an old scan. */
-  connectedVersions?: { installer?: string; runtime?: string; scanner?: string }
+  connectedVersions?: {
+    installer?: string
+    runtime?: string
+    scanner?: string
+    helper?: string
+    protocol?: string
+  }
 }

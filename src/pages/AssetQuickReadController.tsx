@@ -1,7 +1,7 @@
 import { assetFailureDiagnostic, type AssetDiagnosticReport } from '../assetQuickRead/diagnostics'
 import { readAssetDiagnostic, saveAssetDiagnostic } from '../assetQuickRead/feedback'
 import { AssetQuickReadFeedback } from './AssetQuickReadFeedback'
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { AssetQuickReadEntry, type AssetQuickReadState } from './AssetQuickReadEntry'
 import { AssetQuickReadBridgeClient, type AssetBridgeJob } from '../assetQuickRead/bridgeClient'
 import { assetSnapshotSchema, convertAssetSnapshot } from '../assetQuickRead/snapshotAdapter'
@@ -437,7 +437,8 @@ function AccountBoundQuickRead({
           generation.current === scope ||
           name === 'start' ||
           name === 'file' ||
-          name === 'discard'
+          name === 'discard' ||
+          name === 'restart'
         )
           setOperation(null)
       }
@@ -459,6 +460,18 @@ function AccountBoundQuickRead({
       setReview(null)
       setError('')
       setCompletion('')
+      setState('idle')
+    })
+  const prepareAgain = () =>
+    runOperation('restart', async () => {
+      if (state !== 'completed') return
+      generation.current++
+      ownedJob.current = null
+      setJob(null)
+      setReview(null)
+      setError('')
+      setCompletion('')
+      setRestoreArmed(false)
       setState('idle')
     })
   async function stop() {
@@ -493,9 +506,28 @@ function AccountBoundQuickRead({
     state === 'error' ||
     Boolean(error) ||
     (state === 'received' && Boolean(review?.issue || (review && !review.candidate.importable)))
+  const currentStatusDiagnostic = useMemo(
+    () => ({
+      ...assetFailureDiagnostic(
+        state === 'capturing'
+          ? 'waiting'
+          : ['received', 'completed'].includes(state)
+            ? 'result'
+            : 'connection',
+        undefined,
+        job,
+        toolVersion,
+      ),
+      outcome: state === 'completed' ? 'completed' : 'unknown',
+      code: 'unknown',
+    }),
+    [state, job, toolVersion],
+  )
   const taskExtras = (
     <>
-      <AssetQuickReadFeedback report={showFailureDiagnostic ? diagnostic : null} />
+      <AssetQuickReadFeedback
+        report={showFailureDiagnostic ? diagnostic : workbench ? currentStatusDiagnostic : null}
+      />
       {state === 'error' && active(job) && (
         <div className="asset-quick-read__recovery">
           <p>连接失败时工具可能仍在等待；先尝试停止本次资产快读，再重新连接。</p>
@@ -581,6 +613,7 @@ function AccountBoundQuickRead({
       canImport={accountReady && Boolean(review?.plan?.importable)}
       onImport={importResult}
       onDiscard={discardResult}
+      onPrepareAgain={prepareAgain}
       onExport={review ? exportResult : undefined}
       elapsedSeconds={
         job?.readyAt && job.remainingSeconds !== null
@@ -590,7 +623,7 @@ function AccountBoundQuickRead({
       remainingSeconds={job?.readyAt ? (job.remainingSeconds ?? undefined) : undefined}
       transactionNotice="导入会更新本次读到的代理人养成与驱动盘，之后仍可自行修改。导入前自动保存恢复副本；未读取的资产与盘标签保留。"
       errorMessage={
-        error ||
+        (workbench ? '' : error) ||
         (connected && !targetAccountId
           ? '请先在页面顶部选择目标账户。'
           : connected && !directory.trim() && state === 'idle'

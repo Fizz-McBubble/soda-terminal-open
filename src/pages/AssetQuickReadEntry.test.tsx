@@ -732,3 +732,39 @@ it('blocks preparation entry for a received candidate and in-flight connection w
   expect(pending).toBeEnabled()
   expect(onStart).not.toHaveBeenCalled()
 })
+
+it('returns completed reads to preparation only when allowed and requires fresh consent', async () => {
+  const onPrepareAgain = vi.fn()
+  const onStart = vi.fn()
+  const props = {
+    capability: 'ready' as const,
+    onPrepareAgain,
+    onStart,
+    renderParts: ({
+      preparation,
+      task,
+    }: {
+      preparation: React.ReactNode
+      task: React.ReactNode
+    }) => (
+      <>
+        {preparation}
+        {task}
+      </>
+    ),
+  }
+  const view = render(<AssetQuickReadEntry {...props} state="completed" blocked />)
+  const restart = screen.getByRole('button', { name: '重新读取' })
+  expect(restart).toBeDisabled()
+  fireEvent.click(restart)
+  expect(onPrepareAgain).not.toHaveBeenCalled()
+  view.rerender(<AssetQuickReadEntry {...props} state="completed" />)
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '重新读取' })))
+  expect(onPrepareAgain).toHaveBeenCalledOnce()
+  expect(onStart).not.toHaveBeenCalled()
+  view.rerender(<AssetQuickReadEntry {...props} state="idle" />)
+  fireEvent.click(screen.getByRole('button', { name: '一键读取' }))
+  expect(screen.getByRole('checkbox', { name: /我已阅读上述风险/ })).not.toBeChecked()
+  expect(screen.getByRole('button', { name: '开始读取' })).toBeDisabled()
+  expect(onStart).not.toHaveBeenCalled()
+})

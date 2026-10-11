@@ -3,6 +3,62 @@ import type { DriveDisc } from '../domain/schemas'
 import type { evaluateDevelopmentRecordedDiscs } from '../pages/developmentRecordedDiscEvaluation'
 import type { createAgentDevelopmentPanelProjection } from '../pages/agentDevelopmentPanelProjection'
 import type { createAgentDevelopmentWorkbenchViewModel } from '../pages/agentDevelopmentWorkbenchViewModel'
+import type { RosterAgent } from '../assault/types'
+import { contentHash } from './contentHash'
+
+export type DevelopmentCurrentRecord = {
+  accountId: string
+  agent: Pick<
+    RosterAgent,
+    | 'agentId'
+    | 'owned'
+    | 'level'
+    | 'ascension'
+    | 'mindscape'
+    | 'potentialImage'
+    | 'skillLevels'
+    | 'wEngineDetails'
+    | 'observedFacts'
+  >
+  revision: string
+  selectedDiscIds: string[]
+}
+
+export function developmentCurrentRecordAgent(
+  agent: RosterAgent,
+): DevelopmentCurrentRecord['agent'] {
+  const {
+    agentId,
+    owned,
+    level,
+    ascension,
+    mindscape,
+    potentialImage,
+    skillLevels,
+    wEngineDetails,
+    observedFacts,
+  } = agent
+  return {
+    agentId,
+    owned,
+    level,
+    ascension,
+    mindscape,
+    potentialImage,
+    skillLevels,
+    wEngineDetails,
+    observedFacts,
+  }
+}
+
+export function developmentCurrentRecordBinding(record: DevelopmentCurrentRecord) {
+  return contentHash([
+    record.accountId,
+    record.agent.agentId,
+    record.revision,
+    record.selectedDiscIds,
+  ])
+}
 
 export type DevelopmentWorkbenchRouteSelection = {
   agentId: string
@@ -27,6 +83,8 @@ export type DevelopmentWorkbenchRoutePresentation = {
   discFacts: GoldenWorkbenchData['discs']
   workbench: ReturnType<typeof createAgentDevelopmentWorkbenchViewModel> | null
   graduationPanel: GoldenWorkbenchData['graduation']['panel']
+  /** A saved-record panel refresh is separate from the captured run's recommendations. */
+  currentRecordBinding?: string
 }
 
 export function isCurrentDevelopmentWorkbenchRoute(
@@ -42,6 +100,7 @@ export function isCurrentDevelopmentWorkbenchRoute(
 ) {
   return Boolean(
     value?.contract === 'soda-development-workbench-route/v1' &&
+    value.currentRecordBinding === undefined &&
     value.runId === expected.runId &&
     value.accountId === expected.accountId &&
     value.inputFingerprint === expected.inputFingerprint &&

@@ -4,7 +4,9 @@ import { developmentPanelDiscFingerprint } from './publicDevelopmentComparisonPa
 import type {
   DevelopmentWorkbenchRouteSelection,
   DevelopmentWorkbenchRoutePresentation,
+  DevelopmentCurrentRecord,
 } from './publicDevelopmentWorkbenchRoute'
+import { developmentCurrentRecordBinding } from './publicDevelopmentWorkbenchRoute'
 import { resolveSavedAgentPlanRoute } from '../pages/agentDevelopmentSavedPlanRoute'
 import { projectDevelopmentCandidateAlternatives } from '../decision/developmentCandidateAlternatives'
 import { createAgentDevelopmentPanelProjection } from '../pages/agentDevelopmentPanelProjection'
@@ -32,6 +34,7 @@ import { getCurrentBuildTargetPanel } from '../gameDataPacks/currentBuildAuthori
 export function projectDevelopmentWorkbenchRoute(
   run: AccountDecisionRun,
   selection: DevelopmentWorkbenchRouteSelection,
+  currentRecord?: DevelopmentCurrentRecord,
 ): DevelopmentWorkbenchRoutePresentation {
   const warehouse = run.input.warehouse
   const base = {
@@ -55,8 +58,22 @@ export function projectDevelopmentWorkbenchRoute(
     workbench: null,
     graduationPanel: [],
   })
-  const agent = warehouse.roster.agents.find((item) => item.agentId === selection.agentId)
-  if (!agent?.owned || !warehouse.accountId) return unavailable('missing')
+  const capturedAgent = warehouse.roster.agents.find((item) => item.agentId === selection.agentId)
+  if (!capturedAgent?.owned || !warehouse.accountId) return unavailable('missing')
+  if (
+    currentRecord &&
+    (currentRecord.accountId !== warehouse.accountId ||
+      currentRecord.agent.agentId !== selection.agentId ||
+      !currentRecord.agent.owned ||
+      currentRecord.revision !== contentHash(currentRecord.agent) ||
+      selection.candidateRank !== null ||
+      selection.candidateLoadoutFingerprint !== null ||
+      currentRecord.selectedDiscIds.length > 6 ||
+      new Set(currentRecord.selectedDiscIds).size !== currentRecord.selectedDiscIds.length ||
+      currentRecord.selectedDiscIds.some((id) => !warehouse.discs.some((disc) => disc.id === id)))
+  )
+    return unavailable('references_changed')
+  const agent = currentRecord ? { ...capturedAgent, ...currentRecord.agent } : capturedAgent
   if (selection.requestedPlanId && selection.candidateRank !== null)
     return unavailable('candidate_mismatch')
   const saved = resolveSavedAgentPlanRoute({
@@ -89,7 +106,9 @@ export function projectDevelopmentWorkbenchRoute(
   const hasComparablePlan = candidateChoices.length === 6
   const candidateIds = candidateChoices.map((choice) => choice.disc.id)
   const equippedIds = agent.equippedDiscIds ?? []
-  const selectedIds = hasComparablePlan ? candidateIds : (saved.plan?.warehouseRefs ?? equippedIds)
+  const selectedIds =
+    currentRecord?.selectedDiscIds ??
+    (hasComparablePlan ? candidateIds : (saved.plan?.warehouseRefs ?? equippedIds))
   const selectedDiscs = warehouse.discs
     .filter((disc) => selectedIds.includes(disc.id))
     .toSorted((a, b) => a.slot - b.slot)
@@ -104,7 +123,7 @@ export function projectDevelopmentWorkbenchRoute(
     agent,
     discs: warehouse.discs,
     candidateDiscIds: hasComparablePlan ? candidateIds : null,
-    planDiscIds: saved.plan?.warehouseRefs,
+    planDiscIds: currentRecord?.selectedDiscIds ?? saved.plan?.warehouseRefs,
   })
   const panelContext = createDevelopmentPanelContext({
     coreLevel: agent.skillLevels.core,
@@ -169,5 +188,8 @@ export function projectDevelopmentWorkbenchRoute(
     discFacts,
     workbench,
     graduationPanel,
+    ...(currentRecord
+      ? { currentRecordBinding: developmentCurrentRecordBinding(currentRecord) }
+      : {}),
   }
 }

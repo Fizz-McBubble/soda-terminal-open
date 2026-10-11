@@ -256,6 +256,7 @@ export type AgentDevelopmentGoldenProps = {
   onOpenAgent?: (agentId: string) => void
   onOpenSavedAgent?: (agentId: string) => void
   onEditCurrent?: () => void
+  currentUpdate?: { message: string; detail?: string; onRetry?: () => void }
   onContinueOptimization?: () => void
   onToggleFavorite?: (agentId: string) => void | Promise<void>
   onDeleteAgentPlan?: (agentId: string) => void

@@ -88,6 +88,20 @@ async function showPage() {
   await screen.findByRole('region', { name: '本次操作目标账户' })
   return result
 }
+
+it('uses the top-level account selection for quick read without another confirmation', async () => {
+  await showPage()
+  await choosePlayerSelect(
+    screen.getByRole('combobox', { name: '目标账户' }),
+    'account-workbench-other',
+  )
+  await waitFor(() =>
+    expect(screen.getByRole('combobox', { name: '目标账户' })).toHaveTextContent('合成备用账户'),
+  )
+  expect(screen.queryByRole('button', { name: '使用所选接收账户' })).not.toBeInTheDocument()
+  expect(bridge.start).not.toHaveBeenCalled()
+  expect(await database.accountDriveDiscs.count()).toBe(0)
+})
 function assertFocusedWorkspace() {
   expect(screen.getByRole('complementary', { name: '非官方工具风险提示' })).toBeVisible()
   expect(document.getElementById('scanner-workbench-guides')).toBeNull()
@@ -131,7 +145,7 @@ it('keeps a failed connection in one diagnosis without a duplicate alert or stag
 })
 async function prepareQuick() {
   fireEvent.change(screen.getByLabelText('游戏安装目录'), {
-    target: { value: 'D:\\SyntheticGame' },
+    target: { value: "soda-source-ref:ee09b7b910b89ca3d044849bf8cbb524" },
   })
   await act(async () => fireEvent.click(screen.getByRole('button', { name: '连接资产快读' })))
   fireEvent.click(screen.getByRole('button', { name: '一键读取' }))
@@ -171,7 +185,9 @@ it('shows an empty target selector beside account creation before allowing acqui
   expect(within(target).getByLabelText('新账户名称')).toBeVisible()
   expect(screen.getByRole('button', { name: '开始扫描' })).toBeDisabled()
   await act(async () => fireEvent.click(screen.getByRole('button', { name: '连接资产快读' })))
-  expect(screen.getByRole('button', { name: '一键读取' })).toBeDisabled()
+  const readAction = screen.queryByRole('button', { name: '一键读取' })
+  if (readAction) expect(readAction).toBeDisabled()
+  expect(bridge.start).not.toHaveBeenCalled()
 })
 
 it('drops a quick snapshot into the existing shared inspection without connecting or writing accounts', async () => {

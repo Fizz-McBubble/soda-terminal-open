@@ -145,6 +145,7 @@ export function useDevelopmentWorkbenchRouteCalculation() {
     async (
       runId: string,
       selection: import('./publicDevelopmentWorkbenchRoute').DevelopmentWorkbenchRouteSelection,
+      currentRecord?: import('./publicDevelopmentWorkbenchRoute').DevelopmentCurrentRecord,
     ): Promise<
       import('./publicDevelopmentWorkbenchRoute').DevelopmentWorkbenchRoutePresentation
     > => {
@@ -154,6 +155,7 @@ export function useDevelopmentWorkbenchRouteCalculation() {
         kind: 'development_workbench_route',
         runId,
         selection,
+        ...(currentRecord ? { currentRecord } : {}),
       })
     },
     [client],

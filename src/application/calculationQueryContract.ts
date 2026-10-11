@@ -166,6 +166,7 @@ export type DevelopmentWorkbenchRouteQuery = {
   kind: 'development_workbench_route'
   runId: string
   selection: import('./publicDevelopmentWorkbenchRoute').DevelopmentWorkbenchRouteSelection
+  currentRecord?: import('./publicDevelopmentWorkbenchRoute').DevelopmentCurrentRecord
 }
 
 export type DevelopmentCandidateAlternativesQueryResult = {

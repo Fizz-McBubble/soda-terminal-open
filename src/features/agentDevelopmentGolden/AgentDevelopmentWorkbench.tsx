@@ -25,6 +25,7 @@ export function Workbench({
   data,
   onSavePlan,
   onEditCurrent,
+  currentUpdate,
   onAnalyzeWarehouse,
 }: {
   toOverview: () => void
@@ -33,6 +34,7 @@ export function Workbench({
   scenario: JourneyScenario
   data: GoldenWorkbenchData
   onEditCurrent?: () => void
+  currentUpdate?: AgentDevelopmentGoldenProps['currentUpdate']
   onSavePlan?: AgentDevelopmentGoldenProps['onSavePlan']
   onAnalyzeWarehouse?: AgentDevelopmentGoldenProps['onAnalyzeWarehouse']
 }) {
@@ -168,6 +170,16 @@ export function Workbench({
                     Lv.{subject.level} · {subject.mindscape} 影
                   </b>
                 </span>
+                {currentUpdate && (
+                  <span role="status" title={currentUpdate.detail}>
+                    {currentUpdate.message}
+                    {currentUpdate.onRetry && (
+                      <button type="button" className="text-action" onClick={currentUpdate.onRetry}>
+                        重试
+                      </button>
+                    )}
+                  </span>
+                )}
                 <button
                   type="button"
                   className="edit-current"

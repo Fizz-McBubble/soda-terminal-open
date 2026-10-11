@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import contract from '../scanner/scanFeedback.contract.json'
 import type { AssetBridgeJob } from './bridgeClient'
+import { browserDiagnostic } from '../scanner/diagnostics'
 
 const rules = contract.assetQuickRead
 const listed = (values: string[]) => z.string().refine((value) => values.includes(value))
@@ -30,11 +31,17 @@ const schema = z
       })
       .strict(),
     durationMs: z.number().int().min(0).max(contract.durationMaxMs).nullable(),
-    environment: z.object({}).strict(),
+    environment: z
+      .object({
+        browser: listed(rules.browsers).optional(),
+        browserMajor: z.number().int().positive().max(1000).optional(),
+      })
+      .strict(),
     evidence: z
       .object({
         remainingSeconds: z.number().int().min(0).max(180).optional(),
         candidateAvailable: z.boolean().optional(),
+        jobState: listed(rules.evidenceEnums.jobState).optional(),
       })
       .strict(),
   })
@@ -68,6 +75,7 @@ export function assetFailureDiagnostic(
   error?: unknown,
   job?: AssetBridgeJob | null,
   version?: string,
+  now = Date.now(),
 ): AssetDiagnosticReport {
   const candidate = error instanceof AssetQuickReadRequestError ? error.diagnosticCode : job?.code
   const fallback = {
@@ -104,12 +112,30 @@ export function assetFailureDiagnostic(
       version && new RegExp(rules.versionPatterns.bridge).test(version)
         ? { bridge: version, protocol: '1' }
         : {},
-    counts: { processed: null, total: null },
-    durationMs: null,
-    environment: {},
+    counts: {
+      processed: null,
+      total: null,
+      ...(job?.counts
+        ? Object.fromEntries(
+            Object.entries(job.counts).filter(
+              ([key, value]) =>
+                Object.hasOwn(rules.countLimits, key) &&
+                Number.isInteger(value) &&
+                value >= 0 &&
+                value <= rules.countLimits[key as keyof typeof rules.countLimits],
+            ),
+          )
+        : {}),
+    },
+    durationMs:
+      job && Number.isFinite(Date.parse(job.startedAt)) && now >= Date.parse(job.startedAt)
+        ? Math.min(contract.durationMaxMs, Math.round(now - Date.parse(job.startedAt)))
+        : null,
+    environment: browserDiagnostic(navigator.userAgent),
     evidence: job
       ? {
           candidateAvailable: job.candidateAvailable,
+          jobState: job.state,
           ...(Number.isInteger(job.remainingSeconds) && job.remainingSeconds! <= 180
             ? { remainingSeconds: job.remainingSeconds }
             : {}),

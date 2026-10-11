@@ -13,6 +13,11 @@ import type {
   DevelopmentWorkbenchRouteSelection,
 } from '../application/publicDevelopmentWorkbenchRoute'
 import { isCurrentDevelopmentWorkbenchRoute } from '../application/publicDevelopmentWorkbenchRoute'
+import {
+  developmentCurrentRecordBinding,
+  developmentCurrentRecordAgent,
+} from '../application/publicDevelopmentWorkbenchRoute'
+import { developmentCommittedCurrentDisplay } from './developmentCommittedCurrentDisplay'
 import { developmentPanelDiscFingerprint } from '../application/publicDevelopmentComparisonPanels'
 import {
   AgentDevelopmentGolden,
@@ -31,7 +36,13 @@ import { WarehouseMatchError } from '../application/warehouseMatchFeedback'
 
 type CandidateSnapshot = NonNullable<ReturnType<typeof readDevelopmentCandidateSnapshot>>
 type EditingPresentation = { accountId: string; presentation: GoldenWorkbenchData }
-type SaveRefresh = EditingPresentation & { agentId: string }
+type SaveRefresh = EditingPresentation & {
+  agentId: string
+  kind?: 'current_record'
+  phase?: 'updating' | 'failed'
+  record?: ComponentProps<typeof AgentDevelopmentCurrentEditor>['roster']['agents'][number]
+  error?: string
+}
 type WarehouseRefresh = SaveRefresh & { inputFingerprint: string | null }
 type RouteRead = { key: string; value: DevelopmentWorkbenchRoutePresentation }
 type RouteProjection = {
@@ -112,6 +123,116 @@ export function AgentDevelopmentWorkbenchView({
       decisionWorld.liveFingerprint,
     ]),
   )
+  const currentRecordRefresh =
+    saveRefresh?.kind === 'current_record' &&
+    saveRefresh.accountId === accountId &&
+    saveRefresh.agentId === agentId
+      ? saveRefresh
+      : null
+  const displayedWorkbenchData =
+    currentRecordRefresh?.presentation ??
+    (savingThisAgent
+      ? saveRefresh?.presentation
+      : editingThisAgent
+        ? editingPresentation?.presentation
+        : null) ??
+    workbenchData
+  async function refreshSavedCurrentRecord(savedRoster: Props['roster']) {
+    const isCurrentPage = capturePageScope()
+    // The database save has committed. Release the edit snapshot now so
+    // live account facts can update while the full analysis is pending.
+    setEditingCurrent(false)
+    setEditingPresentation(null)
+    const savedAgent = savedRoster.agents.find((agent) => agent.agentId === agentId)
+    if (!savedAgent) throw new Error('代理人资料保存后未能重新读取。')
+    let committedPresentation = developmentCommittedCurrentDisplay(
+      displayedWorkbenchData,
+      savedAgent,
+    )
+    setSaveRefresh({
+      accountId,
+      agentId,
+      kind: 'current_record',
+      phase: 'updating',
+      record: savedAgent,
+      presentation: committedPresentation,
+    })
+    const selection = {
+      agentId,
+      requestedPlanId,
+      candidateRank: null,
+      candidateLoadoutFingerprint: null,
+    }
+    try {
+      const currentAgent = developmentCurrentRecordAgent(savedAgent)
+      const record = {
+        accountId,
+        agent: currentAgent,
+        revision: contentHash(currentAgent),
+        selectedDiscIds: displayedWorkbenchData.discs.map((disc) => disc.id),
+      }
+      // Refresh only this saved record's panel in the existing Worker run,
+      // before queueing the much larger account-wide analysis.
+      const currentPanel = await queryDevelopmentWorkbenchRoute(
+        decisionWorld.run!.runId,
+        selection,
+        record,
+      )
+      if (!isCurrentPage()) return
+      if (
+        currentPanel.currentRecordBinding !== developmentCurrentRecordBinding(record) ||
+        !isCurrentDevelopmentWorkbenchRoute(
+          { ...currentPanel, currentRecordBinding: undefined },
+          {
+            runId: decisionWorld.run!.runId,
+            accountId,
+            inputFingerprint: decisionWorld.run!.inputFingerprint,
+            selection,
+            selectedDiscs: decisionWorld.run!.input.warehouse.discs.filter((disc) =>
+              record.selectedDiscIds.includes(disc.id),
+            ),
+          },
+          developmentPanelDiscFingerprint,
+        )
+      )
+        throw new Error('资料已保存，但当前面板暂未更新，请稍后重试。')
+      committedPresentation = developmentCommittedCurrentDisplay(
+        displayedWorkbenchData,
+        savedAgent,
+        currentPanel,
+      )
+      setSaveRefresh({
+        accountId,
+        agentId,
+        kind: 'current_record',
+        phase: 'updating',
+        record: savedAgent,
+        presentation: committedPresentation,
+      })
+      const refreshed = await decisionWorld.refresh()
+      if (!isCurrentPage()) return
+      if (!refreshed) throw new Error('资料已保存，但养成资料暂未更新，请稍后重试。')
+      const projection = await queryDevelopmentWorkbenchRoute(refreshed.runId, selection)
+      if (!isCurrentPage()) return
+      const key = contentHash([refreshed.runId, refreshed.inputFingerprint, selection])
+      rememberDevelopmentWorkbenchRoute(key, projection)
+      setRouteRead({ key, value: projection })
+      setLastRouteProjection({ accountId, agentId, value: projection })
+      setSaveRefresh(null)
+    } catch (error) {
+      if (isCurrentPage())
+        setSaveRefresh({
+          accountId,
+          agentId,
+          kind: 'current_record',
+          phase: 'failed',
+          record: savedAgent,
+          presentation: committedPresentation,
+          error: error instanceof Error ? error.message : '资料已保存，更新暂未完成。',
+        })
+    }
+  }
+
   return (
     <>
       <AgentDevelopmentGolden
@@ -119,7 +240,7 @@ export function AgentDevelopmentWorkbenchView({
           savingThisAgent
             ? undefined
             : () => {
-                setEditingPresentation({ accountId, presentation: workbenchData })
+                setEditingPresentation({ accountId, presentation: displayedWorkbenchData })
                 setEditingCurrent(true)
               }
         }
@@ -132,15 +253,34 @@ export function AgentDevelopmentWorkbenchView({
               ? 'stale'
               : undefined
         }
-        workbench={
-          savingThisAgent
-            ? (saveRefresh?.presentation ?? workbenchData)
-            : editingThisAgent
-              ? (editingPresentation?.presentation ?? workbenchData)
-              : workbenchData
+        workbench={displayedWorkbenchData}
+        currentUpdate={
+          currentRecordRefresh
+            ? {
+                message:
+                  currentRecordRefresh.phase === 'failed' ? '已保存 · 更新失败' : '建议更新中…',
+                detail: currentRecordRefresh.error,
+                onRetry:
+                  currentRecordRefresh.phase === 'failed' && currentRecordRefresh.record
+                    ? () =>
+                        void refreshSavedCurrentRecord({
+                          ...roster,
+                          agents: roster.agents.map((agent) =>
+                            agent.agentId === agentId ? currentRecordRefresh.record! : agent,
+                          ),
+                        })
+                    : undefined,
+              }
+            : undefined
         }
         onNavigate={(view) =>
-          navigate(view === 'overview' ? '/development' : `/development/${agentId}/loadouts`)
+          navigate(
+            view === 'overview'
+              ? '/development'
+              : requestedPlanId
+                ? `/development/${agentId}/loadouts`
+                : `/development/${agentId}/loadouts?candidate=${workbenchData.selectedCandidateRank}`,
+          )
         }
         onAnalyzeWarehouse={
           savingThisAgent || retainingDuringSave
@@ -319,24 +459,7 @@ export function AgentDevelopmentWorkbenchView({
           agentId={agentId}
           roster={roster}
           onCancel={() => setEditingCurrent(false)}
-          onSaved={async () => {
-            const isCurrentPage = capturePageScope()
-            const refreshed = await decisionWorld.refresh()
-            if (!isCurrentPage()) return
-            if (!refreshed) throw new Error('资料已保存，但养成资料暂未更新，请稍后重试。')
-            const selection = {
-              agentId,
-              requestedPlanId,
-              candidateRank: null,
-              candidateLoadoutFingerprint: null,
-            }
-            const projection = await queryDevelopmentWorkbenchRoute(refreshed.runId, selection)
-            if (!isCurrentPage()) return
-            const key = contentHash([refreshed.runId, refreshed.inputFingerprint, selection])
-            rememberDevelopmentWorkbenchRoute(key, projection)
-            setRouteRead({ key, value: projection })
-            setEditingCurrent(false)
-          }}
+          onSaved={refreshSavedCurrentRecord}
         />
       )}
     </>

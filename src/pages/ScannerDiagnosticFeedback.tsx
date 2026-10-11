@@ -2,6 +2,7 @@ import { useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'reac
 import {
   diagnosticJson,
   sanitizeScanDiagnostic,
+  diagnosticFromSnapshot,
   type ScanDiagnosticReport,
 } from '../scanner/diagnostics'
 import {
@@ -14,6 +15,7 @@ import { DiagnosticEntry, DiagnosticPopover } from './DiagnosticFeedbackPresenta
 import { scannerDiagnosticGuidance } from './scannerDiagnosticGuidance'
 import './scanner-diagnostic-feedback.css'
 import './scanner-guide.css'
+import type { ScannerAssistantSnapshot } from '../scanner/runtime'
 
 type FeedbackState = {
   reportId: string
@@ -27,15 +29,34 @@ export function ScannerDiagnosticFeedback({
   report,
   secondaryAction,
   compact = false,
+  snapshot,
 }: {
   report: ScanDiagnosticReport | null
   secondaryAction?: ReactNode
   compact?: boolean
+  snapshot?: ScannerAssistantSnapshot
 }) {
-  const safe = useMemo(
-    () => sanitizeScanDiagnostic(report ?? (compact ? readLastScanDiagnostic() : null)),
-    [report, compact],
-  )
+  const [statusId] = useState(() => crypto.randomUUID())
+  const safe = useMemo(() => {
+    const active =
+      snapshot &&
+      ['checking', 'awaiting_elevation', 'scanning', 'paused', 'completed'].includes(snapshot.state)
+    const saved = report ?? (compact && !active ? readLastScanDiagnostic() : null)
+    if (saved) return sanitizeScanDiagnostic(saved)
+    if (!snapshot) return null
+    return sanitizeScanDiagnostic({
+      ...diagnosticFromSnapshot(snapshot, statusId),
+      outcome: snapshot.state === 'completed' ? 'completed' : 'unknown',
+      code: 'none',
+      evidence: { uiState: snapshot.state, diagnosticSource: 'browser_connection' },
+      stage:
+        snapshot.state === 'scanning'
+          ? 'capture'
+          : snapshot.state === 'completed'
+            ? 'result'
+            : 'connection',
+    })
+  }, [report, compact, snapshot, statusId])
   const reportKey = safe ? JSON.stringify(safe) : null
   const [state, setState] = useState<FeedbackState | null>(null)
   const [localMessage, setLocalMessage] = useState<{ reportKey: string; text: string } | null>(null)
@@ -71,7 +92,14 @@ export function ScannerDiagnosticFeedback({
     ? { ...safe, reportId: currentState.receivedReportId }
     : safe
   const text = diagnosticJson(receivedReport)
-  const guidance = scannerDiagnosticGuidance(safe)
+  const isStatus = safe.code === 'none'
+  const guidance = isStatus
+    ? {
+        problem:
+          snapshot?.state === 'scanning' ? '扫描进行中，暂无问题记录。' : '暂无扫描问题记录。',
+        nextAction: '若界面无反应，可反馈当前状态。',
+      }
+    : scannerDiagnosticGuidance(safe)
 
   async function submit() {
     if (!safe || !reportKey || pendingId.current === reportKey || currentState?.receivedAt) return
@@ -135,7 +163,13 @@ export function ScannerDiagnosticFeedback({
       disabled={Boolean(currentState?.pending || currentState?.receivedAt)}
       onClick={() => void submit()}
     >
-      {currentState?.pending ? '发送中…' : currentState?.receivedAt ? '已反馈' : '反馈此问题'}
+      {currentState?.pending
+        ? '发送中…'
+        : currentState?.receivedAt
+          ? '已反馈'
+          : isStatus
+            ? '反馈当前状态'
+            : '反馈此问题'}
     </button>
   )
   const metadata: string[] = []
@@ -158,7 +192,7 @@ export function ScannerDiagnosticFeedback({
       metadata={metadata}
       metadataLabel="本次扫描概况"
       receiptId={currentState?.receivedReportId}
-      previous={compact && !report}
+      previous={compact && !report && !isStatus}
       message={compact ? currentState?.message : undefined}
       localMessage={localMessage?.reportKey === reportKey ? localMessage.text : undefined}
       actions={
@@ -177,7 +211,13 @@ export function ScannerDiagnosticFeedback({
   return compact ? (
     <DiagnosticEntry
       title="扫描诊断"
-      status={currentState?.receivedAt ? '本次反馈已发送。' : guidance.problem}
+      status={
+        currentState?.receivedAt
+          ? '本次反馈已发送。'
+          : compact && !report && !isStatus
+            ? `上次：${guidance.problem}`
+            : guidance.problem
+      }
     >
       {details}
     </DiagnosticEntry>

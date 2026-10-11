@@ -1,4 +1,5 @@
 import { AssetQuickReadRequestError } from './diagnostics'
+import diagnosticContract from '../scanner/scanFeedback.contract.json'
 import { z } from 'zod'
 import { AssetQuickReadUnavailableError, awaitAssetQuickReadService } from './launcher'
 
@@ -21,7 +22,9 @@ const jobSchema = z.object({
   candidateAvailable: z.boolean(),
 })
 export type AssetBridgeJob = z.infer<typeof jobSchema>
-const bridgeVersionSchema = z.enum(['1.0.0', '1.0.1'])
+const bridgeVersionSchema = z
+  .string()
+  .regex(new RegExp(diagnosticContract.assetQuickRead.versionPatterns.bridge))
 const healthSchema = z.object({
   service: z.literal('soda-asset-quick-read'),
   version: bridgeVersionSchema,

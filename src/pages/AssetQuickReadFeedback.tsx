@@ -82,10 +82,25 @@ export function AssetQuickReadFeedback({ report }: { report: AssetDiagnosticRepo
       nextAction: '检查当前接收账户和结果，再重新确认导入。',
     },
   }
-  const hint = guidance[safe.stage] ?? {
-    problem: '资产快读未完成本次操作。',
-    nextAction: '检查工具准备状态后重试；仍失败时可反馈。',
-  }
+  const statusOnly = safe.outcome !== 'failed'
+  const hint = statusOnly
+    ? {
+        problem:
+          safe.outcome === 'completed'
+            ? '本次导入已完成。'
+            : safe.evidence.jobState === 'capturing'
+              ? '正在等待读取结果。'
+              : safe.evidence.jobState === 'received'
+                ? '读取结果已就绪。'
+                : safe.evidence.jobState === 'starting'
+                  ? '正在准备资产快读。'
+                  : '可查看当前状态并反馈。',
+        nextAction: '操作异常时可反馈当前状态。',
+      }
+    : (guidance[safe.stage] ?? {
+        problem: '资产快读未完成本次操作。',
+        nextAction: '检查工具准备状态后重试；仍失败时可反馈。',
+      })
   const metadata: string[] = []
   if (safe.versions.bridge) metadata.push(`资产快读 ${safe.versions.bridge}`)
   if (typeof safe.evidence.remainingSeconds === 'number')
@@ -109,7 +124,13 @@ export function AssetQuickReadFeedback({ report }: { report: AssetDiagnosticRepo
               disabled={Boolean(shown?.pending) || Boolean(receivedAt)}
               onClick={() => void send()}
             >
-              {receivedAt ? '已发送' : shown?.pending ? '发送中…' : '发送反馈'}
+              {receivedAt
+                ? '已发送'
+                : shown?.pending
+                  ? '发送中…'
+                  : statusOnly
+                    ? '反馈当前状态'
+                    : '发送反馈'}
             </button>
             <button
               type="button"

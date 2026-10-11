@@ -129,8 +129,8 @@ it('returning after an installer download probes once, never invokes the explici
   fireEvent(window, new Event('focus'))
   expect(onReturnConnect).toHaveBeenCalledOnce()
   expect(onConnect).not.toHaveBeenCalled()
-  await act(async () => fireEvent.click(screen.getByRole('button', { name: '安装完成，继续连接' })))
-  expect(onConnect).toHaveBeenCalledOnce()
+  expect(screen.queryByRole('button', { name: '安装完成，继续连接' })).not.toBeInTheDocument()
+  expect(onConnect).not.toHaveBeenCalled()
 })
 it('blocks new download and continuation while keeping an in-flight cancel accessible', async () => {
   vi.stubGlobal('fetch', vi.fn().mockReturnValue(new Promise(() => {})))

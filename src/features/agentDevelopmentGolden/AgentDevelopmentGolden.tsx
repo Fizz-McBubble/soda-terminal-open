@@ -18,6 +18,7 @@ export function AgentDevelopmentGolden({
   onNavigate,
   onSavePlan,
   onEditCurrent,
+  currentUpdate,
   onSelectCandidatePlan,
   onAnalyzeWarehouse,
   onReanalyzeWarehouse,
@@ -46,6 +47,7 @@ export function AgentDevelopmentGolden({
       scenario={scenario}
       data={workbench!}
       onEditCurrent={onEditCurrent}
+      currentUpdate={currentUpdate}
       onSavePlan={onSavePlan}
       onAnalyzeWarehouse={onAnalyzeWarehouse}
     />

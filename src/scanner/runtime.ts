@@ -43,6 +43,22 @@ export function createScannerAssistantRuntime(
   let nativeIdentityVerified = false
   let nativeHelperVersion: string | null = null
   let nativeInstallerVersion: string | null = null
+  let connectionStep: 'identity' | 'pairing' | 'command' | 'events' = 'identity'
+  let connectionAttemptId = crypto.randomUUID()
+  let lastSnapshot: ScannerAssistantSnapshot | undefined
+  let eventRevision = 0
+  function failureSnapshot(error: unknown, step = connectionStep) {
+    return connectionFailure(error, {
+      step,
+      reportId: connectionAttemptId,
+      lastSnapshot,
+      versions: {
+        ...lastSnapshot?.connectedVersions,
+        ...(nativeHelperVersion ? { helper: nativeHelperVersion, protocol: '5' } : {}),
+        ...(nativeInstallerVersion ? { installer: nativeInstallerVersion } : {}),
+      },
+    })
+  }
   const fetchImpl = options.fetchImpl ?? fetch
   const EventSourceImpl = options.EventSourceImpl ?? null
   const reconnectDelayMs = options.reconnectDelayMs ?? 250
@@ -85,7 +101,7 @@ export function createScannerAssistantRuntime(
   }
 
   function presentConnectedSnapshot(next: ScannerAssistantSnapshot) {
-    return presentScannerHelperSnapshot(
+    const presented = presentScannerHelperSnapshot(
       next,
       nativeHelperVersion,
       next.readiness.helperConnected
@@ -96,6 +112,15 @@ export function createScannerAssistantRuntime(
           }
         : {},
     )
+    lastSnapshot = {
+      ...presented,
+      connectedVersions: {
+        ...presented.connectedVersions,
+        ...(nativeHelperVersion ? { helper: nativeHelperVersion, protocol: '5' } : {}),
+        ...(nativeInstallerVersion ? { installer: nativeInstallerVersion } : {}),
+      },
+    }
+    return lastSnapshot
   }
 
   function connectEvents(subscription: NonNullable<typeof activeSubscription>, issued: string) {
@@ -118,12 +143,14 @@ export function createScannerAssistantRuntime(
     events.onmessage = (event) => {
       if (subscription.disposed || subscription.events !== events) return
       const next = JSON.parse(event.data) as ScannerAssistantSnapshot
+      eventRevision += 1
       subscription.listener(presentConnectedSnapshot(next))
     }
     events.onerror = () => {
       if (subscription.disposed || subscription.events !== events) return
       subscription.interrupted = true
-      if (!document.hidden) subscription.listener(failedSnapshot)
+      if (!document.hidden)
+        subscription.listener(failureSnapshot(new Error('helper_events_disconnected'), 'events'))
     }
   }
 
@@ -168,6 +195,7 @@ export function createScannerAssistantRuntime(
             .join('\n')
           if (data && !subscription.disposed && subscription.abort === controller) {
             const next = JSON.parse(data) as ScannerAssistantSnapshot
+            eventRevision += 1
             subscription.listener(presentConnectedSnapshot(next))
           }
           separator = /\r?\n\r?\n/.exec(pending)
@@ -180,7 +208,7 @@ export function createScannerAssistantRuntime(
       subscription.interrupted = true
       controller.abort()
       if (!document.hidden) {
-        subscription.listener(failedSnapshot)
+        subscription.listener(failureSnapshot(error, 'events'))
         if (subscription.reconnectAttempts++ < maxReconnectAttempts) {
           window.setTimeout(() => {
             if (subscription.disposed || subscription.abort !== controller) return
@@ -190,8 +218,8 @@ export function createScannerAssistantRuntime(
             }
             void withHelperDeadline((signal) => ensureSessionToken(signal))
               .then((next) => connectEvents(subscription, next))
-              .catch(() => {
-                if (!subscription.disposed) subscription.listener(failedSnapshot)
+              .catch((failure) => {
+                if (!subscription.disposed) subscription.listener(failureSnapshot(failure))
               })
           }, reconnectDelayMs)
         }
@@ -206,6 +234,7 @@ export function createScannerAssistantRuntime(
   }
 
   async function verifyNativeHelper(signal?: AbortSignal) {
+    connectionStep = 'identity'
     signal?.throwIfAborted()
     const response = await fetchImpl(`${baseUrl}/`, signal ? { signal } : undefined)
     const identity = response.ok ? await response.json() : null
@@ -223,6 +252,7 @@ export function createScannerAssistantRuntime(
     signal?.throwIfAborted()
     if (!nativeIdentityVerified) await verifyNativeHelper(signal)
     if (tokenResolved && token) return token
+    connectionStep = 'pairing'
     token = await resolveScannerHelperSessionToken({
       baseUrl,
       initialToken: token,
@@ -240,7 +270,11 @@ export function createScannerAssistantRuntime(
     return withHelperDeadline(
       (requestSignal) => executeCommand(path, method, requestSignal),
       signal,
-    )
+    ).catch((error) => {
+      if (path !== '/api/retry' && !signal?.aborted)
+        activeSubscription?.listener(failureSnapshot(error))
+      throw error
+    })
   }
 
   async function executeCommand(path: string, method: string, signal: AbortSignal) {
@@ -250,6 +284,7 @@ export function createScannerAssistantRuntime(
     await ensureSessionToken(signal)
     signal?.throwIfAborted()
     const request = () => {
+      connectionStep = 'command'
       if (path === '/api/start') requireCurrentScannerHelper(nativeHelperVersion)
       return fetchImpl(`${baseUrl}${path}`, {
         method,
@@ -309,14 +344,16 @@ export function createScannerAssistantRuntime(
   }
 
   async function retryUntilConnected() {
+    connectionAttemptId = crypto.randomUUID()
     return withHelperDeadline(async (signal) => {
       let lastError: unknown
       for (let attempt = 0; attempt < maxReconnectAttempts; attempt += 1) {
         signal.throwIfAborted()
         try {
+          const beforeEvents = eventRevision
           const snapshot = await command('/api/retry', 'POST', signal)
           signal.throwIfAborted()
-          publishSnapshot(snapshot)
+          if (eventRevision === beforeEvents) publishSnapshot(snapshot)
           return
         } catch (error) {
           signal.throwIfAborted()
@@ -327,6 +364,9 @@ export function createScannerAssistantRuntime(
         }
       }
       throw lastError instanceof Error ? lastError : new Error('helper_unavailable')
+    }).catch((error) => {
+      activeSubscription?.listener(failureSnapshot(error))
+      throw error
     })
   }
 
@@ -350,7 +390,7 @@ export function createScannerAssistantRuntime(
             .catch((error) => {
               if (!subscription.disposed) {
                 subscription.interrupted = true
-                listener(connectionFailure(error))
+                listener(failureSnapshot(error))
               }
             })
         }
@@ -364,7 +404,7 @@ export function createScannerAssistantRuntime(
             connectEvents(subscription, issued)
           })
           .catch((error: unknown) => {
-            if (!subscription.disposed) listener(connectionFailure(error))
+            if (!subscription.disposed) listener(failureSnapshot(error))
           })
       return () => {
         subscription.disposed = true
@@ -409,10 +449,14 @@ export function createScannerAssistantRuntime(
         reconnectActiveSubscription()
       },
       async startScan() {
-        publishSnapshot(await command('/api/start'))
+        const beforeEvents = eventRevision
+        const next = await command('/api/start')
+        if (eventRevision === beforeEvents) publishSnapshot(next)
       },
       async safeStop() {
-        publishSnapshot(await command('/api/stop'))
+        const beforeEvents = eventRevision
+        const next = await command('/api/stop')
+        if (eventRevision === beforeEvents) publishSnapshot(next)
       },
       async revokePairing() {
         await command('/api/revoke')

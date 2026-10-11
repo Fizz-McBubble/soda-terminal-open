@@ -112,6 +112,7 @@ export function browserDiagnostic(userAgent: string) {
   return { browser: 'unknown' }
 }
 const stages: Record<string, string> = {
+  scanner_start_failed: 'preflight',
   helper_unavailable: 'connection',
   helper_incompatible: 'connection',
   runtime_repair_required: 'connection',
@@ -149,7 +150,11 @@ export function diagnosticFromSnapshot(
         contract.codes.includes(value) &&
         !['scanner_failure', 'scanner_exit', 'unknown', 'none'].includes(value),
     ) ?? candidates.find((value) => typeof value === 'string' && contract.codes.includes(value))
-  const connectionIssue = Boolean(issueCode && stages[issueCode] === 'connection')
+  const connectionIssue = Boolean(
+    issueCode &&
+    stages[issueCode] === 'connection' &&
+    object(raw.evidence).diagnosticSource !== 'browser_connection',
+  )
   return sanitizeScanDiagnostic({
     ...raw,
     schema: 1,
@@ -160,7 +165,7 @@ export function diagnosticFromSnapshot(
       : (raw.outcome ?? (snapshot.state === 'completed' ? 'completed' : 'failed')),
     stage: stages[String(code)] ?? raw.stage ?? 'unknown',
     code,
-    versions: raw.versions ?? {},
+    versions: { ...snapshot.connectedVersions, ...object(raw.versions) },
     counts: connectionIssue
       ? {}
       : (raw.counts ?? {

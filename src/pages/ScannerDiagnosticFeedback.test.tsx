@@ -5,6 +5,7 @@ import { sanitizeScanDiagnostic } from '../scanner/diagnostics'
 import contract from '../scanner/scanFeedback.contract.json'
 import { scannerDiagnosticGuidance } from './scannerDiagnosticGuidance'
 import { readLastScanDiagnostic, saveLastScanDiagnostic } from '../scanner/scanFeedback'
+import { readySnapshot } from '../scanner/runtime.testFixture'
 // jsdom does not implement the native Popover API. The browser regression covers
 // its actual positioning, dismissal and unchanged page geometry.
 vi.mock('../components/ExplanationPopover', () => ({
@@ -31,6 +32,30 @@ const makeReport = () =>
     stage: 'capture',
     counts: { processed: 4, total: null },
   })!
+it('allows explicit feedback before a failure is recognized and keeps the entry across steps', () => {
+  const fetcher = vi.fn()
+  vi.stubGlobal('fetch', fetcher)
+  const view = render(<ScannerDiagnosticFeedback report={null} snapshot={readySnapshot} compact />)
+  const entry = screen.getByRole('region', { name: '扫描诊断' })
+  expect(screen.getByRole('button', { name: '反馈当前状态' })).toBeEnabled()
+  view.rerender(
+    <ScannerDiagnosticFeedback
+      report={null}
+      snapshot={{ ...readySnapshot, state: 'scanning' }}
+      compact
+    />,
+  )
+  expect(screen.getByRole('region', { name: '扫描诊断' })).toBe(entry)
+  view.rerender(
+    <ScannerDiagnosticFeedback
+      report={null}
+      snapshot={{ ...readySnapshot, state: 'completed' }}
+      compact
+    />,
+  )
+  expect(screen.getByRole('region', { name: '扫描诊断' })).toBe(entry)
+  expect(fetcher).not.toHaveBeenCalled()
+})
 afterEach(() => {
   localStorage.clear()
   vi.unstubAllGlobals()

@@ -2,6 +2,10 @@ import type { ScanDiagnosticReport } from '../scanner/diagnostics'
 
 type Guidance = { problem: string; nextAction: string }
 const guidance: Record<string, Guidance> = {
+  scanner_start_failed: {
+    problem: '画面扫描未能启动。',
+    nextAction: '运行安装包修复后重试；仍失败时请反馈此问题。',
+  },
   scan_start_timeout: {
     problem: '扫描未能开始，已停止等待。',
     nextAction: '确认游戏停留在驱动仓库后重试；若仍无反应，请反馈此问题。',

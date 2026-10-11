@@ -35,6 +35,38 @@ describe('preparing another scan', () => {
     await Dexie.delete(database.name)
   })
 
+  it('does not promote a replayed completed result while a new start is pending', async () => {
+    const account = await createAccount('重连账户', database, { id: 'account-new-start' })
+    await setActiveAccount(account.id, database)
+    const rendered = render(page())
+    await screen.findByRole('region', { name: '本次操作目标账户' })
+    runtime.snapshot = {
+      ...createScannerRuntimeSnapshot('completed'),
+      diagnostics: { reportId: '00000000-0000-4000-8000-000000000005' },
+    }
+    rendered.rerender(page())
+    expect(screen.queryByRole('region', { name: '已完成扫描结果' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '查看上次扫描结果' })).toBeInTheDocument()
+    let finish!: () => void
+    runtime.commands.startScan.mockImplementationOnce(
+      () =>
+        new Promise<void>((resolve) => {
+          finish = resolve
+        }),
+    )
+    await userEvent.setup().click(screen.getByRole('button', { name: '开始扫描' }))
+    await waitFor(() => expect(runtime.commands.startScan).toHaveBeenCalledOnce())
+    rendered.rerender(page())
+    expect(screen.queryByRole('region', { name: '已完成扫描结果' })).not.toBeInTheDocument()
+    expect(await database.accountScanImportBatches.count()).toBe(0)
+    finish()
+    runtime.snapshot = createScannerRuntimeSnapshot('checking')
+    rendered.rerender(page())
+    expect(
+      await screen.findByRole('heading', { name: '画面扫描正在检查游戏与权限' }),
+    ).toBeInTheDocument()
+  })
+
   it('ignores the same attempt replay but presents a new external scan and its completion', async () => {
     const account = await createAccount('外部重扫账户', database, { id: 'account-external-rescan' })
     await setActiveAccount(account.id, database)
@@ -157,11 +189,12 @@ describe('preparing another scan', () => {
       const before = await database.accountDriveDiscs.toArray()
       window.localStorage.setItem(
         'soda.scanner.completedImport',
-        JSON.stringify({ accountId: account.id, count: 1 }),
+        JSON.stringify({ accountId: account.id, count: 1, resultFileHandle: 'local-staging.json' }),
       )
       runtime.snapshot = createScannerRuntimeSnapshot(initialState)
       const rendered = render(page())
-      await user.click(await screen.findByRole('button', { name: '重新扫描' }))
+      if (initialState === 'completed')
+        await user.click(await screen.findByRole('button', { name: '重新扫描' }))
       expect(await screen.findByRole('heading', { name: '画面扫描已连接' })).toBeInTheDocument()
 
       // Reconnection can return the previous result after the user has restarted.

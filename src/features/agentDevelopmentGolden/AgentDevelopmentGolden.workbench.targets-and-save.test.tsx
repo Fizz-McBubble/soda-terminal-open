@@ -1,0 +1,307 @@
+import {
+  describe,
+  render,
+  screen,
+  waitFor,
+  userEvent,
+  expect,
+  it,
+  vi,
+  AgentDevelopmentGolden,
+  workbench,
+} from './AgentDevelopmentGolden.workbench.testFixture'
+import type { GoldenTop10Data } from './AgentDevelopmentGolden.workbench.testFixture'
+
+describe('AgentDevelopmentGolden warehouse candidate controls', () => {
+  it('keeps the saved candidate selected when refreshed results move it to another rank', async () => {
+    const user = userEvent.setup()
+    const save = vi.fn().mockResolvedValue(undefined)
+    const candidate: GoldenTop10Data['candidates'][number] = {
+      rank: 1,
+      label: '已选实体方案',
+      fit: '100',
+      panel: '',
+      sets: '主套甲',
+      effective: '12',
+      swaps: 0,
+      conflict: '',
+      cost: '',
+      staticDps: null,
+      statDeltaSummary: '',
+      finalStats: {},
+      discIds: ['disc-1', 'disc-2', 'disc-3', 'disc-4', 'disc-5', 'disc-6'],
+    }
+    const other = { ...candidate, rank: 2, label: '另一实体方案', sets: '主套乙' }
+    const data: GoldenTop10Data = {
+      agentName: '比利',
+      baseline: { ...candidate, rank: 0 },
+      candidates: [candidate, other],
+      discs: workbench.discs,
+      coreStats: [],
+      allStats: [],
+      selectedCandidateRank: 1,
+      statPresentation: 'disc_contribution',
+    }
+    const { rerender } = render(
+      <AgentDevelopmentGolden initialView="top10" top10={data} onSavePlan={save} />,
+    )
+    rerender(
+      <AgentDevelopmentGolden
+        initialView="top10"
+        top10={{
+          ...data,
+          selectedCandidateRank: 2,
+          candidates: [
+            { ...other, rank: 1 },
+            { ...candidate, rank: 2 },
+          ],
+        }}
+        onSavePlan={save}
+      />,
+    )
+    expect(screen.getByRole('heading', { name: '已选实体方案 · 六盘明细' })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '保存为养成方案' }))
+    await waitFor(() => expect(save).toHaveBeenCalledWith(2))
+  })
+  it('opens same-page account editing without navigating away', async () => {
+    const edit = vi.fn()
+    render(
+      <AgentDevelopmentGolden initialView="workbench" workbench={workbench} onEditCurrent={edit} />,
+    )
+    await userEvent.setup().click(screen.getByRole('button', { name: '编辑当前状态' }))
+    expect(edit).toHaveBeenCalledOnce()
+    expect(screen.queryByRole('link', { name: '在我的资产编辑' })).not.toBeInTheDocument()
+  })
+
+  it('keeps sourced target conditions beside the target numbers in the main panel', () => {
+    render(
+      <AgentDevelopmentGolden
+        initialView="workbench"
+        workbench={{
+          ...workbench,
+          graduation: {
+            ...workbench.graduation,
+            panelConditions: ['仅适用于说明中的队伍与音擎条件'],
+          },
+        }}
+      />,
+    )
+    const conditionButton = screen.getByRole('button', { name: '适用条件' })
+    expect(
+      document.getElementById(conditionButton.getAttribute('popovertarget')!),
+    ).toHaveTextContent('仅适用于说明中的队伍与音擎条件')
+    expect(screen.getByRole('region', { name: '毕业面板推荐' })).toHaveTextContent('3000')
+  })
+  it('keeps only required targets inline and puts optional values and conditions in one popover', () => {
+    const { container } = render(
+      <AgentDevelopmentGolden
+        initialView="workbench"
+        workbench={{
+          ...workbench,
+          graduation: {
+            ...workbench.graduation,
+            panel: [
+              { name: '攻击力', value: '1700–2000（可选）' },
+              { name: '冲击力', value: '166–190+' },
+              { name: '暴击率', value: '50%+' },
+              { name: '暴击伤害', value: '100%–120%（可选）' },
+            ],
+            panelConditions: ['按队伍与音擎选择'],
+          },
+        }}
+      />,
+    )
+    const inlineTargets = container.querySelectorAll(
+      '.panel-graduation-targets__items > .panel-graduation-targets__item',
+    )
+    expect(Array.from(inlineTargets, (item) => item.textContent)).toEqual([
+      '冲击力166–190+',
+      '暴击率50%+',
+    ])
+    const trigger = screen.getByRole('button', { name: '更多' })
+    const popup = document.getElementById(trigger.getAttribute('popovertarget')!)
+    expect(popup).toHaveAttribute('popover', 'auto')
+    expect(popup).toHaveTextContent('攻击力1700–2000（可选）')
+    expect(popup).toHaveTextContent('暴击伤害100%–120%（可选）')
+    expect(popup).toHaveTextContent('按队伍与音擎选择')
+    expect(screen.queryByRole('button', { name: '适用条件' })).not.toBeInTheDocument()
+  })
+  it('shows sourced attribute directions without inventing a graduation target or a standalone engine-help row', () => {
+    const { container } = render(
+      <AgentDevelopmentGolden
+        initialView="workbench"
+        workbench={{
+          ...workbench,
+          graduation: {
+            ...workbench.graduation,
+            panel: [],
+            panelDirection: '暴击率 / 防御力百分比',
+            engineConditions: ['按队伍需求选择'],
+          },
+        }}
+      />,
+    )
+    expect(screen.getByRole('region', { name: '副词条方向' })).toHaveTextContent(
+      '暴击率 / 防御力百分比',
+    )
+    expect(screen.queryByText('资料待补齐')).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: '毕业面板推荐' })).not.toBeInTheDocument()
+    expect(container.querySelector('.current-state-actions')).toContainElement(
+      screen.getByRole('button', { name: '音擎说明' }),
+    )
+    expect(container.querySelector('.current-engine-plan > .explanation')).toBeNull()
+  })
+  it('renders an optional potential-only skill reference without replacing regular targets', () => {
+    render(
+      <AgentDevelopmentGolden
+        initialView="workbench"
+        workbench={{
+          ...workbench,
+          graduation: {
+            ...workbench.graduation,
+            potentialSkillReference: {
+              conditionLabel: '潜能6/6参考（未用于当前方案）',
+              skills: [
+                ['普攻', '16级'],
+                ['闪避', '16级'],
+                ['支援', '16级'],
+                ['特殊', '16级'],
+                ['连携', '16级'],
+                ['核心', '7级'],
+              ].map(([label, recommended]) => ({ label, recommended })),
+            },
+          },
+        }}
+      />,
+    )
+
+    expect(screen.getByRole('region', { name: '技能推荐等级' })).toHaveTextContent('普攻12')
+    const potentialReference = screen.getByRole('region', {
+      name: '潜能6/6参考（未用于当前方案）',
+    })
+    expect(potentialReference).toHaveTextContent('普攻16')
+    expect(potentialReference).toHaveTextContent('核心7')
+  })
+
+  it('omits the potential-only skill reference when no historical candidate exists', () => {
+    render(<AgentDevelopmentGolden initialView="workbench" workbench={workbench} />)
+
+    expect(
+      screen.queryByRole('region', { name: '潜能6/6参考（未用于当前方案）' }),
+    ).not.toBeInTheDocument()
+    expect(screen.getByRole('region', { name: '技能推荐等级' })).toHaveTextContent('普攻12')
+  })
+  it('shows selected candidate main-stat differences directly above its discs', () => {
+    render(
+      <AgentDevelopmentGolden
+        initialView="workbench"
+        workbench={{ ...workbench, candidateDifferences: ['6号位：冲击力（建议异常掌控）'] }}
+      />,
+    )
+    expect(screen.getByRole('status', { name: '与推荐主词条的差异' })).toHaveTextContent(
+      '6号位：冲击力（建议异常掌控）',
+    )
+  })
+  it('shows a complete baseline without inventing a replacement candidate', () => {
+    const top10: GoldenTop10Data = {
+      agentName: '比利',
+      baseline: {
+        rank: 0,
+        label: '当前实装',
+        fit: '比较基准',
+        panel: '当前方案',
+        sets: '啄木鸟电音 4件 + 河豚电音 2件',
+        effective: '12',
+        swaps: 0,
+        conflict: '单人参考，不占用驱动盘',
+        cost: '无新增成本',
+        staticDps: null,
+        statDeltaSummary: '—',
+        finalStats: {},
+        discIds: ['disc-1', 'disc-2', 'disc-3', 'disc-4', 'disc-5', 'disc-6'],
+      },
+      candidates: [],
+      discs: workbench.discs,
+      coreStats: [],
+      allStats: [],
+      statPresentation: 'disc_contribution',
+      baselineAvailability: 'available',
+    }
+
+    render(<AgentDevelopmentGolden initialView="top10" top10={top10} onSavePlan={vi.fn()} />)
+
+    expect(screen.getByRole('heading', { name: '当前实装' })).toBeInTheDocument()
+    expect(
+      screen.getByText('这份方案已配齐 6 张驱动盘，暂时没有其他匹配方案。'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('可重新搭配，查找其他搭配。')).toBeInTheDocument()
+    expect(screen.getByText('6 / 6')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '保存为养成方案' })).not.toBeInTheDocument()
+  })
+
+  it('does not switch a routed directory to an empty local workbench', async () => {
+    const user = userEvent.setup()
+    const onOpenAgent = vi.fn()
+    render(
+      <AgentDevelopmentGolden
+        initialView="overview"
+        onOpenAgent={onOpenAgent}
+        directoryAgents={[
+          {
+            agentId: 'agent-billy',
+            name: '比利',
+            rarity: 'A',
+            favorite: false,
+            visual: { kind: 'avatar', src: '', fallback: 'initials' },
+            level: 60,
+            mindscape: 6,
+            status: '已有方案',
+            guideNote: '已有方案',
+            plan: '已保存方案',
+            reliableTarget: true,
+          },
+        ]}
+      />,
+    )
+    await user.click(screen.getByRole('button', { name: '进入养成' }))
+    expect(onOpenAgent).toHaveBeenCalledWith('agent-billy')
+    expect(screen.getByRole('list', { name: '代理人养成总览' })).toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('keeps the current content until the external route navigation completes', async () => {
+    const user = userEvent.setup()
+    const onNavigate = vi.fn()
+    render(<AgentDevelopmentGolden workbench={workbench} onNavigate={onNavigate} />)
+    await user.click(screen.getByRole('button', { name: '比较其他配装' }))
+    expect(onNavigate).toHaveBeenCalledWith('top10')
+    expect(screen.getByRole('heading', { name: '比利' })).toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '返回养成' }))
+    expect(onNavigate).toHaveBeenLastCalledWith('overview')
+    expect(screen.getByRole('heading', { name: '比利' })).toBeInTheDocument()
+  })
+
+  it('keeps a stable panel heading across preview and saved states', () => {
+    render(
+      <AgentDevelopmentGolden
+        workbench={{
+          ...workbench,
+          currentPanel: { ...workbench.currentPanel, title: '方案预览面板' },
+        }}
+      />,
+    )
+    expect(screen.getByRole('heading', { name: '当前面板' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: '方案预览面板' })).not.toBeInTheDocument()
+  })
+
+  it('saves the candidate already selected by the solve context', async () => {
+    const user = userEvent.setup()
+    const savePlan = vi.fn().mockResolvedValue(undefined)
+    render(<AgentDevelopmentGolden workbench={workbench} onSavePlan={savePlan} />)
+
+    expect(screen.queryByRole('tab')).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: '保存配装' }))
+    await waitFor(() => expect(savePlan).toHaveBeenCalledWith(2))
+  })
+})

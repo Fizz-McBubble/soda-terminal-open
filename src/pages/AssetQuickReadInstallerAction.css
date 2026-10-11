@@ -10,5 +10,19 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  font-size: 14px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__actions:has(> .asset-quick-read-installer) {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 8px 10px;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__actions > .asset-quick-read-installer {
+  display: contents;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__actions > button:first-child {
+  flex: 0 0 168px;
+  width: 168px;
 }

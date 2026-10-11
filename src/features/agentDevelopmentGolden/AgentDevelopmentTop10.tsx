@@ -279,7 +279,10 @@ export function Top10({
                 type="button"
                 className="comparison-baseline comparison-current-plan"
                 aria-pressed={selected === 0}
-                onClick={() => setSelected(0)}
+                onClick={() => {
+                  setSelected(0)
+                  onSelectCandidatePlan?.(0)
+                }}
               >
                 <strong>已保存方案</strong>
                 <span>{data.currentPlan.sets}</span>

@@ -9,8 +9,8 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: 30px auto 48px minmax(0, 1fr);
-  height: 465px;
-  min-height: 465px;
+  height: 560px;
+  min-height: 560px;
   row-gap: 0;
 }
 .f5v-shell .scanner-workbench__method > *,
@@ -39,7 +39,7 @@
   min-width: 0;
   min-height: 0;
   margin: 0;
-  overflow: auto;
+  overflow: visible;
 }
 .f5v-shell .scanner-workbench__body > .scanner-workbench__preparation,
 .f5v-shell .scanner-workbench .scanner-prepare--compact {
@@ -49,14 +49,38 @@
   flex: 1;
   overflow: visible;
 }
+.f5v-shell .scanner-workbench__body--diagnostic {
+  overflow: visible;
+}
+.f5v-shell .scanner-workbench__body--diagnostic > .scanner-workbench__preparation,
+.f5v-shell .scanner-workbench__body--diagnostic > .scanner-workbench__method-task {
+  flex: 1;
+  min-height: 0;
+  overflow: visible;
+}
 .f5v-shell .scanner-workbench__body > .scanner-diagnostic-entry,
 .f5v-shell .scanner-workbench__body > .asset-quick-read__tools {
   flex-shrink: 0;
   margin-top: auto;
   padding-top: 12px;
 }
+.f5v-shell .scanner-workbench .asset-quick-read__task > .scanner-diagnostic-entry {
+  margin-top: auto;
+  padding-top: 10px;
+  flex-shrink: 0;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__tools {
+  margin-top: 8px;
+  padding-top: 0;
+}
+.f5v-shell .scanner-workbench .scanner-diagnostic-entry {
+  grid-template-rows: 22px 42px;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__directory-row {
+  min-height: 22px;
+}
 .f5v-shell .scanner-workbench .asset-quick-read__connection-summary {
-  margin: 0 0 14px;
+  margin: 0 0 8px;
 }
 .f5v-shell .scanner-workbench .asset-quick-read__connection-summary > .asset-quick-read__muted {
   margin: 0;
@@ -64,7 +88,7 @@
 }
 .f5v-shell .scanner-workbench .scanner-prepare__requirements,
 .f5v-shell .scanner-workbench .asset-quick-read__game-preparation {
-  margin: 0 0 18px;
+  margin: 0 0 12px;
 }
 .f5v-shell .scanner-workbench .scanner-prepare__intro p,
 .f5v-shell .scanner-workbench .asset-quick-read__connection-summary p {
@@ -75,6 +99,13 @@
 }
 .f5v-shell .scanner-workbench .scanner-prepare__observations {
   margin-top: 12px;
+}
+.f5v-shell .scanner-workbench .scanner-prepare__observations ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  padding: 0;
+  list-style: none;
 }
 .f5v-shell .scanner-workbench .asset-quick-read__task,
 .f5v-shell .scanner-workbench .asset-quick-read__consent-stage,

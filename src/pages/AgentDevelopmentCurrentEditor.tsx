@@ -19,7 +19,7 @@ export function AgentDevelopmentCurrentEditor({
   agentId: string
   roster: AccountRoster
   onCancel: () => void
-  onSaved: () => Promise<void>
+  onSaved: (savedRoster: AccountRoster) => Promise<void>
 }) {
   const [message, setMessage] = useState('')
   const item = publicAssetCatalog.agents.find((entry) => entry.stableId === agentId)
@@ -60,7 +60,7 @@ export function AgentDevelopmentCurrentEditor({
       })
       const savedAgent = savedRoster.agents.find((agent) => agent.agentId === agentId)
       if (!savedAgent) throw new Error('代理人资料保存后未能重新读取。')
-      await onSaved()
+      await onSaved(savedRoster)
       return JSON.stringify({ source: savedAgent })
     } catch (error) {
       setMessage(error instanceof Error ? error.message : '保存失败。')

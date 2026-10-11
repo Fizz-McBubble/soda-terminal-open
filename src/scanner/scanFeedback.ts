@@ -132,7 +132,9 @@ export function useScannerFailureDiagnostic(
       const sourceRank = (report: ScanDiagnosticReport) =>
         report.evidence.diagnosticSource === 'terminal_details'
           ? 2
-          : report.evidence.diagnosticSource === 'legacy_log'
+          : ['legacy_log', 'helper_lifecycle', 'browser_connection'].includes(
+                String(report.evidence.diagnosticSource),
+              )
             ? 1
             : 0
       const upgraded =

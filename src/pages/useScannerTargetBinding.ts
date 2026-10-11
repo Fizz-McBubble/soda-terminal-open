@@ -91,7 +91,19 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
       snapshot.summary.resultFileHandle !== previous.summary.resultFileHandle,
     )
     const beganScanning = snapshot.state === 'scanning' && previous.state !== 'scanning'
-    if (!changedAttempt && !changedResult && !beganScanning) return
+    const acceptedStart =
+      startingScanRef.current &&
+      ['checking', 'awaiting_elevation', 'scanning', 'paused'].includes(snapshot.state)
+    const newResult = changedResult && Boolean(previous.summary?.resultFileHandle)
+    // A connection replay is not a new scan. In particular, a browser connection
+    // diagnostic ID must not promote a saved terminal result into the workspace.
+    if (
+      !acceptedStart &&
+      !beganScanning &&
+      !newResult &&
+      !(changedAttempt && ['scanning', 'paused'].includes(snapshot.state))
+    )
+      return
     cancelResultRead()
     setHandoffState({ status: 'idle' })
     setPreparingAnotherScan(false)
@@ -170,7 +182,8 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
       await freezeSelectedTarget(assertCurrent)
       setHandoffState({ status: 'idle' })
       startingScanRef.current = true
-      setPreparingAnotherScan(false)
+      // Keep the old terminal snapshot hidden until the Helper acknowledges the new start.
+      setPreparingAnotherScan(true)
       window.localStorage.removeItem(completedScannerImportKey)
       setCompletedImport(null)
       window.localStorage.removeItem(discardedScannerResultHandleKey)

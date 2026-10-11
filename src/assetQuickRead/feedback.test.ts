@@ -11,6 +11,38 @@ import {
   saveAssetDiagnostic,
   submitAssetFeedback,
 } from './feedback'
+import { sanitizeScanFeedbackPayload } from '../../deploy/cloudflare/scan-feedback.mjs'
+import { assetQuickReadRelease } from './distribution'
+
+it('keeps the released bridge version, final counts and timing through the cloud allowlist', () => {
+  const report = assetFailureDiagnostic(
+    'waiting',
+    undefined,
+    {
+      jobId: crypto.randomUUID(),
+      targetAccountId: 'private-account',
+      state: 'timed_out',
+      phase: 'private-phase',
+      code: 'capture_watchdog_timeout',
+      startedAt: '2026-10-11T00:00:00Z',
+      readyAt: null,
+      deadline: null,
+      remainingSeconds: 0,
+      counts: { agents: 33, discs: 374, engines: 1 },
+      candidateAvailable: false,
+    },
+    assetQuickReadRelease.version,
+    Date.parse('2026-10-11T00:03:00Z'),
+  )
+  expect(report).toMatchObject({
+    versions: { bridge: assetQuickReadRelease.version },
+    counts: { agents: 33, discs: 374 },
+    durationMs: 180000,
+    evidence: { jobState: 'timed_out' },
+  })
+  expect(sanitizeScanFeedbackPayload(report)).toEqual({ ok: true, record: report })
+  expect(JSON.stringify(report)).not.toContain('private')
+})
 
 beforeEach(() => localStorage.clear())
 it('captures only allowlisted facts for each failure, never message, account, path or snapshot', () => {

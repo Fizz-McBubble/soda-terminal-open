@@ -11,6 +11,43 @@ import {
 
 describe('direct upstream scanner runtime', () => {
   registerRuntimeResultTests()
+  it('does not let a delayed command response replace newer streamed progress', async () => {
+    const normalFetch = helperFetch()
+    let complete!: (response: Response) => void
+    const runtime = createNativeFixtureRuntime({
+      fetchImpl: ((input, init) =>
+        String(input).endsWith('/api/start')
+          ? new Promise<Response>((resolve) => {
+              complete = resolve
+            })
+          : normalFetch(input, init)) as typeof fetch,
+      EventSourceImpl: FakeEventSource as unknown as typeof EventSource,
+    })
+    const listener = vi.fn()
+    const unsubscribe = runtime.subscribe(listener)
+    await vi.waitFor(() => expect(FakeEventSource.latest?.onmessage).toBeTruthy())
+    const pending = runtime.commands.startScan()
+    await vi.waitFor(() => expect(complete).toBeTypeOf('function'))
+    FakeEventSource.latest!.emit({
+      ...readySnapshot,
+      state: 'scanning',
+      progress: {
+        processed: 54,
+        total: 374,
+        stageLabel: '读取驱动盘详情',
+        etaSeconds: null,
+      },
+    })
+    complete(new Response(JSON.stringify({ ...readySnapshot, state: 'checking' })))
+    await pending
+    expect(listener).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        state: 'scanning',
+        progress: expect.objectContaining({ processed: 54 }),
+      }),
+    )
+    unsubscribe()
+  })
   it('launches the protocol in the same click task before awaiting helper requests', async () => {
     const fetchImpl = helperFetch()
     const launchProtocol = vi.fn(() => expect(fetchImpl).not.toHaveBeenCalled())
@@ -47,7 +84,7 @@ describe('direct upstream scanner runtime', () => {
     )
     const stream = FakeEventSource.latest as FakeEventSource | null
     stream?.emit(readySnapshot)
-    expect(listener).toHaveBeenCalledWith(readySnapshot)
+    expect(listener).toHaveBeenCalledWith(expect.objectContaining(readySnapshot))
     unsubscribe()
   })
 
@@ -84,7 +121,9 @@ describe('direct upstream scanner runtime', () => {
     const runtime = createScannerAssistantRuntime({ fetchImpl: fetchImpl as typeof fetch })
     const listener = vi.fn()
     const unsubscribe = runtime.subscribe(listener)
-    await vi.waitFor(() => expect(listener).toHaveBeenCalledWith(readySnapshot))
+    await vi.waitFor(() =>
+      expect(listener).toHaveBeenCalledWith(expect.objectContaining(readySnapshot)),
+    )
     expect(streamRequest).toEqual({
       url: 'http://127.0.0.1:43127/api/events',
       authorization: token,
@@ -208,7 +247,7 @@ describe('direct upstream scanner runtime', () => {
     await runtime.commands.startScan()
     await runtime.commands.safeStop()
 
-    expect(listener).toHaveBeenCalledWith(readySnapshot)
+    expect(listener).toHaveBeenCalledWith(expect.objectContaining(readySnapshot))
     expect(fetchImpl.mock.calls.map(([url]) => new URL(String(url)).pathname)).toEqual([
       '/token',
       '/api/retry',

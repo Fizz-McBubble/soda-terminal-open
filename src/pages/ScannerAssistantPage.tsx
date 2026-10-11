@@ -42,6 +42,8 @@ import { useScannerJsonReadIdentity } from './useScannerJsonReadIdentity'
 import { beginUsageOperation } from '../usageStatistics/client'
 import { detectLocalDataFileKind } from '../application/localDataFile'
 import { useScannerDataFileHandoff } from '../scanner/useScannerDataFileHandoff'
+import { setPublicScannerActiveAccount } from '../accounts/publicScannerAccountCreation'
+import { database } from '../db/databaseCore'
 import './scanner-workbench.css'
 import './scanner-workbench-interaction.css'
 import './scanner-workbench-alignment.css'
@@ -79,6 +81,8 @@ function HydratedScannerAssistantPage({
   const [filePending, setFilePending] = useState(false)
   const filePendingRef = useRef(false)
   const [creatingAccount, setCreatingAccount] = useState(false)
+  const [selectingAccount, setSelectingAccount] = useState(false)
+  const selectingAccountRef = useRef(false)
   const creatingAccountRef = useRef(false)
   const [selectedAccountId, setSelectedAccountId] = useState('')
   const [newAccountName, setNewAccountName] = useState('')
@@ -90,7 +94,9 @@ function HydratedScannerAssistantPage({
   const actionPendingRef = useRef(false)
   const [inlineImportOpen, setInlineImportOpen] = useState(false)
   const [importedThisVisit, setImportedThisVisit] = useState(false)
-  const [preparingAnotherScan, setPreparingAnotherScan] = useState(false)
+  const [preparingAnotherScan, setPreparingAnotherScan] = useState(
+    () => !['completed', 'scanning', 'paused'].includes(runtimeSnapshot.state),
+  )
   const [completedImport, setCompletedImport] = useState<CompletedScannerImport | null>(
     readCompletedScannerImport,
   )
@@ -114,6 +120,10 @@ function HydratedScannerAssistantPage({
   const targetReady = Boolean(selectedAccount)
   const completedImportCount =
     completedImport &&
+    (importedThisVisit ||
+      (snapshot.state === 'completed' &&
+        Boolean(completedImport.resultFileHandle) &&
+        completedImport.resultFileHandle === snapshot.summary?.resultFileHandle)) &&
     completedImport.accountId === selectedAccount?.id &&
     !['checking', 'awaiting_elevation', 'scanning', 'paused'].includes(snapshot.state) &&
     !(
@@ -477,6 +487,7 @@ function HydratedScannerAssistantPage({
     )
   const scannerTask = (
     <>
+      {startPending && preparingNewScan && <p role="status">正在启动画面扫描…</p>}
       <ScannerPrepareSection
         showPreparation={showPreparation}
         fallbackJson={fallbackJson}
@@ -644,11 +655,14 @@ function HydratedScannerAssistantPage({
       onTaskStart={() => setTaskSource('quick-read')}
       onViewAssets={() => navigate('/assets/agents')}
       riskNoticeHref="#scanner-risk-notice"
-      blocked={scannerBusy || scannerReviewPending || backupPending || filePending}
+      blocked={
+        scannerBusy || scannerReviewPending || backupPending || filePending || selectingAccount
+      }
       workbench={(quick) => {
         const quickPending = quick.busy || quick.state === 'received'
         const otherTaskPending = quickPending || backupPending || filePending
-        const accountLocked = scannerBusy || quick.busy || filePending || backupPending
+        const accountLocked =
+          scannerBusy || quick.busy || filePending || backupPending || selectingAccount
         const activeTask =
           taskSource === 'backup' && backupFile
             ? 'backup'
@@ -732,9 +746,23 @@ function HydratedScannerAssistantPage({
                       }))}
                       selectedAccountId={effectiveSelectedAccountId}
                       onSelect={(id) => {
-                        setSelectedAccountId(id)
+                        if (selectingAccountRef.current) return
+                        selectingAccountRef.current = true
+                        setSelectingAccount(true)
                         setAccountMessage('')
-                        setHandoffState({ status: 'idle' })
+                        void setPublicScannerActiveAccount(id, database)
+                          .then(() => {
+                            setSelectedAccountId('')
+                            setHandoffState({ status: 'idle' })
+                            refreshAccounts()
+                          })
+                          .catch(() => {
+                            setAccountMessage('账户切换未完成，请重试。')
+                          })
+                          .finally(() => {
+                            selectingAccountRef.current = false
+                            setSelectingAccount(false)
+                          })
                       }}
                     />
                   </div>
@@ -800,7 +828,7 @@ function HydratedScannerAssistantPage({
                                 : 0
                         }
                       />
-                      <div className="scanner-workbench__body">
+                      <div className="scanner-workbench__body scanner-workbench__body--diagnostic">
                         {scannerActive ? (
                           <section
                             id="scanner-current-task"
@@ -848,6 +876,18 @@ function HydratedScannerAssistantPage({
                                 void startBoundScan()
                               }}
                             />
+                            {preparingNewScan &&
+                              snapshot.state === 'completed' &&
+                              snapshot.summary?.resultFileHandle &&
+                              !startPending && (
+                                <button
+                                  className="scanner-link"
+                                  type="button"
+                                  onClick={() => setPreparingAnotherScan(false)}
+                                >
+                                  查看上次扫描结果
+                                </button>
+                              )}
                             {actionFeedback && !failureDiagnostic && (
                               <p className="scanner-task__feedback is-error" role="alert">
                                 {actionFeedback}
@@ -855,9 +895,11 @@ function HydratedScannerAssistantPage({
                             )}
                           </div>
                         )}
-                        {(!hasScannerTask || failureDiagnostic) && (
-                          <ScannerDiagnosticFeedback report={failureDiagnostic} compact />
-                        )}
+                        <ScannerDiagnosticFeedback
+                          report={failureDiagnostic}
+                          snapshot={snapshot}
+                          compact
+                        />
                       </div>
                     </section>
                     <div

@@ -224,7 +224,7 @@ export function createLocalCalculationQueryClientCore(options: {
       await requireCompiledRuntime()
       const run = runs.get(query.runId)
       if (!run) throw new Error(`Account Decision run is unavailable: ${query.runId}.`)
-      return projectDevelopmentWorkbenchRoute(run, query.selection)
+      return projectDevelopmentWorkbenchRoute(run, query.selection, query.currentRecord)
     },
 
     queryDecisionPortfolio: createLocalDecisionPortfolioQuery({

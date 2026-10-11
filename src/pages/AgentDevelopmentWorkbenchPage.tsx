@@ -56,6 +56,10 @@ export function AgentDevelopmentWorkbenchPage() {
     accountId: string
     agentId: string
     presentation: GoldenWorkbenchData
+    kind?: 'current_record'
+    phase?: 'updating' | 'failed'
+    record?: import('../assault/types').RosterAgent
+    error?: string
   } | null>(null)
   const [lastRouteProjection, setLastRouteProjection] = useState<{
     accountId: string
@@ -70,6 +74,10 @@ export function AgentDevelopmentWorkbenchPage() {
   const requestedPlanId = searchParams.get('plan')
   const pageAccountId =
     decisionWorld.liveInput?.warehouse.accountId ?? decisionWorld.run?.input.warehouse.accountId
+  const committedCurrentRecord =
+    saveRefresh?.kind === 'current_record' &&
+    saveRefresh.accountId === pageAccountId &&
+    saveRefresh.agentId === agentId
   useEffect(() => {
     let active = true
     queueMicrotask(() => {
@@ -156,7 +164,7 @@ export function AgentDevelopmentWorkbenchPage() {
   // switch to the live input immediately, otherwise a low level, missing
   // engine, or changed disc can be presented as the player's current state.
   const currentInput =
-    decisionWorld.status === 'stale'
+    decisionWorld.status === 'stale' || committedCurrentRecord
       ? decisionWorld.liveInput
       : (decisionWorld.run?.input ?? (requestedPlanId ? decisionWorld.liveInput : undefined))
   const data = currentInput
@@ -171,7 +179,11 @@ export function AgentDevelopmentWorkbenchPage() {
       ? undefined
       : null
   // A saved plan is a local record. Reading it must not depend on a new online calculation.
-  if (decisionWorld.status === 'error' && !(requestedPlanId && currentInput))
+  if (
+    decisionWorld.status === 'error' &&
+    !committedCurrentRecord &&
+    !(requestedPlanId && currentInput)
+  )
     return <AgentDevelopmentReadError message={decisionWorld.message} />
   if (data === undefined)
     return <AppLoadingState heading="代理人养成" title="正在读取当前账户…" compact />
@@ -182,7 +194,9 @@ export function AgentDevelopmentWorkbenchPage() {
     editingCurrent &&
     editingPresentation?.accountId === account.id &&
     editingPresentation.presentation.agentId === agentId
-  const savingThisAgent = saveRefresh?.accountId === account.id && saveRefresh.agentId === agentId
+  const savePresentationThisAgent =
+    saveRefresh?.accountId === account.id && saveRefresh.agentId === agentId
+  const savingThisAgent = savePresentationThisAgent && saveRefresh.phase !== 'failed'
   const matchingThisAgent =
     warehouseRefresh?.accountId === account.id &&
     warehouseRefresh.agentId === agentId &&
@@ -283,7 +297,7 @@ export function AgentDevelopmentWorkbenchPage() {
       : null
   const retainingDuringSave =
     !freshRouteProjection &&
-    (savingThisAgent || editingThisAgent) &&
+    (savePresentationThisAgent || editingThisAgent) &&
     lastRouteProjection?.accountId === account.id &&
     lastRouteProjection.agentId === agentId
   const routeProjection =

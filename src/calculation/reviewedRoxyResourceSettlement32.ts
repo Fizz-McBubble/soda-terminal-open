@@ -29,11 +29,23 @@ export function settleReviewedRoxyEnergySpend32(input: {
     !Number.isFinite(energyConsumptionAccumulator) ||
     energyConsumptionAccumulator < 0 ||
     energyConsumptionAccumulator > 25 ||
-    (windEnergy < 3 && energyConsumptionAccumulator >= 25) ||
     !Number.isFinite(energySpent) ||
     energySpent < 0
   )
     return { status: 'unsupported' as const, reasons: ['invalid_roxy_resource_settlement'] }
+  // A Wind release can leave the capped accumulator banked below Wind capacity.
+  // Only a subsequent positive Energy spend dispatches conversion; observing a
+  // release or a zero-spend action must preserve that terminal state.
+  if (energySpent === 0)
+    return {
+      status: 'supported' as const,
+      windEnergy,
+      energyConsumptionAccumulator,
+      windGranted: 0,
+      discardedConsumptionAtCap: 0,
+      sourcePolicyOnly: true as const,
+      runtimeSelectorProven: false as const,
+    }
   const accumulated = energyConsumptionAccumulator + energySpent
   if (!Number.isFinite(accumulated))
     return { status: 'unsupported' as const, reasons: ['invalid_roxy_resource_settlement'] }

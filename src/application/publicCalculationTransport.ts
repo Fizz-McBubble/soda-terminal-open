@@ -245,6 +245,7 @@ export function projectPublicCalculationResult(
         discFacts,
         workbench,
         graduationPanel,
+        currentRecordBinding,
       } = view
       return {
         contract,
@@ -261,6 +262,7 @@ export function projectPublicCalculationResult(
         discFacts,
         workbench,
         graduationPanel,
+        ...(currentRecordBinding ? { currentRecordBinding } : {}),
       }
     }
     case 'warehouse_disc_transition_uses': {

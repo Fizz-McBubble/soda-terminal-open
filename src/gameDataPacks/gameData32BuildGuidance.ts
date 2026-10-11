@@ -54,6 +54,24 @@ export const gameData32BuildSources: Readonly<Record<string, VerifiedBuildSource
       contentHash: '4781646B6DEB1A7148619A41846AA5AE7B908B5CBC222C279651F638C2596D0D',
       licenseBoundary: provenanceBoundary,
     },
+    roxyAlternativesReviewed: {
+      id: 'prydwen-roxy32-alternatives-20261011',
+      url: 'https://www.prydwen.gg/zenless/characters/roxy',
+      sourceVersion: '3.2',
+      checkedAt: '2026-10-11',
+      contentHash: '363575F9C1FD017C3C85A92051C9E9AD856B4638E9B0BCB777105B43F7F0CF43',
+      licenseBoundary:
+        '最小事实JSON提取hash，非HTTP原始字节。原攻略Best W-Engines的精炼、队伍及能量条件；不采用伤害/失衡百分比。',
+    },
+    claretRoxyBangbooReviewed: {
+      id: 'zzzgg-roxy32-bangboo-20261011',
+      url: 'https://zzz.gg/zh-hans/characters/洛克茜',
+      sourceVersion: '3.2',
+      checkedAt: '2026-10-11',
+      contentHash: '363575F9C1FD017C3C85A92051C9E9AD856B4638E9B0BCB777105B43F7F0CF43',
+      licenseBoundary:
+        '最小事实JSON提取hash，非HTTP原始字节。原页最佳邦布与队伍搭配的三人成员和可选邦布；不复制正文/媒体，不设默认或精确强度。',
+    },
   })
 
 export type GameData32BuildGuidance = {
@@ -96,7 +114,7 @@ export const gameData32BuildGuidance: Readonly<Record<string, GameData32BuildGui
       agentId: 'agent-claret',
       agentName: '克拉蕾',
       gameVersion: '3.2',
-      sourceKeys: ['claretRelease', 'claretGuide', 'koledaGuide'],
+      sourceKeys: ['claretRelease', 'claretGuide', 'koledaGuide', 'claretRoxyBangbooReviewed'],
       wEngineIds: ['wengine-14161', 'wengine-13021', 'wengine-13017'],
       wEngineDirections: [
         '猩红渴望（wengine-14161）：专属锋御方向。',
@@ -155,7 +173,7 @@ export const gameData32BuildGuidance: Readonly<Record<string, GameData32BuildGui
         '珂蕾妲潜能的锋御锐暴增益需采用正确潜能等级映射，不能把暴击伤害增益直接给锋御。',
         '六次毁伤定性顺序：预攒三层残痕及可用终结技，长特殊技 → 连携 → 普攻三段 → 连携 → 普攻三段 → 终结技 → 长特殊技。',
         '来源声称该顺序可置于十二秒基础失衡窗口，未提供完整动作时间与资源表；不得包装成精确固定轴。',
-        '邦布当前无已闭合的原始来源推荐，不填造推荐名单。',
+        '邦布来源候选：ZZZ.gg在克拉蕾 + 洛克茜 + 丽娜队列出超极杰克；仅用于该三人场景，需另行核对阵营额外能力，不设自动默认或全局最优。',
       ],
       progressionDirections: [
         '核心技与特殊技优先，再比较连携、普通攻击与支援；这是来源养成方向，不是自动指定技能等级。',
@@ -173,10 +191,18 @@ export const gameData32BuildGuidance: Readonly<Record<string, GameData32BuildGui
       agentId: 'agent-roxy',
       agentName: '洛克茜',
       gameVersion: '3.2',
-      sourceKeys: ['roxyRelease', 'roxyGuide'],
-      wEngineIds: ['wengine-14162'],
+      sourceKeys: [
+        'roxyRelease',
+        'roxyGuide',
+        'roxyAlternativesReviewed',
+        'claretRoxyBangbooReviewed',
+      ],
+      wEngineIds: ['wengine-14162', 'wengine-13005', 'wengine-14110'],
       wEngineDirections: [
-        '绯月银棺（wengine-14162）：专属击破方向；替代音擎排序未闭合当前原始来源。',
+        '绯月银棺（wengine-14162）：专属击破方向。',
+        '人为刀俎（wengine-13005，Steam Oven）满精：原攻略优先替代方向；需维持80点能量以发挥音擎效果。',
+        '燃狱齿轮（wengine-14110）1阶：原攻略在此精炼下次于满精人为刀俎，强化特殊技后续叠层较迟；高精炼需另行比较。',
+        '以上比较来源为洛克茜 + 猩红渴望克拉蕾 + 啜泣摇篮丽娜的作者场景；不把该顺序外推为所有队伍、精炼或正式最优。',
       ],
       setDirections: [
         '强攻 / 命破队：山大王 4 件 + 月光骑士颂 / 摇摆爵士 2 件；需强化特殊技触发套装效果。',
@@ -242,7 +268,8 @@ export const gameData32BuildGuidance: Readonly<Record<string, GameData32BuildGui
       teamAndBangbooPreconditions: [
         '追加能力需队友为强攻、命破或锋御；与克拉蕾同队可相互满足追加能力。',
         '团队暴伤或锐暴增益需匹配浸染 / 涤净属性及受益角色特性，不能把所有增益同时无条件开启。',
-        '邦布及完整固定轴未闭合当前原始来源，保留明确缺口。',
+        '邦布来源候选：ZZZ.gg在克拉蕾 + 洛克茜 + 丽娜队列出超极杰克；仅用于该三人场景，需另行核对阵营额外能力，不设自动默认或全局最优。',
+        '完整固定轴仍缺逐动作时间与资源记录；来源邦布方向不补足此缺口。',
       ],
       progressionDirections: [
         '核心技与特殊技优先，其次连携和支援，再普通攻击和闪避；不虚构技能目标等级。',

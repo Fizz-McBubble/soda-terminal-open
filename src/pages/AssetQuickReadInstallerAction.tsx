@@ -41,7 +41,9 @@ export function AssetQuickReadInstallerAction({
   const cancelButton = useRef<HTMLButtonElement>(null)
   const restoreFocus = useRef(false)
   const available = assetQuickReadDownloadAvailable(release)
-  const upgradeNotice = connected ? assetQuickReadUpgradeNotice(toolVersion, release.version) : null
+  const upgradeNotice = connected
+    ? assetQuickReadUpgradeNotice(toolVersion, release.bridgeVersion ?? release.version)
+    : null
   const pending = state === 'downloading' || state === 'saving'
   useEffect(() => {
     mounted.current = true
@@ -144,7 +146,7 @@ export function AssetQuickReadInstallerAction({
   const feedback =
     notice ||
     (state === 'save_requested'
-      ? '文件已准备。请在下载列表打开安装包，完成安装后回到本页连接；不会自动开始读取。'
+      ? '文件已准备，请打开安装包，完成后点击连接。'
       : state === 'cancelled'
         ? '下载已取消，可重新下载。'
         : state === 'error'
@@ -206,16 +208,6 @@ export function AssetQuickReadInstallerAction({
       {feedback && (
         <div className="asset-quick-read-installer__feedback" role="status">
           {feedback}
-          {state === 'save_requested' && !connected && onConnect && (
-            <button
-              className="button button--quiet"
-              type="button"
-              disabled={blocked || connecting}
-              onClick={() => void connect(false)}
-            >
-              {connecting ? '连接中…' : '安装完成，继续连接'}
-            </button>
-          )}
         </div>
       )}
     </div>

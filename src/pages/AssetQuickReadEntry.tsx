@@ -57,6 +57,7 @@ export interface AssetQuickReadEntryProps {
   onStop?: () => void | Promise<void>
   onImport?: () => void | Promise<void>
   onDiscard?: () => void | Promise<void>
+  onPrepareAgain?: () => void | Promise<void>
   onExport?: () => void | Promise<void>
   onInspectFile?: () => void | Promise<void>
   canImport?: boolean
@@ -97,7 +98,7 @@ const stateCopy: Record<AssetQuickReadState, string> = {
   completed: '本次资产快读结果已导入。',
 }
 
-type PendingAction = 'connect' | 'start' | 'import' | 'export' | 'inspect' | 'discard'
+type PendingAction = 'connect' | 'start' | 'import' | 'export' | 'inspect' | 'discard' | 'restart'
 const actionErrors: Record<PendingAction | 'stop', string> = {
   connect: '资产快读连接未完成，请检查安装目录后重试。',
   start: '启动请求未完成，请检查资产快读状态后重试。',
@@ -105,6 +106,7 @@ const actionErrors: Record<PendingAction | 'stop', string> = {
   export: '导出请求未完成，请重试。',
   inspect: '候选文件检查未完成，请重试。',
   discard: '关闭结果检查未完成，请重试；账户未修改。',
+  restart: '未能返回读取准备，请重试；已导入的资产保留。',
   stop: '停止请求未完成，请重试或检查资产快读状态。',
 }
 
@@ -127,6 +129,7 @@ export function AssetQuickReadEntry({
   onStop,
   onImport,
   onDiscard,
+  onPrepareAgain,
   onExport,
   onInspectFile,
   canImport = false,
@@ -576,6 +579,21 @@ export function AssetQuickReadEntry({
                 </button>
               )}
               {onExport && exportButton}
+              {onPrepareAgain && (
+                <button
+                  className="button button--quiet"
+                  type="button"
+                  disabled={actionBlocked}
+                  onClick={() => {
+                    if (actionBlocked) return
+                    setDisclosureOpen(false)
+                    setAcknowledgedAccount(null)
+                    void runAction('restart', onPrepareAgain)
+                  }}
+                >
+                  重新读取
+                </button>
+              )}
               {completionActions}
             </div>
           </div>
@@ -787,8 +805,8 @@ export function AssetQuickReadEntry({
                 )}
               </div>
               {preparationActions}
-              {workbenchExtras}
               {preparationTools}
+              {workbenchExtras}
             </div>
           )}
         </section>
@@ -824,9 +842,9 @@ export function AssetQuickReadEntry({
                   {disclosure}
                 </details>
               )}
-              {workbenchExtras}
             </>
           )}
+          {workbenchExtras}
         </div>
       ) : null,
     })
