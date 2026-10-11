@@ -10,7 +10,7 @@ import {
   pinnedScannerAssetUrlRc86,
   pinnedScannerAssetUrlRc87,
   pinnedScannerAssetUrlRc88,
-  pinnedScannerAssetUrlRc813,
+  pinnedScannerAssetUrlRc814,
   scannerAssetLocation,
 } from './materialize-scanner-distribution.mjs'
 
@@ -39,6 +39,20 @@ test('accepts both pinned RC8.7 and RC8.8 assets without accepting mixed identit
       /scanner_release_asset_invalid/,
     )
   }
+})
+
+test('accepts the published RC8.14 identity and rejects mixed release fields', () => {
+  const manifest = {
+    assetUrl: pinnedScannerAssetUrlRc814,
+    assetName: 'soda-scanner-runtime-18-rc8-14-local-20261011-win-x64.zip',
+    releaseTag: 'scanner-runtime-v18.0.0-rc.8.14-local.20261011',
+  }
+  assert.equal(scannerAssetLocation(manifest), 'github-release')
+  for (const invalid of [
+    { ...manifest, assetName: 'soda-scanner-runtime-18-rc8-13-local-20261011-win-x64.zip' },
+    { ...manifest, releaseTag: 'scanner-runtime-v18.0.0-rc.8.13-local.20261011' },
+    { ...manifest, assetUrl: manifest.assetUrl.replace('/soda-terminal-scanner/', '/other-repo/') },
+  ]) assert.throws(() => scannerAssetLocation(invalid), /scanner_release_asset_invalid/)
 })
 
 test('materializes a same-origin bootstrap with a pinned external runtime without changing source', async () => {
@@ -83,7 +97,7 @@ test('materializes a same-origin bootstrap with a pinned external runtime withou
     assert.equal(rendered.releaseState, 'published')
     const manifest = JSON.parse(await readFile(join(output, names[3]), 'utf8'))
     assert.equal(manifest.releaseState, 'published')
-    assert.equal(manifest.assetUrl, pinnedScannerAssetUrlRc813)
+    assert.equal(manifest.assetUrl, pinnedScannerAssetUrlRc814)
     await assert.rejects(
       materializeScannerDistribution({
         origin: 'https://example.test',
