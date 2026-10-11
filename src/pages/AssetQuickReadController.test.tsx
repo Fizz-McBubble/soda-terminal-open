@@ -20,6 +20,68 @@ import type { AssetBridgeJob } from '../assetQuickRead/bridgeClient'
 
 vi.mock('../components/ExplanationPopover', () => import('../testing/ExplanationPopoverStub'))
 
+it('remembers the device directory across account changes and remounts without starting work', () => {
+  const client = bridge()
+  const props = { client, targetAccountId, activeAccountId: targetAccountId }
+  const view = render(<AssetQuickReadController {...props} />)
+  fireEvent.change(screen.getByLabelText('游戏安装目录'), {
+    target: { value: "soda-source-ref:24d5780e541a1a1ad1393e8962be6e18" },
+  })
+  view.rerender(
+    <AssetQuickReadController
+      {...props}
+      targetAccountId="other-account"
+      activeAccountId="other-account"
+    />,
+  )
+  expect(screen.getByLabelText('游戏安装目录')).toHaveValue("soda-source-ref:24d5780e541a1a1ad1393e8962be6e18")
+  view.unmount()
+  const reopened = render(<AssetQuickReadController {...props} />)
+  expect(screen.getByLabelText('游戏安装目录')).toHaveValue("soda-source-ref:24d5780e541a1a1ad1393e8962be6e18")
+  reopened.unmount()
+  expect(client.connect).not.toHaveBeenCalled()
+  expect(client.start).not.toHaveBeenCalled()
+  expect(persistence.confirm).not.toHaveBeenCalled()
+})
+
+it('replaces the remembered directory on edit and respects explicitly clearing it', () => {
+  const client = bridge()
+  const view = render(<AssetQuickReadController client={client} />)
+  fireEvent.change(screen.getByLabelText('游戏安装目录'), {
+    target: { value: "soda-source-ref:24d5780e541a1a1ad1393e8962be6e18" },
+  })
+  fireEvent.change(screen.getByLabelText('游戏安装目录'), {
+    target: { value: "soda-source-ref:27abc6baafa1a7f0d9dc3274811b30fb" },
+  })
+  view.unmount()
+  const reopened = render(<AssetQuickReadController client={client} />)
+  expect(screen.getByLabelText('游戏安装目录')).toHaveValue("soda-source-ref:27abc6baafa1a7f0d9dc3274811b30fb")
+  fireEvent.change(screen.getByLabelText('游戏安装目录'), { target: { value: '' } })
+  reopened.unmount()
+  render(<AssetQuickReadController client={client} />)
+  expect(screen.getByLabelText('游戏安装目录')).toHaveValue('')
+})
+
+it('keeps manual directory input usable when browser storage is unavailable', () => {
+  const get = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+    throw new DOMException('Storage unavailable', 'SecurityError')
+  })
+  const set = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+    throw new DOMException('Storage unavailable', 'SecurityError')
+  })
+  try {
+    render(<AssetQuickReadController client={bridge()} />)
+    expect(screen.getByLabelText('游戏安装目录')).toHaveValue('')
+    fireEvent.change(screen.getByLabelText('游戏安装目录'), {
+      target: { value: "soda-source-ref:24d5780e541a1a1ad1393e8962be6e18" },
+    })
+    expect(screen.getByLabelText('游戏安装目录')).toHaveValue("soda-source-ref:24d5780e541a1a1ad1393e8962be6e18")
+  } finally {
+    get.mockRestore()
+    set.mockRestore()
+  }
+})
+
 it('uses the independent bridge and reviews early success without any account mutation', async () => {
   const client = bridge()
   render(

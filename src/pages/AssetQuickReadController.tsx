@@ -17,6 +17,10 @@ import { AssetQuickReadRecovery } from './AssetQuickReadRecovery'
 import { AssetQuickReadInstallerAction } from './AssetQuickReadInstallerAction'
 import { assetQuickReadDownloadAvailable } from '../assetQuickRead/distribution'
 import { setPublicScannerActiveAccount } from '../accounts/publicScannerAccountCreation'
+import {
+  readAssetQuickReadDirectory,
+  saveAssetQuickReadDirectory,
+} from '../assetQuickRead/directoryPreference'
 type Bridge = Pick<AssetQuickReadBridgeClient, 'connect' | 'start' | 'status' | 'cancel' | 'result'>
 export type AssetQuickReadWorkbenchView = {
   preparation: ReactNode
@@ -67,7 +71,11 @@ function AccountBoundQuickRead({
   const [client] = useState<Bridge>(() => suppliedClient ?? new AssetQuickReadBridgeClient())
   const [connected, setConnected] = useState(false)
   const [toolVersion, setToolVersion] = useState<string | undefined>()
-  const [directory, setDirectory] = useState('')
+  const [directory, setDirectory] = useState(readAssetQuickReadDirectory)
+  const changeDirectory = (value: string) => {
+    setDirectory(value)
+    saveAssetQuickReadDirectory(value)
+  }
   const [state, setState] = useState<AssetQuickReadState>('idle')
   const [job, setJob] = useState<AssetBridgeJob | null>(null)
   const [review, setReview] = useState<Reviewed | null>(null)
@@ -112,7 +120,6 @@ function AccountBoundQuickRead({
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setOperation(null)
     setConnected(false)
-    setDirectory('')
     setJob(null)
     setReview(null)
     setState('idle')
@@ -602,7 +609,7 @@ function AccountBoundQuickRead({
       toolVersion={connected ? toolVersion : undefined}
       state={state}
       installationDirectory={directory}
-      onDirectoryChange={setDirectory}
+      onDirectoryChange={changeDirectory}
       onConnect={active(job) ? undefined : connect}
       targetAccountId={targetAccountId}
       targetAccountName={targetAccountName}

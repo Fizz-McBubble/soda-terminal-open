@@ -69,6 +69,7 @@ export function bridge() {
 beforeEach(() => {
   vi.useFakeTimers()
   vi.clearAllMocks()
+  localStorage.clear()
   converted.candidate = {
     protocolVersion: '3.2',
     capturedAt: '2026-10-10T00:00:00Z',
