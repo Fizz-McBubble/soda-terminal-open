@@ -8,6 +8,7 @@ describe('absolute retention witness guidance', () => {
   it('names an impossible investment policy without asking the player to repair their disc', () => {
     render(
       <WarehouseRetentionEvidence
+        ownedAgentIds={new Set(['agent-anby'])}
         discLevel={0}
         evidence={evidence({
           disposition: 'review',
@@ -72,7 +73,13 @@ describe('absolute retention witness guidance', () => {
         ],
       })
       const before = structuredClone(source)
-      render(<WarehouseRetentionEvidence evidence={source} discLevel={0} />)
+      render(
+        <WarehouseRetentionEvidence
+          ownedAgentIds={new Set(['agent-anby'])}
+          evidence={source}
+          discLevel={0}
+        />,
+      )
       expect(screen.getByRole('status')).toHaveTextContent(
         action === 'keep' ? '下一步：保留' : '下一步：先强化到 +3',
       )
@@ -99,6 +106,7 @@ describe('absolute retention witness guidance', () => {
   it('uses the sufficient witness when another branch belongs to the same character', () => {
     render(
       <WarehouseRetentionEvidence
+        ownedAgentIds={new Set(['agent-anby'])}
         discLevel={0}
         evidence={evidence({
           witnessProfileIds: ['valid-witness'],

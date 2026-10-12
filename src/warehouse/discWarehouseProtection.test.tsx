@@ -100,7 +100,13 @@ describe('current protection action and intrinsic quality', () => {
           expect(action.absoluteRetention?.nextAction?.detail).not.toContain(label)
         }
       }
-      render(<WarehouseRetentionEvidence evidence={action.absoluteRetention!} discLevel={15} />)
+      render(
+        <WarehouseRetentionEvidence
+          ownedAgentIds={new Set(['agent-anby'])}
+          evidence={action.absoluteRetention!}
+          discLevel={15}
+        />,
+      )
       const status = screen.getByRole('status')
       expect(status.textContent).toContain('下一步：保留')
       expect(status.textContent).not.toContain('人工清理')

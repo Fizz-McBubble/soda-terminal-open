@@ -5,6 +5,54 @@ import { evidence, use } from './WarehouseRetentionEvidence.testFixture'
 import { WarehouseRetentionEvidence } from './WarehouseRetentionEvidence'
 
 describe('absolute retention evidence', () => {
+  it('uses actual ownership even when an owned reference has no qualifying retention use', () => {
+    const source = evidence({
+      ownedUseAgentIds: [],
+      unownedUseAgentIds: [],
+      leadingUses: [
+        { ...use('reserve', 25, 20), agentId: 'agent-lycaon' },
+        { ...use('owned-low-value', 15, 10), agentId: 'agent-nicole' },
+      ],
+    })
+    const before = structuredClone(source)
+    render(
+      <WarehouseRetentionEvidence
+        ownedAgentIds={new Set(['agent-nicole'])}
+        evidence={source}
+        discLevel={15}
+      />,
+    )
+    const rows = within(screen.getByRole('list', { name: '参考角色用途' })).getAllByRole('listitem')
+    expect(rows[0]).toHaveTextContent('妮可已拥有')
+    expect(within(rows[0]!).queryByTitle('未拥有，可作储备用途')).not.toBeInTheDocument()
+    expect(rows[1]).toHaveTextContent('莱卡恩储备')
+    expect(screen.getByText('参考角色')).toBeInTheDocument()
+    expect(screen.queryByText('适用角色')).not.toBeInTheDocument()
+    expect(source).toEqual(before)
+  })
+
+  it.each([false, true])(
+    'only calls an empty substat direction functional when functionalMain=%s',
+    (functionalMain) => {
+      const row = use('empty-direction', 25, 20)
+      render(
+        <WarehouseRetentionEvidence
+          ownedAgentIds={new Set()}
+          discLevel={15}
+          evidence={evidence({
+            leadingUses: [{ ...row, functionalMain, guidance: { ...row.guidance!, subStats: [] } }],
+          })}
+        />,
+      )
+      expect(
+        screen.getByText(functionalMain ? '以主词条功能为主。' : '当前用途未列出重点副词条。'),
+      ).toBeVisible()
+      expect(
+        screen.queryByText(functionalMain ? '当前用途未列出重点副词条。' : '以主词条功能为主。'),
+      ).not.toBeInTheDocument()
+    },
+  )
+
   it('translates collection locators and merges equal visible conditions without changing evidence', () => {
     const blocker = {
       kind: 'conditional_use' as const,
@@ -36,7 +84,13 @@ describe('absolute retention evidence', () => {
       ],
     })
     const before = structuredClone(source)
-    render(<WarehouseRetentionEvidence evidence={source} discLevel={2} />)
+    render(
+      <WarehouseRetentionEvidence
+        ownedAgentIds={new Set(['agent-anby'])}
+        evidence={source}
+        discLevel={2}
+      />,
+    )
     const conditions = screen.getByRole('group', { name: '全部待确认事项' })
     expect(within(conditions).getAllByRole('listitem')).toHaveLength(4)
     expect(
@@ -70,12 +124,19 @@ describe('absolute retention evidence', () => {
         stopWhen: '受保护时保留。',
       },
     })
-    const { rerender } = render(<WarehouseRetentionEvidence discLevel={0} evidence={source} />)
+    const { rerender } = render(
+      <WarehouseRetentionEvidence
+        ownedAgentIds={new Set(['agent-anby'])}
+        discLevel={0}
+        evidence={source}
+      />,
+    )
     expect(screen.getByRole('status')).toHaveTextContent('下一步：可清理')
     expect(screen.queryByText('查看参考评分')).not.toBeInTheDocument()
     expect(screen.queryByText(/尚未校准/)).not.toBeInTheDocument()
     rerender(
       <WarehouseRetentionEvidence
+        ownedAgentIds={new Set(['agent-anby'])}
         discLevel={0}
         evidence={{
           ...source,
@@ -95,6 +156,7 @@ describe('absolute retention evidence', () => {
   it('shows a short trial first and reveals scores only when requested', async () => {
     render(
       <WarehouseRetentionEvidence
+        ownedAgentIds={new Set(['agent-anby'])}
         discLevel={0}
         evidence={evidence({
           reasonKind: 'try_next_upgrade',
@@ -120,6 +182,7 @@ describe('absolute retention evidence', () => {
   it('prioritizes owned references without calling reserve uses equipped', () => {
     render(
       <WarehouseRetentionEvidence
+        ownedAgentIds={new Set(['agent-nicole'])}
         discLevel={0}
         evidence={evidence({
           ownedUseAgentIds: ['agent-nicole'],
@@ -139,6 +202,7 @@ describe('absolute retention evidence', () => {
   it('does not ask the player to supply unpublished action facts or clear uncalibrated rarities', () => {
     const { rerender } = render(
       <WarehouseRetentionEvidence
+        ownedAgentIds={new Set(['agent-anby'])}
         discLevel={0}
         evidence={evidence({
           reasonKind: 'missing_fact',
@@ -155,6 +219,7 @@ describe('absolute retention evidence', () => {
     expect(screen.getByText(/暂不建议继续投入或清理/)).toBeVisible()
     rerender(
       <WarehouseRetentionEvidence
+        ownedAgentIds={new Set(['agent-anby'])}
         discLevel={0}
         evidence={evidence({
           reasonKind: 'missing_fact',
@@ -176,6 +241,7 @@ describe('absolute retention evidence', () => {
   it('preserves expandable alternative blockers outside the first three score rows', async () => {
     render(
       <WarehouseRetentionEvidence
+        ownedAgentIds={new Set(['agent-anby'])}
         discLevel={6}
         evidence={evidence({
           leadingUses: [
@@ -211,6 +277,7 @@ describe('absolute retention evidence', () => {
   it('keeps completed function separate from substat quality at mature level', () => {
     render(
       <WarehouseRetentionEvidence
+        ownedAgentIds={new Set(['agent-anby'])}
         discLevel={15}
         evidence={evidence({
           disposition: 'keep',
@@ -242,6 +309,7 @@ describe('absolute retention evidence', () => {
     const shared = use('p1', 95)
     const { rerender } = render(
       <WarehouseRetentionEvidence
+        ownedAgentIds={new Set(['agent-anby'])}
         discLevel={6}
         evidence={evidence({
           reasonKind: 'low_investment_value',
@@ -253,6 +321,7 @@ describe('absolute retention evidence', () => {
     expect(screen.getByText('42.0–95.0 分')).toBeInTheDocument()
     rerender(
       <WarehouseRetentionEvidence
+        ownedAgentIds={new Set(['agent-anby'])}
         discLevel={15}
         evidence={evidence({
           reasonKind: 'proven_low_ceiling',
@@ -268,6 +337,7 @@ describe('absolute retention evidence', () => {
   it('does not call upper 50 versus target 60 a trial', () => {
     render(
       <WarehouseRetentionEvidence
+        ownedAgentIds={new Set(['agent-anby'])}
         discLevel={6}
         evidence={evidence({
           reasonKind: 'proven_low_ceiling',
@@ -295,6 +365,7 @@ describe('absolute retention evidence', () => {
     ]
     render(
       <WarehouseRetentionEvidence
+        ownedAgentIds={new Set(['agent-anby'])}
         discLevel={15}
         evidence={evidence({
           leadingUses: [
@@ -342,6 +413,7 @@ describe('absolute retention evidence', () => {
   it('explains a record mismatch without exposing the raw scope', () => {
     render(
       <WarehouseRetentionEvidence
+        ownedAgentIds={new Set(['agent-anby'])}
         discLevel={0}
         evidence={evidence({
           reviewedUseScope: '3.1:released-source-backed-guide-and-mechanic-reserve-objectives:r4',
@@ -367,6 +439,7 @@ describe('absolute retention evidence', () => {
     const first = use('ben', 75)
     render(
       <WarehouseRetentionEvidence
+        ownedAgentIds={new Set(['agent-anby'])}
         discLevel={0}
         evidence={evidence({
           ownedUseAgentIds: ['agent-ben'],

@@ -467,6 +467,7 @@ export function WarehouseDiscsPage() {
                   : undefined
               }
               item={detailItem}
+              ownedAgentIds={ownedAgentIds}
               disc={detailDisc}
               discs={data.discs}
               decisionLabel={warehouseActionStrengthLabel(detailItem)}

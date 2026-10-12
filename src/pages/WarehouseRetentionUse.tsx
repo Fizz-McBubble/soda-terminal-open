@@ -72,7 +72,8 @@ export function WarehouseRetentionUse({
         <div>
           <dt>副词条方向</dt>
           <dd>
-            {stats(info.subStats) || '以主词条功能为主'}
+            {stats(info.subStats) ||
+              (use.functionalMain ? '以主词条功能为主' : '当前用途未列出重点副词条')}
             {info.minorStats.length ? `；次要参考：${stats(info.minorStats)}` : ''}。
           </dd>
         </div>

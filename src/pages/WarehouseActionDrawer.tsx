@@ -32,6 +32,7 @@ export function WarehouseActionDrawer({
   onShowSameKind,
   navigation,
   comparisonOrigin,
+  ownedAgentIds,
 }: {
   item: WarehouseActionItem
   disc: DriveDisc
@@ -45,6 +46,7 @@ export function WarehouseActionDrawer({
   onShowSameKind?: () => void
   navigation?: { index: number; total: number; onPrevious: () => void; onNext: () => void }
   comparisonOrigin?: { item: WarehouseActionItem; disc: DriveDisc }
+  ownedAgentIds: ReadonlySet<string>
 }) {
   const stale = item.recommendationState === 'stale'
   const developmentIds = new Set(stale ? [] : (item.developmentAlternativeIds ?? []))
@@ -68,6 +70,7 @@ export function WarehouseActionDrawer({
       candidate.mainStat === disc.mainStat,
   ).length
   const retentionAgentIds = !stale && item.action === 'keep' ? (item.retentionAgentIds ?? []) : []
+  const compatibilityLabel = item.absoluteRetention ? '保留潜力' : '适用角色'
   const retainedUsesCoverCompatibility =
     retentionAgentIds.length > 0 &&
     item.compatibleAgentIds.length > 0 &&
@@ -221,6 +224,7 @@ export function WarehouseActionDrawer({
           evidence={item.absoluteRetention}
           discLevel={disc.level}
           disc={disc}
+          ownedAgentIds={ownedAgentIds}
         />
       ) : null}
       <section>
@@ -296,7 +300,9 @@ export function WarehouseActionDrawer({
               <p>保留用途：{retentionAgentIds.map(readableAgentName).join('、')}。</p>
             ) : null}
             {!retainedUsesCoverCompatibility && item.compatibleAgentIds.length > 3 ? (
-              <p>适用角色：{item.compatibleAgentIds.map(readableAgentName).join('、')}。</p>
+              <p>
+                {compatibilityLabel}：{item.compatibleAgentIds.map(readableAgentName).join('、')}。
+              </p>
             ) : null}
             {alternatives.some((alternative) => developmentIds.has(alternative.id)) ? (
               <p>强化候选在同等成长条件下比较，实际强化结果可能不同，原有使用和保留关系不变。</p>
@@ -411,8 +417,8 @@ export function WarehouseActionDrawer({
         {!retainedUsesCoverCompatibility ? (
           <p>
             {item.compatibleAgentIds.length
-              ? `适用角色：${item.compatibleAgentIds.slice(0, 3).map(readableAgentName).join('、')}${item.compatibleAgentIds.length > 3 ? `等 ${item.compatibleAgentIds.length} 位` : ''}`
-              : '暂未确认适用角色。'}
+              ? `${compatibilityLabel}：${item.compatibleAgentIds.slice(0, 3).map(readableAgentName).join('、')}${item.compatibleAgentIds.length > 3 ? `等 ${item.compatibleAgentIds.length} 位` : ''}`
+              : `暂未确认${compatibilityLabel}。`}
           </p>
         ) : null}
       </section>

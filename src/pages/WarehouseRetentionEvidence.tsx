@@ -11,14 +11,16 @@ export function WarehouseRetentionEvidence({
   evidence,
   discLevel,
   disc,
+  ownedAgentIds,
 }: {
   evidence: WarehouseAbsoluteRetentionEvidence
   discLevel: number
   disc?: DriveDisc
+  ownedAgentIds: ReadonlySet<string>
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(null)
   const copy = playerRetentionCopy(evidence, discLevel)
-  const owned = new Set(evidence.ownedUseAgentIds)
+  const owned = ownedAgentIds
   const witnesses = new Set(evidence.witnessProfileIds ?? [])
   const uses = [...evidence.leadingUses]
     .sort(
@@ -50,7 +52,7 @@ export function WarehouseRetentionEvidence({
       {copy.stop ? <p className="warehouse-retention__stop">{copy.stop}</p> : null}
       {uses.length ? (
         <div className="warehouse-retention__uses">
-          <p>适用角色</p>
+          <p>参考角色</p>
           <ul aria-label="参考角色用途">
             {uses.map((use) => (
               <li key={use.agentId}>

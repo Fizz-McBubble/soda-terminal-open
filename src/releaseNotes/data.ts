@@ -10,6 +10,17 @@ export interface ReleaseNote {
 // A local fix or commit is not a published release; add it when that release ships.
 export const releases = [
   {
+    id: '20261012-warehouse-reference',
+    date: '2026-10-12',
+    scope: '驱动盘仓库',
+    title: '角色用途说明修正',
+    changes: [
+      '参考角色的已拥有与储备标记按账户记录显示，不再受当前用途评分影响。',
+      '区分评分参考角色与保留潜力角色，避免把两种用途列表混为一谈。',
+      '副词条方向为空时按实际主词功能显示说明，仓库评分与保留规则不变。',
+    ],
+  },
+  {
     id: '20261012-asset-progression',
     date: '2026-10-12',
     scope: '资产快读、配队、仓库与加载体验',

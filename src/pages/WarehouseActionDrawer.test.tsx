@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event'
 import type { WarehouseActionItem } from '../application/warehouseActionProjection'
 import { sampleDiscs } from '../evaluation/fixtures'
 import { WarehouseActionDrawer } from './WarehouseActionDrawer'
+import { evidence, use } from './WarehouseRetentionEvidence.testFixture'
 
 const disc = { ...sampleDiscs.treasureCandidate, id: 'drawer-disc' }
 function action(overrides: Partial<WarehouseActionItem> = {}): WarehouseActionItem {
@@ -26,6 +27,7 @@ function action(overrides: Partial<WarehouseActionItem> = {}): WarehouseActionIt
 function drawer(item: WarehouseActionItem) {
   return (
     <WarehouseActionDrawer
+      ownedAgentIds={new Set()}
       item={item}
       disc={disc}
       discs={[disc]}
@@ -36,6 +38,31 @@ function drawer(item: WarehouseActionItem) {
 }
 
 describe('warehouse detail density and saved loadout labels', () => {
+  it('distinguishes scored reference uses from the broader retention-potential list', async () => {
+    const ids = ['agent-anby', 'agent-billy', 'agent-nicole', 'agent-lycaon']
+    render(
+      drawer(
+        action({
+          absoluteRetention: evidence({
+            unownedUseAgentIds: ids,
+            ownedUseAgentIds: [],
+            leadingUses: [use('selected-reference', 80, 65)],
+          }),
+          compatibleAgentIds: ids,
+        }),
+      ),
+    )
+    expect(screen.getByText('参考角色')).toBeVisible()
+    expect(
+      within(screen.getByRole('list', { name: '参考角色用途' })).getAllByRole('listitem'),
+    ).toHaveLength(1)
+    await userEvent.click(screen.getByRole('button', { name: '用途说明' }))
+    const trigger = screen.getByRole('button', { name: '用途说明' })
+    const panel = document.getElementById(trigger.getAttribute('popovertarget')!)
+    expect(panel).toHaveAttribute('role', 'dialog')
+    expect(panel).toHaveTextContent(/保留潜力：.*妮可.*莱卡恩/)
+    expect(screen.queryByText(/^适用角色：/)).not.toBeInTheDocument()
+  })
   it.each([
     ['方案 B', '已保存配装'],
     ['薇薇安 · 方案 B', '薇薇安 · 已保存配装'],
@@ -171,6 +198,7 @@ describe('warehouse detail density and saved loadout labels', () => {
     const candidate = { ...disc, id: 'candidate-disc', level: 6 }
     render(
       <WarehouseActionDrawer
+        ownedAgentIds={new Set()}
         item={action({ disc: candidate })}
         disc={candidate}
         discs={[disc, candidate]}
@@ -196,6 +224,7 @@ describe('warehouse detail density and saved loadout labels', () => {
     }))
     render(
       <WarehouseActionDrawer
+        ownedAgentIds={new Set()}
         item={action({ alternativeDiscIds: alternatives.map((item) => item.id) })}
         disc={disc}
         discs={[disc, ...alternatives]}

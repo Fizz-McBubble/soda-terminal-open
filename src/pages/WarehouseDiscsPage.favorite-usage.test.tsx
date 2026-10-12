@@ -9,6 +9,7 @@ import { sampleDiscs } from '../evaluation/fixtures'
 import { WarehouseDiscsPage } from './WarehouseDiscsPage'
 import { WarehouseUsedAgents } from './WarehouseUsedAgents'
 import { WarehouseActionDrawer } from './WarehouseActionDrawer'
+import { evidence, use } from './WarehouseRetentionEvidence.testFixture'
 
 const disc = { ...sampleDiscs.treasureCandidate, id: 'favorite-disc' }
 function item(): WarehouseActionItem {
@@ -30,6 +31,48 @@ function item(): WarehouseActionItem {
 
 describe('warehouse favorite and actual usage presentation', () => {
   afterEach(() => vi.restoreAllMocks())
+  it('passes current roster ownership through the page and drawer independently of use value', async () => {
+    const roster = createEmptyRoster()
+    roster.agents.find((agent) => agent.agentId === 'agent-nicole')!.owned = true
+    const actions = [
+      {
+        ...item(),
+        action: 'cleanup' as const,
+        absoluteRetention: evidence({
+          ownedUseAgentIds: [],
+          unownedUseAgentIds: [],
+          leadingUses: [
+            { ...use('nicole-below-cutoff', 15, 10), agentId: 'agent-nicole' },
+            { ...use('lycaon-below-cutoff', 25, 20), agentId: 'agent-lycaon' },
+          ],
+        }),
+      },
+    ]
+    const before = structuredClone({ actions, roster })
+    vi.spyOn(worldModule, 'useAccountDecisionWorld').mockReturnValue({
+      status: 'current',
+      run: {
+        warehouseActions: {
+          state: 'current',
+          actions,
+          counts: { keep: 0, enhance: 0, cleanup: 1 },
+        },
+        input: {
+          warehouse: { account: { id: 'isolated-owned-reference' }, discs: [disc], roster },
+        },
+      },
+    } as never)
+    render(
+      <MemoryRouter>
+        <WarehouseDiscsPage />
+      </MemoryRouter>,
+    )
+    await userEvent.click(screen.getAllByRole('button', { name: /查看 .*详情，/ })[0]!)
+    const references = screen.getByRole('list', { name: '参考角色用途' })
+    expect(within(references).getByRole('button', { name: /妮可/ })).toHaveTextContent('已拥有')
+    expect(within(references).getByRole('button', { name: /莱卡恩/ })).toHaveTextContent('储备')
+    expect({ actions, roster }).toEqual(before)
+  })
   it('renders each exact user once and omits an empty users list', () => {
     const { rerender } = render(<WarehouseUsedAgents agentIds={['agent-nicole', 'agent-nicole']} />)
     const list = screen.getByRole('list', { name: '使用角色' })
@@ -45,6 +88,7 @@ describe('warehouse favorite and actual usage presentation', () => {
   it('explains an old flat team reference without showing teammates as disc users', () => {
     render(
       <WarehouseActionDrawer
+        ownedAgentIds={new Set()}
         item={{
           ...item(),
           affectedPlans: [{ id: 'old-team', name: '旧队伍方案', state: 'saved', active: false }],
