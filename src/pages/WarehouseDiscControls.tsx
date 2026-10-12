@@ -7,6 +7,7 @@ import { getPublicStatLabel, publicStatOrder } from '../application/publicCandid
 import type { DriveDisc } from '../domain/schemas'
 import { readableAgentName, readableSetName, setNames } from './warehouseFactLabels'
 import { initialFilters, actionKinds, type FilterState } from './warehouseDiscPresentation'
+import { sortCompatibleAgentsForPicker } from './teamPickerPresentation'
 
 const actionDescriptions = {
   keep: '有适合的用途或仍在使用',
@@ -203,7 +204,7 @@ export function WarehouseDiscControls({
               onChange={(value) => updateFilters((current) => ({ ...current, fit: value }))}
             >
               <option value="">全部角色</option>
-              {compatibleAgentIds.map((agentId) => (
+              {sortCompatibleAgentsForPicker(compatibleAgentIds, ownedAgentIds).map((agentId) => (
                 <option key={agentId} value={agentId}>
                   {readableAgentName(agentId)}
                   {ownedAgentIds.has(agentId) ? ' · 已拥有' : ' · 未拥有'}

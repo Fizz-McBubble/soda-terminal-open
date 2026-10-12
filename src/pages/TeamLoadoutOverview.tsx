@@ -277,17 +277,13 @@ export function TeamLoadoutOverview({
         当前队伍建议
       </h1>
       {!hasRecommendedTeams ? scopeActions : null}
-      {answer.blockers.length ||
-      contextNote ||
-      !coverage.available ||
-      analysisStale ||
-      !hasRecommendedTeams ? (
+      {answer.blockers.length || contextNote || !coverage.available || !hasRecommendedTeams ? (
         <header className="f5v-box-team-overview__notice">
           {!hasRecommendedTeams ? <p role="status">{answer.summary}</p> : null}
           {answer.blockers.length ? <p role="status">{answer.blockers[0]}</p> : null}
           {contextNote ? <p>{contextNote}</p> : null}
           {!coverage.available ? <p>部分代理人资料待补齐；仅显示资料完整的队伍</p> : null}
-          {analysisStale && onReanalyze ? (
+          {analysisStale && onReanalyze && !hasRecommendedTeams ? (
             <div className="f5v-box-team-run-state" role="status" aria-label="账户数据已更新">
               <span>结果已过期</span>
               <button type="button" onClick={onReanalyze}>
@@ -348,6 +344,23 @@ export function TeamLoadoutOverview({
                 key={group.kind}
                 group={group}
                 scopeActions={scopeActions}
+                analysisActions={
+                  analysisStale && onReanalyze ? (
+                    <div
+                      className="f5v-box-team-run-state"
+                      role="status"
+                      aria-label="账户数据已更新"
+                    >
+                      <button
+                        type="button"
+                        onClick={onReanalyze}
+                        title="账户数据已更新，当前结果需要重新分析"
+                      >
+                        重新分析当前队伍
+                      </button>
+                    </div>
+                  ) : null
+                }
                 selectedId={selected?.id ?? ''}
                 activeVariants={activeVariants}
                 onSelect={selectTeam}

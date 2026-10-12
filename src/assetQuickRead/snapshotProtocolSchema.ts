@@ -9,13 +9,32 @@ const observation = z.discriminatedUnion('presence', [
 export type SnapshotObservation = z.infer<typeof observation>
 
 const stat = z.object({ key: observation, base_value: observation, add_value: observation })
-const discRecord = z.object({
+const completeDiscRecord = z.object({
   uid: observation,
   catalog_id: observation,
   level: observation,
   main_stat: stat.nullable(),
   substats: z.array(stat).max(4),
 })
+// A/B discs are outside the quick-read import scope. Classify by the observed
+// catalog identity before validating any of their unconsumed fields. Retain only
+// identity for counts/equipment warnings; omitted fields never become account facts.
+const discRecord = z.preprocess((input) => {
+  if (!input || typeof input !== 'object') return input
+  const row = input as Record<string, unknown>
+  const catalog = observation.safeParse(row.catalog_id)
+  if (!catalog.success || catalog.data.presence !== 'present') return input
+  const rarity = (Math.floor(catalog.data.value / 10) % 10) + 1
+  if (rarity !== 3 && rarity !== 4) return input
+  const uid = observation.safeParse(row.uid)
+  return {
+    catalog_id: catalog.data,
+    uid: uid.success ? uid.data : { presence: 'omitted', value: null },
+    level: { presence: 'omitted', value: null },
+    main_stat: null,
+    substats: [],
+  }
+}, completeDiscRecord)
 const engineRecord = z.object({
   uid: observation,
   catalog_id: observation,

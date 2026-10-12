@@ -10,6 +10,19 @@ export interface ReleaseNote {
 // A local fix or commit is not a published release; add it when that release ships.
 export const releases = [
   {
+    id: '20261012-installer-import-reliability',
+    date: '2026-10-12',
+    scope: '资产快读与工作区',
+    title: '安装升级、S 盘导入与列表体验修复',
+    changes: [
+      '资产快读安装器升级至 1.0.9：修复慢速下载超时，优先复用已校验的本地数据；失败时可主动提交有限诊断并查看回执。',
+      '升级只保留当前版和上一版回退；更早的完整已验证程序在安装成功后收尾，账户与读取结果保留。',
+      '保持仅导入 S 级驱动盘，A/B 盘不参与导入预检；校准四项基础数值，避免切换账户后误报不合法。',
+      '问题详情默认折叠，工作区按钮紧凑同行；修复头像缓存失败恢复、账户名称焦点间距和重新分析操作位置。',
+      '适用角色优先显示已拥有代理人；资产驱动盘列表限位滚动，筛选和详情保持可见。',
+    ],
+  },
+  {
     id: '20261012-warehouse-reference',
     date: '2026-10-12',
     scope: '驱动盘仓库',

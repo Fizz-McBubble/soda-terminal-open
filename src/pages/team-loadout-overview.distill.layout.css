@@ -167,6 +167,10 @@
   margin: 0;
 }
 
+.f5v-box-team-overview .f5v-box-team-toolbar .f5v-box-team-run-state {
+  margin-left: auto;
+}
+
 .f5v-box-team-overview .f5v-box-team-row__identity,
 .f5v-box-team-overview .f5v-box-team-preview__title-line {
   display: flex;

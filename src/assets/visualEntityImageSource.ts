@@ -12,6 +12,9 @@ export type { VisualEntityImageRequest }
 // revoke the URL another visible card is still painting.
 export const sessionVisualSources = new Map<string, string>()
 const pendingVisualSources = new Map<string, Promise<string | null>>()
+// A failed consumer must be able to read a fresh blob without revoking a URL
+// that another mounted consumer is still displaying.
+const retiredVisualSources = new Set<string>()
 let sourceGeneration = 0
 
 /** Cache replacement/removal invalidates both decoded URLs and in-flight reads. */
@@ -19,7 +22,15 @@ export function invalidateSessionVisualSources() {
   sourceGeneration += 1
   pendingVisualSources.clear()
   for (const source of sessionVisualSources.values()) URL.revokeObjectURL(source)
+  for (const source of retiredVisualSources) URL.revokeObjectURL(source)
+  retiredVisualSources.clear()
   sessionVisualSources.clear()
+}
+
+export function forgetFailedSessionVisualSource(assetKey: string, source: string) {
+  if (sessionVisualSources.get(assetKey) !== source) return
+  sessionVisualSources.delete(assetKey)
+  retiredVisualSources.add(source)
 }
 
 if (typeof window !== 'undefined') {

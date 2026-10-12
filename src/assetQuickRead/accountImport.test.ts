@@ -30,7 +30,7 @@ import {
 } from './accountImport.fixtures'
 import { contentHash } from '../application/contentHash'
 import { convertAssetSnapshot } from './snapshotAdapter'
-import { omitted, syntheticAssetSnapshot } from './syntheticAssetSnapshotTestFixture'
+import { omitted, present, syntheticAssetSnapshot } from './syntheticAssetSnapshotTestFixture'
 
 describe('asset quick read isolated account transactions', () => {
   let db: SodaDatabase
@@ -43,6 +43,46 @@ describe('asset quick read isolated account transactions', () => {
     // The only deleted database is the uniquely created synthetic test database.
     expect(db.name.startsWith('asset-quick-read-test-')).toBe(true)
     await Dexie.delete(db.name)
+  })
+  it('excludes malformed A/B at inspection and imports only S discs through preview and confirm', async () => {
+    await db.accountDriveDiscs.clear() // Isolated fake IndexedDB fixture only.
+    const raw = syntheticAssetSnapshot()
+    for (const catalog of [31021, 31031]) {
+      raw.assets.discs.push({
+        ...structuredClone(raw.assets.discs[0]),
+        uid: present(990001),
+        catalog_id: present(catalog),
+        level: present(999),
+        substats: [],
+      })
+      raw.counts.discs++
+    }
+    raw.counts.b_discs = raw.counts.a_discs = 1
+    const incoming = convertAssetSnapshot(raw, { snapshotSha256: 'b'.repeat(64), capturedAt: now })
+    expect(incoming.counts).toMatchObject({ discs: 3, sDiscs: 1 })
+    expect(incoming.importable).toBe(true)
+    expect(incoming.discs.discs).toHaveLength(1)
+    const preview = await prepareAssetQuickReadImport(accountId, incoming, db)
+    expect(preview.summary.observedDiscs).toBe(1)
+    expect(preview.next.discs.every((disc) => disc.rarity === 'S')).toBe(true)
+    await confirmAssetQuickReadImport(
+      incoming,
+      preview,
+      { accountId, snapshotSha256: incoming.snapshotSha256, sameGameAccountAndCounts: true },
+      db,
+    )
+    const saved = await db.accountDriveDiscs.where('accountId').equals(accountId).toArray()
+    expect(saved).toHaveLength(1)
+    expect(saved[0].rarity).toBe('S')
+  })
+  it('rejects an injected A/B candidate at the shared preview/confirm boundary with all account facts preserved', async () => {
+    const before = await facts()
+    const incoming = candidate()
+    incoming.discs.discs[0].rarity = 'A'
+    await expect(prepareAssetQuickReadImport(accountId, incoming, db)).rejects.toThrow(
+      '仅支持 S 级盘',
+    )
+    expect(await facts()).toEqual(before)
   })
   async function facts() {
     return {

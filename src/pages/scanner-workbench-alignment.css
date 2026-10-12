@@ -159,6 +159,7 @@
 .f5v-shell .scanner-workbench .asset-quick-read__complete {
   flex: 1;
   align-items: stretch;
+  gap: 0;
 }
 .f5v-shell .scanner-workbench .asset-quick-read__complete-summary > svg {
   align-self: flex-start;
@@ -186,7 +187,10 @@
   .asset-quick-read__panel
   > .asset-quick-read__actions,
 .f5v-shell .scanner-workbench .asset-quick-read__consent-stage > .asset-quick-read__actions,
-.f5v-shell .scanner-workbench .asset-quick-read__complete > .asset-quick-read__actions,
+.f5v-shell .scanner-workbench .asset-quick-read__complete > .asset-quick-read__actions {
+  margin-top: 16px;
+  padding-top: 0;
+}
 .f5v-shell .scanner-workbench .scanner-dialog-import__actions {
   margin-top: auto;
   padding-top: 16px;
@@ -201,17 +205,27 @@
   padding-top: 16px;
 }
 .f5v-shell .scanner-workbench .asset-quick-read__consent-stage > .asset-quick-read__actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   align-self: flex-start;
-  width: min(100%, 346px);
+  width: auto;
   gap: 10px;
 }
+.f5v-shell .scanner-workbench .asset-quick-read__consent-stage > .asset-quick-read__confirmation {
+  margin-bottom: 0;
+}
+.f5v-shell
+  .scanner-workbench
+  .asset-quick-read__actions:not(:has(> .asset-quick-read-installer))
+  > .button {
+  width: auto;
+  flex: 0 0 auto;
+}
 .f5v-shell .scanner-workbench .asset-quick-read__result-panel > .asset-quick-read__actions {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   align-self: flex-start;
-  width: min(100%, 524px);
+  width: auto;
   gap: 10px;
 }
 .f5v-shell .scanner-workbench .asset-quick-read__task > .asset-quick-read__result-panel {
@@ -230,11 +244,11 @@
   margin: 0;
   padding: 10px 12px;
 }
-.f5v-shell .scanner-workbench .asset-quick-read__result-panel > .asset-quick-read__issues h4 {
-  margin: 0 0 6px;
+.f5v-shell .scanner-workbench .asset-quick-read__result-panel > .asset-quick-read__issues summary {
+  font-size: 14px;
 }
 .f5v-shell .scanner-workbench .asset-quick-read__result-panel > .asset-quick-read__issues ul {
-  margin: 0;
+  margin: 8px 0 0;
   padding-left: 20px;
 }
 .f5v-shell
@@ -248,7 +262,8 @@
   > .asset-quick-read__actions
   > .button {
   box-sizing: border-box;
-  width: 100%;
+  width: auto;
+  flex: 0 0 auto;
   min-width: 0;
   min-height: var(--soda-control-height, 42px);
   margin: 0;
@@ -256,9 +271,11 @@
   font-size: 14px;
   line-height: 1.4;
 }
-.f5v-shell .scanner-workbench .asset-quick-read__task > .button,
-.f5v-shell .scanner-workbench .scanner-web__scan-actions,
-.f5v-shell .scanner-workbench .asset-quick-read__complete .asset-quick-read__actions {
+.f5v-shell .scanner-workbench .asset-quick-read__task > .button {
+  margin-top: 16px;
+  align-self: flex-start;
+}
+.f5v-shell .scanner-workbench .scanner-web__scan-actions {
   margin-top: auto;
   align-self: flex-start;
 }

@@ -454,3 +454,39 @@
 .f5v-shell .r6-golden .catalog-reference__facts dd {
   white-space: pre-line;
 }
+
+/* The drive-disc browse grid stays below its filters within the visible workspace. */
+.r6-golden--content-only .split--disc-browse .catalog {
+  height: var(--disc-browse-height, 70dvh);
+  grid-template-rows: auto auto minmax(120px, 1fr) auto;
+}
+.r6-golden--content-only .split--disc-browse .object-grid.discs {
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  scrollbar-gutter: stable;
+  scroll-padding: 8px;
+}
+.r6-golden--content-only .split--disc-browse .object-grid.discs::-webkit-scrollbar {
+  width: 8px;
+}
+.r6-golden--content-only .split--disc-browse .editor {
+  max-height: var(--disc-browse-height, 70dvh);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+@container soda-viewport (max-width: 960px) {
+  .r6-golden--content-only .split--disc-browse {
+    height: auto;
+    align-items: start;
+  }
+  .r6-golden--content-only .split--disc-browse .catalog {
+    height: max(420px, var(--disc-browse-height, 70dvh));
+    max-height: none;
+  }
+  .r6-golden--content-only .split--disc-browse .editor {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+}

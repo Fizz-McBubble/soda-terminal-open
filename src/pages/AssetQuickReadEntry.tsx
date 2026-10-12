@@ -582,14 +582,14 @@ export function AssetQuickReadEntry({
                 </ul>
               )}
               {!importAvailable && preview.issues.length > 0 && (
-                <div className="asset-quick-read__issues">
-                  <h4>暂时不能导入</h4>
+                <details className="asset-quick-read__issues">
+                  <summary>暂时不能导入 · {preview.issues.length} 项需核对</summary>
                   <ul>
                     {preview.issues.map((issue, index) => (
                       <li key={index}>{issue}</li>
                     ))}
                   </ul>
-                </div>
+                </details>
               )}
               {!renderParts && transactionNotice && <p>{transactionNotice}</p>}
               {!onImport && (

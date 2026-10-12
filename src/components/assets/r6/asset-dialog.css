@@ -60,6 +60,12 @@
   width: min(420px, calc(100vw - 32px));
 }
 
+.r6-golden .account-rename-dialog label {
+  display: block;
+  margin-bottom: 8px;
+}
+
 .r6-golden .account-rename-dialog input {
+  display: block;
   width: 100%;
 }

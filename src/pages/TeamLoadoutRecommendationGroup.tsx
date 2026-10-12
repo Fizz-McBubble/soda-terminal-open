@@ -16,8 +16,10 @@ export function TeamGroup({
   onlyFavorites = false,
   onOnlyFavoritesChange,
   scopeActions,
+  analysisActions,
 }: {
   scopeActions?: ReactNode
+  analysisActions?: ReactNode
   group: TeamLoadoutOverviewGroup
   selectedId: string
   activeVariants: Record<string, string>
@@ -101,6 +103,7 @@ export function TeamGroup({
           </label>
         ) : null}
         {isRecommended ? scopeActions : null}
+        {isRecommended ? analysisActions : null}
       </div>
       <div role="list" aria-label={group.label}>
         {group.items.map((family) => (

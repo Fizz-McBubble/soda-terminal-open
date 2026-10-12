@@ -1,0 +1,251 @@
+.installer-feedback-page,
+html:has(.installer-feedback-page),
+body:has(.installer-feedback-page),
+#root:has(.installer-feedback-page) {
+  min-width: 0;
+}
+
+.installer-feedback-page {
+  box-sizing: border-box;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  background-color: var(--soda-surface-raised);
+  color: var(--soda-text);
+  font-family: var(--soda-font-ui);
+  overflow-wrap: anywhere;
+}
+
+.installer-feedback-card {
+  box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
+  max-width: 580px;
+  background: var(--soda-surface);
+  border: 1px solid var(--soda-line);
+  border-radius: var(--soda-radius-surface);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  padding: clamp(16px, 3vw, 24px);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.installer-feedback-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.installer-feedback-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background-color: var(--soda-surface-raised);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--soda-accent);
+  flex-shrink: 0;
+}
+
+.installer-feedback-title-group {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.installer-feedback-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--soda-text);
+  margin: 0;
+}
+
+.installer-feedback-version {
+  font-size: 0.8125rem;
+  color: var(--soda-text-2);
+  margin-top: 2px;
+}
+
+.installer-feedback-guidance {
+  background-color: var(--soda-surface-raised);
+  border: 1px solid var(--soda-line);
+  border-radius: var(--soda-radius-control);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.installer-feedback-guidance p {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--soda-font-body);
+}
+
+.installer-feedback-guidance strong {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--soda-text-2);
+}
+
+.installer-feedback-guidance span {
+  color: var(--soda-text);
+  line-height: 1.4;
+}
+
+.installer-feedback-metadata {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.installer-feedback-tag {
+  display: inline-flex;
+  align-items: center;
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  background-color: var(--soda-surface-raised);
+  border-radius: var(--soda-radius-control);
+  color: var(--soda-text-2);
+}
+
+.installer-feedback-attempts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.installer-feedback-attempts-title {
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--soda-text-2);
+  margin: 0;
+}
+
+.installer-feedback-attempts-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.8125rem;
+}
+
+.installer-feedback-attempt-item {
+  gap: 8px;
+  min-width: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background-color: var(--soda-surface-raised);
+  border: 1px solid var(--soda-line);
+  border-radius: var(--soda-radius-control);
+  color: var(--soda-text-2);
+}
+
+.installer-feedback-receipt {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  background-color: var(--soda-surface-raised);
+  border: 1px solid var(--soda-line-strong);
+  border-radius: var(--soda-radius-control);
+  font-size: 0.8125rem;
+  color: var(--soda-text);
+}
+
+.installer-feedback-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.installer-feedback-actions .button {
+  flex: 0 0 auto;
+  padding: 8px 16px;
+  min-height: var(--soda-control-height);
+  font-size: var(--soda-font-body);
+  border-radius: var(--soda-radius-control);
+  cursor: pointer;
+  border: 1px solid var(--soda-line-strong);
+  background: var(--soda-surface);
+  color: var(--soda-text-2);
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.installer-feedback-actions .button:hover:not(:disabled) {
+  background: var(--soda-surface-raised);
+  border-color: var(--soda-line-strong);
+}
+
+.installer-feedback-actions .button--primary {
+  background: var(--soda-accent);
+  border-color: var(--soda-accent);
+  color: var(--soda-surface);
+}
+
+.installer-feedback-actions .button--primary:hover:not(:disabled) {
+  background: var(--soda-accent-ink);
+  border-color: var(--soda-accent-ink);
+}
+
+.installer-feedback-actions .button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.installer-feedback-footer {
+  border-top: 1px solid var(--soda-line);
+  padding-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.installer-feedback-privacy {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--soda-text-3);
+  line-height: 1.4;
+}
+
+.installer-feedback-status-message {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--soda-accent);
+  font-weight: 500;
+}
+
+.installer-feedback-actions .button:focus-visible,
+.installer-feedback-attempts-title:focus-visible {
+  outline: 2px solid var(--soda-accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  .installer-feedback-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .installer-feedback-title {
+    font-size: var(--soda-font-section);
+  }
+}

@@ -1,7 +1,9 @@
 import './styles/tokens.css'
 import './styles/motion.css'
 import './styles/base.css'
-import AppCommunity from './AppCommunity'
 import { mountPublicApp } from './main.publicBootstrap'
+import { mountInstallerFeedbackIfRequested } from './main.installerFeedback'
 
-mountPublicApp(AppCommunity)
+if (!mountInstallerFeedbackIfRequested()) {
+  void import('./AppCommunity').then(({ default: AppCommunity }) => mountPublicApp(AppCommunity))
+}

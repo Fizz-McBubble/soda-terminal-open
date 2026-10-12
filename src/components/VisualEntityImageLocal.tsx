@@ -3,6 +3,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { type VisualAssetEntityType } from '../assets/visualAssets'
 import {
   resolveSessionVisualSource,
+  forgetFailedSessionVisualSource,
   resolveVisualEntityImageAsset,
   sessionVisualSources,
   visualSourceKey,
@@ -81,6 +82,7 @@ export function VisualEntityImage({
   const sessionSource = assetKey ? sessionVisualSources.get(assetKey) : null
   const [cachedSource, setCachedSource] = useState<{
     assetKey: string
+    retryKey: string
     objectUrl: string | null
     revision: number
   } | null>(null)
@@ -93,7 +95,7 @@ export function VisualEntityImage({
   const source =
     bundledSource ??
     sessionSource ??
-    (cachedSource?.assetKey === assetKey && cachedSource?.revision === runtimeRevision
+    (cachedSource?.retryKey === retryKey && cachedSource?.revision === runtimeRevision
       ? cachedSource.objectUrl
       : null)
   const failed =
@@ -105,7 +107,7 @@ export function VisualEntityImage({
   const resolving =
     Boolean(asset) &&
     !source &&
-    (cachedSource?.assetKey !== assetKey || cachedSource?.revision !== runtimeRevision)
+    (cachedSource?.retryKey !== retryKey || cachedSource?.revision !== runtimeRevision)
 
   useEffect(() => {
     const refresh = () => setRuntimeRevision((value) => value + 1)
@@ -118,13 +120,14 @@ export function VisualEntityImage({
     if (asset && !bundledSource && shouldResolve) {
       void resolveSessionVisualSource(asset).then((cachedUrl) => {
         if (!active) return
-        if (assetKey) setCachedSource({ assetKey, objectUrl: cachedUrl, revision: runtimeRevision })
+        if (assetKey)
+          setCachedSource({ assetKey, retryKey, objectUrl: cachedUrl, revision: runtimeRevision })
       })
     }
     return () => {
       active = false
     }
-  }, [asset, assetKey, bundledSource, cacheVersion, runtimeRevision, shouldResolve])
+  }, [asset, assetKey, bundledSource, retryKey, runtimeRevision, shouldResolve])
 
   useEffect(() => {
     // Cache access and browser decoding can fail transiently. Retry only this
@@ -205,8 +208,10 @@ export function VisualEntityImage({
           : undefined
       }
       onError={() => {
-        if (currentImage.current === imageIdentity)
+        if (currentImage.current === imageIdentity) {
+          if (assetKey) forgetFailedSessionVisualSource(assetKey, source)
           setFailedSource({ assetKey, source, revision: runtimeRevision, cacheVersion })
+        }
       }}
     />
   )

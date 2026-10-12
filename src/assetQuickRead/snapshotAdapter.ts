@@ -219,7 +219,18 @@ export function convertAssetSnapshot(
     })
     return indexed
   }
-  const discIndex = ids(assets.discs, 'discs')
+  const inScopeDisc = (disc: (typeof assets.discs)[number]) => {
+    const catalog = disc.catalog_id.value
+    const rarity = catalog === null ? null : (Math.floor(catalog / 10) % 10) + 1
+    return rarity !== 3 && rarity !== 4
+  }
+  const discIndex = ids(assets.discs.filter(inScopeDisc), 'discs')
+  // Lower-grade identities only explain unsupported equipment relationships;
+  // they never enter validation, preview, import or S-disc duplicate authority.
+  for (const disc of assets.discs.filter((row) => !inScopeDisc(row))) {
+    if (disc.uid.value !== null && !discIndex.has(disc.uid.value))
+      discIndex.set(disc.uid.value, disc)
+  }
   const engineIndex = ids(unreliableEngines ? [] : assets.engines, 'engines')
   ;(unreliableEngines ? [] : assets.engines).forEach((engine, index) => {
     if (engine.catalog_id.value === null || !engineIdentities.has(engine.catalog_id.value))
@@ -233,6 +244,17 @@ export function convertAssetSnapshot(
   let actualA = 0
   let actualB = 0
   assets.discs.forEach((disc, index) => {
+    const observedCatalog = disc.catalog_id.value
+    const observedRarity =
+      observedCatalog === null ? null : (Math.floor(observedCatalog / 10) % 10) + 1
+    if (observedRarity === 3) {
+      actualB++
+      return
+    }
+    if (observedRarity === 4) {
+      actualA++
+      return
+    }
     const before = issues.length
     const catalog = value(disc.catalog_id, 1, 0xffffffff, 'discs', index, 'catalog_id')
     const uid = disc.uid.value

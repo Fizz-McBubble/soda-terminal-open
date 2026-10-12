@@ -18,6 +18,138 @@ const KNOWN_TOP_LEVEL_KEYS = [
   'evidence',
 ]
 
+const KNOWN_INSTALLER_KEYS = [
+  'schema',
+  'tool',
+  'reportId',
+  'installerVersion',
+  'stage',
+  'code',
+  'durationMs',
+  'attempts',
+]
+
+export function sanitizeInstallerFeedbackPayload(payload) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    return { status: 400 }
+  }
+
+  const installerRules = baseContract.assetQuickReadInstaller
+  const keys = Object.keys(payload)
+  if (
+    keys.length !== KNOWN_INSTALLER_KEYS.length ||
+    keys.some((k) => !KNOWN_INSTALLER_KEYS.includes(k))
+  ) {
+    return { status: 400 }
+  }
+  for (const k of KNOWN_INSTALLER_KEYS) {
+    if (!Object.hasOwn(payload, k)) {
+      return { status: 400 }
+    }
+  }
+
+  if (payload.schema !== 1 || payload.tool !== 'asset_quick_read_installer') {
+    return { status: 400 }
+  }
+
+  if (typeof payload.reportId !== 'string' || !UUID_PATTERN.test(payload.reportId)) {
+    return { status: 400 }
+  }
+
+  const versionRx = new RegExp(installerRules.versionPattern, 'u')
+  if (typeof payload.installerVersion !== 'string' || !versionRx.test(payload.installerVersion)) {
+    return { status: 400 }
+  }
+
+  if (typeof payload.stage !== 'string' || !installerRules.stages.includes(payload.stage)) {
+    return { status: 400 }
+  }
+
+  if (typeof payload.code !== 'string' || !installerRules.codes.includes(payload.code)) {
+    return { status: 400 }
+  }
+
+  if (
+    typeof payload.durationMs !== 'number' ||
+    !Number.isInteger(payload.durationMs) ||
+    payload.durationMs < 0 ||
+    payload.durationMs > installerRules.durationMaxMs
+  ) {
+    return { status: 400 }
+  }
+
+  if (!Array.isArray(payload.attempts) || payload.attempts.length > installerRules.maxAttempts) {
+    return { status: 400 }
+  }
+
+  const sanitizedAttempts = []
+  const attemptKeys = ['item', 'source', 'code', 'elapsedMs']
+  for (const attempt of payload.attempts) {
+    if (!attempt || typeof attempt !== 'object' || Array.isArray(attempt)) {
+      return { status: 400 }
+    }
+    const aKeys = Object.keys(attempt)
+    if (aKeys.length !== attemptKeys.length || aKeys.some((k) => !attemptKeys.includes(k))) {
+      return { status: 400 }
+    }
+    for (const k of attemptKeys) {
+      if (!Object.hasOwn(attempt, k)) {
+        return { status: 400 }
+      }
+    }
+    if (
+      typeof attempt.item !== 'number' ||
+      !Number.isInteger(attempt.item) ||
+      attempt.item < 0 ||
+      attempt.item > installerRules.maxItemIndex
+    ) {
+      return { status: 400 }
+    }
+    if (
+      typeof attempt.source !== 'string' ||
+      !installerRules.attemptSources.includes(attempt.source)
+    ) {
+      return { status: 400 }
+    }
+    if (typeof attempt.code !== 'string' || !installerRules.attemptCodes.includes(attempt.code)) {
+      return { status: 400 }
+    }
+    if (
+      typeof attempt.elapsedMs !== 'number' ||
+      !Number.isInteger(attempt.elapsedMs) ||
+      attempt.elapsedMs < 0 ||
+      attempt.elapsedMs > installerRules.durationMaxMs
+    ) {
+      return { status: 400 }
+    }
+    sanitizedAttempts.push({
+      item: attempt.item,
+      source: attempt.source,
+      code: attempt.code,
+      elapsedMs: attempt.elapsedMs,
+    })
+  }
+
+  const record = {
+    schema: 1,
+    tool: 'asset_quick_read_installer',
+    reportId: payload.reportId,
+    installerVersion: payload.installerVersion,
+    stage: payload.stage,
+    code: payload.code,
+    durationMs: payload.durationMs,
+    attempts: sanitizedAttempts,
+  }
+
+  const serialized = JSON.stringify(record)
+  const bytes = new TextEncoder().encode(serialized)
+  if (bytes.length > baseContract.maxBytes) {
+    return { status: 413 }
+  }
+
+  return { ok: true, record }
+}
+
 export function reply(status, body, headers = {}) {
   return new Response(body, {
     status,
@@ -35,6 +167,10 @@ export function reply(status, body, headers = {}) {
 export function sanitizeScanFeedbackPayload(payload, expectedRelease) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
     return { status: 400 }
+  }
+
+  if (payload.tool === 'asset_quick_read_installer') {
+    return sanitizeInstallerFeedbackPayload(payload)
   }
 
   const isAsset = payload.tool === 'asset_quick_read'

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { CatalogCard, DiscCard } from './Cards'
 import { Editor } from './Editors'
 import { useReconciledSelection } from './state'
@@ -107,6 +107,7 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
   const currentSelectedDiscs = new Set([...selectedDiscs].filter((id) => ids.includes(id)))
 
   const revealEditorOnNarrowScreen = () => {
+    if (kind === 'discs') return
     if (typeof window.matchMedia !== 'function' || !window.matchMedia('(max-width: 960px)').matches)
       return
     window.requestAnimationFrame(() => editorRef.current?.scrollIntoView({ block: 'start' }))
@@ -127,6 +128,44 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
     void preloadSelectedAgentAvatar(selectedId, 'assets.editor')
   }, [kind, selectedId])
   const gridRef = useRef<HTMLDivElement>(null)
+  const splitRef = useRef<HTMLDivElement>(null)
+  useLayoutEffect(() => {
+    const split = splitRef.current
+    if (kind !== 'discs' || !split) return
+    const resize = () => {
+      // Only this browse surface is bounded. Account/catalog data never changes here.
+      const frame = split.closest<HTMLElement>('.f5v-page-frame')
+      const page = split.closest<HTMLElement>('.f5v-page-content')
+      const zoom = frame ? frame.getBoundingClientRect().width / frame.offsetWidth : 1
+      const bottom = Math.min(
+        window.innerHeight,
+        frame?.getBoundingClientRect().bottom ?? window.innerHeight,
+      )
+      const available = Math.max(
+        280,
+        (bottom - split.getBoundingClientRect().top) / zoom -
+          (frame?.scrollTop ?? 0) -
+          (page?.scrollTop ?? 0) -
+          8,
+      )
+      split.style.setProperty('--disc-browse-height', `${available}px`)
+    }
+    resize()
+    let resizeFrame = 0
+    const scheduleResize = () => {
+      window.cancelAnimationFrame(resizeFrame)
+      resizeFrame = window.requestAnimationFrame(resize)
+    }
+    const observer =
+      typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(scheduleResize)
+    observer?.observe(split.parentElement!)
+    window.addEventListener('resize', scheduleResize)
+    return () => {
+      observer?.disconnect()
+      window.cancelAnimationFrame(resizeFrame)
+      window.removeEventListener('resize', scheduleResize)
+    }
+  }, [kind])
   useCatalogBrowseScroll(browseKey, gridRef)
   const deleteDialogRef = useRef<HTMLDialogElement>(null)
   const primaryOptions = [
@@ -247,7 +286,7 @@ export function CatalogWorkspace({ props, kind }: { props: AssetGoldenProps; kin
   }
   return (
     <>
-      <div className="split">
+      <div ref={splitRef} className={`split${kind === 'discs' ? ' split--disc-browse' : ''}`}>
         <section className="catalog">
           <header className="section-head">
             <div>

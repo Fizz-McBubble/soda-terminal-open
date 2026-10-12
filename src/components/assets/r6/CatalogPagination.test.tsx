@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom/vitest'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { AssetMaintenanceGolden } from './AssetMaintenanceGolden'
 import { assetGoldenDisc, assetGoldenProps } from './AssetMaintenanceGolden.testFixtures'
 
@@ -14,6 +14,23 @@ const largeProps = () =>
 const cards = () => within(screen.getByRole('listbox')).getAllByRole('option')
 
 describe('bounded asset catalog rendering', () => {
+  it('keeps disc browsing in place when selecting on a narrow screen', async () => {
+    const originalMatchMedia = window.matchMedia
+    const originalScroll = HTMLElement.prototype.scrollIntoView
+    const scroll = vi.fn()
+    window.matchMedia = vi.fn(() => ({ matches: true }) as MediaQueryList)
+    HTMLElement.prototype.scrollIntoView = scroll
+    try {
+      render(<AssetMaintenanceGolden {...largeProps()} />)
+      fireEvent.click(cards()[3]!)
+      expect(cards()[3]).toHaveAttribute('aria-selected', 'true')
+      await new Promise((resolve) => window.requestAnimationFrame(resolve))
+      expect(scroll).not.toHaveBeenCalled()
+    } finally {
+      window.matchMedia = originalMatchMedia
+      HTMLElement.prototype.scrollIntoView = originalScroll
+    }
+  })
   it('opens the page containing a deep-linked selected disc', () => {
     render(<AssetMaintenanceGolden {...largeProps()} initialSelection={{ discs: 'disc-2999' }} />)
     expect(cards()).toHaveLength(120)

@@ -5,6 +5,30 @@ import { preview } from './assetQuickReadEntryTestFixture'
 
 vi.mock('../components/ExplanationPopover', () => import('../testing/ExplanationPopoverStub'))
 
+it('keeps blocked import disabled while preserving every issue in a collapsed disclosure', () => {
+  const issues = ['词条需要核对', '词条需要核对', '代理人数需要核对']
+  const onImport = vi.fn()
+  render(
+    <AssetQuickReadEntry
+      capability="ready"
+      state="received"
+      preview={{ ...preview, issues }}
+      canImport={false}
+      onImport={onImport}
+    />,
+  )
+  const summary = screen.getByText('暂时不能导入 · 3 项需核对')
+  const details = summary.closest('details')!
+  expect(details).not.toHaveAttribute('open')
+  expect(details.querySelectorAll('li')).toHaveLength(3)
+  expect(Array.from(details.querySelectorAll('li'), (item) => item.textContent)).toEqual(issues)
+  details.open = true
+  expect(screen.getAllByText('词条需要核对')[0]).toBeVisible()
+  fireEvent.click(screen.getByRole('button', { name: '导入' }))
+  expect(screen.getByRole('button', { name: '导入' })).toBeDisabled()
+  expect(onImport).not.toHaveBeenCalled()
+})
+
 function openDisclosure() {
   fireEvent.click(screen.getByRole('button', { name: /准备资产快读|开始读取/ }))
 }

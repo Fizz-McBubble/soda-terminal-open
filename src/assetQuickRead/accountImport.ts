@@ -210,6 +210,8 @@ function createPlan(
     throw new Error('资产快读结果存在未解决的问题，不能导入。')
   const data = publicScannerDriveDiscData
   if (!data) throw new Error('当前驱动盘规则不可用，请先完成数据加载。')
+  if (candidate.discs.discs.some((disc) => disc.rarity !== 'S'))
+    throw new Error('资产快读仅支持 S 级盘导入，未写入账户。')
   const parsed = candidate.discs.discs.length
     ? preflightDriveDiscImport(candidate.discs, {
         driveDiscSets: data.driveDiscSets,
