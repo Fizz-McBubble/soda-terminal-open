@@ -97,9 +97,11 @@ export function TeamAnalysisReady({
 export function TeamAnalysisRunning({
   stage,
   analysisSnapshot,
+  onCancel,
 }: {
   stage: number
   analysisSnapshot: TeamAnalysisSnapshot | null
+  onCancel: () => void
 }) {
   const stageLabel = teamAnalysisStages[stage - 1]!
   return (
@@ -109,6 +111,9 @@ export function TeamAnalysisRunning({
           <h1>分析当前队伍</h1>
           <p>先选队伍，再搭配装备。</p>
         </div>
+        <button className="button button--quiet" type="button" onClick={onCancel}>
+          取消分析
+        </button>
       </div>
       <div className="f5v-box-analysis-entry__workspace">
         <div className="f5v-box-analysis-entry__primary">

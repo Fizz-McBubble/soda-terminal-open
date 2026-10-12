@@ -96,6 +96,7 @@ function AccountBoundQuickRead({
   const [recoveryNotice, setRecoveryNotice] = useState('')
   const [recoveryAvailable, setRecoveryAvailable] = useState(false)
   const [restoreArmed, setRestoreArmed] = useState(false)
+  const [restoreFailure, setRestoreFailure] = useState('')
   const [restoring, setRestoring] = useState(false)
   const [selecting, setSelecting] = useState(false)
   const [downloading, setDownloading] = useState(false)
@@ -130,6 +131,7 @@ function AccountBoundQuickRead({
     setRecoveryAvailable(false)
     setRecoveryNotice('')
     setRestoreArmed(false)
+    setRestoreFailure('')
     setRestoring(false)
     setSelecting(false)
   }, [targetAccountId, client])
@@ -403,6 +405,7 @@ function AccountBoundQuickRead({
       return
     setRestoring(true)
     setError('')
+    setRestoreFailure('')
     try {
       await restoreAssetQuickReadImport(targetAccountId, recoveryKey, 'restore_asset_quick_read')
       if (scope !== generation.current) return
@@ -413,7 +416,7 @@ function AccountBoundQuickRead({
       setRestoreArmed(false)
       onImported?.()
     } catch (failure) {
-      if (scope === generation.current) setError(message(failure))
+      if (scope === generation.current) setRestoreFailure(message(failure))
     } finally {
       if (scope === generation.current) setRestoring(false)
     }
@@ -582,8 +585,15 @@ function AccountBoundQuickRead({
         disabled={blocked || busy || !accountReady || !recoveryAvailable}
         armed={restoreArmed}
         restoring={restoring}
-        onArm={() => setRestoreArmed(true)}
-        onCancel={() => setRestoreArmed(false)}
+        failureMessage={restoreFailure}
+        onArm={() => {
+          setRestoreFailure('')
+          setRestoreArmed(true)
+        }}
+        onCancel={() => {
+          setRestoreFailure('')
+          setRestoreArmed(false)
+        }}
         onRestore={restore}
       />
     ) : null

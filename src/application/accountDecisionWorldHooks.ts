@@ -110,9 +110,9 @@ export function useReleaseAccountDecisionRun() {
 export function useDetachedAccountDecisionCalculation() {
   const client = useContext(CalculationQueryClientContext)
   return useCallback(
-    (input: AccountDecisionQueryInput) => {
+    (input: AccountDecisionQueryInput, runId?: string) => {
       if (!client) throw new Error('当前分析服务不可用，请重试。')
-      return createAccountDecisionRun(input, { client })
+      return createAccountDecisionRun(input, { client, runId })
     },
     [client],
   )

@@ -25,6 +25,7 @@ import {
   type SourceBackedPlanningEffectBucket,
   bindPanMeridianFlowRecipient32,
   panMeridianFlowEffectKey32,
+  panMeridianFlowIncomingReference32,
 } from './currentPlanningDamageModifiers'
 import { planningRuntimeEffectBuckets32 } from './currentPlanningSelfEffects32'
 import { bindReviewedClaretIntrinsicAction32 } from './reviewedClaretIntrinsicAction32'
@@ -145,6 +146,17 @@ export function resolveCurrentPlanningEventEffects32(input: {
       )
       if (transfer.status !== 'supported') return transfer
       const effect = transfer.results.find((row) => row.effectKey === entry.effectKey)
+      if (effect?.status === 'excluded_unknown') {
+        // Keep the formation's unknown-condition exclusion at the event boundary.
+        // An unobserved transfer neither grants a bonus nor declares a recipient.
+        semanticExclusions.push({
+          effectKey: entry.effectKey,
+          reason: '经络舒畅缺少条件观测；本次事件排除未知转交，未计入其增益。',
+          fields: ['meridian_flow', panMeridianFlowIncomingReference32],
+          sourceRefs: effect.sourceRefs,
+        })
+        continue
+      }
       if (effect?.status !== 'supported')
         return { status: 'unsupported' as const, blockers: ['经络舒畅缺少来源绑定。'] }
       declaredRecipientAgentIds = effect.recipientAgentIds

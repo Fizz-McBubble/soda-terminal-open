@@ -227,40 +227,41 @@ export function TeamPicker() {
   const exceptionHeadingRef = useRef<HTMLHeadingElement>(null)
   const previousAnalysisKind = useRef(analysis.kind)
 
-  const { startAnalysis, startRemainingBoxAnalysis, reuseCurrentAnalysis } = useTeamAnalysisFlow({
-    accountSummary,
-    decisionWorld,
-    reservedPlanIds,
-    contextAgentId,
-    contextPlanId,
-    contextDiscId,
-    rematchRequest,
-    analysis,
-    setAnalysis,
-    lastCompleteAnalysis,
-    setLastCompleteAnalysis,
-    setAnalysisSnapshot,
-    setRequestedSelectedId,
-    setRemainingBoxError,
-    setRemainingBoxOpen,
-    setOverviewFeedback,
-    setPreparingItemId,
-    setPreparationError,
-    analysisRequest,
-    remainingRequest,
-    remainingRunning,
-    prepareRequest,
-    identityForRun,
-    queryTeamOverview,
-    queryTeamRoute,
-    querySavedReplay,
-    queueFitOverview,
-    releasePreviousDetached,
-    calculateDetached,
-    calculateTargetTeamWarehouseFit,
-    releaseRun,
-    navigate,
-  })
+  const { startAnalysis, cancelAnalysis, startRemainingBoxAnalysis, reuseCurrentAnalysis } =
+    useTeamAnalysisFlow({
+      accountSummary,
+      decisionWorld,
+      reservedPlanIds,
+      contextAgentId,
+      contextPlanId,
+      contextDiscId,
+      rematchRequest,
+      analysis,
+      setAnalysis,
+      lastCompleteAnalysis,
+      setLastCompleteAnalysis,
+      setAnalysisSnapshot,
+      setRequestedSelectedId,
+      setRemainingBoxError,
+      setRemainingBoxOpen,
+      setOverviewFeedback,
+      setPreparingItemId,
+      setPreparationError,
+      analysisRequest,
+      remainingRequest,
+      remainingRunning,
+      prepareRequest,
+      identityForRun,
+      queryTeamOverview,
+      queryTeamRoute,
+      querySavedReplay,
+      queueFitOverview,
+      releasePreviousDetached,
+      calculateDetached,
+      calculateTargetTeamWarehouseFit,
+      releaseRun,
+      navigate,
+    })
 
   const startRequestedAnalysis = useEffectEvent(startAnalysis)
   const reuseCurrentAnalysisEvent = useEffectEvent(reuseCurrentAnalysis)
@@ -420,7 +421,13 @@ export function TeamPicker() {
   }
 
   if (analysis.kind === 'running') {
-    return <TeamAnalysisRunning stage={analysis.stage} analysisSnapshot={analysisSnapshot} />
+    return (
+      <TeamAnalysisRunning
+        stage={analysis.stage}
+        analysisSnapshot={analysisSnapshot}
+        onCancel={cancelAnalysis}
+      />
+    )
   }
 
   if (analysis.kind === 'unable') {

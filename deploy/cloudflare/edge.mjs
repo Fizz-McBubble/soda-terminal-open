@@ -171,7 +171,35 @@ export function createEdge({
   feedbackConcurrency = 4,
   feedbackPerMinute = 60,
   feedbackStore = undefined,
+  sourceLimits = { usage: 60, feedback: 12, image: 600, download: 60 },
+  sourceMaxEntries = 4096,
 } = {}) {
+  // Small per-isolate abuse brake, not global DDoS protection. Cloudflare overwrites
+  // CF-Connecting-IP; never trust forwarded/client-selected alternatives. IPs live
+  // only in this bounded in-memory map, never in logs or persistent storage.
+  const sourceRequests = new Map()
+  let sourceWindowStart = now()
+  function sourceLimit(request, category) {
+    const time = now()
+    if (time < sourceWindowStart || time - sourceWindowStart >= 60_000) {
+      sourceRequests.clear()
+      sourceWindowStart = time
+    }
+    const ip = request.headers.get('cf-connecting-ip')
+    const key = `${category}:${ip ? `ip:${ip}` : 'missing'}`
+    const count = sourceRequests.get(key) ?? 0
+    // Fail closed for new keys while full; eviction would let a rotating source
+    // erase another source's budget. Existing keys retain their own allowance.
+    if (
+      count >= sourceLimits[category] ||
+      (!sourceRequests.has(key) && sourceRequests.size >= sourceMaxEntries)
+    )
+      return reply(429, '请求过于频繁，请稍后重试。', {
+        'retry-after': String(Math.max(1, Math.ceil((sourceWindowStart + 60_000 - time) / 1000))),
+      })
+    sourceRequests.set(key, count + 1)
+    return null
+  }
   // Per-isolate bound, NOT a global rate limit. At most 4 buffered images in this isolate.
   let active = 0
   let usageActive = 0
@@ -190,8 +218,15 @@ export function createEdge({
   return {
     async fetch(request, env) {
       const url = new URL(request.url)
-      if (url.pathname === installerPath) return installerDownload(request)
-      if (url.pathname === assetQuickReadInstallerPath) return assetQuickReadDownload(request)
+      if (url.pathname === installerPath || url.pathname === assetQuickReadInstallerPath) {
+        if (['GET', 'HEAD'].includes(request.method)) {
+          const limited = sourceLimit(request, 'download')
+          if (limited) return limited
+        }
+        return url.pathname === installerPath
+          ? installerDownload(request)
+          : assetQuickReadDownload(request)
+      }
       if (url.pathname === '/api' || url.pathname.startsWith('/api/'))
         return reply(410, '此站仅提供本机计算，不提供或转发在线计算 API。')
       if (url.pathname === '/_soda/usage') {
@@ -217,6 +252,8 @@ export function createEdge({
           )
         )
           return reply(400, 'Invalid usage event')
+        const limited = sourceLimit(request, 'usage')
+        if (limited) return limited
         const time = now()
         if (time < usageWindowStart || time - usageWindowStart >= 60_000) {
           usageWindowStart = time
@@ -244,6 +281,10 @@ export function createEdge({
         }
       }
       if (url.pathname === '/_soda/scan-feedback') {
+        if (request.method === 'POST' && env.SODA_SCAN_FEEDBACK === 'enabled') {
+          const limited = sourceLimit(request, 'feedback')
+          if (limited) return limited
+        }
         return feedbackReceiver(request, env)
       }
       if (url.pathname === '/_soda/health') {
@@ -276,6 +317,8 @@ export function createEdge({
         return reply(400, '素材地址无效')
       }
       if (!allowedImage(remote, values[0])) return reply(403, '素材地址不在允许范围内')
+      const limited = sourceLimit(request, 'image')
+      if (limited) return limited
       if (active >= concurrency) return reply(429, '素材请求繁忙', { 'retry-after': '1' })
       active += 1
       try {

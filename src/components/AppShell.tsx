@@ -183,9 +183,8 @@ export function AppShell({
   }, [location.pathname])
 
   useEffect(() => {
-    let hasFocused = false
     const focusHeading = (force = false) => {
-      if (document.querySelector('[role="dialog"][aria-modal="true"]')) return false
+      if (document.querySelector('dialog[open], [role="dialog"][aria-modal="true"]')) return false
       const heading = document.querySelector<HTMLElement>('main h1')
       if (!heading) return false
       const activeElement = document.activeElement
@@ -193,10 +192,11 @@ export function AppShell({
         activeElement === document.body ||
         activeElement === document.documentElement ||
         !activeElement?.isConnected
-      if (!force && hasFocused && !focusWasLost) return false
+      // A heading arriving after a read must not take focus from a control the
+      // player chose while waiting. Only the initial route handoff is forced.
+      if (!force && !focusWasLost) return false
       heading.tabIndex = -1
       heading.focus({ preventScroll: true })
-      hasFocused = true
       return true
     }
     const main = document.querySelector('main')

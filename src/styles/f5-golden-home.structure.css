@@ -156,8 +156,19 @@
 }
 
 .f5v-shell .home-next-signal strong {
+  display: inline-block;
+  vertical-align: middle;
+  line-height: 24px;
   color: var(--f5-ink);
   font-size: 0.875rem;
+}
+
+.f5v-shell .home-next-signal .home-secondary-action {
+  min-height: 24px;
+  height: 24px;
+  vertical-align: middle;
+  font-size: 0.875rem;
+  line-height: 20px;
 }
 
 .f5v-shell .home-scene {

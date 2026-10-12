@@ -128,7 +128,14 @@ export function readLatestAssetQuickReadRecovery(
 ): Promise<AssetQuickReadRecoverySummary | null> {
   return db.transaction(
     'r',
-    [db.accounts, db.settings, db.accountDriveDiscs, db.accountRosters, db.accountPreferences],
+    [
+      db.accounts,
+      db.settings,
+      db.accountDriveDiscs,
+      db.accountRosters,
+      db.accountPreferences,
+      db.accountPlanningDrafts,
+    ],
     async () => {
       await assertScope(accountId, db)
       const saved = (await db.accountPreferences.where('accountId').equals(accountId).toArray())
@@ -145,20 +152,17 @@ export function readLatestAssetQuickReadRecovery(
         )[0]
       if (!saved) return null
       const recovery = saved.value as Recovery
-      const currentHash = factHash(await readFacts(accountId, db))
-      const canRestore = !recovery.restoredAt && currentHash === recovery.afterHash
+      const unavailableReason = await recoveryUnavailableReason(
+        accountId,
+        recovery,
+        await readFacts(accountId, db),
+        db,
+      )
       return {
         recoveryKey: saved.key,
         createdAt: recovery.createdAt,
-        canRestore,
-        ...(!canRestore
-          ? {
-              unavailableReason:
-                currentHash === recovery.beforeHash
-                  ? '这次资产快读导入已恢复，恢复副本继续保留。'
-                  : '导入后账户已有其他修改，恢复副本保留，不能直接覆盖。',
-            }
-          : {}),
+        canRestore: unavailableReason === undefined,
+        ...(unavailableReason ? { unavailableReason } : {}),
       }
     },
   )
@@ -383,14 +387,43 @@ function createPlan(
 
 async function readPlanningDiscIds(accountId: string, db: SodaDatabase) {
   const drafts = await db.accountPlanningDrafts.where('accountId').equals(accountId).toArray()
-  return new Set(
-    drafts.flatMap((draft) => [
-      ...resolvePlanningDiscReferences(draft).referenceIds,
-      ...(draft.teamPortfolioDiscChoices?.loadouts.flatMap((loadout) =>
-        loadout.choices.map((choice) => choice.discId),
-      ) ?? []),
-    ]),
+  return new Set(drafts.flatMap((draft) => resolvePlanningDiscReferences(draft).referenceIds))
+}
+
+/** Shared by preview and commit, inside the transaction protecting both assets and plans. */
+async function recoveryUnavailableReason(
+  accountId: string,
+  recovery: Recovery,
+  current: AccountFacts,
+  db: SodaDatabase,
+): Promise<string | undefined> {
+  const currentHash = factHash(current)
+  if (recovery.restoredAt || currentHash !== recovery.afterHash)
+    return recovery.restoredAt || currentHash === recovery.beforeHash
+      ? '这次资产快读导入已恢复，恢复副本继续保留。'
+      : '导入后账户已有其他修改，恢复副本保留，不能直接覆盖；请通过账户备份单独恢复。'
+
+  const previousById = new Map(recovery.before.discs.map((disc) => [disc.id, disc]))
+  const affectedIds = new Set(
+    current.discs
+      .filter((disc) => {
+        const previous = previousById.get(disc.id)
+        return !previous || driveDiscFactIdentity(previous) !== driveDiscFactIdentity(disc)
+      })
+      .map((disc) => disc.id),
   )
+  if (affectedIds.size === 0) return
+  const drafts = await db.accountPlanningDrafts.where('accountId').equals(accountId).toArray()
+  const affectedDrafts = drafts.filter((draft) =>
+    resolvePlanningDiscReferences(draft).referenceIds.some((id) => affectedIds.has(id)),
+  )
+  if (affectedDrafts.length === 0) return
+  const names = affectedDrafts
+    .slice(0, 3)
+    .map((draft) => `“${draft.name.trim() || '未命名规划'}”`)
+    .join('、')
+  const remaining = affectedDrafts.length > 3 ? `等 ${affectedDrafts.length} 个规划` : ''
+  return `规划${names}${remaining}引用了本次恢复将移除或回滚属性的驱动盘。请先调整这些规划的用盘，再尝试恢复；当前资产、规划和恢复副本均保留。`
 }
 
 export function prepareAssetQuickReadImport(
@@ -506,7 +539,14 @@ export function restoreAssetQuickReadImport(
 ) {
   return db.transaction(
     'rw',
-    [db.accounts, db.settings, db.accountDriveDiscs, db.accountRosters, db.accountPreferences],
+    [
+      db.accounts,
+      db.settings,
+      db.accountDriveDiscs,
+      db.accountRosters,
+      db.accountPreferences,
+      db.accountPlanningDrafts,
+    ],
     async () => {
       if (confirmation !== 'restore_asset_quick_read') throw new Error('需要明确确认恢复本次导入。')
       await assertScope(accountId, db)
@@ -515,8 +555,8 @@ export function restoreAssetQuickReadImport(
       if (stored?.accountId !== accountId || !validRecovery(recovery, accountId))
         throw new Error('本次导入的恢复副本不可用，未修改账户。')
       const current = await readFacts(accountId, db)
-      if (factHash(current) !== recovery.afterHash)
-        throw new Error('导入后账户已有其他修改，未覆盖；请通过账户备份单独恢复。')
+      const unavailableReason = await recoveryUnavailableReason(accountId, recovery, current, db)
+      if (unavailableReason) throw new Error(unavailableReason)
       for (const disc of recovery.before.discs) {
         driveDiscSchema.parse(disc)
         if (disc.accountId !== accountId || disc.scopedId !== getScopedId(accountId, disc.id))

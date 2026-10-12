@@ -10,6 +10,33 @@ import type {
 import { noFunctionalSubstatGoalMethod } from './absoluteDiscRetentionContract'
 import { resolveNamedInvestmentCalibration } from './absoluteDiscRetentionInvestmentCalibration'
 
+/** The fixed role/slot reference must not depend on this disc's level or inventory. */
+export function fixedQualityNormalization(profile: Profile, rules: GameRules, mainStat: string) {
+  const standard = rules.rarities[rules.standardRarity]!
+  const legal = Object.keys(standard.steps).filter((stat) => stat !== mainStat)
+  const unresolved = new Set(
+    legal.filter((stat) =>
+      ['conditional', 'missing_fact'].includes(profile.qualityInputEvidence?.[stat]?.state ?? ''),
+    ),
+  )
+  const maximum = (stats: readonly string[]) => {
+    const weights = stats.map((stat) => profile.weights[stat] ?? 0).sort((a, b) => b - a)
+    return (
+      weights.slice(0, rules.maxSubStats).reduce((a, b) => a + b, 0) +
+      Math.floor(standard.maxLevel / rules.enhancementInterval) * (weights[0] ?? 0)
+    )
+  }
+  if (!unresolved.size) return { maximumRaw: maximum(legal), inputStats: [] as string[] }
+  const resolved = legal.filter((stat) => !unresolved.has(stat))
+  const resolvedMaximum = maximum(resolved)
+  // An unconfirmed benefit can be absent. Compare against the resolved-only reference:
+  // removing one unknown at a time would miss several tied unknowns replacing each other.
+  const inputStats = [...unresolved].filter(
+    (stat) => maximum([...resolved, stat]) > resolvedMaximum,
+  )
+  return { maximumRaw: maximum(legal), inputStats }
+}
+
 /** Named dependencies are returned in full, rather than hidden behind the top three scores. */
 export function enrichRetentionEvidence(input: {
   disc: Disc
@@ -24,6 +51,8 @@ export function enrichRetentionEvidence(input: {
   currentScore: number
   possibleUpper: number
   remainingNodes: number
+  remainingUnlocks?: number
+  normalizationInputStats?: readonly string[]
 }) {
   const { disc, profile, set, rules, policy, mainFit, twoPieceFit, fourPieceFit, setFit } = input
   const native = rules.rarities[disc.rarity]!
@@ -47,16 +76,27 @@ export function enrichRetentionEvidence(input: {
   }
   const applicable = mainFit !== 'incompatible' && setFit !== 'incompatible'
   if (applicable) {
+    const remainingUnlocks =
+      input.remainingUnlocks ??
+      Math.min(rules.maxSubStats - disc.subStats.length, input.remainingNodes)
+    const normalizationInputStats =
+      input.normalizationInputStats ??
+      fixedQualityNormalization(profile, rules, disc.mainStat).inputStats
     for (const [stat, fact] of Object.entries(profile.qualityInputEvidence ?? {})) {
-      const contributes =
+      const currentContribution = disc.subStats.some((line) => line.stat === stat)
+      const futureContribution =
+        remainingUnlocks > 0 && disc.mainStat !== stat && Boolean(native.steps[stat])
+      const normalizationDependency = normalizationInputStats.includes(stat)
+      const relevant =
         (profile.weights[stat] ?? 0) > 0 &&
-        (disc.subStats.some((line) => line.stat === stat) ||
-          (input.remainingNodes > 0 && disc.mainStat !== stat && Boolean(native.steps[stat])))
-      if (contributes && ['conditional', 'missing_fact'].includes(fact.state))
+        (currentContribution || futureContribution || normalizationDependency)
+      if (relevant && ['conditional', 'missing_fact'].includes(fact.state))
         add(
           `qualityInput.${stat}`,
           fact.predicateId,
-          fact.detail,
+          !currentContribution && !futureContribution && normalizationDependency
+            ? `${fact.detail} 该输入影响固定品质标尺的理想分母，不代表这张盘还能揭示该词条。`
+            : fact.detail,
           fact.state === 'conditional',
           fact.evidenceIds,
         )

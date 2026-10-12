@@ -39,7 +39,7 @@ export const damageCalculationContextSchema = z.object({
       agentLevel: z.number().int().positive(),
       skillLevels: z.record(z.string(), z.number().int().nonnegative()),
       wEngineId: z.string().min(1),
-      wEngineLevel: z.number().int().positive(),
+      wEngineLevel: z.number().int().min(0).max(60),
       wEngineRefinement: z.number().int().positive(),
       bangbooId: z.string().min(1).nullable(),
       discIds: z.array(z.string().min(1)).length(6),

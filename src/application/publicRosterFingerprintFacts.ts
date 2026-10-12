@@ -20,7 +20,7 @@ export function rosterFingerprintFacts(roster: AccountRoster) {
           (!agent.wEngineDetails.id ||
             agent.wEngineDetails.level === null ||
             agent.wEngineDetails.refinement === null ||
-            agent.wEngineDetails.level <= 0 ||
+            agent.wEngineDetails.level < 0 ||
             agent.wEngineDetails.refinement <= 0) &&
           Boolean(agent.wEngineCopyId),
       )

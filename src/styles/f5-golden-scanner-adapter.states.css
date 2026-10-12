@@ -72,7 +72,7 @@
   border: 1px solid var(--soda-line);
   border-radius: var(--soda-radius-surface);
   color: var(--soda-text);
-  background: var(--soda-panel);
+  background: var(--soda-surface);
 }
 
 .f5v-shell dialog.scanner-task__confirmation::backdrop {

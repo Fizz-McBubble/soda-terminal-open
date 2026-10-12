@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createEdge } from './edge.mjs'
+import scannerRelease from '../../public/downloads/scanner-installer-release.v1.json' with { type: 'json' }
+import { assetQuickReadInstallerRelease } from './asset-quick-read-release.mjs'
 
 const origin = 'https://sodaterminal.com'
 const env = {
@@ -376,4 +378,209 @@ test('scan-feedback edge route integrates before generic /_soda 404 and preserve
 
   const generic404 = await edge.fetch(new Request(`${origin}/_soda/unknown`), feedbackEnv)
   assert.equal(generic404.status, 404)
+})
+
+test('source usage budget allows normal bursts, blocks before logging/body read and isolates sources', async () => {
+  let time = 0
+  const { edge, logs } = fixture({ now: () => time })
+  const from = (ip) => request(page, { headers: { 'cf-connecting-ip': ip } })
+  for (let i = 0; i < 60; i += 1)
+    assert.equal((await edge.fetch(from('192.0.2.1'), env)).status, 204)
+  time = 10_000
+  const blocked = from('192.0.2.1')
+  const response = await edge.fetch(blocked, env)
+  assert.equal(response.status, 429)
+  assert.equal(response.headers.get('retry-after'), '50')
+  assert.equal(response.headers.get('cache-control'), 'no-store')
+  assert.equal(blocked.bodyUsed, false)
+  assert.equal(logs.length, 60)
+  assert.equal((await edge.fetch(from('192.0.2.2'), env)).status, 204)
+  time = 60_000
+  assert.equal((await edge.fetch(from('192.0.2.1'), env)).status, 204)
+  assert.equal(logs.length, 62)
+  assert.ok(logs.every((record) => !JSON.stringify(record).includes('192.0.2.')))
+})
+
+test('missing CF IP shares a budget regardless of spoofed forwarded headers', async () => {
+  const { edge, logs } = fixture({ sourceLimits: { usage: 2 } })
+  for (let i = 0; i < 3; i += 1) {
+    const req = request(page, {
+      headers: { 'x-forwarded-for': `192.0.2.${i}`, 'x-real-ip': `198.51.100.${i}` },
+    })
+    assert.equal((await edge.fetch(req, env)).status, i < 2 ? 204 : 429)
+  }
+  assert.equal(logs.length, 2)
+})
+
+test('bounded source table rejects new keys without evicting budgets and recovers on expiry/clock rollback', async () => {
+  let time = 0
+  const { edge } = fixture({ sourceMaxEntries: 2, sourceLimits: { usage: 2 }, now: () => time })
+  const from = (ip) => request(page, { headers: { 'cf-connecting-ip': ip } })
+  for (const ip of ['192.0.2.1', '192.0.2.2'])
+    assert.equal((await edge.fetch(from(ip), env)).status, 204)
+  for (let i = 3; i < 20; i += 1)
+    assert.equal((await edge.fetch(from(`192.0.2.${i}`), env)).status, 429)
+  assert.equal((await edge.fetch(from('192.0.2.1'), env)).status, 204)
+  assert.equal((await edge.fetch(from('192.0.2.1'), env)).status, 429)
+  time = 60_000
+  assert.equal((await edge.fetch(from('192.0.2.3'), env)).status, 204)
+  time = 0
+  assert.equal((await edge.fetch(from('192.0.2.4'), env)).status, 204)
+})
+
+const imagePath = `/official-catalog-cache?source=${encodeURIComponent('https://act-upload.mihoyo.com/nap-obc-indep/test.png')}`
+test('image budget permits a full page burst and blocks excess before upstream fetch', async () => {
+  let calls = 0
+  const { edge } = fixture({
+    fetcher: async () => {
+      calls += 1
+      return new Response('image', { headers: { 'content-type': 'image/png' } })
+    },
+  })
+  for (let i = 0; i < 600; i += 1)
+    assert.equal((await edge.fetch(new Request(`${origin}${imagePath}`), env)).status, 200)
+  assert.equal((await edge.fetch(new Request(`${origin}${imagePath}`), env)).status, 429)
+  assert.equal(calls, 600)
+  assert.equal(
+    (
+      await edge.fetch(
+        new Request(`${origin}/official-catalog-cache?source=https://evil.invalid/a.png`),
+        env,
+      )
+    ).status,
+    403,
+  )
+})
+
+test('installer budget preserves Range downloads and is shared by both installer entries', async () => {
+  let calls = 0
+  const { edge } = fixture({
+    fetcher: async (url, init) => {
+      calls += 1
+      assert.equal(init.headers.range, 'bytes=0-0')
+      const size = url.includes('asset-quick-read')
+        ? assetQuickReadInstallerRelease.size
+        : scannerRelease.size
+      return new Response('x', {
+        status: 206,
+        headers: {
+          'content-type': 'application/octet-stream',
+          'content-length': '1',
+          'content-range': `bytes 0-0/${size}`,
+        },
+      })
+    },
+  })
+  const paths = ['/downloads/Soda-Scanner-Setup.exe', '/downloads/Soda-Asset-Quick-Read-Setup.exe']
+  for (let i = 0; i < 60; i += 1) {
+    const response = await edge.fetch(
+      new Request(`${origin}${paths[i % 2]}`, { headers: { range: 'bytes=0-0' } }),
+      env,
+    )
+    assert.equal(response.status, 206)
+    assert.equal(await response.text(), 'x')
+  }
+  for (const path of paths) {
+    const response = await edge.fetch(new Request(`${origin}${path}`, { method: 'HEAD' }), env)
+    assert.equal(response.status, 429)
+    assert.equal(response.headers.get('cache-control'), 'no-store')
+  }
+  assert.equal(calls, 60)
+})
+
+test('feedback permits normal retries then blocks before any KV access, independently for another source', async () => {
+  let gets = 0
+  let puts = 0
+  const stored = new Map()
+  const { edge } = fixture({
+    feedbackStore: {
+      async get(key) {
+        gets += 1
+        return stored.get(key) ?? null
+      },
+      async put(key, value) {
+        puts += 1
+        stored.set(key, value)
+      },
+    },
+  })
+  const report = {
+    schema: 1,
+    reportId: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
+    release: env.SODA_RELEASE_ID,
+    outcome: 'failed',
+    stage: 'ocr',
+    code: 'ocr_worker_failed',
+    versions: {
+      helper: '1.0.49',
+      protocol: '1',
+      scanner: 'ZZZ-Scanner.Next-1.0.49-soda-r1',
+      runtime: 'soda-scanner-windows-x64-v1',
+      ocr: 'PP-OCRv6',
+    },
+    counts: { processed: 5, total: 100 },
+    durationMs: 12000,
+    environment: { browser: 'chrome', captureMode: 'dxgi' },
+    evidence: { attempts: 1, firstMissingRoi: 'subStat1' },
+  }
+  const feedbackEnv = { ...env, SODA_SCAN_FEEDBACK: 'enabled' }
+  const from = (ip) =>
+    request(report, { headers: { 'cf-connecting-ip': ip } }, '/_soda/scan-feedback')
+  for (let i = 0; i < 12; i += 1)
+    assert.equal((await edge.fetch(from('192.0.2.1'), feedbackEnv)).status, 200)
+  assert.equal(puts, 1)
+  const before = gets
+  const blocked = from('192.0.2.1')
+  assert.equal((await edge.fetch(blocked, feedbackEnv)).status, 429)
+  assert.equal(blocked.bodyUsed, false)
+  assert.equal(gets, before)
+  assert.equal(puts, 1)
+  assert.equal((await edge.fetch(from('192.0.2.2'), feedbackEnv)).status, 200)
+  assert.equal(puts, 1)
+  assert.ok([...stored.values()].every((value) => !value.includes('192.0.2.')))
+})
+
+test('feedback source budget blocks storage calls and body reads; routes, static and health are independent', async () => {
+  let gets = 0
+  let puts = 0
+  const { edge, logs } = fixture({
+    sourceLimits: { usage: 1, feedback: 2, image: 1, download: 1 },
+    feedbackStore: {
+      async get() {
+        gets += 1
+        return null
+      },
+      async put() {
+        puts += 1
+      },
+    },
+    fetcher: async () => new Response('image', { headers: { 'content-type': 'image/png' } }),
+  })
+  const feedbackEnv = { ...env, SODA_SCAN_FEEDBACK: 'enabled' }
+  // Invalid bodies consume the source request budget too, so malformed traffic
+  // cannot bypass it; existing payload validation still prevents persistence.
+  for (let i = 0; i < 2; i += 1)
+    assert.equal(
+      (await edge.fetch(request(page, {}, '/_soda/scan-feedback'), feedbackEnv)).status,
+      400,
+    )
+  const blocked = request(page, {}, '/_soda/scan-feedback')
+  assert.equal((await edge.fetch(blocked, feedbackEnv)).status, 429)
+  assert.equal(blocked.bodyUsed, false)
+  assert.equal(gets, 0)
+  assert.equal(puts, 0)
+  assert.equal((await edge.fetch(request(), feedbackEnv)).status, 204)
+  assert.equal((await edge.fetch(request(), feedbackEnv)).status, 429)
+  assert.equal(logs.length, 1)
+  assert.equal((await edge.fetch(new Request(`${origin}${imagePath}`), feedbackEnv)).status, 200)
+  assert.equal((await edge.fetch(new Request(`${origin}${imagePath}`), feedbackEnv)).status, 429)
+  const staticEnv = { ...feedbackEnv, ASSETS: { fetch: () => new Response('static') } }
+  for (let i = 0; i < 10; i += 1) {
+    assert.equal((await edge.fetch(new Request(`${origin}/assets/app.js`), staticEnv)).status, 200)
+    assert.equal((await edge.fetch(new Request(`${origin}/_soda/health`), staticEnv)).status, 200)
+    assert.equal(
+      (await edge.fetch(new Request(`${origin}/api/calculation`), staticEnv)).status,
+      410,
+    )
+  }
 })

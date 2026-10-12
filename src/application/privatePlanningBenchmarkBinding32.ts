@@ -150,7 +150,7 @@ export function preparePlanningBenchmark32(input: PlanningBenchmarkBinding32) {
       !engine?.id ||
       typeof engine.level !== 'number' ||
       !Number.isInteger(engine.level) ||
-      engine.level < 1 ||
+      engine.level < 0 ||
       engine.level > 60 ||
       typeof engine.refinement !== 'number' ||
       !Number.isInteger(engine.refinement) ||

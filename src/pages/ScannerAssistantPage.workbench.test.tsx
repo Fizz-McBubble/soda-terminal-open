@@ -4,6 +4,7 @@ import { webcrypto } from 'node:crypto'
 import { beforeEach, afterEach, expect, it, vi } from 'vitest'
 import { ScannerAssistantPage } from './ScannerAssistantPage'
 import { createAccount, setActiveAccount } from '../accounts/repository'
+import { saveAccountPlanningDraft } from '../accounts/planningDrafts'
 import { database } from '../db/database'
 import { createScannerRuntimeSnapshot } from './scannerAssistantTestFixture'
 import {
@@ -405,18 +406,24 @@ it('automatically imports newer observed progression and current equipment over 
   expect(commands.startScan).not.toHaveBeenCalled()
 })
 
-it.each([false, true])(
-  'can abandon a quick file candidate (has issues: %s) without writes and unlock both acquisition paths',
-  async (withIssues) => {
+it.each(['none', 'optional-agent', 'disc-identity'] as const)(
+  'can abandon a quick file candidate (%s) without writes and unlock both acquisition paths',
+  async (issue) => {
     const before = await facts()
     await showPage()
     const snapshot = syntheticWorkbenchQuickSnapshot()
-    if (withIssues) snapshot.assets.agents[0].catalog_id.value = 999999
+    if (issue === 'optional-agent') snapshot.assets.agents[0].catalog_id.value = 999999
+    if (issue === 'disc-identity') snapshot.assets.discs[0].catalog_id.value = 99941
     fireEvent.change(screen.getByLabelText('选择本机文件（JSON）'), {
       target: { files: [quickFile(snapshot)] },
     })
     await screen.findByRole('heading', { name: '本次读取结果' })
-    if (withIssues) expect(screen.getByText('暂时不能导入')).toBeInTheDocument()
+    if (issue === 'disc-identity') {
+      expect(screen.getByText('暂时不能导入')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: '导入' })).toBeDisabled()
+    } else {
+      expect(screen.getByRole('button', { name: '导入' })).toBeEnabled()
+    }
     expect(screen.getByRole('button', { name: '开始扫描' })).toBeDisabled()
     await act(async () => fireEvent.click(screen.getByRole('button', { name: '放弃' })))
     expect(screen.queryByRole('region', { name: '本次任务' })).not.toBeInTheDocument()
@@ -432,3 +439,44 @@ it.each([false, true])(
     assertFocusedWorkspace()
   },
 )
+
+it('keeps a production recovery blocker in its modal and preserves real persisted assets and plans', async () => {
+  await showPage()
+  fireEvent.change(screen.getByLabelText('选择本机文件（JSON）'), {
+    target: { files: [quickFile()] },
+  })
+  await screen.findByRole('heading', { name: '本次读取结果' })
+  fireEvent.click(screen.getByRole('button', { name: '导入' }))
+  await screen.findByRole('heading', { name: '导入完成' })
+  const disc = (await database.accountDriveDiscs.toArray())[0]!
+  const saved = await saveAccountPlanningDraft(disc.accountId, {
+    kind: 'agent',
+    name: '合成恢复保护方案',
+    selection: { agentIds: ['agent-koleda'], bangbooId: null, scenario: '合成规划' },
+    manualOverrides: {
+      wEngineDirection: '',
+      discDirection: '',
+      progressionDirection: '',
+      notes: '',
+    },
+    knowledgeRefs: [],
+    warehouseRefs: [disc.id],
+    comparisonCapability: 'direction',
+  })
+  const before = await facts()
+  const preferences = await database.accountPreferences.toArray()
+  fireEvent.click(screen.getByRole('button', { name: '恢复本次导入' }))
+  const dialog = screen.getByRole('dialog', { name: '恢复到本次导入前？' })
+  fireEvent.click(within(dialog).getByRole('button', { name: '确认恢复到导入前' }))
+  await waitFor(() =>
+    expect(within(dialog).getByRole('alert')).toHaveTextContent('合成恢复保护方案'),
+  )
+  expect(screen.getAllByRole('alert')).toHaveLength(1)
+  expect(within(dialog).getByRole('alert')).not.toHaveTextContent(saved.id)
+  expect(await facts()).toEqual(before)
+  expect(await database.accountPlanningDrafts.toArray()).toEqual([saved])
+  expect(await database.accountPreferences.toArray()).toEqual(preferences)
+  fireEvent.click(within(dialog).getByRole('button', { name: '取消恢复' }))
+  expect(screen.queryByRole('dialog', { name: '恢复到本次导入前？' })).not.toBeInTheDocument()
+  expect(screen.queryByText(/合成恢复保护方案/)).not.toBeInTheDocument()
+})

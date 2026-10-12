@@ -158,4 +158,127 @@ describe('warehouse factual inventory before analysis', () => {
     fireEvent.click(screen.getByRole('button', { name: '重新分析' }))
     expect(refresh).toHaveBeenCalledOnce()
   })
+
+  it.each([10, 80])(
+    'transfers focus to the matching action row for %i discs on projection arrival without stealing filter focus',
+    async (count) => {
+      const liveInput = input(count)
+      const refresh = vi.fn()
+      const spy = vi.spyOn(decisionWorld, 'useAccountDecisionWorld').mockReturnValue({
+        status: 'loading',
+        run: null,
+        liveInput,
+        refresh,
+      } as never)
+      const view = render(
+        <MemoryRouter>
+          <WarehouseDiscsPage />
+        </MemoryRouter>,
+      )
+      const pendingRows = document.querySelectorAll<HTMLButtonElement>('.warehouse-pending-row')
+      expect(pendingRows.length).toBeGreaterThan(0)
+      // Focus the second pending row
+      const targetPendingRow = pendingRows[1]!
+      targetPendingRow.focus()
+      expect(document.activeElement).toBe(targetPendingRow)
+      if (count === 80) fireEvent.keyDown(targetPendingRow, { key: 'End' })
+
+      const actions = liveInput.warehouse.discs.map((disc) => ({
+        disc,
+        action: 'keep',
+        recommendationState: 'current',
+        reasons: [],
+        statuses: [],
+        affectedAgentIds: [],
+        compatibleAgentIds: [],
+        usageAgentIds: [],
+        affectedPlans: [],
+        affectedTeams: [],
+        alternativeDiscIds: [],
+      }))
+      // Projection arrives
+      spy.mockReturnValue({
+        status: 'current',
+        liveInput,
+        refresh,
+        run: {
+          input: liveInput,
+          warehouseActions: {
+            state: 'current',
+            actions,
+            counts: { keep: 10, enhance: 0, cleanup: 0 },
+          },
+        },
+      } as never)
+      view.rerender(
+        <MemoryRouter>
+          <WarehouseDiscsPage />
+        </MemoryRouter>,
+      )
+
+      // Focus should be smoothly transferred to the action row for the same disc (index 1)
+      const activeRow = document.activeElement
+      expect(activeRow).toHaveClass('warehouse-action-row')
+      expect(activeRow).toHaveAttribute('data-row-index', count === 80 ? '79' : '1')
+
+      // Now test that if focus is on a filter control, projection update does NOT steal focus
+      const slotSelect = screen.getByRole('combobox', { name: '号位' })
+      slotSelect.focus()
+      expect(document.activeElement).toBe(slotSelect)
+
+      // Re-render / update projection
+      view.rerender(
+        <MemoryRouter>
+          <WarehouseDiscsPage />
+        </MemoryRouter>,
+      )
+      expect(document.activeElement).toBe(slotSelect)
+    },
+  )
+
+  it('renders virtual scroll notices outside warehouse-action-list__body to keep pure spacer offset', () => {
+    const liveInput = input(10)
+    const actions = liveInput.warehouse.discs.map((disc) => ({
+      disc,
+      action: 'keep',
+      recommendationState: 'current',
+      reasons: [],
+      statuses: [],
+      affectedAgentIds: [],
+      compatibleAgentIds: [],
+      usageAgentIds: [],
+      affectedPlans: [],
+      affectedTeams: [],
+      alternativeDiscIds: [],
+    }))
+    vi.spyOn(decisionWorld, 'useAccountDecisionWorld').mockReturnValue({
+      status: 'current',
+      liveInput,
+      refresh: vi.fn(),
+      run: {
+        input: liveInput,
+        warehouseActions: {
+          state: 'current',
+          actions,
+          counts: { keep: 10, enhance: 0, cleanup: 0 },
+        },
+      },
+    } as never)
+    render(
+      <MemoryRouter
+        initialEntries={['/warehouse/discs?account=pending-account&selected=non-existent-disc']}
+      >
+        <WarehouseDiscsPage />
+      </MemoryRouter>,
+    )
+
+    const notice = screen.getByText('原选择已不在当前结果，已暂时定位到当前排序中的第一张。')
+    expect(notice).toBeInTheDocument()
+    const listBody = document.querySelector('.warehouse-action-list__body')!
+    expect(listBody).toBeInTheDocument()
+    // The notice must NOT be inside the scrollable body
+    expect(listBody.contains(notice)).toBe(false)
+    // The spacer must be the first child inside listBody
+    expect(listBody.firstElementChild).toHaveClass('warehouse-action-list__spacer')
+  })
 })

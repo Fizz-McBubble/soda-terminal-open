@@ -8,7 +8,7 @@ import type {
   QualityPolicy,
   QualityEvidence,
 } from './absoluteDiscRetentionContract'
-import { enrichRetentionEvidence } from './absoluteDiscRetentionStages'
+import { enrichRetentionEvidence, fixedQualityNormalization } from './absoluteDiscRetentionStages'
 const finiteNonnegative = (x: number) => Number.isFinite(x) && x >= 0
 const round = (x: number) => Math.round(x * 1e6) / 1e6
 export const anyFit = (values: readonly Applicability[]): Applicability =>
@@ -167,12 +167,9 @@ export function scoreProfile(
 ): QualityEvidence {
   const h = history(disc, rules)
   const standard = rules.rarities[rules.standardRarity]!
-  const legal = Object.keys(standard.steps).filter((stat) => stat !== disc.mainStat)
-  const weights = legal.map((stat) => profile.weights[stat] ?? 0).sort((a, b) => b - a)
   // Fixed per role/slot rules, never adjusted to this disc's initial 3/4 lines or the inventory.
-  const maximumRaw =
-    weights.slice(0, rules.maxSubStats).reduce((a, b) => a + b, 0) +
-    Math.floor(standard.maxLevel / rules.enhancementInterval) * (weights[0] ?? 0)
+  const normalization = fixedQualityNormalization(profile, rules, disc.mainStat)
+  const { maximumRaw } = normalization
   const noSubstatGoal =
     profile.goal === 'functional' &&
     profile.weightEvidence?.method === 'source_proven_no_functional_substat_goal' &&
@@ -255,6 +252,8 @@ export function scoreProfile(
       currentScore: asScore(raw),
       possibleUpper: asScore(upper),
       remainingNodes: h.remainingNodes,
+      remainingUnlocks: h.unlocks,
+      normalizationInputStats: normalization.inputStats,
     }),
   }
 }

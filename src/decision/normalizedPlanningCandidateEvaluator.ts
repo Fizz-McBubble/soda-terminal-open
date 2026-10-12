@@ -94,6 +94,12 @@ export function evaluateNormalizedPlanningCandidate(input: {
         .map((id) => discById.get(id))
         .filter((disc): disc is DriveDisc => Boolean(disc)) ?? []
     if (!rosterAgent || !selectedEngine || discs.length !== 6) return null
+    if (
+      (selectedEngine.level !== undefined &&
+        (!Number.isInteger(selectedEngine.level) || selectedEngine.level < 0 || selectedEngine.level > 60)) ||
+      (selectedEngine.ascension !== undefined &&
+        (!Number.isInteger(selectedEngine.ascension) || selectedEngine.ascension < 0 || selectedEngine.ascension > 5))
+    ) return null
     const skillLevels = Object.fromEntries(
       ['basic', 'dodge', 'assist', 'special', 'chain', 'core'].map((skill) => [
         skill,
@@ -101,8 +107,21 @@ export function evaluateNormalizedPlanningCandidate(input: {
       ]),
     )
     const schedule = compileNormalizedAgentEventSchedule({ agentId, skillLevels })
+    // This evaluator computes the suggested scheme, not the current equipped item.
+    // Legacy scheme recommendations omit growth and retain the established Lv60
+    // parameter; explicit selected levels (including zero) never use current growth.
+    const schemeLevel = selectedEngine.level === undefined ? 60 : selectedEngine.level
     const stats = projectNormalizedAccountFinalStats({
-      agent: rosterAgent,
+      agent: {
+        ...rosterAgent,
+        wEngineDetails: {
+          id: selectedEngine.engineId,
+          name: null,
+          level: schemeLevel,
+          ...(selectedEngine.ascension === undefined ? {} : { ascension: selectedEngine.ascension }),
+          refinement: selectedEngine.refinement,
+        },
+      },
       engineId: selectedEngine.engineId,
       discs,
     })

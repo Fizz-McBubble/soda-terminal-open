@@ -198,10 +198,10 @@ export function projectOutOfCombatPanel(
   }
   if (
     !Number.isInteger(input.wEngine.level) ||
-    input.wEngine.level < 1 ||
+    input.wEngine.level < 0 ||
     input.wEngine.level > 60
   ) {
-    return unsupported('音擎等级必须在 1 到 60 之间。')
+    return unsupported('音擎等级必须在 0 到 60 之间。')
   }
   if (
     !Number.isInteger(input.wEngine.ascension) ||

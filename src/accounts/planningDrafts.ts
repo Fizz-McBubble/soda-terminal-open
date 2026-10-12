@@ -1,5 +1,6 @@
 import { database, type SodaDatabase } from '../db/databaseCore'
 import { getScopedId, type AccountPlanningDraft } from './types'
+import { resolvePlanningDiscReferences } from './planningDiscReferences'
 
 export type PlanningDraftInput = Omit<
   AccountPlanningDraft,
@@ -49,6 +50,31 @@ function assertDeploymentOrders(input: PlanningDraftInput) {
     throw new Error('队伍站位必须恰好包含执行快照中的三名不同代理人。')
 }
 
+/** New saves bind only current account entities; compatibility history stays readable. */
+async function assertPlanningDiscReferences(
+  accountId: string,
+  input: PlanningDraftInput,
+  db: SodaDatabase,
+) {
+  const references = resolvePlanningDiscReferences(input)
+  // Protection is a union, not a six/18-disc or simultaneous-allocation contract.
+  // Specialized portfolio validation owns exclusivity; compatibility projections
+  // may repeat a disc across scenarios or carry different reference subsets.
+  const referenceIds = references.referenceIds
+  // Empty references are valid unassigned directions, not an incomplete six/18-disc requirement.
+  const referenced = await db.accountDriveDiscs.bulkGet(
+    referenceIds.map((id) => getScopedId(accountId, id)),
+  )
+  const missing = referenceIds.filter((id, index) => {
+    const disc = referenced[index]
+    return !disc || disc.accountId !== accountId || disc.id !== id
+  })
+  if (missing.length)
+    throw new Error(
+      `规划“${input.name.trim() || '未命名规划'}”引用的驱动盘在当前账户不存在：${missing.slice(0, 3).join('、')}。请重新匹配或调整用盘后保存，原规划未修改。`,
+    )
+}
+
 export async function listAccountPlanningDrafts(accountId: string, db: SodaDatabase = database) {
   return db.accountPlanningDrafts.where('accountId').equals(accountId).sortBy('updatedAt')
 }
@@ -83,6 +109,7 @@ export async function saveAccountPlanningDraft(
         throw new Error('队伍成员不能重复，请调整后再保存。')
       }
       assertDeploymentOrders(input)
+      await assertPlanningDiscReferences(accountId, input, db)
       const now = new Date().toISOString()
       const id = input.id ?? `plan-${crypto.randomUUID()}`
       const existing = await db.accountPlanningDrafts.get(getScopedId(accountId, id))
@@ -109,44 +136,53 @@ export async function saveCurrentAgentBuild(
   input: CurrentAgentBuildInput,
   db: SodaDatabase = database,
 ) {
-  return db.transaction('rw', db.accountPlanningDrafts, db.accounts, db.settings, async () => {
-    await assertCurrentAccount(accountId, db)
-    if (input.selection.agentIds.length !== 1)
-      throw new Error('单人养成方案必须且只能包含一名代理人。')
-    const agentId = input.selection.agentIds[0]
-    const agentPlans = await db.accountPlanningDrafts
-      .where('[accountId+kind]')
-      .equals([accountId, 'agent'])
-      .filter(
-        (plan) => plan.selection.agentIds.length === 1 && plan.selection.agentIds[0] === agentId,
-      )
-      .toArray()
-    const existing = agentPlans
-      .filter((plan) => plan.savedRole === 'current_reference')
-      .toSorted((left, right) => right.updatedAt.localeCompare(left.updatedAt))[0]
-    const now = new Date().toISOString()
-    const id = existing?.id ?? `agent-build-${agentId}`
-    const next: AccountPlanningDraft = {
-      ...input,
-      id,
-      kind: 'agent',
-      savedRole: 'current_reference',
-      scopedId: getScopedId(accountId, id),
-      accountId,
-      name: input.name.trim() || '养成方案',
-      state: 'saved',
-      createdAt: existing?.createdAt ?? now,
-      updatedAt: now,
-      revision: (existing?.revision ?? 0) + 1,
-    }
-    await db.accountPlanningDrafts.bulkPut([
-      ...agentPlans
-        .filter((plan) => plan.id !== id && plan.savedRole === 'current_reference')
-        .map((plan) => ({ ...plan, savedRole: 'history' as const })),
-      next,
-    ])
-    return next
-  })
+  return db.transaction(
+    'rw',
+    db.accountPlanningDrafts,
+    db.accountDriveDiscs,
+    db.accounts,
+    db.settings,
+    async () => {
+      await assertCurrentAccount(accountId, db)
+      if (input.selection.agentIds.length !== 1)
+        throw new Error('单人养成方案必须且只能包含一名代理人。')
+      assertDeploymentOrders({ ...input, kind: 'agent' })
+      await assertPlanningDiscReferences(accountId, { ...input, kind: 'agent' }, db)
+      const agentId = input.selection.agentIds[0]
+      const agentPlans = await db.accountPlanningDrafts
+        .where('[accountId+kind]')
+        .equals([accountId, 'agent'])
+        .filter(
+          (plan) => plan.selection.agentIds.length === 1 && plan.selection.agentIds[0] === agentId,
+        )
+        .toArray()
+      const existing = agentPlans
+        .filter((plan) => plan.savedRole === 'current_reference')
+        .toSorted((left, right) => right.updatedAt.localeCompare(left.updatedAt))[0]
+      const now = new Date().toISOString()
+      const id = existing?.id ?? `agent-build-${agentId}`
+      const next: AccountPlanningDraft = {
+        ...input,
+        id,
+        kind: 'agent',
+        savedRole: 'current_reference',
+        scopedId: getScopedId(accountId, id),
+        accountId,
+        name: input.name.trim() || '养成方案',
+        state: 'saved',
+        createdAt: existing?.createdAt ?? now,
+        updatedAt: now,
+        revision: (existing?.revision ?? 0) + 1,
+      }
+      await db.accountPlanningDrafts.bulkPut([
+        ...agentPlans
+          .filter((plan) => plan.id !== id && plan.savedRole === 'current_reference')
+          .map((plan) => ({ ...plan, savedRole: 'history' as const })),
+        next,
+      ])
+      return next
+    },
+  )
 }
 
 export async function deleteAccountPlanningDraft(

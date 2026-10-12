@@ -8,7 +8,9 @@
  *   [second_statkey]: second_statvalue * (1 + 0.3 * ascension)
  *
  * Upstream atk_multiplier table has 61 entries (index 0 to 60).
- * Notice: atk_multiplier[0] = 0, but valid levels are 1..60.
+ * Soda accepts game W-Engine levels 0..60: CN 3.2 WeaponLevel includes level 0
+ * for all three rarities. This extends the pinned Optimizer schema's 1..60 range;
+ * the table's index 0 alone is not evidence of the game's valid level range.
  * At level 1, atk_multiplier[1] = 1568 (0.1568).
  * Upstream applies the exact same level multiplier table (atk_multiplier) and ascension factor
  * (0.8922) to both 'atk' and 'def' base stats.
@@ -33,7 +35,7 @@ export type TypedWEngineBaseStat = {
 }
 
 export function defaultAscensionForLevel(level: number): number {
-  if (typeof level !== 'number' || !Number.isInteger(level) || level < 1 || level > 60) {
+  if (typeof level !== 'number' || !Number.isInteger(level) || level < 0 || level > 60) {
     throw new Error(`Invalid level for ascension derivation: ${level}`)
   }
   return Math.min(5, Math.floor(level / 10))
@@ -57,8 +59,8 @@ export function calculateWEngineBaseStatExact(
   if (typeof baseValue !== 'number' || !Number.isFinite(baseValue) || baseValue <= 0) {
     throw new Error(`Invalid baseValue: ${baseValue}; must be finite positive number`)
   }
-  if (typeof level !== 'number' || !Number.isInteger(level) || level < 1 || level > 60) {
-    throw new Error(`Invalid level: ${level}; must be an integer between 1 and 60`)
+  if (typeof level !== 'number' || !Number.isInteger(level) || level < 0 || level > 60) {
+    throw new Error(`Invalid level: ${level}; must be an integer between 0 and 60`)
   }
 
   let actualAscension: number
@@ -94,8 +96,8 @@ export function calculateWEngineSecondaryStat(
       `Invalid secondaryBaseValue: ${secondaryBaseValue}; must be finite positive number`,
     )
   }
-  if (typeof level !== 'number' || !Number.isInteger(level) || level < 1 || level > 60) {
-    throw new Error(`Invalid level: ${level}; must be an integer between 1 and 60`)
+  if (typeof level !== 'number' || !Number.isInteger(level) || level < 0 || level > 60) {
+    throw new Error(`Invalid level: ${level}; must be an integer between 0 and 60`)
   }
 
   let actualAscension: number

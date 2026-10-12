@@ -80,7 +80,7 @@ const actorSchema = z
     wEngine: z
       .object({
         id: z.string().min(1),
-        level: z.number().int().positive().nullable(),
+        level: z.number().int().min(0).max(60).nullable(),
         refinement: z.number().int().positive().nullable(),
       })
       .nullable(),

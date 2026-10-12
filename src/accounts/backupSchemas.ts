@@ -42,7 +42,7 @@ const planningSolutionContextSchema = z.object({
       wEngine: z
         .object({
           engineId: z.string().min(1),
-          level: z.number().int().min(1).max(60),
+          level: z.number().int().min(0).max(60),
           ascension: z.number().int().min(0).max(5).optional(),
           refinement: z.number().int().min(1).max(5),
         })
@@ -78,7 +78,7 @@ const teamEquipmentParameterSelectionSchema = z
           agentId: z.string().min(1),
           engineId: z.string().min(1),
           refinement: z.number().int().min(0),
-          level: z.number().int().min(1).max(60).optional(),
+          level: z.number().int().min(0).max(60).optional(),
           ascension: z.number().int().min(0).max(5).optional(),
         })
         .strict(),
@@ -101,7 +101,7 @@ const teamExecutionWEngineSchema = z
     engineId: z.string().min(1),
     copyId: z.string().min(1).nullable(),
     refinement: z.number().int().min(0),
-    level: z.number().int().min(1).max(60).optional(),
+    level: z.number().int().min(0).max(60).optional(),
     ascension: z.number().int().min(0).max(5).optional(),
     fact: z.enum([
       'confirmed',

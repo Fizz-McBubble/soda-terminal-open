@@ -35,7 +35,7 @@ import {
   investmentOrder,
   projectCurrent31TeamStrengthOrder,
   denseOrder,
-  selectMemberDisjointPortfolio,
+  resolveMemberDisjointPortfolio,
 } from './accountDecisionOrdering'
 import {
   createPriorityResult,
@@ -207,10 +207,11 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
     .filter((item) => item.rating.status === 'rated')
     .sort(intrinsicDisplayComparator)
   const intrinsicOrdered = allIntrinsicOrdered.filter(defaultRecommendation)
-  const longTermSelected = selectMemberDisjointPortfolio(
+  const longTermSelection = resolveMemberDisjointPortfolio(
     intrinsicOrdered,
     input.preference.teamCount,
   )
+  const longTermSelected = longTermSelection.selected
   const longTermSelectedIds = new Set(
     longTermSelected.map((candidate) => candidate.candidate.candidateId),
   )
@@ -281,10 +282,11 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
         conflictOrder(left.account.assetConflict) - conflictOrder(right.account.assetConflict) ||
         intrinsicDisplayComparator(left, right),
     )
-  const currentSelected = selectMemberDisjointPortfolio(
+  const currentSelection = resolveMemberDisjointPortfolio(
     accountPortfolioOrdered,
     input.preference.teamCount,
   )
+  const currentSelected = currentSelection.selected
   const currentSelectedIds = new Set(
     currentSelected.map((candidate) => candidate.candidate.candidateId),
   )
@@ -429,6 +431,7 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
       kind: 'intrinsic_long_term_target' as const,
       candidateIds: longTermSelected.map((item) => item.candidate.candidateId),
       requestedTeamCount: input.preference.teamCount,
+      selectionStatus: longTermSelection.status,
       boundary:
         '账户无关的长期理论阵容目标；只参与 Production Workset 覆盖，不进入当前 Cultivation Priority 的 coverageGain 或边际收益。',
     },
@@ -436,6 +439,7 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
       kind: 'account_bound_current_priority' as const,
       candidateIds: currentSelected.map((item) => item.candidate.candidateId),
       requestedTeamCount: input.preference.teamCount,
+      selectionStatus: currentSelection.status,
       boundary:
         '在账户无关 Production Workset 内，当前账号组合优先考虑可成型性、投入与实体资产冲突；只有这里入选的队伍标记为 new_required_team。',
     },

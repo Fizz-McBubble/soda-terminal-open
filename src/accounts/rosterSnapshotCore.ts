@@ -59,13 +59,13 @@ export const rosterSnapshotSchema = z.object({
         .object({
           id: z.string().min(1).nullable().optional(),
           name: z.string().min(1).nullable(),
-          level: z.number().int().min(1).max(60).nullable(),
+          level: z.number().int().min(0).max(60).nullable(),
           ascension: z.number().int().min(0).max(5).nullable().optional(),
           refinement: z.number().int().min(0).max(5).nullable(),
           manualProgression: z
             .object({
               engineId: z.string().min(1),
-              level: z.number().int().min(1).max(60).optional(),
+              level: z.number().int().min(0).max(60).optional(),
               ascension: z.number().int().min(0).max(5).optional(),
               refinement: z.number().int().min(1).max(5).optional(),
             })
@@ -106,7 +106,7 @@ export const rosterSnapshotSchema = z.object({
       z.object({
         copyId: z.string().min(1).optional(),
         engineId: z.string().min(1),
-        level: z.number().int().min(1).max(60),
+        level: z.number().int().min(0).max(60),
         refinement: z.number().int().min(0).max(5),
         equippedAgentId: z.string().min(1).nullable().optional(),
         manualSource: z.enum(['manual_initial_default', 'manual_override']),

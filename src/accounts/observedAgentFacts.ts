@@ -87,7 +87,8 @@ export function hasObservedAgentField(agent: RosterAgent, field: ObservedAgentFi
     field === 'mindscape' ||
     field === 'potentialImage' ||
     field.endsWith('ascension') ||
-    field === 'wEngineDetails.refinement'
+    field === 'wEngineDetails.refinement' ||
+    field === 'wEngineDetails.level'
       ? 0
       : 1
   const max =

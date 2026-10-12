@@ -31,7 +31,11 @@ export function previewOf(review: Reviewed): AssetQuickReadPreview {
               : []),
           ]
         : []),
-      ...(candidate.warnings ?? []),
+      ...((candidate.warnings ?? []).some(
+        (warning) => !warning.startsWith('本次仅检查已出现的代理人和S级盘'),
+      )
+        ? ['部分代理人或音擎资料未读全，保留原值；可先导入驱动盘，再手动补齐。']
+        : []),
     ],
     issues: [
       ...candidate.issues.map((issue) => issue.message),
@@ -42,11 +46,11 @@ export function previewOf(review: Reviewed): AssetQuickReadPreview {
       return {
         agentId: agent.agentId,
         name: agent.name,
-        level: agent.fields.level!,
-        mindscape: agent.fields.mindscape!,
+        level: agent.fields.level,
+        mindscape: agent.fields.mindscape,
         ...(skills
           ? {
-              skills: `普攻 ${skills.basic} · 闪避 ${skills.dodge} · 支援 ${skills.assist} · 特殊 ${skills.special} · 连携 ${skills.chain} · 核心 ${String.fromCharCode(64 + (skills.core ?? 1) - 1) === '@' ? '未解锁' : String.fromCharCode(64 + (skills.core ?? 1) - 1)}`,
+              skills: `普攻 ${skills.basic ?? '未读取'} · 闪避 ${skills.dodge ?? '未读取'} · 支援 ${skills.assist ?? '未读取'} · 特殊 ${skills.special ?? '未读取'} · 连携 ${skills.chain ?? '未读取'} · 核心 ${skills.core == null ? '未读取' : skills.core === 1 ? '未解锁' : String.fromCharCode(64 + skills.core - 1)}`,
             }
           : {}),
         ...(agent.fields.wEngineDetails?.name ? { wEngine: agent.fields.wEngineDetails.name } : {}),

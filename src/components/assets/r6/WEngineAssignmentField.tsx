@@ -98,7 +98,7 @@ export function WEngineAssignmentField({
             <input
               aria-label="音擎等级"
               type="number"
-              min="1"
+              min="0"
               max="60"
               value={draft.wEngineLevel ?? 60}
               onChange={(event) =>

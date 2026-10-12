@@ -99,22 +99,74 @@ export function hasOverlap(left: readonly string[], right: readonly string[]) {
   return right.some((member) => members.has(member))
 }
 
-export function selectMemberDisjointPortfolio<
+/** Keep the existing order when greedy fills the request; search only its shortfall. */
+export function resolveMemberDisjointPortfolio<
   T extends { candidate: RankedFormation; memberIds: readonly string[] },
->(ordered: readonly T[], teamCount: number) {
+>(ordered: readonly T[], teamCount: number, searchBudget = 50_000) {
+  const requested = Number.isSafeInteger(teamCount) && teamCount > 0 ? teamCount : 0
+  const seen = new Set<string>()
+  const candidates = ordered.filter((item) => {
+    const id = item.candidate.candidateId
+    if (seen.has(id)) return false
+    seen.add(id)
+    return true
+  })
   const selected: T[] = []
-  for (const candidate of ordered) {
-    if (selected.length >= teamCount) break
-    if (
-      selected.some(
-        (existing) => existing.candidate.candidateId === candidate.candidate.candidateId,
-      )
-    )
-      continue
+  for (const candidate of candidates) {
+    if (selected.length >= requested) break
     if (selected.every((existing) => !hasOverlap(existing.memberIds, candidate.memberIds)))
       selected.push(candidate)
   }
-  return selected
+  if (selected.length === requested)
+    return { selected, status: 'complete' as const, searchSteps: 0 }
+
+  let searchSteps = 0
+  let exhausted = false
+  const budget = Number.isSafeInteger(searchBudget) && searchBudget > 0 ? searchBudget : 0
+  const chosen: T[] = []
+  function find(start: number, target: number): T[] | null {
+    if (chosen.length === target) return [...chosen]
+    const needed = target - chosen.length
+    if (candidates.length - start < needed) return null
+    for (let index = start; index <= candidates.length - needed; index += 1) {
+      if (searchSteps >= budget) {
+        exhausted = true
+        return null
+      }
+      searchSteps += 1
+      const candidate = candidates[index]!
+      if (chosen.some((existing) => hasOverlap(existing.memberIds, candidate.memberIds))) continue
+      chosen.push(candidate)
+      const result = find(index + 1, target)
+      chosen.pop()
+      if (result) return result
+      if (exhausted) return null
+    }
+    return null
+  }
+  // Descending cardinality, then lexicographic input order: no new rating weights
+  // or DPS claim. A budget cutoff must never be reported as proven infeasibility.
+  for (let target = Math.min(requested, candidates.length); target > selected.length; target -= 1) {
+    const result = find(0, target)
+    if (result)
+      return {
+        selected: result,
+        status: target === requested ? ('complete' as const) : ('infeasible' as const),
+        searchSteps,
+      }
+    if (exhausted) break
+  }
+  return {
+    selected,
+    status: exhausted ? ('budget_exhausted' as const) : ('infeasible' as const),
+    searchSteps,
+  }
+}
+
+export function selectMemberDisjointPortfolio<
+  T extends { candidate: RankedFormation; memberIds: readonly string[] },
+>(ordered: readonly T[], teamCount: number) {
+  return resolveMemberDisjointPortfolio(ordered, teamCount).selected
 }
 
 export function exactMemberIds(candidate: RankedFormation): readonly [string, string, string] {

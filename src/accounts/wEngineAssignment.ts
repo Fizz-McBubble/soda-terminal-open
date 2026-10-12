@@ -56,10 +56,10 @@ export function applyAgentWEngineAssignment({
   if (
     selectedEngine &&
     (!Number.isInteger(draft.wEngineLevel) ||
-      (draft.wEngineLevel ?? 0) < 1 ||
+      (draft.wEngineLevel ?? 0) < 0 ||
       (draft.wEngineLevel ?? 0) > 60)
   )
-    throw new Error('当前音擎等级必须为 1–60。')
+    throw new Error('当前音擎等级必须为 0–60。')
   if (
     selectedEngine &&
     (!Number.isInteger(draft.wEngineRefinement) ||

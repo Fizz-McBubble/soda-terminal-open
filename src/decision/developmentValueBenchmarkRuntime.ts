@@ -126,7 +126,7 @@ export function evaluateDevelopmentValueBenchmarkSide(input: {
     })
   if (
     !Number.isInteger(engine.level) ||
-    engine.level < 1 ||
+    engine.level < 0 ||
     engine.level > 60 ||
     !Number.isInteger(engine.refinement) ||
     engine.refinement < 1 ||

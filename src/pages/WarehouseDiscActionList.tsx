@@ -24,6 +24,8 @@ export function WarehouseDiscActionList({
   selectDisc,
   selectionNotice,
   sameKindContext,
+  initialFocusDiscId,
+  onInitialFocusConsumed,
 }: {
   actionList: ReturnType<typeof projectWarehouseActionListJoin>
   listBodyRef: RefObject<HTMLDivElement | null>
@@ -36,9 +38,18 @@ export function WarehouseDiscActionList({
   selectDisc: (id: string) => void
   selectionNotice?: string
   sameKindContext?: { label: string; onReturn: () => void }
+  initialFocusDiscId?: string | null
+  onInitialFocusConsumed?: () => void
 }) {
-  const [activeIndex, setActiveIndex] = useState(0)
+  const [activeIndex, setActiveIndex] = useState(() => {
+    if (initialFocusDiscId) {
+      const idx = actionList.rows.findIndex((r) => r.disc.id === initialFocusDiscId)
+      if (idx >= 0) return idx
+    }
+    return 0
+  })
   const pendingFocusIndex = useRef<number | null>(null)
+  const initialFocusAttempted = useRef(false)
   const firstRenderedIndex = firstVisible
   const lastRenderedIndex = firstVisible + windowed.length - 1
   const tabStopIndex =
@@ -47,6 +58,36 @@ export function WarehouseDiscActionList({
       : firstRenderedIndex
 
   useLayoutEffect(() => {
+    if (initialFocusDiscId && !initialFocusAttempted.current) {
+      initialFocusAttempted.current = true
+      onInitialFocusConsumed?.()
+      const targetIndex = actionList.rows.findIndex((r) => r.disc.id === initialFocusDiscId)
+      if (targetIndex >= 0) {
+        const active = document.activeElement
+        const focusWasLost =
+          !active ||
+          active === document.body ||
+          active === document.documentElement ||
+          !active.isConnected
+        if (focusWasLost) {
+          const row = listBodyRef.current?.querySelector<HTMLButtonElement>(
+            `.warehouse-action-row[data-row-index="${targetIndex}"]`,
+          )
+          if (row) {
+            row.focus({ preventScroll: true })
+            return
+          }
+          // The pending list may have focused a disc beyond the first ready
+          // window. Render that entity before handing off its keyboard focus.
+          const list = listBodyRef.current
+          if (list) {
+            pendingFocusIndex.current = targetIndex
+            list.scrollTop = targetIndex * rowHeight
+            setScrollTop(list.scrollTop)
+          }
+        }
+      }
+    }
     const index = pendingFocusIndex.current
     if (index === null) return
     const row = listBodyRef.current?.querySelector<HTMLButtonElement>(
@@ -55,7 +96,17 @@ export function WarehouseDiscActionList({
     if (!row) return
     row.focus({ preventScroll: true })
     pendingFocusIndex.current = null
-  }, [activeIndex, firstVisible, listBodyRef, windowed])
+  }, [
+    activeIndex,
+    firstVisible,
+    listBodyRef,
+    windowed,
+    initialFocusDiscId,
+    onInitialFocusConsumed,
+    actionList.rows,
+    rowHeight,
+    setScrollTop,
+  ])
 
   function moveKeyboardFocus(index: number) {
     const bounded = Math.max(0, Math.min(index, actionList.rows.length - 1))
@@ -111,22 +162,22 @@ export function WarehouseDiscActionList({
         <span>使用情况</span>
         <span>建议</span>
       </div>
+      {selectionNotice ? (
+        <p className="warehouse-action-list__selection-notice" role="status">
+          {selectionNotice}
+        </p>
+      ) : null}
+      {actionList.missingRecords.length ? (
+        <section className="warehouse-action-list__missing-records" role="status">
+          <strong>{actionList.missingRecords.length} 条旧分析已找不到对应驱动盘</strong>
+          <p>这些记录暂未列入列表，请重新分析以更新结果。</p>
+        </section>
+      ) : null}
       <div
         className="warehouse-action-list__body"
         ref={listBodyRef}
         onScroll={(event) => setScrollTop(event.currentTarget.scrollTop)}
       >
-        {selectionNotice ? (
-          <p className="warehouse-action-list__selection-notice" role="status">
-            {selectionNotice}
-          </p>
-        ) : null}
-        {actionList.missingRecords.length ? (
-          <section className="warehouse-action-list__missing-records" role="status">
-            <strong>{actionList.missingRecords.length} 条旧分析已找不到对应驱动盘</strong>
-            <p>这些记录暂未列入列表，请重新分析以更新结果。</p>
-          </section>
-        ) : null}
         {actionList.rows.length ? (
           <div
             className="warehouse-action-list__spacer"

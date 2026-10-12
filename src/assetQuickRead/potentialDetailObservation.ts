@@ -29,6 +29,7 @@ export function observePotentialDetail(
   gameAgentId: number,
 ): { level?: number; warning?: string } {
   if (!observation || observation.presence === 'omitted') return {}
+  if (observation.presence === 'invalid') return { warning: '潜能字段无法解析；本次保留原值。' }
   const definition = definitions.get(observation.value)
   if (!definition) return { warning: '潜能细节ID未识别；本次不作为潜能观测，保留原值。' }
   if (definition.gameId !== gameAgentId)

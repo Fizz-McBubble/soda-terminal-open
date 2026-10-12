@@ -17,11 +17,15 @@ export function WarehousePendingDiscList({
   filters,
   selectedId,
   selectDisc,
+  rowHeight: rowHeightProp,
+  onFocusDisc,
 }: {
   discs: DriveDisc[]
   filters: FilterState
   selectedId: string | null
   selectDisc: (id: string) => void
+  rowHeight?: number
+  onFocusDisc?: (id: string) => void
 }) {
   const [scrollTop, setScrollTop] = useState(0)
   const [activeIndex, setActiveIndex] = useState(0)
@@ -46,8 +50,7 @@ export function WarehousePendingDiscList({
         ),
     [discs, filters.setId, filters.slot, filters.mainStat, filters.level, filters.sort],
   )
-  // A fixed factual row has the same geometry on desktop and narrow screens.
-  const rowHeight = 112
+  const rowHeight = rowHeightProp ?? 72
   const first = Math.max(
     0,
     Math.min(
@@ -127,7 +130,10 @@ export function WarehousePendingDiscList({
                     type="button"
                     aria-pressed={selected?.id === disc.id}
                     aria-label={`第 ${first + offset + 1} / ${rows.length} 张，查看 ${readableSetName(disc.setId)} ${disc.slot} 号位详情，建议待分析`}
-                    onFocus={() => setActiveIndex(first + offset)}
+                    onFocus={() => {
+                      setActiveIndex(first + offset)
+                      onFocusDisc?.(disc.id)
+                    }}
                     onKeyDown={(event) => keyDown(event, first + offset)}
                     onClick={() => selectDisc(disc.id)}
                   >

@@ -223,16 +223,175 @@ describe('asset snapshot local candidate adapter', () => {
       'asset-quick-read:990002',
     ])
   })
-  it('reports equipped engine omitted progression without provenance or zero inference', () => {
+  it('resolves a complete known engine with omitted base progression using the locked protocol default', () => {
     const input = fixture()
     Object.assign(input.assets.engines[0], { level: omitted(), modification: omitted() })
     const candidate = convertAssetSnapshot(input, context)
     expect(candidate.importable).toBe(true)
-    expect(candidate.warnings?.[0]).toContain('1件')
-    expect(candidate.agents[0].fields.wEngineDetails?.level).toBeNull()
-    expect(candidate.agents[0].observedFields).not.toContain('wEngineDetails.level')
-    expect(candidate.agents[0].observedFields).not.toContain('wEngineDetails.ascension')
+    expect(candidate.warnings?.some((warning) => warning.includes('等级或突破未读到'))).toBe(false)
+    expect(candidate.agents[0].fields.wEngineDetails?.level).toBe(0)
+    expect(candidate.agents[0].fields.wEngineDetails?.ascension).toBe(0)
+    expect(candidate.agents[0].observedFields).toContain('wEngineDetails.level')
+    expect(candidate.agents[0].observedFields).toContain('wEngineDetails.ascension')
     expect(candidate.agents[0].observedFields).toContain('wEngineDetails.refinement')
+  })
+  it.each(['missing-phase', 'invalid-level', 'incompatible-pair'])(
+    'does not manufacture default progression for %s',
+    (failure) => {
+      const input = fixture()
+      Object.assign(input.assets.engines[0], { level: omitted(), modification: omitted() })
+      if (failure === 'missing-phase') Object.assign(input.assets.engines[0], { phase: omitted() })
+      if (failure === 'invalid-level')
+        Object.assign(input.assets.engines[0], { level: { presence: 'invalid', value: null } })
+      if (failure === 'incompatible-pair')
+        Object.assign(input.assets.engines[0], { modification: present(5) })
+      const candidate = convertAssetSnapshot(input, context)
+      expect(candidate.importable).toBe(true)
+      expect(candidate.agents[0].observedFields).not.toContain('wEngineDetails.level')
+      expect(candidate.agents[0].fields.wEngineDetails?.level).toBeNull()
+    },
+  )
+  it('keeps missing agent growth and individual skills unobserved while importing discs', () => {
+    const input = fixture()
+    const agent = input.assets.agents[0]
+    Object.assign(agent, { level: omitted(), promotion: omitted() })
+    agent.skills = agent.skills.filter((skill) => skill.skill_type.value !== 1)
+    const candidate = convertAssetSnapshot(input, context)
+    expect(candidate.importable).toBe(true)
+    expect(candidate.discs.discs).toHaveLength(1)
+    expect(candidate.agents[0].observedFields).not.toContain('level')
+    expect(candidate.agents[0].observedFields).not.toContain('ascension')
+    expect(candidate.agents[0].observedFields).not.toContain('skillLevels.special')
+    expect(candidate.agents[0].observedFields).toContain('skillLevels.basic')
+    expect(candidate.agents[0].observedFields).toContain('wEngineDetails.id')
+  })
+  it('does not adopt an ambiguous skill or partial equipment relationship', () => {
+    const input = fixture()
+    input.assets.agents[0].skills[0].skill_type = present(5)
+    input.assets.agents[0].dressed_equips.push({ uid: present(999999), slot: present(2) })
+    const candidate = convertAssetSnapshot(input, context)
+    expect(candidate.importable).toBe(true)
+    expect(candidate.agents[0].observedFields).not.toContain('skillLevels.core')
+    expect(candidate.agents[0].observedFields).not.toContain('equippedDiscIds')
+    expect(candidate.agents[0].equippedSourceIds).toEqual([])
+  })
+  it.each(['engine', 'agent'] as const)(
+    'quarantines %s decoding issues without blocking S discs',
+    (asset) => {
+      const input = fixture()
+      input.issues.push({ code: 'wrong_wire_type', asset, field: 'level' })
+      Object.assign(input.assets[asset === 'engine' ? 'engines' : 'agents'][0], {
+        level: { presence: 'invalid', value: null },
+      })
+      const candidate = convertAssetSnapshot(input, context)
+      expect(candidate.importable).toBe(true)
+      expect(candidate.discs.discs).toHaveLength(1)
+      if (asset === 'agent') expect(candidate.agents).toEqual([])
+      else expect(candidate.agents[0].observedFields).not.toContain('wEngineDetails.id')
+    },
+  )
+  it('still blocks invalid disc decoding instead of inventing level zero', () => {
+    const input = fixture()
+    Object.assign(input.assets.discs[0], { level: { presence: 'invalid', value: null } })
+    input.issues.push({ code: 'wrong_wire_type', asset: 'disc', field: 'level' })
+    const candidate = convertAssetSnapshot(input, context)
+    expect(candidate.importable).toBe(false)
+    expect(candidate.discs.discs).toEqual([])
+  })
+  it.each(['engines', 'agents'] as const)(
+    'does not trust inconsistent optional %s counts',
+    (kind) => {
+      const input = fixture()
+      input.counts[kind]++
+      const candidate = convertAssetSnapshot(input, context)
+      expect(candidate.importable).toBe(true)
+      expect(candidate.discs.discs).toHaveLength(1)
+      if (kind === 'agents') expect(candidate.agents).toEqual([])
+      else expect(candidate.agents[0].fields).not.toHaveProperty('wEngineDetails')
+    },
+  )
+  it('recognizes every released engine model and agent identity, independently of growth', () => {
+    for (const engine of identities.engines) {
+      const input = fixture()
+      Object.assign(input.assets.engines[0], {
+        catalog_id: present(Number(engine.gameId)),
+        level: omitted(),
+        modification: omitted(),
+      })
+      const candidate = convertAssetSnapshot(input, context)
+      expect(candidate.importable, engine.id).toBe(true)
+      expect(candidate.agents[0].fields.wEngineDetails?.id, engine.id).toBe(engine.id)
+      expect(candidate.agents[0].observedFields).toContain('wEngineDetails.level')
+      expect(candidate.agents[0].fields.wEngineDetails?.level).toBe(0)
+    }
+    for (const agent of identities.agents) {
+      const input = fixture()
+      Object.assign(input.assets.agents[0], {
+        catalog_id: present(Number(agent.gameId)),
+        level: omitted(),
+        promotion: omitted(),
+        skills: [],
+      })
+      const candidate = convertAssetSnapshot(input, context)
+      expect(candidate.importable, agent.id).toBe(true)
+      expect(candidate.agents[0].agentId, agent.id).toBe(agent.id)
+      expect(candidate.agents[0].observedFields).toContain('owned')
+    }
+  })
+  it('covers every released S set, slot and legal main stat with actual formula values', () => {
+    const keys: Record<string, [number, number]> = {
+      hp_percent: [11102, 100],
+      hp_flat: [11103, 1],
+      atk_percent: [12102, 100],
+      atk_flat: [12103, 1],
+      impact: [12202, 100],
+      def_percent: [13102, 100],
+      def_flat: [13103, 1],
+      crit_rate: [20103, 100],
+      crit_dmg: [21103, 100],
+      pen_ratio: [23103, 100],
+      pen: [23203, 1],
+      energy_regen: [30502, 100],
+      anomaly_proficiency: [31203, 1],
+      anomaly_mastery: [31402, 100],
+      physical_dmg: [31503, 100],
+      fire_dmg: [31603, 100],
+      ice_dmg: [31703, 100],
+      electric_dmg: [31803, 100],
+      ether_dmg: [31903, 100],
+      wind_dmg: [32303, 100],
+    }
+    const input = fixture()
+    input.assets.discs = []
+    input.assets.agents[0].dressed_equips = []
+    for (const set of identities.discs) {
+      for (const [slot, mains] of Object.entries(rawDiscData.rules.mainStatsBySlot)) {
+        for (const main of mains) {
+          const [mainKey, scale] = keys[main]
+          const base = rawDiscData.rules.mainStatBaseByRarity.S.find(
+            (row) => row.stat === main,
+          )!.baseValue
+          const subs = rawDiscData.rules.subStatStepsByRarity.S.filter(
+            (row) => row.stat !== main,
+          ).slice(0, 3)
+          input.assets.discs.push({
+            uid: present(900000 + input.assets.discs.length),
+            catalog_id: present(Number(set.gameId) + 40 + Number(slot)),
+            level: present(0),
+            main_stat: stat(mainKey, base * scale),
+            substats: subs.map((row) => stat(keys[row.stat][0], row.baseValue * keys[row.stat][1])),
+          })
+        }
+      }
+    }
+    input.counts.discs = input.counts.s_discs = input.assets.discs.length
+    const candidate = convertAssetSnapshot(input, context)
+    expect(candidate.issues).toEqual([])
+    expect(candidate.importable).toBe(true)
+    expect(candidate.discs.discs).toHaveLength(input.assets.discs.length)
+    expect(new Set(candidate.discs.discs.map((disc) => disc.setId)).size).toBe(
+      identities.discs.length,
+    )
   })
   it.each([
     [
@@ -249,27 +408,6 @@ describe('asset snapshot local candidate adapter', () => {
         input.assets.discs[0].catalog_id = present(99941)
       },
       'unknown_disc_catalog',
-    ],
-    [
-      'unknown agent',
-      (input: ReturnType<typeof fixture>) => {
-        input.assets.agents[0].catalog_id = present(999999)
-      },
-      'unknown_agent_catalog',
-    ],
-    [
-      'unknown engine',
-      (input: ReturnType<typeof fixture>) => {
-        input.assets.engines[0].catalog_id = present(999999)
-      },
-      'unknown_engine_catalog',
-    ],
-    [
-      'engine phase range',
-      (input: ReturnType<typeof fixture>) => {
-        input.assets.engines[0].phase = present(6)
-      },
-      'invalid_asset_field',
     ],
     [
       'wrong main',
@@ -291,6 +429,42 @@ describe('asset snapshot local candidate adapter', () => {
         input.counts.discs++
       },
       'count_mismatch',
+    ],
+    [
+      'wrong response',
+      (input: ReturnType<typeof fixture>) => {
+        input.response_observations[0].command_id = 1382
+      },
+      'invalid_response_observation',
+    ],
+  ])('blocks unsafe disc/transport input: %s', (_name, mutate, code) => {
+    const input = fixture()
+    mutate(input)
+    const candidate = convertAssetSnapshot(input, context)
+    expect(candidate.importable).toBe(false)
+    expect(candidate.issues.some((row) => row.code === code)).toBe(true)
+  })
+  it.each([
+    [
+      'unknown agent',
+      (input: ReturnType<typeof fixture>) => {
+        input.assets.agents[0].catalog_id = present(999999)
+      },
+      'unknown_agent_catalog',
+    ],
+    [
+      'unknown engine',
+      (input: ReturnType<typeof fixture>) => {
+        input.assets.engines[0].catalog_id = present(999999)
+      },
+      'unknown_engine_catalog',
+    ],
+    [
+      'engine phase range',
+      (input: ReturnType<typeof fixture>) => {
+        input.assets.engines[0].phase = present(6)
+      },
+      'invalid_asset_field',
     ],
     [
       'missing ref',
@@ -329,19 +503,14 @@ describe('asset snapshot local candidate adapter', () => {
       },
       'native_decode_issues',
     ],
-    [
-      'wrong response',
-      (input: ReturnType<typeof fixture>) => {
-        input.response_observations[0].command_id = 1382
-      },
-      'invalid_response_observation',
-    ],
-  ])('blocks %s', (_name, mutate, code) => {
+  ])('keeps valid discs importable with optional problem: %s', (_name, mutate) => {
     const input = fixture()
     mutate(input)
     const candidate = convertAssetSnapshot(input, context)
-    expect(candidate.importable).toBe(false)
-    expect(candidate.issues.some((row) => row.code === code)).toBe(true)
+    expect(candidate.importable).toBe(true)
+    expect(candidate.issues).toEqual([])
+    expect(candidate.discs.discs).toHaveLength(1)
+    expect(candidate.warnings?.length).toBeGreaterThan(1)
   })
   it.each([
     [

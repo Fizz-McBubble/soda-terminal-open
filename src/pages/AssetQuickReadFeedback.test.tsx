@@ -96,3 +96,33 @@ it('copies and downloads the same sanitized report identity without sending', as
   expect(fetcher).not.toHaveBeenCalled()
   click.mockRestore()
 })
+
+it('keeps a named local planning reason out of the anonymous feedback payload', async () => {
+  const report = assetFailureDiagnostic('import')
+  const localReason = '规划“合成私有周末队”（plan-private-synthetic）引用了将移除的盘，请调整用盘。'
+  const fetcher = vi.fn().mockResolvedValue(
+    new Response(
+      JSON.stringify({
+        status: 'received',
+        reportId: report.reportId,
+        receivedAt: '2026-10-12T00:00:00Z',
+      }),
+    ),
+  )
+  vi.stubGlobal('fetch', fetcher)
+  render(
+    <AssetQuickReadFeedback
+      report={report}
+      workspaceMessage={localReason}
+      workspaceMessageRole="alert"
+    />,
+  )
+  expect(screen.getByRole('alert')).toHaveTextContent(localReason)
+  expect(fetcher).not.toHaveBeenCalled()
+  fireEvent.click(screen.getByText('发送反馈'))
+  await screen.findByText('已发送')
+  const body = fetcher.mock.calls[0][1].body as string
+  expect(JSON.parse(body)).toEqual(report)
+  expect(body).not.toContain('合成私有周末队')
+  expect(body).not.toContain('plan-private-synthetic')
+})

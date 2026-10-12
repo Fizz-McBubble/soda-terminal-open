@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { expect, it, vi } from 'vitest'
 import {
   persistence,
@@ -526,6 +526,83 @@ it('imports the observed candidate directly once without a manual synchronizatio
     'synthetic-recovery',
     'restore_asset_quick_read',
   )
+})
+
+it('shows a named recovery blocker inside the current confirmation and permits retry after adjustment', async () => {
+  const harness = workbenchHarness()
+  const refresh = vi.fn()
+  render(
+    <AssetQuickReadController
+      client={bridge()}
+      targetAccountId={targetAccountId}
+      activeAccountId={targetAccountId}
+      onImported={refresh}
+      targetAccountName="合成账户"
+      workbench={harness.render}
+    />,
+  )
+  await startAndReceive()
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '导入' })))
+  const reason =
+    '规划“合成周末队”引用了本次恢复将移除或回滚属性的驱动盘。请先调整这些规划的用盘，再尝试恢复；当前资产、规划和恢复副本均保留。'
+  persistence.restore.mockRejectedValueOnce(new Error(reason))
+  fireEvent.click(screen.getByRole('button', { name: '恢复本次导入' }))
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '确认恢复到导入前' })))
+  const confirmation = screen
+    .getByRole('button', { name: '确认恢复到导入前' })
+    .closest('div')!.parentElement!
+  expect(confirmation).toBe(screen.getByRole('dialog', { name: '恢复到本次导入前？' }))
+  expect(within(confirmation).getByRole('alert')).toHaveTextContent(reason)
+  expect(screen.getAllByText(reason)).toHaveLength(1)
+  expect(screen.getByTestId('task')).toContainElement(confirmation)
+  expect(screen.getByTestId('recovery')).toBeEmptyDOMElement()
+  expect(screen.getByRole('button', { name: '确认恢复到导入前' })).toBeEnabled()
+  expect(refresh).toHaveBeenCalledTimes(1)
+  fireEvent.click(screen.getByRole('button', { name: '取消恢复' }))
+  expect(screen.queryByText(reason)).not.toBeInTheDocument()
+  expect(persistence.restore).toHaveBeenCalledTimes(1)
+  fireEvent.click(screen.getByRole('button', { name: '恢复本次导入' }))
+  expect(screen.queryByText(reason)).not.toBeInTheDocument()
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '确认恢复到导入前' })))
+  expect(persistence.restore).toHaveBeenCalledTimes(2)
+  expect(refresh).toHaveBeenCalledTimes(2)
+  expect(screen.queryByRole('button', { name: '确认恢复到导入前' })).not.toBeInTheDocument()
+})
+
+it('ignores a late recovery failure after changing the receiving account', async () => {
+  const harness = workbenchHarness()
+  const client = bridge()
+  const props = {
+    client,
+    targetAccountId,
+    activeAccountId: targetAccountId,
+    targetAccountName: '合成账户',
+    workbench: harness.render,
+  }
+  const view = render(<AssetQuickReadController {...props} />)
+  await startAndReceive()
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '导入' })))
+  let reject!: (failure: Error) => void
+  persistence.restore.mockImplementationOnce(
+    () =>
+      new Promise((_, rejectRestore) => {
+        reject = rejectRestore
+      }),
+  )
+  fireEvent.click(screen.getByRole('button', { name: '恢复本次导入' }))
+  fireEvent.click(screen.getByRole('button', { name: '确认恢复到导入前' }))
+  expect(screen.getByRole('button', { name: '恢复中…' })).toBeDisabled()
+  view.rerender(
+    <AssetQuickReadController
+      {...props}
+      targetAccountId="other-account"
+      activeAccountId="other-account"
+    />,
+  )
+  await act(async () => reject(new Error('规划“上一账户合成队”阻止恢复。')))
+  expect(screen.queryByText(/上一账户合成队/)).not.toBeInTheDocument()
+  expect(screen.getByTestId('task')).toBeEmptyDOMElement()
+  expect(screen.getByTestId('recovery')).toBeEmptyDOMElement()
 })
 
 it('keeps failed planning read-only and ignores a late plan after the account changes', async () => {

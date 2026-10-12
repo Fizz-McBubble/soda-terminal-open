@@ -1,3 +1,5 @@
+import { useEffect, useId, useRef } from 'react'
+
 export function AssetQuickReadRecovery({
   mode,
   restoreLabel,
@@ -6,6 +8,7 @@ export function AssetQuickReadRecovery({
   disabled,
   armed,
   restoring,
+  failureMessage,
   onArm,
   onCancel,
   onRestore,
@@ -17,19 +20,80 @@ export function AssetQuickReadRecovery({
   disabled: boolean
   armed: boolean
   restoring: boolean
+  failureMessage?: string
   onArm: () => void
   onCancel: () => void
   onRestore: () => Promise<void>
 }) {
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const dialogRef = useRef<HTMLDialogElement>(null)
+  const cancelRef = useRef<HTMLButtonElement>(null)
+  const titleId = useId()
+  useEffect(() => {
+    if (!armed) return
+    const dialog = dialogRef.current
+    if (dialog && !dialog.open) {
+      if (typeof dialog.showModal === 'function') dialog.showModal()
+      else dialog.setAttribute('open', '')
+    }
+    cancelRef.current?.focus()
+    const trigger = triggerRef.current
+    return () => {
+      if (trigger?.isConnected) trigger.focus()
+    }
+  }, [armed])
+
   const actions = hasRecovery ? (
     <>
-      <button type="button" className="button button--quiet" disabled={disabled} onClick={onArm}>
+      <button
+        ref={triggerRef}
+        type="button"
+        className="button button--quiet"
+        disabled={disabled}
+        onClick={onArm}
+      >
         {restoreLabel}
       </button>
       {armed && (
-        <div>
-          <p>将恢复到本次导入前的代理人和盘库。导入后若有其他修改，会停止恢复，避免覆盖。</p>
-          <div className="asset-quick-read__actions">
+        <dialog
+          ref={dialogRef}
+          className="scanner-task__confirmation"
+          aria-labelledby={titleId}
+          onCancel={(event) => {
+            event.preventDefault()
+            if (!restoring) onCancel()
+          }}
+          onKeyDown={(event) => {
+            if (event.key !== 'Tab') return
+            const buttons =
+              dialogRef.current?.querySelectorAll<HTMLButtonElement>('button:not(:disabled)')
+            if (!buttons?.length) return
+            const first = buttons[0]!,
+              last = buttons[buttons.length - 1]!
+            if (event.shiftKey && document.activeElement === first) {
+              event.preventDefault()
+              last.focus()
+            } else if (!event.shiftKey && document.activeElement === last) {
+              event.preventDefault()
+              first.focus()
+            }
+          }}
+        >
+          <h3 id={titleId}>恢复到本次导入前？</h3>
+          <p role={failureMessage ? 'alert' : undefined}>
+            {failureMessage ||
+              '将恢复导入前的代理人和盘库。资产已修改，或保存方案仍引用将移除或回滚的盘时，会停止恢复并保留原数据。'}
+          </p>
+          <div className="scanner-task__confirmation-actions">
+            <button
+              ref={cancelRef}
+              type="button"
+              className="button button--quiet"
+              disabled={restoring}
+              onClick={onCancel}
+            >
+              取消恢复
+            </button>
             <button
               type="button"
               className="button"
@@ -38,16 +102,8 @@ export function AssetQuickReadRecovery({
             >
               {restoring ? '恢复中…' : '确认恢复到导入前'}
             </button>
-            <button
-              type="button"
-              className="button button--quiet"
-              disabled={restoring}
-              onClick={onCancel}
-            >
-              取消恢复
-            </button>
           </div>
-        </div>
+        </dialog>
       )}
     </>
   ) : null

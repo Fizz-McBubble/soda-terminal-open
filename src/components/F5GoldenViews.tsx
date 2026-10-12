@@ -17,7 +17,13 @@ type F5HomeGoldenViewProps = {
   headlineLabel: string
   supportingCopy: string
   primaryAction: { label: string; route: string }
-  nextSignal: { label: string; summary: string }
+  nextSignal: {
+    label: string
+    summary: string
+    busy?: boolean
+    alert?: boolean
+    action?: { label: string; onClick: () => void }
+  }
   heroSrc: string
   heroSrcSet?: string
   recoveryAction?: { label: string; route: string }
@@ -78,10 +84,30 @@ export function F5HomeGoldenView({
               </Link>
             ) : null}
           </div>
-          <div className="home-next-signal" aria-label="接下来">
+          <div
+            className="home-next-signal"
+            aria-label="接下来"
+            role={
+              nextSignal.alert
+                ? 'alert'
+                : nextSignal.busy || nextSignal.action
+                  ? 'status'
+                  : undefined
+            }
+            aria-busy={nextSignal.busy || undefined}
+          >
             <span>接下来</span>
             <div>
-              <strong>{nextSignal.label}</strong>
+              <strong>{nextSignal.label}</strong>{' '}
+              {nextSignal.action ? (
+                <button
+                  className="button button--quiet home-secondary-action"
+                  type="button"
+                  onClick={nextSignal.action.onClick}
+                >
+                  {nextSignal.action.label}
+                </button>
+              ) : null}
               <p>{nextSignal.summary}</p>
             </div>
           </div>

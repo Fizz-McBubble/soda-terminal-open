@@ -226,8 +226,8 @@
 }
 .f5v-shell .warehouse-action-list {
   min-height: 0;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  display: flex;
+  flex-direction: column;
   container: warehouse-action-list / inline-size;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--f5-accent) 18%, transparent);
@@ -240,6 +240,10 @@
   grid-template-columns: var(--warehouse-workspace-columns);
   gap: var(--soda-space-3);
   overflow: hidden;
+}
+.f5v-shell .warehouse-action-workspace > .warehouse-action-drawer {
+  animation: none;
+  transform: none;
 }
 .f5v-shell .warehouse-action-list__header,
 .f5v-shell .warehouse-action-row {
@@ -279,6 +283,7 @@
   font-size: var(--soda-type-meta);
 }
 .f5v-shell .warehouse-action-list__body {
+  flex: 1 1 0%;
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: auto;

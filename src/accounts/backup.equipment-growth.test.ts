@@ -52,7 +52,7 @@ async function savedGrowthAccount(db: SodaDatabase, includeGrowth: boolean) {
             ? 'wengine-14162'
             : 'wengine-14002'
       if (includeGrowth) {
-        engine.level = memberIndex === 0 ? 10 : memberIndex === 1 ? 30 : 60
+        engine.level = memberIndex === 0 ? 0 : memberIndex === 1 ? 30 : 60
         engine.ascension = memberIndex === 0 ? 0 : memberIndex === 1 ? 2 : 5
       }
     }
@@ -347,7 +347,7 @@ describe('saved equipment growth account backup', () => {
         if (includeGrowth) {
           const expected =
             index === 0
-              ? { level: 10, ascension: 0 }
+              ? { level: 0, ascension: 0 }
               : index === 1
                 ? { level: 30, ascension: 2 }
                 : { level: 60, ascension: 5 }
@@ -390,7 +390,7 @@ describe('saved equipment growth account backup', () => {
   )
 
   it.each([
-    ['level', 0],
+    ['level', -1],
     ['level', 61],
     ['ascension', -1],
     ['ascension', 6],

@@ -5,7 +5,8 @@ export function resolvePlanningDiscReferences(
   draft: Pick<
     AccountPlanningDraft,
     'warehouseRefs' | 'candidateWarehouse' | 'teamExecutionSnapshot'
-  >,
+  > &
+    Partial<Pick<AccountPlanningDraft, 'teamPortfolioSnapshot' | 'teamPortfolioDiscChoices'>>,
 ) {
   const sources = [
     { source: 'warehouseRefs' as const, ids: draft.warehouseRefs ?? [] },
@@ -22,6 +23,26 @@ export function resolvePlanningDiscReferences(
           {
             source: 'teamExecutionSnapshot' as const,
             ids: draft.teamExecutionSnapshot.members.flatMap((member) => member.suggested.discIds),
+          },
+        ]
+      : []),
+    ...(draft.teamPortfolioSnapshot?.executions
+      ? [
+          {
+            source: 'teamPortfolioSnapshot' as const,
+            ids: draft.teamPortfolioSnapshot.executions.flatMap((execution) =>
+              execution.members.flatMap((member) => member.suggested.discIds),
+            ),
+          },
+        ]
+      : []),
+    ...(draft.teamPortfolioDiscChoices
+      ? [
+          {
+            source: 'teamPortfolioDiscChoices' as const,
+            ids: draft.teamPortfolioDiscChoices.loadouts.flatMap((loadout) =>
+              loadout.choices.map((choice) => choice.discId),
+            ),
           },
         ]
       : []),

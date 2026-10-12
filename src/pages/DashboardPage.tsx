@@ -35,15 +35,22 @@ export function DashboardPage() {
     : accountInput === undefined && decisionWorld.status !== 'error'
       ? undefined
       : { account: null, roster: null, discs: [], drafts: [] }
-  const pendingStaging = useLiveQuery(async () => {
+  const pendingStagingRead = useLiveQuery(async () => {
     const accountId = accountInput?.warehouse.accountId
-    if (!accountId) return 0
+    if (!accountId) return { accountId: null, count: 0 }
     const staging = await database.accountScanImportBatches
       .where('accountId')
       .equals(accountId)
       .toArray()
-    return staging.filter((batch) => batch.importHistory.at(-1)?.action !== 'imported').length
+    return {
+      accountId,
+      count: staging.filter((batch) => batch.importHistory.at(-1)?.action !== 'imported').length,
+    }
   }, [accountInput?.warehouse.accountId])
+  const pendingStaging =
+    pendingStagingRead?.accountId === accountInput?.warehouse.accountId
+      ? pendingStagingRead?.count
+      : undefined
   const [assetCacheStatus, setAssetCacheStatus] = useState<
     | { kind: 'checking' }
     | { kind: 'idle' }
@@ -156,7 +163,7 @@ export function DashboardPage() {
       </section>
     )
 
-  if (decisionWorld.status === 'error')
+  if (decisionWorld.status === 'error' && !home.account)
     return (
       <section className="panel status-card is-warning" role="alert">
         <h1>暂时无法继续当前分析</h1>
@@ -392,7 +399,7 @@ export function DashboardPage() {
         return ['查看当前', '队伍方案']
     }
   })()
-  const nextSignal =
+  const ordinaryNextSignal =
     decisionWorld.status === 'stale'
       ? {
           label: '账户资料已有变化',
@@ -407,6 +414,47 @@ export function DashboardPage() {
             label: nextAction.eyebrow,
             summary: '也可从下方“使用旅程”进入其他步骤。',
           }
+  const retryAnalysis = () => {
+    if (retryingAccountRead) return
+    setRetryingAccountRead(true)
+    const retry =
+      decisionWorld.status === 'error' && decisionWorld.canRepairApplicationData
+        ? decisionWorld.repairApplicationData()
+        : decisionWorld.refresh()
+    void retry.catch(() => undefined).finally(() => setRetryingAccountRead(false))
+  }
+  const nextSignal =
+    home.account && (decisionWorld.calculation || retryingAccountRead)
+      ? {
+          label:
+            decisionWorld.calculation?.phase === 'reading_account'
+              ? '正在读取账户资料'
+              : decisionWorld.calculation?.phase === 'preparing_rules'
+                ? '正在准备分析资料'
+                : '正在分析当前账户',
+          summary: '账户资产可继续查看。',
+          busy: true,
+          action: decisionWorld.cancelCalculation
+            ? { label: '停止分析', onClick: decisionWorld.cancelCalculation }
+            : undefined,
+        }
+      : home.account && decisionWorld.status === 'error'
+        ? {
+            label: '当前分析未完成',
+            summary: decisionWorld.message,
+            alert: true,
+            action: {
+              label: decisionWorld.canRepairApplicationData ? '恢复应用资料' : '重新分析',
+              onClick: retryAnalysis,
+            },
+          }
+        : home.account && decisionWorld.calculationCancelled
+          ? {
+              label: '分析已停止',
+              summary: '账户资产保留，可重新分析。',
+              action: { label: '重新分析', onClick: retryAnalysis },
+            }
+          : ordinaryNextSignal
   const assetCacheLabel =
     assetCacheStatus.kind === 'checking'
       ? '正在读取本机图片'

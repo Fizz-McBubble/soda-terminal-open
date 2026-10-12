@@ -2,10 +2,15 @@ import 'fake-indexeddb/auto'
 import Dexie from 'dexie'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { saveAccountRoster } from '../accounts/repository'
-import type { AccountDriveDisc } from '../accounts/types'
+import type { AccountDriveDisc, AccountPlanningDraft } from '../accounts/types'
 import type { RosterAgent } from '../assault/types'
 import { hydrateRosterDefaults } from '../accounts/rosterHydration'
-import type { SodaDatabase } from '../db/databaseCore'
+import { SodaDatabase } from '../db/databaseCore'
+import {
+  saveAccountPlanningDraft,
+  saveCurrentAgentBuild,
+  type PlanningDraftInput,
+} from '../accounts/planningDrafts'
 import {
   confirmAssetQuickReadImport,
   prepareAssetQuickReadImport,
@@ -24,6 +29,8 @@ import {
   createQuickReadTestDatabase,
 } from './accountImport.fixtures'
 import { contentHash } from '../application/contentHash'
+import { convertAssetSnapshot } from './snapshotAdapter'
+import { omitted, syntheticAssetSnapshot } from './syntheticAssetSnapshotTestFixture'
 
 describe('asset quick read isolated account transactions', () => {
   let db: SodaDatabase
@@ -44,6 +51,7 @@ describe('asset quick read isolated account transactions', () => {
       discs: await db.accountDriveDiscs.toArray(),
       rosters: await db.accountRosters.toArray(),
       preferences: await db.accountPreferences.toArray(),
+      planningDrafts: await db.accountPlanningDrafts.toArray(),
     }
   }
   async function agent() {
@@ -68,12 +76,99 @@ describe('asset quick read isolated account transactions', () => {
     )
   }
 
+  function planningInput(id: string, warehouseRefs: string[]): PlanningDraftInput {
+    return {
+      id,
+      kind: 'agent',
+      name: `合成规划 ${id}`,
+      selection: { agentIds: [agentId], bangbooId: null, scenario: 'synthetic' },
+      manualOverrides: {
+        wEngineDirection: '',
+        discDirection: '',
+        progressionDirection: '',
+        notes: '',
+      },
+      knowledgeRefs: [],
+      warehouseRefs,
+      comparisonCapability: 'direction',
+    }
+  }
+
+  async function expectPlanningRestoreBlocked(recoveryKey: string, planId: string) {
+    const before = await facts()
+    const preview = await readLatestAssetQuickReadRecovery(accountId, db)
+    expect(preview).toMatchObject({ canRestore: false })
+    expect(preview?.unavailableReason).toContain(planId)
+    expect(preview?.unavailableReason).toContain('调整')
+    await expect(
+      restoreAssetQuickReadImport(accountId, recoveryKey, 'restore_asset_quick_read', db),
+    ).rejects.toThrow(preview!.unavailableReason)
+    expect(await facts()).toEqual(before)
+  }
+
   it('prepares a usable plan without any database writes or recovery side effects', async () => {
     const before = await facts()
     const plan = await prepareAssetQuickReadImport(accountId, candidate(), db)
     expect(plan.importable).toBe(true)
     expect(plan.summary).toMatchObject({ newDiscs: 1, observedAgents: 1 })
     expect(await facts()).toEqual(before)
+  })
+  it('imports all valid discs despite missing agent growth and restores the synthetic account exactly', async () => {
+    const input = syntheticAssetSnapshot()
+    input.assets.agents[0].catalog_id.value = 1031
+    Object.assign(input.assets.agents[0], {
+      level: omitted(),
+      promotion: omitted(),
+      skills: [],
+      weapon_uid: omitted(),
+      dressed_equips: [],
+    })
+    const old = await patchAgent({
+      level: 40,
+      ascension: 3,
+      skillLevels: {
+        basic: 8,
+        dodge: 8,
+        assist: 8,
+        special: 8,
+        chain: 8,
+        core: 4,
+      },
+    })
+    const before = await facts()
+    const converted = convertAssetSnapshot(input, {
+      snapshotSha256: 'b'.repeat(64),
+      capturedAt: now,
+    })
+    const plan = await prepareAssetQuickReadImport(accountId, converted, db)
+    expect(plan.importable).toBe(true)
+    const receipt = await confirmAssetQuickReadImport(
+      converted,
+      plan,
+      {
+        accountId,
+        snapshotSha256: converted.snapshotSha256,
+        sameGameAccountAndCounts: true,
+      },
+      db,
+    )
+    expect(await db.accountDriveDiscs.where('accountId').equals(accountId).count()).toBe(1)
+    const imported = await agent()
+    expect(imported.level).toBe(old.level)
+    expect(imported.ascension).toBe(old.ascension)
+    expect(imported.skillLevels).toEqual(old.skillLevels)
+    expect(imported.observedFacts?.fields.level).toBeUndefined()
+    expect(imported.observedFacts?.fields.ascension).toBeUndefined()
+    await restoreAssetQuickReadImport(
+      accountId,
+      receipt.recoveryKey,
+      'restore_asset_quick_read',
+      db,
+    )
+    const restored = await facts()
+    expect(restored.discs).toEqual(before.discs)
+    expect(restored.rosters).toEqual(before.rosters)
+    expect(restored.accounts).toEqual(before.accounts)
   })
   it('guards missing, archived and inactive target scopes before preparing', async () => {
     await expect(
@@ -88,6 +183,35 @@ describe('asset quick read isolated account transactions', () => {
       '活动账号已变化',
     )
     expect(await facts()).toEqual(before)
+  })
+  it('imports protocol-default zero progression through the real adapter and retains it after hydration', async () => {
+    const input = syntheticAssetSnapshot()
+    input.assets.agents[0].catalog_id.value = 1031
+    Object.assign(input.assets.engines[0], { level: omitted(), modification: omitted() })
+    const converted = convertAssetSnapshot(input, {
+      snapshotSha256: 'c'.repeat(64),
+      capturedAt: now,
+    })
+    expect(converted.importable).toBe(true)
+    const before = await facts()
+    const receipt = await apply(converted)
+    const imported = await agent()
+    expect(imported.wEngineDetails).toMatchObject({ level: 0, ascension: 0 })
+    expect(imported.observedFacts?.fields['wEngineDetails.level']).toMatchObject({
+      capturedAt: now,
+      snapshotSha256: converted.snapshotSha256,
+    })
+    const hydrated = hydrateRosterDefaults((await db.accountRosters.get(accountId))!.roster)
+    expect(hydrated.agents.find((row) => row.agentId === agentId)?.wEngineDetails.level).toBe(0)
+    await restoreAssetQuickReadImport(
+      accountId,
+      receipt.recoveryKey,
+      'restore_asset_quick_read',
+      db,
+    )
+    const restored = await facts()
+    expect(restored.rosters).toEqual(before.rosters)
+    expect(restored.discs).toEqual(before.discs)
   })
   it('rechecks active account at confirmation and never touches the other account', async () => {
     const input = candidate()
@@ -492,6 +616,267 @@ describe('asset quick read isolated account transactions', () => {
     expect(restored.accounts).toEqual(before.accounts)
     expect(restored.settings).toEqual(before.settings)
     expect(restored.preferences).toHaveLength(1)
+  })
+  it('blocks preview and restore when a newly saved plan references an introduced disc', async () => {
+    const receipt = await apply()
+    await saveAccountPlanningDraft(
+      accountId,
+      planningInput('new-disc-plan', ['asset-disc-880001']),
+      db,
+    )
+    await expectPlanningRestoreBlocked(receipt.recoveryKey, 'new-disc-plan')
+  })
+  it('rechecks an old plan changed to reference an introduced disc after the recovery preview', async () => {
+    await saveAccountPlanningDraft(accountId, planningInput('edited-plan', []), db)
+    const receipt = await apply()
+    expect(await readLatestAssetQuickReadRecovery(accountId, db)).toMatchObject({
+      canRestore: true,
+    })
+    await saveAccountPlanningDraft(
+      accountId,
+      planningInput('edited-plan', ['asset-disc-880001']),
+      db,
+    )
+    await expectPlanningRestoreBlocked(receipt.recoveryKey, 'edited-plan')
+  })
+  it('protects union references in a legacy inconsistent candidate snapshot without changing that plan', async () => {
+    const receipt = await apply()
+    const saved = await saveAccountPlanningDraft(accountId, planningInput('legacy-plan', []), db)
+    await db.accountPlanningDrafts.update(saved.scopedId, {
+      candidateWarehouse: {
+        scope: 'agent',
+        totalScore: 1,
+        loadouts: [
+          {
+            agentId,
+            totalScore: 1,
+            discIds: ['asset-disc-880001'],
+            effectiveRolls: 0,
+            setPattern: 'scattered',
+            degraded: true,
+          },
+        ],
+        boundary: 'synthetic legacy history',
+      },
+    })
+    await expectPlanningRestoreBlocked(receipt.recoveryKey, 'legacy-plan')
+  })
+  it.each(['teamPortfolioSnapshot', 'teamPortfolioDiscChoices'] as const)(
+    'blocks recovery for a compatible plan referenced only in %s',
+    async (source) => {
+      const receipt = await apply()
+      const saved = await saveAccountPlanningDraft(
+        accountId,
+        planningInput('partial-portfolio', []),
+        db,
+      )
+      const patch: Partial<AccountPlanningDraft> =
+        source === 'teamPortfolioSnapshot'
+          ? {
+              teamPortfolioSnapshot: {
+                executions: [{ members: [{ suggested: { discIds: ['asset-disc-880001'] } }] }],
+              } as AccountPlanningDraft['teamPortfolioSnapshot'],
+            }
+          : {
+              teamPortfolioDiscChoices: {
+                contract: 'soda-team-portfolio-disc-choices/r1',
+                loadouts: [{ choices: [{ discId: 'asset-disc-880001' }] }],
+              } as AccountPlanningDraft['teamPortfolioDiscChoices'],
+            }
+      await db.accountPlanningDrafts.update(saved.scopedId, patch)
+      await expectPlanningRestoreBlocked(receipt.recoveryKey, 'partial-portfolio')
+    },
+  )
+  it('blocks restoring changed disc facts used by a plan even when the local disc ID survives', async () => {
+    await db.accountDriveDiscs.put(storedDisc('upgraded-disc', 'asset-quick-read:880001'))
+    const input = candidate()
+    input.discs.discs[0].level = 15
+    input.discs.discs[0].subStats.push({ stat: 'crit_dmg', value: 9.6, upgrades: 1 })
+    const receipt = await apply(input)
+    await saveAccountPlanningDraft(accountId, planningInput('upgraded-plan', ['upgraded-disc']), db)
+    await expectPlanningRestoreBlocked(receipt.recoveryKey, 'upgraded-plan')
+  })
+  it('allows unrelated and unchanged-fact plan references and preserves all plans through restore', async () => {
+    await db.accountDriveDiscs.bulkPut([
+      storedDisc('same-facts-disc', 'asset-quick-read:880001'),
+      storedDisc('unrelated-disc', 'asset-quick-read:880999'),
+    ])
+    const before = await facts()
+    const receipt = await apply()
+    await saveAccountPlanningDraft(
+      accountId,
+      planningInput('unrelated-plan', ['unrelated-disc']),
+      db,
+    )
+    await saveAccountPlanningDraft(
+      accountId,
+      planningInput('same-facts-plan', ['same-facts-disc']),
+      db,
+    )
+    // Foreign account history is outside this recovery, even with the same local ID string.
+    await db.accountPlanningDrafts.put({
+      ...(await db.accountPlanningDrafts.get(`${accountId}:same-facts-plan`))!,
+      scopedId: `${otherAccountId}:foreign-plan`,
+      accountId: otherAccountId,
+      id: 'foreign-plan',
+      warehouseRefs: ['asset-disc-880001'],
+    })
+    const plans = await db.accountPlanningDrafts.toArray()
+    expect(await readLatestAssetQuickReadRecovery(accountId, db)).toMatchObject({
+      canRestore: true,
+    })
+    await restoreAssetQuickReadImport(
+      accountId,
+      receipt.recoveryKey,
+      'restore_asset_quick_read',
+      db,
+    )
+    expect((await facts()).discs).toEqual(before.discs)
+    expect(await db.accountPlanningDrafts.toArray()).toEqual(plans)
+    const restored = await facts()
+    await expect(
+      restoreAssetQuickReadImport(accountId, receipt.recoveryKey, 'restore_asset_quick_read', db),
+    ).rejects.toThrow('已恢复')
+    expect(await facts()).toEqual(restored)
+  })
+  it('serializes a concurrent plan save before the restore and then blocks with zero asset writes', async () => {
+    const receipt = await apply()
+    const otherTab = new SodaDatabase(db.name)
+    await otherTab.open()
+    let releaseSave!: () => void
+    let signalStarted!: () => void
+    const gate = new Promise<void>((resolve) => (releaseSave = resolve))
+    const started = new Promise<void>((resolve) => (signalStarted = resolve))
+    try {
+      const save = saveAccountPlanningDraft(
+        accountId,
+        planningInput('concurrent-plan', ['asset-disc-880001']),
+        otherTab,
+        async () => {
+          signalStarted()
+          await Dexie.waitFor(gate)
+        },
+      )
+      await started
+      const deletes = vi.spyOn(db.accountDriveDiscs, 'bulkDelete')
+      const restore = restoreAssetQuickReadImport(
+        accountId,
+        receipt.recoveryKey,
+        'restore_asset_quick_read',
+        db,
+      )
+      const rejected = expect(restore).rejects.toThrow('concurrent-plan')
+      releaseSave()
+      await save
+      await rejected
+      expect(deletes).not.toHaveBeenCalled()
+      expect(await db.accountDriveDiscs.get(`${accountId}:asset-disc-880001`)).toBeDefined()
+      await expectPlanningRestoreBlocked(receipt.recoveryKey, 'concurrent-plan')
+    } finally {
+      releaseSave()
+      otherTab.close()
+    }
+  })
+  it('rejects a stale plan save after restore committed and leaves the restored account unchanged', async () => {
+    const receipt = await apply()
+    const stale = planningInput('late-plan', ['asset-disc-880001'])
+    await restoreAssetQuickReadImport(
+      accountId,
+      receipt.recoveryKey,
+      'restore_asset_quick_read',
+      db,
+    )
+    const before = await facts()
+    await expect(saveAccountPlanningDraft(accountId, stale, db)).rejects.toThrow('不存在')
+    expect(await facts()).toEqual(before)
+  })
+  it('serializes restore first and rejects a concurrently queued stale save from another tab', async () => {
+    const receipt = await apply()
+    const otherTab = new SodaDatabase(db.name)
+    await otherTab.open()
+    let releaseRestore!: () => void
+    let signalStarted!: () => void
+    const gate = new Promise<void>((resolve) => (releaseRestore = resolve))
+    const started = new Promise<void>((resolve) => (signalStarted = resolve))
+    const bulkDelete = db.accountDriveDiscs.bulkDelete.bind(db.accountDriveDiscs)
+    vi.spyOn(db.accountDriveDiscs, 'bulkDelete').mockImplementationOnce((keys) => {
+      signalStarted()
+      return Dexie.Promise.resolve(Dexie.waitFor(gate)).then(() => bulkDelete(keys))
+    })
+    try {
+      const restore = restoreAssetQuickReadImport(
+        accountId,
+        receipt.recoveryKey,
+        'restore_asset_quick_read',
+        db,
+      )
+      await started
+      const lateSave = Dexie.ignoreTransaction(() =>
+        saveAccountPlanningDraft(
+          accountId,
+          planningInput('queued-late-plan', ['asset-disc-880001']),
+          otherTab,
+        ),
+      )
+      const rejected = expect(lateSave).rejects.toThrow('不存在')
+      releaseRestore()
+      await restore
+      await rejected
+      expect(await db.accountPlanningDrafts.count()).toBe(0)
+      expect(await db.accountDriveDiscs.get(`${accountId}:asset-disc-880001`)).toBeUndefined()
+      expect(await readLatestAssetQuickReadRecovery(accountId, db)).toMatchObject({
+        canRestore: false,
+      })
+    } finally {
+      releaseRestore()
+      otherTab.close()
+    }
+  })
+  it('rejects a stale current-agent build after restore without modifying the existing reference', async () => {
+    const context = {
+      contract: 'soda-solution-context/v1' as const,
+      scope: 'agent_independent' as const,
+      resourcePolicy: 'advisory' as const,
+      sourceCandidateId: 'synthetic-candidate',
+      inputFingerprint: 'synthetic-input',
+      solverMethod: 'synthetic',
+      gameVersion: '3.2',
+      knowledgeVersion: 'synthetic',
+      exactVariantKey: null,
+    }
+    await saveCurrentAgentBuild(
+      accountId,
+      { ...planningInput('existing-direction', []), solutionContext: context },
+      db,
+    )
+    const receipt = await apply()
+    await restoreAssetQuickReadImport(
+      accountId,
+      receipt.recoveryKey,
+      'restore_asset_quick_read',
+      db,
+    )
+    const restored = await facts()
+    await expect(
+      saveCurrentAgentBuild(
+        accountId,
+        { ...planningInput('late-agent-plan', ['asset-disc-880001']), solutionContext: context },
+        db,
+      ),
+    ).rejects.toThrow('不存在')
+    expect(await facts()).toEqual(restored)
+  })
+  it('refuses recovery after a later actual disc edit without changing the player edit or plans', async () => {
+    const receipt = await apply()
+    await db.accountDriveDiscs.update(`${accountId}:asset-disc-880001`, { level: 3 })
+    const edited = await facts()
+    expect(await readLatestAssetQuickReadRecovery(accountId, db)).toMatchObject({
+      canRestore: false,
+    })
+    await expect(
+      restoreAssetQuickReadImport(accountId, receipt.recoveryKey, 'restore_asset_quick_read', db),
+    ).rejects.toThrow('已有其他修改')
+    expect(await facts()).toEqual(edited)
   })
   it('requires the explicit restore confirmation and refuses duplicate snapshot imports', async () => {
     const input = candidate()

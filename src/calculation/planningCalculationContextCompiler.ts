@@ -170,7 +170,9 @@ export function compilePlanningCalculationContext(
     if (!Number.isInteger(asset.mindscape) || asset.mindscape < 0 || asset.mindscape > 6)
       blockers.push(`成员影画等级无效：${agentId}`)
     if (
-      !validPositiveInteger(asset.wEngine.level) ||
+      !Number.isInteger(asset.wEngine.level) ||
+      asset.wEngine.level < 0 ||
+      asset.wEngine.level > 60 ||
       !validPositiveInteger(asset.wEngine.refinement)
     )
       blockers.push(`成员音擎等级或精炼无效：${agentId}`)

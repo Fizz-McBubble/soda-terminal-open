@@ -208,10 +208,10 @@ export function projectNormalizedAccountFinalStatsDetailed(input: {
     if (
       typeof explicitEngineLevel !== 'number' ||
       !Number.isInteger(explicitEngineLevel) ||
-      explicitEngineLevel < 1 ||
+      explicitEngineLevel < 0 ||
       explicitEngineLevel > 60
     ) {
-      return { status: 'unsupported' as const, reasons: ['音擎等级必须在 1 到 60 之间。'] }
+      return { status: 'unsupported' as const, reasons: ['音擎等级必须在 0 到 60 之间。'] }
     }
     engineLevel = explicitEngineLevel
   } else {

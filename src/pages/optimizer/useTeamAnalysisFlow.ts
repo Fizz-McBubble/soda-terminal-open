@@ -1,4 +1,4 @@
-import { type Dispatch, type MutableRefObject, type SetStateAction } from 'react'
+import { useRef, type Dispatch, type MutableRefObject, type SetStateAction } from 'react'
 import { beginUsageOperation } from '../../usageStatistics/client'
 import type { NavigateFunction } from 'react-router-dom'
 import { loadCoreWarehouse } from '../../accounts/coreWarehouse'
@@ -32,7 +32,7 @@ export function useTeamAnalysisFlow({
   contextAgentId,
   contextPlanId,
   contextDiscId,
-  rematchRequest,
+  rematchRequest: rematchRequestRef,
   analysis,
   setAnalysis,
   lastCompleteAnalysis,
@@ -44,10 +44,10 @@ export function useTeamAnalysisFlow({
   setOverviewFeedback,
   setPreparingItemId,
   setPreparationError,
-  analysisRequest,
-  remainingRequest,
-  remainingRunning,
-  prepareRequest,
+  analysisRequest: analysisRequestRef,
+  remainingRequest: remainingRequestRef,
+  remainingRunning: remainingRunningRef,
+  prepareRequest: prepareRequestRef,
   identityForRun,
   queryTeamOverview,
   queryTeamRoute,
@@ -97,23 +97,41 @@ export function useTeamAnalysisFlow({
   releaseRun: ReturnType<typeof useReleaseAccountDecisionRun>
   navigate: NavigateFunction
 }) {
+  const pendingRunId = useRef<string | null>(null)
+  const cancelAnalysis = () => {
+    analysisRequestRef.current += 1
+    remainingRequestRef.current += 1
+    prepareRequestRef.current += 1
+    remainingRunningRef.current = false
+    rematchRequestRef.current = null
+    decisionWorld.cancelCalculation?.()
+    if (pendingRunId.current) releaseRun(pendingRunId.current)
+    pendingRunId.current = null
+    setAnalysisSnapshot(null)
+    setPreparingItemId(null)
+    const retained = lastCompleteAnalysis
+      ? { kind: 'stale' as const, result: lastCompleteAnalysis.result }
+      : null
+    setCurrentTeamAnalysisSession(retained)
+    setAnalysis(retained ?? { kind: 'ready' })
+  }
   // Browser navigation commits before a suspended destination replaces this page. Do not let
   // its still-mounted async work advance while React is waiting to run the effect cleanup.
   const isCurrentRoute = () => window.location.pathname === '/loadouts/team'
   const continueRematch = async (result: TeamAnalysisResult, plans: AccountPlanningDraft[]) => {
-    const request = rematchRequest.current
+    const request = rematchRequestRef.current
     traceTeamRematch('continue.enter', {
       hasRequest: Boolean(request),
-      generation: analysisRequest.current,
+      generation: analysisRequestRef.current,
     })
     if (!request) return
-    rematchRequest.current = null
-    const analysisGeneration = analysisRequest.current
-    const generation = ++prepareRequest.current
+    rematchRequestRef.current = null
+    const analysisGeneration = analysisRequestRef.current
+    const generation = ++prepareRequestRef.current
     const isCurrentRequest = () => {
       const checks = {
-        analysisCurrent: analysisGeneration === analysisRequest.current,
-        prepareCurrent: generation === prepareRequest.current,
+        analysisCurrent: analysisGeneration === analysisRequestRef.current,
+        prepareCurrent: generation === prepareRequestRef.current,
         routeCurrent: isCurrentRoute(),
       }
       if (!checks.analysisCurrent || !checks.prepareCurrent || !checks.routeCurrent)
@@ -225,19 +243,19 @@ export function useTeamAnalysisFlow({
   }
 
   const startAnalysis = async () => {
-    const request = ++analysisRequest.current
+    const request = ++analysisRequestRef.current
     traceTeamRematch('analysis.start', { generation: request })
     const isCurrentRequest = () => {
-      const current = request === analysisRequest.current && isCurrentRoute()
+      const current = request === analysisRequestRef.current && isCurrentRoute()
       if (!current)
         traceTeamRematch('analysis.reject.generation', {
           expected: request,
-          actual: analysisRequest.current,
+          actual: analysisRequestRef.current,
         })
       return current
     }
-    remainingRequest.current += 1
-    remainingRunning.current = false
+    remainingRequestRef.current += 1
+    remainingRunningRef.current = false
     let currentStage = 1
     if (analysis.kind === 'complete' || analysis.kind === 'stale') setLastCompleteAnalysis(analysis)
     setRequestedSelectedId(null)
@@ -300,6 +318,7 @@ export function useTeamAnalysisFlow({
       if (!isCurrentRequest()) return
       if (!sharedRun) throw new Error('当前账户资料暂时无法用于分析。')
       const { snapshot: decisionSnapshot, input } = sharedRun
+      pendingRunId.current = sharedRun.runId
       const warehouse = input.warehouse
       const savedPlans = input.drafts
       const initialFingerprint = decisionSnapshot.fingerprint.inputHash
@@ -344,6 +363,7 @@ export function useTeamAnalysisFlow({
       releasePreviousDetached(sharedRun.runId)
       setCurrentTeamAnalysisSession(nextAnalysis)
       setAnalysis(nextAnalysis)
+      pendingRunId.current = null
       void continueRematch(result, savedPlans)
     } catch (error) {
       traceTeamRematch('analysis.reject.error', { current: isCurrentRequest() })
@@ -351,9 +371,8 @@ export function useTeamAnalysisFlow({
         setAnalysis({
           kind: 'error',
           stage: currentStage,
-          message: !navigator.onLine
-            ? '当前处于离线状态。已保存的资产和方案仍可查看、导出；新分析需要联网。'
-            : error instanceof Error && error.message.startsWith('队伍展示结果')
+          message:
+            error instanceof Error && error.message.startsWith('队伍展示结果')
               ? error.message
               : undefined,
         })
@@ -361,12 +380,12 @@ export function useTeamAnalysisFlow({
   }
 
   const startRemainingBoxAnalysis = async () => {
-    if (remainingRunning.current || !accountSummary?.accountId) return
-    analysisRequest.current += 1
-    remainingRunning.current = true
-    const requestId = ++remainingRequest.current
+    if (remainingRunningRef.current || !accountSummary?.accountId) return
+    analysisRequestRef.current += 1
+    remainingRunningRef.current = true
+    const requestId = ++remainingRequestRef.current
     const accountId = accountSummary.accountId
-    const isCurrentRequest = () => remainingRequest.current === requestId && isCurrentRoute()
+    const isCurrentRequest = () => remainingRequestRef.current === requestId && isCurrentRoute()
     setRemainingBoxError(null)
     setAnalysis({ kind: 'running', stage: 1 })
     let uncommittedRunId: string | null = null
@@ -378,7 +397,9 @@ export function useTeamAnalysisFlow({
         throw new Error('当前账户已切换，请重新分析。')
       const prepared = prepareRemainingBox(source.input, reservedPlanIds)
       setAnalysis({ kind: 'running', stage: 3 })
-      const run = await calculateDetached(prepared.input)
+      const detachedRunId = crypto.randomUUID()
+      pendingRunId.current = detachedRunId
+      const run = await calculateDetached(prepared.input, detachedRunId)
       uncommittedRunId = run.runId
       if (!isCurrentRequest()) {
         releaseRun(run.runId)
@@ -413,6 +434,7 @@ export function useTeamAnalysisFlow({
       uncommittedRunId = null
       setLastCompleteAnalysis(next)
       setAnalysis(next)
+      pendingRunId.current = null
       setRemainingBoxOpen(false)
     } catch (error) {
       if (uncommittedRunId) releaseRun(uncommittedRunId)
@@ -421,18 +443,18 @@ export function useTeamAnalysisFlow({
       setRemainingBoxOpen(true)
       setAnalysis(lastCompleteAnalysis ?? { kind: 'ready' })
     } finally {
-      if (isCurrentRequest()) remainingRunning.current = false
+      if (isCurrentRequest()) remainingRunningRef.current = false
     }
   }
 
   const reuseCurrentAnalysis = async () => {
     traceTeamRematch('reuse.enter', {
       worldStatus: decisionWorld.status,
-      hasRequest: Boolean(rematchRequest.current),
-      generation: analysisRequest.current,
+      hasRequest: Boolean(rematchRequestRef.current),
+      generation: analysisRequestRef.current,
     })
     if (decisionWorld.status !== 'current') return false
-    const request = analysisRequest.current
+    const request = analysisRequestRef.current
     const { run } = decisionWorld
     const currentOverview = currentTeamOverviewFromQuery(run)
     traceTeamRematch('reuse.overview', {
@@ -454,10 +476,10 @@ export function useTeamAnalysisFlow({
             discId: contextDiscId,
           })
         : currentOverview
-    if (request !== analysisRequest.current || !isCurrentRoute()) {
+    if (request !== analysisRequestRef.current || !isCurrentRoute()) {
       traceTeamRematch('reuse.reject.generation', {
         expected: request,
-        actual: analysisRequest.current,
+        actual: analysisRequestRef.current,
       })
       return true
     }
@@ -479,10 +501,10 @@ export function useTeamAnalysisFlow({
     const nextAnalysis = { kind: 'complete' as const, result }
     queueMicrotask(() => {
       traceTeamRematch('reuse.commit.microtask', {
-        current: request === analysisRequest.current,
-        hasRequest: Boolean(rematchRequest.current),
+        current: request === analysisRequestRef.current,
+        hasRequest: Boolean(rematchRequestRef.current),
       })
-      if (request !== analysisRequest.current || !isCurrentRoute()) return
+      if (request !== analysisRequestRef.current || !isCurrentRoute()) return
       setLastCompleteAnalysis(nextAnalysis)
       releasePreviousDetached(run.runId)
       setCurrentTeamAnalysisSession(nextAnalysis)
@@ -494,6 +516,7 @@ export function useTeamAnalysisFlow({
 
   return {
     startAnalysis,
+    cancelAnalysis,
     startRemainingBoxAnalysis,
     reuseCurrentAnalysis,
   }

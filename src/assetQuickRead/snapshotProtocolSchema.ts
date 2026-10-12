@@ -4,6 +4,7 @@ const uint = z.number().int().min(0).max(0xffffffff)
 const observation = z.discriminatedUnion('presence', [
   z.object({ presence: z.literal('present'), value: uint }),
   z.object({ presence: z.literal('omitted'), value: z.null() }),
+  z.object({ presence: z.literal('invalid'), value: z.null() }),
 ])
 export type SnapshotObservation = z.infer<typeof observation>
 

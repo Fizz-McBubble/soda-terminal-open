@@ -88,8 +88,7 @@ export function AgentDevelopmentGoldenDirectoryPage() {
     decisionWorld.status === 'current' || decisionWorld.status === 'stale'
       ? decisionWorld.run
       : null
-  if (!advicePending && !projectionRun)
-    return <p role="status">暂时无法整理养成建议，请刷新页面重试。</p>
+  if (!advicePending && !projectionRun) return <p role="status">养成建议暂不可用。</p>
   const directoryProjection = projectionRun?.developmentDirectory
   if (
     projectionRun &&

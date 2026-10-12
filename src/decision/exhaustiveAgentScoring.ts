@@ -102,7 +102,7 @@ export function compileAgentAlternatives(input: {
             if (!intended && specialty && engine.specialty !== specialty) return []
             if (
               !Number.isInteger(copy.level) ||
-              copy.level < 1 ||
+              copy.level < 0 ||
               copy.level > 60 ||
               !Number.isInteger(copy.refinement) ||
               copy.refinement < 1 ||

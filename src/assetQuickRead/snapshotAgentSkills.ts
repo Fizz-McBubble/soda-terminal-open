@@ -28,16 +28,24 @@ export function convertSnapshotAgentSkills(
   }
   const seen = new Set<string>()
   for (const skill of skills) {
-    const key = skillsByType[skill.skill_type.value ?? 0]
+    const key =
+      skill.skill_type.presence === 'invalid'
+        ? undefined
+        : skillsByType[skill.skill_type.value ?? 0]
     if (!key || seen.has(key)) {
       issue('invalid_skill_type', '技能类型未知或重复。')
+      if (key) {
+        levels[key] = null
+        const observed = observedFields.indexOf(`skillLevels.${key}`)
+        if (observed !== -1) observedFields.splice(observed, 1)
+      }
       continue
     }
     seen.add(key)
     const base = value(skill.level, key === 'core' ? 7 : 12, `skills.${key}`)
-    if (base !== undefined && mindscape !== undefined) {
+    if (base !== undefined && (key === 'core' || mindscape !== undefined)) {
       levels[key] =
-        base + (key === 'core' ? 0 : (mindscape >= 3 ? 2 : 0) + (mindscape >= 5 ? 2 : 0))
+        base + (key === 'core' ? 0 : (mindscape! >= 3 ? 2 : 0) + (mindscape! >= 5 ? 2 : 0))
       observedFields.push(`skillLevels.${key}`)
     }
   }

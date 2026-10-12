@@ -3,6 +3,7 @@ import type { Catalog, Disc, Profile, QualityPolicy } from './absoluteDiscRetent
 import { assessDisc, assessWarehouse, twoPieceApplicability } from './absoluteDiscRetentionKernel'
 import { noFunctionalSubstatGoalMethod } from './absoluteDiscRetentionContract'
 import { enrichRetentionEvidence } from './absoluteDiscRetentionStages'
+import { scoreProfile } from './absoluteDiscRetentionScoring'
 
 const rules: Catalog['rules'] = {
   sourceIds: ['synthetic-rules'],
@@ -116,6 +117,115 @@ const assess = (item: Disc, profiles: readonly Profile[] = [baseProfile]) =>
   assessDisc(item, catalog(profiles), policy(profiles))
 
 describe('independent staged retention contract', () => {
+  const uncertainProfile = (weight: number, state: 'conditional' | 'missing_fact'): Profile => ({
+    ...baseProfile,
+    weights: { ...baseProfile.weights, hp_percent: weight },
+    qualityInputEvidence: {
+      hp_percent: {
+        state,
+        predicateId: 'synthetic-hp-input',
+        detail: 'Synthetic unconfirmed HP benefit',
+        evidenceIds: ['synthetic-build'],
+      },
+    },
+  })
+  it.each(['conditional', 'missing_fact'] as const)(
+    'keeps a fixed normalization %s dependency at every four-line enhancement stage',
+    (state) => {
+      const profile = uncertainProfile(0.5, state)
+      for (const level of [0, 3, 6, 9, 12, 15]) {
+        const item = disc(['crit_rate', 'crit_dmg', 'atk_percent', 'def_flat'], level, 4)
+        const result = assess(item, [profile])
+        const evidence = result.evidence[0]!
+        const resolved = assess(item, [{ ...profile, qualityInputEvidence: {} }]).evidence[0]!
+        expect(evidence.currentScore).toBe(resolved.currentScore)
+        expect(evidence.maximumRaw).toBe(resolved.maximumRaw)
+        expect(evidence.possibleFinalScore).toEqual(resolved.possibleFinalScore)
+        expect(evidence.useState).toBe(state === 'conditional' ? 'conditional' : 'missing_fact')
+        expect(evidence.blockers[0]!.detail).toContain('固定品质标尺的理想分母')
+        expect(evidence.blockers).toContainEqual(
+          expect.objectContaining({
+            field: 'qualityInput.hp_percent',
+            kind: state === 'conditional' ? 'conditional_use' : 'missing_fact',
+          }),
+        )
+        expect(result.nextAction.kind).not.toBe('try_upgrade')
+      }
+    },
+  )
+  it('ignores unreachable unknown inputs proven irrelevant to the fixed normalization', () => {
+    const profile: Profile = {
+      ...uncertainProfile(0.1, 'missing_fact'),
+      weights: { ...baseProfile.weights, def_flat: 0.5, hp_percent: 0.1 },
+    }
+    for (const level of [0, 3, 12, 15]) {
+      const item = disc(['crit_rate', 'crit_dmg', 'atk_percent', 'def_flat'], level, 4)
+      const result = assess(item, [profile])
+      const resolved = assess(item, [{ ...profile, qualityInputEvidence: {} }])
+      expect(result.evidence[0]!.useState).toBe('valid')
+      expect(result.evidence[0]!.blockers).toEqual([])
+      expect(result.reasonKind).toBe(resolved.reasonKind)
+      expect(result.nextAction).toEqual(resolved.nextAction)
+      expect(result.evidence[0]!.maximumRaw).toBe(resolved.evidence[0]!.maximumRaw)
+    }
+    // The same input can still be revealed when a legal fourth line remains.
+    expect(
+      assess(disc(['crit_rate', 'crit_dmg', 'atk_percent']), [profile]).evidence[0],
+    ).toMatchObject({
+      useState: 'missing_fact',
+      blockers: [expect.objectContaining({ field: 'qualityInput.hp_percent' })],
+    })
+    // It also remains material once present, even when it cannot change normalization.
+    expect(
+      assess(disc(['crit_rate', 'crit_dmg', 'hp_percent', 'def_flat'], 15, 4), [profile])
+        .evidence[0],
+    ).toMatchObject({
+      useState: 'missing_fact',
+      blockers: [expect.objectContaining({ field: 'qualityInput.hp_percent' })],
+    })
+  })
+  it('does not hide mutually replacing uncertain normalization inputs', () => {
+    const profile: Profile = {
+      ...uncertainProfile(0.5, 'missing_fact'),
+      weights: { ...baseProfile.weights, def_percent: 0.5, hp_percent: 0.5 },
+      qualityInputEvidence: {
+        ...uncertainProfile(0.5, 'missing_fact').qualityInputEvidence,
+        def_percent: {
+          state: 'conditional',
+          predicateId: 'synthetic-def-input',
+          detail: 'Synthetic DEF condition',
+          evidenceIds: ['synthetic-build'],
+        },
+      },
+    }
+    const item = disc(['crit_rate', 'crit_dmg', 'atk_percent', 'def_flat'], 15, 4)
+    const result = assess(item, [profile]).evidence[0]!
+    expect(result.blockers.map((row) => row.field).sort()).toEqual([
+      'qualityInput.def_percent',
+      'qualityInput.hp_percent',
+    ])
+    const withoutHp = { ...profile, weights: { ...profile.weights, hp_percent: 0 } }
+    expect(scoreProfile(item, withoutHp, catalog().sets[0], rules, policy()).maximumRaw).toBe(
+      result.maximumRaw,
+    )
+    const withoutEither = { ...profile, weights: { ...baseProfile.weights } }
+    expect(
+      scoreProfile(item, withoutEither, catalog().sets[0], rules, policy()).maximumRaw,
+    ).toBeLessThan(result.maximumRaw)
+  })
+  it('keeps an uncalibrated numeric weight veto after the last enhancement', () => {
+    const profile: Profile = {
+      ...baseProfile,
+      weightEvidence: { ...baseProfile.weightEvidence!, method: 'uncalibrated_direction_only' },
+    }
+    expect(
+      assess(disc(['crit_rate', 'crit_dmg', 'atk_percent', 'def_flat'], 15, 4), [profile])
+        .evidence[0],
+    ).toMatchObject({
+      useState: 'missing_fact',
+      blockers: [expect.objectContaining({ field: 'numericWeights' })],
+    })
+  })
   it('a sourced absence of a substat goal does not block unrelated cleanup', () => {
     const profile: Profile = {
       ...baseProfile,

@@ -107,6 +107,12 @@ export function WarehouseDiscsPage() {
   const listFocusRequested = useRef(false)
   const alternativeFocusRequested = useRef<string | null>(null)
   const pendingScrollTop = useRef<number | null>(null)
+  const focusedPendingDiscIdRef = useRef<string | null>(null)
+  const lastAccountIdRef = useRef(data?.account?.id)
+  if (lastAccountIdRef.current !== data?.account?.id) {
+    lastAccountIdRef.current = data?.account?.id
+    focusedPendingDiscIdRef.current = null
+  }
   const [navigationRequest, setNavigationRequest] = useState(0)
   useEffect(() => {
     if (cardNavigationRequested.current) {
@@ -219,6 +225,7 @@ export function WarehouseDiscsPage() {
   function updateFilters(updater: (current: FilterState) => FilterState) {
     const accountId = data?.account?.id
     if (!accountId) return
+    focusedPendingDiscIdRef.current = null
     setFilterState({ accountId, value: updater(filters) })
     setComparison(null)
     setSameKindContext(null)
@@ -405,6 +412,10 @@ export function WarehouseDiscsPage() {
           filters={filters}
           selectedId={selectedId}
           selectDisc={selectDisc}
+          rowHeight={rowHeight}
+          onFocusDisc={(id) => {
+            focusedPendingDiscIdRef.current = id
+          }}
         />
       ) : (
         <div className="warehouse-action-workspace">
@@ -428,6 +439,10 @@ export function WarehouseDiscsPage() {
                 ? { label: '正在浏览同类盘', onReturn: returnFromSameKind }
                 : undefined
             }
+            initialFocusDiscId={focusedPendingDiscIdRef.current}
+            onInitialFocusConsumed={() => {
+              focusedPendingDiscIdRef.current = null
+            }}
           />
           {detailItem && detailDisc ? (
             <WarehouseActionDrawer

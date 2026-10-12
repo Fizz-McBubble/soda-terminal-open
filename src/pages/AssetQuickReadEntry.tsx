@@ -35,8 +35,8 @@ export interface AssetQuickReadPreview {
   agents: Array<{
     agentId: string
     name: string
-    level: number
-    mindscape: number
+    level?: number
+    mindscape?: number
     skills?: string
     wEngine?: string
   }>

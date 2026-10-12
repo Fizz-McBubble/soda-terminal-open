@@ -56,7 +56,9 @@ function currentFact(
     details.id &&
     details.level !== null &&
     details.refinement !== null &&
-    details.level > 0 &&
+    Number.isInteger(details.level) &&
+    details.level >= 0 &&
+    details.level <= 60 &&
     details.refinement > 0
   ) {
     const engine = directoryById.get(details.id)

@@ -126,12 +126,12 @@ export function createAgentDevelopmentPanelProjection(input: {
     input.agent.level < 1 ||
     input.agent.level > 60 ||
     !Number.isInteger(input.agent.wEngineDetails.level) ||
-    input.agent.wEngineDetails.level < 1 ||
+    input.agent.wEngineDetails.level < 0 ||
     input.agent.wEngineDetails.level > 60
   )
     return unsupported(
       source,
-      '角色与音擎等级必须为 1–60 的整数；请修正已记录的等级。',
+      '角色等级必须为 1–60，音擎等级必须为 0–60 的整数；请修正已记录的等级。',
       dataFoundation,
       graduationCandidate,
     )
