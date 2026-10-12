@@ -20,6 +20,7 @@ import {
   projectWarehouseActionListJoin,
 } from './warehouseActionListJoin'
 import { AccountRequiredState } from '../components/ui/AccountRequiredState'
+import { WorkbenchEmptyState } from '../components/AppEntryState'
 import {
   warehouseActionRowHeight,
   warehouseActionMobileRowHeight,
@@ -367,16 +368,15 @@ export function WarehouseDiscsPage() {
   if (!data?.account || !data.roster) return <AccountRequiredState title="先创建或选择账户" />
   if (data.discs.length === 0)
     return (
-      <section className="warehouse-empty" aria-live="polite">
-        <Archive size={28} />
-        <h1>还没有可分析的驱动盘</h1>
-        <p>先扫描或导入当前账户的驱动盘；有数据后，这里会给出保留、观察和清理候选建议。</p>
-        <div className="app-recovery-actions">
+      <WorkbenchEmptyState
+        title="还没有可分析的驱动盘"
+        description="先扫描或导入当前账户的驱动盘；有数据后，这里会给出保留、观察和清理候选建议。"
+        action={
           <Link className="button button--primary" to="/system/scanner">
             前往扫描与导入
           </Link>
-        </div>
-      </section>
+        }
+      />
     )
   return (
     <div

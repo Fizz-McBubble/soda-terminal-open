@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { AppLoadingState } from '../components/AppEntryState'
+import { AppLoadingState, WorkbenchEmptyState } from '../components/AppEntryState'
 import { AccountRequiredState } from '../components/ui/AccountRequiredState'
 import { publicDevelopmentDirectoryCatalog } from '../application/publicDevelopmentDirectoryCatalog'
 import { saveDevelopmentPriorityAgentIds } from '../accounts/developmentPlanning'
@@ -206,13 +206,15 @@ export function AgentDevelopmentGoldenDirectoryPage() {
     if (advicePending)
       return <AppLoadingState heading="代理人养成" title="正在整理养成建议…" compact />
     return (
-      <section className="panel">
-        <h1>还没有已拥有代理人</h1>
-        <p>请先在资产维护中记录代理人资产。</p>
-        <Link className="button button--primary" to="/assets/agents">
-          前往代理人资产
-        </Link>
-      </section>
+      <WorkbenchEmptyState
+        title="还没有已拥有代理人"
+        description="请先在资产维护中记录代理人资产。"
+        action={
+          <Link className="button button--primary" to="/assets/agents">
+            前往代理人资产
+          </Link>
+        }
+      />
     )
   }
 

@@ -3,6 +3,28 @@ import { useAppHealth } from '../appHealthContext'
 import { AppShell } from './AppShell'
 import './AppEntryState.css'
 
+/** Shared empty workbench: one explanation and one compact next action. */
+export function WorkbenchEmptyState({
+  title,
+  description,
+  action,
+  children,
+}: {
+  title: string
+  description: string
+  action: ReactNode
+  children?: ReactNode
+}) {
+  return (
+    <section className="workbench-empty-state" role="status">
+      <h1 tabIndex={-1}>{title}</h1>
+      <p>{description}</p>
+      {children}
+      <div className="workbench-empty-state__actions app-recovery-actions">{action}</div>
+    </section>
+  )
+}
+
 /** Brief reads should resolve without introducing a separate page into the visual journey. */
 export function AppLoadingState({
   title,

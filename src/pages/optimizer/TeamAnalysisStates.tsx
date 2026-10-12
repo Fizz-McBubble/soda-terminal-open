@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import type { CoreWarehouse } from '../../accounts/coreWarehouse'
 import type { AccountPlanningDraft } from '../../accounts/types'
 import { AccountRequiredState } from '../../components/ui/AccountRequiredState'
+import { WorkbenchEmptyState } from '../../components/AppEntryState'
 import type { useF5AccountSummary } from '../../components/f5AccountSummaryContext'
 import { TeamSavedPlanList } from '../TeamLoadoutOverviewParts'
 import type { TeamLoadoutOverviewItem } from '../teamLoadoutOverviewTypes'
@@ -35,23 +36,27 @@ export function TeamAnalysisReady({
     return !accountSummary?.accountId ? (
       <AccountRequiredState title="先创建或选择账户" />
     ) : (
-      <section className="f5v-box-analysis-entry f5v-box-analysis-entry--exception" role="status">
-        <h1>先记录拥有的代理人</h1>
-        <p>队伍建议只会使用当前账户中明确标记为已拥有的代理人。</p>
-        <Link className="f5v-box-analysis-entry__action" to="/assets/agents">
-          前往代理人录入
-        </Link>
-      </section>
+      <WorkbenchEmptyState
+        title="先记录拥有的代理人"
+        description="队伍建议只会使用当前账户中明确标记为已拥有的代理人。"
+        action={
+          <Link className="button button--primary" to="/assets/agents">
+            前往代理人录入
+          </Link>
+        }
+      />
     )
   if (!accountHydrating && readyDiscCount === 0)
     return (
-      <section className="f5v-box-analysis-entry f5v-box-analysis-entry--exception" role="status">
-        <h1>先导入驱动盘再分析队伍</h1>
-        <p>当前账户还没有驱动盘。先完成扫描或导入，才能用仓库中的驱动盘搭配装备。</p>
-        <Link className="f5v-box-analysis-entry__action" to="/system/scanner">
-          前往扫描与导入
-        </Link>
-      </section>
+      <WorkbenchEmptyState
+        title="先导入驱动盘再分析队伍"
+        description="当前账户还没有驱动盘。先完成扫描或导入，才能用仓库中的驱动盘搭配装备。"
+        action={
+          <Link className="button button--primary" to="/system/scanner">
+            前往扫描与导入
+          </Link>
+        }
+      />
     )
 
   return (

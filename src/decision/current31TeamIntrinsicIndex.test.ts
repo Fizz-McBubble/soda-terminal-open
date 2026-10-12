@@ -16,6 +16,21 @@ const benchmark = {
   explanation: 'Intrinsic index equality oracle.',
 }
 
+const agentIds = current31TeamEngineD1Pack.agentRules
+  .map((rule) => rule.agentId)
+  .sort((left, right) => left.localeCompare(right))
+const oldIds = new Set(reviewedStrengthModel.reviewedSubjectIds)
+const pairCount = (count: number) => (count * (count - 1)) / 2
+// Each sorted triple belongs to exactly one first-member partition. Bound the
+// individual test's work without sampling or changing the direct oracle.
+const oraclePartitions = agentIds.slice(0, -2).map((firstMember, first) => {
+  const compared = pairCount(agentIds.length - first - 1)
+  const legacyCompared = oldIds.has(firstMember)
+    ? pairCount(agentIds.slice(first + 1).filter((id) => oldIds.has(id)).length)
+    : 0
+  return { firstMember, first, compared, legacyCompared, addedCompared: compared - legacyCompared }
+})
+
 describe('current 3.1 build-time team intrinsic index', () => {
   it('smoke: binds current adoption and matches representative old and new summaries', () => {
     expect(current31TeamIntrinsicIndexStatus).toMatchObject({
@@ -55,17 +70,41 @@ describe('current 3.1 build-time team intrinsic index', () => {
       }
     }
   })
-  it('matches the direct evaluator for the old 58-agent cohort and the explicit two-agent identity extension', () => {
-    const agentIds = current31TeamEngineD1Pack.agentRules
-      .map((rule) => rule.agentId)
-      .sort((left, right) => left.localeCompare(right))
-    const oldIds = new Set(reviewedStrengthModel.reviewedSubjectIds)
+  it('covers the old 58-agent cohort and the explicit two-agent identity extension exactly once', () => {
     expect(oldIds.size).toBe(58)
     expect(agentIds.filter((id) => !oldIds.has(id))).toEqual(['agent-claret', 'agent-roxy'])
-    let legacyCompared = 0
-    let addedCompared = 0
-    let compared = 0
-    for (let first = 0; first < agentIds.length - 2; first += 1) {
+    expect(oraclePartitions.map(({ first }) => first)).toEqual(
+      Array.from({ length: agentIds.length - 2 }, (_, first) => first),
+    )
+    expect(oraclePartitions.reduce((total, partition) => total + partition.legacyCompared, 0)).toBe(
+      30_856,
+    )
+    expect(oraclePartitions.reduce((total, partition) => total + partition.addedCompared, 0)).toBe(
+      2 * ((58 * 57) / 2) + 58,
+    )
+    expect(oraclePartitions.reduce((total, partition) => total + partition.compared, 0)).toBe(
+      34_220,
+    )
+    expect(current31TeamIntrinsicIndexStatus).toMatchObject({ status: 'ready', reason: null })
+    expect(
+      lookupCurrent31TeamIntrinsicSummary(['agent-not-current', 'agent-billy', 'agent-anby']),
+    ).toBeNull()
+    expect(
+      lookupCurrent31TeamIntrinsicSummary(['agent-billy', 'agent-billy', 'agent-anby']),
+    ).toBeNull()
+  })
+
+  it.each(oraclePartitions)(
+    'matches the direct evaluator for first member $firstMember ($compared triples)',
+    ({
+      first,
+      compared: expectedCompared,
+      legacyCompared: expectedLegacy,
+      addedCompared: expectedAdded,
+    }) => {
+      let legacyCompared = 0
+      let addedCompared = 0
+      let compared = 0
       for (let second = first + 1; second < agentIds.length - 1; second += 1) {
         for (let third = second + 1; third < agentIds.length; third += 1) {
           const memberIds = [agentIds[first]!, agentIds[second]!, agentIds[third]!] as const
@@ -98,16 +137,10 @@ describe('current 3.1 build-time team intrinsic index', () => {
           compared += 1
         }
       }
-    }
-    expect(current31TeamIntrinsicIndexStatus).toMatchObject({ status: 'ready', reason: null })
-    expect(
-      lookupCurrent31TeamIntrinsicSummary(['agent-not-current', 'agent-billy', 'agent-anby']),
-    ).toBeNull()
-    expect(
-      lookupCurrent31TeamIntrinsicSummary(['agent-billy', 'agent-billy', 'agent-anby']),
-    ).toBeNull()
-    expect(legacyCompared).toBe(30_856)
-    expect(addedCompared).toBe(2 * ((58 * 57) / 2) + 58)
-    expect(compared).toBe(34_220)
-  }, 60_000)
+      expect(legacyCompared).toBe(expectedLegacy)
+      expect(addedCompared).toBe(expectedAdded)
+      expect(compared).toBe(expectedCompared)
+    },
+    60_000,
+  )
 })

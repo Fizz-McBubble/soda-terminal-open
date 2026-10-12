@@ -9,6 +9,7 @@ import type {
   TeamLoadoutVisibleAnswer,
 } from './teamLoadoutOverviewTypes'
 import './team-loadout-overview.css'
+import { WorkbenchEmptyState } from '../components/AppEntryState'
 import './team-loadout-overview.distill.css'
 import { rebuildVisibleFamily } from './teamVisibleFamilyPresentation'
 import { TeamGroup } from './TeamLoadoutRecommendationGroup'
@@ -235,6 +236,30 @@ export function TeamLoadoutOverview({
     animateOnMount: true,
   })
 
+  if (!families.length && !completionOnlyGroups.length) {
+    const blocker = answer.blockers.find((text) => text !== answer.summary)
+    return (
+      <WorkbenchEmptyState
+        title="当前没有可展示的队伍建议"
+        description={answer.summary}
+        action={
+          <button className="button button--primary" type="button" onClick={onEmptyAction}>
+            前往代理人资产
+          </button>
+        }
+      >
+        {blocker ? <p>{blocker}</p> : null}
+        {contextNote && contextNote !== answer.summary ? <p>{contextNote}</p> : null}
+        {scopeActions}
+        {analysisStale && onReanalyze ? (
+          <button className="button" type="button" onClick={onReanalyze}>
+            重新分析当前队伍
+          </button>
+        ) : null}
+      </WorkbenchEmptyState>
+    )
+  }
+
   return (
     <section className="f5v-box-team-overview" ref={motionScope}>
       <h1 className="f5v-box-team-page-title" tabIndex={-1}>
@@ -358,15 +383,7 @@ export function TeamLoadoutOverview({
             前往代理人资产
           </button>
         </section>
-      ) : (
-        <section className="f5v-box-team-empty" role="status">
-          <h2>当前没有可展示的队伍建议</h2>
-          <p>{answer.summary}</p>
-          <button className="f5v-box-team-primary" type="button" onClick={onEmptyAction}>
-            前往代理人资产
-          </button>
-        </section>
-      )}
+      ) : null}
     </section>
   )
 }
