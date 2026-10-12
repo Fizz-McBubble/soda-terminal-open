@@ -487,9 +487,18 @@
   font-size: var(--soda-font-body);
   font-weight: 600;
 }
-.f5v-shell .scanner-workbench__method:has(details[open]),
-.f5v-shell .scanner-workbench__method:has(.scanner-calibration) {
-  height: auto;
+.f5v-shell
+  .scanner-workbench__body--diagnostic
+  > :is(.scanner-workbench__preparation, .scanner-workbench__method-task):has(details[open]) {
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__task:has(details[open]) > :first-child {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-gutter: stable;
 }
 .f5v-shell .scanner-workbench :is(.scanner-import-review__footer, .scanner-calibration) .button {
   height: var(--soda-control-height, 42px);
