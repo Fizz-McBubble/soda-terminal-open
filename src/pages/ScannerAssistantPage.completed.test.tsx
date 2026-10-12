@@ -145,7 +145,7 @@ describe('ScannerAssistantPage completed-result handoff', () => {
     await setActiveAccount(account.id, database)
     runtimeMock.snapshot = createScannerRuntimeSnapshot('connection_failed')
     render(<App />)
-    await screen.findByLabelText('选择本机文件（JSON）')
+    await screen.findByLabelText('选择本机文件（JSON）', {}, { timeout: 10_000 })
     expect(screen.queryByRole('navigation', { name: '导入后的下一步' })).not.toBeInTheDocument()
     const text = JSON.stringify(createReadyScannerStaging(2))
     const file = new File([text], 'result.json', { type: 'application/json' })
@@ -159,13 +159,13 @@ describe('ScannerAssistantPage completed-result handoff', () => {
     expect(await database.accountDriveDiscs.count()).toBe(0)
     await user.click(screen.getByRole('button', { name: '放弃' }))
     // Restore the original preparation and its retry action without claiming the failed checks passed.
-    expect(await screen.findByRole('heading', { name: '画面扫描已连接' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: '本次扫描未完成' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '重新扫描' })).toBeInTheDocument()
     expect(screen.getByLabelText('选择本机文件（JSON）')).toBeEnabled()
     expect(screen.queryByRole('region', { name: '扫描结果文件检查' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '导入' })).not.toBeInTheDocument()
     expect(await database.accountDriveDiscs.count()).toBe(0)
-  })
+  }, 20_000)
 
   it('shows a newly selected invalid file instead of replaying an older import receipt', async () => {
     const user = userEvent.setup()

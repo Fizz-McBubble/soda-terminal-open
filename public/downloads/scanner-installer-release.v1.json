@@ -1,17 +1,1 @@
-{
-  "schemaVersion": 1,
-  "version": "1.1.5",
-  "releaseState": "published",
-  "releaseTag": "scanner-installer-v1.1.5",
-  "assetName": "Soda-Scanner-Setup.exe",
-  "assetUrl": "https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-installer-v1.1.5/Soda-Scanner-Setup.exe",
-  "runtimeVersion": "soda-scanner-zzz-next-ppocrv6-18-rc8-14-local-20261011",
-  "size": 133528225,
-  "sha256": "e5aea8edf15d02945d34fba96e6df96a13c3048f91f12a8417beddbcf756859c",
-  "helperVersion": "2.3.16",
-  "supplementalRuntime": {
-    "version": "14.44.35211.0",
-    "size": 463369,
-    "sha256": "0724c20bb5ca05d3d5e502761b1e161b10442b25857c106c8223a293443c8148"
-  }
-}
+{"schemaVersion":1,"version":"1.1.6","releaseState":"published","releaseTag":"scanner-installer-v1.1.6","assetName":"Soda-Scanner-Setup.exe","assetUrl":"https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-installer-v1.1.6/Soda-Scanner-Setup.exe","runtimeVersion":"soda-scanner-zzz-next-ppocrv6-18-rc8-14-local-20261011","size":133531447,"sha256":"6d28efb76cea0d5312de792242840d4e4d3631bf85af469af3bd5f22afd9dd6f","helperVersion":"2.3.16","supplementalRuntime":{"version":"14.44.35211.0","size":463369,"sha256":"0724c20bb5ca05d3d5e502761b1e161b10442b25857c106c8223a293443c8148"}}

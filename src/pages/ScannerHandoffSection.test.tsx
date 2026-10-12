@@ -74,6 +74,8 @@ describe('OCR card result handoff', () => {
     fireEvent.click(screen.getByRole('button', { name: '重新检查' }))
     expect(input.onHandOffResult).toHaveBeenCalledOnce()
     expect(screen.getByRole('alert')).toHaveTextContent('读取失败')
+    expect(screen.getByRole('alert')).not.toHaveAttribute('open')
+    expect(screen.getByText('结果检查未完成 · 可重新检查')).toBeVisible()
   })
 
   it('retains calibration details and the guarded review action for abnormal results', () => {

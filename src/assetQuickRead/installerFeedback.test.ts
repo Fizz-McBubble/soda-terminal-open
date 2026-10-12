@@ -33,6 +33,27 @@ const sampleReport: InstallerFeedbackReport = {
 }
 
 describe('installerFeedback sanitization and fragment consumption', () => {
+  it('accepts scanner installation diagnostics while rejecting cross-tool facts', () => {
+    const scanner = {
+      ...sampleReport,
+      tool: 'screen_scanner_installer',
+      installerVersion: '1.1.6',
+      stage: 'verify',
+      code: 'runtime_health_probe_timeout',
+      attempts: [],
+    }
+    expect(sanitizeInstallerFeedback(scanner)).toEqual(scanner)
+    for (const patch of [
+      { stage: 'protocol' },
+      { code: 'protocol_download_timeout' },
+      { installerVersion: '1.0.9' },
+      { attempts: sampleReport.attempts },
+      { path: 'private-path' },
+      { rawerror: 'private-error' },
+    ])
+      expect(sanitizeInstallerFeedback({ ...scanner, ...patch })).toBeNull()
+    expect(sanitizeInstallerFeedback({ ...sampleReport, code: scanner.code })).toBeNull()
+  })
   it('accepts valid installer feedback DTO', () => {
     const safe = sanitizeInstallerFeedback(sampleReport)
     expect(safe).not.toBeNull()

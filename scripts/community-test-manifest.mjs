@@ -36,6 +36,7 @@ export const communityTests = Object.freeze([
   'src/pages/ScannerAssistantPage.navigation.test.tsx',
   'src/pages/FormalDiscImportPage.compact.test.tsx',
   'src/pages/ScannerHandoffSection.test.tsx',
+  'src/pages/ScannerPrepareChecklist.test.tsx',
   'src/pages/ScannerScanningSection.test.tsx',
   'src/accounts/observedAgentFacts.test.ts',
   'src/components/JsonFileDropTarget.test.tsx',

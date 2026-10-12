@@ -5,7 +5,9 @@ import { reviewedHpRetentionEvidence } from './reviewedHpRetentionEvidence'
 const attackSlot = { '2': 'atk_flat' }
 const healthSlots = { '1': 'hp_flat', '2': 'atk_flat', '3': 'def_flat' }
 /** Named combinations only; identities bind the reviewed goal, weights, core and sources. */
-const namedPolicies: Readonly<Record<string, readonly [string, string, Record<string, string>]>> = {
+export const namedPolicies: Readonly<
+  Record<string, readonly [string, string, Record<string, string>]>
+> = {
   'agent-soukaku:base-0:fnv1a-788b': ['45a5c4f7', 'atk_percent', attackSlot],
   'agent-soukaku:base-1:fnv1a-f9a2': ['45a5c4f7', 'atk_percent', attackSlot],
   'agent-soukaku:main-alt-1:anomaly_support': ['a8496042', 'atk_percent', attackSlot],
@@ -60,7 +62,7 @@ export function resolveNamedInvestmentCalibration(
     disc.rarity !== 'S' ||
     policy.calibration !== 'approved' ||
     !policy.calibratedRarities?.includes('S') ||
-    stableContentHash(rules) !== 'fnv1a-50ba626c' ||
+    stableContentHash(rules) !== 'fnv1a-4c89ca73' ||
     investment?.id !== 'source-goal-stage-investment-r1' ||
     investment.calibration !== 'approved' ||
     investment.meaningfulWeightFrom !== 0.5 ||

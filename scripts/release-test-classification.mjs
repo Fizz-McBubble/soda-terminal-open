@@ -23,6 +23,7 @@ export const currentVitest = [
   'src/pages/AssetQuickReadInstallerAction.test.tsx',
   'src/pages/FormalDiscImportPage.compact.test.tsx',
   'src/pages/ScannerHandoffSection.test.tsx',
+  'src/pages/ScannerPrepareChecklist.test.tsx',
   'src/pages/ScannerScanningSection.test.tsx',
   'src/calculation/sourceMechanismResourceGrants32.test.ts',
   'src/gameDataPacks/reviewedBangbooSourceContract.test.ts',

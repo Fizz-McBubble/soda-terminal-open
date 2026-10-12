@@ -4,7 +4,10 @@ import {
   absoluteDiscRetentionPolicy as policy,
 } from './absoluteDiscRetentionCatalog'
 import type { Disc, Profile, QualityPolicy } from './absoluteDiscRetentionContract'
-import { resolveNamedInvestmentCalibration as resolve } from './absoluteDiscRetentionInvestmentCalibration'
+import {
+  namedPolicies,
+  resolveNamedInvestmentCalibration as resolve,
+} from './absoluteDiscRetentionInvestmentCalibration'
 import { assessDisc } from './absoluteDiscRetentionKernel'
 import { scoreProfile, twoPieceApplicability } from './absoluteDiscRetentionScoring'
 import { enrichRetentionEvidence } from './absoluteDiscRetentionStages'
@@ -222,5 +225,40 @@ describe('approved named single-core investment calibration', () => {
     expect(result.nextAction).toMatchObject({ kind: 'try_upgrade', targetLevel: 3 })
     expect(result.witnessProfileIds).toEqual([profile.id])
     expect(result.blockedBy).toEqual([])
+  })
+  it('binds all 18 approved named profiles without fallback or silent mismatch', () => {
+    expect(Object.keys(namedPolicies)).toHaveLength(18)
+    for (const [profileId, [, expectedCoreStat, slotMap]] of Object.entries(namedPolicies)) {
+      const p = catalog.profiles.find((row) => row.id === profileId)
+      expect(p, `named profile ${profileId} must be present in production catalog`).toBeDefined()
+      if (!p) continue
+
+      for (const [slotStr, mainStat] of Object.entries(slotMap)) {
+        const disc: Disc = {
+          id: `proof-${profileId}-${slotStr}`,
+          setId: set.id,
+          rarity: 'S',
+          slot: Number(slotStr),
+          mainStat,
+          level: 0,
+          subStats: [],
+        }
+        const resolved = resolve(disc, p, catalog.rules, policy)
+        expect(
+          resolved,
+          `profile ${profileId} slot ${slotStr} ${mainStat} must resolve`,
+        ).not.toBeNull()
+        expect(resolved?.id).toContain(profileId)
+        expect(resolved?.requiredCoreStat).toBe(expectedCoreStat)
+
+        // Verify fail-closed protection: rules mismatch strictly rejects
+        const staleRules = { ...catalog.rules, sourceIds: ['stale-source'] }
+        expect(resolve(disc, p, staleRules, policy)).toBeNull()
+
+        // Verify slot/mainStat mismatch strictly rejects
+        const mismatchedDisc: Disc = { ...disc, mainStat: 'anomaly_proficiency' }
+        expect(resolve(mismatchedDisc, p, catalog.rules, policy)).toBeNull()
+      }
+    }
   })
 })

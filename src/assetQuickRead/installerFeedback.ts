@@ -19,15 +19,32 @@ const attemptSchema = z
 const installerFeedbackSchema = z
   .object({
     schema: z.literal(1),
-    tool: z.literal('asset_quick_read_installer'),
+    tool: z.enum(['asset_quick_read_installer', 'screen_scanner_installer']),
     reportId: z.string().regex(UUID_REGEX),
-    installerVersion: z.string().regex(new RegExp(installerRules.versionPattern)),
-    stage: z.string().refine((val) => (installerRules.stages as readonly string[]).includes(val)),
-    code: z.string().refine((val) => (installerRules.codes as readonly string[]).includes(val)),
+    installerVersion: z.string(),
+    stage: z.string(),
+    code: z.string(),
     durationMs: z.number().int().min(0).max(installerRules.durationMaxMs),
     attempts: z.array(attemptSchema).max(installerRules.maxAttempts),
   })
   .strict()
+  .superRefine((report, context) => {
+    const rules =
+      report.tool === 'screen_scanner_installer' ? contract.screenScannerInstaller : installerRules
+    for (const [field, valid] of [
+      ['installerVersion', new RegExp(rules.versionPattern).test(report.installerVersion)],
+      ['stage', (rules.stages as readonly string[]).includes(report.stage)],
+      ['code', (rules.codes as readonly string[]).includes(report.code)],
+      ['attempts', report.attempts.length <= rules.maxAttempts],
+    ] as const) {
+      if (!valid)
+        context.addIssue({
+          code: 'custom',
+          path: [field],
+          message: 'Invalid installer diagnostic field',
+        })
+    }
+  })
 
 export type InstallerAttempt = z.infer<typeof attemptSchema>
 export type InstallerFeedbackReport = z.infer<typeof installerFeedbackSchema>

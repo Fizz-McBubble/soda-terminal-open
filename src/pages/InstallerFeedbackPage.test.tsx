@@ -44,10 +44,41 @@ describe('InstallerFeedbackPage component', () => {
 
   it('renders safe fallback when no fragment or report is provided', () => {
     render(<InstallerFeedbackPage initialReport={null} />)
-    expect(screen.getByText('资产快读安装问题反馈')).toBeInTheDocument()
+    expect(screen.getByText('安装问题反馈')).toBeInTheDocument()
     expect(screen.getByText(/未检测到有效的安装诊断信息/)).toBeInTheDocument()
     // Does not render send/copy buttons when no report is present
     expect(screen.queryByText('发送反馈')).not.toBeInTheDocument()
+  })
+
+  it('shows scanner installation facts and sends only on explicit action', async () => {
+    const scannerReport: InstallerFeedbackReport = {
+      ...mockReport,
+      tool: 'screen_scanner_installer',
+      installerVersion: '1.1.6',
+      stage: 'verify',
+      code: 'runtime_health_probe_timeout',
+      attempts: [],
+    }
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        status: 'received',
+        reportId: scannerReport.reportId,
+        receivedAt: '2026-10-13T00:00:00Z',
+      }),
+    })
+    global.fetch = fetchMock
+    render(<InstallerFeedbackPage initialReport={scannerReport} />)
+    expect(screen.getByRole('heading', { name: '画面扫描安装问题反馈' })).toBeInTheDocument()
+    expect(screen.getByText('安装后的工具未通过就绪检查。')).toBeInTheDocument()
+    expect(screen.queryByText('查看下载诊断记录')).not.toBeInTheDocument()
+    expect(fetchMock).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: '发送反馈' }))
+    await waitFor(() => expect(screen.getByText('反馈已成功接收')).toBeInTheDocument())
+    expect(fetchMock).toHaveBeenCalledWith(
+      '/_soda/scan-feedback',
+      expect.objectContaining({ credentials: 'omit', body: JSON.stringify(scannerReport) }),
+    )
   })
 
   it('keeps the once-consumed report through StrictMode rendering without sending', () => {

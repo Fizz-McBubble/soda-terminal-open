@@ -15,10 +15,13 @@ const STAGE_LABELS: Record<string, string> = {
   protocol: '下载协议数据',
   verify: '校验安装完整性',
   register: '添加快捷入口',
+  extract: '准备组件',
+  commit: '完成安装登记',
+  start: '启动工具',
   failed: '安装失败',
 }
 
-function problemForCode(code: string): { problem: string; nextAction: string } {
+function problemForCode(code: string, toolLabel: string): { problem: string; nextAction: string } {
   switch (code) {
     case 'installer_access_denied':
       return {
@@ -52,6 +55,33 @@ function problemForCode(code: string): { problem: string; nextAction: string } {
         problem: '安装清单不匹配。',
         nextAction: '请重新下载官方最新版本安装程序。',
       }
+    case 'setup_asset_size_mismatch':
+    case 'runtime_asset_identity_mismatch':
+    case 'runtime_file_identity_mismatch':
+    case 'uninstaller_invalid':
+      return {
+        problem: '安装组件完整性校验失败。',
+        nextAction: '请从官网重新下载安装包后重试。',
+      }
+    case 'setup_asset_prepare_timeout':
+    case 'setup_asset_extract_failed':
+    case 'setup_asset_missing':
+    case 'setup_asset_ready_invalid':
+      return {
+        problem: '安装组件准备未完成。',
+        nextAction: '请在安装器中重试；若持续失败，可提交本诊断协助定位。',
+      }
+    case 'runtime_health_probe_failed':
+    case 'runtime_health_probe_timeout':
+      return {
+        problem: '安装后的工具未通过就绪检查。',
+        nextAction: '请关闭画面扫描后重试，并保留诊断回执以便排查。',
+      }
+    case 'scanner_still_running':
+      return {
+        problem: '画面扫描仍在运行。',
+        nextAction: '请结束当前扫描并关闭工具，再返回安装器重试。',
+      }
     case 'another_installer_is_running':
       return {
         problem: '已有安装程序正在运行。',
@@ -64,7 +94,7 @@ function problemForCode(code: string): { problem: string; nextAction: string } {
       }
     default:
       return {
-        problem: '资产快读安装未完成。',
+        problem: `${toolLabel}安装未完成。`,
         nextAction: '请检查安装器详情后重试；若持续失败可提交本诊断协助定位。',
       }
   }
@@ -95,7 +125,7 @@ export function InstallerFeedbackPage({
               <AlertCircle size={24} />
             </div>
             <div className="installer-feedback-title-group">
-              <h1 className="installer-feedback-title">资产快读安装问题反馈</h1>
+              <h1 className="installer-feedback-title">安装问题反馈</h1>
               <span className="installer-feedback-version">Soda Terminal</span>
             </div>
           </div>
@@ -115,7 +145,8 @@ export function InstallerFeedbackPage({
     )
   }
 
-  const { problem, nextAction } = problemForCode(report.code)
+  const toolLabel = report.tool === 'screen_scanner_installer' ? '画面扫描' : '资产快读'
+  const { problem, nextAction } = problemForCode(report.code, toolLabel)
 
   async function handleSend() {
     if (!report || isSending || receipt) return
@@ -156,14 +187,14 @@ export function InstallerFeedbackPage({
   }
 
   return (
-    <main className="installer-feedback-page" aria-label="资产快读安装问题反馈">
+    <main className="installer-feedback-page" aria-label={`${toolLabel}安装问题反馈`}>
       <section className="installer-feedback-card">
         <header className="installer-feedback-header">
           <div className="installer-feedback-icon" aria-hidden="true">
             {receipt ? <CheckCircle2 size={24} /> : <FileText size={24} />}
           </div>
           <div className="installer-feedback-title-group">
-            <h1 className="installer-feedback-title">资产快读安装问题反馈</h1>
+            <h1 className="installer-feedback-title">{toolLabel}安装问题反馈</h1>
             <span className="installer-feedback-version">安装器版本 {report.installerVersion}</span>
           </div>
         </header>

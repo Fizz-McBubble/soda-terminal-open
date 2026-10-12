@@ -151,6 +151,34 @@ export function PrepareChecklist({
           ) : null}
         </header>
 
+        {compact &&
+          snapshot.prepare &&
+          (observedFailures.length > 0 || snapshot.prepare.observedTotal != null) && (
+            <details className="scanner-prepare__observations" aria-label="实际准备检查结果">
+              <summary>
+                {observedFailures.length > 0
+                  ? `暂不可扫描 · ${observedFailures.length} 项需处理`
+                  : '实际准备检查结果'}
+              </summary>
+              {observedFailures.length > 0 && (
+                <ul>
+                  {observedFailures.map((check) => (
+                    <li key={check.id}>{check.feedback}</li>
+                  ))}
+                </ul>
+              )}
+              {snapshot.prepare?.geometry?.client && (
+                <p>
+                  检测画面：{snapshot.prepare.geometry.client.width} ×{' '}
+                  {snapshot.prepare.geometry.client.height}
+                </p>
+              )}
+              {snapshot.prepare?.observedTotal != null && (
+                <p>检测仓库数量：{snapshot.prepare.observedTotal} / 3000</p>
+              )}
+            </details>
+          )}
+
         <div className="scanner-prepare__primary">
           {targetPanel && <ol className="scanner-prepare__account">{targetPanel}</ol>}
 
@@ -206,30 +234,6 @@ export function PrepareChecklist({
               )}
           </div>
         </div>
-
-        {compact &&
-          snapshot.prepare &&
-          (observedFailures.length > 0 || snapshot.prepare.observedTotal != null) && (
-            <section className="scanner-prepare__observations" aria-label="实际准备检查结果">
-              {observedFailures.length > 0 && <h4>需要处理</h4>}
-              {observedFailures.length > 0 && (
-                <ul>
-                  {observedFailures.map((check) => (
-                    <li key={check.id}>{check.feedback}</li>
-                  ))}
-                </ul>
-              )}
-              {snapshot.prepare?.geometry?.client && (
-                <p>
-                  检测画面：{snapshot.prepare.geometry.client.width} ×{' '}
-                  {snapshot.prepare.geometry.client.height}
-                </p>
-              )}
-              {snapshot.prepare?.observedTotal != null && (
-                <p>检测仓库数量：{snapshot.prepare.observedTotal} / 3000</p>
-              )}
-            </section>
-          )}
 
         {diagnosticFeedback ? (
           <div className="scanner-prepare__feedback">{diagnosticFeedback}</div>

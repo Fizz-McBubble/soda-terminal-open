@@ -33,6 +33,34 @@ function openDisclosure() {
   fireEvent.click(screen.getByRole('button', { name: /准备资产快读|开始读取/ }))
 }
 
+it('keeps failure details collapsed while the existing retry and return actions remain available', () => {
+  const restart = vi.fn()
+  render(
+    <AssetQuickReadEntry
+      state="error"
+      capability="ready"
+      errorMessage="合成启动失败细项"
+      targetAccountId="synthetic"
+      targetAccountName="合成账户"
+      onPrepareAgain={restart}
+      onStart={vi.fn()}
+      workbenchExtras={() => <div />}
+      renderParts={({ preparation, task }) => (
+        <>
+          {preparation}
+          {task}
+        </>
+      )}
+    />,
+  )
+  const details = screen.getByText('读取未完成 · 可重试').closest('details')!
+  expect(details).not.toHaveAttribute('open')
+  expect(details).toHaveTextContent('合成启动失败细项')
+  expect(screen.getByRole('button', { name: '一键读取' })).toBeEnabled()
+  fireEvent.click(screen.getByRole('button', { name: '返回' }))
+  expect(restart).toHaveBeenCalledOnce()
+})
+
 it('defaults to unavailable without starting any tool', () => {
   const onStart = vi.fn()
   render(<AssetQuickReadEntry onStart={onStart} />)

@@ -30,6 +30,28 @@ const validReport = {
   ],
 }
 
+test('scanner installer uses the same receiver with a separate finite contract', () => {
+  const scanner = {
+    ...validReport,
+    tool: 'screen_scanner_installer',
+    installerVersion: '1.1.6',
+    stage: 'verify',
+    code: 'runtime_health_probe_timeout',
+    attempts: [],
+  }
+  assert.deepEqual(sanitizeScanFeedbackPayload(scanner).record, scanner)
+  for (const patch of [
+    { stage: 'protocol' },
+    { code: 'protocol_download_timeout' },
+    { installerVersion: '1.0.9' },
+    { attempts: validReport.attempts },
+    { path: 'private-path' },
+    { rawerror: 'private-error' },
+  ])
+    assert.equal(sanitizeInstallerFeedbackPayload({ ...scanner, ...patch }).status, 400)
+  assert.equal(sanitizeInstallerFeedbackPayload({ ...validReport, code: scanner.code }).status, 400)
+})
+
 test('installer feedback strictly validates safe DTO and rejects extraneous/sensitive keys', () => {
   const parsed = sanitizeInstallerFeedbackPayload(validReport)
   assert.equal(parsed.ok, true)

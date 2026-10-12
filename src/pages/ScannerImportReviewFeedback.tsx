@@ -47,15 +47,21 @@ export function ScannerImportReviewFeedback({
         还有 {review.counts.reviewRequired} 张需要校准，完成后可确认导入。
       </p>
       {review.categories.length ? (
-        <ul className="scanner-import-review__reasons" aria-label="未通过检查的原因">
-          {review.categories.map(({ key, label, count }) => (
-            <li key={key}>
-              {label}：{count} 张
-            </li>
-          ))}
-        </ul>
+        <details className="scanner-import-review__issues">
+          <summary>暂时不能导入 · {review.categories.length} 类问题需核对</summary>
+          <ul className="scanner-import-review__reasons" aria-label="未通过检查的原因">
+            {review.categories.map(({ key, label, count }) => (
+              <li key={key}>
+                {label}：{count} 张
+              </li>
+            ))}
+          </ul>
+        </details>
       ) : null}
-      <ScannerManualCalibration current={current} />
+      <details className="scanner-import-review__calibration">
+        <summary>校准后确认导入</summary>
+        <ScannerManualCalibration current={current} />
+      </details>
       <div className="scanner-import-review__footer">
         <ScannerDiagnosticFeedback report={report} secondaryAction={secondaryAction} />
       </div>

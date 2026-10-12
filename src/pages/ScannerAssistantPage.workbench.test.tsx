@@ -419,7 +419,7 @@ it.each(['none', 'optional-agent', 'disc-identity'] as const)(
     })
     await screen.findByRole('heading', { name: '本次读取结果' })
     if (issue === 'disc-identity') {
-      expect(screen.getByText('暂时不能导入')).toBeInTheDocument()
+      expect(screen.getByText(/暂时不能导入 · \d+ 项需核对/)).toBeInTheDocument()
       expect(screen.getByRole('button', { name: '导入' })).toBeDisabled()
     } else {
       expect(screen.getByRole('button', { name: '导入' })).toBeEnabled()

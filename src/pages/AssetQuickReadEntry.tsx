@@ -912,7 +912,20 @@ export function AssetQuickReadEntry({
                   {taskContent}
                   {stopButton}
                   {['error', 'stopped', 'timed_out'].includes(state) && (
-                    <div className="asset-quick-read__retry">{disclosure}</div>
+                    <>
+                      <details className="asset-quick-read__issues asset-quick-read__failure">
+                        <summary>
+                          {state === 'stopped'
+                            ? '读取已停止'
+                            : state === 'timed_out'
+                              ? '等待已结束 · 未收到完整数据'
+                              : '读取未完成 · 可重试'}
+                        </summary>
+                        <p>{stateCopy[state]}</p>
+                        {typeof workbenchExtras === 'function' && <p>{compactStatus}</p>}
+                      </details>
+                      <div className="asset-quick-read__retry">{disclosure}</div>
+                    </>
                   )}
                 </>
               )}

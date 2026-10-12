@@ -34,7 +34,10 @@ export function sanitizeInstallerFeedbackPayload(payload) {
     return { status: 400 }
   }
 
-  const installerRules = baseContract.assetQuickReadInstaller
+  const installerRules =
+    payload.tool === 'screen_scanner_installer'
+      ? baseContract.screenScannerInstaller
+      : baseContract.assetQuickReadInstaller
   const keys = Object.keys(payload)
   if (
     keys.length !== KNOWN_INSTALLER_KEYS.length ||
@@ -48,7 +51,10 @@ export function sanitizeInstallerFeedbackPayload(payload) {
     }
   }
 
-  if (payload.schema !== 1 || payload.tool !== 'asset_quick_read_installer') {
+  if (
+    payload.schema !== 1 ||
+    !['asset_quick_read_installer', 'screen_scanner_installer'].includes(payload.tool)
+  ) {
     return { status: 400 }
   }
 
@@ -132,7 +138,7 @@ export function sanitizeInstallerFeedbackPayload(payload) {
 
   const record = {
     schema: 1,
-    tool: 'asset_quick_read_installer',
+    tool: payload.tool,
     reportId: payload.reportId,
     installerVersion: payload.installerVersion,
     stage: payload.stage,
@@ -169,7 +175,10 @@ export function sanitizeScanFeedbackPayload(payload, expectedRelease) {
     return { status: 400 }
   }
 
-  if (payload.tool === 'asset_quick_read_installer') {
+  if (
+    payload.tool === 'asset_quick_read_installer' ||
+    payload.tool === 'screen_scanner_installer'
+  ) {
     return sanitizeInstallerFeedbackPayload(payload)
   }
 

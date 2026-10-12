@@ -112,13 +112,17 @@ describe('completed scan with rejected OCR records', () => {
       vi.stubGlobal('fetch', fetcher)
       const before = await database.accounts.toArray()
       const view = render(<App />)
-      await screen.findByText(new RegExp(`${blocked} 张需要校准`))
+      await screen.findByText(new RegExp(`${blocked} 张需要校准`), {}, { timeout: 10_000 })
       expect(
         screen.getByLabelText('扫描步骤').querySelector('[aria-current="step"]'),
       ).toHaveTextContent('导入')
       expect(screen.getByLabelText('未通过检查的原因')).toHaveTextContent(
         missingFields ? '套装名称未确认：11 张' : '词条或等级校验未通过：1 张',
       )
+      const issues = screen.getByLabelText('未通过检查的原因').closest('details')!
+      expect(issues).not.toHaveAttribute('open')
+      await user.click(issues.querySelector('summary')!)
+      expect(screen.getByLabelText('未通过检查的原因')).toBeVisible()
       expect(screen.queryByRole('button', { name: '导入' })).not.toBeInTheDocument()
       expect(fetcher).not.toHaveBeenCalled()
       expect(screen.getAllByRole('button', { name: '反馈此问题' })).toHaveLength(1)

@@ -71,6 +71,12 @@ export function ScannerHandoffSection({
   const discardTriggerRef = useRef<HTMLButtonElement>(null)
   return (
     <div className="scanner-web__handoff">
+      {handoffState.status === 'error' && (
+        <details className="scanner-handoff__issues" role="alert">
+          <summary>结果检查未完成 · 可重新检查</summary>
+          <p>{playerResultMessage(handoffState.message)}</p>
+        </details>
+      )}
       {inlineImportOpen ? (
         <FormalDiscImportPage
           embedded
@@ -283,43 +289,50 @@ export function ScannerHandoffSection({
           </div>
         </section>
       )}
-      {handoffState.status === 'working' || handoffState.status === 'error' ? (
-        <p role={handoffState.status === 'error' ? 'alert' : 'status'} aria-live="polite">
+      {handoffState.status === 'working' ? (
+        <p role="status" aria-live="polite">
           {playerResultMessage(handoffState.message)}
         </p>
       ) : null}
       {handoffState.status === 'error' ? diagnosticFeedback : null}
-      {handoffState.status === 'error' && handoffState.message.includes('不完整的同源识别结果') ? (
-        <>
-          <button
-            ref={discardTriggerRef}
-            className="button button--quiet"
-            type="button"
-            onClick={() => onSetDiscardDraftConfirmationOpen(true)}
-          >
-            重新读取扫描结果
-          </button>
-          <ScannerDiscardDraftDialog
-            open={discardDraftConfirmationOpen}
-            triggerRef={discardTriggerRef}
-            targetDisplayName={
-              frozenTargetValidation.valid ? frozenTargetValidation.binding.displayName : '当前账户'
-            }
-            onCancel={() => onSetDiscardDraftConfirmationOpen(false)}
-            onConfirm={onDiscardIncompleteDraftAndRetry}
-          />
-        </>
-      ) : null}
-      {handoffState.status === 'error' &&
-      handoffState.message.includes('不完整扫描草稿包含已导入记录') ? (
-        <button
-          className="button button--quiet"
-          type="button"
-          onClick={onRepairCompletedBatchAndRetry}
-        >
-          恢复结果状态并继续
-        </button>
-      ) : null}
+      {handoffState.status === 'error' && (
+        <div className="scanner-handoff__recovery-actions">
+          {handoffState.status === 'error' &&
+          handoffState.message.includes('不完整的同源识别结果') ? (
+            <>
+              <button
+                ref={discardTriggerRef}
+                className="button button--quiet"
+                type="button"
+                onClick={() => onSetDiscardDraftConfirmationOpen(true)}
+              >
+                重新读取扫描结果
+              </button>
+              <ScannerDiscardDraftDialog
+                open={discardDraftConfirmationOpen}
+                triggerRef={discardTriggerRef}
+                targetDisplayName={
+                  frozenTargetValidation.valid
+                    ? frozenTargetValidation.binding.displayName
+                    : '当前账户'
+                }
+                onCancel={() => onSetDiscardDraftConfirmationOpen(false)}
+                onConfirm={onDiscardIncompleteDraftAndRetry}
+              />
+            </>
+          ) : null}
+          {handoffState.status === 'error' &&
+          handoffState.message.includes('不完整扫描草稿包含已导入记录') ? (
+            <button
+              className="button button--quiet"
+              type="button"
+              onClick={onRepairCompletedBatchAndRetry}
+            >
+              恢复结果状态并继续
+            </button>
+          ) : null}
+        </div>
+      )}
     </div>
   )
 }

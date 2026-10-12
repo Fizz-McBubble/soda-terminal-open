@@ -121,6 +121,9 @@ export function ScannerPrepareSection({
             </div>
           </div>
           <div className="scanner-import-complete__next">
+            <Link className="button button--primary scanner-web__primary-action" to="/assets/discs">
+              查看驱动盘
+            </Link>
             <button
               className="button button--quiet"
               type="button"
@@ -128,9 +131,6 @@ export function ScannerPrepareSection({
             >
               重新扫描
             </button>
-            <Link className="button button--primary scanner-web__primary-action" to="/assets/discs">
-              查看驱动盘
-            </Link>
           </div>
         </section>
       ) : null}

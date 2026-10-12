@@ -69,6 +69,9 @@ describe('manual scanner calibration journey', () => {
       await screen.findByRole('button', { name: '检查需确认的记录' }, { timeout: 10_000 }),
     )
     expect(screen.queryByRole('button', { name: '手动校准未识别记录' })).not.toBeInTheDocument()
+    const calibration = await screen.findByText('校准后确认导入', { selector: 'summary' })
+    expect(calibration.closest('details')).not.toHaveAttribute('open')
+    await user.click(calibration)
     await screen.findByText('暂时无法读取盘面')
     expect(screen.getByText('还需处理 2 张')).toBeInTheDocument()
     expect(screen.queryByLabelText(/锁定/)).not.toBeInTheDocument()

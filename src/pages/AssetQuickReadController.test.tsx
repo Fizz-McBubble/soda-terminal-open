@@ -617,6 +617,8 @@ it('keeps failed planning read-only and ignores a late plan after the account ch
   )
   const view = render(<AssetQuickReadController {...props} />)
   await startAndReceive()
+  expect(screen.getByText(/本次读取早于代理人后续手动修改/)).not.toBeVisible()
+  fireEvent.click(screen.getByText(/暂时不能导入 · 1 项需核对/))
   expect(screen.getByText(/本次读取早于代理人后续手动修改/)).toBeVisible()
   expect(screen.getByRole('button', { name: '导入' })).toBeDisabled()
   expect(persistence.confirm).not.toHaveBeenCalled()
