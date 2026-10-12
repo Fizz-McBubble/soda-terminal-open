@@ -63,7 +63,7 @@
     "scripts/build-community-dist.mjs": "183e34c30170321b11fd7aab15a65839764ef0d66b5e76eb965c800715bea642",
     "scripts/build-community.mjs": "92ab3660b5ff74b34a14cf9949d4932dc96cd44172d8dadd98f8ac4bf4f6fbe1",
     "scripts/build-local.mjs": "97e1ea0fa3f09052f0929c57edeefb3db589b803ef77f45021ec1be13d817085",
-    "scripts/community-test-manifest.mjs": "125e2e5b6d23f37f44bd2d387a22a31b4d62efab623ffd2898e01731a4f6a139",
+    "scripts/community-test-manifest.mjs": "f22efacb30f69be184a5ecacc373e6f5f29de418a895d24f277c7ba0e9fae0de",
     "scripts/current-agent-effect-compiler.mjs": "57f3edc96096d35e046433f1b41c8bcb9fd975453652f5706ff277987dc2c8aa",
     "scripts/current-agent-effect-compiler.test.mjs": "49e681ee420e48af9f78ca436c467a879bd42edef17e08852087fcdfe4fbf04c",
     "scripts/derived-build-storage.d.mts": "52637826c1e0acacd300afddef867a252247bddc3a1678569f4b0b446333f3cb",

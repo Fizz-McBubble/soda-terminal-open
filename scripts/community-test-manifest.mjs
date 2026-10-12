@@ -17,6 +17,7 @@ export const incremental32CommunityTests = Object.freeze([
 ])
 
 export const communityTests = Object.freeze([
+  'src/components/assets/r6/Account.rename.test.tsx',
   'src/pages/privateTeamLoadoutPresentationProducer.test.ts',
   'src/decision/current31TeamIntrinsicIndex.test.ts',
   'src/decision/teamStrengthModel.test.ts',
