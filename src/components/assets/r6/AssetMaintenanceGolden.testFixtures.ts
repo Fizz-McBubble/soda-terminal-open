@@ -71,6 +71,7 @@ export function assetGoldenProps(
     onInspectBackup: vi.fn(),
     onRestore: vi.fn(),
     onSelectAccount: vi.fn(),
+    onRenameAccount: vi.fn(async () => {}),
     onDeleteAccount: vi.fn(async () => true),
   }
 }

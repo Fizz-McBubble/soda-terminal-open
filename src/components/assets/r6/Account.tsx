@@ -24,6 +24,9 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const dialogRef = useRef<HTMLDialogElement>(null)
   const deleteDialogRef = useRef<HTMLDialogElement>(null)
+  const renameDialogRef = useRef<HTMLDialogElement>(null)
+  const renameOpenerRef = useRef<HTMLButtonElement | null>(null)
+  const renamePendingRef = useRef(false)
   const openerRef = useRef<HTMLButtonElement>(null)
   const inspectionGeneration = useRef(0)
   const [inspecting, setInspecting] = useState(false)
@@ -38,6 +41,11 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
   const [deleteTarget, setDeleteTarget] = useState<{ id: string; displayName: string } | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [renameTarget, setRenameTarget] = useState<{ id: string; displayName: string } | null>(null)
+  const [renameValue, setRenameValue] = useState('')
+  const [renameDialogOpen, setRenameDialogOpen] = useState(false)
+  const [renaming, setRenaming] = useState(false)
+  const [renameError, setRenameError] = useState<string | null>(null)
   const [restoring, setRestoring] = useState(false)
   const [operationError, setOperationError] = useState<string | null>(null)
   const hasAccount = props.accountId !== 'no-account'
@@ -117,6 +125,34 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
     else setDeleteDialogOpen(false)
     setDeleteTarget(null)
   }
+  const closeRenameDialog = () => {
+    if (renamePendingRef.current) return
+    if (typeof renameDialogRef.current?.close === 'function') renameDialogRef.current.close()
+    setRenameDialogOpen(false)
+    setRenameTarget(null)
+    renameOpenerRef.current?.focus()
+  }
+  const saveRename = async () => {
+    if (!renameTarget || renamePendingRef.current) return
+    const displayName = renameValue.trim()
+    if (!displayName) {
+      setRenameError('账户名称不能为空。')
+      return
+    }
+    renamePendingRef.current = true
+    setRenaming(true)
+    setRenameError(null)
+    try {
+      await props.onRenameAccount(renameTarget.id, displayName)
+      renamePendingRef.current = false
+      closeRenameDialog()
+    } catch (error) {
+      setRenameError(error instanceof Error ? error.message : '无法重命名账户，请重试。')
+    } finally {
+      renamePendingRef.current = false
+      setRenaming(false)
+    }
+  }
   return (
     <>
       <section className="account-overview account-flow">
@@ -182,13 +218,30 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
                       <strong>{account.displayName}</strong>
                       <small>{account.id === props.accountId ? '当前账户' : '本机账户'}</small>
                     </span>
-                    <button
-                      className="danger"
-                      type="button"
-                      onClick={() => openDeleteDialog(account)}
-                    >
-                      删除账户
-                    </button>
+                    <div className="account-management-actions">
+                      <button
+                        className="quiet"
+                        type="button"
+                        onClick={(event) => {
+                          renameOpenerRef.current = event.currentTarget
+                          setRenameTarget(account)
+                          setRenameValue(account.displayName)
+                          setRenameError(null)
+                          if (typeof renameDialogRef.current?.showModal === 'function') {
+                            renameDialogRef.current.showModal()
+                          } else setRenameDialogOpen(true)
+                        }}
+                      >
+                        重命名
+                      </button>
+                      <button
+                        className="danger"
+                        type="button"
+                        onClick={() => openDeleteDialog(account)}
+                      >
+                        删除账户
+                      </button>
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -305,6 +358,68 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
           ) : null}
         </div>
       </section>
+      <dialog
+        className="soda-asset-dialog account-rename-dialog"
+        ref={renameDialogRef}
+        open={renameDialogOpen || undefined}
+        aria-labelledby="rename-account-title"
+        onCancel={(event) => {
+          if (renamePendingRef.current) event.preventDefault()
+          else closeRenameDialog()
+        }}
+        onClose={() => {
+          setRenameDialogOpen(false)
+          setRenameTarget(null)
+          renameOpenerRef.current?.focus()
+        }}
+      >
+        <form
+          onSubmit={(event) => {
+            event.preventDefault()
+            void saveRename()
+          }}
+        >
+          <header>
+            <h2 id="rename-account-title">重命名账户</h2>
+            <button
+              type="button"
+              className="icon-button"
+              aria-label="关闭"
+              disabled={renaming}
+              onClick={closeRenameDialog}
+            >
+              ×
+            </button>
+          </header>
+          <label htmlFor="rename-account-name">账户名称</label>
+          <input
+            id="rename-account-name"
+            autoFocus
+            maxLength={40}
+            value={renameValue}
+            disabled={renaming}
+            aria-invalid={Boolean(renameError)}
+            aria-describedby={renameError ? 'rename-account-error' : undefined}
+            onChange={(event) => {
+              setRenameValue(event.target.value)
+              setRenameError(null)
+            }}
+          />
+          {renameError ? (
+            <p id="rename-account-error" role="alert">
+              {renameError}
+            </p>
+          ) : null}
+          <footer>
+            <button type="button" className="quiet" disabled={renaming} onClick={closeRenameDialog}>
+              取消
+            </button>
+            <button type="submit" className="primary" disabled={renaming}>
+              {renaming ? '正在保存…' : '保存'}
+            </button>
+          </footer>
+        </form>
+      </dialog>
       <dialog
         className="soda-asset-dialog"
         ref={dialogRef}

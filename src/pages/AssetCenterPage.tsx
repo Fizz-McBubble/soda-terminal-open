@@ -15,6 +15,7 @@ import {
 } from '../accounts/backup'
 import {
   deleteAccount,
+  renameAccount,
   getAccountRoster,
   getActiveAccount,
   setActiveAccount,
@@ -373,6 +374,11 @@ export function AssetCenterPage() {
     }
   }
 
+  async function renameLocalAccount(accountId: string, displayName: string) {
+    await renameAccount(accountId, displayName)
+    // IndexedDB live reads refresh both the list and the current account name.
+  }
+
   function selectAgent(agentId: string) {
     const account = propsData.account
     if (!account) return
@@ -436,6 +442,7 @@ export function AssetCenterPage() {
           onRestore={restore}
           onSelectAccount={selectAccount}
           onDeleteAccount={deleteLocalAccount}
+          onRenameAccount={renameLocalAccount}
           onRestoreAcceptanceAccount={
             acceptanceRecoveryAvailable ? restoreAcceptanceAccount : undefined
           }

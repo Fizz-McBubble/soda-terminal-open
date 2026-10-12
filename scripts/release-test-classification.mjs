@@ -476,6 +476,7 @@ export const currentVitest = [
   'src/calculation/sheerDamageCore.test.ts',
   'src/calculation/skillInvestmentPolicy.test.ts',
   'src/components/assets/r6/AssetMaintenanceGolden.test.tsx',
+  'src/components/assets/r6/Account.rename.test.tsx',
   'src/components/assets/r6/AssetMaintenanceGolden.pendingOperations.test.tsx',
   'src/components/assets/r6/AssetMaintenanceGolden.agentEditing.test.tsx',
   'src/components/assets/r6/WEngineAssignmentField.test.tsx',

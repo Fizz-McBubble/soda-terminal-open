@@ -203,6 +203,7 @@
 
 .asset-quick-read__complete {
   display: flex;
+  flex-direction: column;
   align-items: flex-start;
   gap: 14px;
   margin-bottom: 20px;
@@ -210,6 +211,17 @@
   border-radius: 14px;
   background: #e8f8f1;
   color: #145b43;
+}
+
+.asset-quick-read__complete-summary {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 0;
+}
+
+.asset-quick-read__complete-summary > svg {
+  flex-shrink: 0;
 }
 
 .asset-quick-read__complete h3,

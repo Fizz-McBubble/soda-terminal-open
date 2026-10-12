@@ -618,40 +618,42 @@ export function AssetQuickReadEntry({
       )}
       {state === 'completed' && (
         <div className="asset-quick-read__complete">
-          <CheckCircle2 aria-hidden="true" size={25} />
-          <div>
-            <h3>导入完成</h3>
-            {status}
-            <strong>{targetAccountName}</strong>
-            <div className="asset-quick-read__actions">
-              {onViewAssets && (
-                <button
-                  className="button button--primary"
-                  type="button"
-                  disabled={busy}
-                  onClick={onViewAssets}
-                >
-                  查看我的资产
-                </button>
-              )}
-              {onExport && exportButton}
-              {onPrepareAgain && (
-                <button
-                  className="button button--quiet"
-                  type="button"
-                  disabled={actionBlocked}
-                  onClick={() => {
-                    if (actionBlocked) return
-                    setDisclosureOpen(false)
-                    setAcknowledgedAccount(null)
-                    void runAction('restart', onPrepareAgain)
-                  }}
-                >
-                  重新读取
-                </button>
-              )}
-              {completionActions}
+          <div className="asset-quick-read__complete-summary">
+            <CheckCircle2 aria-hidden="true" size={25} />
+            <div>
+              <h3>导入完成</h3>
+              {status}
+              <strong>{targetAccountName}</strong>
             </div>
+          </div>
+          <div className="asset-quick-read__actions">
+            {onViewAssets && (
+              <button
+                className="button button--primary"
+                type="button"
+                disabled={busy}
+                onClick={onViewAssets}
+              >
+                查看我的资产
+              </button>
+            )}
+            {onExport && exportButton}
+            {onPrepareAgain && (
+              <button
+                className="button button--quiet"
+                type="button"
+                disabled={actionBlocked}
+                onClick={() => {
+                  if (actionBlocked) return
+                  setDisclosureOpen(false)
+                  setAcknowledgedAccount(null)
+                  void runAction('restart', onPrepareAgain)
+                }}
+              >
+                重新读取
+              </button>
+            )}
+            {completionActions}
           </div>
         </div>
       )}

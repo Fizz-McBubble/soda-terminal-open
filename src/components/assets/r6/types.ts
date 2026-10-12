@@ -98,6 +98,7 @@ export type AssetGoldenProps = {
   onOpenScanFile?: (file: File) => void
   onRestore: (preview: BackupPreview) => Promise<void>
   onSelectAccount: (accountId: string) => Promise<void>
+  onRenameAccount: (accountId: string, displayName: string) => Promise<void>
   onDeleteAccount: (accountId: string) => Promise<boolean>
   onRestoreAcceptanceAccount?: () => Promise<void>
 }

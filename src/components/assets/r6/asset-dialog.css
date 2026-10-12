@@ -44,3 +44,22 @@
   min-width: 0;
   overflow-wrap: anywhere;
 }
+
+.r6-golden .account-management-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.r6-golden .account-management-actions button {
+  min-height: var(--soda-control-height-lg, 42px);
+  white-space: nowrap;
+}
+
+.r6-golden dialog.account-rename-dialog {
+  width: min(420px, calc(100vw - 32px));
+}
+
+.r6-golden .account-rename-dialog input {
+  width: 100%;
+}

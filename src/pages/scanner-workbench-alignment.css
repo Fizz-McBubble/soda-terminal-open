@@ -150,7 +150,6 @@
 }
 .f5v-shell .scanner-workbench .asset-quick-read__task,
 .f5v-shell .scanner-workbench .asset-quick-read__consent-stage,
-.f5v-shell .scanner-workbench .asset-quick-read__complete > div,
 .f5v-shell .scanner-workbench .scanner-import-complete {
   display: flex;
   flex-direction: column;
@@ -161,7 +160,7 @@
   flex: 1;
   align-items: stretch;
 }
-.f5v-shell .scanner-workbench .asset-quick-read__complete > svg {
+.f5v-shell .scanner-workbench .asset-quick-read__complete-summary > svg {
   align-self: flex-start;
 }
 .f5v-shell .scanner-workbench .scanner-import-complete__next {
@@ -187,8 +186,18 @@
   .asset-quick-read__panel
   > .asset-quick-read__actions,
 .f5v-shell .scanner-workbench .asset-quick-read__consent-stage > .asset-quick-read__actions,
+.f5v-shell .scanner-workbench .asset-quick-read__complete > .asset-quick-read__actions,
 .f5v-shell .scanner-workbench .scanner-dialog-import__actions {
   margin-top: auto;
+  padding-top: 16px;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__retry {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  flex: 1;
+  min-height: 0;
+  margin: 0;
   padding-top: 16px;
 }
 .f5v-shell .scanner-workbench .asset-quick-read__consent-stage > .asset-quick-read__actions {

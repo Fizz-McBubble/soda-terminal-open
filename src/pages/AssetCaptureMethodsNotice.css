@@ -45,6 +45,14 @@
 .asset-capture-methods__card p {
   margin: 0;
 }
+.asset-capture-methods__advantage {
+  border-radius: 3px;
+  background: var(--soda-surface-muted, #f3eff9);
+  color: var(--f5-accent, #6b5798);
+  font-weight: 700;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
 .asset-capture-methods__card ul {
   margin: 6px 0 0;
   padding-left: 20px;
