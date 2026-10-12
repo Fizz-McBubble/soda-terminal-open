@@ -133,7 +133,10 @@ describe('allowlisted diagnostic privacy boundary', () => {
     expect(report).toMatchObject({ code: 'game_window_ambiguous', stage: 'preflight' })
     expect(JSON.stringify(report)).not.toContain('private')
   })
-  it('reports a connection failure without copying a retained completed scan', () => {
+  it.each([
+    ['helper_unavailable', 'connection'],
+    ['scanner_workspace_failed', 'preflight'],
+  ])('reports %s without copying a retained completed scan', (code, stage) => {
     const report = diagnosticFromSnapshot(
       {
         ...connectingSnapshot,
@@ -141,12 +144,12 @@ describe('allowlisted diagnostic privacy boundary', () => {
         diagnostics: { ...validReport, outcome: 'completed', durationMs: 9000 },
       },
       '20f44460-1234-4123-8123-abc123abc123',
-      'helper_unavailable',
+      code,
     )
     expect(report).toMatchObject({
       reportId: '20f44460-1234-4123-8123-abc123abc123',
-      code: 'helper_unavailable',
-      stage: 'connection',
+      code,
+      stage,
       outcome: 'failed',
       counts: { processed: null, total: null },
       durationMs: null,

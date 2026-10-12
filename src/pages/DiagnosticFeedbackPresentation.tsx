@@ -5,10 +5,12 @@ import { ExplanationPopover } from '../components/ExplanationPopover'
 export function DiagnosticEntry({
   title,
   status,
+  statusRole,
   children,
 }: {
   title: string
   status: string
+  statusRole?: 'alert' | 'status'
   children: ReactNode
 }) {
   return (
@@ -20,7 +22,7 @@ export function DiagnosticEntry({
         </strong>
         {children}
       </div>
-      <p className="scanner-diagnostic-entry__status" title={status}>
+      <p className="scanner-diagnostic-entry__status" title={status} role={statusRole}>
         {status}
       </p>
     </section>

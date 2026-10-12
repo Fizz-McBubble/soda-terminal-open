@@ -5,7 +5,15 @@ import { DiagnosticEntry, DiagnosticPopover } from './DiagnosticFeedbackPresenta
 import './scanner-guide.css'
 import './scanner-diagnostic-feedback.css'
 
-export function AssetQuickReadFeedback({ report }: { report: AssetDiagnosticReport | null }) {
+export function AssetQuickReadFeedback({
+  report,
+  workspaceMessage,
+  workspaceMessageRole,
+}: {
+  report: AssetDiagnosticReport | null
+  workspaceMessage?: string
+  workspaceMessageRole?: 'alert' | 'status'
+}) {
   const safe = sanitizeAssetDiagnostic(report)
   const key = safe ? JSON.stringify(safe) : ''
   const current = useRef(key)
@@ -97,7 +105,19 @@ export function AssetQuickReadFeedback({ report }: { report: AssetDiagnosticRepo
                   : '可查看当前状态并反馈。',
         nextAction: '操作异常时可反馈当前状态。',
       }
-    : (guidance[safe.stage] ?? {
+    : ((safe.code === 'import_recovery_limit_reached'
+        ? {
+            problem: '资产快读恢复副本已达上限。',
+            nextAction: '在账户与备份中下载并保管旧副本，再确认移除本机副本后继续。',
+          }
+        : safe.code === 'import_snapshot_reused'
+          ? {
+              problem: '这份读取结果已使用，或账户在恢复后已有修改。',
+              nextAction: '重新读取最新资产，再检查并确认导入。',
+            }
+          : safe.code === 'bridge_unavailable'
+            ? guidance.connection
+            : guidance[safe.stage]) ?? {
         problem: '资产快读未完成本次操作。',
         nextAction: '检查工具准备状态后重试；仍失败时可反馈。',
       })
@@ -107,11 +127,15 @@ export function AssetQuickReadFeedback({ report }: { report: AssetDiagnosticRepo
     metadata.push(`剩余等待 ${safe.evidence.remainingSeconds} 秒`)
   if (safe.counts.processed !== null) metadata.push(`已处理 ${safe.counts.processed}`)
   return (
-    <DiagnosticEntry title="资产快读诊断" status={receivedAt ? '本次反馈已发送。' : hint.problem}>
+    <DiagnosticEntry
+      title="资产快读诊断"
+      status={workspaceMessage || (receivedAt ? '本次反馈已发送。' : hint.problem)}
+      statusRole={workspaceMessage ? workspaceMessageRole : undefined}
+    >
       <DiagnosticPopover
         key={key}
         title="资产快读诊断"
-        problem={hint.problem}
+        problem={workspaceMessage || hint.problem}
         nextAction={hint.nextAction}
         metadata={metadata}
         receiptId={receivedAt ? safe.reportId : undefined}

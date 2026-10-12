@@ -13,6 +13,7 @@ import {
   type AssetQuickReadImportPlan,
 } from '../assetQuickRead/accountImport'
 import { previewOf, type Reviewed } from './assetQuickReadControllerPreview'
+import { AssetQuickReadImportError } from '../assetQuickRead/importErrors'
 import { AssetQuickReadRecovery } from './AssetQuickReadRecovery'
 import { AssetQuickReadInstallerAction } from './AssetQuickReadInstallerAction'
 import { assetQuickReadDownloadAvailable } from '../assetQuickRead/distribution'
@@ -84,7 +85,7 @@ function AccountBoundQuickRead({
   const recordFailure = (
     stage: Parameters<typeof assetFailureDiagnostic>[0],
     failure?: unknown,
-    failedJob = job,
+    failedJob?: AssetBridgeJob | null,
   ) => {
     const report = assetFailureDiagnostic(stage, failure, failedJob, toolVersion)
     saveAssetDiagnostic(report)
@@ -171,15 +172,21 @@ function AccountBoundQuickRead({
     const candidate = convertAssetSnapshot(raw, { snapshotSha256: sha256 })
     let plan: AssetQuickReadImportPlan | null = null
     let issue: string | undefined
+    let issueFailure: unknown
     if (candidate.importable && targetAccountId) {
       try {
         plan = await prepareAssetQuickReadImport(targetAccountId, candidate)
       } catch (failure) {
         issue = message(failure)
+        issueFailure = failure
       }
     } else if (!targetAccountId) issue = '请先在页面顶部选择目标账户，再检查这份文件。'
     if (generation.current !== scope) return
-    if (issue || !candidate.importable) recordFailure('import')
+    if (issue || !candidate.importable)
+      recordFailure(
+        'import',
+        issueFailure ?? new AssetQuickReadImportError('import_review_required', issue ?? ''),
+      )
     setReview({ raw, candidate, plan, issue })
     setState('received')
   }
@@ -221,7 +228,7 @@ function AccountBoundQuickRead({
           }
         } catch (failure) {
           if (valid()) {
-            recordFailure(failureStage, failure)
+            recordFailure(failureStage, failure, ownedJob.current ?? currentJob)
             setError(message(failure))
             setState('error')
             if (active(ownedJob.current))
@@ -471,7 +478,7 @@ function AccountBoundQuickRead({
     })
   const prepareAgain = () =>
     runOperation('restart', async () => {
-      if (state !== 'completed') return
+      if (!['completed', 'error', 'stopped', 'timed_out'].includes(state) || active(job)) return
       generation.current++
       ownedJob.current = null
       setJob(null)
@@ -530,10 +537,12 @@ function AccountBoundQuickRead({
     }),
     [state, job, toolVersion],
   )
-  const taskExtras = (
+  const taskExtras = (status: { message: string; role: 'alert' | 'status' }) => (
     <>
       <AssetQuickReadFeedback
         report={showFailureDiagnostic ? diagnostic : workbench ? currentStatusDiagnostic : null}
+        workspaceMessage={status.message}
+        workspaceMessageRole={status.role}
       />
       {state === 'error' && active(job) && (
         <div className="asset-quick-read__recovery">
@@ -619,7 +628,7 @@ function AccountBoundQuickRead({
       canImport={accountReady && Boolean(review?.plan?.importable)}
       onImport={importResult}
       onDiscard={discardResult}
-      onPrepareAgain={prepareAgain}
+      onPrepareAgain={active(job) ? undefined : prepareAgain}
       onExport={review ? exportResult : undefined}
       elapsedSeconds={
         job?.readyAt && job.remainingSeconds !== null
@@ -670,7 +679,7 @@ function AccountBoundQuickRead({
       {entry}
       {!workbench && (
         <>
-          {taskExtras}
+          {taskExtras({ message: '', role: 'status' })}
           {recovery}
         </>
       )}

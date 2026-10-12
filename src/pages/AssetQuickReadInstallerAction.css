@@ -22,7 +22,10 @@
 .f5v-shell .scanner-workbench .asset-quick-read__actions > .asset-quick-read-installer {
   display: contents;
 }
-.f5v-shell .scanner-workbench .asset-quick-read__actions > button:first-child {
+.f5v-shell
+  .scanner-workbench
+  .asset-quick-read__actions:has(> .asset-quick-read-installer)
+  > button:first-child {
   width: 100%;
   min-width: 0;
 }

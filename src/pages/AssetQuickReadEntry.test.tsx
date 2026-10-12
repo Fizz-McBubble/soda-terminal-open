@@ -663,6 +663,7 @@ it('keeps failed task retry available without repeating idle preparation', async
   expect(screen.queryByRole('heading', { name: '准备游戏' })).not.toBeInTheDocument()
   expect(screen.queryByText(/资产快读安装包尚未发布，当前不能下载/)).not.toBeInTheDocument()
   expect(screen.getByText('合成工具错误')).toBeVisible()
+  expect(screen.queryByLabelText('游戏安装目录')).not.toBeInTheDocument()
   expect(screen.queryByText('重新读取', { selector: 'summary' })).not.toBeInTheDocument()
   const connect = screen.getByRole('button', { name: '连接资产快读' })
   expect(connect).toBeVisible()
@@ -680,6 +681,32 @@ it('keeps failed task retry available without repeating idle preparation', async
   expect(onStart).toHaveBeenCalledOnce()
   expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
   expect(screen.getByRole('button', { name: '一键读取' })).toBeEnabled()
+})
+
+it('returns failed workbench reads to preparation without restarting capture', async () => {
+  const onPrepareAgain = vi.fn()
+  const onStart = vi.fn()
+  render(
+    <AssetQuickReadEntry
+      state="timed_out"
+      capability="ready"
+      onPrepareAgain={onPrepareAgain}
+      onStart={onStart}
+      renderParts={({ preparation, task }) => (
+        <>
+          {preparation}
+          {task}
+        </>
+      )}
+    />,
+  )
+  expect(screen.queryByLabelText('游戏安装目录')).not.toBeInTheDocument()
+  const retry = screen.getByRole('button', { name: '一键读取' })
+  const back = screen.getByRole('button', { name: '返回' })
+  expect(retry.parentElement).toBe(back.parentElement)
+  await act(async () => fireEvent.click(back))
+  expect(onPrepareAgain).toHaveBeenCalledOnce()
+  expect(onStart).not.toHaveBeenCalled()
 })
 
 it('orders compact preparation before real tool status and directory settings', () => {

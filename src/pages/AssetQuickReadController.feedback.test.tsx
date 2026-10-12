@@ -11,6 +11,8 @@ import {
 import { AssetQuickReadController } from './AssetQuickReadController'
 import { AssetQuickReadRequestError } from '../assetQuickRead/diagnostics'
 import { readAssetDiagnostic } from '../assetQuickRead/feedback'
+import { AssetQuickReadImportError } from '../assetQuickRead/importErrors'
+import { AssetQuickReadUnavailableError } from '../assetQuickRead/launcher'
 
 vi.mock('../components/ExplanationPopover', () => import('../testing/ExplanationPopoverStub'))
 beforeEach(() => localStorage.clear())
@@ -91,4 +93,39 @@ it('records import failure only after the user import action', async () => {
   persistence.confirm.mockRejectedValue(new Error('private account error'))
   await act(async () => fireEvent.click(screen.getByRole('button', { name: '导入' })))
   expect(readAssetDiagnostic()).toMatchObject({ stage: 'import', code: 'import_failed' })
+  expect(readAssetDiagnostic()).toMatchObject({ evidence: {}, durationMs: null })
+})
+
+it('keeps the recovery quota reason without the captured job facts or account writes', async () => {
+  persistence.prepare.mockRejectedValue(
+    new AssetQuickReadImportError('import_recovery_limit_reached', '已达 10 份'),
+  )
+  mount()
+  await startAndReceive()
+  expect(readAssetDiagnostic()).toMatchObject({
+    stage: 'import',
+    code: 'import_recovery_limit_reached',
+    counts: { processed: null, total: null },
+    evidence: {},
+    durationMs: null,
+  })
+  expect(readAssetDiagnostic()!.counts).not.toHaveProperty('agents')
+  expect(persistence.confirm).not.toHaveBeenCalled()
+  expect(screen.getByRole('button', { name: '导入' })).toBeDisabled()
+})
+
+it('records unavailable transport during startup as a connection failure code', async () => {
+  const client = bridge()
+  client.start.mockRejectedValue(new AssetQuickReadUnavailableError('未能连接'))
+  mount(client)
+  await prepareStart()
+  await act(async () =>
+    fireEvent.click(screen.getByRole('button', { name: /^(开始本次资产快读|开始读取)$/ })),
+  )
+  expect(readAssetDiagnostic()).toMatchObject({
+    stage: 'startup',
+    code: 'bridge_unavailable',
+    evidence: {},
+    durationMs: null,
+  })
 })

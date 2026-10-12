@@ -253,7 +253,7 @@ export interface CalculationQueryClient {
   queryTeamOverviewPresentation(
     query: TeamOverviewPresentationQuery,
     /** Worker transport only; never accepted from a browser request. */
-    internal?: { sourceRun?: Pick<AccountDecisionRun, 'runId' | 'input'> },
+    internal?: { sourceRun?: Pick<AccountDecisionRun, 'runId' | 'input' | 'snapshot'> },
   ): Promise<import('../pages/teamLoadoutPresentationDto').TeamOverviewPresentationDto>
   queryTeamRoutePresentation(
     query: TeamRoutePresentationQuery,

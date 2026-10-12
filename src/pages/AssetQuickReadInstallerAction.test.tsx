@@ -146,9 +146,9 @@ it('shows the connected old Bridge upgrade in the compact preparation status', a
       onStart={vi.fn()}
       installer={
         <AssetQuickReadInstallerAction
-          release={{ ...release, version: '1.0.7', bridgeVersion: '1.0.3' }}
+          release={release}
           connected
-          toolVersion="1.0.2"
+          toolVersion="1.0.3"
         />
       }
       renderParts={({ preparation, task }) => (

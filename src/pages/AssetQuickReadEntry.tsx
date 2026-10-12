@@ -77,7 +77,9 @@ export interface AssetQuickReadEntryProps {
   riskNoticeHref?: string
   installer?: ReactNode
   downloadAvailable?: boolean
-  workbenchExtras?: ReactNode
+  workbenchExtras?:
+    | ReactNode
+    | ((status: { message: string; role: 'alert' | 'status' }) => ReactNode)
   pendingInspection?: boolean
   renderParts?: (parts: {
     preparation: ReactNode
@@ -89,8 +91,7 @@ export interface AssetQuickReadEntryProps {
 const stateCopy: Record<AssetQuickReadState, string> = {
   idle: '本次资产快读尚未启动。',
   starting: '资产快读正在准备。请保持游戏客户端完全退出，等待工具就绪后再启动并登录。',
-  capturing:
-    '资产快读已就绪，请完整启动游戏并登录。最长等待 3 分钟；收到所需数据后立即反馈。',
+  capturing: '资产快读已就绪，请完整启动游戏并登录。最长等待 3 分钟；收到所需数据后立即反馈。',
   received: '已收到数据，尚未导入当前账户。',
   timed_out: '本次等待已结束，未收到所需的完整数据。请检查游戏准备情况后再尝试，或改用画面扫描。',
   stopped: '本次资产快读已停止。已保存的本地结果不会自动删除，网络驱动也不会自动卸载。',
@@ -396,6 +397,13 @@ export function AssetQuickReadEntry({
       </div>
     </>
   )
+  const extras =
+    typeof workbenchExtras === 'function'
+      ? workbenchExtras({
+          message: compactStatus,
+          role: errorMessage || actionError ? 'alert' : 'status',
+        })
+      : workbenchExtras
   const connectionButton = (
     <>
       <button
@@ -617,7 +625,12 @@ export function AssetQuickReadEntry({
             <strong>{targetAccountName}</strong>
             <div className="asset-quick-read__actions">
               {onViewAssets && (
-                <button className="button" type="button" disabled={busy} onClick={onViewAssets}>
+                <button
+                  className="button button--primary"
+                  type="button"
+                  disabled={busy}
+                  onClick={onViewAssets}
+                >
                   查看我的资产
                 </button>
               )}
@@ -778,7 +791,21 @@ export function AssetQuickReadEntry({
               开始本次资产快读
             </button>
           )}
-          {installer}
+          {!stageActive && installer}
+          {stageActive && onPrepareAgain && (
+            <button
+              className="button button--quiet"
+              type="button"
+              disabled={actionBlocked}
+              onClick={() => {
+                setDisclosureOpen(false)
+                setAcknowledgedAccount(null)
+                void runAction('restart', onPrepareAgain)
+              }}
+            >
+              返回
+            </button>
+          )}
           {!renderParts && disclosureOpen && (
             <button className="button button--quiet" type="button" onClick={closeDisclosure}>
               关闭风险告知
@@ -845,7 +872,7 @@ export function AssetQuickReadEntry({
                   <div className="asset-quick-read__connection-summary">{status}</div>
                   {preparationActions}
                   {preparationTools}
-                  {workbenchExtras}
+                  {extras}
                 </div>
               )}
             </section>
@@ -875,18 +902,19 @@ export function AssetQuickReadEntry({
                 <>
                   {state !== 'completed' &&
                     (state !== 'received' || pendingAction || errorMessage || actionError) &&
+                    !(
+                      typeof workbenchExtras === 'function' &&
+                      (actionError || ['error', 'stopped', 'timed_out'].includes(state))
+                    ) &&
                     status}
                   {taskContent}
                   {stopButton}
                   {['error', 'stopped', 'timed_out'].includes(state) && (
-                    <div className="asset-quick-read__retry">
-                      {disclosure}
-                      {preparationTools}
-                    </div>
+                    <div className="asset-quick-read__retry">{disclosure}</div>
                   )}
                 </>
               )}
-              {workbenchExtras}
+              {extras}
             </div>
           ) : null,
         })}

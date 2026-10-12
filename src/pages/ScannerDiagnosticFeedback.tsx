@@ -30,11 +30,15 @@ export function ScannerDiagnosticFeedback({
   secondaryAction,
   compact = false,
   snapshot,
+  workspaceMessage,
+  workspaceMessageRole,
 }: {
   report: ScanDiagnosticReport | null
   secondaryAction?: ReactNode
   compact?: boolean
   snapshot?: ScannerAssistantSnapshot
+  workspaceMessage?: string
+  workspaceMessageRole?: 'alert' | 'status'
 }) {
   const [statusId] = useState(() => crypto.randomUUID())
   const safe = useMemo(() => {
@@ -67,7 +71,11 @@ export function ScannerDiagnosticFeedback({
   }, [reportKey])
   if (!safe || !reportKey)
     return compact ? (
-      <DiagnosticEntry title="扫描诊断" status="暂无扫描问题记录。">
+      <DiagnosticEntry
+        title="扫描诊断"
+        status={workspaceMessage || '暂无扫描问题记录。'}
+        statusRole={workspaceMessage ? workspaceMessageRole : undefined}
+      >
         <DiagnosticPopover
           title="扫描诊断"
           problem="暂无扫描问题记录。"
@@ -212,12 +220,14 @@ export function ScannerDiagnosticFeedback({
   return compact ? (
     <DiagnosticEntry
       title="扫描诊断"
+      statusRole={workspaceMessage ? workspaceMessageRole : undefined}
       status={
-        currentState?.receivedAt
+        workspaceMessage ||
+        (currentState?.receivedAt
           ? '本次反馈已发送。'
           : compact && !report && !isStatus
             ? `上次：${guidance.problem}`
-            : guidance.problem
+            : guidance.problem)
       }
     >
       {details}

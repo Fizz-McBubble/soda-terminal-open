@@ -211,7 +211,6 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
       setSelectedAccountId(account.id)
       setNewAccountName('')
       refreshAccounts()
-      setAccountMessage(`已创建“${account.displayName}”，本次操作将保存到此账户。`)
     } catch (error) {
       setAccountMessage(error instanceof Error ? error.message : '无法创建账户。')
     }
@@ -255,7 +254,7 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
       return
     }
     setHandoffState({ status: 'working', message: '正在读取扫描结果。' })
-    setAccountMessage('正在检查扫描结果。')
+    setAccountMessage('')
     const controller = new AbortController()
     readRef.current = controller
     const sourceSnapshot = latestSnapshotRef.current
@@ -417,7 +416,6 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
     setHandoffState({ status: 'working', message: '正在确认接收账户。' })
     try {
       const binding = await freezeSelectedTarget(assertCurrent)
-      setAccountMessage(`已确认“${binding.displayName}”作为本次已有结果的归属账户。`)
       await handOffResult(binding)
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') return

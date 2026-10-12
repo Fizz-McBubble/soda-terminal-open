@@ -447,6 +447,8 @@ describe('ScannerAssistantPage', () => {
     )
     expect(await database.accountDriveDiscs.count()).toBe(0)
     expect(screen.queryByText(/替换前 0 张|再次更新/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/已创建.*本次操作将保存/)).not.toBeInTheDocument()
+    expect(screen.getByRole('region', { name: '本次操作目标账户' }).children).toHaveLength(3)
     await waitFor(() => expect(screen.getByRole('button', { name: '开始扫描' })).toBeEnabled())
     expect(runtimeMock.commands.startScan).not.toHaveBeenCalled()
   })

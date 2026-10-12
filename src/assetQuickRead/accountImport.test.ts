@@ -505,7 +505,10 @@ describe('asset quick read isolated account transactions', () => {
         db,
       ),
     ).rejects.toThrow('明确确认')
-    await expect(prepareAssetQuickReadImport(accountId, input, db)).rejects.toThrow('已导入')
+    await expect(prepareAssetQuickReadImport(accountId, input, db)).rejects.toMatchObject({
+      diagnosticCode: 'import_snapshot_reused',
+      message: expect.stringContaining('已导入'),
+    })
     expect(await facts()).toEqual(after)
   })
   it('allows the same snapshot again only after explicit restore to exactly its original facts', async () => {
@@ -530,7 +533,10 @@ describe('asset quick read isolated account transactions', () => {
     const next = candidate()
     next.snapshotSha256 = 'f'.repeat(64)
     next.capturedAt = new Date(Date.parse(now) + 11_000).toISOString()
-    await expect(apply(next)).rejects.toThrow('已达 10 份')
+    await expect(apply(next)).rejects.toMatchObject({
+      diagnosticCode: 'import_recovery_limit_reached',
+      message: expect.stringContaining('已达 10 份'),
+    })
     expect(await facts()).toEqual(before)
     const copy = (await db.accountPreferences.toArray())[0]
     await removeSavedAssetQuickReadRecovery(

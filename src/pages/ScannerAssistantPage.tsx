@@ -251,9 +251,11 @@ function HydratedScannerAssistantPage({
     snapshot,
     handoffState.status === 'error'
       ? (handoffState.issueCode ?? 'scan_import_handoff_failed')
-      : actionFeedback
-        ? actionIssueCode
-        : null,
+      : accountMessage
+        ? 'scanner_workspace_failed'
+        : actionFeedback
+          ? actionIssueCode
+          : null,
   )
   const { jsonReadRef, fileReadMountedRef } = useScannerJsonReadIdentity({
     snapshot,
@@ -273,6 +275,7 @@ function HydratedScannerAssistantPage({
     inspectQuickFile?: (file: File) => Promise<void>,
   ) {
     if (!file || scannerBusy || backupPending) return
+    setAccountMessage('')
     filePendingRef.current = true
     setFilePending(true)
     setPreparingAnotherScan(true)
@@ -497,7 +500,6 @@ function HydratedScannerAssistantPage({
     )
   const scannerTask = (
     <>
-      {startPending && preparingNewScan && <p role="status">正在启动画面扫描…</p>}
       <ScannerPrepareSection
         showPreparation={showPreparation}
         fallbackJson={fallbackJson}
@@ -508,7 +510,7 @@ function HydratedScannerAssistantPage({
         selectedAccount={selectedAccount}
         stageHeadingRef={stageHeadingRef}
         onReturnToTargetSelection={() => void returnToTargetSelection()}
-        actionFeedback={actionFeedback}
+        actionFeedback={null}
         snapshot={snapshot}
         restartingAfterCompletedResult={restartingAfterCompletedResult}
         preparingNewScan={preparingNewScan}
@@ -686,6 +688,12 @@ function HydratedScannerAssistantPage({
                 : null
         const scannerActive = activeTask === 'scanner' || activeTask === 'scan-file'
         const methodActive = scannerActive || activeTask === 'quick-read'
+        const workspaceMessage =
+          (handoffState.status === 'error' ? '' : accountMessage) ||
+          (actionFeedback && !failureDiagnostic ? actionFeedback : '') ||
+          (startPending && preparingNewScan ? '正在启动画面扫描…' : '') ||
+          (filePending && !activeTask ? '正在识别本机文件…' : '')
+        const workspaceMessageRole = accountMessage || actionFeedback ? 'alert' : 'status'
         const newAccountForm = (
           <form
             onSubmit={(event) => {
@@ -795,11 +803,6 @@ function HydratedScannerAssistantPage({
                       }}
                     />
                   </label>
-                  {accountMessage && !inlineImportOpen && handoffState.status === 'idle' && (
-                    <p className="scanner-workbench__account-message" role="status">
-                      {accountMessage}
-                    </p>
-                  )}
                 </section>
                 <AssetCaptureRiskNotice />
                 <section
@@ -888,17 +891,14 @@ function HydratedScannerAssistantPage({
                                 void startBoundScan()
                               }}
                             />
-                            {actionFeedback && !failureDiagnostic && (
-                              <p className="scanner-task__feedback is-error" role="alert">
-                                {actionFeedback}
-                              </p>
-                            )}
                           </div>
                         )}
                         <ScannerDiagnosticFeedback
                           report={failureDiagnostic}
                           snapshot={snapshot}
                           compact
+                          workspaceMessage={workspaceMessage}
+                          workspaceMessageRole={workspaceMessageRole}
                           secondaryAction={
                             preparingNewScan &&
                             snapshot.state === 'completed' &&
@@ -934,7 +934,6 @@ function HydratedScannerAssistantPage({
                     </div>
                   </div>
                 </section>
-                {filePending && !activeTask && <p role="status">正在识别本机文件…</p>}
                 {activeTask === 'backup' && backupFile && (
                   <section
                     id="scanner-current-task"

@@ -2,6 +2,10 @@ import type { ScanDiagnosticReport } from '../scanner/diagnostics'
 
 type Guidance = { problem: string; nextAction: string }
 const guidance: Record<string, Guidance> = {
+  scanner_workspace_failed: {
+    problem: '账户或文件准备操作未完成。',
+    nextAction: '按当前具体提示检查账户或文件后重试；仍失败时可反馈此问题。',
+  },
   scanner_start_failed: {
     problem: '画面扫描未能启动。',
     nextAction: '运行安装包修复后重试；仍失败时请反馈此问题。',

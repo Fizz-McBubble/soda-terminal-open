@@ -13,6 +13,60 @@ import {
 } from './feedback'
 import { sanitizeScanFeedbackPayload } from '../../deploy/cloudflare/scan-feedback.mjs'
 import { assetQuickReadRelease } from './distribution'
+import { AssetQuickReadImportError } from './importErrors'
+import { AssetQuickReadUnavailableError } from './launcher'
+
+it.each(['connection', 'import'] as const)(
+  'does not attach a retained capture task to a %s failure',
+  (stage) => {
+    const report = assetFailureDiagnostic(stage, undefined, {
+      jobId: crypto.randomUUID(),
+      targetAccountId: 'unrelated-account',
+      state: 'capturing',
+      phase: 'capture',
+      code: 'capture_child_failed',
+      startedAt: '2026-10-11T00:00:00Z',
+      readyAt: null,
+      deadline: null,
+      remainingSeconds: 140,
+      counts: { agents: 33, discs: 374, engines: 1 },
+      candidateAvailable: false,
+    })
+    expect(report).toMatchObject({
+      stage,
+      code: stage === 'connection' ? 'bridge_unavailable' : 'import_failed',
+      counts: { processed: null, total: null },
+      durationMs: null,
+      evidence: {},
+    })
+    expect(report.counts).not.toHaveProperty('discs')
+    expect(sanitizeScanFeedbackPayload(report)).toEqual({ ok: true, record: report })
+  },
+)
+
+it('distinguishes an unavailable transport without claiming a specific browser or UAC cause', () => {
+  const report = assetFailureDiagnostic(
+    'startup',
+    new AssetQuickReadUnavailableError('private url and account', {
+      cause: new TypeError('private transport details'),
+    }),
+  )
+  expect(report).toMatchObject({ stage: 'startup', code: 'bridge_unavailable', evidence: {} })
+  expect(JSON.stringify(report)).not.toContain('private')
+})
+
+it.each(['import_recovery_limit_reached', 'import_snapshot_reused'] as const)(
+  'passes the fixed %s import reason through the cloud allowlist without the local explanation',
+  (code) => {
+    const report = assetFailureDiagnostic(
+      'import',
+      new AssetQuickReadImportError(code, 'private account and recovery details'),
+    )
+    expect(report).toMatchObject({ stage: 'import', code, evidence: {}, durationMs: null })
+    expect(sanitizeScanFeedbackPayload(report)).toEqual({ ok: true, record: report })
+    expect(JSON.stringify(report)).not.toContain('private')
+  },
+)
 
 it('keeps the released bridge version, final counts and timing through the cloud allowlist', () => {
   const report = assetFailureDiagnostic(

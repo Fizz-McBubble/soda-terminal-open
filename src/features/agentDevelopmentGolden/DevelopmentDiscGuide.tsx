@@ -37,7 +37,8 @@ const sourcePriority = (option: DiscOption) =>
     ? option.recommendationPriority!
     : Infinity
 const secondaryOrder = (option: DiscOption) => option.twoPiecePriority?.order ?? Infinity
-const previewLimit = 3
+const previewLimit = 4
+const secondaryPreviewLimit = 3
 
 function optionPriorityLabel(set: DiscOption, hasSharedPrimary: boolean) {
   if (set.recommendationPurpose === 'conditional') return '条件搭配'
@@ -179,7 +180,7 @@ export function DevelopmentDiscGuide({ guide }: { guide: DiscGuide }) {
             </dl>
           </ExplanationPopover>
           <div className="disc-guide__secondary-options" aria-label="搭配效果">
-            {secondary.slice(0, previewLimit).map((piece, index) => (
+            {secondary.slice(0, secondaryPreviewLimit).map((piece, index) => (
               <Fragment key={effectKey(piece)}>
                 {index > 0 ? (
                   <span className="disc-guide__secondary-separator" aria-hidden="true">
@@ -199,15 +200,15 @@ export function DevelopmentDiscGuide({ guide }: { guide: DiscGuide }) {
                 </span>
               </Fragment>
             ))}
-            {secondary.length > previewLimit ? (
+            {secondary.length > secondaryPreviewLimit ? (
               <ExplanationPopover
                 key={guideKey}
                 className="disc-guide__more"
-                label={`更多副套（${secondary.length - previewLimit}）`}
+                label={`更多副套（${secondary.length - secondaryPreviewLimit}）`}
                 title="更多两件套搭配"
               >
                 <dl>
-                  {secondary.slice(previewLimit).map((piece) => (
+                  {secondary.slice(secondaryPreviewLimit).map((piece) => (
                     <div key={effectKey(piece)}>
                       <dt>{piece.name} 2件</dt>
                       <dd>

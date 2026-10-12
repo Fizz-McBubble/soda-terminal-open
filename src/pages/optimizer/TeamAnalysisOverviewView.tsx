@@ -84,7 +84,9 @@ export function TeamAnalysisOverviewView({
     decisionWorld.status === 'current' &&
     decisionWorld.run.input.warehouse.accountId === result.warehouse.accountId &&
     decisionWorld.liveFingerprint === result.inputFingerprint &&
-    result.decisionSnapshot.fingerprint.inputHash === result.inputFingerprint
+    (result.sourceRunId
+      ? decisionWorld.run.runId === result.sourceRunId
+      : result.decisionSnapshot.fingerprint.inputHash === result.inputFingerprint)
 
   const visibleOverviewModel = fitsAreCurrent
     ? (result.fitOverviewModel ?? result.overviewModel)

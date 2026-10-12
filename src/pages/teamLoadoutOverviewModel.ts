@@ -42,6 +42,8 @@ export type * from './teamLoadoutOverviewTypes'
 
 type BuildOverviewModelInput = {
   decision: AccountDecisionSnapshot
+  /** Saved teams retain their exact authority from the full BOX before reservations. */
+  savedPlanDecision?: AccountDecisionSnapshot
   savedPlans: AccountPlanningDraft[]
   warehouse?: Pick<CoreWarehouse, 'roster' | 'discs'>
   /**
@@ -194,6 +196,7 @@ function recommendationFamilies(recommendations: TeamLoadoutOverviewItem[]) {
 
 export function buildTeamLoadoutOverviewModel({
   decision,
+  savedPlanDecision = decision,
   savedPlans,
   warehouse,
   ownedAgentIds,
@@ -213,8 +216,8 @@ export function buildTeamLoadoutOverviewModel({
     )
     .map((plan) =>
       savedPlanItem(plan, {
-        currentAuthority: currentAuthorityForSavedPlan(plan, decision.decisionAuthority),
-        currentTeamRating: currentTeamRatingForSavedPlan(plan, decision.decisionAuthority),
+        currentAuthority: currentAuthorityForSavedPlan(plan, savedPlanDecision.decisionAuthority),
+        currentTeamRating: currentTeamRatingForSavedPlan(plan, savedPlanDecision.decisionAuthority),
         availableDiscIds,
         warehouse,
       }),

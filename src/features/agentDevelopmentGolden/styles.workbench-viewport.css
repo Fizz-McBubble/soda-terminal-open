@@ -116,28 +116,36 @@
     grid-template-columns: minmax(0, 1fr) minmax(220px, 0.32fr);
     grid-template-rows: auto auto;
     height: auto;
-    gap: 10px;
+    gap: 8px 16px;
     padding: 12px;
   }
   .f5v-shell .workbench--single-page .disc-guide__heading {
     justify-content: flex-start;
     gap: 8px 16px;
     grid-column: 1;
+    grid-row: 1;
+    align-self: start;
   }
   .f5v-shell .workbench--single-page .disc-guide__heading > .explanation:first-of-type {
     margin-left: auto;
   }
   .f5v-shell .workbench--single-page .loadout-disc-options {
+    grid-column: 1;
+    grid-row: 2;
+    min-width: 0;
+    align-self: start;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px 16px;
     margin: 0;
   }
   .f5v-shell .workbench--single-page .disc-guide .loadout-main-stat-priority {
     grid-column: 2;
-    grid-row: 1 / 3;
+    grid-row: 2;
     grid-template-columns: 1fr;
-    align-content: center;
+    align-content: start;
     gap: 8px;
+    margin-top: 0;
+    padding-top: 0;
     padding-left: 12px;
     border-left: 1px solid var(--soda-line);
   }
@@ -459,6 +467,8 @@
 
 .f5v-shell .workbench--single-page .workbench-main {
   height: auto;
+  grid-template-rows: auto auto;
+  align-self: start;
   align-content: start;
 }
 .f5v-shell .workbench--single-page .current-overview {

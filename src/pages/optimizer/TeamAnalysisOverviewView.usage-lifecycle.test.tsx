@@ -1,9 +1,11 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, renderHook, screen, waitFor } from '@testing-library/react'
 import { beforeEach, expect, it, vi } from 'vitest'
 import type { ComponentProps } from 'react'
 import type { CoreWarehouse } from '../../accounts/coreWarehouse'
 import { TeamAnalysisOverviewView } from './TeamAnalysisOverviewView'
 import { currentTeamAnalysisSession, setCurrentTeamAnalysisSession } from '../teamAnalysisSession'
+import { useTeamPickerQueries } from './useTeamPickerQueries'
+import { teamLoadoutPresentationContract } from '../teamLoadoutPresentationDto'
 
 const mocks = vi.hoisted(() => ({ navigate: vi.fn(), outcome: vi.fn() }))
 vi.mock('react-router-dom', () => ({ useNavigate: () => mocks.navigate }))
@@ -52,7 +54,11 @@ function deferred<T>() {
 }
 
 type Props = ComponentProps<typeof TeamAnalysisOverviewView>
-function setup(queryTeamRoute: ReturnType<typeof vi.fn>, calculate: ReturnType<typeof vi.fn>) {
+function setup(
+  queryTeamRoute: ReturnType<typeof vi.fn>,
+  calculate: ReturnType<typeof vi.fn>,
+  remainingBox = false,
+) {
   const warehouse: CoreWarehouse = {
     accountId: 'account',
     account: null,
@@ -70,9 +76,10 @@ function setup(queryTeamRoute: ReturnType<typeof vi.fn>, calculate: ReturnType<t
     warehouse,
     analysisRunId: 'run',
     inputFingerprint: 'fingerprint',
+    ...(remainingBox ? { sourceRunId: 'source', reservations: [{ planId: 'saved-first' }] } : {}),
     capturedAt: new Date(),
     decisionSnapshot: {
-      fingerprint: { inputHash: 'fingerprint' },
+      fingerprint: { inputHash: remainingBox ? 'remaining-fingerprint' : 'fingerprint' },
       hardConstraints: { active: [] },
       portfolioInput: { preference: { teamCount: 1 } },
     },
@@ -88,7 +95,10 @@ function setup(queryTeamRoute: ReturnType<typeof vi.fn>, calculate: ReturnType<t
     decisionWorld: {
       status: 'current',
       liveFingerprint: 'fingerprint',
-      run: { input: { warehouse: { accountId: 'account' } } },
+      run: {
+        runId: remainingBox ? 'source' : 'run',
+        input: { warehouse: { accountId: 'account' } },
+      },
     },
     queryTeamRoute,
     calculateTargetTeamWarehouseFit: calculate,
@@ -162,4 +172,55 @@ it('records cancellation when a superseded route returns before calculation', as
   expect(calculate.mock.calls).toEqual([['run', 'B']])
   expect(mocks.outcome.mock.calls).toEqual([['success'], ['cancelled']])
   expect(mocks.navigate.mock.calls).toEqual([['/B']])
+})
+
+it('calculates a current remaining-BOX fit despite its detached input fingerprint', async () => {
+  const calculate = vi.fn().mockResolvedValue({ status: 'ready', candidateId: 'A' })
+  const props = setup(vi.fn().mockResolvedValue(entry('A')), calculate, true)
+  fireEvent.click(screen.getByText('Generate A'))
+  await waitFor(() => expect(calculate).toHaveBeenCalledWith('run', 'A'))
+  expect(currentTeamAnalysisSession?.result.targetTeamFits).toEqual({
+    A: { status: 'ready', candidateId: 'A' },
+  })
+  expect(props.queueFitOverview).toHaveBeenCalledOnce()
+})
+
+it('refreshes the exact remaining overview after a fit and keeps the source reservations', async () => {
+  setup(vi.fn(), vi.fn(), true)
+  const active = currentTeamAnalysisSession!
+  const fits = {
+    A: { status: 'ready', candidateId: 'A' },
+  } as unknown as typeof active.result.targetTeamFits
+  setCurrentTeamAnalysisSession({ ...active, result: { ...active.result, targetTeamFits: fits } })
+  const model = { answer: {}, coverage: {}, groups: [] }
+  const query = vi.fn().mockResolvedValue({
+    contract: teamLoadoutPresentationContract,
+    runId: 'run',
+    accountId: 'account',
+    inputFingerprint: 'remaining-fingerprint',
+    context: { agentId: null, planId: null, discId: null },
+    overviewModel: model,
+  })
+  const { result } = renderHook(() =>
+    useTeamPickerQueries({
+      calculationClient: { queryTeamOverviewPresentation: query } as unknown as Parameters<
+        typeof useTeamPickerQueries
+      >[0]['calculationClient'],
+      releaseRun: vi.fn(),
+      setAnalysis: vi.fn(),
+      setOverviewFeedback: vi.fn(),
+    }),
+  )
+  act(() => result.current.queueFitOverview(active.result, fits))
+  await waitFor(() =>
+    expect(query).toHaveBeenCalledWith(
+      expect.objectContaining({
+        runId: 'run',
+        sourceRunId: 'source',
+        reservedPlanIds: ['saved-first'],
+        fitCandidateIds: ['A'],
+      }),
+    ),
+  )
+  await waitFor(() => expect(currentTeamAnalysisSession?.result.fitOverviewModel).toEqual(model))
 })

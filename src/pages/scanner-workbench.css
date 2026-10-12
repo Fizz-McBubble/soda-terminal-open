@@ -151,10 +151,6 @@
   font-weight: 500;
   white-space: nowrap;
 }
-.f5v-shell .scanner-workbench__account-message {
-  grid-column: 1 / -1;
-  margin: 0;
-}
 .f5v-shell .scanner-workbench__new-account {
   grid-area: create;
   min-width: 0;
@@ -260,12 +256,12 @@
   color: var(--f5-muted);
 }
 .f5v-shell .scanner-workbench .scanner-prepare--compact .scanner-prepare__actions,
-.f5v-shell .scanner-workbench .asset-quick-read--compact .asset-quick-read__actions {
+.f5v-shell .scanner-workbench .asset-quick-read__actions {
   gap: 10px;
   margin-top: 0;
 }
 .f5v-shell .scanner-workbench .scanner-prepare--compact .scanner-prepare__actions > button,
-.f5v-shell .scanner-workbench .asset-quick-read--compact .asset-quick-read__actions > .button {
+.f5v-shell .scanner-workbench .asset-quick-read__actions > .button {
   box-sizing: border-box;
   width: 168px;
   min-width: 0;
@@ -274,15 +270,21 @@
   padding: 0 12px;
   font-size: 14px;
   line-height: 1.4;
+  white-space: nowrap;
 }
-.f5v-shell .scanner-workbench .asset-quick-read.asset-quick-read--compact .button.button--primary {
+.f5v-shell .scanner-workbench__quick .button.button--primary {
   border: 0;
   background: linear-gradient(135deg, #75689f, #625685);
   color: #fff;
 }
-.f5v-shell .scanner-workbench .asset-quick-read.asset-quick-read--compact .button.button--quiet {
+.f5v-shell .scanner-workbench__quick .button.button--quiet {
   color: var(--f5-accent);
   background: rgba(255, 255, 255, 0.68);
+}
+.f5v-shell .scanner-workbench .asset-quick-read__complete .asset-quick-read__actions > .button {
+  width: auto;
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 .f5v-shell .scanner-workbench .asset-quick-read__tool-status {
   font-weight: 700;

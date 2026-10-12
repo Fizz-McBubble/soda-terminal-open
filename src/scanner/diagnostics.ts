@@ -135,6 +135,7 @@ const stages: Record<string, string> = {
   scan_import_handoff_failed: 'import',
   scan_import_failed: 'import',
   scan_file_invalid: 'import',
+  scanner_workspace_failed: 'preflight',
 }
 export function diagnosticFromSnapshot(
   snapshot: ScannerAssistantSnapshot,
@@ -152,8 +153,9 @@ export function diagnosticFromSnapshot(
     ) ?? candidates.find((value) => typeof value === 'string' && contract.codes.includes(value))
   const connectionIssue = Boolean(
     issueCode &&
-    stages[issueCode] === 'connection' &&
-    object(raw.evidence).diagnosticSource !== 'browser_connection',
+    (issueCode === 'scanner_workspace_failed' ||
+      (stages[issueCode] === 'connection' &&
+        object(raw.evidence).diagnosticSource !== 'browser_connection')),
   )
   return sanitizeScanDiagnostic({
     ...raw,

@@ -208,7 +208,7 @@ export function Workbench({
                   {subject.graduation.skills.map((skill) => (
                     <span className={skill.priority ? 'priority' : undefined} key={skill.label}>
                       <small>{skill.label}</small>
-                      <b>{presentationTargetLevel(skill.recommended)}</b>
+                      <b title={skill.recommended}>{presentationTargetLevel(skill.recommended)}</b>
                     </span>
                   ))}
                 </div>

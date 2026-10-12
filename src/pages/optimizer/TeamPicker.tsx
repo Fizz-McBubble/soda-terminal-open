@@ -208,7 +208,6 @@ export function TeamPicker() {
   useEffect(() => {
     if (
       analysis.kind !== 'complete' ||
-      analysis.result.sourceRunId ||
       analysis.result.fitOverviewModel ||
       !Object.keys(analysis.result.targetTeamFits).length ||
       decisionWorld.status !== 'current' ||

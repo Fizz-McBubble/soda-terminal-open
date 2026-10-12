@@ -96,6 +96,39 @@ it('shows only the product version and keeps internal versions out of the summar
   expect(view.container).not.toHaveTextContent('2.3.11')
   expect(view.container).not.toHaveTextContent('v1.0.10')
 })
+it('keeps workspace errors in the existing diagnostic status without sending private text', async () => {
+  const fetcher = vi
+    .fn()
+    .mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          status: 'received',
+          reportId: '2bb3e219-8526-4157-a687-3cda97f3c900',
+          receivedAt: '2026-10-12T00:00:00Z',
+        }),
+        { status: 200 },
+      ),
+    )
+  vi.stubGlobal('fetch', fetcher)
+  const report = { ...makeReport(), code: 'scanner_workspace_failed' }
+  render(
+    <ScannerDiagnosticFeedback
+      report={report}
+      workspaceMessage="合成账户操作失败"
+      workspaceMessageRole="alert"
+      compact
+    />,
+  )
+  const entry = screen.getByRole('region', { name: '扫描诊断' })
+  expect(entry.children).toHaveLength(2)
+  expect(entry.children[1]).toBe(screen.getByRole('alert'))
+  expect(entry.children[1]).toHaveTextContent('合成账户操作失败')
+  expect(fetcher).not.toHaveBeenCalled()
+  fireEvent.click(screen.getByRole('button', { name: '反馈此问题' }))
+  await waitFor(() => expect(fetcher).toHaveBeenCalledOnce())
+  expect(JSON.parse(fetcher.mock.calls[0]![1].body).code).toBe('scanner_workspace_failed')
+  expect(fetcher.mock.calls[0]![1].body).not.toContain('合成账户')
+})
 it('copies, downloads and restores the acknowledged ID after a conflict retry', async () => {
   const report = makeReport()
   saveLastScanDiagnostic(report)

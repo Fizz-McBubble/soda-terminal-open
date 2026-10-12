@@ -167,6 +167,36 @@ function skillPriorityWithLegacyFallback(
   return sourceDirections.length ? skillPriorityFromDirections(sourceDirections) : legacyPriority
 }
 
+/** The source's first investment tier, separate from Soda's ordinal budget bands. */
+function skillPrimaryPriorityWithLegacyFallback(
+  sourceDirections: readonly string[],
+  legacyPriority: readonly string[],
+) {
+  if (!sourceDirections.length) return legacyPriority.slice(0, 1)
+  if (
+    sourceDirections.every((direction) =>
+      fallbackSkillPriority.some(
+        (key) => direction.trim().toLowerCase() === key || direction.trim() === skillLabels[key],
+      ),
+    )
+  )
+    return skillPriorityFromDirections(sourceDirections).slice(0, 1)
+  const primary = sourceDirections.flatMap((direction) => {
+    const ordered = skillPriorityFromDirections([direction])
+    if (!ordered.length) return []
+    // A plain ordered list establishes only its first skill as the first tier.
+    if (/(?:按页面顺序投入|加点顺序)/u.test(direction)) return ordered.slice(0, 1)
+    // Keep all explicitly co-prioritized skills; stop before the next tier.
+    const firstTier = direction.split(/(?:其次|次之|最后|其余|然后|[>＞])/u)[0]!
+    return ordered.filter(
+      (key) =>
+        skillPriorityAliases[key].some((alias) => firstTier.includes(alias)) ||
+        firstTier.trim().toLowerCase() === key,
+    )
+  })
+  return [...new Set(primary)]
+}
+
 /** Explicit target clauses are independent of investment order (11+ is not a rank). */
 function skillTargetsFromDirections(directions: readonly string[]) {
   const targets: Partial<Record<SkillPriorityKey, string>> = {}
@@ -445,6 +475,7 @@ export {
   skillLabels,
   skillPriorityFromDirections,
   skillPriorityWithLegacyFallback,
+  skillPrimaryPriorityWithLegacyFallback,
   skillTargetsFromDirections,
   teamDirectionsFromAuthority,
   teamDirectionsFromProfile,

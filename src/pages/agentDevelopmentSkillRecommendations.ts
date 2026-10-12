@@ -3,6 +3,7 @@ import { getCurrentAgentEventContract } from '../calculation/currentAgentMechani
 import { fieldTimeIndependentSkillInvestment } from '../calculation/skillInvestmentPolicy'
 import {
   skillLabels,
+  skillPrimaryPriorityWithLegacyFallback,
   skillPriorityWithLegacyFallback,
   skillTargetsFromDirections,
 } from './agentDevelopmentWorkbenchModel'
@@ -18,6 +19,8 @@ export function agentDevelopmentSkillRecommendations(
   const priority = (
     remielle?.primaryPriority ?? skillPriorityWithLegacyFallback(directions, legacyPriority)
   ).filter((key): key is keyof typeof skillLabels => key in skillLabels)
+  const primaryPriority =
+    remielle?.primaryPriority ?? skillPrimaryPriorityWithLegacyFallback(directions, legacyPriority)
   const contract = getCurrentAgentEventContract(agentId)
   const scalable = new Set(contract?.eventContract.events.map((event) => event.skill) ?? [])
   const skills = Object.entries(skillLabels).map(([rawKey, label]) => {
@@ -51,7 +54,7 @@ export function agentDevelopmentSkillRecommendations(
         sourcedTargetLevel === null || sourcedTargetLevel < 7
           ? '7'
           : (explicit ?? (lowInvestment ? '可保持 7' : investment.label)),
-      priority: investment.band === 'max_priority',
+      priority: primaryPriority.includes(key),
     }
   })
   return { targets, priority, skills }

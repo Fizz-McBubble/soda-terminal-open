@@ -9,5 +9,9 @@ export const specialtyIconIds: Record<string, { entityId: string; name: string }
 }
 
 export function presentationTargetLevel(recommended: string) {
-  return recommended.match(/(\d+\+?)(?!.*\d)/)?.[1] ?? recommended
+  // F is the canonical seven-level core cap. A source's '+' is a minimum,
+  // never permission to round the target up to the next exact level.
+  if (recommended.trim() === 'F') return '7'
+  const level = recommended.match(/(\d+)(\+?)(?!.*\d)/)
+  return level ? `${level[2] ? '≥' : ''}${level[1]}` : recommended
 }

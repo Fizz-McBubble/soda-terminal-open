@@ -14,6 +14,7 @@ import { preflightDriveDiscImport } from '../domain/discImport'
 import { driveDiscSchema } from '../domain/schemas'
 import type { AssetQuickReadCandidate } from './snapshotAdapter'
 import { mergeAssetQuickReadRoster } from './accountRosterMerge'
+import { AssetQuickReadImportError } from './importErrors'
 
 type AccountFacts = { discs: AccountDriveDisc[]; roster: AccountRosterRecord | null }
 type Recovery = {
@@ -42,14 +43,20 @@ async function assertSnapshotAvailable(
       !existing.value.restoredAt ||
       factHash(await readFacts(accountId, db)) !== existing.value.beforeHash)
   )
-    throw new Error('这份快照已导入或恢复后账户已有其他修改，请使用新的读取结果。')
+    throw new AssetQuickReadImportError(
+      'import_snapshot_reused',
+      '这份快照已导入或恢复后账户已有其他修改，请使用新的读取结果。',
+    )
   if (
     !existing &&
     (await db.accountPreferences.where('accountId').equals(accountId).toArray()).filter((row) =>
       row.key.startsWith('asset-quick-read-recovery-'),
     ).length >= assetQuickReadRecoveryLimit
   )
-    throw new Error('资产快读恢复副本已达 10 份，请先在账户与备份保管恢复副本后再继续。')
+    throw new AssetQuickReadImportError(
+      'import_recovery_limit_reached',
+      '资产快读恢复副本已达 10 份，请先在账户与备份保管恢复副本后再继续。',
+    )
   return existing
 }
 

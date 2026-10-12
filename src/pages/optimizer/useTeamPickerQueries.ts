@@ -138,7 +138,6 @@ export function useTeamPickerQueries({
     result: TeamAnalysisResult,
     fits: Record<string, TargetTeamWarehouseFitQueryResult>,
   ) => {
-    if (result.sourceRunId) return
     void queryFitOverview(result, fits)
       .then((model) => {
         const active = currentTeamAnalysisSession

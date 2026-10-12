@@ -50,6 +50,12 @@
 .f5v-shell .warehouse-workbench__header .warehouse-workbench__notice {
   white-space: nowrap;
   font-size: var(--soda-font-caption);
+  margin-top: 6px;
+  padding: 7px 10px;
+  border: 1px solid #ead7ac;
+  border-radius: 8px;
+  background: #fff4dc;
+  color: #624719;
 }
 .f5v-shell .warehouse-workbench__actions {
   display: flex;

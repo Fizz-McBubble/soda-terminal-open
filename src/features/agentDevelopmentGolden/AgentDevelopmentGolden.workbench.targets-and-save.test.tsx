@@ -11,8 +11,42 @@ import {
   workbench,
 } from './AgentDevelopmentGolden.workbench.testFixture'
 import type { GoldenTop10Data } from './AgentDevelopmentGolden.workbench.testFixture'
+import { agentDevelopmentSkillRecommendations } from '../../pages/agentDevelopmentSkillRecommendations'
+import { getProjectedBuildKnowledgeProfile } from '../../gameDataPacks/agentProfile'
 
 describe('AgentDevelopmentGolden warehouse candidate controls', () => {
+  it('renders Seed sourced levels numerically while preserving minima and the confirmed priority marks', () => {
+    const directions = getProjectedBuildKnowledgeProfile('agent-seed').recommendation!.skillPriority
+    const { skills } = agentDevelopmentSkillRecommendations('agent-seed', directions, [])
+    const { container } = render(
+      <AgentDevelopmentGolden
+        initialView="workbench"
+        workbench={{
+          ...workbench,
+          agentId: 'agent-seed',
+          graduation: { ...workbench.graduation, skills },
+        }}
+      />,
+    )
+    const levels = [
+      ...container.querySelectorAll(
+        '.skill-comparison__target[aria-label="技能推荐等级"] > div > span',
+      ),
+    ]
+    expect(levels.map((node) => node.querySelector('b')?.textContent)).toEqual([
+      '12',
+      '≥7',
+      '≥7',
+      '≥11',
+      '≥11',
+      '7',
+    ])
+    expect(
+      levels
+        .filter((node) => node.classList.contains('priority'))
+        .map((node) => node.querySelector('small')?.textContent),
+    ).toEqual(['普攻', '核心技'])
+  })
   it('keeps the saved candidate selected when refreshed results move it to another rank', async () => {
     const user = userEvent.setup()
     const save = vi.fn().mockResolvedValue(undefined)

@@ -22,7 +22,7 @@ export function projectPrivateTeamOverview(
     planId: null,
     discId: null,
   },
-  source?: Pick<AccountDecisionRun, 'runId' | 'input'>,
+  source?: Pick<AccountDecisionRun, 'runId' | 'input' | 'snapshot'>,
   fits: readonly TargetTeamWarehouseFitQueryResult[] = [],
 ): TeamOverviewPresentationDto {
   const warehouse = source?.input.warehouse ?? run.input.warehouse
@@ -38,6 +38,7 @@ export function projectPrivateTeamOverview(
     overviewModel: projectTargetTeamFitsIntoOverviewModel(
       buildTeamLoadoutOverviewModel({
         decision: run.snapshot,
+        savedPlanDecision: source?.snapshot,
         savedPlans: source?.input.drafts ?? run.input.drafts,
         warehouse,
         availableDiscIds: warehouse.discs.map((disc) => disc.id),
