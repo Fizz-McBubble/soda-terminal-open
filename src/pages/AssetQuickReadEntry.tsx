@@ -208,9 +208,9 @@ export function AssetQuickReadEntry({
   )
 
   useEffect(() => {
-    if (state === 'received' && preview?.snapshotId)
+    if (state === 'received' && preview?.snapshotId && !pendingInspection)
       focusScannerWorkspaceTarget(resultHeading.current, true)
-  }, [state, preview?.snapshotId])
+  }, [state, preview?.snapshotId, pendingInspection])
 
   function closeDisclosure() {
     setDisclosureOpen(false)

@@ -392,6 +392,28 @@ it('opens risk consent only on an explicit compact read and clears it after star
   expect(screen.getByRole('button', { name: '开始读取' })).toBeDisabled()
 })
 
+it('focuses received results when file inspection finishes after the candidate arrives', () => {
+  const props = {
+    state: 'received' as const,
+    preview,
+    onExport: vi.fn(),
+    renderParts: ({ task }: { task: React.ReactNode }) => task,
+  }
+  const view = render(<AssetQuickReadEntry {...props} pendingInspection />)
+  expect(screen.queryByRole('heading', { name: '本次读取结果' })).not.toBeInTheDocument()
+  expect(screen.getByRole('status')).toHaveTextContent('正在检查本机资产快读文件')
+
+  view.rerender(<AssetQuickReadEntry {...props} pendingInspection={false} />)
+  expect(screen.getByRole('heading', { name: '本次读取结果' })).toHaveFocus()
+
+  const details = screen.getByRole('button', { name: '导出' })
+  details.focus()
+  view.rerender(
+    <AssetQuickReadEntry {...props} pendingInspection={false} transactionNotice="普通状态更新" />,
+  )
+  expect(details).toHaveFocus()
+})
+
 it('focuses a new received candidate once without stealing focus on ordinary rerenders', () => {
   const parts = ({
     preparation,
