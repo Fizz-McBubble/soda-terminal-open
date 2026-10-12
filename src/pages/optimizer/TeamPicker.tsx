@@ -284,7 +284,9 @@ export function TeamPicker() {
     const scrollOwner = document.querySelector<HTMLElement>('[data-f5-scroll-owner]')
     scrollOwner?.scrollTo?.({ top: 0, left: 0 })
     const timer = window.setTimeout(() => {
-      document.querySelector<HTMLElement>('.f5v-box-team-overview h1')?.focus()
+      document
+        .querySelector<HTMLElement>('.f5v-box-team-overview h1, .workbench-empty-state h1')
+        ?.focus()
     }, 0)
     return () => window.clearTimeout(timer)
   }, [analysis.kind])

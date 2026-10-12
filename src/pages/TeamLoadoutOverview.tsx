@@ -238,24 +238,35 @@ export function TeamLoadoutOverview({
 
   if (!families.length && !completionOnlyGroups.length) {
     const blocker = answer.blockers.find((text) => text !== answer.summary)
+    const description = [
+      ...new Set(
+        [
+          answer.summary,
+          blocker,
+          contextNote,
+          !coverage.available ? '部分代理人资料待补齐；仅显示资料完整的队伍。' : null,
+          analysisStale ? '结果已过期。' : null,
+        ].filter((text): text is string => Boolean(text)),
+      ),
+    ].join(' ')
     return (
       <WorkbenchEmptyState
         title="当前没有可展示的队伍建议"
-        description={answer.summary}
+        description={description}
         action={
-          <button className="button button--primary" type="button" onClick={onEmptyAction}>
-            前往代理人资产
-          </button>
+          <>
+            <button className="button button--primary" type="button" onClick={onEmptyAction}>
+              前往代理人资产
+            </button>
+            {analysisStale && onReanalyze ? (
+              <button className="button" type="button" onClick={onReanalyze}>
+                重新分析当前队伍
+              </button>
+            ) : null}
+          </>
         }
       >
-        {blocker ? <p>{blocker}</p> : null}
-        {contextNote && contextNote !== answer.summary ? <p>{contextNote}</p> : null}
         {scopeActions}
-        {analysisStale && onReanalyze ? (
-          <button className="button" type="button" onClick={onReanalyze}>
-            重新分析当前队伍
-          </button>
-        ) : null}
       </WorkbenchEmptyState>
     )
   }

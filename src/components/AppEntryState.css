@@ -91,6 +91,10 @@
   margin: 0;
 }
 
+.workbench-empty-state > .f5v-remaining-box-toolbar {
+  margin: 0;
+}
+
 .workbench-empty-state__actions > .button {
   flex: 0 0 auto;
   width: auto;
