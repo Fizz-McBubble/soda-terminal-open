@@ -64,7 +64,7 @@ describe('click-scoped independent service launcher', () => {
         sleep: vi.fn().mockResolvedValue(undefined),
       }),
     ).rejects.toThrow('先下载并完成安装')
-    expect(probe).toHaveBeenCalledTimes(9)
+    expect(probe).toHaveBeenCalledTimes(87)
     expect(protocolLauncher).toHaveBeenCalledOnce()
   })
   it('an aborted connection cannot launch or continue polling', async () => {
@@ -82,5 +82,42 @@ describe('click-scoped independent service launcher', () => {
     ).rejects.toThrow()
     expect(probe).not.toHaveBeenCalled()
     expect(protocolLauncher).not.toHaveBeenCalled()
+  })
+  it('retries until the service becomes ready within the bounded deadline (e.g. 6s cold start)', async () => {
+    vi.useFakeTimers()
+    const began = Date.now()
+    const launch = vi.fn()
+    const probe = vi.fn(async () => {
+      if (Date.now() - began < 6000) throw missing()
+      return 'ready'
+    })
+    const pending = awaitAssetQuickReadService({
+      probe,
+      protocolLauncher: launch,
+      launchIfMissing: true,
+    })
+    await vi.advanceTimersByTimeAsync(2800)
+    expect(launch).toHaveBeenCalledOnce()
+    await vi.advanceTimersByTimeAsync(3500)
+    await expect(pending).resolves.toBe('ready')
+    expect(launch).toHaveBeenCalledOnce()
+    vi.useRealTimers()
+  })
+  it('fails only after the full bounded deadline (approx 30s) is exhausted', async () => {
+    vi.useFakeTimers()
+    const launch = vi.fn()
+    const probe = vi.fn().mockRejectedValue(missing())
+    const pending = awaitAssetQuickReadService({
+      probe,
+      protocolLauncher: launch,
+      launchIfMissing: true,
+    })
+    await vi.advanceTimersByTimeAsync(29000)
+    expect(launch).toHaveBeenCalledOnce()
+    const rejected = expect(pending).rejects.toThrow('资产快读尚未启动')
+    await vi.advanceTimersByTimeAsync(2000)
+    await rejected
+    expect(launch).toHaveBeenCalledOnce()
+    vi.useRealTimers()
   })
 })

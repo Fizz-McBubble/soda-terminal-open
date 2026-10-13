@@ -57,7 +57,7 @@ export function normalizeObservedAgentFacts(input: unknown): ObservedAgentFacts 
     : undefined
 }
 
-/** A valid marker protects only a populated, valid value of its exact allowlisted field. */
+/** A marker protects valid values, including a deliberately observed empty equipment state. */
 export function getObservedAgentFieldValue(agent: unknown, field: ObservedAgentField): unknown {
   if (!agent || typeof agent !== 'object') return undefined
   const record = agent as Record<string, unknown>
@@ -77,9 +77,16 @@ export function hasObservedAgentField(agent: RosterAgent, field: ObservedAgentFi
   if (field === 'equippedDiscIds')
     return (
       Array.isArray(value) &&
-      value.length > 0 &&
       value.length <= 6 &&
       value.every((id) => typeof id === 'string' && id.trim().length > 0)
+    )
+  if (field === 'wEngineDetails.id' && value === null)
+    return (
+      agent.wEngineDetails.name === null &&
+      agent.wEngineDetails.level === null &&
+      agent.wEngineDetails.refinement === null &&
+      agent.wEngineDetails.ascension == null &&
+      agent.wEngineDetails.manualProgression === undefined
     )
   if (field === 'wEngineDetails.id' || field === 'wEngineDetails.name')
     return typeof value === 'string' && value.trim().length > 0

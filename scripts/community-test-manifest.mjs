@@ -1,5 +1,6 @@
 // Shared by the public regression runner and clean source dependency graph.
 export const incremental32CommunityTests = Object.freeze([
+  'src/assetQuickRead/accountImport.equipmentState.test.ts',
   'src/calculation/reviewedRoxyMindscape32.test.ts',
   'src/features/agentDevelopmentGolden/top10Labels.test.ts',
   'src/calculation/reviewedPreparedBenchmark32.test.ts',

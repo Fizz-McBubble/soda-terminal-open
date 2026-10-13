@@ -168,4 +168,77 @@ describe('scanner Helper version and update policy', () => {
     expect(identities).toBe(2)
     expect(scanRequests).toBe(1)
   })
+
+  it('preserves ready state and displays compact update notice for installer-only upgrades', () => {
+    const snapshot = {
+      state: 'ready' as const,
+      permission: 'granted' as const,
+      readiness: {
+        helperConnected: true,
+        gameFrameReadable: true,
+        accountWriteEnabled: false as const,
+      },
+      config: {
+        scopeLabel: 'synthetic',
+        localOnly: true as const,
+        reviewPolicyLabel: 'synthetic',
+        safeStopAvailable: true as const,
+      },
+      distribution: {
+        state: 'ready' as const,
+        installedVersion: scannerDistributionManifest.runtime.version,
+        targetVersion: scannerDistributionManifest.runtime.version,
+        progressPercent: null,
+        action: 'none' as const,
+        message: '连接就绪',
+      },
+    }
+    const projected = presentScannerHelperSnapshot(
+      snapshot as any,
+      scannerDistributionManifest.helper.version,
+      {
+        installer: '1.1.5',
+        helper: scannerDistributionManifest.helper.version,
+        runtime: scannerDistributionManifest.runtime.version,
+        scanner: scannerDistributionManifest.runtime.nativeCapture.componentVersion,
+      },
+    )
+    expect(projected.readiness.helperConnected).toBe(true)
+    expect(projected.distribution?.state).toBe('ready')
+    expect(projected.distribution?.message).toContain('画面扫描有新版本')
+  })
+
+  it('blocks compatible runtime when helper or runtime layer itself is outdated', () => {
+    const snapshot = {
+      state: 'ready' as const,
+      permission: 'granted' as const,
+      readiness: {
+        helperConnected: true,
+        gameFrameReadable: true,
+        accountWriteEnabled: false as const,
+      },
+      config: {
+        scopeLabel: 'synthetic',
+        localOnly: true as const,
+        reviewPolicyLabel: 'synthetic',
+        safeStopAvailable: true as const,
+      },
+      distribution: {
+        state: 'ready' as const,
+        installedVersion: scannerDistributionManifest.runtime.version,
+        targetVersion: scannerDistributionManifest.runtime.version,
+        progressPercent: null,
+        action: 'none' as const,
+        message: '连接就绪',
+      },
+    }
+    const projected = presentScannerHelperSnapshot(snapshot as any, '2.3.15', {
+      installer: '1.1.5',
+      helper: '2.3.15',
+      runtime: scannerDistributionManifest.runtime.version,
+      scanner: scannerDistributionManifest.runtime.nativeCapture.componentVersion,
+    })
+    expect(projected.distribution?.state).toBe('update_available')
+    expect(projected.distribution?.action).toBe('update')
+  })
 })

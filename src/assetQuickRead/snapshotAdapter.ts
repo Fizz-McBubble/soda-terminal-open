@@ -448,14 +448,22 @@ export function convertAssetSnapshot(
     }
     const references =
       invalidEquippedDisc || unsupportedEquippedDisc ? [] : equippedSourceIds.filter(Boolean)
-    if (references.length) observedFields.push('equippedDiscIds')
+    // The pinned AgentData load contains complete equipment on each observed
+    // agent. An empty repeated field means unequipped, not a missing agent.
+    // Invalid references and unsupported A/B equipment are still unobserved.
+    if (!invalidEquippedDisc && !unsupportedEquippedDisc) observedFields.push('equippedDiscIds')
     if (unsupportedEquippedDisc)
       warnings.push(
         `${identity.name}当前装备包含A/B级盘，尚不支持同步该代理人的装备盘关系；保留原记录。`,
       )
     // An omitted weapon reference is unobserved, not authority to clear an old equipment field.
     const weaponUid = agent.weapon_uid.value
-    if (weaponUid !== null && weaponUid !== 0) {
+    if (agent.weapon_uid.presence === 'present' && weaponUid === 0) {
+      // Only explicit zero has clearing authority. Omitted/invalid references
+      // preserve previous equipment, even though protobuf's scalar default is zero.
+      fields.wEngineDetails = { id: null, name: null, level: null, refinement: null }
+      observedFields.push('wEngineDetails.id')
+    } else if (weaponUid !== null && weaponUid !== 0) {
       const engine = engineIndex.get(weaponUid)
       const engineIdentity =
         engine?.catalog_id.value === null || !engine

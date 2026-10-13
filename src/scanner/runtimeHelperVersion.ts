@@ -3,6 +3,7 @@ import { initialDistributionSnapshot, scannerDistributionManifest } from './dist
 import type { ScannerAssistantSnapshot } from './runtimeSnapshotTypes'
 import {
   compareToolVersion,
+  isInstallerOnlyUpgrade,
   scannerToolUpgradeNotice,
   scannerToolReleaseVersions,
   type ScannerToolVersions,
@@ -92,11 +93,22 @@ export function presentScannerHelperSnapshot(
             : next.diagnostics,
         }
       : next
-  const notice = scannerToolUpgradeNotice(
-    { ...connectedVersions, helper: helperVersion },
-    targetVersions,
-  )
+  const effectiveInstalled: ScannerToolVersions = { ...connectedVersions, helper: helperVersion }
+  const notice = scannerToolUpgradeNotice(effectiveInstalled, targetVersions)
   if (!notice) return repairedClassification
+  if (isInstallerOnlyUpgrade(effectiveInstalled, targetVersions)) {
+    const existingDistribution = repairedClassification.distribution ?? initialDistributionSnapshot
+    return {
+      ...repairedClassification,
+      distribution: {
+        ...existingDistribution,
+        state: existingDistribution.state,
+        installedVersion: connectedVersions.installer ?? existingDistribution.installedVersion,
+        targetVersion: targetVersions.installer ?? existingDistribution.targetVersion,
+        message: notice,
+      },
+    }
+  }
   const updated = presentScannerHelperUpdate(repairedClassification)
   return { ...updated, distribution: { ...updated.distribution!, message: notice } }
 }

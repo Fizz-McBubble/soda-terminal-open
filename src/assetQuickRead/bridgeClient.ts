@@ -65,6 +65,7 @@ function waitForResponse<T>(pending: Promise<T>, signal: AbortSignal): Promise<T
 
 export class AssetQuickReadBridgeClient {
   private token: string | null = null
+  private activeConnectId: string | null = null
   private readonly fetcher: typeof fetch
   private readonly protocolLauncher?: () => void
   constructor(
@@ -140,9 +141,9 @@ export class AssetQuickReadBridgeClient {
     }
   }
 
-  async probe(signal?: AbortSignal) {
+  async probe(signal?: AbortSignal, timeoutMs = 3000) {
     const parsed = healthSchema.safeParse(
-      await this.request('/health', 'GET', undefined, false, signal, 1000),
+      await this.request('/health', 'GET', undefined, false, signal, timeoutMs),
     )
     if (
       !parsed.success ||
@@ -159,15 +160,27 @@ export class AssetQuickReadBridgeClient {
   async connect({
     launchIfMissing = false,
     signal,
-  }: { launchIfMissing?: boolean; signal?: AbortSignal } = {}) {
+    timeoutMs = 30000,
+  }: { launchIfMissing?: boolean; signal?: AbortSignal; timeoutMs?: number } = {}) {
     this.token = null
+    const connectId = crypto.randomUUID()
+    this.activeConnectId = connectId
     const health = await awaitAssetQuickReadService({
-      probe: () => this.probe(signal),
+      probe: (probeSignal, requestTimeoutMs) => {
+        if (this.activeConnectId !== connectId) {
+          throw new DOMException('Aborted', 'AbortError')
+        }
+        return this.probe(probeSignal ?? signal, requestTimeoutMs)
+      },
       launchIfMissing,
       protocolLauncher: this.protocolLauncher,
       signal,
+      timeoutMs,
     })
     signal?.throwIfAborted()
+    if (this.activeConnectId !== connectId) {
+      throw new DOMException('Aborted', 'AbortError')
+    }
     const session = z
       .object({
         token: z.string().min(32).max(256),
@@ -175,6 +188,10 @@ export class AssetQuickReadBridgeClient {
         expiresAt: z.string(),
       })
       .parse(await this.request('/connect', 'POST', {}, false, signal))
+    signal?.throwIfAborted()
+    if (this.activeConnectId !== connectId) {
+      throw new DOMException('Aborted', 'AbortError')
+    }
     this.token = session.token
     return health
   }

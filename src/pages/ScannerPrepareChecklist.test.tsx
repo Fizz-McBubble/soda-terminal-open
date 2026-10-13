@@ -32,3 +32,44 @@ it('keeps every failed preparation check in a collapsed card before the recovery
   fireEvent.click(action)
   expect(onStart).toHaveBeenCalledOnce()
 })
+
+it('allows starting scan when runtime is ready under an installer-only update notice', () => {
+  const onStart = vi.fn()
+  const base = createScannerRuntimeSnapshot('ready') as ScannerAssistantSnapshot
+  const snapshot: ScannerAssistantSnapshot = {
+    ...base,
+    state: 'ready',
+    readiness: {
+      helperConnected: true,
+      gameFrameReadable: true,
+      accountWriteEnabled: false,
+    },
+    distribution: {
+      state: 'ready',
+      installedVersion: '1.1.5',
+      targetVersion: '1.1.6',
+      progressPercent: null,
+      action: 'none',
+      message: '画面扫描有新版本（v1.1.6），请更新。',
+    },
+  }
+  render(
+    <PrepareChecklist
+      compact
+      snapshot={snapshot}
+      eyebrow="准备"
+      title="画面扫描已连接"
+      body="连接就绪"
+      headingRef={createRef()}
+      targetReady
+      targetPanel={null}
+      accountDisclosure={null}
+      onStart={onStart}
+      onReconnect={vi.fn()}
+    />,
+  )
+  const startBtn = screen.getByRole('button', { name: '开始扫描' })
+  expect(startBtn).toBeEnabled()
+  fireEvent.click(startBtn)
+  expect(onStart).toHaveBeenCalledOnce()
+})

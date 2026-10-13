@@ -62,7 +62,7 @@ export function createScannerAssistantRuntime(
   const fetchImpl = options.fetchImpl ?? fetch
   const EventSourceImpl = options.EventSourceImpl ?? null
   const reconnectDelayMs = options.reconnectDelayMs ?? 250
-  const maxReconnectAttempts = options.maxReconnectAttempts ?? 20
+  const maxReconnectAttempts = options.maxReconnectAttempts ?? Infinity
   const helperRequestTimeoutMs = options.helperRequestTimeoutMs ?? 30000
   const createObjectURL = options.createObjectURL ?? ((blob: Blob) => URL.createObjectURL(blob))
   const revokeObjectURL = options.revokeObjectURL ?? ((url: string) => URL.revokeObjectURL(url))
@@ -345,27 +345,46 @@ export function createScannerAssistantRuntime(
 
   async function retryUntilConnected() {
     connectionAttemptId = crypto.randomUUID()
+    const attemptId = connectionAttemptId
     return withHelperDeadline(async (signal) => {
       let lastError: unknown
       for (let attempt = 0; attempt < maxReconnectAttempts; attempt += 1) {
         signal.throwIfAborted()
+        if (connectionAttemptId !== attemptId) return
         try {
           const beforeEvents = eventRevision
           const snapshot = await command('/api/retry', 'POST', signal)
           signal.throwIfAborted()
+          if (connectionAttemptId !== attemptId) return
           if (eventRevision === beforeEvents) publishSnapshot(snapshot)
           return
         } catch (error) {
           signal.throwIfAborted()
+          if (connectionAttemptId !== attemptId) return
           if (isAuthenticationFailure(error) || isCompatibilityFailure(error)) throw error
           lastError = error
-          if (attempt + 1 < maxReconnectAttempts)
-            await new Promise((resolve) => window.setTimeout(resolve, reconnectDelayMs))
+          if (attempt + 1 < maxReconnectAttempts) {
+            await new Promise<void>((resolve, reject) => {
+              const timer = window.setTimeout(() => {
+                signal.removeEventListener('abort', abort)
+                resolve()
+              }, reconnectDelayMs)
+              const abort = () => {
+                window.clearTimeout(timer)
+                signal.removeEventListener('abort', abort)
+                reject(signal.reason ?? new DOMException('Aborted', 'AbortError'))
+              }
+              signal.addEventListener('abort', abort, { once: true })
+              if (signal.aborted) abort()
+            })
+          }
         }
       }
       throw lastError instanceof Error ? lastError : new Error('helper_unavailable')
     }).catch((error) => {
-      activeSubscription?.listener(failureSnapshot(error))
+      if (connectionAttemptId === attemptId) {
+        activeSubscription?.listener(failureSnapshot(error))
+      }
       throw error
     })
   }

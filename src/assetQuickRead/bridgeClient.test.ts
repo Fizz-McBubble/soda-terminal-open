@@ -151,11 +151,88 @@ it('bounds even a non-settling transport and aborts a launch wait without pairin
     launchIfMissing: true,
     signal: abort.signal,
   })
-  const rejected = expect(pending).rejects.toMatchObject({ name: 'AbortError' })
-  await vi.advanceTimersByTimeAsync(1000)
+  await vi.advanceTimersByTimeAsync(3000)
   expect(launch).toHaveBeenCalledOnce()
   abort.abort()
-  await rejected
+  await expect(pending).rejects.toMatchObject({ name: 'AbortError' })
   await vi.advanceTimersByTimeAsync(4000)
   expect(fetcher).toHaveBeenCalledOnce()
+})
+it('accepts a 1500ms delayed health response without rejecting at 1000ms', async () => {
+  vi.useFakeTimers()
+  const fetcher = vi.fn<typeof fetch>((url) => {
+    if (String(url).endsWith('/health')) {
+      return new Promise((resolve) =>
+        setTimeout(
+          () =>
+            resolve(
+              new Response(
+                JSON.stringify({
+                  service: 'soda-asset-quick-read',
+                  version: '1.0.4',
+                  protocolVersion: 1,
+                  capabilities: ['asset_snapshot', 'cancel'],
+                  state: 'idle',
+                }),
+              ),
+            ),
+          1500,
+        ),
+      )
+    }
+    return Promise.resolve(new Response(JSON.stringify(session)))
+  })
+  const client = new AssetQuickReadBridgeClient(fetcher)
+  const pending = client.connect()
+  await vi.advanceTimersByTimeAsync(1000)
+  await vi.advanceTimersByTimeAsync(500)
+  await expect(pending).resolves.toMatchObject({ version: '1.0.4' })
+  expect(fetcher).toHaveBeenCalledTimes(2)
+})
+it('does not let a late settling connection response overwrite an aborted or superseded session', async () => {
+  vi.useFakeTimers()
+  let resolveSession!: (res: Response) => void
+  const fetcher = vi.fn<typeof fetch>(async (url) => {
+    if (String(url).endsWith('/health')) {
+      return new Response(JSON.stringify(health))
+    }
+    if (String(url).endsWith('/connect')) {
+      return new Promise<Response>((resolve) => {
+        resolveSession = resolve
+      })
+    }
+    return new Response(JSON.stringify(job))
+  })
+  const client = new AssetQuickReadBridgeClient(fetcher)
+  const abort = new AbortController()
+  const pending1 = client.connect({ signal: abort.signal })
+  await vi.waitFor(() => expect(resolveSession).toBeTypeOf('function'))
+  abort.abort()
+  await expect(pending1).rejects.toMatchObject({ cause: { name: 'AbortError' } })
+
+  resolveSession(new Response(JSON.stringify(session)))
+  await Promise.resolve()
+  await expect(client.start("soda-source-ref:24d5780e541a1a1ad1393e8962be6e18", 'account-synthetic')).rejects.toThrow('先连接')
+})
+
+it('bounds the last health request by the remaining connection deadline and never pairs its late response', async () => {
+  vi.useFakeTimers()
+  let attempts = 0
+  const launch = vi.fn()
+  const fetcher = vi.fn<typeof fetch>(async (url) => {
+    if (!String(url).endsWith('/health')) throw new Error('must not pair or capture')
+    if (++attempts === 1) throw new TypeError('not listening')
+    return new Promise<Response>((resolve) =>
+      setTimeout(() => resolve(new Response(JSON.stringify(health))), 1000),
+    )
+  })
+  const client = new AssetQuickReadBridgeClient(fetcher, launch)
+  const pending = client.connect({ launchIfMissing: true, timeoutMs: 1000 })
+  const failed = expect(pending).rejects.toThrow('资产快读尚未启动')
+  await vi.advanceTimersByTimeAsync(1000)
+  await failed
+  await vi.advanceTimersByTimeAsync(1000)
+  expect(launch).toHaveBeenCalledOnce()
+  expect(attempts).toBe(2)
+  await expect(client.start("soda-source-ref:24d5780e541a1a1ad1393e8962be6e18", 'account-synthetic')).rejects.toThrow('先连接')
 })

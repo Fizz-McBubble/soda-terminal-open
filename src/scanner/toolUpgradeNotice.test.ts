@@ -1,6 +1,10 @@
 import { expect, it } from 'vitest'
 import { requireCurrentScannerHelper, verifyScannerHelperIdentity } from './runtimeHelperVersion'
-import { compareToolVersion, scannerToolUpgradeNotice } from './toolUpgradeNotice'
+import {
+  compareToolVersion,
+  isInstallerOnlyUpgrade,
+  scannerToolUpgradeNotice,
+} from './toolUpgradeNotice'
 import { assetQuickReadUpgradeNotice } from '../assetQuickRead/upgradeNotice'
 import { scannerDistributionManifest } from './distribution'
 import {
@@ -82,4 +86,35 @@ it('connects a newer compatible Helper without asking the player to downgrade', 
   expect(() => requireCurrentScannerHelper(null)).toThrow()
   expect(() => verifyScannerHelperIdentity({ ...identity, protocolVersion: 4 })).toThrow()
   expect(() => verifyScannerHelperIdentity({ ...identity, accountWriteEnabled: true })).toThrow()
+})
+
+it('accurately identifies installer-only upgrades versus runtime/helper/scanner upgrades', () => {
+  const target = {
+    installer: '1.1.6',
+    helper: '2.3.16',
+    runtime: 'soda-scanner-zzz-next-ppocrv6-18-rc8-14',
+    scanner: 'ZZZ-Scanner.Next-1.0.49-soda-r32',
+  }
+  // Only installer outdated
+  expect(isInstallerOnlyUpgrade({ ...target, installer: '1.1.5' }, target)).toBe(true)
+  // Matching installer
+  expect(isInstallerOnlyUpgrade(target, target)).toBe(false)
+  // Helper outdated as well
+  expect(isInstallerOnlyUpgrade({ ...target, installer: '1.1.5', helper: '2.3.15' }, target)).toBe(
+    false,
+  )
+  // Runtime outdated as well
+  expect(
+    isInstallerOnlyUpgrade(
+      { ...target, installer: '1.1.5', runtime: 'soda-scanner-zzz-next-ppocrv6-18-rc8-13' },
+      target,
+    ),
+  ).toBe(false)
+  // Scanner outdated as well
+  expect(
+    isInstallerOnlyUpgrade(
+      { ...target, installer: '1.1.5', scanner: 'ZZZ-Scanner.Next-1.0.49-soda-r31' },
+      target,
+    ),
+  ).toBe(false)
 })

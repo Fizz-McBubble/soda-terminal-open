@@ -10,6 +10,18 @@ export interface ReleaseNote {
 // A local fix or commit is not a published release; add it when that release ships.
 export const releases = [
   {
+    id: '20261013-capture-connection-equipment',
+    date: '2026-10-13',
+    scope: '画面扫描与资产快读',
+    title: '连接等待与当前装备同步修复',
+    changes: [
+      '两种工具连接时保留合理启动等待，避免工具尚未启动完成就报失败；等待仍有上限，并保留取消和重试。',
+      '画面扫描运行组件兼容时，安装器版本较旧只提示更新，不再阻止开始扫描。',
+      '资产快读同步可靠的空装备状态，修复驱动盘换人后导入冲突，以及卸下音擎后仍显示旧装备的问题。',
+      '保存刷新与撤销导入保持一致；未读到的字段、较新手动修改、保存方案与既有库存继续保护。',
+    ],
+  },
+  {
     id: '20261012-installer-import-reliability',
     date: '2026-10-13',
     scope: '画面扫描、资产快读与工作区',

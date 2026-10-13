@@ -81,7 +81,7 @@ describe('asset snapshot local candidate adapter', () => {
       publicCatalogState.unavailable = false
     }
   })
-  it('can review owned agents when no S discs were observed, without clearing equipment', () => {
+  it('observes empty equipment for a loaded agent without claiming a complete inventory', () => {
     const input = fixture()
     input.assets.discs = []
     input.counts.discs = input.counts.s_discs = 0
@@ -90,7 +90,9 @@ describe('asset snapshot local candidate adapter', () => {
     expect(candidate.importable).toBe(true)
     expect(candidate.discs.discs).toEqual([])
     expect(candidate.agents).toHaveLength(1)
-    expect(candidate.agents[0].observedFields).not.toContain('equippedDiscIds')
+    expect(candidate.agents[0].observedFields).toContain('equippedDiscIds')
+    expect(candidate.agents[0].equippedSourceIds).toEqual([])
+    expect(candidate.fullInventoryVerified).toBe(false)
   })
   it.skipIf(!process.env.SODA_ASSET_SNAPSHOT_VALIDATION_DIR)(
     'validates two authorized local snapshots without storing account fixtures',
@@ -194,7 +196,7 @@ describe('asset snapshot local candidate adapter', () => {
       core: 7,
     })
   })
-  it('supports confirmed zero-level S discs but does not invent omitted engine progression or clear equipment', () => {
+  it('supports zero-level S discs and observed empty equipment without inventing omitted engine progression', () => {
     const input = fixture()
     const disc = input.assets.discs[0]
     Object.assign(disc, {
@@ -210,7 +212,8 @@ describe('asset snapshot local candidate adapter', () => {
     expect(candidate.importable).toBe(true)
     expect(candidate.discs.discs[0].level).toBe(0)
     expect(candidate.agents[0].fields).not.toHaveProperty('wEngineDetails')
-    expect(candidate.agents[0].observedFields).not.toContain('equippedDiscIds')
+    expect(candidate.agents[0].observedFields).toContain('equippedDiscIds')
+    expect(candidate.agents[0].equippedSourceIds).toEqual([])
   })
   it('preserves identical-property physical copies with different UIDs', () => {
     const input = fixture()

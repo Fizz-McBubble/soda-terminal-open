@@ -3,6 +3,14 @@ import { assertBangbooSkillFacts, assertRosterAscensionFacts } from '../accounts
 import { getObservedAgentFieldValue, hasObservedAgentField } from '../accounts/observedAgentFacts'
 import type { AssetQuickReadCandidate } from './snapshotAdapter'
 
+const currentEngineFields: ObservedAgentField[] = [
+  'wEngineDetails.id',
+  'wEngineDetails.name',
+  'wEngineDetails.level',
+  'wEngineDetails.ascension',
+  'wEngineDetails.refinement',
+]
+
 /** Merge only observed roster fields; transaction and account writes stay in accountImport. */
 function isProgressionField(field: ObservedAgentField) {
   return (
@@ -56,6 +64,7 @@ export function mergeAssetQuickReadRoster(
     throw new Error('账户或快照时间无效，无法核对手动修改顺序，未写入账户。')
   let protectedFields = 0
   let syncedManualProgressionFields = 0
+  const unequippedEngineAgents = new Set<string>()
   const incoming = new Map(candidate.agents.map((agent) => [agent.agentId, agent]))
   const roster: AccountRoster = {
     ...current,
@@ -66,6 +75,22 @@ export function mergeAssetQuickReadRoster(
       let adopted = false
       const adoptedFields = new Set<ObservedAgentField>()
       for (const field of observation.observedFields) {
+        const clearingEngine =
+          field === 'wEngineDetails.id' && observation.fields.wEngineDetails?.id === null
+        if (
+          clearingEngine &&
+          (currentEngineFields.some(
+            (engineField) =>
+              explicitlyLocked(existing, engineField) ||
+              hasNewerObservation(existing, engineField, candidate.capturedAt),
+          ) ||
+            existing.lockedFields.includes('wEngineCopyId'))
+        ) {
+          // Removing the identity also removes its progression. Protect that
+          // group together so a locked/newer subfield cannot become another item's fact.
+          protectedFields++
+          continue
+        }
         if (
           field.startsWith('wEngineDetails.') &&
           field !== 'wEngineDetails.id' &&
@@ -111,7 +136,25 @@ export function mergeAssetQuickReadRoster(
         if (field === 'equippedDiscIds' && (value as unknown[]).some((id) => !id))
           throw new Error('代理人装备盘无法对应到本次账户盘库，未导入。')
         const [parent, child] = field.split('.')
-        if (child) {
+        if (clearingEngine) {
+          const empty = observation.fields.wEngineDetails!
+          if (
+            empty.name !== null ||
+            empty.level !== null ||
+            empty.refinement !== null ||
+            empty.ascension != null ||
+            empty.manualProgression !== undefined
+          )
+            throw new Error('未装备音擎的观察状态不一致，未写入账户。')
+          next.wEngineDetails = { id: null, name: null, level: null, refinement: null }
+          next.wEngine = ''
+          next.refinement = 0
+          next.wEngineCopyId = null
+          unequippedEngineAgents.add(next.agentId)
+          if (next.observedFacts)
+            for (const engineField of currentEngineFields)
+              delete next.observedFacts.fields[engineField]
+        } else if (child) {
           if (parent === 'skillLevels') next.skillLevels = { ...next.skillLevels, [child]: value }
           else if (parent === 'wEngineDetails')
             next.wEngineDetails = { ...next.wEngineDetails, [child]: value }
@@ -165,6 +208,14 @@ export function mergeAssetQuickReadRoster(
         ? current.updatedAt
         : candidate.capturedAt,
   }
+  // Keep legacy inventory entities and their progression. Only their current
+  // binding changes; leaving the inverse binding would re-equip them on hydration.
+  if (roster.wEngines && unequippedEngineAgents.size)
+    roster.wEngines = roster.wEngines.map((copy) =>
+      copy.equippedAgentId && unequippedEngineAgents.has(copy.equippedAgentId)
+        ? { ...copy, equippedAgentId: null }
+        : copy,
+    )
   const physicalOwners = new Map<string, string>()
   for (const agent of roster.agents) {
     for (const id of agent.equippedDiscIds ?? []) {

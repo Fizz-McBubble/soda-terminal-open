@@ -469,4 +469,51 @@ describe('direct upstream scanner runtime', () => {
       '/api/retry',
     ])
   })
+
+  it('connects a 6s cold-started helper by continuing retries across the full bounded deadline', async () => {
+    vi.useFakeTimers()
+    const began = Date.now()
+    const launch = vi.fn()
+    const fetchImpl = vi.fn<typeof fetch>(async (input) => {
+      const path = new URL(String(input)).pathname
+      if (path === '/') return new Response(JSON.stringify(nativeIdentity))
+      if (Date.now() - began < 6000) throw new TypeError('not yet listening')
+      if (path === '/token') return new Response(JSON.stringify({ token: 'k'.repeat(48) }))
+      if (path === '/api/retry') return new Response(JSON.stringify(readySnapshot))
+      throw new Error(`unexpected:${path}`)
+    })
+    const runtime = createNativeFixtureRuntime({
+      fetchImpl: fetchImpl as typeof fetch,
+      launchProtocol: launch,
+      deferInitialConnection: true,
+    })
+    const pending = runtime.commands.openHelper(true)
+    await vi.advanceTimersByTimeAsync(4750)
+    expect(launch).toHaveBeenCalledOnce()
+    await vi.advanceTimersByTimeAsync(1500)
+    await expect(pending).resolves.toBeUndefined()
+    expect(launch).toHaveBeenCalledOnce()
+    vi.useRealTimers()
+  })
+
+  it('fails with timeout when helper remains unavailable beyond the full 30s deadline', async () => {
+    vi.useFakeTimers()
+    const launch = vi.fn()
+    const fetchImpl = vi.fn<typeof fetch>(async () => {
+      throw new TypeError('not yet listening')
+    })
+    const runtime = createNativeFixtureRuntime({
+      fetchImpl: fetchImpl as typeof fetch,
+      launchProtocol: launch,
+      deferInitialConnection: true,
+    })
+    const pending = runtime.commands.openHelper(true)
+    await vi.advanceTimersByTimeAsync(29000)
+    expect(launch).toHaveBeenCalledOnce()
+    const rejected = expect(pending).rejects.toMatchObject({ name: 'ScannerHelperTimeoutError' })
+    await vi.advanceTimersByTimeAsync(2000)
+    await rejected
+    expect(launch).toHaveBeenCalledOnce()
+    vi.useRealTimers()
+  })
 })

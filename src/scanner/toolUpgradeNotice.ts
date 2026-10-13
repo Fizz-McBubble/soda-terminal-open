@@ -52,3 +52,17 @@ export function scannerToolUpgradeNotice(
       : `${outdated.map((key) => labels[key]).join('、')}有新版本，请更新画面扫描。`
     : null
 }
+
+export function isInstallerOnlyUpgrade(
+  installed: ScannerToolVersions,
+  target: ScannerToolVersions = scannerToolReleaseVersions,
+) {
+  const runtimeKeys: (keyof ScannerToolVersions)[] = ['helper', 'runtime', 'scanner']
+  const runtimeOutdated = runtimeKeys.some((key) =>
+    Boolean(target[key] && compareToolVersion(installed[key], target[key]!) === -1),
+  )
+  if (runtimeOutdated) return false
+  return Boolean(
+    target.installer && compareToolVersion(installed.installer, target.installer) === -1,
+  )
+}
