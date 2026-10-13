@@ -10,6 +10,17 @@ export interface ReleaseNote {
 // A local fix or commit is not a published release; add it when that release ships.
 export const releases = [
   {
+    id: '20261013-automatic-image-cache',
+    date: '2026-10-13',
+    scope: '网页图片与加载体验',
+    title: '图片首次自动加载与缓存恢复',
+    changes: [
+      '首次打开网页自动加载现有图库，无需先手动下载，也不必逐页访问才能补齐图片。',
+      '加载分批进行，成功图片保留在本机浏览器；后续复用有效缓存，只补新增、变化或缺失图片。',
+      '个别图片失败不阻断分析和导入，显示简洁进度并支持补齐；重试不重复下载已成功图片。',
+    ],
+  },
+  {
     id: '20261013-quick-read-protocol-archive',
     date: '2026-10-13',
     scope: '资产快读安装与诊断',
