@@ -10,6 +10,17 @@ export interface ReleaseNote {
 // A local fix or commit is not a published release; add it when that release ships.
 export const releases = [
   {
+    id: '20261013-quick-read-protocol-archive',
+    date: '2026-10-13',
+    scope: '资产快读安装与诊断',
+    title: '安装下载备用源与旧版升级修复',
+    changes: [
+      '资产快读安装器升级至 1.0.10，连接服务升级至 1.0.5；补齐旧版 1.0.9 的升级识别。',
+      '原有下载源失败后尝试同版本官方压缩包备用源，完整压缩包和所需文件均校验大小与 SHA256；已有合格本地数据仍优先复用。',
+      '诊断页支持区分备用源的成功和失败，仍需玩家核对后主动发送；取消或下载失败保留已有版本和读取结果。',
+    ],
+  },
+  {
     id: '20261013-capture-connection-equipment',
     date: '2026-10-13',
     scope: '画面扫描与资产快读',

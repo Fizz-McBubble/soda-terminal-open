@@ -30,6 +30,22 @@ const validReport = {
   ],
 }
 
+test('installer receiver accepts only the fixed archive source code', () => {
+  const report = {
+    ...validReport,
+    attempts: [{ item: 0, source: 'github_archive', code: 'verified', elapsedMs: 50 }],
+  }
+  assert.deepEqual(sanitizeInstallerFeedbackPayload(report).record, report)
+  for (const source of ['https://untrusted.example/archive', 'private-path', 'github_mirror'])
+    assert.equal(
+      sanitizeInstallerFeedbackPayload({
+        ...report,
+        attempts: [{ ...report.attempts[0], source }],
+      }).status,
+      400,
+    )
+})
+
 test('scanner installer uses the same receiver with a separate finite contract', () => {
   const scanner = {
     ...validReport,

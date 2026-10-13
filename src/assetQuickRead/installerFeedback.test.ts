@@ -33,6 +33,20 @@ const sampleReport: InstallerFeedbackReport = {
 }
 
 describe('installerFeedback sanitization and fragment consumption', () => {
+  it('accepts the fixed official archive source without accepting arbitrary hosts or paths', () => {
+    const report = {
+      ...sampleReport,
+      attempts: [{ item: 0, source: 'github_archive', code: 'verified', elapsedMs: 50 }],
+    }
+    expect(sanitizeInstallerFeedback(report)).toEqual(report)
+    for (const source of ['https://untrusted.example/archive', 'private-path', 'github_mirror'])
+      expect(
+        sanitizeInstallerFeedback({
+          ...report,
+          attempts: [{ ...report.attempts[0], source }],
+        }),
+      ).toBeNull()
+  })
   it('accepts scanner installation diagnostics while rejecting cross-tool facts', () => {
     const scanner = {
       ...sampleReport,

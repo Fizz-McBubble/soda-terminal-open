@@ -8,7 +8,7 @@ const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-
 const attemptSchema = z
   .object({
     item: z.number().int().min(0).max(installerRules.maxItemIndex),
-    source: z.enum(['github_raw', 'github_contents', 'verified_local']),
+    source: z.enum(['github_raw', 'github_contents', 'verified_local', 'github_archive']),
     code: z
       .string()
       .refine((val) => (installerRules.attemptCodes as readonly string[]).includes(val)),
