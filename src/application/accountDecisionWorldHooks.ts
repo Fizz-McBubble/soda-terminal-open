@@ -87,6 +87,7 @@ export function useTargetTeamWarehouseFitCalculation() {
       runId: string,
       candidateId: string,
       equipmentParameters?: import('./calculationQueryContract').TargetTeamEquipmentParameterSelection,
+      scenarioSelection?: import('./publicPlanningScenarioContract').CurrentPlanningScenarioSelection32,
     ): Promise<TargetTeamWarehouseFitQueryResult> => {
       if (!client) throw new Error('Calculation/Query client is unavailable.')
       return client.calculateTargetTeamWarehouseFit({
@@ -95,6 +96,7 @@ export function useTargetTeamWarehouseFitCalculation() {
         runId,
         candidateId,
         equipmentParameters,
+        scenarioSelection,
       })
     },
     [client],
@@ -125,6 +127,7 @@ export function useDevelopmentCandidateAlternativesCalculation() {
       runId: string,
       agentId: string,
       candidateParametersByRank?: import('./calculationQueryContract').DevelopmentCandidateAlternativesQuery['candidateParametersByRank'],
+      scenarioSelection?: import('./publicPlanningScenarioContract').CurrentPlanningScenarioSelection32,
     ): Promise<DevelopmentCandidateAlternativesQueryResult> => {
       if (!client) throw new Error('Calculation/Query client is unavailable.')
       return client.queryDevelopmentCandidateAlternatives({
@@ -133,6 +136,7 @@ export function useDevelopmentCandidateAlternativesCalculation() {
         runId,
         agentId,
         candidateParametersByRank,
+        scenarioSelection,
       })
     },
     [client],

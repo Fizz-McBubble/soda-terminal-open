@@ -3,6 +3,7 @@ import { reviewedWEngineReceiverSemantics32Identity } from './reviewedWEngineRec
 import { reviewedRoxyAttributeWindowsIdentity32 } from './reviewedRoxyAttributeWindowsIdentity32'
 import { reviewedDriveDiscSemanticsIdentity32 } from './reviewedDriveDiscSemanticsIdentity32'
 import { reviewedRoxyPreparedTriggersIdentity32 } from './reviewedRoxyPreparedTriggersIdentity32'
+import { currentPlanningConsumerPolicyIdentity32 } from './currentPlanningConsumerPolicyIdentity32'
 /** Lightweight identities for saved-result invalidation; no expression runtime imports. */
 export const commonAnomalyEffectIdentity32 = Object.freeze({
   revision: 'explicit-common-windswept-single-instance-r1',
@@ -45,6 +46,7 @@ export const reviewedClaretIntrinsicActionIdentity32 = Object.freeze({
 export const planningEffectResolutionIdentity32 = Object.freeze({
   revision: 'same-event-final-stat-dag-roxy-prepared-mindscapes-stun-r9',
   roxyPrepared: reviewedRoxyPreparedTriggersIdentity32,
+  preparedAndFunctionalConsumers: currentPlanningConsumerPolicyIdentity32,
   common: commonAnomalyEffectIdentity32,
   coefficientUnits: sourceEventQuantityIdentity32,
   roxy: reviewedRoxyEnergyConversionIdentity32,

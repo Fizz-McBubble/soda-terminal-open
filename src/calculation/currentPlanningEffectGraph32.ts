@@ -26,6 +26,8 @@ const statByApplication: Partial<
 > = {
   attack_percent: 'atk',
   attack_flat: 'atk',
+  anomaly_proficiency_flat: 'anomProf',
+  anomaly_mastery_flat: 'anomMas',
   defense_percent: 'def',
   defense_flat: 'def',
   hp_percent: 'hp',
@@ -126,6 +128,8 @@ function resolvedStats(
       atk: panel.atk + member.initialStats.atk * mods.attackPercent + mods.attackFlat,
       def: panel.def + member.initialStats.def * mods.defensePercent + mods.defenseFlat,
       hp: panel.hp + member.initialStats.hp * mods.hpPercent + mods.hpFlat,
+      anomProf: panel.anomProf + mods.anomalyProficiencyFlat,
+      anomMas: panel.anomMas + mods.anomalyMasteryFlat,
       impact: panel.impact + member.initialStats.impact * mods.impactPercent + mods.impactFlat,
       crit_: panel.crit_ + conversion.critRate + mods.critRate,
       crit_dmg_: panel.crit_dmg_ + mods.critDamage,

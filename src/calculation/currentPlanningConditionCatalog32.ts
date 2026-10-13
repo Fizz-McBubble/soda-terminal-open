@@ -120,7 +120,7 @@ const labels: Record<string, string> = {
   quick_use: '快速使用效果',
   windswept: '风蚀状态',
   isStunned: '敌人失衡状态',
-  exSpecialMaim: '强化特殊技裂伤效果',
+  exSpecialMaim: '强化特殊技毁伤效果',
   windExSpecialUsed: '风属性强化特殊技效果',
 }
 const seedRefs = (seed: SourceSeed) => [

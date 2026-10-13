@@ -267,9 +267,17 @@ export const candidateWarehouseConstraints31: CandidateWarehouseConstraint[] = [
         critRate: 33.8,
         critDamage: { min: 150, max: 210, upperOpen: true },
       },
+      targetSemantics: {
+        atk: { requirement: 'required', boundary: 'minimum', observation: 'reference' },
+        critRate: { requirement: 'required', boundary: 'minimum', observation: 'reference' },
+        critDamage: { requirement: 'required', boundary: 'minimum', observation: 'reference' },
+        hp: { requirement: 'optional', boundary: 'minimum', observation: 'reference' },
+        def: { requirement: 'optional', boundary: 'minimum', observation: 'reference' },
+      },
       conditions: [
-        '60 级局外角色面板；暴击率 33.8% 按核心被动最多提供 66% 计算，继续堆叠可能溢出。',
+        '60级攻略实践参考暴击率33.8%，不是精确满暴线；满核心且巡空枪势有效、无其他暴击加成时为99.8%，数学满暴点为34%。状态失效或配置改变时需重新计算。',
         '暴击伤害区间受音擎副属性与 4 号位选择影响；这是攻略参考区间，不是 Formal 或唯一毕业线。',
+        '生命值与防御力为基础面板参考，不是该输出方向的毕业目标，不要求专门堆词条。',
       ],
       sourceIds: [sigridPrydwenLiveSource.id],
       label: 'guide_reference_range',

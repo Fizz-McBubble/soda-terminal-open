@@ -8,9 +8,10 @@ import type {
 import type { TeamExecutionPortfolio } from '../decision/teamExecutionProjection'
 import type { DriveDisc } from '../domain/schemas'
 import type { CandidateWarehousePlan } from '../optimizer/candidateWarehouseSolver'
+import type { CurrentPlanningScenarioSelection32 } from './publicPlanningScenarioContract'
 
 export const calculationQueryContractVersion = 'soda-calculation-query/v4' as const
-export type { AccountDecisionSnapshot, DecisionClaimStatus }
+export type { AccountDecisionSnapshot, DecisionClaimStatus, CurrentPlanningScenarioSelection32 }
 
 export type AccountDecisionQueryInput = {
   warehouse: CoreWarehouse
@@ -84,6 +85,7 @@ export type TargetTeamWarehouseFitQuery = {
   runId: string
   candidateId: string
   equipmentParameters?: TargetTeamEquipmentParameterSelection
+  scenarioSelection?: CurrentPlanningScenarioSelection32
   /** Private producer resolves a player-confirmed Bangboo into the exact equipment parameters. */
   playerBangbooSelection?: {
     teamKey: string
@@ -131,6 +133,8 @@ export type SavedTeamSolutionComponentsQuery = {
 
 export type TargetTeamWarehouseFitQueryResult =
   import('../decision/targetTeamWarehouseFit').TargetTeamWarehouseFit & {
+    scenarioSelection?: CurrentPlanningScenarioSelection32
+    scenarioIdentity?: string
     /** Only reviewed exact teams can seed the current recommended multi-team journey. */
     portfolioContinuationEligible?: boolean
     /**
@@ -159,6 +163,7 @@ export type DevelopmentCandidateAlternativesQuery = {
   candidateParametersByRank?: Readonly<
     Record<number, import('../decision/developmentValueBenchmark').DevelopmentComparisonParameters>
   >
+  scenarioSelection?: CurrentPlanningScenarioSelection32
 }
 
 export type DevelopmentWorkbenchRouteQuery = {
@@ -170,6 +175,15 @@ export type DevelopmentWorkbenchRouteQuery = {
 }
 
 export type DevelopmentCandidateAlternativesQueryResult = {
+  scenarioSelection?: CurrentPlanningScenarioSelection32
+  scenarioIdentity?: string
+  candidateSearch?: import('../decision/developmentCandidateAlternatives').DevelopmentCandidateSearch
+  candidateSearchByRank?: Readonly<
+    Record<
+      number,
+      import('../decision/developmentCandidateAlternatives').DevelopmentCandidateSearch
+    >
+  >
   contract: 'soda-development-candidate-alternatives/v1'
   comparisonContract?: 'soda-explicit-development-comparison/v1'
   comparisonFingerprint?: string

@@ -4,6 +4,7 @@ import type { CurrentWEngineFormulaRuntime } from '../calculation/currentWEngine
 import { stableContentHash } from '../gameDataPacks/types'
 import { developmentSourceAction32 } from './developmentSourceAction32'
 import { reviewedPreparedTeamConditions32 } from '../calculation/reviewedPreparedTeamBenchmark32'
+import { normalizedLuciaEventReferences32 } from '../calculation/reviewedTemplatePreparedEvents32'
 
 /** One selection for existing personal/team consumers. It replaces the new
  * actors' heuristic repeated action with the already reviewed source packet;
@@ -34,6 +35,8 @@ export function compileIncremental32PlanningSourceSelection(input: {
     ...selections.flatMap((row) => row.selected.eventUsages),
   ]
   const referencesByAgentId: Record<string, Readonly<Record<string, unknown>>> = {}
+  if (input.members.some((member) => member.agentId === 'agent-lucia'))
+    referencesByAgentId['agent-lucia'] = normalizedLuciaEventReferences32
   const runtimeByAgentId: Record<string, CurrentWEngineFormulaRuntime> = {}
   for (const { agentId, selected } of selections) {
     if ('baselineReferences' in selected.runtimeInput && selected.runtimeInput.baselineReferences)

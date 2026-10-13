@@ -1,5 +1,5 @@
 import { targetTeamEquipmentParametersFingerprint } from './publicTargetTeamEquipmentFingerprint'
-import { currentWEngineDirectory } from '../assault/planningCatalog'
+import { publicAssetCatalog } from './publicAssetCatalog'
 import type {
   TargetTeamEquipmentParameterSelection,
   TargetTeamWarehouseFitQueryResult,
@@ -16,10 +16,7 @@ export function wEngineOptions(recommendation: EquipmentRecommendations['wEngine
   if (
     current &&
     !options.some((item) => item.engineId === current.engineId) &&
-    currentWEngineDirectory.some(
-      (item) =>
-        item.id === current.engineId && item.releaseState === 'released' && item.accountOwnable,
-    )
+    publicAssetCatalog.wengines.some((item) => item.stableId === current.engineId)
   )
     options.push(current)
   return options

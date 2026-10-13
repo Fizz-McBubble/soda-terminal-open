@@ -23,7 +23,7 @@ export const pageCandidateDirectionsPart10: Partial<Record<string, PageCandidate
       sub: ['异常精通、攻击力%、穿透、攻击力；候选异常精通 330–420、异常掌控 184–244。'],
     },
     progression: [
-      '普攻4/替代特殊/强化特殊积累 Fandom Power，消费后触发三级 Perfect Pitch 与 Abloom；无异常目标时不应强行触发。',
+      '普攻4/替代特殊/强化特殊积累「应援能量」，消费后触发三级「绝对音准」与「异放」；无异常目标时不应强行触发。',
     ],
     team: [
       '候选计算队为千夏+柚叶；与南宫羽等异常协同需按异常与失衡时机手动对照。邦布方向未作稳定候选。',

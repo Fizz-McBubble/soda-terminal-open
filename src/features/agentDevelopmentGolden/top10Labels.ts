@@ -88,3 +88,17 @@ export function benchmarkLabel(benchmark: Benchmark | undefined, stale: boolean)
 export function effectiveHitLabel(value: string) {
   return /^\d+(?:\.\d+)?$/.test(value) ? `有效副属性 ${value} 次命中` : `有效副属性 ${value}`
 }
+
+/** Search provenance is independent of the displayed comparison formula. */
+export function candidateSearchLabel(search: GoldenTop10Data['candidateSearch']) {
+  if (!search) return '本次排序方法未记录，请重新搭配查看。'
+  const method =
+    search.rankingMethod === 'dynamic_objective'
+      ? '按已覆盖模型目标排序'
+      : '按来源建议与局部细化排序，输出对比不代表名次依据'
+  return search.status === 'budget_exhausted'
+    ? `${method}；搜索预算已用尽，不代表全局最优。`
+    : search.status === 'objective_unresolved'
+      ? `${method}；部分目标尚未解决。`
+      : `${method}。`
+}

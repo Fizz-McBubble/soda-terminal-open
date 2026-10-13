@@ -9,6 +9,12 @@ import { resolveCurrentPlanningEventEffects32 } from './currentPlanningEventEffe
 import { planningRuntimeEffectBuckets32 } from './currentPlanningSelfEffects32'
 import { functionalEquipmentGaps32 } from './reviewedFunctionalEquipmentDependencies32'
 import { resolveSourceEventQuantity32 } from './sourceEventQuantity32'
+import { actualPlanningPotentialActionFamilies32 } from './currentPotentialEventActions32'
+import {
+  bindReviewedPotentialApplications,
+  type PotentialApplicationEvent,
+} from './potentialApplicationBinding'
+import type { SourceBackedPlanningEffectBucket } from './currentPlanningDamageModifiers'
 import type {
   evaluateReviewedFunctionalCapacity32,
   ReviewedFunctionalCapacity32,
@@ -87,6 +93,7 @@ export function evaluateSourceDazeCapacity32(
     `source-commit:${sourceDazeIdentity32.commit}`,
   ]
   const included = new Set<string>()
+  const potentialExclusions = new Set<string>()
   let total = 0
   for (const usage of events) {
     const quantity = resolveSourceEventQuantity32(usage)
@@ -117,6 +124,79 @@ export function evaluateSourceDazeCapacity32(
         if (matchesFunctionalEffectScope32(entry, scope, event.attribute))
           gaps.push(`functional_condition_unobserved:${row.effectKey}`)
       }
+    const actualFamilies = actualPlanningPotentialActionFamilies32({
+      actionId: usage.eventId.split('.')[1]!,
+      skill: usage.eventId.split('.')[0]!,
+      attribute: event.attribute,
+    })
+    const eventPotentialBuckets: SourceBackedPlanningEffectBucket[] = []
+    if (agentId === 'agent-lycaon') {
+      const candidatePotEvent =
+        input.potentialEvents?.[`${agentId}:${usage.eventId}`] ??
+        input.potentialEvents?.[`${agentId}:potential`] ??
+        input.potentialEvents?.[`${agentId}:event`] ??
+        input.potentialEvents?.[usage.eventId] ??
+        input.potentialEvents?.[agentId]
+      const declaredOwner = (candidatePotEvent as { ownerAgentId?: string } | undefined)
+        ?.ownerAgentId
+      const isOwnerMismatch = Boolean(declaredOwner && declaredOwner !== agentId)
+      const hasEventIdConflict = Boolean(
+        isOwnerMismatch ||
+        (candidatePotEvent?.eventId && candidatePotEvent.eventId !== usage.eventId),
+      )
+      const potEvent = hasEventIdConflict ? undefined : candidatePotEvent
+      if (hasEventIdConflict && candidatePotEvent) {
+        potentialExclusions.add(
+          isOwnerMismatch
+            ? `agent-lycaon:potential_off_field_encircle_prey_daze:Owner conflict: declared ${declaredOwner} does not match ${agentId}`
+            : `agent-lycaon:potential_off_field_encircle_prey_daze:EventId conflict: declared ${candidatePotEvent.eventId} does not match usage ${usage.eventId}`,
+        )
+      }
+      const bindingEvent: PotentialApplicationEvent = {
+        eventId: usage.eventId,
+        actionFamilies: potEvent?.actionFamilies?.length
+          ? potEvent.actionFamilies.filter((f) => actualFamilies.includes(f))
+          : actualFamilies,
+        providerStateKeys: potEvent?.providerStateKeys ?? [],
+        targetStateKeys: potEvent?.targetStateKeys ?? [],
+        providerStateStacks: potEvent?.providerStateStacks,
+        sourceRefs: potEvent?.sourceRefs?.length ? potEvent.sourceRefs : [],
+      }
+      const applications = bindReviewedPotentialApplications({
+        member: {
+          agentId,
+          potential: member.potential ?? 0,
+          initialStats: {
+            pen_: member.initialStats.pen_ ?? 0,
+            enerRegen: member.initialStats.enerRegen ?? 0,
+          },
+          provenance: 'calculation_context',
+        },
+        event: bindingEvent,
+      })
+      const lycaonApp = applications.find(
+        (row) => row.effectId === 'potential_off_field_encircle_prey_daze',
+      )
+      if (lycaonApp?.status === 'applied') {
+        eventPotentialBuckets.push({
+          bucketId: `${lycaonApp.effectKey}:event:${usage.eventId}`,
+          effectKey: lycaonApp.effectKey,
+          effectId: lycaonApp.effectId,
+          applicationScope: 'generic',
+          providerAgentId: agentId,
+          recipientAgentIds: [agentId],
+          receiverPath: 'ownBuff.combat.impact_',
+          damageType: null,
+          action: null,
+          attribute: null,
+          application: 'impact_percent',
+          value: lycaonApp.value,
+          sourceRefs: [...lycaonApp.sourceRefs],
+        })
+      } else if (lycaonApp?.status === 'excluded') {
+        potentialExclusions.add(`${lycaonApp.effectKey}:${lycaonApp.reason}`)
+      }
+    }
     const resolved = resolveCurrentPlanningEventEffects32({
       memberIds,
       members,
@@ -124,7 +204,11 @@ export function evaluateSourceDazeCapacity32(
       event: scope,
       attribute: event.attribute,
       entries,
-      buckets: [...baseBuckets, ...(input.equipmentModifierBuckets ?? [])],
+      buckets: [
+        ...baseBuckets,
+        ...(input.equipmentModifierBuckets ?? []),
+        ...eventPotentialBuckets,
+      ],
       baselineReferencesByAgentId: input.baselineReferencesByAgentId,
     })
     if (resolved.status !== 'supported') {
@@ -164,6 +248,10 @@ export function evaluateSourceDazeCapacity32(
       included.add(row.effectKey)
       sourceRefs.push(...row.sourceRefs)
     }
+    for (const potBucket of eventPotentialBuckets) {
+      included.add(potBucket.effectKey)
+      sourceRefs.push(...potBucket.sourceRefs)
+    }
     sourceRefs.push(`${event.source.statsPath}#${event.source.statsSha256}`)
   }
   const capacity: ReviewedFunctionalCapacity32 = {
@@ -191,6 +279,7 @@ export function evaluateSourceDazeCapacity32(
     ],
     excluded: [
       ...new Set(gaps),
+      ...potentialExclusions,
       'enemy_daze_resistance_and_taken_factors',
       'enemy_current_daze_threshold_and_stun_timeline',
       'daze_to_damage_conversion',

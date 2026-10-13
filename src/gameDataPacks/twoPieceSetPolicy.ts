@@ -3,6 +3,7 @@ import type { CandidateWarehouseConstraint } from '../gameDataPacks/candidateWar
 import {
   candidatePanelPolicyPrerequisites,
   getCandidatePanelPolicy,
+  getCandidatePanelPolicyForContext,
 } from '../gameDataPacks/candidatePanelPolicy'
 import { getCurrentDriveDiscFormulaData } from '../gameDataPacks/currentDriveDiscFormulaCatalog'
 
@@ -24,6 +25,8 @@ export type TwoPiecePanelContext = {
   >
   /** Game-facing Core level (2-7); required to activate source-bound Core prerequisites. */
   coreLevel?: number
+  /** Account Mindscape level (0-6); required for Astra's context-specific ATK target. */
+  mindscape?: number
   currentSetIds: readonly string[]
 }
 
@@ -133,53 +136,61 @@ export function twoPieceRecommendationPriority(
     if (stat === 'atk_')
       return result(0, '先核对双目标', '先保证50%暴击并补至3400攻击；单个攻击值不代表条件完成。')
   }
-  const policy = getCandidatePanelPolicy(id)
+  const declaredPolicy = getCandidatePanelPolicy(id)
+  const policy = getCandidatePanelPolicyForContext(id, {
+    mindscape: panelContext?.mindscape,
+  })
+  const activePolicy = policy ?? declaredPolicy
   const policyAfter =
-    policy?.priorityStat === 'energyRegen'
+    activePolicy?.priorityStat === 'energyRegen'
       ? { stat: 'enerRegen_', name: '回能' }
-      : policy?.priorityStat === 'anomalyProficiency'
+      : activePolicy?.priorityStat === 'anomalyProficiency'
         ? { stat: 'anomProf', name: '异常精通' }
         : null
-  if (policy && policyAfter && (stat === 'atk_' || stat === policyAfter.stat)) {
-    const prerequisites = candidatePanelPolicyPrerequisites(policy, {
+  if (activePolicy && policyAfter && (stat === 'atk_' || stat === policyAfter.stat)) {
+    const prerequisites = candidatePanelPolicyPrerequisites(activePolicy, {
       coreLevel: panelContext?.coreLevel,
       fourPieceSetId: primarySetId,
+      mindscape: panelContext?.mindscape,
     })
     if (!prerequisites.executable) {
       const missing = [
         ...(!prerequisites.coreSatisfied ? ['满级核心技'] : []),
         ...(!prerequisites.fourPieceSatisfied ? ['静听嘉音4件套'] : []),
+        ...(!prerequisites.mindscapeSatisfied ? ['已确认影画等级'] : []),
       ].join('、')
       return result(
         1,
         '来源条件参考',
-        `${policy.minimumAttack}攻击的切换建议要求${missing}；当前未证明前提，不作为硬门槛排序。`,
+        !prerequisites.mindscapeSatisfied
+          ? `耀嘉音的攻击目标随影画变化；先确认影画等级，当前不按3429或2963攻击目标排序。`
+          : `${activePolicy.minimumAttack}攻击的切换建议要求${missing}；当前未证明前提，不作为硬门槛排序。`,
       )
     }
     if (projectedAttack !== undefined) {
-      if (stat === 'atk_' && projectedAttack >= policy.minimumAttack)
+      if (stat === 'atk_' && projectedAttack >= activePolicy.minimumAttack)
         return result(
           2,
           '攻击已达标，按缺口选',
-          `换套后攻击约 ${projectedAttack.toFixed(0)}，已达到 ${policy.minimumAttack} 可执行目标。`,
+          `换套后攻击约 ${projectedAttack.toFixed(0)}，已达到 ${activePolicy.minimumAttack} 可执行目标。`,
         )
-      if (stat === policyAfter.stat && projectedAttack < policy.minimumAttack)
+      if (stat === policyAfter.stat && projectedAttack < activePolicy.minimumAttack)
         return result(
           2,
           '攻击未达标时暂缓',
-          `换套后攻击约 ${projectedAttack.toFixed(0)}，低于 ${policy.minimumAttack} 可执行目标。`,
+          `换套后攻击约 ${projectedAttack.toFixed(0)}，低于 ${activePolicy.minimumAttack} 可执行目标。`,
         )
     }
     return stat === 'atk_'
       ? result(
           0,
           '攻击未达标时首选',
-          `先补至 ${policy.minimumAttack} 攻击；换套后仍达标，再选${policyAfter.name}。`,
+          `先补至 ${activePolicy.minimumAttack} 攻击；换套后仍达标，再选${policyAfter.name}。`,
         )
       : result(
           1,
           '攻击达标后优先',
-          `换套后仍有 ${policy.minimumAttack} 攻击时，优先补${policyAfter.name}。`,
+          `换套后仍有 ${activePolicy.minimumAttack} 攻击时，优先补${policyAfter.name}。`,
         )
   }
   const softReference = softReferences[id]

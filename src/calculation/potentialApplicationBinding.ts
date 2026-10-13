@@ -1,5 +1,10 @@
 import { resolvePotentialImage } from '../assault/agentCapabilities'
 import {
+  resolveReviewedPotentialTimer32,
+  reviewedPotentialTimers32,
+  type ReviewedPotentialTimerObservation32,
+} from './reviewedPotentialSourceClosure32'
+import {
   getReviewedPotentialDefinition,
   reviewedPotentialDefinitions,
   type PotentialEffectTargetKind,
@@ -46,6 +51,12 @@ export type PotentialApplicationEvent = {
   targetStateKeys: readonly string[]
   /** Stack observations are required for source effects with fixed stack caps. */
   providerStateStacks?: Readonly<Record<string, number>>
+  /** When temporal proof is supplied, a state label cannot override an expired
+   * or unverified source window. Absent proof retains the explicit prepared-state contract. */
+  temporalProof?: {
+    at: number
+    observations: readonly ReviewedPotentialTimerObservation32[]
+  }
   sourceRefs: readonly string[]
 }
 
@@ -216,6 +227,24 @@ export function bindReviewedPotentialApplications(
 
     if (!hasAll(effect.formulaBinding.requiredStates, input.event.providerStateKeys))
       return excluded({ ...common, reason: 'Missing required provider state evidence.' })
+    if (input.event.temporalProof) {
+      for (const stateKey of effect.formulaBinding.requiredStates) {
+        if (
+          !reviewedPotentialTimers32.some(
+            (row) => row.agentId === input.member.agentId && row.stateKey === stateKey,
+          )
+        )
+          continue
+        const window = resolveReviewedPotentialTimer32({
+          agentId: input.member.agentId,
+          potential,
+          stateKey,
+          ...input.event.temporalProof,
+        })
+        if (window.status !== 'known' || !window.active)
+          return excluded({ ...common, reason: `Source timer evidence: ${window.reason}.` })
+      }
+    }
     if (!hasAll(effect.formulaBinding.requiredTargetStates, input.event.targetStateKeys))
       return excluded({ ...common, reason: 'Missing required target-state evidence.' })
     if (

@@ -170,6 +170,6 @@ export function compileReviewedClaretPreparedBenchmark32(input: {
     },
     timingAuthority: 'declared_duration_static_effect_coverage' as const,
     boundary:
-      '30秒为声明比较时长，计猩红铭刻和同目标三层斩痕准备态的一次完整长按三毁伤，再接一次伏钺；全部接触、效果状态恒定，准备动作伤害不计入。末次普攻的新斩痕不再消费，不外推续转或实测耗时，不代表完整整队轮转。',
+      '30秒为声明比较时长，计猩红铭刻和同目标三层残痕准备态的一次完整长按三毁伤，再接一次伏钺；全部接触、效果状态恒定，准备动作伤害不计入。末次普攻的新残痕不再消费，不外推续转或实测耗时，不代表完整整队轮转。',
   }
 }

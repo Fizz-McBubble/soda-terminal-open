@@ -4,9 +4,11 @@ import { reconcileProductionSourceExpression } from './dynamic/sourceExpressionR
 import {
   currentAgentDecisionMechanicContracts,
   getCurrentAgentDecisionMechanicContract,
+  classifyAgentEffectSource32,
 } from './currentAgentDecisionMechanicContracts'
 import type { UpstreamExpressionIR } from './currentUpstreamExpressionIR'
 import { reviewedPotentialEffectBlueprints } from './reviewedPotentialEffectBlueprints'
+import { reviewedTemplateMechanicEffectBlueprints32 } from './reviewedTemplateMechanicEffects32'
 
 export type PlanningEffectTargetKind = 'self' | 'active_agent' | 'team' | 'enemy'
 
@@ -68,83 +70,92 @@ export function compileAgentPlanningEffectBlueprints(
 ): CurrentAgentPlanningEffectBlueprint[] {
   const contract = getCurrentAgentDecisionMechanicContract(agentId)
   if (!contract) throw new Error(`缺少代理人 Decision Mechanic 合同：${agentId}`)
-  return contract.effectContract.effects.map((effect) => {
-    const sourceStatus = effect.numericExpression.classification
-    if (
-      sourceStatus !== 'upstream_expression_available' &&
-      sourceStatus !== 'declarative_baseline_input'
-    )
-      throw new Error(`效果缺少数值表达式来源：${agentId}:${effect.effectId}`)
+  const sourceEffects =
+    classifyAgentEffectSource32(contract.effectContract) === 'generic_template'
+      ? []
+      : contract.effectContract.effects
+  return [
+    ...sourceEffects.map((effect): CurrentAgentPlanningEffectBlueprint => {
+      const sourceStatus = effect.numericExpression.classification
+      if (
+        sourceStatus !== 'upstream_expression_available' &&
+        sourceStatus !== 'declarative_baseline_input'
+      )
+        throw new Error(`效果缺少数值表达式来源：${agentId}:${effect.effectId}`)
 
-    let expressionIr = effect.numericExpression.expressionIr as UpstreamExpressionIR
-    let expressionSha256 = effect.numericExpression.expressionSha256
-    let sourceRefs = [
-      `${contract.effectContract.source.repository}@${contract.effectContract.source.commit}`,
-      `${contract.effectContract.source.formulaPath}#${contract.effectContract.source.formulaSha256}`,
-      effect.locator,
-    ]
-    let todoBoundary = effect.numericExpression.todoBoundary
-    let reconciledMetadata: ReturnType<typeof effectiveExpressionMetadata> | null = null
-    const originalSource = {
-      formulaSha256: contract.effectContract.source.formulaSha256,
-      expressionSha256: effect.numericExpression.expressionSha256,
-      expressionIrSha256: sha256(canonicalJson(expressionIr)),
-    }
-
-    try {
-      const reconciled = reconcileProductionSourceExpression({
-        agentId,
-        effectId: effect.effectId,
-        sourceCommit: contract.effectContract.source.commit,
-        sourcePath: contract.effectContract.source.formulaPath,
-        formulaSha256: originalSource.formulaSha256,
-        expressionSha256: originalSource.expressionSha256,
-        originalIrSha256: originalSource.expressionIrSha256,
-        expression: expressionIr,
-      })
-      if (reconciled.applied) {
-        expressionIr = reconciled.expression as UpstreamExpressionIR
-        expressionSha256 = sha256(canonicalJson(expressionIr))
-        sourceRefs = [...sourceRefs, ...reconciled.evidence]
-        reconciledMetadata = effectiveExpressionMetadata(expressionIr)
+      let expressionIr = effect.numericExpression.expressionIr as UpstreamExpressionIR
+      let expressionSha256 = effect.numericExpression.expressionSha256
+      let sourceRefs = [
+        `${contract.effectContract.source.repository}@${contract.effectContract.source.commit}`,
+        `${contract.effectContract.source.formulaPath}#${contract.effectContract.source.formulaSha256}`,
+        effect.locator,
+      ]
+      let todoBoundary = effect.numericExpression.todoBoundary
+      let reconciledMetadata: ReturnType<typeof effectiveExpressionMetadata> | null = null
+      const originalSource = {
+        formulaSha256: contract.effectContract.source.formulaSha256,
+        expressionSha256: effect.numericExpression.expressionSha256,
+        expressionIrSha256: sha256(canonicalJson(expressionIr)),
       }
-    } catch (err: unknown) {
-      // 来源漂移拒绝而非悄悄兜底；避免因为全模块初始化抛错让无关角色无法使用
-      const msg = err instanceof Error ? err.message : String(err)
-      todoBoundary = `reconciliation_drift:${msg}`
-    }
 
-    return {
-      effectKey: `${agentId}:${effect.effectId}`,
-      providerAgentId: agentId,
-      effectId: effect.effectId,
-      applicationScope: effect.applicationScope as 'generic' | 'event_only',
-      targetKinds: [...new Set(effect.recipients)] as PlanningEffectTargetKind[],
-      // R1 never assumes that a buff persists or snapshots. Every included effect
-      // is recomputed against the named event unless a later version adds a
-      // source-backed window operator.
-      snapshotPolicy: 'recompute_per_event',
-      activationBoundary: 'explicit_planning_baseline_disposition_required' as const,
-      numericExpression: {
-        sourceStatus,
-        operators: reconciledMetadata?.operators ?? effect.numericExpression.operators,
-        dependencyKinds:
-          reconciledMetadata?.dependencyKinds ?? effect.numericExpression.dependencyKinds,
-        expressionSha256,
-        expressionIr,
-        expressionIrReady: true,
-        todoBoundary,
-        ...(reconciledMetadata || todoBoundary?.startsWith('reconciliation_drift:')
-          ? { originalSource }
-          : {}),
-        ...(agentId === 'agent-lighter' &&
-        ['ability_ice_dmg_', 'ability_fire_dmg_'].includes(effect.effectId)
-          ? { requiredExplicitRuntimeReferences: ['elation'] }
-          : {}),
-      },
-      sourceRefs,
-    }
-  })
+      try {
+        const reconciled = reconcileProductionSourceExpression({
+          agentId,
+          effectId: effect.effectId,
+          sourceCommit: contract.effectContract.source.commit,
+          sourcePath: contract.effectContract.source.formulaPath,
+          formulaSha256: originalSource.formulaSha256,
+          expressionSha256: originalSource.expressionSha256,
+          originalIrSha256: originalSource.expressionIrSha256,
+          expression: expressionIr,
+        })
+        if (reconciled.applied) {
+          expressionIr = reconciled.expression as UpstreamExpressionIR
+          expressionSha256 = sha256(canonicalJson(expressionIr))
+          sourceRefs = [...sourceRefs, ...reconciled.evidence]
+          reconciledMetadata = effectiveExpressionMetadata(expressionIr)
+        }
+      } catch (err: unknown) {
+        // 来源漂移拒绝而非悄悄兜底；避免因为全模块初始化抛错让无关角色无法使用
+        const msg = err instanceof Error ? err.message : String(err)
+        todoBoundary = `reconciliation_drift:${msg}`
+      }
+
+      return {
+        effectKey: `${agentId}:${effect.effectId}`,
+        providerAgentId: agentId,
+        effectId: effect.effectId,
+        applicationScope: effect.applicationScope as 'generic' | 'event_only',
+        targetKinds: [...new Set(effect.recipients)] as PlanningEffectTargetKind[],
+        // R1 never assumes that a buff persists or snapshots. Every included effect
+        // is recomputed against the named event unless a later version adds a
+        // source-backed window operator.
+        snapshotPolicy: 'recompute_per_event' as const,
+        activationBoundary: 'explicit_planning_baseline_disposition_required' as const,
+        numericExpression: {
+          sourceStatus,
+          operators: reconciledMetadata?.operators ?? effect.numericExpression.operators,
+          dependencyKinds:
+            reconciledMetadata?.dependencyKinds ?? effect.numericExpression.dependencyKinds,
+          expressionSha256,
+          expressionIr,
+          expressionIrReady: true,
+          todoBoundary,
+          ...(reconciledMetadata || todoBoundary?.startsWith('reconciliation_drift:')
+            ? { originalSource }
+            : {}),
+          ...(agentId === 'agent-lighter' &&
+          ['ability_ice_dmg_', 'ability_fire_dmg_'].includes(effect.effectId)
+            ? { requiredExplicitRuntimeReferences: ['elation'] }
+            : {}),
+        },
+        sourceRefs,
+      }
+    }),
+    ...reviewedTemplateMechanicEffectBlueprints32.filter(
+      (entry) => entry.providerAgentId === agentId,
+    ),
+  ]
 }
 
 const upstreamAgentPlanningEffectBlueprints = Object.freeze(

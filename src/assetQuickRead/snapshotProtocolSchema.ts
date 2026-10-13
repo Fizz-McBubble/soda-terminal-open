@@ -54,16 +54,17 @@ const agentRecord = z.object({
 })
 export type SnapshotAgentRecord = z.infer<typeof agentRecord>
 /** Unknown transport/security fields are stripped and never copied into account candidates. */
+const snapshotSourceSchema = z.object({
+  upstream_commit: z.literal('4853f07c8fb5322c12b9b580d6364b577c2ac96a'),
+  protocol_version: z.literal('3.2'),
+  requested_game_region: z.literal('CN'),
+  mode: z.literal('live_copy_only_client_cn_configuration_candidate'),
+  capture_started_unix_seconds: z.number().int().positive().max(253402300799),
+})
 export const assetSnapshotSchema = z.object({
   schema: z.literal('soda-asset-snapshot-probe/v1'),
   status: z.enum(['staged_for_field_review', 'response_semantics_unverified']),
-  source: z.object({
-    upstream_commit: z.literal('4853f07c8fb5322c12b9b580d6364b577c2ac96a'),
-    protocol_version: z.literal('3.2'),
-    requested_game_region: z.literal('CN'),
-    mode: z.literal('live_copy_only_client_cn_configuration_candidate'),
-    capture_started_unix_seconds: z.number().int().positive().max(253402300799),
-  }),
+  source: snapshotSourceSchema,
   coverage: z.object({
     disc_load_received: z.literal(true),
     engine_load_received: z.literal(true),
@@ -104,4 +105,13 @@ export const assetSnapshotSchema = z.object({
   account_write_enabled: z.literal(false),
   raw_traffic_saved: z.literal(false),
   response_status_semantics_verified: z.boolean(),
+})
+
+/** Recovery only: bounded identity metadata, with the same field whitelist as import. */
+export const pendingAssetSnapshotSchema = assetSnapshotSchema.extend({
+  source: snapshotSourceSchema.extend({
+    upstream_commit: z.string().regex(/^[a-f0-9]{40}$/),
+    protocol_version: z.string().regex(/^[0-9]{1,3}\.[0-9]{1,3}(?:\.[0-9]{1,3})?$/),
+  }),
+  issues: z.array(z.never()).max(0),
 })

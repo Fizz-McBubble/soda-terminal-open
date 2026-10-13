@@ -26,6 +26,7 @@ const instance = z.discriminatedUnion('kind', [
       kind: z.literal('polarity_disorder'),
       elapsedSeconds: finite.nonnegative(),
       additionalDisorderMultiplier: finite,
+      originalDisorderRatio: finite.positive().max(1).optional(),
     })
     .strict(),
 ])
@@ -143,7 +144,18 @@ export function calculateCommonAnomalySettlement32(raw: CommonAnomalySettlement3
       : standardAnomalyBaseMultiplier(input.attribute) *
         (first.instance.motionValueMultiplier === 0 ? 1 : first.instance.motionValueMultiplier)
   const { sourceRefs: targetRefs, ...target } = input.target
-  const result = calculateAnomalyDamageCore({ ...first.stats, ...target, baseMultiplier })
+  const original = calculateAnomalyDamageCore({ ...first.stats, ...target, baseMultiplier })
+  const originalDisorderRatio =
+    first.instance.kind === 'polarity_disorder' ? (first.instance.originalDisorderRatio ?? 1) : 1
+  // The skill scales the entire original Disorder, including flat anomaly damage;
+  // it does not occupy the additive baseMultiplier slot.
+  const result = {
+    ...original,
+    nonCriticalDamage: original.nonCriticalDamage * originalDisorderRatio,
+    criticalDamage: original.criticalDamage * originalDisorderRatio,
+    expectedDamage: original.expectedDamage * originalDisorderRatio,
+    factors: { ...original.factors, originalDisorderRatio },
+  }
   if (
     [result.expectedDamage, result.nonCriticalDamage, result.criticalDamage].some(
       (value) => !Number.isFinite(value) || value < 0,

@@ -5,6 +5,11 @@ import type { CandidateWarehousePlan } from '../optimizer/candidateWarehouseSolv
 import { compareValueBenchmarkSides } from '../calculation/valueBenchmarkComparison'
 import { resolveWEngine } from './wEngineResolver'
 import {
+  resolveCurrentPlanningScenario32,
+  type CurrentPlanningScenarioSelection32,
+} from '../calculation/currentPlanningScenario32'
+import type { ReviewedTemplateEventConditionDeclaration32 } from '../calculation/reviewedTemplateEventConditions32'
+import {
   evaluateDevelopmentValueBenchmarkSide,
   unsupportedSide,
   type DevelopmentComparisonParameters,
@@ -23,7 +28,10 @@ export function projectDevelopmentValueBenchmarks(input: {
   savedPlans?: readonly AccountPlanningDraft[]
   stale: boolean
   candidateParametersByRank?: Readonly<Record<number, DevelopmentComparisonParameters>>
+  scenarioSelection?: CurrentPlanningScenarioSelection32
+  eventConditionDeclaration?: ReviewedTemplateEventConditionDeclaration32
 }) {
+  const scenario = resolveCurrentPlanningScenario32(input.scenarioSelection)
   const validLoadout = (discs: readonly DriveDisc[]) =>
     discs.length === 6 &&
     new Set(discs.map((disc) => disc.id)).size === 6 &&
@@ -86,6 +94,8 @@ export function projectDevelopmentValueBenchmarks(input: {
         : '没有第二份可比方案（非游戏实装）'
   const baseline = baselineDiscs.length
     ? evaluateDevelopmentValueBenchmarkSide({
+        scenarioSelection: input.scenarioSelection,
+        eventConditionDeclaration: input.eventConditionDeclaration,
         warehouse: input.warehouse,
         agentId: input.agentId,
         discs: baselineDiscs,
@@ -96,6 +106,7 @@ export function projectDevelopmentValueBenchmarks(input: {
             : undefined,
       })
     : unsupportedSide({
+        scenarioSelection: input.scenarioSelection,
         agentId: input.agentId,
         discs: [],
         engineKey: 'missing',
@@ -109,6 +120,8 @@ export function projectDevelopmentValueBenchmarks(input: {
   return input.candidates.map((plan, index) => {
     const discs = plan.loadouts[0]?.discs.map((item) => item.disc) ?? []
     const candidate = evaluateDevelopmentValueBenchmarkSide({
+      scenarioSelection: input.scenarioSelection,
+      eventConditionDeclaration: input.eventConditionDeclaration,
       warehouse: input.warehouse,
       agentId: input.agentId,
       discs,
@@ -126,31 +139,36 @@ export function projectDevelopmentValueBenchmarks(input: {
         ? []
         : (['w_engine'] as const)),
     ]
-    return compareValueBenchmarkSides({
-      baselineSource: actualAvailable
-        ? { kind: 'actual', referenceId: null }
-        : savedAvailable
-          ? { kind: 'saved', referenceId: saved!.id }
-          : baselineDiscs.length
-            ? { kind: 'candidate', referenceId: 'rank:1' }
-            : { kind: 'none', referenceId: null },
-      baseline:
-        !actualAvailable && !savedAvailable && index === 0
-          ? unsupportedSide({
-              agentId: input.agentId,
-              discs: baselineDiscs,
-              engineKey: candidate.dimensions.w_engine,
-              state: input.stale ? 'stale' : 'unsupported',
-              reasons: ['该方案是试算基线；自身不计算相对提升。'],
-            })
-          : baseline,
-      candidate,
-      changedDimensions,
-      independentCounterfactual: changedDimensions.length === 1,
-      labels: {
-        baseline: baselineLabel,
-        candidate: `仓库方案 ${index + 1}（六张实体盘，${input.candidateParametersByRank?.[index + 1]?.wEngine ? `显式音擎 ${candidate.dimensions.w_engine}，含音擎养成变化` : engineLabel}${input.candidateParametersByRank?.[index + 1]?.potential !== undefined ? '，显式潜能' : ''}）`,
-      },
-    })
+    return {
+      ...compareValueBenchmarkSides({
+        baselineSource: actualAvailable
+          ? { kind: 'actual', referenceId: null }
+          : savedAvailable
+            ? { kind: 'saved', referenceId: saved!.id }
+            : baselineDiscs.length
+              ? { kind: 'candidate', referenceId: 'rank:1' }
+              : { kind: 'none', referenceId: null },
+        baseline:
+          !actualAvailable && !savedAvailable && index === 0
+            ? unsupportedSide({
+                scenarioSelection: input.scenarioSelection,
+                agentId: input.agentId,
+                discs: baselineDiscs,
+                engineKey: candidate.dimensions.w_engine,
+                state: input.stale ? 'stale' : 'unsupported',
+                reasons: ['该方案是试算基线；自身不计算相对提升。'],
+              })
+            : baseline,
+        candidate,
+        changedDimensions,
+        independentCounterfactual: changedDimensions.length === 1,
+        labels: {
+          baseline: baselineLabel,
+          candidate: `仓库方案 ${index + 1}（六张实体盘，${input.candidateParametersByRank?.[index + 1]?.wEngine ? `显式音擎 ${candidate.dimensions.w_engine}，含音擎养成变化` : engineLabel}${input.candidateParametersByRank?.[index + 1]?.potential !== undefined ? '，显式潜能' : ''}）`,
+        },
+      }),
+      scenarioSelection: scenario.selection,
+      scenarioIdentity: scenario.identity,
+    }
   })
 }

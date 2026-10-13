@@ -1,5 +1,6 @@
 import type { GoldenTop10Data, LoadoutRow } from './types'
 import { formatStat } from './top10Labels'
+import { staticPanelTargetDisplay } from '../../gameDataPacks/targetPanelSemantics'
 
 export function Top10StatTable({
   data,
@@ -52,12 +53,13 @@ export function Top10StatTable({
                 const current = data.baseline.finalStats[stat.key] ?? 0
                 const candidate = selectedRow?.finalStats[stat.key] ?? 0
                 const delta = candidate - current
+                const target = staticPanelTargetDisplay(stat.target)
                 return (
                   <div role="row" key={stat.key} className={stat.highlight ? 'is-priority' : ''}>
                     <strong role="cell" aria-label={stat.label}>
                       {stat.label}
-                      {data.statPresentation !== 'disc_contribution' && stat.target ? (
-                        <small className="comparison-priority-label">毕业参考 {stat.target}</small>
+                      {data.statPresentation !== 'disc_contribution' && target ? (
+                        <small className="comparison-priority-label">攻略参考 {target}</small>
                       ) : stat.highlight ? (
                         <small className="comparison-priority-label">重点</small>
                       ) : null}

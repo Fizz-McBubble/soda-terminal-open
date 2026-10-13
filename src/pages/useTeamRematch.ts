@@ -109,6 +109,7 @@ export function useTeamRematch({
           previousFit?.effectiveEquipmentParameters?.source === 'player_confirmed'
             ? previousFit.effectiveEquipmentParameters
             : undefined,
+        scenarioSelection: previousFit?.scenarioSelection,
       })
       if (!active()) return
       if (

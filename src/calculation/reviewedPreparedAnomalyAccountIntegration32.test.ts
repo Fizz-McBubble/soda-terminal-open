@@ -10,6 +10,7 @@ describe('actual projection into the prepared anomaly runtime', () => {
     ['agent-piper', 7.13, 1],
     ['agent-alice', 7.13, 1],
     ['agent-promeia', 5, 6.35],
+    ['agent-aria', 0.625, 4.1525],
   ] as const)(
     '%s consumes six actual discs, recorded progress and the same current engine',
     (agentId, baseMultiplier, sourceInstanceMultiplier) => {
@@ -69,6 +70,8 @@ describe('actual projection into the prepared anomaly runtime', () => {
         })
         expect(result.status).toBe('supported')
         if (result.status !== 'supported') throw new Error(result.blockers.join(','))
+        expect(result.triggered).toBe(true)
+        if (!result.triggered) throw new Error('Prepared anomaly fixture did not trigger')
         return { result, panel: projection.stats.finalStats }
       }
       const base = project(discs),
@@ -76,7 +79,9 @@ describe('actual projection into the prepared anomaly runtime', () => {
       // Independent sourced arithmetic, without invoking the anomaly kernel or
       // any objective formula helper: target700/res20%, K60=794, level multiplier2.
       const bonus =
-        base.panel.damageBonusesByAttribute?.[agentId === 'agent-promeia' ? 'ice' : 'physical'] ??
+        base.panel.damageBonusesByAttribute?.[
+          agentId === 'agent-aria' ? 'ether' : agentId === 'agent-promeia' ? 'ice' : 'physical'
+        ] ??
         base.panel.damageBonus ??
         0
       const defense = Math.max(0, 700 * (1 - base.panel.pen_) - (base.panel.pen ?? 0))
@@ -90,7 +95,8 @@ describe('actual projection into the prepared anomaly runtime', () => {
           794) /
           (794 + defense)) *
         0.8
-      expect(base.result.totalDamage).toBeCloseTo(perAP * base.panel.anomProf, 7)
+      const ap = base.result.snapshot.anomalyProficiency
+      expect(base.result.totalDamage).toBeCloseTo(perAP * ap, 7)
       expect(candidate.result.totalDamage - base.result.totalDamage).toBeCloseTo(perAP * 9, 7)
       expect(candidate.result.contextHash).toBe(base.result.contextHash)
       expect(candidate.result.runtimeHash).not.toBe(base.result.runtimeHash)

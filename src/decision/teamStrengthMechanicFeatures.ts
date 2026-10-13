@@ -1,10 +1,7 @@
-import {
-  getCurrentAgentEventContract,
-  resolveCurrentAgentEvent,
-} from '../calculation/currentAgentMechanicContracts'
+import { memberFacts, type Member } from './teamStrengthMemberFacts'
+import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
 import { getCurrentAgentDecisionMechanicContract } from '../calculation/currentAgentDecisionMechanicContracts'
 import { compileNormalizedAgentEventSchedule } from '../calculation/currentNormalizedPlanningBaseline'
-import type { UpstreamExpressionIR } from '../calculation/currentUpstreamExpressionIR'
 import { resolveCurrentReleasedIdentity } from '../gameDataPacks/currentReleasedIdentityMap'
 import { stableContentHash } from '../gameDataPacks/types'
 import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
@@ -13,10 +10,15 @@ import { requiredAgentResources } from '../teamEngine/teamResourceRequirements'
 import { sourceBoundAgentSupportFingerprint } from '../calculation/sourceBoundAgentSupport'
 import { reviewedExternalSupportFactsFingerprint } from '../gameDataPacks/reviewedExternalSupportFacts'
 import { reviewedGenericEffectDispositionsFingerprint } from '../gameDataPacks/reviewedExternalEffectDispositions'
+import { reviewedPotentialDefinitions } from '../gameDataPacks/reviewedPotentialDefinitions'
+import { reviewedPotentialCalculationIdentity } from '../gameDataPacks/reviewedPotentialIdentity'
+import { createLevel60NeutralEffectRuntimeMember } from '../calculation/currentPlanningEffectDomain'
+import { prepareReviewedPotentialEvents32 } from '../calculation/reviewedPotentialPreparedEvents32'
+import { bindReviewedPotentialApplications } from '../calculation/potentialApplicationBinding'
+import { currentPlanningConsumerPolicyIdentity32 } from '../calculation/currentPlanningConsumerPolicyIdentity32'
+import type { TeamStrengthReferenceConditions } from './teamStrengthReferenceConditions'
 import {
   compatibleCapabilities,
-  effectReceivers,
-  expressionReferences,
   type SupportRecipientContext,
 } from './teamStrengthSupportCapabilities'
 /** Source facts and structural capacities, never a team label, agent tier, or DPS. */
@@ -41,6 +43,20 @@ export const teamStrengthMechanicFeatureNames = [
   'compatible_anomaly_capability',
   'compatible_sheer_force_capability',
   'compatible_stun_capability',
+  'second_direct_action_scale',
+  'second_stun_action_scale',
+  'second_background_action_scale',
+  'second_anomaly_action_buildup',
+  'compatible_multi_provider_capacity',
+  'sharp_action_scale',
+  'laceration_action_multiplier',
+  'compatible_sharp_capability',
+  'compatible_laceration_capability',
+  'reference_potential_damage_bonus',
+  'reference_potential_attack_percent',
+  'reference_potential_crit_damage',
+  'reference_potential_penetration_ratio',
+  'reference_potential_resistance_ignore',
 ] as const
 export type TeamStrengthMechanicFeatureName = (typeof teamStrengthMechanicFeatureNames)[number]
 export type TeamStrengthMechanicFeatures = {
@@ -79,10 +95,12 @@ export type TeamStrengthMechanicFeatures = {
 const ruleById = new Map(current31TeamEngineD1Pack.agentRules.map((rule) => [rule.agentId, rule]))
 const outputSpecialties = new Set(['attack', 'anomaly', 'rupture', 'armorer'])
 const fieldBudget = 1.35
-export const teamStrengthMechanicFeaturesVersion = 'source-fact-team-features/v6' as const
+export const teamStrengthMechanicFeaturesVersion = 'source-fact-team-features/v7' as const
 /** Only inputs actually used here; guide rows, evidence counts and labels are excluded. */
 export const teamStrengthMechanicDataFingerprint = stableContentHash({
   version: teamStrengthMechanicFeaturesVersion,
+  potentialDefinitions: reviewedPotentialDefinitions.map(reviewedPotentialCalculationIdentity),
+  preparedConsumerIdentity: currentPlanningConsumerPolicyIdentity32,
   features: teamStrengthMechanicFeatureNames,
   fieldBudget,
   sourceBoundAgentSupportFingerprint,
@@ -121,75 +139,6 @@ export const teamStrengthMechanicDataFingerprint = stableContentHash({
       }
     }),
 })
-type Member = {
-  agentId: string
-  specialty: string
-  attribute: string
-  demand: number
-  attack: number
-  impact: number
-  anomalyMastery: number
-  damageMultiplier: number
-  dazeMultiplier: number
-  anomalyBuildup: number
-  hpToSheer: boolean
-  actionReady: boolean
-}
-const memberCache = new Map<string, Member>()
-function memberFacts(agentId: string): Member | null {
-  const cached = memberCache.get(agentId)
-  if (cached) return cached
-  const contract = getCurrentAgentEventContract(agentId)
-  const rule = ruleById.get(agentId)
-  if (!contract || !rule) return null
-  const schedule = compileNormalizedAgentEventSchedule({ agentId })
-  const events =
-    schedule.status === 'supported'
-      ? schedule.eventUsages.map((usage) =>
-          resolveCurrentAgentEvent({
-            stableId: agentId,
-            eventId: usage.eventId,
-            skillLevel: usage.skillLevel,
-          }),
-        )
-      : []
-  const resolved = events.filter((event) => event.status === 'supported')
-  // Use one source action. The baseline's 2..6 repetitions are local policy,
-  // not observed speed, and would count field-time assumptions twice here.
-  const result: Member = {
-    agentId,
-    specialty: contract.identity.specialty,
-    attribute: contract.identity.attribute,
-    demand: rule.fieldTimeDemand,
-    attack: contract.baseStats.atk_base + contract.baseStats.atk_growth * 59,
-    impact: contract.baseStats.impact,
-    anomalyMastery: contract.baseStats.anomMas,
-    damageMultiplier: resolved.reduce((sum, event) => sum + event.damageMultiplier, 0),
-    dazeMultiplier: resolved.reduce((sum, event) => sum + event.dazeMultiplier, 0),
-    anomalyBuildup: resolved.reduce((sum, event) => sum + event.anomalyBuildup, 0),
-    hpToSheer:
-      getCurrentAgentDecisionMechanicContract(agentId)?.effectContract.effects.some(
-        (effect) =>
-          !/^m[1-6](?:_|$)/i.test(effect.effectId) &&
-          effectReceivers(effect.numericExpression.expressionIr as UpstreamExpressionIR).some(
-            (receiver) => /ownBuff\..*sheerForce/.test(receiver.path),
-          ) &&
-          expressionReferences(
-            effect.numericExpression.expressionIr as UpstreamExpressionIR,
-          ).includes('own.final.hp'),
-      ) ?? false,
-    actionReady:
-      events.length > 0 &&
-      resolved.length === events.length &&
-      resolved.every((event) =>
-        [event.damageMultiplier, event.dazeMultiplier, event.anomalyBuildup].every(
-          (value) => Number.isFinite(value) && value >= 0,
-        ),
-      ),
-  }
-  memberCache.set(agentId, result)
-  return result
-}
 
 const maximum = (members: Member[], value: (member: Member) => number) =>
   members.length ? Math.max(...members.map(value)) : 0
@@ -203,6 +152,10 @@ const second = (members: Member[], value: (member: Member) => number) =>
 export function extractTeamStrengthMechanicFeatures(
   inputMemberIds: readonly string[],
   recipientContext: SupportRecipientContext = {},
+  referenceConditions: TeamStrengthReferenceConditions = {
+    potentialByAgentId: {},
+    evidenceRefs: [],
+  },
 ): TeamStrengthMechanicFeatures {
   const ids = inputMemberIds.map(resolveCurrentReleasedIdentity).sort()
   const invalidIdentity = ids.length !== 3 || new Set(ids).size !== 3
@@ -213,6 +166,14 @@ export function extractTeamStrengthMechanicFeatures(
   const reasons = [
     ...(invalidIdentity ? ['需要三名不重复的代理人。'] : []),
     ...(members.length !== ids.length ? ['部分代理人缺少当前机制身份。'] : []),
+    ...(Object.entries(referenceConditions.potentialByAgentId).some(
+      ([id, potential]) =>
+        !ids.includes(id) || !Number.isInteger(potential) || potential < 0 || potential > 6,
+    ) ||
+    (Object.values(referenceConditions.potentialByAgentId).some((level) => level > 0) &&
+      referenceConditions.evidenceRefs.length === 0)
+      ? ['非零潜能参考必须有适用主体、合法等级与具名条件依据。']
+      : []),
   ]
   if (reasons.length)
     return {
@@ -252,7 +213,15 @@ export function extractTeamStrengthMechanicFeatures(
   const context: TeamContext = {
     agents: rules,
     producedTags,
-    agentStateById: Object.fromEntries(ids.map((id) => [id, { mindscape: 0, potentialImage: 0 }])),
+    agentStateById: Object.fromEntries(
+      ids.map((id) => [
+        id,
+        {
+          mindscape: 0,
+          potentialImage: referenceConditions.potentialByAgentId[id] ?? 0,
+        },
+      ]),
+    ),
   }
   const abilityById = new Map(
     rules.map((rule) => [
@@ -276,6 +245,43 @@ export function extractTeamStrengthMechanicFeatures(
   const anomalies = output.filter((member) => member.specialty === 'anomaly')
   const fieldDemand = members.reduce((sum, member) => sum + member.demand, 0)
   const capabilities = compatibleCapabilities(members, abilityById, context, recipientContext)
+  const potentialEffects = members.flatMap((member) => {
+    const potential = referenceConditions.potentialByAgentId[member.agentId] ?? 0
+    if (potential === 0) return []
+    const runtimeMember = { ...createLevel60NeutralEffectRuntimeMember(member.agentId), potential }
+    const schedule = compileNormalizedAgentEventSchedule({ agentId: member.agentId })
+    if (schedule.status !== 'supported') return []
+    const preparation = prepareReviewedPotentialEvents32({
+      member: runtimeMember,
+      eventUsages: schedule.eventUsages,
+      memberIds: ids,
+    })
+    return Object.values(preparation?.potentialEvents ?? {}).flatMap((event) =>
+      bindReviewedPotentialApplications({
+        member: {
+          agentId: member.agentId,
+          potential,
+          initialStats: runtimeMember.initialStats,
+          provenance: 'planning_baseline',
+        },
+        event,
+      }).filter((effect) => effect.status === 'applied' && effect.targetKind === 'self'),
+    )
+  })
+  const potentialCapacity = (kind: (typeof potentialEffects)[number]['valueKind']) =>
+    Math.max(
+      0,
+      ...potentialEffects
+        .filter((effect) => effect.valueKind === kind)
+        .map((effect) => effect.value),
+    )
+  const potentialStatCapacity = (effectId: string) =>
+    Math.max(
+      0,
+      ...potentialEffects
+        .filter((effect) => effect.valueKind === 'stat_bonus' && effect.effectId === effectId)
+        .map((effect) => effect.value),
+    )
   const primary = [...output].sort(
     (left, right) => right.demand - left.demand || left.agentId.localeCompare(right.agentId),
   )[0]
@@ -329,9 +335,50 @@ export function extractTeamStrengthMechanicFeatures(
     capabilities.coverage('anomaly'),
     capabilities.coverage('sheer'),
     capabilities.coverage('stun'),
+    Math.log1p(
+      second(
+        output.filter((member) => member.specialty === 'attack'),
+        (member) => member.attack * member.damageMultiplier,
+      ),
+    ),
+    Math.log1p(
+      second(
+        members.filter((member) => member.specialty === 'stun'),
+        (member) => (member.impact * member.dazeMultiplier) / 100,
+      ),
+    ),
+    Math.log1p(
+      second(
+        background.filter((member) => member.specialty !== 'armorer'),
+        (member) => member.attack * member.damageMultiplier,
+      ),
+    ),
+    Math.log1p(
+      second(anomalies, (member) => (member.anomalyBuildup * member.anomalyMastery) / 100),
+    ),
+    capabilities.multiProvider,
+    Math.log1p(
+      maximum(
+        output.filter((member) => member.specialty === 'armorer'),
+        (member) => member.defense * member.sharpMultiplier,
+      ),
+    ),
+    Math.log1p(
+      maximum(
+        output.filter((member) => member.specialty === 'armorer'),
+        (member) => member.lacerationMultiplier,
+      ),
+    ),
+    capabilities.coverage('sharp'),
+    capabilities.coverage('laceration'),
+    potentialCapacity('damage_bonus'),
+    potentialStatCapacity('potential_focus_attack'),
+    potentialCapacity('crit_damage'),
+    potentialStatCapacity('potential_penetration'),
+    potentialCapacity('resistance_ignore'),
   ]
-  // Keep multiple-member capacities available for review, not learned tier
-  // bonuses: the current label set did not validate those extra coefficients.
+  // Additional source capacities are learned jointly; none is a fixed role bonus
+  // or a claim that mutually exclusive actions form continuous throughput.
   const playstyleCapacities = {
     secondDirectAction: second(
       output.filter((member) => member.specialty === 'attack'),
@@ -353,11 +400,13 @@ export function extractTeamStrengthMechanicFeatures(
   }
   const limitations = [
     '代表动作、站场预算和增益能力描述机制规模，不是实战频率、持续覆盖或伤害。',
-    'M0/P0 基础能力；高影和潜能路线需要另行说明。',
+    Object.values(referenceConditions.potentialByAgentId).some((level) => level > 0)
+      ? '采用具名来源潜能参考与逐事件准备条件；其余主体M0/P0，不表示当前账户已达到。'
+      : 'M0/P0 基础能力；高影和潜能路线需要另行说明。',
     '未量化专有伤害通道的持续覆盖；不把仅限以太帷幕衍生伤害或追加攻击的增益泛用于所有输出。',
     ...(capabilities.conditional ? ['条件增益仅表示对接受者相容的能力，不假定条件持续触发。'] : []),
     ...(output.some((member) => member.specialty === 'armorer')
-      ? ['锋御计入输出角色；锐化与锐暴覆盖独立展示，未给未校准的专有伤害通道新增模型系数。']
+      ? ['锋御动作按来源防御倍率表达；锐化/毁伤通道与相容受益者分别建模，非实战持续伤害。']
       : []),
     ...(capabilities.attributeConditionalRecipients.length
       ? ['浸染 / 涤净属性尚未给定，相应非风属性增益未计入覆盖。']

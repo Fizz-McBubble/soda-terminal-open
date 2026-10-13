@@ -9,6 +9,7 @@ export function createDevelopmentPanelContext({
   currentDiscIds,
   data,
   coreLevel,
+  mindscape,
 }: {
   panelProjection: ReturnType<typeof createAgentDevelopmentPanelProjection>
   hasComparablePlan: boolean
@@ -17,10 +18,12 @@ export function createDevelopmentPanelContext({
   currentDiscIds: readonly string[]
   data: { discs: DriveDisc[] }
   coreLevel?: number | null
+  mindscape?: number
 }) {
   return panelProjection.result.status === 'ok'
     ? {
         coreLevel: coreLevel ?? undefined,
+        mindscape,
         values: panelProjection.result.values,
         baseValues: panelProjection.result.trace
           .filter((entry) => entry.operation === 'base')

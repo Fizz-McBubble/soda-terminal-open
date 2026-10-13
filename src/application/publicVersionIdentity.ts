@@ -9,11 +9,11 @@ export const publicVersionIdentity = {
   fieldBoundary:
     '3.2上下半是当前已采用读取版本；目录、锁定来源与兼容恢复分别绑定。current 不等于全部字段 formal；旧3.1字段、审核和存档保留原版本，精算能力仅按具名已采用模型开放。',
   adoptionId: 'current-version-adoption-3.2-phase-ii-r1',
-  adoptionContentHash: 'fnv1a-34a56a5d',
+  adoptionContentHash: 'fnv1a-cb8972d7',
   sourceCommit: '3456cd0f6f5bea10e168074502460dac2fcd6df4',
   phase: 'phase_ii',
   scopeManifestId: 'current-scope-manifest-3.2-r1',
-  scopeContentHash: 'fnv1a-54fa1e79',
+  scopeContentHash: 'fnv1a-53ed77d5',
   directoryCoverage: {
     directoryTotal: 231,
     releasedScope: 231,
@@ -34,5 +34,5 @@ export const publicVersionIdentity = {
       koledaChangedPotentialMinimum: 2,
     },
   },
-  contentHash: 'fnv1a-55673acf',
+  contentHash: 'fnv1a-39f991e1',
 } as const

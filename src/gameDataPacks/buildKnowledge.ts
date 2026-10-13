@@ -6,6 +6,7 @@ import {
   type CurrentBuildProfileStatus,
 } from '../assault/currentBuildProfiles'
 import { stableContentHash } from './types'
+import { statKeySchema } from '../domain/schemas'
 
 export const buildKnowledgeStatuses = ['formal', 'candidate', 'missing'] as const
 
@@ -63,6 +64,12 @@ export const buildKnowledgeProfileSchema = z.object({
       sets: z.array(z.string()).min(1),
       mainStats: z.record(z.string(), z.array(z.string()).min(1)),
       subStats: z.array(z.string()).min(1),
+      subStatWeights: z
+        .record(
+          z.string().refine((key) => statKeySchema.safeParse(key).success),
+          z.number().finite().nonnegative(),
+        )
+        .optional(),
       skillPriority: z.array(z.string()).min(1),
       coreTarget: z.number().int().min(1).max(7),
       teammates: z.array(z.string()),
@@ -210,6 +217,7 @@ function makeProfile(agent: (typeof agentCatalog)[number]): BuildKnowledgeProfil
           sets: recommendation.sets.flatMap((set) => [...set.primary, ...set.secondary]),
           mainStats: recommendation.mainStats,
           subStats: Object.keys(recommendation.substatWeights),
+          subStatWeights: { ...recommendation.substatWeights },
           skillPriority: recommendation.skillPriority,
           coreTarget: recommendation.coreTarget,
           teammates: recommendation.teamConstraints.teammateNotes,

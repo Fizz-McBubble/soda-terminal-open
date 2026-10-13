@@ -1,0 +1,977 @@
+{
+  "schema": "soda-capture-source-potential-inventory/v1",
+  "sources": {
+    "3.1": {
+      "commit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "repository": "frzyc/genshin-optimizer",
+      "manifestFile": "snapshot-manifest.json",
+      "charactersCount": 57
+    },
+    "3.2": {
+      "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+      "repository": "frzyc/genshin-optimizer",
+      "charactersCount": 3
+    }
+  },
+  "summary": {
+    "totalCharacters": 60,
+    "potentialSubjectCount": 10
+  },
+  "entries": [
+    {
+      "gameId": "1011",
+      "stableId": "agent-anby",
+      "playerName": "安比",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Anby.json",
+      "rawSha256": "D11EBF45CF2FE5F67869D911413ADEC527342F52EEDDAC859DBE4719E4C89C2B",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1021",
+      "stableId": "agent-nekomata",
+      "playerName": "猫又",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Nekomata.json",
+      "rawSha256": "ECEA79B87E044463E5DBF7E818D09ACD0256E0E906EE1DAB266F862D8BC43AD4",
+      "hasPotential": true,
+      "potentialParams": [
+        [
+          0,
+          0.2,
+          0.3,
+          0.4,
+          0.5,
+          0.6
+        ]
+      ],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1031",
+      "stableId": "agent-nicole",
+      "playerName": "妮可",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Nicole.json",
+      "rawSha256": "4C94C7032DE73574A364A8556EEF0D5FDB37EB3D8558C3FE65F4242E2D700700",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1041",
+      "stableId": "agent-soldier-11",
+      "playerName": "「11号」",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Soldier11.json",
+      "rawSha256": "B6C18BBF8C03D3EE9541DEA75E89CC3147E420A0BAB4464BF93A99CA3D368B7F",
+      "hasPotential": true,
+      "potentialParams": [
+        [
+          0,
+          11,
+          11,
+          11,
+          11,
+          11
+        ],
+        [
+          0,
+          0.16,
+          0.24,
+          0.32,
+          0.4,
+          0.48
+        ]
+      ],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1051",
+      "stableId": "agent-yidhari",
+      "playerName": "伊德海莉",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Yidhari.json",
+      "rawSha256": "872BB292CD986F5D608CEAFBE2F4B84FBA6502BA0BC1DB07E016C57FED533BC4",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1061",
+      "stableId": "agent-corin",
+      "playerName": "可琳",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Corin.json",
+      "rawSha256": "116F775E85457452D4DB65ABE808C3FFD703655CB37B32EA8C96D5074DAF87AC",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1071",
+      "stableId": "agent-caesar",
+      "playerName": "凯撒",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Caesar.json",
+      "rawSha256": "9A73253C268C12E57EAA494375E7E288F5F137833070BEE418669E3C8C7C47F6",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1081",
+      "stableId": "agent-billy",
+      "playerName": "比利",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Billy.json",
+      "rawSha256": "EC555A3E843C3145A2374551D649843792B2EBE46ABDAE8104958E439CE478B2",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1091",
+      "stableId": "agent-miyabi",
+      "playerName": "星见雅",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Miyabi.json",
+      "rawSha256": "1DBFCDCE806774269DF8E69837308BDAAF547928339EF8BE8425CB34300F4443",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1101",
+      "stableId": "agent-koleda",
+      "playerName": "珂蕾妲",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Koleda.json",
+      "rawSha256": "FD6B61A28CE8210BE1EC045D6CF05BBC7BE045884F9FAB136FB8F6E533B5633A",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1111",
+      "stableId": "agent-anton",
+      "playerName": "安东",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Anton.json",
+      "rawSha256": "779700090BCBEFB7C15933F81565B5DE078213A6EE73317A9683D08EEFB2690A",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1121",
+      "stableId": "agent-ben",
+      "playerName": "本",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Ben.json",
+      "rawSha256": "55BC3E3E048FA7F09657B94CF102C9E9FADA5D53E8E7EB7920AC7FFB32A5D5CC",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1131",
+      "stableId": "agent-soukaku",
+      "playerName": "苍角",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Soukaku.json",
+      "rawSha256": "5F52EEFF71EAA372EA12B942C61F134721BE7E55E2EFC7FDB4F48D7FE6A031ED",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1141",
+      "stableId": "agent-lycaon",
+      "playerName": "莱卡恩",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Lycaon.json",
+      "rawSha256": "AB105B2D9CB08B2BDC702207742D3F6DAF94F9B2766BA710B2D82F73B2760C58",
+      "hasPotential": true,
+      "potentialParams": [
+        [
+          0,
+          0.05,
+          0.075,
+          0.1,
+          0.125,
+          0.15
+        ]
+      ],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1151",
+      "stableId": "agent-lucy",
+      "playerName": "露西",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Lucy.json",
+      "rawSha256": "76589F143BE18EC8E11398F32A76D5BA93A5C24455A48BA9FA26D5753CCF9962",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1161",
+      "stableId": "agent-lighter",
+      "playerName": "莱特",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Lighter.json",
+      "rawSha256": "EEF89866F52EFC8D9D102BE995A2FF7DA3CE784F389FDA3D8E12AC7FCE22F696",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1171",
+      "stableId": "agent-burnice",
+      "playerName": "柏妮思",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Burnice.json",
+      "rawSha256": "A207C51E364178DA7672F894EC044AE1474417FDFBE69E9A6EB212553D1450AC",
+      "hasPotential": true,
+      "potentialParams": [
+        [
+          0,
+          1.8,
+          1.8,
+          1.8,
+          1.8,
+          1.8
+        ],
+        [
+          0,
+          0.1,
+          0.1,
+          0.1,
+          0.1,
+          0.1
+        ],
+        [
+          0,
+          1,
+          1.3,
+          1.6,
+          2,
+          2.5
+        ],
+        [
+          0,
+          0.01,
+          0.0125,
+          0.015,
+          0.0175,
+          0.02
+        ],
+        [
+          0,
+          25,
+          25,
+          25,
+          25,
+          25
+        ],
+        [
+          0,
+          0.2,
+          0.2,
+          0.2,
+          0.2,
+          0.2
+        ],
+        [
+          0,
+          1.35,
+          1.35,
+          1.35,
+          1.35,
+          1.35
+        ]
+      ],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1181",
+      "stableId": "agent-grace",
+      "playerName": "格莉丝",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Grace.json",
+      "rawSha256": "F5A960B28BF4F90DF8CA136615D5D160CC35968DBFF98CBF264B1D5366139213",
+      "hasPotential": true,
+      "potentialParams": [
+        [
+          0,
+          0.1,
+          0.15,
+          0.2,
+          0.25,
+          0.3
+        ],
+        [
+          0,
+          25,
+          25,
+          25,
+          25,
+          25
+        ]
+      ],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1191",
+      "stableId": "agent-ellen",
+      "playerName": "艾莲",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Ellen.json",
+      "rawSha256": "43EA8CCE5BC936A918C8189A0DFAA4D744E681626C9F98E0EA9356A389EED775",
+      "hasPotential": true,
+      "potentialParams": [
+        [
+          0,
+          0.016,
+          0.024,
+          0.032,
+          0.04,
+          0.048
+        ],
+        [
+          0,
+          10,
+          10,
+          10,
+          10,
+          10
+        ],
+        [
+          0,
+          0.033,
+          0.05,
+          0.067,
+          0.083,
+          0.1
+        ]
+      ],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1201",
+      "stableId": "agent-harumasa",
+      "playerName": "悠真",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Harumasa.json",
+      "rawSha256": "B48F523F2F4D7EBD918F126A6A280E19C6818A222B919938BCA596C4A5B54F6A",
+      "hasPotential": true,
+      "potentialParams": [
+        [
+          0,
+          0.04,
+          0.06,
+          0.08,
+          0.1,
+          0.12
+        ],
+        [
+          0,
+          0.05,
+          0.075,
+          0.1,
+          0.125,
+          0.15
+        ],
+        [
+          0,
+          12,
+          12,
+          12,
+          12,
+          12
+        ],
+        [
+          0,
+          10,
+          10,
+          10,
+          10,
+          10
+        ]
+      ],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1211",
+      "stableId": "agent-rina",
+      "playerName": "丽娜",
+      "sourceVersion": "3.2",
+      "upstreamCommit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Rina.json",
+      "rawSha256": "F2FA41601FDFC18FDDF07E960E375D0BDE2294339421460054A4116A4AB9586C",
+      "hasPotential": true,
+      "potentialParams": [
+        [
+          0,
+          0.016,
+          0.016,
+          0.016,
+          0.016,
+          0.016
+        ],
+        [
+          0,
+          0.01,
+          0.01,
+          0.01,
+          0.01,
+          0.01
+        ],
+        [
+          0,
+          3,
+          4.2,
+          5.5,
+          6.7,
+          8
+        ],
+        [
+          0,
+          2.5,
+          3.5,
+          4.5,
+          5.5,
+          6.5
+        ],
+        [
+          0,
+          576,
+          576,
+          576,
+          576,
+          576
+        ],
+        [
+          0,
+          468,
+          468,
+          468,
+          468,
+          468
+        ]
+      ],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1221",
+      "stableId": "agent-yanagi",
+      "playerName": "柳",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Yanagi.json",
+      "rawSha256": "0EA45446A2865CD1E1C1AD66FD083DFF2964B9A62D1A36B2B7AB204FF9EA73D1",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1241",
+      "stableId": "agent-zhu-yuan",
+      "playerName": "朱鸢",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/ZhuYuan.json",
+      "rawSha256": "E5AA330CDFF8E624C466414B3B11A5F4507DDB313FAE0F95F8D481BD0458C8CE",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1251",
+      "stableId": "agent-qingyi",
+      "playerName": "青衣",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Qingyi.json",
+      "rawSha256": "F7246C1325E0B57349F41BD98C5FCC0DB2A2A5299C998BA55A86E0DC4DC0B860",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1261",
+      "stableId": "agent-jane",
+      "playerName": "简",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Jane.json",
+      "rawSha256": "254BE61034667D1C88885B665F6A145D0914CA3598E76B6D79AA1E93A66D5BF2",
+      "hasPotential": true,
+      "potentialParams": [
+        [
+          0,
+          0.1,
+          0.15,
+          0.2,
+          25,
+          0.3
+        ]
+      ],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1271",
+      "stableId": "agent-seth",
+      "playerName": "赛斯",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Seth.json",
+      "rawSha256": "15E639ACD9A2F095214E95098C6A580CAD695DB2BC16B4871B916E9E6B65E531",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1281",
+      "stableId": "agent-piper",
+      "playerName": "派派",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Piper.json",
+      "rawSha256": "0975EDEC34BC937CD580DC2210DB0A3C27AFE428BB1D01547996C6F635C3EC71",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1291",
+      "stableId": "agent-hugo",
+      "playerName": "雨果",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Hugo.json",
+      "rawSha256": "ED6914FC42647C4843B78976B9283EF19C611ABCDA727902CC595E0FDB879DBE",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1301",
+      "stableId": "agent-orphie-magus",
+      "playerName": "奥菲丝&「鬼火」",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/OrphieMagus.json",
+      "rawSha256": "E7A6AA8588E72521EA38389E80C942B4C48642F32FAF21B2179091516B5480B6",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1311",
+      "stableId": "agent-astra",
+      "playerName": "耀嘉音",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/AstraYao.json",
+      "rawSha256": "B34D23F30C5698DBA1B674F624CAFAAC21F86F6FA51F654C0A25F2500FC67690",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1321",
+      "stableId": "agent-evelyn",
+      "playerName": "伊芙琳",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Evelyn.json",
+      "rawSha256": "37AAEFE7CEC19C38CBB731FA21CCC79A1652EE90388A24BF351EEFDD73AED991",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1331",
+      "stableId": "agent-vivian",
+      "playerName": "薇薇安",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Vivian.json",
+      "rawSha256": "A5C485891548D98DAF1C883C68BE44BBE9ED1F249DC1FFAA7F4063D807DFA490",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1341",
+      "stableId": "agent-zhao",
+      "playerName": "照",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Zhao.json",
+      "rawSha256": "64CF480CCEE2AD0C6752E5938D49AE1B9658358E202AB0C0852559649826657E",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1351",
+      "stableId": "agent-pulchra",
+      "playerName": "波可娜",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Pulchra.json",
+      "rawSha256": "E383C1CE9BB1DC4D5FF762D3D565FFF189D0210B7A8AB471407BB1105B751C5E",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1361",
+      "stableId": "agent-trigger",
+      "playerName": "「扳机」",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Trigger.json",
+      "rawSha256": "8B8F196B8B56332347E034544195D7B4F5A691AC0B255579DAE19F6A3CF2603C",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1371",
+      "stableId": "agent-yixuan",
+      "playerName": "仪玄",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Yixuan.json",
+      "rawSha256": "3E6EAF7B9138372325C0BD482B2D02C1F2A9D960411B5B3FAE28478945E762CA",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1381",
+      "stableId": "agent-soldier-0-anby",
+      "playerName": "零号·安比",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Soldier0Anby.json",
+      "rawSha256": "F10D24DE4B6D452AD8C9E6BFEBF833CBE5D4BE39CB0CA2E14A00DD84FE63377A",
+      "hasPotential": true,
+      "potentialParams": [
+        [
+          0,
+          0.34,
+          0.38,
+          0.42,
+          0.46,
+          0.5
+        ]
+      ],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1391",
+      "stableId": "agent-ju-fufu",
+      "playerName": "橘福福",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/JuFufu.json",
+      "rawSha256": "2BCF726FE9D5517A309F1F758075C48C7F6E9D443ACF84CE8A825BCE5DC53D5B",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1401",
+      "stableId": "agent-alice",
+      "playerName": "爱丽丝",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Alice.json",
+      "rawSha256": "248527C1A94DB4018BF38BCB8A55872553BC779CAB5B50918D78A53A9EA589BF",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1411",
+      "stableId": "agent-yuzuha",
+      "playerName": "柚叶",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Yuzuha.json",
+      "rawSha256": "16E67FB546C250A94AA6407E9D306F055E3E03AEAE7C8EAD6BF6F65F363CE956",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1421",
+      "stableId": "agent-pan-yinhu",
+      "playerName": "潘引壶",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/PanYinhu.json",
+      "rawSha256": "6B15E943138C30FDCC249634DEA4F54BC9F9325616C39776B0FA6FA8514423ED",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1431",
+      "stableId": "agent-ye-shunguang",
+      "playerName": "叶瞬光",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/YeShunguang.json",
+      "rawSha256": "99342202B3CD34C9BE1AAC5E15E85F394019AE15D33C442230187A43B3D20BA5",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1441",
+      "stableId": "agent-manato",
+      "playerName": "狛野真斗",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Manato.json",
+      "rawSha256": "4A13F4606CE3405305928C229E87730462BB1684392ED195395C9F8B20811F1C",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1451",
+      "stableId": "agent-lucia",
+      "playerName": "卢西娅",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Lucia.json",
+      "rawSha256": "766884CB5FE953D5F6A4E256203500FCA39A2084FAF94316D48FCA270D264AB1",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1461",
+      "stableId": "agent-seed",
+      "playerName": "「席德」",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Seed.json",
+      "rawSha256": "7133720E5EC4B3C8B34C7737953D5695EFC5BE21942EDE7C2196EB220A1AD48C",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1471",
+      "stableId": "agent-banyue",
+      "playerName": "般岳",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Banyue.json",
+      "rawSha256": "450E167D7BB239E46C3278989ADB30EC04F2CEFCD910A97A47FBA0843B8D57AD",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1481",
+      "stableId": "agent-dialyn",
+      "playerName": "琉音",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Dialyn.json",
+      "rawSha256": "BCC2C94BAA2B7E3E451BAB5EE3E84D7175BE982CB180021E4E310AF9ECABB47F",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1491",
+      "stableId": "agent-sunna",
+      "playerName": "千夏",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Sunna.json",
+      "rawSha256": "F048E2F0979A5FB8EF296829A1DF7B18F4711FB05821BAED7FF2EF7567E84C4A",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1501",
+      "stableId": "agent-aria",
+      "playerName": "爱芮",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Aria.json",
+      "rawSha256": "18BFB18C204CCD5AEA6383B93A960070711E2A22F6A955CEACCFDD8D50C6E8C2",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1511",
+      "stableId": "agent-nangong",
+      "playerName": "南宫羽",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/NangongYu.json",
+      "rawSha256": "E1B83CA328756274ACC691E3E280C3CAF648AB9215E95FA1DA20924720CE7C86",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1521",
+      "stableId": "agent-cissia",
+      "playerName": "希希芙",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Cissia.json",
+      "rawSha256": "F597562B979BA42BBB9EF10CFC31DDCEB01BFBB9C5D7DDA07E4E7E489D9DC8F4",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1531",
+      "stableId": "agent-starlight-billy",
+      "playerName": "星徽·比利",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/StarlightBilly.json",
+      "rawSha256": "D80021D2F6E78034EEF8CD7556B1F280AE5411FB8C89C86239303BF73A5BF1A5",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1541",
+      "stableId": "agent-promeia",
+      "playerName": "普罗米娅",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Promeia.json",
+      "rawSha256": "19CC36839641EC759267C3CDBA0A4E24DAFE62710D22B5D16737C3D0638914C1",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1551",
+      "stableId": "agent-pyrois",
+      "playerName": "佩洛伊斯",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Pyrois.json",
+      "rawSha256": "64EE8359E5EA8A99DDCFEF71360412515A299C85DADD2BABB897778C49C338D8",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1561",
+      "stableId": "agent-velina",
+      "playerName": "维琳娜",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Velina.json",
+      "rawSha256": "690CD3B1FFE0C0AC795B794ABA8A6A379C5FB4FC2F6C9584185596B17BBE360F",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1571",
+      "stableId": "agent-norma",
+      "playerName": "诺姆",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Norma.json",
+      "rawSha256": "CBBBAEF46BF461B100E179753E5EF2F24A8461FAD4B2C679935E84033A494FDC",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1581",
+      "stableId": "agent-remielle",
+      "playerName": "蕾米埃尔·丹",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Remielle.json",
+      "rawSha256": "E09C72F57CDB21349A8C43EDBF3BB944F1CAB475544F8CECC6921537A0474EB3",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1591",
+      "stableId": "agent-sigrid",
+      "playerName": "希格莉德·德拉叙尔",
+      "sourceVersion": "3.1",
+      "upstreamCommit": "eabba1f092b282cccb3f028b7253a1db3dac5208",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Sigrid.json",
+      "rawSha256": "594656D6F41E3211203ACCCFC9B995A8F07BB69660AA72FBF8587F78F98D35F6",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1611",
+      "stableId": "agent-claret",
+      "playerName": "克拉蕾",
+      "sourceVersion": "3.2",
+      "upstreamCommit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Claret.json",
+      "rawSha256": "49BDB5A6D64AC3CA2727F376765BF97F884C7DDF03F9B954017532757C85388C",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    },
+    {
+      "gameId": "1621",
+      "stableId": "agent-roxy",
+      "playerName": "洛克茜",
+      "sourceVersion": "3.2",
+      "upstreamCommit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+      "upstreamPath": "libs/zzz/stats/Data/Characters/Roxy.json",
+      "rawSha256": "764769EFD09AAD9D9651B8BD77D3B936AE6760515546333753104890F56587EF",
+      "hasPotential": false,
+      "potentialParams": [],
+      "PotentialDetail": null
+    }
+  ],
+  "contentHash": "4D5193E091A634F4B3B33D1B4CB648A65F755BCFFF5AF72B32503C0C8221C880"
+}

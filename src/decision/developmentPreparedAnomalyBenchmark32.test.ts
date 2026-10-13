@@ -4,6 +4,8 @@ import { createLevel60NeutralEffectRuntimeMember } from '../calculation/currentP
 import { currentNormalizedPlanningBaseline } from '../calculation/currentNormalizedPlanningBaseline'
 import { compareValueBenchmarkSides } from '../calculation/valueBenchmarkComparison'
 import { labels, side } from '../calculation/valueBenchmarkTestFixtures'
+import { fixture } from './developmentValueBenchmark.fixtures'
+import { evaluateDevelopmentValueBenchmarkSide } from './developmentValueBenchmarkRuntime'
 
 function input() {
   const member = createLevel60NeutralEffectRuntimeMember('agent-piper')
@@ -154,5 +156,117 @@ describe('prepared anomaly candidate comparison adapter', () => {
         .every((row) => row.sourceRefs.every((ref) => typeof ref === 'string' && ref.length > 0)),
     ).toBe(true)
     expect(compare(prepared).comparable).toBe(true)
+  })
+  it('Aria side evaluation consumes actual scenario, preparation kind, and distinct context hash', () => {
+    const member = createLevel60NeutralEffectRuntimeMember('agent-aria')
+    member.coreLevel = 7
+    member.finalStats = {
+      ...member.finalStats,
+      atk: 3000,
+      anomProf: 300,
+      anomMas: 200,
+      damageBonus: 0,
+      pen_: 0,
+    }
+    member.initialStats = { ...member.finalStats, atk: 2000 }
+    const normalInput = {
+      member,
+      baseline: {
+        ...currentNormalizedPlanningBaseline,
+        enemy: {
+          id: 'neutral-fixture',
+          defense: 0,
+          resistance: 0,
+          stunMultiplier: 1,
+          vulnerability: 0,
+        },
+      },
+      discs: [{ setId: 'set-freedom-blues' }],
+      wEngine: { engineId: 'wengine-13008', refinement: 1 },
+      engineKey: 'wengine-13008:p1:lv60:asc5',
+      discLoadoutKey: 'disc-a',
+      subjectKey: 'agent:agent-aria',
+      potential: 0,
+      preparation: {
+        kind: 'aria_single_self_ether_abloom' as const,
+        acceptedSingleOwnerSettlement: true as const,
+        perfectPitchHit3Heavy: true as const,
+        ownEtherAnomalyPresent: true,
+        fandomPowerPrepared: true,
+        enemyStunned: false,
+      },
+    }
+    const stunInput = {
+      ...normalInput,
+      baseline: {
+        ...normalInput.baseline,
+        enemy: {
+          ...normalInput.baseline.enemy,
+          stunMultiplier: 1.5,
+        },
+      },
+      preparation: {
+        ...normalInput.preparation,
+        enemyStunned: true,
+      },
+    }
+    const normalSide = evaluateDevelopmentPreparedAnomalyBenchmarkSide32(normalInput)
+    const stunSide = evaluateDevelopmentPreparedAnomalyBenchmarkSide32(stunInput)
+    expect(normalSide.state).toBe('supported')
+    expect(stunSide.state).toBe('supported')
+    expect(normalSide.dimensions.event_set).toBe('aria_single_self_ether_abloom')
+    expect(stunSide.dimensions.event_set).toBe('aria_single_self_ether_abloom')
+    expect(normalSide.dimensions.scenario).not.toBe(stunSide.dimensions.scenario)
+    expect(normalSide.totalDamage).toBeCloseTo(80437.5, 8)
+    expect(stunSide.totalDamage).toBeCloseTo(180984.375, 8)
+  })
+  it('the account producer routes actual Aria discs through both scenes and rejects foreign or conflicting declarations', () => {
+    const { warehouse, baseline: discs } = fixture()
+    const ariaIndex = warehouse.roster.agents.findIndex((agent) => agent.agentId === 'agent-aria')
+    if (ariaIndex < 0) throw new Error('Current fixture is missing canonical Aria')
+    warehouse.roster.agents[ariaIndex] = {
+      ...warehouse.roster.agents[ariaIndex]!,
+      agentId: 'agent-aria',
+      owned: true,
+      level: 60,
+      ascension: 5,
+      mindscape: 2,
+      potentialImage: 0,
+      skillLevels: { basic: 12, dodge: 12, assist: 12, special: 12, chain: 12, core: 7 },
+      wEngineDetails: { id: 'wengine-13008', name: null, level: 60, ascension: 5, refinement: 1 },
+    }
+    const raw = { warehouse, agentId: 'agent-aria', discs, stale: false }
+    const before = structuredClone(raw)
+    const normal = evaluateDevelopmentValueBenchmarkSide(raw)
+    const stunned = evaluateDevelopmentValueBenchmarkSide({
+      ...raw,
+      scenarioSelection: { schemaVersion: 1, id: 'declared-stun-comparison' },
+    })
+    expect(normal.state, JSON.stringify(normal.reasons)).toBe('supported')
+    expect(stunned.state, JSON.stringify(stunned.reasons)).toBe('supported')
+    expect(normal.totalDamage!).toBeGreaterThan(0)
+    expect(stunned.totalDamage! / normal.totalDamage!).toBeCloseTo(2.25, 10)
+    expect(stunned.scenarioIdentity).not.toBe(normal.scenarioIdentity)
+    expect(stunned.dimensions.event_set).toBe('aria_single_self_ether_abloom')
+    expect(stunned.planningDps).toBeNull()
+    expect(
+      evaluateDevelopmentValueBenchmarkSide({
+        ...raw,
+        eventConditionDeclaration: {
+          sourceRefs: ['declared-producer-counterexample'],
+          enemyStunned: true,
+        },
+      }).state,
+    ).toBe('unsupported')
+    expect(
+      evaluateDevelopmentValueBenchmarkSide({
+        ...raw,
+        eventConditionDeclaration: {
+          sourceRefs: ['declared-producer-counterexample'],
+          windswept: true,
+        },
+      }).state,
+    ).toBe('unsupported')
+    expect(raw).toEqual(before)
   })
 })

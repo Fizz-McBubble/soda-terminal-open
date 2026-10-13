@@ -10,6 +10,7 @@ import type { CommonAnomalyEventObservation32 } from './currentCommonAnomalyEffe
 import type { PlanningEventUsage } from './planningCalculationContextCompiler'
 import {
   evaluateCurrentPlanningInitialCritConversion32,
+  evaluateCurrentPlanningEffectEntries32,
   type PlanningEffectRuntimeMember,
 } from './currentPlanningEffectRuntime'
 import {
@@ -24,10 +25,56 @@ import { resolveSourceEventQuantity32 } from './sourceEventQuantity32'
 import { resolvePlanningEventSheerForce32 } from './currentSourceBoundSheerForce32'
 import { bindReviewedRinaPotentialTeamStats32 } from './reviewedRinaPotentialTeamStats32'
 import {
+  actualPlanningPotentialActionFamilies32,
+  sourcePlanningAftershock32,
+} from './currentPotentialEventActions32'
+import { bindReviewedPotentialTeamAction32 } from './reviewedPotentialTeamAction32'
+import { requiredReferences } from './currentPlanningEffectExpressions'
+import {
   bindReviewedPotentialApplications,
   type PotentialApplicationBinding,
   type PotentialApplicationEvent,
 } from './potentialApplicationBinding'
+import { resolveReviewedHarumasaGleamingEdgeWindow32 } from './reviewedPotentialSourceClosure32'
+import { planningRuntimeEffectBuckets32 } from './currentPlanningSelfEffects32'
+import { getCurrentAgentPlanningEffectBlueprint } from './currentAgentPlanningEffectBlueprint'
+import { stableContentHash } from '../gameDataPacks/types'
+
+type DirectPotentialApplication32 =
+  | 'penetration_ratio'
+  | 'attack_percent'
+  | 'damage_bonus'
+  | 'crit_damage'
+  | 'resistance_ignore'
+
+function potentialModifierBucket32(
+  effect: PotentialApplicationBinding,
+  eventId: string,
+  application: DirectPotentialApplication32,
+): SourceBackedPlanningEffectBucket {
+  const receiver = {
+    penetration_ratio: 'pen_',
+    attack_percent: 'atk_',
+    damage_bonus: 'dmg_',
+    crit_damage: 'crit_dmg_',
+    resistance_ignore: 'resIgn_',
+  }[application]
+  return {
+    bucketId: `${effect.effectKey}:event:${eventId}`,
+    effectKey: effect.effectKey,
+    effectId: effect.effectId,
+    providerAgentId: effect.providerAgentId,
+    recipientAgentIds: [effect.providerAgentId],
+    receiverPath: `ownBuff.combat.${receiver}`,
+    applicationScope: 'generic',
+    action: null,
+    attribute: null,
+    damageType: null,
+    application,
+    value: effect.value,
+    sourceRefs: [...effect.sourceRefs],
+  }
+}
 
 /** One source-bound event formula path for team and personal Planning callers. */
 export function calculateCurrentPlanningEventDamage32(input: {
@@ -102,21 +149,51 @@ export function calculateCurrentPlanningEventDamage32(input: {
       input.member.level === undefined
     )
       return Number.NaN
+    const aftershock = sourcePlanningAftershock32({
+      agentId: input.member.agentId,
+      eventId: usage.eventId,
+      memberIds: input.eventEffectContext?.memberIds ?? [input.member.agentId],
+      potential: input.member.potential,
+    })
+    const scopedEvent = {
+      ...event,
+      damageTypes: [event.damageType, ...(aftershock === true ? ['aftershock'] : [])],
+    }
     let actionDamageBonus = 0
     for (const bonus of stats.actionDamageBonuses ?? []) {
       const matches = bonus.actionTypes.some(
         (action) =>
           (action === 'basic' && event.skill === 'basic') ||
-          (action === 'dash' && event.actionId.startsWith('DashAttack')),
+          (action === 'dash' && event.actionId.startsWith('DashAttack')) ||
+          (action === 'aftershock' && aftershock === true),
       )
       if (matches) actionDamageBonus += bonus.value
-      // The event catalog currently has no aftershock classification. A
-      // non-matching event must not silently turn this known bonus into zero.
-      else if (bonus.actionTypes.some((action) => action !== 'basic' && action !== 'dash'))
+      // Unknown source classification remains a diagnostic boundary.
+      else if (
+        bonus.actionTypes.some(
+          (action) =>
+            action !== 'basic' &&
+            action !== 'dash' &&
+            !(action === 'aftershock' && aftershock === false),
+        )
+      )
         return Number.NaN
     }
     const modifiers = emptyModifiers()
     const observed = input.potentialEvents?.[`${input.member.agentId}:${usage.eventId}`]
+    // An occurrence's state is declared by its producer, but its action and
+    // attribute must agree with the actual pinned damage event.
+    const actualPotentialActions = [
+      ...actualPlanningPotentialActionFamilies32({
+        actionId: event.actionId,
+        skill: event.skill,
+        attribute: eventAttribute,
+      }),
+    ]
+    if (aftershock === true) actualPotentialActions.push('aftershock')
+    const matchingPotentialActions = observed?.actionFamilies.filter((family) =>
+      actualPotentialActions.includes(family),
+    )
     const rinaTeamStats = isDamageFormula32Version(input.baseline.gameVersion)
       ? bindReviewedRinaPotentialTeamStats32({
           memberIds: input.eventEffectContext?.memberIds ?? [input.member.agentId],
@@ -128,6 +205,14 @@ export function calculateCurrentPlanningEventDamage32(input: {
         })
       : { buckets: [], applications: [] }
     input.potentialApplications?.push(...rinaTeamStats.applications)
+    const teamAction = bindReviewedPotentialTeamAction32({
+      members: input.eventEffectContext?.members ?? [input.member],
+      recipientAgentId: input.member.agentId,
+      eventId: usage.eventId,
+      aftershock,
+      observation: observed,
+    })
+    input.potentialApplications?.push(...teamAction.applications)
     const potential = bindReviewedPotentialApplications({
       member: {
         agentId: input.member.agentId,
@@ -137,7 +222,7 @@ export function calculateCurrentPlanningEventDamage32(input: {
       },
       event:
         observed?.eventId === usage.eventId
-          ? observed
+          ? { ...observed, actionFamilies: matchingPotentialActions ?? [] }
           : {
               eventId: usage.eventId,
               actionFamilies: [],
@@ -146,7 +231,44 @@ export function calculateCurrentPlanningEventDamage32(input: {
               sourceRefs: [`planning-baseline:${input.baseline.baselineId}:event:${usage.eventId}`],
             },
     })
+    const potentialBuckets: SourceBackedPlanningEffectBucket[] = []
+    // Rina's unconditional combat PEN also belongs to the provider's final
+    // panel when another member's event evaluates her core conversion.
+    const otherRina = input.eventEffectContext?.members.find(
+      (member) => member.agentId === 'agent-rina' && member.agentId !== input.member.agentId,
+    )
+    if (
+      otherRina &&
+      input.eventEffectContext?.entries.some(
+        (entry) =>
+          entry.providerAgentId === otherRina.agentId &&
+          requiredReferences(entry.numericExpression.expressionIr).includes('own.final.pen_'),
+      )
+    ) {
+      const penetration = bindReviewedPotentialApplications({
+        member: {
+          agentId: otherRina.agentId,
+          potential: otherRina.potential,
+          initialStats: otherRina.initialStats,
+          provenance: 'calculation_context',
+        },
+        event: {
+          eventId: usage.eventId,
+          actionFamilies: [],
+          providerStateKeys: [],
+          targetStateKeys: [],
+          sourceRefs: [`planning-baseline:${input.baseline.baselineId}:event:${usage.eventId}`],
+        },
+      }).find((effect) => effect.effectId === 'potential_penetration')
+      if (penetration?.status === 'applied') {
+        potentialBuckets.push(
+          potentialModifierBucket32(penetration, usage.eventId, 'penetration_ratio'),
+        )
+        input.potentialApplications?.push(penetration)
+      }
+    }
     for (const effect of potential) {
+      if (effect.bucket === 'team_action_damage') continue
       // Rina's team conversions are admitted once above, including for her own
       // event. Self penetration remains in this existing self-effect path.
       if (
@@ -158,18 +280,30 @@ export function calculateCurrentPlanningEventDamage32(input: {
       // Only formula families supported by this direct-event calculator are
       // applied. Timers, anomaly and daze remain explicit exclusions, never
       // reinterpreted as an ordinary damage multiplier.
-      let consumed = false
+      let application: DirectPotentialApplication32 | null = null
       if (effect.status === 'applied' && effect.targetKind === 'self') {
         if (effect.effectId === 'potential_penetration') {
-          modifiers.penetrationRatio += effect.value
-          consumed = true
+          application = 'penetration_ratio'
         } else if (effect.bucket === 'self_damage') {
-          modifiers.damageBonus += effect.value
-          consumed = true
+          application = 'damage_bonus'
+        } else if (effect.bucket === 'self_crit_damage' && semantics.family === 'direct') {
+          application = 'crit_damage'
+        } else if (effect.bucket === 'self_element_damage' && eventAttribute === 'electric') {
+          application = 'damage_bonus'
+        } else if (
+          effect.bucket === 'self_action_resistance_ignore' &&
+          ((effect.providerAgentId === 'agent-ellen' && eventAttribute === 'ice') ||
+            (effect.providerAgentId === 'agent-harumasa' && eventAttribute === 'electric'))
+        ) {
+          application = 'resistance_ignore'
+        } else if (effect.effectId === 'potential_focus_attack' && effect.bucket === 'self_stat') {
+          application = 'attack_percent'
         }
       }
+      if (application)
+        potentialBuckets.push(potentialModifierBucket32(effect, usage.eventId, application))
       input.potentialApplications?.push(
-        effect.status === 'applied' && !consumed
+        effect.status === 'applied' && !application
           ? {
               ...effect,
               status: 'excluded',
@@ -179,18 +313,123 @@ export function calculateCurrentPlanningEventDamage32(input: {
           : effect,
       )
     }
+    let eventInputBuckets = [
+      ...input.buckets.filter(
+        (bucket) =>
+          ![...rinaTeamStats.buckets, ...teamAction.buckets, ...potentialBuckets].some(
+            (row) => row.effectKey === bucket.effectKey,
+          ),
+      ),
+      ...rinaTeamStats.buckets,
+      ...teamAction.buckets,
+      ...potentialBuckets,
+    ]
+    let baselineReferencesByAgentId = input.eventEffectContext?.baselineReferencesByAgentId
+    if (input.member.agentId === 'agent-harumasa' && observed?.temporalProof) {
+      const actorReferences = { ...baselineReferencesByAgentId?.[input.member.agentId] }
+      const stacks = actorReferences.gleaming_edge
+      const window =
+        observed.eventId === usage.eventId
+          ? resolveReviewedHarumasaGleamingEdgeWindow32({
+              potential: input.member.potential,
+              ...observed.temporalProof,
+            })
+          : { status: 'unknown' as const, active: null, reason: 'timer_event_identity_mismatch' }
+      if (
+        window.status === 'known' &&
+        typeof stacks === 'number' &&
+        Number.isInteger(stacks) &&
+        stacks >= 0 &&
+        stacks <= 6
+      ) {
+        if (!window.active) actorReferences.gleaming_edge = 0
+      } else {
+        delete actorReferences.gleaming_edge
+        input.diagnosticBlockers?.push(
+          `${usage.eventId}:gleaming_edge:${window.status === 'unknown' ? window.reason : 'invalid_explicit_stack_observation'}`,
+        )
+      }
+      baselineReferencesByAgentId = {
+        ...baselineReferencesByAgentId,
+        [input.member.agentId]: actorReferences,
+      }
+      // These existing scalar core effects have no final-stat dependency, so
+      // the event dependency graph otherwise carries their prepared buckets.
+      // Re-evaluate only these two source effects under the timed observation.
+      // The timer does not create a second bonus or mutate formation state.
+      if (input.eventEffectContext) {
+        const coreKeys = new Set([
+          'agent-harumasa:core_dash_crit_dmg_',
+          'agent-harumasa:core_ult_crit_dmg_',
+        ])
+        const coreEntries = input.eventEffectContext.entries
+          .filter((entry) => coreKeys.has(entry.effectKey))
+          .map((entry) => getCurrentAgentPlanningEffectBlueprint(entry.effectKey)!)
+        const core = evaluateCurrentPlanningEffectEntries32(
+          {
+            memberIds: input.eventEffectContext.memberIds,
+            members: input.eventEffectContext.members,
+            baselineReferencesByAgentId,
+          },
+          coreEntries,
+        )
+        if (core.status === 'unsupported') {
+          input.diagnosticBlockers?.push(...core.blockers)
+          return Number.NaN
+        }
+        const timingRef = `source-window:${stableContentHash({ agentId: input.member.agentId, potential: input.member.potential, eventId: usage.eventId, proof: observed.temporalProof, stacks })}`
+        const timedBuckets = planningRuntimeEffectBuckets32(
+          core.results,
+          input.eventEffectContext.memberIds,
+        ).map((bucket) => ({
+          ...bucket,
+          sourceRefs: [
+            ...bucket.sourceRefs,
+            timingRef,
+            ...('sourceRefs' in window ? (window.sourceRefs ?? []) : []),
+          ],
+        }))
+        eventInputBuckets = [
+          ...eventInputBuckets.filter(
+            (bucket) =>
+              !(bucket.providerAgentId === input.member.agentId && coreKeys.has(bucket.effectKey)),
+          ),
+          ...timedBuckets,
+        ]
+        for (const effect of core.results) {
+          if (
+            effect.status !== 'excluded_unknown' ||
+            !matchesEventScope(
+              {
+                applicationScope: coreEntries.find((entry) => entry.effectKey === effect.effectKey)
+                  ?.applicationScope,
+                effectId: effect.effectId,
+                damageType: effect.damageType,
+                action: null,
+                attribute: null,
+              },
+              scopedEvent,
+              eventAttribute,
+            )
+          )
+            continue
+          input.eventEffectContext.exclusions.push({
+            effectKey: effect.effectKey,
+            reason: '锋芒计时或层数缺少合法来源观测；本次事件未计入核心暴伤。',
+            fields: ['gleaming_edge'],
+            sourceRefs: [...effect.sourceRefs, timingRef],
+          })
+        }
+      }
+    }
     const eventEffects = input.eventEffectContext
       ? resolveCurrentPlanningEventEffects32({
           ...input.eventEffectContext,
+          baselineReferencesByAgentId,
           ownerAgentId: input.member.agentId,
-          event,
+          event: scopedEvent,
           attribute: eventAttribute,
-          buckets: [
-            ...input.buckets.filter(
-              (bucket) => !rinaTeamStats.buckets.some((row) => row.effectKey === bucket.effectKey),
-            ),
-            ...rinaTeamStats.buckets,
-          ],
+          buckets: eventInputBuckets,
           commonAnomalyObservations:
             input.eventEffectContext.commonAnomalyEvents?.[
               `${input.member.agentId}:${usage.eventId}`
@@ -204,14 +443,7 @@ export function calculateCurrentPlanningEventDamage32(input: {
       return Number.NaN
     }
     const eventBuckets =
-      eventEffects?.status === 'supported'
-        ? eventEffects.buckets
-        : [
-            ...input.buckets.filter(
-              (bucket) => !rinaTeamStats.buckets.some((row) => row.effectKey === bucket.effectKey),
-            ),
-            ...rinaTeamStats.buckets,
-          ]
+      eventEffects?.status === 'supported' ? eventEffects.buckets : eventInputBuckets
     if (eventEffects?.status === 'supported') {
       input.eventEffectContext!.consumedBuckets.push(...eventEffects.buckets)
       input.eventEffectContext!.exclusions.push(...eventEffects.exclusions)
@@ -220,10 +452,16 @@ export function calculateCurrentPlanningEventDamage32(input: {
       .filter(
         (bucket) =>
           bucket.recipientAgentIds.includes(input.member.agentId) &&
-          matchesEventScope(bucket, event, eventAttribute),
+          matchesEventScope(bucket, scopedEvent, eventAttribute),
       )
       .forEach((bucket) => addModifier(modifiers, bucket))
     const source32 = isDamageFormula32Version(input.baseline.gameVersion)
+    if (modifiers.flatDamage !== 0 && (!source32 || semantics.family !== 'direct')) {
+      input.diagnosticBlockers?.push(
+        `${usage.eventId}：附加基础伤害没有当前伤害类型的已核消费合同。`,
+      )
+      return Number.NaN
+    }
     // common/index.ts: final = initial*(1+combatPercent)+combatFlat.
     // initial already contains all static equipment percentages and flat stats.
     const attack =
@@ -261,6 +499,7 @@ export function calculateCurrentPlanningEventDamage32(input: {
           attackerLevel: input.member.level ?? 60,
           attack,
           defense,
+          flatDamage: modifiers.flatDamage,
           sheerForce: sheer?.status === 'supported' ? sheer.sheerForce : undefined,
           lacerationDamage:
             stats.lacerationDamage === undefined

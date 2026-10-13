@@ -1,4 +1,5 @@
 import { currentAgentDirectory } from '../assault/catalog'
+import type { PlanningBaseline } from './planningDpsContract'
 import { getCurrentWEngineStaticData } from '../gameDataPacks/currentWEngineStaticCatalog'
 import { stableContentHash } from '../gameDataPacks/types'
 import { applyReviewedWEngineReceiverSemantics32 } from './reviewedWEngineReceiverSemantics32'
@@ -169,7 +170,7 @@ function compileDirectRuntimeBuckets(input: {
       if (!modeledRecipients.length) return
       buckets.push({
         bucketId: `wengine:${item.agentId}:${item.engineId}:${index}`,
-        effectKey: `wengine:${item.engineId}:P:${index}`,
+        effectKey: ['wengine', item.engineId, 'P', index].join(':'),
         providerAgentId: item.agentId,
         recipientAgentIds: modeledRecipients,
         receiverPath: null,
@@ -395,6 +396,7 @@ export function projectTargetTeamWEngineModifiers(input: {
 /** The legacy team projection retains its explicit Bangboo scope. The shared
  * W-Engine projection also serves reviewed three-actor benchmarks without one. */
 export function projectTargetTeamEquipmentModifiers(input: {
+  baseline?: PlanningBaseline
   memberIds: readonly [string, string, string]
   parameters: TargetTeamEquipmentParameterSelection
   members?: readonly PlanningEffectRuntimeMember[]
@@ -404,6 +406,7 @@ export function projectTargetTeamEquipmentModifiers(input: {
 }) {
   const engines = projectTargetTeamWEngineModifiers(input)
   const bangbooParameter = evaluateCurrentBangbooPlanningParameter({
+    baseline: input.baseline,
     stableId: input.parameters.bangbooId,
     stars: input.parameters.bangbooStars,
     memberIds: input.memberIds,

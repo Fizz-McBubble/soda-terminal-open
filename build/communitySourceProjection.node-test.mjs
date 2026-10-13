@@ -64,3 +64,44 @@ test('the actual reviewed Bangboo source projection preserves every lineup and i
   )
   assert.equal(hasPrivateCommunityLocator(projected), false)
 })
+
+function normalizedSourceHash(source) {
+  let hash = 2166136261
+  const normalized = source.replaceAll('\r\n', '\n')
+  for (let i = 0; i < normalized.length; i++) {
+    hash ^= normalized.charCodeAt(i)
+    hash = Math.imul(hash, 16777619)
+  }
+  return (hash >>> 0).toString(16)
+}
+
+test('safe JSON retains exact formatting and policy-source identity through repeated projection', () => {
+  const source = '{\r\n  "rule": {"value": 3, "url": "https://example.com/source"}\r\n}\r\n'
+  const projected = projectCommunitySourceText(source, 'rule.json')
+  assert.equal(projected, source)
+  assert.equal(projectCommunitySourceText(projected, 'rule.json'), source)
+  assert.equal(normalizedSourceHash(projected), normalizedSourceHash(source))
+  const changed = source.replace('"value": 3', '"value": 4')
+  assert.notEqual(
+    normalizedSourceHash(projectCommunitySourceText(changed, 'rule.json')),
+    normalizedSourceHash(source),
+  )
+})
+
+test('the installed consumer-policy closure keeps raw identity in the public projection', () => {
+  const identityUrl = new URL(
+    '../src/calculation/currentPlanningConsumerPolicyIdentity32.ts',
+    import.meta.url,
+  )
+  const identity = readFileSync(identityUrl, 'utf8')
+  const paths = [...identity.matchAll(/'((?:\.\/|\.\.\/)[^']+\.(?:ts|json))'/g)].map(
+    (match) => match[1],
+  )
+  assert(paths.length > 0)
+  for (const path of paths) {
+    const url = new URL(path, identityUrl)
+    const source = readFileSync(url, 'utf8')
+    const projected = projectCommunitySourceText(source, url.pathname)
+    assert.equal(normalizedSourceHash(projected), normalizedSourceHash(source), path)
+  }
+})

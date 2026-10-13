@@ -121,8 +121,8 @@ export const gameData32BuildGuidance: Readonly<Record<string, GameData32BuildGui
         '血髓秘匣（wengine-13021）与喵运当头（wengine-13017）：来源讨论的替代方向，精炼与队伍增益影响比较。',
       ],
       setDirections: [
-        '棘刺玫瑰 4 件 + 河豚电音 2 件：丽娜队的来源建议；不能无条件套用到减防队。',
-        '棘刺玫瑰 4 件 + 啄木鸟电音 / 灵魂摇滚 / 雷暴重金属 / 折枝剑歌 2 件：来源列出的条件化替代。',
+        '荆棘玫瑰 4 件 + 河豚电音 2 件：丽娜队的来源建议；不能无条件套用到减防队。',
+        '荆棘玫瑰 4 件 + 啄木鸟电音 / 灵魂摇滚 / 雷暴重金属 / 折枝剑歌 2 件：来源列出的条件化替代。',
       ],
       setPlans: [
         {
@@ -130,7 +130,7 @@ export const gameData32BuildGuidance: Readonly<Record<string, GameData32BuildGui
           primarySetIds: ['set-34200'],
           secondarySetIds: ['set-puffer-electro'],
           purpose: 'conditional',
-          sourceText: '棘刺玫瑰 4 件 + 河豚电音 2 件；适用于丽娜队，减防队需重新比较。',
+          sourceText: '荆棘玫瑰 4 件 + 河豚电音 2 件；适用于丽娜队，减防队需重新比较。',
           condition: {
             sourceId: 'prydwen-original-claret32',
             sourceUrl: gameData32BuildSources.claretGuide!.url,
@@ -150,7 +150,7 @@ export const gameData32BuildGuidance: Readonly<Record<string, GameData32BuildGui
             'set-branch-blade-song',
           ],
           purpose: 'recommended',
-          sourceText: '棘刺玫瑰 4 件 + 来源明确列出的各 2 件替代；按队伍和词条比较。',
+          sourceText: '荆棘玫瑰 4 件 + 来源明确列出的各 2 件替代；按队伍和词条比较。',
         },
       ],
       unresolvedSetDirections: [],
@@ -182,7 +182,7 @@ export const gameData32BuildGuidance: Readonly<Record<string, GameData32BuildGui
         '锐化伤害按防御力计算，普通攻击力词条不能沿用传统强攻收益。',
         '初始暴击伤害以 0.35 系数转换为暴击率，锐暴伤害本身不使用普通暴击伤害加成。',
         '超过百分之百暴击率的二次锐暴判定可继续受益；满概率边界需合并实际核心、音擎与队伍条件。',
-        '棘刺玫瑰初始防御 1000 / 1800 档位提供不同暴击率；属于套装触发条件，不是毕业面板。',
+        '荆棘玫瑰初始防御 1000 / 1800 档位提供不同暴击率；属于套装触发条件，不是毕业面板。',
       ],
       fixedCycleStatus: 'qualitative_only',
       fixedCycleMissingFields,

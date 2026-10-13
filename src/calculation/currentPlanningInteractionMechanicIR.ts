@@ -1,6 +1,11 @@
 import { stableContentHash } from '../gameDataPacks/types'
 import { currentAgentDecisionMechanicContracts } from './currentAgentDecisionMechanicContracts'
 import { getCurrentAgentEventContract } from './currentAgentMechanicContracts'
+import { currentAgentPlanningEffectBlueprints } from './currentAgentPlanningEffectBlueprint'
+import {
+  isReviewedTemplateMechanicEffect32,
+  reviewedTemplateMechanicEffectBlueprints32,
+} from './reviewedTemplateMechanicEffects32'
 import {
   compilePlanningInteractionContracts,
   type PlanningInteractionContract,
@@ -93,9 +98,18 @@ function compileAgentMechanicIR(agentId: string): CurrentPlanningInteractionMech
     resource: string
   }[]
   const resourceKeys = resources.map((resource) => resource.resource)
-  const effectKeys = contract.effectContract.effects.map(
-    (effect) => `${agentId}:${effect.effectId}`,
-  )
+  const reviewedEffects = reviewedTemplateMechanicEffectBlueprints32.filter((entry) => {
+    const current = currentAgentPlanningEffectBlueprints.find(
+      (row) => row.effectKey === entry.effectKey,
+    )
+    return (
+      entry.providerAgentId === agentId && current && isReviewedTemplateMechanicEffect32(current)
+    )
+  })
+  const effectKeys = [
+    ...contract.effectContract.effects.map((effect) => `${agentId}:${effect.effectId}`),
+    ...reviewedEffects.map((entry) => entry.effectKey),
+  ]
   const fieldTimeMode = contract.fieldTimeContract?.mode
   const resourceFlowStatus = contract.resourceContract?.resourceFlow.status
   const resourceParameterClassification =
@@ -135,7 +149,13 @@ function compileAgentMechanicIR(agentId: string): CurrentPlanningInteractionMech
     {
       operator: 'team_effect_resolution',
       readiness: effectKeys.length > 0 ? 'baseline_observation_required' : 'not_applicable',
-      sourceRefs: refs.effect,
+      sourceRefs: unique([
+        ...refs.effect,
+        ...reviewedEffects.flatMap((entry) => [
+          ...entry.sourceRefs,
+          `expression-sha256:${entry.numericExpression.expressionSha256}`,
+        ]),
+      ]),
       effectKeys,
       blockers:
         effectKeys.length > 0
@@ -270,6 +290,18 @@ export function compileSourceBackedPlanningInteractionContracts(input: {
       )?.capabilities.find((item) => item.operator === 'team_effect_resolution')
       const allowed = capability?.effectKeys?.includes(contract.effectKey)
       if (!allowed) blockers.push(`队伍效果未由实体 Mechanic IR 声明：${contract.effectKey}`)
+      const reviewed = reviewedTemplateMechanicEffectBlueprints32.find(
+        (entry) => entry.effectKey === contract.effectKey,
+      )
+      if (
+        reviewed &&
+        (contract.ownerAgentId !== reviewed.providerAgentId ||
+          ![
+            ...reviewed.sourceRefs,
+            `expression-sha256:${reviewed.numericExpression.expressionSha256}`,
+          ].every((ref) => contract.sourceRefs.includes(ref)))
+      )
+        blockers.push(`已核组件缺精确表达式与锁定来源证据：${contract.effectKey}`)
       if (
         allowed &&
         !capability?.sourceRefs.some((sourceRef) => contract.sourceRefs.includes(sourceRef))

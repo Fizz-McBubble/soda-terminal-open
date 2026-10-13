@@ -51,7 +51,7 @@ function directDamageFailureReason(member: PlanningEffectRuntimeMember) {
     bonus.actionTypes.some((action) => action !== 'basic' && action !== 'dash'),
   )
     ? '当前动作资料未标注追击类型，暂不能比较这套驱动盘的动作加成。'
-    : '当前等级、公式族或类型化盘面（基础攻防、裂伤、贯穿力）不完整，无法用于固定事件比较。'
+    : '当前等级、公式族或类型化盘面（基础攻防、毁伤、贯穿力）不完整，无法用于固定事件比较。'
 }
 
 /** Single-agent fixed-event slice used by Development Value Benchmark.

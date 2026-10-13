@@ -1,6 +1,27 @@
 import type { AccountPlanningDraft } from '../accounts/types'
 import { contentHash } from '../application/contentHash'
 import type { TargetTeamWarehouseFitQueryResult } from '../application/calculationQueryContract'
+import type { CurrentPlanningScenarioSelection32 } from '../application/publicPlanningScenarioContract'
+import { defaultPlanningScenarioSelection32 } from '../application/publicPlanningScenarioContract'
+
+export function resolveSavedPlanScenarioSelection(
+  selection?: CurrentPlanningScenarioSelection32 | null,
+): CurrentPlanningScenarioSelection32 {
+  if (selection === undefined) {
+    return defaultPlanningScenarioSelection32
+  }
+  if (
+    selection === null ||
+    typeof selection !== 'object' ||
+    Array.isArray(selection) ||
+    selection.schemaVersion !== 1 ||
+    (selection.id !== 'normalized-comparison' && selection.id !== 'declared-stun-comparison') ||
+    Object.keys(selection).some((k) => k !== 'schemaVersion' && k !== 'id')
+  ) {
+    throw new Error(`不支持或未知的规划场景：${String((selection as { id?: unknown })?.id)}。`)
+  }
+  return selection
+}
 
 function sameSavedDiscIds(left: readonly string[], right: readonly string[]) {
   return (
@@ -17,6 +38,31 @@ export function savedTeamTargetFitMatchesSavedDiscs(
   plan: AccountPlanningDraft,
   targetTeamFit: TargetTeamWarehouseFitQueryResult,
 ) {
+  const planScenario = resolveSavedPlanScenarioSelection(plan.solutionContext?.scenarioSelection)
+  const fitScenario = resolveSavedPlanScenarioSelection(targetTeamFit.scenarioSelection)
+  if (planScenario.id !== fitScenario.id) {
+    return false
+  }
+  if (
+    planScenario.id !== 'normalized-comparison' &&
+    (!plan.solutionContext?.scenarioIdentity || !targetTeamFit.scenarioIdentity)
+  )
+    return false
+  if (
+    plan.solutionContext?.scenarioIdentity &&
+    targetTeamFit.scenarioIdentity &&
+    plan.solutionContext.scenarioIdentity !== targetTeamFit.scenarioIdentity
+  ) {
+    return false
+  }
+  if (
+    plan.solutionContext?.scenarioIdentity &&
+    !targetTeamFit.scenarioIdentity &&
+    planScenario.id !== 'normalized-comparison'
+  ) {
+    return false
+  }
+
   const savedLoadouts = plan.candidateWarehouse?.loadouts
   const savedExecution = plan.teamExecutionSnapshot
   if (
@@ -52,8 +98,13 @@ export function savedTeamTargetFitMatchesSavedDiscs(
 }
 
 export function savedTeamDiscAssignmentFingerprint(plan: AccountPlanningDraft) {
+  const scenarioSelection = resolveSavedPlanScenarioSelection(
+    plan.solutionContext?.scenarioSelection,
+  )
   return contentHash({
     planId: plan.id,
+    scenarioSelection,
+    scenarioIdentity: plan.solutionContext?.scenarioIdentity ?? null,
     candidateWarehouse: plan.candidateWarehouse?.loadouts
       .map((loadout) => ({ agentId: loadout.agentId, discIds: [...loadout.discIds].sort() }))
       .sort((left, right) => left.agentId.localeCompare(right.agentId)),

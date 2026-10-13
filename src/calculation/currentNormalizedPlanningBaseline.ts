@@ -117,7 +117,11 @@ function skillLevelFor(skill: string, levels?: Readonly<Record<string, number | 
   return Number.isInteger(level) && Number(level) > 0 ? Number(level) : 11
 }
 
-function representativeAction(agentId: string, levels?: Readonly<Record<string, number | null>>) {
+function representativeAction(
+  agentId: string,
+  levels?: Readonly<Record<string, number | null>>,
+  declaredSkills?: readonly string[],
+) {
   const eventContract = getCurrentAgentEventContract(agentId)
   const decision = getCurrentAgentDecisionMechanicContract(agentId)
   if (!eventContract || !decision) return null
@@ -127,13 +131,8 @@ function representativeAction(agentId: string, levels?: Readonly<Record<string, 
       ? 'shared_rotation'
       : 'primary_field'
   const mode = decision.fieldTimeContract?.mode ?? fallbackMode
-  const preference = preferredSkillByFieldTimeMode[mode] ?? [
-    'basic',
-    'special',
-    'assist',
-    'chain',
-    'dodge',
-  ]
+  const preference = declaredSkills ??
+    preferredSkillByFieldTimeMode[mode] ?? ['basic', 'special', 'assist', 'chain', 'dodge']
   for (const skill of preference) {
     const actions = new Map<string, typeof eventContract.eventContract.events>()
     for (const event of eventContract.eventContract.events.filter(
@@ -173,9 +172,11 @@ function representativeAction(agentId: string, levels?: Readonly<Record<string, 
 export function compileNormalizedAgentEventSchedule(input: {
   agentId: string
   skillLevels?: Readonly<Record<string, number | null>>
+  /** Explicit comparison action policy; never inferred from account potential level. */
+  declaredSkills?: readonly string[]
 }) {
   const decision = getCurrentAgentDecisionMechanicContract(input.agentId)
-  const action = representativeAction(input.agentId, input.skillLevels)
+  const action = representativeAction(input.agentId, input.skillLevels, input.declaredSkills)
   const eventContract = getCurrentAgentEventContract(input.agentId)
   if (!decision || !eventContract || !action)
     return { status: 'unsupported' as const, blockers: [`缺少固定事件策略输入：${input.agentId}`] }

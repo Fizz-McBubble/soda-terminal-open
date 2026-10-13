@@ -13,8 +13,49 @@ import {
 import type { GoldenTop10Data } from './AgentDevelopmentGolden.workbench.testFixture'
 import { agentDevelopmentSkillRecommendations } from '../../pages/agentDevelopmentSkillRecommendations'
 import { getProjectedBuildKnowledgeProfile } from '../../gameDataPacks/agentProfile'
+import { Top10StatTable } from './Top10StatTable'
 
 describe('AgentDevelopmentGolden warehouse candidate controls', () => {
+  it('guards old public optional and combat-only references without hiding actual rows', () => {
+    const baseline: GoldenTop10Data['baseline'] = {
+      rank: 0,
+      label: '当前实装',
+      fit: '比较基准',
+      panel: '当前方案',
+      sets: '未录入',
+      effective: '—',
+      swaps: null,
+      conflict: '待核对',
+      cost: '—',
+      staticDps: null,
+      statDeltaSummary: '—',
+      finalStats: { hp: 8020, def: 630, atk: 2800 },
+    }
+    render(
+      <Top10StatTable
+        data={{
+          agentName: '测试',
+          baseline,
+          candidates: [],
+          discs: [],
+          coreStats: [],
+          statPresentation: 'static_panel',
+          allStats: [
+            { key: 'hp', label: '生命值', unit: '', highlight: false, target: '9500+（可选）' },
+            { key: 'def', label: '防御力', unit: '', highlight: false, target: '750+（战斗内）' },
+            { key: 'atk', label: '攻击力', unit: '', highlight: true, target: '3000+' },
+          ],
+        }}
+        selectedRow={baseline}
+        baselineAvailable
+        baselineLabel="当前实装"
+      />,
+    )
+    expect(screen.getByRole('cell', { name: '生命值' })).not.toHaveTextContent('参考')
+    expect(screen.getByRole('cell', { name: '防御力' })).not.toHaveTextContent('参考')
+    expect(screen.getByRole('table', { name: '属性对比' })).toHaveTextContent('8,020')
+    expect(screen.getByRole('cell', { name: '攻击力' })).toHaveTextContent('攻略参考 3000+')
+  })
   it('renders Seed sourced levels numerically while preserving minima and the confirmed priority marks', () => {
     const directions = getProjectedBuildKnowledgeProfile('agent-seed').recommendation!.skillPriority
     const { skills } = agentDevelopmentSkillRecommendations('agent-seed', directions, [])
@@ -337,5 +378,107 @@ describe('AgentDevelopmentGolden warehouse candidate controls', () => {
     expect(screen.queryByRole('tab')).not.toBeInTheDocument()
     await user.click(screen.getByRole('button', { name: '保存配装' }))
     await waitFor(() => expect(savePlan).toHaveBeenCalledWith(2))
+  })
+})
+
+describe('retaining equipped six-disc reference', () => {
+  it('selects the equipped rank zero while keeping saved reference and alternatives visible without writing', async () => {
+    const user = userEvent.setup()
+    const save = vi.fn()
+    const select = vi.fn()
+    const row: GoldenTop10Data['baseline'] = {
+      rank: 0,
+      label: '保留当前实装',
+      fit: '—',
+      panel: '',
+      sets: '当前六盘',
+      effective: '—',
+      swaps: 0,
+      conflict: '',
+      cost: '',
+      staticDps: null,
+      statDeltaSummary: '',
+      finalStats: {},
+      discIds: workbench.discs.map((d) => d.id) as [string, string, string, string, string, string],
+    }
+    render(
+      <AgentDevelopmentGolden
+        initialView="top10"
+        top10={{
+          agentName: '比利',
+          baseline: row,
+          currentLoadout: row,
+          currentPlan: { ...row, rank: -1, label: '已保存方案', sets: '保存六盘' },
+          candidates: [{ ...row, rank: 1, label: '方案 1', sets: '候选六盘' }],
+          discs: workbench.discs,
+          coreStats: [],
+          allStats: [],
+          statPresentation: 'disc_contribution',
+          baselineKind: 'actual',
+          selectedCandidateRank: 1,
+        }}
+        onSavePlan={save}
+        onSelectCandidatePlan={select}
+      />,
+    )
+    await user.click(screen.getByRole('button', { name: /保留当前实装.*当前六盘/ }))
+    expect(select).toHaveBeenLastCalledWith(0)
+    expect(screen.getByRole('heading', { name: '保留当前实装 · 六盘明细' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '保留当前实装' })).toBeDisabled()
+    expect(save).not.toHaveBeenCalled()
+    await user.click(screen.getByRole('button', { name: /已保存方案.*保存六盘/ }))
+    expect(select).toHaveBeenLastCalledWith(-1)
+    expect(screen.getByRole('heading', { name: '已保存方案 · 六盘明细' })).toBeInTheDocument()
+  })
+})
+
+describe('comparison set summary wrapping', () => {
+  it('keeps the full set/count items in baseline and candidate text without removing the filter', () => {
+    const sets = '啄啄沙龙 4件 + 月光骑士颂 2件'
+    const row: GoldenTop10Data['baseline'] = {
+      rank: 0,
+      label: '当前实装',
+      fit: '—',
+      panel: '',
+      sets,
+      effective: '—',
+      swaps: 0,
+      conflict: '',
+      cost: '',
+      staticDps: null,
+      statDeltaSummary: '',
+      finalStats: {},
+      discIds: workbench.discs.map((d) => d.id) as [string, string, string, string, string, string],
+    }
+    const { container } = render(
+      <AgentDevelopmentGolden
+        initialView="top10"
+        top10={{
+          agentName: '比利',
+          baseline: row,
+          candidates: [{ ...row, rank: 1, label: '方案 1', sets: `4+2：${sets}` }],
+          discs: workbench.discs,
+          coreStats: [],
+          allStats: [],
+          statPresentation: 'disc_contribution',
+          baselineKind: 'actual',
+        }}
+      />,
+    )
+    const baseline = container.querySelector('.comparison-baseline > strong')!
+    const candidate = container.querySelector('.comparison-candidate__identity > small')!
+    expect(baseline.textContent).toBe(sets)
+    expect(candidate.textContent).toBe(`4+2：${sets}`)
+    for (const summary of [baseline, candidate]) {
+      expect(
+        Array.from(
+          summary.querySelectorAll('.comparison-set-item__count'),
+          (node) => node.textContent,
+        ),
+      ).toEqual([' 4件', ' 2件'])
+      expect(summary.querySelectorAll('.comparison-set-item')).toHaveLength(2)
+      expect(summary.querySelectorAll('.comparison-set-summary')).toHaveLength(1)
+    }
+    expect(screen.getByRole('button', { name: '仅无冲突' })).toBeEnabled()
   })
 })

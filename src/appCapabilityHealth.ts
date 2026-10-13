@@ -47,14 +47,20 @@ export function createAppCapabilityHealth(input: RuntimeHealthInput) {
           ['build_guidance_partial'],
         )
 
+  const eventCalculationReadyRows = currentCapabilityGapMatrix.rows.filter(
+    (row) => row.eventCalculation.status === 'ready',
+  ).length
   const calculationReadyRows = currentCapabilityGapMatrix.rows.filter(
     (row) => row.calculation.status === 'ready',
   ).length
+  const totalRows = currentCapabilityGapMatrix.rows.length
   const staticCalculation =
     calculationReadyRows > 0
       ? layer(
-          calculationReadyRows === currentCapabilityGapMatrix.rows.length ? 'ready' : 'partial',
-          `${calculationReadyRows}/${currentCapabilityGapMatrix.rows.length} 个代理人具备静态计算能力。`,
+          calculationReadyRows === totalRows && eventCalculationReadyRows === totalRows
+            ? 'ready'
+            : 'partial',
+          `${eventCalculationReadyRows}/${totalRows} 个代理人已编译来源事件合同；历史 Planning DPS 适配器覆盖 ${calculationReadyRows} 个代理人。合同覆盖不代表全部事件和条件已进入当前计算。`,
         )
       : (planningFormulaFamilyRegistry.families as readonly { status: string }[]).some(
             (family) => family.status === 'engine_ready_no_current_subjects',

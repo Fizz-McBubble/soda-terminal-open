@@ -17,7 +17,7 @@ import {
 import { projectTargetTeamValueBenchmark } from '../decision/targetTeamValueBenchmark'
 import { refineCultivationPriorityWithTargetFit } from '../decision/accountDecisionAuthority'
 import { authorityConsumerRecommendations } from '../decision/accountDecisionAuthorityConsumers'
-import { authorityExecutionCandidates } from '../decision/accountDecisionAuthorityExecutionCandidates'
+import { resolveAuthorityExecutionCandidate } from '../decision/accountDecisionAuthorityExecutionCandidates'
 import { authorityTargetBuildDirection } from '../decision/authorityTargetBuildDirection'
 import {
   createAccountTeamEngineBoxInput,
@@ -162,6 +162,7 @@ export function createLocalTargetTeamFitQuery({
           authorComparisonMembership: membership,
         }
         const context = {
+          scenarioSelection: query.scenarioSelection,
           warehouse: run.input.warehouse,
           candidate,
           fit,
@@ -204,6 +205,10 @@ export function createLocalTargetTeamFitQuery({
             fit,
           }),
         }
+        Object.assign(result, {
+          scenarioSelection: accountBoundBenchmark.scenarioSelection,
+          scenarioIdentity: accountBoundBenchmark.scenarioIdentity,
+        })
         result.teamExecutionPresentation = projectPrivateTeamExecution(run, result)
         const cached = teamFits.get(run.runId) ?? new Map()
         cached.set(result.candidateId, result)
@@ -253,11 +258,11 @@ export function createLocalTargetTeamFitQuery({
         baseCandidates: run.snapshot.teamEngine.recommendations,
       })
       const authorityExecutionCandidate = authorityCandidate
-        ? authorityExecutionCandidates(
-            run.snapshot.decisionAuthority,
+        ? resolveAuthorityExecutionCandidate(
+            authorityCandidate,
             run.snapshot.teamEngine.recommendations,
             authorityVariantResolver,
-          ).find((item) => item.candidateId === authorityCandidate.candidateId)
+          )
         : undefined
       const sourceEngineCandidate = authorityExecutionCandidate ?? directEngineCandidate
       const sourceCandidate =
@@ -404,6 +409,7 @@ export function createLocalTargetTeamFitQuery({
         ...(schemeParameters
           ? {
               teamAssignmentObjective: createTargetTeamAssignmentObjective({
+                scenarioSelection: query.scenarioSelection,
                 warehouse: run.input.warehouse,
                 candidate: executionIdentity,
                 parameters: schemeParameters,
@@ -417,6 +423,7 @@ export function createLocalTargetTeamFitQuery({
       })
       const benchmarkCandidate = executionIdentity
       const accountBoundBenchmark = projectTargetTeamAccountBoundBenchmark({
+        scenarioSelection: query.scenarioSelection,
         warehouse: run.input.warehouse,
         candidate: benchmarkCandidate,
         fit,
@@ -447,6 +454,7 @@ export function createLocalTargetTeamFitQuery({
           }),
           accountBoundBenchmark,
           valueBenchmark: projectTargetTeamValueBenchmark({
+            scenarioSelection: query.scenarioSelection,
             warehouse: run.input.warehouse,
             drafts: run.input.drafts,
             activePlanIds: run.input.activePlanIds,
@@ -474,6 +482,10 @@ export function createLocalTargetTeamFitQuery({
             fit,
           }),
         }
+      Object.assign(result, {
+        scenarioSelection: accountBoundBenchmark.scenarioSelection,
+        scenarioIdentity: accountBoundBenchmark.scenarioIdentity,
+      })
       result.teamExecutionPresentation = projectPrivateTeamExecution(run, result)
       const cachedTeamFits = teamFits.get(run.runId) ?? new Map()
       cachedTeamFits.set(result.candidateId, result)

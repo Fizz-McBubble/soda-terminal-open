@@ -4,7 +4,11 @@ import { AssetQuickReadFeedback } from './AssetQuickReadFeedback'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { AssetQuickReadEntry, type AssetQuickReadState } from './AssetQuickReadEntry'
 import { AssetQuickReadBridgeClient, type AssetBridgeJob } from '../assetQuickRead/bridgeClient'
-import { assetSnapshotSchema, convertAssetSnapshot } from '../assetQuickRead/snapshotAdapter'
+import { convertAssetSnapshot } from '../assetQuickRead/snapshotAdapter'
+import {
+  prepareAssetSnapshotExport,
+  assetCompatibilityMessage,
+} from '../assetQuickRead/snapshotRecovery'
 import {
   confirmAssetQuickReadImport,
   prepareAssetQuickReadImport,
@@ -80,6 +84,10 @@ function AccountBoundQuickRead({
   const [state, setState] = useState<AssetQuickReadState>('idle')
   const [job, setJob] = useState<AssetBridgeJob | null>(null)
   const [review, setReview] = useState<Reviewed | null>(null)
+  const safeExport = useMemo(
+    () => (review ? prepareAssetSnapshotExport(review.raw) : null),
+    [review],
+  )
   const [error, setError] = useState('')
   const [diagnostic, setDiagnostic] = useState<AssetDiagnosticReport | null>(readAssetDiagnostic)
   const recordFailure = (
@@ -172,6 +180,16 @@ function AccountBoundQuickRead({
   async function inspect(raw: unknown, sha256: string, scope: number) {
     if (generation.current !== scope) return
     const candidate = convertAssetSnapshot(raw, { snapshotSha256: sha256 })
+    if (!candidate.importable && prepareAssetSnapshotExport(raw)?.pendingUpdate) {
+      candidate.issues = [
+        {
+          code: 'snapshot_update_required',
+          kind: 'snapshot',
+          message:
+            '这份结果的版本与当前资产快读适配不一致，请等待适配更新后重新检查。可先导出待适配资产文件；账户未修改。',
+        },
+      ]
+    }
     let plan: AssetQuickReadImportPlan | null = null
     let issue: string | undefined
     let issueFailure: unknown
@@ -226,7 +244,10 @@ function AccountBoundQuickRead({
                 latest,
               )
             if (latest.state === 'error')
-              setError('资产快读未完成本次读取，请核对游戏目录、管理员授权与准备状态后再试。')
+              setError(
+                assetCompatibilityMessage(latest.code) ??
+                  '资产快读未完成本次读取，请核对游戏目录、管理员授权与准备状态后再试。',
+              )
           }
         } catch (failure) {
           if (valid()) {
@@ -293,8 +314,14 @@ function AccountBoundQuickRead({
       ownedJob.current = started
       setJob(started)
       setState(started.state)
-      if (started.state === 'error' || started.state === 'timed_out')
+      if (started.state === 'error' || started.state === 'timed_out') {
         recordFailure(started.state === 'timed_out' ? 'waiting' : 'startup', undefined, started)
+        if (started.state === 'error')
+          setError(
+            assetCompatibilityMessage(started.code) ??
+              '资产快读未完成本次读取，请核对准备状态后再试。',
+          )
+      }
     } catch (failure) {
       if (scope === generation.current) {
         recordFailure('startup', failure)
@@ -379,15 +406,16 @@ function AccountBoundQuickRead({
     }
   }
   function exportResult() {
-    if (!review) return
-    // Whitelist the native asset structure; pairing/session/security fields are stripped.
-    const safe = assetSnapshotSchema.parse(review.raw)
+    if (!safeExport) return
+    const safe = safeExport.snapshot
     const url = URL.createObjectURL(
       new Blob([JSON.stringify(safe, null, 2)], { type: 'application/json' }),
     )
     const anchor = document.createElement('a')
     anchor.href = url
-    anchor.download = 'soda-asset-quick-read.json'
+    anchor.download = safeExport.pendingUpdate
+      ? 'soda-asset-quick-read-pending-update.json'
+      : 'soda-asset-quick-read.json'
     anchor.click()
     setTimeout(() => URL.revokeObjectURL(url), 0)
   }
@@ -639,7 +667,7 @@ function AccountBoundQuickRead({
       onImport={importResult}
       onDiscard={discardResult}
       onPrepareAgain={active(job) ? undefined : prepareAgain}
-      onExport={review ? exportResult : undefined}
+      onExport={safeExport ? exportResult : undefined}
       elapsedSeconds={
         job?.readyAt && job.remainingSeconds !== null
           ? Math.max(0, 180 - job.remainingSeconds)

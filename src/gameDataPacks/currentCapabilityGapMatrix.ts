@@ -18,6 +18,8 @@ import {
 import { planningSheerManatoSupportAdoption } from '../calculation/planningSheerSupportAdoption'
 import { planningAnomalyPiperSupportAdoption } from '../calculation/planningAnomalySupportAdoption'
 import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
+import { getCurrentAgentDecisionMechanicContract } from '../calculation/currentAgentDecisionMechanicContracts'
+import { currentAgentPlanningEffectBlueprints } from '../calculation/currentAgentPlanningEffectBlueprint'
 
 /**
  * A read-only coverage view over the current asset projection. It records
@@ -56,6 +58,7 @@ export type CurrentCapabilityBuildField = CapabilityGapDetail & {
 
 export type CurrentCapabilitySupportDimension = CapabilityGapDetail & {
   kind: CalculationSupportKind
+  scope: 'compiled_source_contract' | 'formation_level'
 }
 
 export type CurrentCapabilityGapRow = {
@@ -76,11 +79,14 @@ export type CurrentCapabilityGapRow = {
     nextEvidence: readonly string[]
   }
   calculation: CapabilityGapDetail & {
+    /** Historical/legacy handwritten Planning DPS adapter scope (Billy, Nekomata, Manato, Piper). */
+    legacyScope: 'historical_planning_dps_adapter'
     /** No typed formula-family authority currently supplies a value. */
     formulaFamily: string | null
     directDamageSourceStatus: AgentProfile['directDamageStatus']
   }
   eventCalculation: CapabilityGapDetail & {
+    scope: 'compiled_source_event_contract'
     numericEventCount: number
     sourceFormulaSheetVerified: boolean
   }
@@ -136,38 +142,146 @@ function combinedDetail(items: readonly CapabilityGapDetail[]): CapabilityGapDet
   )
 }
 
-function planningSupportDetail(kind: CalculationSupportKind): CurrentCapabilitySupportDimension {
-  return {
-    kind,
-    ...detail(
-      'missing',
-      [`${kind} has no current planning formula-family evidence.`],
-      [`Collect a versioned ${kind} definition, applicability conditions, and calculation inputs.`],
-    ),
+function planningSupportDetail(
+  kind: CalculationSupportKind,
+  stableId: string,
+): Omit<CurrentCapabilitySupportDimension, 'scope'> {
+  switch (kind) {
+    case 'personalFormula': {
+      const eventContract = getCurrentAgentEventContract(stableId)
+      if (eventContract && eventContract.eventContract.events.length > 0) {
+        return {
+          kind,
+          ...detail('ready', [], []),
+        }
+      }
+      return {
+        kind,
+        ...detail(
+          'missing',
+          [`Agent ${stableId} has no source-compiled formula sheet or character event contract.`],
+          ['Compile the locked character stats JSON and formula sheet.'],
+        ),
+      }
+    }
+    case 'incomingModifier': {
+      const decisionContract = getCurrentAgentDecisionMechanicContract(stableId)
+      if (decisionContract?.readiness.effectRecipient === 'compiled') {
+        return {
+          kind,
+          ...detail('ready', [], []),
+        }
+      }
+      return {
+        kind,
+        ...detail(
+          'missing',
+          [`Agent ${stableId} modifier recipient classification is not compiled.`],
+          ['Compile recipient parameter classification in decision mechanic catalog.'],
+        ),
+      }
+    }
+    case 'outgoingTeamEffect': {
+      const blueprints = currentAgentPlanningEffectBlueprints.filter(
+        (b) => b.providerAgentId === stableId,
+      )
+      if (blueprints.length === 0) {
+        return {
+          kind,
+          ...detail(
+            'missing',
+            [`Agent ${stableId} has no compiled planning effect blueprints.`],
+            ['Compile character formula effects and blueprint targets.'],
+          ),
+        }
+      }
+      const hasTeamTarget = blueprints.some(
+        (b) => b.targetKinds.includes('team') || b.targetKinds.includes('active_agent'),
+      )
+      if (hasTeamTarget) {
+        return {
+          kind,
+          ...detail('ready', [], []),
+        }
+      }
+      return {
+        kind,
+        ...detail('not_applicable', [], []),
+      }
+    }
+    case 'interaction': {
+      const decisionContract = getCurrentAgentDecisionMechanicContract(stableId)
+      if (decisionContract?.readiness.specialInteraction === 'compiled_capability') {
+        return {
+          kind,
+          ...detail('ready', [], []),
+        }
+      }
+      if (decisionContract?.readiness.specialInteraction === 'not_applicable') {
+        return {
+          kind,
+          ...detail('not_applicable', [], []),
+        }
+      }
+      return {
+        kind,
+        ...detail(
+          'missing',
+          [`Agent ${stableId} special interaction capability contract pending.`],
+          ['Compile special interaction capability contract.'],
+        ),
+      }
+    }
+    case 'pairOrTrio': {
+      const decisionContract = getCurrentAgentDecisionMechanicContract(stableId)
+      if (decisionContract?.readiness.teamSynergy === 'compiled_seed') {
+        return {
+          kind,
+          ...detail('ready', [], []),
+        }
+      }
+      return {
+        kind,
+        ...detail(
+          'missing',
+          [`Agent ${stableId} team synergy seed contract pending.`],
+          ['Compile faction and element synergy seeds for agent.'],
+        ),
+      }
+    }
+    case 'bangboo': {
+      // Bangboo activation, recipients and events belong to the complete
+      // formation. A character event contract cannot certify this consumer.
+      return { kind, ...detail('not_applicable', [], []) }
+    }
   }
 }
 
 function calculationDetail(profile: AgentProfile): CurrentCapabilityGapRow['calculation'] {
   if (profile.agentId === planningDirectBillySupportAdoption.agentId)
     return {
+      legacyScope: 'historical_planning_dps_adapter',
       formulaFamily: planningDirectBillySupportAdoption.formulaFamily,
       directDamageSourceStatus: profile.directDamageStatus,
       ...detail('ready', [], []),
     }
   if (profile.agentId === planningDirectNekomataEventAdoption.agentId)
     return {
+      legacyScope: 'historical_planning_dps_adapter',
       formulaFamily: planningDirectNekomataEventAdoption.formulaFamily,
       directDamageSourceStatus: profile.directDamageStatus,
       ...detail('ready', [], []),
     }
   if (profile.agentId === planningSheerManatoSupportAdoption.agentId)
     return {
+      legacyScope: 'historical_planning_dps_adapter',
       formulaFamily: planningSheerManatoSupportAdoption.formulaFamily,
       directDamageSourceStatus: profile.directDamageStatus,
       ...detail('ready', [], []),
     }
   if (profile.agentId === planningAnomalyPiperSupportAdoption.agentId)
     return {
+      legacyScope: 'historical_planning_dps_adapter',
       formulaFamily: planningAnomalyPiperSupportAdoption.formulaFamily,
       directDamageSourceStatus: profile.directDamageStatus,
       ...detail('ready', [], []),
@@ -180,6 +294,7 @@ function calculationDetail(profile: AgentProfile): CurrentCapabilityGapRow['calc
         ? 'Direct-damage evidence remains candidate and is not a Planning DPS formula-family adapter.'
         : 'No direct-damage source slice is available for this stable identity.'
   return {
+    legacyScope: 'historical_planning_dps_adapter',
     formulaFamily: null,
     directDamageSourceStatus,
     ...detail(
@@ -236,11 +351,13 @@ function makeRow(asset: CurrentAssetProjectionEntry): CurrentCapabilityGapRow {
     calculation: calculationDetail(profile),
     eventCalculation: eventContract
       ? {
+          scope: 'compiled_source_event_contract',
           numericEventCount: eventContract.eventContract.events.length,
           sourceFormulaSheetVerified: true,
           ...detail('ready', [], []),
         }
       : {
+          scope: 'compiled_source_event_contract',
           numericEventCount: 0,
           sourceFormulaSheetVerified: false,
           ...detail(
@@ -249,7 +366,11 @@ function makeRow(asset: CurrentAssetProjectionEntry): CurrentCapabilityGapRow {
             ['Compile the locked character stats JSON and formula sheet.'],
           ),
         },
-    planningSupport: calculationSupportKinds.map(planningSupportDetail),
+    planningSupport: calculationSupportKinds.map((kind) => ({
+      ...planningSupportDetail(kind, stableId),
+      scope:
+        kind === 'bangboo' ? ('formation_level' as const) : ('compiled_source_contract' as const),
+    })),
   }
 }
 

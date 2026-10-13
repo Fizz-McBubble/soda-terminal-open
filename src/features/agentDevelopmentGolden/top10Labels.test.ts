@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { benchmarkLabel, benchmarkScopeNote } from './top10Labels'
+import { benchmarkLabel, benchmarkScopeNote, candidateSearchLabel } from './top10Labels'
 
 type Benchmark = NonNullable<Parameters<typeof benchmarkLabel>[0]>
 function comparison(qualified: boolean): Benchmark {
@@ -59,5 +59,24 @@ describe('output model summary', () => {
     value.totalDamageDelta = 0
     value.totalDamagePercentDelta = 0
     expect(benchmarkLabel(value, false)).toBe('单次异常比较持平')
+  })
+})
+
+describe('candidate search provenance', () => {
+  it('distinguishes fallback order, modeled search and missing historic provenance', () => {
+    const search = {
+      rankingMethod: 'source_and_local_refinement',
+      status: 'budget_exhausted',
+      nodes: 30000,
+      evaluations: 384,
+      exactWithinDeclaredModel: false,
+      productionGameAccuracyCertified: false,
+    } as const
+    expect(candidateSearchLabel(search)).toContain('输出对比不代表名次依据')
+    expect(candidateSearchLabel(search)).toContain('搜索预算已用尽')
+    expect(candidateSearchLabel({ ...search, rankingMethod: 'dynamic_objective' })).toContain(
+      '按已覆盖模型目标排序',
+    )
+    expect(candidateSearchLabel(undefined)).toContain('未记录')
   })
 })

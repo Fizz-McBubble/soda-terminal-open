@@ -1,0 +1,403 @@
+{
+  "contract": "reviewed-agent-attack-types/v1",
+  "gameVersion": "3.2",
+  "source": {
+    "url": "https://static.nanoka.cc/zzz/3.2/character.json",
+    "sha256": "86D0BB5BBF18C68DA5DEB2B82268CA0B0D25A1D9479C429AA1B63141493F3C23",
+    "fieldPointers": ["/{gameId}/hit", "/{gameId}/hits"]
+  },
+  "enumMapping": [
+    {
+      "gameEnum": 101,
+      "key": "slash",
+      "chinese": "斩击",
+      "english": "Slash",
+      "chineseUrl": "https://static.nanoka.cc/zzz/3.2/zh/character/1541.json",
+      "chineseSha256": "A749C6F919A20C4ED25A670750833E0DD8783E591F732AB80362AE973808654C",
+      "englishUrl": "https://static.nanoka.cc/zzz/3.2/en/character/1541.json",
+      "englishSha256": "0B07B810CAF97D9F410DB089BAECD1EF7926FCDE72EB9B355532B6605595DFA2"
+    },
+    {
+      "gameEnum": 102,
+      "key": "strike",
+      "chinese": "打击",
+      "english": "Strike",
+      "chineseUrl": "https://static.nanoka.cc/zzz/3.2/zh/character/1491.json",
+      "chineseSha256": "FCA89D2DC057038A5F1C0FFD1F4AC0DFD8FA290489707D7435F7EAD52BB2852B",
+      "englishUrl": "https://static.nanoka.cc/zzz/3.2/en/character/1491.json",
+      "englishSha256": "A0961D6A02EBD446B4C2420AF7E4189596AD466FC6AF78FFEEB38E563427301A"
+    },
+    {
+      "gameEnum": 103,
+      "key": "pierce",
+      "chinese": "穿透",
+      "english": "Pierce",
+      "chineseUrl": "https://static.nanoka.cc/zzz/3.2/zh/character/1181.json",
+      "chineseSha256": "44320B0EE275521D9BD57C6C84119053C91649CFBA7ECBFECFAC6A90AC1ABAD5",
+      "englishUrl": "https://static.nanoka.cc/zzz/3.2/en/character/1181.json",
+      "englishSha256": "0285025890B628C3EA6DFBEC36D5E3944ACE8261E4F7142863E6B4A53497130C"
+    }
+  ],
+  "entries": [
+    {
+      "stableId": "agent-anby",
+      "gameId": "1011",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash"]
+    },
+    {
+      "stableId": "agent-nekomata",
+      "gameId": "1021",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash"]
+    },
+    {
+      "stableId": "agent-nicole",
+      "gameId": "1031",
+      "primaryAttackType": "strike",
+      "attackTypes": ["strike"]
+    },
+    {
+      "stableId": "agent-soldier-11",
+      "gameId": "1041",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash"]
+    },
+    {
+      "stableId": "agent-yidhari",
+      "gameId": "1051",
+      "primaryAttackType": "strike",
+      "attackTypes": ["strike"]
+    },
+    {
+      "stableId": "agent-corin",
+      "gameId": "1061",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash"]
+    },
+    {
+      "stableId": "agent-caesar",
+      "gameId": "1071",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash", "strike"]
+    },
+    {
+      "stableId": "agent-billy",
+      "gameId": "1081",
+      "primaryAttackType": "pierce",
+      "attackTypes": ["pierce"]
+    },
+    {
+      "stableId": "agent-miyabi",
+      "gameId": "1091",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash"]
+    },
+    {
+      "stableId": "agent-koleda",
+      "gameId": "1101",
+      "primaryAttackType": "strike",
+      "attackTypes": ["strike"]
+    },
+    {
+      "stableId": "agent-anton",
+      "gameId": "1111",
+      "primaryAttackType": "pierce",
+      "attackTypes": ["pierce"]
+    },
+    {
+      "stableId": "agent-ben",
+      "gameId": "1121",
+      "primaryAttackType": "strike",
+      "attackTypes": ["strike"]
+    },
+    {
+      "stableId": "agent-soukaku",
+      "gameId": "1131",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash"]
+    },
+    {
+      "stableId": "agent-lycaon",
+      "gameId": "1141",
+      "primaryAttackType": "strike",
+      "attackTypes": ["strike"]
+    },
+    {
+      "stableId": "agent-lucy",
+      "gameId": "1151",
+      "primaryAttackType": "strike",
+      "attackTypes": ["strike"]
+    },
+    {
+      "stableId": "agent-lighter",
+      "gameId": "1161",
+      "primaryAttackType": "strike",
+      "attackTypes": ["strike"]
+    },
+    {
+      "stableId": "agent-burnice",
+      "gameId": "1171",
+      "primaryAttackType": "pierce",
+      "attackTypes": ["pierce"]
+    },
+    {
+      "stableId": "agent-grace",
+      "gameId": "1181",
+      "primaryAttackType": "pierce",
+      "attackTypes": ["pierce"]
+    },
+    {
+      "stableId": "agent-ellen",
+      "gameId": "1191",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash"]
+    },
+    {
+      "stableId": "agent-harumasa",
+      "gameId": "1201",
+      "primaryAttackType": "pierce",
+      "attackTypes": ["pierce", "slash"]
+    },
+    {
+      "stableId": "agent-rina",
+      "gameId": "1211",
+      "primaryAttackType": "strike",
+      "attackTypes": ["strike"]
+    },
+    {
+      "stableId": "agent-yanagi",
+      "gameId": "1221",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash"]
+    },
+    {
+      "stableId": "agent-zhu-yuan",
+      "gameId": "1241",
+      "primaryAttackType": "pierce",
+      "attackTypes": ["pierce"]
+    },
+    {
+      "stableId": "agent-qingyi",
+      "gameId": "1251",
+      "primaryAttackType": "strike",
+      "attackTypes": ["strike"]
+    },
+    {
+      "stableId": "agent-jane",
+      "gameId": "1261",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash"]
+    },
+    {
+      "stableId": "agent-seth",
+      "gameId": "1271",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash"]
+    },
+    {
+      "stableId": "agent-piper",
+      "gameId": "1281",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash"]
+    },
+    {
+      "stableId": "agent-hugo",
+      "gameId": "1291",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash"]
+    },
+    {
+      "stableId": "agent-orphie-magus",
+      "gameId": "1301",
+      "primaryAttackType": "pierce",
+      "attackTypes": ["pierce", "slash"]
+    },
+    {
+      "stableId": "agent-astra",
+      "gameId": "1311",
+      "primaryAttackType": "strike",
+      "attackTypes": ["strike"]
+    },
+    {
+      "stableId": "agent-evelyn",
+      "gameId": "1321",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash"]
+    },
+    {
+      "stableId": "agent-vivian",
+      "gameId": "1331",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash"]
+    },
+    {
+      "stableId": "agent-zhao",
+      "gameId": "1341",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash"]
+    },
+    {
+      "stableId": "agent-pulchra",
+      "gameId": "1351",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash"]
+    },
+    {
+      "stableId": "agent-trigger",
+      "gameId": "1361",
+      "primaryAttackType": "pierce",
+      "attackTypes": ["pierce"]
+    },
+    {
+      "stableId": "agent-yixuan",
+      "gameId": "1371",
+      "primaryAttackType": "strike",
+      "attackTypes": ["strike"]
+    },
+    {
+      "stableId": "agent-soldier-0-anby",
+      "gameId": "1381",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash"]
+    },
+    {
+      "stableId": "agent-ju-fufu",
+      "gameId": "1391",
+      "primaryAttackType": "strike",
+      "attackTypes": ["strike"]
+    },
+    {
+      "stableId": "agent-alice",
+      "gameId": "1401",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash"]
+    },
+    {
+      "stableId": "agent-yuzuha",
+      "gameId": "1411",
+      "primaryAttackType": "strike",
+      "attackTypes": ["strike"]
+    },
+    {
+      "stableId": "agent-pan-yinhu",
+      "gameId": "1421",
+      "primaryAttackType": "strike",
+      "attackTypes": ["strike"]
+    },
+    {
+      "stableId": "agent-ye-shunguang",
+      "gameId": "1431",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash"]
+    },
+    {
+      "stableId": "agent-manato",
+      "gameId": "1441",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash"]
+    },
+    {
+      "stableId": "agent-lucia",
+      "gameId": "1451",
+      "primaryAttackType": "strike",
+      "attackTypes": ["strike"]
+    },
+    {
+      "stableId": "agent-seed",
+      "gameId": "1461",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash", "strike"]
+    },
+    {
+      "stableId": "agent-banyue",
+      "gameId": "1471",
+      "primaryAttackType": "strike",
+      "attackTypes": ["strike"]
+    },
+    {
+      "stableId": "agent-dialyn",
+      "gameId": "1481",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash"]
+    },
+    {
+      "stableId": "agent-sunna",
+      "gameId": "1491",
+      "primaryAttackType": "strike",
+      "attackTypes": ["strike"]
+    },
+    {
+      "stableId": "agent-aria",
+      "gameId": "1501",
+      "primaryAttackType": "strike",
+      "attackTypes": ["strike"]
+    },
+    {
+      "stableId": "agent-nangong",
+      "gameId": "1511",
+      "primaryAttackType": "strike",
+      "attackTypes": ["strike"]
+    },
+    {
+      "stableId": "agent-cissia",
+      "gameId": "1521",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash"]
+    },
+    {
+      "stableId": "agent-starlight-billy",
+      "gameId": "1531",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash"]
+    },
+    {
+      "stableId": "agent-promeia",
+      "gameId": "1541",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash"]
+    },
+    {
+      "stableId": "agent-pyrois",
+      "gameId": "1551",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash"]
+    },
+    {
+      "stableId": "agent-velina",
+      "gameId": "1561",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash"]
+    },
+    {
+      "stableId": "agent-norma",
+      "gameId": "1571",
+      "primaryAttackType": "strike",
+      "attackTypes": ["strike"]
+    },
+    {
+      "stableId": "agent-claret",
+      "gameId": "1611",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash", "strike"]
+    },
+    {
+      "stableId": "agent-roxy",
+      "gameId": "1621",
+      "primaryAttackType": "strike",
+      "attackTypes": ["strike"]
+    },
+    {
+      "stableId": "agent-remielle",
+      "gameId": "1581",
+      "primaryAttackType": "slash",
+      "attackTypes": ["slash"]
+    },
+    {
+      "stableId": "agent-sigrid",
+      "gameId": "1591",
+      "primaryAttackType": "pierce",
+      "attackTypes": ["pierce"]
+    }
+  ]
+}

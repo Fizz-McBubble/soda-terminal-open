@@ -1,6 +1,25 @@
 import { hasCurrentWEngineProgression } from '../accounts/observedAgentFacts'
 import type { AccountDecisionQueryInput } from './calculationQueryContract'
 import { normalizeTargetTeamEquipmentParameters } from './publicTargetTeamEquipmentFingerprint'
+import type { CurrentPlanningScenarioSelection32 } from './publicPlanningScenarioContract'
+
+function sanitizeScenarioSelection(value: unknown): CurrentPlanningScenarioSelection32 | undefined {
+  if (value === undefined) return undefined
+  if (
+    typeof value === 'object' &&
+    value !== null &&
+    !Array.isArray(value) &&
+    (value as { schemaVersion?: unknown }).schemaVersion === 1 &&
+    ((value as { id?: unknown }).id === 'normalized-comparison' ||
+      (value as { id?: unknown }).id === 'declared-stun-comparison')
+  ) {
+    return {
+      schemaVersion: 1,
+      id: (value as { id: 'normalized-comparison' | 'declared-stun-comparison' }).id,
+    }
+  }
+  throw new Error('已保存的比较场景尚不受支持，请重新分析该方案。')
+}
 
 /** Keep calculation facts and saved physical references; leave personal labels in IndexedDB. */
 export function projectRemoteAccountDecisionInput(
@@ -122,6 +141,8 @@ export function projectRemoteAccountDecisionInput(
             gameVersion: draft.solutionContext.gameVersion,
             knowledgeVersion: draft.solutionContext.knowledgeVersion,
             exactVariantKey: draft.solutionContext.exactVariantKey,
+            scenarioSelection: sanitizeScenarioSelection(draft.solutionContext.scenarioSelection),
+            scenarioIdentity: draft.solutionContext.scenarioIdentity,
             comparisonParameters: draft.solutionContext.comparisonParameters
               ? {
                   potential: draft.solutionContext.comparisonParameters.potential,

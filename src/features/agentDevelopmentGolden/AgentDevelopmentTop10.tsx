@@ -4,12 +4,13 @@ import { useStateTransitionMotion } from '../../motion/useStateTransitionMotion'
 import { BackNavigation } from '../../components/BackNavigation'
 import { DevelopmentDiscCard } from './DevelopmentDiscCard'
 import { Top10StatTable } from './Top10StatTable'
+import { SetSummary, Top10CandidateNav } from './Top10CandidateNav'
 import type { AgentDevelopmentGoldenProps, GoldenTop10Data, JourneyScenario } from './types'
 import {
   benchmarkLabel,
   benchmarkOverallReason,
   benchmarkScopeNote,
-  effectiveHitLabel,
+  candidateSearchLabel,
 } from './top10Labels'
 
 export function Top10({
@@ -19,6 +20,7 @@ export function Top10({
   onSavePlan,
   onSelectCandidatePlan,
   onReanalyzeWarehouse,
+  comparisonScenarioControl,
 }: {
   back: () => void
   scenario: JourneyScenario
@@ -26,6 +28,7 @@ export function Top10({
   onSavePlan?: AgentDevelopmentGoldenProps['onSavePlan']
   onSelectCandidatePlan?: AgentDevelopmentGoldenProps['onSelectCandidatePlan']
   onReanalyzeWarehouse?: AgentDevelopmentGoldenProps['onReanalyzeWarehouse']
+  comparisonScenarioControl?: AgentDevelopmentGoldenProps['comparisonScenarioControl']
 }) {
   const preferredRank =
     data.selectedCandidateRank ??
@@ -54,10 +57,13 @@ export function Top10({
   const [conflictFreeOnly, setConflictFreeOnly] = useState(false)
   const visibleCandidates = data.candidates.filter((row) => !conflictFreeOnly || !row.conflict)
 
+  const retainedCurrent = data.currentLoadout ?? data.currentPlan
   const selectedRow =
-    selected === 0 && data.currentPlan && (!conflictFreeOnly || !data.currentPlan.conflict)
-      ? data.currentPlan
-      : (visibleCandidates.find((row) => row.rank === selected) ?? visibleCandidates[0])
+    selected === 0 && retainedCurrent && (!conflictFreeOnly || !retainedCurrent.conflict)
+      ? retainedCurrent
+      : selected === -1 && data.currentPlan && (!conflictFreeOnly || !data.currentPlan.conflict)
+        ? data.currentPlan
+        : (visibleCandidates.find((row) => row.rank === selected) ?? visibleCandidates[0])
   const selectedBenchmark = selectedRow ? data.valueBenchmarks?.[selectedRow.rank - 1] : undefined
   const discsById = useMemo(() => new Map(data.discs.map((disc) => [disc.id, disc])), [data.discs])
   const selectedDiscs = selectedRow?.discIds?.flatMap((id) => {
@@ -128,6 +134,7 @@ export function Top10({
             <h1 id="top10-title">暂时没有匹配方案</h1>
             <p>{data.agentName}暂时没有完整方案。未记录游戏当前实装，可从仓库搭配方案。</p>
           </div>
+          {comparisonScenarioControl}
           {onReanalyzeWarehouse ? (
             <button
               className="comparison-reanalyze"
@@ -157,6 +164,7 @@ export function Top10({
             <h1 id="top10-title">{baselineDisplay}</h1>
             <p>这份方案已配齐 6 张驱动盘，暂时没有其他匹配方案。</p>
           </div>
+          {comparisonScenarioControl}
           {onReanalyzeWarehouse ? (
             <button
               className="comparison-reanalyze"
@@ -173,7 +181,9 @@ export function Top10({
           <aside className="comparison-candidates" aria-label={baselineDisplay}>
             <div className="comparison-baseline">
               <span>{baselineDisplay}</span>
-              <strong>{data.baseline.sets}</strong>
+              <strong>
+                <SetSummary text={data.baseline.sets} />
+              </strong>
               <small>{data.baseline.effective} 有效词条</small>
             </div>
             <p className="comparison-empty-candidates" role="status">
@@ -185,6 +195,11 @@ export function Top10({
             <header className="comparison-detail__summary">
               <div>
                 <small>{baselineDisplay}</small>
+                <span className="comparison-summary-intro__note">
+                  {candidateSearchLabel(
+                    data.candidateSearchByRank?.[selectedRow?.rank ?? 0] ?? data.candidateSearch,
+                  )}
+                </span>
                 <h2 id="comparison-discs-title">{data.baseline.label} · 六盘明细</h2>
                 <p>{data.baseline.sets}</p>
               </div>
@@ -229,6 +244,7 @@ export function Top10({
           <p>比较驱动盘搭配和属性，选择适合的方案保存。</p>
           {!actualBaseline && !baselineAvailable ? <p>暂无当前实装，可先查看仓库方案。</p> : null}
         </div>
+        {comparisonScenarioControl}
         {onReanalyzeWarehouse ? (
           <button
             className="comparison-reanalyze"
@@ -242,99 +258,19 @@ export function Top10({
       </header>
 
       <div className="top10-layout comparison-workbench">
-        <nav className="comparison-candidates" aria-label="仓库方案比较">
-          <div className="comparison-candidates-heading">
-            <div className="comparison-filter">
-              <button
-                type="button"
-                aria-pressed={conflictFreeOnly}
-                onClick={() => {
-                  const next = !conflictFreeOnly
-                  setConflictFreeOnly(next)
-                  if (next && selectedRow?.conflict) {
-                    const first = data.candidates.find((row) => !row.conflict)
-                    if (first) {
-                      setSelected(first.rank)
-                      onSelectCandidatePlan?.(first.rank)
-                    }
-                  }
-                }}
-              >
-                仅无冲突
-              </button>
-            </div>
-            {!data.currentPlan ? (
-              <div className="comparison-baseline">
-                <span title={baselineLabel}>{baselineDisplay}</span>
-                <strong>{baselineAvailable ? data.baseline.sets : '尚无比较基线'}</strong>
-                <small>
-                  {baselineAvailable
-                    ? `${data.baseline.effective} 有效词条`
-                    : '可先查看并保存生成方案。'}
-                </small>
-              </div>
-            ) : null}
-            {data.currentPlan ? (
-              <button
-                type="button"
-                className="comparison-baseline comparison-current-plan"
-                aria-pressed={selected === 0}
-                onClick={() => {
-                  setSelected(0)
-                  onSelectCandidatePlan?.(0)
-                }}
-              >
-                <strong>已保存方案</strong>
-                <span>{data.currentPlan.sets}</span>
-                <small className="comparison-hit-count">
-                  {effectiveHitLabel(data.currentPlan.effective)}
-                </small>
-              </button>
-            ) : null}
-          </div>
-          {conflictFreeOnly && !visibleCandidates.length ? (
-            <p className="comparison-filter-empty" role="status">
-              当前候选中没有无冲突方案。
-            </p>
-          ) : null}
-          {visibleCandidates.map((row) => {
-            const benchmark = data.valueBenchmarks?.[row.rank - 1]
-            const isSelected = selectedRow?.rank === row.rank
-            return (
-              <button
-                key={row.rank}
-                title={row.sets}
-                className={`comparison-candidate${isSelected ? ' is-selected' : ''}`}
-                type="button"
-                aria-pressed={isSelected}
-                onClick={() => {
-                  setSelected(row.rank)
-                  onSelectCandidatePlan?.(row.rank)
-                }}
-              >
-                <span className="comparison-candidate__rank">{row.rank}</span>
-                <span className="comparison-candidate__identity">
-                  <strong>{row.label}</strong>
-                  <small>{row.sets}</small>
-                </span>
-                <span className="comparison-candidate__metrics">
-                  <b aria-label={`配装评分 ${row.fit}`}>{row.fit}</b>
-                  <small className="comparison-hit-count">{effectiveHitLabel(row.effective)}</small>
-                  {row.conflict ? (
-                    <small className="comparison-conflict-badge">有冲突</small>
-                  ) : null}
-                </span>
-                {baselineAvailable ? (
-                  <span>
-                    <b>{benchmarkLabel(benchmark, Boolean(data.snapshot?.stale))}</b>
-                    <small>{row.swaps === null ? '—' : `${row.swaps} 张替换`}</small>
-                  </span>
-                ) : null}
-                <em>{isSelected ? '已选' : '查看'}</em>
-              </button>
-            )
-          })}
-        </nav>
+        <Top10CandidateNav
+          data={data}
+          conflictFreeOnly={conflictFreeOnly}
+          setConflictFreeOnly={setConflictFreeOnly}
+          selected={selected}
+          selectedRow={selectedRow}
+          visibleCandidates={visibleCandidates}
+          baselineAvailable={baselineAvailable}
+          baselineLabel={baselineLabel}
+          baselineDisplay={baselineDisplay}
+          onSelectCandidatePlan={onSelectCandidatePlan}
+          setSelected={setSelected}
+        />
 
         <section
           hidden={!selectedRow}
@@ -345,6 +281,11 @@ export function Top10({
         >
           <header className="comparison-detail__summary comparison-detail__summary--inline">
             <div className="comparison-summary-intro">
+              <span className="comparison-summary-intro__note">
+                {candidateSearchLabel(
+                  data.candidateSearchByRank?.[selectedRow?.rank ?? 0] ?? data.candidateSearch,
+                )}
+              </span>
               <h2 id="comparison-discs-title">{selectedRow?.label ?? '方案'} · 六盘明细</h2>
               <span>{selectedRow?.sets ?? '未找到套装组合'}</span>
               {selectedRow?.mainStatDifferences?.length ? (
@@ -416,11 +357,17 @@ export function Top10({
                 Boolean(data.snapshot?.stale) ||
                 !onSavePlan ||
                 !selectedRow ||
-                selectedRow.rank === 0
+                selectedRow.rank <= 0
               }
               onClick={save}
             >
-              {saving ? '正在保存…' : selectedRow?.rank === 0 ? '已保存方案' : '保存为养成方案'}
+              {saving
+                ? '正在保存…'
+                : selectedRow?.rank === 0 && data.currentLoadout
+                  ? '保留当前实装'
+                  : (selectedRow?.rank ?? 1) <= 0
+                    ? '已保存方案'
+                    : '保存为养成方案'}
             </button>
           </header>
 

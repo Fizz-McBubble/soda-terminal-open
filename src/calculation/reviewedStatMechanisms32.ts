@@ -26,7 +26,8 @@ export const reviewedStatMechanisms19: readonly ReviewedMechanismRecord[] = Obje
     adoptionStatus: 'already_bound',
     inputStat: 'initial',
     targetStat: 'attack_points',
-    notes: '核心加攻已绑定初始攻击 own.initial.atk，核心成长与M2上限已在生产表达式中。',
+    notes:
+      '核心加攻绑定初始攻击 own.initial.atk；R2来源核对修正M2的19%为加法系数。核心7时M0/1为35%封顶1200，M2+为54%封顶1600；依照来源身份重编译，原始表达式保留。',
   },
   {
     id: 'pan-core-sheer',

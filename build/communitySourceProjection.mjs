@@ -2,7 +2,8 @@ import { createHash } from 'node:crypto'
 import { extname } from 'node:path'
 import ts from 'typescript'
 
-const privateLocator = /(?:(?<![A-Za-z0-9?])[A-Za-z]:[\\/]|\/(?:Users|home)\/|(?:^|[\\/])(?:outputs|docs[\\/]audits)[\\/]|^file:\/\/)/iu
+const privateLocator =
+  /(?:(?<![A-Za-z0-9?])[A-Za-z]:[\\/]|\/(?:Users|home)\/|(?:^|[\\/])(?:outputs|docs[\\/]audits)[\\/]|^file:\/\/)/iu
 
 function publicSourceReference(value) {
   const digest = createHash('sha256').update(value).digest('hex').slice(0, 32)
@@ -14,7 +15,9 @@ function projectValue(value) {
     return privateLocator.test(value) ? publicSourceReference(value) : value
   if (Array.isArray(value)) return value.map(projectValue)
   if (value && typeof value === 'object')
-    return Object.fromEntries(Object.entries(value).map(([key, entry]) => [key, projectValue(entry)]))
+    return Object.fromEntries(
+      Object.entries(value).map(([key, entry]) => [key, projectValue(entry)]),
+    )
   return value
 }
 
@@ -25,7 +28,11 @@ function projectValue(value) {
 export function projectCommunitySourceText(source, filename) {
   const cleanName = filename.split('?')[0]
   if (extname(cleanName) === '.json') {
-    const projected = projectValue(JSON.parse(source))
+    const parsed = JSON.parse(source)
+    const projected = projectValue(parsed)
+    // A safe JSON source is also an installed raw policy input. Preserve its
+    // bytes so public projection cannot invalidate an otherwise identical model.
+    if (JSON.stringify(projected) === JSON.stringify(parsed)) return source
     return `${JSON.stringify(projected)}\n`
   }
   if (!/\.(?:ts|tsx|js|jsx|mjs)$/u.test(cleanName)) return source

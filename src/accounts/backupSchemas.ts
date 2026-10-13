@@ -34,6 +34,22 @@ const planningSolutionContextSchema = z.object({
   sourceCandidateId: z.string().min(1),
   inputFingerprint: z.string().min(1),
   solverMethod: z.string().min(1),
+  candidateSearch: z
+    .object({
+      rankingMethod: z.enum(['dynamic_objective', 'source_and_local_refinement']),
+      status: z.enum([
+        'not_run',
+        'budget_exhausted',
+        'proven_infeasible',
+        'complete',
+        'objective_unresolved',
+      ]),
+      nodes: z.number().int().nonnegative(),
+      evaluations: z.number().int().nonnegative(),
+      exactWithinDeclaredModel: z.boolean(),
+      productionGameAccuracyCertified: z.literal(false),
+    })
+    .optional(),
   gameVersion: z.string().min(1),
   knowledgeVersion: z.string().min(1),
   exactVariantKey: z.string().min(1).nullable(),

@@ -1,7 +1,12 @@
+import {
+  agentComparisonSetSummary,
+  projectAgentLoadoutComparisonDiscs,
+} from './agentLoadoutComparisonDiscPresentation'
 import { rebindComparisonParameters } from './rebindComparisonParameters'
+import { staticPanelTargetDisplay } from '../gameDataPacks/targetPanelSemantics'
 import { createComparisonSavedBuild } from './createComparisonSavedBuild'
 import { AppLoadingState } from '../components/AppEntryState'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { BackNavigation } from '../components/BackNavigation'
 import type { AccountPlanningDraft } from '../accounts/types'
@@ -16,8 +21,6 @@ import { agentDevelopmentMainStatDifferences } from './agentDevelopmentMainStatD
 import { findDevelopmentComparisonPanel } from '../application/publicDevelopmentComparisonPanels'
 import { getCandidateStatLabels } from '../application/publicCandidateLabels'
 import { AgentDevelopmentGolden, type GoldenTop10Data } from '../features/agentDevelopmentGolden'
-import { presentDiscFactFromChoice } from './discFactPresentation'
-import { displayDiscMainValue, displayDriveDiscSet } from './publicDiscFacts'
 import { percentageStats } from './comparisonStatUnits'
 import {
   cacheDevelopmentCandidateSnapshot,
@@ -26,6 +29,11 @@ import {
   readDevelopmentCandidateSnapshot,
 } from './agentDevelopmentCandidateSession'
 import { usePageOperationScope } from '../components/usePageOperationScope'
+import { PlanningScenarioControl } from '../components/PlanningScenarioControl'
+import {
+  defaultPlanningScenarioSelection32,
+  type CurrentPlanningScenarioSelection32,
+} from '../application/publicPlanningScenarioContract'
 
 export function AgentLoadoutComparisonPage() {
   const { agentId = '' } = useParams()
@@ -33,6 +41,9 @@ export function AgentLoadoutComparisonPage() {
   const [params, setParams] = useSearchParams()
   const [, setSnapshotVersion] = useState(0)
   const [justSaved, setJustSaved] = useState<AccountPlanningDraft | null>(null)
+  const [comparisonPending, setComparisonPending] = useState(false)
+  const [comparisonError, setComparisonError] = useState<string | null>(null)
+  const comparisonGeneration = useRef(0)
   const decisionWorld = useAccountDecisionWorld()
   const queryDevelopmentCandidateAlternatives = useDevelopmentCandidateAlternativesCalculation()
   const pageAccountId =
@@ -113,7 +124,8 @@ export function AgentLoadoutComparisonPage() {
   const baselineComplete =
     baseline.length === 6 &&
     new Set(baseline.map((disc) => disc.id)).size === 6 &&
-    new Set(baseline.map((disc) => disc.slot)).size === 6
+    new Set(baseline.map((disc) => disc.slot)).size === 6 &&
+    baseline.every((disc) => disc.slot >= 1 && disc.slot <= 6)
   const savedBaselineComplete =
     savedBaselineDiscs.length === 6 &&
     new Set(savedBaselineDiscs.map((disc) => disc.id)).size === 6 &&
@@ -242,59 +254,14 @@ export function AgentLoadoutComparisonPage() {
     defaultStats = coreStats.length ? coreStats : allStats.slice(0, 5)
     finalStatsFor = (discs, rank) => ({ ...panelFor(discs, rank)?.values })
   }
-  const setSummaryFor = (
-    discs: typeof warehouse.discs,
-    pattern?: '4+2' | '2+2+2' | 'scattered',
-  ) => {
-    const counts = new Map<string, number>()
-    for (const disc of discs) counts.set(disc.setId, (counts.get(disc.setId) ?? 0) + 1)
-    const pieces = [...counts.entries()]
-      .toSorted(([, left], [, right]) => right - left)
-      .map(([setId, count]) => `${displayDriveDiscSet(setId)} ${count}件`)
-    return pattern
-      ? `${pattern === 'scattered' ? '散搭' : pattern}：${pieces.join(' + ')}`
-      : pieces.join(' + ')
-  }
   const baselineFinalStats = finalStatsFor(comparisonDiscs)
-  const allDiscIds = [
-    ...new Set([
-      ...baseline.map((disc) => disc.id),
-      ...savedBaselineDiscs.map((disc) => disc.id),
-      ...currentPlanDiscs.map((disc) => disc.id),
-      ...alternatives.flatMap((plan) => plan.loadouts[0]?.discs.map((item) => item.disc.id) ?? []),
-    ]),
-  ]
-  const snapshotDiscById = new Map(
-    [
-      ...baseline,
-      ...savedBaselineDiscs,
-      ...currentPlanDiscs,
-      ...alternatives.flatMap((plan) => plan.loadouts[0]?.discs.map((item) => item.disc) ?? []),
-    ].map((disc) => [disc.id, disc]),
-  )
-  const discs = allDiscIds.flatMap((id) => {
-    const disc = snapshotDiscById.get(id)
-    if (!disc) return []
-    const set = displayDriveDiscSet(disc.setId)
-    const choice =
-      alternatives
-        .flatMap((plan) => plan.loadouts[0]?.discs ?? [])
-        .find((item) => item.disc.id === id) ?? null
-    return [
-      {
-        ...presentDiscFactFromChoice({
-          agentId,
-          disc,
-          choice,
-          set,
-          mainValue: displayDiscMainValue(disc),
-        }),
-        conflicts: (conflicts.get(id) ?? []).map((ownerId) => ({
-          agentId: ownerId,
-          name: getAgentName(ownerId),
-        })),
-      },
-    ]
+  const discs = projectAgentLoadoutComparisonDiscs({
+    agentId,
+    baseline,
+    savedBaselineDiscs,
+    currentPlanDiscs,
+    alternatives,
+    conflicts,
   })
   const row = (
     rank: number,
@@ -305,14 +272,19 @@ export function AgentLoadoutComparisonPage() {
     const loadout = plan?.loadouts[0]
     const selectedDiscs = savedDiscs ?? loadout?.discs.map((item) => item.disc) ?? comparisonDiscs
     const ids = selectedDiscs.map((disc) => disc.id)
-    const finalStats = finalStatsFor(selectedDiscs, savedDiscs ? -1 : rank)
+    const finalStats =
+      savedDiscs === baseline && hasStaticPanels && !snapshotStale
+        ? {
+            ...findDevelopmentComparisonPanel(candidateSnapshot.panelPresentation, baseline)
+              ?.values,
+          }
+        : finalStatsFor(selectedDiscs, savedDiscs ? -1 : rank)
     const statDeltaSummary = defaultStats
       .map((stat) => ({
         stat,
         delta: (finalStats[stat.key] ?? 0) - (baselineFinalStats[stat.key] ?? 0),
       }))
       .filter((item) => item.delta !== 0)
-      .toSorted((left, right) => Math.abs(right.delta) - Math.abs(left.delta))
       .slice(0, 2)
       .map((item) => {
         const rounded = Math.round(item.delta * 10) / 10
@@ -331,7 +303,7 @@ export function AgentLoadoutComparisonPage() {
       label: plan?.inventoryTransition ? `${label} · 副套待补齐` : label,
       fit: plan ? plan.totalScore.toFixed(2) : '比较基准',
       panel: loadout?.setPattern === 'scattered' ? '散搭' : (loadout?.setPattern ?? '当前方案'),
-      sets: setSummaryFor(selectedDiscs, loadout?.setPattern),
+      sets: agentComparisonSetSummary(selectedDiscs, loadout?.setPattern),
       effective: loadout
         ? String(loadout.discs.reduce((total, item) => total + item.effectiveRolls, 0))
         : '—',
@@ -357,20 +329,28 @@ export function AgentLoadoutComparisonPage() {
     }
   }
   const selectedCandidateRank =
-    params.get('candidate') === '0' && currentPlan
-      ? 0
-      : alternatives.length
-        ? Math.max(
-            1,
-            Math.min(Number.parseInt(params.get('candidate') ?? '1', 10) || 1, alternatives.length),
-          )
-        : undefined
+    params.get('candidate') === '-1' && baselineComplete && currentPlan
+      ? -1
+      : params.get('candidate') === '0' && (baselineComplete || currentPlan)
+        ? 0
+        : alternatives.length
+          ? Math.max(
+              1,
+              Math.min(
+                Number.parseInt(params.get('candidate') ?? '1', 10) || 1,
+                alternatives.length,
+              ),
+            )
+          : undefined
   const top10: GoldenTop10Data = {
     agentName: getAgentName(agentId),
+    candidateSearch: candidateSnapshot.candidateSearch,
+    candidateSearchByRank: candidateSnapshot.candidateSearchByRank,
+    currentLoadout: baselineComplete ? row(0, undefined, '保留当前实装', baseline) : undefined,
     baseline: row(0, undefined, baselineLabel),
     currentPlan: currentPlan
       ? {
-          ...row(0, undefined, '已保存方案', currentPlanDiscs),
+          ...row(baselineComplete ? -1 : 0, undefined, '已保存方案', currentPlanDiscs),
           fit: currentPlan.candidateWarehouse?.totalScore.toFixed(2) ?? '—',
           effective: String(currentPlan.candidateWarehouse?.loadouts[0]?.effectiveRolls ?? '—'),
         }
@@ -382,9 +362,11 @@ export function AgentLoadoutComparisonPage() {
     allStats: allStats.map((stat) => {
       return {
         ...stat,
-        target: hasStaticPanels
-          ? candidateSnapshot.panelPresentation?.targetDisplayByLabel[stat.label]
-          : undefined,
+        target: staticPanelTargetDisplay(
+          hasStaticPanels
+            ? candidateSnapshot.panelPresentation?.targetDisplayByLabel[stat.label]
+            : undefined,
+        ),
       }
     }),
     statPresentation: hasStaticPanels ? 'static_panel' : 'disc_contribution',
@@ -396,6 +378,7 @@ export function AgentLoadoutComparisonPage() {
   }
   const persist = async (rank: number) => {
     const isCurrentPage = capturePageScope()
+    if (comparisonPending) throw new Error('场景仍在计算，请稍后保存。')
     if (snapshotStale) throw new Error('仓库资料已更新，请先重新搭配；尚未保存。')
     if (decisionWorld.status === 'stale')
       throw new Error('账户资料已更新，请重新分析后再保存方案。')
@@ -423,45 +406,89 @@ export function AgentLoadoutComparisonPage() {
     next.set('candidate', String(refreshedRank))
     setParams(next, { replace: true })
   }
-  return (
-    <AgentDevelopmentGolden
-      initialView="top10"
-      top10={top10}
-      onNavigate={(view) => {
-        if (view === 'overview') {
-          navigate('/development')
-          return
-        }
-        navigate(
-          selectedCandidateRank === 0 && currentPlan
-            ? `/development/${agentId}?plan=${encodeURIComponent(currentPlan.id)}`
-            : selectedCandidateRank === undefined
-              ? `/development/${agentId}`
-              : `/development/${agentId}?candidate=${selectedCandidateRank}`,
+  const scenarioSelection =
+    candidateSnapshot.scenarioSelection ?? defaultPlanningScenarioSelection32
+  const recalculateComparison = async (selection: CurrentPlanningScenarioSelection32) => {
+    const isCurrentPage = capturePageScope()
+    const generation = ++comparisonGeneration.current
+    const active = () => isCurrentPage() && generation === comparisonGeneration.current
+    setComparisonPending(true)
+    setComparisonError(null)
+    try {
+      const currentRun =
+        decisionWorld.status === 'stale' ? await decisionWorld.refresh() : decisionWorld.run
+      if (!active()) return
+      if (!currentRun) throw new Error('当前账户无法重新分析；请稍后重试。')
+      let result = await queryDevelopmentCandidateAlternatives(
+        currentRun.runId,
+        agentId,
+        undefined,
+        selection,
+      )
+      if (!active()) return
+      const rebound = rebindComparisonParameters(candidateSnapshot, result)
+      if (Object.keys(rebound).length)
+        result = await queryDevelopmentCandidateAlternatives(
+          currentRun.runId,
+          agentId,
+          rebound,
+          selection,
         )
-      }}
-      onSavePlan={persist}
-      onSelectCandidatePlan={(rank) => {
-        const next = new URLSearchParams(params)
-        next.set('candidate', String(rank))
-        setParams(next, { replace: true })
-      }}
-      onReanalyzeWarehouse={async () => {
-        const isCurrentPage = capturePageScope()
-        const currentRun =
-          decisionWorld.status === 'stale' ? await decisionWorld.refresh() : decisionWorld.run
-        if (!isCurrentPage()) return
-        if (!currentRun) throw new Error('当前账户无法重新分析；请稍后重试。')
-        let result = await queryDevelopmentCandidateAlternatives(currentRun.runId, agentId)
-        if (!isCurrentPage()) return
-        const rebound = rebindComparisonParameters(candidateSnapshot, result)
-        if (Object.keys(rebound).length)
-          result = await queryDevelopmentCandidateAlternatives(currentRun.runId, agentId, rebound)
-        if (!isCurrentPage()) return
-        if (!cacheDevelopmentCandidateSnapshot(result))
-          throw new Error(result.gaps[0] ?? '当前账户无法生成完整的六张候选盘。')
-        setSnapshotVersion((version) => version + 1)
-      }}
-    />
+      if (!active()) return
+      if (result.scenarioSelection?.id !== selection.id || !result.scenarioIdentity)
+        throw new Error('比较场景未进入计算结果，请重试。')
+      if (!cacheDevelopmentCandidateSnapshot(result))
+        throw new Error(result.gaps[0] ?? '当前账户无法生成完整的六张候选盘。')
+      setSnapshotVersion((version) => version + 1)
+    } catch (error) {
+      if (!active()) return
+      setComparisonError(error instanceof Error ? error.message : '场景计算失败，请重试。')
+      throw error
+    } finally {
+      if (active()) setComparisonPending(false)
+    }
+  }
+  return (
+    <>
+      {comparisonError && (
+        <p role="alert" className="planning-scenario-error">
+          {comparisonError}
+        </p>
+      )}
+      <AgentDevelopmentGolden
+        initialView="top10"
+        top10={top10}
+        comparisonScenarioControl={
+          <PlanningScenarioControl
+            value={scenarioSelection}
+            disabled={comparisonPending}
+            onChange={(selection) => {
+              void recalculateComparison(selection).catch(() => {})
+            }}
+          />
+        }
+        onNavigate={(view) => {
+          if (view === 'overview') {
+            navigate('/development')
+            return
+          }
+          navigate(
+            (selectedCandidateRank === -1 || (selectedCandidateRank === 0 && !baselineComplete)) &&
+              currentPlan
+              ? `/development/${agentId}?plan=${encodeURIComponent(currentPlan.id)}`
+              : selectedCandidateRank === undefined
+                ? `/development/${agentId}`
+                : `/development/${agentId}?candidate=${selectedCandidateRank}`,
+          )
+        }}
+        onSavePlan={persist}
+        onSelectCandidatePlan={(rank) => {
+          const next = new URLSearchParams(params)
+          next.set('candidate', String(rank))
+          setParams(next, { replace: true })
+        }}
+        onReanalyzeWarehouse={() => recalculateComparison(scenarioSelection)}
+      />
+    </>
   )
 }

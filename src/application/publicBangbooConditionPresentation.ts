@@ -14,6 +14,7 @@ export type BangbooConditionPresentation = {
   name: string
   stars: number
   activationStatus: 'active' | 'inactive' | 'unknown'
+  purposeSummary?: string
   requirementSummary: string
   progressSummary: string
   requirements: BangbooConditionRequirement[]

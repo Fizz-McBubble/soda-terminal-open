@@ -75,6 +75,23 @@ const catalogSchema = z.object({
     source: z.literal('https://static.nanoka.cc/zzz/3.1'),
     upstreamGenerator: z.string().min(1),
     boundary: z.string().min(1),
+    sourceReplay: z
+      .object({
+        schema: z.literal('soda-bangboo-source-replay/v1'),
+        adoptedSourceVersion: z.literal('3.1'),
+        adoptedGameVersion: z.literal('3.1-phase-ii'),
+        adoptedUpstreamGenerator: z.string().min(1),
+        sourceManifestSha256: z.string().regex(/^[A-F0-9]{64}$/),
+        status: z.literal('verified_numeric_and_semantic_continuity'),
+        adoptedEntities: z.literal(41),
+        candidateEntities: z.literal(41),
+        byteIdenticalDetails: z.literal(41),
+        differences: z.array(z.unknown()).length(0),
+        historicalIndexVerified: z.literal(false),
+        autoAdopt: z.literal(false),
+      })
+      .passthrough()
+      .optional(),
   }),
   coverage: z.object({
     entities: z.literal(41),
@@ -89,10 +106,16 @@ const catalogSchema = z.object({
 const historicalCatalog = catalogSchema.parse(rawCatalog)
 
 /** Source version stays historical; current evaluation requires an exact reviewed binding. */
-export function validateBangbooContinuity32(
-  catalog: typeof rawCatalog,
-  review: typeof reviewedContinuity,
-) {
+export function validateBangbooContinuity32(raw: unknown, review: typeof reviewedContinuity) {
+  const parsed = catalogSchema.safeParse(raw)
+  if (!parsed.success) return false
+  const catalog = parsed.data
+  if (
+    catalog.generatedFrom.sourceReplay &&
+    catalog.generatedFrom.sourceReplay.adoptedUpstreamGenerator !==
+      catalog.generatedFrom.upstreamGenerator
+  )
+    return false
   if (
     review.sourceKind !== 'release' ||
     review.reviewedForVersion !== '3.2-phase-ii' ||

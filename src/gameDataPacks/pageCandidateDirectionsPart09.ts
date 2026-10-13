@@ -81,10 +81,10 @@ export const pageCandidateDirectionsPart09: Partial<Record<string, PageCandidate
       sub: ['攻击力至约 3500，再按异常或暴击分支选择异常精通或双暴/穿透。'],
     },
     progression: [
-      'Bubblegum Barrage→Special Photography Technique 激活 Ether Veil，切出攻击角色触发 Cat’s Gaze，约 25 秒刷新 Moonlight Lullaby。',
+      '强化特殊技「泡泡糖轰炸」→「特别拍照技巧」激活以太帷幕，切出攻击角色触发「猫的凝视」，约25秒刷新月光骑士颂。',
     ],
     team: [
-      '叶瞬光+赵/琉音，或比利/艾莲/悠真等攻击输出；Aria 队可走异常分支。邦布方向未作稳定候选。',
+      '叶瞬光+照/琉音，或比利/艾莲/悠真等攻击输出；爱芮队可走异常分支。邦布方向未作稳定候选。',
     ],
   },
 }

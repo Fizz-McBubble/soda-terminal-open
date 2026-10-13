@@ -1,27 +1,24 @@
-import { currentAgentPlanningEffectBlueprints } from '../calculation/currentAgentPlanningEffectBlueprint'
-import type { CoreWarehouse } from '../accounts/coreFlow'
+import type { DevelopmentValueBenchmarkInput } from './developmentValueBenchmarkProjection'
+import {
+  unsupportedSide,
+  personalRuntimeIdentity,
+  projectDevelopmentValueBenchmarkCoverage,
+  type ScenarioValueBenchmarkSide,
+} from './developmentValueBenchmarkProjection'
+import type { ValueBenchmarkSide } from '../calculation/valueBenchmarkComparison'
+export {
+  unsupportedSide,
+  type DevelopmentComparisonParameters,
+} from './developmentValueBenchmarkProjection'
 import { completePersonalValueBenchmarkCoverage } from '../calculation/personalValueBenchmarkCoverage'
 import { getCurrentWEngineStaticData } from '../gameDataPacks/currentWEngineStaticCatalog'
 import { summarizeSourceResourceProduction32 } from '../calculation/sourceResourceProduction32'
-import {
-  summarizeSourceMechanismResourceGrants32,
-  type SourceResourceGrantDeclaration32,
-} from '../calculation/sourceMechanismResourceGrants32'
-import {
-  compileNormalizedAgentEventSchedule,
-  currentNormalizedPlanningBaseline,
-} from '../calculation/currentNormalizedPlanningBaseline'
+import { summarizeSourceMechanismResourceGrants32 } from '../calculation/sourceMechanismResourceGrants32'
+import { compileNormalizedAgentEventSchedule } from '../calculation/currentNormalizedPlanningBaseline'
 import { compileCurrentDriveDiscPlanningEffects } from '../calculation/currentDriveDiscPlanningEffects'
-import {
-  compileCurrentWEnginePersonalPlanningEffects,
-  currentWEnginePersonalPlanningEffectVersion,
-} from '../calculation/currentWEnginePersonalPlanningEffects'
+import { compileCurrentWEnginePersonalPlanningEffects } from '../calculation/currentWEnginePersonalPlanningEffects'
 import { evaluateSourceBackedPersonalPlanningDps } from '../calculation/currentPlanningTeamDpsRuntime'
-import {
-  type ValueBenchmarkCoverage,
-  type ValueBenchmarkSide,
-} from '../calculation/valueBenchmarkComparison'
-import type { DriveDisc } from '../domain/schemas'
+import { type ValueBenchmarkCoverage } from '../calculation/valueBenchmarkComparison'
 import { stableContentHash } from '../gameDataPacks/types'
 import {
   accountSkillLevel,
@@ -30,62 +27,30 @@ import {
 import { supportsPotentialImage } from '../assault/agentCapabilities'
 import { resolveWEngine } from './wEngineResolver'
 import { developmentSourceAction32 } from './developmentSourceAction32'
+import { prepareReviewedPotentialEvents32 } from '../calculation/reviewedPotentialPreparedEvents32'
+import { prepareReviewedTemplateEvents32 } from '../calculation/reviewedTemplatePreparedEvents32'
 import { qualifyReviewedPreparedBenchmark32 } from '../calculation/reviewedPreparedBenchmark32'
-import type { StandardSubstatProbe } from '../calculation/standardSubstatProbe'
 import { reviewedPreparedAnomalyPreparation32 } from '../calculation/reviewedPreparedAnomalyObjective32'
 import { evaluateDevelopmentPreparedAnomalyBenchmarkSide32 } from './developmentPreparedAnomalyBenchmark32'
 import { evaluateReviewedFunctionalCapacity32 } from '../calculation/reviewedFunctionalCapacity32'
+import { resolveCurrentPlanningScenario32 } from '../calculation/currentPlanningScenario32'
 
-const personalRuntimeIdentity = `source-backed-personal-fixed-event/v7-${currentWEnginePersonalPlanningEffectVersion}`
-const personalEventSetIdentity = stableContentHash({
-  baselineId: currentNormalizedPlanningBaseline.baselineId,
-  selection: 'normalized-agent-fixed-event-schedule',
-})
-
-export function unsupportedSide(input: {
-  agentId: string
-  discs: readonly DriveDisc[]
-  engineKey: string
-  state?: 'unsupported' | 'stale'
-  reasons: string[]
-}): ValueBenchmarkSide {
-  return {
-    state: input.state ?? 'unsupported',
-    dimensions: {
-      game_version: currentNormalizedPlanningBaseline.gameVersion,
-      subject: `agent:${input.agentId}`,
-      scenario: `scenario:normalized-personal:${stableContentHash(currentNormalizedPlanningBaseline.enemy)}`,
-      event_set: personalEventSetIdentity,
-      duration: String(currentNormalizedPlanningBaseline.declaredDurationSeconds),
-      formula: currentNormalizedPlanningBaseline.formulaHash,
-      runtime: personalRuntimeIdentity,
-      disc_loadout: stableContentHash(input.discs),
-      w_engine: input.engineKey,
-      bangboo: 'none',
-    },
-    totalDamage: null,
-    planningDps: null,
-    calculationFingerprint: null,
-    reasons: input.reasons,
-  }
-}
-
-export type DevelopmentComparisonParameters = {
-  wEngine?: { engineId: string; level: number; ascension?: number; refinement: number }
-  potential?: number
-}
-
-export function evaluateDevelopmentValueBenchmarkSide(input: {
-  warehouse: CoreWarehouse
-  agentId: string
-  discs: readonly DriveDisc[]
-  stale: boolean
-  parameters?: DevelopmentComparisonParameters
-  /** Internal read-only sensitivity analysis; cannot be stored as a real loadout. */
-  statProbe?: StandardSubstatProbe
-  /** Optional internal trigger observation; never derived from damage-hit counts. */
-  resourceGrantDeclaration32?: SourceResourceGrantDeclaration32
-}): ValueBenchmarkSide {
+export function evaluateDevelopmentValueBenchmarkSide(
+  input: DevelopmentValueBenchmarkInput,
+): ScenarioValueBenchmarkSide {
+  const scenario = resolveCurrentPlanningScenario32(input.scenarioSelection)
+  const unavailable = (facts: Parameters<typeof unsupportedSide>[0]) =>
+    unsupportedSide({ ...facts, scenarioSelection: scenario.selection })
+  if (
+    typeof input.eventConditionDeclaration?.enemyStunned === 'boolean' &&
+    input.eventConditionDeclaration.enemyStunned !== scenario.enemyStunned
+  )
+    return unavailable({
+      agentId: input.agentId,
+      discs: input.discs,
+      engineKey: 'unresolved',
+      reasons: ['事件敌人失衡声明与选定比较场景冲突。'],
+    })
   const agent = input.warehouse.roster.agents.find(
     (item) => item.agentId === input.agentId && item.owned,
   )
@@ -106,7 +71,7 @@ export function evaluateDevelopmentValueBenchmarkSide(input: {
     ? `${engine.engineId}:p${engine.refinement}:lv${engine.level}:asc${engineAscension ?? 'derived'}`
     : 'missing'
   if (input.stale)
-    return unsupportedSide({
+    return unavailable({
       agentId: input.agentId,
       discs: input.discs,
       engineKey,
@@ -114,7 +79,7 @@ export function evaluateDevelopmentValueBenchmarkSide(input: {
       reasons: ['账户或仓库快照已 stale，请重新分析。'],
     })
   if (!agent || !engine)
-    return unsupportedSide({
+    return unavailable({
       agentId: input.agentId,
       discs: input.discs,
       engineKey,
@@ -126,7 +91,7 @@ export function evaluateDevelopmentValueBenchmarkSide(input: {
     })
   if (
     !Number.isInteger(engine.level) ||
-    engine.level < 0 ||
+    engine.level < 1 ||
     engine.level > 60 ||
     !Number.isInteger(engine.refinement) ||
     engine.refinement < 1 ||
@@ -139,14 +104,14 @@ export function evaluateDevelopmentValueBenchmarkSide(input: {
         input.parameters.potential < 0 ||
         input.parameters.potential > 6))
   )
-    return unsupportedSide({
+    return unavailable({
       agentId: input.agentId,
       discs: input.discs,
       engineKey,
       reasons: ['显式音擎等级需在 1–60、突破在 0–5、精炼在 P1–P5；潜能需属于该代理人开放范围。'],
     })
   if (input.discs.length !== 6 || new Set(input.discs.map((disc) => disc.slot)).size !== 6)
-    return unsupportedSide({
+    return unavailable({
       agentId: input.agentId,
       discs: input.discs,
       engineKey,
@@ -176,7 +141,7 @@ export function evaluateDevelopmentValueBenchmarkSide(input: {
     ]),
   )
   if (!stats)
-    return unsupportedSide({
+    return unavailable({
       agentId: input.agentId,
       discs: input.discs,
       engineKey,
@@ -192,51 +157,147 @@ export function evaluateDevelopmentValueBenchmarkSide(input: {
     initialStats: stats.initialStats,
     finalStats: stats.finalStats,
   }
-  if (reviewedPreparedAnomalyPreparation32(input.agentId))
-    return evaluateDevelopmentPreparedAnomalyBenchmarkSide32({
-      member,
-      baseline: currentNormalizedPlanningBaseline,
-      discs: input.discs,
-      wEngine: { engineId: engine.engineId, refinement: engine.refinement },
-      engineKey,
-      discLoadoutKey: stableContentHash(
-        input.statProbe
-          ? { discs: input.discs, hypotheticalStatProbe: input.statProbe }
-          : input.discs,
-      ),
-      potential,
-      subjectKey: stableContentHash({
-        agentId: input.agentId,
-        level: agent.level,
-        ascension: agent.ascension,
-        mindscape: agent.mindscape,
-        skillLevels,
+  if (reviewedPreparedAnomalyPreparation32(input.agentId)) {
+    if (input.agentId === 'agent-aria') {
+      const allowedScenario =
+        (scenario.selection.id === 'normalized-comparison' &&
+          scenario.baseline.enemy.stunMultiplier === 1) ||
+        (scenario.selection.id === 'declared-stun-comparison' &&
+          scenario.baseline.enemy.stunMultiplier === 1.5)
+      if (
+        !allowedScenario ||
+        scenario.baseline.enemy.defense !== 700 ||
+        scenario.baseline.enemy.resistance !== 0.2
+      )
+        return unavailable({
+          agentId: input.agentId,
+          discs: input.discs,
+          engineKey,
+          reasons: [
+            '爱芮异常准备轴仅支持 normalized 与 declared-stun 两个固定比较场景（DEF 700 / RES 0.2）。',
+          ],
+        })
+      if (input.eventConditionDeclaration) {
+        if (
+          input.eventConditionDeclaration.windswept != null ||
+          input.eventConditionDeclaration.sunnaDelusionApplied != null ||
+          input.eventConditionDeclaration.nangongMisstepApplied != null ||
+          input.eventConditionDeclaration.remiellePhaseFlow != null ||
+          (input.eventConditionDeclaration.enemyStunned != null &&
+            input.eventConditionDeclaration.enemyStunned !== scenario.enemyStunned)
+        )
+          return unavailable({
+            agentId: input.agentId,
+            discs: input.discs,
+            engineKey,
+            reasons: ['爱芮异常准备轴不接受外来或冲突的额外事件声明。'],
+          })
+      }
+    } else {
+      if (scenario.baseline.enemy.stunMultiplier !== 1 || input.eventConditionDeclaration)
+        return unavailable({
+          agentId: input.agentId,
+          discs: input.discs,
+          engineKey,
+          reasons: ['已核异常准备轴仅验证失衡倍率1且不接受额外事件条件。'],
+        })
+    }
+    return {
+      ...evaluateDevelopmentPreparedAnomalyBenchmarkSide32({
+        member,
+        baseline: scenario.baseline,
+        discs: input.discs,
+        wEngine: { engineId: engine.engineId, refinement: engine.refinement },
+        engineKey,
+        discLoadoutKey: stableContentHash(
+          input.statProbe
+            ? { discs: input.discs, hypotheticalStatProbe: input.statProbe }
+            : input.discs,
+        ),
+        potential,
+        preparation:
+          input.agentId === 'agent-aria'
+            ? {
+                kind: 'aria_single_self_ether_abloom',
+                acceptedSingleOwnerSettlement: true,
+                perfectPitchHit3Heavy: true,
+                ownEtherAnomalyPresent: true,
+                fandomPowerPrepared: true,
+                enemyStunned: scenario.enemyStunned,
+                momentOfDelusion: false,
+              }
+            : undefined,
+        subjectKey: stableContentHash({
+          agentId: input.agentId,
+          level: agent.level,
+          ascension: agent.ascension,
+          mindscape: agent.mindscape,
+          skillLevels,
+        }),
       }),
-    })
+      scenarioSelection: scenario.selection,
+      scenarioIdentity: scenario.identity,
+    }
+  }
   const sourceAction = developmentSourceAction32(member)
+  if (
+    sourceAction &&
+    (scenario.baseline.enemy.stunMultiplier !== 1 || input.eventConditionDeclaration)
+  )
+    return unavailable({
+      agentId: input.agentId,
+      discs: input.discs,
+      engineKey,
+      reasons: ['已核准备轴仅验证失衡倍率1且不接受额外事件条件；请切回常规比较或验证新的模型域。'],
+    })
   if (sourceAction?.status === 'unsupported')
-    return unsupportedSide({
+    return unavailable({
       agentId: input.agentId,
       discs: input.discs,
       engineKey,
       reasons: sourceAction.blockers,
     })
   const schedule =
-    sourceAction ?? compileNormalizedAgentEventSchedule({ agentId: input.agentId, skillLevels })
+    sourceAction ??
+    compileNormalizedAgentEventSchedule({
+      agentId: input.agentId,
+      skillLevels,
+      ...(input.agentId === 'agent-lycaon' ? { declaredSkills: ['basic'] } : {}),
+    })
   if (schedule.status === 'unsupported')
-    return unsupportedSide({
+    return unavailable({
       agentId: input.agentId,
       discs: input.discs,
       engineKey,
       reasons: schedule.blockers,
     })
   const eventUsages = schedule.eventUsages
+  const potentialPreparation = sourceAction
+    ? null
+    : prepareReviewedPotentialEvents32({ member, eventUsages })
+  const templatePreparation = sourceAction
+    ? null
+    : prepareReviewedTemplateEvents32({
+        member,
+        eventUsages,
+        references: potentialPreparation?.baselineReferences,
+        conditionDeclaration: input.eventConditionDeclaration
+          ? { ...input.eventConditionDeclaration, enemyStunned: scenario.enemyStunned }
+          : undefined,
+      })
+  if (templatePreparation?.conditionPreparation?.status === 'unsupported')
+    return unavailable({
+      agentId: input.agentId,
+      discs: input.discs,
+      engineKey,
+      reasons: templatePreparation.conditionPreparation.blockers,
+    })
   const discEffects = compileCurrentDriveDiscPlanningEffects({
     members: [member],
     loadouts: [{ agentId: input.agentId, discs: input.discs }],
   })
   if (discEffects.status !== 'supported')
-    return unsupportedSide({
+    return unavailable({
       agentId: input.agentId,
       discs: input.discs,
       engineKey,
@@ -250,7 +311,7 @@ export function evaluateDevelopmentValueBenchmarkSide(input: {
     runtime: sourceAction?.equipmentRuntime,
   })
   if (engineEffects.status !== 'supported')
-    return unsupportedSide({
+    return unavailable({
       agentId: input.agentId,
       discs: input.discs,
       engineKey,
@@ -275,11 +336,21 @@ export function evaluateDevelopmentValueBenchmarkSide(input: {
   const runtime = evaluateSourceBackedPersonalPlanningDps({
     member,
     ...(sourceAction?.runtimeInput ?? { eventUsages }),
-    baseline: currentNormalizedPlanningBaseline,
+    ...(potentialPreparation
+      ? {
+          potentialEvents: potentialPreparation.potentialEvents,
+          baselineReferences: potentialPreparation.baselineReferences,
+        }
+      : {}),
+    ...(templatePreparation ? { baselineReferences: templatePreparation.baselineReferences } : {}),
+    ...(templatePreparation?.commonAnomalyEvents
+      ? { commonAnomalyEvents: templatePreparation.commonAnomalyEvents }
+      : {}),
+    baseline: scenario.baseline,
     equipmentModifierBuckets: [...discEffects.buckets, ...engineEffects.buckets],
   })
   if (runtime.status === 'unsupported')
-    return unsupportedSide({
+    return unavailable({
       agentId: input.agentId,
       discs: input.discs,
       engineKey,
@@ -300,32 +371,16 @@ export function evaluateDevelopmentValueBenchmarkSide(input: {
     ],
     sourceEffectExclusions: runtime.sourceEffectExclusions,
   })
-  const agentExclusions = currentAgentPlanningEffectBlueprints
-    .filter(
-      (row) =>
-        row.providerAgentId === input.agentId &&
-        !baseCoverage.includedEffectKeys.includes(row.effectKey) &&
-        row.effectId !== 'core_initial_crit_',
-    )
-    .map((row) => ({
-      effectKey: row.effectKey,
-      reason: '此个人固定事件切片未消费该来源角色效果；条件、队伍与动作适用范围不能从盘面推断。',
-      fields: ['agent_effect', 'combat_conditions', 'event_context', ...row.targetKinds],
-      sourceRefs: [...row.sourceRefs],
-    }))
-  const coverage: ValueBenchmarkCoverage = {
-    ...baseCoverage,
-    boundary: `${baseCoverage.boundary}${sourceAction ? ` ${sourceAction.boundary}` : ''}`,
-    excludedEffects: [...baseCoverage.excludedEffects, ...agentExclusions],
-    exclusionContextFingerprint: stableContentHash({
-      context: baseCoverage.exclusionContextFingerprint,
-      agentExclusions,
-      member,
-      ...(sourceAction ? { actionPolicy: sourceAction.identity } : {}),
-    }),
-  }
+  const coverage = projectDevelopmentValueBenchmarkCoverage({
+    agentId: input.agentId,
+    member,
+    baseCoverage,
+    sourceAction,
+    potentialPreparation,
+    templatePreparation,
+  })
   const dimensions: ValueBenchmarkSide['dimensions'] = {
-    game_version: currentNormalizedPlanningBaseline.gameVersion,
+    game_version: scenario.baseline.gameVersion,
     subject: stableContentHash({
       agentId: input.agentId,
       level: agent.level,
@@ -334,11 +389,11 @@ export function evaluateDevelopmentValueBenchmarkSide(input: {
       skillLevels,
     }),
     potential: String(potential ?? 'unavailable'),
-    scenario: `scenario:normalized-personal:${stableContentHash(currentNormalizedPlanningBaseline.enemy)}${sourceAction ? `:${sourceAction.policyId}` : ''}`,
+    scenario: `${scenario.identity}${sourceAction ? `:${sourceAction.policyId}` : ''}${potentialPreparation ? `:${potentialPreparation.policyId}` : ''}${templatePreparation ? `:${templatePreparation.policyId}:${templatePreparation.conditionPreparation?.identity ?? 'neutral'}` : ''}`,
     event_set: stableContentHash(eventUsages),
     duration: String(runtime.declaredDurationSeconds),
-    formula: currentNormalizedPlanningBaseline.formulaHash,
-    runtime: `${personalRuntimeIdentity}${sourceAction ? `:${sourceAction.identity}` : ''}`,
+    formula: scenario.baseline.formulaHash,
+    runtime: `${personalRuntimeIdentity}${sourceAction ? `:${sourceAction.identity}` : ''}${potentialPreparation ? `:${potentialPreparation.identity}` : ''}${templatePreparation ? `:${templatePreparation.identity}` : ''}`,
     disc_loadout: stableContentHash(
       input.statProbe
         ? { discs: input.discs, hypotheticalStatProbe: input.statProbe }
@@ -355,7 +410,7 @@ export function evaluateDevelopmentValueBenchmarkSide(input: {
           actionIdentity: sourceAction.identity,
           resourceLegality: sourceAction.resourceLegality,
           eventUsages,
-          baseline: currentNormalizedPlanningBaseline,
+          baseline: scenario.baseline,
           engine,
           discs: input.discs,
           accountId: input.warehouse.accountId ?? 'legacy-local',
@@ -373,11 +428,16 @@ export function evaluateDevelopmentValueBenchmarkSide(input: {
   const functionalCapacities32 = evaluateReviewedFunctionalCapacity32({
     member,
     eventUsages,
+    potentialEvents: potentialPreparation?.potentialEvents,
     equipmentModifierBuckets: [...discEffects.buckets, ...engineEffects.buckets],
     equipmentExclusions: [...discEffects.exclusions, ...engineEffects.exclusions],
     baselineReferencesByAgentId: sourceAction
       ? { [member.agentId]: sourceAction.runtimeInput.baselineReferences }
-      : undefined,
+      : templatePreparation
+        ? { [member.agentId]: templatePreparation.baselineReferences }
+        : potentialPreparation
+          ? { [member.agentId]: potentialPreparation.baselineReferences }
+          : undefined,
   })
   const sourceResourceProduction32 = summarizeSourceResourceProduction32({
     agentId: member.agentId,
@@ -394,6 +454,8 @@ export function evaluateDevelopmentValueBenchmarkSide(input: {
     anomProf: stats.finalStats.anomProf,
   }
   return {
+    scenarioSelection: scenario.selection,
+    scenarioIdentity: scenario.identity,
     state: 'supported',
     dimensions,
     totalDamage: runtime.totalDamage,

@@ -3,7 +3,9 @@ import { anomalyDamageCoreHash } from './anomalyDamageCore'
 
 /** Source identities bind arithmetic; they do not certify caller observations or a cycle. */
 export const commonAnomalySettlementIdentity32 = Object.freeze({
-  revision: 'explicit-homogeneous-buildup-attribution-r1',
+  revision: 'explicit-homogeneous-buildup-attribution-r2',
+  polaritySkillScaling:
+    'positive_declared_original_disorder_ratio_scales_entire_damage_including_flat',
   arithmeticCoreHash: anomalyDamageCoreHash,
   repository: 'https://github.com/frzyc/genshin-optimizer',
   commit: '3456cd0f6f5bea10e168074502460dac2fcd6df4',

@@ -79,6 +79,41 @@ function expectValue(row: ReturnType<typeof runEffect>, value: number) {
 }
 
 describe('reviewed adoption and actual planning runtime', () => {
+  it('reconciles Astra M2 as additive percentage points in the actual pinned runtime', () => {
+    for (const [mindscape, attack, expected] of [
+      [0, 3000, 1050],
+      [1, 3000, 1050],
+      [2, 3000, 1600],
+      [6, 2962, 1599.48],
+      [2, 2963, 1600],
+    ]) {
+      expectValue(
+        runEffect('agent-astra:core_atk', {
+          initialAttack: attack,
+          combatAttack: 99000,
+          mindscape,
+          references: { idyllic_cadenza: 1 },
+        }),
+        expected,
+      )
+    }
+    expectValue(
+      runEffect('agent-astra:core_atk', {
+        initialAttack: 3000,
+        mindscape: 2,
+        references: { idyllic_cadenza: 0 },
+      }),
+      0,
+    )
+    const blueprint = getCurrentAgentPlanningEffectBlueprint('agent-astra:core_atk')!
+    expect(blueprint.numericExpression.originalSource?.expressionSha256).toBe(
+      '521D69A02053334481BB7C2CCE4AFA3FF41686D164EF569B429D4621754C630C',
+    )
+    expect(blueprint.sourceRefs.join()).toContain('not-live-combat-proof')
+    expect(
+      runEffect('agent-astra:core_atk', { initialAttack: 3000, mindscape: 2 }).status,
+    ).not.toBe('supported')
+  })
   it('keeps 19 source records with two unresolved shield contracts', () => {
     expect(getReviewedMechanismAdoptionSummary()).toEqual({
       total: 19,

@@ -6,6 +6,7 @@ import { resolveCurrentBangbooAdditionalActivation } from '../calculation/curren
 import { getCurrentBangbooNumericData } from '../gameDataPacks/currentBangbooNumericCatalog'
 import display from '../gameDataPacks/data/current-bangboo-display.3.1.json'
 import { projectCurrentBangbooComposition } from './exhaustiveBangbooScoring'
+import { describeBangbooTeamFit } from './bangbooTeamFit'
 import type {
   BangbooConditionPresentation,
   BangbooConditionRequirement,
@@ -39,10 +40,9 @@ for (const agent of currentAgentDirectory)
 
 const stripRole = (text: string) => text.replace(/^\[[^\]]+\]\s*/, '')
 
-/** Composition is modeled for identity categories, not an absent attack-type field.
- * Missing field data must stay unknown instead of becoming a zero-member failure. */
+/** A complete sourced composition may also establish a known zero attack-type count. */
 function isKnownKey(key: string) {
-  return /^(attribute|specialty|faction|agent):/.test(key)
+  return /^(attribute|specialty|faction|agent|attack_type):/.test(key)
 }
 
 /** A read-only explanation for ANY selected released Bangboo, independently of
@@ -168,6 +168,12 @@ export function describeBangbooConditions(input: {
     name: getBangbooName(input.bangbooId),
     stars: input.stars,
     activationStatus,
+    purposeSummary: describeBangbooTeamFit({
+      memberIds: input.memberIds,
+      bangbooId: input.bangbooId,
+      stars: input.stars,
+      activationStatus,
+    }).recommendationReason,
     requirementSummary,
     progressSummary,
     requirements,

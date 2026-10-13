@@ -1,6 +1,9 @@
 import { evaluateSourceDazeCapacity32 } from './sourceDazeCapacity32'
 import { evaluateSourceEnergyRecoveryRate32 } from './sourceEnergyRecoveryRate32'
 import { evaluateReviewedBenShieldCapacity32 } from './reviewedBenShieldCapacity32'
+import { evaluateReviewedSupportTargetCapacity32 } from './reviewedSupportTargetCapacity32'
+import { evaluateReviewedPotentialFunctionalEffects32 } from './reviewedPotentialFunctionalEffects32'
+import type { PotentialApplicationEvent } from './potentialApplicationBinding'
 import { canonicalJson, sha256 } from '../application/contentHash'
 import { stableContentHash } from '../gameDataPacks/types'
 import type { PlanningEffectRuntimeMember } from './currentPlanningEffectDomain'
@@ -16,7 +19,12 @@ import {
 
 export type ReviewedFunctionalCapacity32 = {
   key: string
-  kind: 'shield_generation' | 'source_daze_basis' | 'natural_energy_recovery_rate'
+  kind:
+    | 'shield_generation'
+    | 'source_daze_basis'
+    | 'natural_energy_recovery_rate'
+    | 'source_support_target'
+    | 'anomaly_mastery'
   value: number | null
   contextKey: string
   sourceRefs: string[]
@@ -74,6 +82,7 @@ type FunctionalCapacityInput32 = {
   member: PlanningEffectRuntimeMember
   members?: readonly PlanningEffectRuntimeMember[]
   eventUsages?: readonly PlanningEventUsage[]
+  potentialEvents?: Readonly<Record<string, PotentialApplicationEvent>>
   equipmentModifierBuckets?: readonly SourceBackedPlanningEffectBucket[]
   /** Explicit [] means checked; absence means unknown, never zero equipment effects. */
   equipmentExclusions?: readonly unknown[]
@@ -84,10 +93,17 @@ export function evaluateReviewedFunctionalCapacity32(input: FunctionalCapacityIn
   const action = evaluateDeclaredActionFunctionalCapacity32(input)
   if (action.status !== 'supported') return action
   const energy = evaluateSourceEnergyRecoveryRate32(input)
+  const support = evaluateReviewedSupportTargetCapacity32(input)
+  const potential = evaluateReviewedPotentialFunctionalEffects32(input)
   return {
-    status: 'supported' as const,
-    capacities: [...action.capacities, ...energy.capacities],
-    blockers: [...action.blockers, ...energy.blockers],
+    status: potential.status,
+    capacities: [
+      ...action.capacities,
+      ...energy.capacities,
+      ...support.capacities,
+      ...potential.capacities,
+    ],
+    blockers: [...action.blockers, ...energy.blockers, ...support.blockers, ...potential.blockers],
   }
 }
 

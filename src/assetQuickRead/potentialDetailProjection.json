@@ -1,1 +1,395 @@
-{"schema":"soda-public-potential-detail-map/v1","repository":"https://github.com/pingwinekZ/zzz-nanoka-data-0delay","commit":"c91eb0933bbb76333d52ffe57d8376ead61f9253","sourcePath":"character/{gameId}.json#PotentialDetail","sources":[{"gameId":1021,"path":"character/1021.json","sha256":"77704e7ba942c9408aebeceb9a2d63a9765ee03ea9ee46045fae4d7b6ce6f6f3"},{"gameId":1041,"path":"character/1041.json","sha256":"6b16c4964ead79557ff97bafca9c1c2e96aa4765da4284a0b8c26b0127ce4f9b"},{"gameId":1101,"path":"character/1101.json","sha256":"05f6b90b02f0cbd0c1751514607b6ff68627b895b623274db89b0032e06d2de7"},{"gameId":1141,"path":"character/1141.json","sha256":"09de319f2a5ae986b58719639b5cb9750704be3e4ef4a4d8787c8f3013cb6e4d"},{"gameId":1171,"path":"character/1171.json","sha256":"73753f040c47a4b013d04ad023d060d9eadaecdfbd10d15a5e4ecc67c9beabb9"},{"gameId":1181,"path":"character/1181.json","sha256":"c3de876211ed55e0d348c2eb772c785b1641d08564b4fbc73be0019b6550b524"},{"gameId":1191,"path":"character/1191.json","sha256":"10a711d4c451a1f2da20666853c3e7bcad0e5d01a287e574e6aa9a7f5c20514f"},{"gameId":1201,"path":"character/1201.json","sha256":"d752d0aa4bfd5ad86b9c4659a57f7abb4463e4b7e20d22076c2914bb0611570d"},{"gameId":1211,"path":"character/1211.json","sha256":"4ad58931cd24c206d4a96592cd5700e2010664d661edb567a3f48fc4135da928"},{"gameId":1261,"path":"character/1261.json","sha256":"8ea7bff639a220a484991afb002bf1683c49a740ad5d339037550924ffc86522"},{"gameId":1381,"path":"character/1381.json","sha256":"f13441f626c5b9eb17b3c7d44efd1edaff98598228550908169e40371ba47337"}],"rows":[{"id":102100,"gameId":1021,"level":1},{"id":102101,"gameId":1021,"level":2},{"id":102102,"gameId":1021,"level":3},{"id":102103,"gameId":1021,"level":4},{"id":102104,"gameId":1021,"level":5},{"id":102105,"gameId":1021,"level":6},{"id":104100,"gameId":1041,"level":1},{"id":104101,"gameId":1041,"level":2},{"id":104102,"gameId":1041,"level":3},{"id":104103,"gameId":1041,"level":4},{"id":104104,"gameId":1041,"level":5},{"id":104105,"gameId":1041,"level":6},{"id":110100,"gameId":1101,"level":1},{"id":110101,"gameId":1101,"level":2},{"id":110102,"gameId":1101,"level":3},{"id":110103,"gameId":1101,"level":4},{"id":110104,"gameId":1101,"level":5},{"id":110105,"gameId":1101,"level":6},{"id":114100,"gameId":1141,"level":1},{"id":114101,"gameId":1141,"level":2},{"id":114102,"gameId":1141,"level":3},{"id":114103,"gameId":1141,"level":4},{"id":114104,"gameId":1141,"level":5},{"id":114105,"gameId":1141,"level":6},{"id":117100,"gameId":1171,"level":1},{"id":117101,"gameId":1171,"level":2},{"id":117102,"gameId":1171,"level":3},{"id":117103,"gameId":1171,"level":4},{"id":117104,"gameId":1171,"level":5},{"id":117105,"gameId":1171,"level":6},{"id":118100,"gameId":1181,"level":1},{"id":118101,"gameId":1181,"level":2},{"id":118102,"gameId":1181,"level":3},{"id":118103,"gameId":1181,"level":4},{"id":118104,"gameId":1181,"level":5},{"id":118105,"gameId":1181,"level":6},{"id":119100,"gameId":1191,"level":1},{"id":119101,"gameId":1191,"level":2},{"id":119102,"gameId":1191,"level":3},{"id":119103,"gameId":1191,"level":4},{"id":119104,"gameId":1191,"level":5},{"id":119105,"gameId":1191,"level":6},{"id":120100,"gameId":1201,"level":1},{"id":120101,"gameId":1201,"level":2},{"id":120102,"gameId":1201,"level":3},{"id":120103,"gameId":1201,"level":4},{"id":120104,"gameId":1201,"level":5},{"id":120105,"gameId":1201,"level":6},{"id":121100,"gameId":1211,"level":1},{"id":121101,"gameId":1211,"level":2},{"id":121102,"gameId":1211,"level":3},{"id":121103,"gameId":1211,"level":4},{"id":121104,"gameId":1211,"level":5},{"id":121105,"gameId":1211,"level":6},{"id":126100,"gameId":1261,"level":1},{"id":126101,"gameId":1261,"level":2},{"id":126102,"gameId":1261,"level":3},{"id":126103,"gameId":1261,"level":4},{"id":126104,"gameId":1261,"level":5},{"id":126105,"gameId":1261,"level":6},{"id":138100,"gameId":1381,"level":1},{"id":138101,"gameId":1381,"level":2},{"id":138102,"gameId":1381,"level":3},{"id":138103,"gameId":1381,"level":4},{"id":138104,"gameId":1381,"level":5},{"id":138105,"gameId":1381,"level":6}]}
+{
+  "schema": "soda-public-potential-detail-map/v1",
+  "repository": "https://github.com/pingwinekZ/zzz-nanoka-data-0delay",
+  "commit": "c91eb0933bbb76333d52ffe57d8376ead61f9253",
+  "sourcePath": "character/{gameId}.json#PotentialDetail",
+  "sources": [
+    {
+      "gameId": 1021,
+      "path": "character/1021.json",
+      "sha256": "77704e7ba942c9408aebeceb9a2d63a9765ee03ea9ee46045fae4d7b6ce6f6f3"
+    },
+    {
+      "gameId": 1041,
+      "path": "character/1041.json",
+      "sha256": "6b16c4964ead79557ff97bafca9c1c2e96aa4765da4284a0b8c26b0127ce4f9b"
+    },
+    {
+      "gameId": 1101,
+      "path": "character/1101.json",
+      "sha256": "05f6b90b02f0cbd0c1751514607b6ff68627b895b623274db89b0032e06d2de7"
+    },
+    {
+      "gameId": 1141,
+      "path": "character/1141.json",
+      "sha256": "09de319f2a5ae986b58719639b5cb9750704be3e4ef4a4d8787c8f3013cb6e4d"
+    },
+    {
+      "gameId": 1171,
+      "path": "character/1171.json",
+      "sha256": "73753f040c47a4b013d04ad023d060d9eadaecdfbd10d15a5e4ecc67c9beabb9"
+    },
+    {
+      "gameId": 1181,
+      "path": "character/1181.json",
+      "sha256": "c3de876211ed55e0d348c2eb772c785b1641d08564b4fbc73be0019b6550b524"
+    },
+    {
+      "gameId": 1191,
+      "path": "character/1191.json",
+      "sha256": "10a711d4c451a1f2da20666853c3e7bcad0e5d01a287e574e6aa9a7f5c20514f"
+    },
+    {
+      "gameId": 1201,
+      "path": "character/1201.json",
+      "sha256": "d752d0aa4bfd5ad86b9c4659a57f7abb4463e4b7e20d22076c2914bb0611570d"
+    },
+    {
+      "gameId": 1211,
+      "path": "character/1211.json",
+      "sha256": "4ad58931cd24c206d4a96592cd5700e2010664d661edb567a3f48fc4135da928"
+    },
+    {
+      "gameId": 1261,
+      "path": "character/1261.json",
+      "sha256": "8ea7bff639a220a484991afb002bf1683c49a740ad5d339037550924ffc86522"
+    },
+    {
+      "gameId": 1381,
+      "path": "character/1381.json",
+      "sha256": "f13441f626c5b9eb17b3c7d44efd1edaff98598228550908169e40371ba47337"
+    }
+  ],
+  "rows": [
+    {
+      "id": 102100,
+      "gameId": 1021,
+      "level": 1
+    },
+    {
+      "id": 102101,
+      "gameId": 1021,
+      "level": 2
+    },
+    {
+      "id": 102102,
+      "gameId": 1021,
+      "level": 3
+    },
+    {
+      "id": 102103,
+      "gameId": 1021,
+      "level": 4
+    },
+    {
+      "id": 102104,
+      "gameId": 1021,
+      "level": 5
+    },
+    {
+      "id": 102105,
+      "gameId": 1021,
+      "level": 6
+    },
+    {
+      "id": 104100,
+      "gameId": 1041,
+      "level": 1
+    },
+    {
+      "id": 104101,
+      "gameId": 1041,
+      "level": 2
+    },
+    {
+      "id": 104102,
+      "gameId": 1041,
+      "level": 3
+    },
+    {
+      "id": 104103,
+      "gameId": 1041,
+      "level": 4
+    },
+    {
+      "id": 104104,
+      "gameId": 1041,
+      "level": 5
+    },
+    {
+      "id": 104105,
+      "gameId": 1041,
+      "level": 6
+    },
+    {
+      "id": 110100,
+      "gameId": 1101,
+      "level": 1
+    },
+    {
+      "id": 110101,
+      "gameId": 1101,
+      "level": 2
+    },
+    {
+      "id": 110102,
+      "gameId": 1101,
+      "level": 3
+    },
+    {
+      "id": 110103,
+      "gameId": 1101,
+      "level": 4
+    },
+    {
+      "id": 110104,
+      "gameId": 1101,
+      "level": 5
+    },
+    {
+      "id": 110105,
+      "gameId": 1101,
+      "level": 6
+    },
+    {
+      "id": 114100,
+      "gameId": 1141,
+      "level": 1
+    },
+    {
+      "id": 114101,
+      "gameId": 1141,
+      "level": 2
+    },
+    {
+      "id": 114102,
+      "gameId": 1141,
+      "level": 3
+    },
+    {
+      "id": 114103,
+      "gameId": 1141,
+      "level": 4
+    },
+    {
+      "id": 114104,
+      "gameId": 1141,
+      "level": 5
+    },
+    {
+      "id": 114105,
+      "gameId": 1141,
+      "level": 6
+    },
+    {
+      "id": 117100,
+      "gameId": 1171,
+      "level": 1
+    },
+    {
+      "id": 117101,
+      "gameId": 1171,
+      "level": 2
+    },
+    {
+      "id": 117102,
+      "gameId": 1171,
+      "level": 3
+    },
+    {
+      "id": 117103,
+      "gameId": 1171,
+      "level": 4
+    },
+    {
+      "id": 117104,
+      "gameId": 1171,
+      "level": 5
+    },
+    {
+      "id": 117105,
+      "gameId": 1171,
+      "level": 6
+    },
+    {
+      "id": 118100,
+      "gameId": 1181,
+      "level": 1
+    },
+    {
+      "id": 118101,
+      "gameId": 1181,
+      "level": 2
+    },
+    {
+      "id": 118102,
+      "gameId": 1181,
+      "level": 3
+    },
+    {
+      "id": 118103,
+      "gameId": 1181,
+      "level": 4
+    },
+    {
+      "id": 118104,
+      "gameId": 1181,
+      "level": 5
+    },
+    {
+      "id": 118105,
+      "gameId": 1181,
+      "level": 6
+    },
+    {
+      "id": 119100,
+      "gameId": 1191,
+      "level": 1
+    },
+    {
+      "id": 119101,
+      "gameId": 1191,
+      "level": 2
+    },
+    {
+      "id": 119102,
+      "gameId": 1191,
+      "level": 3
+    },
+    {
+      "id": 119103,
+      "gameId": 1191,
+      "level": 4
+    },
+    {
+      "id": 119104,
+      "gameId": 1191,
+      "level": 5
+    },
+    {
+      "id": 119105,
+      "gameId": 1191,
+      "level": 6
+    },
+    {
+      "id": 120100,
+      "gameId": 1201,
+      "level": 1
+    },
+    {
+      "id": 120101,
+      "gameId": 1201,
+      "level": 2
+    },
+    {
+      "id": 120102,
+      "gameId": 1201,
+      "level": 3
+    },
+    {
+      "id": 120103,
+      "gameId": 1201,
+      "level": 4
+    },
+    {
+      "id": 120104,
+      "gameId": 1201,
+      "level": 5
+    },
+    {
+      "id": 120105,
+      "gameId": 1201,
+      "level": 6
+    },
+    {
+      "id": 121100,
+      "gameId": 1211,
+      "level": 1
+    },
+    {
+      "id": 121101,
+      "gameId": 1211,
+      "level": 2
+    },
+    {
+      "id": 121102,
+      "gameId": 1211,
+      "level": 3
+    },
+    {
+      "id": 121103,
+      "gameId": 1211,
+      "level": 4
+    },
+    {
+      "id": 121104,
+      "gameId": 1211,
+      "level": 5
+    },
+    {
+      "id": 121105,
+      "gameId": 1211,
+      "level": 6
+    },
+    {
+      "id": 126100,
+      "gameId": 1261,
+      "level": 1
+    },
+    {
+      "id": 126101,
+      "gameId": 1261,
+      "level": 2
+    },
+    {
+      "id": 126102,
+      "gameId": 1261,
+      "level": 3
+    },
+    {
+      "id": 126103,
+      "gameId": 1261,
+      "level": 4
+    },
+    {
+      "id": 126104,
+      "gameId": 1261,
+      "level": 5
+    },
+    {
+      "id": 126105,
+      "gameId": 1261,
+      "level": 6
+    },
+    {
+      "id": 138100,
+      "gameId": 1381,
+      "level": 1
+    },
+    {
+      "id": 138101,
+      "gameId": 1381,
+      "level": 2
+    },
+    {
+      "id": 138102,
+      "gameId": 1381,
+      "level": 3
+    },
+    {
+      "id": 138103,
+      "gameId": 1381,
+      "level": 4
+    },
+    {
+      "id": 138104,
+      "gameId": 1381,
+      "level": 5
+    },
+    {
+      "id": 138105,
+      "gameId": 1381,
+      "level": 6
+    }
+  ]
+}

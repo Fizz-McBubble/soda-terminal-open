@@ -11,10 +11,13 @@ import {
   getCurrentBangbooContractRequirements,
   resolveCurrentBangbooAdditionalActivation,
 } from '../calculation/currentBangbooMechanicContracts'
+import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
+import { projectBangbooUtility } from '../calculation/currentBangbooUtilityProjection'
 import { projectCurrentBangbooComposition } from './exhaustiveBangbooScoring'
 
 import { defaultWEngineRefinement } from './wEngineResolver'
-import { compareBangbooTeamOptions, describeBangbooTeamFit } from './bangbooTeamFit'
+import { compareBangbooTeamOptions } from './bangbooTeamFit'
+import { selectTargetTeamBangbooShortlist } from './targetTeamBangbooShortlist'
 
 export const defaultEquipmentRankForRarity = (rarity: string | null | undefined) =>
   defaultWEngineRefinement(rarity) as 1 | 5
@@ -31,7 +34,7 @@ export type SourceSupportedTargetBangbooInput = {
 }
 
 /** Existing exact-trio author options; never a default or an account ownership claim. */
-export let reviewedBangbooIdsByTrio: Map<string, readonly string[]> | undefined
+let reviewedBangbooIdsByTrio: Map<string, readonly string[]> | undefined
 const optionCache = new Map<string, ReturnType<typeof computeTargetBangbooOptions>>()
 
 export function reviewedSourceBangbooOptions(
@@ -46,7 +49,10 @@ export function reviewedSourceBangbooOptions(
     ]),
   )
   const ids = reviewedBangbooIdsByTrio.get(key) ?? []
-  return evaluateTargetBangbooOptions(input, ids)
+  return evaluateTargetBangbooOptions(input, ids).map((option) => ({
+    ...option,
+    recommendationReason: `资料推荐；${option.recommendationReason}`,
+  }))
 }
 
 /** Reuse the full current mechanic catalog; the older Team Engine rule pack is
@@ -56,20 +62,31 @@ export function targetTeamBangbooOptions(
   input: Pick<SourceSupportedTargetBangbooInput, 'memberIds' | 'bangbooStarsById'>,
 ) {
   const reviewed = reviewedSourceBangbooOptions(input)
+  const activeReviewed = reviewed.filter((option) => option.activationStatus === 'active')
   const reviewedIds = new Set(reviewed.map((option) => option.bangbooId))
   const alternatives = evaluateTargetBangbooOptions(
     input,
     currentBangbooDirectory
       .filter((entry) => entry.releaseState === 'released')
       .map((entry) => entry.id),
-  ).filter((option) => option.activationStatus === 'active' && !reviewedIds.has(option.bangbooId))
-  // A guide's base-skill fallback is valid to choose, but it is not an activated
-  // recommendation for this trio. Preserve source order among equally suitable
-  // active options; never fill three slots with inactive alternatives.
-  return [
-    ...reviewed.filter((option) => option.activationStatus === 'active'),
-    ...alternatives,
-  ].slice(0, maxTargetTeamBangbooRecommendations)
+  )
+  const activeAlternatives = alternatives
+    .filter((option) => option.activationStatus === 'active' && !reviewedIds.has(option.bangbooId))
+    .map((option) => ({
+      ...option,
+      recommendationReason: `条件适配；${option.recommendationReason}`,
+    }))
+
+  const hasOrdinaryEnergyRecipient = input.memberIds.some((id) => {
+    const identity = getCurrentAgentEventContract(id)?.identity
+    return identity !== undefined && identity.specialty !== 'rupture'
+  })
+  return selectTargetTeamBangbooShortlist({
+    reviewed: activeReviewed,
+    alternatives: activeAlternatives,
+    hasOrdinaryEnergyRecipient,
+    limit: maxTargetTeamBangbooRecommendations,
+  })
 }
 
 function evaluateTargetBangbooOptions(
@@ -148,11 +165,12 @@ function computeTargetBangbooOptions(
       const inactive =
         !active && results.every((result) => result.activation.status === 'supported')
       const defaultStar = active?.star ?? explicitStars ?? defaultStars
-      // The current identities do not expose attack type. An absent field must
-      // not be silently interpreted as zero matching members (e.g. Boollseye).
+      // Only source-backed composition categories may establish activation.
       const knownCompositionFields = getCurrentBangbooContractRequirements(
         bangbooId,
-      )?.compositionKeys.every((key) => /^(agent|attribute|specialty|faction):/.test(key))
+      )?.compositionKeys.every((key) =>
+        /^(agent|attribute|specialty|faction|attack_type):/.test(key),
+      )
       const activationStatus = !knownCompositionFields
         ? 'unknown'
         : active
@@ -160,6 +178,12 @@ function computeTargetBangbooOptions(
           : inactive
             ? 'inactive'
             : 'unknown'
+      const projection = projectBangbooUtility({
+        memberIds: input.memberIds,
+        bangbooId,
+        stars: defaultStar,
+        activationStatus,
+      })
       return [
         {
           bangbooId,
@@ -167,12 +191,10 @@ function computeTargetBangbooOptions(
           defaultStars: defaultStar,
           activationStatus: activationStatus as 'active' | 'inactive' | 'unknown',
           requiresRaisedStars: defaultStar > defaultStars,
-          ...describeBangbooTeamFit({
-            memberIds: input.memberIds,
-            bangbooId,
-            stars: defaultStar,
-            activationStatus,
-          }),
+          primaryPurpose: projection.primaryPurpose,
+          comparableSlice: projection.comparableSlice,
+          recipientFit: projection.recipientFit,
+          recommendationReason: projection.recommendationReason,
         },
       ]
     })

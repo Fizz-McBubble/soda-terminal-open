@@ -32,6 +32,21 @@ export const publicCommonAnomalySettlementInputSchema32 = z
     contract: z.literal(publicCommonAnomalySettlementContract32),
     confirmedDeclaredStates: z.literal(true),
     confirmedFinalSnapshotStats: z.literal(true),
+    skillPreparation: z
+      .object({
+        kind: z.literal('nangong_wind_polarity'),
+        sourceIdentityHash: id,
+        triggerSkill: z.enum(['ex_special_heavy', 'charged_basic_heavy', 'quick_assist_heavy']),
+        heavyAttackHit: z.literal(true),
+        enemyStunned: z.literal(true),
+        windAnomalyPresent: z.literal(true),
+        danceProwessStacks: z.union([z.literal(1), z.literal(2)]),
+        danceProwessWithin15Seconds: z.literal(true),
+        additionalAbilityActive: z.literal(true),
+        sourceRefs: refs,
+      })
+      .strict()
+      .optional(),
     settlement: z
       .object({
         sourceIdentityHash: id,
@@ -201,6 +216,7 @@ export const publicCommonAnomalySettlementMetadataSchema32 = z
   .extend({
     sourceIdentityHash: id,
     sourceRefs: refs,
+    nangongWindPolaritySourceIdentityHash: id.optional(),
     supportedKinds: z.tuple([
       z.literal('anomaly'),
       z.literal('abloom'),

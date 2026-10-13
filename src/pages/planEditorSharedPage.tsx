@@ -30,6 +30,7 @@ export function PlanEditorSharedTeamHeader({
       {...state}
       team={props.team}
       deleteAction={props.deleteAction}
+      comparisonScenarioControl={props.comparisonScenarioControl}
       teamRatingLabel={props.teamRatingLabel}
       usingRemainingBox={usesRemainingBoxReservation(Boolean(props.restored), props.analysisRunId)}
     />

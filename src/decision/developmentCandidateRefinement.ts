@@ -39,6 +39,7 @@ import {
 import { optimizerOptionsFromBuildIntent, type AgentIndependentBuildIntent } from './buildIntent'
 import { evaluateDevelopmentStatWeights } from './developmentStatWeights'
 import { dynamicDiscProposals } from '../optimizer/dynamicDiscProposals'
+import type { CurrentPlanningScenarioSelection32 } from '../application/publicPlanningScenarioContract'
 
 export const developmentCandidateRefinementVersion = 'dynamic-marginal-source-compatible-local-r4'
 const proposalBudget = 24
@@ -85,6 +86,7 @@ export function refineDevelopmentCandidates(input: {
   candidates: readonly CandidateWarehousePlan[]
   buildIntent: AgentIndependentBuildIntent
   parameters?: DevelopmentComparisonParameters
+  scenarioSelection?: CurrentPlanningScenarioSelection32
 }): CandidateWarehousePlan[] {
   const originals = [...input.candidates]
   if (!originals.length) return originals
@@ -125,6 +127,7 @@ export function refineDevelopmentCandidates(input: {
       sideCache.set(
         id,
         evaluateDevelopmentValueBenchmarkSide({
+          scenarioSelection: input.scenarioSelection,
           warehouse: input.warehouse,
           agentId: input.agentId,
           discs: plan.loadouts[0]!.discs.map((row) => row.disc),

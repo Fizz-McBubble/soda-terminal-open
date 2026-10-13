@@ -36,6 +36,7 @@ import {
 import { targetTeamEquipmentParametersFingerprint } from '../../application/publicTargetTeamEquipmentFingerprint'
 import { acceptTeamRoutePresentation } from '../publicTeamRoutePresentation'
 import {
+  resolveSavedPlanScenarioSelection,
   savedTeamDiscAssignmentFingerprint,
   savedTeamTargetFitMatchesSavedDiscs,
 } from '../savedPlanIdentity'
@@ -377,6 +378,10 @@ export function useSavedPlanReplay({
     ? targetTeamEquipmentParametersFingerprint(savedTargetParameters)
     : savedAccountBindingFingerprint
   const savedTargetDiscFingerprint = plan ? savedTeamDiscAssignmentFingerprint(plan) : ''
+  const savedTargetScenarioSelection = useMemo(() => {
+    if (!plan) return undefined
+    return resolveSavedPlanScenarioSelection(plan.solutionContext?.scenarioSelection)
+  }, [plan])
   const stableSavedTargetParameters = useMemo(
     () => savedTargetParameters,
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -419,6 +424,7 @@ export function useSavedPlanReplay({
       savedTargetRunId,
       savedTargetCandidateId,
       stableSavedTargetParameters,
+      savedTargetScenarioSelection,
     )
       .then((fit) => {
         if (!active || fit.candidateId !== savedTargetCandidateId) return
@@ -454,6 +460,7 @@ export function useSavedPlanReplay({
     savedTargetIdentity,
     savedTargetRequestIdentity,
     savedTargetRunId,
+    savedTargetScenarioSelection,
     plan,
   ])
 

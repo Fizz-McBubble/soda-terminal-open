@@ -74,15 +74,20 @@ export function projectDevelopmentWorkbenchRoute(
   )
     return unavailable('references_changed')
   const agent = currentRecord ? { ...capturedAgent, ...currentRecord.agent } : capturedAgent
-  if (selection.requestedPlanId && selection.candidateRank !== null)
+  if (
+    (selection.preferEquipped && (selection.requestedPlanId || selection.candidateRank !== null)) ||
+    (selection.requestedPlanId && selection.candidateRank !== null)
+  )
     return unavailable('candidate_mismatch')
-  const saved = resolveSavedAgentPlanRoute({
-    requestedPlanId: selection.requestedPlanId,
-    agentId: selection.agentId,
-    activePlanId: run.input.activePlanIds[selection.agentId],
-    planningDrafts: run.input.drafts,
-    discs: warehouse.discs,
-  })
+  const saved = selection.preferEquipped
+    ? { status: 'current' as const, plan: undefined }
+    : resolveSavedAgentPlanRoute({
+        requestedPlanId: selection.requestedPlanId,
+        agentId: selection.agentId,
+        activePlanId: run.input.activePlanIds[selection.agentId],
+        planningDrafts: run.input.drafts,
+        discs: warehouse.discs,
+      })
   if (saved.status === 'missing' || saved.status === 'references_changed')
     return unavailable(saved.status)
   if (saved.plan && typeof saved.plan.name !== 'string') return unavailable('missing')
@@ -127,6 +132,7 @@ export function projectDevelopmentWorkbenchRoute(
   })
   const panelContext = createDevelopmentPanelContext({
     coreLevel: agent.skillLevels.core,
+    mindscape: agent.mindscape,
     panelProjection,
     hasComparablePlan,
     candidateChoices,

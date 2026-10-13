@@ -2,6 +2,7 @@ import { act, fireEvent, screen } from '@testing-library/react'
 import { afterEach, beforeEach, vi } from 'vitest'
 import type { AssetBridgeJob, AssetQuickReadBridgeClient } from '../assetQuickRead/bridgeClient'
 import type { AssetQuickReadCandidate } from '../assetQuickRead/snapshotAdapter'
+import { syntheticAssetSnapshot } from '../assetQuickRead/syntheticAssetSnapshotTestFixture'
 
 const persistence = vi.hoisted(() => ({
   prepare: vi.fn(),
@@ -60,7 +61,7 @@ export function bridge() {
     result: vi.fn().mockResolvedValue({
       jobId,
       targetAccountId,
-      snapshot: { synthetic: true },
+      snapshot: syntheticAssetSnapshot(),
       sha256: 'a'.repeat(64),
       capturedAt: '2026-10-10T00:00:00Z',
     }),

@@ -132,6 +132,15 @@
   justify-items: center;
   gap: 4px;
   font-size: 13px;
+  flex: 1 1 160px;
+  max-width: 260px;
+  min-width: 0;
+}
+
+.f5v-box-team-bangboo-options small {
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .f5v-box-team-bangboo-options img {

@@ -113,6 +113,7 @@ interface ReconciliationTargetConfig {
   sourceRef: string
   correctedRef?: string
   replacementIr?: unknown
+  replacementRootIr?: unknown
   evidence: string[]
   prefix: string
   formulaSha256?: string
@@ -121,6 +122,88 @@ interface ReconciliationTargetConfig {
 }
 
 const RECONCILIATION_TARGETS: ReconciliationTargetConfig[] = [
+  {
+    agentId: 'agent-astra',
+    effectId: 'core_atk',
+    targetPath: 'libs/zzz/formula/src/data/char/sheets/AstraYao.ts',
+    sourceRef: 'own.initial.atk',
+    replacementRootIr: {
+      kind: 'call',
+      operator: 'add',
+      receiver: { kind: 'reference', path: 'teamBuff.combat.atk' },
+      arguments: [
+        {
+          kind: 'call',
+          operator: 'ifOn',
+          receiver: { kind: 'reference', path: 'idyllic_cadenza' },
+          arguments: [
+            {
+              kind: 'call',
+              operator: 'min',
+              arguments: [
+                {
+                  kind: 'call',
+                  operator: 'sum',
+                  arguments: [
+                    { kind: 'reference', path: 'dm.core.max_atk' },
+                    {
+                      kind: 'call',
+                      operator: 'cmpGE',
+                      arguments: [
+                        { kind: 'reference', path: 'char.mindscape' },
+                        { kind: 'literal', value: 2 },
+                        { kind: 'reference', path: 'dm.m2.max_increase' },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  kind: 'call',
+                  operator: 'prod',
+                  arguments: [
+                    { kind: 'reference', path: 'own.initial.atk' },
+                    {
+                      kind: 'call',
+                      operator: 'sum',
+                      arguments: [
+                        {
+                          kind: 'call',
+                          operator: 'subscript',
+                          arguments: [
+                            { kind: 'reference', path: 'char.core' },
+                            { kind: 'reference', path: 'dm.core.atk_' },
+                          ],
+                        },
+                        {
+                          kind: 'call',
+                          operator: 'cmpGE',
+                          arguments: [
+                            { kind: 'reference', path: 'char.mindscape' },
+                            { kind: 'literal', value: 2 },
+                            { kind: 'reference', path: 'dm.m2.atk_' },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    evidence: [
+      `frzyc/genshin-optimizer@${PINNED_SOURCE_COMMIT}:libs/zzz/dm-localization/assets/locales/en/char_AstraYao_gen.json:core.desc[6],mindscapes.2.desc`,
+      'localization-sha256:52A776C7F2FF782BC54B517E282ED533043396341DD9CA71ADE4174B4DC5FF68',
+      'R2-source-reconciliation:core-coefficient-plus-M2-0.19;not-live-combat-proof',
+      sourceReconciliationVersion,
+    ],
+    prefix: 'astra_core_m2_additive',
+    formulaSha256: 'C56619ADA67799562AB8E48CB15419421B1C15DB7AE49E04C9E6D302802C5846',
+    expressionSha256: '521D69A02053334481BB7C2CCE4AFA3FF41686D164EF569B429D4621754C630C',
+    originalIrSha256: '02d7f03d535297fa45bbe20d8e2daf55a6c58ff1b4ca3b1ed592d064710e33a8',
+  },
   {
     agentId: 'agent-pan-yinhu',
     effectId: 'core_sheerForce',
@@ -247,6 +330,7 @@ export function reconcileSourceExpression<T>(input: {
 
     if (n.kind === 'reference' && n.path === config.sourceRef) {
       changed++
+      if (config.replacementRootIr !== undefined) return n
       if (config.replacementIr !== undefined) {
         return JSON.parse(JSON.stringify(config.replacementIr))
       }
@@ -260,7 +344,12 @@ export function reconcileSourceExpression<T>(input: {
     return Object.fromEntries(Object.entries(n).map(([k, v]) => [k, walk(v)]))
   }
 
-  const expression = walk(input.expression) as T
+  const walked = walk(input.expression)
+  const expression = (
+    config.replacementRootIr === undefined
+      ? walked
+      : JSON.parse(JSON.stringify(config.replacementRootIr))
+  ) as T
 
   if (changed !== 1 || alreadyCorrected !== 0) {
     throw new Error(`${config.prefix}_reconciliation_shape_changed`)

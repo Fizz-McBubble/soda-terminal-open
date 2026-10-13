@@ -171,7 +171,7 @@ export const gameData31CatalogEntities: GameData31CatalogEntity[] = [
   {
     id: 'candidate-3.1-drive-disc-thorned-rose',
     domain: 'drive_disc_set',
-    displayName: '棘刺玫瑰',
+    displayName: '荆棘玫瑰',
     identity: {
       kind: 'game_evidence',
       projectStableId: 'set-34200',
@@ -180,8 +180,8 @@ export const gameData31CatalogEntities: GameData31CatalogEntity[] = [
     },
     status: 'candidate',
     fields: {
-      localizedName: '棘刺玫瑰',
-      playerFacingLocalizedName: '棘刺玫瑰（候选）',
+      localizedName: '荆棘玫瑰',
+      playerFacingLocalizedName: '荆棘玫瑰（候选）',
       ocrAliases: '棘刺玫瑰|荆棘玫瑰|Thorned Rose|ThornedRose',
       twoPiece: 'defense +16%',
       fourPiece:

@@ -82,7 +82,7 @@ export const pageCandidateDirectionsPart06: Partial<Record<string, PageCandidate
         section: 'build-and-teams',
       }),
       licenseBoundary:
-        '社区候选页面：仅本地候选与来源定位，不作为官方事实或正式计算输入；页面未给出可核验的 3.0 适用版本。',
+        '社区候选页面：仅本地候选与来源定位，不作为官方事实或正式计算输入；页面未给出可核验的 3.0 适用版本。R2 审阅补全：依据来源 Substats（CRIT Rate = CRIT DMG > HP% > ATK% = Flat HP）补全同层有效固定生命值（Flat HP）。',
       verified: true,
     },
     wengines: [
@@ -96,7 +96,9 @@ export const pageCandidateDirectionsPart06: Partial<Record<string, PageCandidate
     sets: ['Yunkui Tales 4 件 + Woodpecker Electro / Branch & Blade Song 2 件'],
     stats: {
       main: ['4号位：暴击伤害/暴击率', '5号位：冰伤或生命值%', '6号位：生命值%'],
-      sub: ['暴击率、暴击伤害、生命值%、攻击力%；候选暴击率为 58.6–65.8%（战斗内可提高）。'],
+      sub: [
+        '暴击率、暴击伤害、生命值%、攻击力%、固定生命值；候选暴击率为 58.6–65.8%（战斗内可提高）。',
+      ],
     },
     progression: [
       '以耗血充能的 Frostbite Embrace、Glacial Crush 与失衡连携为核心；特殊、连携、普攻、支援、闪避按页面顺序投入。',

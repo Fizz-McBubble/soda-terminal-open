@@ -82,6 +82,31 @@ describe('background snapshot lifecycle', () => {
     expect(first.valueBenchmarks?.[0]?.candidate.dimensions.w_engine).toContain('p5:lv40:asc3')
     expect(first.comparisonFingerprint).not.toBe(second.comparisonFingerprint)
     expect(first.inputFingerprint).toBe(second.inputFingerprint)
+    const stunned = await client.queryDevelopmentCandidateAlternatives({
+      ...base,
+      candidateParametersByRank: { 1: parameters },
+      scenarioSelection: { schemaVersion: 1, id: 'declared-stun-comparison' },
+    })
+    expect(stunned.scenarioSelection?.id).toBe('declared-stun-comparison')
+    expect(stunned.scenarioIdentity).not.toBe(first.scenarioIdentity)
+    expect(stunned.comparisonFingerprint).not.toBe(first.comparisonFingerprint)
+    expect(stunned.valueBenchmarks?.[0]?.candidate.totalDamage).toBeCloseTo(
+      first.valueBenchmarks![0]!.candidate.totalDamage! * 1.5,
+      6,
+    )
+    expect(stunned.valueBenchmarks?.[0]?.baseline.totalDamage).toBeCloseTo(
+      first.valueBenchmarks![0]!.baseline.totalDamage! * 1.5,
+      6,
+    )
+    expect(stunned.valueBenchmarks?.[0]?.candidate.dimensions.scenario).not.toBe(
+      first.valueBenchmarks?.[0]?.candidate.dimensions.scenario,
+    )
+    await expect(
+      client.queryDevelopmentCandidateAlternatives({
+        ...base,
+        scenarioSelection: { schemaVersion: 9, id: 'future' } as never,
+      }),
+    ).rejects.toThrow('规划场景版本')
     expect(JSON.stringify(request.input)).toBe(before)
     await expect(
       client.queryDevelopmentCandidateAlternatives({

@@ -10,6 +10,7 @@ import { type PlanningProfile } from './planningProfile'
 
 export type PlanEditorProps = {
   deleteAction?: import('react').ReactNode
+  comparisonScenarioControl?: import('react').ReactNode
   warehouse: CoreWarehouse
   kind: 'agent' | 'team'
   profiles: PlanningProfile[]

@@ -5,6 +5,7 @@ import type { TargetTeamWarehouseFitQueryResult } from '../application/calculati
 import { contentHash } from '../application/contentHash'
 import { publicVersionIdentity } from '../application/publicVersionIdentity'
 import { verifyTeamSaveChoice } from './useTeamSaveConfirmation'
+import { resolveSavedPlanScenarioSelection } from './savedPlanIdentity'
 import type { TeamAnalysisResult } from './teamAnalysisSession'
 import type { DecisionTeamViewModel } from './teamLoadoutDecisionViewModel'
 import type { PlanningProfile } from './planningProfile'
@@ -26,7 +27,7 @@ type SavePlanEditorDraft = {
   remainingSession: TeamAnalysisResult | undefined
 }
 
-export function persistPlanEditorDraft({
+export async function persistPlanEditorDraft({
   accountId,
   draft,
   nextPlanId,
@@ -42,6 +43,28 @@ export function persistPlanEditorDraft({
   profiles,
   remainingSession,
 }: SavePlanEditorDraft) {
+  const expectedSelection =
+    draft.solutionContext?.scenarioSelection !== undefined
+      ? resolveSavedPlanScenarioSelection(draft.solutionContext.scenarioSelection)
+      : undefined
+  const actualSelection =
+    targetTeamFit?.scenarioSelection !== undefined
+      ? resolveSavedPlanScenarioSelection(targetTeamFit.scenarioSelection)
+      : undefined
+
+  if (expectedSelection && actualSelection && expectedSelection.id !== actualSelection.id) {
+    throw new Error('保存方案的比较场景与实际计算结果不一致。')
+  }
+  if (expectedSelection && expectedSelection.id !== 'normalized-comparison' && !actualSelection) {
+    throw new Error('当前配装结果缺少失衡期比较元数据，不能作为失衡期方案保存。')
+  }
+
+  const savedScenarioSelection = actualSelection ?? expectedSelection
+  const savedScenarioIdentity =
+    targetTeamFit?.scenarioIdentity ?? draft.solutionContext?.scenarioIdentity
+  if (savedScenarioSelection?.id === 'declared-stun-comparison' && !targetTeamFit?.scenarioIdentity)
+    throw new Error('当前配装结果缺少失衡期计算身份，不能保存。')
+
   const input: PlanningDraftInput = {
     ...draft,
     id: nextPlanId,
@@ -74,6 +97,8 @@ export function persistPlanEditorDraft({
               profiles.map((profile) => [profile.id, profile.packageVersion]),
             ),
             exactVariantKey: exactVariantKey!,
+            ...(savedScenarioSelection ? { scenarioSelection: savedScenarioSelection } : {}),
+            ...(savedScenarioIdentity ? { scenarioIdentity: savedScenarioIdentity } : {}),
           }
         : draft.solutionContext,
     warehouseRefs:

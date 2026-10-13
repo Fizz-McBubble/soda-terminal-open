@@ -1,11 +1,8 @@
+import { TeamPlanRecoveryStatus } from './TeamPlanRecoveryStatus'
 import { setCurrentTeamAnalysisSession } from './teamAnalysisSession'
 import { useContext, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { getAgentName } from '../application/publicRosterNames'
-import {
-  PlayerConfirmableBangbooSelector,
-  type PlayerConfirmableBangbooOption,
-} from './PlayerConfirmableBangbooSelector'
 import { TeamDecisionAuthorityDetail } from './TeamDecisionAuthorityDetail'
 import { InvalidPlan } from './InvalidPlan'
 import { playerFacingBangbooLabel } from '../application/playerFacingLabels'
@@ -29,6 +26,11 @@ import { calculationQueryContractVersion } from '../application/calculationQuery
 import { useTeamRematch } from './useTeamRematch'
 import { usePageOperationScope } from '../components/usePageOperationScope'
 import { beginUsageOperation } from '../usageStatistics/client'
+import { PlanningScenarioControl } from '../components/PlanningScenarioControl'
+import {
+  planningScenarioSelection32,
+  type CurrentPlanningScenarioSelection32,
+} from '../application/publicPlanningScenarioContract'
 
 export function TeamPlan({
   warehouse,
@@ -126,8 +128,7 @@ export function TeamPlan({
     ]),
   )
   const automaticBangboo = route?.automaticBangboo ?? null
-  const playerConfirmableBangbooOptions: readonly PlayerConfirmableBangbooOption[] =
-    route?.playerConfirmableBangbooOptions ?? []
+  const playerConfirmableBangbooOptions = route?.playerConfirmableBangbooOptions ?? []
   // TeamPlan stays mounted while the route selects a same-core alternative. A fit is
   // an exact Candidate result, never a reusable family-level presentation object.
   // Hide an old fit immediately, before the route effect can schedule the new query.
@@ -137,6 +138,8 @@ export function TeamPlan({
       : retainedTargetTeamFit?.candidateId === targetCandidateId
         ? retainedTargetTeamFit
         : undefined
+  const scenarioSelection =
+    currentTargetTeamFit?.scenarioSelection ?? planningScenarioSelection32('normalized-comparison')
   const { rematching, rematchTeam } = useTeamRematch({
     teamKey,
     warehouse,
@@ -193,7 +196,12 @@ export function TeamPlan({
     queueMicrotask(() => {
       if (!active || generation !== targetFitRequestGeneration.current) return
       setFitStatus('running')
-      void calculateTargetTeamWarehouseFit(analysisRunId, targetCandidateId)
+      void calculateTargetTeamWarehouseFit(
+        analysisRunId,
+        targetCandidateId,
+        undefined,
+        retainedTargetTeamFit?.scenarioSelection,
+      )
         .then((fit) => {
           if (!active || generation !== targetFitRequestGeneration.current) return
           const session = currentTeamAnalysisSession
@@ -230,6 +238,7 @@ export function TeamPlan({
     recoveryInputHash,
     recoveryTeamId,
     targetCandidateId,
+    retainedTargetTeamFit?.scenarioSelection,
   ])
   const selectAlternative = useTeamAlternativeSelection({
     accountId: warehouse.accountId,
@@ -242,7 +251,8 @@ export function TeamPlan({
     capturePageScope,
     setSwitchingAlternativeId,
     setAlternativeError,
-    calculateTargetTeamWarehouseFit,
+    calculateTargetTeamWarehouseFit: (runId, candidateId, equipmentParameters) =>
+      calculateTargetTeamWarehouseFit(runId, candidateId, equipmentParameters, scenarioSelection),
     navigate,
   })
   if (!team)
@@ -288,6 +298,7 @@ export function TeamPlan({
         kind: 'target_team_warehouse_fit',
         runId: analysisRunId,
         candidateId: targetCandidateId,
+        scenarioSelection,
         playerBangbooSelection: { teamKey, ...selection },
       })
       if (!isCurrentPage() || requestGeneration !== targetFitRequestGeneration.current) {
@@ -349,58 +360,21 @@ export function TeamPlan({
             </p>
           </div>
         </header>
-        <section className="panel status-card" aria-label="队伍建议详情">
-          <h2>
-            {readOnly
-              ? '账户资料已更新'
-              : fitStatus === 'error'
-                ? '配装生成失败'
-                : canRecoverTargetFit
-                  ? '正在生成队伍配装'
-                  : !targetCandidateId
-                    ? '暂不能为这队配装'
-                    : bangbooUnavailable
-                      ? '暂未找到可用邦布'
-                      : needsBangbooChoice
-                        ? '确认邦布后生成配装'
-                        : '暂不能打开这份配装'}
-          </h2>
-          <p role={fitStatus === 'error' && !readOnly ? 'alert' : undefined}>
-            {readOnly
-              ? '返回队伍建议重新分析后，再为这支队伍配装。'
-              : fitStatus === 'error'
-                ? '配装生成失败；账户资料没有被修改。'
-                : canRecoverTargetFit
-                  ? '正在恢复这支队伍的配装，请稍候。'
-                  : !targetCandidateId
-                    ? '当前没有足够的配装依据，请返回选择其他队伍。'
-                    : bangbooUnavailable
-                      ? '当前没有可确认的邦布搭配，请返回选择其他队伍。'
-                      : needsBangbooChoice
-                        ? '选择要搭配的邦布，再匹配驱动盘；不会修改账户资产。'
-                        : '请返回队伍建议，重新选择这支队伍。'}
-          </p>
-          {needsBangbooChoice && !readOnly ? (
-            <PlayerConfirmableBangbooSelector
-              memberIds={team.agentIds}
-              options={playerConfirmableBangbooOptions}
-              pending={fitStatus === 'running' || readOnly}
-              onConfirm={(selection) => void confirmPlayerBangbooAndCalculate(selection)}
-            />
-          ) : null}
-          {canRecoverTargetFit && fitStatus === 'error' ? (
-            <button
-              className="button button--secondary"
-              type="button"
-              onClick={() => {
-                setFitStatus('idle')
-                setRecoveryAttempt((current) => current + 1)
-              }}
-            >
-              重试生成
-            </button>
-          ) : null}
-        </section>
+        <TeamPlanRecoveryStatus
+          readOnly={readOnly}
+          fitStatus={fitStatus}
+          canRecoverTargetFit={canRecoverTargetFit}
+          targetCandidateId={targetCandidateId}
+          bangbooUnavailable={bangbooUnavailable}
+          needsBangbooChoice={needsBangbooChoice}
+          memberIds={team.agentIds}
+          options={playerConfirmableBangbooOptions}
+          onConfirm={(selection) => void confirmPlayerBangbooAndCalculate(selection)}
+          onRetry={() => {
+            setFitStatus('idle')
+            setRecoveryAttempt((current) => current + 1)
+          }}
+        />
         {decision ? (
           <TeamDecisionAuthorityDetail decision={decision} memberIds={team.agentIds} />
         ) : null}
@@ -418,6 +392,46 @@ export function TeamPlan({
       analysisRunId={analysisRunId}
       decision={decision}
       targetTeamFit={currentTargetTeamFit}
+      comparisonScenarioControl={
+        <PlanningScenarioControl
+          value={scenarioSelection}
+          disabled={
+            readOnly || rematching || fitStatus === 'running' || Boolean(switchingAlternativeId)
+          }
+          onChange={async (selection: CurrentPlanningScenarioSelection32) => {
+            if (!analysisRunId || !targetCandidateId || explicitFitPending.current) return
+            const isCurrentPage = capturePageScope()
+            const generation = ++targetFitRequestGeneration.current
+            explicitFitPending.current = true
+            setFitStatus('running')
+            setEquipmentParametersRequireRefresh(true)
+            try {
+              const fit = await calculateTargetTeamWarehouseFit(
+                analysisRunId,
+                targetCandidateId,
+                currentTargetTeamFit?.effectiveEquipmentParameters?.source === 'player_confirmed'
+                  ? currentTargetTeamFit.effectiveEquipmentParameters
+                  : undefined,
+                selection,
+              )
+              if (!isCurrentPage() || generation !== targetFitRequestGeneration.current) return
+              if (fit.scenarioSelection?.id !== selection.id || !fit.scenarioIdentity)
+                throw new Error('比较场景未进入计算结果，请重试。')
+              setTargetTeamFit(fit)
+              setAlternativeError(null)
+              setFitStatus('idle')
+            } catch (error) {
+              if (!isCurrentPage() || generation !== targetFitRequestGeneration.current) return
+              setAlternativeError(error instanceof Error ? error.message : '场景计算失败，请重试。')
+              setFitStatus('error')
+            } finally {
+              explicitFitPending.current = false
+              if (isCurrentPage() && generation === targetFitRequestGeneration.current)
+                setEquipmentParametersRequireRefresh(false)
+            }
+          }}
+        />
+      }
       onDeploymentOrderChange={(order) => {
         if (readOnly || equipmentParametersRequireRefresh || !currentTargetTeamFit) return
         setTargetTeamFit(
@@ -455,6 +469,7 @@ export function TeamPlan({
             analysisRunId,
             targetCandidateId,
             selection,
+            scenarioSelection,
           )
           if (!isCurrentPage() || requestGeneration !== targetFitRequestGeneration.current) {
             finishUsage('cancelled')

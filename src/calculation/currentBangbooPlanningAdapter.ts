@@ -3,7 +3,7 @@ import {
   projectCurrentBangbooStats,
 } from '../gameDataPacks/currentBangbooNumericCatalog'
 import { stableContentHash } from '../gameDataPacks/types'
-import { getCurrentAgentEventContract } from './currentAgentMechanicContracts'
+import { projectCurrentBangbooComposition32 } from './currentBangbooCompositionIdentity'
 import { resolveCurrentBangbooMechanicContract } from './currentBangbooMechanicContracts'
 import {
   currentBangbooFixedEventObservation,
@@ -12,27 +12,6 @@ import {
 import { calculateDamageFormula } from './damageFormulaDispatch'
 import { isDamageFormula32Version } from './sharpDamageCore'
 import type { PlanningBaseline } from './planningDpsContract'
-
-function teamComposition(memberIds: readonly [string, string, string]) {
-  const composition: Record<string, number> = {}
-  const normalizeKey = (value: string) =>
-    value
-      .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
-      .replace(/[-\s]+/g, '_')
-      .toLowerCase()
-  for (const agentId of memberIds) {
-    const identity = getCurrentAgentEventContract(agentId)?.identity
-    composition[`agent:${normalizeKey(agentId.replace(/^agent-/, ''))}`] = 1
-    if (!identity) continue
-    for (const dimensionKey of [
-      `attribute:${normalizeKey(identity.attribute)}`,
-      `specialty:${normalizeKey(identity.specialty)}`,
-      `faction:${normalizeKey(identity.faction)}`,
-    ])
-      composition[dimensionKey] = (composition[dimensionKey] ?? 0) + 1
-  }
-  return composition
-}
 
 function unique(values: readonly string[]) {
   return [...new Set(values)]
@@ -53,12 +32,17 @@ export interface EvaluateCurrentBangbooPlanningParameterInput {
   readonly additionalAbilityEnabled?: boolean
   readonly baseline?: PlanningBaseline
   readonly enemy?: CurrentBangbooPlanningEnemyConditions
+  /** One declared fixed slice, not inferred from formation activation. */
+  readonly eventFlags?: Readonly<Record<string, boolean>>
+  readonly accumulators?: Readonly<Record<string, number>>
+  readonly enemyCount?: number
 }
 
 /** Resolves one selected level-60 Bangboo settled under the normalized one-active/one-chain baseline against declared enemy conditions. */
 export function evaluateCurrentBangbooPlanningParameter(
   input: EvaluateCurrentBangbooPlanningParameterInput,
 ) {
+  const composition = projectCurrentBangbooComposition32(input.memberIds)
   const stats = projectCurrentBangbooStats({
     stableId: input.stableId,
     level: 60,
@@ -69,9 +53,10 @@ export function evaluateCurrentBangbooPlanningParameter(
     bangbooLevel: 60,
     skillLevel: 10,
     additionalAbilityLevel: input.stars,
-    composition: teamComposition(input.memberIds),
-    flags: {},
-    accumulators: {},
+    composition,
+    flags: input.eventFlags ?? {},
+    accumulators: input.accumulators ?? {},
+    unresolvedEventPolicy: 'exclude',
     additionalAbilityEnabled: input.additionalAbilityEnabled ?? true,
   })
   const blockers = [
@@ -80,6 +65,8 @@ export function evaluateCurrentBangbooPlanningParameter(
   ]
 
   const baseline = input.baseline ?? currentNormalizedPlanningBaseline
+  const enemyCount = input.enemyCount ?? 1
+  if (!Number.isInteger(enemyCount) || enemyCount < 1) blockers.push('固定事件敌人数必须为正整数。')
   const declaredEnemy = input.enemy ?? baseline.enemy
   if (!declaredEnemy || typeof declaredEnemy !== 'object') {
     blockers.push('缺少敌方目标条件声明。')
@@ -144,7 +131,15 @@ export function evaluateCurrentBangbooPlanningParameter(
     Record<string, unknown>
   >
   const scheduleMutations = outputs.filter((output) => output.operator === 'event_schedule_mutate')
-  const excludedOutputs = scheduleMutations.filter((output) => output.mechanic === 'guarantee')
+  const excludedOutputs: Array<Record<string, unknown>> = [
+    ...scheduleMutations.filter((output) => output.mechanic === 'guarantee'),
+    ...(mechanic.status === 'supported' && 'unresolvedOutputs' in mechanic
+      ? (mechanic.unresolvedOutputs ?? []).map((output) => ({
+          ...output,
+          operator: 'unresolved_conditional_output',
+        }))
+      : []),
+  ]
   const unsupportedScheduleMutations = scheduleMutations.filter(
     (output) => output.mechanic !== 'guarantee',
   )
@@ -185,13 +180,40 @@ export function evaluateCurrentBangbooPlanningParameter(
             : 0
       if (uses <= 0) continue
 
-      const bonus = damageModifiers
-        .filter((modifier) => String(modifier.targetAction).startsWith(action))
-        .reduce(
-          (sum, modifier) =>
-            sum + Number(Array.isArray(modifier.values) ? (modifier.values[0] ?? 0) : 0),
-          0,
+      const bonus = damageModifiers.reduce((sum, modifier) => {
+        const target = String(modifier.targetAction)
+        if (
+          target !== 'all' &&
+          target !== 'active_and_chain' &&
+          target !== action &&
+          !target.startsWith(`${action}:`)
         )
+          return sum
+        const values = Array.isArray(modifier.values) ? modifier.values.map(Number) : []
+        let value: number
+        if (target === 'chain:enemy_count_tiers')
+          value = values[Math.min(enemyCount, values.length) - 1] ?? Number.NaN
+        else if (values.length === 1) value = values[0]!
+        else {
+          const excluded = {
+            ...modifier,
+            reason: '多参数额外加成尚未绑定本次累计量算式，不计入固定伤害。',
+          }
+          if (
+            !excludedOutputs.some(
+              (row) => row.targetAction === target && row.reason === excluded.reason,
+            )
+          )
+            excludedOutputs.push(excluded)
+          return sum
+        }
+        const chance = modifier.chance === undefined ? 1 : Number(modifier.chance)
+        if (!Number.isFinite(value) || !Number.isFinite(chance) || chance < 0 || chance > 1) {
+          blockers.push(`邦布 ${input.stableId} 的额外伤害倍率或概率无效。`)
+          return sum
+        }
+        return sum + value * chance
+      }, 0)
 
       try {
         const result = calculateDamageFormula({
@@ -247,10 +269,13 @@ export function evaluateCurrentBangbooPlanningParameter(
     skillLevel: 10 as const,
     additionalAbilityLevel: input.stars,
     additionalAbilityEnabled: input.additionalAbilityEnabled ?? true,
+    eventFlags: input.eventFlags ?? {},
+    accumulators: input.accumulators ?? {},
+    enemyCount,
     sourceVersion: currentBangbooNumericCatalog.sourceVersion,
     reviewedForVersion: currentBangbooNumericCatalog.reviewedForVersion,
     sourceReviewCommit: currentBangbooNumericCatalog.continuityReview.releaseSource.commit,
-    composition: teamComposition(input.memberIds),
+    composition,
     stats: stats.status === 'supported' ? stats : null,
     outputs,
     excludedOutputs,
@@ -268,7 +293,7 @@ export function evaluateCurrentBangbooPlanningParameter(
     declaredObservation: currentBangbooFixedEventObservation,
     blockers: unique(blockers),
     boundary:
-      '星级映射为附加能力 1–5 级；主动技/连携技固定采用 60 级对应技能 10 级。固定计划已声明一次主动与一次连携，并结算在相同声明的敌方防御与抗性条件下；失衡、异常积蓄与回复/护盾/回能等非伤害 outputs 归类在直接伤害目标之外，不静默宣称已完整支持；guarantee 作为非数值事件保证显式排除；其他未声明事件变更仍 fail closed。',
+      '星级映射为附加能力 1–5 级；主动技/连携技固定采用60级技能10级、一次主动与一次连携，默认单敌人。概率增益按期望结算；未知事件状态只排除对应额外输出并保留来源基础伤害，组成激活不等于状态常驻。失衡、异常积蓄与回复/护盾/回能等非伤害 outputs 归类在直接伤害目标之外，未计入队伍综合收益；guarantee显式排除，已声明但仍无法表达的事件计划变更继续拒绝。此为固定伤害片段，不是邦布推荐收益排序或完整实战DPS。',
   }
   return { ...core, fingerprint: stableContentHash(core) }
 }

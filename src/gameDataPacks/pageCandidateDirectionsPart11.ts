@@ -13,7 +13,7 @@ export const pageCandidateDirectionsPart11: Partial<Record<string, PageCandidate
         checkedAt: '2026-07-27',
       }),
       licenseBoundary:
-        '社区候选页面：仅本地候选与来源定位，不作为官方事实或正式计算输入；页面构筑更新标为 2.8。',
+        '社区候选页面：仅本地候选与来源定位，不作为官方事实或正式计算输入；页面构筑更新标为 2.8。R2 审阅补全：依据来源 Substats（CRIT RATE > CRIT DMG = HP% > Flat HP > Flat ATK）补全有效固定生命值与固定攻击力，纠正裸词歧义。',
       verified: true,
     },
     wengines: [
@@ -32,7 +32,9 @@ export const pageCandidateDirectionsPart11: Partial<Record<string, PageCandidate
         '5号位：物理伤害优先，其次生命值%',
         '6号位：生命值%',
       ],
-      sub: ['暴击率、暴击伤害、生命值%、攻击力；候选 Sheer Force 2200+、生命 18000+。'],
+      sub: [
+        '暴击率、暴击伤害、生命值%、固定生命值、固定攻击力；候选 Sheer Force 2200+、生命 18000+。',
+      ],
     },
     progression: [
       '通过 Drive Suppression 耗血、普攻/闪避反击回血，积累 Determination 后释放 Full-Throttle Starlight；失衡内保留 Cool Wheelie、终结技和强化普攻。',
@@ -84,14 +86,15 @@ export const pageCandidateDirectionsPart11: Partial<Record<string, PageCandidate
         updatedAt: '2026-06-14',
         buildVersion: '2.5',
       }),
-      licenseBoundary: '社区候选页面：仅本地候选与来源定位，不作为官方事实或正式计算输入。',
+      licenseBoundary:
+        '社区候选页面：仅本地候选与来源定位，不作为官方事实或正式计算输入。R2 审阅补全：依据来源 Substats（CRIT Rate = CRIT DMG > HP% > ATK% > Flat HP）补全有效固定生命值（Flat HP）。',
       verified: true,
     },
     wengines: ['Qingming Birdcage', 'Cauldron of Clarity', 'Radiowave Journey', 'Puzzle Sphere'],
     sets: ['Yunkui Tales 4 件 + Woodpecker Electro / Branch & Blade Song 2 件'],
     stats: {
       main: ['4号位：暴击伤害/暴击率', '5号位：以太伤害/生命值', '6号位：生命值'],
-      sub: ['暴击率/暴击伤害、生命值%、攻击力%'],
+      sub: ['暴击率/暴击伤害、生命值%、攻击力%、固定生命值'],
     },
     progression: ['候选页面包含构筑与终局面板；技能/核心优先级需同版本独立核验。'],
     team: ['页面计算假设：橘福福与卢西娅；不等同唯一队伍或正式最优。'],

@@ -34,6 +34,7 @@ import { projectPrivateSavedTeamReplay } from './privateSavedTeamReplayProjectio
 import { projectPrivateSavedTeamSolutionComponents } from './privateSavedTeamSolutionComponentsProjection'
 import { projectPlanningBenchmark32 } from './privatePlanningBenchmark32'
 import { projectCommonAnomalySettlementQuery32 } from './privateCommonAnomalySettlementQuery32'
+import { resolveCurrentPlanningScenario32 } from '../calculation/currentPlanningScenario32'
 
 export function createLocalCalculationQueryClientCore(options: {
   readRuntimeSelection: () => Promise<CurrentGameDataRuntimeSelection>
@@ -283,9 +284,19 @@ export function createLocalCalculationQueryClientCore(options: {
       if (!run) throw new Error(`Account Decision run is unavailable: ${query.runId}.`)
       const accountId = run.input.warehouse.accountId
       if (!accountId) throw new Error(`Account Decision run has no account: ${query.runId}.`)
-      const baseProjection = projectDevelopmentCandidateAlternatives(run.input, query.agentId)
+      const scenario = resolveCurrentPlanningScenario32(query.scenarioSelection)
+      const baseProjection = projectDevelopmentCandidateAlternatives(
+        run.input,
+        query.agentId,
+        undefined,
+        scenario.selection,
+      )
       const projection = { ...baseProjection, candidates: [...baseProjection.candidates] }
       const explicit = query.candidateParametersByRank ?? {}
+      const candidateSearchByRank: Record<
+        number,
+        import('../decision/developmentCandidateAlternatives').DevelopmentCandidateSearch
+      > = {}
       if (
         Object.keys(explicit).some(
           (rank) =>
@@ -306,10 +317,19 @@ export function createLocalCalculationQueryClientCore(options: {
         if (!generated.has(key))
           generated.set(
             key,
-            projectDevelopmentCandidateAlternatives(run.input, query.agentId, parameters),
+            projectDevelopmentCandidateAlternatives(
+              run.input,
+              query.agentId,
+              parameters,
+              scenario.selection,
+            ),
           )
         const candidate = generated.get(key)!.candidates[0]
-        if (candidate) projection.candidates[Number(rank) - 1] = candidate
+        if (candidate) {
+          projection.candidates[Number(rank) - 1] = candidate
+          const search = generated.get(key)!.candidateSearch
+          if (search) candidateSearchByRank[Number(rank)] = search
+        }
       }
       const valueBenchmarks = projectDevelopmentValueBenchmarks({
         warehouse: run.input.warehouse,
@@ -318,6 +338,7 @@ export function createLocalCalculationQueryClientCore(options: {
         candidates: projection.candidates,
         savedPlans: run.input.drafts,
         candidateParametersByRank: explicit,
+        scenarioSelection: scenario.selection,
         stale: false,
       })
       return {
@@ -327,9 +348,13 @@ export function createLocalCalculationQueryClientCore(options: {
           inputFingerprint: run.snapshot.fingerprint.inputHash,
           agentId: query.agentId,
           parameters: explicit,
+          scenarioIdentity: scenario.identity,
           comparisons: valueBenchmarks.map((row) => row.candidate.calculationFingerprint),
         }),
         candidateParametersByRank: explicit,
+        scenarioSelection: scenario.selection,
+        scenarioIdentity: scenario.identity,
+        candidateSearchByRank,
         comparisonOptions: {
           reviewedEvent32: projectReviewedIncrementalEventMetadata32(query.agentId),
           wEngines: currentWEngineDirectory

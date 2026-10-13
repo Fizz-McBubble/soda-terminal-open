@@ -6,6 +6,8 @@ import { formatCandidateSkillDirections } from '../application/publicCandidateLa
 import { contentHash } from '../application/contentHash'
 import { publicVersionIdentity } from '../application/publicVersionIdentity'
 
+import { resolveSavedPlanScenarioSelection } from './savedPlanIdentity'
+
 type Snapshot = NonNullable<ReturnType<typeof readDevelopmentCandidateSnapshot>>
 
 /** Maps a captured candidate into the player-owned proposal without writing any account facts. */
@@ -22,6 +24,12 @@ export function createComparisonSavedBuild(
   const knowledge = candidateSnapshot.panelPresentation!.saveKnowledge
   const explicitParameters = candidateSnapshot.candidateParametersByRank?.[rank]
   const discIds = candidate.discs.map((item) => item.disc.id)
+  const validatedScenario =
+    candidateSnapshot.scenarioSelection !== undefined
+      ? resolveSavedPlanScenarioSelection(candidateSnapshot.scenarioSelection)
+      : undefined
+  if (validatedScenario?.id === 'declared-stun-comparison' && !candidateSnapshot.scenarioIdentity)
+    throw new Error('失衡期计算身份缺失，请重新比较。')
   return {
     name: `${getAgentName(agentId)} · 养成方案`,
     selection: { agentIds: [agentId], bangbooId: null, scenario: knowledge.scenario },
@@ -60,12 +68,22 @@ export function createComparisonSavedBuild(
         explicitParameters,
       ]),
       solverMethod: candidatePlan.solver?.method ?? 'bounded_heuristic',
+      ...((candidateSnapshot.candidateSearchByRank?.[rank] ?? candidateSnapshot.candidateSearch)
+        ? {
+            candidateSearch:
+              candidateSnapshot.candidateSearchByRank?.[rank] ?? candidateSnapshot.candidateSearch,
+          }
+        : {}),
       gameVersion:
         valueBenchmark?.candidate.dimensions.game_version ?? publicVersionIdentity.gameVersion,
       knowledgeVersion: knowledge.version,
       exactVariantKey: null,
       ...(candidateSnapshot.candidateParametersByRank?.[rank]
         ? { comparisonParameters: candidateSnapshot.candidateParametersByRank[rank] }
+        : {}),
+      ...(validatedScenario ? { scenarioSelection: validatedScenario } : {}),
+      ...(candidateSnapshot.scenarioIdentity
+        ? { scenarioIdentity: candidateSnapshot.scenarioIdentity }
         : {}),
     },
     candidateWarehouse: {

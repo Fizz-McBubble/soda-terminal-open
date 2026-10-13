@@ -21,6 +21,47 @@ export type TargetPanelMetricSemantic = {
 
 export type TargetPanelSemantics = Partial<Record<TargetPanelMetricKey, TargetPanelMetricSemantic>>
 
+const metricKeyByLabel: Record<string, TargetPanelMetricKey> = {
+  生命值: 'hp',
+  攻击力: 'atk',
+  防御力: 'def',
+  冲击力: 'impact',
+  暴击率: 'critRate',
+  暴击伤害: 'critDamage',
+  异常掌控: 'anomalyMastery',
+  异常精通: 'anomalyProficiency',
+  穿透率: 'penRatio',
+  能量自动回复: 'energyRegen',
+}
+
+/** Static account panels can only show required, source-backed guide references. */
+export function canDisplayStaticPanelTarget(panel: unknown, label: string): boolean {
+  if (!panel || typeof panel !== 'object' || Array.isArray(panel)) return false
+  const sourcePanel = panel as { value?: unknown; status?: unknown; sourceRefs?: unknown }
+  if (
+    sourcePanel.status === 'missing' ||
+    !Array.isArray(sourcePanel.sourceRefs) ||
+    !sourcePanel.sourceRefs.length
+  )
+    return false
+  const key = metricKeyByLabel[label]
+  if (!key) return false
+  const semantic = readTargetPanelMetricSemantic(sourcePanel.value, key)
+  // Source-backed legacy guidance remains readable. A claimed but invalid typed
+  // contract fails closed; optional and combat-only targets are never static goals.
+  return (
+    semantic === undefined ||
+    (semantic !== null &&
+      semantic.requirement === 'required' &&
+      semantic.observation !== 'in_combat')
+  )
+}
+
+/** Compatibility guard for saved public snapshots predating typed projection. */
+export function staticPanelTargetDisplay(value: string | undefined): string | undefined {
+  return value && !/可选|战斗内/.test(value) ? value : undefined
+}
+
 function isTargetPanelMetricSemantic(value: unknown): value is TargetPanelMetricSemantic {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false
   const semantic = value as Partial<TargetPanelMetricSemantic>

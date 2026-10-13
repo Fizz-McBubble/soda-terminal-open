@@ -1,3 +1,4 @@
+import { getAgentCapability } from '../assault/agentCapabilities'
 import { createCalculationContext } from './calculationContext'
 import {
   getCurrentAgentEventContract,
@@ -155,6 +156,9 @@ export function qualifyReviewedPreparedBenchmark32(input: {
     !Number.isInteger(input.member.mindscape) ||
     input.member.mindscape < 0 ||
     input.member.mindscape > record.maximumMindscape ||
+    (input.member.potential == null &&
+      getAgentCapability(input.member.agentId)?.sourceBinding32?.missingObservationPolicy ===
+        'preserve_unknown') ||
     !Number.isInteger(input.member.potential ?? 0) ||
     (input.member.potential ?? 0) < 0 ||
     (input.member.potential ?? 0) > record.maximumPotential ||

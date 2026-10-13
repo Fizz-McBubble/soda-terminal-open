@@ -89,6 +89,11 @@ describe('development candidate alternatives projection', () => {
     expect(result.candidates).toEqual(control.candidates)
     expect(result.candidates[0]?.loadouts[0]?.discs).toHaveLength(6)
     expect(result.baseline).toEqual([])
+    expect(result.candidateSearch).toMatchObject({
+      rankingMethod: 'source_and_local_refinement',
+      productionGameAccuracyCertified: false,
+    })
+    expect(result.candidateSearch?.status).toBeDefined()
     expect(result.buildIntent).toMatchObject({
       contract: 'soda-build-intent/v1',
       scope: 'agent_independent',

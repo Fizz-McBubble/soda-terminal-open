@@ -16,6 +16,7 @@ import { current31TeamStrengthProductReadiness } from './current31TeamStrengthPr
 import { teamRatingDecisionTable } from './teamRatingEvaluator'
 import { portfolioSelectionPolicy } from '../optimizer/multiTeamCoordinator'
 import { candidateSetPlanPolicyVersion } from '../gameDataPacks/candidateSetPlanPolicy'
+import { defaultTeamRecommendationPolicyIdentity } from './defaultTeamRecommendationPolicyIdentity'
 import {
   warehouseAnalysisRuleVersion,
   warehouseUsePolicyVersion,
@@ -30,6 +31,7 @@ export const accountDecisionFingerprintContract = 'soda-account-decision-fingerp
 export function accountDecisionModelHashForEvidencePolicy(evidencePolicy: string) {
   return contentHash({
     mechanicDecisionTable: teamRatingDecisionTable,
+    defaultTeamRecommendationPolicyIdentity,
     teamStrengthCalibration: current31TeamStrengthCalibrationBoundary,
     variantBangbooRecommendation: current31VariantBangbooRecommendationSet,
     normalizedBangbooBinding: 'scheme-parameter-adapter-v1',

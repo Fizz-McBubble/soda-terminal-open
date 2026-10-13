@@ -2,7 +2,9 @@ import Dexie from 'dexie'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { SodaDatabase } from '../db/database'
 import { gameBase30Formal, gameBase32Current } from './baseline'
-import { createManifest } from './types'
+import { createManifest, gameDataPackageManifestSchema } from './types'
+import { isCompatibleManifestContent } from './manifestContentCompatibility'
+import releasedManifest from './releasedGameBase32Manifest.test.json'
 import {
   currentGameDataRuntimeSelectionContract,
   readCurrentGameDataRuntimeSelection,
@@ -30,24 +32,55 @@ afterEach(async () => {
 })
 
 describe('current game-data runtime selection', () => {
-  it.each(['source-labels', 'avatar-cache'] as const)(
+  it('the historical manifest differs only by the reviewed name and propagated metadata digests', () => {
+    const released = gameDataPackageManifestSchema.parse(releasedManifest)
+    const relabeled = createManifest({
+      ...released,
+      sources: released.sources.map((source) => ({
+        ...source,
+        contentHash: source.label === 'current-version-adoption-3.2-phase-ii-r1'
+          ? 'fnv1a-cb8972d7' : source.contentHash,
+      })),
+      coverage: released.coverage.map((entry) => ({
+        ...entry,
+        displayName: entry.stableId === 'set-34200' ? '荆棘玫瑰' : entry.displayName,
+        sourceContentHash: entry.sourceContentHash === 'fnv1a-54fa1e79'
+          ? 'fnv1a-53ed77d5' : entry.sourceContentHash,
+      })),
+      changesFromPreviousFormal: released.changesFromPreviousFormal.map((text) =>
+        text.replaceAll('fnv1a-54fa1e79', 'fnv1a-53ed77d5')
+          .replaceAll('fnv1a-34a56a5d', 'fnv1a-cb8972d7')),
+    })
+    expect(relabeled).toEqual(gameBase32Current)
+  })
+  it('does not extend historical compatibility to unknown stored or future compiled content', () => {
+    for (const stored of ['fnv1a-142ef3e7', 'fnv1a-fd1d9bb8', 'fnv1a-55673acf']) {
+      expect(isCompatibleManifestContent(stored, 'fnv1a-39f991e1')).toBe(true)
+      expect(isCompatibleManifestContent(stored, 'fnv1a-future')).toBe(false)
+    }
+    expect(isCompatibleManifestContent('fnv1a-unknown', 'fnv1a-39f991e1')).toBe(false)
+  })
+
+  it.each(['source-labels', 'avatar-cache', 'corrected-source-labels'] as const)(
     'opens the released %s 3.2 manifest without rewriting stored data',
     async (release) => {
       const db = createDatabase()
-      expect(gameBase32Current.contentHash).toBe('fnv1a-55673acf')
+      expect(gameBase32Current.contentHash).toBe('fnv1a-39f991e1')
+      const released = createManifest(gameDataPackageManifestSchema.parse(releasedManifest))
+      expect(released.contentHash).toBe('fnv1a-55673acf')
       const previous =
         release === 'avatar-cache'
           ? createManifest(
               JSON.parse(
-                JSON.stringify(gameBase32Current)
+                JSON.stringify(released)
                   .replaceAll('zzz-visual-assets-3.1.12', 'zzz-visual-assets-3.1.13')
                   .replaceAll('fnv1a-54fa1e79', 'fnv1a-c6b535be')
                   .replaceAll('fnv1a-34a56a5d', 'fnv1a-24c243a0'),
               ),
             )
-          : createManifest({
-              ...gameBase32Current,
-              sources: gameBase32Current.sources.map((source) => ({
+          : release === 'corrected-source-labels' ? released : createManifest({
+              ...released,
+              sources: released.sources.map((source) => ({
                 ...source,
                 verification:
                   source.verification === 'community_reference' ||
@@ -59,7 +92,7 @@ describe('current game-data runtime selection', () => {
       // Literal identities of released 719fd5b6 / 3c886248, not generated expectations.
       // The latter changed only image-version provenance and its propagated hashes.
       expect(previous.contentHash).toBe(
-        release === 'avatar-cache' ? 'fnv1a-fd1d9bb8' : 'fnv1a-142ef3e7',
+        release === 'avatar-cache' ? 'fnv1a-fd1d9bb8' : release === 'corrected-source-labels' ? 'fnv1a-55673acf' : 'fnv1a-142ef3e7',
       )
       await db.gameDataPacks.put(previous)
       await db.gameDataPackState.put({

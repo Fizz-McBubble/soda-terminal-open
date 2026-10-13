@@ -64,9 +64,13 @@ export type PlanningSolutionContext = {
   sourceCandidateId: string
   inputFingerprint: string
   solverMethod: string
+  /** Captured search provenance; absent on historical proposals. */
+  candidateSearch?: import('../decision/developmentCandidateAlternatives').DevelopmentCandidateSearch
   gameVersion: string
   knowledgeVersion: string
   exactVariantKey: string | null
+  scenarioSelection?: import('../application/publicPlanningScenarioContract').CurrentPlanningScenarioSelection32
+  scenarioIdentity?: string
   /** Explicit comparison choices, saved only with the player-owned proposal. */
   comparisonParameters?: {
     wEngine?: { engineId: string; level: number; ascension?: number; refinement: number }

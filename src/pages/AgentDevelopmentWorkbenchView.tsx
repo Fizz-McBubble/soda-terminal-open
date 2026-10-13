@@ -1,5 +1,5 @@
 import type { ComponentProps, Dispatch, SetStateAction } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { saveCurrentAgentBuild } from '../accounts/planningDrafts'
 import { contentHash } from '../application/contentHash'
 import {
@@ -111,6 +111,7 @@ export function AgentDevelopmentWorkbenchView({
   setLastRouteProjection,
 }: Props) {
   const navigate = useNavigate()
+  const location = useLocation()
   const capturePageScope = usePageOperationScope(
     JSON.stringify([accountId, agentId, requestedPlanId]),
   )
@@ -373,6 +374,8 @@ export function AgentDevelopmentWorkbenchView({
                   setLastRouteProjection({ accountId, agentId, value: projection })
                   setAnalysisVersion((version) => version + 1)
                   published = true
+                  if (new URLSearchParams(location.search).get('candidate') === '0')
+                    navigate(`/development/${agentId}?candidate=${index + 1}`, { replace: true })
                 } catch (error) {
                   if (isCurrentPage()) throw error
                 } finally {

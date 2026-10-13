@@ -22,6 +22,7 @@ export function AgentDevelopmentGolden({
   onSelectCandidatePlan,
   onAnalyzeWarehouse,
   onReanalyzeWarehouse,
+  comparisonScenarioControl,
 }: AgentDevelopmentGoldenProps) {
   const [view, setView] = useState<JourneyView>(initialView)
   const missingData = (view === 'workbench' && !workbench) || (view === 'top10' && !top10Data)
@@ -59,6 +60,7 @@ export function AgentDevelopmentGolden({
       onSavePlan={onSavePlan}
       onSelectCandidatePlan={onSelectCandidatePlan}
       onReanalyzeWarehouse={onReanalyzeWarehouse}
+      comparisonScenarioControl={comparisonScenarioControl}
     />
   )
   return <div className="ad-golden">{content}</div>

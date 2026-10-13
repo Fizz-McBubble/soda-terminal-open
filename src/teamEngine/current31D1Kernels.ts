@@ -205,7 +205,7 @@ export function buildCurrent31D1Kernels(e: Current31D1KernelEvidence) {
         tier: 'current_strong_candidate',
         score: 0,
         claim:
-          "爱芮的 Fandom、Perfect Pitch 与 Abloom 由千夏 Cat's Gaze、帷幕增益及柚叶异常/紊乱增益闭合；当前来源支持 strong Candidate，兼容 score 不参与排序。",
+          '爱芮的应援能量、绝对音准与异放由千夏猫的凝视、帷幕增益及柚叶异常/紊乱增益闭合；当前来源支持强候选方向，兼容评分不参与排序。',
         refs: [
           e.ariaGuide,
           e.sunnaGuide,
@@ -242,7 +242,7 @@ export function buildCurrent31D1Kernels(e: Current31D1KernelEvidence) {
         tier: 'current_strong_candidate',
         score: 0,
         claim:
-          '普罗米娅的 Corrosive Chill、Trial by Cold 与 Abloom 由南宫羽的 Polarity Disorder/Vibrato 和柚叶异常增益闭合；当前来源支持 strong Candidate，兼容 score 不参与排序。',
+          '普罗米娅的寒蚀值、霜刑与异放由南宫羽的极性紊乱/颤音和柚叶异常增益闭合；当前来源支持强候选方向，兼容评分不参与排序。',
         refs: [
           e.promeiaGuide,
           e.nangongGuide,

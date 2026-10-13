@@ -4,11 +4,9 @@ import {
   getCurrentBangbooContractRequirements,
   resolveCurrentBangbooMechanicContract,
 } from '../calculation/currentBangbooMechanicContracts'
-import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
-import { currentBangbooAgentCompositionKey } from '../calculation/currentBangbooCompositionIdentity'
+import { projectCurrentBangbooComposition32 } from '../calculation/currentBangbooCompositionIdentity'
 import { projectCurrentBangbooStats } from '../gameDataPacks/currentBangbooNumericCatalog'
 import { stableContentHash } from '../gameDataPacks/types'
-import { bangbooFactionCompositionKey } from './bangbooCompositionIdentity'
 
 export type BangbooEvaluationAudit = {
   bangbooId: string
@@ -92,19 +90,7 @@ export function createBangbooEvaluationAudits(roster: AccountRoster): BangbooEva
 }
 
 export function projectCurrentBangbooComposition(memberIds: readonly string[]) {
-  const composition: Record<string, number> = {}
-  for (const agentId of memberIds) {
-    const identity = getCurrentAgentEventContract(agentId)?.identity
-    if (!identity) return null
-    for (const key of [
-      currentBangbooAgentCompositionKey(agentId),
-      `attribute:${identity.attribute}`,
-      `specialty:${identity.specialty}`,
-      bangbooFactionCompositionKey(identity.faction),
-    ])
-      composition[key] = (composition[key] ?? 0) + 1
-  }
-  return composition
+  return projectCurrentBangbooComposition32(memberIds)
 }
 
 export function compositionCacheKey(
@@ -167,13 +153,13 @@ export function evaluateBangbooFixedEvent(input: {
       status: 'unsupported' as const,
       blockers: ['当前 PlanningBaseline 未提供邦布 fixed-event observation。'],
     }
-  const damageEvents = resolved.outputs.filter((output) => output.operator === 'damage_event_emit')
-  const activeMultiplier = damageEvents
-    .filter((output) => output.action === 'active')
-    .reduce((sum, output) => sum + output.multiplier, 0)
-  const chainMultiplier = damageEvents
-    .filter((output) => output.action === 'chain')
-    .reduce((sum, output) => sum + output.multiplier, 0)
+  let activeMultiplier = 0
+  let chainMultiplier = 0
+  for (const output of resolved.outputs) {
+    if (output.operator !== 'damage_event_emit') continue
+    if (output.action === 'active') activeMultiplier += output.multiplier
+    if (output.action === 'chain') chainMultiplier += output.multiplier
+  }
   const multiplier =
     activeMultiplier * observation.activeUseCount + chainMultiplier * observation.chainUseCount
   const totalDamage =

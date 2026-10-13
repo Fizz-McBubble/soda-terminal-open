@@ -6,6 +6,7 @@ import {
   type AdditionalEffectSpec,
 } from './currentBangbooMechanicDefinitions'
 import { normalizeCurrentBangbooComposition } from './currentBangbooCompositionIdentity'
+import { resolveBangbooBaseUtilityOutputs } from './currentBangbooBaseUtilityContracts'
 
 const byStableId = new Map(
   currentBangbooNumericCatalog.items.map((item) => {
@@ -39,7 +40,7 @@ export function getCurrentBangbooContractRequirements(stableId: string) {
 
 function parseParameterToken(token: string, bangbooLevel: number) {
   const normalized = token.replaceAll('[', '').replaceAll(']', '').trim()
-  const formula = normalized.match(/([\d.]+)\s*\+\s*Bangboo Level\s*×\s*([\d.]+)/i)
+  const formula = normalized.match(/([\d.]+)\s*\+\s*(?:Bangboo\s*)?Level\s*×\s*([\d.]+)/i)
   if (formula) return Number(formula[1]) + bangbooLevel * Number(formula[2])
   const number = Number(normalized.match(/[\d.]+/)?.[0])
   if (!Number.isFinite(number)) return null
@@ -55,6 +56,7 @@ const inputSchema = z.object({
   flags: z.record(z.string(), z.boolean()).default({}),
   accumulators: z.record(z.string(), z.number().nonnegative()).default({}),
   additionalAbilityEnabled: z.boolean().default(true),
+  unresolvedEventPolicy: z.enum(['reject', 'exclude']).default('reject'),
 })
 const activationInputSchema = inputSchema.pick({
   stableId: true,
@@ -194,6 +196,12 @@ export function resolveCurrentBangbooMechanicContract(input: unknown) {
       ]
     })
   })
+  const baseUtilityOutputs = resolveBangbooBaseUtilityOutputs({
+    stableId: item.stableId,
+    skillLevel: parsed.data.skillLevel,
+    bangbooLevel: parsed.data.bangbooLevel,
+  })
+  const baseOutputs = [...skillOutputs, ...baseUtilityOutputs]
   const additionalSkill = item.skills.find((skill) => skill.role === 'additional_ability')
   const parameterRow = additionalSkill?.levelParams[parsed.data.additionalAbilityLevel - 1]
   if (!additionalSkill || parameterRow === undefined)
@@ -214,19 +222,24 @@ export function resolveCurrentBangbooMechanicContract(input: unknown) {
   )
     return {
       status: 'supported' as const,
-      active: skillOutputs.length > 0,
-      outputs: skillOutputs,
+      active: baseOutputs.length > 0,
+      outputs: baseOutputs,
       source: item.source,
     }
   const blockers: string[] = []
+  const unresolvedOutputs: Array<{ mechanic: string; targetAction: string; reason: string }> = []
   const additionalOutputs = definition.effects.flatMap((spec) => {
     if (spec.requiresFlag && parsed.data.flags[spec.requiresFlag] === undefined) {
-      blockers.push(`缺少邦布事件 flag：${spec.requiresFlag}`)
+      const reason = `缺少邦布事件 flag：${spec.requiresFlag}`
+      blockers.push(reason)
+      unresolvedOutputs.push({ mechanic: spec.operator, targetAction: spec.targetAction, reason })
       return []
     }
     if (spec.requiresFlag && !parsed.data.flags[spec.requiresFlag]) return []
     if (spec.accumulatorKey && parsed.data.accumulators[spec.accumulatorKey] === undefined) {
-      blockers.push(`缺少邦布累计量：${spec.accumulatorKey}`)
+      const reason = `缺少邦布累计量：${spec.accumulatorKey}`
+      blockers.push(reason)
+      unresolvedOutputs.push({ mechanic: spec.operator, targetAction: spec.targetAction, reason })
       return []
     }
     return [
@@ -247,11 +260,13 @@ export function resolveCurrentBangbooMechanicContract(input: unknown) {
       },
     ]
   })
-  if (blockers.length) return unsupported(...blockers)
+  if (blockers.length && parsed.data.unresolvedEventPolicy === 'reject')
+    return unsupported(...blockers)
   return {
     status: 'supported' as const,
-    active: skillOutputs.length + additionalOutputs.length > 0,
-    outputs: [...skillOutputs, ...additionalOutputs],
+    active: baseOutputs.length + additionalOutputs.length > 0,
+    outputs: [...baseOutputs, ...additionalOutputs],
+    unresolvedOutputs,
     source: item.source,
   }
 }

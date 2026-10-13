@@ -14,6 +14,9 @@ export type SourceBackedPlanningEffectBucket = {
   application:
     | 'attack_percent'
     | 'attack_flat'
+    | 'flat_damage'
+    | 'anomaly_proficiency_flat'
+    | 'anomaly_mastery_flat'
     | 'defense_percent'
     | 'defense_flat'
     | 'hp_percent'
@@ -86,6 +89,9 @@ export type SourceBackedEquipmentModifierBucket = Omit<
 }
 
 type DirectDamageModifiers = {
+  flatDamage: number
+  anomalyProficiencyFlat: number
+  anomalyMasteryFlat: number
   attackPercent: number
   attackFlat: number
   defensePercent: number
@@ -208,6 +214,12 @@ export function applicationForReceiver(receiverPath: string | null) {
   if (!receiverPath) return 'outside_direct_event_formula' as const
   if (receiverPath === 'enemyDebuff.common.stun_') return 'stun_damage_bonus' as const
   if (receiverPath.includes('.initial.')) return 'outside_direct_event_formula' as const
+  if (/(ownBuff|notOwnBuff|teamBuff)\..*\.anomProf$/.test(receiverPath))
+    return 'anomaly_proficiency_flat' as const
+  if (/(ownBuff|notOwnBuff|teamBuff)\..*\.anomMas$/.test(receiverPath))
+    return 'anomaly_mastery_flat' as const
+  if (/(ownBuff|notOwnBuff|teamBuff)\..*\.flat_dmg$/.test(receiverPath))
+    return 'flat_damage' as const
   if (/(ownBuff|notOwnBuff|teamBuff)\..*\.pen_$/.test(receiverPath))
     return 'penetration_ratio' as const
   if (/(ownBuff|notOwnBuff|teamBuff)\..*\.laceration_dmg_?$/.test(receiverPath))
@@ -259,6 +271,9 @@ export function applicationForReceiver(receiverPath: string | null) {
 
 export function emptyModifiers(): DirectDamageModifiers {
   return {
+    flatDamage: 0,
+    anomalyProficiencyFlat: 0,
+    anomalyMasteryFlat: 0,
     attackPercent: 0,
     attackFlat: 0,
     defensePercent: 0,
@@ -301,6 +316,10 @@ export function addModifier(
   )
     return
   if (bucket.application === 'attack_percent') target.attackPercent += bucket.value
+  if (bucket.application === 'flat_damage') target.flatDamage += bucket.value
+  if (bucket.application === 'anomaly_proficiency_flat')
+    target.anomalyProficiencyFlat += bucket.value
+  if (bucket.application === 'anomaly_mastery_flat') target.anomalyMasteryFlat += bucket.value
   if (bucket.application === 'attack_flat') target.attackFlat += bucket.value
   if (bucket.application === 'defense_percent') target.defensePercent += bucket.value
   if (bucket.application === 'defense_flat') target.defenseFlat += bucket.value
@@ -336,6 +355,7 @@ export function matchesEventScope(
     actionId: string
     skill: string
     damageType?: string
+    damageTypes?: readonly string[]
     eventModifierRefs?: readonly string[]
   },
   memberAttribute: string,
@@ -346,7 +366,12 @@ export function matchesEventScope(
   )
     return false
   if (bucket.attribute && bucket.attribute !== memberAttribute) return false
-  if (bucket.damageType && bucket.damageType !== event.damageType) return false
+  if (
+    bucket.damageType &&
+    bucket.damageType !== event.damageType &&
+    !event.damageTypes?.includes(bucket.damageType)
+  )
+    return false
   if (!bucket.action) return true
   if (bucket.action === 'basic_attack')
     return event.skill === 'basic' && !event.actionId.startsWith('DashAttack')

@@ -61,6 +61,8 @@ export function developmentCurrentRecordBinding(record: DevelopmentCurrentRecord
 }
 
 export type DevelopmentWorkbenchRouteSelection = {
+  /** Explicit return from retain-current comparison; legacy routes retain saved-plan fallback. */
+  preferEquipped?: true
   agentId: string
   requestedPlanId: string | null
   candidateRank: number | null
@@ -106,6 +108,7 @@ export function isCurrentDevelopmentWorkbenchRoute(
     value.inputFingerprint === expected.inputFingerprint &&
     value.selection.agentId === expected.selection.agentId &&
     value.selection.requestedPlanId === expected.selection.requestedPlanId &&
+    value.selection.preferEquipped === expected.selection.preferEquipped &&
     value.selection.candidateRank === expected.selection.candidateRank &&
     value.selection.candidateLoadoutFingerprint ===
       expected.selection.candidateLoadoutFingerprint &&

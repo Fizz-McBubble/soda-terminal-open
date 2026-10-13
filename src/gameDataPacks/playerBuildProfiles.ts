@@ -177,6 +177,9 @@ export const playerBuildProfiles30: PlayerBuildProfile[] = agentCatalog
                 {
                   mainStats: recommendation.mainStats,
                   subStats: recommendation.subStats,
+                  ...(recommendation.subStatWeights
+                    ? { subStatWeights: recommendation.subStatWeights }
+                    : {}),
                 },
                 buildSource,
               )

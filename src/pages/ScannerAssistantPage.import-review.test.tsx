@@ -2,7 +2,7 @@ import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../App'
 import { createAccount, setActiveAccount } from '../accounts/repository'
 import { database } from '../db/database'
@@ -31,6 +31,10 @@ vi.mock('../scanner/detailEvidenceClient', () => ({
 }))
 
 describe('completed scan with rejected OCR records', () => {
+  beforeAll(async () => {
+    // Load the real lazy route before measuring the feedback interaction.
+    await import('./ScannerAssistantPage')
+  })
   beforeEach(async () => {
     vi.clearAllMocks()
     await resetScannerPageTestDatabase()
@@ -109,7 +113,16 @@ describe('completed scan with rejected OCR records', () => {
               { status: 201 },
             )
       })
-      vi.stubGlobal('fetch', fetcher)
+      vi.stubGlobal('fetch', async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = input instanceof Request ? input.url : String(input)
+        if (new URL(url, window.location.href).pathname === '/_soda/scan-feedback') {
+          expect(init).toMatchObject({ method: 'POST', credentials: 'omit' })
+          return fetcher(input, init)
+        }
+        // App startup may request its own assets/telemetry. Those calls are not
+        // diagnostic uploads and must not consume the feedback retry fixture.
+        return new Response(null, { status: 404 })
+      })
       const before = await database.accounts.toArray()
       const view = render(<App />)
       await screen.findByText(new RegExp(`${blocked} 张需要校准`), {}, { timeout: 10_000 })

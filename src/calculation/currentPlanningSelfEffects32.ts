@@ -19,6 +19,7 @@ import {
   type SourceBackedPlanningEffectBucket,
 } from './currentPlanningDamageModifiers'
 import { knownInactivePlanningEffect32 } from './planningKnownInactiveEffects32'
+import { isReviewedTemplateMechanicEffect32 } from './reviewedTemplateMechanicEffects32'
 
 type EffectResult = Extract<
   ReturnType<typeof evaluateCurrentPlanningEffectEntries32>,
@@ -116,7 +117,8 @@ export function compileCurrentPlanningSelfEffects32(input: {
       (!metadata.receiverPath?.startsWith('ownBuff.') &&
         !koledaSelfReceivingTeamBuff &&
         !roxyPreparedEnemyEffect) ||
-      entry.numericExpression.sourceStatus !== 'upstream_expression_available'
+      (entry.numericExpression.sourceStatus !== 'upstream_expression_available' &&
+        !isReviewedTemplateMechanicEffect32(entry))
     ) {
       exclusions.push({
         effectKey: entry.effectKey,

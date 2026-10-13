@@ -17,7 +17,22 @@ function fixture() {
 }
 
 describe('dynamic six-disc production producer', () => {
-  it('keeps actual anomaly proficiency when the declared direct target cannot value its loss', () => {
+  it('passes selected stun through refinement and dynamic ranking instead of pricing the neutral prepared axis', () => {
+    const value = fixture()
+    const before = JSON.stringify(value.warehouse)
+    const projection = projectDevelopmentCandidateAlternatives(
+      { warehouse: value.warehouse, developmentPriorityAgentIds: [value.agentId] },
+      value.agentId,
+      undefined,
+      { schemaVersion: 1, id: 'declared-stun-comparison' },
+    )
+    expect(projection.status).toBe('ready')
+    expect(projection.candidates.length).toBeGreaterThan(0)
+    expect(projection.candidateSearch?.rankingMethod).toBe('source_and_local_refinement')
+    expect(projection.candidateSearch?.productionGameAccuracyCertified).toBe(false)
+    expect(JSON.stringify(value.warehouse)).toBe(before)
+  })
+  it('does not freeze unrelated anomaly proficiency in a sourced attack objective', () => {
     const value = statWeightCalibrationFixture('agent-billy', 'crit_rate')
     const current = value.discs.slice()
     const damageDisc = current.find((disc) => disc.slot === 4)!
@@ -52,10 +67,8 @@ describe('dynamic six-disc production producer', () => {
     expect(result.status).toBe('ready')
     expect(result.candidates.length).toBeGreaterThan(0)
     expect(
-      result.candidates.every((plan) =>
-        plan.loadouts[0]!.discs.some((row) => row.disc.id === equippedDisc.id),
-      ),
-    ).toBe(true)
+      result.candidates[0]!.loadouts[0]!.discs.some((row) => row.disc.id === equippedDisc.id),
+    ).toBe(false)
     expect(JSON.stringify(value.warehouse)).toBe(before)
   })
 
@@ -176,6 +189,7 @@ describe('dynamic six-disc production producer', () => {
         .totalDamage,
     ).toBeCloseTo(best, 7)
     expect(result.search?.exactWithinDeclaredModel).toBe(true)
+    expect(result.rankingApplied).toBe(true)
     expect(value.warehouse).toEqual(before)
   }, 30000)
 
@@ -208,6 +222,11 @@ describe('dynamic six-disc production producer', () => {
         }).totalDamage!,
     )
     expect(scores).toEqual([...scores].sort((a, b) => b - a))
+    expect(result.candidateSearch).toMatchObject({
+      rankingMethod: 'dynamic_objective',
+      status: 'complete',
+      productionGameAccuracyCertified: false,
+    })
     expect(
       result.candidates.some((plan) =>
         plan.loadouts[0]!.discs.some((row) => row.disc.id === alternative.id),
@@ -237,6 +256,7 @@ describe('dynamic six-disc production producer', () => {
       evaluationBudget: 8,
     })
     expect(result.candidates).toEqual(source)
+    expect(result.rankingApplied).toBe(false)
     expect(result.search?.unresolved.every((row) => row.evaluation.modeledValue === null)).toBe(
       true,
     )

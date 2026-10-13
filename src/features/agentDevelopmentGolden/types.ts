@@ -220,6 +220,14 @@ export type GoldenWorkbenchData = {
 }
 
 export type GoldenTop10Data = {
+  currentLoadout?: LoadoutRow
+  candidateSearch?: import('../../decision/developmentCandidateAlternatives').DevelopmentCandidateSearch
+  candidateSearchByRank?: Readonly<
+    Record<
+      number,
+      import('../../decision/developmentCandidateAlternatives').DevelopmentCandidateSearch
+    >
+  >
   currentPlan?: LoadoutRow
   agentName: string
   baseline: LoadoutRow
@@ -270,6 +278,7 @@ export type AgentDevelopmentGoldenProps = {
   onAnalyzeWarehouse?: () => void
   /** Replaces a prior frozen candidate snapshot with a fresh bounded, read-only solve. */
   onReanalyzeWarehouse?: () => void | Promise<void>
+  comparisonScenarioControl?: import('react').ReactNode
   /** Kept for isolated component tests; production always uses the shared AppShell. */
   embedded?: boolean
 }

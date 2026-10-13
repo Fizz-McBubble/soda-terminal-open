@@ -39,6 +39,7 @@ export function BangbooConditionDetailsView({
           ))}
         </ExplanationPopover>
       </div>
+      {condition.purposeSummary ? <p>{condition.purposeSummary}</p> : null}
     </div>
   )
 }

@@ -1,5 +1,6 @@
 import type { DevelopmentCandidateAlternativesQueryResult } from '../application/calculationQueryContract'
 import { hasDevelopmentComparisonPanels } from '../application/publicDevelopmentComparisonPanels'
+import { resolveSavedPlanScenarioSelection } from './savedPlanIdentity'
 
 type CandidateSnapshot = DevelopmentCandidateAlternativesQueryResult & { status: 'ready' }
 
@@ -48,6 +49,9 @@ export function readDevelopmentCandidateSnapshot(accountId: string, agentId: str
       !hasDevelopmentComparisonPanels(snapshot.panelPresentation, agentId)
     )
       return null
+    resolveSavedPlanScenarioSelection(snapshot.scenarioSelection)
+    if (snapshot.scenarioSelection?.id === 'declared-stun-comparison' && !snapshot.scenarioIdentity)
+      return null
     return snapshot as CandidateSnapshot
   } catch {
     return null
@@ -66,6 +70,13 @@ export function cacheDevelopmentCandidateSnapshot(
     !hasDevelopmentComparisonPanels(result.panelPresentation, result.agentId)
   )
     return null
+  try {
+    resolveSavedPlanScenarioSelection(result.scenarioSelection)
+  } catch {
+    return null
+  }
+  if (result.scenarioSelection?.id === 'declared-stun-comparison' && !result.scenarioIdentity)
+    return null
   sessionStorage.setItem(keyFor(result.accountId, result.agentId), JSON.stringify(result))
   return result
 }
@@ -83,6 +94,7 @@ export async function refreshDevelopmentCandidatesAfterSave({
   agentId,
   discIds,
   comparisonParameters,
+  scenarioSelection,
   refresh,
   query,
 }: {
@@ -90,23 +102,41 @@ export async function refreshDevelopmentCandidatesAfterSave({
   agentId: string
   discIds: string[]
   comparisonParameters?: import('../decision/developmentValueBenchmark').DevelopmentComparisonParameters
+  scenarioSelection?: import('../application/publicPlanningScenarioContract').CurrentPlanningScenarioSelection32
   refresh: () => Promise<{ runId: string } | null>
   query: (
     runId: string,
     agentId: string,
     parameters?: import('../application/calculationQueryContract').DevelopmentCandidateAlternativesQuery['candidateParametersByRank'],
+    scenarioSelection?: import('../application/publicPlanningScenarioContract').CurrentPlanningScenarioSelection32,
   ) => Promise<DevelopmentCandidateAlternativesQueryResult>
 }) {
+  const previousSnapshot = readDevelopmentCandidateSnapshot(accountId, agentId)
+  const effectiveScenario = scenarioSelection
+    ? resolveSavedPlanScenarioSelection(scenarioSelection)
+    : previousSnapshot?.scenarioSelection
+      ? resolveSavedPlanScenarioSelection(previousSnapshot.scenarioSelection)
+      : undefined
+
   const run = await refresh()
   if (!run) throw new Error('方案已保存，匹配结果暂未更新，请稍后重新匹配。')
+  const matchesRequestedScenario = (value: DevelopmentCandidateAlternativesQueryResult) =>
+    resolveSavedPlanScenarioSelection(value.scenarioSelection).id ===
+    resolveSavedPlanScenarioSelection(effectiveScenario).id
   // The saved physical solution may exist only under its chosen parameters.
   // Search that scenario before matching IDs; an account-default search can omit it.
   const result = comparisonParameters
-    ? await query(run.runId, agentId, { 1: comparisonParameters })
-    : await query(run.runId, agentId)
+    ? effectiveScenario
+      ? await query(run.runId, agentId, { 1: comparisonParameters }, effectiveScenario)
+      : await query(run.runId, agentId, { 1: comparisonParameters })
+    : effectiveScenario
+      ? await query(run.runId, agentId, undefined, effectiveScenario)
+      : await query(run.runId, agentId)
   if (
     result.accountId !== accountId ||
     result.agentId !== agentId ||
+    result.runId !== run.runId ||
+    !matchesRequestedScenario(result) ||
     !cacheDevelopmentCandidateSnapshot(result)
   )
     throw new Error('方案已保存，匹配结果暂未更新，请稍后重新匹配。')
@@ -119,10 +149,14 @@ export async function refreshDevelopmentCandidatesAfterSave({
     ) + 1
   if (!rank) throw new Error('方案已保存；当前推荐已有变化，请查看新的匹配结果。')
   if (comparisonParameters && rank !== 1) {
-    const rebound = await query(run.runId, agentId, { [rank]: comparisonParameters })
+    const rebound = effectiveScenario
+      ? await query(run.runId, agentId, { [rank]: comparisonParameters }, effectiveScenario)
+      : await query(run.runId, agentId, { [rank]: comparisonParameters })
     if (
       rebound.accountId !== accountId ||
       rebound.agentId !== agentId ||
+      rebound.runId !== run.runId ||
+      !matchesRequestedScenario(rebound) ||
       !cacheDevelopmentCandidateSnapshot(rebound)
     )
       throw new Error('方案已保存；显式参数未能重新绑定到本次方案，请重新比较。')

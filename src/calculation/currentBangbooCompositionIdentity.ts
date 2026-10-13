@@ -1,3 +1,7 @@
+import { getCurrentAgentEventContract } from './currentAgentMechanicContracts'
+import { getReviewedAgentAttackTypes32 } from '../gameDataPacks/reviewedAgentAttackTypes32'
+import { bangbooFactionCompositionKey } from '../decision/bangbooCompositionIdentity'
+
 /**
  * Bangboo additional-ability predicates identify agents by the current stable
  * roster identity, without the `agent-` storage prefix.  Keep the one legacy
@@ -13,6 +17,30 @@ export function currentBangbooAgentCompositionKey(stableAgentId: string) {
     .replace(/[-\s]+/g, '_')
     .toLowerCase()
   return `agent:${normalizedId}`
+}
+
+/** One member counts once for each sourced attack type, including multi-type actors. */
+export function projectCurrentBangbooComposition32(memberIds: readonly string[]) {
+  if (new Set(memberIds).size !== memberIds.length) return null
+  const composition: Record<string, number> = {
+    'attack_type:slash': 0,
+    'attack_type:strike': 0,
+    'attack_type:pierce': 0,
+  }
+  for (const agentId of memberIds) {
+    const identity = getCurrentAgentEventContract(agentId)?.identity
+    const attackTypes = getReviewedAgentAttackTypes32(agentId)
+    if (!identity || !attackTypes) return null
+    for (const key of [
+      currentBangbooAgentCompositionKey(agentId),
+      `attribute:${identity.attribute}`,
+      `specialty:${identity.specialty}`,
+      bangbooFactionCompositionKey(identity.faction),
+      ...attackTypes.map((type) => `attack_type:${type}`),
+    ])
+      composition[key] = (composition[key] ?? 0) + 1
+  }
+  return composition
 }
 
 /** Normalize only the former exhaustive-scoring agent-key spelling. */

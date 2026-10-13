@@ -1,22 +1,13 @@
+import { compileTargetTeamPlanningMembers } from './targetTeamPlanningMembers'
 import type { TargetTeamPlanningContextInput } from './targetTeamPlanningContextInput'
 import { compileTargetTeamPlanningCoverage } from './targetTeamPlanningCoverage'
 import { compileCurrentDriveDiscPlanningEffects } from '../calculation/currentDriveDiscPlanningEffects'
-import { resolvePotentialImage, supportsPotentialImage } from '../assault/agentCapabilities'
 import { summarizeSourceResourceProduction32 } from '../calculation/sourceResourceProduction32'
 import { summarizeSourceMechanismResourceGrants32 } from '../calculation/sourceMechanismResourceGrants32'
-import {
-  compileNormalizedAgentEventSchedule,
-  currentNormalizedPlanningBaseline,
-} from '../calculation/currentNormalizedPlanningBaseline'
-import { type PlanningEffectRuntimeMember } from '../calculation/currentPlanningEffectRuntime'
 import { mergePlanningReferenceMaps32 } from '../calculation/currentPlanningEffectDomain'
 import { compileCurrentPlanningInteractionBundle } from '../calculation/currentPlanningInteractionBundle'
 import { evaluateSourceBackedPlanningTeamDps } from '../calculation/currentPlanningTeamDpsRuntime'
-import {
-  compilePlanningCalculationContext,
-  type PlanningContextMemberAsset,
-  type PlanningEventUsage,
-} from '../calculation/planningCalculationContextCompiler'
+import { compilePlanningCalculationContext } from '../calculation/planningCalculationContextCompiler'
 import { projectTargetTeamEquipmentModifiers } from '../calculation/targetTeamEquipmentModifierProjection'
 import { candidateCalculationPackage } from '../gameDataPacks/currentCalculationCandidate'
 import { usesIncremental32Capabilities } from '../gameDataPacks/incremental32AffectedCapabilities'
@@ -26,19 +17,46 @@ import {
 } from '../gameDataPacks/incremental32RecoveryPolicy'
 import { stableContentHash } from '../gameDataPacks/types'
 import { hasUnresolvedAuthorityScenario } from './teamBuildExecutionIdentity'
-import {
-  accountSkillLevel,
-  projectNormalizedAccountFinalStatsDetailed,
-} from './normalizedPlanningCandidateEvaluator'
 import { compileTargetTeamKoledaFixedConditions32 } from './targetTeamKoledaFixedConditions32'
 import { compileIncremental32PlanningSourceSelection } from './incremental32PlanningSourceSelection'
 import { qualifyReviewedPreparedTeamBenchmark32 } from '../calculation/reviewedPreparedTeamBenchmark32'
 import { evaluateReviewedFunctionalCapacity32 } from '../calculation/reviewedFunctionalCapacity32'
+import { prepareReviewedPotentialEvents32 } from '../calculation/reviewedPotentialPreparedEvents32'
+import { prepareReviewedTemplateEvents32 } from '../calculation/reviewedTemplatePreparedEvents32'
+import { resolveCurrentPlanningScenario32 } from '../calculation/currentPlanningScenario32'
 
 const unique = (values: readonly string[]) => [...new Set(values)]
 
 export function compileTargetTeamPlanningContext(input: TargetTeamPlanningContextInput) {
+  const scenario = resolveCurrentPlanningScenario32(input.scenarioSelection)
   const blockers: string[] = []
+  if (
+    Object.values(input.eventConditionDeclarationsByAgentId ?? {}).some(
+      (declaration) =>
+        typeof declaration.enemyStunned === 'boolean' &&
+        declaration.enemyStunned !== scenario.enemyStunned,
+    )
+  )
+    return {
+      status: 'unsupported' as const,
+      blockers: ['事件敌人失衡声明与选定比较场景冲突。'],
+      fingerprint: stableContentHash({
+        scenario: scenario.identity,
+        declarations: input.eventConditionDeclarationsByAgentId,
+      }),
+    }
+  const unknownConditionProviders = Object.keys(
+    input.eventConditionDeclarationsByAgentId ?? {},
+  ).filter((id) => !input.candidate.memberIds.includes(id))
+  if (unknownConditionProviders.length)
+    return {
+      status: 'unsupported' as const,
+      blockers: [`事件状态声明不属于目标队：${unknownConditionProviders.join('、')}`],
+      fingerprint: stableContentHash({
+        scenario: scenario.identity,
+        declarations: input.eventConditionDeclarationsByAgentId,
+      }),
+    }
   const unresolvedScenario = hasUnresolvedAuthorityScenario(input.candidate)
   const unresolvedScenarioBlocker =
     '来源精确队伍未提供可计算的场景条件；不得将空条件规范化为 CalculationContext。'
@@ -77,106 +95,9 @@ export function compileTargetTeamPlanningContext(input: TargetTeamPlanningContex
   }
   if (input.fit.status !== 'ready' || input.fit.uniqueDiscCount !== 18)
     blockers.push('目标 CalculationContext 需要三名成员各六张、合计 18 张不同实体盘。')
-  const discById = new Map(input.warehouse.discs.map((disc) => [disc.id, disc]))
-  const parameterByAgentId = new Map(
-    input.parameters.wEngines.map((parameter) => [parameter.agentId, parameter]),
-  )
-  const eventUsages: PlanningEventUsage[] = []
-  const assets: PlanningContextMemberAsset[] = []
-  const effectRuntimeMembers: PlanningEffectRuntimeMember[] = []
-
-  for (const agentId of input.fit.memberIds) {
-    const agent = input.warehouse.roster.agents.find(
-      (item) => item.agentId === agentId && item.owned,
-    )
-    const parameter = parameterByAgentId.get(agentId)
-    const loadout = input.fit.loadouts.find((item) => item.agentId === agentId)
-    const discs =
-      loadout?.discIds
-        .map((discId) => discById.get(discId))
-        .filter((disc): disc is NonNullable<typeof disc> => Boolean(disc)) ?? []
-    if (!agent) blockers.push(`目标成员不在当前账号已拥有代理人中：${agentId}`)
-    if (!parameter) blockers.push(`目标成员缺少方案音擎参数：${agentId}`)
-    if (discs.length !== 6) blockers.push(`目标成员缺少六张实体盘：${agentId}`)
-    if (!agent || !parameter || discs.length !== 6) continue
-    const skillLevels = Object.fromEntries(
-      ['basic', 'dodge', 'assist', 'special', 'chain', 'core'].map((skill) => [
-        skill,
-        accountSkillLevel(agent, skill),
-      ]),
-    )
-    const schedule = compileNormalizedAgentEventSchedule({ agentId, skillLevels })
-    const selectedPotential = input.parameters.potentialByAgentId?.[agentId] ?? agent.potentialImage
-    if (
-      input.parameters.potentialByAgentId?.[agentId] !== undefined &&
-      (!supportsPotentialImage(agentId) ||
-        !Number.isInteger(selectedPotential) ||
-        Number(selectedPotential) < 0 ||
-        Number(selectedPotential) > 6)
-    )
-      blockers.push(`${agentId} 的显式潜能参数无效。`)
-    const projection = projectNormalizedAccountFinalStatsDetailed({
-      agent: {
-        ...agent,
-        potentialImage: selectedPotential,
-        wEngineDetails: {
-          id: parameter.engineId,
-          name: parameter.engineId,
-          level: parameter.level ?? 60,
-          ascension: parameter.ascension,
-          refinement: parameter.refinement,
-        },
-      },
-      engineId: parameter.engineId,
-      discs,
-      ...(input.statProbesByAgentId?.[agentId]
-        ? { statProbe: input.statProbesByAgentId[agentId] }
-        : {}),
-    })
-    const stats = projection.status === 'supported' ? projection.stats : null
-    if (schedule.status === 'unsupported') blockers.push(...schedule.blockers)
-    if (projection.status === 'unsupported')
-      blockers.push(...projection.reasons.map((reason) => `${agentId}：${reason}`))
-    if (schedule.status === 'unsupported' || !stats) continue
-    eventUsages.push(...schedule.eventUsages)
-    const finalStatsHash = stableContentHash({ agentId, parameter, discs, stats, skillLevels })
-    assets.push({
-      agentId,
-      level: agent.level,
-      mindscape: agent.mindscape,
-      potential: resolvePotentialImage(agentId, selectedPotential) ?? null,
-      skillLevels,
-      wEngine: {
-        copyId: `scheme:${agentId}:${parameter.engineId}`,
-        engineId: parameter.engineId,
-        level: parameter.level ?? 60,
-        refinement: parameter.refinement,
-      },
-      discs: discs.map((disc) => ({
-        id: disc.id,
-        slot: disc.slot,
-        setId: disc.setId,
-        level: disc.level,
-        statsHash: stableContentHash(disc),
-      })),
-      finalStatsHash,
-      evidenceRefs: [
-        `account:${input.warehouse.accountId ?? 'legacy-local'}:roster`,
-        `account:${input.warehouse.accountId ?? 'legacy-local'}:warehouse`,
-        input.modifierProjection.fingerprint,
-      ],
-    })
-    effectRuntimeMembers.push({
-      agentId,
-      level: agent.level,
-      mindscape: agent.mindscape,
-      potential: resolvePotentialImage(agentId, selectedPotential) ?? null,
-      coreLevel: Math.min(7, accountSkillLevel(agent, 'core')),
-      skillLevels,
-      initialStats: stats.initialStats,
-      finalStats: stats.finalStats,
-    })
-  }
+  const memberCompilation = compileTargetTeamPlanningMembers(input)
+  const { eventUsages, assets, effectRuntimeMembers } = memberCompilation
+  blockers.push(...memberCompilation.blockers)
   if (blockers.length)
     return {
       status: 'unsupported' as const,
@@ -195,6 +116,19 @@ export function compileTargetTeamPlanningContext(input: TargetTeamPlanningContex
       fingerprint: sourceSelection.fingerprint,
     }
   eventUsages.splice(0, eventUsages.length, ...sourceSelection.eventUsages)
+  if (
+    sourceSelection.preparedTeamConditions &&
+    (scenario.baseline.enemy.stunMultiplier !== 1 ||
+      Object.keys(input.eventConditionDeclarationsByAgentId ?? {}).length)
+  )
+    return {
+      status: 'unsupported' as const,
+      blockers: ['已核准备轴不接受额外事件状态声明；需独立验证该模型域。'],
+      fingerprint: stableContentHash({
+        scenario: scenario.identity,
+        declarations: input.eventConditionDeclarationsByAgentId,
+      }),
+    }
 
   const sourceReferences = mergePlanningReferenceMaps32(
     sourceSelection.referencesByAgentId,
@@ -204,7 +138,7 @@ export function compileTargetTeamPlanningContext(input: TargetTeamPlanningContex
   const koledaConditions = compileTargetTeamKoledaFixedConditions32({
     members: effectRuntimeMembers,
     eventUsages,
-    baseline: currentNormalizedPlanningBaseline,
+    baseline: scenario.baseline,
     accountBindingHash: stableContentHash({
       accountId: input.warehouse.accountId ?? 'legacy-local',
       rosterHash: input.rosterHash,
@@ -236,11 +170,67 @@ export function compileTargetTeamPlanningContext(input: TargetTeamPlanningContex
       ...koledaMetadata,
     }
 
+  const potentialPreparations = sourceSelection.preparedTeamConditions
+    ? []
+    : effectRuntimeMembers.flatMap((member) => {
+        const prepared = prepareReviewedPotentialEvents32({
+          member,
+          eventUsages,
+          memberIds: effectRuntimeMembers.map((row) => row.agentId),
+        })
+        return prepared ? [{ agentId: member.agentId, ...prepared }] : []
+      })
+  const potentialEvents = Object.assign(
+    {},
+    ...potentialPreparations.map((row) => row.potentialEvents),
+  )
+  const existingReferences = mergePlanningReferenceMaps32(
+    Object.fromEntries(potentialPreparations.map((row) => [row.agentId, row.baselineReferences])),
+    mergePlanningReferenceMaps32(sourceReferences, koledaConditions.references),
+  )
+  const templatePreparations = sourceSelection.preparedTeamConditions
+    ? []
+    : effectRuntimeMembers.flatMap((member) => {
+        const prepared = prepareReviewedTemplateEvents32({
+          member,
+          eventUsages,
+          references: existingReferences[member.agentId],
+          conditionDeclaration: input.eventConditionDeclarationsByAgentId?.[member.agentId]
+            ? {
+                ...input.eventConditionDeclarationsByAgentId[member.agentId]!,
+                enemyStunned: scenario.enemyStunned,
+              }
+            : undefined,
+        })
+        return prepared ? [{ agentId: member.agentId, ...prepared }] : []
+      })
   const observedReferences = mergePlanningReferenceMaps32(
-    sourceReferences,
-    koledaConditions.references,
+    existingReferences,
+    Object.fromEntries(templatePreparations.map((row) => [row.agentId, row.baselineReferences])),
+  )
+  const conditionBlockers = templatePreparations.flatMap(
+    (row) => row.conditionPreparation?.blockers ?? [],
+  )
+  if (conditionBlockers.length)
+    return {
+      status: 'unsupported' as const,
+      blockers: unique(conditionBlockers),
+      fingerprint: stableContentHash({
+        scenario: scenario.identity,
+        conditionBlockers,
+        declarations: input.eventConditionDeclarationsByAgentId,
+      }),
+    }
+  const commonAnomalyEvents = Object.fromEntries(
+    [
+      ...new Set(templatePreparations.flatMap((row) => Object.keys(row.commonAnomalyEvents ?? {}))),
+    ].map((key) => [
+      key,
+      templatePreparations.flatMap((row) => row.commonAnomalyEvents?.[key] ?? []),
+    ]),
   )
   const modifierProjection = projectTargetTeamEquipmentModifiers({
+    baseline: scenario.baseline,
     memberIds: input.fit.memberIds,
     parameters: input.parameters,
     members: effectRuntimeMembers,
@@ -299,17 +289,17 @@ export function compileTargetTeamPlanningContext(input: TargetTeamPlanningContex
   }
   const compilation = compilePlanningCalculationContext({
     contextId: `target:${input.candidate.candidateId}:${input.planningHash}:${input.modifierProjection.fingerprint}`,
-    gameVersion: currentNormalizedPlanningBaseline.gameVersion,
+    gameVersion: scenario.baseline.gameVersion,
     canonical: {
       packageId: candidateCalculationPackage.packageId,
       packageVersion: candidateCalculationPackage.packageVersion,
-      gameVersion: currentNormalizedPlanningBaseline.gameVersion,
-      contentHash: currentNormalizedPlanningBaseline.sourcePackHash,
+      gameVersion: scenario.baseline.gameVersion,
+      contentHash: scenario.baseline.sourcePackHash,
       status: 'candidate',
       rollbackPackageId: candidateCalculationPackage.rollbackPackageId,
     },
     accountSnapshot,
-    baseline: currentNormalizedPlanningBaseline,
+    baseline: scenario.baseline,
     memberIds: [...input.fit.memberIds],
     bangboo: sourceSelection.preparedTeamConditions
       ? null
@@ -325,17 +315,19 @@ export function compileTargetTeamPlanningContext(input: TargetTeamPlanningContex
     requiredInteractionOperators: interactions.requiredOperators,
     interactionAuthorityRequirement: 'source_backed_only',
     scenarioId: sourceSelection.preparedTeamConditions
-      ? sourceSelection.preparedTeamConditions.policyId
-      : input.candidate.scenarioTags.length
-        ? `scenario:${input.candidate.scenarioTags.join('+')}`
-        : 'scenario:normalized',
+      ? `${sourceSelection.preparedTeamConditions.policyId}:${scenario.identity}`
+      : scenario.identity,
     constraintsHash: stableContentHash({
+      scenario: scenario.identity,
+      eventConditionDeclarations: input.eventConditionDeclarationsByAgentId ?? null,
       candidateId: input.candidate.candidateId,
       fitFingerprint: input.fit.fingerprint,
       modifierFingerprint: input.modifierProjection.fingerprint,
       discEffectFingerprint: discEffects.fingerprint,
       sourceSelection: sourceSelection.fingerprint,
       calibrationObservations: input.calibrationObservations ?? null,
+      potentialPreparationPolicies: potentialPreparations.map((row) => row.identity),
+      templatePreparationPolicies: templatePreparations,
       ...(input.parameters.koledaFixedEventConditions32
         ? { koledaFixedEventConditions32: input.parameters.koledaFixedEventConditions32 }
         : {}),
@@ -353,9 +345,11 @@ export function compileTargetTeamPlanningContext(input: TargetTeamPlanningContex
     memberIds: input.fit.memberIds,
     members: effectRuntimeMembers,
     eventUsages,
-    baseline: currentNormalizedPlanningBaseline,
+    potentialEvents,
+    baseline: scenario.baseline,
     equipmentModifierBuckets: [...modifierProjection.directRuntime.buckets, ...discEffects.buckets],
     baselineReferencesByAgentId: observedReferences,
+    commonAnomalyEvents,
   })
   if (runtime.status === 'unsupported')
     return {
@@ -381,7 +375,10 @@ export function compileTargetTeamPlanningContext(input: TargetTeamPlanningContex
     discEffects,
     modifierProjection,
     effectRuntimeMembers,
-    sourceBoundaries: sourceSelection.sourcePackets.map((row) => row.boundary),
+    sourceBoundaries: [
+      ...sourceSelection.sourcePackets.map((row) => row.boundary),
+      ...templatePreparations.map((row) => row.boundary),
+    ],
   })
   const mechanismGrants32 = summarizeSourceMechanismResourceGrants32({
     members: effectRuntimeMembers,
@@ -440,6 +437,7 @@ export function compileTargetTeamPlanningContext(input: TargetTeamPlanningContex
         member,
         members: effectRuntimeMembers,
         eventUsages,
+        potentialEvents,
         equipmentModifierBuckets: [
           ...modifierProjection.directRuntime.buckets,
           ...discEffects.buckets,
@@ -465,13 +463,19 @@ export function compileTargetTeamPlanningContext(input: TargetTeamPlanningContex
     bangbooDamage,
     includedScope: memberOnly ? ('three_members' as const) : ('members_and_bangboo' as const),
     totalDamage,
-    planningDps: totalDamage / currentNormalizedPlanningBaseline.declaredDurationSeconds,
-    declaredDurationSeconds: currentNormalizedPlanningBaseline.declaredDurationSeconds,
-    baselineId: currentNormalizedPlanningBaseline.baselineId,
+    planningDps: totalDamage / scenario.baseline.declaredDurationSeconds,
+    declaredDurationSeconds: scenario.baseline.declaredDurationSeconds,
+    baselineId: scenario.baseline.baselineId,
+    scenarioSelection: scenario.selection,
+    scenarioIdentity: scenario.identity,
+    scenarioBoundary: scenario.boundary,
+    eventConditionDeclarationsByAgentId: input.eventConditionDeclarationsByAgentId ?? null,
     equipmentBindingMode: 'scheme_parameters' as const,
     sideEffect: 'read_only' as const,
     boundary:
-      '对当前点击队伍、当前18盘有限候选解和玩家确认的方案装备参数执行同一固定事件 Benchmark；结果不是全账号全局最优，也不是实战轮转 DPS。',
+      '对当前点击队伍、当前18盘有限候选解和玩家确认的方案装备参数执行同一固定事件 Benchmark；结果不是全账号全局最优，也不是实战轮转 DPS。' +
+      (potentialPreparations.length ? ` ${potentialPreparations[0]!.boundary}` : '') +
+      (templatePreparations.length ? ` ${templatePreparations[0]!.boundary}` : ''),
   }
   return { ...core, fingerprint: stableContentHash(core) }
 }

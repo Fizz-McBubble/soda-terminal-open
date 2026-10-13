@@ -10,6 +10,19 @@ export interface ReleaseNote {
 // A local fix or commit is not a published release; add it when that release ships.
 export const releases = [
   {
+    id: '20261014-recommendation-data-continuity',
+    date: '2026-10-14',
+    scope: '养成、配队、邦布与数据兼容',
+    title: '推荐依据补全与方案兼容修复',
+    changes: [
+      '补齐已核实潜能与准备状态的实际计算，区分声明条件、普通场景和失衡场景；比较仍需使用同一条件。',
+      '完善邦布的基础辅助效果、额外能力和受益对象说明；短名单兼顾资料推荐及不同用途，不将普通能量当作命破闪能。',
+      '更新机制评级与默认推荐筛选，资料不足的组合保留边界，推荐指数不代表实战 DPS。',
+      '修正中文名称和技能术语，保留旧名称导入兼容；养成比较只展示相关毕业参考，套装件数不再拆行。',
+      '修复合法邦布选择与场景方案的保存恢复；规则更新后重新核验旧计算结果，已有资产和方案继续保留。',
+    ],
+  },
+  {
     id: '20261013-automatic-image-cache',
     date: '2026-10-13',
     scope: '网页图片与加载体验',

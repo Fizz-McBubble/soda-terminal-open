@@ -1,4 +1,4 @@
-import { resolvePotentialImage } from '../assault/agentCapabilities'
+import { getAgentCapability, resolvePotentialImage } from '../assault/agentCapabilities'
 import { getCurrentAgentEventContract } from './currentAgentMechanicContracts'
 
 /** Typed source domains and stat references shared by the planning expression runtime. */
@@ -56,15 +56,27 @@ export type PlanningEffectRuntimeMember = {
 /**
  * Binds the account's potential image for an expression runtime without
  * deriving a skill index or any effect value. The shared account helper only
- * supplies 6 for agents eligible for the image; other missing values are the
- * neutral 0 expression input.
+ * supplies 6 only under the confirmed default policy. Missing observations
+ * under preserve_unknown remain absent so dependent expressions are blocked.
+ * Noneligible agents retain the neutral 0 expression input.
  */
 export function bindPlanningEffectRuntimePotentialReference(input: {
   agentId: string
   potential: number | null | undefined
   references: Readonly<Record<string, unknown>>
 }): Record<string, unknown> {
-  const imageLevel = resolvePotentialImage(input.agentId, input.potential) ?? 0
+  const resolvedImage = resolvePotentialImage(input.agentId, input.potential)
+  if (
+    resolvedImage === undefined &&
+    getAgentCapability(input.agentId)?.sourceBinding32?.missingObservationPolicy ===
+      'preserve_unknown'
+  ) {
+    const references = { ...input.references }
+    delete references['char.potential']
+    delete references['own.char.potential']
+    return references
+  }
+  const imageLevel = resolvedImage ?? 0
   // Koleda's newly pinned source table omits the UI's Lv1 "skip" entry.
   // UI2..6 map to upstream1..5; UI0/1 both select upstream0. Other
   // agents retain their separately reviewed source domains.

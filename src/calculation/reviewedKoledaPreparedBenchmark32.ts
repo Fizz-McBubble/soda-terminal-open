@@ -42,7 +42,14 @@ export function compileReviewedKoledaPreparedBenchmark32(
   input: ReviewedKoledaPreparedBenchmarkInput32,
 ) {
   const blockers: string[] = []
-  const potential = input.potential ?? 0
+  const potential = input.potential
+  if (potential == null)
+    return {
+      status: 'unsupported' as const,
+      blockers: ['explicit_potential_required'],
+      eventUsages: [] as PlanningEventUsage[],
+      sourceIdentity: reviewedKoledaPreparedBenchmarkIdentity32,
+    }
   const awakened = potential >= 2
   const level = Number(input.skillLevels.basic)
   if (!Number.isInteger(input.mindscape) || input.mindscape < 0 || input.mindscape > 6)
@@ -177,6 +184,6 @@ export function compileReviewedKoledaPreparedBenchmark32(
     },
     formalCyclePromotion: false as const,
     boundary:
-      '准备炉火后的完整普攻前两击和两段增强普攻；P2至6已有炉火消费增伤窗口覆盖声明30秒，包内消费刷新窗口。P0/P1关闭新潜能。炉火库存与该次消费快照分开；无本、无EX、无毁伤或斩痕消费，不外推重复轮转或实测耗时。',
+      '准备炉火后的完整普攻前两击和两段增强普攻；P2至6已有炉火消费增伤窗口覆盖声明30秒，包内消费刷新窗口。P0/P1关闭新潜能。炉火库存与该次消费快照分开；无本、无EX、无毁伤或残痕消费，不外推重复轮转或实测耗时。',
   }
 }

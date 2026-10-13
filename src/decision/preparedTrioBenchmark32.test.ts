@@ -11,6 +11,16 @@ import { projectTargetTeamValueBenchmark } from './targetTeamValueBenchmark'
 const memberIds = ['agent-claret', 'agent-roxy', 'agent-koleda'] as const
 
 describe('shared prepared three-agent fixed benchmark', () => {
+  it.each([undefined, null])(
+    'rejects unknown Koleda potential %s in source selection without replacing it with zero',
+    (potential) => {
+      const members = memberIds.map(createLevel60NeutralEffectRuntimeMember)
+      members[2] = { ...members[2]!, potential }
+      const selection = compileIncremental32PlanningSourceSelection({ members, eventUsages: [] })
+      expect(selection.status).toBe('unsupported')
+      expect(selection.blockers).toContain('explicit_potential_required')
+    },
+  )
   it.each([0, 1, 2, 3, 4, 5, 6])(
     'sums exact source packets and ally/self potential once at P%s',
     (potential) => {
@@ -264,8 +274,9 @@ describe('shared prepared three-agent fixed benchmark', () => {
       JSON.stringify(realSets.coverage.excludedEffects),
     ).toBe('formal')
     expect(realSets.bangbooDamage).toBeNull()
-    expect(realSets.modifierProjection.bangboo.blockers).toContain(
-      '缺少邦布事件 flag：enemy_daze_above_50',
+    expect(realSets.modifierProjection.bangboo.blockers).toEqual([])
+    expect(realSets.modifierProjection.bangboo.excludedOutputs).toContainEqual(
+      expect.objectContaining({ reason: '缺少邦布事件 flag：enemy_daze_above_50' }),
     )
     expect(realSets.discEffects.preparedQuickAssist).toBe('none_in_preceding_15s_or_counted_events')
     for (const claretEngine of [

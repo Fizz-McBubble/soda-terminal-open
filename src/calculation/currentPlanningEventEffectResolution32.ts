@@ -33,6 +33,10 @@ import { bindReviewedPlanningConditionSemantics32 } from './reviewedPlanningCond
 import { bindReviewedRoxyAttributeWindows32 } from './reviewedRoxyAttributeWindows32'
 import { bindReviewedRoxyPreparedTriggers32 } from './reviewedRoxyPreparedTriggers32'
 import {
+  bindReviewedLuciaHarmonyFinalHit32,
+  isReviewedTemplateMechanicEffect32,
+} from './reviewedTemplateMechanicEffects32'
+import {
   planningEffectWrittenStats32,
   planningFinalStatAlias32,
   resolvePlanningEffectGraph32,
@@ -58,6 +62,7 @@ type EventScope = {
   actionId: string
   skill: string
   damageType?: string
+  damageTypes?: readonly string[]
   eventModifierRefs?: readonly string[]
 }
 const dependency = (agentId: string, stat: string) =>
@@ -184,6 +189,13 @@ export function resolveCurrentPlanningEventEffects32(input: {
       event: { ownerAgentId: input.ownerAgentId, eventModifierRefs: input.event.eventModifierRefs },
     })
     if (semantics.status !== 'supported') return semantics
+    const harmony = bindReviewedLuciaHarmonyFinalHit32({
+      entry,
+      ownerAgentId: input.ownerAgentId,
+      event: input.event,
+      references: references[entry.providerAgentId],
+    })
+    if (harmony.status !== 'supported') return harmony
     const roxyWindow = bindReviewedRoxyAttributeWindows32({
       entry,
       references: references[entry.providerAgentId],
@@ -203,6 +215,7 @@ export function resolveCurrentPlanningEventEffects32(input: {
       !commonDependent &&
       !intrinsic.active &&
       !semantics.active &&
+      !harmony.active &&
       !roxyWindow.active &&
       !roxyTrigger.active &&
       !panTransfer
@@ -210,7 +223,8 @@ export function resolveCurrentPlanningEventEffects32(input: {
       continue
     const reviewed = getCurrentAgentPlanningEffectBlueprint(entry.effectKey)
     if (
-      entry.numericExpression.sourceStatus !== 'upstream_expression_available' ||
+      (entry.numericExpression.sourceStatus !== 'upstream_expression_available' &&
+        !isReviewedTemplateMechanicEffect32(entry)) ||
       !reviewed ||
       entry.providerAgentId !== reviewed.providerAgentId ||
       entry.effectId !== reviewed.effectId ||
@@ -225,6 +239,13 @@ export function resolveCurrentPlanningEventEffects32(input: {
       }
     const meta = effectReceiverMetadata(entry.numericExpression.expressionIr)
     const application = applicationForReceiver(meta.receiverPath)
+    if (semantics.active && ['energy_regen_percent', 'energy_regen_flat'].includes(application))
+      semanticExclusions.push({
+        effectKey: entry.effectKey,
+        reason: '已核验回能条件；保留功能属性依赖，当前固定伤害切片不评价回能收益。',
+        fields: ['outside_direct_event_formula'],
+        sourceRefs: [...entry.sourceRefs, ...semantics.sourceRefs],
+      })
     if (application === 'outside_direct_event_formula') {
       if (semantics.active)
         semanticExclusions.push({
@@ -293,6 +314,20 @@ export function resolveCurrentPlanningEventEffects32(input: {
           [entry],
         )
         if (result.status !== 'supported') return result
+        for (const effect of result.results.filter((row) => row.status === 'excluded_unknown'))
+          semanticExclusions.push({
+            effectKey: effect.effectKey,
+            reason: '来源效果缺少明确条件观测；本次事件未计入其增益。',
+            fields: requiredReferences(expression).filter(
+              (ref) =>
+                !/^(dm\.|char\.|own\.(initial|final|char)\.|target\.(initial|final|char)\.|team\.common\.count)/.test(
+                  ref,
+                ) &&
+                !Object.hasOwn(references[entry.providerAgentId] ?? {}, ref) &&
+                !Object.hasOwn(semantics.overrides, ref),
+            ),
+            sourceRefs: effect.sourceRefs,
+          })
         if (
           result.results.some((row) => row.status === 'supported' && row.active && row.todoBoundary)
         )
@@ -302,10 +337,16 @@ export function resolveCurrentPlanningEventEffects32(input: {
           buckets: planningRuntimeEffectBuckets32(result.results, input.memberIds).map(
             (bucket) => ({
               ...bucket,
+              ...(harmony.active &&
+              'valueOverride' in harmony &&
+              harmony.valueOverride !== undefined
+                ? { value: harmony.valueOverride }
+                : {}),
               sourceRefs: [
                 ...bucket.sourceRefs,
                 ...intrinsic.sourceRefs,
                 ...semantics.sourceRefs,
+                ...harmony.sourceRefs,
                 ...roxyWindow.sourceRefs,
                 ...roxyTrigger.sourceRefs,
               ],

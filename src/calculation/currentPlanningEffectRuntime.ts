@@ -15,6 +15,10 @@ export type {
 export { evaluateInitialCritConversion32 as evaluateCurrentPlanningInitialCritConversion32 } from './currentInitialCritConversion32'
 import { bindReviewedRoxyEnergyConversion32 } from './reviewedRoxyEnergyConversion32'
 import { knownInactivePlanningEffect32 } from './planningKnownInactiveEffects32'
+import {
+  isReviewedTemplateMechanicEffect32,
+  validateReviewedTemplateMechanicObservations32,
+} from './reviewedTemplateMechanicEffects32'
 import { planningEffectObservation32 } from './currentPlanningEffectObservation32'
 import {
   bindPanMeridianFlowRecipient32,
@@ -146,6 +150,16 @@ function evaluateFormationEffects(
         blockers: [blueprint.numericExpression.todoBoundary],
       }
     const provided = input.baselineReferencesByAgentId?.[blueprint.providerAgentId] ?? {}
+    const observationValidity = validateReviewedTemplateMechanicObservations32({
+      entry: blueprint,
+      references: provided,
+    })
+    if (observationValidity.status !== 'supported')
+      return {
+        effectKey: blueprint.effectKey,
+        status: 'unsupported' as const,
+        blockers: observationValidity.blockers,
+      }
     const requiredExplicit = blueprint.numericExpression.requiredExplicitRuntimeReferences ?? []
     if (
       requiredExplicit.length &&
@@ -195,6 +209,7 @@ function evaluateFormationEffects(
     const expression = observation.expression
     const isUnboundGenericPlaceholder =
       blueprint.numericExpression.sourceStatus === 'declarative_baseline_input' &&
+      !isReviewedTemplateMechanicEffect32(blueprint) &&
       !parameterKeys.has(blueprint.effectKey) &&
       !potentialValueOnlyKeys.has(blueprint.effectKey)
     if (isUnboundGenericPlaceholder || observation.missing.length) {
@@ -423,14 +438,26 @@ export function compileCurrentPlanningFormationEffectObservations(
     const targetAgentId =
       result.recipientAgentIds?.[0] ??
       (blueprint.targetKinds.includes('active_agent') ? activeAgentId : null)
-    const evidenceRefs = unique([...result.sourceRefs, baselineRef])
+    const reviewedTemplate = isReviewedTemplateMechanicEffect32(blueprint)
+    const evidenceRefs = unique([
+      ...result.sourceRefs,
+      baselineRef,
+      ...(reviewedTemplate
+        ? [
+            `expression-sha256:${blueprint.numericExpression.expressionSha256}`,
+            'reviewed-template-comparison-coordinate-not-temporal-proof',
+          ]
+        : []),
+    ])
     dispositions.push({
       effectKey: result.effectKey,
       disposition: result.active ? 'included' : 'excluded',
       activeSeconds: result.active ? currentNormalizedPlanningBaseline.declaredDurationSeconds : 0,
       targetAgentId,
       reason: result.active
-        ? 'The neutral fixed-event baseline resolves this source expression to a non-zero value for the full declared comparison window.'
+        ? reviewedTemplate
+          ? 'The source expression is resolved for each counted comparison event; the declared window is a comparison coordinate, not measured uptime or temporal proof.'
+          : 'The neutral fixed-event baseline resolves this source expression to a non-zero value for the full declared comparison window.'
         : 'The neutral fixed-event baseline leaves this condition inactive or the account gate evaluates to zero.',
       evidenceRefs,
     })

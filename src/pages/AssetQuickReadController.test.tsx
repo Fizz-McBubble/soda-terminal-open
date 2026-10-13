@@ -17,8 +17,110 @@ import {
   type AssetQuickReadWorkbenchView,
 } from './AssetQuickReadController'
 import type { AssetBridgeJob } from '../assetQuickRead/bridgeClient'
+import { syntheticAssetSnapshot } from '../assetQuickRead/syntheticAssetSnapshotTestFixture'
 
 vi.mock('../components/ExplanationPopover', () => import('../testing/ExplanationPopoverStub'))
+
+it('exports a rejected manual pending snapshot without reparsing the strict import schema', async () => {
+  const client = bridge()
+  const harness = workbenchHarness()
+  const snapshot = syntheticAssetSnapshot()
+  snapshot.source.protocol_version = '3.3'
+  Object.assign(snapshot, { credentials: 'private-secret' })
+  client.result.mockResolvedValue({ jobId, targetAccountId, snapshot, sha256: 'a'.repeat(64) })
+  converted.candidate = {
+    ...converted.candidate,
+    importable: false,
+    issues: [{ code: 'invalid_snapshot', message: '版本不符' }],
+  }
+  const create = vi.fn(() => 'blob:synthetic')
+  const revoke = vi.fn()
+  const originalCreate = URL.createObjectURL
+  const originalRevoke = URL.revokeObjectURL
+  vi.stubGlobal('crypto', {
+    randomUUID: () => '00000000-0000-4000-8000-000000000001',
+    subtle: { digest: vi.fn().mockResolvedValue(new Uint8Array(32).buffer) },
+  })
+  URL.createObjectURL = create
+  URL.revokeObjectURL = revoke
+  const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
+  try {
+    render(
+      <AssetQuickReadController
+        client={client}
+        targetAccountId={targetAccountId}
+        activeAccountId={targetAccountId}
+        workbench={harness.render}
+      />,
+    )
+    const file = new File([JSON.stringify(snapshot)], 'pending.json', { type: 'application/json' })
+    Object.defineProperty(file, 'arrayBuffer', {
+      value: async () => new TextEncoder().encode(JSON.stringify(snapshot)).buffer,
+    })
+    await act(async () => harness.read().inspectFile(file))
+    fireEvent.click(screen.getByText(/暂时不能导入/))
+    expect(screen.getByText(/请等待适配更新后重新检查/)).toBeVisible()
+    expect(screen.getByRole('button', { name: '导入' })).toBeDisabled()
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: '导出' })))
+    expect(create).toHaveBeenCalledOnce()
+    expect((click.mock.instances[0] as HTMLAnchorElement).download).toBe(
+      'soda-asset-quick-read-pending-update.json',
+    )
+    expect(persistence.prepare).not.toHaveBeenCalled()
+    expect(persistence.confirm).not.toHaveBeenCalled()
+    expect(client.start).not.toHaveBeenCalled()
+  } finally {
+    URL.createObjectURL = originalCreate
+    URL.revokeObjectURL = originalRevoke
+    click.mockRestore()
+    vi.unstubAllGlobals()
+  }
+})
+
+it('does not enable export for an unvalidated result structure', async () => {
+  const client = bridge()
+  client.result.mockResolvedValue({
+    jobId,
+    targetAccountId,
+    snapshot: { raw_traffic: 'private' },
+    sha256: 'a'.repeat(64),
+  })
+  converted.candidate = {
+    ...converted.candidate,
+    importable: false,
+    issues: [{ code: 'invalid_snapshot', message: '结构不符' }],
+  }
+  render(
+    <AssetQuickReadController
+      client={client}
+      targetAccountId={targetAccountId}
+      activeAccountId={targetAccountId}
+    />,
+  )
+  await startAndReceive()
+  expect(screen.getByRole('button', { name: '导出' })).toBeDisabled()
+  expect(persistence.confirm).not.toHaveBeenCalled()
+})
+
+it('shows the wait-for-update message for the native client compatibility rejection', async () => {
+  const client = bridge()
+  client.status.mockResolvedValue({
+    ...job,
+    state: 'error',
+    code: 'client_dispatch_version_or_seed_shape_rejected',
+  })
+  render(
+    <AssetQuickReadController
+      client={client}
+      targetAccountId={targetAccountId}
+      activeAccountId={targetAccountId}
+    />,
+  )
+  await startAndReceive()
+  expect(screen.getByText(/请等待资产快读适配更新后再试/)).toBeVisible()
+  expect(client.result).not.toHaveBeenCalled()
+  expect(persistence.confirm).not.toHaveBeenCalled()
+})
 
 it('remembers the device directory across account changes and remounts without starting work', () => {
   const client = bridge()

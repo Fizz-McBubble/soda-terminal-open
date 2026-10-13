@@ -6,7 +6,7 @@ const candidateScanSetIdentities: DriveDiscImportSetIdentity[] = [
   { id: 'set-34100', name: '谶羽之誓', aliases: ['谶羽之誓'], effectStatus: 'candidate' },
   {
     id: 'set-34200',
-    name: '棘刺玫瑰',
+    name: '荆棘玫瑰',
     aliases: ['棘刺玫瑰', '荆棘玫瑰', 'Thorned Rose', 'ThornedRose'],
     effectStatus: 'candidate',
   },

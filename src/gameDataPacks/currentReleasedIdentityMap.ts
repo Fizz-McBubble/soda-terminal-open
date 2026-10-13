@@ -153,7 +153,7 @@ export const currentReleasedIdentityMap = {
       stableId: 'set-34200',
       aliases: ['candidate-3.1-drive-disc-thorned-rose'],
       gameEvidenceId: '34200',
-      playerName: '棘刺玫瑰',
+      playerName: '荆棘玫瑰',
       releaseState: 'released',
       releaseAt: '2026-07-29',
       sourceRefs: ['official-3.1-update-2026-07-29', 'game-evidence-3.1-drive-disc-34200'],

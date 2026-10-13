@@ -6,6 +6,7 @@ import {
 import { getBuildRecommendation, getCurrentBuildProfile } from '../assault/currentBuildProfiles'
 import { driveDiscData } from '../data/gameData'
 import type { DriveDisc, StatKey } from '../domain/schemas'
+import type { TargetPanelSemantics } from './targetPanelSemantics'
 import {
   playerBuildProfiles30,
   type PlayerBuildField,
@@ -74,6 +75,7 @@ export type CandidateWarehouseConstraint = {
     conditions: string[]
     sourceIds: string[]
     label: 'guide_reference_range'
+    targetSemantics?: TargetPanelSemantics
   }
   gaps: string[]
   boundary: string

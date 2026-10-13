@@ -1,5 +1,5 @@
 import { projectTargetTeamEquipmentModifiers } from '../calculation/targetTeamEquipmentModifierProjection'
-import { currentNormalizedPlanningBaseline } from '../calculation/currentNormalizedPlanningBaseline'
+import { resolveCurrentPlanningScenario32 } from '../calculation/currentPlanningScenario32'
 import { stableContentHash } from '../gameDataPacks/types'
 import {
   teamAssignmentObjectivePolicy,
@@ -10,7 +10,10 @@ import { standardSubstatProbes } from '../calculation/standardSubstatProbe'
 import { resolveDriveDiscMainStatValue } from '../calculation/outOfCombatPanel'
 import type { StatKey } from '../domain/schemas'
 import type { ReviewedFunctionalCapacity32 } from '../calculation/reviewedFunctionalCapacity32'
-import { preservesTeamFunctionalConstraints32 } from './teamFunctionalConstraints32'
+import {
+  preservesTeamFunctionalConstraints32,
+  sourceReviewedProtectedUtilityIndices32,
+} from './teamFunctionalConstraints32'
 import { isReviewedPreparedMemberDamageExclusion32 } from '../calculation/reviewedPreparedTeamBenchmark32'
 
 type ContextInput = Parameters<typeof compileTargetTeamPlanningContext>[0]
@@ -18,7 +21,9 @@ type ContextInput = Parameters<typeof compileTargetTeamPlanningContext>[0]
 export function createTargetTeamAssignmentObjective(
   input: Omit<ContextInput, 'fit' | 'modifierProjection'>,
 ): TeamAssignmentObjective {
+  const scenario = resolveCurrentPlanningScenario32(input.scenarioSelection)
   const modifierProjection = projectTargetTeamEquipmentModifiers({
+    baseline: scenario.baseline,
     memberIds: input.candidate.memberIds,
     parameters: input.parameters,
   })
@@ -56,7 +61,9 @@ export function createTargetTeamAssignmentObjective(
       rosterHash: input.rosterHash,
       warehouseHash: input.warehouseHash,
       planningHash: input.planningHash,
-      baseline: currentNormalizedPlanningBaseline,
+      baseline: scenario.baseline,
+      scenarioIdentity: scenario.identity,
+      eventConditionDeclarations: input.eventConditionDeclarationsByAgentId ?? null,
     }),
     hintProbeEvaluations: () => hintProbeEvaluations,
     visitHint: (disc, agentId) => {
@@ -157,6 +164,12 @@ export function createTargetTeamAssignmentObjective(
           candidateCapacities: functionalCapacities,
           baselineUtility: baselineUtilityStats,
           candidateUtility: utilityStats,
+          protectedUtilityIndicesByAgentId: new Map(
+            [...utilityStats.keys()].map((agentId) => [
+              agentId,
+              sourceReviewedProtectedUtilityIndices32(agentId),
+            ]),
+          ),
         })
       )
         return null

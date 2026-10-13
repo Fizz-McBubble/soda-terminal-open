@@ -7,6 +7,36 @@ import {
   type InstallerFeedbackReport,
 } from '../assetQuickRead/installerFeedback'
 import './installer-feedback.css'
+import { assetQuickReadRelease } from '../assetQuickRead/distribution'
+import { scannerDistributionManifest } from '../scanner/distribution'
+
+function ToolBlockGuidance() {
+  return (
+    <details className="installer-feedback-attempts">
+      <summary className="installer-feedback-attempts-title">下载、拦截或连接失败怎么处理</summary>
+      <p>
+        当前下载：资产快读 {assetQuickReadRelease.version}；画面扫描{' '}
+        {scannerDistributionManifest.helper.installerVersion}
+        。请核对实际下载文件的版本；本页显示的版本不会改变已经下载的旧文件。
+      </p>
+      <ul>
+        <li>
+          Chrome“不常被下载”或
+          SmartScreen“无法识别”：这是信誉提示，不能据此判定误报或证明文件安全。保留完整提示和文件名，在本站工具准备区重新核对下载版本。
+        </li>
+        <li>
+          安全软件检出或隔离：先保留软件名称、检测名称、文件名和版本，不恢复隔离文件或关闭整体防护；通过问题反馈提供这些线索后再判断原因。
+        </li>
+        <li>
+          安装或启动失败：查看安装器常驻详情与失败阶段；缺文件、权限或完整性错误需要分别处理，不根据“打不开”猜测杀毒拦截。
+        </li>
+        <li>
+          工具已启动但网页连接失败：返回工具准备区检查连接状态和常驻诊断；连接失败本身不证明文件被隔离。保留诊断，勿反复安装或删除已有读取结果。
+        </li>
+      </ul>
+    </details>
+  )
+}
 
 const STAGE_LABELS: Record<string, string> = {
   prepare: '准备环境',
@@ -137,6 +167,7 @@ export function InstallerFeedbackPage({
               </span>
             </p>
           </div>
+          <ToolBlockGuidance />
           <div className="installer-feedback-footer">
             <p className="installer-feedback-privacy">未传输任何系统或个人信息。</p>
           </div>
@@ -209,6 +240,8 @@ export function InstallerFeedbackPage({
             <span>{nextAction}</span>
           </p>
         </div>
+
+        <ToolBlockGuidance />
 
         <ul className="installer-feedback-metadata" aria-label="本次诊断概况">
           <li className="installer-feedback-tag">

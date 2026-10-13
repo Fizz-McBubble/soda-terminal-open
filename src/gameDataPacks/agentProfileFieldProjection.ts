@@ -238,7 +238,14 @@ export function projectedCurrentConstraintFields(
     {
       ...common,
       path: 'build.target_panel',
-      value: targetPanel?.values ?? null,
+      value: targetPanel
+        ? {
+            ...targetPanel.values,
+            ...(targetPanel.targetSemantics
+              ? { targetSemantics: targetPanel.targetSemantics }
+              : {}),
+          }
+        : null,
       conditions: targetPanel?.conditions ?? [],
       status: targetPanel && targetPanelSources.length > 0 ? 'candidate' : 'missing',
       sourceRefs: targetPanelSources,

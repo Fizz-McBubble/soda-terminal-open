@@ -73,6 +73,34 @@ const inCombatTargetCodesBySourceId: Readonly<Partial<Record<string, readonly So
   'prydwen-starlight-billy-2.8-2026-07-29': ['cr'],
 }
 
+/**
+ * Derived guide semantics, not a claim that Prydwen explicitly marked these
+ * stats optional. Ordinary LEVEL 60 HP/DEF floors are survivability references.
+ * Retain dedicated mechanism targets from the adopted numeric contracts:
+ * core_hpSheerForce for the five HP-scaled Rupture agents; Lucia's initial-HP
+ * exSpecial_sheerForce and Zhao's initial-HP team target (reviewedSupportTargetCapacity32);
+ * Ben's HP special_shield and DEF core_shield/core_atk (reviewedBenShieldCapacity32).
+ * A conditional mindscape shield alone (Anton/Evelyn/Lycaon/Qingyi) does not
+ * establish that a generic guide HP floor is a universal mechanism target.
+ * This is stat-specific evidence, never a specialty-wide rule.
+ */
+const mechanismTargetCodesByAgentId: Readonly<Partial<Record<string, readonly SourceCode[]>>> = {
+  'agent-banyue': ['hp'],
+  'agent-ben': ['hp', 'def'],
+  'agent-lucia': ['hp'],
+  'agent-manato': ['hp'],
+  'agent-starlight-billy': ['hp'],
+  'agent-yidhari': ['hp'],
+  'agent-yixuan': ['hp'],
+  'agent-zhao': ['hp'],
+}
+
+function isOrdinarySurvivabilityReference(agentId: string, code: SourceCode) {
+  return (
+    (code === 'hp' || code === 'def') && !mechanismTargetCodesByAgentId[agentId]?.includes(code)
+  )
+}
+
 const playerConditionsBySourceId: Readonly<Record<string, readonly string[]>> = {
   'prydwen-alice-current-2026-08-05': ['装备专属音擎时，战斗内异常掌控额外提高 60。'],
   'prydwen-anby-current-2026-08-05': ['若使用「山大王」，暴击率需达到 50%。'],
@@ -235,10 +263,13 @@ export function reviewedTargetPanelGuidance(agentId: string): AgentProfileField 
   const targetSemantics: TargetPanelSemantics = {}
   const extraStats: Record<string, TargetValue | { value: TargetValue; unit: string }> = {}
   const optional = new Set<string>()
+  const survivabilityReferences = new Set<string>()
   for (const stat of entry.s) {
     const code = sourceCode(stat)
     const value = targetValue(stat)
     if (stat.includes(' optional')) optional.add(sourceLabelByCode[code])
+    const survivabilityReference = isOrdinarySurvivabilityReference(entry.agentId, code)
+    if (survivabilityReference) survivabilityReferences.add(sourceLabelByCode[code])
     if (value === undefined)
       throw new Error(`Unparseable reviewed target value for ${entry.agentId}: ${stat}`)
     // Prydwen's percentage-form Energy Regen is not the workbench's
@@ -255,12 +286,14 @@ export function reviewedTargetPanelGuidance(agentId: string): AgentProfileField 
         throw new Error(`No workbench adapter key for ${entry.agentId}: ${code}`)
       panel[targetKey] = value
       targetSemantics[semanticKey] = {
-        requirement: stat.includes(' optional') ? 'optional' : 'required',
+        requirement: stat.includes(' optional') || survivabilityReference ? 'optional' : 'required',
         boundary:
           typeof value !== 'number' && 'max' in value && !('min' in value) ? 'cap' : 'minimum',
         observation: inCombatTargetCodesBySourceId[entry.id]?.includes(code)
           ? 'in_combat'
-          : 'out_of_combat',
+          : survivabilityReference
+            ? 'reference'
+            : 'out_of_combat',
       } satisfies TargetPanelMetricSemantic
     }
   }
@@ -271,6 +304,11 @@ export function reviewedTargetPanelGuidance(agentId: string): AgentProfileField 
   ]
   const conditions = [
     ...(playerConditionsBySourceId[entry.id] ?? []),
+    ...(survivabilityReferences.size
+      ? [
+          `${[...survivabilityReferences].map((label) => playerLabelBySourceLabel[label]).join('、')} 数值保留为攻略生存参考；本地语义分类不将其作为通用养成要求，不参与局外差距比较，来源未明确标注为可选。`,
+        ]
+      : []),
     ...[...optional].map(
       (label) =>
         `${playerLabelBySourceLabel[label] ?? label} 为来源明确标注的可选属性，不参与局外差距比较。`,

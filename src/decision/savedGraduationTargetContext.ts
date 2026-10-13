@@ -71,8 +71,9 @@ export function resolveSavedGraduationTarget(input: {
     input.target.sourceRefs?.some((ref) => ref.id === 'prydwen-sigrid-live-build-2026-09-04') &&
     JSON.stringify(input.target.conditions) ===
       JSON.stringify([
-        '60 级局外角色面板；暴击率 33.8% 按核心被动最多提供 66% 计算，继续堆叠可能溢出。',
+        '60级攻略实践参考暴击率33.8%，不是精确满暴线；满核心且巡空枪势有效、无其他暴击加成时为99.8%，数学满暴点为34%。状态失效或配置改变时需重新计算。',
         '暴击伤害区间受音擎副属性与 4 号位选择影响；这是攻略参考区间，不是 Formal 或唯一毕业线。',
+        '生命值与防御力为基础面板参考，不是该输出方向的毕业目标，不要求专门堆词条。',
       ])
   ) {
     const value = { ...(input.target.value as Record<string, unknown>) }
@@ -81,7 +82,7 @@ export function resolveSavedGraduationTarget(input: {
     return {
       value,
       limitations: input.agent.skillLevels.core === 7 ? [] : ['核心技未达F，暴击率参考未计入'],
-      applied: ['按局外面板与毕业参考下限比较'],
+      applied: ['保留攻略参考与状态条件，不将参考区间计入局外完成度'],
     }
   }
   const reviewed = reviewedTargetPanelGuidance(input.agent.agentId)

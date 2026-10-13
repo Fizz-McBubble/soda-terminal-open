@@ -35,6 +35,16 @@ export function asStrings(value: unknown): string[] {
 /** Match complete canonical tokens and consume the longest Chinese alias first. */
 export function candidateStatKeys(text: string): StatKey[] {
   text = text.replaceAll('双暴', '暴击率/暴击伤害')
+  // In a paired source list, the explicit percent entry disambiguates its
+  // separate bare entry as flat. A lone bare word retains its historical meaning.
+  const pairedFlat: Partial<Record<StatKey, StatKey>> = {}
+  for (const [word, percent, flat] of [
+    ['攻击力', 'atk_percent', 'atk_flat'],
+    ['防御力', 'def_percent', 'def_flat'],
+    ['生命值', 'hp_percent', 'hp_flat'],
+  ] as const) {
+    if (new RegExp(`${word}(?:[%％]|百分比)`).test(text)) pairedFlat[percent] = flat
+  }
   const tokens = [
     ...statKeySchema.options.map((key) => ({ key, alias: key, canonical: true })),
     ...statAliases.flatMap(([key, aliases]) =>
@@ -51,7 +61,12 @@ export function candidateStatKeys(text: string): StatKey[] {
             !/[a-zA-Z0-9_]/.test(text[index + alias.length] ?? ''))),
     )
     if (token) {
-      found.push(token.key)
+      const bare = ['攻击力', '防御力', '生命值'].includes(token.alias)
+      const separateEntry =
+        (index === 0 || /[、,，/／=＝>＞+＋；;\s]/.test(text[index - 1]!)) &&
+        (index + token.alias.length === text.length ||
+          /[、,，/／=＝>＞+＋；;\s]/.test(text[index + token.alias.length]!))
+      found.push(bare && separateEntry ? (pairedFlat[token.key] ?? token.key) : token.key)
       index += token.alias.length
     } else index += 1
   }
@@ -61,6 +76,25 @@ export function candidateStatKeys(text: string): StatKey[] {
 export function candidateSubStatWeights(
   value: unknown,
 ): CandidateWarehouseConstraint['subStatWeights'] {
+  const legalSubstats = new Set(
+    Object.values(driveDiscData?.rules.subStatStepsByRarity ?? {}).flatMap((rules) =>
+      rules.map((rule) => rule.stat),
+    ),
+  )
+  // Preserve sourced numbers; a readable key list is not a numeric priority table.
+  if (value && typeof value === 'object' && !Array.isArray(value) && 'subStatWeights' in value) {
+    const weights = value.subStatWeights
+    if (!weights || typeof weights !== 'object' || Array.isArray(weights)) return {}
+    return Object.fromEntries(
+      Object.entries(weights).filter(
+        ([key, weight]) =>
+          legalSubstats.has(key as StatKey) &&
+          typeof weight === 'number' &&
+          Number.isFinite(weight) &&
+          weight >= 0,
+      ),
+    )
+  }
   // Main-stat prose is not substat evidence. Source adapters use either
   // main/sub or mainStats/subStats; preserve both existing contracts.
   const raw =
@@ -71,11 +105,6 @@ export function candidateSubStatWeights(
           ? asStrings((value as { sub: unknown }).sub)
           : []
       : asStrings(value)
-  const legalSubstats = new Set(
-    Object.values(driveDiscData?.rules.subStatStepsByRarity ?? {}).flatMap((rules) =>
-      rules.map((rule) => rule.stat),
-    ),
-  )
   const typed = raw.map((entry) => statKeySchema.safeParse(entry))
   if (typed.length && typed.every((entry) => entry.success)) {
     const keys = [
@@ -85,7 +114,7 @@ export function candidateSubStatWeights(
         ),
       ),
     ]
-    return Object.fromEntries(keys.map((key, index) => [key, Math.max(0.35, 1 - index * 0.12)]))
+    return Object.fromEntries(keys.map((key) => [key, 1]))
   }
   const text = raw.join('；')
   const keys = candidateStatKeys(text).filter((key) => legalSubstats.has(key))

@@ -12,6 +12,10 @@ import { constrainTeamStrengthScore, strengthBandForScore } from './teamStrength
 import type { Current31MetaCalibration } from './current31TeamStrengthCalibration'
 import { reviewedTeamAnalysis } from './reviewedTeamAnalysis'
 import { isReviewedFallbackTeam } from './reviewedTeamRecommendationDisposition'
+import {
+  currentTeamStrengthReferenceConditions,
+  teamStrengthReferenceConditionsIdentity,
+} from './teamStrengthReferenceConditions'
 
 export const teamStrengthModelPolicy = {
   contract: artifact.contract,
@@ -39,10 +43,13 @@ function infer(memberIds: readonly string[]) {
       currentReleasedIdentityMap.gameVersion ||
     (reviewedSubjectIds !== null && memberIds.some((id) => !reviewedSubjectIds.includes(id))) ||
     artifact.mechanicDataFingerprint !== teamStrengthMechanicDataFingerprint ||
+    (artifact as { referenceConditionsIdentity?: string }).referenceConditionsIdentity !==
+      teamStrengthReferenceConditionsIdentity ||
     JSON.stringify(artifact.featureNames) !== JSON.stringify(teamStrengthMechanicFeatureNames)
   )
     return null
-  const features = extractTeamStrengthMechanicFeatures(memberIds)
+  const referenceConditions = currentTeamStrengthReferenceConditions(memberIds)
+  const features = extractTeamStrengthMechanicFeatures(memberIds, {}, referenceConditions)
   if (!features.eligibility.eligible) return null
   const rawScore = predictStrengthRegression(artifact.regression, features.values)
   const score = constrainTeamStrengthScore(rawScore, features.guardrails)
@@ -55,6 +62,7 @@ function infer(memberIds: readonly string[]) {
     reliability: features.reliability,
     limitations: features.limitations,
     guardrails: features.guardrails,
+    referenceConditions,
     confidence: 'low' as const,
   }
 }

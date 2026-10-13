@@ -15,6 +15,8 @@ import {
 } from './teamBuildExecutionIdentity'
 import { compileTargetTeamPlanningContext } from './targetTeamPlanningContext'
 import type { TargetTeamWarehouseFit } from './targetTeamWarehouseFit'
+import type { TargetTeamPlanningContextInput } from './targetTeamPlanningContextInput'
+import { resolveCurrentPlanningScenario32 } from '../calculation/currentPlanningScenario32'
 
 export const targetTeamAccountBoundBenchmarkContract =
   'soda-target-team-account-bound-benchmark/v2' as const
@@ -36,7 +38,10 @@ export function projectTargetTeamAccountBoundBenchmark(input: {
   planningHash: string
   capturedAt: string
   equipmentParameters?: TargetTeamEquipmentParameterSelection
+  scenarioSelection?: TargetTeamPlanningContextInput['scenarioSelection']
+  eventConditionDeclarationsByAgentId?: TargetTeamPlanningContextInput['eventConditionDeclarationsByAgentId']
 }) {
+  const scenario = resolveCurrentPlanningScenario32(input.scenarioSelection)
   const fitGaps = [...new Set(input.fit.gaps)]
   const parameters = input.equipmentParameters
   const selectedAgentIds = parameters?.wEngines.map((item) => item.agentId) ?? []
@@ -100,6 +105,7 @@ export function projectTargetTeamAccountBoundBenchmark(input: {
   const equipmentModifierProjection =
     parametersValid && parameters
       ? projectTargetTeamEquipmentModifiers({
+          baseline: scenario.baseline,
           memberIds: input.fit.memberIds,
           parameters,
           wEngineLevelsByAgentId: Object.fromEntries(
@@ -125,6 +131,8 @@ export function projectTargetTeamAccountBoundBenchmark(input: {
           warehouseHash: input.warehouseHash,
           planningHash: input.planningHash,
           capturedAt: input.capturedAt,
+          scenarioSelection: scenario.selection,
+          eventConditionDeclarationsByAgentId: input.eventConditionDeclarationsByAgentId,
         })
       : null
   const calculationSupported = planningContextCompilation?.status === 'supported'
@@ -152,6 +160,11 @@ export function projectTargetTeamAccountBoundBenchmark(input: {
     ...(koledaMetadata ? { koledaFixedEventConditionsMetadata32: koledaMetadata } : {}),
     contract: targetTeamAccountBoundBenchmarkContract,
     candidateId: input.candidate.candidateId,
+    scenarioSelection: scenario.selection,
+    scenarioIdentity: scenario.identity,
+    scenarioBoundary: scenario.boundary,
+    comparisonBaseline: scenario.baseline,
+    eventConditionDeclarationsByAgentId: input.eventConditionDeclarationsByAgentId ?? null,
     status: calculationSupported ? ('supported' as const) : ('unavailable' as const),
     baselineId: calculationSupported ? planningContextCompilation.baselineId : null,
     declaredDurationSeconds: calculationSupported
@@ -187,6 +200,10 @@ export function projectTargetTeamAccountBoundBenchmark(input: {
             potentialHash: planningContextCompilation.potentialHash,
             contextFingerprint: planningContextCompilation.contextFingerprint,
             runtimeHash: planningContextCompilation.runtimeHash,
+            scenarioSelection: planningContextCompilation.scenarioSelection,
+            scenarioIdentity: planningContextCompilation.scenarioIdentity,
+            eventConditionDeclarationsByAgentId:
+              planningContextCompilation.eventConditionDeclarationsByAgentId,
             interactionBundleHash: planningContextCompilation.interactionBundleHash,
             interactionStateHash: planningContextCompilation.interactionStateHash,
             interactionOperatorCoverage: planningContextCompilation.interactionOperatorCoverage,

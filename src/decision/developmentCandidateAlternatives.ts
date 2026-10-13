@@ -1,4 +1,5 @@
 import { refineDevelopmentCandidates } from './developmentCandidateRefinement'
+import type { CurrentPlanningScenarioSelection32 } from '../application/publicPlanningScenarioContract'
 import { searchDevelopmentDynamicCandidates } from './developmentDynamicSearch'
 import type { CoreWarehouse } from '../accounts/coreFlow'
 import type { DriveDisc } from '../domain/schemas'
@@ -15,6 +16,17 @@ import {
   type AgentIndependentBuildIntent,
 } from './buildIntent'
 
+export type DevelopmentCandidateSearch = {
+  rankingMethod: 'dynamic_objective' | 'source_and_local_refinement'
+  status:
+    | 'not_run'
+    | NonNullable<ReturnType<typeof searchDevelopmentDynamicCandidates>['search']>['status']
+  nodes: number
+  evaluations: number
+  exactWithinDeclaredModel: boolean
+  productionGameAccuracyCertified: false
+}
+
 export type DevelopmentCandidateAlternativesProjection =
   | {
       status: 'ready'
@@ -22,6 +34,7 @@ export type DevelopmentCandidateAlternativesProjection =
       candidates: CandidateWarehousePlan[]
       buildIntent: AgentIndependentBuildIntent
       gaps: string[]
+      candidateSearch?: DevelopmentCandidateSearch
     }
   | {
       status: 'unavailable'
@@ -29,6 +42,7 @@ export type DevelopmentCandidateAlternativesProjection =
       candidates: []
       buildIntent: AgentIndependentBuildIntent
       gaps: string[]
+      candidateSearch?: DevelopmentCandidateSearch
     }
 
 type DevelopmentCandidateAlternativesInput = {
@@ -41,6 +55,7 @@ export function projectDevelopmentCandidateAlternatives(
   input: DevelopmentCandidateAlternativesInput,
   agentId: string,
   parameters?: DevelopmentComparisonParameters,
+  scenarioSelection?: CurrentPlanningScenarioSelection32,
 ): DevelopmentCandidateAlternativesProjection {
   const agent = input.warehouse.roster.agents.find((item) => item.agentId === agentId)
   const panelInput = candidatePanelInputForAgent(
@@ -86,19 +101,30 @@ export function projectDevelopmentCandidateAlternatives(
     buildIntent.recommendations,
   )
   candidates = refineDevelopmentCandidates({
+    scenarioSelection,
     warehouse: input.warehouse,
     agentId,
     candidates,
     buildIntent,
     parameters,
   })
-  candidates = searchDevelopmentDynamicCandidates({
+  const dynamic = searchDevelopmentDynamicCandidates({
+    scenarioSelection,
     warehouse: input.warehouse,
     agentId,
     candidates,
     buildIntent,
     parameters,
-  }).candidates
+  })
+  candidates = dynamic.candidates
+  const candidateSearch: DevelopmentCandidateSearch = {
+    rankingMethod: dynamic.rankingApplied ? 'dynamic_objective' : 'source_and_local_refinement',
+    status: dynamic.search?.status ?? 'not_run',
+    nodes: dynamic.search?.nodes ?? 0,
+    evaluations: dynamic.search?.evaluations ?? 0,
+    exactWithinDeclaredModel: dynamic.search?.exactWithinDeclaredModel ?? false,
+    productionGameAccuracyCertified: false,
+  }
   if (!candidates.length) {
     const diagnostic = solveCandidateWarehouse(
       input.warehouse.discs,
@@ -109,6 +135,7 @@ export function projectDevelopmentCandidateAlternatives(
     )
     return {
       status: 'unavailable',
+      candidateSearch,
       baseline: [],
       candidates: [],
       buildIntent,
@@ -117,6 +144,7 @@ export function projectDevelopmentCandidateAlternatives(
   }
   return {
     status: 'ready',
+    candidateSearch,
     baseline,
     candidates,
     buildIntent,

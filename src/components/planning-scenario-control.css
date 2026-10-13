@@ -1,0 +1,10 @@
+.planning-scenario-control {
+  width: 152px;
+  max-width: 100%;
+  flex-shrink: 0;
+}
+
+.planning-scenario-error {
+  color: var(--soda-text);
+  padding: 8px 12px;
+}

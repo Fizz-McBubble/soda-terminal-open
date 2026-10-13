@@ -77,6 +77,18 @@ function fixture(agentId: string) {
 }
 
 describe('reviewed finite prepared personal CalculationContext', () => {
+  it.each([undefined, null])(
+    'does not certify a stale source packet against unknown potential %s',
+    (potential) => {
+      const { qualificationInput } = fixture('agent-koleda')
+      expect(
+        qualifyReviewedPreparedBenchmark32({
+          ...qualificationInput,
+          member: { ...qualificationInput.member, potential },
+        }),
+      ).toBeNull()
+    },
+  )
   it.each([
     // DEF400 * MV63.136 * .5 DEF * (1+1*1.5)*(1+.15*1.5).
     ['agent-claret', 38670.8],

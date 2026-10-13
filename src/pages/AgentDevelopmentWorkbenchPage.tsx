@@ -92,13 +92,14 @@ export function AgentDevelopmentWorkbenchPage() {
     }
   }, [pageAccountId, agentId, requestedPlanId])
   const requestedCandidateRank = Number.parseInt(searchParams.get('candidate') ?? '1', 10)
+  const preferEquipped = requestedCandidateRank === 0 && !requestedPlanId
   const selectedCandidateRank =
     Number.isFinite(requestedCandidateRank) && requestedCandidateRank > 0
       ? requestedCandidateRank
       : 1
   const currentRun = decisionWorld.status === 'current' ? decisionWorld.run : null
   const routeSnapshot =
-    currentRun && !requestedPlanId
+    currentRun && !requestedPlanId && !preferEquipped
       ? readDevelopmentCandidateSnapshot(currentRun.input.warehouse.accountId ?? '', agentId)
       : null
   const routeSnapshotCurrent =
@@ -114,10 +115,11 @@ export function AgentDevelopmentWorkbenchPage() {
     () => ({
       agentId,
       requestedPlanId,
+      ...(preferEquipped ? { preferEquipped: true as const } : {}),
       candidateRank: routeLoadoutFingerprint ? routeCandidateIndex + 1 : null,
       candidateLoadoutFingerprint: routeLoadoutFingerprint,
     }),
-    [agentId, requestedPlanId, routeCandidateIndex, routeLoadoutFingerprint],
+    [agentId, requestedPlanId, preferEquipped, routeCandidateIndex, routeLoadoutFingerprint],
   )
   const routeKey = currentRun
     ? contentHash([currentRun.runId, currentRun.inputFingerprint, routeSelection])
@@ -228,13 +230,15 @@ export function AgentDevelopmentWorkbenchPage() {
         )
       : null
 
-  const savedPlanResolution = resolveSavedAgentPlanRoute({
-    requestedPlanId,
-    agentId,
-    activePlanId: data.activePlans[agentId],
-    planningDrafts: data.planningDrafts,
-    discs: data.discs,
-  })
+  const savedPlanResolution = preferEquipped
+    ? { status: 'current' as const, plan: undefined }
+    : resolveSavedAgentPlanRoute({
+        requestedPlanId,
+        agentId,
+        activePlanId: data.activePlans[agentId],
+        planningDrafts: data.planningDrafts,
+        discs: data.discs,
+      })
   if (
     savedPlanResolution.status === 'missing' ||
     savedPlanResolution.status === 'references_changed'
@@ -243,9 +247,8 @@ export function AgentDevelopmentWorkbenchPage() {
   const savedAgentBuild = savedPlanResolution.plan
   // A historical plan must remain its own recorded six-disc reference. Do not let a
   // previous candidate session replace it merely because that session is still cached.
-  const candidateSnapshot = requestedPlanId
-    ? null
-    : readDevelopmentCandidateSnapshot(account.id, agentId)
+  const candidateSnapshot =
+    requestedPlanId || preferEquipped ? null : readDevelopmentCandidateSnapshot(account.id, agentId)
   const candidateSnapshotStale =
     decisionWorld.status === 'stale' ||
     (candidateSnapshot

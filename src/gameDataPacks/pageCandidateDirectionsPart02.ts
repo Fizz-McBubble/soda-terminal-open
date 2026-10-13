@@ -13,7 +13,7 @@ export const pageCandidateDirectionsPart02: Partial<Record<string, PageCandidate
         evidence: 'page-level build and teams sections',
       }),
       licenseBoundary:
-        '社区候选页面：仅本地候选与来源定位，不作为官方事实或正式计算输入；页面未给出可核验的 3.0 适用版本。',
+        '社区候选页面：仅本地候选与来源定位，不作为官方事实或正式计算输入；页面未给出可核验的 3.0 适用版本。R2 审阅补全：依据来源 Substats（Anomaly Proficiency > ATK% > PEN > ATK）补全有效固定攻击力（Flat ATK）。',
       verified: true,
     },
     wengines: ['Flamemaker Shaker', 'Practiced Perfection', 'Electro-Lip Gloss', 'Weeping Gemini'],
@@ -24,7 +24,7 @@ export const pageCandidateDirectionsPart02: Partial<Record<string, PageCandidate
         '5号位：火伤/穿透率',
         '6号位：异常掌控或能量回复（取决于音擎与热量循环）',
       ],
-      sub: ['异常精通、攻击力%、穿透值；不把候选面板阈值升格为正式规则。'],
+      sub: ['异常精通、攻击力%、穿透值、固定攻击力；不把候选面板阈值升格为正式规则。'],
     },
     progression: [
       '维持 Heat、施加 Scorched 后离场触发 Afterburn；补能时短暂回场，避免在 50 Heat 以上浪费终结技补充。',
@@ -55,7 +55,7 @@ export const pageCandidateDirectionsPart02: Partial<Record<string, PageCandidate
       main: ['4号位：异常精通', '5号位：以太伤害优先，其次穿透率/攻击力%', '6号位：异常掌控'],
       sub: ['异常精通优先，其次攻击力%、攻击力、穿透'],
     },
-    progression: ['核心被动优先；通过飞羽转护羽后切人，以队友异常触发 Abloom。'],
+    progression: ['核心被动优先；通过飞羽转护羽后切人，以队友异常触发「异放」。'],
     team: ['需要另一名异常主C；页面列出雅/柳/爱丽丝/简/派派/格莉丝与耀嘉音/柚叶/妮可/露西等协同。'],
   },
   'agent-jane': {

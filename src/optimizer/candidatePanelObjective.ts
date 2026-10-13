@@ -3,6 +3,7 @@ import { projectOutOfCombatMenuPanel, type PanelInput } from '../calculation/out
 import {
   candidatePanelPolicyPrerequisites,
   getCandidatePanelPolicy,
+  getCandidatePanelPolicyForContext,
   type CandidatePanelPolicy,
   type CandidatePanelPriorityStat,
 } from '../gameDataPacks/candidatePanelPolicy'
@@ -38,7 +39,12 @@ export function getCandidatePanelObjectiveTarget(
   agentId: string,
   panelInput?: CandidatePanelInput,
 ): CandidatePanelObjectiveTarget | null {
-  const policy = getCandidatePanelPolicy(agentId)
+  const policy =
+    panelInput?.agentId === agentId
+      ? getCandidatePanelPolicyForContext(agentId, {
+          mindscape: panelInput.mindscape,
+        })
+      : getCandidatePanelPolicy(agentId)
   if (!policy || panelInput?.agentId !== agentId) return null
   return candidatePanelPolicyPrerequisites(policy, {
     // PanelInput stores Core A-F as 0-5; game-facing Core level is 2-7.

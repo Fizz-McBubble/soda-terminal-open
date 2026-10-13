@@ -34,7 +34,8 @@ export const pageCandidateDirectionsPart12: Partial<Record<string, PageCandidate
         url: 'https://www.prydwen.gg/zenless/characters/zhu-yuan',
         buildVersion: '2.4',
       }),
-      licenseBoundary: '社区候选页面：仅本地候选与来源定位，不作为官方事实或正式计算输入。',
+      licenseBoundary:
+        '社区候选页面：仅本地候选与来源定位，不作为官方事实或正式计算输入。R2 审阅补全：依据来源 Substats（CRIT RATE = CRIT DMG = ATK% > PEN > ATK）区分攻击力%并补全有效固定攻击力（Flat ATK）。',
       verified: true,
     },
     wengines: ['Cordis Germina', 'The Brimstone', 'Riot Suppressor Mark VI', 'Marcato Desire'],
@@ -44,7 +45,7 @@ export const pageCandidateDirectionsPart12: Partial<Record<string, PageCandidate
     ],
     stats: {
       main: ['4号位：暴击伤害/暴击率', '5号位：攻击力/以太伤害/穿透率', '6号位：攻击力'],
-      sub: ['暴击率/暴击伤害/攻击力/穿透'],
+      sub: ['暴击率/暴击伤害/攻击力%/穿透/固定攻击力'],
     },
     progression: ['候选页面包含终局面板；技能/核心优先级需同版本独立核验。'],
     team: ['页面计算假设：琉音与妮可；不等同唯一队伍或正式最优。'],

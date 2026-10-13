@@ -151,6 +151,11 @@ export function bindReviewedPlanningConditionSemantics32(input: {
       !input.event.eventModifierRefs?.includes(entry.effectId)
     )
       return { status: 'supported' as const, active: false, overrides, sourceRefs: [] as string[] }
+    if (input.potential == null)
+      return {
+        status: 'unsupported' as const,
+        blockers: ['珂蕾妲潜能未知，不能判定该次炉火消耗效果。'],
+      }
     const consumed = references.furnaceConsumedStacks32
     if (hasKoledaPotential(input.potential)) {
       if (consumed === undefined)
@@ -175,6 +180,11 @@ export function bindReviewedPlanningConditionSemantics32(input: {
     entry.effectKey === 'agent-koleda:basic_common_dmg_' &&
     entry.providerAgentId === 'agent-koleda'
   ) {
+    if (input.potential == null)
+      return {
+        status: 'unsupported' as const,
+        blockers: ['珂蕾妲潜能未知，不能判定炉火消耗队伍增伤。'],
+      }
     const active = references.furnaceConsumptionBuffActive32
     if (active === undefined)
       return hasKoledaPotential(input.potential)

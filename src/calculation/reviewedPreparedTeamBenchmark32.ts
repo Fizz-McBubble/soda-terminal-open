@@ -1,3 +1,4 @@
+import { getAgentCapability } from '../assault/agentCapabilities'
 import { createCalculationContext, type CalculationContext } from './calculationContext'
 import type { PlanningEffectRuntimeMember } from './currentPlanningEffectRuntime'
 import type { PlanningEventUsage } from './planningCalculationContextCompiler'
@@ -200,6 +201,9 @@ export function qualifyReviewedPreparedTeamBenchmark32(input: {
       source.policyId !== record.policyId ||
       !source.resourceLegality.legal ||
       member.mindscape > record.maximumMindscape ||
+      (member.potential == null &&
+        getAgentCapability(member.agentId)?.sourceBinding32?.missingObservationPolicy ===
+          'preserve_unknown') ||
       (member.potential ?? 0) > record.maximumPotential ||
       rows.length !== record.rows.length ||
       reviewedPreparedEventRows32(record, member.mindscape).some(

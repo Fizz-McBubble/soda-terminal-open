@@ -148,7 +148,8 @@ const additions: Partial<Record<string, MainStatAddition>> = {
     stat: 'crit_dmg',
     label: '暴击伤害',
     optionCondition: '补齐当前已有直伤方向的双暴范围',
-    condition: '仅补当前已有直伤方向的4号双暴范围；物理积蓄方向保留原异常精通，6号冲击保持不变。',
+    condition:
+      '仅补当前已有直伤方向的4号双暴范围；物理异常/强击伤害方向保留原异常精通，6号冲击保持不变。',
     requiredExistingStat: 'crit_rate',
     postId: '57928556',
     sourceVersion: '1.2',

@@ -1,3 +1,4 @@
+import { projectAccountDecisionRecommendation } from './accountDecisionRecommendationProjection'
 import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
 import type { AccountRoster } from '../assault/types'
 import { currentNormalizedPlanningBaseline } from '../calculation/currentNormalizedPlanningBaseline'
@@ -5,15 +6,11 @@ import type { AccountBuildResult } from '../optimizer/optimizeAccountBuilds'
 import type { TeamPortfolioPreference } from '../accounts/teamPortfolioPreference'
 import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
 import { stableContentHash } from '../gameDataPacks/types'
-import {
-  createCultivationPriorityInput,
-  teamDecisionAuthorityContractId,
-  type CultivationPriorityInput,
-} from './teamDecisionAuthority'
-import { evaluateCurrent31TeamRating } from './current31TeamRating'
-import { reviewedTeamCombatEvidence } from './reviewedTeamCombatEvidence'
+import { type CultivationPriorityInput } from './teamDecisionAuthority'
 import { isReviewedFallbackTeam } from './reviewedTeamRecommendationDisposition'
-import { teamBangbooActivationAlternatives } from './teamBangbooActivationAlternatives'
+import { extractTeamStrengthMechanicFeatures } from './teamStrengthMechanicFeatures'
+import { reviewedTeamAnalysis } from './reviewedTeamAnalysis'
+import { selectDefaultTeamRecommendationIds } from './defaultTeamRecommendationPolicy'
 import { reviewedPreparedTeamCapabilities32 } from '../calculation/reviewedPreparedTeamBenchmark32'
 import {
   authorComparisonMembership32Identity,
@@ -22,9 +19,7 @@ import {
 import { projectOutputPotentialBands } from './outputPotentialBand'
 import { type RankedFormation } from './accountDecisionBands'
 import {
-  assertIntrinsicSummaryMatchesCurrentRating,
   Current31TeamIntrinsicIndexMismatchError,
-  intrinsicRatingBenchmark,
   projectAccountIntrinsicCandidates,
 } from './accountDecisionIntrinsicProjection'
 import {
@@ -37,11 +32,7 @@ import {
   denseOrder,
   resolveMemberDisjointPortfolio,
 } from './accountDecisionOrdering'
-import {
-  createPriorityResult,
-  lightweightPriorityTier,
-  marginalGain,
-} from './accountCultivationPriority'
+import { lightweightPriorityTier } from './accountCultivationPriority'
 export { refineCultivationPriorityWithTargetFit } from './accountCultivationPriority'
 export { projectCurrent31TeamStrengthOrder } from './accountDecisionOrdering'
 
@@ -187,7 +178,7 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
       left.candidate.candidateId.localeCompare(right.candidate.candidateId)
     )
   }
-  const defaultRecommendation = (item: (typeof projected)[number]) => {
+  const sourceRecommendation = (item: (typeof projected)[number]) => {
     if (
       explicitMembershipById.has(item.candidate.candidateId) ||
       preparedBenchmarkIds.has(item.candidate.candidateId)
@@ -206,6 +197,43 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
   const allIntrinsicOrdered = [...projected]
     .filter((item) => item.rating.status === 'rated')
     .sort(intrinsicDisplayComparator)
+  const withdrawnKeys = new Set(
+    reviewedTeamAnalysis.records
+      .filter((record) => record.withdrawn)
+      .map((record) => [...record.memberIds].sort().join('|')),
+  )
+  const featureCache = new Map<string, ReturnType<typeof extractTeamStrengthMechanicFeatures>>()
+  const defaultRecommendationIds = selectDefaultTeamRecommendationIds(
+    allIntrinsicOrdered.map((item) => ({
+      candidateId: item.candidate.candidateId,
+      memberIds: item.memberIds,
+      sourceRecommended: sourceRecommendation(item),
+      explicitSelectionOnly:
+        explicitMembershipById.has(item.candidate.candidateId) ||
+        preparedBenchmarkIds.has(item.candidate.candidateId),
+      inferredStrength: item.inferredStrength,
+      ratingStatus: item.rating.status,
+      ratingBand: item.rating.status === 'rated' ? item.rating.ratingBand : null,
+      confidence: item.rating.status === 'rated' ? item.rating.confidence : null,
+      mechanicallyClosed: item.mechanicallyClosed,
+      recommendationScore: item.recommendationScore,
+      sourceExcluded:
+        isReviewedFallbackTeam(item.memberIds) ||
+        withdrawnKeys.has([...item.memberIds].sort().join('|')),
+    })),
+    (candidate) => {
+      const key = [...candidate.memberIds].sort().join('|')
+      const features =
+        featureCache.get(key) ?? extractTeamStrengthMechanicFeatures(candidate.memberIds)
+      featureCache.set(key, features)
+      return features.eligibility.eligible &&
+        !features.supportEvidence.sourceConflictProviderIds.length
+        ? features.primaryOutputAgentId
+        : null
+    },
+  )
+  const defaultRecommendation = (item: (typeof projected)[number]) =>
+    defaultRecommendationIds.has(item.candidate.candidateId)
   const intrinsicOrdered = allIntrinsicOrdered.filter(defaultRecommendation)
   const longTermSelection = resolveMemberDisjointPortfolio(
     intrinsicOrdered,
@@ -217,10 +245,11 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
   )
   const intrinsicShortlist: Array<(typeof intrinsicOrdered)[number]> = []
   const intrinsicShortlistCandidateIds = new Set<string>()
-  for (const item of [
+  const shortlistOrder = [
     ...longTermSelected,
     ...intrinsicOrdered.filter((item) => !longTermSelectedIds.has(item.candidate.candidateId)),
-  ]) {
+  ].sort((left, right) => Number(sourceRecommendation(right)) - Number(sourceRecommendation(left)))
+  for (const item of shortlistOrder) {
     if (intrinsicShortlistCandidateIds.has(item.candidate.candidateId)) continue
     intrinsicShortlistCandidateIds.add(item.candidate.candidateId)
     intrinsicShortlist.push(item)
@@ -323,70 +352,22 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
     left: (typeof enriched)[number],
     right: (typeof enriched)[number],
   ) => intrinsicDisplayComparator(left, right)
-  const toRecommendation = (item: (typeof enriched)[number]) => {
-    const authorComparisonMembership = explicitMembershipById.get(item.candidate.candidateId)
-    const hasPreparedBenchmark32 = preparedBenchmarkIds.has(item.candidate.candidateId)
-    const explicitSelectionOnly = Boolean(authorComparisonMembership || hasPreparedBenchmark32)
-    const current = evaluateCurrent31TeamRating({
-      candidateId: item.candidate.candidateId,
-      memberIds: item.memberIds,
-      bangbooId: item.candidate.bestBangbooId,
-      outputPotentialBand: 'unknown',
-      benchmark: intrinsicRatingBenchmark,
+  const toRecommendation = (item: (typeof enriched)[number]) =>
+    projectAccountDecisionRecommendation(item, {
+      explicitMembershipById,
+      preparedBenchmarkIds,
+      teamStrengthRankById,
+      cultivationRankById,
+      validationIntrinsicProjectionMode: input.validationIntrinsicProjectionMode,
     })
-    if (current.rating.status !== 'rated')
-      throw new Error(`短名单 Team Rating 与全域投影不一致：${item.candidate.candidateId}。`)
-    if (input.validationIntrinsicProjectionMode !== 'direct')
-      assertIntrinsicSummaryMatchesCurrentRating(item.memberIds, current)
-    const priorityInput = createCultivationPriorityInput({
-      contract: teamDecisionAuthorityContractId,
-      candidateId: item.candidate.candidateId,
-      teamRating: current.rating,
-      ...item.account,
-      marginalAccountGain: marginalGain(current.rating, item.coverageGain),
-      coverageGain: item.coverageGain,
-    })
-    return {
-      candidateId: item.candidate.candidateId,
-      teamStrengthOrder: explicitSelectionOnly
-        ? null
-        : (teamStrengthRankById.get(item.candidate.candidateId) ?? null),
-      cultivationPriorityOrder: explicitSelectionOnly
-        ? null
-        : (cultivationRankById.get(item.candidate.candidateId) ?? null),
-      memberIds: item.memberIds,
-      bangbooId: explicitSelectionOnly ? null : item.candidate.bestBangbooId,
-      benchmarkOutput: explicitSelectionOnly ? null : item.candidate.planningDps,
-      ...(authorComparisonMembership || (!hasPreparedBenchmark32 && item.candidate.bestBangbooId)
-        ? {}
-        : {
-            // Activation-only choices are not ranked recommendations. Check at
-            // one star so the preview never assumes an unconfirmed star upgrade.
-            bangbooAlternativeIds: teamBangbooActivationAlternatives(item.memberIds),
-          }),
-      outputPotential: item.output,
-      featureVector: current.featureVector,
-      teamRating: current.rating,
-      mechanicValidity: current.mechanicValidity,
-      combatEvidence: reviewedTeamCombatEvidence(item.memberIds, item.candidate.bestBangbooId),
-      mechanicRating: current.mechanicRating,
-      referencePerformance: current.referencePerformance,
-      metaCalibration: current.metaCalibration,
-      mainstreamRecognition: current.mainstreamRecognition,
-      accountInputs: {
-        ...item.account,
-        marginalAccountGain: priorityInput.marginalAccountGain,
-        coverageGain: priorityInput.coverageGain,
-      },
-      cultivationPriority: createPriorityResult(priorityInput),
-      ...(authorComparisonMembership ? { authorComparisonMembership } : {}),
-      ...(hasPreparedBenchmark32 ? { hasPreparedBenchmark32: true as const } : {}),
-    }
-  }
   // Owned BOX constrains membership; inventory costs stay outside intrinsic strength ordering.
   const recommendations = enriched
     .filter((item) => intrinsicShortlistIds.has(item.candidate.candidateId))
-    .sort(strengthFirstComparator)
+    .sort(
+      (left, right) =>
+        Number(sourceRecommendation(right)) - Number(sourceRecommendation(left)) ||
+        strengthFirstComparator(left, right),
+    )
     .slice(0, recommendationLimit)
     .map(toRecommendation)
   const consumerRecommendations = enriched
@@ -394,7 +375,11 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
     .sort(strengthFirstComparator)
     .map(toRecommendation)
   const bestByAgent = new Map<string, (typeof enriched)[number]>()
-  for (const item of [...enriched].sort(strengthFirstComparator)) {
+  for (const item of [...enriched].sort(
+    (left, right) =>
+      Number(sourceRecommendation(right)) - Number(sourceRecommendation(left)) ||
+      strengthFirstComparator(left, right),
+  )) {
     if (!defaultRecommendation(item)) continue
     if (item.rating.status !== 'rated') continue
     for (const agentId of item.memberIds) {

@@ -418,3 +418,30 @@
     border-bottom: 1px solid rgba(93, 79, 130, 0.1);
   }
 }
+
+/* Wrap at set boundaries. Only the count is indivisible; unusually long names
+   can still wrap inside an item instead of overflowing a narrow column. */
+.comparison-set-summary {
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: normal;
+}
+
+.comparison-set-item {
+  display: inline-flex;
+  align-items: baseline;
+  max-width: 100%;
+  vertical-align: top;
+}
+
+.comparison-set-item__name {
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.comparison-set-item__count {
+  flex: 0 0 auto;
+  white-space: pre;
+}

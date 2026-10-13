@@ -32,6 +32,29 @@ const specialInteractionByAgentId = new Map(
   ]),
 )
 
+/** AST presence is separate from mechanism completeness. The upstream's
+ * three generic conditional examples are templates, even when their branches
+ * can be evaluated to zero. Specific expressions still need consumer coverage. */
+export function classifyAgentEffectSource32(
+  contract: (typeof decisionMechanicCatalog.formulaEffects)[number] | null | undefined,
+) {
+  if (!contract) return 'unknown' as const
+  if (!contract.effects.length) return 'raw_event_only' as const
+  const expected = {
+    m6_dmg_: 'boolConditional',
+    team_dmg_: 'listConditional',
+    enemy_defRed_: 'numConditional',
+  } as const
+  const generic =
+    contract.effects.length === 3 &&
+    Object.entries(expected).every(([id, path]) => {
+      const effect = contract.effects.find((row) => row.effectId === id)
+      const ir = JSON.stringify(effect?.numericExpression.expressionIr)
+      return ir?.includes(`"path":"${path}"`)
+    })
+  return generic ? ('generic_template' as const) : ('specific_expression' as const)
+}
+
 export const currentAgentDecisionMechanicContracts = Object.freeze(
   [...effectsByAgentId].map(([agentId, effectContract]) => ({
     agentId,
@@ -41,6 +64,7 @@ export const currentAgentDecisionMechanicContracts = Object.freeze(
     synergyContract: synergyByAgentId.get(agentId) ?? null,
     specialInteractionContract: specialInteractionByAgentId.get(agentId) ?? null,
     readiness: {
+      effectSource: classifyAgentEffectSource32(effectContract),
       resourceFlow:
         resourceByAgentId.get(agentId)?.resourceFlow.parameterClassification ===
           'named_resource_or_state' &&
@@ -83,6 +107,9 @@ export const currentAgentDecisionMechanicCoverage = Object.freeze({
     .filter((item) => item.readiness.resourceFlow === 'not_applicable')
     .map((item) => item.agentId),
   effectRecipientReadyAgentIds: currentAgentDecisionMechanicContracts.map((item) => item.agentId),
+  genericTemplateAgentIds: currentAgentDecisionMechanicContracts
+    .filter((item) => item.readiness.effectSource === 'generic_template')
+    .map((item) => item.agentId),
   fieldTimeReadyAgentIds: currentAgentDecisionMechanicContracts
     .filter((item) => item.readiness.fieldTime === 'compiled')
     .map((item) => item.agentId),

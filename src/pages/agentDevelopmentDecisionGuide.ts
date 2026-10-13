@@ -1,4 +1,5 @@
 import type { GoldenWorkbenchData } from '../features/agentDevelopmentGolden'
+import { staticPanelTargetDisplay } from '../gameDataPacks/targetPanelSemantics'
 
 type Source = { label: string; kind: 'official_fact' | 'community_candidate'; updatedAt: string }
 type ConstraintSource = { id: string; sourceVersion: string | null }
@@ -125,6 +126,12 @@ export function createAgentDevelopmentPanelFacts(
 ): GoldenWorkbenchData['panelFacts'] {
   return facts.map((fact) => {
     const target = targets.find((item) => item.name === fact.label)
-    return { name: fact.label, value: fact.current, target: target?.value, focus: Boolean(target) }
+    const displayTarget = staticPanelTargetDisplay(target?.value)
+    return {
+      name: fact.label,
+      value: fact.current,
+      target: displayTarget,
+      focus: Boolean(displayTarget),
+    }
   })
 }

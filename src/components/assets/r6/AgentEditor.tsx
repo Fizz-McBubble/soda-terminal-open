@@ -4,6 +4,7 @@ import {
   getPublicAgentSkillMaxFor as getAgentSkillMaxFor,
 } from '../../../application/publicAssetAgentProgression'
 import { CatalogReferencePanel } from './CatalogReference'
+import { publicPotentialMissingObservationPolicy } from '../../../application/publicAssetCatalog'
 import { getAgentSpecialtyLabel } from '../../../application/publicRosterNames'
 import { Field, Identity, Save } from './EditorShared'
 import { SelectMenu } from './SelectMenu'
@@ -30,6 +31,9 @@ export function AgentEditor({
     wEngineRefinementManuallySet: false,
   }
   const { draft, setDraft, baseRevision, stale, rebase } = useDraft<AgentDraft>(current, revision)
+  const preservesUnknownPotential =
+    publicPotentialMissingObservationPolicy[item.stableId] === 'preserve_unknown'
+  const potentialImage = draft.potentialImage ?? (preservesUnknownPotential ? undefined : 6)
   const skillMax = (field: 'basic' | 'dodge' | 'assist' | 'special' | 'chain') =>
     getAgentSkillMaxFor(field, draft.mindscape)
   if (props.accountId === 'no-account') {
@@ -123,12 +127,27 @@ export function AgentEditor({
             }}
           />
           {item.supportsPotentialImage && (
-            <Field
-              label="潜能影像"
-              value={draft.potentialImage ?? 6}
-              max={6}
-              onChange={(potentialImage) => setDraft({ ...draft, potentialImage })}
-            />
+            <label className="field">
+              <span>潜能影像</span>
+              <SelectMenu
+                label="潜能影像"
+                value={potentialImage == null ? 'unknown' : String(potentialImage)}
+                options={[
+                  ...(preservesUnknownPotential ? [{ value: 'unknown', label: '未知' }] : []),
+                  { value: '0', label: '未开启（0）' },
+                  ...Array.from({ length: 6 }, (_, index) => ({
+                    value: String(index + 1),
+                    label: String(index + 1),
+                  })),
+                ]}
+                onChange={(value) =>
+                  setDraft({
+                    ...draft,
+                    potentialImage: value === 'unknown' ? undefined : Number(value),
+                  })
+                }
+              />
+            </label>
           )}
         </div>
       </section>

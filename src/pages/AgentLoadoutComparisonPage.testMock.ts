@@ -14,6 +14,7 @@ vi.mock('../application/accountDecisionWorld', async (importOriginal) => {
           runId: string,
           agentId: string,
           candidateParametersByRank?: import('../application/calculationQueryContract').DevelopmentCandidateAlternativesQuery['candidateParametersByRank'],
+          scenarioSelection?: import('../application/publicPlanningScenarioContract').CurrentPlanningScenarioSelection32,
         ) => {
           const snapshot = readDevelopmentCandidateSnapshot('comparison-account', agentId)!
           return {
@@ -23,6 +24,11 @@ vi.mock('../application/accountDecisionWorld', async (importOriginal) => {
               ? 'after-save'
               : snapshot.inputFingerprint,
             candidateParametersByRank: candidateParametersByRank ?? {},
+            scenarioSelection: scenarioSelection ?? {
+              schemaVersion: 1,
+              id: 'normalized-comparison',
+            },
+            scenarioIdentity: `fixture-scene:${scenarioSelection?.id ?? 'normalized-comparison'}`,
           }
         },
       ),

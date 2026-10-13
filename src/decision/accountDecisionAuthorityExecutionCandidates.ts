@@ -41,30 +41,42 @@ export function authorityExecutionCandidates(
 ) {
   if (authority.status !== 'ready') return []
   return authorityConsumerRecommendations(authority).flatMap((recommendation) => {
-    const engine =
-      engineCandidates.find((candidate) => exactVariantCandidate(candidate, recommendation)) ??
-      (recommendation.bangbooId
-        ? resolveExactVariant?.({
-            memberIds: [
-              recommendation.memberIds[0],
-              recommendation.memberIds[1],
-              recommendation.memberIds[2],
-            ],
-            bangbooId: recommendation.bangbooId,
-          })
-        : undefined)
-    if (!engine || !exactVariantCandidate(engine, recommendation)) return []
-    return [
-      {
-        ...engine,
-        candidateId: recommendation.candidateId,
-        memberIds: [...recommendation.memberIds] as [string, string, string],
-        bangbooId: recommendation.bangbooId,
-        // Authority establishes the exact Variant identity. Team Engine retains
-        // the executable Bangboo evidence boundary (for example, a compatible
-        // fallback must not be presented as a direct selected recommendation).
-        bangbooSelection: engine.bangbooSelection,
-      },
-    ]
+    const candidate = resolveAuthorityExecutionCandidate(
+      recommendation,
+      engineCandidates,
+      resolveExactVariant,
+    )
+    return candidate ? [candidate] : []
   })
+}
+
+/** Resolve one current Authority recommendation without evaluating unrelated teams. */
+export function resolveAuthorityExecutionCandidate(
+  recommendation: ReturnType<typeof authorityConsumerRecommendations>[number],
+  engineCandidates: readonly TeamEngineCandidate[],
+  resolveExactVariant?: AuthorityExecutionVariantResolver,
+): TeamEngineCandidate | undefined {
+  const engine =
+    engineCandidates.find((candidate) => exactVariantCandidate(candidate, recommendation)) ??
+    (recommendation.bangbooId
+      ? resolveExactVariant?.({
+          memberIds: [
+            recommendation.memberIds[0],
+            recommendation.memberIds[1],
+            recommendation.memberIds[2],
+          ],
+          bangbooId: recommendation.bangbooId,
+        })
+      : undefined)
+  if (!engine || !exactVariantCandidate(engine, recommendation)) return undefined
+  return {
+    ...engine,
+    candidateId: recommendation.candidateId,
+    memberIds: [...recommendation.memberIds] as [string, string, string],
+    bangbooId: recommendation.bangbooId,
+    // Authority establishes the exact Variant identity. Team Engine retains
+    // the executable Bangboo evidence boundary (for example, a compatible
+    // fallback must not be presented as a direct selected recommendation).
+    bangbooSelection: engine.bangbooSelection,
+  }
 }

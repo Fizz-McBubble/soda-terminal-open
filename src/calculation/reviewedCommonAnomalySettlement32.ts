@@ -11,11 +11,28 @@ import {
   type PublicCommonAnomalySettlementResult32,
 } from '../application/publicCommonAnomalySettlement32'
 import { stableContentHash } from '../gameDataPacks/types'
+import {
+  evaluateCurrentAgentTeamActivation,
+  getCurrentAgentEventContract,
+} from './currentAgentMechanicContracts'
 import { calculateDamageFormula } from './damageFormulaDispatch'
 import {
   commonAnomalySettlementHash32,
   commonAnomalySettlementIdentity32,
 } from './currentCommonAnomalySettlementIdentity32'
+
+export const nangongWindPolarityPreparationIdentity32 = Object.freeze({
+  commit: '3456cd0f6f5bea10e168074502460dac2fcd6df4',
+  path: 'libs/zzz/dm-localization/assets/locales/en/char_NangongYu_gen.json',
+  sha256: 'CE26FC80D874F70E5F9B1FEAA103A401771739D9208F32E8561F393DD34DD923',
+  locator: '/ability/desc/0,/ability/desc/2',
+  originalDisorderRatio: 0.25,
+  scope: 'one_declared_additional_ability_heavy_hit_with_existing_wind_anomaly',
+})
+export const nangongWindPolarityPreparationHash32 = stableContentHash(
+  nangongWindPolarityPreparationIdentity32,
+)
+const nangongPolaritySourceRef = `${nangongWindPolarityPreparationIdentity32.path}#${nangongWindPolarityPreparationIdentity32.sha256}`
 
 const boundary = {
   contract: publicCommonAnomalySettlementContract32,
@@ -42,8 +59,12 @@ export function getReviewedCommonAnomalySettlementMetadata32(): PublicCommonAnom
   return publicCommonAnomalySettlementMetadataSchema32.parse({
     ...boundary,
     sourceIdentityHash: commonAnomalySettlementHash32,
-    sourceRefs: commonAnomalySettlementIdentity32.sources.map((row) => `${row.path}#${row.sha256}`),
+    sourceRefs: [
+      ...commonAnomalySettlementIdentity32.sources.map((row) => `${row.path}#${row.sha256}`),
+      nangongPolaritySourceRef,
+    ],
     supportedKinds: ['anomaly', 'abloom', 'polarity_disorder'],
+    nangongWindPolaritySourceIdentityHash: nangongWindPolarityPreparationHash32,
   })
 }
 
@@ -103,12 +124,61 @@ export function evaluateReviewedCommonAnomalySettlement32(request: {
   const value = parsed.data
   if (value.settlement.sourceIdentityHash !== commonAnomalySettlementHash32)
     return unsupported(['anomaly_source_identity_mismatch32'])
+  const preparation = value.skillPreparation
+  if (preparation) {
+    if (preparation.sourceIdentityHash !== nangongWindPolarityPreparationHash32)
+      return unsupported(['nangong_polarity_source_identity_mismatch32'])
+    if (
+      value.settlement.triggerAgentId !== 'agent-nangong' ||
+      value.settlement.memberAgentIds.length !== 3 ||
+      !value.settlement.memberAgentIds.includes('agent-nangong')
+    )
+      return unsupported(['nangong_polarity_trigger_or_formation_invalid32'])
+    if (value.settlement.target.stunMultiplier <= 1)
+      return unsupported(['nangong_polarity_target_not_stunned32'])
+    const activation = evaluateCurrentAgentTeamActivation({
+      stableId: 'agent-nangong',
+      memberIds: value.settlement.memberAgentIds,
+    })
+    if (activation.status !== 'supported' || !activation.active)
+      return unsupported(['nangong_polarity_additional_ability_inactive32'])
+    if (
+      !value.settlement.contributions.some(
+        (row) => getCurrentAgentEventContract(row.ownerAgentId)?.identity.attribute === 'wind',
+      ) ||
+      value.settlement.contributions.some(
+        (row) =>
+          row.instance.kind !== 'polarity_disorder' ||
+          row.instance.additionalDisorderMultiplier < 0,
+      )
+    )
+      return unsupported(['nangong_polarity_wind_base_or_instance_invalid32'])
+  }
+  // Only this source-bound adapter supplies the skill ratio. The strict public
+  // wire rejects raw ratios; the ordinary declaration retains the core default.
+  const settlement = preparation
+    ? {
+        ...value.settlement,
+        sourceRefs: [
+          ...value.settlement.sourceRefs,
+          ...preparation.sourceRefs,
+          nangongPolaritySourceRef,
+        ],
+        contributions: value.settlement.contributions.map((row) => ({
+          ...row,
+          instance:
+            row.instance.kind === 'polarity_disorder'
+              ? { ...row.instance, originalDisorderRatio: 0.25 }
+              : row.instance,
+        })),
+      }
+    : value.settlement
   try {
     const result = calculateDamageFormula({
       family: 'anomaly',
       scalingAttribute: 'attack',
       formulaVersion: '3.2',
-      anomalySettlement32: value.settlement,
+      anomalySettlement32: settlement,
     })
     if (!('attribution' in result))
       return unsupported(['anomaly_settlement_dispatch_shape_mismatch32'])
@@ -139,7 +209,7 @@ export function evaluateReviewedCommonAnomalySettlement32(request: {
         contributions: attribution.contributions.map((row, index) => ({
           ...row,
           snapshotStatsHash: stableContentHash(value.settlement.contributions[index]!.stats),
-          instanceHash: stableContentHash(value.settlement.contributions[index]!.instance),
+          instanceHash: stableContentHash(settlement.contributions[index]!.instance),
         })),
       },
     }

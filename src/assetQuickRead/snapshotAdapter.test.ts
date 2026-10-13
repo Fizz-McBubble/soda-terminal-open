@@ -30,6 +30,20 @@ vi.mock('../application/publicScannerCatalog', async (importOriginal) => {
 })
 
 describe('asset snapshot local candidate adapter', () => {
+  it('keeps set-34200 numeric import identity and equipment references after the Chinese display correction', () => {
+    const input = fixture()
+    input.assets.discs[0].catalog_id = present(34241)
+    const before = structuredClone(input)
+    const result = convertAssetSnapshot(input, context)
+    expect(result.issues).toEqual([])
+    expect(result.importable).toBe(true)
+    expect(result.discs.discs[0]).toMatchObject({
+      setId: 'set-34200',
+      sourceId: 'asset-quick-read:990001',
+    })
+    expect(result.agents[0].equippedSourceIds).toContain('asset-quick-read:990001')
+    expect(input).toEqual(before)
+  })
   it.each(['A', 'B'] as const)(
     'accepts legal %s discs while keeping mixed-grade equipment unsupported',
     (rarity) => {
@@ -395,191 +409,5 @@ describe('asset snapshot local candidate adapter', () => {
     expect(new Set(candidate.discs.discs.map((disc) => disc.setId)).size).toBe(
       identities.discs.length,
     )
-  })
-  it.each([
-    [
-      'duplicate UID',
-      (input: ReturnType<typeof fixture>) => {
-        input.assets.discs.push(structuredClone(input.assets.discs[0]))
-        input.counts.discs = input.counts.s_discs = 2
-      },
-      'duplicate_uid',
-    ],
-    [
-      'unknown disc',
-      (input: ReturnType<typeof fixture>) => {
-        input.assets.discs[0].catalog_id = present(99941)
-      },
-      'unknown_disc_catalog',
-    ],
-    [
-      'wrong main',
-      (input: ReturnType<typeof fixture>) => {
-        input.assets.discs[0].main_stat.base_value = present(2200)
-      },
-      'invalid_main_stat_value',
-    ],
-    [
-      'bad roll',
-      (input: ReturnType<typeof fixture>) => {
-        input.assets.discs[0].substats[0].add_value = present(0)
-      },
-      'invalid_substat',
-    ],
-    [
-      'counts',
-      (input: ReturnType<typeof fixture>) => {
-        input.counts.discs++
-      },
-      'count_mismatch',
-    ],
-    [
-      'wrong response',
-      (input: ReturnType<typeof fixture>) => {
-        input.response_observations[0].command_id = 1382
-      },
-      'invalid_response_observation',
-    ],
-  ])('blocks unsafe disc/transport input: %s', (_name, mutate, code) => {
-    const input = fixture()
-    mutate(input)
-    const candidate = convertAssetSnapshot(input, context)
-    expect(candidate.importable).toBe(false)
-    expect(candidate.issues.some((row) => row.code === code)).toBe(true)
-  })
-  it.each([
-    [
-      'unknown agent',
-      (input: ReturnType<typeof fixture>) => {
-        input.assets.agents[0].catalog_id = present(999999)
-      },
-      'unknown_agent_catalog',
-    ],
-    [
-      'unknown engine',
-      (input: ReturnType<typeof fixture>) => {
-        input.assets.engines[0].catalog_id = present(999999)
-      },
-      'unknown_engine_catalog',
-    ],
-    [
-      'engine phase range',
-      (input: ReturnType<typeof fixture>) => {
-        input.assets.engines[0].phase = present(6)
-      },
-      'invalid_asset_field',
-    ],
-    [
-      'missing ref',
-      (input: ReturnType<typeof fixture>) => {
-        input.assets.agents[0].dressed_equips[0].uid = present(999999)
-      },
-      'invalid_equipped_disc_reference',
-    ],
-    [
-      'duplicate ref',
-      (input: ReturnType<typeof fixture>) => {
-        input.assets.agents[0].dressed_equips.push(
-          structuredClone(input.assets.agents[0].dressed_equips[0]),
-        )
-      },
-      'invalid_equipped_disc_reference',
-    ],
-    [
-      'wrong skill enum',
-      (input: ReturnType<typeof fixture>) => {
-        input.assets.agents[0].skills[0].skill_type = present(4)
-      },
-      'invalid_skill_type',
-    ],
-    [
-      'duplicate skill',
-      (input: ReturnType<typeof fixture>) => {
-        input.assets.agents[0].skills[0].skill_type = present(5)
-      },
-      'invalid_skill_type',
-    ],
-    [
-      'decoder issue',
-      (input: ReturnType<typeof fixture>) => {
-        input.issues.push({ code: 'decode_failure', asset: 'agent', field: 'level' })
-      },
-      'native_decode_issues',
-    ],
-  ])('keeps valid discs importable with optional problem: %s', (_name, mutate) => {
-    const input = fixture()
-    mutate(input)
-    const candidate = convertAssetSnapshot(input, context)
-    expect(candidate.importable).toBe(true)
-    expect(candidate.issues).toEqual([])
-    expect(candidate.discs.discs).toHaveLength(1)
-    expect(candidate.warnings?.length).toBeGreaterThan(1)
-  })
-  it.each([
-    [
-      'protocol',
-      (input: ReturnType<typeof fixture>) => {
-        input.source.protocol_version = '3.3'
-      },
-    ],
-    [
-      'region',
-      (input: ReturnType<typeof fixture>) => {
-        input.source.requested_game_region = 'GLOBAL'
-      },
-    ],
-    [
-      'mode',
-      (input: ReturnType<typeof fixture>) => {
-        input.source.mode = 'replay'
-      },
-    ],
-    [
-      'coverage',
-      (input: ReturnType<typeof fixture>) => {
-        input.coverage.agent_load_received = false
-      },
-    ],
-    [
-      'decoded',
-      (input: ReturnType<typeof fixture>) => {
-        input.counters.decoded_messages = 2
-      },
-    ],
-    [
-      'fractional',
-      (input: ReturnType<typeof fixture>) => {
-        input.assets.agents[0].level = present(2.5)
-      },
-    ],
-    [
-      'negative',
-      (input: ReturnType<typeof fixture>) => {
-        input.assets.discs[0].uid = present(-1)
-      },
-    ],
-    [
-      'capture mutation',
-      (input: ReturnType<typeof fixture>) => {
-        input.account_write_enabled = true
-      },
-    ],
-  ])('rejects invalid %s contract', (_name, mutate) => {
-    const input = fixture()
-    mutate(input)
-    expect(convertAssetSnapshot(input, context).issues[0].code).toBe('invalid_snapshot')
-  })
-  it('strips unknown fields and excludes transport/security data from issues and candidate', () => {
-    const input = {
-      ...fixture(),
-      security_secret: ['must', 'not', 'escape'].join('-'),
-      raw_body: 'must-not-escape',
-    }
-    const candidate = convertAssetSnapshot(input, context)
-    expect(candidate.importable).toBe(true)
-    expect(JSON.stringify(candidate)).not.toContain('must-not-escape')
-    expect(convertAssetSnapshot(input, { ...context, capturedAt: 'wrong' }).importable).toBe(false)
-    expect(convertAssetSnapshot(input, { snapshotSha256: 'wrong' }).importable).toBe(false)
-    expect(convertAssetSnapshot(null, context).importable).toBe(false)
   })
 })

@@ -9,6 +9,7 @@ import {
   targetPanelDisplayValue,
 } from '../pages/agentDevelopmentWorkbenchViewModel'
 import { getCurrentBuildTargetPanel } from '../gameDataPacks/currentBuildAuthority'
+import { canDisplayStaticPanelTarget } from '../gameDataPacks/targetPanelSemantics'
 import { getProjectedBuildKnowledgeProfile } from '../gameDataPacks/agentProfile'
 import { resolveWEngine } from '../decision/wEngineResolver'
 import {
@@ -33,7 +34,9 @@ export function projectDevelopmentComparisonPanels(input: {
   const targetPanel = getCurrentBuildTargetPanel(input.agentId)
   const targetDisplayByLabel = Object.fromEntries(
     characterPanelLabels.flatMap((label) => {
-      const target = targetPanel ? targetPanelDisplayValue(targetPanel, label) : null
+      const target = canDisplayStaticPanelTarget(targetPanel, label)
+        ? targetPanelDisplayValue(targetPanel, label)
+        : null
       return target ? [[label, target]] : []
     }),
   )

@@ -17,6 +17,8 @@ export type CandidatePanelPolicy = {
 export type CandidatePanelPolicyContext = {
   coreLevel?: number
   fourPieceSetId?: string
+  /** Account Mindscape level (0-6); unknown values must not imply M0/M1. */
+  mindscape?: number
 }
 
 function reviewedSetPolicy(
@@ -75,6 +77,22 @@ export function getCandidatePanelPolicy(agentId: string): CandidatePanelPolicy |
   return policies.find((policy) => policy.agentId === agentId) ?? null
 }
 
+/** Resolve the executable, context-specific Astra target while retaining the base declaration
+ * for callers that only need to know whether a sourced panel policy exists. */
+export function getCandidatePanelPolicyForContext(
+  agentId: string,
+  context: CandidatePanelPolicyContext,
+): CandidatePanelPolicy | null {
+  const policy = getCandidatePanelPolicy(agentId)
+  if (!policy || agentId !== 'agent-astra') return policy
+  if (!Number.isInteger(context.mindscape) || context.mindscape! < 0 || context.mindscape! > 6)
+    return null
+  return {
+    ...policy,
+    minimumAttack: context.mindscape! >= 2 ? 2963 : 3429,
+  }
+}
+
 export function candidatePanelPolicyPrerequisites(
   policy: CandidatePanelPolicy,
   context: CandidatePanelPolicyContext,
@@ -84,9 +102,13 @@ export function candidatePanelPolicyPrerequisites(
   const fourPieceSatisfied =
     policy.requiredFourPieceSet === undefined ||
     context.fourPieceSetId === policy.requiredFourPieceSet
+  const mindscapeSatisfied =
+    policy.agentId !== 'agent-astra' ||
+    (Number.isInteger(context.mindscape) && context.mindscape! >= 0 && context.mindscape! <= 6)
   return {
     coreSatisfied,
     fourPieceSatisfied,
-    executable: coreSatisfied && fourPieceSatisfied,
+    mindscapeSatisfied,
+    executable: coreSatisfied && fourPieceSatisfied && mindscapeSatisfied,
   }
 }

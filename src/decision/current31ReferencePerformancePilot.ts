@@ -370,7 +370,7 @@ function ariaNangongSunnaPilot(): ReferencePerformancePilotRow {
       'Biggest Fan ATK, healing and Ether Anomaly event timing in the Reference Rotation',
     ],
     explanation:
-      '当前来源已闭合 Aria 失衡前资源、失衡期 Ultimate/Perfect Pitch、Sunna 支援与南宫羽击破/Polarity Disorder 职责；缺少统一 30 秒时间线、效果快照、场外伤害和邦布事件，因此仍不得生成 Output Index。',
+      '当前来源已闭合爱芮失衡前资源、失衡期终结技/绝对音准、千夏支援与南宫羽击破/极性紊乱职责；缺少统一30秒时间线、效果快照、场外伤害和邦布事件，因此仍不得生成输出指数。',
     bangbooId: 'bangboo-biggest-fan',
   })
 }
