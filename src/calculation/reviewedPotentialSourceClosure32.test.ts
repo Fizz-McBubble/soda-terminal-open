@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import inventory from '../gameDataPacks/generated/capture-source-potential-inventory.v1.json'
+import { upstreamRoot } from '../gameDataPacks/reviewedPotentialDefinitionContract'
 import {
   getReviewedPotentialDefinition,
   reviewedPotentialDefinitions,
@@ -64,7 +65,13 @@ describe('reviewed potential scalar source closure', () => {
     for (const raw of rawSubjects) {
       const definition = getReviewedPotentialDefinition(raw.stableId)!
       expect(definition.source.upstreamRawSha256).toBe(raw.rawSha256.toLowerCase())
-      expect(definition.source.upstreamRawPath.endsWith(raw.upstreamPath)).toBe(true)
+      // Public source projection replaces the archive root with an opaque
+      // source reference. Keep the exact character locator and canonical
+      // upstream directory checks in both private and projected checkouts.
+      const characterFile = raw.upstreamPath.split('/').at(-1)!
+      expect(characterFile).toMatch(/^[A-Za-z0-9]+\.json$/)
+      expect(raw.upstreamPath).toBe(`libs/zzz/stats/Data/Characters/${characterFile}`)
+      expect(definition.source.upstreamRawPath).toBe(`${upstreamRoot}/${characterFile}`)
       const boundRows = new Set(
         definition.effects.flatMap((effect) => effect.formulaBinding.sourceParameterBinding.rows),
       )
