@@ -30,6 +30,7 @@ import { SodaMark } from './SodaMark'
 import { F5VisualShell } from './F5VisualShell'
 import { F5AccountSummaryProvider } from './f5AccountSummaryContext'
 import { OnlineCalculationConsent } from './OnlineCalculationConsent'
+import { ensureOfficialCatalogInstalled } from '../assets/visualAssetInstallCoordinator'
 
 export function AppShell({
   onAllowOnlineCalculation,
@@ -115,6 +116,16 @@ export function AppShell({
       )
     : 0
   const isPrimaryCurrent = (path: string) => isPrimaryNavigationCurrent(path, location.pathname)
+
+  useEffect(() => {
+    const loadImages = () => {
+      // Images enhance every route; a cache or network failure must not gate the app.
+      void ensureOfficialCatalogInstalled().catch(() => undefined)
+    }
+    loadImages()
+    window.addEventListener('online', loadImages)
+    return () => window.removeEventListener('online', loadImages)
+  }, [])
 
   useLayoutEffect(() => {
     document.documentElement.classList.toggle('soda-f5-scrollbarless', isF5Slice)

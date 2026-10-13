@@ -22,6 +22,8 @@ const visualAssetDisplayFields = {
   remoteUrl: z.string().url().nullable(),
   localCache: z.string().nullable().optional(),
   sourceType: z.enum(['official', 'community', 'original']),
+  // Legacy wire value: personal browser caching, now automatically initialized for the whole
+  // approved library. It never grants bundling/rehosting rights or means a manual-download gate.
   cachePolicy: z.enum(['explicit-personal-cache', 'remote-only', 'bundled-original']),
   contentHash: z.string().regex(/^sha256-[a-f0-9]{64}$/),
   status: z.enum(['verified', 'review', 'unavailable']),

@@ -79,6 +79,8 @@ export function isOfficialCatalogPackReady(state: VisualAssetPackState) {
 }
 
 export type VisualAssetPackState = {
+  /** Verified automatic downloads, including successful entries from a partial run. */
+  automaticCache?: string | null
   activeCache: string | null
   previousCache: string | null
   installedAt: string | null
@@ -96,6 +98,7 @@ export type VisualAssetInstallProgress = {
   completed: number
   total: number
   asset: VisualAsset
+  failed?: number
 }
 
 /** Optional offline source used by a fully prevalidated personal cache pack. */
@@ -179,6 +182,7 @@ function verificationStateKey(state: VisualAssetPackState, scope: 'catalog' | 'a
     state.packVersion,
     state.catalogProfile,
     state.activeCache,
+    state.automaticCache,
     state.wEngineCache,
     ...visualAssetEntityTypeSchema.options.map((type) => state.activeCaches?.[type] ?? ''),
   ].join('|')
@@ -295,6 +299,7 @@ export async function installVisualAssetPack(
     )
     runtime.setState({
       ...previousState,
+      automaticCache: null,
       activeCache: cacheName,
       previousCache:
         previousState.activeCache && previousState.activeCache !== cacheName
@@ -327,6 +332,81 @@ export async function installVisualAssetPack(
     invalidateVisualAssetPackVerification()
     throw error
   }
+}
+
+/** Fill the complete personal cache without discarding successful entries on an unrelated failure.
+ * Offline personal-pack imports retain their separate all-or-nothing installation contract. */
+export async function synchronizeVisualAssetPack(
+  manifest: VisualAssetManifest = visualAssetManifest,
+  runtime: VisualAssetCacheRuntime = createBrowserVisualAssetRuntime(),
+  onProgress?: (progress: VisualAssetInstallProgress) => void,
+  options: VisualAssetInstallOptions = {},
+) {
+  const parsed = visualAssetManifestSchema.parse(manifest)
+  const assets = getCacheableVisualAssets(parsed, 'all')
+  const cacheName = `${cachePrefix}:automatic:${parsed.packVersion}:${parsed.contentHash.slice(-12)}`
+  const cache = await runtime.cacheStorage.open(cacheName)
+  const previousState = runtime.getState()
+  // This pointer makes completed entries visible before the remaining downloads finish.
+  // It does not assert that the full catalog is ready.
+  runtime.setState({ ...previousState, automaticCache: cacheName })
+  const activeCaches = await openActiveVisualAssetCaches(runtime.getState(), runtime)
+  let completed = 0
+  let failed = 0
+  await runBoundedConcurrentTasks(assets, 3, async (asset) => {
+    try {
+      const cached = await findVerifiedCachedAsset(asset, runtime.getState(), runtime, activeCaches)
+      const response =
+        cached ??
+        (options.responseForAsset
+          ? await options.responseForAsset(asset)
+          : await fetchOfficialVisualAsset(asset, runtime))
+      if (!cached) {
+        const actualHash = await runtime.digest(
+          takeFetchedResponseBytes(response) ?? (await response.clone().arrayBuffer()),
+        )
+        if (actualHash !== asset.contentHash) throw new Error(`${asset.name} 内容哈希不一致`)
+      }
+      // Avoid rewriting entries that already match this manifest in the automatic cache.
+      const existing = await cache.match(asset.remoteUrl)
+      if (
+        !existing ||
+        (await runtime.digest(await existing.clone().arrayBuffer())) !== asset.contentHash
+      )
+        await cache.put(asset.remoteUrl, response.clone())
+    } catch {
+      failed += 1
+    }
+    completed += 1
+    onProgress?.({ completed, total: assets.length, failed, asset })
+  })
+  if (failed === 0) {
+    const currentState = runtime.getState()
+    runtime.setState({
+      ...currentState,
+      automaticCache: null,
+      activeCache: cacheName,
+      previousCache:
+        previousState.activeCache !== cacheName
+          ? previousState.activeCache
+          : previousState.previousCache,
+      installedAt: runtime.now(),
+      packVersion: parsed.packVersion,
+      catalogProfile: 'r6-purpose-variants-v2',
+      activeCaches: {
+        ...currentState.activeCaches,
+        ...Object.fromEntries(assets.map((asset) => [asset.entityType, cacheName])),
+      },
+      previousCaches: {
+        ...currentState.previousCaches,
+        ...Object.fromEntries(
+          assets.map((asset) => [asset.entityType, previousState.activeCaches?.[asset.entityType]]),
+        ),
+      },
+    })
+  }
+  invalidateVisualAssetPackVerification()
+  return { installed: assets.length - failed, total: assets.length, failed, cacheName }
 }
 
 export async function installOfficialWEngineAssetPack(
@@ -395,6 +475,7 @@ export async function rollbackVisualAssetPack(
   if (!state.previousCache) return false
   runtime.setState({
     ...state,
+    automaticCache: null,
     activeCache: state.previousCache,
     previousCache: state.activeCache,
     installedAt: runtime.now(),
@@ -451,6 +532,7 @@ export async function resolveCachedVisualAsset(
     asset.entityType === 'wengine'
       ? [state.activeCaches?.wengine, state.wEngineCache, state.activeCache]
       : [state.activeCaches?.[asset.entityType], state.activeCache]
+  if (state.automaticCache) cacheNames.unshift(state.automaticCache)
   for (const cacheName of new Set(cacheNames)) {
     if (!cacheName) continue
     let source: string | null = null
@@ -458,6 +540,8 @@ export async function resolveCachedVisualAsset(
       const cache = await caches.open(cacheName)
       const response = await cache.match(asset.remoteUrl)
       if (!response || !response.ok) continue
+      // A same-URL upstream change must not display the old image as the new manifest's asset.
+      if ((await sha256(await response.clone().arrayBuffer())) !== asset.contentHash) continue
       source = URL.createObjectURL(await response.blob())
       await validateSource?.(source)
       return source

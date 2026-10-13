@@ -112,7 +112,12 @@ export function VisualEntityImage({
   useEffect(() => {
     const refresh = () => setRuntimeRevision((value) => value + 1)
     window.addEventListener('soda-visual-assets-ready', refresh)
-    return () => window.removeEventListener('soda-visual-assets-ready', refresh)
+    // New verified entries become visible without revoking already decoded sibling images.
+    window.addEventListener('soda-visual-assets-progress', refresh)
+    return () => {
+      window.removeEventListener('soda-visual-assets-ready', refresh)
+      window.removeEventListener('soda-visual-assets-progress', refresh)
+    }
   }, [])
 
   useEffect(() => {

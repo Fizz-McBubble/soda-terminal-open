@@ -57,6 +57,7 @@ function getCacheNamesForAsset(
   state: VisualAssetPackState,
 ) {
   return [
+    state.automaticCache,
     state.activeCaches?.[asset.entityType],
     asset.entityType === 'wengine' ? state.wEngineCache : null,
     state.activeCache,
@@ -68,9 +69,12 @@ export async function openActiveVisualAssetCaches(
   runtime: VisualAssetCacheRuntime,
 ) {
   const cacheNames = new Set(
-    [state.activeCache, state.wEngineCache, ...Object.values(state.activeCaches ?? {})].filter(
-      (cacheName): cacheName is string => Boolean(cacheName),
-    ),
+    [
+      state.automaticCache,
+      state.activeCache,
+      state.wEngineCache,
+      ...Object.values(state.activeCaches ?? {}),
+    ].filter((cacheName): cacheName is string => Boolean(cacheName)),
   )
   return new Map(
     await Promise.all(

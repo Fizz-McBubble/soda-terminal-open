@@ -4,18 +4,12 @@ import { Database, RefreshCw, ScanLine, ShieldCheck, Sparkles, Users } from 'luc
 import ramielHero from '../assets/golden-sample/ramiel-user-cutout-1152.webp'
 import ramielHeroSmall from '../assets/golden-sample/ramiel-user-cutout-576.webp'
 import ramielHeroLarge from '../assets/golden-sample/ramiel-user-cutout-1536.webp'
-import {
-  getVisualAssetInstallErrorMessage,
-  getVisualAssetPackState,
-  isVisualAssetPackCached,
-  officialCatalogAssets,
-  resolveCachedVisualAsset,
-} from '../assets/visualAssets'
+import { officialCatalogAssets, resolveCachedVisualAsset } from '../assets/visualAssets'
 import {
   ensureOfficialCatalogInstalled,
   removeOfficialCatalogImages,
-  getOfficialCatalogInstallProgress,
-  subscribeOfficialCatalogInstallProgress,
+  getOfficialCatalogInstallStatus,
+  subscribeOfficialCatalogInstallStatus,
 } from '../assets/visualAssetInstallCoordinator'
 import { HomeAssetDialog } from './HomeAssetDialog'
 import { F5HomeGoldenView } from '../components/F5GoldenViews'
@@ -51,55 +45,19 @@ export function DashboardPage() {
     pendingStagingRead?.accountId === accountInput?.warehouse.accountId
       ? pendingStagingRead?.count
       : undefined
-  const [assetCacheStatus, setAssetCacheStatus] = useState<
-    | { kind: 'checking' }
-    | { kind: 'idle' }
-    | { kind: 'incomplete' }
-    | { kind: 'preparing'; completed: number }
-    | { kind: 'ready' }
-    | { kind: 'error'; message: string }
-  >(() => ({ kind: 'checking' }))
+  const [assetCacheStatus, setAssetCacheStatus] = useState(getOfficialCatalogInstallStatus)
   const [discArtUrls, setDiscArtUrls] = useState<string[]>([])
   const [retryingAccountRead, setRetryingAccountRead] = useState(false)
   const [removingImages, setRemovingImages] = useState(false)
+  const [assetManagementError, setAssetManagementError] = useState<string | null>(null)
   const assetDialog = useRef<HTMLDialogElement>(null)
-  const assetOperationPending =
-    assetCacheStatus.kind === 'checking' || assetCacheStatus.kind === 'preparing' || removingImages
+  const assetOperationPending = assetCacheStatus.kind === 'loading' || removingImages
 
   useEffect(() => {
     let active = true
-    if (!('caches' in window)) {
-      queueMicrotask(
-        () =>
-          active &&
-          setAssetCacheStatus({ kind: 'error', message: '当前浏览器不支持本机图鉴图片缓存。' }),
-      )
-      return () => {
-        active = false
-      }
-    }
-    const onProgress = (completed: number) => {
-      if (active) setAssetCacheStatus({ kind: 'preparing', completed })
-    }
-    const unsubscribe = subscribeOfficialCatalogInstallProgress(onProgress)
-    void isVisualAssetPackCached()
-      .then((cached) => {
-        const state = getVisualAssetPackState()
-        const hasImages = Boolean(
-          state.activeCache ||
-          state.wEngineCache ||
-          Object.values(state.activeCaches ?? {}).some(Boolean),
-        )
-        if (active)
-          setAssetCacheStatus({ kind: cached ? 'ready' : hasImages ? 'incomplete' : 'idle' })
-      })
-      .catch(() => {
-        if (active)
-          setAssetCacheStatus({
-            kind: 'error',
-            message: '本机图片暂时无法读取，请重试下载并加载图片。',
-          })
-      })
+    const unsubscribe = subscribeOfficialCatalogInstallStatus(setAssetCacheStatus)
+    // The shell may have begun loading before this route subscribed.
+    queueMicrotask(() => active && setAssetCacheStatus(getOfficialCatalogInstallStatus()))
     return () => {
       active = false
       unsubscribe()
@@ -108,35 +66,31 @@ export function DashboardPage() {
 
   async function downloadVisualAssets() {
     if (assetOperationPending) return
-    if (!('caches' in window)) {
-      setAssetCacheStatus({ kind: 'error', message: '当前浏览器不支持本机图鉴图片缓存。' })
-      return
-    }
-    setAssetCacheStatus({ kind: 'preparing', completed: getOfficialCatalogInstallProgress() })
+    setAssetManagementError(null)
     try {
       await ensureOfficialCatalogInstalled({ verifyCache: true })
-      setAssetCacheStatus({ kind: 'ready' })
-    } catch (error) {
-      setAssetCacheStatus({ kind: 'error', message: getVisualAssetInstallErrorMessage(error) })
+    } catch {
+      /* Shared status retains successfully cached images and retry state. */
     }
   }
 
   async function removeVisualAssets() {
-    if (removingImages || assetCacheStatus.kind === 'preparing') return
+    if (assetOperationPending) return
     setRemovingImages(true)
+    setAssetManagementError(null)
     try {
       await removeOfficialCatalogImages()
       setDiscArtUrls([])
-      setAssetCacheStatus({ kind: 'idle' })
+      setAssetCacheStatus(getOfficialCatalogInstallStatus())
     } catch {
-      setAssetCacheStatus({ kind: 'error', message: '图片缓存未能完全删除，请重试。' })
+      setAssetManagementError('图片缓存未能完全删除，请重试。')
     } finally {
       setRemovingImages(false)
     }
   }
 
   useEffect(() => {
-    if (assetCacheStatus.kind !== 'ready') return
+    if (assetCacheStatus.kind !== 'ready' && assetCacheStatus.kind !== 'partial') return
     let active = true
     let resolvedUrls: string[] = []
     const discAssets = officialCatalogAssets
@@ -456,37 +410,30 @@ export function DashboardPage() {
             }
           : ordinaryNextSignal
   const assetCacheLabel =
-    assetCacheStatus.kind === 'checking'
-      ? '正在读取本机图片'
-      : assetCacheStatus.kind === 'preparing'
-        ? `正在准备图鉴素材 ${assetCacheStatus.completed}/${officialCatalogAssets.length}`
-        : assetCacheStatus.kind === 'ready'
-          ? '本机素材已就绪'
-          : assetCacheStatus.kind === 'idle'
-            ? '图鉴图片尚未下载'
-            : assetCacheStatus.kind === 'incomplete'
-              ? '图鉴图片需要更新或补全'
-              : assetCacheStatus.message
+    assetManagementError ??
+    (assetCacheStatus.kind === 'loading'
+      ? `图片加载中 ${assetCacheStatus.completed}/${assetCacheStatus.total}`
+      : assetCacheStatus.kind === 'ready'
+        ? '本机素材已就绪'
+        : assetCacheStatus.kind === 'idle'
+          ? '图片尚未缓存'
+          : assetCacheStatus.kind === 'partial'
+            ? `图片待补齐 ${assetCacheStatus.failed} 张`
+            : '图片加载失败，可重试')
   const assetCacheDetail =
-    assetCacheStatus.kind === 'checking'
-      ? '正在确认本机已有图片。'
-      : assetCacheStatus.kind === 'idle'
-        ? '下载后自动加载，保存在此浏览器。'
-        : assetCacheStatus.kind === 'incomplete'
-          ? '已有图片会保留，下载时只补齐需要更新的图片。'
-          : assetCacheStatus.kind === 'error'
-            ? '已有图片和账户资料保留，点击下方按钮重试。'
-            : assetCacheStatus.kind === 'preparing'
-              ? '下载完成后自动加载，可继续使用其他功能。'
-              : '代理人、音擎、邦布和驱动盘图片保存在本机。'
+    assetCacheStatus.kind === 'error' || assetCacheStatus.kind === 'partial'
+      ? '已有图片保留，其他功能可继续使用。'
+      : assetCacheStatus.kind === 'loading'
+        ? '自动加载并缓存，可继续使用其他功能。'
+        : '图片缓存在此浏览器。'
   const assetDownloadLabel =
-    assetCacheStatus.kind === 'checking'
-      ? '正在读取图片…'
-      : assetCacheStatus.kind === 'preparing'
-        ? '正在下载图片…'
-        : assetCacheStatus.kind === 'error'
-          ? '重试下载并加载'
-          : '下载并加载图片'
+    assetCacheStatus.kind === 'loading'
+      ? '正在加载图片…'
+      : assetCacheStatus.kind === 'ready'
+        ? '检查图片更新'
+        : assetCacheStatus.kind === 'idle'
+          ? '重新加载图片'
+          : '补齐图片'
   return (
     <>
       <F5HomeGoldenView
@@ -503,7 +450,7 @@ export function DashboardPage() {
             ? undefined
             : { label: '恢复已有备份', route: '/assets/account#restore-backup' }
         }
-        discArtUrls={assetCacheStatus.kind === 'ready' ? discArtUrls : []}
+        discArtUrls={discArtUrls}
         readiness={{
           stateLabel: home.account ? '本机账户' : '开始使用',
           stateTitle: localStatus,
@@ -517,8 +464,8 @@ export function DashboardPage() {
           assetDetail: assetCacheDetail,
         }}
         assetAction={{
-          label: assetDownloadLabel,
-          disabled: assetOperationPending,
+          label: assetCacheStatus.kind === 'ready' ? '图片已缓存' : assetDownloadLabel,
+          disabled: assetOperationPending || assetCacheStatus.kind === 'ready',
           onClick: () => void downloadVisualAssets(),
         }}
         onManageImages={() => assetDialog.current?.showModal()}
