@@ -10,6 +10,15 @@ import { reviewedTeamAnalysis } from './reviewedTeamAnalysis'
 import { reviewedTeamPublishedStrength } from './reviewedTeamPublishedStrength'
 import { inferTeamStrength, inferredStrengthCalibration } from './teamStrengthModel'
 import { teamDecisionAuthorityContractId, type TeamRatingResult } from './teamDecisionAuthority'
+import strengthArtifact from '../gameDataPacks/generated/team-strength-model.3.1.json'
+import {
+  extractTeamStrengthMechanicFeatures,
+  teamStrengthCoefficientDirections,
+  teamStrengthMechanicFeatureNames,
+} from './teamStrengthMechanicFeatures'
+import { predictStrengthRegression } from './teamStrengthRegression'
+import { teamRecommendationScore } from './teamRecommendationScore'
+import { constrainTeamStrengthScore } from './teamStrengthModelScore'
 
 const unavailableBenchmark = {
   status: 'unavailable' as const,
@@ -76,6 +85,39 @@ function evaluate(
 }
 
 describe('team strength model fallback', () => {
+  it('never lowers a prediction when only a usable capacity grows, or rewards a proven cost', () => {
+    for (const memberIds of [...sourceRatedTeams(), inferredTeam]) {
+      const features = extractTeamStrengthMechanicFeatures(memberIds)
+      if (!features.eligibility.eligible) continue
+      const baseline = predictStrengthRegression(strengthArtifact.regression, features.values)
+      teamStrengthCoefficientDirections.forEach((direction, index) => {
+        if (!direction) return
+        const increased = [...features.values]
+        increased[index]! += 0.1
+        const delta = predictStrengthRegression(strengthArtifact.regression, increased) - baseline
+        expect(
+          direction * delta,
+          `${exactKey(memberIds)}:${teamStrengthMechanicFeatureNames[index]}`,
+        ).toBeGreaterThanOrEqual(-1e-10)
+      })
+    }
+  })
+  it('does not penalize the actual source-bound Nekomata potential-six capacity', () => {
+    const ids = ['agent-anby', 'agent-nekomata', 'agent-nicole']
+    const p0 = extractTeamStrengthMechanicFeatures(ids)
+    const p6 = extractTeamStrengthMechanicFeatures(
+      ids,
+      {},
+      {
+        potentialByAgentId: { 'agent-nekomata': 6 },
+        evidenceRefs: ['https://www.miyoushe.com/zzz/article/76994144'],
+      },
+    )
+    expect(p6.values[p6.featureNames.indexOf('reference_potential_crit_damage')]).toBe(0.6)
+    expect(
+      predictStrengthRegression(strengthArtifact.regression, p6.values),
+    ).toBeGreaterThanOrEqual(predictStrengthRegression(strengthArtifact.regression, p0.values))
+  })
   it('leaves all 105 exact source-rated teams unchanged', () => {
     const teams = sourceRatedTeams()
     expect(teams).toHaveLength(105)
@@ -111,6 +153,7 @@ describe('team strength model fallback', () => {
     expect(result.metaCalibration.inference).toBeDefined()
     expect(result.metaCalibration.recommendationScore).toBe(result.metaCalibration.inference?.score)
     expect(Number.isFinite(result.metaCalibration.recommendationScore)).toBe(true)
+    expect(Number.isInteger(result.metaCalibration.recommendationScore)).toBe(true)
     expect(result.rating).toMatchObject({
       status: 'rated',
       ratingBand: result.metaCalibration.inference?.band,
@@ -139,14 +182,42 @@ describe('team strength model fallback', () => {
     expect(replacement?.score).not.toBe(inferTeamStrength(inferredTeam)?.score)
   })
 
-  it('does not promote three supports or three competing primary carries to S', () => {
+  it('keeps missing-output protection while field-time competition is a diagnostic', () => {
     const supports = inferTeamStrength(['agent-astra', 'agent-yuzuha', 'agent-rina'])
     const carries = inferTeamStrength(['agent-ellen', 'agent-soldier-11', 'agent-nekomata'])
 
     expect(supports?.guardrails.noPrimaryOutput).toBe(true)
     expect(supports?.band).not.toBe('S')
     expect(carries?.guardrails.severeFieldCompetition).toBe(true)
-    expect(carries?.band).not.toBe('S')
+    expect(
+      constrainTeamStrengthScore(94, { noPrimaryOutput: false, severeFieldCompetition: true }),
+    ).toBe(94)
+  })
+
+  it('preserves the model reference score and the existing reviewed tier/fit score', () => {
+    const teams = [inferredTeam, ...sourceRatedTeams().slice(0, 4)]
+    const authorities = new Set<string>()
+    for (const ids of teams) {
+      const result = evaluate(ids as readonly [string, string, string])
+      authorities.add(result.metaCalibration.authority)
+      const expected =
+        result.metaCalibration.inference?.score ??
+        teamRecommendationScore(result.realityCheck.strengthBand, result.featureVector)
+      expect(result.metaCalibration.recommendationScore).toBe(expected ?? undefined)
+      if (result.metaCalibration.authority !== 'model_inference' && expected !== null)
+        expect(expected % 2).toBe(0)
+    }
+    expect(authorities.has('model_inference')).toBe(true)
+    expect([...authorities].some((authority) => authority !== 'model_inference')).toBe(true)
+  })
+
+  it('exposes the same score from fallback calibration and the final production projection', () => {
+    const calibration = inferredStrengthCalibration(emptyCalibration(), inferredTeam)
+    const projected = evaluate(inferredTeam)
+    expect(calibration.authority).toBe('model_inference')
+    expect(calibration.recommendationScore).toBe(inferTeamStrength(inferredTeam)?.score)
+    expect(projected.metaCalibration.recommendationScore).toBe(calibration.recommendationScore)
+    expect(projected.metaCalibration.inference?.band).toBe(calibration.projectedStrengthBand)
   })
 
   it('does not cross reviewed-only, hard-prune, or source-conflict gates', () => {

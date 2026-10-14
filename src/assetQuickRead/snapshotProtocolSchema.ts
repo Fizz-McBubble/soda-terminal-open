@@ -49,7 +49,7 @@ const agentRecord = z.object({
   weapon_uid: observation,
   mindscape: observation,
   potential_detail_id: observation.optional(),
-  skills: z.array(z.object({ skill_type: observation, level: observation })).max(6),
+  skills: z.array(z.object({ skill_type: observation, level: observation })).max(16),
   dressed_equips: z.array(z.object({ uid: observation, slot: observation })).max(6),
 })
 export type SnapshotAgentRecord = z.infer<typeof agentRecord>

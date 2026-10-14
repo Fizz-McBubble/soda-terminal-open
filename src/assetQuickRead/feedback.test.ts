@@ -85,11 +85,13 @@ it('keeps the released bridge version, final counts and timing through the cloud
       counts: { agents: 33, discs: 374, engines: 1 },
       candidateAvailable: false,
     },
-    assetQuickReadRelease.version,
+    assetQuickReadRelease.bridgeVersion ?? '1.0.6',
     Date.parse('2026-10-11T00:03:00Z'),
   )
+  expect(assetQuickReadRelease.bridgeVersion).toBe('1.0.6')
+  expect(assetQuickReadRelease.version).toBe('1.1.0')
   expect(report).toMatchObject({
-    versions: { bridge: assetQuickReadRelease.version },
+    versions: { bridge: '1.0.6', protocol: '1' },
     counts: { agents: 33, discs: 374 },
     durationMs: 180000,
     evidence: { jobState: 'timed_out' },

@@ -1,5 +1,7 @@
 import { evaluateCurrentBangbooPlanningParameter } from './currentBangbooPlanningAdapter'
 import type { AdditionalContractDefinition } from './currentBangbooMechanicDefinitions'
+import { projectCurrentBangbooComposition32 } from './currentBangbooCompositionIdentity'
+import { currentBangbooNumericCatalog } from '../gameDataPacks/currentBangbooNumericCatalog'
 import type {
   BangbooComparableSlice,
   BangbooUtilityProjectionInput,
@@ -16,15 +18,42 @@ export function projectBangbooFixedUtilityCapacity(
 ): BangbooComparableSlice | undefined {
   if (!['bangboo_damage', 'daze', 'anomaly'].includes(purpose)) return undefined
   if (input.activationStatus === 'unknown') return undefined
-  // With no event flags or accumulators, this slice depends only on the activated
-  // source contract, not on the identities of other trios satisfying that contract.
-  const cacheKey = `${input.bangbooId}|${input.stars}|${input.activationStatus}|${purpose}`
+  const composition = projectCurrentBangbooComposition32(input.memberIds)
+  if (!composition) return undefined
+  // This capacity reads composition only for this definition's activation.
+  // Recipient fit is computed separately and must never use this cache.
+  const compositionKeys = [
+    ...new Set([
+      ...(definition.allOf ?? []).map((requirement) => requirement.key),
+      ...(definition.anyOf ?? []).map((requirement) => requirement.key),
+      ...(definition.agentPresent ? [definition.agentPresent] : []),
+    ]),
+  ].sort()
+  const cacheKey = JSON.stringify([
+    input.bangbooId,
+    input.stars,
+    input.activationStatus,
+    purpose,
+    currentBangbooNumericCatalog.contentHash,
+    currentBangbooNumericCatalog.sourceVersion,
+    currentBangbooNumericCatalog.reviewedForVersion,
+    currentBangbooNumericCatalog.continuityReview.releaseSource.commit,
+    definition,
+    compositionKeys.map((key) => [key, composition[key] ?? 0]),
+    [60, 60, 10],
+    input.eventFlags ?? {},
+    input.accumulators ?? {},
+    input.enemyCount ?? 1,
+  ])
   if (cache.has(cacheKey)) return cache.get(cacheKey) ?? undefined
   const result = evaluateCurrentBangbooPlanningParameter({
     stableId: input.bangbooId,
     stars: input.stars,
     memberIds: input.memberIds as readonly [string, string, string],
     additionalAbilityEnabled: input.activationStatus === 'active',
+    eventFlags: input.eventFlags,
+    accumulators: input.accumulators,
+    enemyCount: input.enemyCount,
   })
   let slice: BangbooComparableSlice | undefined
   const key = {
@@ -104,6 +133,7 @@ export function projectBangbooFixedUtilityCapacity(
       }
     }
   }
+  if (cache.size >= 4096) cache.delete(cache.keys().next().value!)
   cache.set(cacheKey, slice ?? null)
   return slice
 }

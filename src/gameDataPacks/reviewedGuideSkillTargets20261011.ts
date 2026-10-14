@@ -6,6 +6,21 @@ export const reviewedGuideSkillTargets20261011: Partial<
 > = Object.fromEntries(
   [
     {
+      id: 'agent-cissia',
+      post: '74630572',
+      version: '2.7',
+      hash: 'B6AC73D381D8A1A10A9FD9D891260028040500F46DBA82AF8C6872AA2A096934',
+      directions: [
+        '普攻、特殊技、终结技优先升级',
+        '普攻 12+',
+        '闪避 7+',
+        '支援技 7+',
+        '特殊技 11+',
+        '终结技 11+',
+        '核心技 F',
+      ],
+    },
+    {
       id: 'agent-alice',
       post: '67197387',
       version: '2.1',
@@ -53,13 +68,16 @@ export const reviewedGuideSkillTargets20261011: Partial<
     {
       directions,
       source: {
-        id: `miyoushe-post-${post}-skills-image-002-reviewed-20261011`,
+        id: `miyoushe-post-${post}-skills-image-${post === '74630572' ? '003-reviewed-20261014' : '002-reviewed-20261011'}`,
         url: `https://www.miyoushe.com/zzz/article/${post}`,
         sourceVersion: version,
-        checkedAt: '2026-10-11T00:00:00.000Z',
+        checkedAt:
+          post === '74630572' || post === '71549535'
+            ? '2026-10-14T00:00:00.000Z'
+            : '2026-10-11T00:00:00.000Z',
         contentHash: hash,
         licenseBoundary:
-          '已归档攻略定位的第二张养成图经视觉复核；仅采用技能等级下限和明确优先标记。柏妮思图片不含核心等级，核心优先只复用同帖原文，不补推核心目标。保留原版本，不声称当前版本最优，不分发原图。',
+          '已归档攻略定位的养成图经视觉复核（希希芙为原帖imageIndex=3，其余为第二张）；仅采用技能等级下限和明确优先标记。柏妮思图片不含核心等级，核心优先只复用同帖原文，不补推核心目标。保留原版本，不声称当前版本最优，不分发原图。',
         verified: true,
       },
     },

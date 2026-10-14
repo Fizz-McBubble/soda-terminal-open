@@ -5,6 +5,7 @@
   line-height: 1.5;
 }
 
+.comparison-candidate__metrics,
 .comparison-candidate > span:nth-of-type(4),
 .comparison-candidate .disc-conflict {
   min-width: 0;

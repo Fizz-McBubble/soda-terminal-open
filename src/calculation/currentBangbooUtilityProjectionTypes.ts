@@ -1,4 +1,5 @@
 import type { BangbooBaseUtilityOutput } from './currentBangbooBaseUtilityTypes'
+import type { BangbooAdditionalUtilityCapacity } from './currentBangbooAdditionalUtilityCapacity'
 export type BangbooUtilityPurpose =
   | 'energy'
   | 'sustain'
@@ -33,8 +34,10 @@ export interface BangbooUtilityProjection {
   readonly primaryPurpose: BangbooUtilityPurpose
   readonly secondaryPurposes: readonly BangbooUtilityPurpose[]
   readonly baseUtilities: readonly BangbooBaseUtilityOutput[]
+  readonly effectiveUtilities: readonly BangbooBaseUtilityOutput[]
+  readonly additionalUtilityCapacities?: readonly BangbooAdditionalUtilityCapacity[]
   readonly comparableSlice?: BangbooComparableSlice
-  readonly recipientFit: 'unknown' | 'base_only' | 'direct' | 'general'
+  readonly recipientFit: 'unknown' | 'base_only' | 'direct' | 'general' | 'not_applicable'
   readonly recommendationReason: string
 }
 
@@ -43,6 +46,11 @@ export interface BangbooUtilityProjectionInput {
   readonly bangbooId: string
   readonly stars: number
   readonly activationStatus: 'active' | 'inactive' | 'unknown'
+  /** Declared combat observations, never inferred from membership. */
+  readonly eventFlags?: Readonly<Record<string, boolean>>
+  readonly accumulators?: Readonly<Record<string, number>>
+  readonly enemyCount?: number
+  readonly chainEnemiesHit?: number
 }
 
 export const onFieldSpecialties: Readonly<Record<string, string>> = Object.freeze({
@@ -66,6 +74,7 @@ export const triggerLabels: Readonly<Record<string, string>> = Object.freeze({
   agent_ex_special_used: '成员施放强化特殊技后叠加失衡增益',
   ex_special_stacks_at_maximum: '叠满后追加伤害增益',
   ether_veil_verdict_active: '开启对应以太帷幕后增加召唤物',
+  agent_vortex_or_chain_triggered: '成员触发漩涡或连携后生效，每30秒至多一次',
 })
 
 export const primaryPurposeByGameId: Readonly<Record<string, BangbooUtilityPurpose>> =

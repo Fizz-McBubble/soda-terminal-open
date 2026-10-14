@@ -407,10 +407,14 @@ export function projectCurrent31TeamStrength(input: {
     metaCalibration,
     bangbooId: input.bangbooId,
   })
+  // Model teams keep the bounded integer reference score that determined their
+  // tier, so the displayed score preserves their within-tier order. Reviewed
+  // teams retain the existing tier/fit index. Both are reference judgements,
+  // never damage or DPS, and coarse tiers remain the first ordering boundary.
   const score =
     metaCalibration.inference?.score ??
     teamRecommendationScore(realityCheck.strengthBand, input.featureVector)
-  if (score !== null) metaCalibration.recommendationScore = score
+  metaCalibration.recommendationScore = score ?? undefined
   if (input.mechanicRating.status !== 'rated')
     return {
       mechanicValidity,

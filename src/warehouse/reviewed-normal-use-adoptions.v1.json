@@ -15,9 +15,7 @@
       "mindscape": 0,
       "modifiers": [],
       "buildKey": "charged-final-verdict-support",
-      "goals": [
-        "functional"
-      ],
+      "goals": ["functional"],
       "profileId": "retention-normal-m0:agent-zhao:charged-final-verdict-support",
       "profileFingerprint": "fnv1a-72a94474",
       "sourceCommit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
@@ -56,9 +54,7 @@
       "mindscape": 0,
       "modifiers": [],
       "buildKey": "enlightened-mind-basic-rotation",
-      "goals": [
-        "crit_damage"
-      ],
+      "goals": ["crit_damage"],
       "profileId": "retention-normal-m0:agent-ye-shunguang:enlightened-mind-basic-rotation",
       "profileFingerprint": "fnv1a-4eb6491f",
       "sourceCommit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
@@ -97,9 +93,7 @@
       "mindscape": 0,
       "modifiers": [],
       "buildKey": "attack-scaling-team-support",
-      "goals": [
-        "functional"
-      ],
+      "goals": ["functional"],
       "profileId": "retention-normal-m0:agent-sunna:attack-scaling-team-support",
       "profileFingerprint": "fnv1a-983cef6f",
       "sourceCommit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
@@ -138,9 +132,7 @@
       "mindscape": 0,
       "modifiers": [],
       "buildKey": "abloom-anomaly-rotation",
-      "goals": [
-        "anomaly_damage"
-      ],
+      "goals": ["anomaly_damage"],
       "profileId": "retention-normal-m0:agent-aria:abloom-anomaly-rotation",
       "profileFingerprint": "fnv1a-4f354ed8",
       "sourceCommit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
@@ -179,10 +171,7 @@
       "mindscape": 0,
       "modifiers": [],
       "buildKey": "abloom-polarity-stun-support",
-      "goals": [
-        "functional",
-        "anomaly_damage"
-      ],
+      "goals": ["functional", "anomaly_damage"],
       "profileId": "retention-normal-m0:agent-nangong:abloom-polarity-stun-support",
       "profileFingerprint": "fnv1a-7ffbdeac",
       "sourceCommit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
@@ -221,9 +210,7 @@
       "mindscape": 0,
       "modifiers": [],
       "buildKey": "sheer-burst-rotation",
-      "goals": [
-        "crit_damage"
-      ],
+      "goals": ["crit_damage"],
       "profileId": "retention-normal-m0:agent-starlight-billy:sheer-burst-rotation",
       "profileFingerprint": "fnv1a-ea7d8823",
       "sourceCommit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
@@ -262,9 +249,7 @@
       "mindscape": 0,
       "modifiers": [],
       "buildKey": "trial-by-cold-abloom",
-      "goals": [
-        "anomaly_damage"
-      ],
+      "goals": ["anomaly_damage"],
       "profileId": "retention-normal-m0:agent-promeia:trial-by-cold-abloom",
       "profileFingerprint": "fnv1a-9a2713b7",
       "sourceCommit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
@@ -303,9 +288,7 @@
       "mindscape": 0,
       "modifiers": [],
       "buildKey": "solar-prominence-basic-ultimate",
-      "goals": [
-        "crit_damage"
-      ],
+      "goals": ["crit_damage"],
       "profileId": "retention-normal-m0:agent-pyrois:solar-prominence-basic-ultimate",
       "profileFingerprint": "fnv1a-8bcc8238",
       "sourceCommit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
@@ -344,9 +327,7 @@
       "mindscape": 0,
       "modifiers": [],
       "buildKey": "windswept-vortex-abloom",
-      "goals": [
-        "anomaly_damage"
-      ],
+      "goals": ["anomaly_damage"],
       "profileId": "retention-normal-m0:agent-velina:windswept-vortex-abloom",
       "profileFingerprint": "fnv1a-9c9f1e5a",
       "sourceCommit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
@@ -385,10 +366,7 @@
       "mindscape": 0,
       "modifiers": [],
       "buildKey": "turret-special-ex-stun",
-      "goals": [
-        "functional",
-        "crit_damage"
-      ],
+      "goals": ["functional", "crit_damage"],
       "profileId": "retention-normal-m0:agent-norma:turret-special-ex-stun",
       "profileFingerprint": "fnv1a-ad6323e4",
       "sourceCommit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
@@ -427,9 +405,7 @@
       "mindscape": 0,
       "modifiers": [],
       "buildKey": "lumiflux-luminize-cycle",
-      "goals": [
-        "anomaly_damage"
-      ],
+      "goals": ["anomaly_damage"],
       "profileId": "retention-normal-m0:agent-remielle:lumiflux-luminize-cycle",
       "profileFingerprint": "fnv1a-16ad39bb",
       "sourceCommit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
@@ -468,9 +444,7 @@
       "mindscape": 0,
       "modifiers": [],
       "buildKey": "converging-spear-basic-rotation",
-      "goals": [
-        "crit_damage"
-      ],
+      "goals": ["crit_damage"],
       "profileId": "retention-normal-m0:agent-sigrid:converging-spear-basic-rotation",
       "profileFingerprint": "fnv1a-c62da535",
       "sourceCommit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
@@ -518,9 +492,7 @@
         "actorAgentId": "agent-zhao",
         "previousFingerprint": "fnv1a-5cfe1c35",
         "currentFingerprint": "fnv1a-72a94474",
-        "fields": [
-          ".subStatWeights.hp_flat"
-        ]
+        "fields": [".subStatWeights.hp_flat"]
       },
       {
         "actorAgentId": "agent-ye-shunguang",
@@ -537,26 +509,19 @@
         "actorAgentId": "agent-sunna",
         "previousFingerprint": "fnv1a-27a2bc9d",
         "currentFingerprint": "fnv1a-983cef6f",
-        "fields": [
-          ".teamAndBangbooPreconditions"
-        ]
+        "fields": [".teamAndBangbooPreconditions"]
       },
       {
         "actorAgentId": "agent-aria",
         "previousFingerprint": "fnv1a-810e056b",
         "currentFingerprint": "fnv1a-4f354ed8",
-        "fields": [
-          ".subStatWeights.atk_percent",
-          ".subStatWeights.atk_flat"
-        ]
+        "fields": [".subStatWeights.atk_percent", ".subStatWeights.atk_flat"]
       },
       {
         "actorAgentId": "agent-nangong",
         "previousFingerprint": "fnv1a-86253963",
         "currentFingerprint": "fnv1a-7ffbdeac",
-        "fields": [
-          ".subStatWeights.atk_flat"
-        ]
+        "fields": [".subStatWeights.atk_flat"]
       },
       {
         "actorAgentId": "agent-starlight-billy",
@@ -573,11 +538,7 @@
         "actorAgentId": "agent-promeia",
         "previousFingerprint": "fnv1a-3672e92b",
         "currentFingerprint": "fnv1a-9a2713b7",
-        "fields": [
-          ".subStatWeights.atk_percent",
-          ".subStatWeights.pen",
-          ".subStatWeights.atk_flat"
-        ]
+        "fields": [".subStatWeights.atk_percent", ".subStatWeights.pen", ".subStatWeights.atk_flat"]
       },
       {
         "actorAgentId": "agent-pyrois",
@@ -594,28 +555,19 @@
         "actorAgentId": "agent-velina",
         "previousFingerprint": "fnv1a-f51584e",
         "currentFingerprint": "fnv1a-9c9f1e5a",
-        "fields": [
-          ".subStatWeights.atk_percent",
-          ".subStatWeights.pen",
-          ".subStatWeights.atk_flat"
-        ]
+        "fields": [".subStatWeights.atk_percent", ".subStatWeights.pen", ".subStatWeights.atk_flat"]
       },
       {
         "actorAgentId": "agent-norma",
         "previousFingerprint": "fnv1a-270e591d",
         "currentFingerprint": "fnv1a-ad6323e4",
-        "fields": [
-          ".subStatWeights.atk_flat"
-        ]
+        "fields": [".subStatWeights.atk_flat"]
       },
       {
         "actorAgentId": "agent-sigrid",
         "previousFingerprint": "fnv1a-b9c7f60",
         "currentFingerprint": "fnv1a-c62da535",
-        "fields": [
-          ".targetPanel.conditions",
-          ".targetPanel.targetSemantics"
-        ]
+        "fields": [".targetPanel.conditions", ".targetPanel.targetSemantics"]
       }
     ]
   }

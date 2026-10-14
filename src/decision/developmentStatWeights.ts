@@ -44,6 +44,8 @@ export type DevelopmentStatWeightInput = {
   agentId: string
   discs: readonly DriveDisc[]
   stale: boolean
+  eventConditionDeclaration?: import('../calculation/reviewedTemplateEventConditions32').ReviewedTemplateEventConditionDeclaration32
+  scenarioSelection?: import('../application/publicPlanningScenarioContract').CurrentPlanningScenarioSelection32
   parameters?: DevelopmentComparisonParameters
 }
 

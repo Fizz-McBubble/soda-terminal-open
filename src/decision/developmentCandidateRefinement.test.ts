@@ -240,6 +240,74 @@ describe('algorithm quality through actual source adapters and calculation modul
     expect(new Set(ids.map((row) => JSON.stringify(row))).size).toBe(2)
     expect(result[0]!.boundary).not.toContain('来源词条层级')
   })
+  it('prefers fewer physical swaps when the fully covered objective is identical', () => {
+    const f = claretFixture()
+    const duplicate = { ...f.baseline[0]!, id: 'same-facts-other-disc' }
+    f.warehouse.discs = [...f.baseline, duplicate]
+    f.agent.equippedDiscIds = f.baseline.map((disc) => disc.id)
+    const replacement = solveCandidateWarehouse(
+      f.baseline.map((disc) => (disc.slot === 1 ? duplicate : disc)),
+      [f.agent.agentId],
+      'agent',
+      optimizerOptionsFromBuildIntent(f.buildIntent),
+      f.buildIntent.recommendations,
+    )
+    const before = JSON.stringify(f.warehouse)
+    const result = refineDevelopmentCandidates({
+      ...f,
+      agentId: f.agent.agentId,
+      candidates: [replacement, f.original],
+    })
+    expect(result[0]!.loadouts[0]!.discs.map((row) => row.disc.id)).toContain('base-1')
+    expect(result[1]!.loadouts[0]!.discs.map((row) => row.disc.id)).toContain(duplicate.id)
+    expect(JSON.stringify(f.warehouse)).toBe(before)
+  })
+  it.each(['missing', 'duplicate', 'unknown', 'invalid-history'] as const)(
+    'keeps equal-objective source order if equipped baseline is %s',
+    (state) => {
+      const f = claretFixture()
+      const duplicate = { ...f.baseline[0]!, id: 'same-facts-other-disc' }
+      f.warehouse.discs = [...f.baseline, duplicate]
+      const equipped = f.baseline.map((disc) => disc.id)
+      f.agent.equippedDiscIds =
+        state === 'missing'
+          ? equipped.slice(1)
+          : state === 'duplicate'
+            ? [...equipped.slice(0, 5), equipped[0]!]
+            : state === 'unknown'
+              ? [...equipped.slice(0, 5), 'unknown-disc']
+              : equipped
+      if (state === 'invalid-history') {
+        f.warehouse.discs[0] = {
+          ...f.baseline[0]!,
+          subStats: [{ stat: 'crit_rate', value: 9999, upgrades: 5 }],
+        }
+      }
+      const replacement = solveCandidateWarehouse(
+        f.baseline.map((disc) => (disc.slot === 1 ? duplicate : disc)),
+        [f.agent.agentId],
+        'agent',
+        optimizerOptionsFromBuildIntent(f.buildIntent),
+        f.buildIntent.recommendations,
+      )
+      const result = refineDevelopmentCandidates({
+        ...f,
+        agentId: f.agent.agentId,
+        candidates: [replacement, f.original],
+      })
+      expect(result[0]!.loadouts[0]!.discs.map((row) => row.disc.id)).toContain(duplicate.id)
+    },
+  )
+  it('keeps higher covered benefit ahead of the equipped no-swap candidate', () => {
+    const f = claretFixture()
+    f.agent.equippedDiscIds = f.baseline.map((disc) => disc.id)
+    const result = refineDevelopmentCandidates({
+      ...f,
+      agentId: f.agent.agentId,
+      candidates: [f.original],
+    })
+    expect(result[0]!.loadouts[0]!.discs.map((row) => row.disc.id)).toContain(f.stronger.id)
+  })
   it('can use the complete numeric objective without relying on an unverified guide ordering', () => {
     const f = claretFixture()
     const constraint = f.buildIntent.recommendations[0]!.constraint!
@@ -281,7 +349,10 @@ describe('algorithm quality through actual source adapters and calculation modul
           compareCandidatePanelObjective(left, right),
         )
   })
-  it('keeps accepted historical build identities readable but no longer current', () => {
+  it.each([
+    'legal-slot-menu-white-qualified-nonstacking-four-piece-r4',
+    'raw-dynamic-six-eighteen-disc-objective-r8',
+  ])('keeps historical %s build identities readable but no longer current', (branchPolicy) => {
     const f = claretFixture()
     const { fingerprint, ...core } = f.buildIntent
     const historical = {
@@ -289,7 +360,7 @@ describe('algorithm quality through actual source adapters and calculation modul
       fingerprint: contentHash({
         ...core,
         discScoring: 'actual-disc-values-s-standard-r1',
-        branchPolicy: 'legal-slot-menu-white-qualified-nonstacking-four-piece-r4',
+        branchPolicy,
       }),
     }
     expect(historical.fingerprint).not.toBe(fingerprint)

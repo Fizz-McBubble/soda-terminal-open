@@ -1,3 +1,5 @@
+import type { SkillNextLevelDisplay } from '../decision/skillInvestmentProjection'
+
 export type DevelopmentDirectoryDecision = {
   agentId: string
   current: {
@@ -15,6 +17,7 @@ export type DevelopmentDirectoryDecision = {
     label: string
     targetLevel: number | null
     priority: boolean
+    nextLevel?: SkillNextLevelDisplay | null
   }>
 }
 

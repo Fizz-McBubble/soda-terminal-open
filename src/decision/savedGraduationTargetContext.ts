@@ -7,7 +7,15 @@ import type {
   TargetPanelSemantics,
 } from '../gameDataPacks/targetPanelSemantics'
 
-type Rule = 'note' | 'summit' | 'ap-engine' | 'skill' | 'crit-context' | 'rina' | 'astra'
+type Rule =
+  | 'note'
+  | 'summit'
+  | 'ap-engine'
+  | 'skill'
+  | 'crit-context'
+  | 'rina'
+  | 'astra'
+  | 'ye-crit-context'
 // Exact reviewed source notes, not keyword-based permission to ignore a condition.
 const rules: Readonly<Record<string, Rule>> = {
   'Anomaly Mastery is 60 higher in combat with signature W-Engine.': 'note',
@@ -50,7 +58,7 @@ const rules: Readonly<Record<string, Rule>> = {
   'Anomaly Proficiency is before combat.': 'note',
   'ATK range depends on W-Engine.': 'note',
   'Crit Rate is maximum 50% in the stat screen; upper-only constraint is preserved outside the lower-bound panel.':
-    'note',
+    'ye-crit-context',
   'Pre-combat; assumes 4-piece Yunkui 12% Crit Rate and P1 Kraken 20% Crit Rate. Combat Crit Rate is 90.6-97.2.':
     'crit-context',
   'Crit Rate includes Disk Drive.': 'crit-context',
@@ -126,6 +134,12 @@ export function resolveSavedGraduationTarget(input: {
   if (source.extraStats?.sheerForce) limitations.push('贯穿力目标尚未计入')
   if (source.extraStats?.energyRegenPercent) limitations.push('能量回复百分比目标尚未计入')
   for (const rule of sourceRules) {
+    if (rule === 'ye-crit-context') {
+      // This is an optimization reference under combat buffs, not a universal
+      // stat-screen cap. Saved equipment cannot prove their active window.
+      exclude('critRate', '暴击率50%为满核心与沧浪行歌四件套增益生效时的参考，未作为通用毕业限制')
+      applied.push('保留暴击率配装参考，按攻击力与暴击伤害目标计算完成度')
+    }
     if (rule === 'astra' && input.agent.skillLevels.core !== 7)
       exclude('atk', '核心技未达F，最高全队增益的攻击力目标未计入')
     if (rule === 'summit') {

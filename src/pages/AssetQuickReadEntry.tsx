@@ -1,16 +1,13 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
-import {
-  AlertTriangle,
-  Check,
-  CheckCircle2,
-  Database,
-  Folder,
-  Plug,
-  ShieldCheck,
-} from 'lucide-react'
+import { AlertTriangle, CheckCircle2, Folder, Plug, ShieldCheck } from 'lucide-react'
 import './AssetQuickReadEntry.css'
 import { focusScannerWorkspaceTarget } from './scannerWorkbenchNavigation'
-import { AssetQuickReadGuide, AssetQuickReadDirectoryGuide } from './AssetQuickReadGuide'
+import { AssetQuickReadDirectoryGuide } from './AssetQuickReadGuide'
+import {
+  AssetQuickReadHeading,
+  AssetQuickReadProgress,
+  AssetQuickReadScope,
+} from './AssetQuickReadIntroduction'
 import { AssetCaptureRiskDetails } from './AssetCaptureMethodsNotice'
 import { ScannerMethodSteps } from './ScannerMethodSteps'
 import { AssetQuickReadConsentStage } from './AssetQuickReadConsentDialog'
@@ -273,65 +270,9 @@ export function AssetQuickReadEntry({
     }
   }
 
-  const heading = (
-    <>
-      <div className="asset-quick-read__heading">
-        <Database aria-hidden="true" size={22} />
-        {renderParts ? (
-          <h3 id={headingId}>
-            资产快读{' '}
-            <small className="f5v-beta" aria-label="测试版">
-              Beta
-            </small>
-          </h3>
-        ) : (
-          <h2 id={headingId}>
-            资产快读{' '}
-            <small className="f5v-beta" aria-label="测试版">
-              Beta
-            </small>
-          </h2>
-        )}
-        {renderParts ? (
-          <AssetQuickReadGuide />
-        ) : (
-          <span className="asset-quick-read__badge">资产快读 · 默认关闭</span>
-        )}
-      </div>
-    </>
-  )
-  const steps = (
-    <>
-      <ol className="scanner-journey-cards asset-quick-read__steps" aria-label="资产快读与导入进度">
-        {['准备', '读取', '检查', '完成'].map((label, index) => (
-          <li
-            key={label}
-            className={`scanner-journey-card is-${index < currentStep ? 'complete' : index === currentStep ? 'current' : 'pending'}`}
-            aria-current={index === currentStep ? 'step' : undefined}
-          >
-            <span aria-hidden="true">{index < currentStep ? <Check size={14} /> : index + 1}</span>
-            <div>
-              <strong>{label}</strong>
-            </div>
-          </li>
-        ))}
-      </ol>
-    </>
-  )
-  const scope = (
-    <>
-      {renderParts ? (
-        <p className="scanner-workbench__scope">
-          S 级驱动盘 · 代理人养成 <span className="scanner-workbench__metric">一键读取</span>
-        </p>
-      ) : (
-        <p>
-          读取已拥有代理人的真实养成和 S
-          级驱动盘。当前已装备音擎详情用于现有配装，不建立音擎或邦布库存。
-        </p>
-      )}
-    </>
-  )
+  const heading = <AssetQuickReadHeading headingId={headingId} renderParts={Boolean(renderParts)} />
+  const steps = <AssetQuickReadProgress currentStep={currentStep} />
+  const scope = <AssetQuickReadScope renderParts={Boolean(renderParts)} />
   const compactStatus =
     pendingAction === 'connect'
       ? '正在检查资产快读连接。'

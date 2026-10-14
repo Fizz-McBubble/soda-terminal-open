@@ -54,7 +54,8 @@ describe('AgentDevelopmentGolden warehouse candidate controls', () => {
     expect(screen.getByRole('cell', { name: '生命值' })).not.toHaveTextContent('参考')
     expect(screen.getByRole('cell', { name: '防御力' })).not.toHaveTextContent('参考')
     expect(screen.getByRole('table', { name: '属性对比' })).toHaveTextContent('8,020')
-    expect(screen.getByRole('cell', { name: '攻击力' })).toHaveTextContent('攻略参考 3000+')
+    expect(screen.getByRole('cell', { name: '攻击力' })).toHaveTextContent('参考 3000+')
+    expect(screen.getByRole('cell', { name: '攻击力' })).not.toHaveTextContent('攻略')
   })
   it('renders Seed sourced levels numerically while preserving minima and the confirmed priority marks', () => {
     const directions = getProjectedBuildKnowledgeProfile('agent-seed').recommendation!.skillPriority
@@ -421,7 +422,7 @@ describe('retaining equipped six-disc reference', () => {
         onSelectCandidatePlan={select}
       />,
     )
-    await user.click(screen.getByRole('button', { name: /保留当前实装.*当前六盘/ }))
+    await user.click(screen.getByRole('button', { name: /比较基准.*当前实装.*当前六盘/ }))
     expect(select).toHaveBeenLastCalledWith(0)
     expect(screen.getByRole('heading', { name: '保留当前实装 · 六盘明细' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '保留当前实装' })).toBeDisabled()

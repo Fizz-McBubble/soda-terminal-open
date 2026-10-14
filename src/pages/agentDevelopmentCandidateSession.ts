@@ -1,3 +1,7 @@
+import {
+  normalizeReviewedEventConditionDeclarations32,
+  reviewedEventConditionDeclarationsIdentity32,
+} from '../calculation/reviewedEventConditionDeclarations32'
 import type { DevelopmentCandidateAlternativesQueryResult } from '../application/calculationQueryContract'
 import { hasDevelopmentComparisonPanels } from '../application/publicDevelopmentComparisonPanels'
 import { resolveSavedPlanScenarioSelection } from './savedPlanIdentity'
@@ -49,6 +53,14 @@ export function readDevelopmentCandidateSnapshot(accountId: string, agentId: str
       !hasDevelopmentComparisonPanels(snapshot.panelPresentation, agentId)
     )
       return null
+    normalizeReviewedEventConditionDeclarations32(snapshot.eventConditionDeclarationsByAgentId, [
+      agentId,
+    ])
+    if (
+      reviewedEventConditionDeclarationsIdentity32(snapshot.eventConditionDeclarationsByAgentId) !==
+      snapshot.eventConditionDeclarationsIdentity
+    )
+      return null
     resolveSavedPlanScenarioSelection(snapshot.scenarioSelection)
     if (snapshot.scenarioSelection?.id === 'declared-stun-comparison' && !snapshot.scenarioIdentity)
       return null
@@ -71,6 +83,14 @@ export function cacheDevelopmentCandidateSnapshot(
   )
     return null
   try {
+    normalizeReviewedEventConditionDeclarations32(result.eventConditionDeclarationsByAgentId, [
+      result.agentId,
+    ])
+    if (
+      reviewedEventConditionDeclarationsIdentity32(result.eventConditionDeclarationsByAgentId) !==
+      result.eventConditionDeclarationsIdentity
+    )
+      return null
     resolveSavedPlanScenarioSelection(result.scenarioSelection)
   } catch {
     return null
@@ -95,6 +115,8 @@ export async function refreshDevelopmentCandidatesAfterSave({
   discIds,
   comparisonParameters,
   scenarioSelection,
+  eventConditionDeclarationsByAgentId,
+  isCurrent = () => true,
   refresh,
   query,
 }: {
@@ -103,12 +125,16 @@ export async function refreshDevelopmentCandidatesAfterSave({
   discIds: string[]
   comparisonParameters?: import('../decision/developmentValueBenchmark').DevelopmentComparisonParameters
   scenarioSelection?: import('../application/publicPlanningScenarioContract').CurrentPlanningScenarioSelection32
+  eventConditionDeclarationsByAgentId?: import('../calculation/reviewedEventConditionDeclarations32').ReviewedEventConditionDeclarations32
+  /** Check the requesting page and comparison generation before publishing a response. */
+  isCurrent?: () => boolean
   refresh: () => Promise<{ runId: string } | null>
   query: (
     runId: string,
     agentId: string,
     parameters?: import('../application/calculationQueryContract').DevelopmentCandidateAlternativesQuery['candidateParametersByRank'],
     scenarioSelection?: import('../application/publicPlanningScenarioContract').CurrentPlanningScenarioSelection32,
+    eventConditionDeclarationsByAgentId?: import('../calculation/reviewedEventConditionDeclarations32').ReviewedEventConditionDeclarations32,
   ) => Promise<DevelopmentCandidateAlternativesQueryResult>
 }) {
   const previousSnapshot = readDevelopmentCandidateSnapshot(accountId, agentId)
@@ -118,50 +144,73 @@ export async function refreshDevelopmentCandidatesAfterSave({
       ? resolveSavedPlanScenarioSelection(previousSnapshot.scenarioSelection)
       : undefined
 
-  const run = await refresh()
-  if (!run) throw new Error('方案已保存，匹配结果暂未更新，请稍后重新匹配。')
-  const matchesRequestedScenario = (value: DevelopmentCandidateAlternativesQueryResult) =>
-    resolveSavedPlanScenarioSelection(value.scenarioSelection).id ===
-    resolveSavedPlanScenarioSelection(effectiveScenario).id
-  // The saved physical solution may exist only under its chosen parameters.
-  // Search that scenario before matching IDs; an account-default search can omit it.
-  const result = comparisonParameters
-    ? effectiveScenario
-      ? await query(run.runId, agentId, { 1: comparisonParameters }, effectiveScenario)
-      : await query(run.runId, agentId, { 1: comparisonParameters })
-    : effectiveScenario
-      ? await query(run.runId, agentId, undefined, effectiveScenario)
-      : await query(run.runId, agentId)
-  if (
-    result.accountId !== accountId ||
-    result.agentId !== agentId ||
-    result.runId !== run.runId ||
-    !matchesRequestedScenario(result) ||
-    !cacheDevelopmentCandidateSnapshot(result)
+  const declarations = normalizeReviewedEventConditionDeclarations32(
+    eventConditionDeclarationsByAgentId ?? previousSnapshot?.eventConditionDeclarationsByAgentId,
+    [agentId],
   )
-    throw new Error('方案已保存，匹配结果暂未更新，请稍后重新匹配。')
-  const selectedIds = JSON.stringify(discIds.toSorted())
-  const rank =
-    result.candidates.findIndex(
-      (candidate) =>
-        JSON.stringify(candidate.loadouts[0]?.discs.map((choice) => choice.disc.id).toSorted()) ===
-        selectedIds,
-    ) + 1
-  if (!rank) throw new Error('方案已保存；当前推荐已有变化，请查看新的匹配结果。')
-  if (comparisonParameters && rank !== 1) {
-    const rebound = effectiveScenario
-      ? await query(run.runId, agentId, { [rank]: comparisonParameters }, effectiveScenario)
-      : await query(run.runId, agentId, { [rank]: comparisonParameters })
-    if (
-      rebound.accountId !== accountId ||
-      rebound.agentId !== agentId ||
-      rebound.runId !== run.runId ||
-      !matchesRequestedScenario(rebound) ||
-      !cacheDevelopmentCandidateSnapshot(rebound)
+  const declarationIdentity = reviewedEventConditionDeclarationsIdentity32(declarations)
+  const request = (
+    runId: string,
+    parameters?: import('../application/calculationQueryContract').DevelopmentCandidateAlternativesQuery['candidateParametersByRank'],
+  ) =>
+    declarations
+      ? query(runId, agentId, parameters, effectiveScenario, declarations)
+      : effectiveScenario
+        ? query(runId, agentId, parameters, effectiveScenario)
+        : parameters
+          ? query(runId, agentId, parameters)
+          : query(runId, agentId)
+  try {
+    const run = await refresh()
+    if (!isCurrent()) return null
+    if (!run) throw new Error('方案已保存，匹配结果暂未更新，请稍后重新匹配。')
+    const matchesRequestedScenario = (value: DevelopmentCandidateAlternativesQueryResult) =>
+      resolveSavedPlanScenarioSelection(value.scenarioSelection).id ===
+        resolveSavedPlanScenarioSelection(effectiveScenario).id &&
+      reviewedEventConditionDeclarationsIdentity32(value.eventConditionDeclarationsByAgentId) ===
+        declarationIdentity &&
+      value.eventConditionDeclarationsIdentity === declarationIdentity
+    // The saved physical solution may exist only under its chosen parameters.
+    // Search that scenario before matching IDs; an account-default search can omit it.
+    const result = await request(
+      run.runId,
+      comparisonParameters ? { 1: comparisonParameters } : undefined,
     )
-      throw new Error('方案已保存；显式参数未能重新绑定到本次方案，请重新比较。')
+    if (!isCurrent()) return null
+    if (
+      result.accountId !== accountId ||
+      result.agentId !== agentId ||
+      result.runId !== run.runId ||
+      !matchesRequestedScenario(result) ||
+      !cacheDevelopmentCandidateSnapshot(result)
+    )
+      throw new Error('方案已保存，匹配结果暂未更新，请稍后重新匹配。')
+    const selectedIds = JSON.stringify(discIds.toSorted())
+    const rank =
+      result.candidates.findIndex(
+        (candidate) =>
+          JSON.stringify(
+            candidate.loadouts[0]?.discs.map((choice) => choice.disc.id).toSorted(),
+          ) === selectedIds,
+      ) + 1
+    if (!rank) throw new Error('方案已保存；当前推荐已有变化，请查看新的匹配结果。')
+    if (comparisonParameters && rank !== 1) {
+      const rebound = await request(run.runId, { [rank]: comparisonParameters })
+      if (!isCurrent()) return null
+      if (
+        rebound.accountId !== accountId ||
+        rebound.agentId !== agentId ||
+        rebound.runId !== run.runId ||
+        !matchesRequestedScenario(rebound) ||
+        !cacheDevelopmentCandidateSnapshot(rebound)
+      )
+        throw new Error('方案已保存；显式参数未能重新绑定到本次方案，请重新比较。')
+    }
+    return rank
+  } catch (error) {
+    if (!isCurrent()) return null
+    throw error
   }
-  return rank
 }
 
 export type { CandidateSnapshot }

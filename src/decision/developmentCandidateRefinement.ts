@@ -41,7 +41,7 @@ import { evaluateDevelopmentStatWeights } from './developmentStatWeights'
 import { dynamicDiscProposals } from '../optimizer/dynamicDiscProposals'
 import type { CurrentPlanningScenarioSelection32 } from '../application/publicPlanningScenarioContract'
 
-export const developmentCandidateRefinementVersion = 'dynamic-marginal-source-compatible-local-r4'
+export const developmentCandidateRefinementVersion = 'dynamic-marginal-source-compatible-local-r5'
 const proposalBudget = 24
 const sourceNote =
   '本候选按已核对的来源词条层级细化，且已建模片段数值不下降；未建模效果仍未验证，不据此宣称整体伤害提升。'
@@ -86,6 +86,7 @@ export function refineDevelopmentCandidates(input: {
   candidates: readonly CandidateWarehousePlan[]
   buildIntent: AgentIndependentBuildIntent
   parameters?: DevelopmentComparisonParameters
+  eventConditionDeclaration?: import('../calculation/reviewedTemplateEventConditions32').ReviewedTemplateEventConditionDeclaration32
   scenarioSelection?: CurrentPlanningScenarioSelection32
 }): CandidateWarehousePlan[] {
   const originals = [...input.candidates]
@@ -120,6 +121,20 @@ export function refineDevelopmentCandidates(input: {
       return false
     }
   })
+  const equippedIds =
+    input.warehouse.roster.agents.find((row) => row.agentId === input.agentId)?.equippedDiscIds ??
+    []
+  const availableById = new Map(available.map((disc) => [disc.id, disc]))
+  const equipped = equippedIds.map((id) => availableById.get(id))
+  // Swap cost is meaningful only against a complete, unique, legal equipped baseline.
+  // An incomplete account must not invent a zero-swap preference or a current loadout.
+  const hasEquippedBaseline =
+    equipped.length === 6 &&
+    new Set(equippedIds).size === 6 &&
+    equipped.every((disc) => Boolean(disc)) &&
+    new Set(equipped.map((disc) => disc?.slot)).size === 6
+  const swaps = (plan: CandidateWarehousePlan) =>
+    plan.loadouts[0]!.discs.filter(({ disc }) => !equippedIds.includes(disc.id)).length
   const sideCache = new Map<string, ValueBenchmarkSide>()
   const side = (plan: CandidateWarehousePlan) => {
     const id = key(plan)
@@ -127,12 +142,13 @@ export function refineDevelopmentCandidates(input: {
       sideCache.set(
         id,
         evaluateDevelopmentValueBenchmarkSide({
-          scenarioSelection: input.scenarioSelection,
           warehouse: input.warehouse,
           agentId: input.agentId,
           discs: plan.loadouts[0]!.discs.map((row) => row.disc),
           stale: false,
           parameters: input.parameters,
+          eventConditionDeclaration: input.eventConditionDeclaration,
+          scenarioSelection: input.scenarioSelection,
         }),
       )
     return sideCache.get(id)!
@@ -174,9 +190,11 @@ export function refineDevelopmentCandidates(input: {
   const compareOrder = (a: CandidateWarehousePlan, b: CandidateWarehousePlan) => {
     const left = a.loadouts[0]?.panelObjective,
       right = b.loadouts[0]?.panelObjective
-    return left && right
-      ? compareCandidatePanelPriority(left, right)
-      : side(b).totalDamage! - side(a).totalDamage!
+    const objectiveOrder =
+      left && right
+        ? compareCandidatePanelPriority(left, right)
+        : side(b).totalDamage! - side(a).totalDamage!
+    return objectiveOrder || (hasEquippedBaseline ? swaps(a) - swaps(b) : 0)
   }
   const canExploreSource = (plan: CandidateWarehousePlan) =>
     direct &&
@@ -195,6 +213,8 @@ export function refineDevelopmentCandidates(input: {
           discs: plan.loadouts[0]!.discs.map((row) => row.disc),
           stale: false,
           parameters: input.parameters,
+          eventConditionDeclaration: input.eventConditionDeclaration,
+          scenarioSelection: input.scenarioSelection,
         })
       : null
     return plan.loadouts[0]!.discs.flatMap(({ disc: current }) => {

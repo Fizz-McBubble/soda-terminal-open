@@ -49,8 +49,10 @@ describe('InstallerFeedbackPage component', () => {
     // Does not render send/copy buttons when no report is present
     expect(screen.queryByText('发送反馈')).not.toBeInTheDocument()
     expect(screen.getByText('下载、拦截或连接失败怎么处理')).toBeInTheDocument()
-    expect(screen.getByText(/先保留软件名称、检测名称/)).toBeInTheDocument()
-    expect(screen.getByText(/这是信誉提示/)).toBeInTheDocument()
+    expect(screen.getByText(/反馈软件名称、检测名称与工具版本；先保留隔离状态/)).toBeInTheDocument()
+    expect(
+      screen.getByText(/此类提示与安全软件检出不同；仅凭提示无法判断文件安全/),
+    ).toBeInTheDocument()
   })
 
   it('shows scanner installation facts and sends only on explicit action', async () => {

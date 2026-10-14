@@ -1,4 +1,5 @@
 import { memberFacts, type Member } from './teamStrengthMemberFacts'
+import { supportsPotentialImage } from '../assault/agentCapabilities'
 import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
 import { getCurrentAgentDecisionMechanicContract } from '../calculation/currentAgentDecisionMechanicContracts'
 import { compileNormalizedAgentEventSchedule } from '../calculation/currentNormalizedPlanningBaseline'
@@ -12,101 +13,56 @@ import { reviewedExternalSupportFactsFingerprint } from '../gameDataPacks/review
 import { reviewedGenericEffectDispositionsFingerprint } from '../gameDataPacks/reviewedExternalEffectDispositions'
 import { reviewedPotentialDefinitions } from '../gameDataPacks/reviewedPotentialDefinitions'
 import { reviewedPotentialCalculationIdentity } from '../gameDataPacks/reviewedPotentialIdentity'
-import { createLevel60NeutralEffectRuntimeMember } from '../calculation/currentPlanningEffectDomain'
 import { prepareReviewedPotentialEvents32 } from '../calculation/reviewedPotentialPreparedEvents32'
 import { bindReviewedPotentialApplications } from '../calculation/potentialApplicationBinding'
 import { currentPlanningConsumerPolicyIdentity32 } from '../calculation/currentPlanningConsumerPolicyIdentity32'
-import type { TeamStrengthReferenceConditions } from './teamStrengthReferenceConditions'
+import { teamStrengthSourceActionSemantics } from './teamStrengthActionFacts'
+import {
+  createTeamStrengthReferenceRuntimeMember,
+  teamStrengthReferenceStateIdentity,
+} from './teamStrengthReferenceState'
+import type {
+  ResolvedTeamStrengthReferenceConditions,
+  TeamStrengthReferenceConditions,
+} from './teamStrengthReferenceConditions'
+import {
+  projectTeamStrengthSupportContactEvidence,
+  teamStrengthSupportContactIdentity,
+} from './teamStrengthSupportContributionFeatures'
 import {
   compatibleCapabilities,
+  selfCapabilitySourceFingerprint,
   type SupportRecipientContext,
 } from './teamStrengthSupportCapabilities'
-/** Source facts and structural capacities, never a team label, agent tier, or DPS. */
-export const teamStrengthMechanicFeatureNames = [
-  'direct_action_scale',
-  'anomaly_action_buildup',
-  'rupture_action_multiplier',
-  'stun_action_scale',
-  'background_action_scale',
-  'field_time_demand',
-  'field_time_excess',
-  'output_role_count',
-  'background_output_count',
-  'inactive_additional_ability_fraction',
-  'unmet_resource_fraction',
-  'different_attribute_anomaly_pair',
-  'compatible_damage_capability',
-  'compatible_attack_capability',
-  'compatible_critical_capability',
-  'compatible_defense_reduction_capability',
-  'compatible_resistance_reduction_capability',
-  'compatible_anomaly_capability',
-  'compatible_sheer_force_capability',
-  'compatible_stun_capability',
-  'second_direct_action_scale',
-  'second_stun_action_scale',
-  'second_background_action_scale',
-  'second_anomaly_action_buildup',
-  'compatible_multi_provider_capacity',
-  'sharp_action_scale',
-  'laceration_action_multiplier',
-  'compatible_sharp_capability',
-  'compatible_laceration_capability',
-  'reference_potential_damage_bonus',
-  'reference_potential_attack_percent',
-  'reference_potential_crit_damage',
-  'reference_potential_penetration_ratio',
-  'reference_potential_resistance_ignore',
-] as const
-export type TeamStrengthMechanicFeatureName = (typeof teamStrengthMechanicFeatureNames)[number]
-export type TeamStrengthMechanicFeatures = {
-  featureNames: typeof teamStrengthMechanicFeatureNames
-  values: number[]
-  playstyleCapacities: {
-    secondDirectAction: number
-    secondStunAction: number
-    secondBackgroundAction: number
-    secondAnomalyBuildup: number
-    multiProvider: number
-  }
-  dataFingerprint: string
-  eligibility: { eligible: boolean; reasons: string[] }
-  reliability: 'supported' | 'partial'
-  supportEvidence: {
-    unverifiedProviderIds: string[]
-    reviewedProviderIds: string[]
-    deferredProviderIds: string[]
-    sourceConflictProviderIds: string[]
-    sharpCoverage: number
-    lacerationCoverage: number
-    attributeConditionalRecipientIds: string[]
-  }
-  /** Validation grouping only. Neither identity field enters values. */
-  primaryOutputAgentId: string | null
-  coreGroup: string
-  guardrails: {
-    noPrimaryOutput: boolean
-    severeFieldCompetition: boolean
-    inactiveAdditionalAbility: boolean
-    openResourceLoop: boolean
-  }
-  limitations: string[]
-}
+import {
+  teamStrengthMechanicFeatureNames,
+  teamStrengthCoefficientDirections,
+  type TeamStrengthMechanicFeatures,
+} from './teamStrengthMechanicFeatureContract'
+export {
+  teamStrengthMechanicFeatureNames,
+  teamStrengthCoefficientDirections,
+  type TeamStrengthMechanicFeatures,
+  type TeamStrengthMechanicFeatureName,
+} from './teamStrengthMechanicFeatureContract'
 const ruleById = new Map(current31TeamEngineD1Pack.agentRules.map((rule) => [rule.agentId, rule]))
 const outputSpecialties = new Set(['attack', 'anomaly', 'rupture', 'armorer'])
 const fieldBudget = 1.35
-export const teamStrengthMechanicFeaturesVersion = 'source-fact-team-features/v7' as const
+export const teamStrengthMechanicFeaturesVersion = 'source-fact-team-features/v13' as const
 /** Only inputs actually used here; guide rows, evidence counts and labels are excluded. */
 export const teamStrengthMechanicDataFingerprint = stableContentHash({
   version: teamStrengthMechanicFeaturesVersion,
   potentialDefinitions: reviewedPotentialDefinitions.map(reviewedPotentialCalculationIdentity),
   preparedConsumerIdentity: currentPlanningConsumerPolicyIdentity32,
   features: teamStrengthMechanicFeatureNames,
+  coefficientDirections: teamStrengthCoefficientDirections,
   fieldBudget,
   sourceBoundAgentSupportFingerprint,
+  selfCapabilitySourceFingerprint,
   reviewedExternalSupportFactsFingerprint,
   reviewedGenericEffectDispositionsFingerprint,
-  reference: { level: 60, skillLevel: 11, mindscape: 0, potential: 0 },
+  reference: teamStrengthReferenceStateIdentity,
+  supportContact: teamStrengthSupportContactIdentity,
   agents: [...ruleById.values()]
     .sort((left, right) => left.agentId.localeCompare(right.agentId))
     .map((rule) => {
@@ -156,24 +112,45 @@ export function extractTeamStrengthMechanicFeatures(
     potentialByAgentId: {},
     evidenceRefs: [],
   },
+  options: { includeSupportContributionEvidence?: boolean } = {},
 ): TeamStrengthMechanicFeatures {
   const ids = inputMemberIds.map(resolveCurrentReleasedIdentity).sort()
   const invalidIdentity = ids.length !== 3 || new Set(ids).size !== 3
+  const invalidPotentialReference =
+    Object.entries(referenceConditions.potentialByAgentId).some(
+      ([id, potential]) =>
+        !ids.includes(id) ||
+        !Number.isInteger(potential) ||
+        potential < 0 ||
+        potential > 6 ||
+        (potential > 0 && !supportsPotentialImage(id)),
+    ) ||
+    (Object.values(referenceConditions.potentialByAgentId).some((level) => level > 0) &&
+      referenceConditions.evidenceRefs.length === 0)
+  const runtimeById = new Map<string, ReturnType<typeof createTeamStrengthReferenceRuntimeMember>>()
   const members = ids.flatMap((id) => {
     const member = memberFacts(id)
-    return member ? [member] : []
+    if (!member) return []
+    // Cached intrinsic stats do not certify a currently available action contract.
+    const schedule = compileNormalizedAgentEventSchedule({ agentId: id })
+    if (invalidPotentialReference) return [member]
+    const runtime = createTeamStrengthReferenceRuntimeMember(id, referenceConditions)
+    runtimeById.set(id, runtime)
+    return [
+      {
+        ...member,
+        attack: runtime.initialStats.atk,
+        defense: runtime.initialStats.def,
+        impact: runtime.initialStats.impact,
+        anomalyMastery: runtime.initialStats.anomMas,
+        actionReady: member.actionReady && schedule.status === 'supported',
+      },
+    ]
   })
   const reasons = [
     ...(invalidIdentity ? ['需要三名不重复的代理人。'] : []),
     ...(members.length !== ids.length ? ['部分代理人缺少当前机制身份。'] : []),
-    ...(Object.entries(referenceConditions.potentialByAgentId).some(
-      ([id, potential]) =>
-        !ids.includes(id) || !Number.isInteger(potential) || potential < 0 || potential > 6,
-    ) ||
-    (Object.values(referenceConditions.potentialByAgentId).some((level) => level > 0) &&
-      referenceConditions.evidenceRefs.length === 0)
-      ? ['非零潜能参考必须有适用主体、合法等级与具名条件依据。']
-      : []),
+    ...(invalidPotentialReference ? ['非零潜能参考必须有适用主体、合法等级与具名条件依据。'] : []),
   ]
   if (reasons.length)
     return {
@@ -217,8 +194,8 @@ export function extractTeamStrengthMechanicFeatures(
       ids.map((id) => [
         id,
         {
-          mindscape: 0,
-          potentialImage: referenceConditions.potentialByAgentId[id] ?? 0,
+          mindscape: runtimeById.get(id)!.mindscape,
+          potentialImage: runtimeById.get(id)!.potential ?? 0,
         },
       ]),
     ),
@@ -240,15 +217,30 @@ export function extractTeamStrengthMechanicFeatures(
       'mechanic_contract_pending',
   )
   const output = members.filter((member) => outputSpecialties.has(member.specialty))
+  const direct = output.filter((member) => member.actionFacts.direct !== null)
+  const directScale = (member: Member) => {
+    const packet = member.actionFacts.direct
+    const semantics = teamStrengthSourceActionSemantics(packet)
+    return (
+      (semantics?.scalingAttribute === 'defense' ? member.defense : member.attack) *
+      (packet?.damageMultiplier ?? 0)
+    )
+  }
   const frontline = output.filter((member) => member.demand >= 0.7)
   const background = output.filter((member) => member.demand <= 0.3)
   const anomalies = output.filter((member) => member.specialty === 'anomaly')
   const fieldDemand = members.reduce((sum, member) => sum + member.demand, 0)
-  const capabilities = compatibleCapabilities(members, abilityById, context, recipientContext)
+  const capabilities = compatibleCapabilities(
+    members,
+    abilityById,
+    context,
+    recipientContext,
+    referenceConditions,
+  )
   const potentialEffects = members.flatMap((member) => {
-    const potential = referenceConditions.potentialByAgentId[member.agentId] ?? 0
+    const runtimeMember = runtimeById.get(member.agentId)!
+    const potential = runtimeMember.potential ?? 0
     if (potential === 0) return []
-    const runtimeMember = { ...createLevel60NeutralEffectRuntimeMember(member.agentId), potential }
     const schedule = compileNormalizedAgentEventSchedule({ agentId: member.agentId })
     if (schedule.status !== 'supported') return []
     const preparation = prepareReviewedPotentialEvents32({
@@ -285,6 +277,22 @@ export function extractTeamStrengthMechanicFeatures(
   const primary = [...output].sort(
     (left, right) => right.demand - left.demand || left.agentId.localeCompare(right.agentId),
   )[0]
+  const contactRecipients = [...output]
+    .sort((left, right) => right.demand - left.demand || left.agentId.localeCompare(right.agentId))
+    .slice(0, 2)
+  // Counterfactual contacts are an explicit diagnostic input. The deployed
+  // model must opt in when it actually consumes them; ordinary extraction must
+  // not execute unused damage evaluations for every legal trio.
+  const supportContributionEvidence = options.includeSupportContributionEvidence
+    ? projectTeamStrengthSupportContactEvidence({
+        memberIds: ids,
+        recipients: contactRecipients.map((member) => ({
+          agentId: member.agentId,
+          action: member.actionFacts.damage,
+        })),
+        referenceConditions,
+      })
+    : undefined
   const guardrails = {
     noPrimaryOutput: output.length === 0,
     severeFieldCompetition: frontline.length >= 3,
@@ -293,19 +301,14 @@ export function extractTeamStrengthMechanicFeatures(
   }
   const missingOutputActions = output.filter((member) => !member.actionReady)
   const values = [
-    Math.log1p(
-      maximum(
-        output.filter((member) => member.specialty === 'attack'),
-        (member) => member.attack * member.damageMultiplier,
-      ),
-    ),
+    Math.log1p(maximum(direct, directScale)),
     Math.log1p(
       maximum(anomalies, (member) => (member.anomalyBuildup * member.anomalyMastery) / 100),
     ),
     Math.log1p(
       maximum(
-        output.filter((member) => member.specialty === 'rupture'),
-        (member) => member.damageMultiplier,
+        output.filter((member) => member.actionFacts.sheer !== null),
+        (member) => member.actionFacts.sheer?.damageMultiplier ?? 0,
       ),
     ),
     Math.log1p(
@@ -316,8 +319,8 @@ export function extractTeamStrengthMechanicFeatures(
     ),
     Math.log1p(
       maximum(
-        background.filter((member) => member.specialty !== 'armorer'),
-        (member) => member.attack * member.damageMultiplier,
+        background.filter((member) => member.actionFacts.direct !== null),
+        directScale,
       ),
     ),
     fieldDemand,
@@ -335,12 +338,7 @@ export function extractTeamStrengthMechanicFeatures(
     capabilities.coverage('anomaly'),
     capabilities.coverage('sheer'),
     capabilities.coverage('stun'),
-    Math.log1p(
-      second(
-        output.filter((member) => member.specialty === 'attack'),
-        (member) => member.attack * member.damageMultiplier,
-      ),
-    ),
+    Math.log1p(second(direct, directScale)),
     Math.log1p(
       second(
         members.filter((member) => member.specialty === 'stun'),
@@ -349,8 +347,8 @@ export function extractTeamStrengthMechanicFeatures(
     ),
     Math.log1p(
       second(
-        background.filter((member) => member.specialty !== 'armorer'),
-        (member) => member.attack * member.damageMultiplier,
+        background.filter((member) => member.actionFacts.direct !== null),
+        directScale,
       ),
     ),
     Math.log1p(
@@ -359,8 +357,8 @@ export function extractTeamStrengthMechanicFeatures(
     capabilities.multiProvider,
     Math.log1p(
       maximum(
-        output.filter((member) => member.specialty === 'armorer'),
-        (member) => member.defense * member.sharpMultiplier,
+        output.filter((member) => member.actionFacts.sharp !== null),
+        (member) => member.defense * (member.actionFacts.sharp?.damageMultiplier ?? 0),
       ),
     ),
     Math.log1p(
@@ -376,21 +374,36 @@ export function extractTeamStrengthMechanicFeatures(
     potentialCapacity('crit_damage'),
     potentialStatCapacity('potential_penetration'),
     potentialCapacity('resistance_ignore'),
+    capabilities.selfCoverage('damage'),
+    capabilities.selfCoverage('attack'),
+    capabilities.selfCoverage('critical'),
+    capabilities.selfCoverage('anomaly_critical'),
+    capabilities.selfCoverage('sheer'),
+    capabilities.selfCoverage('sharp'),
+    capabilities.selfCoverage('laceration'),
+    capabilities.coverage('anomaly_critical'),
+    capabilities.selfCoverage('anomaly_proficiency'),
+    capabilities.selfCoverage('anomaly_mastery'),
+    capabilities.selfCoverage('anomaly'),
+    capabilities.coverage('aftershock_damage'),
+    capabilities.coverage('aftershock_critical'),
+    capabilities.coverage('aftershock_defense'),
+    capabilities.selfCoverage('aftershock_damage'),
+    capabilities.selfCoverage('aftershock_stun'),
+    capabilities.coverage('anomaly_proficiency'),
+    capabilities.coverage('anomaly_mastery'),
   ]
   // Additional source capacities are learned jointly; none is a fixed role bonus
   // or a claim that mutually exclusive actions form continuous throughput.
   const playstyleCapacities = {
-    secondDirectAction: second(
-      output.filter((member) => member.specialty === 'attack'),
-      (member) => member.attack * member.damageMultiplier,
-    ),
+    secondDirectAction: second(direct, directScale),
     secondStunAction: second(
       members.filter((member) => member.specialty === 'stun'),
       (member) => (member.impact * member.dazeMultiplier) / 100,
     ),
     secondBackgroundAction: second(
-      background.filter((member) => member.specialty !== 'armorer'),
-      (member) => member.attack * member.damageMultiplier,
+      background.filter((member) => member.actionFacts.direct !== null),
+      directScale,
     ),
     secondAnomalyBuildup: second(
       anomalies,
@@ -398,11 +411,18 @@ export function extractTeamStrengthMechanicFeatures(
     ),
     multiProvider: capabilities.multiProvider,
   }
+  const resolvedReference =
+    'status' in referenceConditions
+      ? (referenceConditions as ResolvedTeamStrengthReferenceConditions)
+      : null
   const limitations = [
     '代表动作、站场预算和增益能力描述机制规模，不是实战频率、持续覆盖或伤害。',
+    '普通直伤与异常积蓄按来源分别保留；动作包容量未给出各通道的实战贡献比例，第二输出不表示同时满额输出。',
+    ...new Set(members.flatMap((member) => member.actionLimitations)),
+    ...(resolvedReference?.diagnostics ?? []),
     Object.values(referenceConditions.potentialByAgentId).some((level) => level > 0)
-      ? '采用具名来源潜能参考与逐事件准备条件；其余主体M0/P0，不表示当前账户已达到。'
-      : 'M0/P0 基础能力；高影和潜能路线需要另行说明。',
+      ? '采用显式潜能等级与逐事件准备条件；未显式指定的适用主体按评级协议P6，不表示当前账户已达到。'
+      : '评级按60级、技能11、核心7、M0及当前版本适用主体P6；作者未知条件保留为未知，不改变本地协议。',
     '未量化专有伤害通道的持续覆盖；不把仅限以太帷幕衍生伤害或追加攻击的增益泛用于所有输出。',
     ...(capabilities.conditional ? ['条件增益仅表示对接受者相容的能力，不假定条件持续触发。'] : []),
     ...(output.some((member) => member.specialty === 'armorer')
@@ -433,6 +453,7 @@ export function extractTeamStrengthMechanicFeatures(
   ]
   return {
     featureNames: teamStrengthMechanicFeatureNames,
+    supportContributionEvidence,
     values,
     playstyleCapacities,
     dataFingerprint: teamStrengthMechanicDataFingerprint,

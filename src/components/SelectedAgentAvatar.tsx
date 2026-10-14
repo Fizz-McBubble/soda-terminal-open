@@ -1,30 +1,12 @@
 import { useEffect, useState } from 'react'
 import { getVisualAsset } from '../assets/visualAssets'
 import {
-  preloadVisualEntityImage,
   resolveSessionVisualSource,
   sessionVisualSources,
   visualSourceKey,
 } from '../assets/visualEntityImageSource'
-import type { VisualAssetConsumer } from '../assets/visualAssetSlots'
 import { VisualEntityImage } from './VisualEntityImage'
-
-type SummaryConsumer = Extract<VisualAssetConsumer, 'assets.editor' | 'agent-development.overview'>
-
-/** Reuse personal caches only. A missing new avatar keeps the existing portrait visible. */
-export async function preloadSelectedAgentAvatar(agentId: string, consumer: SummaryConsumer) {
-  const preferred = getVisualAsset('agent', agentId, 'interknot')
-  const source = preferred ? await resolveSessionVisualSource(preferred) : null
-  return (
-    source ??
-    preloadVisualEntityImage({
-      entityType: 'agent',
-      entityId: agentId,
-      slotId: 'agent.square-avatar',
-      consumer,
-    })
-  )
-}
+import type { SelectedAgentAvatarConsumer } from './selectedAgentAvatarPreload'
 
 export function SelectedAgentAvatar({
   agentId,
@@ -34,7 +16,7 @@ export function SelectedAgentAvatar({
 }: {
   agentId: string
   name: string
-  consumer: SummaryConsumer
+  consumer: SelectedAgentAvatarConsumer
   className?: string
 }) {
   const preferred = getVisualAsset('agent', agentId, 'interknot')

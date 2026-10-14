@@ -5,6 +5,7 @@ import { calculateTargetTeamWarehouseFit } from './targetTeamWarehouseFit'
 import { projectTargetTeamAccountBoundBenchmark } from './targetTeamAccountBoundBenchmark'
 import { defaultEquipmentRankForRarity } from './teamEquipmentRecommendations'
 import { compileTeamBuildIntent } from './buildIntent'
+import { compileAgentBuildIntent, buildIntentFingerprintMatches } from './buildIntent'
 import { sampleDiscs } from '../evaluation/fixtures'
 import { driveDiscData } from '../data/gameData'
 import type { DriveDisc } from '../domain/schemas'
@@ -21,6 +22,107 @@ import {
 } from './targetTeamWarehouseFit.testFixture'
 
 describe('explicit target-team warehouse fit', () => {
+  it.each([
+    ['agent-remielle', 'agent-velina', 'agent-yanagi'],
+    ['agent-miyabi', 'agent-remielle', 'agent-velina'],
+    ['agent-miyabi', 'agent-remielle', 'agent-yanagi'],
+  ] as const)(
+    'carries the exact nonstandard branch through an 18-disc solve and replay for %j',
+    (...members) => {
+      const memberIds = members as [string, string, string]
+      const intent = compileTeamBuildIntent({
+        candidateId: `condition:${memberIds.join('+')}`,
+        memberIds,
+        bangbooId: 'bangboo-ariel',
+      })
+      const roster = createEmptyRoster('2026-10-14T00:00:00.000Z')
+      for (const member of roster.agents)
+        if (memberIds.includes(member.agentId)) member.owned = true
+      const discs: DriveDisc[] = intent.recommendations.flatMap(({ agentId, constraint }) => {
+        if (!constraint || constraint.setPlanReadiness.status !== 'executable')
+          throw new Error('missing test source branch')
+        const plan = constraint.setPlanReadiness
+        return Array.from({ length: 6 }, (_, index) => {
+          const slot = (index + 1) as DriveDisc['slot']
+          return {
+            ...sampleDiscs.treasureCandidate,
+            id: `${agentId}:condition:${slot}`,
+            rarity: 'S' as const,
+            level: 15,
+            slot,
+            setId: index < 4 ? plan.primarySetIds[0]! : plan.secondarySetIds[0]!,
+            mainStat:
+              slot === 1
+                ? 'hp_flat'
+                : slot === 2
+                  ? 'atk_flat'
+                  : slot === 3
+                    ? 'def_flat'
+                    : constraint.mainStats[String(slot) as '4' | '5' | '6']![0]!,
+            subStats: [],
+            locked: false,
+          }
+        })
+      })
+      const warehouse = { accountId: 'condition-fixture-only', account: null, roster, discs }
+      const before = JSON.stringify(warehouse)
+      const fit = calculateTargetTeamWarehouseFit({
+        warehouse,
+        buildIntent: intent,
+        bangbooSelection: { status: 'selected', bangbooId: 'bangboo-ariel' },
+      })
+      expect(fit.status, JSON.stringify(fit.gaps)).toBe('ready')
+      expect(fit.uniqueDiscCount).toBe(18)
+      const actorId = memberIds.includes('agent-miyabi') ? 'agent-miyabi' : 'agent-yanagi'
+      const actor = fit.warehousePlan.loadouts.find((row) => row.agentId === actorId)!
+      expect(actor.discs.filter((row) => row.disc.setId === 'set-freedom-blues')).toHaveLength(4)
+      expect(actor.discs.find((row) => row.disc.slot === 4)?.disc.mainStat).toBe(
+        'anomaly_proficiency',
+      )
+      expect(actor.discs.find((row) => row.disc.slot === 6)?.disc.mainStat).toBe('anomaly_mastery')
+      const restored = JSON.parse(JSON.stringify(fit.buildIntent)) as typeof intent
+      expect(buildIntentFingerprintMatches(restored)).toBe(true)
+      const replay = calculateTargetTeamWarehouseFit({
+        warehouse,
+        buildIntent: restored,
+        bangbooSelection: { status: 'selected', bangbooId: 'bangboo-ariel' },
+      })
+      expect(replay.loadouts).toEqual(fit.loadouts)
+      expect(replay.fingerprint).toBe(fit.fingerprint)
+      expect(JSON.stringify(warehouse)).toBe(before)
+      if (actorId === 'agent-yanagi') {
+        for (const main5 of ['pen_ratio', 'electric_dmg'] as const)
+          for (const main6 of ['anomaly_mastery', 'energy_regen'] as const) {
+            const alternativeDiscs = discs.map((disc) =>
+              disc.id.startsWith(`${actorId}:`)
+                ? {
+                    ...disc,
+                    mainStat: disc.slot === 5 ? main5 : disc.slot === 6 ? main6 : disc.mainStat,
+                  }
+                : disc,
+            )
+            const alternative = calculateTargetTeamWarehouseFit({
+              warehouse: { ...warehouse, discs: alternativeDiscs },
+              buildIntent: intent,
+              bangbooSelection: { status: 'selected', bangbooId: 'bangboo-ariel' },
+            })
+            expect(alternative.status).toBe('ready')
+            const assigned = alternative.warehousePlan.loadouts.find(
+              (row) => row.agentId === actorId,
+            )!
+            expect(assigned.discs.find((row) => row.disc.slot === 5)?.disc.mainStat).toBe(main5)
+            expect(assigned.discs.find((row) => row.disc.slot === 6)?.disc.mainStat).toBe(main6)
+          }
+      }
+      // Conditional team advice is not silently applied to the separate individual solver.
+      if (actorId === 'agent-miyabi')
+        expect(
+          compileAgentBuildIntent({ agentId: actorId }).recommendations[0]!.constraint!.mainStats[
+            '4'
+          ],
+        ).not.toContain('anomaly_proficiency')
+    },
+  )
   it('compares later complete peer branches and is invariant to source ordering', () => {
     const roster = createEmptyRoster('2026-09-01T00:00:00.000Z')
     const discs = [...branchPool('preferred', 3), ...branchPool('alternative', 3)]

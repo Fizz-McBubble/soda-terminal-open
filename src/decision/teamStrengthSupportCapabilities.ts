@@ -1,80 +1,84 @@
 import { getCurrentAgentDecisionMechanicContract } from '../calculation/currentAgentDecisionMechanicContracts'
 import { currentEffectFactAdmission } from '../calculation/currentEffectFactAdmission'
 import { remielleSupportCapabilities } from '../calculation/sourceBoundAgentSupport'
-import type { UpstreamExpressionIR } from '../calculation/currentUpstreamExpressionIR'
 import { getReviewedGenericEffectDisposition } from '../gameDataPacks/reviewedExternalEffectDispositions'
 import {
   getReviewedExternalSupportFact,
   type ReviewedExternalSupportChannel,
 } from '../gameDataPacks/reviewedExternalSupportFacts'
 import { evaluateTeamPredicate, type TeamContext } from '../teamEngine/teamMethodR1'
-
-type SupportMember = { agentId: string; specialty: string; attribute: string; hpToSheer: boolean }
+import { currentAgentPlanningEffectBlueprints } from '../calculation/currentAgentPlanningEffectBlueprint'
+import { isReviewedTemplateMechanicEffect32 } from '../calculation/reviewedTemplateMechanicEffects32'
+import { sourcePlanningAftershockCapacity32 } from '../calculation/currentPotentialEventActions32'
+import {
+  bindPlanningEffectRuntimePotentialReference,
+  planningCharacterReferences32,
+  statReferences,
+} from '../calculation/currentPlanningEffectDomain'
+import { stableContentHash } from '../gameDataPacks/types'
+import { applicationForReceiver } from '../calculation/currentPlanningDamageModifiers'
+import {
+  teamStrengthActionFacts,
+  teamStrengthSourceActionSemantics,
+} from './teamStrengthActionFacts'
+import { createTeamStrengthReferenceRuntimeMember } from './teamStrengthReferenceState'
+import type { TeamStrengthReferenceConditions } from './teamStrengthReferenceConditions'
+import {
+  type EffectReceiver,
+  baseReferenceExpression,
+  baseEffectReceivers,
+  hasConditionalGate,
+  effectReceivers,
+} from './teamStrengthSupportExpression'
+type SupportMember = {
+  agentId: string
+  specialty: string
+  attribute: string
+  hpToSheer: boolean
+  hasAftershockCapacity?: boolean
+  actionFacts?: NonNullable<ReturnType<typeof teamStrengthActionFacts>>
+}
 const outputSpecialties = new Set(['attack', 'anomaly', 'rupture', 'armorer'])
+const selfBlueprintsByAgent = new Map<
+  string,
+  (typeof currentAgentPlanningEffectBlueprints)[number][]
+>()
+for (const effect of currentAgentPlanningEffectBlueprints) {
+  const rows = selfBlueprintsByAgent.get(effect.providerAgentId) ?? []
+  rows.push(effect)
+  selfBlueprintsByAgent.set(effect.providerAgentId, rows)
+}
+export const selfCapabilitySourceFingerprint = stableContentHash(
+  currentAgentPlanningEffectBlueprints.map((effect) => [
+    effect.effectKey,
+    effect.targetKinds,
+    effect.numericExpression.expressionSha256,
+    effect.numericExpression.sourceStatus,
+    effect.numericExpression.todoBoundary,
+  ]),
+)
 const attributes = new Set(['physical', 'fire', 'ice', 'electric', 'ether', 'frost', 'wind'])
 export type SupportRecipientContext = { contaminationAttributes?: readonly string[] }
-
-type EffectReceiver = { path: string; damageType: string | null }
-export function expressionReferences(expression: UpstreamExpressionIR): string[] {
-  if (expression.kind === 'reference') return [expression.path]
-  if (expression.kind === 'call')
-    return [
-      ...expression.arguments.flatMap(expressionReferences),
-      ...(expression.receiver ? expressionReferences(expression.receiver) : []),
-    ]
-  if (expression.kind === 'property') return expressionReferences(expression.receiver)
-  if (expression.kind === 'element')
-    return [...expressionReferences(expression.receiver), ...expressionReferences(expression.index)]
-  if (expression.kind === 'array') return expression.items.flatMap(expressionReferences)
-  if (expression.kind === 'object')
-    return expression.entries.flatMap((entry) => expressionReferences(entry.value))
-  return []
-}
-
-export function effectReceivers(expression: UpstreamExpressionIR): EffectReceiver[] {
-  if (expression.kind === 'call') {
-    const own =
-      ['add', 'addWithDmgType'].includes(expression.operator) &&
-      expression.receiver?.kind === 'reference'
-        ? [
-            {
-              path: expression.receiver.path,
-              damageType:
-                expression.operator === 'addWithDmgType' &&
-                expression.arguments[0]?.kind === 'literal' &&
-                typeof expression.arguments[0].value === 'string'
-                  ? expression.arguments[0].value
-                  : null,
-            },
-          ]
-        : []
-    return [
-      ...own,
-      ...expression.arguments.flatMap(effectReceivers),
-      ...(expression.receiver ? effectReceivers(expression.receiver) : []),
-    ]
-  }
-  if (expression.kind === 'property') return effectReceivers(expression.receiver)
-  if (expression.kind === 'element')
-    return [...effectReceivers(expression.receiver), ...effectReceivers(expression.index)]
-  if (expression.kind === 'array') return expression.items.flatMap(effectReceivers)
-  if (expression.kind === 'object')
-    return expression.entries.flatMap((entry) => effectReceivers(entry.value))
-  return []
-}
 
 type Capability =
   | 'damage'
   | 'attack'
   | 'critical'
+  | 'anomaly_critical'
   | 'defense'
   | 'resistance'
   | 'anomaly'
+  | 'anomaly_proficiency'
+  | 'anomaly_mastery'
   | 'sheer'
   | 'health'
   | 'stun'
   | 'sharp'
   | 'laceration'
+  | 'aftershock_damage'
+  | 'aftershock_critical'
+  | 'aftershock_defense'
+  | 'aftershock_stun'
 
 const reviewedCapability: Record<ReviewedExternalSupportChannel, Capability> = {
   attack_from_source_initial_attack: 'attack',
@@ -88,9 +92,19 @@ const reviewedCapability: Record<ReviewedExternalSupportChannel, Capability> = {
 
 function capabilityFor(receiver: EffectReceiver, effectId: string): Capability | null {
   const label = `${receiver.path}.${receiver.damageType ?? ''}.${effectId}`.toLowerCase()
+  if (receiver.damageType === 'aftershock') {
+    if (/crit/.test(receiver.path)) return 'aftershock_critical'
+    if (/defRed|defIgn/.test(receiver.path)) return 'aftershock_defense'
+    if (/daze|stun_/.test(receiver.path)) return 'aftershock_stun'
+    if (/dmg_/.test(receiver.path)) return 'aftershock_damage'
+    return null
+  }
   if (/laceration/.test(label)) return 'laceration'
   if (/sharp/.test(label)) return 'sharp'
   if (/sheerforce|sheer_dmg/.test(label)) return 'sheer'
+  if (/anom_crit/.test(label)) return 'anomaly_critical'
+  if (/anomprof/.test(label)) return 'anomaly_proficiency'
+  if (/anommas/.test(label)) return 'anomaly_mastery'
   if (/anom|disorder/.test(label)) return 'anomaly'
   if (/crit/.test(label)) return 'critical'
   if (/resred|resign/.test(label)) return 'resistance'
@@ -114,30 +128,70 @@ function recipientCompatible(
   if (requiredAttribute && requiredAttribute !== member.attribute) return false
   // A special damage channel is not interchangeable with a skill category.
   // Do not lend an Abloom/Aftershock-only buff to every ordinary attacker.
-  if (receiver.damageType === 'abloom' || receiver.damageType === 'aftershock') return false
+  if (receiver.damageType === 'abloom') return false
+  // A stunner may have real aftershock damage. Specialty alone neither proves
+  // nor disproves that source-bound action; never lend it to an ordinary attack.
+  if (receiver.damageType === 'aftershock') return member.hasAftershockCapacity === true
   if (!outputSpecialties.has(member.specialty)) return false
-  if (capability === 'sharp' || capability === 'laceration') return member.specialty === 'armorer'
-  if (capability === 'attack' && member.specialty === 'armorer') return false
-  if (capability === 'sheer') return member.specialty === 'rupture'
+  const actions = member.actionFacts ?? teamStrengthActionFacts({ agentId: member.agentId })
+  const direct = teamStrengthSourceActionSemantics(actions?.direct ?? null)
+  const sheer = teamStrengthSourceActionSemantics(actions?.sheer ?? null)
+  const sharp = teamStrengthSourceActionSemantics(actions?.sharp ?? null)
+  if (capability === 'sharp' || capability === 'laceration') return sharp?.family === 'sharp'
+  if (capability === 'attack')
+    return direct?.scalingAttribute === 'attack' || sheer?.family === 'sheer'
+  if (capability === 'sheer') return sheer?.family === 'sheer'
   if (capability === 'health') return member.hpToSheer
-  if (capability === 'anomaly') return member.specialty === 'anomaly'
-  // Sheer attacks can crit. The anomaly feature is accumulation, so ordinary
-  // crit is not automatically an amplification of that modeled channel.
+  if (
+    ['anomaly', 'anomaly_critical', 'anomaly_proficiency', 'anomaly_mastery'].includes(capability)
+  )
+    return member.specialty === 'anomaly'
+  // The typed core uses rate/damage for direct and sheer; sharp uses crit
+  // rate for its laceration checks but never ordinary crit damage.
+  // An Anomaly-specialty actor may have both ordinary direct damage and an
+  // independent anomaly channel; neither critical rule is borrowed by the other.
   if (capability === 'critical')
-    return member.specialty === 'attack' || member.specialty === 'rupture'
+    return (
+      direct?.family === 'direct' ||
+      sheer?.family === 'sheer' ||
+      (sharp?.family === 'sharp' && applicationForReceiver(receiver.path) === 'crit_rate')
+    )
   // Locked common/index.ts also supplies rupture's base ATK-to-sheer conversion.
   // Sheer bypasses defense, not elemental resistance; keep those channels apart.
-  if (capability === 'defense') return member.specialty !== 'rupture'
+  if (capability === 'defense') return direct?.family === 'direct' || sharp?.family === 'sharp'
   return true
 }
 
 export function compatibleCapabilities(
-  members: SupportMember[],
+  inputMembers: SupportMember[],
   abilityById: ReadonlyMap<string, boolean>,
   context: TeamContext,
   recipientContext: SupportRecipientContext = {},
+  referenceConditions?: TeamStrengthReferenceConditions,
 ) {
+  const memberIds = inputMembers.map((member) => member.agentId)
+  const references = referenceConditions ?? {
+    potentialByAgentId: Object.fromEntries(
+      memberIds.flatMap((id) => {
+        const potential = context.agentStateById?.[id]?.potentialImage
+        return typeof potential === 'number' ? [[id, potential]] : []
+      }),
+    ),
+    evidenceRefs: [],
+  }
+  const runtimeById = new Map(
+    memberIds.map((id) => [id, createTeamStrengthReferenceRuntimeMember(id, references)]),
+  )
+  const members = inputMembers.map((member) => ({
+    ...member,
+    hasAftershockCapacity: sourcePlanningAftershockCapacity32({
+      agentId: member.agentId,
+      memberIds,
+      potential: runtimeById.get(member.agentId)!.potential ?? 0,
+    }),
+  }))
   const covered = new Map<Capability, Set<string>>()
+  const selfCovered = new Map<string, Set<string>>()
   const providers = new Map<string, Set<string>>()
   let conditional = false
   const unverifiedProviders = new Set<string>()
@@ -174,6 +228,63 @@ export function compatibleCapabilities(
     }
   }
   for (const provider of members) {
+    const runtime = runtimeById.get(provider.agentId)!
+    const reference = bindPlanningEffectRuntimePotentialReference({
+      agentId: provider.agentId,
+      potential: runtime.potential,
+      references: {
+        ...planningCharacterReferences32(runtime),
+        ...statReferences('own.initial', runtime.initialStats),
+      },
+    })
+    // Use the reconciled production blueprint. Some retained source catalog
+    // entries are generic slots; only their pinned original IR proves capacity.
+    for (const effect of selfBlueprintsByAgent.get(provider.agentId) ?? []) {
+      if (
+        /^(?:m[1-6](?:_|$)|potential)/i.test(effect.effectId) ||
+        !effect.targetKinds.some(
+          (kind) => kind === 'self' || kind === 'team' || kind === 'enemy',
+        ) ||
+        (effect.numericExpression.sourceStatus !== 'upstream_expression_available' &&
+          !isReviewedTemplateMechanicEffect32(effect)) ||
+        Boolean(effect.numericExpression.todoBoundary) ||
+        (effect.effectId.startsWith('ability_') && !abilityById.get(provider.agentId))
+      )
+        continue
+      const specialized = baseReferenceExpression(
+        effect.numericExpression.expressionIr,
+        reference,
+        abilityById.get(provider.agentId) === true,
+      )
+      const registered = isReviewedTemplateMechanicEffect32(effect)
+      for (const receiver of effectReceivers(specialized)) {
+        if (registered && /^(?:teamBuff|notOwnBuff|enemyDebuff)\./.test(receiver.path)) {
+          const external = capabilityFor(receiver, effect.effectId)
+          if (external) {
+            cover(provider, external, receiver)
+            conditional ||= hasConditionalGate(specialized)
+          }
+        }
+        if (!/^(?:ownBuff|teamBuff)\./.test(receiver.path)) continue
+        const channel = /\.anom_crit(?:_|_dmg_)/.test(receiver.path)
+          ? 'anomaly_critical'
+          : capabilityFor(receiver, effect.effectId)
+        if (!channel || channel === 'health' || channel === 'stun') continue
+        if (
+          channel === 'anomaly_critical'
+            ? provider.specialty !== 'anomaly' ||
+              (receiver.path.endsWith('.physical') && provider.attribute !== 'physical')
+            : !recipientCompatible(provider, channel, receiver)
+        )
+          continue
+        const recipients = selfCovered.get(channel) ?? new Set<string>()
+        recipients.add(provider.agentId)
+        selfCovered.set(channel, recipients)
+        conditional ||=
+          effect.numericExpression.dependencyKinds.includes('conditional_state') ||
+          hasConditionalGate(specialized)
+      }
+    }
     const reviewed = getReviewedExternalSupportFact(provider.agentId)
     for (const effect of reviewed?.effects ?? []) {
       const gate = effect.eligibility
@@ -208,10 +319,11 @@ export function compatibleCapabilities(
       .effects
     for (const effect of effects ?? []) {
       // These are source effect identities, not agent identities. M1..M6 and
-      // potential effects cannot silently enter the declared M0/P0 reference.
+      // Named potential effects are consumed by the separate prepared-event
+      // path. Embedded potential branches still use this reference's level.
       if (/^(?:m[1-6](?:_|$)|potential)/i.test(effect.effectId)) continue
-      if (!effect.recipients.some((recipient) => recipient !== 'self')) continue
       if (effect.effectId.startsWith('ability_') && !abilityById.get(provider.agentId)) continue
+      if (!effect.recipients.some((recipient) => recipient !== 'self')) continue
       if (currentEffectFactAdmission(effect) !== 'source_expression') {
         const disposition = getReviewedGenericEffectDisposition(provider.agentId, effect.effectId)
         if (disposition) {
@@ -234,11 +346,26 @@ export function compatibleCapabilities(
           unverifiedProviders.add(provider.agentId)
         continue
       }
-      conditional ||= effect.numericExpression.dependencyKinds.some(
+      const adopted = (selfBlueprintsByAgent.get(provider.agentId) ?? []).find(
+        (blueprint) => blueprint.effectId === effect.effectId,
+      )
+      if (
+        !adopted ||
+        adopted.numericExpression.sourceStatus !== 'upstream_expression_available' ||
+        adopted.numericExpression.todoBoundary
+      ) {
+        deferredProviders.add(provider.agentId)
+        continue
+      }
+      // Both personal and external capacities consume the same reconciled
+      // adopted expression; the raw contract above is retained for diagnostics.
+      conditional ||= adopted.numericExpression.dependencyKinds.some(
         (kind) => kind === 'conditional_state',
       )
-      for (const receiver of effectReceivers(
-        effect.numericExpression.expressionIr as UpstreamExpressionIR,
+      for (const receiver of baseEffectReceivers(
+        adopted.numericExpression.expressionIr,
+        reference,
+        abilityById.get(provider.agentId) === true,
       )) {
         if (!/^(?:teamBuff|notOwnBuff|enemyDebuff)\./.test(receiver.path)) continue
         const capability = capabilityFor(receiver, effect.effectId)
@@ -248,9 +375,14 @@ export function compatibleCapabilities(
     }
   }
   const outputCount = members.filter((member) => outputSpecialties.has(member.specialty)).length
+  const aftershockCount = members.filter((member) => member.hasAftershockCapacity).length
   return {
     coverage: (capability: Capability) =>
-      (covered.get(capability)?.size ?? 0) / Math.max(1, outputCount),
+      (covered.get(capability)?.size ?? 0) /
+      Math.max(1, capability.startsWith('aftershock_') ? aftershockCount : outputCount),
+    selfCoverage: (capability: string) =>
+      (selfCovered.get(capability)?.size ?? 0) /
+      Math.max(1, capability.startsWith('aftershock_') ? aftershockCount : outputCount),
     unverifiedProviders: [...unverifiedProviders].sort(),
     reviewedProviders: [...reviewedProviders].sort(),
     deferredProviders: [...deferredProviders].sort(),
@@ -264,3 +396,5 @@ export function compatibleCapabilities(
     conditional,
   }
 }
+
+export { expressionReferences, effectReceivers } from './teamStrengthSupportExpression'

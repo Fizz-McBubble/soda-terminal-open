@@ -1383,7 +1383,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-45a6cef8",
+        "contentHash": "fnv1a-a81b322d",
         "sources": [
           {
             "label": "prydwen-burnice-page-candidate",
@@ -1769,7 +1769,7 @@
           "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
         ],
         "recommendation": {
-          "wEngines": ["柳的专属音擎", "嵌合编译器"],
+          "wEngines": ["柳的专属音擎", "嵌合编译器", "wengine-13009", "wengine-13008"],
           "sets": [
             "混沌爵士 4 件 + 自由蓝调 / 法厄同之歌 / 雷暴重金属 2 件",
             "丽娜穿透前提下可考虑河豚电音 2 件",
@@ -1783,17 +1783,28 @@
           "subStats": ["异常精通优先，其次攻击力%、穿透值、攻击力"],
           "skillPriority": [
             "技能等级不影响异常积蓄值，资源紧张时可先提高特殊技、核心技的等级。",
-            "终结技的极性紊乱倍率会随着终结技的等级提升，如有需要也可升级。"
+            "终结技的极性紊乱倍率会随着终结技的等级提升，如有需要也可升级。",
+            "普攻 7+",
+            "闪避 7+",
+            "支援技 9+",
+            "特殊技 12+",
+            "终结技 11+",
+            "核心技 F"
           ],
           "coreTarget": 1,
           "teammates": ["站场紊乱：耀嘉音 + 扳机/妮可/丽娜/凯撒；页面示例邦布为插头布或恶魔布。"],
           "bangboos": []
         },
-        "contentHash": "fnv1a-93757e34",
+        "contentHash": "fnv1a-c0478a9f",
         "sources": [
           {
             "label": "bwiki-yanagi-2.1",
             "updatedAt": "2026-07-27T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "miyoushe-59165099-wengine-fold-50-reviewed-20261014",
+            "updatedAt": "2026-10-14T00:00:00.000Z",
             "kind": "community_candidate"
           },
           {
@@ -1819,6 +1830,11 @@
           {
             "label": "miyoushe-post-59165099-structured-skill-section",
             "updatedAt": "2026-09-07T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "miyoushe-59164221-skills-image-227030909-reviewed-20261014",
+            "updatedAt": "2026-10-14T00:00:00.000Z",
             "kind": "community_candidate"
           },
           {
@@ -2630,7 +2646,7 @@
           "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
         ],
         "recommendation": {
-          "wEngines": ["Flight of Fancy", "Weeping Gemini"],
+          "wEngines": ["Flight of Fancy", "Weeping Gemini", "wengine-13009"],
           "sets": [
             "Phaethon's Melody 4 件 + Chaos Jazz / Freedom Blues / Chaotic Metal / Astral Voice / Hormone Punk / Puffer Electro 2 件"
           ],
@@ -2654,11 +2670,16 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-9ab8ecda",
+        "contentHash": "fnv1a-730a3a20",
         "sources": [
           {
             "label": "prydwen-vivian-2.3",
             "updatedAt": "2026-07-27T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "miyoushe-63809342-wengine-fold-46-reviewed-20261014",
+            "updatedAt": "2026-10-14T00:00:00.000Z",
             "kind": "community_candidate"
           },
           {
@@ -3098,7 +3119,11 @@
         "recommendation": {
           "wEngines": [
             "Ju Fufu 的专属音擎",
-            "Blazing Laurel 等击破音擎；精确排序需同版本构筑区字段核验。"
+            "Blazing Laurel 等击破音擎；精确排序需同版本构筑区字段核验。",
+            "wengine-14110",
+            "wengine-13005",
+            "wengine-13135",
+            "wengine-14003"
           ],
           "sets": [
             "King of the Summit 4 件 + Shockstar Disco / Woodpecker Electro / Astral Voice / Hormone Punk / Swing Jazz 2 件",
@@ -3113,7 +3138,13 @@
             "King 4 件时暴击率至 50%，再堆攻击力至约 3400，随后暴击伤害/穿透；候选冲击力 139–160+。"
           ],
           "skillPriority": [
-            "围绕 Hu Wei、Might 与 Momentum 后台循环；技能优先连携、特殊、普攻、支援、闪避。"
+            "围绕 Hu Wei、Might 与 Momentum 后台循环；技能优先连携、特殊、普攻、支援、闪避。",
+            "普攻 11+",
+            "闪避 7+",
+            "支援技 9+",
+            "特殊技 11+",
+            "终结技 11+",
+            "核心技 F"
           ],
           "coreTarget": 1,
           "teammates": [
@@ -3121,11 +3152,26 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-1cf4b577",
+        "contentHash": "fnv1a-ced18882",
         "sources": [
           {
             "label": "prydwen-jufufu-2.0",
             "updatedAt": "2026-07-27T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "miyoushe-65745145-wengine-fold-46-reviewed-20261014",
+            "updatedAt": "2026-10-14T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "miyoushe-65843423-wengine-fold-54-reviewed-20261014",
+            "updatedAt": "2026-10-14T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "miyoushe-65843423-wengine-fold-55-reviewed-20261014",
+            "updatedAt": "2026-10-14T00:00:00.000Z",
             "kind": "community_candidate"
           },
           {
@@ -3146,6 +3192,11 @@
           {
             "label": "prydwen-jufufu-2.0",
             "updatedAt": "2026-07-27T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "miyoushe-65745091-skills-image-241459429-reviewed-20261014",
+            "updatedAt": "2026-10-14T00:00:00.000Z",
             "kind": "community_candidate"
           },
           {
@@ -3207,7 +3258,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-c00fd9f0",
+        "contentHash": "fnv1a-2efe60c1",
         "sources": [
           {
             "label": "prydwen-r5-alice",
@@ -3288,7 +3339,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-4466e9ca",
+        "contentHash": "fnv1a-16ea274b",
         "sources": [
           {
             "label": "prydwen-r5-ukinami-yuzuha",
@@ -3776,7 +3827,7 @@
           "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
         ],
         "recommendation": {
-          "wEngines": ["Wrathful Vajra", "Qingming Birdcage"],
+          "wEngines": ["Wrathful Vajra", "Qingming Birdcage", "wengine-13014"],
           "sets": [
             "云岿如我 4 件 + 折枝剑歌 / 啄木鸟电音 2 件",
             "云岿如我 4 件 + 炎狱重金属 2 件（副词条优秀时可选）"
@@ -3799,11 +3850,26 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-82db4f60",
+        "contentHash": "fnv1a-e1499a30",
         "sources": [
           {
             "label": "prydwen-banyue-page-candidate",
             "updatedAt": "2026-07-27T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "miyoushe-71704913-wengines-ops-228-233-reviewed-20261014",
+            "updatedAt": "2026-10-14T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "miyoushe-71526574-wengine-fold-42-reviewed-20261014",
+            "updatedAt": "2026-10-14T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "miyoushe-71526574-wengine-fold-42-reviewed-20261014",
+            "updatedAt": "2026-10-14T00:00:00.000Z",
             "kind": "community_candidate"
           },
           {
@@ -4150,7 +4216,7 @@
         "gameVersion": "3.1",
         "packageVersion": "3.2.0-current.1-agent-projected",
         "status": "candidate",
-        "updatedAt": "2026-09-07T00:00:00.000Z",
+        "updatedAt": "2026-10-14T00:00:00.000Z",
         "scenario": "席德优先，千夏/耀嘉音等攻击辅助可用；电队可配扳机。邦布方向未作稳定候选。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
@@ -4164,9 +4230,10 @@
           "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
         ],
         "recommendation": {
-          "wEngines": ["Serpentine Seeker", "Bellicose Blaze"],
+          "wEngines": ["Serpentine Seeker", "Bellicose Blaze", "wengine-13111"],
           "sets": [
-            "电队可用 Thunder Metal 4 件 + Swing Jazz / Moonlight Lullaby / Branch & Blade Song 2 件；其余主套方向需同版本字段核验。"
+            "电队可用 Thunder Metal 4 件 + Swing Jazz / Moonlight Lullaby / Branch & Blade Song 2 件；其余主套方向需同版本字段核验。",
+            "拂晓生花 4 件 + 月光骑士颂 / 摇摆爵士 2 件（个人输出候选：利用普攻加成，二件套补充能量回复；不假设效果全程覆盖）"
           ],
           "mainStats": {
             "4": ["4号位：暴击率优先，其次暴击伤害"],
@@ -4176,14 +4243,22 @@
           "subStats": [
             "暴击率、暴击伤害、攻击力%、穿透、攻击力；候选暴击率 50–57%、暴击伤害 110%+。"
           ],
-          "skillPriority": ["普攻、强化特殊技、终结技是希希芙主要输出手段，推荐优先升级。"],
+          "skillPriority": [
+            "普攻、特殊技、终结技优先升级",
+            "普攻 12+",
+            "闪避 7+",
+            "支援技 7+",
+            "特殊技 11+",
+            "终结技 11+",
+            "核心技 F"
+          ],
           "coreTarget": 1,
           "teammates": [
             "席德优先，千夏/耀嘉音等攻击辅助可用；电队可配扳机。邦布方向未作稳定候选。"
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-be9f6118",
+        "contentHash": "fnv1a-38068851",
         "sources": [
           {
             "label": "prydwen-cissia-page-candidate",
@@ -4191,8 +4266,13 @@
             "kind": "community_candidate"
           },
           {
-            "label": "prydwen-cissia-page-candidate",
-            "updatedAt": "2026-07-27T00:00:00.000Z",
+            "label": "miyoushe-74635375-wengine-fold-42-reviewed-20261014",
+            "updatedAt": "2026-10-14T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "miyoushe-74657525-wengines-ops-217-224-reviewed-20261014",
+            "updatedAt": "2026-10-14T00:00:00.000Z",
             "kind": "community_candidate"
           },
           {
@@ -4201,8 +4281,18 @@
             "kind": "community_candidate"
           },
           {
-            "label": "miyoushe-post-74635375-structured-skill-section",
-            "updatedAt": "2026-09-07T00:00:00.000Z",
+            "label": "miyoushe-74657525-cissia-disc-ops225-254",
+            "updatedAt": "2026-10-14T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "prydwen-cissia-page-candidate",
+            "updatedAt": "2026-07-27T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "miyoushe-post-74630572-skills-image-003-reviewed-20261014",
+            "updatedAt": "2026-10-14T00:00:00.000Z",
             "kind": "community_candidate"
           },
           {

@@ -6,11 +6,7 @@ import { getAgentName } from '../application/publicRosterNames'
 import { TeamDecisionAuthorityDetail } from './TeamDecisionAuthorityDetail'
 import { InvalidPlan } from './InvalidPlan'
 import { playerFacingBangbooLabel } from '../application/playerFacingLabels'
-import type { CoreWarehouse } from '../accounts/coreFlow'
-import type {
-  AccountDecisionSnapshot,
-  TargetTeamWarehouseFitQueryResult,
-} from '../application/calculationQueryContract'
+import type { TargetTeamWarehouseFitQueryResult } from '../application/calculationQueryContract'
 import { TeamLocalAnalysisEvidence } from './TeamLocalAnalysisEvidence'
 import {
   CalculationQueryClientContext,
@@ -31,6 +27,7 @@ import {
   planningScenarioSelection32,
   type CurrentPlanningScenarioSelection32,
 } from '../application/publicPlanningScenarioContract'
+import type { TeamPlanProps } from './teamPlanProps'
 
 export function TeamPlan({
   warehouse,
@@ -38,13 +35,7 @@ export function TeamPlan({
   analysisRunId,
   targetTeamFits,
   readOnly = false,
-}: {
-  warehouse: CoreWarehouse
-  decision?: AccountDecisionSnapshot
-  analysisRunId?: string
-  targetTeamFits?: Record<string, TargetTeamWarehouseFitQueryResult>
-  readOnly?: boolean
-}) {
+}: TeamPlanProps) {
   const { teamKey = '' } = useParams()
   const navigate = useNavigate()
   const resolveProfile = useContext(PlanningProfileContext)
@@ -201,6 +192,7 @@ export function TeamPlan({
         targetCandidateId,
         undefined,
         retainedTargetTeamFit?.scenarioSelection,
+        retainedTargetTeamFit?.eventConditionDeclarationsByAgentId,
       )
         .then((fit) => {
           if (!active || generation !== targetFitRequestGeneration.current) return
@@ -239,6 +231,7 @@ export function TeamPlan({
     recoveryTeamId,
     targetCandidateId,
     retainedTargetTeamFit?.scenarioSelection,
+    retainedTargetTeamFit?.eventConditionDeclarationsByAgentId,
   ])
   const selectAlternative = useTeamAlternativeSelection({
     accountId: warehouse.accountId,
@@ -299,6 +292,8 @@ export function TeamPlan({
         runId: analysisRunId,
         candidateId: targetCandidateId,
         scenarioSelection,
+        eventConditionDeclarationsByAgentId:
+          currentTargetTeamFit?.eventConditionDeclarationsByAgentId,
         playerBangbooSelection: { teamKey, ...selection },
       })
       if (!isCurrentPage() || requestGeneration !== targetFitRequestGeneration.current) {
@@ -413,6 +408,7 @@ export function TeamPlan({
                   ? currentTargetTeamFit.effectiveEquipmentParameters
                   : undefined,
                 selection,
+                currentTargetTeamFit?.eventConditionDeclarationsByAgentId,
               )
               if (!isCurrentPage() || generation !== targetFitRequestGeneration.current) return
               if (fit.scenarioSelection?.id !== selection.id || !fit.scenarioIdentity)
@@ -470,6 +466,7 @@ export function TeamPlan({
             targetCandidateId,
             selection,
             scenarioSelection,
+            currentTargetTeamFit?.eventConditionDeclarationsByAgentId,
           )
           if (!isCurrentPage() || requestGeneration !== targetFitRequestGeneration.current) {
             finishUsage('cancelled')

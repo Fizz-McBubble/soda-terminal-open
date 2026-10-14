@@ -1,7 +1,7 @@
 import { assetFailureDiagnostic, type AssetDiagnosticReport } from '../assetQuickRead/diagnostics'
 import { readAssetDiagnostic, saveAssetDiagnostic } from '../assetQuickRead/feedback'
 import { AssetQuickReadFeedback } from './AssetQuickReadFeedback'
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { AssetQuickReadEntry, type AssetQuickReadState } from './AssetQuickReadEntry'
 import { AssetQuickReadBridgeClient, type AssetBridgeJob } from '../assetQuickRead/bridgeClient'
 import { convertAssetSnapshot } from '../assetQuickRead/snapshotAdapter'
@@ -26,36 +26,13 @@ import {
   readAssetQuickReadDirectory,
   saveAssetQuickReadDirectory,
 } from '../assetQuickRead/directoryPreference'
-type Bridge = Pick<AssetQuickReadBridgeClient, 'connect' | 'start' | 'status' | 'cancel' | 'result'>
-export type AssetQuickReadWorkbenchView = {
-  preparation: ReactNode
-  task: ReactNode | null
-  recovery: ReactNode | null
-  state: AssetQuickReadState
-  busy: boolean
-  hasTask: boolean
-  stageActive: boolean
-  inspectFile: (file: File) => Promise<void>
-}
-type Props = {
-  blocked?: boolean
-  preparationCondensed?: boolean
-  onViewAssets?: () => void
-  riskNoticeHref?: string
-  workbench?: (view: AssetQuickReadWorkbenchView) => ReactNode
-  targetAccountId?: string
-  targetAccountName?: string
-  activeAccountId?: string
-  onImported?: () => void
-  onTaskStart?: () => void
-  client?: Bridge
-}
-const message = (error: unknown) =>
-  error instanceof Error && !error.name.startsWith('Zod')
-    ? error.message
-    : '结果结构不符合当前资产快读合同，未写入账户。'
-const active = (job: AssetBridgeJob | null) =>
-  job?.state === 'starting' || job?.state === 'capturing'
+import {
+  assetQuickReadErrorMessage as message,
+  assetQuickReadJobActive as active,
+  type Bridge,
+  type AssetQuickReadControllerProps as Props,
+} from './assetQuickReadControllerContract'
+export type { AssetQuickReadWorkbenchView } from './assetQuickReadControllerContract'
 // Keep the workbench DOM stable; the account binding below invalidates owned work synchronously.
 export function AssetQuickReadController(props: Props) {
   return <AccountBoundQuickRead {...props} />

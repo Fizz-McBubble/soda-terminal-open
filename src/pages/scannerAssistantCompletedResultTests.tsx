@@ -37,8 +37,11 @@ export function registerScannerCompletedResultTests({
 
     // A real start acknowledges an active attempt before its terminal result.
     setRuntimeState('scanning')
+    // The mock is a plain object, not a subscribing hook. Publish a live-query update
+    // so the stable router subtree reads the new snapshot, as in the rescan cases.
+    await setActiveAccount(alpha.id, database)
     rendered.rerender(<App />)
-    await screen.findByRole('progressbar')
+    await screen.findByRole('progressbar', { name: '已处理 128，共 384' })
 
     await setActiveAccount(beta.id, database)
     setRuntimeState('completed')

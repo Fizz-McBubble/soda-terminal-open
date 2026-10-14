@@ -123,6 +123,27 @@ interface ReconciliationTargetConfig {
 
 const RECONCILIATION_TARGETS: ReconciliationTargetConfig[] = [
   {
+    agentId: 'agent-nicole',
+    effectId: 'ability_ether_dmg_',
+    targetPath: 'libs/zzz/formula/src/data/char/sheets/Nicole.ts',
+    // The captured source names dm.ability.ether_dmg_, but writes its value to
+    // common_dmg_. Preserve the gate/value IR and qualify only the receiver.
+    sourceRef: 'teamBuff.combat.common_dmg_',
+    correctedRef: 'teamBuff.combat.dmg_.ether',
+    evidence: [
+      `frzyc/genshin-optimizer@${PINNED_SOURCE_COMMIT}:libs/zzz/formula/src/data/char/sheets/Nicole.ts:240`,
+      'source-parameter:dm.ability.ether_dmg_=0.25;receiver-attribute:ether',
+      `frzyc/genshin-optimizer@${PINNED_SOURCE_COMMIT}:libs/zzz/dm-localization/assets/locales/en/char_Nicole_gen.json:ability.desc.0,ability.desc.1,core.desc[6]`,
+      'localization-sha256:2C290EF8DACBEE3EA34127A9D6A0FD809547072A27E850678785BB2C7F0A64D2',
+      'source-text:another-teammate-same-Attribute-or-Faction;debuffed-target-Ether-DMG+25%-3.5s;core7-target-DEF-reduction-40%-3.5s',
+      sourceReconciliationVersion,
+    ],
+    prefix: 'nicole_ability_ether_receiver',
+    formulaSha256: '0BEDD990502F54EAA094997FE1998A0B50C7B9C5924D0F4A18C433FCC93A880C',
+    expressionSha256: '8508D7A9CD4A7032162505289D1FBB40A668C6399C7F0163E83FC8821B008794',
+    originalIrSha256: 'd3192877f135436386d2f402765a3032d1d4ccc8e2112584ad5261ba3c011aa7',
+  },
+  {
     agentId: 'agent-astra',
     effectId: 'core_atk',
     targetPath: 'libs/zzz/formula/src/data/char/sheets/AstraYao.ts',

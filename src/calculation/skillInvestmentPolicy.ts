@@ -1,4 +1,8 @@
 import type { RosterAgent } from '../assault/types'
+import {
+  evaluateSkillInvestmentNextLevel,
+  type SkillInvestmentNextLevelInput,
+} from './skillInvestmentNextLevel'
 
 export type SkillKey = keyof RosterAgent['skillLevels']
 export type SkillInvestmentBand = 'max_priority' | 'high_value' | 'situational' | 'baseline'
@@ -19,7 +23,7 @@ const targetFor = (skill: SkillKey, band: SkillInvestmentBand) => {
   return 1
 }
 
-export function fieldTimeIndependentSkillInvestment(input: {
+function sourcePrioritySkillInvestment(input: {
   skill: SkillKey
   priorityIndex: number | null
   explicitPrimary: boolean
@@ -62,6 +66,28 @@ export function fieldTimeIndependentSkillInvestment(input: {
       ? '来源优先级与技能倍率/失衡成长共同支持；等级是 Soda 养成预算档位，不是来源原文或精确 DPS 最优解。'
       : '仅按来源优先级形成养成预算档位；缺少可复算成长时不宣称伤害收益。',
   } as const
+}
+
+/** Optional numeric evidence supplements source priority; it never reorders it. */
+export function fieldTimeIndependentSkillInvestment(
+  input: Parameters<typeof sourcePrioritySkillInvestment>[0] & {
+    nextLevelContext?: Omit<SkillInvestmentNextLevelInput, 'skill' | 'targetLevel'> & {
+      targetLevel?: number | null
+    }
+  },
+) {
+  const recommendation = sourcePrioritySkillInvestment(input)
+  if (!input.nextLevelContext) return recommendation
+  const context = input.nextLevelContext
+  return {
+    ...recommendation,
+    nextLevelEvidence: evaluateSkillInvestmentNextLevel({
+      ...context,
+      skill: input.skill,
+      targetLevel:
+        context.targetLevel === undefined ? recommendation.targetLevel : context.targetLevel,
+    }),
+  }
 }
 
 export const skillInvestmentPolicy = Object.freeze({

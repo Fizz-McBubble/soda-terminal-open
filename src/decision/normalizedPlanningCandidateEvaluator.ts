@@ -96,10 +96,15 @@ export function evaluateNormalizedPlanningCandidate(input: {
     if (!rosterAgent || !selectedEngine || discs.length !== 6) return null
     if (
       (selectedEngine.level !== undefined &&
-        (!Number.isInteger(selectedEngine.level) || selectedEngine.level < 0 || selectedEngine.level > 60)) ||
+        (!Number.isInteger(selectedEngine.level) ||
+          selectedEngine.level < 0 ||
+          selectedEngine.level > 60)) ||
       (selectedEngine.ascension !== undefined &&
-        (!Number.isInteger(selectedEngine.ascension) || selectedEngine.ascension < 0 || selectedEngine.ascension > 5))
-    ) return null
+        (!Number.isInteger(selectedEngine.ascension) ||
+          selectedEngine.ascension < 0 ||
+          selectedEngine.ascension > 5))
+    )
+      return null
     const skillLevels = Object.fromEntries(
       ['basic', 'dodge', 'assist', 'special', 'chain', 'core'].map((skill) => [
         skill,
@@ -118,7 +123,9 @@ export function evaluateNormalizedPlanningCandidate(input: {
           id: selectedEngine.engineId,
           name: null,
           level: schemeLevel,
-          ...(selectedEngine.ascension === undefined ? {} : { ascension: selectedEngine.ascension }),
+          ...(selectedEngine.ascension === undefined
+            ? {}
+            : { ascension: selectedEngine.ascension }),
           refinement: selectedEngine.refinement,
         },
       },

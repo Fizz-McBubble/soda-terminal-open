@@ -1,24 +1,21 @@
-import {
-  connectionFailure,
-  isAuthenticationFailure,
-  isCompatibilityFailure,
-} from './runtimeConnectionErrors'
-import type { ScannerAssistantCommands } from './runtimeCommands'
-export type { ScannerAssistantCommands } from './runtimeCommands'
-import { useEffect, useMemo, useState } from 'react'
-import { connectingSnapshot, createDevSnapshot, failedSnapshot } from './runtimeSnapshots'
-import { resolveScannerHelperSessionToken } from './scannerSessionToken'
-import { createDevelopmentScannerCommands } from './runtimeDevelopmentCommands'
-import { readScannerResultWithDeadline } from './resultRead'
 import { withScannerRequestDeadline } from './requestDeadline'
+import { readScannerResultWithDeadline } from './resultRead'
+import type { ScannerAssistantCommands } from './runtimeCommands'
+import { isAuthenticationFailure, isCompatibilityFailure } from './runtimeConnectionErrors'
+import { presentRuntimeConnectionFailure } from './runtimeFailureSnapshot'
 import {
   presentScannerHelperSnapshot,
   requireCurrentScannerHelper,
   verifyScannerHelperIdentity,
 } from './runtimeHelperVersion'
+import { createResultEvidenceReader } from './runtimeResultEvidenceReader'
+import { failedSnapshot } from './runtimeSnapshots'
+import { resolveScannerHelperSessionToken } from './scannerSessionToken'
+export type { ScannerAssistantCommands } from './runtimeCommands'
+export { useScannerAssistantRuntime } from './runtimeHooks'
+export type { ScannerAssistantSnapshot, ScannerAssistantState } from './runtimeSnapshotTypes'
 
 import type { ScannerAssistantSnapshot } from './runtimeSnapshotTypes'
-export type { ScannerAssistantSnapshot, ScannerAssistantState } from './runtimeSnapshotTypes'
 
 export function createScannerAssistantRuntime(
   options: {
@@ -48,15 +45,12 @@ export function createScannerAssistantRuntime(
   let lastSnapshot: ScannerAssistantSnapshot | undefined
   let eventRevision = 0
   function failureSnapshot(error: unknown, step = connectionStep) {
-    return connectionFailure(error, {
+    return presentRuntimeConnectionFailure(error, {
       step,
-      reportId: connectionAttemptId,
+      connectionAttemptId,
       lastSnapshot,
-      versions: {
-        ...lastSnapshot?.connectedVersions,
-        ...(nativeHelperVersion ? { helper: nativeHelperVersion, protocol: '5' } : {}),
-        ...(nativeInstallerVersion ? { installer: nativeInstallerVersion } : {}),
-      },
+      nativeHelperVersion,
+      nativeInstallerVersion,
     })
   }
   const fetchImpl = options.fetchImpl ?? fetch
@@ -495,64 +489,11 @@ export function createScannerAssistantRuntime(
       async requestResultStaging(resultFileHandle, signal?: AbortSignal) {
         return readResult(`/api/result/${encodeURIComponent(resultFileHandle)}`, 'GET', signal)
       },
-      async requestResultEvidence(resultFileHandle, itemId) {
-        const projection = (await command(
-          `/api/result/${encodeURIComponent(resultFileHandle)}/evidence/${encodeURIComponent(itemId)}`,
-          'GET',
-        )) as {
-          availability: 'available'
-          detailSrc: string
-          cardSrc: string
-          visualDetailHash: string
-        }
-        let detailSrc = ''
-        let cardSrc = ''
-        try {
-          detailSrc = await readAuthenticatedImage(projection.detailSrc)
-          cardSrc = await readAuthenticatedImage(projection.cardSrc)
-          return {
-            availability: projection.availability,
-            detailSrc,
-            cardSrc,
-            visualDetailHash: projection.visualDetailHash,
-            revoke() {
-              revokeObjectURL(detailSrc)
-              revokeObjectURL(cardSrc)
-            },
-          }
-        } catch (error) {
-          if (detailSrc) revokeObjectURL(detailSrc)
-          if (cardSrc) revokeObjectURL(cardSrc)
-          throw error
-        }
-      },
+      requestResultEvidence: createResultEvidenceReader({
+        command,
+        readAuthenticatedImage,
+        revokeObjectURL,
+      }),
     } satisfies ScannerAssistantCommands,
   }
-}
-
-export function useScannerAssistantRuntime() {
-  const runtime = useMemo(
-    () =>
-      createScannerAssistantRuntime({
-        deferInitialConnection: true,
-      }),
-    [],
-  )
-  const devState = useMemo(() => {
-    if (!import.meta.env.DEV) return null
-    const params = new URLSearchParams(window.location.search)
-    return createDevSnapshot(params.get('prepareState') ?? params.get('assistantState'))
-  }, [])
-  const [snapshot, setSnapshot] = useState<ScannerAssistantSnapshot>(
-    () => devState ?? connectingSnapshot,
-  )
-
-  useEffect(() => {
-    if (devState) return
-    return runtime.subscribe(setSnapshot)
-  }, [devState, runtime])
-
-  const devCommands = useMemo(() => createDevelopmentScannerCommands(setSnapshot), [])
-
-  return { snapshot, commands: devState ? devCommands : runtime.commands }
 }

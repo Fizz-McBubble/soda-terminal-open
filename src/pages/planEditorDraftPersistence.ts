@@ -1,3 +1,7 @@
+import {
+  normalizeReviewedEventConditionDeclarations32,
+  reviewedEventConditionDeclarationsIdentity32,
+} from '../calculation/reviewedEventConditionDeclarations32'
 import { saveAccountPlanningDraft, type PlanningDraftInput } from '../accounts/planningDrafts'
 import type { AccountPlanningDraft } from '../accounts/types'
 import { verifyRemainingBoxReservationInTransaction } from '../application/remainingBox'
@@ -65,6 +69,17 @@ export async function persistPlanEditorDraft({
   if (savedScenarioSelection?.id === 'declared-stun-comparison' && !targetTeamFit?.scenarioIdentity)
     throw new Error('当前配装结果缺少失衡期计算身份，不能保存。')
 
+  const declarations = normalizeReviewedEventConditionDeclarations32(
+    targetTeamFit?.eventConditionDeclarationsByAgentId ??
+      draft.solutionContext?.eventConditionDeclarationsByAgentId,
+    team?.agentIds ?? draft.selection.agentIds,
+  )
+  const declarationIdentity = reviewedEventConditionDeclarationsIdentity32(declarations)
+  if (
+    declarationIdentity &&
+    declarationIdentity !== targetTeamFit?.eventConditionDeclarationsIdentity
+  )
+    throw new Error('技能事件声明尚未进入本次配装结果，请重新匹配。')
   const input: PlanningDraftInput = {
     ...draft,
     id: nextPlanId,
@@ -97,6 +112,8 @@ export async function persistPlanEditorDraft({
               profiles.map((profile) => [profile.id, profile.packageVersion]),
             ),
             exactVariantKey: exactVariantKey!,
+            eventConditionDeclarationsByAgentId: declarations,
+            eventConditionDeclarationsIdentity: declarationIdentity,
             ...(savedScenarioSelection ? { scenarioSelection: savedScenarioSelection } : {}),
             ...(savedScenarioIdentity ? { scenarioIdentity: savedScenarioIdentity } : {}),
           }

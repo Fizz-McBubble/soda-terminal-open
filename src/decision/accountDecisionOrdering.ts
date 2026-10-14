@@ -47,7 +47,8 @@ export function baseComparator(
 /**
  * A partial order cannot be safely dense-ranked by comparing adjacent display
  * items. Within each categorical Team Rating band, only the number of known
- * stronger exact Variants creates another theoretical tier. Unrelated peers
+ * preferred exact Variants creates a finer source-preference order, not another
+ * measured strength tier. Context-dependent relations are not consumed. Unrelated peers
  * therefore remain tied even when a display/portfolio sort places one between
  * a known stronger/weaker pair.
  */

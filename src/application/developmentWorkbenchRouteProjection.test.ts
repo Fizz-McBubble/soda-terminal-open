@@ -6,7 +6,13 @@ import { developmentPanelDiscFingerprint } from './publicDevelopmentComparisonPa
 import { projectDevelopmentWorkbenchRoute } from './developmentWorkbenchRouteProjection'
 import { isCurrentDevelopmentWorkbenchRoute } from './publicDevelopmentWorkbenchRoute'
 import { projectDevelopmentCandidateAlternatives } from '../decision/developmentCandidateAlternatives'
-import { getCandidateWarehouseConstraint } from '../gameDataPacks/candidateWarehouseConstraints'
+import {
+  candidateSetPlansForConstraint,
+  getCandidateWarehouseConstraint,
+} from '../gameDataPacks/candidateWarehouseConstraints'
+import { createAgentDevelopmentPanelProjection } from '../pages/agentDevelopmentPanelProjection'
+import { createDevelopmentPanelContext } from '../pages/agentDevelopmentPanelContext'
+import { candidateDiscRecommendations } from '../pages/candidateDiscRecommendations'
 import { contentHash } from './contentHash'
 import {
   developmentCurrentRecordAgent,
@@ -28,6 +34,12 @@ const discs = [1, 2, 3, 4, 5, 6].map((slot) => ({
   updatedAt: '2026-09-24T00:00:00Z',
   dataVersion: '3.1',
 })) as DriveDisc[]
+const astraDiscs = discs.map((disc, index) => ({
+  ...disc,
+  mainStat: ['hp_flat', 'atk_flat', 'def_flat', 'atk_percent', 'atk_percent', 'energy_regen'][
+    index
+  ] as DriveDisc['mainStat'],
+}))
 const agent = {
   ...createEmptyRoster().agents.find((item) => item.agentId === 'agent-aria')!,
   owned: true,
@@ -67,7 +79,87 @@ const currentSelection = {
   candidateLoadoutFingerprint: null,
 }
 
+function astraAgent(mindscape: number | undefined, equipped = astraDiscs) {
+  const row = createEmptyRoster().agents.find((item) => item.agentId === 'agent-astra')!
+  row.owned = true
+  row.level = 60
+  row.skillLevels.core = 7
+  row.wEngineDetails = { id: 'wengine-14002', name: '逍遥游球', level: 60, refinement: 1 }
+  row.equippedDiscIds = equipped.map((disc) => disc.id)
+  row.mindscape = mindscape as number
+  return row as typeof agent
+}
+
+function runWithAgent(routeAgent: typeof agent, warehouseDiscs = astraDiscs) {
+  return {
+    runId: 'route-run-astra',
+    capturedAt: '2026-09-24T00:00:00Z',
+    input: {
+      warehouse: {
+        accountId: 'account-a',
+        roster: { agents: [routeAgent], wEngines: [] },
+        discs: warehouseDiscs,
+      },
+      drafts: [],
+      activePlanIds: {},
+      developmentPriorityAgentIds: [],
+      preference: {},
+    },
+    snapshot: { fingerprint: { inputHash: 'route-hash-astra' } },
+  } as unknown as AccountDecisionRun
+}
+
 describe('captured workbench route presentation', () => {
+  it('passes the captured Astra Mindscape into two-piece policy resolution', () => {
+    const project = (mindscape: number | undefined) =>
+      projectDevelopmentWorkbenchRoute(runWithAgent(astraAgent(mindscape)), {
+        ...currentSelection,
+        agentId: 'agent-astra',
+      })
+    const m0 = project(0)
+    const m2 = project(2)
+    const unknown = project(undefined)
+    expect(m0.status).toBe('ready')
+    expect(m2.status).toBe('ready')
+    expect(
+      m0.setRecommendations?.some((row) => row.twoPiecePriority?.reason.includes('3429')),
+    ).toBe(true)
+    expect(
+      m2.setRecommendations?.some((row) => row.twoPiecePriority?.reason.includes('2963')),
+    ).toBe(true)
+    expect(
+      unknown.setRecommendations?.some(
+        (row) =>
+          row.twoPiecePriority?.label === '来源条件参考' &&
+          row.twoPiecePriority.reason.includes('先确认影画等级') &&
+          !row.twoPiecePriority.reason.includes('可执行目标'),
+      ),
+    ).toBe(true)
+
+    const knownAgent = astraAgent(2)
+    const panelProjection = createAgentDevelopmentPanelProjection({
+      agent: knownAgent,
+      discs: astraDiscs,
+    })
+    expect(panelProjection.result.status).toBe('ok')
+    const context = createDevelopmentPanelContext({
+      panelProjection,
+      hasComparablePlan: false,
+      candidateChoices: [],
+      currentDiscIds: knownAgent.equippedDiscIds,
+      data: { discs: astraDiscs },
+      coreLevel: 7,
+      mindscape: knownAgent.mindscape,
+    })
+    expect(context?.mindscape).toBe(2)
+    const rows = candidateDiscRecommendations(
+      candidateSetPlansForConstraint(getCandidateWarehouseConstraint('agent-astra')!),
+      getCandidateWarehouseConstraint('agent-astra'),
+      context,
+    )
+    expect(rows.some((row) => row.twoPiecePriority?.reason.includes('2963'))).toBe(true)
+  })
+
   it('refreshes a saved record panel without replacing the captured run or candidate authority', () => {
     const run = runWith()
     const savedAgent = developmentCurrentRecordAgent({ ...agent, level: 59 })
@@ -206,5 +298,37 @@ describe('captured workbench route presentation', () => {
       projectDevelopmentWorkbenchRoute(run, { ...selection, candidateLoadoutFingerprint: 'wrong' })
         .status,
     ).toBe('candidate_mismatch')
+  })
+})
+
+describe('explicit equipped comparison return', () => {
+  it('keeps equipped identity ahead of a saved reference and asserts it in route freshness', () => {
+    const alternatives = discs.map((disc) => ({ ...disc, id: `saved-${disc.id}` }))
+    const run = runWith([...discs, ...alternatives])
+    run.input.drafts = [
+      { ...savedPlan, warehouseRefs: alternatives.map((disc) => disc.id) },
+    ] as unknown as typeof run.input.drafts
+    run.input.activePlanIds = { [agent.agentId]: savedPlan.id }
+    const selection = { ...currentSelection, preferEquipped: true as const }
+    const actual = projectDevelopmentWorkbenchRoute(run, selection)
+    expect(actual.status).toBe('ready')
+    expect(actual.source).toBe('当前已装备')
+    expect(actual.discFacts.map((disc) => disc.id)).toEqual(discs.map((disc) => disc.id))
+    const legacy = projectDevelopmentWorkbenchRoute(run, currentSelection)
+    expect(legacy.source).toBe('当前方案')
+    expect(legacy.discFacts.map((disc) => disc.id)).toEqual(alternatives.map((disc) => disc.id))
+    expect(
+      isCurrentDevelopmentWorkbenchRoute(
+        actual,
+        {
+          runId: run.runId,
+          accountId: 'account-a',
+          inputFingerprint: 'route-hash',
+          selection: currentSelection,
+          selectedDiscs: discs,
+        },
+        developmentPanelDiscFingerprint,
+      ),
+    ).toBe(false)
   })
 })

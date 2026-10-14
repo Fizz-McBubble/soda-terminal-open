@@ -22,12 +22,20 @@ export function DevelopmentDiscCard({
       ? `与${name}的装备或保存方案共用`
       : `已用于${name}的养成方案`
   const mainLabel = disc.main.replace(/百分比$/, '').replace(/属性伤害$/, '伤害')
+  const statusClass = changed === true ? 'is-changed' : changed === false ? 'is-retained' : ''
   return (
-    <article className="disc-card development-disc-card" data-slot={disc.slot}>
+    <article
+      className={`disc-card development-disc-card ${statusClass}`.trim()}
+      data-slot={disc.slot}
+    >
       <header>
         <span>{disc.slot}号位</span>
         <div className="development-disc-card__corner">
-          <b>
+          <b
+            className={`development-disc-card__badge ${
+              changed === true ? 'is-changed-badge' : changed === false ? 'is-retained-badge' : ''
+            }`.trim()}
+          >
             {changed === undefined
               ? disc.grade === '未评定'
                 ? disc.score
@@ -127,7 +135,12 @@ export function DevelopmentDiscCard({
       </div>
       <ul>
         {subs.map((sub, index) => (
-          <li className={sub.effective ? 'is-effective' : undefined} key={index}>
+          <li
+            className={
+              sub.effective ? 'is-effective' : sub.name === '未录入' ? 'is-empty' : 'is-non-target'
+            }
+            key={index}
+          >
             <span>
               {sub.name}
               {sub.hits > 0 ? <em>+{sub.hits}</em> : null}

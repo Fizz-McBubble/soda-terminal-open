@@ -34,6 +34,8 @@ export type TeamLoadoutOverviewItem = {
     bangbooId: string
     defaultStars: number
     recommendationReason: string
+    primaryPurpose?: import('../calculation/currentBangbooUtilityProjectionTypes').BangbooUtilityPurpose
+    activationStatus?: 'active' | 'inactive' | 'unknown'
   }>
   stateLabel: string
   reason: string

@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { SelectedAgentAvatar, preloadSelectedAgentAvatar } from './SelectedAgentAvatar'
+import { SelectedAgentAvatar } from './SelectedAgentAvatar'
+import { preloadSelectedAgentAvatar } from './selectedAgentAvatarPreload'
 
 const sources = vi.hoisted(() => ({
   preferred: vi.fn(),

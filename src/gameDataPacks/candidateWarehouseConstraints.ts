@@ -115,7 +115,10 @@ function buildField(profileId: string, path: string): PlayerBuildField {
 }
 
 function sourceList(fields: PlayerBuildField[]) {
-  return fields.flatMap((field) => (field.source ? [field.source] : []))
+  return fields.flatMap((field) => [
+    ...(field.source ? [field.source] : []),
+    ...(field.supplementalSources ?? []).map((entry) => entry.source),
+  ])
 }
 
 function setIdsFrom(text: string[]) {
@@ -169,6 +172,7 @@ function candidateConstraint(agentId: string): CandidateWarehouseConstraint {
     reviewedAdditionalPlans.flatMap((plan) => (plan.sourceText ? [plan.sourceText] : [])),
   )
   const compiledSetPlans = [
+    ...reviewedAdditionalPlans.filter((plan) => plan.purpose === 'recommended'),
     ...compileCandidateSetPlans(
       asStrings(fields[1].value),
       originalRecommendation?.sets.map((plan) => ({
@@ -177,7 +181,7 @@ function candidateConstraint(agentId: string): CandidateWarehouseConstraint {
         secondarySets: plan.secondary,
       })),
     ).filter((plan) => !plan.sourceText || !reviewedSourceTexts.has(plan.sourceText)),
-    ...reviewedAdditionalPlans,
+    ...reviewedAdditionalPlans.filter((plan) => plan.purpose !== 'recommended'),
   ]
   // The archived Grace Thunder 4 branch requires Shock coverage. This generic
   // entry has no verified Shock context; preserve Freedom 4 and the source union.
@@ -309,10 +313,11 @@ export function getCandidateWarehouseConstraintForTeam(
   if (directions.length !== 1)
     throw new Error(`代理人 ${base.agentId} 的精确队伍条件匹配到多个冲突盘套分支。`)
   const direction = directions[0]!
-  const setPlans = [
-    direction.setPlan,
-    ...(direction.retainBasePlans ? candidateSetPlansForConstraint(base) : []),
-  ]
+  const retainedBasePlans = direction.retainBasePlans ? candidateSetPlansForConstraint(base) : []
+  const setPlans =
+    direction.retainBasePlans && direction.setPlan.purpose === 'conditional'
+      ? [...retainedBasePlans, direction.setPlan]
+      : [direction.setPlan, ...retainedBasePlans]
   const input = {
     ...base,
     ...(direction.mainStats ? { mainStats: { ...base.mainStats, ...direction.mainStats } } : {}),

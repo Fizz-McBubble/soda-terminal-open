@@ -3,7 +3,7 @@ import { contentHash } from './contentHash'
 
 /** Version identities are shared by the private solver and local backup integrity checks. */
 export const actualDiscScoreVersion = 'actual-disc-values-s-standard-r1'
-export const candidateSetPlanPolicyVersion = 'raw-dynamic-six-eighteen-disc-objective-r8'
+export const candidateSetPlanPolicyVersion = 'raw-dynamic-six-eighteen-disc-objective-swap-tie-r9'
 
 export function computeBuildIntentFingerprint<T extends Omit<BuildIntent, 'fingerprint'>>(
   intent: T,
@@ -26,6 +26,7 @@ export function buildIntentFingerprintMatches(
   return (
     allowHistoricalSnapshot &&
     [
+      'raw-dynamic-six-eighteen-disc-objective-r8',
       'dynamic-marginal-source-compatible-guarded-exchange-r7',
       'source-priority-compatible-objective-guarded-exchange-r6',
       'source-priority-compatible-objective-incumbent-exchange-r5',

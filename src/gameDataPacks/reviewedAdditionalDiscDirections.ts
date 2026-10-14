@@ -111,6 +111,17 @@ const nicoleIcyVeinsSource: PlayerBuildSource = {
     '2026-09-19复核页面构筑区；页面原样显示Last updated on Nov 25, 2025 at 18:00且未标时区，changelog标注Reviewed with 2.4。sourceVersion保留2.4，不伪装为3.1。仅采用月光同名团队增益不叠加、两条副套来源偏好及静听嘉音叠层适用说明，不默认满层或全程覆盖，不作DPS、最高伤害或自动写入结论。hash为核对字段摘要，非整页归档hash。',
 }
 
+export const reviewedCissiaDiscSource: PlayerBuildSource = {
+  id: 'miyoushe-74657525-cissia-disc-ops225-254',
+  url: 'https://www.miyoushe.com/zzz/article/74657525',
+  sourceVersion: '2.7',
+  checkedAt: '2026-10-14T00:00:00.000Z',
+  contentHash: '38e9a91c821c5c38e03fdf304213ccb0ee3bb3082edfeb422ce579279a2b8e2c',
+  verified: true,
+  licenseBoundary:
+    '锁源复用；archiveSha256=1a71b24cead501819b579777441ac860efb537434084c62fba1bcd0b19e8b3dd；3108686 post74657525 structured_content ops[225:254) rawSha256=38e9a91c821c5c38e03fdf304213ccb0ee3bb3082edfeb422ce579279a2b8e2c；textSha256=02c6c011c5352e7ebec292441ed0eed32c0c54180bae9959815788b2c5436e1b。保留2.7原版本，只采用明确4+2及分型条件，不推为当前最优/满层常驻，不从席德在队推断全队角色，不分发原文。',
+}
+
 type AdditionalDiscDirection = {
   agentId: string
   text: string
@@ -121,6 +132,18 @@ type AdditionalDiscDirection = {
 }
 
 const directions: readonly AdditionalDiscDirection[] = [
+  {
+    agentId: 'agent-cissia',
+    text: '拂晓生花 4 件 + 月光骑士颂 / 摇摆爵士 2 件（个人输出候选：利用普攻加成，二件套补充能量回复；不假设效果全程覆盖）',
+    source: reviewedCissiaDiscSource,
+    plan: {
+      pattern: '4+2',
+      primarySetIds: ['set-dawns-bloom'],
+      secondarySetIds: ['set-moonlight-lullaby', 'set-swing-jazz'],
+      priority: 0,
+      purpose: 'recommended',
+    },
+  },
   {
     agentId: 'agent-ellen',
     text: '啄木鸟电音 4 件 + 河豚电音 / 极地重金属 / 折枝剑歌 2 件（常规候选：按普攻、闪避反击和强化特殊技暴击的实际叠层选择，不预设满层常驻）',
@@ -256,6 +279,19 @@ export function correctReviewedAdditionalDiscField(
   if (value.length === original.length && value.every((text, index) => text === original[index]))
     return field
 
+  if (agentId === 'agent-cissia') {
+    return {
+      ...field,
+      value,
+      sourceValues: field.sourceValues ?? original,
+      supplementalSources: [
+        ...(field.supplementalSources ?? []),
+        ...additions.map((addition) => ({ source: addition.source, values: [addition.text] })),
+      ],
+      reason: '保留既有盘套及原来源，追加明确个人输出候选；席德辅助分支仅经队伍条件入口采用。',
+    }
+  }
+
   const sources = [
     ...(mode === 'append' ? [field.source] : []),
     ...getReviewedAdditionalDiscSources(agentId),
@@ -320,4 +356,46 @@ export const reviewedEvelynDialynDiscDirection: AdditionalTeamDiscDirection = {
   additionalSources: [evelynHormoneSource, evelynDialynSource],
   boundary:
     '琉音是当前作者的推荐情境，不是盘套装备硬限制。完整副套来自已归档修订图；在3.1基线中只补候选方案，不自动启用数值效果，不把终结后增益视为常驻。保留伊芙琳其他4+2与原有2+2+2。',
+}
+
+/** Auxiliary branch is absent from the generic text field and activates only through the team applier. */
+export const reviewedCissiaSeedDiscDirection: AdditionalTeamDiscDirection = {
+  id: 'miyoushe-74657525-cissia-seed-astral-voice',
+  agentId: 'agent-cissia',
+  exactMemberSets: [],
+  requiredMemberIds: ['agent-seed'],
+  potentialMinimumByAgentId: {},
+  retainBasePlans: true,
+  setPlan: {
+    pattern: '4+2',
+    primarySetIds: ['set-astral-voice'],
+    secondarySetIds: ['set-moonlight-lullaby', 'set-swing-jazz'],
+    priority: 0,
+    purpose: 'conditional',
+    sourceText:
+      '静听嘉音 4 件 + 月光骑士颂 / 摇摆爵士 2 件（辅助席德情境的额外候选：通过快速支援叠加增伤，不假设满层或全程覆盖；个人输出分支保留，由同条件目标和库存比较）',
+    condition: {
+      sourceId: reviewedCissiaDiscSource.id,
+      sourceUrl: reviewedCissiaDiscSource.url,
+      sourceVersion: '2.7',
+      contentHash: reviewedCissiaDiscSource.contentHash,
+      sourceTextVerified: true,
+      rule: { kind: 'teammate', agentId: 'agent-seed' },
+    },
+  },
+  source: {
+    postId: '74657525',
+    url: reviewedCissiaDiscSource.url,
+    contentHash: reviewedCissiaDiscSource.contentHash,
+    bodyHash: '811c5a1db91af456cfa5ef8a6bfd60de6ac5f29aab5cc3fda09a8db183ce3c11',
+    sourceVersion: '2.7',
+    targetVersion: '3.1',
+    locator: {
+      kind: 'structured_text_span',
+      text: '◆驱动盘装配推荐\n●4件套选择【拂晓生花】\n»该套装提供了高额普攻伤害加成，非常适合希希芙\n»2件套仅有2种选择：\n［月光骑士颂］/［摇摆爵士］提高能量自动回复\n\n●4件套也可以选择【静听嘉音】\n»4件套可以通过快速支援叠加增伤效果，可以进一步提高主C的输出能力\n（适合辅助席德时使用）\n»2件套同样仅有2种选择：\n［月光骑士颂］/［摇摆爵士］提高能量自动回复\n\n●驱动盘词条选择也非常简单了\n首先4号盘必定选择暴击盘\n5号盘可选攻击盘/电伤盘\n6号盘必定选择能量自动回复盘\n副词条以双暴和攻击百分比词条为主\n',
+    },
+  },
+  additionalSources: [reviewedCissiaDiscSource],
+  boundary:
+    '席德在队仅使这条来源候选合法可比，不推断希希芙或全队实际角色；既有个人输出和其他候选同时保留，不自动开启快速支援数值增益或判断当前最优。',
 }

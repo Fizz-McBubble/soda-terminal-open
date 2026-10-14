@@ -5,10 +5,18 @@ import {
   targetTeamBangbooOptions,
   resolveTargetTeamBangbooOption,
   reviewedSourceBangbooOptions,
+  recommendedTargetBangbooDefault,
   maxTargetTeamBangbooRecommendations,
 } from './targetTeamSourceBangbooOptions'
 
 describe('targetTeamSourceBangbooOptions recommendation shortlist and policies', () => {
+  it('does not promote Brawler above a sourced Amillion using a fabricated whole-active bonus', () => {
+    const memberIds = ['agent-anby', 'agent-billy', 'agent-nicole'] as const
+    const brawler = resolveTargetTeamBangbooOption({ memberIds }, 'bangboo-brawlerboo')!
+    const amillion = resolveTargetTeamBangbooOption({ memberIds }, 'bangboo-amillion')!
+    expect(brawler.comparableSlice!.value).toBeLessThan(amillion.comparableSlice!.value)
+    expect(targetTeamBangbooOptions({ memberIds })[0]?.bangbooId).toBe('bangboo-amillion')
+  })
   it('retains the most prioritized valid exact 3-agent reviewed option as default (slot 0)', () => {
     const memberIds = ['agent-anby', 'agent-anton', 'agent-nicole'] as const
     const reviewed = reviewedSourceBangbooOptions({ memberIds }).filter(
@@ -40,6 +48,24 @@ describe('targetTeamSourceBangbooOptions recommendation shortlist and policies',
     expect(options).toHaveLength(3)
     expect(options.every((row) => row.activationStatus === 'active')).toBe(true)
     expect(options.map((row) => row.primaryPurpose)).not.toContain('energy')
+    expect(options.map((row) => row.recipientFit)).not.toContain('not_applicable')
+    expect(options.map((row) => row.bangbooId)).not.toContain('bangboo-booressure')
+    expect(recommendedTargetBangbooDefault({ memberIds })?.bangbooId).not.toBe('bangboo-booressure')
+    for (const bangbooId of ['bangboo-butler', 'bangboo-booressure']) {
+      const manual = resolveTargetTeamBangbooOption(
+        { memberIds, bangbooStarsById: { [bangbooId]: 1 } },
+        bangbooId,
+      )
+      expect(manual?.bangbooId).toBe(bangbooId)
+      expect(manual?.defaultStars).toBe(1)
+      expect(manual?.comparableSlice).toBeUndefined()
+    }
+    const esme = resolveTargetTeamBangbooOption(
+      { memberIds, bangbooStarsById: { 'bangboo-miss-esme': 3 } },
+      'bangboo-miss-esme',
+    )
+    expect(esme?.primaryPurpose).toBe('sustain')
+    expect(esme?.recipientFit).not.toBe('not_applicable')
   })
   it('retains all 41 released manual choices and every explicit star, including inactive base skills', () => {
     const memberIds = ['agent-jane', 'agent-velina', 'agent-yuzuha'] as const

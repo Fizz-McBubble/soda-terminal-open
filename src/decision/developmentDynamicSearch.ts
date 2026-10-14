@@ -45,6 +45,7 @@ export function searchDevelopmentDynamicCandidates(input: {
   agentId: string
   buildIntent: AgentIndependentBuildIntent
   parameters?: DevelopmentComparisonParameters
+  eventConditionDeclaration?: import('../calculation/reviewedTemplateEventConditions32').ReviewedTemplateEventConditionDeclaration32
   scenarioSelection?: CurrentPlanningScenarioSelection32
   candidates: readonly CandidateWarehousePlan[]
   evaluationBudget?: number

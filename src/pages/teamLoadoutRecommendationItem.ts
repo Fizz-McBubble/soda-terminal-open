@@ -167,11 +167,15 @@ export function recommendationItem(
         (recommendation.bangbooSelection && 'bangbooIds' in recommendation.bangbooSelection
           ? recommendation.bangbooSelection.bangbooIds
           : [])),
-    bangbooSuggestions: bangbooOptions.map(({ bangbooId, defaultStars, recommendationReason }) => ({
-      bangbooId,
-      defaultStars,
-      recommendationReason,
-    })),
+    bangbooSuggestions: bangbooOptions.map(
+      ({ bangbooId, defaultStars, recommendationReason, primaryPurpose, activationStatus }) => ({
+        bangbooId,
+        defaultStars,
+        recommendationReason,
+        primaryPurpose,
+        activationStatus,
+      }),
+    ),
     bangbooLabel: schemeBangbooId ? playerFacingBangbooLabel(schemeBangbooId) : '邦布待确认',
     bangbooReason: schemeBangbooId
       ? null

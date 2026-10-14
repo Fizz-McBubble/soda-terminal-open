@@ -1,9 +1,9 @@
 import { registerScannerRecoveryTests } from './scannerAssistantRecoveryTests'
 import { registerScannerDataFileCompatibilityTests } from './scannerDataFileCompatibilityTests'
 import { registerScannerCompletedResultTests } from './scannerAssistantCompletedResultTests'
+import { registerScannerAssistantAccountCases } from './ScannerAssistantPage.testCases'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { choosePlayerSelect } from '../testing/choosePlayerSelect'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../App'
 import { createAccount, setActiveAccount } from '../accounts/repository'
@@ -474,46 +474,7 @@ describe('ScannerAssistantPage', () => {
     expect(runtimeMock.commands.requestResultFile).not.toHaveBeenCalled()
   })
 
-  it('can create an isolated scan account without replacing an existing account', async () => {
-    const user = userEvent.setup()
-    const existing = await createAccount('既有验收账户', database, { id: 'account-existing' })
-    await setActiveAccount(existing.id, database)
-    setRuntimeState('ready')
-    render(<App />)
-
-    await screen.findByRole('textbox', { name: '新账户名称' })
-    const accountName = screen.getByRole('textbox', { name: '新账户名称' })
-    expect(accountName).toBeVisible()
-    expect(accountName.closest('details')).toBeNull()
-    await user.type(accountName, '真实扫描账户')
-    await user.click(screen.getByRole('button', { name: '创建并选用' }))
-
-    await waitFor(async () => expect(await database.accounts.count()).toBe(2))
-    await waitFor(() =>
-      expect(screen.getByRole('combobox', { name: '目标账户' })).toHaveTextContent('真实扫描账户'),
-    )
-    expect(await database.accounts.get('account-existing')).toMatchObject({
-      displayName: '既有验收账户',
-      status: 'active',
-    })
-  })
-
-  it('uses the shared account selector without loading account imagery', async () => {
-    const alphaName = 'F4X Current HEAD 完整主账户名称'
-    const betaName = 'F4X Current HEAD 完整备用账户名称'
-    const alpha = await createAccount(alphaName, database, { id: 'account-alpha' })
-    await createAccount(betaName, database, { id: 'account-beta' })
-    await setActiveAccount(alpha.id, database)
-    setRuntimeState('ready')
-    render(<App />)
-
-    const picker = await screen.findByRole('combobox', { name: '目标账户' })
-    expect(picker).toHaveTextContent(alphaName)
-    await choosePlayerSelect(picker, 'account-beta')
-    await waitFor(() => expect(picker).toHaveValue('account-beta'))
-    expect(picker).toHaveTextContent(betaName)
-    expect(picker).toHaveFocus()
-  })
+  registerScannerAssistantAccountCases({ App, database, setRuntimeState })
 
   registerScannerCompletedResultTests({ App, runtimeMock, setRuntimeState })
   registerScannerRecoveryTests({ App, runtimeMock, setRuntimeState })

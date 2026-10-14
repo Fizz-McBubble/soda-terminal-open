@@ -408,7 +408,7 @@ function canonicalJson(value) {
     .join(',')}}`
 }
 
-async function contentStorageKey(record) {
+export async function contentStorageKey(record) {
   const bytes = new TextEncoder().encode(canonicalJson(record))
   const digest = await crypto.subtle.digest('SHA-256', bytes)
   const hash = Array.from(new Uint8Array(digest), (byte) =>

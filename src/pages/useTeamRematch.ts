@@ -110,6 +110,7 @@ export function useTeamRematch({
             ? previousFit.effectiveEquipmentParameters
             : undefined,
         scenarioSelection: previousFit?.scenarioSelection,
+        eventConditionDeclarationsByAgentId: previousFit?.eventConditionDeclarationsByAgentId,
       })
       if (!active()) return
       if (

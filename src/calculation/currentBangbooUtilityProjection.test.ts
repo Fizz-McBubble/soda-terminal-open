@@ -5,6 +5,8 @@ import {
 } from './currentBangbooUtilityProjection'
 import { resolveBangbooBaseUtilityOutputs } from './currentBangbooBaseUtilityContracts'
 import { getCurrentBangbooNumericData } from '../gameDataPacks/currentBangbooNumericCatalog'
+import { getCurrentAgentEventContract } from './currentAgentMechanicContracts'
+import { currentAgentDirectory } from '../assault/catalog'
 
 const victoriaTrio = ['agent-lycaon', 'agent-corin', 'agent-rina'] as const
 const supportTrio = ['agent-nicole', 'agent-soukaku', 'agent-lucia'] as const
@@ -187,7 +189,7 @@ describe('currentBangbooUtilityProjection source-backed projections', () => {
     expect(projActive.recommendationReason).not.toContain('伪平均')
   })
 
-  it('counter-example: Avocaboo (果核布) unresolved HP basis and trigger count scaling', () => {
+  it('counter-example: Avocaboo (果核布) Bangboo HP basis and trigger count scaling', () => {
     const projActive = projectBangbooUtility({
       memberIds: supportTrio,
       bangbooId: 'bangboo-avocaboo',
@@ -196,7 +198,12 @@ describe('currentBangbooUtilityProjection source-backed projections', () => {
     })
     // 15% * 1.2 = 18% ratio, 15 + 3 = 18 triggers
     expect(projActive.recommendationReason).toContain('技能倍率18%')
-    expect(projActive.recommendationReason).toContain('生命值基准待核实')
+    expect(projActive.recommendationReason).toContain('邦布生命值上限')
+    expect(projActive.recommendationReason).not.toContain('基准待核实')
+    expect(projActive.baseUtilities[0]?.absoluteValue).toBeCloseTo(4632 * 0.15)
+    expect(projActive.effectiveUtilities[0]?.absoluteValue).toBeCloseTo(4632 * 0.18)
+    expect(projActive.comparableSlice?.value).toBeCloseTo(4632 * 0.18)
+    expect(projActive.comparableSlice?.key.cooldownSeconds).toBe(20)
     expect(projActive.recommendationReason).toContain('每场战斗最多触发18次')
   })
 
@@ -210,7 +217,12 @@ describe('currentBangbooUtilityProjection source-backed projections', () => {
     })
     // Base: bubble 8% * 1.3 = 10.4%, star 3.9 * 1.3 = 5.07
     expect(projActive.recommendationReason).toContain('技能倍率10.4%')
-    expect(projActive.recommendationReason).toContain('生命值基准待核实')
+    expect(projActive.recommendationReason).toContain('邦布生命值上限')
+    expect(
+      projActive.effectiveUtilities.find((output) => output.branchId === 'spectral_bubble')
+        ?.absoluteValue,
+    ).toBeCloseTo(5095 * 0.104)
+    expect(projActive.comparableSlice).toBeUndefined()
     expect(projActive.recommendationReason).toContain('5.07点普通能量')
     expect(projActive.recommendationReason).toContain('星莹与幻泡生成概率随前场生命值动态变化')
   })
@@ -226,14 +238,34 @@ describe('currentBangbooUtilityProjection source-backed projections', () => {
     expect(proj.recommendationReason).not.toContain('仪玄')
     expect(proj.recommendationReason).toContain('不能补充命破成员的闪能')
 
-    // Rupture-only team
-    const allRupture = ['agent-yixuan', 'agent-yixuan', 'agent-yixuan'] // invalid trio handled gracefully
-    const projInvalid = projectBangbooUtility({
+    const allRupture = ['agent-yixuan', 'agent-yidhari', 'agent-banyue'] as const
+    for (const id of allRupture) {
+      expect(getCurrentAgentEventContract(id)?.identity.specialty).toBe('rupture')
+      expect(currentAgentDirectory.find((entry) => entry.id === id)?.releaseState).toBe('released')
+    }
+    for (const bangbooId of ['bangboo-butler', 'bangboo-booressure']) {
+      const result = projectBangbooUtility({
+        memberIds: allRupture,
+        bangbooId,
+        stars: 1,
+        activationStatus: 'inactive',
+      })
+      expect(result.comparableSlice).toBeUndefined()
+      expect(result.baseUtilities[0]?.value).toBeGreaterThan(0)
+      expect(result.effectiveUtilities[0]?.value).toBeGreaterThan(0)
+      expect(result.primaryPurpose).not.toBe('energy')
+      expect(result.recipientFit).toBe(
+        bangbooId === 'bangboo-booressure' ? 'not_applicable' : 'base_only',
+      )
+    }
+    const esme = projectBangbooUtility({
       memberIds: allRupture,
-      bangbooId: 'bangboo-butler',
-      stars: 1,
-      activationStatus: 'inactive',
+      bangbooId: 'bangboo-miss-esme',
+      stars: 3,
+      activationStatus: 'active',
     })
-    expect(projInvalid.recipientFit).toBe('unknown')
+    expect(esme.primaryPurpose).toBe('sustain')
+    expect(esme.recipientFit).not.toBe('not_applicable')
+    expect(proj.comparableSlice?.value).toBeGreaterThan(0)
   })
 })

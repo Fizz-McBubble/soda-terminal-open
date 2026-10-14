@@ -68,6 +68,8 @@ function agentRuleIndex(agentRules: readonly AgentRule[]) {
 function agentRuleSignals(rule: AgentRule) {
   const signature = stableContentHash({
     agentId: rule.agentId,
+    specialty: rule.specialty,
+    attribute: rule.attribute,
     evidence: rule.evidence,
     effects: rule.effects,
   })
@@ -144,7 +146,10 @@ function projectWithSnapshots(
 export function projectAgentRulesToTeamFeatureSignals(input: TeamFeatureSignalProjectionInput) {
   const rulesById = agentRuleIndex(input.agentRules)
   const snapshotsById = new Map(
-    [...rulesById].map(([agentId, rule]) => [agentId, agentRuleSignals(rule)] as const),
+    input.memberIds.flatMap((agentId) => {
+      const rule = rulesById.get(agentId)
+      return rule ? [[agentId, agentRuleSignals(rule)] as const] : []
+    }),
   )
   return projectWithSnapshots(input, snapshotsById)
 }

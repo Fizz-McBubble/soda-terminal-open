@@ -287,9 +287,17 @@ export const definitionsByGameId: Record<string, AdditionalContractDefinition> =
   '54022': {
     allOf: [{ key: 'faction:roscaelifer', minimum: 1 }],
     effects: [
-      effect('energy_flat', 'team:vortex_or_chain', [0], { intervalSeconds: 30 }),
-      effect('damage_multiplier', 'active', [1]),
-      effect('duration_delta', 'active:damage_buff', [], { constantValues: [45] }),
+      effect('energy_flat', 'team:vortex_or_chain', [0], {
+        intervalSeconds: 30,
+        requiresFlag: 'agent_vortex_or_chain_triggered',
+      }),
+      effect('damage_multiplier', 'active', [1], {
+        requiresFlag: 'agent_vortex_or_chain_triggered',
+      }),
+      effect('duration_delta', 'active:damage_buff', [], {
+        constantValues: [45],
+        requiresFlag: 'agent_vortex_or_chain_triggered',
+      }),
     ],
   },
   '54023': {

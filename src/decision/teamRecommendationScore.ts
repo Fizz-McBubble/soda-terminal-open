@@ -1,7 +1,7 @@
 import type { TeamFeatureBand, TeamFeatureVector, TeamRatingBand } from './teamDecisionAuthority'
 
 /** A bounded recommendation index, not measured damage or a percent improvement.
- * Coarse reviewed tiers remain authoritative; mechanism fit only refines that tier.
+ * Source or inferred tiers use the same scale; mechanism fit only refines that tier.
  * Missing evidence is neutral, not a claim that the team is weak. */
 export const teamRecommendationScorePolicy = Object.freeze({
   version: 'reviewed-tier-and-mechanism-fit/v1',

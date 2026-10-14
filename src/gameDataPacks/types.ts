@@ -1,4 +1,6 @@
 import { z } from 'zod'
+import { stableContentHash } from '../domain/stableContentHash'
+export { stableContentHash } from '../domain/stableContentHash'
 
 export const gameDataPackageKinds = [
   'game-base',
@@ -70,16 +72,6 @@ export type GameDataPackState = {
   activeFormalByKind: Partial<Record<GameDataPackageManifest['kind'], string>>
   expiredCalculationPackageIds: string[]
   updatedAt: string
-}
-
-export function stableContentHash(input: unknown) {
-  const value = JSON.stringify(input)
-  let hash = 2166136261
-  for (let index = 0; index < value.length; index += 1) {
-    hash ^= value.charCodeAt(index)
-    hash = Math.imul(hash, 16777619)
-  }
-  return `fnv1a-${(hash >>> 0).toString(16)}`
 }
 
 export function createManifest(

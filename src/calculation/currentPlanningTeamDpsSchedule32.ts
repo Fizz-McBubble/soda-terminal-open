@@ -21,6 +21,7 @@ export type SourceBackedPlanningTeamDpsInput = {
   baseline: PlanningBaseline
   baselineReferencesByAgentId?: Readonly<Record<string, Readonly<Record<string, unknown>>>>
   equipmentModifierBuckets?: readonly SourceBackedEquipmentModifierBucket[]
+  equipmentEffectExclusions?: readonly unknown[]
   potentialEvents?: Readonly<Record<string, PotentialApplicationEvent>>
   commonAnomalyEvents?: Readonly<Record<string, readonly CommonAnomalyEventObservation32[]>>
   eventSchedule32?: PlanningEventSchedule32

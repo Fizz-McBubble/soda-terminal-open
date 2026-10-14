@@ -30,21 +30,6 @@ const unique = (values: readonly string[]) => [...new Set(values)]
 export function compileTargetTeamPlanningContext(input: TargetTeamPlanningContextInput) {
   const scenario = resolveCurrentPlanningScenario32(input.scenarioSelection)
   const blockers: string[] = []
-  if (
-    Object.values(input.eventConditionDeclarationsByAgentId ?? {}).some(
-      (declaration) =>
-        typeof declaration.enemyStunned === 'boolean' &&
-        declaration.enemyStunned !== scenario.enemyStunned,
-    )
-  )
-    return {
-      status: 'unsupported' as const,
-      blockers: ['事件敌人失衡声明与选定比较场景冲突。'],
-      fingerprint: stableContentHash({
-        scenario: scenario.identity,
-        declarations: input.eventConditionDeclarationsByAgentId,
-      }),
-    }
   const unknownConditionProviders = Object.keys(
     input.eventConditionDeclarationsByAgentId ?? {},
   ).filter((id) => !input.candidate.memberIds.includes(id))
@@ -195,10 +180,16 @@ export function compileTargetTeamPlanningContext(input: TargetTeamPlanningContex
           member,
           eventUsages,
           references: existingReferences[member.agentId],
+          // Event trigger declarations are separate from the numeric scene coordinate.
+          // Only an absent state inherits the scene default; false/null remain explicit.
           conditionDeclaration: input.eventConditionDeclarationsByAgentId?.[member.agentId]
             ? {
                 ...input.eventConditionDeclarationsByAgentId[member.agentId]!,
-                enemyStunned: scenario.enemyStunned,
+                enemyStunned:
+                  input.eventConditionDeclarationsByAgentId[member.agentId]!.enemyStunned ===
+                  undefined
+                    ? scenario.enemyStunned
+                    : input.eventConditionDeclarationsByAgentId[member.agentId]!.enemyStunned,
               }
             : undefined,
         })
@@ -252,6 +243,13 @@ export function compileTargetTeamPlanningContext(input: TargetTeamPlanningContex
   const discEffects = compileCurrentDriveDiscPlanningEffects({
     members: effectRuntimeMembers,
     preparedQuickAssist: sourceSelection.preparedTeamConditions?.discPreparation.quickAssist,
+    preparedWhiteWaterByAgentId: Object.fromEntries(
+      templatePreparations.flatMap((row) =>
+        row.conditionPreparation
+          ? [[row.agentId, row.conditionPreparation.whiteWaterBalladPreparation]]
+          : [],
+      ),
+    ),
     loadouts: assets.map((asset) => ({ agentId: asset.agentId, discs: asset.discs })),
   })
   if (discEffects.status !== 'supported')
@@ -348,6 +346,10 @@ export function compileTargetTeamPlanningContext(input: TargetTeamPlanningContex
     potentialEvents,
     baseline: scenario.baseline,
     equipmentModifierBuckets: [...modifierProjection.directRuntime.buckets, ...discEffects.buckets],
+    equipmentEffectExclusions: [
+      ...modifierProjection.directRuntime.exclusions,
+      ...discEffects.exclusions,
+    ],
     baselineReferencesByAgentId: observedReferences,
     commonAnomalyEvents,
   })

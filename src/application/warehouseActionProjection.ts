@@ -151,7 +151,7 @@ export function projectWarehouseActions(
       cultivationPriority: string
     }
   >()
-  if (snapshot.decisionAuthority.status === 'ready') {
+  if (!stale && snapshot.decisionAuthority.status === 'ready') {
     for (const recommendation of authorityConsumerRecommendations(snapshot.decisionAuthority)) {
       if (recommendation.teamRating.status !== 'rated') continue
       const key = [...recommendation.memberIds].sort().join('|')

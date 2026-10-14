@@ -1,18 +1,21 @@
+import type { TeamRoutePresentation } from '../pages/publicTeamRoutePresentation'
+import type { TeamOverviewPresentationDto } from '../pages/teamLoadoutPresentationDto'
 import type {
   AccountDecisionRun,
   DevelopmentCandidateAlternativesQueryResult,
   TargetTeamWarehouseFitQueryResult,
+  WarehouseDiscTransitionUsesResult,
 } from './calculationQueryContract'
-import type { CandidateWarehousePlan } from '../optimizer/candidateWarehouseSolver'
-import type { RemoteCalculationRequest, RemoteCalculationResult } from './remoteCalculationProtocol'
+import {
+  projectPublicDevelopmentAlternatives,
+  projectPublicTargetTeamFit,
+} from './publicCalculationPlanTransport'
+import { commonAnomalySettlementQueryResultSchema32 } from './publicCommonAnomalySettlementQuery32'
+import type { DevelopmentWorkbenchRoutePresentation } from './publicDevelopmentWorkbenchRoute'
 import type { SavedTeamReplayPresentation } from './publicSavedTeamReplay'
 import type { SavedTeamSolutionComponents } from './publicSavedTeamSolutionComponents'
-import type { DevelopmentWorkbenchRoutePresentation } from './publicDevelopmentWorkbenchRoute'
-import type { TeamOverviewPresentationDto } from '../pages/teamLoadoutPresentationDto'
-import type { TeamRoutePresentation } from '../pages/publicTeamRoutePresentation'
-import type { WarehouseDiscTransitionUsesResult } from './calculationQueryContract'
 import { packPublicWarehouseActions } from './publicWarehouseActionTransport'
-import { commonAnomalySettlementQueryResultSchema32 } from './publicCommonAnomalySettlementQuery32'
+import type { RemoteCalculationRequest, RemoteCalculationResult } from './remoteCalculationProtocol'
 
 /**
  * Browser transport boundary. The private service keeps the full captured run and solve; the public
@@ -319,172 +322,5 @@ function projectPublicAccountDecisionRun(run: AccountDecisionRun): RemoteCalcula
     ...(developmentDirectory ? { developmentDirectory } : {}),
     ...(developmentWorkbenchPresentation ? { developmentWorkbenchPresentation } : {}),
     ...(teamPresentation ? { teamPresentation } : {}),
-  } as RemoteCalculationResult
-}
-
-function projectCandidatePlan(plan: CandidateWarehousePlan): CandidateWarehousePlan {
-  const {
-    scope,
-    agentIds,
-    loadouts,
-    totalScore,
-    gaps,
-    solver,
-    boundary,
-    panelObjectiveNote,
-    inventoryTransition,
-  } = plan
-  return {
-    scope,
-    agentIds,
-    loadouts,
-    totalScore,
-    alternatives: [],
-    gaps,
-    ...(solver
-      ? {
-          solver: {
-            method: solver.method,
-            exactWithinModel: solver.exactWithinModel,
-            domain: solver.domain,
-          },
-        }
-      : {}),
-    boundary,
-    ...(panelObjectiveNote ? { panelObjectiveNote } : {}),
-    ...(inventoryTransition ? { inventoryTransition } : {}),
-  }
-}
-
-function projectPublicTargetTeamFit(
-  fit: TargetTeamWarehouseFitQueryResult,
-): RemoteCalculationResult {
-  const {
-    contract,
-    candidateId,
-    memberIds,
-    status,
-    solverMethod,
-    exactWithinModel,
-    discCount,
-    uniqueDiscCount,
-    totalScore,
-    gaps,
-    warehousePlan,
-    equipmentRecommendations,
-    sideEffect,
-    boundary,
-    portfolioContinuationEligible,
-    effectiveEquipmentParameters,
-    accountFactBinding,
-    targetExecution,
-    teamExecutionPresentation,
-    accountBoundBenchmark,
-  } = fit
-  return {
-    contract,
-    candidateId,
-    memberIds,
-    status,
-    solverMethod,
-    exactWithinModel,
-    discCount,
-    uniqueDiscCount,
-    totalScore,
-    gaps,
-    warehousePlan: warehousePlan ? projectCandidatePlan(warehousePlan) : undefined,
-    equipmentRecommendations,
-    sideEffect,
-    boundary,
-    portfolioContinuationEligible,
-    effectiveEquipmentParameters,
-    accountFactBinding,
-    targetExecution,
-    teamExecutionPresentation,
-    accountBoundBenchmark: accountBoundBenchmark
-      ? {
-          ...(accountBoundBenchmark.koledaFixedEventConditionsMetadata32
-            ? {
-                koledaFixedEventConditionsMetadata32:
-                  accountBoundBenchmark.koledaFixedEventConditionsMetadata32,
-              }
-            : {}),
-          equipmentModifierProjection: accountBoundBenchmark.equipmentModifierProjection
-            ? {
-                wEngines: accountBoundBenchmark.equipmentModifierProjection.wEngines.map(
-                  (item) => ({
-                    passiveStatus: item.passiveStatus,
-                  }),
-                ),
-              }
-            : null,
-        }
-      : undefined,
-    buildIntent: fit.buildIntent
-      ? {
-          contract: fit.buildIntent.contract,
-          scope: fit.buildIntent.scope,
-          resourcePolicy: fit.buildIntent.resourcePolicy,
-          fingerprint: fit.buildIntent.fingerprint,
-          exactTeam: {
-            candidateId: fit.buildIntent.exactTeam.candidateId,
-            bangbooId: fit.buildIntent.exactTeam.bangbooId,
-          },
-        }
-      : undefined,
-  } as RemoteCalculationResult
-}
-
-function projectPublicDevelopmentAlternatives(
-  result: DevelopmentCandidateAlternativesQueryResult,
-): RemoteCalculationResult {
-  const {
-    contract,
-    runId,
-    capturedAt,
-    inputFingerprint,
-    comparisonContract,
-    comparisonFingerprint,
-    comparisonOptions,
-    candidateParametersByRank,
-    candidateSearch,
-    candidateSearchByRank,
-    accountId,
-    agentId,
-    status,
-    sideEffect,
-    baseline,
-    candidates,
-    valueBenchmarks,
-    gaps,
-    presentation,
-    panelPresentation,
-  } = result
-  return {
-    contract,
-    runId,
-    capturedAt,
-    inputFingerprint,
-    comparisonContract,
-    comparisonFingerprint,
-    comparisonOptions,
-    candidateParametersByRank,
-    candidateSearch,
-    candidateSearchByRank,
-    accountId,
-    agentId,
-    status,
-    sideEffect,
-    buildIntent: {
-      contract: result.buildIntent.contract,
-      scope: result.buildIntent.scope,
-      fingerprint: result.buildIntent.fingerprint,
-    },
-    baseline,
-    candidates: candidates.map(projectCandidatePlan),
-    valueBenchmarks,
-    gaps,
-    presentation,
-    panelPresentation,
   } as RemoteCalculationResult
 }

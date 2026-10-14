@@ -31,11 +31,22 @@ export type AgentSummary = {
   cultivationPriority?: string
   confidence?: string
   nextTrainingSteps?: string[]
+  skillStatus?: AgentSkillTrainingStatus
   trainingContext?: {
     hasPrioritySkillGap: boolean
     inSavedTeam: boolean
   }
 }
+
+export type AgentSkillTrainingStatus =
+  | 'pending'
+  | 'stale'
+  | 'unknown'
+  | 'no-target'
+  | 'complete'
+  | 'has-gaps'
+
+export type OverviewAgent = AgentSummary
 
 export type DiscFact = {
   conflicts?: Array<{ agentId: string; name: string }>
@@ -120,7 +131,18 @@ export type GoldenWorkbenchData = {
   /** Optional read-only main-stat guidance for the selected candidate. */
   candidateDifferences?: string[]
   graduation: {
-    skills: Array<{ label: string; recommended: string; priority: boolean }>
+    skills: Array<{
+      label: string
+      recommended: string
+      priority: boolean
+      key?: string
+      targetLevel?: number
+      targetType?: 'exact_integer' | 'minimum_reference' | 'soda_derived'
+      exactTarget?: number | null
+      minimumReference?: number | null
+      nextLevel?: { status: string; tooltip: string } | null
+      sodaDerived?: { band: string; targetLevel: number; label: string } | null
+    }>
     /** Historical full-potential guide reference. It never changes current account skills or solver input. */
     potentialSkillReference?: {
       conditionLabel: string
@@ -138,11 +160,12 @@ export type GoldenWorkbenchData = {
       visuals: Array<{ entityType: 'agent' | 'bangboo'; entityId: string; name: string }>
     }>
     engines: Array<{
-      tier: '首选' | 'S级替代' | 'A级下位替代' | '候选方向'
+      tier: '首选' | '替代' | '下位' | '候选方向' | '备选' | 'S级替代' | 'A级下位替代'
       name: string
       /** Player-facing attribute direction mapped from the available data foundation. */
       bonus: string
       visual?: { entityId: string; name: string }
+      isCurrent?: boolean
     }>
     engineConditions?: readonly string[]
     discs: {

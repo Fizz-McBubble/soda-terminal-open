@@ -103,6 +103,8 @@ export function inferredStrengthCalibration(
     familyId: null,
     versionPosition: null,
     projectedStrengthBand: inference.band,
+    // The bounded source-tier reference estimate supplies both the inferred
+    // band and its visible recommendation score; it is never damage or DPS.
     recommendationScore: inference.score,
     inference,
     evidenceRefs: [`model:${inference.modelFingerprint}`],

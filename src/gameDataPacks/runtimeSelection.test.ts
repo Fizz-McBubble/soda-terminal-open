@@ -38,18 +38,22 @@ describe('current game-data runtime selection', () => {
       ...released,
       sources: released.sources.map((source) => ({
         ...source,
-        contentHash: source.label === 'current-version-adoption-3.2-phase-ii-r1'
-          ? 'fnv1a-cb8972d7' : source.contentHash,
+        contentHash:
+          source.label === 'current-version-adoption-3.2-phase-ii-r1'
+            ? 'fnv1a-cb8972d7'
+            : source.contentHash,
       })),
       coverage: released.coverage.map((entry) => ({
         ...entry,
         displayName: entry.stableId === 'set-34200' ? '荆棘玫瑰' : entry.displayName,
-        sourceContentHash: entry.sourceContentHash === 'fnv1a-54fa1e79'
-          ? 'fnv1a-53ed77d5' : entry.sourceContentHash,
+        sourceContentHash:
+          entry.sourceContentHash === 'fnv1a-54fa1e79' ? 'fnv1a-53ed77d5' : entry.sourceContentHash,
       })),
       changesFromPreviousFormal: released.changesFromPreviousFormal.map((text) =>
-        text.replaceAll('fnv1a-54fa1e79', 'fnv1a-53ed77d5')
-          .replaceAll('fnv1a-34a56a5d', 'fnv1a-cb8972d7')),
+        text
+          .replaceAll('fnv1a-54fa1e79', 'fnv1a-53ed77d5')
+          .replaceAll('fnv1a-34a56a5d', 'fnv1a-cb8972d7'),
+      ),
     })
     expect(relabeled).toEqual(gameBase32Current)
   })
@@ -78,21 +82,27 @@ describe('current game-data runtime selection', () => {
                   .replaceAll('fnv1a-34a56a5d', 'fnv1a-24c243a0'),
               ),
             )
-          : release === 'corrected-source-labels' ? released : createManifest({
-              ...released,
-              sources: released.sources.map((source) => ({
-                ...source,
-                verification:
-                  source.verification === 'community_reference' ||
-                  source.verification === 'derived_reference'
-                    ? 'official_reference'
-                    : source.verification,
-              })),
-            })
+          : release === 'corrected-source-labels'
+            ? released
+            : createManifest({
+                ...released,
+                sources: released.sources.map((source) => ({
+                  ...source,
+                  verification:
+                    source.verification === 'community_reference' ||
+                    source.verification === 'derived_reference'
+                      ? 'official_reference'
+                      : source.verification,
+                })),
+              })
       // Literal identities of released 719fd5b6 / 3c886248, not generated expectations.
       // The latter changed only image-version provenance and its propagated hashes.
       expect(previous.contentHash).toBe(
-        release === 'avatar-cache' ? 'fnv1a-fd1d9bb8' : release === 'corrected-source-labels' ? 'fnv1a-55673acf' : 'fnv1a-142ef3e7',
+        release === 'avatar-cache'
+          ? 'fnv1a-fd1d9bb8'
+          : release === 'corrected-source-labels'
+            ? 'fnv1a-55673acf'
+            : 'fnv1a-142ef3e7',
       )
       await db.gameDataPacks.put(previous)
       await db.gameDataPackState.put({

@@ -1,3 +1,7 @@
+import { statWeightCalibrationFixture } from '../decision/developmentStatWeights.calibrationFixture'
+import { evaluateDevelopmentValueBenchmarkSide } from '../decision/developmentValueBenchmark'
+import { reviewedEventConditionDeclarationsIdentity32 } from '../calculation/reviewedEventConditionDeclarations32'
+import { projectPublicCalculationResult } from './publicCalculationTransport'
 import { describe, expect, it, vi } from 'vitest'
 import { buildAccountDecisionSnapshot } from '../decision/accountDecisionService'
 import type { CurrentGameDataRuntimeSelection } from '../gameDataPacks/runtimeSelection'
@@ -172,4 +176,74 @@ describe('background snapshot lifecycle', () => {
     await rejected
     expect(deferred.pending[0]!.signal?.aborted).toBe(true)
   })
+})
+
+describe('fixed event declarations in the production query', () => {
+  it('uses the same statement for candidate generation, comparison and public transport', async () => {
+    const fixture = statWeightCalibrationFixture('agent-billy', 'crit_rate')
+    const request = query('event-conditions-chain', [fixture.agentId])
+    request.input.warehouse = fixture.warehouse
+    const before = JSON.stringify(request.input)
+    const client = createLocalCalculationQueryClient({
+      readRuntimeSelection: async () => ({ status: 'compiled_current' }) as never,
+    })
+    const run = await client.calculateAccountDecision(request)
+    const base = {
+      contractVersion: calculationQueryContractVersion,
+      kind: 'development_candidate_alternatives' as const,
+      runId: run.runId,
+      agentId: fixture.agentId,
+    }
+    const declaration = {
+      sourceRefs: ['fixture:explicit-fixed-events'],
+      whiteWaterBalladAttackWindow: true,
+      windswept: null,
+    }
+    const declarations = { [fixture.agentId]: declaration }
+    const neutral = await client.queryDevelopmentCandidateAlternatives(base)
+    const selected = await client.queryDevelopmentCandidateAlternatives({
+      ...base,
+      eventConditionDeclarationsByAgentId: declarations,
+    })
+    expect(selected.status).toBe('ready')
+    expect(selected.eventConditionDeclarationsIdentity).toBe(
+      reviewedEventConditionDeclarationsIdentity32(declarations),
+    )
+    expect(selected.comparisonFingerprint).not.toBe(neutral.comparisonFingerprint)
+    for (const [index, candidate] of selected.candidates.entries()) {
+      const recalculated = evaluateDevelopmentValueBenchmarkSide({
+        warehouse: fixture.warehouse,
+        agentId: fixture.agentId,
+        discs: candidate.loadouts[0]!.discs.map((row) => row.disc),
+        stale: false,
+        eventConditionDeclaration: selected.eventConditionDeclarationsByAgentId![fixture.agentId],
+      })
+      expect(selected.valueBenchmarks![index]!.candidate.calculationFingerprint).toBe(
+        recalculated.calculationFingerprint,
+      )
+      expect(selected.valueBenchmarks![index]!.candidate.totalDamage).toBe(recalculated.totalDamage)
+    }
+    const publicResult = projectPublicCalculationResult(
+      'development_candidate_alternatives',
+      selected,
+    )
+    expect(publicResult).toMatchObject({
+      eventConditionDeclarationsByAgentId: declarations,
+      eventConditionDeclarationsIdentity: selected.eventConditionDeclarationsIdentity,
+      scenarioIdentity: selected.scenarioIdentity,
+    })
+    await expect(
+      client.queryDevelopmentCandidateAlternatives({
+        ...base,
+        eventConditionDeclarationsByAgentId: { [fixture.agentId]: { sourceRefs: null } } as never,
+      }),
+    ).rejects.toThrow('技能事件声明格式无效')
+    await expect(
+      client.queryDevelopmentCandidateAlternatives({
+        ...base,
+        eventConditionDeclarationsByAgentId: { 'agent-other': declaration },
+      }),
+    ).rejects.toThrow('代理人不一致')
+    expect(JSON.stringify(request.input)).toBe(before)
+  }, 20_000)
 })

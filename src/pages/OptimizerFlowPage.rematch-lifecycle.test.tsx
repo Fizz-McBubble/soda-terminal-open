@@ -44,7 +44,9 @@ describe('team rematch lifecycle', () => {
           ascension: 3,
           refinement: 2,
         })),
-        potentialByAgentId: { 'agent-yixuan': 2 },
+        // Yixuan has no registered potential-image capability. This successful replay
+        // must not inject the same unsupported P2 covered by the negative freshness tests.
+        potentialByAgentId: {},
       }
       await act(async () => {
         await database.accountPlanningDrafts.update(stored.scopedId, {

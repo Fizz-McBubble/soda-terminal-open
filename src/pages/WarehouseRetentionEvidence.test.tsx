@@ -3,6 +3,8 @@ import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { evidence, use } from './WarehouseRetentionEvidence.testFixture'
 import { WarehouseRetentionEvidence } from './WarehouseRetentionEvidence'
+import { RetentionScoreDetails } from './WarehouseRetentionDetails'
+import { registerWarehouseRetentionEvidenceCases } from './WarehouseRetentionEvidence.testCases'
 
 describe('absolute retention evidence', () => {
   it('uses actual ownership even when an owned reference has no qualifying retention use', () => {
@@ -176,7 +178,43 @@ describe('absolute retention evidence', () => {
     await userEvent.click(screen.getByText('查看参考评分'))
     expect(screen.getByText('21.0 分')).toBeVisible()
     expect(screen.getByText('21.0–79.4 分')).toBeVisible()
-    expect(screen.getByText(/不代表成功概率/)).toBeVisible()
+    expect(screen.getByText('仅供副词条筛选，不是伤害收益。')).toBeVisible()
+    expect(screen.getByText('当前副词条评分')).toBeVisible()
+    expect(screen.getByText('同号位保留参考')).toBeVisible()
+  })
+
+  it('explains a maxed disc without suggesting more enhancement or a redundant range', async () => {
+    const base = use('maxed', 57.777, 57.777)
+    const maxed = {
+      ...base,
+      investment: { ...base.investment!, remainingNodes: 0, nextLevel: null },
+    }
+    const before = structuredClone(maxed)
+    render(<RetentionScoreDetails evidence={evidence()} use={maxed} />)
+    await userEvent.click(screen.getByText('查看参考评分'))
+    expect(screen.getByText('57.8 分')).toBeVisible()
+    expect(screen.getByText('60.0 分')).toBeVisible()
+    expect(screen.getByText('已满级')).toBeVisible()
+    expect(screen.queryByText('满级后评分范围')).not.toBeInTheDocument()
+    expect(screen.queryByText('剩余强化')).not.toBeInTheDocument()
+    expect(screen.getByText('查看参考评分').closest('details')?.querySelectorAll('p')).toHaveLength(
+      1,
+    )
+    expect(maxed).toEqual(before)
+  })
+
+  it('keeps missing and non-finite scores as pending instead of displaying fabricated numbers', async () => {
+    const pending = { ...use('pending', Infinity, NaN), cutoffs: null }
+    render(<RetentionScoreDetails evidence={evidence()} use={pending} />)
+    await userEvent.click(screen.getByText('查看参考评分'))
+    expect(screen.getAllByText('待确认')).toHaveLength(3)
+    expect(screen.queryByText(/NaN|Infinity/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/最不利和最有利/)).not.toBeInTheDocument()
+  })
+
+  it('omits reference scores when no scored use is available', () => {
+    render(<RetentionScoreDetails evidence={evidence()} />)
+    expect(screen.queryByText('查看参考评分')).not.toBeInTheDocument()
   })
 
   it('prioritizes owned references without calling reserve uses equipped', () => {
@@ -410,67 +448,5 @@ describe('absolute retention evidence', () => {
     )
   })
 
-  it('explains a record mismatch without exposing the raw scope', () => {
-    render(
-      <WarehouseRetentionEvidence
-        ownedAgentIds={new Set(['agent-anby'])}
-        discLevel={0}
-        evidence={evidence({
-          reviewedUseScope: '3.1:released-source-backed-guide-and-mechanic-reserve-objectives:r4',
-          leadingUses: [],
-          blockedBy: [
-            {
-              kind: 'record',
-              field: 'enhancementHistory',
-              predicateId: 'record:enhancementHistory',
-              detail: 'inconsistent_substat_record',
-              sourceIds: ['synthetic-rule-source'],
-            },
-          ],
-        })}
-      />,
-    )
-    expect(screen.getByText(/副词条数值与记录的强化次数不一致/)).toBeInTheDocument()
-    expect(screen.queryByText(/inconsistent_substat_record/)).not.toBeInTheDocument()
-    expect(screen.queryByText(/released-source-backed/)).not.toBeInTheDocument()
-  })
-
-  it('puts actual stat fit first and changes only the displayed purpose when another character is selected', async () => {
-    const first = use('ben', 75)
-    render(
-      <WarehouseRetentionEvidence
-        ownedAgentIds={new Set(['agent-anby'])}
-        discLevel={0}
-        evidence={evidence({
-          ownedUseAgentIds: ['agent-ben'],
-          leadingUses: [
-            {
-              ...first,
-              agentId: 'agent-ben',
-              investment: {
-                ...first.investment!,
-                meaningfulStats: ['crit_rate'],
-                coreStats: ['crit_rate'],
-              },
-            },
-            {
-              ...use('claret', 75),
-              agentId: 'agent-claret',
-              fourPieceFit: 'conditional',
-              useState: 'conditional',
-            },
-          ],
-        })}
-      />,
-    )
-    expect(screen.getByText('暴击率有用')).toBeVisible()
-    expect(screen.getByText(/生命值.*异常精通.*不计入这个构筑/)).toBeVisible()
-    expect(screen.getByText(/目前只有 1 条重点副词条/)).toBeVisible()
-    expect(screen.getByText('此用途只取两件效果。')).toBeVisible()
-    expect(screen.queryByText(/四件（有使用条件）/)).not.toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: /克拉蕾/ }))
-    expect(screen.getByText(/四件（有使用条件）/)).toBeVisible()
-    expect(screen.getByText(/35%.*不直接放大锐暴/)).toBeVisible()
-    expect(screen.getByRole('button', { name: /克拉蕾/ })).toHaveAttribute('aria-pressed', 'true')
-  })
+  registerWarehouseRetentionEvidenceCases()
 })

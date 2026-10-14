@@ -22,6 +22,8 @@ export type AgentProfileSourceRef = {
   checkedAt: string | null
   contentHash: string | null
   licenseBoundary: string
+  supportedValues?: string[]
+  conditionsByValue?: Record<string, string[]>
 }
 
 export type AgentProfileField = {

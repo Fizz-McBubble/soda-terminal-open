@@ -84,6 +84,7 @@ export function displayWarehouseActionProjection(
       retentionAgentIds: [],
       developmentAlternativeIds: [],
       developmentAdvice: undefined,
+      affectedTeams: item.affectedTeams.map((team) => ({ ...team, decisionAuthority: null })),
     }),
   )
   return {

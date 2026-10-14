@@ -1,4 +1,8 @@
 import {
+  normalizeReviewedEventConditionDeclarations32,
+  reviewedEventConditionDeclarationsIdentity32,
+} from '../calculation/reviewedEventConditionDeclarations32'
+import {
   projectReviewedIncrementalEvent32,
   projectReviewedIncrementalEventMetadata32,
 } from './privateReviewedIncrementalEvent32'
@@ -284,12 +288,20 @@ export function createLocalCalculationQueryClientCore(options: {
       if (!run) throw new Error(`Account Decision run is unavailable: ${query.runId}.`)
       const accountId = run.input.warehouse.accountId
       if (!accountId) throw new Error(`Account Decision run has no account: ${query.runId}.`)
+      const eventConditionDeclarationsByAgentId = normalizeReviewedEventConditionDeclarations32(
+        query.eventConditionDeclarationsByAgentId,
+        [query.agentId],
+      )
+      const eventConditionDeclarationsIdentity = reviewedEventConditionDeclarationsIdentity32(
+        eventConditionDeclarationsByAgentId,
+      )
       const scenario = resolveCurrentPlanningScenario32(query.scenarioSelection)
       const baseProjection = projectDevelopmentCandidateAlternatives(
         run.input,
         query.agentId,
         undefined,
         scenario.selection,
+        eventConditionDeclarationsByAgentId?.[query.agentId],
       )
       const projection = { ...baseProjection, candidates: [...baseProjection.candidates] }
       const explicit = query.candidateParametersByRank ?? {}
@@ -322,6 +334,7 @@ export function createLocalCalculationQueryClientCore(options: {
               query.agentId,
               parameters,
               scenario.selection,
+              eventConditionDeclarationsByAgentId?.[query.agentId],
             ),
           )
         const candidate = generated.get(key)!.candidates[0]
@@ -339,6 +352,7 @@ export function createLocalCalculationQueryClientCore(options: {
         savedPlans: run.input.drafts,
         candidateParametersByRank: explicit,
         scenarioSelection: scenario.selection,
+        eventConditionDeclaration: eventConditionDeclarationsByAgentId?.[query.agentId],
         stale: false,
       })
       return {
@@ -349,11 +363,14 @@ export function createLocalCalculationQueryClientCore(options: {
           agentId: query.agentId,
           parameters: explicit,
           scenarioIdentity: scenario.identity,
+          eventConditionDeclarationsIdentity,
           comparisons: valueBenchmarks.map((row) => row.candidate.calculationFingerprint),
         }),
         candidateParametersByRank: explicit,
         scenarioSelection: scenario.selection,
         scenarioIdentity: scenario.identity,
+        eventConditionDeclarationsByAgentId,
+        eventConditionDeclarationsIdentity,
         candidateSearchByRank,
         comparisonOptions: {
           reviewedEvent32: projectReviewedIncrementalEventMetadata32(query.agentId),

@@ -275,6 +275,7 @@ function evaluatePlanningTeamDpsSlice(input: SourceBackedPlanningTeamDpsInput) {
             commonAnomalyEvents: input.commonAnomalyEvents,
             consumedBuckets,
             exclusions: effectExclusions,
+            equipmentEffectExclusions: input.equipmentEffectExclusions,
           }
         : undefined,
     })

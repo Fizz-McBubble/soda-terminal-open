@@ -1,3 +1,4 @@
+import { savedReviewedEventConditionDeclarationsIdentity32 } from '../calculation/reviewedEventConditionDeclarations32'
 import type { AccountPlanningDraft } from '../accounts/types'
 import { contentHash } from '../application/contentHash'
 import type { TargetTeamWarehouseFitQueryResult } from '../application/calculationQueryContract'
@@ -38,6 +39,21 @@ export function savedTeamTargetFitMatchesSavedDiscs(
   plan: AccountPlanningDraft,
   targetTeamFit: TargetTeamWarehouseFitQueryResult,
 ) {
+  const planDeclarationIdentity = savedReviewedEventConditionDeclarationsIdentity32(
+    plan.solutionContext?.eventConditionDeclarationsByAgentId,
+  )
+  const fitDeclarationIdentity = savedReviewedEventConditionDeclarationsIdentity32(
+    targetTeamFit.eventConditionDeclarationsByAgentId,
+  )
+  if (
+    planDeclarationIdentity === 'invalid-event-condition-declarations32' ||
+    planDeclarationIdentity !== fitDeclarationIdentity ||
+    (fitDeclarationIdentity &&
+      fitDeclarationIdentity !== targetTeamFit.eventConditionDeclarationsIdentity) ||
+    (plan.solutionContext?.eventConditionDeclarationsIdentity &&
+      planDeclarationIdentity !== plan.solutionContext.eventConditionDeclarationsIdentity)
+  )
+    return false
   const planScenario = resolveSavedPlanScenarioSelection(plan.solutionContext?.scenarioSelection)
   const fitScenario = resolveSavedPlanScenarioSelection(targetTeamFit.scenarioSelection)
   if (planScenario.id !== fitScenario.id) {
@@ -105,6 +121,10 @@ export function savedTeamDiscAssignmentFingerprint(plan: AccountPlanningDraft) {
     planId: plan.id,
     scenarioSelection,
     scenarioIdentity: plan.solutionContext?.scenarioIdentity ?? null,
+    eventConditionDeclarationsIdentity:
+      savedReviewedEventConditionDeclarationsIdentity32(
+        plan.solutionContext?.eventConditionDeclarationsByAgentId,
+      ) ?? null,
     candidateWarehouse: plan.candidateWarehouse?.loadouts
       .map((loadout) => ({ agentId: loadout.agentId, discIds: [...loadout.discIds].sort() }))
       .sort((left, right) => left.agentId.localeCompare(right.agentId)),

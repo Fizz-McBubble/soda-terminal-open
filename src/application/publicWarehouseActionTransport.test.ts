@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { WarehouseActionProjection } from './warehouseActionContract'
+import { restoreWarehouseObjects, warehouseObjectCodec } from './publicWarehouseObjectTransport'
 import {
   packPublicWarehouseActions,
   unpackPublicWarehouseActions,
@@ -96,5 +97,50 @@ describe('public warehouse action transport', () => {
     expect(unpackPublicWarehouseActions(legacy as never).actions[0]!.compatibleAgentIds).toEqual([
       'agent-test',
     ])
+    const previous = {
+      ...legacy,
+      agentListsVersion: 2,
+      retentionTexts: ['original condition'],
+      actions: [
+        {
+          compatibleAgentIds: 0,
+          absoluteRetention: {
+            ownedUseAgentIds: 0,
+            unownedUseAgentIds: 0,
+            functionDetail: { $t: 0 },
+          },
+        },
+      ],
+    }
+    expect(
+      unpackPublicWarehouseActions(previous as never).actions[0]!.absoluteRetention,
+    ).toMatchObject({ functionDetail: 'original condition', ownedUseAgentIds: ['agent-test'] })
+  })
+
+  it('shares repeated field names losslessly and rejects corrupt object references', () => {
+    const original = Array.from({ length: 24 }, (_, index) => ({
+      currentDiscIdentifier: `disc-${index}`,
+      currentScore: index / 3,
+      evidenceCondition: { reference: '完整条件', absent: null },
+      emptyList: [],
+      explicitFalse: false,
+    }))
+    const codec = warehouseObjectCodec(original)
+    const packed = codec.encode(original)
+    expect(JSON.stringify({ shapes: codec.shapes, packed }).length).toBeLessThan(
+      JSON.stringify(original).length,
+    )
+    expect(restoreWarehouseObjects(JSON.parse(JSON.stringify(packed)), codec.shapes)).toEqual(
+      original,
+    )
+    for (const bad of [
+      { $o: [-1, []] },
+      { $o: [0, []] },
+      { $o: [0, 'invalid'] },
+      { $o: [0, []], extra: true },
+      { $o: [1.5, []] },
+    ])
+      expect(() => restoreWarehouseObjects(bad, codec.shapes)).toThrow('对象资料无效')
+    expect(() => warehouseObjectCodec([{ $o: 'reserved' }])).toThrow('对象格式无效')
   })
 })

@@ -1,5 +1,8 @@
 import { ExplanationPopover } from '../components/ExplanationPopover'
+import { ToolBlockGuidance } from '../components/ToolBlockGuidance'
 import './scanner-guide.css'
+
+export { ToolBlockGuidance }
 
 export function ScannerGuide() {
   return (
@@ -32,7 +35,27 @@ export function ScannerGuide() {
           <dt>无法开始</dt>
           <dd>按页面提示处理窗口或权限问题，再重试。仍无法解决时，可在失败提示中反馈问题。</dd>
         </div>
+        <div>
+          <dt>下载或启动受阻</dt>
+          <dd>
+            <ToolBlockGuidance tool="scanner" title="下载、拦截或连接失败怎么处理" />
+          </dd>
+        </div>
       </dl>
+    </ExplanationPopover>
+  )
+}
+
+export function ScannerBlockGuide() {
+  return (
+    <ExplanationPopover
+      label="下载或启动受阻"
+      title="画面扫描下载与启动故障排查"
+      closeLabel="关闭排查指南"
+      className="scanner-guide"
+      align="end"
+    >
+      <ToolBlockGuidance tool="scanner" as="section" />
     </ExplanationPopover>
   )
 }

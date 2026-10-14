@@ -1,3 +1,7 @@
+import {
+  normalizeReviewedEventConditionDeclarations32,
+  reviewedEventConditionDeclarationsIdentity32,
+} from '../calculation/reviewedEventConditionDeclarations32'
 import type { DevelopmentWorkbenchEquipmentDecision } from '../application/publicDevelopmentWorkbenchPresentation'
 import type { CurrentAgentBuildInput } from '../accounts/planningDrafts'
 import { contentHash } from '../application/contentHash'
@@ -18,6 +22,13 @@ export function createAgentDevelopmentSavedPlan(input: {
   equipment: DevelopmentWorkbenchEquipmentDecision
 }): CurrentAgentBuildInput {
   const { agentId, agentName, candidatePlan, candidateSnapshot, candidateIndex, equipment } = input
+  const declarations = normalizeReviewedEventConditionDeclarations32(
+    candidateSnapshot?.eventConditionDeclarationsByAgentId,
+    [agentId],
+  )
+  const declarationIdentity = reviewedEventConditionDeclarationsIdentity32(declarations)
+  if (declarationIdentity !== candidateSnapshot?.eventConditionDeclarationsIdentity)
+    throw new Error('技能事件计算身份缺失或变化，请重新比较。')
   const candidate = candidatePlan.loadouts[0]
   const profileSave = equipment.profileSave
   const discIds = candidate.discs.map((item) => item.disc.id)
@@ -62,6 +73,15 @@ export function createAgentDevelopmentSavedPlan(input: {
       gameVersion: publicVersionIdentity.gameVersion,
       knowledgeVersion: profileSave!.version,
       exactVariantKey: null,
+      eventConditionDeclarationsByAgentId: declarations,
+      eventConditionDeclarationsIdentity: declarationIdentity,
+      scenarioSelection: candidateSnapshot?.scenarioSelection,
+      scenarioIdentity: candidateSnapshot?.scenarioIdentity,
+      ...(candidateSnapshot?.candidateParametersByRank?.[candidateIndex + 1]
+        ? {
+            comparisonParameters: candidateSnapshot.candidateParametersByRank[candidateIndex + 1],
+          }
+        : {}),
     },
     candidateWarehouse: {
       ...(candidatePlan.inventoryTransition ? { inventoryTransition: true as const } : {}),

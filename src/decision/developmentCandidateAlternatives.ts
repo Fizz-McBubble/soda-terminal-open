@@ -56,6 +56,7 @@ export function projectDevelopmentCandidateAlternatives(
   agentId: string,
   parameters?: DevelopmentComparisonParameters,
   scenarioSelection?: CurrentPlanningScenarioSelection32,
+  eventConditionDeclaration?: import('../calculation/reviewedTemplateEventConditions32').ReviewedTemplateEventConditionDeclaration32,
 ): DevelopmentCandidateAlternativesProjection {
   const agent = input.warehouse.roster.agents.find((item) => item.agentId === agentId)
   const panelInput = candidatePanelInputForAgent(
@@ -102,6 +103,7 @@ export function projectDevelopmentCandidateAlternatives(
   )
   candidates = refineDevelopmentCandidates({
     scenarioSelection,
+    eventConditionDeclaration,
     warehouse: input.warehouse,
     agentId,
     candidates,
@@ -110,6 +112,7 @@ export function projectDevelopmentCandidateAlternatives(
   })
   const dynamic = searchDevelopmentDynamicCandidates({
     scenarioSelection,
+    eventConditionDeclaration,
     warehouse: input.warehouse,
     agentId,
     candidates,

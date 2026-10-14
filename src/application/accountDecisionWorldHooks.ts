@@ -88,6 +88,7 @@ export function useTargetTeamWarehouseFitCalculation() {
       candidateId: string,
       equipmentParameters?: import('./calculationQueryContract').TargetTeamEquipmentParameterSelection,
       scenarioSelection?: import('./publicPlanningScenarioContract').CurrentPlanningScenarioSelection32,
+      eventConditionDeclarationsByAgentId?: import('../calculation/reviewedEventConditionDeclarations32').ReviewedEventConditionDeclarations32,
     ): Promise<TargetTeamWarehouseFitQueryResult> => {
       if (!client) throw new Error('Calculation/Query client is unavailable.')
       return client.calculateTargetTeamWarehouseFit({
@@ -97,6 +98,7 @@ export function useTargetTeamWarehouseFitCalculation() {
         candidateId,
         equipmentParameters,
         scenarioSelection,
+        eventConditionDeclarationsByAgentId,
       })
     },
     [client],
@@ -128,6 +130,7 @@ export function useDevelopmentCandidateAlternativesCalculation() {
       agentId: string,
       candidateParametersByRank?: import('./calculationQueryContract').DevelopmentCandidateAlternativesQuery['candidateParametersByRank'],
       scenarioSelection?: import('./publicPlanningScenarioContract').CurrentPlanningScenarioSelection32,
+      eventConditionDeclarationsByAgentId?: import('../calculation/reviewedEventConditionDeclarations32').ReviewedEventConditionDeclarations32,
     ): Promise<DevelopmentCandidateAlternativesQueryResult> => {
       if (!client) throw new Error('Calculation/Query client is unavailable.')
       return client.queryDevelopmentCandidateAlternatives({
@@ -137,6 +140,7 @@ export function useDevelopmentCandidateAlternativesCalculation() {
         agentId,
         candidateParametersByRank,
         scenarioSelection,
+        eventConditionDeclarationsByAgentId,
       })
     },
     [client],

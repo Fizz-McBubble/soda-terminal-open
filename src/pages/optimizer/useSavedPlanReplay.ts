@@ -425,6 +425,7 @@ export function useSavedPlanReplay({
       savedTargetCandidateId,
       stableSavedTargetParameters,
       savedTargetScenarioSelection,
+      plan?.solutionContext?.eventConditionDeclarationsByAgentId,
     )
       .then((fit) => {
         if (!active || fit.candidateId !== savedTargetCandidateId) return

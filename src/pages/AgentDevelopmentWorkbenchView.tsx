@@ -1,17 +1,11 @@
-import type { ComponentProps, Dispatch, SetStateAction } from 'react'
+import {
+  normalizeReviewedEventConditionDeclarations32,
+  reviewedEventConditionDeclarationsIdentity32,
+} from '../calculation/reviewedEventConditionDeclarations32'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { saveCurrentAgentBuild } from '../accounts/planningDrafts'
 import { contentHash } from '../application/contentHash'
-import {
-  useAccountDecisionWorld,
-  useDevelopmentCandidateAlternativesCalculation,
-  useDevelopmentWorkbenchRouteCalculation,
-} from '../application/accountDecisionWorld'
-import { findCurrentDevelopmentWorkbenchEquipment } from '../application/publicDevelopmentWorkbenchPresentation'
-import type {
-  DevelopmentWorkbenchRoutePresentation,
-  DevelopmentWorkbenchRouteSelection,
-} from '../application/publicDevelopmentWorkbenchRoute'
+import type { DevelopmentWorkbenchRouteSelection } from '../application/publicDevelopmentWorkbenchRoute'
 import { isCurrentDevelopmentWorkbenchRoute } from '../application/publicDevelopmentWorkbenchRoute'
 import {
   developmentCurrentRecordBinding,
@@ -19,10 +13,7 @@ import {
 } from '../application/publicDevelopmentWorkbenchRoute'
 import { developmentCommittedCurrentDisplay } from './developmentCommittedCurrentDisplay'
 import { developmentPanelDiscFingerprint } from '../application/publicDevelopmentComparisonPanels'
-import {
-  AgentDevelopmentGolden,
-  type GoldenWorkbenchData,
-} from '../features/agentDevelopmentGolden'
+import { AgentDevelopmentGolden } from '../features/agentDevelopmentGolden'
 import { AgentDevelopmentCurrentEditor } from './AgentDevelopmentCurrentEditor'
 import {
   cacheDevelopmentCandidateSnapshot,
@@ -33,55 +24,7 @@ import { createAgentDevelopmentSavedPlan } from './agentDevelopmentSavedPlan'
 import { rememberDevelopmentWorkbenchRoute } from './developmentWorkbenchRouteCache'
 import { usePageOperationScope } from '../components/usePageOperationScope'
 import { WarehouseMatchError } from '../application/warehouseMatchFeedback'
-
-type CandidateSnapshot = NonNullable<ReturnType<typeof readDevelopmentCandidateSnapshot>>
-type EditingPresentation = { accountId: string; presentation: GoldenWorkbenchData }
-type SaveRefresh = EditingPresentation & {
-  agentId: string
-  kind?: 'current_record'
-  phase?: 'updating' | 'failed'
-  record?: ComponentProps<typeof AgentDevelopmentCurrentEditor>['roster']['agents'][number]
-  error?: string
-}
-type WarehouseRefresh = SaveRefresh & { inputFingerprint: string | null }
-type RouteRead = { key: string; value: DevelopmentWorkbenchRoutePresentation }
-type RouteProjection = {
-  accountId: string
-  agentId: string
-  value: DevelopmentWorkbenchRoutePresentation
-}
-
-type Props = {
-  agentId: string
-  accountId: string
-  agentName: string
-  roster: ComponentProps<typeof AgentDevelopmentCurrentEditor>['roster']
-  workbenchData: GoldenWorkbenchData
-  savingThisAgent: boolean
-  editingThisAgent: boolean
-  candidateSnapshotStale: boolean
-  retainingDuringSave: boolean
-  saveRefresh: SaveRefresh | null
-  editingPresentation: EditingPresentation | null
-  decisionWorld: ReturnType<typeof useAccountDecisionWorld>
-  queryDevelopmentCandidateAlternatives: ReturnType<
-    typeof useDevelopmentCandidateAlternativesCalculation
-  >
-  queryDevelopmentWorkbenchRoute: ReturnType<typeof useDevelopmentWorkbenchRouteCalculation>
-  candidates: CandidateSnapshot['candidates']
-  candidateSnapshot: CandidateSnapshot | null
-  equipment: ReturnType<typeof findCurrentDevelopmentWorkbenchEquipment>
-  requestedPlanId: string | null
-  selectedCandidateRank: number
-  setAnalysisVersion: Dispatch<SetStateAction<number>>
-  setWarehouseRefresh: Dispatch<SetStateAction<WarehouseRefresh | null>>
-  setEditingPresentation: Dispatch<SetStateAction<EditingPresentation | null>>
-  setEditingCurrent: Dispatch<SetStateAction<boolean>>
-  setSaveRefresh: Dispatch<SetStateAction<SaveRefresh | null>>
-  setRouteRead: Dispatch<SetStateAction<RouteRead | null>>
-  setLastRouteProjection: Dispatch<SetStateAction<RouteProjection | null>>
-}
-
+import type { Props } from './agentDevelopmentWorkbenchViewState'
 export function AgentDevelopmentWorkbenchView({
   agentId,
   accountId,
@@ -309,10 +252,43 @@ export function AgentDevelopmentWorkbenchView({
                       : await decisionWorld.refresh()
                   if (!canContinue()) return
                   if (!currentRun) throw new Error('当前账户无法重新分析；请稍后重试。')
-                  const result = await queryDevelopmentCandidateAlternatives(
-                    currentRun.runId,
-                    agentId,
+                  const savedContext = requestedPlanId
+                    ? currentRun.input.drafts.find(
+                        (plan) =>
+                          plan.id === requestedPlanId &&
+                          plan.selection.agentIds.length === 1 &&
+                          plan.selection.agentIds[0] === agentId,
+                      )?.solutionContext
+                    : undefined
+                  const previousCandidateSnapshot =
+                    candidateSnapshot ?? readDevelopmentCandidateSnapshot(accountId, agentId)
+                  const context = savedContext ?? previousCandidateSnapshot
+                  const declarations = normalizeReviewedEventConditionDeclarations32(
+                    context?.eventConditionDeclarationsByAgentId,
+                    [agentId],
                   )
+                  const declarationIdentity =
+                    reviewedEventConditionDeclarationsIdentity32(declarations)
+                  const explicitParameters =
+                    savedContext?.comparisonParameters ??
+                    previousCandidateSnapshot?.candidateParametersByRank?.[selectedCandidateRank]
+                  const result =
+                    declarations || context?.scenarioSelection || explicitParameters
+                      ? await queryDevelopmentCandidateAlternatives(
+                          currentRun.runId,
+                          agentId,
+                          explicitParameters ? { 1: explicitParameters } : undefined,
+                          context?.scenarioSelection,
+                          declarations,
+                        )
+                      : await queryDevelopmentCandidateAlternatives(currentRun.runId, agentId)
+                  if (
+                    result.eventConditionDeclarationsIdentity !== declarationIdentity ||
+                    reviewedEventConditionDeclarationsIdentity32(
+                      result.eventConditionDeclarationsByAgentId,
+                    ) !== declarationIdentity
+                  )
+                    throw new Error('技能事件声明未进入本次匹配结果，请重新比较。')
                   if (!canContinue()) return
                   if (
                     result.status !== 'ready' ||
@@ -323,7 +299,7 @@ export function AgentDevelopmentWorkbenchView({
                   )
                     throw new WarehouseMatchError(result.gaps)
                   const index = Math.min(
-                    selectedCandidateRank - 1,
+                    explicitParameters ? 0 : selectedCandidateRank - 1,
                     Math.max(result.candidates.length - 1, 0),
                   )
                   const loadout = requestedPlanId
@@ -419,13 +395,19 @@ export function AgentDevelopmentWorkbenchView({
                   accountId,
                   agentId,
                   discIds,
+                  comparisonParameters:
+                    candidateSnapshot?.candidateParametersByRank?.[candidateRank],
+                  scenarioSelection: candidateSnapshot?.scenarioSelection,
+                  eventConditionDeclarationsByAgentId:
+                    candidateSnapshot?.eventConditionDeclarationsByAgentId,
+                  isCurrent: isCurrentPage,
                   refresh: decisionWorld.refresh,
                   query: queryDevelopmentCandidateAlternatives,
                 }).catch((error: unknown) => {
                   if (isCurrentPage()) setSaveRefresh(null)
                   throw error
                 })
-                if (!isCurrentPage()) return
+                if (refreshedRank === null || !isCurrentPage()) return
                 try {
                   const snapshot = readDevelopmentCandidateSnapshot(accountId, agentId)
                   const loadout = snapshot?.candidates[refreshedRank - 1]?.loadouts[0]

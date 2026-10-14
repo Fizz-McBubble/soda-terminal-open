@@ -1,12 +1,11 @@
-import {
-  getCurrentAgentEventContract,
-  resolveCurrentAgentEvent,
-} from '../calculation/currentAgentMechanicContracts'
+import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
 import { getCurrentAgentDecisionMechanicContract } from '../calculation/currentAgentDecisionMechanicContracts'
 import { compileNormalizedAgentEventSchedule } from '../calculation/currentNormalizedPlanningBaseline'
 import type { UpstreamExpressionIR } from '../calculation/currentUpstreamExpressionIR'
 import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
 import { effectReceivers, expressionReferences } from './teamStrengthSupportCapabilities'
+import { isSourceRateEvent32 } from '../calculation/sourceEventQuantity32'
+import { teamStrengthActionFacts } from './teamStrengthActionFacts'
 
 const ruleById = new Map(current31TeamEngineD1Pack.agentRules.map((rule) => [rule.agentId, rule]))
 
@@ -26,6 +25,8 @@ export type Member = {
   lacerationMultiplier: number
   hpToSheer: boolean
   actionReady: boolean
+  actionFacts: NonNullable<ReturnType<typeof teamStrengthActionFacts>>
+  actionLimitations: string[]
 }
 const memberCache = new Map<string, Member>()
 export function memberFacts(agentId: string): Member | null {
@@ -35,19 +36,23 @@ export function memberFacts(agentId: string): Member | null {
   const rule = ruleById.get(agentId)
   if (!contract || !rule) return null
   const schedule = compileNormalizedAgentEventSchedule({ agentId })
-  const events =
+  const declaredRateSecondsByEventId = Object.fromEntries(
     schedule.status === 'supported'
-      ? schedule.eventUsages.map((usage) =>
-          resolveCurrentAgentEvent({
-            stableId: agentId,
-            eventId: usage.eventId,
-            skillLevel: usage.skillLevel,
-          }),
+      ? schedule.eventUsages.flatMap((usage) =>
+          isSourceRateEvent32(agentId, usage.eventId) &&
+          usage.durationSeconds !== undefined &&
+          usage.occurrenceCount > 0
+            ? // Keep the existing declared exposure per source packet. Dividing
+              // by its declared uses removes policy repetitions, never time.
+              [[usage.eventId, usage.durationSeconds / usage.occurrenceCount]]
+            : [],
         )
-      : []
-  const resolved = events.filter((event) => event.status === 'supported')
-  // Use one source action. The baseline's 2..6 repetitions are local policy,
-  // not observed speed, and would count field-time assumptions twice here.
+      : [],
+  )
+  const actions = teamStrengthActionFacts({ agentId, declaredRateSecondsByEventId })
+  if (!actions) return null
+  // Separate source packets preserve the metric being described. None of the
+  // baseline's 2..6 policy repetitions becomes observed action frequency.
   const result: Member = {
     agentId,
     specialty: contract.identity.specialty,
@@ -57,15 +62,11 @@ export function memberFacts(agentId: string): Member | null {
     defense: contract.baseStats.def_base + contract.baseStats.def_growth * 59,
     impact: contract.baseStats.impact,
     anomalyMastery: contract.baseStats.anomMas,
-    damageMultiplier: resolved.reduce((sum, event) => sum + event.damageMultiplier, 0),
-    dazeMultiplier: resolved.reduce((sum, event) => sum + event.dazeMultiplier, 0),
-    anomalyBuildup: resolved.reduce((sum, event) => sum + event.anomalyBuildup, 0),
-    sharpMultiplier: resolved
-      .filter((event) => event.formulaFamily === 'sharp_damage')
-      .reduce((sum, event) => sum + event.damageMultiplier, 0),
-    lacerationMultiplier: resolved
-      .filter((event) => event.formulaFamily === 'laceration_damage')
-      .reduce((sum, event) => sum + event.damageMultiplier, 0),
+    damageMultiplier: actions.damage?.damageMultiplier ?? 0,
+    dazeMultiplier: actions.stun?.dazeMultiplier ?? 0,
+    anomalyBuildup: actions.anomaly?.anomalyBuildup ?? 0,
+    sharpMultiplier: actions.sharp?.damageMultiplier ?? 0,
+    lacerationMultiplier: actions.laceration?.damageMultiplier ?? 0,
     hpToSheer:
       getCurrentAgentDecisionMechanicContract(agentId)?.effectContract.effects.some(
         (effect) =>
@@ -77,14 +78,23 @@ export function memberFacts(agentId: string): Member | null {
             effect.numericExpression.expressionIr as UpstreamExpressionIR,
           ).includes('own.final.hp'),
       ) ?? false,
-    actionReady:
-      events.length > 0 &&
-      resolved.length === events.length &&
-      resolved.every((event) =>
-        [event.damageMultiplier, event.dazeMultiplier, event.anomalyBuildup].every(
-          (value) => Number.isFinite(value) && value >= 0,
-        ),
+    actionReady: schedule.status === 'supported' && actions.damage !== null,
+    actionFacts: actions,
+    actionLimitations: [
+      '伤害、失衡与异常积蓄分别采用来源动作包；不是同一轮转，也不表示速度、资源可持续或实战效率。',
+      ...(contract.identity.specialty === 'rupture'
+        ? ['强命仅描述来源倍率，未以攻击力代替贯穿力或宣称跨通道伤害。']
+        : []),
+      ...(actions.rateActions.length
+        ? ['每秒倍率仅保留声明曝光的独立能力诊断，不与单次动作包合并或比较强度。']
+        : []),
+      ...actions.excludedActions.flatMap((action) =>
+        action.blockers.map((blocker) => `${action.actionId}: ${blocker}`),
       ),
+      ...actions.mixedDamageActions.map(
+        (id) => `${id}: mixed_formula_or_scaling_not_compared_as_damage`,
+      ),
+    ],
   }
   memberCache.set(agentId, result)
   return result

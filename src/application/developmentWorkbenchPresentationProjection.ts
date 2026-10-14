@@ -20,9 +20,7 @@ import { agentDevelopmentSkillRecommendations } from '../pages/agentDevelopmentS
 import { authorityConsumerRecommendations } from './authorityConsumerRecommendations'
 import { createWEngineSelectionOptions } from '../pages/agentDevelopmentWEngineSelection'
 import {
-  engineRecommendation,
-  remielleSignatureBonus,
-  wEngineVisual,
+  resolveWorkbenchRecommendedEngines,
   skillLabels,
   skillTargetsFromDirections,
   graduationTeamDirections,
@@ -62,6 +60,10 @@ export function projectDevelopmentWorkbenchPresentation(
           agentId,
           profile.recommendation?.skillPriority ?? constraint?.progressionDirection ?? [],
           recommendation?.skillPriority ?? [],
+          {
+            skillLevels: agent.skillLevels,
+            mindscape: agent.mindscape,
+          },
         )
         const graduationTeams = graduationTeamDirections(
           agentId,
@@ -115,26 +117,13 @@ export function projectDevelopmentWorkbenchPresentation(
           ...(skillEvidence?.candidateFacts ?? []),
         ].some((fact) => fact.fieldPath.startsWith('skills.') || fact.fieldPath.startsWith('core.'))
         const currentEngineName = resolution.current?.name ?? '未记录音擎'
-        const rawDirections = [
-          resolution.recommendedPrimary,
-          ...resolution.recommendedAlternatives,
-        ].flatMap((engine) => (engine ? [engine.name] : []))
-        const mappedEngines = rawDirections.slice(0, 3).map((direction, index) => {
-          const engine = engineRecommendation(direction)
-          return {
-            tier:
-              index === 0
-                ? ('首选' as const)
-                : engine.rarity === 'S'
-                  ? ('S级替代' as const)
-                  : engine.rarity === 'A'
-                    ? ('A级下位替代' as const)
-                    : ('候选方向' as const),
-            name: engine.name,
-            bonus:
-              agentId === 'agent-remielle' && index === 0 ? remielleSignatureBonus() : engine.bonus,
-            visual: engine.visual ?? wEngineVisual(engine.name),
-          }
+        const mappedEngines = resolveWorkbenchRecommendedEngines({
+          agentId,
+          resolution,
+          directions: [
+            ...(profile.recommendation?.wEngines ?? []),
+            ...(constraint?.wEngineDirections ?? []),
+          ],
         })
         return {
           agentId,

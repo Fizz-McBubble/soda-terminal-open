@@ -282,8 +282,37 @@ describe('production absolute-retention adapter', () => {
       ),
     ).toBe(true)
     if (setFit === 'incompatible') {
-      expect(assessment.qualityDisposition).toBe('cleanup_candidate')
-      expect(assessment.reasonKind).toBe('proven_low_ceiling')
+      // Swing Jazz's damage/support four-piece remains incompatible with
+      // this functional main, but its energy two-piece has a sourced use in
+      // the conditional Yanagi disorder build. Low substats do not prove
+      // that this complete-build AP function can safely be discarded.
+      expect(assessment.qualityDisposition).toBe('review')
+      expect(assessment.reasonKind).toBe('conditional_use')
+      const conditionalFunction = assessment.evidence.find(
+        (row) =>
+          row.profileId ===
+          'agent-yanagi:reviewed-miyoushe-77017654-yanagi-remielle-velina-disorder',
+      )!
+      expect(conditionalFunction).toMatchObject({
+        agentId: 'agent-yanagi',
+        mainFit: 'conditional',
+        twoPieceFit: 'valid',
+        fourPieceFit: 'incompatible',
+        functionalMain: true,
+        functionalState: 'needs_build_context',
+        useState: 'conditional',
+      })
+      expect(conditionalFunction.sourceIds).toContain(
+        'reviewed-team-disc-miyoushe-77017654-yanagi-remielle-velina-disorder:61077E8797FA13E43CF1BB22398D6F945B468A6057A92BD5B541A7004F302003',
+      )
+      expect(assessment.blockedBy).toContainEqual(
+        expect.objectContaining({
+          field: 'functionalTarget',
+          profileId: conditionalFunction.profileId,
+          kind: 'conditional_use',
+        }),
+      )
+      expect(conditionalFunction.possibleFinalScore.upper).toBeLessThan(48)
       const applicable = assessment.evidence.filter(
         (row) => row.setFit === 'valid' && row.mainFit === 'valid',
       )

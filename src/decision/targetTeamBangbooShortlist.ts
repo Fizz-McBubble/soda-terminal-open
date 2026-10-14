@@ -10,6 +10,7 @@ export type ShortlistBangbooOption = {
   requiresRaisedStars: boolean
   recipientFit: string
   primaryPurpose: BangbooUtilityPurpose
+  secondaryPurposes?: readonly BangbooUtilityPurpose[]
   comparableSlice?: BangbooComparableSlice
 }
 
@@ -33,7 +34,6 @@ export function orderComparableBangbooGroups<T extends ShortlistBangbooOption>(
     if (!option.comparableSlice || !Number.isFinite(option.comparableSlice.value)) continue
     const key = JSON.stringify([
       energyPenalty(option),
-      reviewedIds.has(option.bangbooId),
       option.activationStatus,
       option.requiresRaisedStars,
       option.recipientFit === 'direct',
@@ -54,7 +54,8 @@ export function orderComparableBangbooGroups<T extends ShortlistBangbooOption>(
   return ordered
 }
 
-/** Retain a reviewed default and prefer distinct useful purposes in at most three slots. */
+/** Prefer a reviewed direction, permitting a proved larger equivalent capacity;
+ * keep distinct useful purposes in at most three slots. */
 export function selectTargetTeamBangbooShortlist<T extends ShortlistBangbooOption>(input: {
   reviewed: readonly T[]
   alternatives: readonly T[]
@@ -62,10 +63,14 @@ export function selectTargetTeamBangbooShortlist<T extends ShortlistBangbooOptio
   limit: number
 }): T[] {
   if (input.limit <= 0) return []
-  const reviewed = input.reviewed.filter((option) => option.activationStatus === 'active')
-  const allActive = [...reviewed, ...input.alternatives].filter(
-    (option) => option.activationStatus === 'active',
-  )
+  const applicable = (option: T) =>
+    option.activationStatus === 'active' &&
+    option.recipientFit !== 'not_applicable' &&
+    (input.hasOrdinaryEnergyRecipient ||
+      option.primaryPurpose !== 'energy' ||
+      option.secondaryPurposes?.some((purpose) => purpose !== 'energy'))
+  const reviewed = input.reviewed.filter(applicable)
+  const allActive = [...reviewed, ...input.alternatives].filter(applicable)
   const byId = new Map<string, T>()
   for (const option of allActive) {
     if (!byId.has(option.bangbooId)) byId.set(option.bangbooId, option)
@@ -76,7 +81,7 @@ export function selectTargetTeamBangbooShortlist<T extends ShortlistBangbooOptio
     new Set(reviewed.map((option) => option.bangbooId)),
     input.hasOrdinaryEnergyRecipient,
   )
-  const defaultOption = reviewed[0] ?? ordered[0]
+  const defaultOption = ordered[0]
   if (!defaultOption) return []
   const selected = [defaultOption]
   const covered = new Set([defaultOption.primaryPurpose])

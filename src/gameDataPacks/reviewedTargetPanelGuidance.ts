@@ -155,7 +155,9 @@ const playerConditionsBySourceId: Readonly<Record<string, readonly string[]>> = 
   'prydwen-trigger-current-2026-08-05': ['冲击力最重要；装备专属音擎时能力的暴击率上限为 90%。'],
   'prydwen-vivian-current-2026-08-05': ['异常精通按战斗前面板计。'],
   'prydwen-yanagi-current-2026-08-05': ['攻击力范围取决于音擎。'],
-  'prydwen-ye-shunguang-2.5-2026-08-05': ['状态面板中的暴击率上限为 50%。'],
+  'prydwen-ye-shunguang-2.5-2026-08-05': [
+    '暴击率50%为满核心、沧浪行歌四件套战斗增益生效时的配装参考；音擎、核心等级或增益状态改变时需重新核对，不是通用面板上限。',
+  ],
   'prydwen-yidhari-2.3-2026-08-05': [
     '按战斗前面板计，且假设四件「云岿如我」提供 12% 暴击率、1 影「海妖摇篮」提供 20% 暴击率；战斗内暴击率为 90.6–97.2%。',
   ],

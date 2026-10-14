@@ -4,101 +4,19 @@ import {
   useCatalogBrowseScroll,
 } from '../../components/assets/r6/useCatalogBrowseState'
 import { Star } from 'lucide-react'
-import { VisualEntityImage } from '../../components/VisualEntityImage'
 import { ExplanationPopover } from '../../components/ExplanationPopover'
-import { preloadSelectedAgentAvatar } from '../../components/SelectedAgentAvatar'
+import { preloadSelectedAgentAvatar } from '../../components/selectedAgentAvatarPreload'
 import { SelectMenu } from '../../components/assets/r6/SelectMenu'
 import { createLatestVisualSelection } from '../../assets/visualEntityImageSource'
-import { AgentVisualSlot } from './agentVisualSlot'
 import type { AgentSummary } from './types'
+import { AgentAvatar } from './AgentDevelopmentOverviewComponents'
+import {
+  attributeIcons,
+  getDirectoryProgress,
+  getSkillDisplayInfo,
+  specialtyIcons,
+} from './agentDevelopmentOverviewHelpers'
 import './styles.overview-scroll.css'
-
-const attributeIcons: Record<string, { id: string; label: string }> = {
-  electric: { id: 'attribute-electric', label: '电属性' },
-  ether: { id: 'attribute-ether', label: '以太属性' },
-  fire: { id: 'attribute-fire', label: '火属性' },
-  ice: { id: 'attribute-ice', label: '冰属性' },
-  physical: { id: 'attribute-physical', label: '物理属性' },
-  wind: { id: 'attribute-wind', label: '风属性' },
-}
-
-const specialtyIcons: Record<string, { id: string; label: string }> = {
-  armorer: { id: 'specialty-armorer', label: '锋御特性' },
-  anomaly: { id: 'specialty-anomaly', label: '异常特性' },
-  damage: { id: 'specialty-attack', label: '强攻特性' },
-  defense: { id: 'specialty-defense', label: '防护特性' },
-  rupture: { id: 'specialty-rupture', label: '命破特性' },
-  stun: { id: 'specialty-stun', label: '击破特性' },
-  support: { id: 'specialty-support', label: '支援特性' },
-}
-
-function AgentIdentityIcons({ agent }: { agent: AgentSummary }) {
-  const attribute = agent.attribute ? attributeIcons[agent.attribute] : undefined
-  const specialty = agent.specialty ? specialtyIcons[agent.specialty] : undefined
-  if (!attribute && !specialty) return null
-  return (
-    <span className="agent-identity-icons" aria-label="属性与特性">
-      {attribute ? (
-        <VisualEntityImage
-          entityType="illustration"
-          entityId={attribute.id}
-          variant="icon"
-          name={attribute.label}
-        />
-      ) : null}
-      {specialty ? (
-        <VisualEntityImage
-          entityType="illustration"
-          entityId={specialty.id}
-          variant="icon"
-          name={specialty.label}
-        />
-      ) : null}
-    </span>
-  )
-}
-
-function AgentAvatar({
-  agent,
-  className = '',
-  slot = 'compact-agent',
-}: {
-  agent: AgentSummary
-  className?: string
-  slot?: 'compact-agent' | 'recommendation-identity'
-}) {
-  return (
-    <span
-      className={`agent-avatar ${className}`.trim()}
-      data-entity-id={agent.agentId}
-      data-asset-kind={agent.visual.kind}
-      data-fallback={agent.visual.fallback}
-    >
-      <span aria-hidden="true">{agent.name.slice(0, 1)}</span>
-      <AgentVisualSlot slot={slot} agentId={agent.agentId} name={agent.name} />
-      <AgentIdentityIcons agent={agent} />
-    </span>
-  )
-}
-
-function getDirectoryProgress(agent: AgentSummary) {
-  if (agent.status === '已有方案') {
-    return {
-      label: '方案已保存',
-      detail: '配装已保存，可继续调整。',
-    }
-  }
-  if (agent.status === '培养中') {
-    return {
-      label: '已收藏',
-      detail: '查看技能升级顺序、音擎选择和驱动盘搭配。',
-    }
-  }
-  return {
-    label: '',
-    detail: '查看技能升级顺序、音擎选择和驱动盘搭配。',
-  }
-}
 
 function preloadRecommendationAvatar(agentId: string) {
   void preloadSelectedAgentAvatar(agentId, 'agent-development.overview')
@@ -402,27 +320,27 @@ export function AgentDevelopmentOverview({
               </div>
             </div>
             <div className="next-copy">
-              {!selectedAgent.nextTrainingSteps?.length ? (
-                <p className="next-action-detail">{selectedProgress.detail}</p>
-              ) : null}
-              {selectedAgent.nextTrainingSteps?.length ? (
-                <div className="next-training-steps">
-                  <div className="next-training-steps__heading">
-                    <strong>接下来可补的技能</strong>
-                    {selectedAgent.nextTrainingSteps.length > 2 ? (
-                      <ExplanationPopover
-                        key={selectedAgent.agentId}
-                        label={`其余 ${selectedAgent.nextTrainingSteps.length - 2} 项`}
-                        title="其余可补技能"
-                      >
-                        <p>{selectedAgent.nextTrainingSteps.slice(2).join('；')}</p>
-                      </ExplanationPopover>
-                    ) : null}
+              {(() => {
+                const skillInfo = getSkillDisplayInfo(selectedAgent, selectedProgress.detail)
+                return (
+                  <div className="next-training-steps">
+                    <div className="next-training-steps__heading">
+                      <strong>{skillInfo.heading}</strong>
+                      {skillInfo.hasMorePopover ? (
+                        <ExplanationPopover
+                          key={selectedAgent.agentId}
+                          label={`其余 ${skillInfo.popoverCount} 项`}
+                          title="其余可补技能"
+                        >
+                          <p>{skillInfo.popoverContent}</p>
+                        </ExplanationPopover>
+                      ) : null}
+                    </div>
+                    <p title={skillInfo.line1}>{skillInfo.line1}</p>
+                    <small title={skillInfo.line2}>{skillInfo.line2}</small>
                   </div>
-                  <p>{selectedAgent.nextTrainingSteps.slice(0, 2).join('；')}</p>
-                  <small>当前等级 → 养成目标</small>
-                </div>
-              ) : null}
+                )
+              })()}
               <button
                 className="primary"
                 type="button"

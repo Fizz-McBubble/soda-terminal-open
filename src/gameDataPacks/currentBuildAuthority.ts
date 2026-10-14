@@ -51,6 +51,8 @@ export type CurrentBuildAuthorityField = {
     evaluatedForVersion: string | null
     checkedAt: string | null
     contentHash: string | null
+    supportedValues?: readonly string[]
+    conditionsByValue?: Readonly<Record<string, readonly string[]>>
   }>
   blockers: readonly string[]
   conditions: readonly string[]
@@ -270,6 +272,8 @@ function authorityField(
         evaluatedForVersion: field.currentApplicability === 'continuous' ? field.gameVersion : null,
         checkedAt: source.checkedAt,
         contentHash: source.contentHash,
+        ...(source.supportedValues ? { supportedValues: source.supportedValues } : {}),
+        ...(source.conditionsByValue ? { conditionsByValue: source.conditionsByValue } : {}),
       })) ?? [],
     blockers:
       state === 'ready'

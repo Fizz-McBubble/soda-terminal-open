@@ -14,6 +14,7 @@ import { reviewedSourceTeamObservations32Identity } from './reviewedSourceTeamOb
 import { reviewedWEngineReceiverSemantics32Identity } from '../calculation/reviewedWEngineReceiverSemanticsIdentity32'
 import { planningEffectResolutionIdentity32 } from '../calculation/currentPlanningEffectResolutionIdentity32'
 import reviewedTeamPerformance from './data/reviewed-team-performance.3.1.json'
+import reviewedTeamPerformance323 from './data/reviewed-team-performance.3.2.3.json'
 import { currentFieldAuthority } from './currentFieldAuthority'
 import { currentBuildAuthority } from './currentBuildAuthority'
 import { currentDriveDiscRecommendationCatalogIdentity } from './currentDriveDiscRecommendationCatalog'
@@ -238,6 +239,7 @@ export const currentDataAuthorityProjection = {
       cases: current31StrengthGoldSet.cases,
       supplements: current31StrengthGoldSet.versionedTeamStrengthSupplements,
       observations: reviewedTeamPerformance,
+      currentObservations: reviewedTeamPerformance323,
       guideVerification: reviewedTeamGuideVerification,
     }),
     contract: current31TeamEngineD1Pack.contract,

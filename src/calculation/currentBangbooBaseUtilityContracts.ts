@@ -1,4 +1,8 @@
-import { currentBangbooNumericCatalog } from '../gameDataPacks/currentBangbooNumericCatalog'
+import {
+  currentBangbooNumericCatalog,
+  projectCurrentBangbooStats,
+} from '../gameDataPacks/currentBangbooNumericCatalog'
+import { resolveReviewedBangbooRecoveryBinding } from '../gameDataPacks/reviewedBangbooRecoverySemantics'
 
 export type * from './currentBangbooBaseUtilityTypes'
 import type {
@@ -102,9 +106,9 @@ export const bangbooBaseUtilityDefinitions: readonly BangbooBaseUtilityEntityDef
       {
         paramIndex: 0,
         utilityType: 'hp_restore',
-        unit: 'hp_ratio_unresolved_basis',
-        hpBasis: 'unresolved',
-        mechanic: 'hp_restore_source_ratio',
+        unit: 'hp_ratio_bangboo_hp',
+        hpBasis: 'bangboo_max_hp',
+        mechanic: 'hp_restore_percent_bangboo_hp',
         targetAction: 'active:contact',
         receiver: 'pickup_agent',
         targetRestriction: 'none',
@@ -252,9 +256,9 @@ export const bangbooBaseUtilityDefinitions: readonly BangbooBaseUtilityEntityDef
       {
         paramIndex: 0,
         utilityType: 'hp_restore',
-        unit: 'hp_ratio_unresolved_basis',
-        hpBasis: 'unresolved',
-        mechanic: 'hp_restore_source_ratio',
+        unit: 'hp_ratio_bangboo_hp',
+        hpBasis: 'bangboo_max_hp',
+        mechanic: 'hp_restore_percent_bangboo_hp',
         targetAction: 'active:spectral_bubble',
         receiver: 'pickup_agent',
         targetRestriction: 'none',
@@ -317,7 +321,9 @@ export function resolveBangbooBaseUtilityOutputs(
     input.skillLevel > 10 ||
     !Number.isInteger(input.bangbooLevel) ||
     input.bangbooLevel < 1 ||
-    input.bangbooLevel > 60
+    input.bangbooLevel > 60 ||
+    (input.ascensionLevelCap !== undefined &&
+      ![10, 20, 30, 40, 50, 60].includes(input.ascensionLevelCap))
   )
     return []
   const catalogItem = catalogItemsByStableId.get(input.stableId)
@@ -329,11 +335,35 @@ export function resolveBangbooBaseUtilityOutputs(
   const rawParamRow = activeSkill.levelParams[clampedSkillLevel - 1]
   if (!rawParamRow) return []
   const tokens = rawParamRow.split('|')
+  const recoveryBinding = resolveReviewedBangbooRecoveryBinding(input.stableId)
+  const requiresRecoveryBinding = ['bangboo-avocaboo', 'bangboo-miss-esme'].includes(input.stableId)
+  const stats =
+    input.ascensionLevelCap === undefined
+      ? null
+      : projectCurrentBangbooStats({
+          stableId: input.stableId,
+          level: input.bangbooLevel,
+          ascensionLevelCap: input.ascensionLevelCap,
+        })
+  if (stats?.status === 'unsupported') return []
 
   return definition.effects.flatMap((spec) => {
     const rawToken = tokens[spec.paramIndex]?.trim() ?? ''
     const parsedValue = parseBangbooParameterToken(rawToken, clampedBangbooLv)
     if (parsedValue === null) return []
+    const basisUnavailable =
+      spec.utilityType === 'hp_restore' && requiresRecoveryBinding && !recoveryBinding
+    const absoluteUnit = basisUnavailable
+      ? undefined
+      : spec.unit === 'hp_ratio_bangboo_hp'
+        ? ('hp_point' as const)
+        : spec.unit === 'shield_ratio_bangboo_hp'
+          ? ('shield_point' as const)
+          : undefined
+    const absoluteValue =
+      absoluteUnit && stats?.status === 'supported'
+        ? Math.round(stats.hp * parsedValue * 1e6) / 1e6
+        : undefined
 
     const cooldownSec =
       spec.cooldownIndex !== undefined && tokens[spec.cooldownIndex]
@@ -350,19 +380,27 @@ export function resolveBangbooBaseUtilityOutputs(
     return [
       {
         operator: 'resource_and_sustain_apply' as const,
-        mechanic: spec.mechanic,
+        mechanic: basisUnavailable ? 'hp_restore_source_ratio' : spec.mechanic,
         action: 'active' as const,
         skillRole: 'active' as const,
         skillName: definition.skillName,
         utilityType: spec.utilityType,
-        unit: spec.unit,
+        unit: basisUnavailable ? ('hp_ratio_unresolved_basis' as const) : spec.unit,
         provider: 'bangboo' as const,
         receiver: spec.receiver,
         targetRestriction: spec.targetRestriction,
         targetAction: spec.targetAction,
         trigger: spec.trigger,
         capacityOnly: spec.capacityOnly,
-        ...(spec.hpBasis ? { hpBasis: spec.hpBasis } : {}),
+        ...(spec.hpBasis
+          ? { hpBasis: basisUnavailable ? ('unresolved' as const) : spec.hpBasis }
+          : {}),
+        ...(spec.utilityType === 'hp_restore' && recoveryBinding
+          ? { hpBasisEvidence: recoveryBinding }
+          : {}),
+        ...(absoluteValue !== undefined
+          ? { absoluteValue, absoluteUnit, ascensionLevelCap: input.ascensionLevelCap }
+          : {}),
         value: parsedValue,
         values: [parsedValue],
         skillLevel: clampedSkillLevel,

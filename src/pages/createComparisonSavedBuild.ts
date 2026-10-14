@@ -1,3 +1,7 @@
+import {
+  normalizeReviewedEventConditionDeclarations32,
+  reviewedEventConditionDeclarationsIdentity32,
+} from '../calculation/reviewedEventConditionDeclarations32'
 import type { readDevelopmentCandidateSnapshot } from './agentDevelopmentCandidateSession'
 import { saveCurrentAgentBuild } from '../accounts/planningDrafts'
 import { getAgentName } from '../application/publicRosterNames'
@@ -16,6 +20,13 @@ export function createComparisonSavedBuild(
   rank: number,
   candidateSnapshot: Snapshot,
 ): Parameters<typeof saveCurrentAgentBuild>[1] {
+  const declarations = normalizeReviewedEventConditionDeclarations32(
+    candidateSnapshot.eventConditionDeclarationsByAgentId,
+    [agentId],
+  )
+  const declarationIdentity = reviewedEventConditionDeclarationsIdentity32(declarations)
+  if (declarationIdentity !== candidateSnapshot.eventConditionDeclarationsIdentity)
+    throw new Error('技能事件计算身份缺失或变化，请重新比较。')
   const candidatePlan = candidateSnapshot.candidates[rank - 1]!
   const candidate = candidatePlan.loadouts[0]!
   const candidatePresentation = candidateSnapshot.presentation!
@@ -78,6 +89,8 @@ export function createComparisonSavedBuild(
         valueBenchmark?.candidate.dimensions.game_version ?? publicVersionIdentity.gameVersion,
       knowledgeVersion: knowledge.version,
       exactVariantKey: null,
+      eventConditionDeclarationsByAgentId: declarations,
+      eventConditionDeclarationsIdentity: declarationIdentity,
       ...(candidateSnapshot.candidateParametersByRank?.[rank]
         ? { comparisonParameters: candidateSnapshot.candidateParametersByRank[rank] }
         : {}),

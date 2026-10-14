@@ -394,7 +394,7 @@
     "maxAttempts": 16,
     "maxItemIndex": 2,
     "durationMaxMs": 3600000,
-    "versionPattern": "^1\\.0\\.\\d{1,3}$"
+    "versionPattern": "^1\\.[01]\\.\\d{1,3}$"
   },
   "screenScannerInstaller": {
     "stages": [

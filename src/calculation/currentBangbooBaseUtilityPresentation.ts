@@ -15,6 +15,7 @@ const requiredNumber = (value: number | undefined) => {
 export function presentBangbooBaseUtilities(context: {
   input: BangbooUtilityProjectionInput
   baseUtilities: readonly BangbooBaseUtilityOutput[]
+  effectiveUtilities: readonly BangbooBaseUtilityOutput[]
   activeEffects: readonly AdditionalEffectSpec[]
   additionalValues: readonly (number | null)[]
   specialties: ReadonlySet<string>
@@ -24,6 +25,7 @@ export function presentBangbooBaseUtilities(context: {
   const {
     input,
     baseUtilities,
+    effectiveUtilities,
     activeEffects,
     additionalValues,
     specialties,
@@ -32,6 +34,13 @@ export function presentBangbooBaseUtilities(context: {
   } = context
   const requiredBase = (predicate: (output: BangbooBaseUtilityOutput) => boolean) => {
     const output = baseUtilities.find(predicate)
+    if (!output) throw new MissingUtilityParameter()
+    return output
+  }
+  const requiredEffective = (base: BangbooBaseUtilityOutput) => {
+    const output = effectiveUtilities.find(
+      (candidate) => candidate.targetAction === base.targetAction,
+    )
     if (!output) throw new MissingUtilityParameter()
     return output
   }
@@ -57,10 +66,7 @@ export function presentBangbooBaseUtilities(context: {
           ? additionalValues[multIdx]
           : null
 
-      const combinedEnergy =
-        mult !== null && mult !== undefined
-          ? Math.round(baseEnergy * (1 + mult) * 100) / 100
-          : baseEnergy
+      const combinedEnergy = requiredNumber(requiredEffective(baseOutput).value)
 
       comparableSlice = {
         key: {
@@ -130,34 +136,9 @@ export function presentBangbooBaseUtilities(context: {
       const shieldBase = requiredBase((o) => o.branchId === 'buff_2')
       const regenBase = requiredBase((o) => o.branchId === 'buff_3')
 
-      const healMultIdx = activeEffects.find(
-        (eff) => eff.operator === 'hp_recovery_multiplier' && eff.targetAction === 'active:buff_1',
-      )?.valueIndices?.[0]
-      const shieldMultIdx = activeEffects.find(
-        (eff) =>
-          eff.operator === 'shield_generation_multiplier' && eff.targetAction === 'active:buff_2',
-      )?.valueIndices?.[0]
-      const regenDeltaIdx = activeEffects.find(
-        (eff) => eff.operator === 'energy_regen_flat' && eff.targetAction === 'active:buff_3',
-      )?.valueIndices?.[0]
-
-      const healMult =
-        input.activationStatus === 'active' && healMultIdx !== undefined
-          ? additionalValues[healMultIdx]
-          : null
-      const shieldMult =
-        input.activationStatus === 'active' && shieldMultIdx !== undefined
-          ? additionalValues[shieldMultIdx]
-          : null
-      const regenDelta =
-        input.activationStatus === 'active' && regenDeltaIdx !== undefined
-          ? additionalValues[regenDeltaIdx]
-          : null
-
-      const finalHealRatio = requiredNumber(healBase.value) * (1 + (healMult ?? 0))
-      const finalShieldRatio = requiredNumber(shieldBase.value) * (1 + (shieldMult ?? 0))
-      const finalRegenRate =
-        Math.round((requiredNumber(regenBase.value) + (regenDelta ?? 0)) * 100) / 100
+      const finalHealRatio = requiredNumber(requiredEffective(healBase).value)
+      const finalShieldRatio = requiredNumber(requiredEffective(shieldBase).value)
+      const finalRegenRate = requiredNumber(requiredEffective(regenBase).value)
 
       if (input.activationStatus === 'active') {
         recommendationReason =
@@ -174,37 +155,35 @@ export function presentBangbooBaseUtilities(context: {
     } else if (input.bangbooId === 'bangboo-avocaboo') {
       const healBase = requiredBase((o) => o.utilityType === 'hp_restore')
       const baseRatio = requiredNumber(healBase.value)
-      const baseTriggers = requiredNumber(healBase.maxTriggersPerBattle)
-
-      const healMultIdx = activeEffects.find(
-        (eff) => eff.operator === 'hp_recovery_multiplier' && eff.targetAction === 'active',
-      )?.valueIndices?.[0]
-      const triggerDeltaIdx = activeEffects.find(
-        (eff) => eff.operator === 'charge_delta' && eff.targetAction === 'active',
-      )?.valueIndices?.[0]
-
-      const healMult =
-        input.activationStatus === 'active' && healMultIdx !== undefined
-          ? additionalValues[healMultIdx]
-          : null
-      const triggerDelta =
-        input.activationStatus === 'active' && triggerDeltaIdx !== undefined
-          ? additionalValues[triggerDeltaIdx]
-          : null
-
-      const finalRatio =
-        healMult !== null && healMult !== undefined
-          ? Math.round(baseRatio * (1 + healMult) * 1000) / 1000
-          : baseRatio
-      const finalTriggers = baseTriggers + (triggerDelta ?? 0)
+      const effective = requiredEffective(healBase)
+      const finalRatio = requiredNumber(effective.value)
+      const finalTriggers = requiredNumber(effective.maxTriggersPerBattle)
+      const hpBasisText =
+        effective?.hpBasis === 'bangboo_max_hp' ? '邦布生命值上限' : '（生命值基准待核实）'
+      if (effective?.absoluteValue !== undefined)
+        comparableSlice = {
+          key: {
+            purpose: 'sustain',
+            unit: 'hp_point',
+            receiver: effective.receiver,
+            trigger: effective.trigger,
+            hpBasis: effective.hpBasis,
+            isDeterministic: true,
+            deliveryModel: 'contact_juice_pellet',
+            cooldownSeconds: effective.cooldownSeconds,
+            targetAction: effective.targetAction,
+            capacityBasis: 'one-contact-level60-cap60-skill10',
+          },
+          value: effective.absoluteValue,
+        }
 
       if (input.activationStatus === 'active') {
         recommendationReason =
-          `基础技能：发射果汁弹接触角色回复生命值，技能倍率${formatAmount(finalRatio * 100)}%（生命值基准待核实，未明确是否为目标角色生命上限）；每场战斗最多触发${finalTriggers}次。需实际接触生成物。` +
+          `基础技能：发射果汁弹接触角色回复生命值，技能倍率${formatAmount(finalRatio * 100)}%${hpBasisText}；每场战斗最多触发${finalTriggers}次。需实际接触生成物。` +
           `${input.stars}星可激活额外能力；恢复或护盾支援。`
       } else {
         recommendationReason =
-          `基础技能：回复生命值，技能倍率${formatAmount(baseRatio * 100)}%（生命值基准待核实）。需实际接触生成物。` +
+          `基础技能：回复生命值，技能倍率${formatAmount(baseRatio * 100)}%${hpBasisText}。需实际接触生成物。` +
           `本队未激活额外能力；恢复或护盾支援。`
       }
     } else if (input.bangbooId === 'bangboo-miss-esme') {
@@ -213,39 +192,19 @@ export function presentBangbooBaseUtilities(context: {
       const baseBubbleRatio = requiredNumber(bubbleBase.value)
       const baseStarEnergy = requiredNumber(starBase.value)
 
-      const healMultIdx = activeEffects.find(
-        (eff) =>
-          eff.operator === 'hp_recovery_multiplier' && eff.targetAction === 'spectral_bubble',
-      )?.valueIndices?.[0]
-      const energyMultIdx = activeEffects.find(
-        (eff) => eff.operator === 'energy_multiplier' && eff.targetAction === 'twinkling_star',
-      )?.valueIndices?.[0]
-
-      const healMult =
-        input.activationStatus === 'active' && healMultIdx !== undefined
-          ? additionalValues[healMultIdx]
-          : null
-      const energyMult =
-        input.activationStatus === 'active' && energyMultIdx !== undefined
-          ? additionalValues[energyMultIdx]
-          : null
-
-      const finalRatio =
-        healMult !== null && healMult !== undefined
-          ? Math.round(baseBubbleRatio * (1 + healMult) * 1000) / 1000
-          : baseBubbleRatio
-      const finalEnergy =
-        energyMult !== null && energyMult !== undefined
-          ? Math.round(baseStarEnergy * (1 + energyMult) * 100) / 100
-          : baseStarEnergy
+      const effectiveBubble = requiredEffective(bubbleBase)
+      const finalRatio = requiredNumber(effectiveBubble.value)
+      const finalEnergy = requiredNumber(requiredEffective(starBase).value)
+      const hpBasisText =
+        effectiveBubble?.hpBasis === 'bangboo_max_hp' ? '邦布生命值上限' : '（生命值基准待核实）'
 
       if (input.activationStatus === 'active') {
         recommendationReason =
-          `基础技能：连续随机召唤${requiredNumber(starBase.summonCount)}枚[幻泡]或[星莹]：接触[幻泡]回复生命值，技能倍率${formatAmount(finalRatio * 100)}%（生命值基准待核实）；接触[星莹]回复${formatAmount(finalEnergy)}点普通能量。星莹与幻泡生成概率随前场生命值动态变化，需实际接触。` +
+          `基础技能：连续随机召唤${requiredNumber(starBase.summonCount)}枚[幻泡]或[星莹]：接触[幻泡]回复生命值，技能倍率${formatAmount(finalRatio * 100)}%${hpBasisText}；接触[星莹]回复${formatAmount(finalEnergy)}点普通能量。星莹与幻泡生成概率随前场生命值动态变化，需实际接触。` +
           `${input.stars}星可激活额外能力；${ordinaryRecipientsText}，收益取决于能量缺口与拾取。${ruptureNote ? `${ruptureNote}。` : ''}`
       } else {
         recommendationReason =
-          `基础技能：回复生命值，技能倍率${formatAmount(baseBubbleRatio * 100)}%（生命值基准待核实）；接收${formatAmount(baseStarEnergy)}点普通能量。` +
+          `基础技能：回复生命值，技能倍率${formatAmount(baseBubbleRatio * 100)}%${hpBasisText}；接收${formatAmount(baseStarEnergy)}点普通能量。` +
           `召唤分支随前场生命值变化，需实际接触。` +
           `本队未激活额外能力；${ordinaryRecipientsText}，收益取决于能量缺口与拾取。${ruptureNote ? `${ruptureNote}。` : ''}`
       }
@@ -363,9 +322,11 @@ export function presentBangbooBaseUtilities(context: {
       }
     }
     if (comparableSlice) {
-      const base = baseUtilities.find(
-        (output) => output.utilityType === 'energy_flat' || output.utilityType === 'damage_bonus',
-      )
+      const base =
+        baseUtilities.find((output) => output.targetAction === comparableSlice!.key.targetAction) ??
+        baseUtilities.find(
+          (output) => output.utilityType === 'energy_flat' || output.utilityType === 'damage_bonus',
+        )
       comparableSlice = {
         ...comparableSlice,
         key: {
@@ -373,7 +334,7 @@ export function presentBangbooBaseUtilities(context: {
           cooldownSeconds: base?.cooldownSeconds,
           durationSeconds: base?.durationSeconds,
           targetAction: base?.targetAction,
-          capacityBasis: 'one-source-trigger-level60-skill10',
+          capacityBasis: comparableSlice.key.capacityBasis ?? 'one-source-trigger-level60-skill10',
         },
       }
     }

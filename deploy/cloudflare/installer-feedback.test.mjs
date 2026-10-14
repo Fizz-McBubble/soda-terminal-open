@@ -300,3 +300,156 @@ test('installer receiver rejects query parameters, cross-origin, and non-POST', 
   )
   assert.equal(crossRes.status, 403)
 })
+
+test('installer receiver accepts next release 1.1.0 asset_quick_read_installer diagnostics and proves owner retrieval readback', async () => {
+  const records = new Map()
+  const receiver = createScanFeedbackReceiver({
+    now: () => Date.parse('2026-10-14T10:00:00Z'),
+    feedbackStore: {
+      get: async (key) => records.get(key)?.value ?? null,
+      put: async (key, value, options) => records.set(key, { value, options }),
+    },
+  })
+  const env = {
+    SODA_SCAN_FEEDBACK: 'enabled',
+    SODA_RELEASE_ID: 'soda-release-current',
+    SODA_PUBLIC_ORIGIN: 'https://sodaterminal.com',
+  }
+  const send = (payload) =>
+    receiver(
+      new Request('https://sodaterminal.com/_soda/scan-feedback', {
+        method: 'POST',
+        headers: { origin: 'https://sodaterminal.com', 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+      }),
+      env,
+    )
+
+  // 1. Next release 1.1.0 asset_quick_read_installer is accepted and stored
+  const nextReleaseReport = {
+    ...validReport,
+    reportId: '11000000-0000-4000-8000-000000000001',
+    installerVersion: '1.1.0',
+    code: 'offline_payload_unavailable',
+  }
+  const nextRes = await send(nextReleaseReport)
+  assert.equal(nextRes.status, 200)
+  const nextReceipt = await nextRes.json()
+  assert.equal(nextReceipt.status, 'received')
+  assert.equal(nextReceipt.reportId, nextReleaseReport.reportId)
+  assert.equal(nextReceipt.receivedAt, '2026-10-14T10:00:00.000Z')
+
+  // Owner retrieval readback verification for 1.1.0
+  const nextMatch = [...records.entries()].find(([k]) =>
+    k.startsWith(nextReleaseReport.reportId + ':'),
+  )
+  assert.ok(nextMatch)
+  const [nextKey, nextEntry] = nextMatch
+  assert.ok(nextKey)
+  const nextStored = JSON.parse(nextEntry.value)
+  const { receivedAt: nextReceivedAt, ...nextRetrievedRecord } = nextStored
+  assert.equal(nextReceivedAt, '2026-10-14T10:00:00.000Z')
+  const nextValidation = sanitizeScanFeedbackPayload(nextRetrievedRecord)
+  assert.equal(nextValidation.ok, true)
+  assert.deepEqual(nextValidation.record, nextReleaseReport)
+
+  // Out-of-range versions (e.g. 1.2.0, 2.0.0) remain rejected
+  assert.equal(
+    (
+      await send({
+        ...validReport,
+        reportId: '12000000-0000-4000-8000-000000000001',
+        installerVersion: '1.2.0',
+      })
+    ).status,
+    400,
+  )
+  assert.equal(
+    (
+      await send({
+        ...validReport,
+        reportId: '20000000-0000-4000-8000-000000000001',
+        installerVersion: '2.0.0',
+      })
+    ).status,
+    400,
+  )
+
+  // 2. screen_scanner_installer 1.1.6 is accepted and Owner retrieval verified
+  const scannerInstallerReport = {
+    schema: 1,
+    tool: 'screen_scanner_installer',
+    reportId: '11600000-0000-4000-8000-000000000001',
+    installerVersion: '1.1.6',
+    stage: 'verify',
+    code: 'runtime_health_probe_timeout',
+    durationMs: 35000,
+    attempts: [],
+  }
+  const scannerRes = await send(scannerInstallerReport)
+  assert.equal(scannerRes.status, 200)
+  const scannerReceipt = await scannerRes.json()
+  assert.equal(scannerReceipt.status, 'received')
+  assert.equal(scannerReceipt.reportId, scannerInstallerReport.reportId)
+
+  // Owner retrieval readback verification for screen_scanner_installer
+  const scannerMatch = [...records.entries()].find(([k]) =>
+    k.startsWith(scannerInstallerReport.reportId + ':'),
+  )
+  assert.ok(scannerMatch)
+  const [scannerKey, scannerEntry] = scannerMatch
+  assert.ok(scannerKey)
+  const scannerStored = JSON.parse(scannerEntry.value)
+  const { receivedAt: scannerReceivedAt, ...scannerRetrievedRecord } = scannerStored
+  assert.ok(Number.isFinite(Date.parse(scannerReceivedAt)))
+  const scannerValidation = sanitizeScanFeedbackPayload(scannerRetrievedRecord)
+  assert.equal(scannerValidation.ok, true)
+  assert.deepEqual(scannerValidation.record, scannerInstallerReport)
+})
+
+test('proves recoverable persistence errors fail closed with 503 and retry recovers upon restoration', async () => {
+  let failKv = true
+  const records = new Map()
+  const receiver = createScanFeedbackReceiver({
+    now: () => Date.parse('2026-10-14T11:00:00Z'),
+    feedbackStore: {
+      get: async (key) => records.get(key)?.value ?? null,
+      put: async (key, value, options) => {
+        if (failKv) throw new Error('simulated_kv_put_timeout')
+        records.set(key, { value, options })
+      },
+    },
+  })
+  const env = {
+    SODA_SCAN_FEEDBACK: 'enabled',
+    SODA_RELEASE_ID: 'soda-release-current',
+    SODA_PUBLIC_ORIGIN: 'https://sodaterminal.com',
+  }
+  const send = (payload) =>
+    receiver(
+      new Request('https://sodaterminal.com/_soda/scan-feedback', {
+        method: 'POST',
+        headers: { origin: 'https://sodaterminal.com', 'content-type': 'application/json' },
+        body: JSON.stringify(payload),
+      }),
+      env,
+    )
+
+  // 1. Initial attempt fails closed with 503 - no false success receipt emitted
+  const failedAttempt = await send(validReport)
+  assert.equal(failedAttempt.status, 503)
+  assert.equal(records.size, 0)
+
+  // 2. Storage recovered: retry succeeds and produces valid durable receipt
+  failKv = false
+  const recoveredAttempt = await send(validReport)
+  assert.equal(recoveredAttempt.status, 200)
+  assert.equal((await recoveredAttempt.json()).status, 'received')
+  assert.equal(records.size, 1)
+
+  // 3. Corrupted record in KV fails closed with 503 on re-query
+  const [key, entry] = [...records.entries()][0]
+  records.set(key, { ...entry, value: 'corrupted-non-json' })
+  const damagedAttempt = await send(validReport)
+  assert.equal(damagedAttempt.status, 503)
+})

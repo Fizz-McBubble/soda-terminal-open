@@ -128,17 +128,53 @@ export function AgentDevelopmentGoldenDirectoryPage() {
       const decisionStatus =
         decisionWorld.status === 'stale' ? 'stale' : (decision?.current.status ?? 'unsupported')
       const hasReliableTarget = decisionStatus !== 'unsupported' && decisionStatus !== 'stale'
-      const skillTargets =
-        advicePending || decisionWorld.status === 'stale' ? [] : (decision?.skills ?? [])
-      const nextTrainingSteps = skillTargets
-        .filter(
+
+      let skillStatus: import('../features/agentDevelopmentGolden/types').AgentSkillTrainingStatus
+      if (advicePending) {
+        skillStatus = 'pending'
+      } else if (decisionWorld.status === 'stale' || decisionStatus === 'stale') {
+        skillStatus = 'stale'
+      } else if (
+        !decision ||
+        !decision.skills?.length ||
+        decision.skills.every((skill) => skill.targetLevel === null)
+      ) {
+        skillStatus = 'no-target'
+      } else {
+        const targetedSkills = decision.skills.filter((skill) => skill.targetLevel !== null)
+        const hasUnknown = targetedSkills.some(
           (skill) =>
-            skill.targetLevel !== null &&
-            record.skillLevels[skill.key] !== null &&
-            record.skillLevels[skill.key]! < skill.targetLevel,
+            record.skillLevels[skill.key] === null || record.skillLevels[skill.key] === undefined,
         )
-        .sort((left, right) => Number(right.priority) - Number(left.priority))
-        .map((skill) => `${skill.label} ${record.skillLevels[skill.key]} → ${skill.targetLevel}级`)
+        if (hasUnknown) {
+          skillStatus = 'unknown'
+        } else {
+          const gaps = targetedSkills.filter(
+            (skill) => record.skillLevels[skill.key]! < skill.targetLevel!,
+          )
+          if (gaps.length > 0) {
+            skillStatus = 'has-gaps'
+          } else {
+            skillStatus = 'complete'
+          }
+        }
+      }
+
+      const nextTrainingSteps =
+        skillStatus === 'has-gaps'
+          ? decision!.skills
+              .filter(
+                (skill) =>
+                  skill.targetLevel !== null &&
+                  record.skillLevels[skill.key] !== null &&
+                  record.skillLevels[skill.key]! < skill.targetLevel!,
+              )
+              .sort((left, right) => Number(right.priority) - Number(left.priority))
+              .map(
+                (skill) =>
+                  `${skill.label} ${record.skillLevels[skill.key]} → ${skill.targetLevel}级`,
+              )
+          : []
       return [
         {
           agentId,
@@ -176,14 +212,17 @@ export function AgentDevelopmentGoldenDirectoryPage() {
           cultivationPriority: decision?.authority?.cultivationPriority,
           confidence: decision?.authority?.confidence,
           nextTrainingSteps,
+          skillStatus,
           trainingContext: {
-            hasPrioritySkillGap: skillTargets.some(
-              (skill) =>
-                skill.priority &&
-                skill.targetLevel !== null &&
-                record.skillLevels[skill.key] !== null &&
-                record.skillLevels[skill.key]! < skill.targetLevel,
-            ),
+            hasPrioritySkillGap:
+              skillStatus === 'has-gaps' &&
+              decision!.skills.some(
+                (skill) =>
+                  skill.priority &&
+                  skill.targetLevel !== null &&
+                  record.skillLevels[skill.key] !== null &&
+                  record.skillLevels[skill.key]! < skill.targetLevel!,
+              ),
             inSavedTeam: data.planningDrafts.some(
               (plan) =>
                 plan.kind === 'team' &&

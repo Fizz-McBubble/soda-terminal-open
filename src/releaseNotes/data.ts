@@ -10,6 +10,20 @@ export interface ReleaseNote {
 // A local fix or commit is not a published release; add it when that release ships.
 export const releases = [
   {
+    id: '20261015-box-and-development-closeout',
+    date: '2026-10-15',
+    scope: '配队、养成、驱动盘与资产快读',
+    title: '修复 BOX 排序与方案恢复，补齐养成建议',
+    changes: [
+      '修复 BOX 跨等级排序和部分队伍评分过度集中；没有高评级方向时保留可用的 A 档队伍，方便继续配装。',
+      '补齐 60 位代理人的下一技能等级与所需材料，统一影画附加等级、当前状态和养成目标。',
+      '完善邦布技能与辅助效果的计算和推荐，精简卡片信息，保留合法邦布的手动选择。',
+      '方案比较沿用六盘布局，增强替换盘与有效词条的区分，压缩重复说明；暂时移除收益不明确的场景切换入口。',
+      '修复个人和队伍方案保存、刷新时丢失潜能或音擎参数的问题，同步仓库搭配、更多比较和驱动盘分析。',
+      '资产快读安装器更新至 1.1.0、连接服务更新至 1.0.6，补齐从 1.0.10 升级及失败恢复；保留原有资产、旧名称兼容与诊断回执。',
+    ],
+  },
+  {
     id: '20261014-recommendation-data-continuity',
     date: '2026-10-14',
     scope: '养成、配队、邦布与数据兼容',

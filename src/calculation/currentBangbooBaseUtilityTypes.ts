@@ -1,3 +1,5 @@
+import type { ReviewedBangbooRecoveryBinding } from '../gameDataPacks/reviewedBangbooRecoverySemantics'
+
 export type BangbooBaseUtilityType =
   | 'hp_restore'
   | 'shield'
@@ -19,6 +21,7 @@ export type BangbooUtilityReceiver =
   | 'pickup_agent'
   | 'target_agent'
   | 'triggering_agent'
+  | 'off_field_agents'
 
 export type BangbooTargetRestriction = 'standard_energy_only' | 'none'
 
@@ -73,6 +76,18 @@ export interface BangbooBaseUtilityOutput {
   readonly trigger: string
   readonly capacityOnly: boolean
   readonly value: number
+  /** Source ratio stays in value; this capacity requires an explicit level/ascension pair. */
+  readonly absoluteValue?: number
+  readonly absoluteUnit?: 'hp_point' | 'shield_point'
+  readonly ascensionLevelCap?: 10 | 20 | 30 | 40 | 50 | 60
+  readonly hpBasisEvidence?: ReviewedBangbooRecoveryBinding
+  readonly additionalAbilityEvidence?: {
+    readonly level: number
+    readonly parameterPointer: string
+    readonly rawLevelParam: string
+    readonly semanticSha256: string
+    readonly operators: readonly string[]
+  }
   readonly values: readonly number[]
   readonly skillLevel: number
   readonly bangbooLevel: number
@@ -108,4 +123,5 @@ export interface ResolveBangbooBaseUtilityInput {
   readonly stableId: string
   readonly skillLevel: number
   readonly bangbooLevel: number
+  readonly ascensionLevelCap?: 10 | 20 | 30 | 40 | 50 | 60
 }

@@ -27,6 +27,7 @@ export function convertSnapshotAgentSkills(
     core: null,
   }
   const seen = new Set<string>()
+  const successfullyObserved = new Set<string>()
   for (const skill of skills) {
     const key =
       skill.skill_type.presence === 'invalid'
@@ -38,6 +39,7 @@ export function convertSnapshotAgentSkills(
         levels[key] = null
         const observed = observedFields.indexOf(`skillLevels.${key}`)
         if (observed !== -1) observedFields.splice(observed, 1)
+        successfullyObserved.delete(key)
       }
       continue
     }
@@ -47,8 +49,9 @@ export function convertSnapshotAgentSkills(
       levels[key] =
         base + (key === 'core' ? 0 : (mindscape! >= 3 ? 2 : 0) + (mindscape! >= 5 ? 2 : 0))
       observedFields.push(`skillLevels.${key}`)
+      successfullyObserved.add(key)
     }
   }
-  if (seen.size !== 6) issue('missing_skills', '缺少六项完整技能观察。')
+  if (successfullyObserved.size !== 6) issue('missing_skills', '缺少六项完整技能观察。')
   return levels
 }

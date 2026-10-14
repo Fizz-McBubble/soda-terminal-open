@@ -1,6 +1,7 @@
 import { current31StrengthGoldSet } from './current31StrengthGoldSet'
 import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
 import { stableContentHash } from '../gameDataPacks/types'
+import { reviewCurrent31ProductionPairwiseEvidence } from './current31ProductionPairwiseEvidence'
 import {
   canApplyReviewedReferenceSupport32,
   isExistingReviewed31Formation,
@@ -22,7 +23,7 @@ const continuedReference = () =>
  * a source-disjoint acceptance set.
  */
 export const current31ProductionPartialOrderContractId =
-  'soda-current-3.1-production-partial-order/v2' as const
+  'soda-current-3.1-production-partial-order/v3' as const
 
 type VariantIdentity = {
   memberIds: readonly string[]
@@ -49,11 +50,13 @@ const relations = current31StrengthGoldSet.highConfidencePairwise.map((pair) => 
     weaker: current31ProductionPartialOrderVariantKey(weaker),
     evidenceRefs: pair.labelEvidenceRefs,
     basis: pair.basis,
+    review: reviewCurrent31ProductionPairwiseEvidence(stronger.memberIds, weaker.memberIds),
   })
 })
 
 const strongerByWeaker = new Map<string, readonly string[]>()
 for (const relation of relations) {
+  if (!relation.review.defaultSameBandOrderingEligible) continue
   const existing = strongerByWeaker.get(relation.weaker!) ?? []
   strongerByWeaker.set(relation.weaker!, [...existing, relation.stronger!])
 }
@@ -115,8 +118,15 @@ export const current31ProductionPartialOrder = Object.freeze({
   gameVersion: '3.1',
   grain: 'exact_3_agent' as const,
   relationCount: relations.length,
+  activeRelationCount: relations.filter(
+    (relation) => relation.review.defaultSameBandOrderingEligible,
+  ).length,
+  contextualRelationCount: relations.filter(
+    (relation) => !relation.review.defaultSameBandOrderingEligible,
+  ).length,
+  orderingScope: 'same_coarse_strength_band_local_preference' as const,
   relations,
   sourceDisjointHoldout: false as const,
   boundary:
-    '生产偏序只消费已确认的精确三人公开关系，邦布不参与排序身份；无关系时并列，不以数值输出或来源顺序补成全序。这些生产关系不是独立留出验证。',
+    '生产偏序保留精确三人的本地来源偏好，仅作同粗档细序，邦布不参与身份。观测分区出现反向记录的关系保留上下文但不用于默认排序，也不反向定档；无关系时并列，不以均值、来源顺序或单人评级补成全序。这些关系不是独立留出验证。',
 })

@@ -1,3 +1,5 @@
+import { supplementReviewedGuideSkillTargets } from './reviewedGuideSkillTargets20261014'
+import { supplementReviewedGuideWEngineDirections } from './reviewedGuideWEngineDirections20261014'
 import { r5WarehouseCandidateOverrides } from './r5WarehouseCandidateOverrides'
 import { pageCandidateDirections } from './pageCandidateDirections'
 import { agentCatalog } from '../assault/catalog'
@@ -239,7 +241,16 @@ export const playerBuildProfiles30: PlayerBuildProfile[] = agentCatalog
       agentName,
       gameVersion: '3.0' as const,
       profileVersion: '3.0.2',
-      fields: fields.map((field) => applyReviewedDiscCorrections(agentId, field)),
+      fields: fields.map((field) =>
+        applyReviewedDiscCorrections(
+          agentId,
+          field.path === 'build.wengines'
+            ? supplementReviewedGuideWEngineDirections(agentId, field)
+            : field.path === 'build.progression'
+              ? supplementReviewedGuideSkillTargets(agentId, field)
+              : field,
+        ),
+      ),
     }
     return { ...input, contentHash: stableContentHash(input) }
   })

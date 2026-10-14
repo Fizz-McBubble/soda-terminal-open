@@ -6,6 +6,7 @@ import { SelectMenu } from './SelectMenu'
 import { JsonFileDropTarget } from '../../JsonFileDropTarget'
 import './account-file-drop.css'
 import { RestoreRecoveryCopies } from '../../dataCenter/RestoreRecoveryCopies'
+import { AccountDeleteDialog, AccountRenameDialog } from './AccountWorkspaceDialogs'
 
 export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
   const backupSectionRef = useRef<HTMLElement>(null)
@@ -358,68 +359,20 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
           ) : null}
         </div>
       </section>
-      <dialog
-        className="soda-asset-dialog account-rename-dialog"
-        ref={renameDialogRef}
-        open={renameDialogOpen || undefined}
-        aria-labelledby="rename-account-title"
-        onCancel={(event) => {
-          if (renamePendingRef.current) event.preventDefault()
-          else closeRenameDialog()
+      <AccountRenameDialog
+        dialogRef={renameDialogRef}
+        open={renameDialogOpen}
+        pendingRef={renamePendingRef}
+        value={renameValue}
+        renaming={renaming}
+        error={renameError}
+        onClose={closeRenameDialog}
+        onChangeValue={(val) => {
+          setRenameValue(val)
+          setRenameError(null)
         }}
-        onClose={() => {
-          setRenameDialogOpen(false)
-          setRenameTarget(null)
-          renameOpenerRef.current?.focus()
-        }}
-      >
-        <form
-          onSubmit={(event) => {
-            event.preventDefault()
-            void saveRename()
-          }}
-        >
-          <header>
-            <h2 id="rename-account-title">重命名账户</h2>
-            <button
-              type="button"
-              className="icon-button"
-              aria-label="关闭"
-              disabled={renaming}
-              onClick={closeRenameDialog}
-            >
-              ×
-            </button>
-          </header>
-          <label htmlFor="rename-account-name">账户名称</label>
-          <input
-            id="rename-account-name"
-            autoFocus
-            maxLength={40}
-            value={renameValue}
-            disabled={renaming}
-            aria-invalid={Boolean(renameError)}
-            aria-describedby={renameError ? 'rename-account-error' : undefined}
-            onChange={(event) => {
-              setRenameValue(event.target.value)
-              setRenameError(null)
-            }}
-          />
-          {renameError ? (
-            <p id="rename-account-error" role="alert">
-              {renameError}
-            </p>
-          ) : null}
-          <footer>
-            <button type="button" className="quiet" disabled={renaming} onClick={closeRenameDialog}>
-              取消
-            </button>
-            <button type="submit" className="primary" disabled={renaming}>
-              {renaming ? '正在保存…' : '保存'}
-            </button>
-          </footer>
-        </form>
-      </dialog>
+        onSave={() => void saveRename()}
+      />
       <dialog
         className="soda-asset-dialog"
         ref={dialogRef}
@@ -506,58 +459,23 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
           </footer>
         </form>
       </dialog>
-      <dialog
-        className="soda-asset-dialog"
-        ref={deleteDialogRef}
-        open={deleteDialogOpen || undefined}
-        aria-labelledby="delete-account-title"
-        onCancel={(event) => {
-          if (deleting) event.preventDefault()
+      <AccountDeleteDialog
+        dialogRef={deleteDialogRef}
+        open={deleteDialogOpen}
+        deleting={deleting}
+        deleteTarget={deleteTarget}
+        onClose={closeDeleteDialog}
+        onConfirmDelete={() => {
+          if (!deleteTarget) return
+          setDeleting(true)
+          void props
+            .onDeleteAccount(deleteTarget.id)
+            .then((deleted) => {
+              if (deleted) closeDeleteDialog()
+            })
+            .finally(() => setDeleting(false))
         }}
-        onClose={() => setDeleteDialogOpen(false)}
-      >
-        <form>
-          <header>
-            <div>
-              <small>永久删除</small>
-              <h2 id="delete-account-title">删除“{deleteTarget?.displayName}”？</h2>
-            </div>
-            <button
-              type="button"
-              className="icon-button"
-              aria-label="关闭"
-              disabled={deleting}
-              onClick={closeDeleteDialog}
-            >
-              ×
-            </button>
-          </header>
-          <p>该账户的代理人、音擎、邦布、驱动盘、扫描记录、偏好与已保存方案都会永久删除。</p>
-          <p>页面内不能撤销；只有此前导出的备份可以恢复。</p>
-          <footer>
-            <button type="button" className="quiet" disabled={deleting} onClick={closeDeleteDialog}>
-              取消
-            </button>
-            <button
-              type="button"
-              className="danger"
-              disabled={deleting || !deleteTarget}
-              onClick={() => {
-                if (!deleteTarget) return
-                setDeleting(true)
-                void props
-                  .onDeleteAccount(deleteTarget.id)
-                  .then((deleted) => {
-                    if (deleted) closeDeleteDialog()
-                  })
-                  .finally(() => setDeleting(false))
-              }}
-            >
-              {deleting ? '正在删除…' : '永久删除账户'}
-            </button>
-          </footer>
-        </form>
-      </dialog>
+      />
     </>
   )
 }

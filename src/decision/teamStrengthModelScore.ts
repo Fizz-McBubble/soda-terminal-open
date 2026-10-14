@@ -4,10 +4,10 @@ export function constrainTeamStrengthScore(
   prediction: number,
   guardrails: { noPrimaryOutput: boolean; severeFieldCompetition: boolean },
 ) {
-  // A trio without a damage role, or three competing field carries, is not an
-  // ordinary high-tier formation just because its individual skills are large.
+  // A role-based field-time prior remains a diagnostic/learned feature. It does
+  // not prove a rotation impossible or justify a hard tier ceiling.
   // Unknown evidence/optional triggers do not receive a strength penalty.
-  const ceiling = guardrails.noPrimaryOutput ? 59 : guardrails.severeFieldCompetition ? 69 : 98
+  const ceiling = guardrails.noPrimaryOutput ? 59 : 98
   return Math.round(Math.max(40, Math.min(ceiling, prediction)))
 }
 

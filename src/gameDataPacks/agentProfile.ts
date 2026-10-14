@@ -1,52 +1,37 @@
 import { visualRefsFor } from './agentProfileVisualRefs'
-import {
-  buildField,
-  projectBuildKnowledgeProfile,
-  strings,
-} from './agentProfileBuildKnowledgeProjection'
+import { buildField, projectBuildKnowledgeProfile } from './agentProfileBuildKnowledgeProjection'
 import { upstreamOptimizerBaseline } from './agentProfileFieldProjection'
-export { upstreamOptimizerBaseline } from './agentProfileFieldProjection'
 import { agentCatalog, getAgentName } from '../assault/catalog'
 import { getVisualAssetCoverage } from '../assets/visualAssets'
-import {
-  canonicalBaseline30,
-  canonicalFieldConflictLedger,
-  canonicalSourceCensus,
-  type CanonicalFieldStatus,
-} from './canonicalBaseline'
+import { canonicalBaseline30, canonicalSourceCensus } from './canonicalBaseline'
 import { getCandidateWarehouseConstraint } from './candidateWarehouseConstraints'
 import { combatFieldIntakes30 } from './combatFieldIntake'
 import { directDamage30SourceLedger } from './directDamageLedger'
 import { gameBase30FieldContinuityLedger } from './fieldContinuity'
 import { projectedReviewedBuild32Fields } from './agentProfileFieldProjection'
-
-// Frozen review identity of the existing adapter; a global title is not a new review.
-const legacyProfileReviewVersion = '3.1'
-import {
-  playerBuildProfiles30,
-  type PlayerBuildField,
-  type PlayerBuildSource,
-} from './playerBuildProfiles'
+import { playerBuildProfiles30 } from './playerBuildProfiles'
 import { stableContentHash } from './types'
 import { currentTeamGuidanceField } from './currentTeamGuidanceField'
 import {
-  getReviewedGuideBuildConditions,
-  getReviewedHistoricalWEngineReferences,
-} from './reviewedGuideBuildDirections'
-import { getArchivedGuideSetSupplements } from './archivedGuideSetSections'
-import {
-  type AgentProfileFieldStatus,
-  type AgentProfileSourceRef,
   type AgentProfileField,
   type UpstreamAgentProfileAdapter,
   type AgentProfile,
   type ProjectedBuildKnowledgeProfile,
   projectedCurrentConstraintFields,
 } from './agentProfileFieldProjection'
+import {
+  sourceRef,
+  canonicalStatus,
+  conflictsFor,
+  projectedPlayerField,
+} from './agentProfilePlayerFields'
+export { upstreamOptimizerBaseline } from './agentProfileFieldProjection'
+export type { AgentProfileFieldStatus, AgentProfileSourceRef } from './agentProfileFieldProjection'
+
+// Frozen review identity of the existing adapter; a global title is not a new review.
+const legacyProfileReviewVersion = '3.1'
 export {
   agentProfileFieldStatuses,
-  type AgentProfileFieldStatus,
-  type AgentProfileSourceRef,
   type AgentProfileField,
   type AgentProfileVisualRef,
   type UpstreamCompatibilityRef,
@@ -54,106 +39,6 @@ export {
   type AgentProfile,
   type ProjectedBuildKnowledgeProfile,
 } from './agentProfileFieldProjection'
-
-function sourceRef(source: PlayerBuildSource | null): AgentProfileSourceRef[] {
-  if (!source) return []
-  return [
-    {
-      id: source.id,
-      url: source.url,
-      sourceVersion: source.sourceVersion,
-      checkedAt: source.checkedAt,
-      contentHash: source.contentHash,
-      licenseBoundary: source.licenseBoundary,
-    },
-  ]
-}
-
-function canonicalStatus(status: CanonicalFieldStatus): AgentProfileFieldStatus {
-  return status === 'formal' ? 'formal' : status
-}
-
-function conflictsFor(agentId: string, path: string) {
-  return (
-    canonicalFieldConflictLedger.find((item) => item.fieldPath === `${agentId}.${path}`) ?? null
-  )
-}
-
-function playerFieldGroup(path: string): AgentProfileField['group'] {
-  if (path === 'identity') return 'identity_version'
-  if (path.startsWith('progression.')) return 'progression'
-  if (path.startsWith('build.')) return 'build_guidance'
-  return 'equipment_facts'
-}
-
-function projectedPlayerField(field: PlayerBuildField, agentId: string): AgentProfileField {
-  const conflict = conflictsFor(agentId, field.path)
-  const potentialAffected = field.path === 'progression.potential_overlay'
-  const supplements = getReviewedGuideBuildConditions(agentId, field.path)
-  const historicalWEngines =
-    field.path === 'build.wengines' ? getReviewedHistoricalWEngineReferences(agentId) : []
-  const conditions = [
-    ...(agentId === 'agent-banyue' && field.path === 'build.drive_disc_sets'
-      ? [
-          '炎狱重金属2件是原文限定副词条优秀时的备选；尚未完成同面板比较，只保留来源参考，自动匹配保留折枝剑歌或啄木鸟电音副套。',
-        ]
-      : []),
-    ...(agentId === 'agent-evelyn' && field.path === 'build.drive_disc_sets'
-      ? [
-          '自动匹配仍沿用已收录的2+2+2散搭候选；其他已归档配装与操作条件在历史参考中展示。可用不代表当前毕业或唯一优选，同面板收益及当前优先级仍待核验。',
-        ]
-      : []),
-    ...(agentId === 'agent-nangong' && field.path === 'build.drive_disc_sets'
-      ? [
-          '单人可用法厄同4件搭配精通2件；爱芮队沿用该方向，其他异常输出与支援组队时可选静听4件，通过快速支援叠加效果。',
-        ]
-      : []),
-    ...(agentId === 'agent-grace' && field.path === 'build.drive_disc_sets'
-      ? [
-          '雷暴重金属4件需要感电覆盖；当前未核验该条件，只保留来源参考，自动匹配沿用自由蓝调4件方向。',
-        ]
-      : []),
-    ...supplements.flatMap((supplement) => supplement.conditions),
-    ...historicalWEngines.flatMap((reference) => reference.conditions),
-  ]
-  const archivedSets =
-    field.path === 'build.drive_disc_sets' ? getArchivedGuideSetSupplements(agentId) : null
-  return {
-    group: playerFieldGroup(field.path),
-    path: field.path,
-    value: archivedSets
-      ? [
-          ...strings(field.value),
-          ...archivedSets.sets.map(
-            (text) => `历史来源参考（当前适用性待核验，不参与自动配装）：${text}`,
-          ),
-        ]
-      : field.value,
-    status:
-      field.status === 'candidate' && field.source?.verified && !conflict
-        ? 'verified_candidate'
-        : field.status,
-    gameVersion: legacyProfileReviewVersion,
-    originalSourceVersion: field.source?.sourceVersion ?? null,
-    lastChangeVersion: potentialAffected ? '3.0' : null,
-    currentApplicability: potentialAffected
-      ? 'affected_pending'
-      : field.status === 'missing' || !field.source?.verified
-        ? 'unknown'
-        : 'continuous',
-    sourceRefs: [
-      ...sourceRef(field.source),
-      ...supplements.flatMap((supplement) => sourceRef(supplement.source)),
-      ...sourceRef(archivedSets?.source ?? null),
-      ...(archivedSets?.additionalSources ?? []).flatMap((source) => sourceRef(source)),
-      ...historicalWEngines.flatMap((reference) => sourceRef(reference.source)),
-    ],
-    ...(conditions.length ? { conditions } : {}),
-    verifiedAt: field.source?.checkedAt ?? null,
-    conflict,
-    reason: conflict ? `${field.reason}；存在来源差异，保留候选而不静默采用。` : field.reason,
-  }
-}
 
 function canonicalFieldsFor(agentId: string): AgentProfileField[] {
   const entity = canonicalBaseline30.find((item) => item.stableId === agentId)

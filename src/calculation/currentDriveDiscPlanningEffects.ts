@@ -22,6 +22,7 @@ import {
 export const currentDriveDiscPlanningEffectVersion = 'disc-fixed-event-and-functional-passives-r2'
 
 const directStats: Record<string, SourceBackedEquipmentModifierBucket['application']> = {
+  'combat.atk_': 'attack_percent',
   'combat.crit_dmg_': 'crit_damage',
   'combat.crit_': 'crit_rate',
   'combat.dmg_': 'damage_bonus',
@@ -74,6 +75,16 @@ export function compileCurrentDriveDiscPlanningEffects(input: {
   loadouts: readonly { agentId: string; discs: readonly { setId: string }[] }[]
   /** Only supplied by the named prepared model; omission remains unknown. */
   preparedQuickAssist?: 'none_in_preceding_15s_or_counted_events'
+  preparedWhiteWaterByAgentId?: Readonly<
+    Record<
+      string,
+      {
+        critWindowActive?: boolean
+        attackWindowActive?: boolean
+        sourceRefs: readonly string[]
+      }
+    >
+  >
 }) {
   const buckets: SourceBackedEquipmentModifierBucket[] = []
   const exclusions: Array<
@@ -176,6 +187,32 @@ export function compileCurrentDriveDiscPlanningEffects(input: {
         const match = /^eq:own.char.(attribute|specialty):(.+)$/.exec(flag)
         if (match) flags[flag] = identity[match[1] as 'attribute' | 'specialty'] === match[2]
       }
+      const whiteWaterPreparation = input.preparedWhiteWaterByAgentId?.[member.agentId]
+      if (source.upstreamKey === 'WhiteWaterBallad' && whiteWaterPreparation) {
+        if (
+          !whiteWaterPreparation.sourceRefs.length ||
+          whiteWaterPreparation.sourceRefs.some((ref) => !ref.trim())
+        ) {
+          blockers.push(`沧浪行歌准备态缺少声明来源：${member.agentId}`)
+          continue
+        }
+        for (const [field, flag] of [
+          ['critWindowActive', 'WhiteWaterBallad:inEtherVeil'],
+          ['attackWindowActive', 'WhiteWaterBallad:activateExtendVeil'],
+        ] as const) {
+          const value = whiteWaterPreparation[field]
+          if (value !== undefined && typeof value !== 'boolean') {
+            blockers.push(`沧浪行歌准备态必须为布尔或未知：${member.agentId}:${field}`)
+            continue
+          }
+          if (typeof value === 'boolean') flags[flag] = value
+        }
+        sourceRefs.push(...whiteWaterPreparation.sourceRefs)
+      }
+      const knownInactiveWhiteWater =
+        source.upstreamKey === 'WhiteWaterBallad' &&
+        flags['WhiteWaterBallad:inEtherVeil'] === false &&
+        (identity.specialty !== 'attack' || flags['WhiteWaterBallad:activateExtendVeil'] === false)
       // Polar combines its unconditional bonus and triggered multiplier in one
       // expression. Evaluate the declared no-trigger baseline, and retain the
       // excluded trigger explicitly. This is not an observed enemy state.
@@ -228,7 +265,12 @@ export function compileCurrentDriveDiscPlanningEffects(input: {
           ),
         )
       }
-      if (!result.effects.length && !result.exclusions.length && !knownInactiveAstral)
+      if (
+        !result.effects.length &&
+        !result.exclusions.length &&
+        !knownInactiveAstral &&
+        !knownInactiveWhiteWater
+      )
         exclude(
           'static_condition_not_met',
           requirements.flags.concat(requirements.numbers),
@@ -277,6 +319,7 @@ export function compileCurrentDriveDiscPlanningEffects(input: {
     buckets,
     exclusions,
     preparedQuickAssist: input.preparedQuickAssist ?? null,
+    preparedWhiteWaterByAgentId: input.preparedWhiteWaterByAgentId ?? null,
     blockers,
     boundary:
       '两件套护盾与失衡加成交给具名功能消费者，其他静态字段由初始面板消费；四件套只采用可证明的效果。未观测触发、叠层、时窗及未适配功能保持缺口。没有模拟全队四件套联动或证明18盘最优。',

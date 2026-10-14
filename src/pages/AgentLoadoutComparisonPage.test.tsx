@@ -13,7 +13,10 @@ import type { DriveDisc } from '../domain/schemas'
 import { AgentLoadoutComparisonPage } from './AgentLoadoutComparisonPage'
 import { candidateMainStatDifferences } from './candidateMainStatDifferences'
 import { agentDevelopmentMainStatDifferences } from './agentDevelopmentMainStatDifferences'
-import { cacheDevelopmentCandidateSnapshot } from './agentDevelopmentCandidateSession'
+import {
+  cacheDevelopmentCandidateSnapshot,
+  readDevelopmentCandidateSnapshot,
+} from './agentDevelopmentCandidateSession'
 import { ReturnLocation } from './AgentLoadoutComparisonPage.testFixture'
 describe('golden warehouse comparison adapter', () => {
   it('describes only recorded 4/5/6 main-stat differences against the candidate constraint', () => {
@@ -212,6 +215,14 @@ describe('golden warehouse comparison adapter', () => {
         wEngines: [{ engineId: 'wengine-13001', name: '街头巨星' }],
         potentialSupported: false,
       },
+      candidateSearch: {
+        rankingMethod: 'source_and_local_refinement',
+        status: 'budget_exhausted',
+        nodes: 30000,
+        evaluations: 384,
+        exactWithinDeclaredModel: false,
+        productionGameAccuracyCertified: false,
+      },
       runId: 'aria-route-run',
       capturedAt: '2026-09-07T00:00:00.000Z',
       inputFingerprint: 'aria-fingerprint',
@@ -314,7 +325,7 @@ describe('golden warehouse comparison adapter', () => {
     )
     view.unmount()
 
-    render(
+    const comparisonView = render(
       <MemoryRouter initialEntries={['/development/agent-aria/compare']}>
         <Routes>
           <Route path="/development/:agentId/compare" element={<AgentLoadoutComparisonPage />} />
@@ -329,9 +340,34 @@ describe('golden warehouse comparison adapter', () => {
     expect(saveCurrentAgentBuild).not.toHaveBeenCalled()
     await user.click(screen.getByRole('button', { name: '重新搭配' }))
     await waitFor(() =>
-      expect(getQueryComparisonMock()).toHaveBeenLastCalledWith('aria-route-run', 'agent-aria'),
+      expect(getQueryComparisonMock()).toHaveBeenLastCalledWith(
+        'aria-route-run',
+        'agent-aria',
+        undefined,
+        { schemaVersion: 1, id: 'normalized-comparison' },
+        undefined,
+      ),
     )
     expect(comparisonAgent.wEngineDetails.level).toBe(60)
+    expect(saveCurrentAgentBuild).not.toHaveBeenCalled()
+    expect(screen.queryByRole('combobox', { name: '比较场景' })).not.toBeInTheDocument()
+    // Removing the UI control must not rewrite a previously selected comparison.
+    const retainedSnapshot = readDevelopmentCandidateSnapshot('comparison-account', 'agent-aria')!
+    cacheDevelopmentCandidateSnapshot({
+      ...retainedSnapshot,
+      scenarioSelection: { schemaVersion: 1, id: 'declared-stun-comparison' },
+      scenarioIdentity: 'fixture-scene:declared-stun-comparison',
+    })
+    comparisonView.unmount()
+    render(
+      <MemoryRouter initialEntries={['/development/agent-aria/compare?candidate=2']}>
+        <Routes>
+          <Route path="/development/:agentId/compare" element={<AgentLoadoutComparisonPage />} />
+          <Route path="/development/:agentId" element={<ReturnLocation />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+    expect(screen.queryByRole('combobox', { name: '比较场景' })).not.toBeInTheDocument()
     expect(saveCurrentAgentBuild).not.toHaveBeenCalled()
     await user.click(screen.getByRole('button', { name: '保存为养成方案' }))
     await waitFor(() =>
@@ -359,7 +395,19 @@ describe('golden warehouse comparison adapter', () => {
     expect(screen.getByRole('button', { name: '已保存方案' })).toBeDisabled()
     expect(screen.getByLabelText('当前方案操作')).toHaveTextContent('6 / 6')
     const savedPayload = saveCurrentAgentBuild.mock.calls[0]?.[1]
+    expect(savedPayload?.solutionContext.scenarioSelection).toEqual({
+      schemaVersion: 1,
+      id: 'declared-stun-comparison',
+    })
+    expect(savedPayload?.solutionContext.scenarioIdentity).toBe(
+      'fixture-scene:declared-stun-comparison',
+    )
     expect(savedPayload?.solutionContext.comparisonParameters).toBeUndefined()
+    expect(savedPayload?.solutionContext.candidateSearch).toMatchObject({
+      rankingMethod: 'source_and_local_refinement',
+      status: 'budget_exhausted',
+      evaluations: 384,
+    })
     expect(savedPayload?.comparisonCapability).toBe('direction')
     expect(savedPayload?.candidateWarehouse?.inventoryTransition).toBe(true)
     expect(savedPayload?.warehouseRefs).toEqual(candidateDiscs.map((disc) => disc.id))
@@ -367,6 +415,13 @@ describe('golden warehouse comparison adapter', () => {
     expect(
       savedPayload?.warehouseRefs.some((id) => candidateOneDiscs.some((disc) => disc.id === id)),
     ).toBe(false)
+    await user.click(screen.getByRole('button', { name: '重新搭配' }))
+    await waitFor(() =>
+      expect(
+        readDevelopmentCandidateSnapshot('comparison-account', 'agent-aria')?.scenarioSelection,
+      ).toEqual({ schemaVersion: 1, id: 'normalized-comparison' }),
+    )
+    expect(savedPayload?.solutionContext.scenarioSelection?.id).toBe('declared-stun-comparison')
     await user.click(screen.getByRole('button', { name: '返回养成' }))
     expect(screen.getByTestId('returned-location')).toHaveTextContent(
       '/development/agent-aria?plan=saved-aria',

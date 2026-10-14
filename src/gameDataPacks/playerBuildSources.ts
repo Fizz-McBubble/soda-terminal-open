@@ -20,6 +20,13 @@ export type PlayerBuildField = {
   value: unknown | null
   source: PlayerBuildSource | null
   reason: string
+  /** Field-local provenance for unions; the original source only supports its original values. */
+  sourceValues?: string[]
+  supplementalSources?: Array<{
+    source: PlayerBuildSource
+    values: string[]
+    conditionsByValue?: Record<string, string[]>
+  }>
 }
 
 export type PlayerBuildProfile = {

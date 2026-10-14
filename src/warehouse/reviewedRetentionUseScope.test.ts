@@ -112,11 +112,18 @@ describe('source-bound ordinary M0 reserve policy', () => {
       ).toBe(false)
       const { contentHash, ...payload } = constraint
       expect(contentHash).toBe(binding.profileFingerprint)
-      const weightPayload = { ...payload, subStatWeights: { ...constraint.subStatWeights, hp_flat: 999 } }
-      expect(getReviewedNormalM0UseScope(
-        { ...weightPayload, contentHash: stableContentHash(weightPayload) },
-        binding.actorAgentId, binding.goals[0]!, contract,
-      )).toBeUndefined()
+      const weightPayload = {
+        ...payload,
+        subStatWeights: { ...constraint.subStatWeights, hp_flat: 999 },
+      }
+      expect(
+        getReviewedNormalM0UseScope(
+          { ...weightPayload, contentHash: stableContentHash(weightPayload) },
+          binding.actorAgentId,
+          binding.goals[0]!,
+          contract,
+        ),
+      ).toBeUndefined()
       const mutated = {
         ...constraint,
         mainStats: { ...constraint.mainStats, '4': ['def_percent' as const] },

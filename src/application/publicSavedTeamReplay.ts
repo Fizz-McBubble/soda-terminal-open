@@ -1,3 +1,4 @@
+import { savedReviewedEventConditionDeclarationsIdentity32 } from '../calculation/reviewedEventConditionDeclarations32'
 import type { AccountPlanningDraft } from '../accounts/types'
 import { contentHash } from './contentHash'
 
@@ -41,6 +42,11 @@ export function savedTeamReplayPlanHash(plan: AccountPlanningDraft) {
           gameVersion: plan.solutionContext.gameVersion,
           knowledgeVersion: plan.solutionContext.knowledgeVersion,
           exactVariantKey: plan.solutionContext.exactVariantKey,
+          scenarioSelection: plan.solutionContext.scenarioSelection,
+          scenarioIdentity: plan.solutionContext.scenarioIdentity,
+          eventConditionDeclarationsIdentity: savedReviewedEventConditionDeclarationsIdentity32(
+            plan.solutionContext.eventConditionDeclarationsByAgentId,
+          ),
         }
       : null,
   })

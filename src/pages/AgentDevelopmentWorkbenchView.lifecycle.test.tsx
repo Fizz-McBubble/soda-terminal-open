@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { ReturnLocation } from './AgentLoadoutComparisonPage.testFixture'
 import { beforeEach, expect, it, vi } from 'vitest'
 import { AgentDevelopmentWorkbenchView } from './AgentDevelopmentWorkbenchView'
-import { createEmptyRoster } from '../assault/catalog'
+import { createWorkbenchViewProps as props } from './agentDevelopmentWorkbenchViewTestSupport'
 import { Workbench } from '../features/agentDevelopmentGolden/AgentDevelopmentWorkbench'
 import { workbench } from '../features/agentDevelopmentGolden/AgentDevelopmentGolden.workbench.testFixture'
 import { developmentCurrentRecordBinding } from '../application/publicDevelopmentWorkbenchRoute'
@@ -45,44 +45,6 @@ vi.mock('../application/publicDevelopmentWorkbenchRoute', async (original) => ({
 
 type Props = ComponentProps<typeof AgentDevelopmentWorkbenchView>
 type RouteResult = Awaited<ReturnType<Props['queryDevelopmentWorkbenchRoute']>>
-function props(query: Props['queryDevelopmentCandidateAlternatives']): Props {
-  return {
-    agentId: 'agent-billy',
-    accountId: 'isolated-a',
-    agentName: '比利',
-    roster: createEmptyRoster('2026-10-04T00:00:00.000Z'),
-    workbenchData: { discs: [] } as unknown as Props['workbenchData'],
-    savingThisAgent: false,
-    editingThisAgent: false,
-    candidateSnapshotStale: false,
-    retainingDuringSave: false,
-    saveRefresh: null,
-    editingPresentation: null,
-    decisionWorld: {
-      status: 'current',
-      liveFingerprint: 'isolated-input',
-      run: {
-        runId: 'isolated-run',
-        inputFingerprint: 'isolated-input',
-        input: { warehouse: { discs: [] } },
-      },
-    } as unknown as Props['decisionWorld'],
-    queryDevelopmentCandidateAlternatives: query,
-    queryDevelopmentWorkbenchRoute: vi.fn().mockResolvedValue({}),
-    candidates: [],
-    candidateSnapshot: null,
-    equipment: null,
-    requestedPlanId: null,
-    selectedCandidateRank: 1,
-    setAnalysisVersion: vi.fn(),
-    setWarehouseRefresh: vi.fn(),
-    setEditingPresentation: vi.fn(),
-    setEditingCurrent: vi.fn(),
-    setSaveRefresh: vi.fn(),
-    setRouteRead: vi.fn(),
-    setLastRouteProjection: vi.fn(),
-  }
-}
 beforeEach(() => vi.clearAllMocks())
 
 it('releases the committed edit snapshot before a slow account analysis finishes', async () => {

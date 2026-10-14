@@ -143,8 +143,9 @@ describe('current Bangboo base active utility contracts', () => {
     })[0]!
 
     expect(lv1.utilityType).toBe('hp_restore')
-    expect(lv1.unit).toBe('hp_ratio_unresolved_basis')
-    expect(lv1.hpBasis).toBe('unresolved')
+    expect(lv1.unit).toBe('hp_ratio_bangboo_hp')
+    expect(lv1.hpBasis).toBe('bangboo_max_hp')
+    expect(lv1.hpBasisEvidence?.activeAbility).toBe('Bangboo_Avocaboo_Cure')
     expect(lv1.value).toBeCloseTo(0.1, 5)
     expect(lv10.value).toBeCloseTo(0.15, 5)
     expect(lv1.receiver).toBe('pickup_agent')
@@ -295,8 +296,9 @@ describe('current Bangboo base active utility contracts', () => {
     const bubble1 = s1b60.find((o) => o.branchId === 'spectral_bubble')!
     const bubble10 = s10b60.find((o) => o.branchId === 'spectral_bubble')!
     expect(bubble1.utilityType).toBe('hp_restore')
-    expect(bubble1.unit).toBe('hp_ratio_unresolved_basis')
-    expect(bubble1.hpBasis).toBe('unresolved')
+    expect(bubble1.unit).toBe('hp_ratio_bangboo_hp')
+    expect(bubble1.hpBasis).toBe('bangboo_max_hp')
+    expect(bubble1.hpBasisEvidence?.activeAbility).toBe('Bangboo_Sailorboo_Buff')
     expect(bubble1.value).toBeCloseTo(0.044, 5)
     expect(bubble10.value).toBeCloseTo(0.08, 5)
     expect(bubble1.probabilityDynamic).toBe(true)

@@ -1,0 +1,245 @@
+.f5v-box-team-row-shell + .f5v-box-team-row-shell {
+  margin-top: 4px;
+}
+
+.f5v-box-team-row,
+.f5v-box-team-decision-card {
+  min-height: auto;
+  padding: 12px 10px;
+  border-color: transparent;
+}
+
+.f5v-box-team-decision-card,
+.f5v-box-team-group.is-recommended .f5v-box-team-decision-card {
+  border: 0;
+  border-radius: var(--soda-radius-control);
+  background: transparent;
+}
+
+.f5v-box-team-decision-card:hover,
+.f5v-box-team-decision-card.is-selected,
+.f5v-box-team-group.is-recommended .f5v-box-team-decision-card:hover,
+.f5v-box-team-group.is-recommended .f5v-box-team-decision-card.is-selected {
+  border: 0;
+  background: transparent;
+}
+
+.f5v-box-team-row:hover,
+.f5v-box-team-row.is-selected {
+  background: transparent;
+}
+
+.f5v-box-team-row.is-selected strong,
+.f5v-box-team-decision-card.is-selected strong,
+.f5v-box-team-variant-button.is-selected > span {
+  color: #513a96;
+}
+
+.f5v-box-team-preview {
+  border: 0;
+  border-radius: var(--soda-radius-surface);
+  background: color-mix(in srgb, var(--soda-surface-raised) 76%, transparent);
+}
+
+.f5v-box-team-preview__scroll {
+  display: grid;
+  gap: 18px;
+  padding: 18px;
+}
+
+.f5v-box-team-preview__members,
+.f5v-box-team-preview section {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.f5v-box-team-preview__action {
+  margin-top: 0;
+  background: transparent;
+}
+
+.f5v-box-team-completion,
+.f5v-box-team-completion-only {
+  gap: 8px;
+  margin: 18px 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.f5v-box-team-completion li {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  border-left: 0;
+  background: transparent;
+}
+
+.f5v-box-team-overview .f5v-box-team-completion > header {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.f5v-box-team-overview .f5v-box-team-completion > header :is(h3, p) {
+  margin: 0;
+}
+
+.f5v-box-team-overview .f5v-box-team-completion > ul > li {
+  min-height: 0;
+  height: auto;
+  padding: 12px;
+  gap: 8px;
+}
+
+.f5v-box-team-overview .f5v-box-team-completion__member-identities {
+  gap: 4px 8px;
+}
+
+.f5v-box-team-completion ul {
+  gap: 14px;
+}
+
+.f5v-box-team-completion__candidate-label {
+  color: var(--soda-text);
+  font-size: 13px;
+  line-height: 19px;
+}
+
+.f5v-box-team-completion__member-row {
+  display: grid;
+  grid-template-columns: minmax(94px, auto) minmax(0, 1fr);
+  align-items: center;
+  gap: 8px 12px;
+}
+
+.f5v-box-team-completion__member-row.is-missing .f5v-box-team-completion__member-label {
+  color: #a65863;
+}
+
+.f5v-box-team-completion__member-label {
+  display: grid;
+  gap: 1px;
+  color: var(--soda-text-2);
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 16px;
+}
+
+.f5v-box-team-completion__member-label small {
+  color: var(--soda-text-3);
+  font-size: var(--soda-type-meta);
+  font-weight: 560;
+  line-height: 1.5;
+}
+
+.f5v-box-team-completion__member-identities {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  min-width: 0;
+}
+
+.f5v-box-team-completion__member-identity {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  color: var(--soda-text-2);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.f5v-box-team-completion__portrait,
+.f5v-box-team-completion__member-identity .visual-asset-fallback {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  border-radius: 50%;
+}
+
+.f5v-box-team-variants {
+  padding: 0 !important;
+}
+
+.f5v-box-team-reference {
+  color: var(--soda-text-3);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+}
+
+.f5v-box-team-preview__reference {
+  color: var(--soda-text-3);
+  font-size: var(--soda-type-meta);
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+@container soda-viewport (max-width: 760px) {
+  .f5v-box-team-completion__member-row {
+    grid-template-columns: 1fr;
+    gap: 3px;
+  }
+
+  .f5v-box-team-overview__heading {
+    gap: 6px;
+    margin-bottom: 18px;
+  }
+
+  .f5v-box-team-coverage {
+    text-align: left;
+  }
+
+  .f5v-box-team-group + .f5v-box-team-group {
+    margin-top: 26px;
+  }
+}
+
+.f5v-box-team-overview .button.f5v-box-team-mobile-navigation {
+  display: none;
+}
+
+@container soda-viewport (max-width: 980px) {
+  .f5v-box-team-overview .button.f5v-box-team-mobile-navigation {
+    display: inline-flex;
+    margin-bottom: 12px;
+    font-size: 14px;
+  }
+
+  .f5v-box-team-preview {
+    scroll-margin-top: 20px;
+  }
+}
+
+/* Keep the route heading for focus navigation without repeating the shell title. */
+.f5v-box-team-overview .f5v-box-team-page-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.f5v-box-team-overview .f5v-box-team-overview__notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+  margin: 0 14px 12px;
+  font-size: 14px;
+}
+
+.f5v-box-team-overview .f5v-box-team-overview__notice > p {
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.f5v-box-team-overview .f5v-box-team-overview__notice .f5v-box-team-run-state {
+  margin-left: auto;
+}

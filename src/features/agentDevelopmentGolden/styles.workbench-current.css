@@ -163,7 +163,9 @@
   outline-offset: 2px;
 }
 
-.top10 .page-heading.compact > div {
+.top10
+  .page-heading.compact
+  > div:not(.comparison-heading__identity):not(.comparison-heading__actions) {
   display: grid;
   justify-items: start;
   gap: var(--space-xs);

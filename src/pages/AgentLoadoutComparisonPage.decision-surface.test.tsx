@@ -7,9 +7,57 @@ import { discs, benchmark } from './AgentLoadoutComparisonPage.testFixture'
 import { projectDevelopmentComparisonPanels } from '../application/developmentComparisonPanelProjection'
 import { characterPanelLabels } from './agentDevelopmentWorkbenchViewModel'
 import { Top10StatTable } from '../features/agentDevelopmentGolden/Top10StatTable'
+import { Top10 } from '../features/agentDevelopmentGolden/AgentDevelopmentTop10'
 import type { CoreWarehouse } from '../accounts/coreFlow'
 import type { GoldenTop10Data } from '../features/agentDevelopmentGolden/types'
 describe('golden warehouse comparison adapter', () => {
+  it('keeps candidates with identical discs but different calculation contexts selectable and saves the selected rank', async () => {
+    const ids = discs.map((disc) => disc.id) as [string, string, string, string, string, string]
+    const base: GoldenTop10Data['baseline'] = {
+      rank: 0,
+      label: '当前实装',
+      fit: '400',
+      panel: '4+2',
+      sets: '啄木鸟电音 4件 + 河豚电音 2件',
+      effective: '30',
+      swaps: 0,
+      conflict: '',
+      cost: '—',
+      staticDps: null,
+      statDeltaSummary: '—',
+      finalStats: {},
+      discIds: ids,
+    }
+    const save = vi.fn().mockResolvedValue(undefined)
+    render(
+      <Top10
+        back={() => {}}
+        scenario="ordinary"
+        onSavePlan={save}
+        data={{
+          agentName: '比利',
+          baseline: base,
+          baselineKind: 'actual',
+          baselineAvailability: 'available',
+          currentLoadout: base,
+          discs,
+          coreStats: [],
+          allStats: [],
+          statPresentation: 'static_panel',
+          candidates: [
+            { ...base, rank: 1, label: '潜能0方案' },
+            { ...base, rank: 2, label: '潜能6方案' },
+          ],
+          valueBenchmarks: [benchmark(1), benchmark(2)],
+        }}
+      />,
+    )
+    expect(screen.getByRole('button', { name: /潜能0方案/ })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /潜能6方案/ }))
+    await userEvent.click(screen.getByRole('button', { name: '保存为养成方案' }))
+    await waitFor(() => expect(save).toHaveBeenCalledWith(2))
+  })
+
   it('renders all ten actual attributes with the real adopted Roxy targets', () => {
     const projection = projectDevelopmentComparisonPanels({
       warehouse: {
@@ -56,7 +104,8 @@ describe('golden warehouse comparison adapter', () => {
     expect(table).toHaveTextContent('630')
     expect(screen.getByRole('cell', { name: '生命值' })).not.toHaveTextContent('参考')
     expect(screen.getByRole('cell', { name: '防御力' })).not.toHaveTextContent('参考')
-    expect(table).toHaveTextContent('攻略参考')
+    expect(table).toHaveTextContent('参考')
+    expect(table).not.toHaveTextContent('攻略参考')
     expect(table).not.toHaveTextContent('毕业参考')
   })
   it('keeps a generated six-disc candidate saveable without a recorded game loadout', async () => {

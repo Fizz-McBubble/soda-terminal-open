@@ -288,10 +288,12 @@ export function savedPlanItem(
     bangbooId: plan.teamPortfolioSnapshot ? null : plan.selection.bangbooId,
     bangbooLabel: savedPlanBangbooLabel(plan),
     bangbooSuggestions: targetTeamBangbooOptions({ memberIds: savedMemberIds }).map(
-      ({ bangbooId, defaultStars, recommendationReason }) => ({
+      ({ bangbooId, defaultStars, recommendationReason, primaryPurpose, activationStatus }) => ({
         bangbooId,
         defaultStars,
         recommendationReason,
+        primaryPurpose,
+        activationStatus,
       }),
     ),
     stateLabel: '用户已保存',

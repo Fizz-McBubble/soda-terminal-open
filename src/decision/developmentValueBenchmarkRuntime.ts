@@ -41,16 +41,6 @@ export function evaluateDevelopmentValueBenchmarkSide(
   const scenario = resolveCurrentPlanningScenario32(input.scenarioSelection)
   const unavailable = (facts: Parameters<typeof unsupportedSide>[0]) =>
     unsupportedSide({ ...facts, scenarioSelection: scenario.selection })
-  if (
-    typeof input.eventConditionDeclaration?.enemyStunned === 'boolean' &&
-    input.eventConditionDeclaration.enemyStunned !== scenario.enemyStunned
-  )
-    return unavailable({
-      agentId: input.agentId,
-      discs: input.discs,
-      engineKey: 'unresolved',
-      reasons: ['事件敌人失衡声明与选定比较场景冲突。'],
-    })
   const agent = input.warehouse.roster.agents.find(
     (item) => item.agentId === input.agentId && item.owned,
   )
@@ -183,6 +173,8 @@ export function evaluateDevelopmentValueBenchmarkSide(
           input.eventConditionDeclaration.sunnaDelusionApplied != null ||
           input.eventConditionDeclaration.nangongMisstepApplied != null ||
           input.eventConditionDeclaration.remiellePhaseFlow != null ||
+          input.eventConditionDeclaration.whiteWaterBalladCritWindow != null ||
+          input.eventConditionDeclaration.whiteWaterBalladAttackWindow != null ||
           (input.eventConditionDeclaration.enemyStunned != null &&
             input.eventConditionDeclaration.enemyStunned !== scenario.enemyStunned)
         )
@@ -281,8 +273,16 @@ export function evaluateDevelopmentValueBenchmarkSide(
         member,
         eventUsages,
         references: potentialPreparation?.baselineReferences,
+        // Event trigger declarations are separate from the numeric scene coordinate.
+        // Only an absent state inherits the scene default; false/null remain explicit.
         conditionDeclaration: input.eventConditionDeclaration
-          ? { ...input.eventConditionDeclaration, enemyStunned: scenario.enemyStunned }
+          ? {
+              ...input.eventConditionDeclaration,
+              enemyStunned:
+                input.eventConditionDeclaration.enemyStunned === undefined
+                  ? scenario.enemyStunned
+                  : input.eventConditionDeclaration.enemyStunned,
+            }
           : undefined,
       })
   if (templatePreparation?.conditionPreparation?.status === 'unsupported')
@@ -295,6 +295,9 @@ export function evaluateDevelopmentValueBenchmarkSide(
   const discEffects = compileCurrentDriveDiscPlanningEffects({
     members: [member],
     loadouts: [{ agentId: input.agentId, discs: input.discs }],
+    preparedWhiteWaterByAgentId: templatePreparation?.conditionPreparation
+      ? { [member.agentId]: templatePreparation.conditionPreparation.whiteWaterBalladPreparation }
+      : undefined,
   })
   if (discEffects.status !== 'supported')
     return unavailable({

@@ -40,7 +40,8 @@ function runtime(f: ReturnType<typeof fixture>) {
 describe('source-bound Pan next incoming recipient through runtime and event graph', () => {
   it('preserves an unobserved transfer as an explicit exclusion without granting a bonus', () => {
     const f = fixture()
-    f.baselineReferencesByAgentId['agent-pan-yinhu'] = {} as typeof f.baselineReferencesByAgentId['agent-pan-yinhu']
+    f.baselineReferencesByAgentId['agent-pan-yinhu'] =
+      {} as (typeof f.baselineReferencesByAgentId)['agent-pan-yinhu']
     const observation = runtime(f)
     expect(observation.status).toBe('supported')
     if (observation.status !== 'supported') throw new Error(observation.blockers.join(';'))
@@ -48,19 +49,27 @@ describe('source-bound Pan next incoming recipient through runtime and event gra
     const contract = getCurrentAgentEventContract('agent-yixuan')!
     const event = contract.eventContract.events.find((row) => row.formulaFamily === 'sheer_damage')!
     const resolved = resolveCurrentPlanningEventEffects32({
-      ...f, ownerAgentId: 'agent-yixuan', event, attribute: contract.identity.attribute, buckets: [],
+      ...f,
+      ownerAgentId: 'agent-yixuan',
+      event,
+      attribute: contract.identity.attribute,
+      buckets: [],
     })
     expect(resolved.status).toBe('supported')
     if (resolved.status !== 'supported') throw new Error(resolved.blockers.join(';'))
-    expect(resolved.buckets.filter((row) => row.effectKey === panMeridianFlowEffectKey32)).toEqual([])
+    expect(resolved.buckets.filter((row) => row.effectKey === panMeridianFlowEffectKey32)).toEqual(
+      [],
+    )
     expect(resolved.finalStats['agent-yixuan'].sheerForce).toBe(2000)
     expect(resolved.finalStats['agent-yidhari'].sheerForce).toBe(2000)
-    expect(resolved.exclusions).toContainEqual(expect.objectContaining({
-      effectKey: panMeridianFlowEffectKey32,
-      fields: ['meridian_flow', panMeridianFlowIncomingReference32],
-      reason: expect.stringContaining('未知'),
-      sourceRefs: expect.arrayContaining(f.entries[0].sourceRefs),
-    }))
+    expect(resolved.exclusions).toContainEqual(
+      expect.objectContaining({
+        effectKey: panMeridianFlowEffectKey32,
+        fields: ['meridian_flow', panMeridianFlowIncomingReference32],
+        reason: expect.stringContaining('未知'),
+        sourceRefs: expect.arrayContaining(f.entries[0].sourceRefs),
+      }),
+    )
   })
   it.each([undefined, null, 0, '', 'agent-pan-yinhu', 'agent-lucy', ['agent-yixuan']])(
     'rejects a nonzero transfer without a valid unique incoming identity: %j',

@@ -9,10 +9,10 @@ import type {
 import { currentReviewedTeamSourceDirections } from '../gameDataPacks/reviewedTeamSourceDirections'
 import {
   getCurrentBangbooContractRequirements,
-  resolveCurrentBangbooAdditionalActivation,
+  prepareCurrentBangbooAdditionalActivation,
 } from '../calculation/currentBangbooMechanicContracts'
 import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
-import { projectBangbooUtility } from '../calculation/currentBangbooUtilityProjection'
+import { createBangbooUtilityProjector } from '../calculation/currentBangbooUtilityProjection'
 import { projectCurrentBangbooComposition } from './exhaustiveBangbooScoring'
 
 import { defaultWEngineRefinement } from './wEngineResolver'
@@ -130,6 +130,8 @@ function computeTargetBangbooOptions(
 ) {
   const composition = projectCurrentBangbooComposition(input.memberIds)
   if (!composition) return []
+  const resolveActivation = prepareCurrentBangbooAdditionalActivation(composition)
+  const projectUtility = createBangbooUtilityProjector(input.memberIds)
   return [...new Set(ids)]
     .flatMap((bangbooId) => {
       const entry = currentBangbooDirectory.find(
@@ -149,10 +151,9 @@ function computeTargetBangbooOptions(
       const results = []
       for (const star of stars) {
         const activation = composition
-          ? resolveCurrentBangbooAdditionalActivation({
+          ? resolveActivation({
               stableId: bangbooId,
               additionalAbilityLevel: star,
-              composition,
             })
           : { status: 'unsupported' as const }
         results.push({ star, activation })
@@ -178,8 +179,7 @@ function computeTargetBangbooOptions(
           : inactive
             ? 'inactive'
             : 'unknown'
-      const projection = projectBangbooUtility({
-        memberIds: input.memberIds,
+      const projection = projectUtility({
         bangbooId,
         stars: defaultStar,
         activationStatus,
@@ -192,7 +192,9 @@ function computeTargetBangbooOptions(
           activationStatus: activationStatus as 'active' | 'inactive' | 'unknown',
           requiresRaisedStars: defaultStar > defaultStars,
           primaryPurpose: projection.primaryPurpose,
+          secondaryPurposes: projection.secondaryPurposes,
           comparableSlice: projection.comparableSlice,
+          additionalUtilityCapacities: projection.additionalUtilityCapacities,
           recipientFit: projection.recipientFit,
           recommendationReason: projection.recommendationReason,
         },

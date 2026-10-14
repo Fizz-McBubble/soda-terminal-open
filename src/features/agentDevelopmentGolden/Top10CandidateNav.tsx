@@ -12,7 +12,7 @@ export function SetSummary({ text }: { text: string }) {
         const parts = /^(.*?)(\s*\d+件)$/u.exec(item)
         return (
           <Fragment key={`${index}:${item}`}>
-            {index > 0 ? ' + ' : null}
+            {index > 0 ? <span className="comparison-set-delimiter"> + </span> : null}
             <span className="comparison-set-item">
               <span className="comparison-set-item__name">{parts?.[1] ?? item}</span>
               {parts ? <span className="comparison-set-item__count">{parts[2]}</span> : null}
@@ -73,7 +73,7 @@ export function Top10CandidateNav({
             仅无冲突
           </button>
         </div>
-        {!data.currentPlan ? (
+        {!data.currentLoadout && !data.currentPlan ? (
           <div className="comparison-baseline">
             <span title={baselineLabel}>{baselineDisplay}</span>
             <strong>
@@ -96,10 +96,10 @@ export function Top10CandidateNav({
               onSelectCandidatePlan?.(0)
             }}
           >
-            <strong>保留当前实装</strong>
-            <span>
+            <span title={baselineLabel}>比较基准 · {baselineDisplay}</span>
+            <strong>
               <SetSummary text={data.currentLoadout.sets} />
-            </span>
+            </strong>
             <small>无需换盘，可继续查看当前六盘。</small>
           </button>
         ) : null}
@@ -150,17 +150,17 @@ export function Top10CandidateNav({
                 <SetSummary text={row.sets} />
               </small>
             </span>
-            <span className="comparison-candidate__metrics">
-              <b aria-label={`配装评分 ${row.fit}`}>{row.fit}</b>
-              <small className="comparison-hit-count">{effectiveHitLabel(row.effective)}</small>
-              {row.conflict ? <small className="comparison-conflict-badge">有冲突</small> : null}
-            </span>
             {baselineAvailable ? (
-              <span>
+              <span className="comparison-candidate__impact">
                 <b>{benchmarkLabel(benchmark, Boolean(data.snapshot?.stale))}</b>
                 <small>{row.swaps === null ? '—' : `${row.swaps} 张替换`}</small>
               </span>
             ) : null}
+            <span className="comparison-candidate__metrics">
+              <small className="comparison-hit-count">{effectiveHitLabel(row.effective)}</small>
+              <b aria-label={`配装评分 ${row.fit}`}>{row.fit}</b>
+              {row.conflict ? <small className="comparison-conflict-badge">有冲突</small> : null}
+            </span>
             <em>{isSelected ? '已选' : '查看'}</em>
           </button>
         )

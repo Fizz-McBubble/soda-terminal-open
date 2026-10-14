@@ -50,6 +50,16 @@ export function readCompletedScannerImport(): CompletedScannerImport | null {
   return null
 }
 
+export function saveCompletedScannerImport(value: CompletedScannerImport) {
+  // The committed import and live UI remain authoritative when
+  // optional browser storage is full or disabled.
+  try {
+    window.localStorage.setItem(completedScannerImportKey, JSON.stringify(value))
+  } catch {
+    // Formal import proof in IndexedDB can restore completion.
+  }
+}
+
 export function getScannerStateCopy(
   snapshot: ScannerAssistantSnapshot,
   targetReady: boolean,
@@ -187,4 +197,58 @@ export function getScannerPresentedStateCopy({
     }
   }
   return stateCopy
+}
+
+export function getCompletedScannerImportCount(
+  completedImport: CompletedScannerImport | null,
+  importedThisVisit: boolean,
+  snapshot: ScannerAssistantSnapshot,
+  selectedAccountId: string | undefined,
+) {
+  return completedImport &&
+    (importedThisVisit ||
+      (snapshot.state === 'completed' &&
+        Boolean(completedImport.resultFileHandle) &&
+        completedImport.resultFileHandle === snapshot.summary?.resultFileHandle)) &&
+    completedImport.accountId === selectedAccountId &&
+    !['checking', 'awaiting_elevation', 'scanning', 'paused'].includes(snapshot.state) &&
+    !(
+      completedImport.attemptReportId &&
+      snapshot.diagnostics?.reportId &&
+      completedImport.attemptReportId !== snapshot.diagnostics.reportId
+    ) &&
+    !(
+      completedImport.resultFileHandle &&
+      snapshot.summary?.resultFileHandle &&
+      completedImport.resultFileHandle !== snapshot.summary.resultFileHandle
+    )
+    ? completedImport.count
+    : null
+}
+
+export function shouldPrepareAnotherScannerRun(snapshot: ScannerAssistantSnapshot) {
+  return ![
+    'completed',
+    'checking',
+    'awaiting_elevation',
+    'scanning',
+    'paused',
+    'connection_failed',
+  ].includes(snapshot.state)
+}
+
+export function scannerActionIssueCode(error: unknown, fallback: string) {
+  return error instanceof Error && error.name === 'ScannerHelperCompatibilityError'
+    ? 'helper_incompatible'
+    : error instanceof Error && error.message === 'helper_pairing_denied'
+      ? 'helper_pairing_denied'
+      : fallback
+}
+
+export function scannerActionErrorMessage(error: unknown) {
+  return error instanceof Error && error.message.includes('扫描')
+    ? error.message
+    : window.location.protocol === 'https:'
+      ? '未能连接画面扫描。请确认画面扫描已运行，并允许本站连接本机设备后重试。'
+      : '未能连接画面扫描，请确认画面扫描已运行后重试。'
 }

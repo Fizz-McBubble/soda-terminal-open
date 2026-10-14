@@ -1,3 +1,5 @@
+import { reviewedEventConditionDeclarationsIdentity32 } from '../calculation/reviewedEventConditionDeclarations32'
+import { savedTeamReplayPlanHash } from '../application/publicSavedTeamReplay'
 import { describe, expect, it } from 'vitest'
 import type { AccountPlanningDraft } from '../accounts/types'
 import type { TargetTeamWarehouseFitQueryResult } from '../application/calculationQueryContract'
@@ -224,4 +226,30 @@ describe('savedPlanIdentity scenario validation and compatibility', () => {
     // Legacy plan resolves to normalized comparison, so its fingerprint matches explicit normal
     expect(legacyFingerprint).toBe(normalFingerprint)
   })
+})
+
+it('binds saved eighteen-disc replay to the same declared event preparation and keeps malformed history readable', () => {
+  const plan = makeMockPlan()
+  const fit = makeMockFit()
+  const declaration = { 'agent-billy': { sourceRefs: ['fixture:fixed-event'], windswept: true } }
+  const identity = reviewedEventConditionDeclarationsIdentity32(declaration)
+  plan.solutionContext!.eventConditionDeclarationsByAgentId = declaration
+  plan.solutionContext!.eventConditionDeclarationsIdentity = identity
+  fit.eventConditionDeclarationsByAgentId = declaration
+  fit.eventConditionDeclarationsIdentity = identity
+  expect(savedTeamTargetFitMatchesSavedDiscs(plan, fit)).toBe(true)
+  const before = savedTeamDiscAssignmentFingerprint(plan)
+  const beforeReplay = savedTeamReplayPlanHash(plan)
+  plan.solutionContext!.eventConditionDeclarationsByAgentId = {
+    'agent-billy': { sourceRefs: ['fixture:fixed-event'], windswept: false },
+  }
+  expect(savedTeamTargetFitMatchesSavedDiscs(plan, fit)).toBe(false)
+  expect(savedTeamDiscAssignmentFingerprint(plan)).not.toBe(before)
+  expect(savedTeamReplayPlanHash(plan)).not.toBe(beforeReplay)
+  plan.solutionContext!.eventConditionDeclarationsByAgentId = {
+    'agent-billy': { sourceRefs: null },
+  } as never
+  expect(() => savedTeamDiscAssignmentFingerprint(plan)).not.toThrow()
+  expect(savedTeamTargetFitMatchesSavedDiscs(plan, fit)).toBe(false)
+  expect(plan.candidateWarehouse!.loadouts).toHaveLength(3)
 })

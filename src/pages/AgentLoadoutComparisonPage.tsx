@@ -29,7 +29,6 @@ import {
   readDevelopmentCandidateSnapshot,
 } from './agentDevelopmentCandidateSession'
 import { usePageOperationScope } from '../components/usePageOperationScope'
-import { PlanningScenarioControl } from '../components/PlanningScenarioControl'
 import {
   defaultPlanningScenarioSelection32,
   type CurrentPlanningScenarioSelection32,
@@ -385,29 +384,32 @@ export function AgentLoadoutComparisonPage() {
     const candidate = alternatives[rank - 1]?.loadouts[0]
     const candidatePlan = alternatives[rank - 1]
     if (!candidate || !candidatePlan) return
+    const generation = ++comparisonGeneration.current
+    const active = () => isCurrentPage() && generation === comparisonGeneration.current
     const discIds = candidate.discs.map((item) => item.disc.id)
     const saved = await saveCurrentAgentBuild(
       accountId,
       createComparisonSavedBuild(agentId, rank, candidateSnapshot),
     )
-    if (!isCurrentPage()) return
+    if (!active()) return
     setJustSaved(saved)
     const refreshedRank = await refreshDevelopmentCandidatesAfterSave({
       accountId,
       agentId,
       discIds,
       comparisonParameters: candidateSnapshot.candidateParametersByRank?.[rank],
+      scenarioSelection: candidateSnapshot.scenarioSelection ?? defaultPlanningScenarioSelection32,
+      eventConditionDeclarationsByAgentId: candidateSnapshot.eventConditionDeclarationsByAgentId,
+      isCurrent: active,
       refresh: decisionWorld.refresh,
       query: queryDevelopmentCandidateAlternatives,
     })
-    if (!isCurrentPage()) return
+    if (refreshedRank === null || !active()) return
     setSnapshotVersion((version) => version + 1)
     const next = new URLSearchParams(params)
     next.set('candidate', String(refreshedRank))
     setParams(next, { replace: true })
   }
-  const scenarioSelection =
-    candidateSnapshot.scenarioSelection ?? defaultPlanningScenarioSelection32
   const recalculateComparison = async (selection: CurrentPlanningScenarioSelection32) => {
     const isCurrentPage = capturePageScope()
     const generation = ++comparisonGeneration.current
@@ -424,6 +426,7 @@ export function AgentLoadoutComparisonPage() {
         agentId,
         undefined,
         selection,
+        candidateSnapshot.eventConditionDeclarationsByAgentId,
       )
       if (!active()) return
       const rebound = rebindComparisonParameters(candidateSnapshot, result)
@@ -433,6 +436,7 @@ export function AgentLoadoutComparisonPage() {
           agentId,
           rebound,
           selection,
+          candidateSnapshot.eventConditionDeclarationsByAgentId,
         )
       if (!active()) return
       if (result.scenarioSelection?.id !== selection.id || !result.scenarioIdentity)
@@ -458,15 +462,6 @@ export function AgentLoadoutComparisonPage() {
       <AgentDevelopmentGolden
         initialView="top10"
         top10={top10}
-        comparisonScenarioControl={
-          <PlanningScenarioControl
-            value={scenarioSelection}
-            disabled={comparisonPending}
-            onChange={(selection) => {
-              void recalculateComparison(selection).catch(() => {})
-            }}
-          />
-        }
         onNavigate={(view) => {
           if (view === 'overview') {
             navigate('/development')
@@ -487,7 +482,7 @@ export function AgentLoadoutComparisonPage() {
           next.set('candidate', String(rank))
           setParams(next, { replace: true })
         }}
-        onReanalyzeWarehouse={() => recalculateComparison(scenarioSelection)}
+        onReanalyzeWarehouse={() => recalculateComparison(defaultPlanningScenarioSelection32)}
       />
     </>
   )

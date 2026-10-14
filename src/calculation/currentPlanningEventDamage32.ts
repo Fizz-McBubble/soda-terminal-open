@@ -1,3 +1,4 @@
+import { bindCurrentPlanningHarumasaWindow32 } from './currentPlanningHarumasaEventWindow32'
 import {
   getPlanningDamageEventSemantics,
   emptyModifiers,
@@ -10,7 +11,6 @@ import type { CommonAnomalyEventObservation32 } from './currentCommonAnomalyEffe
 import type { PlanningEventUsage } from './planningCalculationContextCompiler'
 import {
   evaluateCurrentPlanningInitialCritConversion32,
-  evaluateCurrentPlanningEffectEntries32,
   type PlanningEffectRuntimeMember,
 } from './currentPlanningEffectRuntime'
 import {
@@ -35,10 +35,7 @@ import {
   type PotentialApplicationBinding,
   type PotentialApplicationEvent,
 } from './potentialApplicationBinding'
-import { resolveReviewedHarumasaGleamingEdgeWindow32 } from './reviewedPotentialSourceClosure32'
-import { planningRuntimeEffectBuckets32 } from './currentPlanningSelfEffects32'
-import { getCurrentAgentPlanningEffectBlueprint } from './currentAgentPlanningEffectBlueprint'
-import { stableContentHash } from '../gameDataPacks/types'
+import { bindReviewedSupportEventDamage32 } from './reviewedSupportEventDamage32'
 
 type DirectPotentialApplication32 =
   | 'penetration_ratio'
@@ -93,6 +90,8 @@ export function calculateCurrentPlanningEventDamage32(input: {
     commonAnomalyEvents?: Readonly<Record<string, readonly CommonAnomalyEventObservation32[]>>
     consumedBuckets: SourceBackedPlanningEffectBucket[]
     exclusions: Array<{ effectKey: string; reason: string; fields: string[]; sourceRefs: string[] }>
+    disabledSupportProviderIds?: readonly string[]
+    equipmentEffectExclusions?: readonly unknown[]
   }
 }) {
   const initialCritConversion = isDamageFormula32Version(input.baseline.gameVersion)
@@ -313,7 +312,7 @@ export function calculateCurrentPlanningEventDamage32(input: {
           : effect,
       )
     }
-    let eventInputBuckets = [
+    const initialEventInputBuckets = [
       ...input.buckets.filter(
         (bucket) =>
           ![...rinaTeamStats.buckets, ...teamAction.buckets, ...potentialBuckets].some(
@@ -324,104 +323,27 @@ export function calculateCurrentPlanningEventDamage32(input: {
       ...teamAction.buckets,
       ...potentialBuckets,
     ]
-    let baselineReferencesByAgentId = input.eventEffectContext?.baselineReferencesByAgentId
-    if (input.member.agentId === 'agent-harumasa' && observed?.temporalProof) {
-      const actorReferences = { ...baselineReferencesByAgentId?.[input.member.agentId] }
-      const stacks = actorReferences.gleaming_edge
-      const window =
-        observed.eventId === usage.eventId
-          ? resolveReviewedHarumasaGleamingEdgeWindow32({
-              potential: input.member.potential,
-              ...observed.temporalProof,
-            })
-          : { status: 'unknown' as const, active: null, reason: 'timer_event_identity_mismatch' }
-      if (
-        window.status === 'known' &&
-        typeof stacks === 'number' &&
-        Number.isInteger(stacks) &&
-        stacks >= 0 &&
-        stacks <= 6
-      ) {
-        if (!window.active) actorReferences.gleaming_edge = 0
-      } else {
-        delete actorReferences.gleaming_edge
-        input.diagnosticBlockers?.push(
-          `${usage.eventId}:gleaming_edge:${window.status === 'unknown' ? window.reason : 'invalid_explicit_stack_observation'}`,
-        )
-      }
-      baselineReferencesByAgentId = {
-        ...baselineReferencesByAgentId,
-        [input.member.agentId]: actorReferences,
-      }
-      // These existing scalar core effects have no final-stat dependency, so
-      // the event dependency graph otherwise carries their prepared buckets.
-      // Re-evaluate only these two source effects under the timed observation.
-      // The timer does not create a second bonus or mutate formation state.
-      if (input.eventEffectContext) {
-        const coreKeys = new Set([
-          'agent-harumasa:core_dash_crit_dmg_',
-          'agent-harumasa:core_ult_crit_dmg_',
-        ])
-        const coreEntries = input.eventEffectContext.entries
-          .filter((entry) => coreKeys.has(entry.effectKey))
-          .map((entry) => getCurrentAgentPlanningEffectBlueprint(entry.effectKey)!)
-        const core = evaluateCurrentPlanningEffectEntries32(
-          {
-            memberIds: input.eventEffectContext.memberIds,
-            members: input.eventEffectContext.members,
-            baselineReferencesByAgentId,
-          },
-          coreEntries,
-        )
-        if (core.status === 'unsupported') {
-          input.diagnosticBlockers?.push(...core.blockers)
-          return Number.NaN
-        }
-        const timingRef = `source-window:${stableContentHash({ agentId: input.member.agentId, potential: input.member.potential, eventId: usage.eventId, proof: observed.temporalProof, stacks })}`
-        const timedBuckets = planningRuntimeEffectBuckets32(
-          core.results,
-          input.eventEffectContext.memberIds,
-        ).map((bucket) => ({
-          ...bucket,
-          sourceRefs: [
-            ...bucket.sourceRefs,
-            timingRef,
-            ...('sourceRefs' in window ? (window.sourceRefs ?? []) : []),
-          ],
-        }))
-        eventInputBuckets = [
-          ...eventInputBuckets.filter(
-            (bucket) =>
-              !(bucket.providerAgentId === input.member.agentId && coreKeys.has(bucket.effectKey)),
-          ),
-          ...timedBuckets,
-        ]
-        for (const effect of core.results) {
-          if (
-            effect.status !== 'excluded_unknown' ||
-            !matchesEventScope(
-              {
-                applicationScope: coreEntries.find((entry) => entry.effectKey === effect.effectKey)
-                  ?.applicationScope,
-                effectId: effect.effectId,
-                damageType: effect.damageType,
-                action: null,
-                attribute: null,
-              },
-              scopedEvent,
-              eventAttribute,
-            )
-          )
-            continue
-          input.eventEffectContext.exclusions.push({
-            effectKey: effect.effectKey,
-            reason: '锋芒计时或层数缺少合法来源观测；本次事件未计入核心暴伤。',
-            fields: ['gleaming_edge'],
-            sourceRefs: [...effect.sourceRefs, timingRef],
-          })
-        }
-      }
-    }
+    const timedWindow = bindCurrentPlanningHarumasaWindow32(
+      input,
+      usage,
+      observed,
+      scopedEvent,
+      eventAttribute,
+      initialEventInputBuckets,
+    )
+    if (timedWindow.status === 'unsupported') return Number.NaN
+    const { eventInputBuckets, baselineReferencesByAgentId } = timedWindow
+    const supportDamage = input.eventEffectContext
+      ? bindReviewedSupportEventDamage32({
+          members: input.eventEffectContext.members,
+          recipientAgentId: input.member.agentId,
+          eventId: usage.eventId,
+          baselineReferencesByAgentId,
+          disabledSupportProviderIds: input.eventEffectContext.disabledSupportProviderIds,
+          equipmentEffectExclusions: input.eventEffectContext.equipmentEffectExclusions,
+        })
+      : { buckets: [], exclusions: [] }
+    input.eventEffectContext?.exclusions.push(...supportDamage.exclusions)
     const eventEffects = input.eventEffectContext
       ? resolveCurrentPlanningEventEffects32({
           ...input.eventEffectContext,
@@ -429,7 +351,12 @@ export function calculateCurrentPlanningEventDamage32(input: {
           ownerAgentId: input.member.agentId,
           event: scopedEvent,
           attribute: eventAttribute,
-          buckets: eventInputBuckets,
+          buckets: [
+            ...eventInputBuckets.filter(
+              (bucket) => !supportDamage.buckets.some((row) => row.effectKey === bucket.effectKey),
+            ),
+            ...supportDamage.buckets,
+          ],
           commonAnomalyObservations:
             input.eventEffectContext.commonAnomalyEvents?.[
               `${input.member.agentId}:${usage.eventId}`

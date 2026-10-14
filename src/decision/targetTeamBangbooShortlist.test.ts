@@ -81,7 +81,7 @@ describe('bounded Bangboo shortlist with strictly grouped numeric comparisons', 
     expect(compareBangbooTeamOptions(general, raised)).toBeLessThan(0)
     expect(compareBangbooTeamOptions(direct, raised)).toBeLessThan(0)
   })
-  it('never replaces the reviewed default with a larger same-key mechanic value', () => {
+  it('replaces a reviewed default only with a proved larger capacity under its complete key', () => {
     const reviewed = option('reviewed-default', 'energy', 1)
     const selected = selectTargetTeamBangbooShortlist({
       reviewed: [reviewed],
@@ -93,7 +93,17 @@ describe('bounded Bangboo shortlist with strictly grouped numeric comparisons', 
       hasOrdinaryEnergyRecipient: true,
       limit: 3,
     })
-    expect(ids(selected)).toEqual(['reviewed-default', 'heal', 'stun'])
+    expect(ids(selected)).toEqual(['higher', 'heal', 'stun'])
+    expect(
+      ids(
+        selectTargetTeamBangbooShortlist({
+          reviewed: [reviewed],
+          alternatives: [option('other-trigger', 'energy', 100, 'other-trigger')],
+          hasOrdinaryEnergyRecipient: true,
+          limit: 3,
+        }),
+      )[0],
+    ).toBe('reviewed-default')
   })
   it('does not compare across investment or qualitative fit priorities', () => {
     const direct = option('direct', 'energy', 1)
@@ -133,6 +143,31 @@ describe('bounded Bangboo shortlist with strictly grouped numeric comparisons', 
       limit: 3,
     })
     expect(ids(selected)).toEqual(['daze', 'heal', 'damage'])
+  })
+  it('does not pad or retain a reviewed default whose only purpose is ordinary energy with no recipient', () => {
+    const selected = selectTargetTeamBangbooShortlist({
+      reviewed: [option('reviewed-energy', 'energy', 999)],
+      alternatives: [option('energy', 'energy', 999), option('heal', 'sustain')],
+      hasOrdinaryEnergyRecipient: false,
+      limit: 3,
+    })
+    expect(ids(selected)).toEqual(['heal'])
+    const notApplicable = selectTargetTeamBangbooShortlist({
+      reviewed: [],
+      alternatives: [
+        { ...option('unknown-purpose', 'utility_general'), recipientFit: 'not_applicable' },
+      ],
+      hasOrdinaryEnergyRecipient: false,
+      limit: 3,
+    })
+    expect(notApplicable).toEqual([])
+    const mixedUtility = selectTargetTeamBangbooShortlist({
+      reviewed: [],
+      alternatives: [{ ...option('dual', 'energy'), secondaryPurposes: ['sustain'] }],
+      hasOrdinaryEnergyRecipient: false,
+      limit: 3,
+    })
+    expect(ids(mixedUtility)).toEqual(['dual'])
   })
   it('compares every added key field and ignores field insertion order', () => {
     const left = { ...key, cooldownSeconds: 10, durationSeconds: 5, targetAction: 'basic' }

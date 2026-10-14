@@ -59,15 +59,17 @@ export function Top10StatTable({
                     <strong role="cell" aria-label={stat.label}>
                       {stat.label}
                       {data.statPresentation !== 'disc_contribution' && target ? (
-                        <small className="comparison-priority-label">攻略参考 {target}</small>
+                        <small className="comparison-priority-label">参考 {target}</small>
                       ) : stat.highlight ? (
-                        <small className="comparison-priority-label">重点</small>
+                        <small className="comparison-priority-label">参考</small>
                       ) : null}
                     </strong>
                     {baselineAvailable ? (
                       <>
                         <span role="cell">{formatStat(current, stat.unit)}</span>
-                        <b role="cell">{delta === 0 ? '—' : formatStat(delta, stat.unit, true)}</b>
+                        <b role="cell" className="comparison-stat-delta">
+                          {delta === 0 ? '—' : formatStat(delta, stat.unit, true)}
+                        </b>
                       </>
                     ) : null}
                     <span role="cell">{formatStat(candidate, stat.unit)}</span>

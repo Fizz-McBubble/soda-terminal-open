@@ -1,5 +1,8 @@
 import { ExplanationPopover } from '../components/ExplanationPopover'
+import { ToolBlockGuidance } from '../components/ToolBlockGuidance'
 import './scanner-guide.css'
+
+export { ToolBlockGuidance }
 
 export function AssetQuickReadGuide() {
   return (
@@ -36,7 +39,27 @@ export function AssetQuickReadGuide() {
             分钟。超时或失败后按提示处理，再重新读取；云·绝区零请使用画面扫描。
           </dd>
         </div>
+        <div>
+          <dt>下载或启动受阻</dt>
+          <dd>
+            <ToolBlockGuidance tool="asset_quick_read" title="下载、拦截或连接失败怎么处理" />
+          </dd>
+        </div>
       </dl>
+    </ExplanationPopover>
+  )
+}
+
+export function AssetQuickReadBlockGuide() {
+  return (
+    <ExplanationPopover
+      label="下载或启动受阻"
+      title="资产快读下载与启动故障排查"
+      closeLabel="关闭排查指南"
+      className="scanner-guide asset-quick-read__guide-entry"
+      align="end"
+    >
+      <ToolBlockGuidance tool="asset_quick_read" as="section" />
     </ExplanationPopover>
   )
 }

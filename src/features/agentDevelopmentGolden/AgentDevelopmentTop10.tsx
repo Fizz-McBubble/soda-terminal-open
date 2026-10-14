@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react'
 import { playerErrorMessage } from '../../application/playerErrorMessage'
 import { useStateTransitionMotion } from '../../motion/useStateTransitionMotion'
 import { BackNavigation } from '../../components/BackNavigation'
+import { ExplanationPopover } from '../../components/ExplanationPopover'
 import { DevelopmentDiscCard } from './DevelopmentDiscCard'
 import { Top10StatTable } from './Top10StatTable'
 import { SetSummary, Top10CandidateNav } from './Top10CandidateNav'
@@ -129,22 +130,26 @@ export function Top10({
     return (
       <section className="top10 top10-empty" aria-labelledby="top10-title">
         <header className="page-heading compact comparison-heading">
-          <div>
+          <div className="comparison-heading__identity">
             <BackNavigation label="返回养成" className="back-navigation--heading" onClick={back} />
-            <h1 id="top10-title">暂时没有匹配方案</h1>
-            <p>{data.agentName}暂时没有完整方案。未记录游戏当前实装，可从仓库搭配方案。</p>
+            <div className="comparison-heading__text">
+              <h1 id="top10-title">暂时没有匹配方案</h1>
+              <p>{data.agentName}暂时没有完整方案。未记录游戏当前实装，可从仓库搭配方案。</p>
+            </div>
           </div>
-          {comparisonScenarioControl}
-          {onReanalyzeWarehouse ? (
-            <button
-              className="comparison-reanalyze"
-              type="button"
-              disabled={reanalyzing}
-              onClick={() => void reanalyze()}
-            >
-              {reanalyzing ? '正在搭配…' : '从仓库搭配方案'}
-            </button>
-          ) : null}
+          <div className="comparison-heading__actions">
+            {comparisonScenarioControl}
+            {onReanalyzeWarehouse ? (
+              <button
+                className="comparison-reanalyze"
+                type="button"
+                disabled={reanalyzing}
+                onClick={() => void reanalyze()}
+              >
+                {reanalyzing ? '正在搭配…' : '从仓库搭配方案'}
+              </button>
+            ) : null}
+          </div>
         </header>
         {reanalyzeMessage ? (
           <p className="comparison-feedback" role="status" aria-live="polite">
@@ -159,22 +164,26 @@ export function Top10({
     return (
       <section className="top10 top10-baseline-only" aria-labelledby="top10-title">
         <header className="page-heading compact comparison-heading">
-          <div>
+          <div className="comparison-heading__identity">
             <BackNavigation label="返回养成" className="back-navigation--heading" onClick={back} />
-            <h1 id="top10-title">{baselineDisplay}</h1>
-            <p>这份方案已配齐 6 张驱动盘，暂时没有其他匹配方案。</p>
+            <div className="comparison-heading__text">
+              <h1 id="top10-title">{baselineDisplay}</h1>
+              <p>这份方案已配齐 6 张驱动盘，暂时没有其他匹配方案。</p>
+            </div>
           </div>
-          {comparisonScenarioControl}
-          {onReanalyzeWarehouse ? (
-            <button
-              className="comparison-reanalyze"
-              type="button"
-              disabled={reanalyzing}
-              onClick={() => void reanalyze()}
-            >
-              {reanalyzing ? '正在搭配…' : '重新搭配'}
-            </button>
-          ) : null}
+          <div className="comparison-heading__actions">
+            {comparisonScenarioControl}
+            {onReanalyzeWarehouse ? (
+              <button
+                className="comparison-reanalyze"
+                type="button"
+                disabled={reanalyzing}
+                onClick={() => void reanalyze()}
+              >
+                {reanalyzing ? '正在搭配…' : '重新搭配'}
+              </button>
+            ) : null}
+          </div>
         </header>
 
         <div className="top10-layout comparison-workbench">
@@ -193,15 +202,21 @@ export function Top10({
 
           <section className="comparison-detail" aria-label="方案明细">
             <header className="comparison-detail__summary">
-              <div>
+              <div className="comparison-summary-intro">
                 <small>{baselineDisplay}</small>
-                <span className="comparison-summary-intro__note">
-                  {candidateSearchLabel(
-                    data.candidateSearchByRank?.[selectedRow?.rank ?? 0] ?? data.candidateSearch,
-                  )}
-                </span>
                 <h2 id="comparison-discs-title">{data.baseline.label} · 六盘明细</h2>
                 <p>{data.baseline.sets}</p>
+                <ExplanationPopover
+                  label="排序与计算限制"
+                  title="方案排序与计算限制"
+                  className="comparison-method-popover"
+                >
+                  <p>
+                    {candidateSearchLabel(
+                      data.candidateSearchByRank?.[selectedRow?.rank ?? 0] ?? data.candidateSearch,
+                    )}
+                  </p>
+                </ExplanationPopover>
               </div>
               <dl>
                 <div>
@@ -238,23 +253,29 @@ export function Top10({
   return (
     <section className="top10" aria-labelledby="top10-title">
       <header className="page-heading compact comparison-heading">
-        <div>
+        <div className="comparison-heading__identity">
           <BackNavigation label="返回养成" className="back-navigation--heading" onClick={back} />
-          <h1 id="top10-title">方案比较</h1>
-          <p>比较驱动盘搭配和属性，选择适合的方案保存。</p>
-          {!actualBaseline && !baselineAvailable ? <p>暂无当前实装，可先查看仓库方案。</p> : null}
+          <div className="comparison-heading__text">
+            <h1 id="top10-title">方案比较</h1>
+            <p>比较驱动盘搭配和属性，选择适合的方案保存。</p>
+            {!actualBaseline && !baselineAvailable ? (
+              <p className="comparison-heading__subnote">暂无当前实装，可先查看仓库方案。</p>
+            ) : null}
+          </div>
         </div>
-        {comparisonScenarioControl}
-        {onReanalyzeWarehouse ? (
-          <button
-            className="comparison-reanalyze"
-            type="button"
-            disabled={reanalyzing}
-            onClick={() => void reanalyze()}
-          >
-            {reanalyzing ? '正在搭配…' : '重新搭配'}
-          </button>
-        ) : null}
+        <div className="comparison-heading__actions">
+          {comparisonScenarioControl}
+          {onReanalyzeWarehouse ? (
+            <button
+              className="comparison-reanalyze"
+              type="button"
+              disabled={reanalyzing}
+              onClick={() => void reanalyze()}
+            >
+              {reanalyzing ? '正在搭配…' : '重新搭配'}
+            </button>
+          ) : null}
+        </div>
       </header>
 
       <div className="top10-layout comparison-workbench">
@@ -281,15 +302,12 @@ export function Top10({
         >
           <header className="comparison-detail__summary comparison-detail__summary--inline">
             <div className="comparison-summary-intro">
-              <span className="comparison-summary-intro__note">
-                {candidateSearchLabel(
-                  data.candidateSearchByRank?.[selectedRow?.rank ?? 0] ?? data.candidateSearch,
-                )}
-              </span>
               <h2 id="comparison-discs-title">{selectedRow?.label ?? '方案'} · 六盘明细</h2>
               <span>{selectedRow?.sets ?? '未找到套装组合'}</span>
               {selectedRow?.mainStatDifferences?.length ? (
-                <span>主词条：{selectedRow.mainStatDifferences.join('；')}</span>
+                <span className="comparison-main-stat-diff">
+                  主词条：{selectedRow.mainStatDifferences.join('；')}
+                </span>
               ) : null}
               {!data.snapshot?.stale &&
               selectedBenchmark &&
@@ -321,6 +339,22 @@ export function Top10({
                   的变化。
                 </span>
               ) : null}
+              <ExplanationPopover
+                label="排序与计算限制"
+                title="方案排序与计算限制"
+                className="comparison-method-popover"
+              >
+                <div className="comparison-method-popover__content">
+                  <p>
+                    {candidateSearchLabel(
+                      data.candidateSearchByRank?.[selectedRow?.rank ?? 0] ?? data.candidateSearch,
+                    )}
+                  </p>
+                  {selectedBenchmark?.status !== 'supported' && selectedBenchmark ? (
+                    <p>当前输出对比受限或未支持，未假设 0% 收益。</p>
+                  ) : null}
+                </div>
+              </ExplanationPopover>
             </div>
             <dl>
               {baselineAvailable ? (

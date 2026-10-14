@@ -1,4 +1,5 @@
 import type { WarehouseActionProjection } from './warehouseActionContract'
+import { restoreWarehouseObjects, warehouseObjectCodec } from './publicWarehouseObjectTransport'
 import {
   restoreWarehouseEvidenceText,
   warehouseEvidenceTextCodec,
@@ -14,8 +15,9 @@ const agentFields = [
 type PackedAction = Record<string, unknown>
 type PackedProjection = Omit<WarehouseActionProjection, 'actions'> & {
   agentLists: string[][]
-  agentListsVersion: 1 | 2
+  agentListsVersion: 1 | 2 | 3
   retentionTexts?: string[]
+  objectShapes?: string[][]
   actions: PackedAction[]
 }
 
@@ -52,17 +54,16 @@ export function packPublicWarehouseActions(
   })
   // Agent lists have already become numeric references. Count only strings
   // which the evidence encoder will actually see on the wire.
-  const textCodec = warehouseEvidenceTextCodec(interned.map((item) => item.absoluteRetention))
-  const actions = interned.map((item) =>
-    item.absoluteRetention
-      ? { ...item, absoluteRetention: textCodec.encode(item.absoluteRetention) }
-      : item,
-  )
+  const textCodec = warehouseEvidenceTextCodec(interned)
+  const textActions = interned.map((item) => textCodec.encode(item) as PackedAction)
+  const objectCodec = warehouseObjectCodec(textActions)
+  const actions = textActions.map((item) => objectCodec.encode(item) as PackedAction)
   return {
     ...projection,
-    agentListsVersion: 2,
+    agentListsVersion: 3,
     agentLists,
     retentionTexts: textCodec.texts,
+    objectShapes: objectCodec.shapes,
     actions,
   }
 }
@@ -72,14 +73,16 @@ export function unpackPublicWarehouseActions(
   projection: WarehouseActionProjection | PackedProjection,
 ): WarehouseActionProjection {
   if (!('agentListsVersion' in projection)) return projection
-  if (![1, 2].includes(projection.agentListsVersion) || !Array.isArray(projection.agentLists))
+  if (![1, 2, 3].includes(projection.agentListsVersion) || !Array.isArray(projection.agentLists))
     throw new Error('驱动盘分析结果格式无效，请重新分析。')
   if (
-    projection.agentListsVersion === 2 &&
+    projection.agentListsVersion >= 2 &&
     (!Array.isArray(projection.retentionTexts) ||
       !projection.retentionTexts.every((text) => typeof text === 'string'))
   )
     throw new Error('驱动盘分析证据资料无效，请重新分析。')
+  if (projection.agentListsVersion === 3 && !Array.isArray(projection.objectShapes))
+    throw new Error('驱动盘分析对象资料无效，请重新分析。')
   const readList = (index: unknown) => {
     const list =
       typeof index === 'number' && Number.isInteger(index) ? projection.agentLists[index] : null
@@ -88,7 +91,14 @@ export function unpackPublicWarehouseActions(
     return [...list]
   }
   const actions = projection.actions.map((packed) => {
-    const item = { ...packed } as PackedAction
+    const item = {
+      ...(projection.agentListsVersion === 3
+        ? (restoreWarehouseEvidenceText(
+            restoreWarehouseObjects(packed, projection.objectShapes!),
+            projection.retentionTexts!,
+          ) as PackedAction)
+        : packed),
+    }
     for (const field of agentFields) {
       if (item[field] !== undefined) item[field] = readList(item[field])
     }
@@ -108,11 +118,13 @@ export function unpackPublicWarehouseActions(
   })
   const restored = { ...projection, actions } as WarehouseActionProjection & {
     agentLists?: string[][]
-    agentListsVersion?: 1 | 2
+    agentListsVersion?: 1 | 2 | 3
     retentionTexts?: string[]
+    objectShapes?: string[][]
   }
   delete restored.agentLists
   delete restored.agentListsVersion
   delete restored.retentionTexts
+  delete restored.objectShapes
   return restored
 }

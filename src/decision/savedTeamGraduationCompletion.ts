@@ -158,7 +158,7 @@ function ratio(
   return Math.min(1, current / target)
 }
 
-/** Scores only real quantitative fields; ranges use their graduation floor. */
+/** Minimums measure progress; upper bounds constrain it but never add progress. */
 export function scoreGraduationPanelTargets(
   values: Pick<PanelResult, 'values'>['values'],
   target: unknown,
@@ -185,10 +185,17 @@ export function scoreGraduationPanelTargets(
       } satisfies GraduationMetricCompletion,
     ]
   })
-  if (!metrics.length) return null
-  const average = metrics.reduce((sum, metric) => sum + metric.ratio, 0) / metrics.length
+  const progress = metrics.filter((metric) => metric.comparator === 'at_least')
+  if (!progress.length) return null
+  const average = progress.reduce((sum, metric) => sum + metric.ratio, 0) / progress.length
+  const constrained = Math.min(
+    average,
+    ...metrics.filter((metric) => metric.comparator === 'at_most').map((metric) => metric.ratio),
+  )
   return {
-    score: metrics.every((metric) => metric.met) ? 100 : Math.min(99, Math.round(average * 100)),
+    score: metrics.every((metric) => metric.met)
+      ? 100
+      : Math.min(99, Math.round(constrained * 100)),
     metrics,
   }
 }

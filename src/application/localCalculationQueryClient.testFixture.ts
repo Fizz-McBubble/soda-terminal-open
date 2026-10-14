@@ -6,8 +6,13 @@ import { SodaDatabase } from '../db/database'
 import {
   calculationQueryContractVersion,
   type AccountDecisionQueryInput,
+  type TargetTeamWarehouseFitQueryResult,
 } from './calculationQueryContract'
-import { recommendedTargetBangbooDefault } from '../decision/targetTeamEquipmentParameters'
+import {
+  recommendedTargetBangbooDefault,
+  targetTeamBangbooOptions,
+  selectPlayerConfirmableTargetBangbooSelection,
+} from '../decision/targetTeamEquipmentParameters'
 import { createLocalCalculationQueryClient } from './localCalculationQueryClient'
 
 export async function expectReviewedDefaultOrMissing(
@@ -23,6 +28,45 @@ export async function expectReviewedDefaultOrMissing(
   const fit = await client.calculateTargetTeamWarehouseFit(request)
   expect(fit.buildIntent.exactTeam.bangbooId).toBe(expected.bangbooId)
   expect(fit.effectiveEquipmentParameters?.source).toBe('source_defaults')
+}
+
+/** Shared source-minimum replay contract for both Authority and explicit-parameter routes. */
+export function expectBelionSourceMinimumBangbooOptions(
+  recommendations: TargetTeamWarehouseFitQueryResult['equipmentRecommendations']['bangboo'],
+  memberIds: readonly string[],
+) {
+  expect(recommendations).toMatchObject({
+    primaryBangbooId: 'bangboo-belion',
+    options: expect.arrayContaining([
+      expect.objectContaining({ bangbooId: 'bangboo-belion', defaultStars: 3 }),
+      expect.objectContaining({ bangbooId: 'bangboo-miss-esme', defaultStars: 3 }),
+      expect.objectContaining({
+        bangbooId: 'bangboo-exploreboo',
+        defaultStars: 5,
+        activationStatus: 'active',
+      }),
+    ]),
+  })
+  expect(
+    recommendations.options.map(({ bangbooId, defaultStars }) => ({
+      bangbooId,
+      defaultStars,
+    })),
+  ).toEqual(
+    targetTeamBangbooOptions({ memberIds }).map(({ bangbooId, defaultStars }) => ({
+      bangbooId,
+      defaultStars,
+    })),
+  )
+  expect(
+    selectPlayerConfirmableTargetBangbooSelection({
+      memberIds,
+      roster: createEmptyRoster(),
+      primaryBangbooId: 'bangboo-belion',
+      bangbooId: 'bangboo-sumoboo',
+      bangbooStarsById: { 'bangboo-sumoboo': 5 },
+    }),
+  ).toMatchObject({ status: 'selected', bangbooId: 'bangboo-sumoboo', bangbooStar: 5 })
 }
 
 export function input(ownedAgentIds: readonly string[] = []): AccountDecisionQueryInput {

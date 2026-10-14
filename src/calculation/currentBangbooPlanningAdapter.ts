@@ -12,6 +12,8 @@ import {
 import { calculateDamageFormula } from './damageFormulaDispatch'
 import { isDamageFormula32Version } from './sharpDamageCore'
 import type { PlanningBaseline } from './planningDpsContract'
+import { resolveBangbooAdditionalUtilityCapacities } from './currentBangbooAdditionalUtilityCapacity'
+import { resolveCurrentBangbooAdditionalActivation } from './currentBangbooMechanicContracts'
 
 function unique(values: readonly string[]) {
   return [...new Set(values)]
@@ -36,6 +38,7 @@ export interface EvaluateCurrentBangbooPlanningParameterInput {
   readonly eventFlags?: Readonly<Record<string, boolean>>
   readonly accumulators?: Readonly<Record<string, number>>
   readonly enemyCount?: number
+  readonly chainEnemiesHit?: number
 }
 
 /** Resolves one selected level-60 Bangboo settled under the normalized one-active/one-chain baseline against declared enemy conditions. */
@@ -48,9 +51,23 @@ export function evaluateCurrentBangbooPlanningParameter(
     level: 60,
     ascensionLevelCap: 60,
   })
+  const activation = resolveCurrentBangbooAdditionalActivation({
+    stableId: input.stableId,
+    additionalAbilityLevel: input.stars,
+    composition: composition ?? {},
+  })
+  const additionalUtilityCapacities = resolveBangbooAdditionalUtilityCapacities({
+    ...input,
+    active:
+      (input.additionalAbilityEnabled ?? true) &&
+      composition !== null &&
+      activation.status === 'supported' &&
+      activation.active,
+  })
   const mechanic = resolveCurrentBangbooMechanicContract({
     stableId: input.stableId,
     bangbooLevel: 60,
+    ascensionLevelCap: 60,
     skillLevel: 10,
     additionalAbilityLevel: input.stars,
     composition,
@@ -189,6 +206,19 @@ export function evaluateCurrentBangbooPlanningParameter(
           !target.startsWith(`${action}:`)
         )
           return sum
+        if (target.startsWith(`${action}:`) && target !== 'chain:enemy_count_tiers') {
+          const excluded = {
+            ...modifier,
+            reason: '来源加成仅作用于动作子段，当前整段事件未绑定该子段，不计入固定伤害。',
+          }
+          if (
+            !excludedOutputs.some(
+              (row) => row.targetAction === target && row.reason === excluded.reason,
+            )
+          )
+            excludedOutputs.push(excluded)
+          return sum
+        }
         const values = Array.isArray(modifier.values) ? modifier.values.map(Number) : []
         let value: number
         if (target === 'chain:enemy_count_tiers')
@@ -272,6 +302,7 @@ export function evaluateCurrentBangbooPlanningParameter(
     eventFlags: input.eventFlags ?? {},
     accumulators: input.accumulators ?? {},
     enemyCount,
+    chainEnemiesHit: input.chainEnemiesHit,
     sourceVersion: currentBangbooNumericCatalog.sourceVersion,
     reviewedForVersion: currentBangbooNumericCatalog.reviewedForVersion,
     sourceReviewCommit: currentBangbooNumericCatalog.continuityReview.releaseSource.commit,
@@ -280,6 +311,8 @@ export function evaluateCurrentBangbooPlanningParameter(
     outputs,
     excludedOutputs,
     nonDamageOutputs,
+    effectiveUtilities: mechanic.status === 'supported' ? mechanic.effectiveUtilities : [],
+    additionalUtilityCapacities,
     settledEnemyConditions: declaredEnemy
       ? {
           defense: declaredEnemy.defense,

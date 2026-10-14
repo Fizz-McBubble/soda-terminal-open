@@ -4,6 +4,7 @@ import type { StatKey } from '../domain/schemas'
 import type { PlayerBuildSource } from './playerBuildSources'
 import {
   reviewedEvelynDialynDiscDirection,
+  reviewedCissiaSeedDiscDirection,
   getReviewedAdditionalDiscSources,
 } from './reviewedAdditionalDiscDirections'
 import type { CandidateSetPlan } from './candidateSetPlans'
@@ -115,7 +116,70 @@ const nangongBoundary =
  * entries here; matching below has no agent-specific branch.
  */
 export const reviewedTeamDiscDirections: readonly ReviewedTeamDiscDirection[] = [
+  {
+    id: 'miyoushe-77017654-miyabi-remielle-anomaly',
+    agentId: 'agent-miyabi',
+    exactMemberSets: [
+      ['agent-miyabi', 'agent-remielle', 'agent-velina'],
+      ['agent-miyabi', 'agent-remielle', 'agent-yanagi'],
+    ],
+    potentialMinimumByAgentId: {},
+    mainStats: { '4': ['anomaly_proficiency'], '6': ['anomaly_mastery'] },
+    subStatWeights: { anomaly_proficiency: 1, crit_rate: 1, crit_dmg: 1 },
+    setPlan: {
+      pattern: '4+2',
+      primarySetIds: ['set-freedom-blues'],
+      secondarySetIds: ['set-phaethons-melody'],
+      sourceText: '雅可选4自由+2法厄同来提高烈霜积蓄，4号精通盘/6号掌控盘，由副词条来堆双暴。',
+    },
+    source: {
+      postId: '77017654',
+      url: 'https://www.miyoushe.com/zzz/article/77017654',
+      contentHash: '61077E8797FA13E43CF1BB22398D6F945B468A6057A92BD5B541A7004F302003',
+      bodyHash: '93079E5DABA56EC66D9227F96A3284805B826AFBDF4606482F41ACAF07097CB0',
+      sourceVersion: '3.1',
+      targetVersion: '3.1',
+      locator: {
+        kind: 'structured_text_span',
+        text: '77017654:text:0167-0170；text:0168 UTF16[5983:6026) spanSha256=BD78B6AF5074E44FDABBAB50FA6B5272E4CE07397F85F25E37E9007EC15E4CCB；雅自由4法厄同2、4精通6掌控、副词条双暴；无维琳娜时可尝试高配柳。',
+      },
+    },
+    boundary:
+      '仅对两支来源精确三人采用异常驾驶员构筑，不改变其他雅队或独立个人常规双暴方向；5号沿用既有来源合法候选。副属性等权是候选政策，不是作者精确权重或高配柳投入证据，不证明耀变改变异常类型或持续轮转。',
+  },
+  {
+    id: 'miyoushe-77017654-yanagi-remielle-velina-disorder',
+    agentId: 'agent-yanagi',
+    exactMemberSets: [['agent-remielle', 'agent-velina', 'agent-yanagi']],
+    potentialMinimumByAgentId: {},
+    mainStats: {
+      '4': ['anomaly_proficiency'],
+      '5': ['pen_ratio', 'electric_dmg'],
+      '6': ['anomaly_mastery', 'energy_regen'],
+    },
+    setPlan: {
+      pattern: '4+2',
+      primarySetIds: ['set-freedom-blues'],
+      secondarySetIds: ['set-phaethons-melody'],
+      sourceText: '柳优选4自由+2法厄同、5号穿透&电伤/6号掌控&回能。',
+    },
+    source: {
+      postId: '77017654',
+      url: 'https://www.miyoushe.com/zzz/article/77017654',
+      contentHash: '61077E8797FA13E43CF1BB22398D6F945B468A6057A92BD5B541A7004F302003',
+      bodyHash: '93079E5DABA56EC66D9227F96A3284805B826AFBDF4606482F41ACAF07097CB0',
+      sourceVersion: '3.1',
+      targetVersion: '3.1',
+      locator: {
+        kind: 'structured_text_span',
+        text: '77017654:text:0153-0156；text:0156 spanSha256=6B3DB292378177D1C711F251CE69D45868F146EA7CBA9FD3063F6F7A1668F380；丹维柳精确队，柳自由4法厄同2、5穿透/电伤、6掌控/回能。',
+      },
+    },
+    boundary:
+      '仅对来源丹维柳精确三人采用紊乱方向；保留两种5号和两种6号允许主词条，其他柳队及独立个人通用配装不变；来源讨论的2+1与持续异常交替不是自动已达成事实。',
+  },
   ...reviewedImageDiscDirections,
+  reviewedCissiaSeedDiscDirection,
   { ...reviewedEvelynDialynDiscDirection, retainBasePlans: true },
   {
     id: 'reviewed-qingyi-crit-team-king',

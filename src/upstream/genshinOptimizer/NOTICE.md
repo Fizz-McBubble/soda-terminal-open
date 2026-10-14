@@ -26,6 +26,11 @@ The local source identity retains file SHA-256 references. This arithmetic
 does not promote catalog, action duration, or trigger evidence to Formal.
 The same MIT copyright and permission statement below applies.
 
+`decision/skillInvestmentProjection.ts` also applies the source's combat skill
+bonus at mindscape 3 (+2) and 5 (+4), independently from paid skill levels.
+The reference is `libs/zzz/formula/src/data/char/util.ts` at the same locked
+`3456cd0f6f5bea10e168074502460dac2fcd6df4` commit. Core levels are unaffected.
+
 `gameDataPacks/general-event-mapping.v1.ts` and the Planning event adapters
 contain minimal normalized event mappings adapted from
 `frzyc/genshin-optimizer` commit

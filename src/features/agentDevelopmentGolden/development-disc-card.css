@@ -148,11 +148,76 @@
   font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
-.development-disc-card.disc-card > ul > .is-effective,
-.development-disc-card.disc-card > ul > .is-effective :is(span, em, b) {
-  color: #655095;
-  font-weight: 650;
+
+.development-disc-card.disc-card > ul > .is-non-target {
+  color: #8c8299;
 }
+.development-disc-card.disc-card > ul > .is-non-target :is(span, em) {
+  color: #8c8299;
+}
+.development-disc-card.disc-card > ul > .is-non-target b {
+  color: #6f667d;
+  font-weight: 500;
+}
+.development-disc-card.disc-card > ul > .is-empty {
+  color: #a9a0b5;
+}
+.development-disc-card.disc-card > ul > .is-empty :is(span, b) {
+  color: #a9a0b5;
+}
+
+.development-disc-card.disc-card > ul > .is-effective,
+.development-disc-card.disc-card > ul > .is-effective span {
+  color: #553e7f;
+  font-weight: 700;
+}
+.development-disc-card.disc-card > ul > .is-effective em {
+  color: #6f5aa8;
+  font-weight: 700;
+}
+.development-disc-card.disc-card > ul > .is-effective b {
+  color: #2e204c;
+  font-weight: 750;
+}
+
+.development-disc-card.is-changed {
+  border-color: #dcd3eb;
+  background: #faf8fd;
+}
+.development-disc-card__badge.is-changed-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #fdf4e7;
+  color: #925f1e;
+  border: 1px solid #f2deb9;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.development-disc-card.is-retained {
+  border-color: #e6e0ef;
+  background: #ffffff;
+}
+.development-disc-card__badge.is-retained-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #f1edf7;
+  color: #6a5e7c;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* In comparison view, remove the misleading slot 4-6 purple top border */
+.f5v-shell .top10 .development-disc-card[data-slot='4'],
+.f5v-shell .top10 .development-disc-card[data-slot='5'],
+.f5v-shell .top10 .development-disc-card[data-slot='6'] {
+  border-top: 1px solid #e6e0ef;
+}
+
 .development-disc-card.disc-card > footer {
   margin: 0;
   padding: 0;
@@ -161,4 +226,15 @@
   color: #71687d;
   white-space: nowrap;
   align-self: end;
+}
+
+/* Keep the incumbent palette; only make the replacement edge easier to scan. */
+.f5v-shell .top10 .development-disc-card.is-changed {
+  border-color: #b5a2ce;
+}
+.f5v-shell .top10 .development-disc-card.is-changed .is-changed-badge {
+  color: #925f1e;
+  background: #fdf4e7;
+  border-color: #f2deb9;
+  font-weight: 700;
 }

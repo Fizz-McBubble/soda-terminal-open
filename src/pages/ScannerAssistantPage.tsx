@@ -12,7 +12,11 @@ import { ScannerDiagnosticFeedback } from './ScannerDiagnosticFeedback'
 import { ScannerInstallerAction } from './ScannerInstallerAction'
 import { ScannerAccountGate, type ScannerAccounts } from './ScannerAccountHydrationGate'
 import {
-  completedScannerImportKey,
+  saveCompletedScannerImport,
+  getCompletedScannerImportCount,
+  shouldPrepareAnotherScannerRun,
+  scannerActionIssueCode,
+  scannerActionErrorMessage,
   getScannerPreparationBody,
   getScannerPresentedStateCopy,
   getScannerStateCopy,
@@ -26,6 +30,7 @@ import {
   type ScannerAccountBackupReviewState,
 } from './ScannerAccountBackupReview'
 import { ScannerTargetAccountPicker } from './ScannerTargetAccountPicker'
+import { ScannerTargetAccountSummary } from './ScannerTargetAccountSummary'
 import { PrepareChecklist } from './ScannerPrepareChecklist'
 import { ScannerGuide } from './ScannerGuide'
 import { ScannerWorkbenchNavigation } from './ScannerWorkbenchGuides'
@@ -94,16 +99,8 @@ function HydratedScannerAssistantPage({
   const actionPendingRef = useRef(false)
   const [inlineImportOpen, setInlineImportOpen] = useState(false)
   const [importedThisVisit, setImportedThisVisit] = useState(false)
-  const [preparingAnotherScan, setPreparingAnotherScan] = useState(
-    () =>
-      ![
-        'completed',
-        'checking',
-        'awaiting_elevation',
-        'scanning',
-        'paused',
-        'connection_failed',
-      ].includes(runtimeSnapshot.state),
+  const [preparingAnotherScan, setPreparingAnotherScan] = useState(() =>
+    shouldPrepareAnotherScannerRun(runtimeSnapshot),
   )
   const [completedImport, setCompletedImport] = useState<CompletedScannerImport | null>(
     readCompletedScannerImport,
@@ -126,26 +123,12 @@ function HydratedScannerAssistantPage({
     (account) => account.id === effectiveSelectedAccountId,
   )
   const targetReady = Boolean(selectedAccount)
-  const completedImportCount =
-    completedImport &&
-    (importedThisVisit ||
-      (snapshot.state === 'completed' &&
-        Boolean(completedImport.resultFileHandle) &&
-        completedImport.resultFileHandle === snapshot.summary?.resultFileHandle)) &&
-    completedImport.accountId === selectedAccount?.id &&
-    !['checking', 'awaiting_elevation', 'scanning', 'paused'].includes(snapshot.state) &&
-    !(
-      completedImport.attemptReportId &&
-      snapshot.diagnostics?.reportId &&
-      completedImport.attemptReportId !== snapshot.diagnostics.reportId
-    ) &&
-    !(
-      completedImport.resultFileHandle &&
-      snapshot.summary?.resultFileHandle &&
-      completedImport.resultFileHandle !== snapshot.summary.resultFileHandle
-    )
-      ? completedImport.count
-      : null
+  const completedImportCount = getCompletedScannerImportCount(
+    completedImport,
+    importedThisVisit,
+    snapshot,
+    selectedAccount?.id,
+  )
 
   useEffect(() => {
     if (
@@ -169,20 +152,8 @@ function HydratedScannerAssistantPage({
     try {
       await action()
     } catch (error) {
-      setActionIssueCode(
-        error instanceof Error && error.name === 'ScannerHelperCompatibilityError'
-          ? 'helper_incompatible'
-          : error instanceof Error && error.message === 'helper_pairing_denied'
-            ? 'helper_pairing_denied'
-            : issueCode,
-      )
-      setActionFeedback(
-        error instanceof Error && error.message.includes('扫描')
-          ? error.message
-          : window.location.protocol === 'https:'
-            ? '未能连接画面扫描。请确认画面扫描已运行，并允许本站连接本机设备后重试。'
-            : '未能连接画面扫描，请确认画面扫描已运行后重试。',
-      )
+      setActionIssueCode(scannerActionIssueCode(error, issueCode))
+      setActionFeedback(scannerActionErrorMessage(error))
     }
   }
 
@@ -430,20 +401,10 @@ function HydratedScannerAssistantPage({
           : snapshot.state
   const currentReceivingAccountName = selectedAccount?.displayName ?? '尚未选择接收账户'
   const accountDisclosure = selectedAccount ? (
-    <p className="scanner-target-account__summary">
-      <strong>
-        {(accountState?.discCounts.get(selectedAccount.id) ?? 0) === 0
-          ? '建立驱动盘仓库'
-          : '更新此账户仓库'}
-      </strong>
-      <span>
-        “{selectedAccount.displayName}”当前
-        {(accountState?.discCounts.get(selectedAccount.id) ?? 0) === 0
-          ? '为空仓库'
-          : `有 ${accountState?.discCounts.get(selectedAccount.id) ?? 0} 张驱动盘`}
-        ；确认后完整替换此账户的驱动盘，不合并。扫描期间不会改动账户。
-      </span>
-    </p>
+    <ScannerTargetAccountSummary
+      account={selectedAccount}
+      discCount={accountState?.discCounts.get(selectedAccount.id) ?? 0}
+    />
   ) : null
 
   const renderInstaller = (connectionBlocked = false) => (
@@ -596,13 +557,7 @@ function HydratedScannerAssistantPage({
               attemptReportId: snapshot.diagnostics?.reportId,
               resultFileHandle: snapshot.summary?.resultFileHandle,
             }
-            // The committed import and live UI remain authoritative when
-            // optional browser storage is full or disabled.
-            try {
-              window.localStorage.setItem(completedScannerImportKey, JSON.stringify(next))
-            } catch {
-              // Formal import proof in IndexedDB can restore completion.
-            }
+            saveCompletedScannerImport(next)
             setImportedThisVisit(true)
             setCompletedImport(next)
             setInlineImportOpen(false)

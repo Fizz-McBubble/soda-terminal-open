@@ -65,6 +65,10 @@ export function projectDevelopmentDirectoryQuery(
             getCandidateWarehouseConstraint(agentId)?.progressionDirection ??
             [],
           recommendation?.skillPriority ?? [],
+          {
+            skillLevels: record.skillLevels,
+            mindscape: record.mindscape,
+          },
         )
         return {
           agentId,
@@ -77,11 +81,12 @@ export function projectDevelopmentDirectoryQuery(
                 confidence: projection.authorityRecommendation.confidence,
               }
             : null,
-          skills: guidance.skills.map(({ key, label, targetLevel, priority }) => ({
+          skills: guidance.skills.map(({ key, label, targetLevel, priority, nextLevel }) => ({
             key,
             label,
             targetLevel,
             priority,
+            nextLevel: nextLevel ?? null,
           })),
         }
       }),

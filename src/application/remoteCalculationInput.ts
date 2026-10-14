@@ -1,3 +1,7 @@
+import {
+  normalizeReviewedEventConditionDeclarations32,
+  type ReviewedEventConditionDeclarations32,
+} from '../calculation/reviewedEventConditionDeclarations32'
 import { hasCurrentWEngineProgression } from '../accounts/observedAgentFacts'
 import type { AccountDecisionQueryInput } from './calculationQueryContract'
 import { normalizeTargetTeamEquipmentParameters } from './publicTargetTeamEquipmentFingerprint'
@@ -143,6 +147,11 @@ export function projectRemoteAccountDecisionInput(
             exactVariantKey: draft.solutionContext.exactVariantKey,
             scenarioSelection: sanitizeScenarioSelection(draft.solutionContext.scenarioSelection),
             scenarioIdentity: draft.solutionContext.scenarioIdentity,
+            eventConditionDeclarationsByAgentId: sanitizeEventDeclarations(
+              draft.solutionContext.eventConditionDeclarationsByAgentId,
+            ),
+            eventConditionDeclarationsIdentity:
+              draft.solutionContext.eventConditionDeclarationsIdentity,
             comparisonParameters: draft.solutionContext.comparisonParameters
               ? {
                   potential: draft.solutionContext.comparisonParameters.potential,
@@ -196,5 +205,13 @@ export function projectRemoteAccountDecisionInput(
       fixedBangbooIds: [...input.preference.fixedBangbooIds],
       planIdsByAgent: { ...input.preference.planIdsByAgent },
     },
+  }
+}
+
+function sanitizeEventDeclarations(raw: unknown): ReviewedEventConditionDeclarations32 | undefined {
+  try {
+    return normalizeReviewedEventConditionDeclarations32(raw)
+  } catch {
+    return { invalid: { sourceRefs: [] } }
   }
 }

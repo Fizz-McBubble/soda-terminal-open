@@ -84,7 +84,7 @@
   }
 }
 .f5v-shell .next-training-steps {
-  margin-block: 12px;
+  margin-block: 10px;
   font-size: var(--soda-font-body);
   line-height: 1.5;
 }
@@ -93,16 +93,37 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  min-height: 30px;
+  height: 30px;
+  box-sizing: border-box;
+}
+.f5v-shell .next-training-steps__heading strong {
+  font-size: 0.76rem;
+  line-height: 1.4;
+  white-space: nowrap;
 }
 .f5v-shell .next-training-steps__heading .explanation__trigger {
   white-space: nowrap;
+  min-height: 30px;
 }
 .f5v-shell .next-training-steps p {
-  margin-block: 6px;
+  margin: 4px 0 2px;
   font-size: var(--soda-font-body);
+  line-height: 20px;
+  min-height: 20px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .f5v-shell .next-training-steps small {
+  display: block;
   font-size: var(--soda-font-caption);
+  line-height: 16px;
+  min-height: 16px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .f5v-shell .training-order-note {
   flex: 0 0 auto;

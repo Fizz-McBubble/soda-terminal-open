@@ -85,6 +85,7 @@ export type TargetTeamWarehouseFitQuery = {
   runId: string
   candidateId: string
   equipmentParameters?: TargetTeamEquipmentParameterSelection
+  eventConditionDeclarationsByAgentId?: import('../calculation/reviewedEventConditionDeclarations32').ReviewedEventConditionDeclarations32
   scenarioSelection?: CurrentPlanningScenarioSelection32
   /** Private producer resolves a player-confirmed Bangboo into the exact equipment parameters. */
   playerBangbooSelection?: {
@@ -133,6 +134,8 @@ export type SavedTeamSolutionComponentsQuery = {
 
 export type TargetTeamWarehouseFitQueryResult =
   import('../decision/targetTeamWarehouseFit').TargetTeamWarehouseFit & {
+    eventConditionDeclarationsByAgentId?: import('../calculation/reviewedEventConditionDeclarations32').ReviewedEventConditionDeclarations32
+    eventConditionDeclarationsIdentity?: string
     scenarioSelection?: CurrentPlanningScenarioSelection32
     scenarioIdentity?: string
     /** Only reviewed exact teams can seed the current recommended multi-team journey. */
@@ -163,6 +166,7 @@ export type DevelopmentCandidateAlternativesQuery = {
   candidateParametersByRank?: Readonly<
     Record<number, import('../decision/developmentValueBenchmark').DevelopmentComparisonParameters>
   >
+  eventConditionDeclarationsByAgentId?: import('../calculation/reviewedEventConditionDeclarations32').ReviewedEventConditionDeclarations32
   scenarioSelection?: CurrentPlanningScenarioSelection32
 }
 
@@ -175,6 +179,8 @@ export type DevelopmentWorkbenchRouteQuery = {
 }
 
 export type DevelopmentCandidateAlternativesQueryResult = {
+  eventConditionDeclarationsByAgentId?: import('../calculation/reviewedEventConditionDeclarations32').ReviewedEventConditionDeclarations32
+  eventConditionDeclarationsIdentity?: string
   scenarioSelection?: CurrentPlanningScenarioSelection32
   scenarioIdentity?: string
   candidateSearch?: import('../decision/developmentCandidateAlternatives').DevelopmentCandidateSearch

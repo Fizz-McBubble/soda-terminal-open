@@ -208,7 +208,9 @@ export function Workbench({
                   {subject.graduation.skills.map((skill) => (
                     <span className={skill.priority ? 'priority' : undefined} key={skill.label}>
                       <small>{skill.label}</small>
-                      <b title={skill.recommended}>{presentationTargetLevel(skill.recommended)}</b>
+                      <b title={skill.nextLevel?.tooltip ?? skill.recommended}>
+                        {presentationTargetLevel(skill.recommended)}
+                      </b>
                     </span>
                   ))}
                 </div>
@@ -254,35 +256,43 @@ export function Workbench({
                   </div>
                 )}
                 <ol className="current-engine-plan__options">
-                  {subject.graduation.engines.map((engine) => (
-                    <li key={`${engine.tier}:${engine.name}`}>
-                      <small>
-                        {engine === currentRecommendedEngine ? '当前 · ' : ''}
-                        {engine.tier === '首选'
-                          ? '首选'
-                          : engine.tier === 'S级替代'
-                            ? '替代'
-                            : engine.tier === 'A级下位替代'
-                              ? '下位'
-                              : '备选'}
-                      </small>
-                      {engine.visual ? (
-                        <VisualEntityImage
-                          className="recommendation-item-icon"
-                          entityType="wengine"
-                          entityId={engine.visual.entityId}
-                          name={engine.visual.name}
-                          slotId="wengine.equipment-icon"
-                          consumer="agent-development.workbench"
-                        />
-                      ) : (
-                        <span className="engine__fallback" aria-hidden="true" />
-                      )}
-                      <span>
-                        <b>{engine.name}</b>
-                      </span>
-                    </li>
-                  ))}
+                  {subject.graduation.engines.map((engine) => {
+                    const isCurrent =
+                      engine === currentRecommendedEngine || Boolean(engine.isCurrent)
+                    const tierLabel =
+                      engine.tier === '首选'
+                        ? '首选'
+                        : engine.tier === '替代' ||
+                            engine.tier === 'S级替代' ||
+                            engine.tier === 'A级下位替代'
+                          ? '替代'
+                          : engine.tier === '下位'
+                            ? '下位'
+                            : '备选'
+                    return (
+                      <li key={`${engine.tier}:${engine.name}`}>
+                        <small>
+                          {isCurrent ? '当前 · ' : ''}
+                          {tierLabel}
+                        </small>
+                        {engine.visual ? (
+                          <VisualEntityImage
+                            className="recommendation-item-icon"
+                            entityType="wengine"
+                            entityId={engine.visual.entityId}
+                            name={engine.visual.name}
+                            slotId="wengine.equipment-icon"
+                            consumer="agent-development.workbench"
+                          />
+                        ) : (
+                          <span className="engine__fallback" aria-hidden="true" />
+                        )}
+                        <span>
+                          <b>{engine.name}</b>
+                        </span>
+                      </li>
+                    )
+                  })}
                 </ol>
               </section>
             </div>

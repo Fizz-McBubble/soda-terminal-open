@@ -37,7 +37,10 @@ export function projectDevelopmentComparisonPanels(input: {
       const target = canDisplayStaticPanelTarget(targetPanel, label)
         ? targetPanelDisplayValue(targetPanel, label)
         : null
-      return target ? [[label, target]] : []
+      const conditionalCrit =
+        label === '暴击率' &&
+        targetPanel?.sourceRefs.some((ref) => ref.id === 'prydwen-ye-shunguang-2.5-2026-08-05')
+      return target ? [[label, conditionalCrit ? `${target}（套装条件）` : target]] : []
     }),
   )
   const savedDiscSets = input.drafts

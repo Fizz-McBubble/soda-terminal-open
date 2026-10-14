@@ -27,6 +27,18 @@ const preferenceSchema = z.object({
   updatedAt: z.string().datetime(),
 })
 
+// This is an opaque historical snapshot, not a validated/normalized live input.
+// Preserve malformed older declarations and source order for account recovery.
+// Both localCalculationQueryClientCore and localTargetTeamFitQuery revalidate
+// through normalizeReviewedEventConditionDeclarations32 before any runtime;
+// comparison/new-save adapters also require that canonical identity.
+const historicalEventConditionDeclarationsSchema32 = z
+  .unknown()
+  .transform(
+    (raw) =>
+      raw as import('../calculation/reviewedEventConditionDeclarations32').ReviewedEventConditionDeclarations32,
+  )
+
 const planningSolutionContextSchema = z.object({
   contract: z.literal('soda-solution-context/v1'),
   scope: z.enum(['agent_independent', 'team_joint', 'portfolio_joint']),
@@ -53,6 +65,14 @@ const planningSolutionContextSchema = z.object({
   gameVersion: z.string().min(1),
   knowledgeVersion: z.string().min(1),
   exactVariantKey: z.string().min(1).nullable(),
+  scenarioSelection: z
+    .custom<
+      import('../application/publicPlanningScenarioContract').CurrentPlanningScenarioSelection32
+    >(() => true)
+    .optional(),
+  scenarioIdentity: z.string().optional(),
+  eventConditionDeclarationsByAgentId: historicalEventConditionDeclarationsSchema32.optional(),
+  eventConditionDeclarationsIdentity: z.string().optional(),
   comparisonParameters: z
     .object({
       wEngine: z

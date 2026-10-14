@@ -194,7 +194,7 @@ describe('scanner Helper version and update policy', () => {
       },
     }
     const projected = presentScannerHelperSnapshot(
-      snapshot as any,
+      snapshot,
       scannerDistributionManifest.helper.version,
       {
         installer: '1.1.5',
@@ -232,7 +232,7 @@ describe('scanner Helper version and update policy', () => {
         message: '连接就绪',
       },
     }
-    const projected = presentScannerHelperSnapshot(snapshot as any, '2.3.15', {
+    const projected = presentScannerHelperSnapshot(snapshot, '2.3.15', {
       installer: '1.1.5',
       helper: '2.3.15',
       runtime: scannerDistributionManifest.runtime.version,

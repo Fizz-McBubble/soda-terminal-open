@@ -26,6 +26,7 @@ import {
 } from '../../decision/targetTeamEquipmentParameters'
 import type { BangbooStar } from '../../teamEngine/contracts'
 import { currentBangbooDirectory } from '../../assault/catalog'
+import { targetTeamEffectivePotentialConditions } from '../../application/targetTeamEffectivePotentialConditions'
 
 function savedBangbooStar(parameters: { bangbooStars: number }) {
   const { bangbooStars } = parameters
@@ -135,7 +136,13 @@ export function currentSavedTeamBuildIntent(
     if (automaticDefault && automaticDefault.defaultStars !== parameters.bangbooStars)
       return undefined
   }
+  let effectiveAgentStateById: ReturnType<typeof targetTeamEffectivePotentialConditions>
   try {
+    effectiveAgentStateById = targetTeamEffectivePotentialConditions({
+      memberIds: candidate.memberIds,
+      roster: warehouse.roster,
+      potentialByAgentId: parameters.potentialByAgentId,
+    })
     // The calculation route allows retained catalog choices with base skills,
     // independently of the legacy Engine's source/activation candidate set.
     selectPlayerConfirmableTargetBangbooSelection({
@@ -217,12 +224,7 @@ export function currentSavedTeamBuildIntent(
       bangbooId: plan.teamEquipmentParameters.bangbooId,
       // Tags come from the current exact producer; saved historical tags never supply them.
       scenarioTags: engineCandidate?.scenarioTags,
-      agentStateById: Object.fromEntries(
-        warehouse.roster.agents.map((agent) => [
-          agent.agentId,
-          { potentialImage: agent.potentialImage },
-        ]),
-      ),
+      agentStateById: effectiveAgentStateById,
     }),
     effectiveEquipmentParameters: plan.teamEquipmentParameters,
     accountFactBinding: undefined,

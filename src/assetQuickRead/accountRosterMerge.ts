@@ -2,6 +2,7 @@ import type { AccountRoster, ObservedAgentField, RosterAgent } from '../assault/
 import { assertBangbooSkillFacts, assertRosterAscensionFacts } from '../accounts/rosterHydration'
 import { getObservedAgentFieldValue, hasObservedAgentField } from '../accounts/observedAgentFacts'
 import type { AssetQuickReadCandidate } from './snapshotAdapter'
+import { resolveCurrentReleasedIdentity } from '../gameDataPacks/currentReleasedIdentityMap'
 
 const currentEngineFields: ObservedAgentField[] = [
   'wEngineDetails.id',
@@ -65,11 +66,26 @@ export function mergeAssetQuickReadRoster(
   let protectedFields = 0
   let syncedManualProgressionFields = 0
   const unequippedEngineAgents = new Set<string>()
-  const incoming = new Map(candidate.agents.map((agent) => [agent.agentId, agent]))
+  const incoming = new Map<string, (typeof candidate.agents)[number]>()
+  const ambiguousCanonicalAgentIds = new Set<string>()
+  for (const agent of candidate.agents) {
+    const canonicalId = resolveCurrentReleasedIdentity(agent.agentId)
+    if (incoming.has(canonicalId)) {
+      ambiguousCanonicalAgentIds.add(canonicalId)
+    } else {
+      incoming.set(canonicalId, agent)
+    }
+  }
+  if (ambiguousCanonicalAgentIds.size > 0)
+    throw new Error('快照中存在指向同一代理人的多个别名记录，存在歧义未写入账户。')
+  const existingIds = current.agents.map((agent) => resolveCurrentReleasedIdentity(agent.agentId))
+  if (new Set(existingIds).size !== existingIds.length)
+    throw new Error('账户中存在指向同一代理人的多个别名记录，请先核对，未写入账户。')
   const roster: AccountRoster = {
     ...current,
     agents: current.agents.map((existing) => {
-      const observation = incoming.get(existing.agentId)
+      const canonicalExistingId = resolveCurrentReleasedIdentity(existing.agentId)
+      const observation = incoming.get(canonicalExistingId)
       if (!observation) return existing
       const next = structuredClone(existing)
       let adopted = false
@@ -91,10 +107,16 @@ export function mergeAssetQuickReadRoster(
           protectedFields++
           continue
         }
+        const observedEngineId = observation.fields.wEngineDetails?.id
+          ? resolveCurrentReleasedIdentity(observation.fields.wEngineDetails.id)
+          : observation.fields.wEngineDetails?.id
+        const currentEngineId = next.wEngineDetails?.id
+          ? resolveCurrentReleasedIdentity(next.wEngineDetails.id)
+          : next.wEngineDetails?.id
         if (
           field.startsWith('wEngineDetails.') &&
           field !== 'wEngineDetails.id' &&
-          observation.fields.wEngineDetails?.id !== next.wEngineDetails.id
+          observedEngineId !== currentEngineId
         ) {
           protectedFields++
           continue
@@ -104,10 +126,17 @@ export function mergeAssetQuickReadRoster(
             ? observation.equippedSourceIds.map((id) => sourceToId.get(id))
             : getObservedAgentFieldValue(observation.fields, field)
         const previousValue = getObservedAgentFieldValue(existing, field)
+        const isSameEngine =
+          field === 'wEngineDetails.id' &&
+          typeof previousValue === 'string' &&
+          typeof value === 'string' &&
+          resolveCurrentReleasedIdentity(previousValue) === resolveCurrentReleasedIdentity(value)
         const differs =
           field === 'equippedDiscIds'
             ? JSON.stringify(previousValue) !== JSON.stringify(value)
-            : previousValue !== value
+            : field === 'wEngineDetails.id' && isSameEngine
+              ? false
+              : previousValue !== value
         const hardProtected =
           explicitlyLocked(existing, field) ||
           hasNewerObservation(existing, field, candidate.capturedAt)
@@ -151,14 +180,24 @@ export function mergeAssetQuickReadRoster(
           next.refinement = 0
           next.wEngineCopyId = null
           unequippedEngineAgents.add(next.agentId)
+          unequippedEngineAgents.add(resolveCurrentReleasedIdentity(next.agentId))
           if (next.observedFacts)
             for (const engineField of currentEngineFields)
               delete next.observedFacts.fields[engineField]
         } else if (child) {
           if (parent === 'skillLevels') next.skillLevels = { ...next.skillLevels, [child]: value }
-          else if (parent === 'wEngineDetails')
-            next.wEngineDetails = { ...next.wEngineDetails, [child]: value }
-          else throw new Error('资产快读字段不在可导入范围内。')
+          else if (parent === 'wEngineDetails') {
+            const nextChildValue =
+              child === 'id' &&
+              typeof next.wEngineDetails.id === 'string' &&
+              typeof value === 'string' &&
+              resolveCurrentReleasedIdentity(next.wEngineDetails.id) ===
+                resolveCurrentReleasedIdentity(value) &&
+              resolveCurrentReleasedIdentity(next.wEngineDetails.id) === next.wEngineDetails.id
+                ? next.wEngineDetails.id
+                : value
+            next.wEngineDetails = { ...next.wEngineDetails, [child]: nextChildValue }
+          } else throw new Error('资产快读字段不在可导入范围内。')
         } else {
           Object.assign(next, { [parent]: value })
         }
@@ -197,8 +236,14 @@ export function mergeAssetQuickReadRoster(
           next.wEngine = next.wEngineDetails.name ?? next.wEngine
         if (adoptedFields.has('wEngineDetails.refinement'))
           next.refinement = next.wEngineDetails.refinement ?? next.refinement
-        if ([...adoptedFields].some((field) => field.startsWith('skillLevels.')))
+        const adoptedSkillFields = [...adoptedFields].filter((field) =>
+          field.startsWith('skillLevels.'),
+        )
+        if (adoptedSkillFields.length === 6) {
           next.skills = '快读实测'
+        } else if (adoptedSkillFields.length > 0) {
+          next.skills = '快读部分实测'
+        }
         if (adoptedFields.has('equippedDiscIds')) next.currentEquipment = 'known'
       }
       return next
@@ -212,17 +257,20 @@ export function mergeAssetQuickReadRoster(
   // binding changes; leaving the inverse binding would re-equip them on hydration.
   if (roster.wEngines && unequippedEngineAgents.size)
     roster.wEngines = roster.wEngines.map((copy) =>
-      copy.equippedAgentId && unequippedEngineAgents.has(copy.equippedAgentId)
+      copy.equippedAgentId &&
+      (unequippedEngineAgents.has(copy.equippedAgentId) ||
+        unequippedEngineAgents.has(resolveCurrentReleasedIdentity(copy.equippedAgentId)))
         ? { ...copy, equippedAgentId: null }
         : copy,
     )
   const physicalOwners = new Map<string, string>()
   for (const agent of roster.agents) {
+    const canonicalAgentId = resolveCurrentReleasedIdentity(agent.agentId)
     for (const id of agent.equippedDiscIds ?? []) {
       const owner = physicalOwners.get(id)
-      if (owner && owner !== agent.agentId)
+      if (owner && owner !== canonicalAgentId)
         throw new Error('本次装备引用与保留的手动或旧装备记录冲突，请先核对该盘的装备归属。')
-      physicalOwners.set(id, agent.agentId)
+      physicalOwners.set(id, canonicalAgentId)
     }
   }
   assertBangbooSkillFacts(roster)

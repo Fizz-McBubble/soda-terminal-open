@@ -1,45 +1,49 @@
-import { authorComparisonAccountBinding } from './publicAuthorComparisonAccountBinding'
-import { projectTargetTeamExecution } from '../decision/teamExecutionProjection'
-import { isAdoptedPortfolioTeam } from '../decision/authorityPortfolioCandidates'
-import { calculateTargetTeamWarehouseFit } from '../decision/targetTeamWarehouseFit'
-import { createTargetTeamAssignmentObjective } from '../decision/targetTeamAssignmentObjective'
-import { projectTargetTeamAccountBoundBenchmark } from '../decision/targetTeamAccountBoundBenchmark'
 import {
-  confirmedTargetTeamEquipmentParameters,
-  defaultTargetTeamEquipmentParameters,
-  selectPlayerConfirmableTargetBangbooSelection,
-  selectSupportedTargetBangbooSelection,
-  sourceSupportedTargetBangbooSelection,
-  withReviewedSourceBangbooAlternatives,
-  resolveTargetTeamBangbooOption,
-  recommendedTargetBangbooDefault,
-} from '../decision/targetTeamEquipmentParameters'
-import { projectTargetTeamValueBenchmark } from '../decision/targetTeamValueBenchmark'
+  normalizeReviewedEventConditionDeclarations32,
+  reviewedEventConditionDeclarationsIdentity32,
+} from '../calculation/reviewedEventConditionDeclarations32'
 import { refineCultivationPriorityWithTargetFit } from '../decision/accountDecisionAuthority'
 import { authorityConsumerRecommendations } from '../decision/accountDecisionAuthorityConsumers'
 import { resolveAuthorityExecutionCandidate } from '../decision/accountDecisionAuthorityExecutionCandidates'
-import { authorityTargetBuildDirection } from '../decision/authorityTargetBuildDirection'
 import {
   createAccountTeamEngineBoxInput,
   createAuthorityExecutionVariantResolver,
 } from '../decision/authorityExecutionVariantResolver'
-import type { BangbooStar, TeamEngineCandidate } from '../teamEngine/contracts'
-import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
+import { isAdoptedPortfolioTeam } from '../decision/authorityPortfolioCandidates'
+import { authorityTargetBuildDirection } from '../decision/authorityTargetBuildDirection'
 import {
-  compileTeamBuildIntent,
   compileAuthorComparisonTeamBuildIntent,
+  compileTeamBuildIntent,
 } from '../decision/buildIntent'
 import { reviewedAuthorComparisonMembership32 } from '../decision/reviewedAuthorComparisonMembership32'
-import { candidatePanelInputsForScheme } from '../optimizer/optimizeAccountBuilds'
+import { projectTargetTeamAccountBoundBenchmark } from '../decision/targetTeamAccountBoundBenchmark'
+import { createTargetTeamAssignmentObjective } from '../decision/targetTeamAssignmentObjective'
+import {
+  confirmedTargetTeamEquipmentParameters,
+  defaultTargetTeamEquipmentParameters,
+  recommendedTargetBangbooDefault,
+  resolveTargetTeamBangbooOption,
+  selectPlayerConfirmableTargetBangbooSelection,
+  selectSupportedTargetBangbooSelection,
+  sourceSupportedTargetBangbooSelection,
+  withReviewedSourceBangbooAlternatives,
+} from '../decision/targetTeamEquipmentParameters'
+import { projectTargetTeamValueBenchmark } from '../decision/targetTeamValueBenchmark'
+import { calculateTargetTeamWarehouseFit } from '../decision/targetTeamWarehouseFit'
 import { projectTeamEquipmentRecommendations } from '../decision/teamEquipmentRecommendations'
+import { projectTargetTeamExecution } from '../decision/teamExecutionProjection'
+import { candidatePanelInputsForScheme } from '../optimizer/optimizeAccountBuilds'
+import { projectPrivateTeamExecution } from '../pages/privateTeamLoadoutPresentationProducer'
+import type { BangbooStar, TeamEngineCandidate } from '../teamEngine/contracts'
+import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
 import {
   calculationQueryContractVersion,
   type AccountDecisionRun,
   type CalculationQueryClient,
 } from './calculationQueryContract'
-import { projectPrivateTeamExecution } from '../pages/privateTeamLoadoutPresentationProducer'
-import { resolveTargetTeamFitEntry } from '../pages/teamTargetFitEntry'
-import { equipmentParameterSelection } from './equipmentParameterSelection'
+import { resolvePlayerConfirmedTargetTeamQuery } from './localTargetTeamPlayerSelection'
+import { authorComparisonAccountBinding } from './publicAuthorComparisonAccountBinding'
+import { targetTeamEffectivePotentialConditions } from './targetTeamEffectivePotentialConditions'
 
 function defaultSchemeBangbooId(candidate: TeamEngineCandidate) {
   if (candidate.bangbooId) return candidate.bangbooId
@@ -73,42 +77,8 @@ export function createLocalTargetTeamFitQuery({
       await requireCompiledRuntime()
       const run = runs.get(query.runId)
       if (!run) throw new Error(`Account Decision run is unavailable: ${query.runId}.`)
-      if (query.playerBangbooSelection) {
-        if (query.equipmentParameters) throw new Error('队伍装备参数不能重复指定。')
-        const choice = query.playerBangbooSelection
-        const entry = resolveTargetTeamFitEntry(run.snapshot, choice.teamKey, run.input.warehouse)
-        const input = entry.playerConfirmableBangbooInput
-        if (!input || entry.targetCandidateId !== query.candidateId)
-          throw new Error('当前队伍的邦布确认已失效，请重新选择。')
-        const bangbooSelection = selectPlayerConfirmableTargetBangbooSelection({
-          ...input,
-          bangbooId: choice.bangbooId,
-          bangbooStarsById: { [choice.bangbooId]: choice.bangbooStars },
-        })
-        const recommendations = projectTeamEquipmentRecommendations({
-          memberIds: input.memberIds,
-          bangbooSelection,
-          roster: run.input.warehouse.roster,
-        })
-        const equipmentParameters = equipmentParameterSelection({
-          memberIds: input.memberIds,
-          recommendations,
-          effectiveParameters: {
-            wEngines: [],
-            bangbooId: choice.bangbooId,
-            bangbooStars: choice.bangbooStars,
-          },
-        })
-        if (equipmentParameters.wEngines.some((engine) => !engine.engineId))
-          throw new Error('这支队伍缺少完整音擎参数，暂不能生成配装。')
-        return calculateTargetTeamWarehouseFitQuery({
-          contractVersion: query.contractVersion,
-          kind: query.kind,
-          runId: query.runId,
-          candidateId: query.candidateId,
-          equipmentParameters,
-        })
-      }
+      const playerConfirmedQuery = resolvePlayerConfirmedTargetTeamQuery(query, run)
+      if (playerConfirmedQuery) return calculateTargetTeamWarehouseFitQuery(playerConfirmedQuery)
       if (run.snapshot.decisionAuthority.status !== 'ready')
         throw new Error('Account Decision shortlist is unavailable for target-team calculation.')
       const authorityCandidates = authorityConsumerRecommendations(run.snapshot.decisionAuthority)
@@ -161,7 +131,12 @@ export function createLocalTargetTeamFitQuery({
           provenance: 'authority_exact' as const,
           authorComparisonMembership: membership,
         }
+        const eventConditionDeclarationsByAgentId = normalizeReviewedEventConditionDeclarations32(
+          query.eventConditionDeclarationsByAgentId,
+          memberIds,
+        )
         const context = {
+          eventConditionDeclarationsByAgentId,
           scenarioSelection: query.scenarioSelection,
           warehouse: run.input.warehouse,
           candidate,
@@ -208,6 +183,10 @@ export function createLocalTargetTeamFitQuery({
         Object.assign(result, {
           scenarioSelection: accountBoundBenchmark.scenarioSelection,
           scenarioIdentity: accountBoundBenchmark.scenarioIdentity,
+          eventConditionDeclarationsByAgentId,
+          eventConditionDeclarationsIdentity: reviewedEventConditionDeclarationsIdentity32(
+            eventConditionDeclarationsByAgentId,
+          ),
         })
         result.teamExecutionPresentation = projectPrivateTeamExecution(run, result)
         const cached = teamFits.get(run.runId) ?? new Map()
@@ -389,18 +368,25 @@ export function createLocalTargetTeamFitQuery({
         candidate.memberIds,
         schemeParameters?.wEngines,
       )
+      // Use the same per-call potential assumptions as the numeric context. Keep
+      // missing observations intact for the capability resolver's unknown policy;
+      // this overlay never changes the account roster.
+      const eventConditionDeclarationsByAgentId = normalizeReviewedEventConditionDeclarations32(
+        query.eventConditionDeclarationsByAgentId,
+        candidate.memberIds,
+      )
+      const effectiveAgentStateById = targetTeamEffectivePotentialConditions({
+        memberIds: candidate.memberIds,
+        roster: run.input.warehouse.roster,
+        potentialByAgentId: schemeParameters?.potentialByAgentId,
+      })
       const buildIntent = compileTeamBuildIntent({
         candidateId: candidate.candidateId,
         memberIds: candidate.memberIds,
         bangbooId: selectedBangbooId,
         scenarioTags: executionIdentity.scenarioTags,
         ...(panelInputsByAgent ? { optimizerOptions: { panelInputsByAgent } } : {}),
-        agentStateById: Object.fromEntries(
-          run.input.warehouse.roster.agents.map((agent) => [
-            agent.agentId,
-            { potentialImage: agent.potentialImage },
-          ]),
-        ),
+        agentStateById: effectiveAgentStateById,
       })
       const fit = calculateTargetTeamWarehouseFit({
         warehouse: run.input.warehouse,
@@ -409,6 +395,7 @@ export function createLocalTargetTeamFitQuery({
         ...(schemeParameters
           ? {
               teamAssignmentObjective: createTargetTeamAssignmentObjective({
+                eventConditionDeclarationsByAgentId,
                 scenarioSelection: query.scenarioSelection,
                 warehouse: run.input.warehouse,
                 candidate: executionIdentity,
@@ -423,6 +410,7 @@ export function createLocalTargetTeamFitQuery({
       })
       const benchmarkCandidate = executionIdentity
       const accountBoundBenchmark = projectTargetTeamAccountBoundBenchmark({
+        eventConditionDeclarationsByAgentId,
         scenarioSelection: query.scenarioSelection,
         warehouse: run.input.warehouse,
         candidate: benchmarkCandidate,
@@ -454,6 +442,7 @@ export function createLocalTargetTeamFitQuery({
           }),
           accountBoundBenchmark,
           valueBenchmark: projectTargetTeamValueBenchmark({
+            eventConditionDeclarationsByAgentId,
             scenarioSelection: query.scenarioSelection,
             warehouse: run.input.warehouse,
             drafts: run.input.drafts,
@@ -485,6 +474,10 @@ export function createLocalTargetTeamFitQuery({
       Object.assign(result, {
         scenarioSelection: accountBoundBenchmark.scenarioSelection,
         scenarioIdentity: accountBoundBenchmark.scenarioIdentity,
+        eventConditionDeclarationsByAgentId,
+        eventConditionDeclarationsIdentity: reviewedEventConditionDeclarationsIdentity32(
+          eventConditionDeclarationsByAgentId,
+        ),
       })
       result.teamExecutionPresentation = projectPrivateTeamExecution(run, result)
       const cachedTeamFits = teamFits.get(run.runId) ?? new Map()

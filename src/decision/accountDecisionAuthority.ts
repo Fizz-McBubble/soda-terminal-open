@@ -10,7 +10,10 @@ import { type CultivationPriorityInput } from './teamDecisionAuthority'
 import { isReviewedFallbackTeam } from './reviewedTeamRecommendationDisposition'
 import { extractTeamStrengthMechanicFeatures } from './teamStrengthMechanicFeatures'
 import { reviewedTeamAnalysis } from './reviewedTeamAnalysis'
-import { selectDefaultTeamRecommendationIds } from './defaultTeamRecommendationPolicy'
+import {
+  hasDefaultTeamRecommendationEvidence,
+  selectDefaultTeamRecommendationIds,
+} from './defaultTeamRecommendationPolicy'
 import { reviewedPreparedTeamCapabilities32 } from '../calculation/reviewedPreparedTeamBenchmark32'
 import {
   authorComparisonMembership32Identity,
@@ -25,6 +28,7 @@ import {
 import {
   baseComparator,
   confidenceOrder,
+  ratingOrder,
   readinessOrder,
   conflictOrder,
   investmentOrder,
@@ -194,6 +198,20 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
       (item.mainstreamRecognition.status === 'confirmed' && !isReviewedFallbackTeam(item.memberIds))
     )
   }
+  // Players choose an intrinsically strong team before requesting its gear fit.
+  // Source preference refines a band; it cannot move a weaker band above it.
+  const defaultStrengthComparator = (
+    left: (typeof projected)[number],
+    right: (typeof projected)[number],
+  ) => {
+    if (left.rating.status !== 'rated' || right.rating.status !== 'rated')
+      return intrinsicDisplayComparator(left, right)
+    return (
+      ratingOrder(left.rating.ratingBand) - ratingOrder(right.rating.ratingBand) ||
+      Number(sourceRecommendation(right)) - Number(sourceRecommendation(left)) ||
+      intrinsicDisplayComparator(left, right)
+    )
+  }
   const allIntrinsicOrdered = [...projected]
     .filter((item) => item.rating.status === 'rated')
     .sort(intrinsicDisplayComparator)
@@ -226,8 +244,7 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
       const features =
         featureCache.get(key) ?? extractTeamStrengthMechanicFeatures(candidate.memberIds)
       featureCache.set(key, features)
-      return features.eligibility.eligible &&
-        !features.supportEvidence.sourceConflictProviderIds.length
+      return hasDefaultTeamRecommendationEvidence(features, candidate.memberIds)
         ? features.primaryOutputAgentId
         : null
     },
@@ -248,7 +265,7 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
   const shortlistOrder = [
     ...longTermSelected,
     ...intrinsicOrdered.filter((item) => !longTermSelectedIds.has(item.candidate.candidateId)),
-  ].sort((left, right) => Number(sourceRecommendation(right)) - Number(sourceRecommendation(left)))
+  ].sort(defaultStrengthComparator)
   for (const item of shortlistOrder) {
     if (intrinsicShortlistCandidateIds.has(item.candidate.candidateId)) continue
     intrinsicShortlistCandidateIds.add(item.candidate.candidateId)
@@ -363,11 +380,7 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
   // Owned BOX constrains membership; inventory costs stay outside intrinsic strength ordering.
   const recommendations = enriched
     .filter((item) => intrinsicShortlistIds.has(item.candidate.candidateId))
-    .sort(
-      (left, right) =>
-        Number(sourceRecommendation(right)) - Number(sourceRecommendation(left)) ||
-        strengthFirstComparator(left, right),
-    )
+    .sort(defaultStrengthComparator)
     .slice(0, recommendationLimit)
     .map(toRecommendation)
   const consumerRecommendations = enriched
@@ -375,11 +388,7 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
     .sort(strengthFirstComparator)
     .map(toRecommendation)
   const bestByAgent = new Map<string, (typeof enriched)[number]>()
-  for (const item of [...enriched].sort(
-    (left, right) =>
-      Number(sourceRecommendation(right)) - Number(sourceRecommendation(left)) ||
-      strengthFirstComparator(left, right),
-  )) {
+  for (const item of [...enriched].sort(defaultStrengthComparator)) {
     if (!defaultRecommendation(item)) continue
     if (item.rating.status !== 'rated') continue
     for (const agentId of item.memberIds) {
