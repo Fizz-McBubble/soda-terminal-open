@@ -102,15 +102,9 @@ test('the installed consumer-policy closure keeps identity through repeated publ
   let redactedSources = 0
   for (const path of paths) {
     const url = new URL(path, identityUrl)
-    let source
-    try {
-      source = readFileSync(url, 'utf8')
-    } catch (error) {
-      // import.meta.glob includes only installed matches. The public source
-      // graph can omit private-only inputs from the same declared pattern list.
-      if (error.code === 'ENOENT') continue
-      throw error
-    }
+    // These explicit raw dependencies must ship with the runtime. Silently
+    // omitting a match changes the model/index identity and disables BOX inference.
+    const source = readFileSync(url, 'utf8')
     installedSources++
     const projected = projectCommunitySourceText(source, url.pathname)
     const sourceHash = normalizedSourceHash(source)
@@ -124,5 +118,6 @@ test('the installed consumer-policy closure keeps identity through repeated publ
     assert.equal(normalizedSourceHash(repeated), projectedHash, path)
   }
   assert(installedSources > 0, 'the installed consumer-policy closure must not be empty')
+  assert.equal(installedSources, paths.length, 'every declared policy input must be installed')
   console.info({ installedSources, redactedSources })
 })
