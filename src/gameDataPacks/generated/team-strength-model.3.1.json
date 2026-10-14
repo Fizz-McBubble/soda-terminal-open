@@ -185,7 +185,7 @@
     "compatible_anomaly_proficiency_capability",
     "compatible_anomaly_mastery_capability"
   ],
-  "mechanicDataFingerprint": "fnv1a-af2b5ac0",
+  "mechanicDataFingerprint": "fnv1a-9bcc2111",
   "referenceConditionsIdentity": "fnv1a-8eed8cdc",
   "conditionAlignment": {
     "status": "declared_standard_reference",
@@ -199,7 +199,7 @@
     "standardReferenceTeamCount": 87,
     "boundary": "All source labels remain retained. Level 60 / skill 11 / core 7 / M0 / eligible P6 is a declared comparison protocol with explicit numeric overrides, not an observation of the source author or account. Unrecorded author levels do not imply P0. Unmodelled operation/build conditions remain diagnostic and require separate validation."
   },
-  "adoptionStatus": "development_candidate",
+  "adoptionStatus": "calibration_candidate",
   "regression": {
     "means": [
       8.827050481269556, 3.0386526400484106, 0.2953943566006218, 1.4705883972133642,
@@ -384,7 +384,7 @@
     "src/application/developmentWorkbenchPresentationProjection.ts": "30afcf0089e9db3c3e6ffabc1852a98403572761f42c67515e887da5eb90c02c",
     "src/application/developmentDirectoryQueryProjection.ts": "2474b65a76f7eb66f0831a89eeda4dc9842d3158ac6f448f5141b163555a0db0",
     "src/gameDataPacks/agentProfilePlayerFields.ts": "66cc0a8cd4f138698ee7edc85ff079ea763c7438325c9e85f8054c078469674b",
-    "src/gameDataPacks/reviewedHistoricalWEngineReferences.ts": "0093b1f702a1e5346878722f7874c1d1bc46690e7d9cf8b127bc8a8058b94ebf",
+    "src/gameDataPacks/reviewedHistoricalWEngineReferences.ts": "55e1e68f37cacba24117f95fcb201f0b47feb362c1ade1cc0b4933b1640e40cb",
     "src/decision/reviewedTeamCombatEvidence.ts": "412c3e06b8f1c99dbcb19cf19038eb7ff9f0c96876a530c0cd5a77ba725dba5b",
     "src/gameDataPacks/reviewedAgentAttackTypes32.ts": "b9fadb6a57d19cc36f8c1e5c6651ed1778a6e5e3991e158dc5abf546bf43c8cc",
     "src/gameDataPacks/data/reviewed-agent-attack-types32.v1.json": "fc7beab2ca630e09ff85124d3c865a65bf3516cbbdc35d60df15b1448c80c275",

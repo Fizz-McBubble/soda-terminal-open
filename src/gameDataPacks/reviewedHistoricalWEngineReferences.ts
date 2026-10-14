@@ -24,8 +24,7 @@ const reviewedHistoricalWEngineReferences = [
     },
     evidence: {
       archiveSha256: '1a71b24cead501819b579777441ac860efb537434084c62fba1bcd0b19e8b3dd',
-      sourcePath:
-        "soda-source-ref:0a2a3e8c0c1121edc9edaad92f152a82",
+      sourcePath: 'soda-source-ref:0a2a3e8c0c1121edc9edaad92f152a82',
       locator: {
         kind: 'miyoushe_text_ops',
         postId: '74657525',
@@ -55,8 +54,7 @@ const reviewedHistoricalWEngineReferences = [
     )!.source,
     evidence: {
       archiveSha256: '501D5CF80819A44C16DBA945790C7AF96C4CE0B42F174EED93307845CB8F2E93',
-      sourcePath:
-        "soda-source-ref:00a67e3a36932bc3354b8433e6157379",
+      sourcePath: 'soda-source-ref:00a67e3a36932bc3354b8433e6157379',
       locator: {
         kind: 'miyoushe_nested_text_unit',
         postId: '71526574',
@@ -94,8 +92,7 @@ const reviewedHistoricalWEngineReferences = [
     },
     evidence: {
       archiveSha256: '1a71b24cead501819b579777441ac860efb537434084c62fba1bcd0b19e8b3dd',
-      sourcePath:
-        "soda-source-ref:0a2a3e8c0c1121edc9edaad92f152a82",
+      sourcePath: 'soda-source-ref:0a2a3e8c0c1121edc9edaad92f152a82',
       locator: {
         kind: 'miyoushe_nested_text_unit',
         opIndex: 50,
@@ -132,8 +129,7 @@ const reviewedHistoricalWEngineReferences = [
     },
     evidence: {
       archiveSha256: '1a71b24cead501819b579777441ac860efb537434084c62fba1bcd0b19e8b3dd',
-      sourcePath:
-        "soda-source-ref:0a2a3e8c0c1121edc9edaad92f152a82",
+      sourcePath: 'soda-source-ref:0a2a3e8c0c1121edc9edaad92f152a82',
       locator: {
         kind: 'miyoushe_nested_text_unit',
         opIndex: 49,
@@ -170,8 +166,7 @@ const reviewedHistoricalWEngineReferences = [
     },
     evidence: {
       archiveSha256: '1a71b24cead501819b579777441ac860efb537434084c62fba1bcd0b19e8b3dd',
-      sourcePath:
-        "soda-source-ref:0a2a3e8c0c1121edc9edaad92f152a82",
+      sourcePath: 'soda-source-ref:0a2a3e8c0c1121edc9edaad92f152a82',
       locator: {
         kind: 'miyoushe_nested_text_unit',
         opIndex: 46,
@@ -208,8 +203,7 @@ const reviewedHistoricalWEngineReferences = [
     },
     evidence: {
       archiveSha256: '1a71b24cead501819b579777441ac860efb537434084c62fba1bcd0b19e8b3dd',
-      sourcePath:
-        "soda-source-ref:0a2a3e8c0c1121edc9edaad92f152a82",
+      sourcePath: 'soda-source-ref:0a2a3e8c0c1121edc9edaad92f152a82',
       locator: {
         kind: 'miyoushe_nested_text_unit',
         opIndex: 49,

@@ -88,7 +88,7 @@ test('safe JSON retains exact formatting and policy-source identity through repe
   )
 })
 
-test('the installed consumer-policy closure keeps raw identity in the public projection', () => {
+test('the installed consumer-policy closure keeps identity through repeated public projection', () => {
   const identityUrl = new URL(
     '../src/calculation/currentPlanningConsumerPolicyIdentity32.ts',
     import.meta.url,
@@ -98,10 +98,31 @@ test('the installed consumer-policy closure keeps raw identity in the public pro
     (match) => match[1],
   )
   assert(paths.length > 0)
+  let installedSources = 0
+  let redactedSources = 0
   for (const path of paths) {
     const url = new URL(path, identityUrl)
-    const source = readFileSync(url, 'utf8')
+    let source
+    try {
+      source = readFileSync(url, 'utf8')
+    } catch (error) {
+      // import.meta.glob includes only installed matches. The public source
+      // graph can omit private-only inputs from the same declared pattern list.
+      if (error.code === 'ENOENT') continue
+      throw error
+    }
+    installedSources++
     const projected = projectCommunitySourceText(source, url.pathname)
-    assert.equal(normalizedSourceHash(projected), normalizedSourceHash(source), path)
+    const sourceHash = normalizedSourceHash(source)
+    const projectedHash = normalizedSourceHash(projected)
+    if (!hasPrivateCommunityLocator(source)) assert.equal(projectedHash, sourceHash, path)
+    if (projectedHash !== sourceHash) {
+      assert(hasPrivateCommunityLocator(source), 'only private locators may change identity')
+      redactedSources++
+    }
+    const repeated = projectCommunitySourceText(projected, url.pathname)
+    assert.equal(normalizedSourceHash(repeated), projectedHash, path)
   }
+  assert(installedSources > 0, 'the installed consumer-policy closure must not be empty')
+  console.info({ installedSources, redactedSources })
 })
