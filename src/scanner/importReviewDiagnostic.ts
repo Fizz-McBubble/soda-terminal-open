@@ -39,12 +39,45 @@ export function importReviewDiagnosticCategories(counts: Record<string, number |
     )
 }
 
+const parserReasonTokens = {
+  'diagnostic=stat_domain_ambiguous': 'parserAmbiguous',
+  'diagnostic=substat_domain_incomplete': 'parserIncomplete',
+  'root=parser_root_unknown': 'parserUnknown',
+} as const
+
+/** Only explicit nulls and finite parser tokens are observable reasons. */
+function observedReviewReasons(item: ScanImportItem) {
+  const reasons = new Set<string>()
+  const candidate = item.candidate
+  if (candidate.mainStat === null) reasons.add('mainNameMissing')
+  if (candidate.mainStatValue === null) reasons.add('mainValueMissing')
+  let incompleteBefore = false
+  for (const row of candidate.subStats) {
+    if (row.stat === null) reasons.add('subNameMissing')
+    if (row.value === null) reasons.add('subValueMissing')
+    if (row.upgrades === null) reasons.add('subUpgradesMissing')
+    const complete = row.stat != null && row.value != null && row.upgrades != null
+    if (incompleteBefore && complete) reasons.add('subInternalGap')
+    if (row.stat === null || row.value === null || row.upgrades === null) incompleteBefore = true
+  }
+  for (const field of Object.values(item.fields ?? {})) {
+    for (const token of field.evidence ?? []) {
+      if (Object.hasOwn(parserReasonTokens, token))
+        reasons.add(parserReasonTokens[token as keyof typeof parserReasonTokens])
+    }
+  }
+  return reasons
+}
+
 /** Count affected records only. Never include OCR text, values, paths or account identifiers. */
 export function summarizeImportReview(items: ScanImportItem[]) {
   const blocked = items.filter(
     (item) => item.state === 'needs_review' || item.state === 'invalid' || item.duplicate,
   )
   const counts: Record<string, number> = { reviewRequired: blocked.length }
+  for (const item of blocked) {
+    for (const reason of observedReviewReasons(item)) counts[reason] = (counts[reason] ?? 0) + 1
+  }
   const categories: { key: string; label: string; count: number }[] = reviewCategories.map(
     ({ key, label, codes }) => {
       const count = blocked.filter((item) =>

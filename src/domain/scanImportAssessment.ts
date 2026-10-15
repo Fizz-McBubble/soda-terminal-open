@@ -32,11 +32,40 @@ function isEmptySubStat(subStat: ScanImportItem['candidate']['subStats'][number]
   return subStat.stat === null && subStat.value === null && subStat.upgrades === null
 }
 
-export function normalizeCandidate(candidate: ScanImportItem['candidate']) {
+export function normalizeCandidate(
+  candidate: ScanImportItem['candidate'],
+  fields?: ScanImportItem['fields'],
+) {
   if (candidate.level === null || candidate.level >= 3) return candidate
+  // The legacy recognizer emits a textual placeholder for an absent fourth
+  // row. Only its explicit source/rule/evidence contract can discard that noise.
+  const isLegacyEmptyTail = (index: number) => {
+    const field = fields?.[`subStats.${index}`]
+    return (
+      index === 3 &&
+      fields?.mainStat?.source === 'detail-main' &&
+      [
+        'ocr_name_and_slot_value_rule',
+        'fuzzy_name_plus_slot_value_rule',
+        'unique_slot_level_value_rule',
+      ].includes(fields.mainStat.rule) &&
+      field?.source === 'detail-sub-4' &&
+      field.rule === 'ambiguous_step_value_rule' &&
+      field.evidence.includes('value=None') &&
+      field.evidence.includes('upgrades=None')
+    )
+  }
+  let count = candidate.subStats.length
+  while (
+    count > 0 &&
+    isEmptySubStat(candidate.subStats[count - 1]!) &&
+    (!candidate.subStats[count - 1]!.rawText.trim() || isLegacyEmptyTail(count - 1))
+  ) {
+    count--
+  }
   return {
     ...candidate,
-    subStats: candidate.subStats.filter((subStat) => !isEmptySubStat(subStat)),
+    subStats: candidate.subStats.slice(0, count),
   }
 }
 
@@ -45,7 +74,7 @@ export function assessScanImportItem(
   context: ScanImportAssessmentContext,
 ): ScanImportItem {
   if (input.state === 'imported') return input
-  const candidate = normalizeCandidate(input.candidate)
+  const candidate = normalizeCandidate(input.candidate, input.fields)
   const issues: ScanImportIssue[] = []
   const set = [...context.driveDiscSets, ...(context.driveDiscSetIdentities ?? [])].find(
     (item) => item.id === candidate.setId,

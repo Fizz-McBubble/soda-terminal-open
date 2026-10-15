@@ -11,6 +11,7 @@ import {
   pinnedScannerAssetUrlRc87,
   pinnedScannerAssetUrlRc88,
   pinnedScannerAssetUrlRc814,
+  pinnedScannerAssetUrlRc815,
   scannerAssetLocation,
 } from './materialize-scanner-distribution.mjs'
 
@@ -52,7 +53,23 @@ test('accepts the published RC8.14 identity and rejects mixed release fields', (
     { ...manifest, assetName: 'soda-scanner-runtime-18-rc8-13-local-20261011-win-x64.zip' },
     { ...manifest, releaseTag: 'scanner-runtime-v18.0.0-rc.8.13-local.20261011' },
     { ...manifest, assetUrl: manifest.assetUrl.replace('/soda-terminal-scanner/', '/other-repo/') },
-  ]) assert.throws(() => scannerAssetLocation(invalid), /scanner_release_asset_invalid/)
+  ])
+    assert.throws(() => scannerAssetLocation(invalid), /scanner_release_asset_invalid/)
+})
+
+test('accepts RC8.15 while rejecting mixed prior identities', () => {
+  const manifest = {
+    assetUrl: pinnedScannerAssetUrlRc815,
+    assetName: 'soda-scanner-runtime-18-rc8-15-local-20261015-win-x64.zip',
+    releaseTag: 'scanner-runtime-v18.0.0-rc.8.15-local.20261015',
+  }
+  assert.equal(scannerAssetLocation(manifest), 'github-release')
+  for (const invalid of [
+    { ...manifest, assetName: 'soda-scanner-runtime-18-rc8-14-local-20261011-win-x64.zip' },
+    { ...manifest, releaseTag: 'scanner-runtime-v18.0.0-rc.8.14-local.20261011' },
+    { ...manifest, assetUrl: pinnedScannerAssetUrlRc814 },
+  ])
+    assert.throws(() => scannerAssetLocation(invalid), /scanner_release_asset_invalid/)
 })
 
 test('materializes a same-origin bootstrap with a pinned external runtime without changing source', async () => {
@@ -94,10 +111,11 @@ test('materializes a same-origin bootstrap with a pinned external runtime withou
       assert.equal(rendered[key], sha256(payload))
       assert.ok(text.includes(rendered[key]))
     }
-    assert.equal(rendered.releaseState, 'published')
+    const sourceManifest = JSON.parse(await readFile(join(source, names[3]), 'utf8'))
+    assert.equal(rendered.releaseState, sourceManifest.releaseState)
     const manifest = JSON.parse(await readFile(join(output, names[3]), 'utf8'))
-    assert.equal(manifest.releaseState, 'published')
-    assert.equal(manifest.assetUrl, pinnedScannerAssetUrlRc814)
+    assert.equal(manifest.releaseState, sourceManifest.releaseState)
+    assert.equal(manifest.assetUrl, pinnedScannerAssetUrlRc815)
     await assert.rejects(
       materializeScannerDistribution({
         origin: 'https://example.test',

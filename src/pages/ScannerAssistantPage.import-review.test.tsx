@@ -45,7 +45,12 @@ describe('completed scan with rejected OCR records', () => {
     await cleanupScannerPageTestDatabase()
   })
 
-  it.each(['missing-fields', 'invalid-only', 'missing-fields-without-native'] as const)(
+  it.each([
+    'missing-fields',
+    'invalid-only',
+    'missing-fields-without-native',
+    'substat-gap',
+  ] as const)(
     'offers useful opt-in diagnostics, retry and persistent receipt for %s without importing',
     async (kind) => {
       const user = userEvent.setup()
@@ -53,12 +58,55 @@ describe('completed scan with rejected OCR records', () => {
       await setActiveAccount(account.id, database)
       const binding = createScannerTargetAccountBinding({ account, baselineDiscCount: 0 })
       saveScannerTargetAccountBinding(binding)
-      const missingFields = kind !== 'invalid-only'
+      const missingFields = kind === 'missing-fields' || kind === 'missing-fields-without-native'
+      const internalGap = kind === 'substat-gap'
       const staging = createReadyScannerStaging(missingFields ? 12 : 1)
       const blocked = missingFields ? 11 : 1
       for (const item of staging.items.slice(0, blocked)) {
         item.candidate = structuredClone(item.candidate)
-        if (missingFields) {
+        if (internalGap) {
+          item.candidate = {
+            ...item.candidate,
+            slot: 1,
+            level: 0,
+            mainStat: 'hp_flat',
+            mainStatValue: 550,
+            subStats: [
+              { stat: null, value: null, upgrades: null, rawText: '', confidence: 'low' },
+              {
+                stat: 'atk_flat',
+                value: 19,
+                upgrades: 0,
+                rawText: '攻击力 19',
+                confidence: 'high',
+              },
+              {
+                stat: 'crit_rate',
+                value: 2.4,
+                upgrades: 0,
+                rawText: '暴击率 2.4%',
+                confidence: 'high',
+              },
+              {
+                stat: 'crit_dmg',
+                value: 4.8,
+                upgrades: 0,
+                rawText: '暴击伤害 4.8%',
+                confidence: 'high',
+              },
+            ],
+          }
+          item.fields = {
+            'subStats.0': {
+              rawText: '',
+              normalizedValue: null,
+              confidence: 'low',
+              rule: 'ppocrv6_domain_diagnostic',
+              source: 'upstream-detail-roi',
+              evidence: ['root=substats_incomplete', 'diagnostic=substat_domain_incomplete'],
+            },
+          }
+        } else if (missingFields) {
           item.candidate.setId = null
           item.candidate.setName = 'private-unrecognized-name'
           item.candidate.subStats[0].value = null
@@ -130,7 +178,11 @@ describe('completed scan with rejected OCR records', () => {
         screen.getByLabelText('扫描步骤').querySelector('[aria-current="step"]'),
       ).toHaveTextContent('导入')
       expect(screen.getByLabelText('未通过检查的原因')).toHaveTextContent(
-        missingFields ? '套装名称未确认：11 张' : '词条或等级校验未通过：1 张',
+        missingFields
+          ? '套装名称未确认：11 张'
+          : internalGap
+            ? '副词条信息不完整：1 张'
+            : '词条或等级校验未通过：1 张',
       )
       const issues = screen.getByLabelText('未通过检查的原因').closest('details')!
       expect(issues).not.toHaveAttribute('open')
@@ -153,6 +205,14 @@ describe('completed scan with rejected OCR records', () => {
       expect(requests[1].versions).toEqual(
         kind === 'missing-fields-without-native' ? {} : { helper: '2.3.9', ocr: 'PP-OCRv6' },
       )
+      if (internalGap)
+        expect(requests[1].counts).toMatchObject({
+          subInternalGap: 1,
+          parserIncomplete: 1,
+          subNameMissing: 1,
+          subValueMissing: 1,
+          subUpgradesMissing: 1,
+        })
       expect(JSON.stringify(requests)).not.toMatch(
         /private-unrecognized-name|98765|account-review-test|detailPath|rawText/,
       )

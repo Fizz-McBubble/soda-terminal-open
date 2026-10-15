@@ -3,6 +3,7 @@ import { sanitizeScanFeedbackPayload } from '../../deploy/cloudflare/scan-feedba
 import type { ScanImportItem } from '../domain/scanImportStaging'
 import { createImportReviewDiagnostic, summarizeImportReview } from './importReviewDiagnostic'
 import { connectingSnapshot } from './runtimeSnapshots'
+import { sanitizeScanDiagnostic } from './diagnostics'
 import {
   importReviewDiagnosticIdentityKey,
   readImportReviewDiagnosticId,
@@ -83,6 +84,151 @@ describe('import review diagnostics', () => {
     })
     expect(JSON.stringify(report)).not.toMatch(/private|123\.4|screenshot/)
     expect(sanitizeScanFeedbackPayload(report)).toEqual({ ok: true, record: report })
+  })
+
+  it('counts explicit missing components and exact parser tokens once per blocked disc', () => {
+    const blocked = item(1, ['missing_main_stat', 'missing_sub_stat'])
+    blocked.candidate = {
+      ...blocked.candidate,
+      mainStat: null,
+      mainStatValue: null,
+      subStats: [
+        { stat: null, value: null, upgrades: null, rawText: 'private', confidence: 'low' },
+        { stat: null, value: null, upgrades: null, rawText: 'private', confidence: 'low' },
+        {
+          stat: 'hp_flat' as const,
+          value: 112,
+          upgrades: 0,
+          rawText: 'private',
+          confidence: 'high',
+        },
+      ],
+    }
+    const tokens = [
+      'diagnostic=stat_domain_ambiguous',
+      'diagnostic=substat_domain_incomplete',
+      'root=parser_root_unknown',
+    ]
+    blocked.fields = Object.fromEntries(
+      ['mainStat', 'subStats.0'].map((field) => [
+        field,
+        {
+          rawText: 'private OCR',
+          normalizedValue: 'private-value',
+          confidence: 'low',
+          evidence: [...tokens, ...tokens, 'diagnostic=private', 'prefix root=parser_root_unknown'],
+          rule: 'private-rule',
+          source: 'private-source',
+        },
+      ]),
+    )
+    const report = createImportReviewDiagnostic([blocked, { ...blocked, state: 'ready' }], reportId)
+    expect(report.counts).toMatchObject({
+      mainNameMissing: 1,
+      mainValueMissing: 1,
+      subNameMissing: 1,
+      subValueMissing: 1,
+      subUpgradesMissing: 1,
+      subInternalGap: 1,
+      parserAmbiguous: 1,
+      parserIncomplete: 1,
+      parserUnknown: 1,
+    })
+    expect(sanitizeScanDiagnostic(report)).toEqual(report)
+    expect(sanitizeScanFeedbackPayload(report)).toEqual({ ok: true, record: report })
+    expect(new TextEncoder().encode(JSON.stringify(report)).length).toBeLessThanOrEqual(4096)
+    expect(JSON.stringify(report)).not.toMatch(/private|112|stat_domain|parser_root/)
+    const contaminated = {
+      ...report,
+      rawText: 'private OCR',
+      accountId: 'private-account',
+      counts: { ...report.counts, privatePath: "soda-source-ref:11722a25453694ffb98f9398fd5716d7", unknownReason: 1 },
+      evidence: { ...report.evidence, rawText: 'private OCR', token: tokens[0] },
+    }
+    expect(sanitizeScanDiagnostic(contaminated)).toEqual(report)
+    expect(sanitizeScanFeedbackPayload(contaminated)).toEqual({ status: 400 })
+  })
+
+  it('keeps unknown fields unknown and never treats legal short rows or unrecognized tail as an internal gap', () => {
+    const legal = item(1, ['missing_set'])
+    legal.candidate = {
+      ...legal.candidate,
+      level: 0,
+      mainStat: 'hp_flat' as const,
+      mainStatValue: 550,
+      subStats: Array.from({ length: 3 }, () => ({
+        stat: 'hp_flat' as const,
+        value: 112,
+        upgrades: 0,
+        rawText: 'private',
+        confidence: 'high' as const,
+      })),
+    }
+    const tail = {
+      ...legal,
+      sequence: 2,
+      candidate: {
+        ...legal.candidate,
+        subStats: [
+          ...legal.candidate.subStats,
+          {
+            stat: null,
+            value: null,
+            upgrades: null,
+            rawText: 'private unrecognized tail',
+            confidence: 'low' as const,
+          },
+        ],
+      },
+    }
+    const unknown = item(3, ['missing_sub_stat'])
+    unknown.fields = {
+      other: {
+        rawText: 'private',
+        normalizedValue: null,
+        confidence: 'low',
+        rule: 'private',
+        source: 'private',
+        evidence: ['root=parser_root_unknown private', 'diagnostic=stat_domain_ambiguous_extra'],
+      },
+    }
+    const counts = summarizeImportReview([legal, tail, unknown]).counts
+    expect(counts).toMatchObject({ subNameMissing: 1, subValueMissing: 1, subUpgradesMissing: 1 })
+    for (const key of [
+      'mainNameMissing',
+      'mainValueMissing',
+      'subInternalGap',
+      'parserAmbiguous',
+      'parserIncomplete',
+      'parserUnknown',
+    ])
+      expect(counts).not.toHaveProperty(key)
+  })
+
+  it('preserves all new bounded counters through both sanitizers', () => {
+    const report = createImportReviewDiagnostic([], reportId)
+    const keys = [
+      'mainNameMissing',
+      'mainValueMissing',
+      'subNameMissing',
+      'subValueMissing',
+      'subUpgradesMissing',
+      'subInternalGap',
+      'parserAmbiguous',
+      'parserIncomplete',
+      'parserUnknown',
+    ]
+    const full = {
+      ...report,
+      counts: { ...report.counts, ...Object.fromEntries(keys.map((key) => [key, 200000])) },
+    }
+    expect(sanitizeScanDiagnostic(full)).toEqual(full)
+    expect(sanitizeScanFeedbackPayload(full)).toEqual({ ok: true, record: full })
+    for (const invalid of [-1, 1.5, 200001, '1']) {
+      const bad = { ...full, counts: { ...full.counts, parserUnknown: invalid } }
+      expect(sanitizeScanDiagnostic(bad)?.counts).not.toHaveProperty('parserUnknown')
+      expect(sanitizeScanFeedbackPayload(bad)).toEqual({ status: 400 })
+    }
   })
 
   it('keeps matched scanner versions and completion counts separate from import issues', () => {

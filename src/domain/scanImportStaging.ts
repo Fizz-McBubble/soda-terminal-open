@@ -275,7 +275,7 @@ function applyConfirmedReviewFields(
   fields: string[],
 ) {
   const result = applyScanReviewFields(target, sourceAfter, fields)
-  return { ...result, candidate: normalizeCandidate(result.candidate) }
+  return { ...result, candidate: normalizeCandidate(result.candidate, target.fields) }
 }
 
 export function confirmScanImportItem(
@@ -301,7 +301,7 @@ export function confirmScanImportItem(
           })),
         },
       }
-  const confirmedCandidate = normalizeCandidate(applied.candidate)
+  const confirmedCandidate = normalizeCandidate(applied.candidate, input.fields)
   const confirmation = {
     contract: 'user_confirmed.v1' as const,
     confirmedAt,
@@ -425,7 +425,7 @@ export function reassessSavedScanImportItem(
         ? ('high' as const)
         : subStat.confidence,
     })),
-  })
+  }, input.fields)
   const hasConfirmationAudit = (input.confirmations ?? []).some(
     (confirmation) => confirmation.contract === 'user_confirmed.v1',
   )

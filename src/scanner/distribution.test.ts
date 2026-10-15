@@ -1,3 +1,4 @@
+import runtimeReleaseManifest from '../../public/downloads/scanner-runtime-release.v1.json'
 import { describe, expect, it } from 'vitest'
 import {
   initialDistributionSnapshot,
@@ -6,7 +7,7 @@ import {
 } from './distribution'
 
 describe('scanner distribution contract', () => {
-  it('locks the published RC8.14 direct-fork identity and makes v6 the single OCR runtime', () => {
+  it('locks the RC8.15 direct-fork identity and makes v6 the single OCR runtime', () => {
     expect(scannerDistributionManifest.helper.sha256).toMatch(/^[a-f0-9]{64}$/)
     expect(scannerDistributionManifest.helper.size).toBeGreaterThan(
       scannerDistributionManifest.runtime.packageSize,
@@ -14,16 +15,18 @@ describe('scanner distribution contract', () => {
     expect(scannerDistributionManifest.runtime.defaultOcr).toBe('PP-OCRv6-small-ONNX')
     expect(scannerDistributionManifest.runtime.packageSize).toBeLessThan(170 * 1024 * 1024)
     expect(scannerDistributionManifest.runtime.packageSha256).toHaveLength(64)
-    expect(scannerDistributionManifest.runtime.releaseState).toBe('published')
+    expect(scannerDistributionManifest.runtime.releaseState).toBe(
+      runtimeReleaseManifest.releaseState === 'published' ? 'published' : 'not_published',
+    )
     expect(scannerDistributionManifest.runtime.packageUrl).toBe(
-      'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.14-local.20261011/soda-scanner-runtime-18-rc8-14-local-20261011-win-x64.zip',
+      'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.15-local.20261015/soda-scanner-runtime-18-rc8-15-local-20261015-win-x64.zip',
     )
     expect(scannerDistributionManifest.runtime.packageUrl).not.toContain('/latest/')
     expect(scannerDistributionManifest.runtime.excludedRuntimeFamilies).toEqual(
       expect.arrayContaining(['paddlepaddle', 'paddleocr', 'paddlex', 'opencv', 'python', 'venv']),
     )
     expect(scannerDistributionManifest.runtime.nativeCapture).toMatchObject({
-      componentVersion: 'ZZZ-Scanner.Next-1.0.49-soda-r32',
+      componentVersion: 'ZZZ-Scanner.Next-1.0.49-soda-r33',
       schemaVersion: 'soda.zzz-scanner-next.direct-r4.v1',
       selfContained: true,
       publishAot: false,
@@ -51,7 +54,7 @@ describe('scanner distribution contract', () => {
 
   it('offers the published runtime while refusing download when an unpublished state is injected', () => {
     expect(initialDistributionSnapshot).toMatchObject({ state: 'not_installed', action: 'none' })
-    expect(resolveDistributionSnapshot({})).toMatchObject({
+    expect(resolveDistributionSnapshot({ releaseState: 'published' })).toMatchObject({
       state: 'not_installed',
       action: 'download',
     })

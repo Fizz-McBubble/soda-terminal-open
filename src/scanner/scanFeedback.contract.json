@@ -76,7 +76,16 @@
     "unresolvedMainStat": 100000,
     "unresolvedSubStat": 100000,
     "invalidValue": 100000,
-    "otherReview": 100000
+    "otherReview": 100000,
+    "mainNameMissing": 200000,
+    "mainValueMissing": 200000,
+    "subNameMissing": 200000,
+    "subValueMissing": 200000,
+    "subUpgradesMissing": 200000,
+    "subInternalGap": 200000,
+    "parserAmbiguous": 200000,
+    "parserIncomplete": 200000,
+    "parserUnknown": 200000
   },
   "environmentLimits": {
     "width": 20000,

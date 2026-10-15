@@ -10,6 +10,19 @@ export interface ReleaseNote {
 // A local fix or commit is not a published release; add it when that release ships.
 export const releases = [
   {
+    id: '20261015-scanner-position-and-import-diagnostics',
+    date: '2026-10-15',
+    scope: '画面扫描与导入诊断',
+    title: '修复副词条位置错配，细化导入复核诊断',
+    changes: [
+      '画面扫描安装器更新至 1.1.7，包内连接服务为 2.3.17；保留旧版升级识别、失败恢复和已有扫描结果。',
+      '修复副词条漏读一行后，后续词条与原始位置错配的问题；中间缺口继续提示核对，避免按完整结果导入。',
+      '保留旧扫描结果的空尾兼容，减少升级后已有结果无故增加复核的问题。',
+      '主动发送导入诊断时，可区分名称、数值、强化次数、行缺口和解析原因；只发送匿名计数，不上传盘面截图或账户信息。',
+      '已有待导入批次可重新打开并发送新版诊断，无需为了反馈重新扫描；具体复核原因仍以该批次诊断为准。',
+    ],
+  },
+  {
     id: '20261015-quick-read-connection-and-feedback',
     date: '2026-10-15',
     scope: '资产快读、画面扫描与问题反馈',
