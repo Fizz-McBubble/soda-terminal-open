@@ -1,7 +1,10 @@
 import type { ReactNode } from 'react'
 import type { AssetQuickReadBridgeClient, AssetBridgeJob } from '../assetQuickRead/bridgeClient'
 import type { AssetQuickReadState } from './AssetQuickReadEntry'
-import { AssetQuickReadRequestError } from '../assetQuickRead/diagnostics'
+import {
+  AssetQuickReadRequestError,
+  type AssetDiagnosticReport,
+} from '../assetQuickRead/diagnostics'
 
 export type Bridge = Pick<
   AssetQuickReadBridgeClient,
@@ -65,5 +68,14 @@ export const assetQuickReadConnectionErrorMessage = (error: unknown) =>
   assetQuickReadConnectionMessage(
     error instanceof AssetQuickReadRequestError ? error.diagnosticCode : 'bridge_unavailable',
   )
+export const assetQuickReadConnectionStatus = (
+  error: string,
+  diagnostic: AssetDiagnosticReport | null,
+) =>
+  error &&
+  diagnostic &&
+  (diagnostic.stage === 'connection' || diagnostic.code === 'origin_not_allowed')
+    ? assetQuickReadConnectionMessage(diagnostic.code)
+    : ''
 export const assetQuickReadJobActive = (job: AssetBridgeJob | null) =>
   job?.state === 'starting' || job?.state === 'capturing'
