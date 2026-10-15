@@ -135,6 +135,12 @@ export async function materializeTeamWarehouse(
         rarity: 'S' as const,
         level: 15,
         mainStat,
+        // Changing a sample main stat must retain five legal S-rank upgrade rolls.
+        subStats: sampleDiscs.treasureCandidate.subStats.map((row) =>
+          row.stat === mainStat
+            ? { stat: 'hp_flat' as const, value: 112 * (row.upgrades + 1), upgrades: row.upgrades }
+            : { ...row },
+        ),
         setId: constraint.setIds[offset < 4 ? 0 : 1] ?? constraint.setIds[0]!,
       }
     }),

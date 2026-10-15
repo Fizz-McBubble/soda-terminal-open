@@ -13,16 +13,8 @@ import { candidateNonStackingFourPieceIdentity } from '../optimizer/candidateNon
 
 const memberIds = ['agent-nangong', 'agent-yuzuha', 'agent-promeia'] as const
 function discs(prefix: string, primary: string, secondary: string, level = 15): DriveDisc[] {
-  return [1, 2, 3, 4, 5, 6].map((slot) => ({
-    ...sampleDiscs.treasureCandidate,
-    id: `${prefix}-${slot}`,
-    slot: slot as DriveDisc['slot'],
-    setId: slot <= 4 ? primary : secondary,
-    level,
-    rarity: 'S',
-    locked: false,
-    favorite: false,
-    mainStat:
+  return ([1, 2, 3, 4, 5, 6] as const).map((slot): DriveDisc => {
+    const mainStat: DriveDisc['mainStat'] =
       slot === 1
         ? 'hp_flat'
         : slot === 2
@@ -35,9 +27,34 @@ function discs(prefix: string, primary: string, secondary: string, level = 15): 
                 : 'anomaly_proficiency'
               : slot === 5
                 ? 'atk_percent'
-                : 'anomaly_mastery',
-    subStats: [{ stat: 'anomaly_proficiency', value: 27, upgrades: 2 }],
-  }))
+                : 'anomaly_mastery'
+    // Four initial substats; the +15 version spends all five upgrades as 2/1/1/1.
+    // AP cannot coexist with an AP main, and +0 must not inherit +15 rolls.
+    const primaryUpgrades = level === 0 ? 0 : 2
+    const otherUpgrades = level === 0 ? 0 : 1
+    const primaryStat = mainStat === 'anomaly_proficiency' ? 'atk_flat' : 'anomaly_proficiency'
+    return {
+      ...sampleDiscs.treasureCandidate,
+      id: `${prefix}-${slot}`,
+      slot,
+      setId: slot <= 4 ? primary : secondary,
+      level,
+      rarity: 'S',
+      locked: false,
+      favorite: false,
+      mainStat,
+      subStats: [
+        {
+          stat: primaryStat,
+          value: (primaryStat === 'atk_flat' ? 19 : 9) * (primaryUpgrades + 1),
+          upgrades: primaryUpgrades,
+        },
+        { stat: 'crit_rate', value: 2.4 * (otherUpgrades + 1), upgrades: otherUpgrades },
+        { stat: 'crit_dmg', value: 4.8 * (otherUpgrades + 1), upgrades: otherUpgrades },
+        { stat: 'pen', value: 9 * (otherUpgrades + 1), upgrades: otherUpgrades },
+      ],
+    }
+  })
 }
 function solve(includeMelody: boolean, extraOptions = {}) {
   const inventory = [
@@ -46,6 +63,11 @@ function solve(includeMelody: boolean, extraOptions = {}) {
     ...discs('promeia', 'set-notes-from-the-chained', 'set-chaos-jazz'),
     ...(includeMelody ? discs('nangong-melody', 'set-phaethons-melody', 'set-freedom-blues') : []),
   ]
+  for (const disc of inventory) {
+    expect(disc.subStats).toHaveLength(4)
+    expect(disc.subStats.map((row) => row.stat)).not.toContain(disc.mainStat)
+    expect(disc.subStats.reduce((sum, row) => sum + row.upgrades, 0)).toBe(disc.level === 0 ? 0 : 5)
+  }
   const original = structuredClone(inventory)
   const result = calculateTargetTeamWarehouseFit({
     warehouse: {

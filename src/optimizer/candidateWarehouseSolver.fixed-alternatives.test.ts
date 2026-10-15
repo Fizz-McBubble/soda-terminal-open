@@ -29,6 +29,12 @@ describe('single-agent alternatives with a fixed disc', () => {
       slot: (index + 1) as DriveDisc['slot'],
       setId,
       mainStat,
+      // Keep the original five upgrade rolls when changing the sample's main stat.
+      subStats: sampleDiscs.treasureCandidate.subStats.map((row) =>
+        row.stat === mainStat
+          ? { stat: 'hp_flat' as const, value: 112 * (row.upgrades + 1), upgrades: row.upgrades }
+          : { ...row },
+      ),
     })),
   )
   const fixedId = `${secondaries.at(-1)!}-5`

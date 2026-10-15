@@ -43,10 +43,28 @@ describe('Nangong team candidate warehouse constraints', () => {
           }),
         ]),
       )
-      const inventory = candidateFourPieceInventory(constraint, primary, secondary)
+      const inventory = candidateFourPieceInventory(constraint, primary, secondary).map((disc) => ({
+        ...disc,
+        rarity: 'S' as const,
+        // Retain the original 3/2/0/0 +15 history, replacing only a conflicting AP/ATK main.
+        subStats: disc.subStats.map((row) =>
+          row.stat === disc.mainStat
+            ? { stat: 'hp_percent' as const, value: 3 * (row.upgrades + 1), upgrades: row.upgrades }
+            : row,
+        ),
+      }))
+      for (const disc of inventory) {
+        expect(disc.subStats).toHaveLength(4)
+        expect(new Set(disc.subStats.map((row) => row.stat)).size).toBe(4)
+        expect(disc.subStats.map((row) => row.stat)).not.toContain(disc.mainStat)
+        expect(disc.subStats.reduce((sum, row) => sum + row.upgrades, 0)).toBe(5)
+      }
+      const before = structuredClone(inventory)
       const result = solveCandidateWarehouse(inventory, ['agent-nangong'], 'agent', {}, [
         { agentId: 'agent-nangong', constraint },
       ])
+      expect(inventory).toEqual(before)
+      expect(new Set(result.loadouts[0]?.discs.map((item) => item.disc.id)).size).toBe(6)
       expect(result.loadouts[0]?.discs).toHaveLength(6)
       expect(result.loadouts[0]?.setPattern).toBe('4+2')
       expect(result.loadouts[0]?.degraded).toBe(false)
