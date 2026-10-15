@@ -91,27 +91,35 @@ describe('team loadout completion candidates', () => {
       ownedAgentIds: ['agent-pyrois', 'agent-dialyn'],
       pack: { kernels: [] },
     })
-    expect(candidates).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        memberIds: expect.arrayContaining(['agent-pyrois', 'agent-dialyn', 'agent-astra']),
-        ownedAgentIds: expect.arrayContaining(['agent-pyrois', 'agent-dialyn']),
-        missingAgentIds: ['agent-astra'],
-        sourceIds: expect.arrayContaining([expect.stringMatching(/^https:/)]),
-      }),
-    ]))
+    expect(candidates).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          memberIds: expect.arrayContaining(['agent-pyrois', 'agent-dialyn', 'agent-astra']),
+          ownedAgentIds: expect.arrayContaining(['agent-pyrois', 'agent-dialyn']),
+          missingAgentIds: ['agent-astra'],
+          sourceIds: expect.arrayContaining([expect.stringMatching(/^https:/)]),
+        }),
+      ]),
+    )
   })
 
   it('retains another source-backed third-member acquisition when one third is already owned', () => {
     const candidates = completionCandidates(['agent-remielle', 'agent-velina', 'agent-aria'])
-    expect(candidates).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        memberIds: expect.arrayContaining(['agent-remielle', 'agent-velina', 'agent-burnice']),
-        missingAgentIds: ['agent-burnice'],
-      }),
-    ]))
-    expect(candidates.some((candidate) => candidate.memberIds.every((id) =>
-      ['agent-remielle', 'agent-velina', 'agent-aria'].includes(id),
-    ))).toBe(false)
+    expect(candidates).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          memberIds: expect.arrayContaining(['agent-remielle', 'agent-velina', 'agent-burnice']),
+          missingAgentIds: ['agent-burnice'],
+        }),
+      ]),
+    )
+    expect(
+      candidates.some((candidate) =>
+        candidate.memberIds.every((id) =>
+          ['agent-remielle', 'agent-velina', 'agent-aria'].includes(id),
+        ),
+      ),
+    ).toBe(false)
   })
 
   it('does not turn model-only scores into acquisition advice', () => {
@@ -129,9 +137,13 @@ describe('team loadout completion candidates', () => {
     }
     reviewedTeamAnalysis.records.push(record)
     try {
-      expect(completionCandidates(['agent-pyrois', 'agent-sunna']).some((candidate) =>
-        candidate.memberIds.includes('agent-norma') && candidate.memberIds.includes('agent-sunna'),
-      )).toBe(false)
+      expect(
+        completionCandidates(['agent-pyrois', 'agent-sunna']).some(
+          (candidate) =>
+            candidate.memberIds.includes('agent-norma') &&
+            candidate.memberIds.includes('agent-sunna'),
+        ),
+      ).toBe(false)
     } finally {
       reviewedTeamAnalysis.records.pop()
     }
@@ -146,14 +158,24 @@ describe('team loadout completion candidates', () => {
       ['agent-pyrois', 'agent-sunna', 'agent-dialyn'].every((id) => item.memberIds.includes(id)),
     )!
     const base = teamRating.evaluateCurrent31TeamRating({
-      candidateId: 's-plus-fixture', memberIds: missingNorma.memberIds, bangbooId: null,
-      outputPotentialBand: 'unknown', reviewedOnly: true,
-      benchmark: { status: 'unavailable', baselineId: null, outputIndex: null,
-        unsupportedIssueIds: [], explanation: 'fixture' },
+      candidateId: 's-plus-fixture',
+      memberIds: missingNorma.memberIds,
+      bangbooId: null,
+      outputPotentialBand: 'unknown',
+      reviewedOnly: true,
+      benchmark: {
+        status: 'unavailable',
+        baselineId: null,
+        outputIndex: null,
+        unsupportedIssueIds: [],
+        explanation: 'fixture',
+      },
     })
     expect(base.rating.status).toBe('rated')
-    vi.spyOn(reviewedDirections, 'currentReviewedTeamSourceDirections')
-      .mockReturnValue([missingDialyn, missingNorma])
+    vi.spyOn(reviewedDirections, 'currentReviewedTeamSourceDirections').mockReturnValue([
+      missingDialyn,
+      missingNorma,
+    ])
     vi.spyOn(teamRating, 'evaluateCurrent31TeamRating').mockImplementation((input) => {
       const result = structuredClone(base)
       if (result.rating.status !== 'rated') throw new Error('Expected rated fixture')
@@ -164,21 +186,31 @@ describe('team loadout completion candidates', () => {
     })
     const candidates = completionCandidates(['agent-pyrois', 'agent-sunna'])
     expect(candidates.map((candidate) => candidate.missingAgentIds)).toEqual([
-      ['agent-norma'], ['agent-dialyn'],
+      ['agent-norma'],
+      ['agent-dialyn'],
     ])
   })
 
   it.each(['conflict', 'expired', 'hard_rejected', 'model'] as const)(
-    'does not cross the shared %s qualification gate', (gate) => {
+    'does not cross the shared %s qualification gate',
+    (gate) => {
       const memberIds = ['agent-pyrois', 'agent-norma', 'agent-sunna'] as const
-      const direction = reviewedDirections.currentReviewedTeamSourceDirections().find((item) =>
-        memberIds.every((id) => item.memberIds.includes(id)),
-      )!
+      const direction = reviewedDirections
+        .currentReviewedTeamSourceDirections()
+        .find((item) => memberIds.every((id) => item.memberIds.includes(id)))!
       const real = teamRating.evaluateCurrent31TeamRating({
-        candidateId: 'qualification-fixture', memberIds, bangbooId: null,
-        outputPotentialBand: 'unknown', reviewedOnly: true,
-        benchmark: { status: 'unavailable', baselineId: null, outputIndex: null,
-          unsupportedIssueIds: [], explanation: 'fixture' },
+        candidateId: 'qualification-fixture',
+        memberIds,
+        bangbooId: null,
+        outputPotentialBand: 'unknown',
+        reviewedOnly: true,
+        benchmark: {
+          status: 'unavailable',
+          baselineId: null,
+          outputIndex: null,
+          unsupportedIssueIds: [],
+          explanation: 'fixture',
+        },
       })
       expect(real.rating).toMatchObject({ status: 'rated', ratingBand: 'A+' })
       const result = structuredClone(real)
@@ -189,7 +221,9 @@ describe('team loadout completion candidates', () => {
       }
       if (gate === 'hard_rejected') result.mechanicValidity = 'invalid'
       if (gate === 'model') result.metaCalibration.authority = 'model_inference'
-      vi.spyOn(reviewedDirections, 'currentReviewedTeamSourceDirections').mockReturnValue([direction])
+      vi.spyOn(reviewedDirections, 'currentReviewedTeamSourceDirections').mockReturnValue([
+        direction,
+      ])
       vi.spyOn(teamRating, 'evaluateCurrent31TeamRating').mockReturnValue(result)
       expect(completionCandidates(['agent-pyrois', 'agent-sunna'])).toEqual([])
     },

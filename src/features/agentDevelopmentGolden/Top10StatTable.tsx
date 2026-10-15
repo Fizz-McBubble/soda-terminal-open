@@ -64,7 +64,16 @@ export function Top10StatTable({
               const delta = known(candidate) && known(current) ? candidate - current : undefined
               const target = staticPanelTargetDisplay(stat.target)
               return (
-                <div role="row" key={stat.key} className={[stat.highlight ? 'is-priority' : '', delta !== undefined && delta !== 0 ? 'is-changed' : ''].filter(Boolean).join(' ')}>
+                <div
+                  role="row"
+                  key={stat.key}
+                  className={[
+                    stat.highlight ? 'is-priority' : '',
+                    delta !== undefined && delta !== 0 ? 'is-changed' : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                >
                   <strong role="cell" aria-label={stat.label}>
                     {stat.label}
                     {data.statPresentation !== 'disc_contribution' && target ? (

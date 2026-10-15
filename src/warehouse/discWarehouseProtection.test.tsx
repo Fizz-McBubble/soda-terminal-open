@@ -110,12 +110,19 @@ describe('current protection action and intrinsic quality', () => {
       const status = screen.getByRole('status')
       expect(status.textContent).toContain('下一步：保留')
       expect(status.textContent).not.toContain('人工清理')
+      const scoreFacts = screen.getByRole('group', { name: '副词条参考评分' })
+      expect(scoreFacts).toBeVisible()
+      expect(scoreFacts).toHaveTextContent('副词条评分')
+      expect(scoreFacts).toHaveTextContent('保留参考线')
+      expect(scoreFacts.querySelector('details')).toBeNull()
+      expect(screen.queryByText('查看参考评分')).not.toBeInTheDocument()
       expect(
-        screen.getByText('查看参考评分').compareDocumentPosition(status) &
-          Node.DOCUMENT_POSITION_PRECEDING,
+        scoreFacts.compareDocumentPosition(status) & Node.DOCUMENT_POSITION_PRECEDING,
       ).toBeTruthy()
       expect(screen.getByText('处理前请先确认是否仍在使用。')).toBeTruthy()
-      expect(screen.queryByText(/收藏|保护/)).not.toBeInTheDocument()
+      expect(
+        screen.queryAllByText(/收藏|保护/).filter((element) => !element.closest('[role="dialog"]')),
+      ).toHaveLength(0)
       cleanup()
     },
   )

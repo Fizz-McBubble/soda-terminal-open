@@ -4,7 +4,7 @@
   "gameVersion": "3.2",
   "upstreamCommit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
   "ready": true,
-  "semanticIdentityHash": "fnv1a-89172da6",
+  "semanticIdentityHash": "fnv1a-6b29d078",
   "scope": {
     "memberIds": ["agent-claret", "agent-roxy", "agent-rina"],
     "eventTuples": [
@@ -5313,7 +5313,7 @@
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "ea00e60408886ac8b6580d26c32614413ebfdac736075fc66e34957276c9825c",
+              "implementation_sha256": "344b22e261f6cf35a2b840c81c865089a6fe9b7923b9ef9d9e3ce95fad7eb032",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -10071,7 +10071,7 @@
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "ea00e60408886ac8b6580d26c32614413ebfdac736075fc66e34957276c9825c",
+              "implementation_sha256": "344b22e261f6cf35a2b840c81c865089a6fe9b7923b9ef9d9e3ce95fad7eb032",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -14829,7 +14829,7 @@
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "ea00e60408886ac8b6580d26c32614413ebfdac736075fc66e34957276c9825c",
+              "implementation_sha256": "344b22e261f6cf35a2b840c81c865089a6fe9b7923b9ef9d9e3ce95fad7eb032",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -19587,7 +19587,7 @@
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "ea00e60408886ac8b6580d26c32614413ebfdac736075fc66e34957276c9825c",
+              "implementation_sha256": "344b22e261f6cf35a2b840c81c865089a6fe9b7923b9ef9d9e3ce95fad7eb032",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -24345,7 +24345,7 @@
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "ea00e60408886ac8b6580d26c32614413ebfdac736075fc66e34957276c9825c",
+              "implementation_sha256": "344b22e261f6cf35a2b840c81c865089a6fe9b7923b9ef9d9e3ce95fad7eb032",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -29103,7 +29103,7 @@
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "ea00e60408886ac8b6580d26c32614413ebfdac736075fc66e34957276c9825c",
+              "implementation_sha256": "344b22e261f6cf35a2b840c81c865089a6fe9b7923b9ef9d9e3ce95fad7eb032",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -33861,7 +33861,7 @@
             "whitebox_formula": {
               "formula_family": "typed_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "ea00e60408886ac8b6580d26c32614413ebfdac736075fc66e34957276c9825c",
+              "implementation_sha256": "344b22e261f6cf35a2b840c81c865089a6fe9b7923b9ef9d9e3ce95fad7eb032",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -38619,7 +38619,7 @@
             "whitebox_formula": {
               "formula_family": "typed_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "ea00e60408886ac8b6580d26c32614413ebfdac736075fc66e34957276c9825c",
+              "implementation_sha256": "344b22e261f6cf35a2b840c81c865089a6fe9b7923b9ef9d9e3ce95fad7eb032",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -43377,7 +43377,7 @@
             "whitebox_formula": {
               "formula_family": "typed_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "ea00e60408886ac8b6580d26c32614413ebfdac736075fc66e34957276c9825c",
+              "implementation_sha256": "344b22e261f6cf35a2b840c81c865089a6fe9b7923b9ef9d9e3ce95fad7eb032",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -43580,7 +43580,8 @@
     "src/calculation/mechanicIr.ts": "3ef570f01f651cd00852c4ba1e72b46fe8780989403ffbed120dd708cdee7912",
     "src/calculation/outOfCombatDiscStats.ts": "37ad3894ac0273d5d7890a776e6e9ad01ea76048676fafaabb03ef89c9fd4751",
     "src/calculation/outOfCombatInitialModifiers.ts": "9df7b11f5c434549bebc6d1684fc0a98ebc2e05bb2ef254cbba067112db7b77d",
-    "src/calculation/outOfCombatPanel.ts": "cab2080d060d621ce824d331e25cbd192125a15bb04e355829b716cc166e7055",
+    "src/calculation/outOfCombatPanel.ts": "ebd6a69f02850950d86bd241783ae5795e9995515f2abce429711ed8c0f4af56",
+    "src/calculation/outOfCombatPanelSupport.ts": "39b00bcf44981bbc05b05dd0193dbc5d1213ffbf98a587ea201edda3bdb0931a",
     "src/calculation/planningCalculationContextCompiler.ts": "a6e7704e8987dab257f4a4acad260711a2c9ec3e7944c81ee4a80a22ceb7efa7",
     "src/calculation/planningDpsContract.ts": "556ceaaa3ed2bddb94316c03f50bf34198c5f532d23dd5bfa6e52588aa81e6c1",
     "src/calculation/planningDpsExecution.ts": "89ad4b8916badac3ec1fd12b258d4222fb80a3ad7873ab02d242670eff90966e",
@@ -43703,7 +43704,7 @@
     "src/decision/teamStrengthModelScore.ts": "e7f18024ca8174d24715727f4a2db1818f0d7f927281410221caffe25043107b",
     "src/decision/teamStrengthNumericError.ts": "2593270404e5c8c49dd8973d42429ec2279a9acef467d477c296adb11ec34f75",
     "src/decision/teamStrengthReferenceBuild.ts": "8acd2bbc461956cce68bcd9ebbb408df8ab76635964b10d955ecebca59019927",
-    "src/decision/teamStrengthReferenceConditions.ts": "8c07cb7b786987c4424cd4aa3c2d88b27348a389efa8d864b0b57f56a87d9bb9",
+    "src/decision/teamStrengthReferenceConditions.ts": "abc1cde6a4d62e39cab836fa4f7ff5619e47695a4e455c3b6a11cd63e1c21590",
     "src/decision/teamStrengthReferenceConditionsData.ts": "1e19d3ec42e9df0a36bcdad2330560303ea3588d6c12ccb59199976254e2fdae",
     "src/decision/teamStrengthReferenceConditionsTypes.ts": "3d27ae13692347449a58474f434d6541be4441661a2f7da9c20536e283754dd0",
     "src/decision/teamStrengthReferenceState.ts": "cb9a81970e17699980e4a2125a348732288615d67c825850cc161812f9782109",
@@ -44091,5 +44092,5 @@
       "synthetic_DEF_threshold_operands_do_not_assert_in_game_roll_legality"
     ]
   },
-  "contentSha256": "816f5e01a76e3f0d7354112b514a9e120b968e04f4f028eacaa1d3dd01aea4cd"
+  "contentSha256": "723adabdc2ac786d8d513eeab76f06198b99986d455606ab78ce3c30cd26b721"
 }

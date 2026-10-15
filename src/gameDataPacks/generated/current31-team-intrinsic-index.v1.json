@@ -195,7 +195,8 @@
     "src/calculation/functionalPlanningEffectScope32.ts": "baa62ac63e11cc4fa6f09b73cfb19375c0ea16f79e562d73ddae35554c8687f4",
     "src/calculation/outOfCombatDiscStats.ts": "37ad3894ac0273d5d7890a776e6e9ad01ea76048676fafaabb03ef89c9fd4751",
     "src/calculation/outOfCombatInitialModifiers.ts": "9df7b11f5c434549bebc6d1684fc0a98ebc2e05bb2ef254cbba067112db7b77d",
-    "src/calculation/outOfCombatPanel.ts": "cab2080d060d621ce824d331e25cbd192125a15bb04e355829b716cc166e7055",
+    "src/calculation/outOfCombatPanel.ts": "ebd6a69f02850950d86bd241783ae5795e9995515f2abce429711ed8c0f4af56",
+    "src/calculation/outOfCombatPanelSupport.ts": "39b00bcf44981bbc05b05dd0193dbc5d1213ffbf98a587ea201edda3bdb0931a",
     "src/calculation/planningCalculationContextCompiler.ts": "a6e7704e8987dab257f4a4acad260711a2c9ec3e7944c81ee4a80a22ceb7efa7",
     "src/calculation/planningDpsContract.ts": "556ceaaa3ed2bddb94316c03f50bf34198c5f532d23dd5bfa6e52588aa81e6c1",
     "src/calculation/planningEventOccurrenceState32.ts": "d927b39ca5998b3c99f2a93b45ffa942dbc83a99780bd21fe2f9e656b0f6a2f1",
@@ -34667,5 +34668,5 @@
     [57, 58, 59, 0, 3, 2, 77, 1, 0, 4, 0]
   ],
   "boundary": "Build-time exact-three intrinsic summaries only. Account assets, preferences, Bangboo selection, evidence objects and final recommendations remain runtime projections.",
-  "contentHash": "fnv1a-e9e4a7e3"
+  "contentHash": "fnv1a-d656f06b"
 }

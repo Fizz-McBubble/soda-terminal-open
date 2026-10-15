@@ -89,8 +89,8 @@ export function projectTeamLoadoutCompletionCandidates(input: {
       continue
 
     const kernel = input.pack.kernels.find((item) =>
-      item.eligibleThirdAgentIds.some((third) =>
-        key([...item.coreAgentIds, third]) === key(memberIds),
+      item.eligibleThirdAgentIds.some(
+        (third) => key([...item.coreAgentIds, third]) === key(memberIds),
       ),
     )
     const kernelId = kernel?.kernelId ?? `source:${key(memberIds)}`
@@ -121,8 +121,9 @@ export function projectTeamLoadoutCompletionCandidates(input: {
   }
 
   return projected
-    .sort((left, right) =>
-      right.rank - left.rank || left.candidate.id.localeCompare(right.candidate.id),
+    .sort(
+      (left, right) =>
+        right.rank - left.rank || left.candidate.id.localeCompare(right.candidate.id),
     )
     .map((item) => item.candidate)
 }

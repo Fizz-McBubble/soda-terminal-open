@@ -417,15 +417,18 @@ export function reassessSavedScanImportItem(
       input.fields[field]?.source === 'user-review',
   )
   if (!legacyFields.length) return assessScanImportItem(input, context)
-  const candidate = normalizeCandidate({
-    ...input.candidate,
-    subStats: input.candidate.subStats.map((subStat, index) => ({
-      ...subStat,
-      confidence: legacyFields.includes(`subStats.${index}`)
-        ? ('high' as const)
-        : subStat.confidence,
-    })),
-  }, input.fields)
+  const candidate = normalizeCandidate(
+    {
+      ...input.candidate,
+      subStats: input.candidate.subStats.map((subStat, index) => ({
+        ...subStat,
+        confidence: legacyFields.includes(`subStats.${index}`)
+          ? ('high' as const)
+          : subStat.confidence,
+      })),
+    },
+    input.fields,
+  )
   const hasConfirmationAudit = (input.confirmations ?? []).some(
     (confirmation) => confirmation.contract === 'user_confirmed.v1',
   )

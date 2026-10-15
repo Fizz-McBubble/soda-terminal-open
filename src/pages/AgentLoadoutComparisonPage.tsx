@@ -35,19 +35,10 @@ import {
   type CurrentPlanningScenarioSelection32,
 } from '../application/publicPlanningScenarioContract'
 
-// Only these metrics have an established graduation-target contract.
-const targetPanelMetricKeys = new Set([
-  'hp',
-  'atk',
-  'def',
-  'impact',
-  'critRate',
-  'critDamage',
-  'anomalyMastery',
-  'anomalyProficiency',
-  'penRatio',
-  'energyRegen',
-])
+import {
+  targetPanelMetricKeys,
+  finiteComparisonPanelStats,
+} from './agentLoadoutComparisonPanelValues'
 
 export function AgentLoadoutComparisonPage() {
   const { agentId = '' } = useParams()
@@ -255,13 +246,7 @@ export function AgentLoadoutComparisonPage() {
     }))
     coreStats = allStats.filter((stat) => stat.highlight).slice(0, 5)
     defaultStats = coreStats.length ? coreStats : allStats.slice(0, 5)
-    finalStatsFor = (discs, rank) =>
-      Object.fromEntries(
-        Object.entries(panelFor(discs, rank)?.values ?? {}).filter(
-          (entry): entry is [string, number] =>
-            typeof entry[1] === 'number' && Number.isFinite(entry[1]),
-        ),
-      )
+    finalStatsFor = (discs, rank) => finiteComparisonPanelStats(panelFor(discs, rank)?.values)
   }
   const baselineFinalStats = finalStatsFor(comparisonDiscs)
   const discs = projectAgentLoadoutComparisonDiscs({
@@ -283,14 +268,8 @@ export function AgentLoadoutComparisonPage() {
     const ids = selectedDiscs.map((disc) => disc.id)
     const finalStats =
       savedDiscs === baseline && hasStaticPanels && !snapshotStale
-        ? Object.fromEntries(
-            Object.entries(
-              findDevelopmentComparisonPanel(candidateSnapshot.panelPresentation, baseline)
-                ?.values ?? {},
-            ).filter(
-              (entry): entry is [string, number] =>
-                typeof entry[1] === 'number' && Number.isFinite(entry[1]),
-            ),
+        ? finiteComparisonPanelStats(
+            findDevelopmentComparisonPanel(candidateSnapshot.panelPresentation, baseline)?.values,
           )
         : finalStatsFor(selectedDiscs, savedDiscs ? -1 : rank)
     const statDeltaSummary = defaultStats

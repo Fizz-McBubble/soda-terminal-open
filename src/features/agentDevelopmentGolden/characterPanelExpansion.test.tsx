@@ -90,7 +90,11 @@ describe('character panel local popovers', () => {
     expect(within(panel).getByText('能量上限')).toBeInTheDocument()
     expect(within(panel).getByText('穿透值')).toBeInTheDocument()
     expect(within(panel).getByText('穿透值').closest('div')).toHaveClass('focus')
-    expect(within(grid as HTMLElement).getByText('穿透值').closest('div')).toHaveClass('focus')
+    expect(
+      within(grid as HTMLElement)
+        .getByText('穿透值')
+        .closest('div'),
+    ).toHaveClass('focus')
     expect(container.querySelector('.stat-grid')).toBe(grid)
     expect(grid.children).toHaveLength(1)
     expect(container.querySelector('.panel-graduation-targets')).toBe(graduation)
@@ -165,16 +169,27 @@ describe('character panel local popovers', () => {
   })
 
   it('marks priority and changed rows in the complete comparison without changing values', () => {
-    const { container } = render(<Top10StatTable
-      data={{ ...comparison, allStats: comparison.allStats.map((stat) => ({ ...stat, highlight: stat.key === 'pen' })) }}
-      selectedRow={{ ...baseline, rank: 1, finalStats: { ...baseline.finalStats, pen: 27 } }}
-      baselineAvailable baselineLabel="当前实装"
-    />)
+    const { container } = render(
+      <Top10StatTable
+        data={{
+          ...comparison,
+          allStats: comparison.allStats.map((stat) => ({ ...stat, highlight: stat.key === 'pen' })),
+        }}
+        selectedRow={{ ...baseline, rank: 1, finalStats: { ...baseline.finalStats, pen: 27 } }}
+        baselineAvailable
+        baselineLabel="当前实装"
+      />,
+    )
     const panel = container.querySelector('.character-panel-more [popover]') as HTMLElement
     const cell = within(panel).getByRole('cell', { name: '穿透值', hidden: true })
     const row = cell.closest('[role="row"]')!
     expect(row).toHaveClass('is-priority', 'is-changed')
-    expect(within(row as HTMLElement).getAllByRole('cell', { hidden: true }).slice(1).map((item) => item.textContent)).toEqual(['18', '+9', '27'])
+    expect(
+      within(row as HTMLElement)
+        .getAllByRole('cell', { hidden: true })
+        .slice(1)
+        .map((item) => item.textContent),
+    ).toEqual(['18', '+9', '27'])
   })
 
   it('preserves all rows and zero totals in disc contribution mode', () => {

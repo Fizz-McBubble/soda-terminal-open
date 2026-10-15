@@ -16,24 +16,9 @@ export { useScannerAssistantRuntime } from './runtimeHooks'
 export type { ScannerAssistantSnapshot, ScannerAssistantState } from './runtimeSnapshotTypes'
 
 import type { ScannerAssistantSnapshot } from './runtimeSnapshotTypes'
+import type { ScannerAssistantRuntimeOptions, ScannerRuntimeSubscription } from './runtimeOptions'
 
-export function createScannerAssistantRuntime(
-  options: {
-    baseUrl?: string
-    token?: string
-    fetchImpl?: typeof fetch
-    EventSourceImpl?: typeof EventSource
-    createObjectURL?: (blob: Blob) => string
-    revokeObjectURL?: (url: string) => void
-    reconnectDelayMs?: number
-    maxReconnectAttempts?: number
-    deferInitialConnection?: boolean
-    launchProtocol?: (uri: string) => void
-    resultRequestTimeoutMs?: number
-    helperRequestTimeoutMs?: number
-    streamIdleTimeoutMs?: number
-  } = {},
-) {
+export function createScannerAssistantRuntime(options: ScannerAssistantRuntimeOptions = {}) {
   const baseUrl = options.baseUrl ?? 'http://127.0.0.1:43127'
   let token = options.token ?? import.meta.env.VITE_SCANNER_HELPER_TOKEN ?? ''
   let tokenResolved = false
@@ -60,14 +45,7 @@ export function createScannerAssistantRuntime(
   const helperRequestTimeoutMs = options.helperRequestTimeoutMs ?? 30000
   const createObjectURL = options.createObjectURL ?? ((blob: Blob) => URL.createObjectURL(blob))
   const revokeObjectURL = options.revokeObjectURL ?? ((url: string) => URL.revokeObjectURL(url))
-  let activeSubscription: {
-    listener: (snapshot: ScannerAssistantSnapshot) => void
-    events: EventSource | null
-    abort: AbortController | null
-    reconnectAttempts: number
-    disposed: boolean
-    interrupted: boolean
-  } | null = null
+  let activeSubscription: ScannerRuntimeSubscription | null = null
 
   function withHelperDeadline<T>(
     operation: (signal: AbortSignal) => Promise<T>,

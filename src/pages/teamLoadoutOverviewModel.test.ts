@@ -21,13 +21,16 @@ describe('team loadout overview result layers', () => {
       ownedAgentIds: ['agent-pyrois', 'agent-dialyn'],
       availableAgentIds: ['agent-pyrois', 'agent-dialyn'],
     })
-    expect(model.groups.find((group) => group.kind === 'development')?.completionCandidates)
-      .toEqual(expect.arrayContaining([
+    expect(
+      model.groups.find((group) => group.kind === 'development')?.completionCandidates,
+    ).toEqual(
+      expect.arrayContaining([
         expect.objectContaining({
           memberIds: expect.arrayContaining(['agent-pyrois', 'agent-dialyn', 'agent-astra']),
           missingAgentIds: ['agent-astra'],
         }),
-      ]))
+      ]),
+    )
   })
 
   it('does not infer completion facts when the adapter did not provide the current owned roster', () => {
