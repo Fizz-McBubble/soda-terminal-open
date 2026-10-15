@@ -6,6 +6,8 @@ export const algorithmQualityTests = Object.freeze([
   `${algorithmQualityDirectory}/source-goal.test.mjs`,
   `${algorithmQualityDirectory}/team-search-audit.test.mjs`,
   `${algorithmQualityDirectory}/priority-audit.test.mjs`,
+  `${algorithmQualityDirectory}/box-recommendation.test.mjs`,
+  `${algorithmQualityDirectory}/box-completion.test.mjs`,
 ])
 
 export function algorithmQualityArguments() {

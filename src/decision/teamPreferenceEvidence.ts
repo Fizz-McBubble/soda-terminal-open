@@ -1,3 +1,5 @@
+import { resolveSourcePreferenceOrder } from './sourcePreferenceOrder'
+
 export type TeamPreferenceFact = {
   claimId: string
   preferredMemberIds: readonly string[]
@@ -13,7 +15,15 @@ export type TeamPreferenceFact = {
 
 const keyOf = (ids: readonly string[]) => [...ids].sort().join('|')
 const exactThree = (ids: readonly string[]) =>
-  ids.length === 3 && new Set(ids).size === 3 && ids.every((id) => id.trim().length > 0)
+  Array.isArray(ids) &&
+  ids.length === 3 &&
+  new Set(ids).size === 3 &&
+  ids.every((id) => typeof id === 'string' && id.trim().length > 0 && id === id.trim())
+const copyFact = (fact: TeamPreferenceFact): TeamPreferenceFact => ({
+  ...fact,
+  preferredMemberIds: [...fact.preferredMemberIds],
+  alternativeMemberIds: [...fact.alternativeMemberIds],
+})
 
 /** A guide's fixed-core substitution preference is not a global strength band.
  * Disputed cycles are excluded before a stable topological ordering is used. */
@@ -33,8 +43,11 @@ export function createTeamPreferenceIndex(
       /^[a-f\d]{64}$/i.test(fact.sourceSha256) &&
       [fact.claimId, fact.locator, fact.reason].every((value) => value.trim().length > 0),
   )
+  // Pin accepted evidence to construction time; callers cannot rewrite a source
+  // relationship through either their original object or a returned view.
+  const snapshot = eligible.map(copyFact)
   const edges = new Map<string, Set<string>>()
-  for (const fact of eligible) {
+  for (const fact of snapshot) {
     const key = keyOf(fact.preferredMemberIds)
     const next = edges.get(key) ?? new Set<string>()
     next.add(keyOf(fact.alternativeMemberIds))
@@ -52,42 +65,36 @@ export function createTeamPreferenceIndex(
     }
     return false
   }
-  const conflictingFacts = eligible.filter((fact) =>
+  const conflictingFacts = snapshot.filter((fact) =>
     reachable(keyOf(fact.alternativeMemberIds), keyOf(fact.preferredMemberIds)),
   )
   const conflicts = new Set(conflictingFacts)
-  const acceptedFacts = eligible.filter((fact) => !conflicts.has(fact))
+  const acceptedFacts = snapshot.filter((fact) => !conflicts.has(fact))
   return {
-    acceptedFacts,
-    conflictingFacts,
+    get acceptedFacts() {
+      return acceptedFacts.map(copyFact)
+    },
+    get conflictingFacts() {
+      return conflictingFacts.map(copyFact)
+    },
     forTeam(memberIds: readonly string[]) {
       if (!exactThree(memberIds)) return []
       const key = keyOf(memberIds)
-      return acceptedFacts.filter(
-        (fact) =>
-          keyOf(fact.preferredMemberIds) === key || keyOf(fact.alternativeMemberIds) === key,
-      )
+      return acceptedFacts
+        .filter(
+          (fact) =>
+            keyOf(fact.preferredMemberIds) === key || keyOf(fact.alternativeMemberIds) === key,
+        )
+        .map(copyFact)
     },
     order<T>(items: readonly T[], members: (item: T) => readonly string[]): T[] {
-      const pending = [...items]
-      const output: T[] = []
-      const relations = acceptedFacts.map(
-        (fact) => [keyOf(fact.preferredMemberIds), keyOf(fact.alternativeMemberIds)] as const,
-      )
-      // Only the supplied visible options participate. A missing preferred team
-      // cannot hide or demote the available substitute; input order breaks ties.
-      while (pending.length) {
-        const keys = new Set(pending.map((item) => keyOf(members(item))))
-        const index = pending.findIndex(
-          (item) =>
-            !relations.some(
-              ([preferred, alternative]) =>
-                alternative === keyOf(members(item)) && keys.has(preferred),
-            ),
-        )
-        output.push(...pending.splice(index < 0 ? 0 : index, 1))
-      }
-      return output
+      return resolveSourcePreferenceOrder(
+        items,
+        (item) => keyOf(members(item)),
+        acceptedFacts.map(
+          (fact) => [keyOf(fact.preferredMemberIds), keyOf(fact.alternativeMemberIds)] as const,
+        ),
+      ).ordered
     },
   }
 }

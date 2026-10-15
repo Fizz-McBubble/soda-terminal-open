@@ -11,6 +11,7 @@ import {
   evaluateSourceBoundAttackSupport,
   type SourceBoundAttackSupport,
 } from '../calculation/sourceBoundAgentSupport'
+import { getCharacterPanelFields } from '../application/characterPanelFields'
 import {
   characterPanelLabels,
   createAgentDevelopmentWorkbenchViewModel,
@@ -21,7 +22,11 @@ export type TeamExecutionAttributeCurrentStatus = 'exact' | 'baseline' | 'missin
 export type TeamExecutionAttributeTargetStatus = 'formal' | 'candidate' | 'missing'
 
 export type TeamExecutionAttributeRow = {
-  label: (typeof characterPanelLabels)[number]
+  label: string
+  key?: string
+  detail?: boolean
+  outOfCombatValue?: number
+  currentValue?: number
   /** The account's currently equipped out-of-combat panel, when exactly reproducible. */
   outOfCombat: string
   /** The final out-of-combat value after applying the suggested six discs and W-Engine. */
@@ -82,19 +87,6 @@ export type TeamExecutionAttributePanel = {
     target: string
   }
 }
-
-const panelKeys = {
-  生命值: 'hp',
-  攻击力: 'atk',
-  防御力: 'def',
-  冲击力: 'impact',
-  暴击率: 'critRate',
-  暴击伤害: 'critDamage',
-  异常掌控: 'anomalyMastery',
-  异常精通: 'anomalyProficiency',
-  穿透率: 'penRatio',
-  能量自动回复: 'energyRegen',
-} as const
 
 const priorityTerms = {
   生命值: ['生命', 'hp'],
@@ -170,8 +162,8 @@ function isBaselineProjection(agent: RosterAgent, engine: WEngineFact | null) {
   return progressionIsBaseline || engineIsBaseline
 }
 
-function hasPriority(direction: readonly string[], label: (typeof characterPanelLabels)[number]) {
-  const terms = priorityTerms[label]
+function hasPriority(direction: readonly string[], label: string) {
+  const terms = priorityTerms[label as keyof typeof priorityTerms] ?? []
   return direction.some((item) => {
     const normalized = item.toLocaleLowerCase()
     return terms.some((term) => normalized.includes(term.toLocaleLowerCase()))
@@ -262,25 +254,44 @@ export function createTeamExecutionAttributePanel(input: {
   const comparable =
     currentStatus === 'exact' && targetField !== null && !targetField.conditions.length
   const priority = profile.recommendation?.subStats ?? []
-  const rows = characterPanelLabels.map((label, index) => {
-    const fact = workbench.facts[index]!
-    const outOfCombatFact = outOfCombatWorkbench.facts[index]!
-    const target = targetPanelLowerBound(
-      targetField ? { value: targetField.value, status: targetField.status } : null,
-      label,
+  const knownValue = (values: object, key: string): number | undefined => {
+    const value = (values as Record<string, unknown>)[key]
+    return typeof value === 'number' && Number.isFinite(value) ? value : undefined
+  }
+  const rows = getCharacterPanelFields(input.agent.agentId).map((field) => {
+    const { key, label, detail } = field
+    const fact = workbench.facts.find(
+      (item) => item.key === key || (!item.key && item.label === label),
     )
-    const current = panel.status === 'ok' ? panel.values[panelKeys[label]] : null
+    const outOfCombatFact = outOfCombatWorkbench.facts.find(
+      (item) => item.key === key || (!item.key && item.label === label),
+    )
+    const legacyLabel = characterPanelLabels.find((item) => item === label)
+    const target = legacyLabel
+      ? targetPanelLowerBound(
+          targetField ? { value: targetField.value, status: targetField.status } : null,
+          legacyLabel,
+        )
+      : null
+    const currentValue = panel.status === 'ok' ? knownValue(panel.values, key) : undefined
+    const outOfCombatValue =
+      outOfCombatPanel.status === 'ok' ? knownValue(outOfCombatPanel.values, key) : undefined
     return {
+      key,
       label,
-      outOfCombat: outOfCombatPanel.status === 'ok' ? outOfCombatFact.current : '资料不足',
-      current: current === null ? '资料不足' : fact.current,
-      contribution: fact.contribution,
-      target: fact.target,
-      outOfCombatStatus,
-      currentStatus,
-      targetStatus: fact.targetEvidence === 'missing' ? 'missing' : targetStatus,
+      detail,
+      currentValue,
+      outOfCombatValue,
+      outOfCombat: outOfCombatValue === undefined ? '—' : (outOfCombatFact?.current ?? '—'),
+      current: currentValue === undefined ? '—' : (fact?.current ?? '—'),
+      contribution: fact?.contribution ?? '无可证副词条',
+      target: fact?.target ?? '—',
+      outOfCombatStatus: outOfCombatValue === undefined ? 'missing' : outOfCombatStatus,
+      currentStatus: currentValue === undefined ? 'missing' : currentStatus,
+      targetStatus: !fact || fact.targetEvidence === 'missing' ? 'missing' : targetStatus,
       isPriority: hasPriority(priority, label),
-      isBelowTarget: comparable && current !== null && target !== null && current < target,
+      isBelowTarget:
+        comparable && currentValue !== undefined && target !== null && currentValue < target,
     } satisfies TeamExecutionAttributeRow
   })
   const recommendationSourceIds = [

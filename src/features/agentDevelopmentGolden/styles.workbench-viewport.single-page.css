@@ -254,3 +254,19 @@
   padding-top: 8px;
   border-top: 1px solid var(--soda-line);
 }
+
+/* Extra supported facts use the available space, then the page scrolls naturally. */
+.f5v-shell .ad-golden:has(> .workbench--single-page) {
+  height: auto;
+  min-height: 100%;
+}
+.f5v-shell .ad-golden > .workbench--single-page {
+  height: auto;
+  grid-template-rows: auto auto;
+  align-content: start;
+}
+.f5v-shell .ad-golden > .workbench--single-page .workbench-main {
+  height: auto;
+  grid-template-rows: auto auto;
+  align-content: start;
+}

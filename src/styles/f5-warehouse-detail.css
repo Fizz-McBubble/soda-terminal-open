@@ -161,17 +161,30 @@
   align-items: center;
   gap: 8px;
 }
-.f5v-shell .warehouse-action-drawer__alternatives-summary {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 4px 10px;
+.f5v-shell .warehouse-action-drawer__comparison-picker > summary {
+  min-height: var(--soda-control-height, 42px);
+  align-content: center;
+  color: var(--soda-text);
+  cursor: pointer;
 }
-.f5v-shell .warehouse-action-drawer__alternatives-summary .button {
-  flex: none;
+.f5v-shell .warehouse-action-drawer__comparison-picker > summary:hover {
+  color: var(--f5-accent);
 }
-.f5v-shell .warehouse-action-drawer__alternatives-summary + p {
-  margin-top: 4px;
+.f5v-shell .warehouse-action-drawer__comparison-picker > summary:focus-visible {
+  outline: 2px solid var(--f5-accent);
+  outline-offset: 2px;
+  border-radius: var(--soda-radius-control);
+}
+.f5v-shell .warehouse-action-drawer__comparison-picker[open] > summary {
+  margin-bottom: 4px;
+}
+.f5v-shell .warehouse-action-drawer .explanation__trigger {
+  color: var(--f5-accent);
+  font-weight: 700;
+}
+.f5v-shell .warehouse-action-drawer .explanation__label {
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 .f5v-shell .warehouse-action-drawer .warehouse-alternatives {
   display: grid;
@@ -212,6 +225,10 @@
 .f5v-shell button.warehouse-alternative__row:focus-visible {
   outline: 2px solid var(--f5-accent);
   outline-offset: 2px;
+}
+.f5v-shell button.warehouse-alternative__row:disabled {
+  cursor: default;
+  background: var(--f5-wash);
 }
 .f5v-shell .warehouse-alternative__info {
   display: grid;

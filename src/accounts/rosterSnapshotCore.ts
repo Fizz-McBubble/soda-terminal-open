@@ -7,6 +7,7 @@ import {
   observedAgentFields,
 } from './observedAgentFacts'
 import type { ObservedAgentFacts, RosterAgent } from '../assault/types'
+import { normalizeCoreSkillLevel } from './coreSkillLevel'
 
 export const rosterSnapshotSchema = z.object({
   format: z.literal('soda-terminal-roster'),
@@ -46,13 +47,7 @@ export const rosterSnapshotSchema = z.object({
           assist: z.number().int().min(1).max(16).nullable(),
           special: z.number().int().min(1).max(16).nullable(),
           chain: z.number().int().min(1).max(16).nullable(),
-          core: z.preprocess((value) => {
-            if (typeof value === 'number') return value
-            if (typeof value !== 'string') return value
-            if (/^[1-7]$/.test(value)) return Number(value)
-            const level = value.toUpperCase().charCodeAt(0) - 64
-            return level >= 1 && level <= 7 ? level : value
-          }, z.number().int().min(1).max(7).nullable()),
+          core: z.preprocess(normalizeCoreSkillLevel, z.number().int().min(1).max(7).nullable()),
         })
         .optional(),
       wEngineDetails: z

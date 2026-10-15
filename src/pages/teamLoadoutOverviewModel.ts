@@ -26,10 +26,7 @@ import { visibleDecisionText } from './teamLoadoutVisibleDecisionText'
 import { resolveTeamPresentationFamily } from './teamSourceFamilyProjection'
 import { authorityConsumerRecommendations } from '../application/authorityConsumerRecommendations'
 import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
-import {
-  compareTeamRecommendations,
-  orderRecommendationFamilies,
-} from './teamRecommendationOrdering'
+import { orderRecommendationFamilies, orderTeamRecommendations } from './teamRecommendationOrdering'
 import { projectTeamLoadoutCompletionCandidates } from './teamLoadoutCompletionCandidates'
 import type {
   TeamLoadoutOverviewFamily,
@@ -64,12 +61,12 @@ export function familyFromVariants(
   familyKey: string,
   variants: TeamLoadoutOverviewItem[],
 ): TeamLoadoutOverviewFamily {
-  const ordered = [...variants].sort(
-    variants.some((item) => item.kind === 'saved')
-      ? (left, right) =>
-          right.recommendationRank - left.recommendationRank || left.id.localeCompare(right.id)
-      : compareTeamRecommendations,
-  )
+  const ordered = variants.some((item) => item.kind === 'saved')
+    ? [...variants].sort(
+        (left, right) =>
+          right.recommendationRank - left.recommendationRank || left.id.localeCompare(right.id),
+      )
+    : orderTeamRecommendations(variants)
   const primary = ordered[0]!
   const isSaved = primary.kind === 'saved'
   const core = resolveTeamPresentationFamily(primary.agentIds as [string, string, string])
@@ -277,7 +274,6 @@ export function buildTeamLoadoutOverviewModel({
   const savedFamilies = saved.map((item) => familyFromVariants(item.familyKey, [item]))
   const completionCandidates = ownedAgentIds
     ? projectTeamLoadoutCompletionCandidates({
-        rejected: decision.teamEngine.rejected ?? [],
         ownedAgentIds,
         availableAgentIds,
         pack: current31TeamEngineD1Pack,

@@ -101,12 +101,26 @@
   align-items: baseline;
   gap: 3px 8px;
 }
+.f5v-shell .warehouse-retention__score-facts,
 .f5v-shell .warehouse-retention__scores {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 5px 12px;
-  margin: 6px 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+.f5v-shell .warehouse-retention__score-facts {
+  padding-top: 8px;
+  border-top: 1px solid var(--soda-line);
+}
+.f5v-shell .warehouse-retention__scores {
+  margin: 0;
   font-variant-numeric: tabular-nums;
+}
+.f5v-shell .warehouse-retention__scores > div {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  white-space: nowrap;
 }
 .f5v-shell .warehouse-retention__scores div,
 .f5v-shell .warehouse-retention__scores dd {
@@ -115,10 +129,18 @@
   overflow-wrap: anywhere;
 }
 .f5v-shell .warehouse-retention__scores dt {
-  font-size: var(--soda-type-meta);
+  font-size: var(--soda-type-body);
 }
 .f5v-shell .warehouse-retention__scores dd {
   color: var(--soda-text);
+}
+.f5v-shell .warehouse-retention__score-facts .explanation__label {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.f5v-shell .warehouse-retention__score-facts .explanation__trigger {
+  color: var(--f5-accent);
+  font-weight: 700;
 }
 .f5v-shell .warehouse-retention__sources p,
 .f5v-shell .warehouse-retention__sources li {

@@ -10,6 +10,20 @@ export interface ReleaseNote {
 // A local fix or commit is not a published release; add it when that release ships.
 export const releases = [
   {
+    id: '20261015-box-general-and-panel-integration',
+    date: '2026-10-15',
+    scope: 'BOX、养成面板、驱动盘与备份',
+    title: '修正配队计分与培养排序，补齐补强推荐入口',
+    changes: [
+      '修正部分组合被重复计算异常通道的问题；当前培养优先级独立考虑准备度和投入，避免与长期强度排序混用。',
+      '补强推荐接通完整来源目录，支持已有两名成员时的替换方向；仅以当前有效来源确认高评级，资料不足不伪造强度。',
+      '优化筛选与组合备选，保留明确撤回和搜索预算边界；单队数值异常不会使其他合法队伍一并消失。',
+      '养成摘要补充穿透和本属性增伤，完整属性沿用原有说明浮层；个人及队伍比较同步保留可用属性与未知状态。',
+      '统一 JSON 拖入入口，复用账户与备份的恢复确认；驱动盘评分、保留参考线及强化状态同行展示，同类盘合并为一个比较入口。',
+      '修复历史核心技字母及归档装备引用的恢复校验，保留合法历史记录与其他账户。',
+    ],
+  },
+  {
     id: '20261015-scanner-position-and-import-diagnostics',
     date: '2026-10-15',
     scope: '画面扫描与导入诊断',

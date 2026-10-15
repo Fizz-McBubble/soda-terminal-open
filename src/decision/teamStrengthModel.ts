@@ -7,7 +7,8 @@ import {
   teamStrengthMechanicFeatureNames,
   teamStrengthMechanicDataFingerprint,
 } from './teamStrengthMechanicFeatures'
-import { predictStrengthRegression } from './teamStrengthRegression'
+import { assertValidStrengthRegression, predictStrengthRegression } from './teamStrengthRegression'
+import { TeamStrengthNumericError, type TeamStrengthNumericIssue } from './teamStrengthNumericError'
 import { constrainTeamStrengthScore, strengthBandForScore } from './teamStrengthModelScore'
 import type { Current31MetaCalibration } from './current31TeamStrengthCalibration'
 import { reviewedTeamAnalysis } from './reviewedTeamAnalysis'
@@ -27,6 +28,21 @@ export const teamStrengthModelPolicy = {
 }
 
 const inferenceCache = new Map<string, ReturnType<typeof infer>>()
+const inferenceIssues = new Map<string, TeamStrengthNumericIssue>()
+let modelValidation: 'unchecked' | 'ready' | TeamStrengthNumericError = 'unchecked'
+
+function modelNumericIssue(): TeamStrengthNumericIssue | null {
+  if (modelValidation === 'unchecked') {
+    try {
+      assertValidStrengthRegression(artifact.regression)
+      modelValidation = 'ready'
+    } catch (error) {
+      if (!(error instanceof TeamStrengthNumericError)) throw error
+      modelValidation = error
+    }
+  }
+  return modelValidation instanceof TeamStrengthNumericError ? modelValidation.code : null
+}
 const reviewedSubjectIds: readonly string[] | null = artifact.reviewedSubjectIds
 const withdrawnKeys = new Set(
   reviewedTeamAnalysis.records
@@ -35,6 +51,7 @@ const withdrawnKeys = new Set(
 )
 
 function infer(memberIds: readonly string[]) {
+  if (modelNumericIssue()) return null
   if (
     ![artifact.gameVersion, artifact.reviewedForVersion].includes(
       currentVersionProjection.gameVersion,
@@ -51,8 +68,15 @@ function infer(memberIds: readonly string[]) {
   const referenceConditions = currentTeamStrengthReferenceConditions(memberIds)
   const features = extractTeamStrengthMechanicFeatures(memberIds, {}, referenceConditions)
   if (!features.eligibility.eligible) return null
-  const rawScore = predictStrengthRegression(artifact.regression, features.values)
-  const score = constrainTeamStrengthScore(rawScore, features.guardrails)
+  let score: number
+  try {
+    const rawScore = predictStrengthRegression(artifact.regression, features.values)
+    score = constrainTeamStrengthScore(rawScore, features.guardrails)
+  } catch (error) {
+    if (!(error instanceof TeamStrengthNumericError)) throw error
+    inferenceIssues.set([...memberIds].sort().join('|'), error.code)
+    return null
+  }
   return {
     contract: teamStrengthModelPolicy.contract,
     modelFingerprint: teamStrengthModelPolicy.modelFingerprint,
@@ -75,6 +99,10 @@ export function inferTeamStrength(memberIds: readonly string[]) {
   return inferenceCache.get(key)!
 }
 
+export function getTeamStrengthInferenceIssue(memberIds: readonly string[]) {
+  return modelNumericIssue() ?? inferenceIssues.get([...memberIds].sort().join('|')) ?? null
+}
+
 export type TeamStrengthInference = NonNullable<ReturnType<typeof inferTeamStrength>>
 
 export function inferredStrengthCalibration(
@@ -93,7 +121,25 @@ export function inferredStrengthCalibration(
   )
     return calibration
   const inference = inferTeamStrength(memberIds)
-  if (!inference) return calibration
+  if (!inference) {
+    const issue = getTeamStrengthInferenceIssue(memberIds)
+    if (!issue) return calibration
+    return {
+      ...calibration,
+      status: 'insufficient',
+      authority: 'none',
+      evidenceStatus: 'unknown',
+      projectedStrengthBand: null,
+      recommendationScore: undefined,
+      inference: undefined,
+      evidenceRefs: [
+        ...calibration.evidenceRefs,
+        `model:${teamStrengthModelPolicy.modelFingerprint}`,
+        `model_unavailable:${issue}`,
+      ],
+      explanation: '暂时无法计算这支队伍的强度参考。',
+    }
+  }
   return {
     ...calibration,
     status: 'aligned',

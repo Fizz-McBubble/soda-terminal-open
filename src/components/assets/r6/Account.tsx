@@ -4,9 +4,11 @@ import { detectLocalDataFileKind } from '../../../application/localDataFile'
 import type { AssetGoldenProps, BackupPreview } from './types'
 import { SelectMenu } from './SelectMenu'
 import { JsonFileDropTarget } from '../../JsonFileDropTarget'
+import { JsonFilePicker } from '../../JsonFilePicker'
 import './account-file-drop.css'
 import { RestoreRecoveryCopies } from '../../dataCenter/RestoreRecoveryCopies'
 import { AccountDeleteDialog, AccountRenameDialog } from './AccountWorkspaceDialogs'
+import { AccountRestorePreview } from './AccountRestorePreview'
 
 export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
   const backupSectionRef = useRef<HTMLElement>(null)
@@ -22,7 +24,6 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
       window.removeEventListener('hashchange', locateBackup)
     }
   }, [])
-  const inputRef = useRef<HTMLInputElement>(null)
   const dialogRef = useRef<HTMLDialogElement>(null)
   const deleteDialogRef = useRef<HTMLDialogElement>(null)
   const renameDialogRef = useRef<HTMLDialogElement>(null)
@@ -48,6 +49,7 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
   const [renaming, setRenaming] = useState(false)
   const [renameError, setRenameError] = useState<string | null>(null)
   const [restoring, setRestoring] = useState(false)
+  const restorePendingRef = useRef(false)
   const [operationError, setOperationError] = useState<string | null>(null)
   const hasAccount = props.accountId !== 'no-account'
   const ownedAgents = props.roster.agents.filter((item) => item.owned).length
@@ -311,32 +313,12 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
               </div>
               <RestoreRecoveryCopies accountId={hasAccount ? props.accountId : undefined} />
             </header>
-            <div className="backup-row">
-              <span>
-                <strong>选择或拖入备份文件</strong>
-                <small>账户备份或扫描结果（JSON），自动识别后检查</small>
-              </span>
-              <button
-                ref={openerRef}
-                className="quiet"
-                disabled={restoring}
-                title="支持直接拖入一个 JSON 文件，检查后再确认恢复"
-                onClick={() => inputRef.current?.click()}
-              >
-                {inspecting ? '正在检查，可重新选择' : '选择并检查'}
-              </button>
-              <input
-                ref={inputRef}
-                hidden
-                type="file"
-                accept="application/json,.json"
-                onChange={(event) => {
-                  const file = event.target.files?.[0]
-                  if (file) void choose(file)
-                  event.currentTarget.value = ''
-                }}
-              />
-            </div>
+            <JsonFilePicker
+              buttonRef={openerRef}
+              disabled={restoring}
+              checking={inspecting}
+              onFile={choose}
+            />
           </JsonFileDropTarget>
           {props.onRestoreAcceptanceAccount ? (
             <section className="acceptance-recovery" aria-labelledby="acceptance-recovery-title">
@@ -379,7 +361,8 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
         open={restoreDialogOpen || undefined}
         aria-labelledby="restore-title"
         onCancel={(event) => {
-          if (restoring) event.preventDefault()
+          event.preventDefault()
+          if (!restorePendingRef.current) closeRestoreDialog()
         }}
         onClose={() => setRestoreDialogOpen(false)}
       >
@@ -400,30 +383,7 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
             </button>
           </header>
           {preview && (
-            <>
-              <p>
-                将恢复“{preview.accountName}”在 {new Date(preview.exportedAt).toLocaleString()}{' '}
-                导出的资料。若备份对应的账户已存在，其资料将被完整替换；其他账户不受影响。
-                替换前会自动保存完整恢复副本，可在账户与备份下载。
-                {preview.archived ? '此账户保持归档，不会设为当前账户。' : null}
-              </p>
-              <dl className="restore-facts">
-                {preview.replacementNotice ? (
-                  <div>
-                    <dt>目标账户</dt>
-                    <dd>{preview.replacementNotice}</dd>
-                  </div>
-                ) : null}
-                <div>
-                  <dt>文件</dt>
-                  <dd>{preview.fileName}</dd>
-                </div>
-                <div>
-                  <dt>备份内容</dt>
-                  <dd>{preview.scope}</dd>
-                </div>
-              </dl>
-            </>
+            <AccountRestorePreview preview={preview} restoring={restoring} onChange={setPreview} />
           )}
           {operationError && preview ? <p role="alert">{operationError}</p> : null}
           <footer>
@@ -440,21 +400,34 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
               className="danger"
               disabled={restoring}
               onClick={() => {
-                if (!preview) return
+                if (!preview || restorePendingRef.current) return
+                restorePendingRef.current = true
+                const generation = inspectionGeneration.current
+                const beforeCommit = () => {
+                  if (generation !== inspectionGeneration.current)
+                    throw new Error('本次恢复已失效，请重新选择备份。')
+                }
                 setOperationError(null)
                 setRestoring(true)
                 void props
-                  .onRestore(preview)
+                  .onRestore(preview, beforeCommit)
                   .then(closeRestoreDialog)
                   .catch((error) =>
                     setOperationError(
                       error instanceof Error ? error.message : '无法恢复这份备份。',
                     ),
                   )
-                  .finally(() => setRestoring(false))
+                  .finally(() => {
+                    restorePendingRef.current = false
+                    setRestoring(false)
+                  })
               }}
             >
-              {restoring ? '正在恢复…' : '恢复这份备份'}
+              {restoring
+                ? '正在恢复…'
+                : preview?.identity === 'same_name_different_id'
+                  ? '作为独立账号恢复'
+                  : '恢复这份备份'}
             </button>
           </footer>
         </form>

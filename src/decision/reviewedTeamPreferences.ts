@@ -4,6 +4,7 @@ import { currentScopeManifest } from '../gameDataPacks/currentScopeManifest'
 import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
 import { currentVersionAdoption32 } from '../gameDataPacks/currentVersionAdoption32'
 import { createTeamPreferenceIndex } from './teamPreferenceEvidence'
+import { reviewCurrent31ProductionPairwiseEvidence } from './current31ProductionPairwiseEvidence'
 
 const members = z.tuple([z.string().min(1), z.string().min(1), z.string().min(1)])
 const schema = z
@@ -45,7 +46,42 @@ export function createReviewedTeamPreferenceCatalog(input: unknown, currentVersi
     if ([...fact.preferredMemberIds, ...fact.alternativeMemberIds].some((id) => !known.has(id)))
       throw new Error(`Unknown preference member: ${fact.claimId}`)
   }
-  return createTeamPreferenceIndex(parsed.records, currentVersion)
+  const withheldByPerformance = parsed.records.filter(
+    (fact) =>
+      !fact.withdrawn &&
+      fact.sourceVersion === currentVersion &&
+      !reviewCurrent31ProductionPairwiseEvidence(fact.preferredMemberIds, fact.alternativeMemberIds)
+        .defaultSameBandOrderingEligible,
+  )
+  const withheld = new Set(withheldByPerformance)
+  const index = createTeamPreferenceIndex(
+    parsed.records.filter((fact) => !withheld.has(fact)),
+    currentVersion,
+  )
+  const withheldSnapshot = withheldByPerformance.map((fact) => ({
+    ...fact,
+    preferredMemberIds: [...fact.preferredMemberIds],
+    alternativeMemberIds: [...fact.alternativeMemberIds],
+  }))
+  // Object spread would materialize the index getters into mutable shared arrays.
+  // Preserve fresh views through the real registry consumed by account ordering.
+  return {
+    get acceptedFacts() {
+      return index.acceptedFacts
+    },
+    get conflictingFacts() {
+      return index.conflictingFacts
+    },
+    forTeam: index.forTeam,
+    order: index.order,
+    get withheldByPerformance() {
+      return withheldSnapshot.map((fact) => ({
+        ...fact,
+        preferredMemberIds: [...fact.preferredMemberIds],
+        alternativeMemberIds: [...fact.alternativeMemberIds],
+      }))
+    },
+  }
 }
 
 /** The adopted 3.2 read view preserves its explicitly pinned 3.1 review basis.

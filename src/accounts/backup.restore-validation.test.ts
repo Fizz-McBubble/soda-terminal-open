@@ -13,7 +13,16 @@ import {
   seedAccount,
   snapshotAccountState,
 } from './backup.testFixture'
-import { preflightVaultBackupAgainstDatabase } from './backup'
+import {
+  preflightVaultBackup,
+  preflightVaultBackupAgainstDatabase,
+  accountBackupSchema,
+  restoreAccountBackupIndependently,
+  vaultBackupFormat,
+  vaultBackupFormatVersion,
+} from './backup'
+import { rosterSnapshotSchema } from './rosterSnapshotCore'
+import { scanImportBatchMetaSchema } from '../domain/scanImportStagingSchemas'
 import { readRestoreRecoveries, removeSavedRestoreRecovery } from './restoreRecovery'
 
 describe('account and vault backups', () => {
@@ -222,5 +231,223 @@ describe('account and vault backups', () => {
     await restoreVaultBackup(await createVaultBackup(source), target)
 
     expect(await target.settings.get('active-account-id')).toBeUndefined()
+  })
+})
+
+describe('backup live-reference and legacy-core regression', () => {
+  async function backupWithArchivedDisc() {
+    const source = createDatabase()
+    await seedAccount(source, 'account-alpha', '独立审计合成账户')
+    const backup = await createAccountBackup('account-alpha', source)
+    const live = backup.data.driveDiscs[0]
+    const agent = backup.data.roster?.agents[0]
+    if (!live || !agent) throw new Error('Expected a complete synthetic backup fixture.')
+    const archived = { ...live, id: 'audit-archived-disc' }
+    const batchId = 'audit-archive-batch'
+    backup.data.scanBatches.push({
+      ...scanImportBatchMetaSchema.parse({
+        id: batchId,
+        source: 'synthetic-audit',
+        createdAt: backup.exportedAt,
+        updatedAt: backup.exportedAt,
+        dataVersion: live.dataVersion,
+        recognitionVersion: 'audit-fixture-v1',
+        sourceReport: 'synthetic-audit',
+        total: 0,
+        replacedDiscs: [archived],
+      }),
+      accountId: backup.account.id,
+      scopedId: getScopedId(backup.account.id, batchId),
+      sourceLegacyId: null,
+      migratedAt: null,
+    })
+    backup.counts.scanBatches = backup.data.scanBatches.length
+    agent.equippedDiscIds = [live.id]
+    agent.currentEquipment = 'known'
+    return { backup, live, archived, agent }
+  }
+
+  it('restores live equipment without promoting archived history into inventory', async () => {
+    const { backup, live, archived, agent } = await backupWithArchivedDisc()
+    expect(accountBackupSchema.safeParse(backup).success).toBe(true)
+    expect(preflightAccountBackup(backup).success).toBe(true)
+    const target = createDatabase()
+    await restoreAccountBackup(backup, target)
+    const discs = await target.accountDriveDiscs.toArray()
+    expect(discs.map((disc) => disc.id)).toEqual([live.id])
+    expect(discs.some((disc) => disc.id === archived.id)).toBe(false)
+    const restored = await target.accountRosters.get(backup.account.id)
+    expect(
+      restored?.roster.agents.find((row) => row.agentId === agent.agentId)?.equippedDiscIds,
+    ).toEqual([live.id])
+    const batches = await target.accountScanImportBatches.toArray()
+    expect(batches[0]?.replacedDiscs?.[0]?.id).toBe(archived.id)
+  })
+
+  it('rejects archive-only current equipment before replacement or recovery writes', async () => {
+    const { backup, archived, agent } = await backupWithArchivedDisc()
+    agent.equippedDiscIds = [archived.id]
+    // Ensure the failure is the reference invariant, not malformed test data.
+    expect(accountBackupSchema.safeParse(backup).success).toBe(true)
+    const originalInput = structuredClone(backup)
+    const target = createDatabase()
+    await seedAccount(target, 'account-alpha', '受保护的目标账户')
+    await seedAccount(target, 'account-other', '受保护的其他账户')
+    const before = await snapshotAccountState(target)
+    const recoveries = await readRestoreRecoveries(target)
+    expect(preflightAccountBackup(backup).errors).toContain(
+      '一位代理人的当前装备不在该备份范围内。',
+    )
+    await expect(restoreAccountBackup(backup, target)).rejects.toThrow(
+      '一位代理人的当前装备不在该备份范围内。',
+    )
+    expect(await snapshotAccountState(target)).toEqual(before)
+    expect(await readRestoreRecoveries(target)).toEqual(recoveries)
+
+    // Independent restore entry point zero-write rejection
+    await expect(
+      restoreAccountBackupIndependently(backup, { displayName: '独立副本' }, target),
+    ).rejects.toThrow('一位代理人的当前装备不在该备份范围内。')
+    expect(await snapshotAccountState(target)).toEqual(before)
+    expect(await readRestoreRecoveries(target)).toEqual(recoveries)
+
+    // Vault restore entry point zero-write rejection
+    const vault = {
+      format: vaultBackupFormat,
+      formatVersion: vaultBackupFormatVersion,
+      exportedAt: backup.exportedAt,
+      databaseSchemaVersion: backup.databaseSchemaVersion,
+      accounts: [backup],
+    }
+    expect(preflightVaultBackup(vault).errors).toContain('一位代理人的当前装备不在该备份范围内。')
+    await expect(restoreVaultBackup(vault, target)).rejects.toThrow(
+      '一位代理人的当前装备不在该备份范围内。',
+    )
+    expect(await snapshotAccountState(target)).toEqual(before)
+    expect(await readRestoreRecoveries(target)).toEqual(recoveries)
+    expect(backup).toEqual(originalInput)
+  })
+
+  it('retains historical saved-plan archive references without making their discs live', async () => {
+    const { backup, archived } = await backupWithArchivedDisc()
+    const planId = 'audit-history-plan'
+    backup.data.planningDrafts.push({
+      scopedId: getScopedId(backup.account.id, planId),
+      accountId: backup.account.id,
+      id: planId,
+      kind: 'agent',
+      name: '合成历史方案',
+      state: 'saved',
+      savedRole: 'history',
+      selection: { agentIds: ['agent-anby'], bangbooId: null, scenario: 'synthetic-audit' },
+      manualOverrides: {
+        wEngineDirection: '',
+        discDirection: '',
+        progressionDirection: '',
+        notes: '',
+      },
+      knowledgeRefs: [],
+      warehouseRefs: [archived.id],
+      comparisonCapability: 'direction',
+      createdAt: backup.exportedAt,
+      updatedAt: backup.exportedAt,
+      revision: 1,
+    })
+    backup.counts.planningDrafts = backup.data.planningDrafts.length
+    expect(accountBackupSchema.safeParse(backup).success).toBe(true)
+    expect(preflightAccountBackup(backup).success).toBe(true)
+    const target = createDatabase()
+    await restoreAccountBackup(backup, target)
+    expect((await target.accountPlanningDrafts.toArray())[0]?.warehouseRefs).toEqual([archived.id])
+    expect((await target.accountDriveDiscs.toArray()).some((row) => row.id === archived.id)).toBe(
+      false,
+    )
+  })
+
+  it('retains historical disc evaluations referencing archived discs without making their discs live', async () => {
+    const { backup, archived } = await backupWithArchivedDisc()
+    const evaluationId = 'audit-history-evaluation'
+    backup.data.discEvaluations.push({
+      scopedId: getScopedId(backup.account.id, evaluationId),
+      accountId: backup.account.id,
+      id: evaluationId,
+      discId: archived.id,
+      discVersion: '3.0',
+      templateId: 'tpl-history',
+      templateVersion: '1',
+      templateContentHash: 'content-hash-1',
+      ruleVersion: '1',
+      ruleContentHash: 'rule-hash-1',
+      gameDataVersion: '3.0',
+      evaluatedAt: backup.exportedAt,
+      status: 'valid',
+      source: 'manual',
+      sourceLegacyId: null,
+      migratedAt: null,
+    })
+    backup.counts.discEvaluations = backup.data.discEvaluations.length
+    expect(accountBackupSchema.safeParse(backup).success).toBe(true)
+    expect(preflightAccountBackup(backup).success).toBe(true)
+    const target = createDatabase()
+    await restoreAccountBackup(backup, target)
+    const storedEvaluations = await target.accountDiscEvaluations.toArray()
+    expect(storedEvaluations.some((row) => row.discId === archived.id)).toBe(true)
+    expect((await target.accountDriveDiscs.toArray()).some((row) => row.id === archived.id)).toBe(
+      false,
+    )
+  })
+
+  const coreSchema = rosterSnapshotSchema.shape.agents.element.shape.skillLevels.unwrap().shape.core
+
+  it('maps only single A through F core labels to levels 2 through 7', () => {
+    for (const [index, letter] of [...'ABCDEF'].entries()) {
+      expect(coreSchema.parse(letter)).toBe(index + 2)
+      expect(coreSchema.parse(letter.toLowerCase())).toBe(index + 2)
+    }
+  })
+
+  it('preserves numeric core levels, numeric strings and unknown values', () => {
+    for (let level = 1; level <= 7; level++) {
+      expect(coreSchema.parse(level)).toBe(level)
+      expect(coreSchema.parse(String(level))).toBe(level)
+    }
+    expect(coreSchema.parse(null)).toBeNull()
+    // Never migrate an already stored 6 to 7 without evidence of its original source.
+    expect(coreSchema.parse(6)).toBe(6)
+  })
+
+  it('rejects malformed labels instead of reading their first character', () => {
+    for (const value of ['G', 'g', 'Foo', 'Aardvark', 'AF', 'F6', ' F', 'F ', '', 0, 8, -1, 1.5]) {
+      expect(coreSchema.safeParse(value).success).toBe(false)
+    }
+  })
+
+  it('carries a legacy F label through backup restore and re-export as level 7', async () => {
+    const { backup, agent } = await backupWithArchivedDisc()
+    if (!backup.data.roster) throw new Error('Expected a synthetic roster snapshot.')
+    const raw = {
+      ...backup,
+      data: {
+        ...backup.data,
+        roster: {
+          ...backup.data.roster,
+          agents: backup.data.roster.agents.map((row) =>
+            row.agentId === agent.agentId
+              ? {
+                  ...row,
+                  skillLevels: { basic: 1, dodge: 1, assist: 1, special: 1, chain: 1, core: 'F' },
+                }
+              : row,
+          ),
+        },
+      },
+    }
+    expect(accountBackupSchema.safeParse(raw).success).toBe(true)
+    const target = createDatabase()
+    await restoreAccountBackup(raw, target)
+    const exported = await createAccountBackup(backup.account.id, target)
+    expect(
+      exported.data.roster?.agents.find((row) => row.agentId === agent.agentId)?.skillLevels?.core,
+    ).toBe(7)
   })
 })

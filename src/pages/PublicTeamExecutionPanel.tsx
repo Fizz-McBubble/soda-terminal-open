@@ -460,6 +460,8 @@ export function PublicTeamExecutionPanel({
             )}
           </div>
           <PublicTeamAttributeInspector
+            accountId={warehouse.accountId ?? ''}
+            agentId={selectedMember.agentId}
             agentName={selectedMember.agentName}
             panel={attributePanelsByAgent?.[selectedMember.agentId] ?? null}
           />

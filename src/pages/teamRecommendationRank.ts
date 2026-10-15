@@ -24,7 +24,7 @@ const score = (item: RankedTeam) =>
     : -1
 
 export const recommendationStrengthBucket = (item: RankedTeam) =>
-  `${item.teamRatingBand ?? 'unrated'}:${recommendationEvidencePriority(item)}:${score(item)}`
+  `${item.teamRatingBand ?? 'unrated'}:${recommendationEvidencePriority(item)}`
 
 /** Strength bands first; source evidence refines peers without upgrading their rating. */
 export function compareTeamRecommendations(left: RankedTeam, right: RankedTeam) {

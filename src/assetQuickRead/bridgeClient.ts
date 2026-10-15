@@ -152,7 +152,7 @@ export class AssetQuickReadBridgeClient {
   async probe(signal?: AbortSignal, timeoutMs = 3000) {
     const deadline = Date.now() + timeoutMs
     let lastUnavailable: AssetQuickReadUnavailableError | null = null
-    for (const baseUrl of assetQuickReadBridgeUrls) {
+    for (const [index, baseUrl] of assetQuickReadBridgeUrls.entries()) {
       signal?.throwIfAborted()
       const remaining = deadline - Date.now()
       if (remaining <= 0) break
@@ -165,7 +165,7 @@ export class AssetQuickReadBridgeClient {
             undefined,
             false,
             signal,
-            Math.min(remaining, 2000),
+            Math.min(remaining / (assetQuickReadBridgeUrls.length - index), 2000),
             baseUrl,
           ),
         )

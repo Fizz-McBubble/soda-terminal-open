@@ -259,11 +259,6 @@ export function AgentDevelopmentGoldenDirectoryPage() {
 
   return (
     <div className="agent-development-directory">
-      {advicePending ? (
-        <p className="panel" role="status" aria-live="polite">
-          正在核对养成建议；代理人资料与已保存方案可先查看。
-        </p>
-      ) : null}
       {staleRefreshKey && refreshFailureKey === staleRefreshKey ? (
         <section className="panel" role="alert">
           <p>养成资料暂未更新，已保存的数据仍保留。</p>

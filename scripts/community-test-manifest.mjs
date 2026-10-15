@@ -31,6 +31,17 @@ export const incremental32CommunityTests = Object.freeze([
 ])
 
 export const communityTests = Object.freeze([
+  'src/application/characterPanelFields.test.ts',
+  'src/application/publicDevelopmentComparisonPanels.details.test.ts',
+  'src/assetQuickRead/panelDetailsImport.test.ts',
+  'src/calculation/outOfCombatPanel.details.test.ts',
+  'src/features/agentDevelopmentGolden/characterPanelExpansion.test.tsx',
+  'src/pages/BangbooConditionDetailsView.test.tsx',
+  'src/decision/teamStrengthMechanicFeatures.anomaly-pair.test.ts',
+  'src/decision/teamStrengthReferenceConditions.source-directions.test.ts',
+  'src/decision/accountDecisionAuthority.cultivation-order.test.ts',
+  'src/pages/teamLoadoutCompletionCandidates.test.ts',
+  'src/pages/teamLoadoutOverviewModel.test.ts',
   'src/components/assets/r6/Account.rename.test.tsx',
   'src/pages/privateTeamLoadoutPresentationProducer.test.ts',
   'src/decision/current31TeamIntrinsicIndex.test.ts',
@@ -62,6 +73,7 @@ export const communityTests = Object.freeze([
   'src/pages/ScannerScanningSection.test.tsx',
   'src/accounts/observedAgentFacts.test.ts',
   'src/components/JsonFileDropTarget.test.tsx',
+  'src/components/JsonFilePicker.test.tsx',
   'src/components/assets/r6/Account.file-drop.test.tsx',
   'src/pages/AssetCaptureMethodsNotice.test.tsx',
   'src/assetQuickRead/snapshotAdapter.test.ts',

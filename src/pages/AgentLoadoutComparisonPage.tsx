@@ -1,3 +1,4 @@
+import { getCharacterPanelFields } from '../application/characterPanelFields'
 import {
   agentComparisonSetSummary,
   projectAgentLoadoutComparisonDiscs,
@@ -33,6 +34,20 @@ import {
   defaultPlanningScenarioSelection32,
   type CurrentPlanningScenarioSelection32,
 } from '../application/publicPlanningScenarioContract'
+
+// Only these metrics have an established graduation-target contract.
+const targetPanelMetricKeys = new Set([
+  'hp',
+  'atk',
+  'def',
+  'impact',
+  'critRate',
+  'critDamage',
+  'anomalyMastery',
+  'anomalyProficiency',
+  'penRatio',
+  'energyRegen',
+])
 
 export function AgentLoadoutComparisonPage() {
   const { agentId = '' } = useParams()
@@ -175,7 +190,7 @@ export function AgentLoadoutComparisonPage() {
   const observedStatKeys = [
     ...new Set(allCandidateDiscs.flatMap((disc) => disc.subStats.map((subStat) => subStat.stat))),
   ].toSorted()
-  let allStats = [
+  let allStats: GoldenTop10Data['allStats'] = [
     ...preferredStatKeys,
     ...observedStatKeys.filter((key) => !preferredStatKeys.includes(key)),
   ].map((key) => ({
@@ -231,27 +246,22 @@ export function AgentLoadoutComparisonPage() {
     (baselineKind === 'none' || baselinePanel?.status === 'ok') &&
     (!currentPlan || panelFor(currentPlanDiscs, -1)?.status === 'ok')
   if (hasStaticPanels) {
-    const panelStats = [
-      ['hp', '生命值', '', 'hp_percent'],
-      ['atk', '攻击力', '', 'atk_percent'],
-      ['def', '防御力', '', 'def_percent'],
-      ['impact', '冲击力', '', 'impact'],
-      ['critRate', '暴击率', '%', 'crit_rate'],
-      ['critDamage', '暴击伤害', '%', 'crit_dmg'],
-      ['anomalyMastery', '异常掌控', '', 'anomaly_mastery'],
-      ['anomalyProficiency', '异常精通', '', 'anomaly_proficiency'],
-      ['penRatio', '穿透率', '%', 'pen_ratio'],
-      ['energyRegen', '能量自动回复', '', 'energy_regen'],
-    ] as const
-    allStats = panelStats.map(([key, label, unit, weightKey]) => ({
-      key,
-      label,
-      unit,
-      highlight: preferredStatKeys.includes(weightKey),
+    allStats = getCharacterPanelFields(agentId).map((field) => ({
+      key: field.key,
+      label: field.label,
+      unit: field.unit,
+      detail: field.detail,
+      highlight: Boolean(field.weightKey && preferredStatKeys.includes(field.weightKey)),
     }))
     coreStats = allStats.filter((stat) => stat.highlight).slice(0, 5)
     defaultStats = coreStats.length ? coreStats : allStats.slice(0, 5)
-    finalStatsFor = (discs, rank) => ({ ...panelFor(discs, rank)?.values })
+    finalStatsFor = (discs, rank) =>
+      Object.fromEntries(
+        Object.entries(panelFor(discs, rank)?.values ?? {}).filter(
+          (entry): entry is [string, number] =>
+            typeof entry[1] === 'number' && Number.isFinite(entry[1]),
+        ),
+      )
   }
   const baselineFinalStats = finalStatsFor(comparisonDiscs)
   const discs = projectAgentLoadoutComparisonDiscs({
@@ -273,17 +283,27 @@ export function AgentLoadoutComparisonPage() {
     const ids = selectedDiscs.map((disc) => disc.id)
     const finalStats =
       savedDiscs === baseline && hasStaticPanels && !snapshotStale
-        ? {
-            ...findDevelopmentComparisonPanel(candidateSnapshot.panelPresentation, baseline)
-              ?.values,
-          }
+        ? Object.fromEntries(
+            Object.entries(
+              findDevelopmentComparisonPanel(candidateSnapshot.panelPresentation, baseline)
+                ?.values ?? {},
+            ).filter(
+              (entry): entry is [string, number] =>
+                typeof entry[1] === 'number' && Number.isFinite(entry[1]),
+            ),
+          )
         : finalStatsFor(selectedDiscs, savedDiscs ? -1 : rank)
     const statDeltaSummary = defaultStats
       .map((stat) => ({
         stat,
-        delta: (finalStats[stat.key] ?? 0) - (baselineFinalStats[stat.key] ?? 0),
+        delta:
+          Number.isFinite(finalStats[stat.key]) && Number.isFinite(baselineFinalStats[stat.key])
+            ? finalStats[stat.key]! - baselineFinalStats[stat.key]!
+            : null,
       }))
-      .filter((item) => item.delta !== 0)
+      .filter(
+        (item): item is typeof item & { delta: number } => item.delta !== null && item.delta !== 0,
+      )
       .slice(0, 2)
       .map((item) => {
         const rounded = Math.round(item.delta * 10) / 10
@@ -342,6 +362,7 @@ export function AgentLoadoutComparisonPage() {
             )
           : undefined
   const top10: GoldenTop10Data = {
+    panelScopeKey: JSON.stringify([accountId, agentId]),
     agentName: getAgentName(agentId),
     candidateSearch: candidateSnapshot.candidateSearch,
     candidateSearchByRank: candidateSnapshot.candidateSearchByRank,
@@ -362,7 +383,7 @@ export function AgentLoadoutComparisonPage() {
       return {
         ...stat,
         target: staticPanelTargetDisplay(
-          hasStaticPanels
+          hasStaticPanels && targetPanelMetricKeys.has(stat.key)
             ? candidateSnapshot.panelPresentation?.targetDisplayByLabel[stat.label]
             : undefined,
         ),

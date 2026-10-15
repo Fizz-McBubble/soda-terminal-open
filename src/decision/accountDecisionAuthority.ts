@@ -12,7 +12,7 @@ import { extractTeamStrengthMechanicFeatures } from './teamStrengthMechanicFeatu
 import { reviewedTeamAnalysis } from './reviewedTeamAnalysis'
 import {
   hasDefaultTeamRecommendationEvidence,
-  selectDefaultTeamRecommendationIds,
+  selectDefaultTeamRecommendationPool,
 } from './defaultTeamRecommendationPolicy'
 import { reviewedPreparedTeamCapabilities32 } from '../calculation/reviewedPreparedTeamBenchmark32'
 import {
@@ -29,10 +29,9 @@ import {
   baseComparator,
   confidenceOrder,
   ratingOrder,
-  readinessOrder,
-  conflictOrder,
-  investmentOrder,
+  compareAccountCultivationState,
   projectCurrent31TeamStrengthOrder,
+  resolveComparableTeamCandidates,
   denseOrder,
   resolveMemberDisjointPortfolio,
 } from './accountDecisionOrdering'
@@ -120,6 +119,8 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
     mode: input.validationIntrinsicProjectionMode ?? 'indexed',
   })
   const recommendationLimit = input.recommendationLimit ?? 12
+  if (!Number.isSafeInteger(recommendationLimit) || recommendationLimit < 0)
+    throw new Error('BOX 推荐展示数量必须是非负整数。')
   const ownedAgentIds = input.roster.agents
     .filter((agent) => agent.owned)
     .map((agent) => agent.agentId)
@@ -167,7 +168,11 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
         : [],
     ),
   )
-  const intrinsicDisplayComparator = (
+  const intrinsicScore = (item: (typeof projected)[number]) =>
+    typeof item.recommendationScore === 'number' && Number.isFinite(item.recommendationScore)
+      ? item.recommendationScore
+      : -1
+  const baseIntrinsicDisplayComparator = (
     left: (typeof projected)[number],
     right: (typeof projected)[number],
   ) => {
@@ -176,7 +181,7 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
     return (
       (teamStrengthRankById.get(left.candidate.candidateId) ?? Number.MAX_SAFE_INTEGER) -
         (teamStrengthRankById.get(right.candidate.candidateId) ?? Number.MAX_SAFE_INTEGER) ||
-      (right.recommendationScore ?? -1) - (left.recommendationScore ?? -1) ||
+      intrinsicScore(right) - intrinsicScore(left) ||
       confidenceOrder(left.rating.confidence) - confidenceOrder(right.rating.confidence) ||
       Number(right.mechanicallyClosed) - Number(left.mechanicallyClosed) ||
       left.candidate.candidateId.localeCompare(right.candidate.candidateId)
@@ -200,28 +205,50 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
   }
   // Players choose an intrinsically strong team before requesting its gear fit.
   // Source preference refines a band; it cannot move a weaker band above it.
-  const defaultStrengthComparator = (
+  const baseDefaultStrengthComparator = (
     left: (typeof projected)[number],
     right: (typeof projected)[number],
   ) => {
     if (left.rating.status !== 'rated' || right.rating.status !== 'rated')
-      return intrinsicDisplayComparator(left, right)
+      return baseIntrinsicDisplayComparator(left, right)
     return (
       ratingOrder(left.rating.ratingBand) - ratingOrder(right.rating.ratingBand) ||
       Number(sourceRecommendation(right)) - Number(sourceRecommendation(left)) ||
-      intrinsicDisplayComparator(left, right)
+      baseIntrinsicDisplayComparator(left, right)
     )
   }
-  const allIntrinsicOrdered = [...projected]
-    .filter((item) => item.rating.status === 'rated')
-    .sort(intrinsicDisplayComparator)
+  const intrinsicOrdering = resolveComparableTeamCandidates(
+    [...projected]
+      .filter((item) => item.rating.status === 'rated')
+      .sort(baseDefaultStrengthComparator),
+    (item) =>
+      JSON.stringify([
+        item.rating.status === 'rated' ? item.rating.ratingBand : null,
+        sourceRecommendation(item),
+      ]),
+    (item) => item.memberIds,
+  )
+  const allIntrinsicOrdered = intrinsicOrdering.ordered
+  const intrinsicPositionById = new Map(
+    allIntrinsicOrdered.map((item, index) => [item.candidate.candidateId, index]),
+  )
+  // This is traversal order, not a new strength estimate. Keep one frozen
+  // order for candidate capping, portfolios and later recommendation projections.
+  const intrinsicDisplayComparator = (
+    left: (typeof projected)[number],
+    right: (typeof projected)[number],
+  ) =>
+    (intrinsicPositionById.get(left.candidate.candidateId) ?? Number.MAX_SAFE_INTEGER) -
+      (intrinsicPositionById.get(right.candidate.candidateId) ?? Number.MAX_SAFE_INTEGER) ||
+    baseIntrinsicDisplayComparator(left, right)
+  const defaultStrengthComparator = intrinsicDisplayComparator
   const withdrawnKeys = new Set(
     reviewedTeamAnalysis.records
       .filter((record) => record.withdrawn)
       .map((record) => [...record.memberIds].sort().join('|')),
   )
   const featureCache = new Map<string, ReturnType<typeof extractTeamStrengthMechanicFeatures>>()
-  const defaultRecommendationIds = selectDefaultTeamRecommendationIds(
+  const recommendationPool = selectDefaultTeamRecommendationPool(
     allIntrinsicOrdered.map((item) => ({
       candidateId: item.candidate.candidateId,
       memberIds: item.memberIds,
@@ -235,9 +262,8 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
       confidence: item.rating.status === 'rated' ? item.rating.confidence : null,
       mechanicallyClosed: item.mechanicallyClosed,
       recommendationScore: item.recommendationScore,
-      sourceExcluded:
-        isReviewedFallbackTeam(item.memberIds) ||
-        withdrawnKeys.has([...item.memberIds].sort().join('|')),
+      withdrawn: withdrawnKeys.has([...item.memberIds].sort().join('|')),
+      sourceExcluded: isReviewedFallbackTeam(item.memberIds),
     })),
     (candidate) => {
       const key = [...candidate.memberIds].sort().join('|')
@@ -248,36 +274,58 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
         ? features.primaryOutputAgentId
         : null
     },
+    { includePortfolioFallback: input.preference.teamCount > 1 },
   )
   const defaultRecommendation = (item: (typeof projected)[number]) =>
-    defaultRecommendationIds.has(item.candidate.candidateId)
+    recommendationPool.defaultIds.has(item.candidate.candidateId)
+  const portfolioEligible = (item: (typeof projected)[number]) =>
+    recommendationPool.eligibleIds.has(item.candidate.candidateId)
   const intrinsicOrdered = allIntrinsicOrdered.filter(defaultRecommendation)
+  // A display limit cannot prove that the account has no disjoint full portfolio.
+  const portfolioOrdered = allIntrinsicOrdered.filter(portfolioEligible)
   const longTermSelection = resolveMemberDisjointPortfolio(
-    intrinsicOrdered,
+    portfolioOrdered,
     input.preference.teamCount,
   )
   const longTermSelected = longTermSelection.selected
   const longTermSelectedIds = new Set(
     longTermSelected.map((candidate) => candidate.candidate.candidateId),
   )
-  const intrinsicShortlist: Array<(typeof intrinsicOrdered)[number]> = []
-  const intrinsicShortlistCandidateIds = new Set<string>()
-  const shortlistOrder = [
-    ...longTermSelected,
-    ...intrinsicOrdered.filter((item) => !longTermSelectedIds.has(item.candidate.candidateId)),
-  ].sort(defaultStrengthComparator)
-  for (const item of shortlistOrder) {
-    if (intrinsicShortlistCandidateIds.has(item.candidate.candidateId)) continue
-    intrinsicShortlistCandidateIds.add(item.candidate.candidateId)
-    intrinsicShortlist.push(item)
-    if (intrinsicShortlist.length >= recommendationLimit) break
-  }
+  // Long-term targets are guaranteed in the consumer workset below. Default
+  // cards keep their original count/three-per-carry policy even for a zero limit.
+  const intrinsicShortlist = intrinsicOrdered.slice(0, recommendationLimit)
   const intrinsicShortlistIds = new Set(
     intrinsicShortlist.map((item) => item.candidate.candidateId),
+  )
+  const ordered = [...projected].sort(baseComparator)
+  const accountProjected = ordered.flatMap((item) => {
+    if (item.rating.status !== 'rated') return []
+    return [
+      {
+        ...item,
+        priorityTier: lightweightPriorityTier(item.rating, item.account),
+      },
+    ]
+  })
+  const accountPortfolioOrdered = accountProjected
+    .filter((item) => portfolioEligible(item))
+    .sort(
+      (left, right) =>
+        compareAccountCultivationState(left, right) || intrinsicDisplayComparator(left, right),
+    )
+  const currentSelection = resolveMemberDisjointPortfolio(
+    accountPortfolioOrdered,
+    input.preference.teamCount,
+  )
+  const currentSelected = currentSelection.selected
+  const currentSelectedIds = new Set(
+    currentSelected.map((candidate) => candidate.candidate.candidateId),
   )
   // Preserve rule/source discovery; inference alone must not expand eager detail work.
   let consumerWorkset = allIntrinsicOrdered.filter(
     (item) =>
+      longTermSelectedIds.has(item.candidate.candidateId) ||
+      currentSelectedIds.has(item.candidate.candidateId) ||
       intrinsicShortlistIds.has(item.candidate.candidateId) ||
       item.mechanicallyClosed ||
       item.mainstreamRecognition.status === 'confirmed' ||
@@ -294,48 +342,16 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
   // never enter default strength recommendations or either required portfolio.
   if (consumerWorkset.length === 0) {
     const ruleAgentIds = new Set(current31TeamEngineD1Pack.agentRules.map((rule) => rule.agentId))
+    const fallbackLimit = Math.max(recommendationLimit, input.preference.teamCount, 3)
     consumerWorkset = allIntrinsicOrdered
       .filter((item) =>
         item.memberIds.every(
           (agentId) => ownedAgentIds.includes(agentId) && ruleAgentIds.has(agentId),
         ),
       )
-      .slice(0, recommendationLimit)
+      .slice(0, fallbackLimit)
   }
   const consumerWorksetIds = new Set(consumerWorkset.map((item) => item.candidate.candidateId))
-  const ordered = [...projected].sort(baseComparator)
-  const tierOrder = ['ready_now', 'short_upgrade', 'strategic_build', 'experimental'] as const
-  const accountProjected = ordered.flatMap((item) => {
-    if (item.rating.status !== 'rated') return []
-    return [
-      {
-        ...item,
-        priorityTier: lightweightPriorityTier(item.rating, item.account),
-      },
-    ]
-  })
-  const accountPortfolioOrdered = accountProjected
-    .filter(
-      (item) => consumerWorksetIds.has(item.candidate.candidateId) && defaultRecommendation(item),
-    )
-    .sort(
-      (left, right) =>
-        tierOrder.indexOf(left.priorityTier) - tierOrder.indexOf(right.priorityTier) ||
-        readinessOrder(left.account.currentReadiness) -
-          readinessOrder(right.account.currentReadiness) ||
-        investmentOrder(left.account.investmentCost) -
-          investmentOrder(right.account.investmentCost) ||
-        conflictOrder(left.account.assetConflict) - conflictOrder(right.account.assetConflict) ||
-        intrinsicDisplayComparator(left, right),
-    )
-  const currentSelection = resolveMemberDisjointPortfolio(
-    accountPortfolioOrdered,
-    input.preference.teamCount,
-  )
-  const currentSelected = currentSelection.selected
-  const currentSelectedIds = new Set(
-    currentSelected.map((candidate) => candidate.candidate.candidateId),
-  )
   const coverageOrder = [
     'new_required_team',
     'new_scenario',
@@ -351,16 +367,16 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
   }))
   enriched.sort(
     (left, right) =>
-      tierOrder.indexOf(left.priorityTier) - tierOrder.indexOf(right.priorityTier) ||
+      compareAccountCultivationState(left, right) ||
       coverageOrder.indexOf(left.coverageGain) - coverageOrder.indexOf(right.coverageGain) ||
-      baseComparator(left, right),
+      intrinsicDisplayComparator(left, right),
   )
   const cultivationOrder = denseOrder(
     enriched,
     (left, right) =>
-      tierOrder.indexOf(left.priorityTier) - tierOrder.indexOf(right.priorityTier) ||
+      compareAccountCultivationState(left, right) ||
       coverageOrder.indexOf(left.coverageGain) - coverageOrder.indexOf(right.coverageGain) ||
-      baseComparator(left, right),
+      intrinsicDisplayComparator(left, right),
   )
   const cultivationRankById = new Map(
     cultivationOrder.map(({ item, rank }) => [item.candidate.candidateId, rank]),
@@ -389,7 +405,7 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
     .map(toRecommendation)
   const bestByAgent = new Map<string, (typeof enriched)[number]>()
   for (const item of [...enriched].sort(defaultStrengthComparator)) {
-    if (!defaultRecommendation(item)) continue
+    if (!portfolioEligible(item)) continue
     if (item.rating.status !== 'rated') continue
     for (const agentId of item.memberIds) {
       if (!bestByAgent.has(agentId)) bestByAgent.set(agentId, item)
@@ -419,7 +435,8 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
       strategy: 'authority_exact_variant_intrinsic_rating' as const,
       candidateIds: consumerWorkset.map((item) => item.candidate.candidateId),
       complete:
-        intrinsicShortlist.length === Math.min(recommendationLimit, intrinsicOrdered.length),
+        intrinsicShortlist.length === Math.min(recommendationLimit, intrinsicOrdered.length) &&
+        [...longTermSelectedIds, ...currentSelectedIds].every((id) => consumerWorksetIds.has(id)),
     },
     longTermPortfolio: {
       kind: 'intrinsic_long_term_target' as const,
@@ -446,9 +463,10 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
       longTermPortfolioCandidateCount: longTermSelected.length,
       currentPortfolioCandidateCount: currentSelected.length,
       decisionIssueClassificationFingerprint: input.decisionIssueClassificationFingerprint ?? null,
+      sourceOrdering: intrinsicOrdering.diagnostics,
     },
     boundary:
-      'Production Workset 与长期目标只由 Authority exact 3-agent + Bangboo Variant 的账户无关 Team Strength 定义；Team Engine 只能补充可执行元数据。Team Strength order 与 Cultivation Priority order 分别输出；无来源偏序关系的同档候选保持并列，candidateId 不代表更强。固定事件 numeric diagnostic 不进入评级。',
+      'Production Workset 与长期目标只由 Authority exact 3-agent + Bangboo Variant 的账户无关 Team Strength 定义；Team Engine 只能补充可执行元数据。Team Strength order 仅表示粗档，Cultivation Priority order 独立输出；来源替代偏好只调整同档同来源类别的可比候选，不生成数值强弱，candidateId 不代表更强。固定事件 numeric diagnostic 不进入评级。',
   }
   return { ...result, fingerprint: stableContentHash(result) }
 }

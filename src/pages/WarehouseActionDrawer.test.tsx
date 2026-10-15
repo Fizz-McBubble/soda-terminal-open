@@ -216,7 +216,7 @@ describe('warehouse detail density and saved loadout labels', () => {
     expect(screen.getByText('只比较记录属性，不代表伤害差距')).toBeInTheDocument()
   })
 
-  it('keeps all comparable discs in one list while retaining disc navigation', () => {
+  it('opens one comparison entry with every same-kind disc while retaining disc navigation', async () => {
     const alternatives = Array.from({ length: 4 }, (_, index) => ({
       ...disc,
       id: `candidate-${index}`,
@@ -225,7 +225,7 @@ describe('warehouse detail density and saved loadout labels', () => {
     render(
       <WarehouseActionDrawer
         ownedAgentIds={new Set()}
-        item={action({ alternativeDiscIds: alternatives.map((item) => item.id) })}
+        item={action({ alternativeDiscIds: [alternatives[0]!.id] })}
         disc={disc}
         discs={[disc, ...alternatives]}
         decisionLabel="建议保留"
@@ -233,6 +233,9 @@ describe('warehouse detail density and saved loadout labels', () => {
         navigation={{ index: 0, total: 2, onPrevious: () => {}, onNext: () => {} }}
       />,
     )
+    expect(screen.queryByRole('button', { name: /查看全部/ })).not.toBeInTheDocument()
+    expect(screen.getByRole('list', { name: '可比较盘' })).not.toBeVisible()
+    await userEvent.click(screen.getByText('比较同类盘（共 5 张）'))
     expect(
       within(screen.getByRole('list', { name: '可比较盘' })).getAllByRole('listitem'),
     ).toHaveLength(4)

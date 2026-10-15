@@ -68,6 +68,7 @@ export type BackupPreview = {
   identity?: 'same_id' | 'same_name_different_id' | 'new_account'
   archived?: boolean
   replacementNotice?: string
+  restoreDisplayName?: string
 }
 
 export type LocalAccountOption = {
@@ -96,7 +97,7 @@ export type AssetGoldenProps = {
   incomingBackupFile?: File | null
   onIncomingBackupHandled?: () => void
   onOpenScanFile?: (file: File) => void
-  onRestore: (preview: BackupPreview) => Promise<void>
+  onRestore: (preview: BackupPreview, beforeCommit?: () => void) => Promise<void>
   onSelectAccount: (accountId: string) => Promise<void>
   onRenameAccount: (accountId: string, displayName: string) => Promise<void>
   onDeleteAccount: (accountId: string) => Promise<boolean>

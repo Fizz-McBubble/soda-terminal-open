@@ -182,11 +182,27 @@ it('bounds even a non-settling transport and aborts a launch wait without pairin
   abort.abort()
   await expect(pending).rejects.toMatchObject({ name: 'AbortError' })
   await vi.advanceTimersByTimeAsync(4000)
-  expect(fetcher).toHaveBeenCalledTimes(2)
+  expect(fetcher).toHaveBeenCalledTimes(assetQuickReadBridgeUrls.length)
 })
-it('accepts a 1500ms delayed health response without rejecting at 1000ms', async () => {
+it('reaches the third fallback after two hanging ports within the total budget', async () => {
+  vi.useFakeTimers()
+  const fetcher = vi.fn<typeof fetch>((url) =>
+    String(url).startsWith(assetQuickReadBridgeUrls[2]!)
+      ? Promise.resolve(new Response(JSON.stringify(health)))
+      : new Promise(() => {}),
+  )
+  const pending = new AssetQuickReadBridgeClient(fetcher).probe()
+  await vi.advanceTimersByTimeAsync(2000)
+  await expect(pending).resolves.toEqual(health)
+  expect(fetcher.mock.calls.map(([url]) => url)).toEqual(
+    assetQuickReadBridgeUrls.map((base) => `${base}/health`),
+  )
+})
+it('accepts 1500ms health on the last port when earlier refusals leave the budget available', async () => {
   vi.useFakeTimers()
   const fetcher = vi.fn<typeof fetch>((url) => {
+    if (!String(url).startsWith(assetQuickReadBridgeUrls[2]!))
+      return Promise.reject(new TypeError('not listening'))
     if (String(url).endsWith('/health')) {
       return new Promise((resolve) =>
         setTimeout(
@@ -213,7 +229,7 @@ it('accepts a 1500ms delayed health response without rejecting at 1000ms', async
   await vi.advanceTimersByTimeAsync(1000)
   await vi.advanceTimersByTimeAsync(500)
   await expect(pending).resolves.toMatchObject({ version: '1.0.4' })
-  expect(fetcher).toHaveBeenCalledTimes(2)
+  expect(fetcher).toHaveBeenCalledTimes(4)
 })
 it('does not let a late settling connection response overwrite an aborted or superseded session', async () => {
   vi.useFakeTimers()
@@ -259,6 +275,6 @@ it('bounds the last health request by the remaining connection deadline and neve
   await failed
   await vi.advanceTimersByTimeAsync(1000)
   expect(launch).toHaveBeenCalledOnce()
-  expect(attempts).toBe(4)
+  expect(attempts).toBe(assetQuickReadBridgeUrls.length * 2)
   await expect(client.start("soda-source-ref:24d5780e541a1a1ad1393e8962be6e18", 'account-synthetic')).rejects.toThrow('先连接')
 })

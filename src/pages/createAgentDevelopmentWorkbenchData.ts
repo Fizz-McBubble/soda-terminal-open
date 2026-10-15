@@ -138,6 +138,7 @@ export function createAgentDevelopmentWorkbenchData({
   })
   if (!hasComparablePlan) applyRecordedDevelopmentMetrics(warehouseAnalysis, recordedEvaluation)
   return {
+    panelScopeKey: JSON.stringify([accountId, agentId]),
     agentId,
     name: legacyCatalog?.[1] ?? catalog.playerName,
     rarity: legacyCatalog?.[4] ?? catalog.rarity ?? '资料待补齐',

@@ -300,3 +300,88 @@
   color: #fff;
   background: var(--soda-accent);
 }
+
+.team-execution__attribute-heading {
+  flex-wrap: wrap;
+  row-gap: 6px;
+}
+
+.team-execution__attribute-heading > div:first-of-type {
+  flex: 1 1 8rem;
+}
+
+.team-execution__attribute-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-inline-start: auto;
+}
+
+.team-execution__attribute-actions > .explanation {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.team-execution__more-attributes > .explanation-popover[popover] {
+  width: min(38rem, calc(100vw - 24px));
+  max-height: min(32rem, calc(100dvh - 24px));
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.team-execution__attribute-table.values-only .team-execution__attribute-row {
+  grid-template-columns: minmax(0, 1.2fr) repeat(2, minmax(0, 1fr));
+}
+
+.team-execution__attribute-table.values-only.without-account .team-execution__attribute-row {
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+}
+
+.team-execution__graduation-reference > .explanation-popover[popover] {
+  width: min(38rem, calc(100vw - 24px));
+  max-height: min(32rem, calc(100dvh - 24px));
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.team-execution__graduation-targets > div {
+  display: grid;
+  grid-template-columns: minmax(5em, 0.4fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.team-execution__graduation-targets dd {
+  margin: 0;
+}
+
+.team-execution__more-attributes .team-execution__attribute-table {
+  min-width: 28em;
+}
+
+.team-execution__more-attributes
+  .team-execution__attribute-table.values-only
+  .team-execution__attribute-row {
+  grid-template-columns: minmax(9em, 1.2fr) repeat(2, minmax(8em, 1fr));
+}
+
+.team-execution__more-attributes .team-execution__attribute-table.values-only.without-account {
+  min-width: 19em;
+}
+
+.team-execution__more-attributes
+  .team-execution__attribute-table.values-only.without-account
+  .team-execution__attribute-row {
+  grid-template-columns: minmax(9em, 1.2fr) minmax(8em, 1fr);
+}
+
+.team-execution__more-attributes .team-execution__attribute-row > * {
+  white-space: nowrap;
+}
+
+.team-execution__more-attributes .team-execution__attribute-proposed,
+.team-execution__more-attributes .team-execution__attribute-row.is-heading > :last-child {
+  color: var(--soda-text);
+  font-weight: 700;
+}

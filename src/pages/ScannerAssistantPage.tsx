@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { FileUp, ScanLine } from 'lucide-react'
+import { ScanLine } from 'lucide-react'
+import { JsonFilePicker } from '../components/JsonFilePicker'
 import { F5ScannerGoldenView } from '../components/F5GoldenViews'
 import { JsonFileDropTarget } from '../components/JsonFileDropTarget'
 import { assessScannerAssistantInput } from '../scanner/assistant'
@@ -25,10 +26,6 @@ import {
 } from './scannerAssistantStatePresentation'
 import { AssetQuickReadController } from './AssetQuickReadController'
 import { AssetCaptureMethodsNotice, AssetCaptureRiskNotice } from './AssetCaptureMethodsNotice'
-import {
-  ScannerAccountBackupReview,
-  type ScannerAccountBackupReviewState,
-} from './ScannerAccountBackupReview'
 import { ScannerTargetAccountPicker } from './ScannerTargetAccountPicker'
 import { ScannerTargetAccountSummary } from './ScannerTargetAccountSummary'
 import { PrepareChecklist } from './ScannerPrepareChecklist'
@@ -77,12 +74,7 @@ function HydratedScannerAssistantPage({
   const { snapshot: runtimeSnapshot, commands } = useScannerAssistantRuntime()
   const [assessment, setAssessment] = useState(() => assessScannerAssistantInput({ kind: 'empty' }))
   const [selectedJson, setSelectedJson] = useState<File | null>(null)
-  const [taskSource, setTaskSource] = useState<'scanner' | 'scan-file' | 'quick-read' | 'backup'>(
-    'scanner',
-  )
-  const [backupFile, setBackupFile] = useState<File | null>(null)
-  const [backupRevision, setBackupRevision] = useState(0)
-  const [backupState, setBackupState] = useState<ScannerAccountBackupReviewState>('checking')
+  const [taskSource, setTaskSource] = useState<'scanner' | 'scan-file' | 'quick-read'>('scanner')
   const [filePending, setFilePending] = useState(false)
   const filePendingRef = useRef(false)
   const [creatingAccount, setCreatingAccount] = useState(false)
@@ -239,13 +231,13 @@ function HydratedScannerAssistantPage({
   })
 
   // Invalidate the prior runtime/account request before accepting a newly released handoff.
-  useScannerDataFileHandoff(snapshot.state, inspectJson)
+  const forwardDataFile = useScannerDataFileHandoff(snapshot.state, inspectJson)
 
   async function inspectJson(
     file: File | undefined,
     inspectQuickFile?: (file: File) => Promise<void>,
   ) {
-    if (!file || scannerBusy || backupPending) return
+    if (!file || scannerBusy) return
     setAccountMessage('')
     filePendingRef.current = true
     setFilePending(true)
@@ -257,10 +249,7 @@ function HydratedScannerAssistantPage({
       const text = await file.text()
       if (!fileReadMountedRef.current || requestId !== jsonReadRef.current) return
       if (detectLocalDataFileKind(text) === 'account-backup') {
-        setTaskSource('backup')
-        setBackupState('checking')
-        setBackupRevision((revision) => revision + 1)
-        setBackupFile(file)
+        forwardDataFile(file, 'account-backup')
         return
       }
       const value: unknown = JSON.parse(text)
@@ -334,8 +323,7 @@ function HydratedScannerAssistantPage({
       restartingAfterCompletedResult ||
       preparingNewScan ||
       handoffState.status !== 'idle' ||
-      taskSource === 'quick-read' ||
-      taskSource === 'backup'
+      taskSource === 'quick-read'
     )
       return
     const key = JSON.stringify([
@@ -444,7 +432,6 @@ function HydratedScannerAssistantPage({
       !showImportComplete &&
       !preparingNewScan &&
       !restartingAfterCompletedResult)
-  const backupPending = Boolean(backupFile && !['completed', 'error'].includes(backupState))
   const hasScannerTask =
     startPending ||
     ['scanning', 'paused'].includes(snapshot.state) ||
@@ -622,25 +609,20 @@ function HydratedScannerAssistantPage({
       onTaskStart={() => setTaskSource('quick-read')}
       onViewAssets={() => navigate('/assets/agents')}
       riskNoticeHref="#scanner-risk-notice"
-      blocked={
-        scannerBusy || scannerReviewPending || backupPending || filePending || selectingAccount
-      }
+      blocked={scannerBusy || scannerReviewPending || filePending || selectingAccount}
       workbench={(quick) => {
         const quickPending = quick.busy || quick.state === 'received'
-        const otherTaskPending = quickPending || backupPending || filePending
-        const accountLocked =
-          scannerBusy || quick.busy || filePending || backupPending || selectingAccount
+        const otherTaskPending = quickPending || filePending
+        const accountLocked = scannerBusy || quick.busy || filePending || selectingAccount
         const activeTask =
-          taskSource === 'backup' && backupFile
-            ? 'backup'
-            : (quick.stageActive && quick.state === 'idle') ||
-                (taskSource === 'quick-read' && quick.hasTask)
-              ? 'quick-read'
-              : hasScannerTask
-                ? taskSource === 'scan-file'
-                  ? 'scan-file'
-                  : 'scanner'
-                : null
+          (quick.stageActive && quick.state === 'idle') ||
+          (taskSource === 'quick-read' && quick.hasTask)
+            ? 'quick-read'
+            : hasScannerTask
+              ? taskSource === 'scan-file'
+                ? 'scan-file'
+                : 'scanner'
+              : null
         const scannerActive = activeTask === 'scanner' || activeTask === 'scan-file'
         const methodActive = scannerActive || activeTask === 'quick-read'
         const workspaceMessage =
@@ -687,7 +669,6 @@ function HydratedScannerAssistantPage({
           scannerBusy ||
           (scannerReviewPending && handoffState.status !== 'error') ||
           quickPending ||
-          backupPending ||
           filePending
         return (
           <F5ScannerGoldenView
@@ -740,24 +721,10 @@ function HydratedScannerAssistantPage({
                     />
                   </div>
                   <div className="scanner-workbench__new-account">{newAccountForm}</div>
-                  <label
-                    className={`button button--quiet scanner-workbench__file-button${fileLocked ? ' is-disabled' : ''}`}
-                    title="点击选择或直接拖入一个 JSON 文件；检查后再确认写入账户"
-                  >
-                    <FileUp size={18} aria-hidden="true" />
-                    选择或拖入 JSON
-                    <input
-                      type="file"
-                      accept=".json,application/json"
-                      aria-label="选择本机文件（JSON）"
-                      disabled={fileLocked}
-                      onChange={(event) => {
-                        const file = event.target.files?.[0]
-                        event.target.value = ''
-                        void inspectJson(file, quick.inspectFile)
-                      }}
-                    />
-                  </label>
+                  <JsonFilePicker
+                    disabled={fileLocked}
+                    onFile={(file) => inspectJson(file, quick.inspectFile)}
+                  />
                 </section>
                 <AssetCaptureRiskNotice />
                 <section
@@ -889,25 +856,6 @@ function HydratedScannerAssistantPage({
                     </div>
                   </div>
                 </section>
-                {activeTask === 'backup' && backupFile && (
-                  <section
-                    id="scanner-current-task"
-                    className="scanner-workbench__task"
-                    aria-label="账户备份恢复"
-                  >
-                    <ScannerAccountBackupReview
-                      file={backupFile}
-                      scopeKey={`backup-file:${backupRevision}`}
-                      disabled={scannerBusy || quickPending}
-                      onStateChange={setBackupState}
-                      onRestored={refreshAccounts}
-                      onClose={() => {
-                        setBackupFile(null)
-                        setTaskSource('scanner')
-                      }}
-                    />
-                  </section>
-                )}
                 <AssetCaptureMethodsNotice />
               </JsonFileDropTarget>
             }

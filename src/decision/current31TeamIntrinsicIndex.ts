@@ -10,6 +10,7 @@ import { stableContentHash } from '../gameDataPacks/types'
 import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
 import type { Current31MechanicValidity } from './current31TeamStrengthCalibration'
 import { teamStrengthMechanicDataFingerprint } from './teamStrengthMechanicFeatures'
+import { assertValidStrengthRegression } from './teamStrengthRegression'
 import type { DecisionConfidenceBand, TeamRatingBand } from './teamDecisionAuthority'
 
 const bands = ['S+', 'S', 'A+', 'A', 'B', 'Experimental'] as const
@@ -59,6 +60,7 @@ function exactArray(actual: unknown, expected: readonly string[]) {
 
 function prepareIndex(): { index: PreparedIndex | null; reason: string | null } {
   try {
+    assertValidStrengthRegression(strengthModel.regression)
     if (!rawIndex || typeof rawIndex !== 'object') throw new Error('artifact is not an object')
     const artifact = rawIndex as unknown as Record<string, unknown>
     if (artifact.contract !== 'soda-current31-team-intrinsic-index/v1')

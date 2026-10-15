@@ -74,7 +74,7 @@ export function registerScannerDataFileCompatibilityTests({
       })
     })
 
-    it('checks an account backup in the scanner and requires restore confirmation without writing, including Strict Mode', async () => {
+    it('hands a scanner backup to the existing account dialog once without writing, including Strict Mode', async () => {
       const file = jsonFile(await backupFixture(), 'backup-with-neutral-name.json')
       const before = await accountSnapshot()
       render(
@@ -88,34 +88,25 @@ export function registerScannerDataFileCompatibilityTests({
           target: { files: [file] },
         },
       )
-      const review = await screen.findByRole('region', { name: '单账户备份检查' })
-      const restore = await within(review).findByRole('button', { name: '确认恢复范围' })
-      expect(window.location.pathname).toBe('/system/scanner')
-      expect(within(review).getByText(new RegExp(file.name))).toBeVisible()
-      expect(
-        within(within(review).getByRole('region', { name: '备份恢复范围' })).getByText('1 张'),
-      ).toBeVisible()
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
-      expect(await accountSnapshot()).toEqual(before)
-      fireEvent.click(restore)
-      const dialog = await screen.findByRole('dialog', { name: '完整替换“文件兼容账户”的数据？' })
-      expect(within(dialog).getByRole('button', { name: '取消' })).toHaveFocus()
+      const dialog = await screen.findByRole(
+        'dialog',
+        { name: '用所选备份恢复账户？' },
+        { timeout: 15000 },
+      )
+      expect(window.location.pathname).toBe('/assets/account')
+      expect(window.location.hash).toBe('#restore-backup')
+      expect(within(dialog).getByText(file.name)).toBeVisible()
+      expect(within(dialog).getByText(/1 张驱动盘/)).toBeVisible()
+      expect(screen.queryByRole('region', { name: '单账户备份检查' })).not.toBeInTheDocument()
+      expect(screen.getAllByRole('dialog')).toHaveLength(1)
       expect(await accountSnapshot()).toEqual(before)
       fireEvent.click(within(dialog).getByRole('button', { name: '取消' }))
       await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
-      fireEvent.click(within(review).getByRole('button', { name: '关闭检查' }))
       await waitFor(() =>
         expect(screen.queryByRole('region', { name: '单账户备份检查' })).not.toBeInTheDocument(),
       )
       const reads = vi.mocked(file.text).mock.calls.length
-      fireEvent.click(
-        within(screen.getByRole('navigation', { name: '主导航' })).getByRole('link', {
-          name: '我的资产',
-        }),
-      )
-      await waitFor(() => expect(window.location.pathname).toBe('/assets/agents'), {
-        timeout: 5000,
-      })
+      expect(screen.getByRole('button', { name: '选择或拖入 JSON' })).toHaveFocus()
       await act(async () => {
         const returned = new Promise((resolve) =>
           window.addEventListener('popstate', resolve, { once: true }),
@@ -138,7 +129,7 @@ export function registerScannerDataFileCompatibilityTests({
         const before = await accountSnapshot(false)
         window.history.replaceState({}, '', '/assets/account')
         const { container } = render(<App />)
-        await screen.findByRole('button', { name: '选择并检查' })
+        await screen.findByRole('button', { name: '选择或拖入 JSON' })
         const file = jsonFile(
           createReadyScannerStaging(),
           'soda-terminal-account-misleading-name.json',
@@ -164,7 +155,7 @@ export function registerScannerDataFileCompatibilityTests({
         target: { files: [jsonFile({ ...backup, formatVersion: 99 })] },
       })
       await screen.findByRole('alert')
-      expect(window.location.pathname).toBe('/system/scanner')
+      expect(window.location.pathname).toBe('/assets/account')
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
       expect(await accountSnapshot()).toEqual(before)
     })
@@ -175,7 +166,7 @@ export function registerScannerDataFileCompatibilityTests({
       setRuntimeState('scanning')
       window.history.replaceState({}, '', '/assets/account')
       const { container } = render(<App />)
-      await screen.findByRole('button', { name: '选择并检查' })
+      await screen.findByRole('button', { name: '选择或拖入 JSON' })
       fireEvent.change(container.querySelector('input[type="file"]')!, {
         target: { files: [jsonFile(createReadyScannerStaging())] },
       })
@@ -246,7 +237,7 @@ export function registerScannerDataFileCompatibilityTests({
       })
       window.history.replaceState({}, '', '/assets/account')
       const { container } = render(<App />)
-      await screen.findByRole('button', { name: '选择并检查' })
+      await screen.findByRole('button', { name: '选择或拖入 JSON' })
       const picker = container.querySelector('input[type="file"]')!
       fireEvent.change(picker, { target: { files: [oldFile] } })
       fireEvent.change(picker, { target: { files: [jsonFile(backup, 'latest-backup.json')] } })

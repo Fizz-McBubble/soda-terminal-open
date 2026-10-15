@@ -446,7 +446,7 @@ export function WarehouseDiscsPage() {
           />
           {detailItem && detailDisc ? (
             <WarehouseActionDrawer
-              key={`${detailDisc.id}:${comparisonId ? 'compare' : 'detail'}`}
+              key={`${data.account.id}:${selectedDisc?.id}`}
               navigation={
                 !comparisonId
                   ? {

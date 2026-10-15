@@ -1,4 +1,5 @@
 import { ExplanationPopover } from '../components/ExplanationPopover'
+import { EffectDescription } from '../components/EffectDescription'
 import type { BangbooConditionPresentation } from '../application/publicBangbooConditionPresentation'
 
 export function BangbooConditionDetailsView({
@@ -18,28 +19,53 @@ export function BangbooConditionDetailsView({
                 : '额外能力待确认'}
           </strong>
         </p>
-        <ExplanationPopover label="技能与触发条件">
-          <p>
-            {condition.requirementSummary}；{condition.progressSummary}
-          </p>
-          {condition.additionalAbility ? (
+        <ExplanationPopover
+          label="技能与触发条件"
+          align="start"
+          className="team-execution__bangboo-details"
+        >
+          {condition.purposeSummary ? (
+            <section>
+              <h4>队伍用途</h4>
+              <p>
+                <EffectDescription text={condition.purposeSummary} />
+              </p>
+            </section>
+          ) : null}
+          <section>
+            <h4>触发条件</h4>
             <p>
-              <b>{condition.additionalAbility.name}</b>：
-              {condition.additionalAbility.effectDescription ||
-                condition.additionalAbility.description}
+              <EffectDescription text={condition.requirementSummary} />
             </p>
+            <p>
+              <EffectDescription text={condition.progressSummary} />
+            </p>
+          </section>
+          {condition.additionalAbility ? (
+            <section>
+              <h4>额外能力 · {condition.additionalAbility.name}</h4>
+              <p>
+                <EffectDescription
+                  text={
+                    condition.additionalAbility.effectDescription ||
+                    condition.additionalAbility.description
+                  }
+                />
+              </p>
+            </section>
           ) : null}
           {condition.baseSkills.map((skill) => (
-            <p key={skill.kind}>
-              <b>
+            <section key={skill.kind}>
+              <h4>
                 {skill.label} · {skill.name}
-              </b>
-              ：{skill.description}
-            </p>
+              </h4>
+              <p>
+                <EffectDescription text={skill.description} />
+              </p>
+            </section>
           ))}
         </ExplanationPopover>
       </div>
-      {condition.purposeSummary ? <p>{condition.purposeSummary}</p> : null}
     </div>
   )
 }

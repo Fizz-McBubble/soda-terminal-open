@@ -1,4 +1,9 @@
 import type { TeamEngineCandidate, TeamEnginePack } from '../teamEngine/contracts'
+import { currentReviewedTeamSourceDirections } from '../gameDataPacks/reviewedTeamSourceDirections'
+import { evaluateCurrent31TeamRating } from '../decision/current31TeamRating'
+import { reviewedTeamAnalysis } from '../decision/reviewedTeamAnalysis'
+import { reviewedTeamPublishedStrength } from '../decision/reviewedTeamPublishedStrength'
+import { getAgentName } from '../application/publicRosterNames'
 
 export type TeamLoadoutCompletionCandidate = {
   id: string
@@ -17,24 +22,16 @@ export type TeamLoadoutCompletionCandidate = {
   label: string
 }
 
-const supportedFailureCodes = new Set<TeamLoadoutCompletionCandidate['failureCode']>([
-  'missing_core_agent',
-  'no_eligible_third',
-])
-
-function isSupportedFailureCode(
-  code: string,
-): code is TeamLoadoutCompletionCandidate['failureCode'] {
-  return supportedFailureCodes.has(code as TeamLoadoutCompletionCandidate['failureCode'])
-}
-
 /**
- * Converts only the Team Engine's structured, source-backed rejections into
- * read-only member-completion facts. It never parses presentation text, creates
- * a candidate, or changes recommendation ranking.
+ * Acquisition advice needs exact reviewed strength, independently of whether
+ * the legacy Engine happened to reject a kernel for this BOX. In particular,
+ * owning one eligible third must not hide another reviewed one-member path.
+ * Reviewed-only evaluation retains version continuity and hard mechanic gates
+ * without promoting a model prediction into an acquisition recommendation.
  */
 export function projectTeamLoadoutCompletionCandidates(input: {
-  rejected: readonly TeamEngineCandidate[]
+  /** Compatibility only: rejected kernels are not the acquisition universe. */
+  rejected?: readonly TeamEngineCandidate[]
   /** Real account ownership before any remaining-BOX reservation is applied. */
   ownedAgentIds: readonly string[]
   /** Members allowed in this run; defaults to the complete owned roster. */
@@ -43,61 +40,89 @@ export function projectTeamLoadoutCompletionCandidates(input: {
 }): TeamLoadoutCompletionCandidate[] {
   const owned = new Set(input.ownedAgentIds)
   const available = new Set(input.availableAgentIds ?? input.ownedAgentIds)
-  const kernelById = new Map(input.pack.kernels.map((kernel) => [kernel.kernelId, kernel]))
-  const projected = new Map<string, TeamLoadoutCompletionCandidate>()
+  const key = (ids: readonly string[]) => [...ids].sort().join('|')
+  const withdrawn = new Set([
+    ...reviewedTeamAnalysis.records.filter((row) => row.withdrawn).map((row) => key(row.memberIds)),
+    ...reviewedTeamPublishedStrength.facts
+      .filter((row) => row.withdrawn)
+      .map((row) => key(row.memberIds)),
+  ])
+  const projected: { candidate: TeamLoadoutCompletionCandidate; rank: number }[] = []
 
-  for (const candidate of input.rejected) {
-    if (!candidate.kernelId) continue
-    const failure = candidate.failures.find((item) => isSupportedFailureCode(item.code))
-    if (!failure || !isSupportedFailureCode(failure.code)) continue
-    const kernel = kernelById.get(candidate.kernelId)
-    if (!kernel) continue
-
+  for (const direction of currentReviewedTeamSourceDirections()) {
+    const memberIds = [...direction.memberIds]
+    if (withdrawn.has(key(memberIds))) continue
+    const ownedAgentIds = memberIds.filter((agentId) => owned.has(agentId))
+    const missingAgentIds = memberIds.filter((agentId) => !owned.has(agentId))
+    const unavailableOwnedAgentIds = ownedAgentIds.filter((agentId) => !available.has(agentId))
+    // A member-gap card is an actionable one-member completion, not a long
+    // acquisition list or a workaround for members reserved by another team.
+    if (missingAgentIds.length !== 1 || unavailableOwnedAgentIds.length) continue
+    const rating = evaluateCurrent31TeamRating({
+      candidateId: `completion:${key(memberIds)}`,
+      memberIds: direction.memberIds,
+      bangbooId: null,
+      outputPotentialBand: 'unknown',
+      benchmark: {
+        status: 'unavailable',
+        baselineId: null,
+        outputIndex: null,
+        unsupportedIssueIds: [],
+        explanation: '补强建议只使用已审阅的精确三人来源评级。',
+      },
+      reviewedOnly: true,
+    })
     if (
-      candidate.strengthTier !== 'current_strong_candidate' ||
-      (candidate.metaBand !== 'apex' && candidate.metaBand !== 'meta') ||
-      candidate.failures.some((item) => !isSupportedFailureCode(item.code)) ||
-      candidate.sourceIds.length === 0
+      rating.mechanicValidity === 'invalid' ||
+      rating.rating.status !== 'rated' ||
+      (rating.rating.ratingBand !== 'S+' &&
+        rating.rating.ratingBand !== 'S' &&
+        rating.rating.ratingBand !== 'A+') ||
+      rating.metaCalibration.status !== 'aligned' ||
+      rating.metaCalibration.evidenceStatus === 'conflict' ||
+      rating.metaCalibration.authority === 'model_inference' ||
+      rating.metaCalibration.evidenceRefs.length === 0 ||
+      rating.mainstreamRecognition.status !== 'confirmed' ||
+      (rating.mainstreamRecognition.historicalReferenceOnly &&
+        !rating.metaCalibration.referenceContinuity)
     )
       continue
 
-    for (const thirdAgentId of kernel.eligibleThirdAgentIds) {
-      const memberIds = [...kernel.coreAgentIds, thirdAgentId]
-      const ownedAgentIds = memberIds.filter((agentId) => owned.has(agentId))
-      const missingAgentIds = memberIds.filter((agentId) => !owned.has(agentId))
-      const unavailableOwnedAgentIds = ownedAgentIds.filter((agentId) => !available.has(agentId))
-      // A member-gap card is an actionable one-member completion, not a long
-      // acquisition list or a workaround for members reserved by another team.
-      if (missingAgentIds.length !== 1 || unavailableOwnedAgentIds.length) continue
-      const ownedCoreAgentIds = kernel.coreAgentIds.filter((agentId) => owned.has(agentId))
-      if (!ownedCoreAgentIds.length) continue
+    const kernel = input.pack.kernels.find((item) =>
+      item.eligibleThirdAgentIds.some((third) =>
+        key([...item.coreAgentIds, third]) === key(memberIds),
+      ),
+    )
+    const kernelId = kernel?.kernelId ?? `source:${key(memberIds)}`
+    const ownedCoreAgentIds = kernel
+      ? kernel.coreAgentIds.filter((agentId) => owned.has(agentId))
+      : ownedAgentIds
 
-      const missingRole = kernel.coreAgentIds.includes(missingAgentIds[0]!)
-        ? ('core' as const)
-        : ('eligible_third' as const)
-      const id = `${candidate.kernelId}:${thirdAgentId}:${missingAgentIds[0]}`
-      if (projected.has(id)) continue
-      projected.set(id, {
+    const missingRole = kernel?.coreAgentIds.includes(missingAgentIds[0]!)
+      ? ('core' as const)
+      : ('eligible_third' as const)
+    const id = `completion:${key(memberIds)}:${missingAgentIds[0]}`
+    projected.push({
+      rank: rating.rating.ratingBand === 'S+' ? 3 : rating.rating.ratingBand === 'S' ? 2 : 1,
+      candidate: {
         id,
-        kernelId: candidate.kernelId,
+        kernelId,
         memberIds,
         ownedAgentIds,
         ownedCoreAgentIds,
         unavailableOwnedAgentIds,
         missingAgentIds,
         missingRole,
-        failureCode: failure.code,
-        sourceIds: [...new Set(candidate.sourceIds)],
-        label: candidate.label,
-      })
-    }
+        failureCode: missingRole === 'core' ? 'missing_core_agent' : 'no_eligible_third',
+        sourceIds: [...new Set(rating.metaCalibration.evidenceRefs)],
+        label: memberIds.map(getAgentName).join(' · '),
+      },
+    })
   }
 
-  const metaRank = { apex: 2, meta: 1, viable: 0 } as const
-  const metaByKernelId = new Map(input.rejected.map((item) => [item.kernelId, item.metaBand]))
-  return [...projected.values()].sort((left, right) => {
-    const leftRank = metaRank[metaByKernelId.get(left.kernelId) ?? 'viable']
-    const rightRank = metaRank[metaByKernelId.get(right.kernelId) ?? 'viable']
-    return rightRank - leftRank || left.id.localeCompare(right.id)
-  })
+  return projected
+    .sort((left, right) =>
+      right.rank - left.rank || left.candidate.id.localeCompare(right.candidate.id),
+    )
+    .map((item) => item.candidate)
 }

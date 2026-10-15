@@ -20,6 +20,8 @@ import {
 } from '../gameDataPacks/panel/wEngineGrowth'
 import { getCurrentAgentEventContract } from './currentAgentMechanicContracts'
 import { projectOutOfCombatInitialModifiers } from './outOfCombatInitialModifiers'
+import { evaluateSourceBoundSheerForce32 } from './currentSourceBoundSheerForce32'
+import { attributePanelKeys, type ExtendedPanelKey } from '../domain/characterPanelStats'
 import {
   getReviewedAgentMenuBaseStats,
   getReviewedWEngineMenuBaseStat,
@@ -55,14 +57,14 @@ export type PanelInput = {
   discs: DriveDisc[]
 }
 export type PanelTrace = {
-  key: OutOfCombatKey
+  key: OutOfCombatKey | ExtendedPanelKey
   source: string
   operation: 'base' | 'percent' | 'post_flat' | 'final' | 'inactive'
   value: number | string
 }
 export type PanelResult = {
   status: 'ok' | 'unsupported'
-  values: Record<OutOfCombatKey, number>
+  values: Record<OutOfCombatKey, number> & Partial<Record<ExtendedPanelKey, number>>
   trace: PanelTrace[]
   menuRounding: 'menu_rule_missing'
   reason?: string
@@ -226,6 +228,9 @@ export function projectOutOfCombatPanel(
   const percent = emptyValues()
   const postFlat = emptyValues()
   const trace: PanelTrace[] = []
+  const damageBonuses = Object.fromEntries(
+    Object.values(attributePanelKeys).map((key) => [key, 0]),
+  ) as Record<(typeof attributePanelKeys)[keyof typeof attributePanelKeys], number>
 
   const contract = agent.kind === 'growth' ? getCurrentAgentEventContract(input.agentId) : null
   const promotion = contract?.promotionStats[input.ascension] ?? { hp: 0, atk: 0, def: 0 }
@@ -412,6 +417,17 @@ export function projectOutOfCombatPanel(
     const mainPercent = percentStatMap[main.stat]
     if (mainFlat) add(postFlat, trace, mainFlat, main.value, `disc:${disc.id}:main`, 'post_flat')
     if (mainPercent) add(percent, trace, mainPercent, main.value, `disc:${disc.id}:main`, 'percent')
+    for (const [attribute, key] of Object.entries(attributePanelKeys)) {
+      if (main.stat === `${attribute}_dmg`) {
+        damageBonuses[key] += main.value
+        trace.push({
+          key,
+          source: `disc:${disc.id}:main`,
+          operation: 'post_flat',
+          value: main.value,
+        })
+      }
+    }
     for (const subStat of disc.subStats) {
       const subFlat = flatStatMap[subStat.stat]
       const subPercent = percentStatMap[subStat.stat]
@@ -452,6 +468,20 @@ export function projectOutOfCombatPanel(
         )
         continue
       }
+      const attributeEntry = Object.entries(attributePanelKeys).find(
+        ([attribute]) => modifier.stat === `${attribute}_dmg_`,
+      )
+      if (attributeEntry) {
+        const key = attributeEntry[1]
+        damageBonuses[key] += modifier.value * 100
+        trace.push({
+          key,
+          source: `set:${setId}:2pc source-catalog`,
+          operation: 'post_flat',
+          value: modifier.value * 100,
+        })
+        continue
+      }
       if (!knownNonPanelTwoPieceStats.has(modifier.stat))
         return unsupported(`驱动盘套装 ${setId} 的二件套字段 ${modifier.stat} 尚未支持。`)
       trace.push({
@@ -488,5 +518,30 @@ export function projectOutOfCombatPanel(
     value: 'not selected for out-of-combat projection',
   })
 
-  return { status: 'ok', values, trace, menuRounding: 'menu_rule_missing' }
+  const extended: Partial<Record<ExtendedPanelKey, number>> = { ...damageBonuses }
+  if (getCurrentAgentEventContract(input.agentId)?.identity.specialty === 'rupture') {
+    const initialStats = { atk: values.atk, hp: values.hp }
+    const sheer = evaluateSourceBoundSheerForce32({
+      agentId: input.agentId,
+      level: input.level,
+      coreLevel: input.core + 2,
+      initialStats,
+      finalStats: initialStats,
+    })
+    if (sheer.status === 'supported') {
+      extended.sheerForce = sheer.sheerForce
+      trace.push({
+        key: 'sheerForce',
+        source: sheer.sourceRefs.join('|'),
+        operation: 'final',
+        value: sheer.sheerForce,
+      })
+    }
+  }
+  return {
+    status: 'ok',
+    values: { ...values, ...extended },
+    trace,
+    menuRounding: 'menu_rule_missing',
+  }
 }

@@ -1,3 +1,7 @@
+import {
+  getCharacterPanelFields,
+  formatCharacterPanelValue,
+} from '../application/characterPanelFields'
 import type { RosterAgent } from '../assault/types'
 import { playerFacingPlanName } from '../application/savedPlanDisplayName'
 import type { DriveDisc, StatKey } from '../domain/schemas'
@@ -33,7 +37,9 @@ export const characterPanelLabels = [
 type CharacterPanelLabel = (typeof characterPanelLabels)[number]
 
 export type WorkbenchFact = {
-  label: CharacterPanelLabel
+  label: string
+  key?: string
+  detail?: boolean
   current: string
   contribution: string
   target: string
@@ -102,7 +108,7 @@ type TargetPanel = {
   status: 'formal' | 'verified_candidate' | 'candidate' | 'missing'
 } | null
 
-const contributionLabels: Partial<Record<StatKey, CharacterPanelLabel>> = {
+const contributionLabels: Partial<Record<StatKey, string>> = {
   hp_flat: '生命值',
   atk_flat: '攻击力',
   def_flat: '防御力',
@@ -113,6 +119,7 @@ const contributionLabels: Partial<Record<StatKey, CharacterPanelLabel>> = {
   anomaly_proficiency: '异常精通',
   pen_ratio: '穿透率',
   energy_regen: '能量自动回复',
+  pen: '穿透值',
 }
 const panelKeys: Record<CharacterPanelLabel, TargetPanelMetricKey> = {
   生命值: 'hp',
@@ -141,27 +148,6 @@ const targetKeys: Partial<Record<CharacterPanelLabel, string[]>> = {
 
 function usesPercent(label: CharacterPanelLabel) {
   return ['暴击率', '暴击伤害', '穿透率'].includes(label)
-}
-function truncateDecimal(value: number, precision: number) {
-  const scale = 10 ** precision
-  const truncated = Math.floor((value + Number.EPSILON) * scale) / scale
-  return truncated
-    .toFixed(precision)
-    .replace(/\.0+$/, '')
-    .replace(/(\.\d*?)0+$/, '$1')
-}
-/**
- * The game menu does not show calculation precision: HP is rounded upward,
- * while the other whole-number panel rows are truncated. Percent rows and
- * energy regeneration retain one visible decimal place.
- */
-function displayGameMenuNumber(label: CharacterPanelLabel, value: number) {
-  if (label === '生命值') return String(Math.ceil(value))
-  if (usesPercent(label) || label === '能量自动回复') return truncateDecimal(value, 1)
-  return String(Math.floor(value))
-}
-function displayPanelValue(label: CharacterPanelLabel, value: number) {
-  return `${displayGameMenuNumber(label, value)}${usesPercent(label) ? '%' : ''}`
 }
 function readTargetValue(panel: TargetPanel, label: CharacterPanelLabel) {
   if (
@@ -330,7 +316,7 @@ export function createAgentDevelopmentWorkbenchViewModel(input: {
       state: disc ? (discSource === '当前已装备' ? '已装备实体盘' : '方案实体盘') : '盘位引用缺失',
     } satisfies PlannedDiscFact
   })
-  const contribution = new Map<CharacterPanelLabel, number[]>()
+  const contribution = new Map<string, number[]>()
   plannedDiscs
     .flatMap((item) => item.disc?.subStats ?? [])
     .forEach((subStat) => {
@@ -338,36 +324,47 @@ export function createAgentDevelopmentWorkbenchViewModel(input: {
       if (label) contribution.set(label, [...(contribution.get(label) ?? []), subStat.value])
     })
   const direction = profile.recommendation?.subStats.join('、') ?? null
-  const facts: WorkbenchFact[] = characterPanelLabels.map((label) => {
-    const currentValue = panel?.status === 'ok' ? panel.values[panelKeys[label]] : undefined
+  const facts: WorkbenchFact[] = getCharacterPanelFields(agent.agentId).map((field) => {
+    const { label, key, detail } = field
+    const legacyLabel = characterPanelLabels.find((item) => item === label)
+    const currentValue =
+      panel?.status === 'ok' ? (panel.values as Partial<Record<string, number>>)[key] : undefined
     const values = contribution.get(label) ?? []
-    const target = targetPanelDisplayValue(targetPanel, label)
+    const target = legacyLabel ? targetPanelDisplayValue(targetPanel, legacyLabel) : null
     return {
       label,
-      current: currentValue === undefined ? '暂不可复算' : displayPanelValue(label, currentValue),
+      key,
+      detail,
+      current: formatCharacterPanelValue(field, currentValue),
       contribution: values.length
-        ? `+${displayPanelValue(
-            label,
+        ? `+${formatCharacterPanelValue(
+            field,
             values.reduce((total, value) => total + value, 0),
           )}`
-        : panel?.status === 'ok'
+        : currentValue !== undefined && Number.isFinite(currentValue)
           ? '已纳入六盘投影'
           : '无可证副词条',
       target: target ?? '资料不足',
-      currentEvidence: currentValue === undefined ? '暂不可复算' : '账户组合复算',
-      contributionEvidence: values.length || panel?.status === 'ok' ? '盘面贡献' : '无可证贡献',
+      currentEvidence:
+        currentValue === undefined || !Number.isFinite(currentValue)
+          ? '暂不可复算'
+          : '账户组合复算',
+      contributionEvidence:
+        values.length || (currentValue !== undefined && Number.isFinite(currentValue))
+          ? '盘面贡献'
+          : '无可证贡献',
       targetEvidence: target ? (targetPanel?.status ?? 'missing') : 'missing',
       direction,
     }
   })
   const recordedCurrent = facts
-    .filter((fact) => fact.current !== '暂不可复算')
+    .filter((fact) => fact.currentEvidence === '账户组合复算')
     .map((fact) => fact.label)
   const contributionCount = facts.filter((fact) => fact.contribution !== '无可证副词条').length
   const targetCount = facts.filter((fact) => fact.target !== '资料不足').length
   const diagnosis =
     panel?.status === 'ok'
-      ? `可复算锚点：十项游戏当前属性已由${discSource === '当前方案' ? '当前方案' : '已装备'}的实体盘和账户角色/音擎事实复算，并按游戏菜单精度显示。`
+      ? `可复算锚点：已支持的游戏当前属性已由${discSource === '当前方案' ? '当前方案' : '已装备'}的实体盘和账户角色/音擎事实复算，并按游戏菜单精度显示。`
       : `资料不足：局外面板暂不支持：${panel?.reason ?? '当前没有可用内核输入。'}`
   const gap = `当前总面板仍缺 ${facts.length - recordedCurrent.length} 项；目标数值已来源化 ${targetCount} 项，其他位置显示资料不足。`
   const actions = [

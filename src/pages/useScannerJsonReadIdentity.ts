@@ -16,7 +16,7 @@ export function useScannerJsonReadIdentity({
   filePendingRef: RefObject<boolean>
   setFilePending: (pending: boolean) => void
   setSelectedJson: (file: File | null) => void
-  setTaskSource: (source: 'scanner' | 'scan-file' | 'quick-read' | 'backup') => void
+  setTaskSource: (source: 'scanner' | 'scan-file' | 'quick-read') => void
   setHandoffState: (state: HandoffState) => void
 }) {
   const jsonReadRef = useRef(0)

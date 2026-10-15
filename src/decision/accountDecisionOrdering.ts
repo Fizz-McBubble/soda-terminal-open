@@ -3,30 +3,60 @@ import type {
   TeamRatingBand,
   DecisionConfidenceBand,
   TeamRatingResult,
+  CultivationPriorityResult,
 } from './teamDecisionAuthority'
+import { solveMemberDisjointPortfolio } from './memberDisjointPortfolio'
+import { reviewedTeamPreferences } from './reviewedTeamPreferences'
+import { resolveSourcePreferenceOrder } from './sourcePreferenceOrder'
 import {
   current31ProductionPartialOrderVariantKey,
   knownCurrent31ProductionStrongerKeys,
 } from './current31ProductionPartialOrder'
 
+/** An unrecognized runtime enum must not acquire the best (-1) priority. */
+const enumOrder = (values: readonly string[], value: string) => {
+  const position = values.indexOf(value)
+  return position < 0 ? values.length : position
+}
+
 export function ratingOrder(band: TeamRatingBand) {
-  return ['S+', 'S', 'A+', 'A', 'B', 'Experimental'].indexOf(band)
+  return enumOrder(['S+', 'S', 'A+', 'A', 'B', 'Experimental'], band)
 }
 
 export function confidenceOrder(confidence: DecisionConfidenceBand) {
-  return ['high', 'medium', 'low', 'experimental'].indexOf(confidence)
+  return enumOrder(['high', 'medium', 'low', 'experimental'], confidence)
 }
 
 export function readinessOrder(readiness: AccountBands['currentReadiness']) {
-  return ['ready', 'near_ready', 'development', 'not_evaluated', 'blocked'].indexOf(readiness)
+  return enumOrder(['ready', 'near_ready', 'development', 'not_evaluated', 'blocked'], readiness)
 }
 
 export function conflictOrder(conflict: AssetConflictBand) {
-  return ['none', 'resolvable', 'not_evaluated', 'blocking'].indexOf(conflict)
+  return enumOrder(['none', 'resolvable', 'not_evaluated', 'blocking'], conflict)
 }
 
 export function investmentOrder(investment: AccountBands['investmentCost']) {
-  return ['low', 'medium', 'high', 'unknown'].indexOf(investment)
+  return enumOrder(['low', 'medium', 'high', 'unknown'], investment)
+}
+
+/** Current investment is independent of the team's intrinsic grade. Even when
+ * inventory matching is unassessed, known skill/level gaps remain comparable. */
+export function compareAccountCultivationState(
+  left: { priorityTier: CultivationPriorityResult['tier']; account: AccountBands },
+  right: { priorityTier: CultivationPriorityResult['tier']; account: AccountBands },
+) {
+  const tiers = ['ready_now', 'short_upgrade', 'strategic_build', 'experimental']
+  return (
+    enumOrder(tiers, left.priorityTier) - enumOrder(tiers, right.priorityTier) ||
+    readinessOrder(left.account.currentReadiness) -
+      readinessOrder(right.account.currentReadiness) ||
+    investmentOrder(left.account.investmentCost) - investmentOrder(right.account.investmentCost) ||
+    conflictOrder(left.account.assetConflict) - conflictOrder(right.account.assetConflict) ||
+    left.account.buildCompletionDistance.missingPotentialInvestments -
+      right.account.buildCompletionDistance.missingPotentialInvestments ||
+    left.account.buildCompletionDistance.missingSkillInvestments -
+      right.account.buildCompletionDistance.missingSkillInvestments
+  )
 }
 
 export function baseComparator(
@@ -44,14 +74,8 @@ export function baseComparator(
   )
 }
 
-/**
- * A partial order cannot be safely dense-ranked by comparing adjacent display
- * items. Within each categorical Team Rating band, only the number of known
- * preferred exact Variants creates a finer source-preference order, not another
- * measured strength tier. Context-dependent relations are not consumed. Unrelated peers
- * therefore remain tied even when a display/portfolio sort places one between
- * a known stronger/weaker pair.
- */
+/** Coarse strength ranks only. Guide substitution is a local tie breaker,
+ * not an extra global tier obtained by counting a team's known predecessors. */
 export function projectCurrent31TeamStrengthOrder(
   items: readonly {
     candidateId: string
@@ -61,30 +85,76 @@ export function projectCurrent31TeamStrengthOrder(
   }[],
 ) {
   const rankByCandidateId = new Map<string, number>()
-  let nextRank = 1
+  let rank = 0
   for (const band of ['S+', 'S', 'A+', 'A', 'B', 'Experimental'] as const) {
-    const sameBand = items.filter((item) => item.teamRatingBand === band)
-    const formationKeys = new Set<string>()
-    for (const item of sameBand) {
-      const key = current31ProductionPartialOrderVariantKey(item)
-      if (key) formationKeys.add(key)
-    }
-    const counts = sameBand.map((item) => ({
-      candidateId: item.candidateId,
-      strongerCount: knownCurrent31ProductionStrongerKeys(item).reduce(
-        (total, key) => total + (formationKeys.has(key) ? 1 : 0),
-        0,
-      ),
-    }))
-    for (const count of [...new Set(counts.map((item) => item.strongerCount))].sort(
-      (a, b) => a - b,
-    )) {
-      for (const item of counts.filter((item) => item.strongerCount === count))
-        rankByCandidateId.set(item.candidateId, nextRank)
-      nextRank += 1
-    }
+    const peers = items.filter((item) => item.teamRatingBand === band)
+    if (!peers.length) continue
+    rank++
+    for (const item of peers) rankByCandidateId.set(item.candidateId, rank)
   }
   return rankByCandidateId
+}
+
+/** Stable source ordering applies only inside caller-declared comparable
+ * buckets. Items in other buckets retain their original slots. */
+export function resolveComparableTeamCandidates<T>(
+  items: readonly T[],
+  bucket: (item: T) => string,
+  members: (item: T) => readonly string[],
+) {
+  const output = [...items]
+  const diagnostics = {
+    cyclicComponentCount: 0,
+    reorderedComponentCount: 0,
+    activeRelationCount: 0,
+  }
+  const positions = new Map<string, number[]>()
+  items.forEach((item, i) => {
+    const key = bucket(item)
+    const indices = positions.get(key) ?? []
+    indices.push(i)
+    positions.set(key, indices)
+  })
+  for (const indices of positions.values()) {
+    if (indices.length < 2) continue
+    const group = indices.map((i) => items[i]!)
+    const keyOf = (item: T) =>
+      current31ProductionPartialOrderVariantKey({ memberIds: members(item), bangbooId: null }) ?? ''
+    const relations: Array<readonly [string, string]> = reviewedTeamPreferences.acceptedFacts.map(
+      (fact) => [
+        [...fact.preferredMemberIds].sort().join('|'),
+        [...fact.alternativeMemberIds].sort().join('|'),
+      ],
+    )
+    // Retain the already-adjudicated Gold relations without turning their
+    // predecessor counts into global scores. Both source families are checked
+    // together so a cross-source cycle cannot be resolved by execution order.
+    for (const item of group) {
+      const key = keyOf(item)
+      if (!key) continue
+      for (const stronger of knownCurrent31ProductionStrongerKeys({
+        memberIds: members(item),
+        bangbooId: null,
+      }))
+        relations.push([stronger, key])
+    }
+    const resolved = resolveSourcePreferenceOrder(group, keyOf, relations)
+    diagnostics.cyclicComponentCount += resolved.cyclicComponentCount
+    diagnostics.reorderedComponentCount += resolved.reorderedComponentCount
+    diagnostics.activeRelationCount += resolved.activeRelationCount
+    indices.forEach((i, offset) => {
+      output[i] = resolved.ordered[offset]!
+    })
+  }
+  return { ordered: output, diagnostics }
+}
+
+export function orderComparableTeamCandidates<T>(
+  items: readonly T[],
+  bucket: (item: T) => string,
+  members: (item: T) => readonly string[],
+) {
+  return resolveComparableTeamCandidates(items, bucket, members).ordered
 }
 
 export function denseOrder<T>(items: readonly T[], compare: (left: T, right: T) => number) {
@@ -100,68 +170,11 @@ export function hasOverlap(left: readonly string[], right: readonly string[]) {
   return right.some((member) => members.has(member))
 }
 
-/** Keep the existing order when greedy fills the request; search only its shortfall. */
+/** Preserve the public result contract and the caller's distinct objective. */
 export function resolveMemberDisjointPortfolio<
   T extends { candidate: RankedFormation; memberIds: readonly string[] },
 >(ordered: readonly T[], teamCount: number, searchBudget = 50_000) {
-  const requested = Number.isSafeInteger(teamCount) && teamCount > 0 ? teamCount : 0
-  const seen = new Set<string>()
-  const candidates = ordered.filter((item) => {
-    const id = item.candidate.candidateId
-    if (seen.has(id)) return false
-    seen.add(id)
-    return true
-  })
-  const selected: T[] = []
-  for (const candidate of candidates) {
-    if (selected.length >= requested) break
-    if (selected.every((existing) => !hasOverlap(existing.memberIds, candidate.memberIds)))
-      selected.push(candidate)
-  }
-  if (selected.length === requested)
-    return { selected, status: 'complete' as const, searchSteps: 0 }
-
-  let searchSteps = 0
-  let exhausted = false
-  const budget = Number.isSafeInteger(searchBudget) && searchBudget > 0 ? searchBudget : 0
-  const chosen: T[] = []
-  function find(start: number, target: number): T[] | null {
-    if (chosen.length === target) return [...chosen]
-    const needed = target - chosen.length
-    if (candidates.length - start < needed) return null
-    for (let index = start; index <= candidates.length - needed; index += 1) {
-      if (searchSteps >= budget) {
-        exhausted = true
-        return null
-      }
-      searchSteps += 1
-      const candidate = candidates[index]!
-      if (chosen.some((existing) => hasOverlap(existing.memberIds, candidate.memberIds))) continue
-      chosen.push(candidate)
-      const result = find(index + 1, target)
-      chosen.pop()
-      if (result) return result
-      if (exhausted) return null
-    }
-    return null
-  }
-  // Descending cardinality, then lexicographic input order: no new rating weights
-  // or DPS claim. A budget cutoff must never be reported as proven infeasibility.
-  for (let target = Math.min(requested, candidates.length); target > selected.length; target -= 1) {
-    const result = find(0, target)
-    if (result)
-      return {
-        selected: result,
-        status: target === requested ? ('complete' as const) : ('infeasible' as const),
-        searchSteps,
-      }
-    if (exhausted) break
-  }
-  return {
-    selected,
-    status: exhausted ? ('budget_exhausted' as const) : ('infeasible' as const),
-    searchSteps,
-  }
+  return solveMemberDisjointPortfolio(ordered, teamCount, searchBudget)
 }
 
 export function selectMemberDisjointPortfolio<

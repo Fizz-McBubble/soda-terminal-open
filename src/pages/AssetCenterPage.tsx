@@ -11,6 +11,7 @@ import {
   getAccountBackupFilename,
   preflightAccountBackupAgainstDatabase,
   restoreAccountBackup,
+  restoreAccountBackupIndependently,
   type AccountBackup,
 } from '../accounts/backup'
 import {
@@ -330,16 +331,29 @@ export function AssetCenterPage() {
       fileName: file.name,
       accountName: backup.account.displayName,
       exportedAt: backup.exportedAt,
-      scope: `${backup.counts.roster ? '代理人/音擎/邦布' : '无养成资料'} · ${backup.counts.driveDiscs} 张驱动盘`,
+      scope: `${backup.counts.roster ? '代理人/音擎/邦布' : '无养成资料'} · ${backup.counts.driveDiscs} 张驱动盘 · ${backup.counts.discEvaluations} 条评价 · ${backup.counts.scanBatches} 个扫描批次 / ${backup.counts.scanItems} 条暂存 · ${backup.counts.optimizationResults} 个配装结果 · ${backup.counts.planningDrafts} 份规划草稿 · ${backup.counts.preferences} 项偏好`,
       payload: input,
       identity: preflight.identity,
       archived: backup.account.status === 'archived',
       replacementNotice: preflight.conflicts.join(' '),
+      restoreDisplayName: `${backup.account.displayName}（恢复副本）`,
     }
   }
 
-  async function restore(preview: BackupPreview) {
-    await restoreAccountBackup(preview.payload, undefined, undefined, preview.identity)
+  async function restore(preview: BackupPreview, beforeCommit?: () => void) {
+    const fresh = await preflightAccountBackupAgainstDatabase(preview.payload)
+    if (!fresh.success || fresh.identity !== preview.identity)
+      throw new Error(
+        '账户身份已变化，请重新选择备份、核对恢复目标后再次确认。本地账户数据未改动。',
+      )
+    if (preview.identity === 'same_name_different_id')
+      await restoreAccountBackupIndependently(
+        preview.payload,
+        { displayName: preview.restoreDisplayName ?? '' },
+        undefined,
+        beforeCommit,
+      )
+    else await restoreAccountBackup(preview.payload, undefined, beforeCommit, preview.identity)
     const refreshed = decisionWorld ? await decisionWorld.refresh() : true
     setMessage(
       refreshed

@@ -481,6 +481,7 @@ export function TeamExecutionWorkspaceSurface({
             </div>
           )}
           <TeamExecutionAttributeInspector
+            accountId={warehouse.accountId ?? undefined}
             selectedMember={selectedMember}
             attributePanel={attributePanel}
           />

@@ -29,7 +29,6 @@ export function WarehouseActionDrawer({
   onReturnToList,
   onSelectAlternative,
   onReturnToOriginal,
-  onShowSameKind,
   navigation,
   comparisonOrigin,
   ownedAgentIds,
@@ -49,9 +48,27 @@ export function WarehouseActionDrawer({
   ownedAgentIds: ReadonlySet<string>
 }) {
   const stale = item.recommendationState === 'stale'
-  const developmentIds = new Set(stale ? [] : (item.developmentAlternativeIds ?? []))
-  const alternatives = [...new Set([...item.alternativeDiscIds, ...developmentIds])]
-    .filter((id) => id !== disc.id)
+  const comparisonDisc = comparisonOrigin?.disc ?? disc
+  const comparisonItem = comparisonOrigin?.item ?? item
+  const sameKindDiscs = discs.filter(
+    (candidate) =>
+      candidate.setId === comparisonDisc.setId &&
+      candidate.slot === comparisonDisc.slot &&
+      candidate.mainStat === comparisonDisc.mainStat,
+  )
+  const developmentIds = new Set(
+    comparisonItem.recommendationState === 'stale'
+      ? []
+      : (comparisonItem.developmentAlternativeIds ?? []),
+  )
+  const alternatives = [
+    ...new Set([
+      ...sameKindDiscs.map((candidate) => candidate.id),
+      ...comparisonItem.alternativeDiscIds,
+      ...developmentIds,
+    ]),
+  ]
+    .filter((id) => id !== comparisonDisc.id)
     .map((id) => discs.find((candidate) => candidate.id === id))
     .filter((candidate): candidate is DriveDisc => Boolean(candidate))
     .sort(
@@ -60,8 +77,11 @@ export function WarehouseActionDrawer({
         Number(alternativeRecommendations?.get(a.id)?.prioritize ?? false),
     )
   const alternativeDiscIds = new Set(alternatives.map((alternative) => alternative.id))
-  const missingAlternativeDiscIds = item.alternativeDiscIds.filter(
-    (alternativeId) => !alternativeDiscIds.has(alternativeId),
+  const missingAlternativeDiscIds = comparisonItem.alternativeDiscIds.filter(
+    (alternativeId) =>
+      alternativeId !== disc.id &&
+      alternativeId !== comparisonDisc.id &&
+      !alternativeDiscIds.has(alternativeId),
   )
   const sameKindCount = discs.filter(
     (candidate) =>
@@ -322,83 +342,92 @@ export function WarehouseActionDrawer({
             <strong>预留词条偏少，优先复核</strong>；不构成可清理证明。
           </p>
         ) : null}
-        <div className="warehouse-action-drawer__alternatives-summary">
-          {onShowSameKind && sameKindCount > 1 ? (
-            <button className="button button--quiet" type="button" onClick={onShowSameKind}>
-              查看全部 {sameKindCount} 张同类盘
-            </button>
-          ) : null}
+        {alternatives.length ? (
+          <details className="warehouse-action-drawer__comparison-picker">
+            <summary>
+              {sameKindDiscs.length > 1
+                ? `比较同类盘（共 ${sameKindDiscs.length} 张）`
+                : `比较替代盘（${alternatives.length} 张）`}
+            </summary>
+            <p>选择一张盘，查看与原盘的属性差异。同类盘包含原盘和所有建议类型。</p>
+            <ul className="warehouse-alternatives" aria-label="可比较盘">
+              {alternatives.map((alternative) => {
+                const identity = readablePhysicalDiscLabel(alternative, discs)
+                const ordinal = identity.match(/同类第\d+张/)?.[0]
+                const recommendation =
+                  comparisonItem.recommendationState === 'stale'
+                    ? undefined
+                    : alternativeRecommendations?.get(alternative.id)
+                const sameKind =
+                  alternative.setId === comparisonDisc.setId &&
+                  alternative.slot === comparisonDisc.slot &&
+                  alternative.mainStat === comparisonDisc.mainStat
+                const content = (
+                  <>
+                    <span
+                      className={`warehouse-alternative__info${sameKind ? ' warehouse-alternative__info--same-kind' : ''}`}
+                    >
+                      <strong>
+                        {sameKind && ordinal
+                          ? ordinal
+                          : `${readableSetName(alternative.setId)} · ${alternative.slot}号位`}
+                      </strong>
+                      <span className="warehouse-alternative__meta">
+                        {!sameKind ? `${statLabel(alternative.mainStat)} · ` : ''}+
+                        {alternative.level}
+                        {!sameKind && ordinal ? ` · ${ordinal}` : ''}
+                        {developmentIds.has(alternative.id) ? ' · 强化候选' : ''}
+                      </span>
+                      <span className="warehouse-alternative__feature">
+                        {alternative.subStats
+                          .slice(0, 2)
+                          .map(
+                            (substat) =>
+                              `${statLabel(substat.stat)} ${formatRecordedDiscStatValue(substat.stat, substat.value)}`,
+                          )
+                          .join(' · ')}
+                      </span>
+                    </span>
+                    <span
+                      className="warehouse-alternative__status"
+                      data-priority={recommendation?.prioritize || undefined}
+                    >
+                      {recommendation?.label ?? '建议待确认'}
+                    </span>
+                  </>
+                )
+                return (
+                  <li key={alternative.id}>
+                    {onSelectAlternative ? (
+                      <button
+                        className="warehouse-alternative__row"
+                        type="button"
+                        disabled={alternative.id === disc.id}
+                        aria-current={alternative.id === disc.id ? 'true' : undefined}
+                        data-alternative-id={alternative.id}
+                        aria-label={`${developmentIds.has(alternative.id) ? '比较强化候选：' : '查看替代盘：'}${identity}，${recommendation?.label ?? '建议待确认'}`}
+                        onClick={() => onSelectAlternative(alternative.id)}
+                      >
+                        {content}
+                        {alternative.id === disc.id ? <span>当前比较</span> : null}
+                      </button>
+                    ) : (
+                      <div className="warehouse-alternative__row">{content}</div>
+                    )}
+                  </li>
+                )
+              })}
+            </ul>
+          </details>
+        ) : (
           <p>
-            {alternatives.length
-              ? `可比较 ${alternatives.length} 张`
-              : missingAlternativeDiscIds.length
-                ? '替代盘资料不完整，暂时无法比对。'
+            {missingAlternativeDiscIds.length
+              ? '替代盘资料不完整，暂时无法比对。'
+              : comparisonOrigin
+                ? '已显示这张盘与原盘的属性差异。'
                 : '暂未找到可确认的同类替代盘。'}
           </p>
-        </div>
-        {alternatives.length ? (
-          <ul className="warehouse-alternatives" aria-label="可比较盘">
-            {alternatives.map((alternative) => {
-              const identity = readablePhysicalDiscLabel(alternative, discs)
-              const ordinal = identity.match(/同类第\d+张/)?.[0]
-              const recommendation = alternativeRecommendations?.get(alternative.id)
-              const sameKind =
-                alternative.setId === disc.setId &&
-                alternative.slot === disc.slot &&
-                alternative.mainStat === disc.mainStat
-              const content = (
-                <>
-                  <span
-                    className={`warehouse-alternative__info${sameKind ? ' warehouse-alternative__info--same-kind' : ''}`}
-                  >
-                    <strong>
-                      {sameKind && ordinal
-                        ? ordinal
-                        : `${readableSetName(alternative.setId)} · ${alternative.slot}号位`}
-                    </strong>
-                    <span className="warehouse-alternative__meta">
-                      {!sameKind ? `${statLabel(alternative.mainStat)} · ` : ''}+{alternative.level}
-                      {!sameKind && ordinal ? ` · ${ordinal}` : ''}
-                      {developmentIds.has(alternative.id) ? ' · 强化候选' : ''}
-                    </span>
-                    <span className="warehouse-alternative__feature">
-                      {alternative.subStats
-                        .slice(0, 2)
-                        .map(
-                          (substat) =>
-                            `${statLabel(substat.stat)} ${formatRecordedDiscStatValue(substat.stat, substat.value)}`,
-                        )
-                        .join(' · ')}
-                    </span>
-                  </span>
-                  <span
-                    className="warehouse-alternative__status"
-                    data-priority={recommendation?.prioritize || undefined}
-                  >
-                    {recommendation?.label ?? '建议待确认'}
-                  </span>
-                </>
-              )
-              return (
-                <li key={alternative.id}>
-                  {onSelectAlternative ? (
-                    <button
-                      className="warehouse-alternative__row"
-                      type="button"
-                      data-alternative-id={alternative.id}
-                      aria-label={`${developmentIds.has(alternative.id) ? '比较强化候选：' : '查看替代盘：'}${identity}，${recommendation?.label ?? '建议待确认'}`}
-                      onClick={() => onSelectAlternative(alternative.id)}
-                    >
-                      {content}
-                    </button>
-                  ) : (
-                    <div className="warehouse-alternative__row">{content}</div>
-                  )}
-                </li>
-              )
-            })}
-          </ul>
-        ) : null}
+        )}
         {missingAlternativeDiscIds.length ? (
           <div role="status">
             <p>{missingAlternativeDiscIds.length} 张替代盘的仓库记录缺失，请更新仓库后重新分析。</p>

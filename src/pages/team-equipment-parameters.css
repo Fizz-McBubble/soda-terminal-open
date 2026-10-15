@@ -130,6 +130,16 @@
   line-height: 1.5;
   color: var(--soda-text-2);
   overflow-wrap: anywhere;
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* These are readable conditions, unlike the single-line equipment captions. */
+.team-execution .team-execution__bangboo-conditions p {
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
 }
 
 .team-execution__bangboo-status-row {
@@ -141,6 +151,32 @@
 
 .team-execution__bangboo-status-row > p {
   margin: 0;
+}
+
+.team-execution__bangboo-details > .explanation-popover[popover] {
+  width: min(32rem, calc(100vw - 24px));
+  max-height: min(34rem, calc(100dvh - 24px));
+  overscroll-behavior: contain;
+}
+
+.team-execution__bangboo-details .explanation-popover__body {
+  display: grid;
+  gap: 14px;
+}
+
+.team-execution__bangboo-details .explanation-popover[popover] section + section {
+  margin-top: 0;
+}
+
+.team-execution__bangboo-details h4 {
+  margin: 0 0 4px;
+  color: var(--soda-text);
+  font: inherit;
+  font-weight: 700;
+}
+
+.team-execution__bangboo-details .effect-description strong {
+  color: var(--soda-accent);
 }
 
 .team-execution__bangboo-conditions p {

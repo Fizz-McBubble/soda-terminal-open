@@ -72,8 +72,9 @@ export function preflightAccountBackup(input: unknown): AccountBackupPreflight {
   }
   // Historical references may outlive the live warehouse, but must still have a saved record.
   // These archived discs are deliberately not restored into accountDriveDiscs or solver inputs.
+  const liveDiscIds = new Set(backup.data.driveDiscs.map((item) => item.id))
   const discIds = new Set([
-    ...backup.data.driveDiscs.map((item) => item.id),
+    ...liveDiscIds,
     ...backup.data.scanBatches.flatMap((batch) =>
       (batch.replacedDiscs ?? []).map((disc) => disc.id),
     ),
@@ -87,7 +88,8 @@ export function preflightAccountBackup(input: unknown): AccountBackupPreflight {
   }
   for (const agent of backup.data.roster?.agents ?? []) {
     for (const discId of agent.equippedDiscIds ?? []) {
-      if (!discIds.has(discId)) errors.push('一位代理人的当前装备不在该备份范围内。')
+      // Only live discs are restored into the warehouse; archived records are history only.
+      if (!liveDiscIds.has(discId)) errors.push('一位代理人的当前装备不在该备份范围内。')
     }
   }
   const planningDiscIds = backup.data.planningDrafts.flatMap(

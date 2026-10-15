@@ -1,4 +1,7 @@
+import { TeamExecutionGraduationReference } from './TeamExecutionGraduationReference'
+import { TeamExecutionAttributeTable } from './TeamExecutionAttributeTable'
 import type { ReactNode } from 'react'
+import { visibleTeamAttributeRows } from './teamExecutionAttributeRows'
 import type { CoreWarehouse } from '../accounts/coreFlow'
 import { VisualEntityImage } from '../components/VisualEntityImage'
 import { ExplanationPopover } from '../components/ExplanationPopover'
@@ -261,13 +264,15 @@ export function TeamExecutionLoadoutSummary({
 export function TeamExecutionAttributeInspector({
   selectedMember,
   attributePanel,
+  accountId,
 }: {
   selectedMember: TeamExecutionSelectedMember
   attributePanel: TeamExecutionAttributePanel | null
+  accountId?: string
 }) {
   const hasCompleteSuggestedLoadout =
     selectedMember.discFacts.length === 6 && selectedMember.missingDiscIds.length === 0
-  const rows =
+  const availableRows =
     hasCompleteSuggestedLoadout || !attributePanel
       ? (attributePanel?.rows ?? [])
       : attributePanel.rows.filter(
@@ -277,6 +282,7 @@ export function TeamExecutionAttributeInspector({
             row.targetStatus !== 'missing' ||
             row.contribution !== '无可证副词条',
         )
+  const rows = visibleTeamAttributeRows(availableRows)
   const currentColumn = attributePanel?.source.current.status === 'exact' ? '方案后' : '六盘贡献'
   const showAccountColumn = rows.some((row) => row.outOfCombatStatus !== 'missing')
   const showTargetColumn = rows.some((row) => row.targetStatus !== 'missing')
@@ -300,11 +306,32 @@ export function TeamExecutionAttributeInspector({
           <p className="team-execution__panel-kicker">所选成员</p>
           <h3>角色详细属性</h3>
         </div>
-        {attributePanel?.source.target.conditions?.length ? (
-          <ExplanationPopover label="毕业参考" title="毕业参考条件">
-            <p>{attributePanel.copy.target}</p>
-          </ExplanationPopover>
-        ) : null}
+        <div className="team-execution__attribute-actions">
+          {attributePanel?.rows.length ? (
+            <ExplanationPopover
+              key={`${accountId ?? ''}:${selectedMember.agentId}`}
+              label="查看完整面板"
+              title="角色完整面板"
+              closeLabel="关闭完整面板"
+              className="team-execution__more-attributes"
+            >
+              <TeamExecutionAttributeTable
+                rows={attributePanel?.rows ?? []}
+                label={`${selectedMember.agentName}完整面板`}
+                accountLabel={outOfCombatColumn}
+                proposedLabel={currentColumn}
+                hasFinalPanel={attributePanel?.source.current.status === 'exact'}
+                showAccount={showAccountColumn}
+              />
+            </ExplanationPopover>
+          ) : null}
+          {attributePanel ? (
+            <TeamExecutionGraduationReference
+              panel={attributePanel}
+              identity={`${accountId ?? ''}:${selectedMember.agentId}`}
+            />
+          ) : null}
+        </div>
       </header>
       {attributePanel && rows.length > 0 ? (
         <div className="team-execution__attribute-notes" role="status">
@@ -338,40 +365,14 @@ export function TeamExecutionAttributeInspector({
                 : attributePanel.attackSupport.suggested.reason}
             </p>
           ) : null}
-          <div
-            className={`team-execution__attribute-table${showAccountColumn ? '' : ' without-account'}`}
-            role="table"
-            aria-label={`${selectedMember.agentName}角色详细属性`}
-          >
-            <div className="team-execution__attribute-row is-heading" role="row">
-              <span role="columnheader">属性</span>
-              {showAccountColumn ? <span role="columnheader">{outOfCombatColumn}</span> : null}
-              <span role="columnheader">{currentColumn}</span>
-              <span role="columnheader">毕业参考</span>
-            </div>
-            {rows.map((row) => (
-              <div
-                className={`team-execution__attribute-row${row.isPriority ? ' is-priority' : ''}${row.isBelowTarget ? ' is-below-target' : ''}`}
-                key={row.label}
-                role="row"
-              >
-                <strong role="cell">{row.label}</strong>
-                {showAccountColumn ? (
-                  <span role="cell">
-                    {row.outOfCombatStatus === 'missing' ? '—' : row.outOfCombat}
-                  </span>
-                ) : null}
-                <span role="cell" className="team-execution__attribute-proposed">
-                  {attributePanel.source.current.status === 'exact'
-                    ? row.current
-                    : row.contribution === '无可证副词条'
-                      ? '—'
-                      : row.contribution}
-                </span>
-                <span role="cell">{row.targetStatus === 'missing' ? '—' : row.target}</span>
-              </div>
-            ))}
-          </div>
+          <TeamExecutionAttributeTable
+            rows={rows}
+            label={`${selectedMember.agentName}角色详细属性`}
+            accountLabel={outOfCombatColumn}
+            proposedLabel={currentColumn}
+            hasFinalPanel={attributePanel.source.current.status === 'exact'}
+            showAccount={showAccountColumn}
+          />
         </>
       ) : !attributePanel ? (
         <p className="team-execution__attribute-unavailable">当前展示没有可复算的成员方案。</p>

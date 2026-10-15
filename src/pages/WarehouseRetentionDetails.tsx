@@ -1,6 +1,7 @@
 import type { WarehouseAbsoluteRetentionEvidence } from '../warehouse/discWarehouseEvidence'
 import type { RetentionBlocker } from '../warehouse/absoluteDiscRetentionContract'
 import { blockerText, score } from './warehouseRetentionCopy'
+import { ExplanationPopover } from '../components/ExplanationPopover'
 
 type Use = WarehouseAbsoluteRetentionEvidence['leadingUses'][number]
 
@@ -20,21 +21,19 @@ export function RetentionScoreDetails({
   const finalRangeKnown =
     Number.isFinite(use.possibleFinalScore.lower) && Number.isFinite(use.possibleFinalScore.upper)
   return (
-    <details className="warehouse-retention__details">
-      <summary>查看参考评分</summary>
-      <p>仅供副词条筛选，不是伤害收益。</p>
+    <div className="warehouse-retention__score-facts" role="group" aria-label="副词条参考评分">
       <dl className="warehouse-retention__scores">
         <div>
-          <dt>当前副词条评分</dt>
+          <dt>副词条评分</dt>
           <dd>{scoreText(use.currentScore)}</dd>
         </div>
         <div>
-          <dt>同号位保留参考</dt>
+          <dt>保留参考线</dt>
           <dd>{scoreText(use.cutoffs?.keepFrom)}</dd>
         </div>
         {fullyEnhanced ? (
           <div>
-            <dt>强化状态</dt>
+            <dt className="sr-only">强化状态</dt>
             <dd>已满级</dd>
           </div>
         ) : (
@@ -54,7 +53,15 @@ export function RetentionScoreDetails({
           </div>
         ) : null}
       </dl>
-    </details>
+      <ExplanationPopover label="评分说明">
+        <p>
+          副词条评分按当前参考角色、构筑方向和号位的固定品质标尺计算，满分为 100 分，不是伤害收益。
+        </p>
+        <p>
+          保留参考线是该用途的副词条品质保留门槛，不是满分；达到后仍需主词条与套装用途成立。低于参考线也不等于可清理，还要结合功能用途、成长与使用保护判断。
+        </p>
+      </ExplanationPopover>
+    </div>
   )
 }
 

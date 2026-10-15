@@ -1,6 +1,7 @@
 import { stableContentHash } from '../gameDataPacks/types'
 import { supportsPotentialImage } from '../assault/agentCapabilities'
 import { resolveCurrentReleasedIdentity } from '../gameDataPacks/currentReleasedIdentityMap'
+import { currentReviewedTeamSourceDirections } from '../gameDataPacks/reviewedTeamSourceDirections'
 import { teamStrengthReferenceStateIdentity } from './teamStrengthReferenceState'
 import {
   resolveTeamStrengthGuidePotentialReference,
@@ -24,7 +25,27 @@ import type {
 export type * from './teamStrengthReferenceConditionsTypes'
 
 const calculationAssumption = 'level60-skill11-core7-m0-supported-p6-explicit-override' as const
-const contract = 'soda-team-strength-reference-conditions/v4'
+const contract = 'soda-team-strength-reference-conditions/v5'
+// Build once: the intrinsic index asks for every legal trio. Source membership
+// supplies provenance and raw conditions, never an inherited rating or level.
+const sourceDirectionsByKey = new Map(
+  currentReviewedTeamSourceDirections().map((direction) => [
+    [...direction.memberIds].sort().join('|'),
+    {
+      memberIds: direction.memberIds,
+      conditions: direction.conditions,
+      sourceRefs: direction.sourceRefs.map((source) => ({
+        id: source.id,
+        url: source.url,
+        sourceVersion: source.sourceVersion,
+        contentHash: source.contentHash,
+        locator: source.locator,
+        verificationStatus: source.verificationStatus,
+        observationRole: source.observationRole,
+      })),
+    },
+  ]),
+)
 /** Includes condition contents and provenance, not just keys or counts. */
 export function computeTeamStrengthReferenceConditionsIdentity() {
   return stableContentHash({
@@ -37,6 +58,9 @@ export function computeTeamStrengthReferenceConditionsIdentity() {
     numericConditions: nekomataPotentialSixConditions,
     guidePotentialReferences: teamStrengthGuidePotentialReferences,
     nonEditorialTrainingTeams,
+    sourceDirections: [...sourceDirectionsByKey.values()].map(
+      ({ memberIds, conditions, sourceRefs }) => ({ memberIds, conditions, sourceRefs }),
+    ),
     unresolvedMeaning: 'retained-source-text-not-numericalized',
     defaultMeaning: 'local-standard-reference-supported-p6-not-source-or-account-observation',
   })
@@ -50,6 +74,8 @@ export function currentTeamStrengthReferenceConditions(
   const normalizedMemberIds = memberIds.map(resolveCurrentReleasedIdentity).sort()
   const key = normalizedMemberIds.join('|')
   const sourceTeam = nonEditorialTrainingTeamsByKey.get(key)
+  const direction = sourceDirectionsByKey.get(key)
+  const directionRefs = direction?.sourceRefs.map((source) => source.url) ?? []
   // Same precedence as calibration: existing source authority before editorial.
   const editorial = sourceTeam ? undefined : editorialRecordsByTeamKey.get(key)
   const configs = editorial ? (activatedEditorialConfigs[editorial.id] ?? []) : []
@@ -59,9 +85,13 @@ export function currentTeamStrengthReferenceConditions(
   const agentConditions: AgentReferenceCondition[] = normalizedMemberIds.map((agentId) => {
     const cfg = configs.find((item) => item.agentId === agentId)
     const catReference = establishedCatReference && agentId === 'agent-nekomata'
-    const refs = catReference
-      ? nekomataPotentialSixConditions.evidenceRefs
-      : (cfg?.evidenceRefs ?? [])
+    const refs = [
+      ...new Set([
+        ...(catReference ? nekomataPotentialSixConditions.evidenceRefs : (cfg?.evidenceRefs ?? [])),
+        ...(sourceTeam?.evidenceRefs ?? []),
+        ...directionRefs,
+      ]),
+    ]
     const guide = resolveTeamStrengthGuidePotentialReference(agentId, refs)
     const numeric = catReference || Boolean(guide)
     return {
@@ -101,10 +131,13 @@ export function currentTeamStrengthReferenceConditions(
   const evidenceRefs = [
     ...new Set([
       ...(sourceTeam?.evidenceRefs ?? editorial?.evidenceRefs.map((ref) => ref.url) ?? []),
+      ...directionRefs,
       ...agentConditions.flatMap((agent) => agent.evidenceRefs),
     ]),
   ].sort()
-  const unhandledConditions = (editorial?.conditions ?? []).map((rawDescription) => ({
+  const unhandledConditions = [
+    ...new Set([...(editorial?.conditions ?? []), ...(direction?.conditions ?? [])]),
+  ].map((rawDescription) => ({
     rawDescription,
     category: 'unresolved_source_condition' as const,
     numericalized: false as const,
@@ -137,7 +170,7 @@ export function currentTeamStrengthReferenceConditions(
     agentConditions,
     unhandledConditions,
     diagnostics,
-    sourceContext: editorial ?? sourceTeam ?? null,
+    sourceContext: { authority: editorial ?? sourceTeam ?? null, direction: direction ?? null },
   }
   return { ...result, identity: stableContentHash({ contract, ...result }) }
 }

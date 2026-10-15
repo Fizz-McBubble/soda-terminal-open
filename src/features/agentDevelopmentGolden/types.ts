@@ -93,6 +93,7 @@ export type LoadoutRow = {
 /** Typed production input. It deliberately carries player-facing display facts
  * only; repositories and solver details stay in the route adapter. */
 export type GoldenWorkbenchData = {
+  panelScopeKey?: string
   agentId: string
   name: string
   rarity: string
@@ -220,7 +221,14 @@ export type GoldenWorkbenchData = {
     /** A field is never promoted to missing_after_reuse without the Data Foundation gate. */
     gapDisposition: 'existing_evidence_unresolved' | 'missing_after_reuse'
   }
-  panelFacts: Array<{ name: string; value: string; target?: string; focus?: boolean }>
+  panelFacts: Array<{
+    name: string
+    value: string
+    target?: string
+    focus?: boolean
+    key?: string
+    detail?: boolean
+  }>
   currentPanel: { availability: 'available' | 'unavailable'; summary: string; title?: string }
   valueBenchmark?: {
     comparison: import('../../calculation/valueBenchmarkComparison').ValueBenchmarkComparison
@@ -243,6 +251,7 @@ export type GoldenWorkbenchData = {
 }
 
 export type GoldenTop10Data = {
+  panelScopeKey?: string
   currentLoadout?: LoadoutRow
   candidateSearch?: import('../../decision/developmentCandidateAlternatives').DevelopmentCandidateSearch
   candidateSearchByRank?: Readonly<
@@ -267,6 +276,7 @@ export type GoldenTop10Data = {
     unit: '%' | ''
     highlight: boolean
     target?: string
+    detail?: boolean
   }>
   /** Prevent six-disc contribution totals from being mistaken for a final agent panel. */
   statPresentation: 'disc_contribution' | 'static_panel'

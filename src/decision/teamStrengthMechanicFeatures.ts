@@ -17,6 +17,7 @@ import { prepareReviewedPotentialEvents32 } from '../calculation/reviewedPotenti
 import { bindReviewedPotentialApplications } from '../calculation/potentialApplicationBinding'
 import { currentPlanningConsumerPolicyIdentity32 } from '../calculation/currentPlanningConsumerPolicyIdentity32'
 import { teamStrengthSourceActionSemantics } from './teamStrengthActionFacts'
+import { anomalyDamageCoreIdentity } from '../calculation/anomalyDamageCore'
 import {
   createTeamStrengthReferenceRuntimeMember,
   teamStrengthReferenceStateIdentity,
@@ -48,7 +49,7 @@ export {
 const ruleById = new Map(current31TeamEngineD1Pack.agentRules.map((rule) => [rule.agentId, rule]))
 const outputSpecialties = new Set(['attack', 'anomaly', 'rupture', 'armorer'])
 const fieldBudget = 1.35
-export const teamStrengthMechanicFeaturesVersion = 'source-fact-team-features/v13' as const
+export const teamStrengthMechanicFeaturesVersion = 'source-fact-team-features/v14' as const
 /** Only inputs actually used here; guide rows, evidence counts and labels are excluded. */
 export const teamStrengthMechanicDataFingerprint = stableContentHash({
   version: teamStrengthMechanicFeaturesVersion,
@@ -229,6 +230,18 @@ export function extractTeamStrengthMechanicFeatures(
   const frontline = output.filter((member) => member.demand >= 0.7)
   const background = output.filter((member) => member.demand <= 0.3)
   const anomalies = output.filter((member) => member.specialty === 'anomaly')
+  // A specialty/attribute label alone does not prove a second anomaly channel.
+  // Keep special damage (for example lumiflux) separate from reviewed disorder
+  // capacity, and require a source-backed positive buildup packet for each side.
+  const anomalyPairAttributes = new Set(
+    anomalies
+      .filter(
+        (member) =>
+          member.actionFacts.anomaly !== null &&
+          Object.hasOwn(anomalyDamageCoreIdentity.disorderTimeMultipliers, member.attribute),
+      )
+      .map((member) => member.attribute),
+  )
   const fieldDemand = members.reduce((sum, member) => sum + member.demand, 0)
   const capabilities = compatibleCapabilities(
     members,
@@ -329,7 +342,7 @@ export function extractTeamStrengthMechanicFeatures(
     background.length,
     inactiveAbilities / 3,
     unmetRequirements / Math.max(1, requirements.length),
-    Number(new Set(anomalies.map((member) => member.attribute)).size >= 2),
+    Number(anomalyPairAttributes.size >= 2),
     capabilities.coverage('damage'),
     capabilities.coverage('attack'),
     capabilities.coverage('critical'),

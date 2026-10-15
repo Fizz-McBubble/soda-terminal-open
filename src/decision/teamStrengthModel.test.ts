@@ -285,4 +285,104 @@ describe('team strength model fallback', () => {
       vi.resetModules()
     }
   })
+
+  it('isolates a numeric failure to one trio and keeps later teams usable', async () => {
+    vi.resetModules()
+    vi.doMock('./teamStrengthRegression', async (importOriginal) => {
+      const actual = await importOriginal<typeof import('./teamStrengthRegression')>()
+      const { TeamStrengthNumericError } = await import('./teamStrengthNumericError')
+      return {
+        ...actual,
+        predictStrengthRegression: vi
+          .fn(actual.predictStrengthRegression)
+          .mockImplementationOnce(() => {
+            throw new TeamStrengthNumericError('arithmetic_overflow', 'Fixture overflow')
+          }),
+      }
+    })
+    try {
+      const isolated = await import('./teamStrengthModel')
+      const { evaluateCurrent31TeamRating: rate } = await import('./current31TeamRating')
+      const failed = rate({
+        candidateId: 'numeric-overflow',
+        memberIds: inferredTeam,
+        bangbooId: null,
+        outputPotentialBand: 'unknown',
+        benchmark: unavailableBenchmark,
+      })
+      expect(failed.metaCalibration.authority).toBe('none')
+      expect(failed.metaCalibration.recommendationScore).toBeUndefined()
+      expect(failed.rating).toMatchObject({ ratingBand: 'Experimental' })
+      expect(isolated.getTeamStrengthInferenceIssue(inferredTeam)).toBe('arithmetic_overflow')
+      expect(isolated.inferTeamStrength([...inferredTeam].reverse())).toBeNull()
+      expect(
+        isolated.inferTeamStrength(['agent-nekomata', 'agent-caesar', 'agent-astra'])?.score,
+      ).toEqual(expect.any(Number))
+      expect(
+        isolated.getTeamStrengthInferenceIssue(['agent-nekomata', 'agent-caesar', 'agent-astra']),
+      ).toBeNull()
+    } finally {
+      vi.doUnmock('./teamStrengthRegression')
+      vi.resetModules()
+    }
+  })
+
+  it('rejects a damaged numeric model without erasing independent source grades', async () => {
+    vi.resetModules()
+    vi.doMock('../gameDataPacks/generated/team-strength-model.3.1.json', () => ({
+      default: {
+        ...strengthArtifact,
+        regression: { ...strengthArtifact.regression, intercept: Number.NaN },
+      },
+    }))
+    try {
+      const isolated = await import('./teamStrengthModel')
+      const index = await import('./current31TeamIntrinsicIndex')
+      expect(index.current31TeamIntrinsicIndexStatus.status).toBe('fallback')
+      expect(isolated.inferTeamStrength(inferredTeam)).toBeNull()
+      expect(isolated.getTeamStrengthInferenceIssue(inferredTeam)).toBe('model_invalid')
+      expect(isolated.inferredStrengthCalibration(emptyCalibration(), inferredTeam)).toMatchObject({
+        authority: 'none',
+        projectedStrengthBand: null,
+        recommendationScore: undefined,
+      })
+      const { evaluateCurrent31TeamRating: rate } = await import('./current31TeamRating')
+      const ids = sourceRatedTeams()[0]!
+      const source = rate({
+        candidateId: 'independent-source',
+        memberIds: ids,
+        bangbooId: null,
+        outputPotentialBand: 'unknown',
+        benchmark: unavailableBenchmark,
+      })
+      expect(source.metaCalibration.projectedStrengthBand).not.toBeNull()
+      expect(source.metaCalibration.authority).not.toBe('model_inference')
+      expect(source.metaCalibration.recommendationScore).toEqual(expect.any(Number))
+    } finally {
+      vi.doUnmock('../gameDataPacks/generated/team-strength-model.3.1.json')
+      vi.resetModules()
+    }
+  })
+
+  it.each(['Unexpected programming error', 'Aborted'])(
+    'propagates %s instead of an empty success',
+    async (message) => {
+      vi.resetModules()
+      const failure = new Error(message)
+      if (message === 'Aborted') failure.name = 'AbortError'
+      vi.doMock('./teamStrengthRegression', async (importOriginal) => ({
+        ...(await importOriginal<typeof import('./teamStrengthRegression')>()),
+        predictStrengthRegression: () => {
+          throw failure
+        },
+      }))
+      try {
+        const isolated = await import('./teamStrengthModel')
+        expect(() => isolated.inferTeamStrength(inferredTeam)).toThrow(failure)
+      } finally {
+        vi.doUnmock('./teamStrengthRegression')
+        vi.resetModules()
+      }
+    },
+  )
 })

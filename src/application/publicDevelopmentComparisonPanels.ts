@@ -1,5 +1,6 @@
 import type { DriveDisc } from '../domain/schemas'
 import { contentHash } from './contentHash'
+import { extendedPanelKeys, type ExtendedPanelKey } from '../domain/characterPanelStats'
 
 export const developmentComparisonPanelsContract = 'soda-development-comparison-panels/v1' as const
 
@@ -21,7 +22,8 @@ export type DevelopmentComparisonPanel = {
   discFingerprint: string
   parameterFingerprint?: string
   status: 'ok' | 'unsupported'
-  values: Record<(typeof developmentPanelKeys)[number], number> & { lacerationDamage?: number }
+  values: Record<(typeof developmentPanelKeys)[number], number> &
+    Partial<Record<ExtendedPanelKey | 'lacerationDamage', number>>
   reason?: string
 }
 
@@ -94,6 +96,9 @@ export function hasDevelopmentComparisonPanels(
         (entry.reason === undefined || typeof entry.reason === 'string') &&
         (entry.values?.lacerationDamage === undefined ||
           Number.isFinite(entry.values.lacerationDamage)) &&
+        extendedPanelKeys.every(
+          (key) => entry.values?.[key] === undefined || Number.isFinite(entry.values[key]),
+        ) &&
         developmentPanelKeys.every((key) => Number.isFinite(entry.values?.[key])),
     ),
   )

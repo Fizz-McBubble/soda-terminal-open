@@ -1,11 +1,19 @@
+import { TeamExecutionGraduationReference } from './TeamExecutionGraduationReference'
+import { ExplanationPopover } from '../components/ExplanationPopover'
+import { TeamExecutionAttributeTable } from './TeamExecutionAttributeTable'
+import { visibleTeamAttributeRows } from './teamExecutionAttributeRows'
 import type { TeamExecutionAttributePanel } from './teamExecutionAttributePanel'
 
-/** Keep the same attribute columns for every agent, even when no target is published. */
+/** Reuses the local field identities while preserving public projection boundaries. */
 export function PublicTeamAttributeInspector({
   agentName,
+  agentId,
+  accountId,
   panel,
 }: {
   agentName: string
+  agentId?: string
+  accountId?: string
   panel: TeamExecutionAttributePanel | null
 }) {
   if (!panel) {
@@ -16,6 +24,7 @@ export function PublicTeamAttributeInspector({
       </aside>
     )
   }
+  const rows = visibleTeamAttributeRows(panel.rows)
   const accountLabel =
     panel.source.outOfCombat.status === 'exact'
       ? '当前面板'
@@ -30,10 +39,30 @@ export function PublicTeamAttributeInspector({
           <p className="team-execution__panel-kicker">{agentName}</p>
           <h3>角色详细属性</h3>
         </div>
+        <div className="team-execution__attribute-actions">
+          {panel.rows.length ? (
+            <ExplanationPopover
+              key={`${accountId ?? ''}:${agentId ?? agentName}`}
+              label="查看完整面板"
+              title="角色完整面板"
+              closeLabel="关闭完整面板"
+              className="team-execution__more-attributes"
+            >
+              <TeamExecutionAttributeTable
+                rows={panel.rows}
+                label={`${agentName}完整面板`}
+                accountLabel={accountLabel}
+                proposedLabel={proposedLabel}
+                hasFinalPanel={panel.source.current.status === 'exact'}
+              />
+            </ExplanationPopover>
+          ) : null}
+          <TeamExecutionGraduationReference
+            panel={panel}
+            identity={`${accountId ?? ''}:${agentId ?? agentName}`}
+          />
+        </div>
       </header>
-      {panel.source.target.conditions?.length ? (
-        <p className="team-execution__attribute-notes">{panel.copy.target}</p>
-      ) : null}
       {panel.source.current.status === 'missing' && panel.copy.current ? (
         <p className="team-execution__attribute-notes">{panel.copy.current}</p>
       ) : null}
@@ -45,36 +74,13 @@ export function PublicTeamAttributeInspector({
             : panel.attackSupport.suggested.reason}
         </p>
       ) : null}
-      <div
-        className="team-execution__attribute-table"
-        role="table"
-        aria-label={`${agentName}角色详细属性`}
-      >
-        <div className="team-execution__attribute-row is-heading" role="row">
-          <span role="columnheader">属性</span>
-          <span role="columnheader">{accountLabel}</span>
-          <span role="columnheader">{proposedLabel}</span>
-          <span role="columnheader">毕业参考</span>
-        </div>
-        {panel.rows.map((row) => (
-          <div
-            className={`team-execution__attribute-row${row.isPriority ? ' is-priority' : ''}${row.isBelowTarget ? ' is-below-target' : ''}`}
-            key={row.label}
-            role="row"
-          >
-            <strong role="cell">{row.label}</strong>
-            <span role="cell">{row.outOfCombatStatus === 'missing' ? '—' : row.outOfCombat}</span>
-            <span role="cell" className="team-execution__attribute-proposed">
-              {panel.source.current.status === 'exact'
-                ? row.current
-                : row.contribution === '无可证副词条'
-                  ? '—'
-                  : row.contribution}
-            </span>
-            <span role="cell">{row.targetStatus === 'missing' ? '—' : row.target}</span>
-          </div>
-        ))}
-      </div>
+      <TeamExecutionAttributeTable
+        rows={rows}
+        label={`${agentName}角色详细属性`}
+        accountLabel={accountLabel}
+        proposedLabel={proposedLabel}
+        hasFinalPanel={panel.source.current.status === 'exact'}
+      />
       {!panel.rows.some((row) => row.targetStatus !== 'missing') ? (
         <p className="team-execution__attribute-notes">暂无可量化的毕业参考。</p>
       ) : null}

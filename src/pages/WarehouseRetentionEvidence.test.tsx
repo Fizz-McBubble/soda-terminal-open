@@ -155,7 +155,7 @@ describe('absolute retention evidence', () => {
     expect(screen.getByText('当前正在装备。')).toBeVisible()
     expect(screen.queryByText(/不需要继续强化/)).not.toBeInTheDocument()
   })
-  it('shows a short trial first and reveals scores only when requested', async () => {
+  it('shows the trial and reference scores directly with the scoring method in a popover', async () => {
     render(
       <WarehouseRetentionEvidence
         ownedAgentIds={new Set(['agent-anby'])}
@@ -174,16 +174,18 @@ describe('absolute retention evidence', () => {
     )
     expect(screen.getByRole('status')).toHaveTextContent('下一步：先强化到 +3')
     expect(screen.getByText('强化后重新分析，不再推荐就停手。')).toBeVisible()
-    expect(screen.getByText('21.0 分')).not.toBeVisible()
-    await userEvent.click(screen.getByText('查看参考评分'))
     expect(screen.getByText('21.0 分')).toBeVisible()
     expect(screen.getByText('21.0–79.4 分')).toBeVisible()
-    expect(screen.getByText('仅供副词条筛选，不是伤害收益。')).toBeVisible()
-    expect(screen.getByText('当前副词条评分')).toBeVisible()
-    expect(screen.getByText('同号位保留参考')).toBeVisible()
+    expect(screen.getByText('副词条评分')).toBeVisible()
+    expect(screen.getByText('保留参考线')).toBeVisible()
+    await userEvent.click(screen.getByRole('button', { name: '评分说明' }))
+    const explanation = screen.getByLabelText('评分说明', { selector: '[role="dialog"]' })
+    expect(explanation).toHaveTextContent('满分为 100 分，不是伤害收益')
+    expect(explanation).toHaveTextContent('保留门槛，不是满分')
+    expect(explanation).toHaveTextContent('低于参考线也不等于可清理')
   })
 
-  it('explains a maxed disc without suggesting more enhancement or a redundant range', async () => {
+  it('explains a maxed disc without suggesting more enhancement or a redundant range', () => {
     const base = use('maxed', 57.777, 57.777)
     const maxed = {
       ...base,
@@ -191,22 +193,21 @@ describe('absolute retention evidence', () => {
     }
     const before = structuredClone(maxed)
     render(<RetentionScoreDetails evidence={evidence()} use={maxed} />)
-    await userEvent.click(screen.getByText('查看参考评分'))
     expect(screen.getByText('57.8 分')).toBeVisible()
     expect(screen.getByText('60.0 分')).toBeVisible()
     expect(screen.getByText('已满级')).toBeVisible()
     expect(screen.queryByText('满级后评分范围')).not.toBeInTheDocument()
     expect(screen.queryByText('剩余强化')).not.toBeInTheDocument()
-    expect(screen.getByText('查看参考评分').closest('details')?.querySelectorAll('p')).toHaveLength(
-      1,
-    )
+    expect(screen.queryByText('查看参考评分')).not.toBeInTheDocument()
+    expect(
+      screen.getByRole('group', { name: '副词条参考评分' }).querySelector('details'),
+    ).toBeNull()
     expect(maxed).toEqual(before)
   })
 
-  it('keeps missing and non-finite scores as pending instead of displaying fabricated numbers', async () => {
+  it('keeps missing and non-finite scores as pending instead of displaying fabricated numbers', () => {
     const pending = { ...use('pending', Infinity, NaN), cutoffs: null }
     render(<RetentionScoreDetails evidence={evidence()} use={pending} />)
-    await userEvent.click(screen.getByText('查看参考评分'))
     expect(screen.getAllByText('待确认')).toHaveLength(3)
     expect(screen.queryByText(/NaN|Infinity/)).not.toBeInTheDocument()
     expect(screen.queryByText(/最不利和最有利/)).not.toBeInTheDocument()
@@ -309,7 +310,7 @@ describe('absolute retention evidence', () => {
     expect(screen.getByText(/需要核对四件套队伍条件/)).toBeVisible()
     expect(screen.queryByText(/查看来源/)).not.toBeInTheDocument()
     expect(screen.getAllByText('3 次')).toHaveLength(1)
-    expect(screen.getByText('查看参考评分').closest('details')?.open).toBe(false)
+    expect(screen.getByRole('group', { name: '副词条参考评分' })).toBeVisible()
   })
 
   it('keeps completed function separate from substat quality at mature level', () => {

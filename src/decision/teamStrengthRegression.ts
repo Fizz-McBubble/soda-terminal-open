@@ -1,3 +1,5 @@
+import { TeamStrengthNumericError } from './teamStrengthNumericError'
+
 /** Small, deterministic L2 regression. Standardization is fitted on training
  * rows only; no agent identities or labels are part of the feature vector. */
 export type StrengthTrainingRow = {
@@ -15,6 +17,36 @@ export type StrengthRegression = {
   alpha: number
   sampleCount: number
   coefficientDirections?: number[]
+}
+
+/** Reject a damaged artifact rather than allowing an invalid prediction to be
+ * clamped into an apparently valid 40/98-point team rating. */
+export function assertValidStrengthRegression(model: StrengthRegression) {
+  const finiteVector = (value: unknown): value is number[] =>
+    Array.isArray(value) && Array.from(value).every(Number.isFinite)
+  const dimensions = Array.isArray(model?.coefficients) ? model.coefficients.length : 0
+  if (
+    !dimensions ||
+    !finiteVector(model.coefficients) ||
+    !finiteVector(model.means) ||
+    !finiteVector(model.scales) ||
+    model.means.length !== dimensions ||
+    model.scales.length !== dimensions ||
+    model.scales.some((value) => value <= 0) ||
+    !Number.isFinite(model.intercept) ||
+    !Number.isFinite(model.alpha) ||
+    model.alpha <= 0 ||
+    !Number.isSafeInteger(model.sampleCount) ||
+    model.sampleCount <= 0 ||
+    (model.coefficientDirections !== undefined &&
+      (!Array.isArray(model.coefficientDirections) ||
+        model.coefficientDirections.length !== dimensions ||
+        Array.from(model.coefficientDirections).some((value) => ![-1, 0, 1].includes(value)) ||
+        model.coefficientDirections.some(
+          (direction, index) => direction !== 0 && direction * model.coefficients[index]! < 0,
+        )))
+  )
+    throw new TeamStrengthNumericError('model_invalid', 'Invalid strength regression model')
 }
 
 /** Solve the same strictly convex ridge objective inside coefficient bounds.
@@ -79,7 +111,7 @@ export function fitStrengthRegression(
     rows.some(
       (row) =>
         row.values.length !== dimensions ||
-        !row.values.every(Number.isFinite) ||
+        !Array.from(row.values).every(Number.isFinite) ||
         !Number.isFinite(row.target),
     )
   )
@@ -87,7 +119,7 @@ export function fitStrengthRegression(
   if (
     coefficientDirections &&
     (coefficientDirections.length !== dimensions ||
-      coefficientDirections.some((value) => ![-1, 0, 1].includes(value)))
+      Array.from(coefficientDirections).some((value) => ![-1, 0, 1].includes(value)))
   )
     throw new Error('Invalid strength coefficient directions')
   const means = Array.from(
@@ -100,6 +132,12 @@ export function fitStrengthRegression(
       1,
   )
   const intercept = rows.reduce((sum, row) => sum + row.target, 0) / rows.length
+  if (
+    !means.every(Number.isFinite) ||
+    !scales.every(Number.isFinite) ||
+    !Number.isFinite(intercept)
+  )
+    throw new RangeError('Strength training normalization overflow')
   const matrix = means.map((_, i) => means.map((__, j) => (i === j ? alpha : 0)))
   const rhs = means.map(() => 0)
   for (const row of rows) {
@@ -109,7 +147,9 @@ export function fitStrengthRegression(
       for (let j = 0; j < dimensions; j += 1) matrix[i]![j]! += values[i]! * values[j]!
     }
   }
-  return {
+  if (!rhs.every(Number.isFinite) || matrix.some((row) => !row.every(Number.isFinite)))
+    throw new RangeError('Strength training normal equations overflow')
+  const model = {
     means,
     scales,
     coefficients: coefficientDirections
@@ -120,16 +160,29 @@ export function fitStrengthRegression(
     sampleCount: rows.length,
     ...(coefficientDirections ? { coefficientDirections: [...coefficientDirections] } : {}),
   }
+  assertValidStrengthRegression(model)
+  return model
 }
 
 export function predictStrengthRegression(model: StrengthRegression, values: readonly number[]) {
-  if (values.length !== model.coefficients.length || !values.every(Number.isFinite))
-    throw new Error('Invalid strength inference vector')
-  return values.reduce(
+  assertValidStrengthRegression(model)
+  if (
+    !Array.isArray(values) ||
+    values.length !== model.coefficients.length ||
+    !Array.from(values).every(Number.isFinite)
+  )
+    throw new TeamStrengthNumericError('vector_invalid', 'Invalid strength inference vector')
+  const prediction = values.reduce(
     (sum, value, i) =>
       sum + ((value - model.means[i]!) / model.scales[i]!) * model.coefficients[i]!,
     model.intercept,
   )
+  if (!Number.isFinite(prediction))
+    throw new TeamStrengthNumericError(
+      'arithmetic_overflow',
+      'Strength inference arithmetic overflow',
+    )
+  return prediction
 }
 
 export function validateStrengthRegression(
@@ -138,6 +191,19 @@ export function validateStrengthRegression(
   alpha = 10,
   coefficientDirections?: readonly number[],
 ) {
+  // A duplicated exact team assigned to two cores leaks the held-out team into
+  // its own training fold. Refuse ambiguous labels instead of weighting them twice.
+  if (
+    !['team', 'core'].includes(grouping) ||
+    !rows.length ||
+    rows.some((row) =>
+      [row.key, row.group].some(
+        (key) => typeof key !== 'string' || !key.trim() || key !== key.trim(),
+      ),
+    ) ||
+    new Set(rows.map((row) => row.key)).size !== rows.length
+  )
+    throw new Error('Invalid or duplicate strength validation identity')
   const groupKey = (row: StrengthTrainingRow) => (grouping === 'team' ? row.key : row.group)
   return [...new Set(rows.map(groupKey))].flatMap((group) => {
     const training = rows.filter((row) => groupKey(row) !== group)
