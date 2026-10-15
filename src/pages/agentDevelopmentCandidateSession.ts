@@ -8,7 +8,9 @@ import { resolveSavedPlanScenarioSelection } from './savedPlanIdentity'
 
 type CandidateSnapshot = DevelopmentCandidateAlternativesQueryResult & { status: 'ready' }
 
-const storagePrefix = 'soda:agent-development:candidates:v8:'
+// A source-order cache cannot be reused as a newly scoped anomaly search result.
+// Only disposable comparison sessions change; saved builds and account facts remain intact.
+const storagePrefix = 'soda:agent-development:candidates:v9:'
 
 function hasPresentation(
   value: DevelopmentCandidateAlternativesQueryResult['presentation'],

@@ -1,7 +1,7 @@
 import { TeamExecutionGraduationReference } from './TeamExecutionGraduationReference'
 import { ExplanationPopover } from '../components/ExplanationPopover'
 import { TeamExecutionAttributeTable } from './TeamExecutionAttributeTable'
-import { visibleTeamAttributeRows } from './teamExecutionAttributeRows'
+import { detailedTeamAttributeRows, visibleTeamAttributeRows } from './teamExecutionAttributeRows'
 import type { TeamExecutionAttributePanel } from './teamExecutionAttributePanel'
 
 /** Reuses the local field identities while preserving public projection boundaries. */
@@ -49,7 +49,7 @@ export function PublicTeamAttributeInspector({
               className="team-execution__more-attributes"
             >
               <TeamExecutionAttributeTable
-                rows={panel.rows}
+                rows={detailedTeamAttributeRows(panel.rows)}
                 label={`${agentName}完整面板`}
                 accountLabel={accountLabel}
                 proposedLabel={proposedLabel}

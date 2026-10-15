@@ -48,7 +48,11 @@ const planningSolutionContextSchema = z.object({
   solverMethod: z.string().min(1),
   candidateSearch: z
     .object({
-      rankingMethod: z.enum(['dynamic_objective', 'source_and_local_refinement']),
+      rankingMethod: z.enum([
+        'dynamic_objective',
+        'source_and_local_refinement',
+        'prepared_anomaly_settlement',
+      ]),
       status: z.enum([
         'not_run',
         'budget_exhausted',

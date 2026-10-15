@@ -228,6 +228,8 @@ export type GoldenWorkbenchData = {
     focus?: boolean
     key?: string
     detail?: boolean
+    group?: 'primary' | 'supplementary' | 'resource'
+    currentValue?: number
   }>
   currentPanel: { availability: 'available' | 'unavailable'; summary: string; title?: string }
   valueBenchmark?: {
@@ -277,6 +279,7 @@ export type GoldenTop10Data = {
     highlight: boolean
     target?: string
     detail?: boolean
+    group?: 'primary' | 'supplementary' | 'resource'
   }>
   /** Prevent six-disc contribution totals from being mistaken for a final agent panel. */
   statPresentation: 'disc_contribution' | 'static_panel'

@@ -77,6 +77,15 @@ describe('candidate search provenance', () => {
     expect(candidateSearchLabel({ ...search, rankingMethod: 'dynamic_objective' })).toContain(
       '按已覆盖模型目标排序',
     )
+    const anomaly = candidateSearchLabel({
+      ...search,
+      rankingMethod: 'prepared_anomaly_settlement',
+    })
+    expect(anomaly).toContain('按同条件单次异常结算排序')
+    expect(anomaly).toContain('仅覆盖已声明结算')
+    expect(anomaly).toContain('不代表持续输出、全角色循环或整体最优')
+    expect(anomaly).toContain('搜索预算已用尽')
+    expect(anomaly).not.toContain('按已覆盖模型目标排序')
     expect(candidateSearchLabel(undefined)).toContain('未记录')
   })
 })

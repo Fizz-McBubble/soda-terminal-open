@@ -1,11 +1,18 @@
 import { useId } from 'react'
 import { ExplanationPopover } from '../../components/ExplanationPopover'
 import type { GoldenWorkbenchData } from './types'
+import { isCharacterPanelDetailRelevant } from '../../application/characterPanelFields'
 
 export function WorkbenchPanelSnapshot({ subject }: { subject: GoldenWorkbenchData }) {
   const scope = subject.panelScopeKey ?? subject.agentId
   const panelId = useId()
   const hasDetails = subject.panelFacts.some((fact) => fact.detail)
+  const detailFacts = subject.panelFacts.filter((fact) =>
+    isCharacterPanelDetailRelevant(
+      { key: fact.key ?? '', detail: fact.detail, group: fact.group },
+      fact.currentValue,
+    ),
+  )
   return (
     <section
       className="panel-snapshot current-overview__panel"
@@ -25,7 +32,7 @@ export function WorkbenchPanelSnapshot({ subject }: { subject: GoldenWorkbenchDa
             closeLabel="关闭完整面板"
           >
             <dl className="character-panel-more__facts">
-              {subject.panelFacts.map((fact) => (
+              {detailFacts.map((fact) => (
                 <div className={fact.focus ? 'focus' : undefined} key={fact.key ?? fact.name}>
                   <dt>{fact.name}</dt>
                   <dd>{fact.value}</dd>

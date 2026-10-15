@@ -229,6 +229,12 @@ export function evaluateDevelopmentValueBenchmarkSide(
       }),
       scenarioSelection: scenario.selection,
       scenarioIdentity: scenario.identity,
+      functionalStats32: {
+        impact: stats.finalStats.impact,
+        enerRegen: stats.finalStats.enerRegen,
+        anomMas: stats.finalStats.anomMas,
+        anomProf: stats.finalStats.anomProf,
+      },
     }
   }
   const sourceAction = developmentSourceAction32(member)

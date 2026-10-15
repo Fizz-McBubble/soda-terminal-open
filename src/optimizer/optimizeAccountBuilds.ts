@@ -9,6 +9,7 @@ import {
 import { overlaps, selectPriorityBuilds } from './selectPriorityAccountBuilds'
 export { createAccountOptimizerKnowledge } from './accountBuildCandidates'
 import type { DriveDisc } from '../domain/schemas'
+import { mainSubStatConflictIndices } from '../domain/discStatValidity'
 import { contentHash } from '../evaluation/contentHash'
 import { actualDiscScoreVersion } from './scoreActualDisc'
 import type { AgentDiscProfile } from '../assault/engine'
@@ -167,6 +168,8 @@ export function optimizeAccountBuilds(
     profilesInput.some((profile) => profile.agentId === id),
   )
   const excluded = new Set(options.excludedDiscIds ?? [])
+  for (const disc of discs)
+    if (mainSubStatConflictIndices(disc.mainStat, disc.subStats).length) excluded.add(disc.id)
   const dynamicDomain = options.teamAssignmentObjective?.domain === 'game_legal_inventory'
   if (dynamicDomain) {
     const legalIds = new Set(dynamicLegalInventory(discs).map((disc) => disc.id))

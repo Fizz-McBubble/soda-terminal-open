@@ -313,10 +313,13 @@ export function Workbench({
         </section>
       </div>
 
-      <section className="disc-section disc-section--workbench">
+      <section
+        className="disc-section disc-section--workbench"
+        aria-labelledby="workbench-discs-title"
+      >
         <header className="disc-workbench-header">
           <div className="disc-workbench-title">
-            <h3>
+            <h3 id="workbench-discs-title">
               {isSavedView ? '已保存配装' : '六张驱动盘'}{' '}
               <span>· {subject.discs.length} / 6 张驱动盘</span>
             </h3>

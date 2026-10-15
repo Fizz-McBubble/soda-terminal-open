@@ -86,7 +86,8 @@
   min-width: 0;
 }
 .development-disc-card__main > img,
-.development-disc-card__main > .disc-visual {
+.development-disc-card__main > .disc-visual,
+.development-disc-card__main > .visual-asset-fallback {
   width: 44px;
   height: 44px;
   flex: 0 0 44px;
@@ -146,6 +147,11 @@
   font-size: 13px;
   line-height: 1.5;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.development-disc-card__slot,
+.development-disc-card__main-stat,
+.development-disc-card.disc-card > ul em {
   font-variant-numeric: tabular-nums;
 }
 

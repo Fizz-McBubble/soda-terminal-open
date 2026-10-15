@@ -120,6 +120,7 @@ export const communityTests = Object.freeze([
   'src/decision/functionalCapacityConsumers32.test.ts',
   'src/calculation/reviewedStatMechanisms32.test.ts',
   'src/decision/developmentDynamicSearch.test.ts',
+  'src/decision/developmentPreparedAnomalySearch.test.ts',
   'src/decision/developmentPreparedAnomalyBenchmark32.test.ts',
   'src/decision/developmentStatWeights.anomaly.test.ts',
   'src/decision/developmentStatWeights.independentCalibration.test.ts',

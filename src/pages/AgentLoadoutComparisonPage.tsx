@@ -242,7 +242,10 @@ export function AgentLoadoutComparisonPage() {
       label: field.label,
       unit: field.unit,
       detail: field.detail,
-      highlight: Boolean(field.weightKey && preferredStatKeys.includes(field.weightKey)),
+      group: field.group,
+      highlight:
+        Boolean(field.presentationPriority) ||
+        Boolean(field.weightKey && preferredStatKeys.includes(field.weightKey)),
     }))
     coreStats = allStats.filter((stat) => stat.highlight).slice(0, 5)
     defaultStats = coreStats.length ? coreStats : allStats.slice(0, 5)

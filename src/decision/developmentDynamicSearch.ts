@@ -26,6 +26,7 @@ import {
   type DevelopmentComparisonParameters,
 } from './developmentValueBenchmark'
 import { evaluateDevelopmentStatWeights } from './developmentStatWeights'
+import { searchPreparedAnomalyCandidates } from './developmentPreparedAnomalySearch'
 import { optimizerOptionsFromBuildIntent, type AgentIndependentBuildIntent } from './buildIntent'
 import {
   preservesTeamFunctionalConstraints32,
@@ -145,11 +146,19 @@ export function searchDevelopmentDynamicCandidates(input: {
               )[0]!,
           )
   const baseline = side(initial)
-  // A single prepared anomaly settlement has no sourced elapsed cycle and is
-  // deliberately not a full actor objective. Its comparison remains available
-  // in the existing player flow; it must not overwrite whole-loadout ranking.
+  // Rank this declared settlement separately, retaining its limited coverage;
+  // never manufacture an elapsed cycle or feed it into the full-event objective.
   if (baseline.coverage?.domain === 'prepared_anomaly_settlement')
-    return { candidates: [...input.candidates], search: null, rankingApplied: false }
+    return searchPreparedAnomalyCandidates({
+      candidates: input.candidates,
+      initial,
+      pools,
+      compile,
+      side,
+      fixedDiscId: fixedId,
+      equippedIds,
+      evaluationBudget: input.evaluationBudget ?? 384,
+    })
   const baselinePanel = compile(initial)?.loadouts[0]?.panelObjective
   const utilityStats = (value: ValueBenchmarkSide) =>
     new Map(

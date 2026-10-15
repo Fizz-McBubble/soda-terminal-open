@@ -93,9 +93,11 @@ export function effectiveHitLabel(value: string) {
 export function candidateSearchLabel(search: GoldenTop10Data['candidateSearch']) {
   if (!search) return '本次排序方法未记录，请重新搭配查看。'
   const method =
-    search.rankingMethod === 'dynamic_objective'
-      ? '按已覆盖模型目标排序'
-      : '按来源建议与局部细化排序，输出对比不代表名次依据'
+    search.rankingMethod === 'prepared_anomaly_settlement'
+      ? '按同条件单次异常结算排序，仅覆盖已声明结算，不代表持续输出、全角色循环或整体最优'
+      : search.rankingMethod === 'dynamic_objective'
+        ? '按已覆盖模型目标排序'
+        : '按来源建议与局部细化排序，输出对比不代表名次依据'
   return search.status === 'budget_exhausted'
     ? `${method}；搜索预算已用尽，不代表全局最优。`
     : search.status === 'objective_unresolved'

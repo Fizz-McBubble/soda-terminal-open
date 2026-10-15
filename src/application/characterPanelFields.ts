@@ -12,6 +12,8 @@ export type CharacterPanelField = {
   unit: '%' | ''
   weightKey?: string
   detail?: boolean
+  group?: 'primary' | 'supplementary' | 'resource'
+  presentationPriority?: boolean
 }
 
 const attributeLabels = {
@@ -29,38 +31,62 @@ export function getCharacterPanelFields(agentId: string): CharacterPanelField[] 
   const specialty = identity?.specialty
   const attribute = identity?.attribute as keyof typeof attributePanelKeys | 'lumiflux' | undefined
   const usesAdrenaline = agentId === 'agent-yixuan'
+  const usesSharpEnergy = specialty === 'armorer'
   const fields: CharacterPanelField[] = [
     { key: 'hp', label: '生命值', unit: '', weightKey: 'hp_percent' },
-    { key: 'atk', label: '攻击力', unit: '', weightKey: 'atk_percent' },
+    usesSharpEnergy
+      ? { key: 'lacerationDamage', label: '锐暴伤害', unit: '%', presentationPriority: true }
+      : { key: 'atk', label: '攻击力', unit: '', weightKey: 'atk_percent' },
     { key: 'def', label: '防御力', unit: '', weightKey: 'def_percent' },
     { key: 'impact', label: '冲击力', unit: '', weightKey: 'impact' },
     { key: 'critRate', label: '暴击率', unit: '%', weightKey: 'crit_rate' },
-    specialty === 'armorer'
-      ? { key: 'lacerationDamage', label: '锐暴伤害', unit: '%' }
-      : { key: 'critDamage', label: '暴击伤害', unit: '%', weightKey: 'crit_dmg' },
+    { key: 'critDamage', label: '暴击伤害', unit: '%', weightKey: 'crit_dmg' },
     { key: 'anomalyMastery', label: '异常掌控', unit: '', weightKey: 'anomaly_mastery' },
     { key: 'anomalyProficiency', label: '异常精通', unit: '', weightKey: 'anomaly_proficiency' },
-    { key: 'penRatio', label: '穿透率', unit: '%', weightKey: 'pen_ratio' },
-    { key: 'pen', label: '穿透值', unit: '', weightKey: 'pen' },
-    { key: 'energyRegen', label: '能量自动回复', unit: '', weightKey: 'energy_regen' },
+    specialty === 'rupture'
+      ? { key: 'sheerForce', label: '贯穿力', unit: '', presentationPriority: true }
+      : { key: 'penRatio', label: '穿透率', unit: '%', weightKey: 'pen_ratio' },
+    usesAdrenaline
+      ? { key: 'adrenalineRegen', label: '闪能自动累积', unit: '' }
+      : usesSharpEnergy
+        ? { key: 'sharpEnergyRegen', label: '锐能自动累积', unit: '' }
+        : { key: 'energyRegen', label: '能量自动回复', unit: '', weightKey: 'energy_regen' },
   ]
-  if (usesAdrenaline)
-    fields.splice(
-      fields.findIndex((field) => field.key === 'energyRegen'),
-      1,
-    )
+  for (const field of fields) field.group = 'primary'
+  fields.push({ key: 'pen', label: '穿透值', unit: '', weightKey: 'pen', group: 'supplementary' })
   if (attribute && attribute !== 'lumiflux' && attributePanelKeys[attribute])
     fields.push({
       key: attributePanelKeys[attribute],
       label: attributeLabels[attribute],
       unit: '%',
       weightKey: `${attribute}_dmg`,
+      group: 'supplementary',
     })
   if (attribute === 'lumiflux')
-    fields.push({ key: 'lumifluxDamageBonus', label: '辉光伤害加成', unit: '%' })
-  if (specialty === 'rupture') fields.push({ key: 'sheerForce', label: '贯穿力', unit: '' })
-  if (specialty === 'armorer')
-    fields.push({ key: 'critDamage', label: '暴击伤害', unit: '%', detail: true })
+    fields.push({
+      key: 'lumifluxDamageBonus',
+      label: '辉光伤害加成',
+      unit: '%',
+      group: 'supplementary',
+    })
+  if (specialty === 'rupture')
+    fields.push({
+      key: 'penRatio',
+      label: '穿透率',
+      unit: '%',
+      weightKey: 'pen_ratio',
+      detail: true,
+      group: 'supplementary',
+    })
+  if (usesSharpEnergy)
+    fields.push({
+      key: 'atk',
+      label: '攻击力',
+      unit: '',
+      weightKey: 'atk_percent',
+      detail: true,
+      group: 'supplementary',
+    })
   for (const [element, key] of Object.entries(attributePanelKeys)) {
     if (element !== attribute)
       fields.push({
@@ -68,20 +94,66 @@ export function getCharacterPanelFields(agentId: string): CharacterPanelField[] 
         label: attributeLabels[element as keyof typeof attributeLabels],
         unit: '%',
         detail: true,
+        group: 'supplementary',
       })
   }
   if (usesAdrenaline)
     fields.push(
-      { key: 'adrenalineRegen', label: '闪能自动累积', unit: '', detail: true },
-      { key: 'adrenalineGenerationRate', label: '闪能获得效率', unit: '%', detail: true },
-      { key: 'maxAdrenaline', label: '闪能上限', unit: '', detail: true },
+      {
+        key: 'adrenalineGenerationRate',
+        label: '闪能获得效率',
+        unit: '%',
+        detail: true,
+        group: 'resource',
+      },
+      { key: 'maxAdrenaline', label: '闪能上限', unit: '', detail: true, group: 'resource' },
+    )
+  else if (usesSharpEnergy)
+    fields.push(
+      {
+        key: 'sharpEnergyGenerationRate',
+        label: '锐能获得效率',
+        unit: '%',
+        detail: true,
+        group: 'resource',
+      },
+      { key: 'maxSharpEnergy', label: '锐能上限', unit: '', detail: true, group: 'resource' },
     )
   else
     fields.push(
-      { key: 'energyGenerationRate', label: '能量获得效率', unit: '%', detail: true },
-      { key: 'maxEnergy', label: '能量上限', unit: '', detail: true },
+      {
+        key: 'energyGenerationRate',
+        label: '能量获得效率',
+        unit: '%',
+        detail: true,
+        group: 'resource',
+      },
+      { key: 'maxEnergy', label: '能量上限', unit: '', detail: true, group: 'resource' },
     )
   return fields
+}
+
+/** Only applicable descriptors are supplied; unknown values never become observed zeroes. */
+export function isCharacterPanelDetailRelevant(
+  field: Pick<CharacterPanelField, 'key' | 'detail' | 'group'>,
+  currentValue: number | undefined,
+  baselineValue?: number,
+) {
+  if (!field.detail || field.group === 'resource') return true
+  // Preserve resource semantics for older presentation records without group metadata.
+  if (
+    /^(?:energyGenerationRate|maxEnergy|adrenalineGenerationRate|maxAdrenaline|sharpEnergyGenerationRate|maxSharpEnergy)$/.test(
+      field.key,
+    )
+  )
+    return true
+  const currentKnown = currentValue !== undefined && Number.isFinite(currentValue)
+  const baselineKnown = baselineValue !== undefined && Number.isFinite(baselineValue)
+  return (
+    (currentKnown && currentValue !== 0) ||
+    (baselineKnown && baselineValue !== 0) ||
+    (currentKnown && baselineKnown && currentValue !== baselineValue)
+  )
 }
 
 export function formatCharacterPanelValue(
@@ -89,7 +161,10 @@ export function formatCharacterPanelValue(
   value: number | undefined,
 ) {
   if (value === undefined || !Number.isFinite(value)) return '—'
-  const scale = field.unit === '%' || field.key === 'energyRegen' ? 10 : 1
+  const scale =
+    field.unit === '%' || ['energyRegen', 'adrenalineRegen', 'sharpEnergyRegen'].includes(field.key)
+      ? 10
+      : 1
   const rounded =
     field.key === 'hp' ? Math.ceil(value) : Math.floor((value + 1e-10) * scale) / scale
   return `${rounded}${field.unit}`

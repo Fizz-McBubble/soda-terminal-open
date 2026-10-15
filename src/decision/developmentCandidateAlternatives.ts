@@ -17,7 +17,7 @@ import {
 } from './buildIntent'
 
 export type DevelopmentCandidateSearch = {
-  rankingMethod: 'dynamic_objective' | 'source_and_local_refinement'
+  rankingMethod: 'dynamic_objective' | 'source_and_local_refinement' | 'prepared_anomaly_settlement'
   status:
     | 'not_run'
     | NonNullable<ReturnType<typeof searchDevelopmentDynamicCandidates>['search']>['status']
@@ -120,12 +120,19 @@ export function projectDevelopmentCandidateAlternatives(
     parameters,
   })
   candidates = dynamic.candidates
+  const preparedSearch =
+    'preparedAnomalySearch' in dynamic ? dynamic.preparedAnomalySearch : undefined
+  const trace = preparedSearch ?? dynamic.search
   const candidateSearch: DevelopmentCandidateSearch = {
-    rankingMethod: dynamic.rankingApplied ? 'dynamic_objective' : 'source_and_local_refinement',
-    status: dynamic.search?.status ?? 'not_run',
-    nodes: dynamic.search?.nodes ?? 0,
-    evaluations: dynamic.search?.evaluations ?? 0,
-    exactWithinDeclaredModel: dynamic.search?.exactWithinDeclaredModel ?? false,
+    rankingMethod: dynamic.rankingApplied
+      ? preparedSearch
+        ? 'prepared_anomaly_settlement'
+        : 'dynamic_objective'
+      : 'source_and_local_refinement',
+    status: trace?.status ?? 'not_run',
+    nodes: trace?.nodes ?? 0,
+    evaluations: trace?.evaluations ?? 0,
+    exactWithinDeclaredModel: trace?.exactWithinDeclaredModel ?? false,
     productionGameAccuracyCertified: false,
   }
   if (!candidates.length) {

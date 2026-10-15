@@ -5,6 +5,13 @@ import type { AccountDecisionQueryInput } from '../application/calculationQueryC
 import type { DriveDisc } from '../domain/schemas'
 import { projectDevelopmentCandidateAlternatives } from './developmentCandidateAlternatives'
 import { getCandidateWarehouseConstraint } from '../gameDataPacks/candidateWarehouseConstraints'
+import { solveCandidateWarehouse } from '../optimizer/candidateWarehouseSolver'
+import { statWeightCalibrationFixture } from './developmentStatWeights.calibrationFixture'
+import { history } from '../warehouse/absoluteDiscRetentionScoring'
+import {
+  absoluteDiscRetentionCatalog,
+  toAbsoluteRetentionDisc,
+} from '../warehouse/absoluteDiscRetentionCatalog'
 
 function disc(slot: 1 | 2 | 3 | 4 | 5 | 6, id: string): DriveDisc {
   const constraint = getCandidateWarehouseConstraint('agent-billy')!
@@ -78,6 +85,59 @@ function input(): AccountDecisionQueryInput {
 }
 
 describe('development candidate alternatives projection', () => {
+  it('excludes an illegal legacy slot 5 from source solving and the initial cultivation candidates without rewriting inventory', () => {
+    const value = input()
+    const calibration = statWeightCalibrationFixture('agent-billy')
+    value.warehouse = {
+      ...calibration.warehouse,
+      discs: calibration.discs.map((item) => ({ ...item, setId: disc(item.slot, item.id).setId })),
+    }
+    for (const item of value.warehouse.discs)
+      expect(() =>
+        history(toAbsoluteRetentionDisc(item), absoluteDiscRetentionCatalog.rules),
+      ).not.toThrow()
+    const legal = value.warehouse.discs.find((item) => item.slot === 5)!
+    const illegal: DriveDisc = {
+      ...legal,
+      id: 'legacy-main-sub-conflict',
+      mainStat: 'atk_percent',
+      level: 0,
+      subStats: [
+        { stat: 'atk_percent', value: 3, upgrades: 0 },
+        { stat: 'crit_rate', value: 2.4, upgrades: 0 },
+        { stat: 'crit_dmg', value: 4.8, upgrades: 0 },
+      ],
+    }
+    value.warehouse.discs.push(illegal)
+    const before = JSON.stringify(value.warehouse.discs)
+    const plan = solveCandidateWarehouse(value.warehouse.discs, ['agent-billy'], 'agent')
+    expect(plan.loadouts).toHaveLength(1)
+    expect(plan.loadouts[0]!.discs.find((choice) => choice.disc.slot === 5)!.disc.mainStat).toBe(
+      legal.mainStat,
+    )
+    expect(
+      plan.loadouts.flatMap((loadout) => loadout.discs.map((choice) => choice.disc.id)),
+    ).not.toContain(illegal.id)
+    expect(() =>
+      solveCandidateWarehouse(value.warehouse.discs, ['agent-billy'], 'agent', {
+        fixedDiscByAgent: { 'agent-billy': illegal.id },
+      }),
+    ).toThrow('固定盘被排除')
+    const projection = projectDevelopmentCandidateAlternatives(value, 'agent-billy')
+    expect(projection.status).toBe('ready')
+    expect(projection.candidates.length).toBeGreaterThan(0)
+    expect(
+      projection.candidates.flatMap((candidate) =>
+        candidate.loadouts.flatMap((loadout) => loadout.discs.map((choice) => choice.disc.id)),
+      ),
+    ).not.toContain(illegal.id)
+    const onlyIllegal = value.warehouse.discs.filter(
+      (item) => item.slot !== 5 || item.id === illegal.id,
+    )
+    expect(solveCandidateWarehouse(onlyIllegal, ['agent-billy'], 'agent').loadouts).toEqual([])
+    expect(JSON.stringify(value.warehouse.discs)).toBe(before)
+  })
+
   it('keeps saved references advisory and solves from the complete warehouse', () => {
     const withSavedReference = input()
     const withoutSavedReference = { ...withSavedReference, drafts: [], activePlanIds: {} }

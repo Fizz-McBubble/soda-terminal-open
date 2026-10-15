@@ -55,6 +55,70 @@
   grid-template-columns: minmax(0, 230px) minmax(72px, 90px);
 }
 
+.comparison-stats__expanded:not([hidden]) {
+  display: grid;
+  gap: var(--space-md);
+  min-width: 0;
+  margin-top: var(--space-md);
+}
+
+.comparison-stats__group {
+  min-width: 0;
+}
+
+.comparison-stats__group > h3 {
+  margin: 0 0 var(--space-xs);
+  color: var(--soda-text-2);
+  font-size: var(--soda-type-body);
+  font-weight: 700;
+}
+
+.comparison-stats .comparison-stats__expanded .comparison-stat-table {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: none;
+}
+
+.comparison-stats .comparison-stats__expanded .comparison-stat-table > [role='rowgroup'] {
+  display: block;
+  grid-template-rows: none;
+}
+
+.comparison-stats .comparison-stats__expanded .comparison-stat-table [role='row'] {
+  grid-template-columns: minmax(0, 1.35fr) repeat(3, minmax(0, 0.75fr));
+}
+
+.comparison-stats
+  .comparison-stats__expanded
+  .comparison-stat-table.is-candidate-only
+  [role='row'] {
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.75fr);
+}
+
+.comparison-stats__expanded .comparison-stat-table [role='row'] > * {
+  overflow-wrap: anywhere;
+}
+
+/* Keep the complete comparison in the shell's existing page scroll owner,
+   including on wide PCs where older viewport rules constrain the detail card. */
+.f5v-shell .ad-golden:has(> .top10 .comparison-stats),
+.f5v-shell .ad-golden > .top10:has(.comparison-stats) {
+  height: auto;
+  min-height: 0;
+}
+
+.f5v-shell .ad-golden > .top10:has(.comparison-stats) {
+  grid-template-rows: auto auto;
+}
+
+.f5v-shell .top10:has(.comparison-stats) .comparison-workbench {
+  align-items: start;
+  padding-bottom: 24px;
+}
+
+.f5v-shell .top10:has(.comparison-stats) :is(.comparison-detail, .comparison-candidates) {
+  overflow: visible;
+}
+
 @container soda-viewport (max-width: 900px) {
   .f5v-shell .top10-layout.comparison-workbench {
     grid-template-columns: 1fr;

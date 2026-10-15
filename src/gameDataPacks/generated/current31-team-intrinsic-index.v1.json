@@ -89,8 +89,8 @@
   },
   "runtimeFingerprints": {
     "roster": "fnv1a-9efb366c",
-    "mechanicData": "fnv1a-ecc7f4ae",
-    "strengthModel": "fnv1a-b59704d3"
+    "mechanicData": "fnv1a-469019de",
+    "strengthModel": "fnv1a-dafc06ca"
   },
   "inputFiles": {
     "scripts/current31-team-intrinsic-index-inputs.mjs": "321fd99fe12798bb3f143b5508a040e40dfef86962eb33ce0f0994c3dae2273c",
@@ -160,7 +160,7 @@
     "src/calculation/currentPlanningBaselineObservations.ts": "afbf30e4f7515f8a3a6f21a24b6fc717e0537767b3734eb5e936fcb3ac280f42",
     "src/calculation/currentPlanningConditionCatalog32.ts": "3b4ee836611e8793d7fb2702486fe60c23eaf1e97d58228c80a601ca2851f63b",
     "src/calculation/currentPlanningConditionSourceSeeds32.ts": "43d8ccc6f01034b088623c609e309b7eef72930d4d3c8d8a0e7479dbb9c2ebf4",
-    "src/calculation/currentPlanningConsumerPolicyIdentity32.ts": "ef48a0119a24da883635cab2181d779f6315c3f1f1c802ad189cd3deda46aff8",
+    "src/calculation/currentPlanningConsumerPolicyIdentity32.ts": "3751c8cc1d0e5853332c1bd69c3fefad028f3b2f0e357686c27021292e584709",
     "src/calculation/currentPlanningDamageModifiers.ts": "9ae7418c52d001f3b7a42b53a34151663e5909ea9093fb965311f85a0531e0a1",
     "src/calculation/currentPlanningEffectDomain.ts": "509c843d36e586e36f68235e3a866e3f264a93f5882e3eae5534f4efefe44319",
     "src/calculation/currentPlanningEffectExpressions.ts": "9e4c0f25fe3b1d74021a3a9246a606d9260dd1b5a9d8cee4ba6eb81d3afa1b08",
@@ -290,9 +290,11 @@
     "src/decision/teamStrengthSupportContribution.ts": "74e3d0f4d177864732c2fca5bf732e7d4009fa0cca5327f15dc709f2e654209e",
     "src/decision/teamStrengthSupportContributionFeatures.ts": "760d127eaae74e0b08de9c2a10acade51fd28f894d0d199090876fd8731a50d1",
     "src/decision/teamStrengthSupportExpression.ts": "ae517b8d5d3fecce1ebf7176f53dea8515e9c3a547bbe2ebfb9baab1b91c35ab",
-    "src/domain/characterPanelStats.ts": "3f1c66029e89834b6d1287393ba8124fc7850b6df241ec69e0c068b087b671a7",
-    "src/domain/discImport.ts": "f7b4bf9984604e8c10bb184e2e6779d2fd7b0dfcab76b9f5d8e11bf161094305",
+    "src/domain/characterPanelStats.ts": "05e658eded6382fefb0ca1642ad16bb16f66db93bd40c71c98b0cd4ad9b0c69d",
+    "src/domain/discImport.ts": "18c5179889a23f7cab63b9691a183d72010b6384fb3d4af62c12c9d9c0290770",
+    "src/domain/discImportSchema.ts": "36a0d333d6ebd79f6245b89197cbf3cfa3a08d0134ef525a0679da5a1bd5687d",
     "src/domain/discOrdering.ts": "abc9e285660382beda2d0349cc93a464097188512d7dca49869bb1a6217cc936",
+    "src/domain/discStatValidity.ts": "fd065690469931838654f9fa2577fb6b67847d18dc57035143ddda3b08898d93",
     "src/domain/schemas.ts": "13621901907be847481ebe11f6b6dded560f33d5de12be4216f7f6aa13430d87",
     "src/domain/stableContentHash.ts": "af8e5b6422684c60710b5a56d84f46c1107a8e047011a9bdf1c3e8a4aea4a85a",
     "src/evaluation/contentHash.ts": "561ece5a767d6c1028772fab79663bf8ad443a47b963547ae417f2093b9381aa",
@@ -363,7 +365,7 @@
     "src/gameDataPacks/generated/l3-b04c7cc7ac8ad6279074/agentDevelopmentEvidence.ts": "398ab2d90d4cd03f14147f17e5dc194908fca21069860604ccb802423c65c57e",
     "src/gameDataPacks/generated/l3-b04c7cc7ac8ad6279074/noncharacterMiyousheSidecar.ts": "4262f265b1a1d6f04532eb9a7b013533ae86172bdf628fc6c0e4f01a8505cc97",
     "src/gameDataPacks/generated/l3AgentDevelopmentEvidenceTypes.ts": "c7f7f9a523b4cb13e89f6e10ff8a1d3e191f9ebc71d79fd7258f389178d1361d",
-    "src/gameDataPacks/generated/team-strength-model.3.1.json": "091bb058afea828bc497c295fd8cd7d0b43a7bd098d55810d5ed4997506ec247",
+    "src/gameDataPacks/generated/team-strength-model.3.1.json": "a3ba4530b9232cb0fef91ced173b8e763595d97d04e6bf08d6882adaeff88812",
     "src/gameDataPacks/incremental32AffectedCapabilities.ts": "a5529991289cedad4b76190d8b371b0e3eaa107173dc944300e86102033a038a",
     "src/gameDataPacks/incremental32RecoveryPolicy.ts": "de008b796842d6448828b7a3eb7ffc757c56260459cf8fe94ae338163a2eaf9c",
     "src/gameDataPacks/l3BoxTeamTemplateProjection.ts": "a121b90bc80f11b01245a72d6dd24a0bd54947b415bbe2cf11c9b85b0b1de404",
@@ -34668,5 +34670,5 @@
     [57, 58, 59, 0, 3, 2, 77, 1, 0, 4, 0]
   ],
   "boundary": "Build-time exact-three intrinsic summaries only. Account assets, preferences, Bangboo selection, evidence objects and final recommendations remain runtime projections.",
-  "contentHash": "fnv1a-d656f06b"
+  "contentHash": "fnv1a-4dac61c6"
 }

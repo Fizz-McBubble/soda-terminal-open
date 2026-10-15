@@ -364,6 +364,8 @@ export function createLocalCalculationQueryClientCore(options: {
           parameters: explicit,
           scenarioIdentity: scenario.identity,
           eventConditionDeclarationsIdentity,
+          candidateSearch: projection.candidateSearch,
+          candidateSearchByRank,
           comparisons: valueBenchmarks.map((row) => row.candidate.calculationFingerprint),
         }),
         candidateParametersByRank: explicit,

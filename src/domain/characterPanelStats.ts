@@ -17,5 +17,8 @@ export const extendedPanelKeys = [
   'adrenalineRegen',
   'adrenalineGenerationRate',
   'maxAdrenaline',
+  'sharpEnergyRegen',
+  'sharpEnergyGenerationRate',
+  'maxSharpEnergy',
 ] as const
 export type ExtendedPanelKey = (typeof extendedPanelKeys)[number]

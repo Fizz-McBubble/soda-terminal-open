@@ -1,58 +1,17 @@
-import { z } from 'zod'
 import type { DriveDisc, DriveDiscDataManifest, DriveDiscSet, StatKey } from './schemas'
-import { driveDiscSchema, discSlotSchema, statKeySchema } from './schemas'
-
-export const driveDiscImportFormat = 'soda-terminal-drive-disc-import'
-export const driveDiscImportFormatVersion = 1
-
-const raritySchema = z.enum(['B', 'A', 'S']).default('S')
-const importSubStatSchema = z.object({
-  stat: z.string().min(1),
-  value: z.number().nonnegative(),
-  upgrades: z.number().int().min(0).max(5).default(0),
-})
-
-export const standardDriveDiscImportSchema = z.object({
-  format: z.literal(driveDiscImportFormat),
-  formatVersion: z.number().int().positive().max(driveDiscImportFormatVersion),
-  source: z
-    .object({
-      adapter: z.string().min(1).default('soda-terminal-standard'),
-      sourceFile: z.string().min(1).optional(),
-      capturedAt: z.string().datetime().optional(),
-      detailPanel: z
-        .object({
-          resolution: z.string().min(1).optional(),
-          region: z.string().min(1).optional(),
-        })
-        .optional(),
-    })
-    .default({ adapter: 'soda-terminal-standard' }),
-  batch: z
-    .object({
-      id: z.string().min(1).optional(),
-      note: z.string().max(120).optional(),
-    })
-    .default({}),
-  discs: z
-    .array(
-      z.object({
-        id: z.string().min(1).optional(),
-        setId: z.string().min(1).optional(),
-        setName: z.string().min(1).optional(),
-        slot: discSlotSchema,
-        level: z.number().int().min(0).max(15),
-        rarity: raritySchema,
-        mainStat: z.string().min(1),
-        subStats: z.array(importSubStatSchema).max(4).default([]),
-        locked: z.boolean().default(false),
-        sourceId: z.string().min(1).optional(),
-      }),
-    )
-    .min(1),
-})
-
-type StandardDriveDiscImport = z.infer<typeof standardDriveDiscImportSchema>
+import { driveDiscSchema, statKeySchema } from './schemas'
+import { mainSubStatConflictIndices } from './discStatValidity'
+import {
+  driveDiscImportFormat,
+  driveDiscImportFormatVersion,
+  standardDriveDiscImportSchema,
+  type StandardDriveDiscImport,
+} from './discImportSchema'
+export {
+  driveDiscImportFormat,
+  driveDiscImportFormatVersion,
+  standardDriveDiscImportSchema,
+} from './discImportSchema'
 type StandardImportDisc = StandardDriveDiscImport['discs'][number]
 
 export type DriveDiscImportSetIdentity = Pick<
@@ -250,6 +209,16 @@ function toDriveDisc(
   })
 
   const rules = context.driveDiscRules
+  for (const subIndex of mainSubStatConflictIndices(
+    mainStat,
+    input.subStats.map((row) => ({ stat: resolveStat(row.stat) })),
+  )) {
+    issues.push({
+      index,
+      field: `subStats.${subIndex}.stat`,
+      message: '副词条不能与主词条相同。',
+    })
+  }
   if (mainStat && rules) {
     const allowed = rules.mainStatsBySlot[String(input.slot)] ?? []
     if (!allowed.includes(mainStat)) {

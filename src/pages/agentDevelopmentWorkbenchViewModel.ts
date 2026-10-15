@@ -40,6 +40,9 @@ export type WorkbenchFact = {
   label: string
   key?: string
   detail?: boolean
+  group?: 'primary' | 'supplementary' | 'resource'
+  currentValue?: number
+  presentationPriority?: boolean
   current: string
   contribution: string
   target: string
@@ -335,6 +338,9 @@ export function createAgentDevelopmentWorkbenchViewModel(input: {
       label,
       key,
       detail,
+      group: field.group,
+      currentValue,
+      presentationPriority: field.presentationPriority,
       current: formatCharacterPanelValue(field, currentValue),
       contribution: values.length
         ? `+${formatCharacterPanelValue(

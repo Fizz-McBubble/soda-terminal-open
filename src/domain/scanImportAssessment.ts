@@ -2,6 +2,7 @@ import type { DriveDiscImportSetIdentity } from './discImport'
 import type { DriveDiscDataManifest, DriveDiscSet, StatKey } from './schemas'
 import type { ScanImportItem, ScanImportIssue } from './scanImportStagingSchemas'
 import { scanMainStatDisplayValue } from './scanMainStatDisplay'
+import { mainSubStatConflictIndices } from './discStatValidity'
 export type ScanImportAssessmentContext = {
   driveDiscSets: DriveDiscSet[]
   driveDiscSetIdentities?: DriveDiscImportSetIdentity[]
@@ -143,6 +144,15 @@ export function assessScanImportItem(
       ),
     )
   const seen = new Set<StatKey>()
+  for (const index of mainSubStatConflictIndices(candidate.mainStat, candidate.subStats))
+    issues.push(
+      issue(
+        `subStats.${index}.stat`,
+        'main_sub_stat_conflict',
+        '副词条不能与主词条相同。',
+        'invalid',
+      ),
+    )
   for (const [index, subStat] of candidate.subStats.entries()) {
     if (!subStat.stat || subStat.value === null || subStat.upgrades === null) {
       issues.push(

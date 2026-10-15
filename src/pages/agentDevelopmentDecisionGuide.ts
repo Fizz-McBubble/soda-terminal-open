@@ -121,7 +121,15 @@ export function createAgentDevelopmentWarehouseStatus(input: {
 }
 
 export function createAgentDevelopmentPanelFacts(
-  facts: Array<{ label: string; current: string; key?: string; detail?: boolean }>,
+  facts: Array<{
+    label: string
+    current: string
+    key?: string
+    detail?: boolean
+    group?: 'primary' | 'supplementary' | 'resource'
+    currentValue?: number
+    presentationPriority?: boolean
+  }>,
   targets: Array<{ name: string; value: string }>,
 ): GoldenWorkbenchData['panelFacts'] {
   return facts.map((fact) => {
@@ -132,8 +140,10 @@ export function createAgentDevelopmentPanelFacts(
       value: fact.current,
       ...(fact.key !== undefined ? { key: fact.key } : {}),
       ...(fact.detail !== undefined ? { detail: fact.detail } : {}),
+      ...(fact.group !== undefined ? { group: fact.group } : {}),
+      ...(fact.currentValue !== undefined ? { currentValue: fact.currentValue } : {}),
       target: displayTarget,
-      focus: Boolean(displayTarget),
+      focus: Boolean(displayTarget) || Boolean(fact.presentationPriority),
     }
   })
 }

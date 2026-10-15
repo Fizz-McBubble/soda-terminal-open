@@ -25,6 +25,7 @@ export type TeamExecutionAttributeRow = {
   label: string
   key?: string
   detail?: boolean
+  group?: 'primary' | 'supplementary' | 'resource'
   outOfCombatValue?: number
   currentValue?: number
   /** The account's currently equipped out-of-combat panel, when exactly reproducible. */
@@ -280,6 +281,7 @@ export function createTeamExecutionAttributePanel(input: {
       key,
       label,
       detail,
+      group: field.group,
       currentValue,
       outOfCombatValue,
       outOfCombat: outOfCombatValue === undefined ? '—' : (outOfCombatFact?.current ?? '—'),
@@ -289,7 +291,7 @@ export function createTeamExecutionAttributePanel(input: {
       outOfCombatStatus: outOfCombatValue === undefined ? 'missing' : outOfCombatStatus,
       currentStatus: currentValue === undefined ? 'missing' : currentStatus,
       targetStatus: !fact || fact.targetEvidence === 'missing' ? 'missing' : targetStatus,
-      isPriority: hasPriority(priority, label),
+      isPriority: hasPriority(priority, label) || Boolean(field.presentationPriority),
       isBelowTarget:
         comparable && currentValue !== undefined && target !== null && currentValue < target,
     } satisfies TeamExecutionAttributeRow

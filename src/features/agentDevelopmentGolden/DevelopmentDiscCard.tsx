@@ -29,7 +29,7 @@ export function DevelopmentDiscCard({
       data-slot={disc.slot}
     >
       <header>
-        <span>{disc.slot}号位</span>
+        <span className="development-disc-card__slot">{disc.slot}号位</span>
         <div className="development-disc-card__corner">
           <b
             className={`development-disc-card__badge ${
@@ -143,7 +143,7 @@ export function DevelopmentDiscCard({
           >
             <span>
               {sub.name}
-              {sub.hits > 0 ? <em>+{sub.hits}</em> : null}
+              {sub.hits > 0 ? <em title={`已强化 ${sub.hits} 次`}>+{sub.hits}</em> : null}
             </span>
             <b>{sub.value}</b>
           </li>

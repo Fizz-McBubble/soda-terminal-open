@@ -1,4 +1,9 @@
 import {
+  createPanelDetailSubject,
+  createAnomalyRankingData,
+  createLegacyReferenceData,
+} from './workbenchTargetsAndSave.testFixture'
+import {
   describe,
   render,
   screen,
@@ -14,38 +19,39 @@ import type { GoldenTop10Data } from './AgentDevelopmentGolden.workbench.testFix
 import { agentDevelopmentSkillRecommendations } from '../../pages/agentDevelopmentSkillRecommendations'
 import { getProjectedBuildKnowledgeProfile } from '../../gameDataPacks/agentProfile'
 import { Top10StatTable } from './Top10StatTable'
+import { WorkbenchPanelSnapshot } from './WorkbenchPanelSnapshot'
 
 describe('AgentDevelopmentGolden warehouse candidate controls', () => {
+  it('keeps the workbench summary and only applicable or nonzero full-panel details', () => {
+    const { container } = render(<WorkbenchPanelSnapshot subject={createPanelDetailSubject()} />)
+    const summary = container.querySelector('.stat-grid')!
+    const full = container.querySelector('.character-panel-more__facts')!
+    expect(summary).toHaveTextContent('穿透值')
+    expect(summary).not.toHaveTextContent('锐能上限')
+    expect(full).toHaveTextContent('穿透值')
+    expect(full).toHaveTextContent('火属性伤害加成')
+    expect(full).toHaveTextContent('锐能上限')
+    expect(full).not.toHaveTextContent('冰属性伤害加成')
+  })
+  it('shows declared anomaly ranking scope in the existing summary and explanation', async () => {
+    const { container } = render(
+      <AgentDevelopmentGolden initialView="top10" top10={createAnomalyRankingData()} />,
+    )
+    expect(container.querySelector('.comparison-summary-intro__note')).toHaveTextContent(
+      '按同条件单次异常结算排序，不含循环收益。',
+    )
+    await userEvent.setup().click(screen.getByRole('button', { name: '排序与计算限制' }))
+    expect(screen.getByText(/按同条件单次异常结算排序，仅覆盖已声明结算/)).toHaveTextContent(
+      '搜索预算已用尽',
+    )
+    expect(screen.queryByText(/按已覆盖模型目标排序/)).not.toBeInTheDocument()
+  })
   it('guards old public optional and combat-only references without hiding actual rows', () => {
-    const baseline: GoldenTop10Data['baseline'] = {
-      rank: 0,
-      label: '当前实装',
-      fit: '比较基准',
-      panel: '当前方案',
-      sets: '未录入',
-      effective: '—',
-      swaps: null,
-      conflict: '待核对',
-      cost: '—',
-      staticDps: null,
-      statDeltaSummary: '—',
-      finalStats: { hp: 8020, def: 630, atk: 2800 },
-    }
+    const data = createLegacyReferenceData()
+    const baseline = data.baseline
     render(
       <Top10StatTable
-        data={{
-          agentName: '测试',
-          baseline,
-          candidates: [],
-          discs: [],
-          coreStats: [],
-          statPresentation: 'static_panel',
-          allStats: [
-            { key: 'hp', label: '生命值', unit: '', highlight: false, target: '9500+（可选）' },
-            { key: 'def', label: '防御力', unit: '', highlight: false, target: '750+（战斗内）' },
-            { key: 'atk', label: '攻击力', unit: '', highlight: true, target: '3000+' },
-          ],
-        }}
+        data={data}
         selectedRow={baseline}
         baselineAvailable
         baselineLabel="当前实装"

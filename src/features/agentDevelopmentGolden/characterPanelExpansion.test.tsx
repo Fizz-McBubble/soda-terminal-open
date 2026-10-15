@@ -31,7 +31,14 @@ const comparison: GoldenTop10Data = {
     { key: 'pen', label: '穿透值', unit: '', highlight: false },
     { key: 'fireDamageBonus', label: '火属性伤害加成', unit: '%', highlight: false, detail: true },
     { key: 'iceDamageBonus', label: '冰属性伤害加成', unit: '%', highlight: false, detail: true },
-    { key: 'maxEnergy', label: '能量上限', unit: '', highlight: false, detail: true },
+    {
+      key: 'maxEnergy',
+      label: '能量上限',
+      unit: '',
+      highlight: false,
+      detail: true,
+      group: 'resource',
+    },
   ],
 }
 
@@ -61,7 +68,7 @@ function valuesFor(table: HTMLElement, label: string) {
     .map((cell) => cell.textContent)
 }
 
-describe('character panel local popovers', () => {
+describe('character panel local disclosures', () => {
   it('keeps detail rows outside the summary grid and preserves graduation placement', () => {
     const subject = {
       ...workbench,
@@ -111,44 +118,58 @@ describe('character panel local popovers', () => {
     )
   })
 
-  it('retains the comparison baseline, changed detail rows, and unknown values in a local table', () => {
+  it('expands comparison details inline and resets for another selected scheme or account', () => {
     const selected = {
       ...baseline,
       rank: 1,
       finalStats: { pen: 27, fireDamageBonus: 30, iceDamageBonus: 0 },
     }
     const props = { data: comparison, baselineAvailable: true, baselineLabel: '当前实装' }
+    const before = JSON.stringify({ comparison, selected })
     const { rerender, container } = render(<Top10StatTable {...props} selectedRow={selected} />)
     const mainTable = screen.getByRole('table', { name: '属性对比' })
     expect(valuesFor(mainTable, '火属性伤害加成')).toEqual(['火属性伤害加成', '0%', '+30%', '30%'])
     expect(
       within(mainTable).queryByRole('cell', { name: '冰属性伤害加成' }),
     ).not.toBeInTheDocument()
-    const panel = container.querySelector('.character-panel-more [popover]') as HTMLElement
-    expect(panel).toHaveAttribute('aria-label', '完整属性对比')
-    openPopover(panel)
-    // JSDOM does not open native popovers; role checks here cover DOM semantics.
-    const detailTable = within(panel).getByRole('table', { name: '完整属性对比', hidden: true })
-    expect(valuesFor(detailTable, '穿透值')).toEqual(['穿透值', '18', '+9', '27'])
+    const trigger = screen.getByRole('button', { name: '查看完整面板' })
+    expect(trigger).toHaveAttribute('aria-expanded', 'false')
+    trigger.focus()
+    fireEvent.click(trigger)
+    const panel = screen.getByRole('region', { name: '完整属性对比' })
+    expect(trigger).toHaveAttribute('aria-controls', panel.id)
+    expect(trigger).toHaveAttribute('aria-expanded', 'true')
+    expect(trigger).toHaveFocus()
+    expect(container.querySelector('[popover]')).not.toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    const detailTable = within(panel).getByRole('table', { name: '资源与循环对比' })
     expect(valuesFor(detailTable, '能量上限')).toEqual(['能量上限', '—', '—', '—'])
-    expect(valuesFor(detailTable, '火属性伤害加成')).toEqual([
-      '火属性伤害加成',
-      '0%',
-      '+30%',
-      '30%',
-    ])
+    expect(within(panel).queryByRole('cell', { name: '穿透值' })).not.toBeInTheDocument()
+    expect(within(panel).queryByRole('cell', { name: '火属性伤害加成' })).not.toBeInTheDocument()
+    expect(within(panel).queryByRole('cell', { name: '冰属性伤害加成' })).not.toBeInTheDocument()
     expect(within(mainTable).queryByRole('cell', { name: '能量上限' })).not.toBeInTheDocument()
+    fireEvent.click(trigger)
+    expect(panel).not.toBeVisible()
+    expect(trigger).toHaveFocus()
+    fireEvent.click(trigger)
+    expect(JSON.stringify({ comparison, selected })).toBe(before)
     rerender(
       <Top10StatTable
         {...props}
         selectedRow={{ ...selected, rank: 2, finalStats: { pen: 36, fireDamageBonus: 0 } }}
       />,
     )
-    expect(valuesFor(mainTable, '穿透值')).toEqual(['穿透值', '18', '+18', '36'])
+    expect(valuesFor(screen.getByRole('table', { name: '属性对比' }), '穿透值')).toEqual([
+      '穿透值',
+      '18',
+      '+18',
+      '36',
+    ])
     expect(screen.getByRole('button', { name: '查看完整面板' })).toHaveAttribute(
       'aria-expanded',
-      'true',
+      'false',
     )
+    fireEvent.click(screen.getByRole('button', { name: '查看完整面板' }))
     rerender(
       <Top10StatTable
         {...props}
@@ -156,7 +177,7 @@ describe('character panel local popovers', () => {
         selectedRow={baseline}
       />,
     )
-    expect(container.querySelector('.character-panel-more [popover]')).not.toBe(panel)
+    expect(screen.queryByRole('region', { name: '完整属性对比' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: '查看完整面板' })).toHaveAttribute(
       'aria-expanded',
       'false',
@@ -168,7 +189,7 @@ describe('character panel local popovers', () => {
     )
   })
 
-  it('marks priority and changed rows in the complete comparison without changing values', () => {
+  it('marks priority and changed rows in the summary without duplicating them in details', () => {
     const { container } = render(
       <Top10StatTable
         data={{
@@ -180,8 +201,8 @@ describe('character panel local popovers', () => {
         baselineLabel="当前实装"
       />,
     )
-    const panel = container.querySelector('.character-panel-more [popover]') as HTMLElement
-    const cell = within(panel).getByRole('cell', { name: '穿透值', hidden: true })
+    const table = within(container).getByRole('table', { name: '属性对比' })
+    const cell = within(table).getByRole('cell', { name: '穿透值' })
     const row = cell.closest('[role="row"]')!
     expect(row).toHaveClass('is-priority', 'is-changed')
     expect(
@@ -190,6 +211,82 @@ describe('character panel local popovers', () => {
         .slice(1)
         .map((item) => item.textContent),
     ).toEqual(['18', '+9', '27'])
+    fireEvent.click(screen.getByRole('button', { name: '查看完整面板' }))
+    expect(
+      within(screen.getByRole('region', { name: '完整属性对比' })).queryByRole('cell', {
+        name: '穿透值',
+      }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('groups nonzero supplementary fields and own resources, and closes when the baseline changes', () => {
+    const data: GoldenTop10Data = {
+      ...comparison,
+      baseline: { ...baseline, finalStats: { ...baseline.finalStats, iceDamageBonus: 10 } },
+    }
+    const selected: LoadoutRow = {
+      ...data.baseline,
+      rank: 1,
+      discIds: [
+        'scheme-disc-1',
+        'scheme-disc-2',
+        'scheme-disc-3',
+        'scheme-disc-4',
+        'scheme-disc-5',
+        'scheme-disc-6',
+      ],
+    }
+    const differentScheme: LoadoutRow = {
+      ...selected,
+      discIds: [
+        'scheme-disc-1',
+        'scheme-disc-2',
+        'scheme-disc-3',
+        'scheme-disc-4',
+        'scheme-disc-5',
+        'replacement-disc-6',
+      ],
+    }
+    const { rerender } = render(
+      <Top10StatTable
+        data={data}
+        selectedRow={selected}
+        baselineAvailable
+        baselineLabel="当前实装"
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: '查看完整面板' }))
+    const panel = screen.getByRole('region', { name: '完整属性对比' })
+    expect(
+      valuesFor(within(panel).getByRole('table', { name: '辅助属性对比' }), '冰属性伤害加成'),
+    ).toEqual(['冰属性伤害加成', '10%', '—', '10%'])
+    expect(within(panel).getByRole('heading', { name: '资源与循环' })).toBeInTheDocument()
+    expect(within(panel).queryByRole('cell', { name: '火属性伤害加成' })).not.toBeInTheDocument()
+    rerender(
+      <Top10StatTable
+        data={data}
+        selectedRow={selected}
+        baselineAvailable
+        baselineLabel="另一比较方案"
+      />,
+    )
+    expect(screen.getByRole('button', { name: '查看完整面板' })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    )
+    fireEvent.click(screen.getByRole('button', { name: '查看完整面板' }))
+    rerender(
+      <Top10StatTable
+        data={data}
+        selectedRow={differentScheme}
+        baselineAvailable
+        baselineLabel="另一比较方案"
+      />,
+    )
+    expect(screen.getByRole('button', { name: '查看完整面板' })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    )
   })
 
   it('preserves all rows and zero totals in disc contribution mode', () => {
@@ -204,5 +301,30 @@ describe('character panel local popovers', () => {
     expect(screen.getByText('六张驱动盘的副词条合计，不含主词条和套装效果。')).toBeInTheDocument()
     expect(screen.getByRole('cell', { name: '冰属性伤害加成' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '查看完整面板' })).not.toBeInTheDocument()
+  })
+
+  it('keeps the title without empty expansion and ignores an unavailable baseline when choosing extra rows', () => {
+    render(
+      <Top10StatTable
+        data={{
+          ...comparison,
+          baseline: { ...baseline, finalStats: { ...baseline.finalStats, iceDamageBonus: 20 } },
+          allStats: comparison.allStats.filter((stat) => stat.key !== 'maxEnergy'),
+        }}
+        selectedRow={baseline}
+        baselineAvailable={false}
+        baselineLabel="未记录当前六盘"
+      />,
+    )
+    expect(screen.getByRole('heading', { name: '属性对比' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '查看完整面板' })).not.toBeInTheDocument()
+    const table = screen.getByRole('table', { name: '属性对比' })
+    expect(valuesFor(table, '穿透值')).toEqual(['穿透值', '18'])
+    expect(within(table).queryByRole('cell', { name: '冰属性伤害加成' })).not.toBeInTheDocument()
+    expect(
+      within(table)
+        .getAllByRole('columnheader')
+        .map((cell) => cell.textContent),
+    ).toEqual(['属性', '方案', '属性', '方案'])
   })
 })

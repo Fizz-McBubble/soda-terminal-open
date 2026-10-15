@@ -1,7 +1,7 @@
 import { TeamExecutionGraduationReference } from './TeamExecutionGraduationReference'
 import { TeamExecutionAttributeTable } from './TeamExecutionAttributeTable'
 import type { ReactNode } from 'react'
-import { visibleTeamAttributeRows } from './teamExecutionAttributeRows'
+import { detailedTeamAttributeRows, visibleTeamAttributeRows } from './teamExecutionAttributeRows'
 import type { CoreWarehouse } from '../accounts/coreFlow'
 import { VisualEntityImage } from '../components/VisualEntityImage'
 import { ExplanationPopover } from '../components/ExplanationPopover'
@@ -316,7 +316,7 @@ export function TeamExecutionAttributeInspector({
               className="team-execution__more-attributes"
             >
               <TeamExecutionAttributeTable
-                rows={attributePanel?.rows ?? []}
+                rows={detailedTeamAttributeRows(attributePanel?.rows ?? [])}
                 label={`${selectedMember.agentName}完整面板`}
                 accountLabel={outOfCombatColumn}
                 proposedLabel={currentColumn}

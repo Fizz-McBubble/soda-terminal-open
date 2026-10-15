@@ -66,6 +66,8 @@ export function Top10({
         ? data.currentPlan
         : (visibleCandidates.find((row) => row.rank === selected) ?? visibleCandidates[0])
   const selectedBenchmark = selectedRow ? data.valueBenchmarks?.[selectedRow.rank - 1] : undefined
+  const selectedSearch =
+    data.candidateSearchByRank?.[selectedRow?.rank ?? 0] ?? data.candidateSearch
   const discsById = useMemo(() => new Map(data.discs.map((disc) => [disc.id, disc])), [data.discs])
   const selectedDiscs = selectedRow?.discIds?.flatMap((id) => {
     const disc = discsById.get(id)
@@ -211,11 +213,7 @@ export function Top10({
                   title="方案排序与计算限制"
                   className="comparison-method-popover"
                 >
-                  <p>
-                    {candidateSearchLabel(
-                      data.candidateSearchByRank?.[selectedRow?.rank ?? 0] ?? data.candidateSearch,
-                    )}
-                  </p>
+                  <p>{candidateSearchLabel(selectedSearch)}</p>
                 </ExplanationPopover>
               </div>
               <dl>
@@ -310,11 +308,14 @@ export function Top10({
                 </span>
               ) : null}
               {!data.snapshot?.stale &&
-              selectedBenchmark &&
-              (selectedBenchmark.coverage.domain === 'fixed_event_direct_damage' ||
-                benchmarkOverallReason(selectedBenchmark)) ? (
+              (selectedSearch?.rankingMethod === 'prepared_anomaly_settlement' ||
+                (selectedBenchmark &&
+                  (selectedBenchmark.coverage.domain === 'fixed_event_direct_damage' ||
+                    benchmarkOverallReason(selectedBenchmark)))) ? (
                 <span className="comparison-summary-intro__note">
-                  {benchmarkScopeNote(selectedBenchmark)}
+                  {selectedSearch?.rankingMethod === 'prepared_anomaly_settlement'
+                    ? '按同条件单次异常结算排序，不含循环收益。'
+                    : benchmarkScopeNote(selectedBenchmark)}
                 </span>
               ) : null}
               {baselineAvailable &&
@@ -345,11 +346,7 @@ export function Top10({
                 className="comparison-method-popover"
               >
                 <div className="comparison-method-popover__content">
-                  <p>
-                    {candidateSearchLabel(
-                      data.candidateSearchByRank?.[selectedRow?.rank ?? 0] ?? data.candidateSearch,
-                    )}
-                  </p>
+                  <p>{candidateSearchLabel(selectedSearch)}</p>
                   {selectedBenchmark?.status !== 'supported' && selectedBenchmark ? (
                     <p>当前输出对比受限或未支持，未假设 0% 收益。</p>
                   ) : null}

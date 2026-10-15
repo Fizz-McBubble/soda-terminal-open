@@ -1,23 +1,40 @@
-import { useId } from 'react'
-import { ExplanationPopover } from '../../components/ExplanationPopover'
-import { formatCharacterPanelValue } from '../../application/characterPanelFields'
+import { useId, useState } from 'react'
+import {
+  formatCharacterPanelValue,
+  isCharacterPanelDetailRelevant,
+} from '../../application/characterPanelFields'
 import type { GoldenTop10Data, LoadoutRow } from './types'
 import { formatStat } from './top10Labels'
 import { staticPanelTargetDisplay } from '../../gameDataPacks/targetPanelSemantics'
 
-export function Top10StatTable({
-  data,
-  selectedRow,
-  baselineAvailable,
-  baselineLabel,
-}: {
+type Top10StatTableProps = {
   data: GoldenTop10Data
   selectedRow?: LoadoutRow
   baselineAvailable: boolean
   baselineLabel: string
-}) {
-  const scope = data.panelScopeKey ?? data.agentName
+}
+
+export function Top10StatTable(props: Top10StatTableProps) {
+  const scope = [
+    props.data.panelScopeKey ?? props.data.agentName,
+    props.baselineAvailable,
+    props.baselineLabel,
+    props.data.baseline.discIds?.join('|'),
+    props.selectedRow?.rank,
+    props.selectedRow?.discIds?.join('|'),
+  ].join('::')
+  return <ComparisonStatTable key={scope} {...props} />
+}
+
+function ComparisonStatTable({
+  data,
+  selectedRow,
+  baselineAvailable,
+  baselineLabel,
+}: Top10StatTableProps) {
+  const [expanded, setExpanded] = useState(false)
   const tableId = useId()
+  const detailsId = useId()
   const known = (value: number | undefined): value is number =>
     value !== undefined && Number.isFinite(value)
   const changed = (key: string) => {
@@ -25,11 +42,22 @@ export function Top10StatTable({
     const after = selectedRow?.finalStats[key]
     return baselineAvailable && known(before) && known(after) && before !== after
   }
-  const hasDetails =
-    data.statPresentation === 'static_panel' && data.allStats.some((stat) => stat.detail)
   const visibleStats = data.allStats.filter(
     (stat) => data.statPresentation !== 'static_panel' || !stat.detail || changed(stat.key),
   )
+  const visibleKeys = new Set(visibleStats.map((stat) => stat.key))
+  const detailStats = data.allStats.filter((stat) => {
+    if (data.statPresentation !== 'static_panel' || visibleKeys.has(stat.key)) return false
+    const current = data.baseline.finalStats[stat.key]
+    const candidate = selectedRow?.finalStats[stat.key]
+    return isCharacterPanelDetailRelevant(stat, candidate, baselineAvailable ? current : undefined)
+  })
+  const groups = [
+    { key: 'primary', label: '基础与战斗' },
+    { key: 'supplementary', label: '辅助属性' },
+    { key: 'resource', label: '资源与循环' },
+  ] as const
+  const hasDetails = detailStats.length > 0
   const valueText = (stat: GoldenTop10Data['allStats'][number], value: number | undefined) =>
     !known(value)
       ? '—'
@@ -37,12 +65,16 @@ export function Top10StatTable({
         ? formatStat(Number.parseFloat(formatCharacterPanelValue(stat, value)), stat.unit)
         : formatStat(value, stat.unit)
   const title = data.statPresentation === 'static_panel' ? '属性对比' : '副词条合计'
-  const renderTable = (stats: GoldenTop10Data['allStats'], details = false) => (
+  const renderTable = (
+    stats: GoldenTop10Data['allStats'],
+    details = false,
+    label: string = title,
+  ) => (
     <div
       id={details ? undefined : tableId}
-      className={`comparison-stat-table${baselineAvailable ? '' : ' is-candidate-only'}${details ? ' character-panel-more__comparison' : ''}`}
+      className={`comparison-stat-table${baselineAvailable ? '' : ' is-candidate-only'}`}
       role="table"
-      aria-label={details ? '完整属性对比' : title}
+      aria-label={label}
     >
       {(details ? [0] : [0, 1]).map((column) => (
         <div role="rowgroup" key={column}>
@@ -61,7 +93,10 @@ export function Top10StatTable({
             .map((stat) => {
               const current = data.baseline.finalStats[stat.key]
               const candidate = selectedRow?.finalStats[stat.key]
-              const delta = known(candidate) && known(current) ? candidate - current : undefined
+              const delta =
+                baselineAvailable && known(candidate) && known(current)
+                  ? candidate - current
+                  : undefined
               const target = staticPanelTargetDisplay(stat.target)
               return (
                 <div
@@ -116,21 +151,43 @@ export function Top10StatTable({
           </div>
         </header>
       ) : null}
-      {hasDetails ? (
+      {data.statPresentation === 'static_panel' ? (
         <header className="comparison-stats__attributes-header">
           <h2>{title}</h2>
-          <ExplanationPopover
-            key={scope}
-            className="character-panel-more character-panel-more--comparison"
-            label="查看完整面板"
-            title="完整属性对比"
-            closeLabel="关闭完整面板"
-          >
-            {renderTable(data.allStats, true)}
-          </ExplanationPopover>
+          {hasDetails ? (
+            <button
+              type="button"
+              aria-controls={detailsId}
+              aria-expanded={expanded}
+              onClick={() => setExpanded((current) => !current)}
+            >
+              {expanded ? '收起完整面板' : '查看完整面板'}
+            </button>
+          ) : null}
         </header>
       ) : null}
       {renderTable(visibleStats)}
+      {hasDetails ? (
+        <div
+          id={detailsId}
+          className="comparison-stats__expanded"
+          hidden={!expanded}
+          role="region"
+          aria-label="完整属性对比"
+        >
+          {groups.map((group) => {
+            const stats = detailStats.filter(
+              (stat) => (stat.group ?? 'supplementary') === group.key,
+            )
+            return stats.length ? (
+              <section key={group.key} className="comparison-stats__group" aria-label={group.label}>
+                <h3>{group.label}</h3>
+                {renderTable(stats, true, `${group.label}对比`)}
+              </section>
+            ) : null
+          })}
+        </div>
+      ) : null}
     </section>
   )
 }
