@@ -27,6 +27,18 @@ const reviewCategories = [
   },
 ] as const
 
+/** Reuse the existing anonymous counts when reopening a saved diagnostic. */
+export function importReviewDiagnosticCategories(counts: Record<string, number | null>) {
+  return [...reviewCategories, { key: 'otherReview', label: '其他检查问题' }]
+    .map(({ key, label }) => ({ key, label, count: counts[key] }))
+    .filter(
+      (category): category is { key: string; label: string; count: number } =>
+        typeof category.count === 'number' &&
+        Number.isInteger(category.count) &&
+        category.count > 0,
+    )
+}
+
 /** Count affected records only. Never include OCR text, values, paths or account identifiers. */
 export function summarizeImportReview(items: ScanImportItem[]) {
   const blocked = items.filter(
@@ -67,6 +79,8 @@ export function createImportReviewDiagnostic(
     schema: 1,
     reportId: native?.reportId ?? reportId,
     release: import.meta.env.VITE_SODA_RELEASE_ID || 'local-development',
+    // Schema 1 records the blocked import outcome. This code identifies a
+    // protective review gate, not evidence that scanning itself failed.
     outcome: 'failed',
     stage: 'import',
     code: 'scan_import_review_required',

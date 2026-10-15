@@ -81,7 +81,7 @@ test('HEAD and a small range retain exact release size, digest and range metadat
   assert.deepEqual(new Uint8Array(await range.arrayBuffer()), bytes)
   assert.equal(range.headers.get('content-range'), `bytes 0-7/${release.size}`)
   assert.equal(calls[1][1].headers.range, 'bytes=0-7')
-  for (const range of ['bytes=117896485-', 'bytes=1-0', 'bytes=-0', 'bytes=0-1,3-4'])
+  for (const range of [`bytes=${release.size}-`, 'bytes=1-0', 'bytes=-0', 'bytes=0-1,3-4'])
     assert.equal((await download(request({ headers: { range } }))).status, 416)
 })
 
@@ -89,6 +89,7 @@ test('wrong version, repo, asset, release size or checksum fails before fetching
   for (const patch of [
     { available: false },
     { version: '999.0.0' },
+    { bridgeVersion: '999.0.0' },
     { repo: 'foreign/repo' },
     { releaseTag: 'latest' },
     { fileName: 'other.exe' },

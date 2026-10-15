@@ -4,6 +4,11 @@ import { z } from 'zod'
 import { AssetQuickReadUnavailableError, awaitAssetQuickReadService } from './launcher'
 
 export const assetQuickReadBridgeUrl = 'http://127.0.0.1:50609'
+export const assetQuickReadBridgeUrls = [
+  assetQuickReadBridgeUrl,
+  'http://127.0.0.1:46009',
+  'http://127.0.0.1:46010',
+] as const
 const jobSchema = z.object({
   jobId: z.string().uuid(),
   targetAccountId: z.string().min(1),
@@ -47,6 +52,7 @@ const errorMessages: Record<string, string> = {
   linked_path_rejected: '游戏或工具路径包含目录链接，请使用实际安装目录。',
   elevation_denied: '本次管理员授权未完成，未继续采集。',
   job_active: '已有本次资产快读任务在运行，请先停止。',
+  capture_already_active: '已有资产快读任务正在运行，请回到发起读取的窗口完成或停止后再试。',
   session_invalid: '资产快读连接已失效，请重新连接。',
   origin_not_allowed: '资产快读尚未允许当前站点连接，请核对工具版本与页面地址。',
 }
@@ -66,6 +72,7 @@ function waitForResponse<T>(pending: Promise<T>, signal: AbortSignal): Promise<T
 export class AssetQuickReadBridgeClient {
   private token: string | null = null
   private activeConnectId: string | null = null
+  private activeBaseUrl: string = assetQuickReadBridgeUrl
   private readonly fetcher: typeof fetch
   private readonly protocolLauncher?: () => void
   constructor(
@@ -83,6 +90,7 @@ export class AssetQuickReadBridgeClient {
     authenticated = true,
     signal?: AbortSignal,
     timeoutMs = 10000,
+    baseUrl = this.activeBaseUrl,
   ) {
     const abort = new AbortController()
     const cancel = () => abort.abort(signal?.reason)
@@ -92,7 +100,7 @@ export class AssetQuickReadBridgeClient {
     try {
       if (authenticated && !this.token) throw new Error('请先连接独立资产快读。')
       const response = await waitForResponse(
-        this.fetcher(`${assetQuickReadBridgeUrl}${path}`, {
+        this.fetcher(`${baseUrl}${path}`, {
           method,
           mode: 'cors',
           credentials: 'omit',
@@ -142,19 +150,42 @@ export class AssetQuickReadBridgeClient {
   }
 
   async probe(signal?: AbortSignal, timeoutMs = 3000) {
-    const parsed = healthSchema.safeParse(
-      await this.request('/health', 'GET', undefined, false, signal, timeoutMs),
-    )
-    if (
-      !parsed.success ||
-      !parsed.data.capabilities.includes('asset_snapshot') ||
-      !parsed.data.capabilities.includes('cancel')
-    )
-      throw new AssetQuickReadRequestError(
-        'bridge_incompatible',
-        '资产快读版本不兼容，请更新工具。',
-      )
-    return parsed.data
+    const deadline = Date.now() + timeoutMs
+    let lastUnavailable: AssetQuickReadUnavailableError | null = null
+    for (const baseUrl of assetQuickReadBridgeUrls) {
+      signal?.throwIfAborted()
+      const remaining = deadline - Date.now()
+      if (remaining <= 0) break
+      try {
+        // A probe sends neither a session token nor account/game data.
+        const parsed = healthSchema.safeParse(
+          await this.request(
+            '/health',
+            'GET',
+            undefined,
+            false,
+            signal,
+            Math.min(remaining, 2000),
+            baseUrl,
+          ),
+        )
+        if (
+          !parsed.success ||
+          !parsed.data.capabilities.includes('asset_snapshot') ||
+          !parsed.data.capabilities.includes('cancel')
+        )
+          throw new AssetQuickReadRequestError(
+            'bridge_incompatible',
+            '资产快读版本不兼容，请更新工具。',
+          )
+        this.activeBaseUrl = baseUrl
+        return parsed.data
+      } catch (error) {
+        if (!(error instanceof AssetQuickReadUnavailableError)) throw error
+        lastUnavailable = error
+      }
+    }
+    throw lastUnavailable ?? new AssetQuickReadUnavailableError('未能连接独立资产快读。')
   }
 
   async connect({

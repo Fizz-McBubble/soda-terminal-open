@@ -1,6 +1,10 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { sanitizeAssetDiagnostic, type AssetDiagnosticReport } from '../assetQuickRead/diagnostics'
-import { readAssetReceipt, submitAssetFeedback } from '../assetQuickRead/feedback'
+import {
+  assetFeedbackFailureMessage,
+  readAssetReceipt,
+  submitAssetFeedback,
+} from '../assetQuickRead/feedback'
 import { DiagnosticEntry, DiagnosticPopover } from './DiagnosticFeedbackPresentation'
 import './scanner-guide.css'
 import './scanner-diagnostic-feedback.css'
@@ -9,10 +13,12 @@ export function AssetQuickReadFeedback({
   report,
   workspaceMessage,
   workspaceMessageRole,
+  previous = false,
 }: {
   report: AssetDiagnosticReport | null
   workspaceMessage?: string
   workspaceMessageRole?: 'alert' | 'status'
+  previous?: boolean
 }) {
   const safe = sanitizeAssetDiagnostic(report)
   const key = safe ? JSON.stringify(safe) : ''
@@ -39,8 +45,8 @@ export function AssetQuickReadFeedback({
       const ack = await submitAssetFeedback(safe)
       if (current.current === key)
         setState({ key, message: '已收到反馈。', receivedAt: ack.receivedAt })
-    } catch {
-      if (current.current === key) setState({ key, message: '暂未收到回执，请重试或复制诊断。' })
+    } catch (error) {
+      if (current.current === key) setState({ key, message: assetFeedbackFailureMessage(error) })
     } finally {
       if (pending.current === key) pending.current = null
     }
@@ -122,20 +128,23 @@ export function AssetQuickReadFeedback({
         nextAction: '检查工具准备状态后重试；仍失败时可反馈。',
       })
   const metadata: string[] = []
-  if (safe.versions.bridge) metadata.push(`资产快读 ${safe.versions.bridge}`)
+  if (safe.versions.bridge) metadata.push(`Bridge ${safe.versions.bridge}`)
   if (typeof safe.evidence.remainingSeconds === 'number')
     metadata.push(`剩余等待 ${safe.evidence.remainingSeconds} 秒`)
   if (safe.counts.processed !== null) metadata.push(`已处理 ${safe.counts.processed}`)
   return (
     <DiagnosticEntry
-      title="资产快读诊断"
-      status={workspaceMessage || (receivedAt ? '本次反馈已发送。' : hint.problem)}
+      title={previous ? '上次资产快读诊断' : '资产快读诊断'}
+      status={
+        workspaceMessage ||
+        (receivedAt ? '本次反馈已发送。' : `${previous ? '上次记录：' : ''}${hint.problem}`)
+      }
       statusRole={workspaceMessage ? workspaceMessageRole : undefined}
     >
       <DiagnosticPopover
         key={key}
-        title="资产快读诊断"
-        problem={workspaceMessage || hint.problem}
+        title={previous ? '上次资产快读诊断' : '资产快读诊断'}
+        problem={workspaceMessage || `${previous ? '上次记录：' : ''}${hint.problem}`}
         nextAction={hint.nextAction}
         metadata={metadata}
         receiptId={receivedAt ? safe.reportId : undefined}

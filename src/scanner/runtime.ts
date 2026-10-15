@@ -9,7 +9,7 @@ import {
   verifyScannerHelperIdentity,
 } from './runtimeHelperVersion'
 import { createResultEvidenceReader } from './runtimeResultEvidenceReader'
-import { failedSnapshot } from './runtimeSnapshots'
+import { connectingSnapshot } from './runtimeSnapshots'
 import { resolveScannerHelperSessionToken } from './scannerSessionToken'
 export type { ScannerAssistantCommands } from './runtimeCommands'
 export { useScannerAssistantRuntime } from './runtimeHooks'
@@ -211,9 +211,13 @@ export function createScannerAssistantRuntime(
               tokenResolved = false
             }
             void withHelperDeadline((signal) => ensureSessionToken(signal))
-              .then((next) => connectEvents(subscription, next))
+              .then((next) => {
+                if (subscription.disposed || subscription.abort !== controller) return
+                connectEvents(subscription, next)
+              })
               .catch((failure) => {
-                if (!subscription.disposed) subscription.listener(failureSnapshot(failure))
+                if (!subscription.disposed && subscription.abort === controller)
+                  subscription.listener(failureSnapshot(failure))
               })
           }, reconnectDelayMs)
         }
@@ -398,10 +402,14 @@ export function createScannerAssistantRuntime(
       const onVisible = () => {
         if (!document.hidden && subscription.interrupted && !subscription.disposed) {
           subscription.interrupted = false
+          const interruptedStream = subscription.abort
           void withHelperDeadline((signal) => ensureSessionToken(signal))
-            .then((issued) => connectEvents(subscription, issued))
+            .then((issued) => {
+              if (subscription.disposed || subscription.abort !== interruptedStream) return
+              connectEvents(subscription, issued)
+            })
             .catch((error) => {
-              if (!subscription.disposed) {
+              if (!subscription.disposed && subscription.abort === interruptedStream) {
                 subscription.interrupted = true
                 listener(failureSnapshot(error))
               }
@@ -475,9 +483,20 @@ export function createScannerAssistantRuntime(
         await command('/api/revoke')
         token = ''
         tokenResolved = false
-        activeSubscription?.events?.close()
-        activeSubscription?.abort?.abort()
-        activeSubscription?.listener(failedSnapshot)
+        nativeIdentityVerified = false
+        nativeHelperVersion = null
+        nativeInstallerVersion = null
+        lastSnapshot = undefined
+        if (activeSubscription) {
+          activeSubscription.interrupted = false
+          activeSubscription.events?.close()
+          activeSubscription.events = null
+          activeSubscription.abort?.abort()
+          // A previously queued reconnect belongs to the old stream. Detach
+          // its handle so it cannot pair again after the user disconnects.
+          activeSubscription.abort = null
+          activeSubscription.listener(connectingSnapshot)
+        }
       },
       async requestResultFile(signal?: AbortSignal) {
         return readResult('/api/result', 'POST', signal) as Promise<{

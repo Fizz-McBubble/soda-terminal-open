@@ -6,6 +6,12 @@ import { saveLastScanDiagnostic } from '../scanner/scanFeedback'
 import { sanitizeScanDiagnostic } from '../scanner/diagnostics'
 import userEvent from '@testing-library/user-event'
 import { choosePlayerSelect } from '../testing/choosePlayerSelect'
+import { assetFailureDiagnostic } from '../assetQuickRead/diagnostics'
+import {
+  assetDiagnosticKey,
+  saveAssetDiagnostic,
+  submitAssetFeedback,
+} from '../assetQuickRead/feedback'
 
 // jsdom has no native Popover API; the production-browser check covers its geometry.
 vi.mock('../components/ExplanationPopover', () => ({
@@ -39,7 +45,7 @@ it('opens the public feedback Issues and copies only selected, non-account diagn
 
   expect(screen.getByRole('link', { name: '问题与建议反馈' })).toHaveAttribute(
     'href',
-    'https://github.com/Fizz-McBubble/soda-terminal-feedback/issues',
+    'https://github.com/Fizz-McBubble/soda-terminal-feedback/issues/new/choose',
   )
   expect(screen.getByRole('combobox', { name: '错误阶段' })).not.toBeVisible()
   expect(screen.getByLabelText('简要诊断内容')).not.toBeVisible()
@@ -115,7 +121,7 @@ it('offers the sanitized last failed scan directly on the Help page without requ
       <HelpAndPrivacyPage />
     </MemoryRouter>,
   )
-  expect(screen.getByText('上次扫描遇到问题？可在这里反馈。')).toBeInTheDocument()
+  expect(screen.getByText('上次画面扫描记录，可查看诊断或反馈。')).toBeInTheDocument()
   expect(screen.getByRole('button', { name: '反馈此问题' })).toBeEnabled()
   expect(screen.queryByLabelText('扫描技术诊断内容')).not.toBeInTheDocument()
   expect(screen.getByText(/Cloudflare/)).toHaveTextContent('30 天')
@@ -126,4 +132,48 @@ it('offers the sanitized last failed scan directly on the Help page without requ
   fireEvent.click(screen.getByRole('button', { name: '复制诊断' }))
   await waitFor(() => expect(writeText).toHaveBeenCalledOnce())
   expect(JSON.parse(writeText.mock.calls[0][0])).toEqual(report)
+})
+
+it('restores only the matching last quick-read receipt without sending on help mount or refresh', async () => {
+  const report = assetFailureDiagnostic('waiting')
+  saveAssetDiagnostic(report)
+  const acknowledge = vi.fn<typeof fetch>().mockResolvedValue(
+    new Response(
+      JSON.stringify({
+        status: 'received',
+        reportId: report.reportId,
+        receivedAt: '2026-10-15T00:00:00Z',
+      }),
+    ),
+  )
+  await submitAssetFeedback(report, acknowledge)
+  const fetcher = vi.spyOn(globalThis, 'fetch')
+  const view = render(
+    <MemoryRouter>
+      <HelpAndPrivacyPage />
+    </MemoryRouter>,
+  )
+  expect(screen.getByRole('region', { name: '上次资产快读诊断' })).toBeInTheDocument()
+  expect(screen.getByRole('button', { name: '已发送', hidden: true })).toBeDisabled()
+  expect(fetcher).not.toHaveBeenCalled()
+  view.unmount()
+  saveAssetDiagnostic(assetFailureDiagnostic('result'))
+  const next = render(
+    <MemoryRouter>
+      <HelpAndPrivacyPage />
+    </MemoryRouter>,
+  )
+  expect(screen.queryByRole('button', { name: '已发送', hidden: true })).not.toBeInTheDocument()
+  expect(screen.getByRole('region', { name: '上次资产快读诊断' })).toHaveTextContent(
+    '上次记录：资产快读结果未通过读取检查。',
+  )
+  expect(fetcher).not.toHaveBeenCalled()
+  next.unmount()
+  localStorage.setItem(assetDiagnosticKey, JSON.stringify({ ...report, privatePath: 'private' }))
+  render(
+    <MemoryRouter>
+      <HelpAndPrivacyPage />
+    </MemoryRouter>,
+  )
+  expect(screen.queryByRole('region', { name: '上次资产快读诊断' })).not.toBeInTheDocument()
 })

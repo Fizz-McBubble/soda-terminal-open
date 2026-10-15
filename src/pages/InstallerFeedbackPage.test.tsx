@@ -2,7 +2,11 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { InstallerFeedbackPage } from './InstallerFeedbackPage'
 import type { InstallerFeedbackReport } from '../assetQuickRead/installerFeedback'
-import { consumeInstallerFeedbackFragment } from '../assetQuickRead/installerFeedback'
+import {
+  consumeInstallerFeedbackFragment,
+  saveInstallerReceipt,
+  installerReceiptStorageKey,
+} from '../assetQuickRead/installerFeedback'
 import { StrictMode } from 'react'
 
 const mockReport: InstallerFeedbackReport = {
@@ -53,6 +57,64 @@ describe('InstallerFeedbackPage component', () => {
     expect(
       screen.getByText(/此类提示与安全软件检出不同；仅凭提示无法判断文件安全/),
     ).toBeInTheDocument()
+  })
+
+  it.each(['asset_quick_read_installer', 'screen_scanner_installer'] as const)(
+    'restores the last acknowledged %s report after refresh without sending again',
+    (tool) => {
+      const report: InstallerFeedbackReport =
+        tool === 'screen_scanner_installer'
+          ? {
+              ...mockReport,
+              tool,
+              installerVersion: '1.1.6',
+              stage: 'verify',
+              code: 'runtime_health_probe_timeout',
+              attempts: [],
+            }
+          : mockReport
+      saveInstallerReceipt({ report, receivedAt: '2026-10-15T00:00:00Z' })
+      const fetchMock = vi.fn()
+      global.fetch = fetchMock
+      const first = render(
+        <StrictMode>
+          <InstallerFeedbackPage />
+        </StrictMode>,
+      )
+      expect(screen.getByText(/上次已提交的安装诊断/)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: '已发送' })).toBeDisabled()
+      expect(screen.getByText(`回执编号：${report.reportId}`)).toBeInTheDocument()
+      expect(screen.getByText(`代码：${report.code}`)).toBeInTheDocument()
+      first.unmount()
+      render(<InstallerFeedbackPage initialReport={null} />)
+      expect(screen.getByRole('button', { name: '已发送' })).toBeDisabled()
+      expect(fetchMock).not.toHaveBeenCalled()
+    },
+  )
+
+  it('prefers the new fragment report and never inherits the old history receipt', () => {
+    saveInstallerReceipt({ report: mockReport, receivedAt: '2026-10-15T00:00:00Z' })
+    const current = { ...mockReport, reportId: crypto.randomUUID(), durationMs: 100 }
+    render(<InstallerFeedbackPage initialReport={current} />)
+    expect(screen.getByRole('button', { name: '发送反馈' })).toBeEnabled()
+    expect(screen.queryByText(/上次已提交/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/回执编号/)).not.toBeInTheDocument()
+  })
+
+  it('rejects poisoned history instead of displaying or posting it', () => {
+    localStorage.setItem(
+      installerReceiptStorageKey,
+      JSON.stringify({
+        report: { ...mockReport, privatePath: 'private' },
+        receivedAt: '2026-10-15T00:00:00Z',
+      }),
+    )
+    const fetchMock = vi.fn()
+    global.fetch = fetchMock
+    render(<InstallerFeedbackPage />)
+    expect(screen.getByText(/未检测到有效的安装诊断信息/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '发送反馈' })).not.toBeInTheDocument()
+    expect(fetchMock).not.toHaveBeenCalled()
   })
 
   it('shows scanner installation facts and sends only on explicit action', async () => {

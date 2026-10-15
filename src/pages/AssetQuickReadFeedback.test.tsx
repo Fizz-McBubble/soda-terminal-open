@@ -70,7 +70,7 @@ it('ignores old receipt after report changes and retries failed send with same I
   )
   expect(screen.queryByText('已发送')).toBeNull()
   fireEvent.click(screen.getByText('发送反馈'))
-  await screen.findByText('暂未收到回执，请重试或复制诊断。')
+  await screen.findByText('反馈服务暂不可用，请复制或下载诊断保留，稍后再试。')
   fireEvent.click(screen.getByText('发送反馈'))
   await waitFor(() => expect(fetcher).toHaveBeenCalledTimes(3))
   expect(JSON.parse(fetcher.mock.calls[1][1].body).reportId).toBe(next.reportId)
@@ -126,3 +126,31 @@ it('keeps a named local planning reason out of the anonymous feedback payload', 
   expect(body).not.toContain('合成私有周末队')
   expect(body).not.toContain('plan-private-synthetic')
 })
+
+it.each([
+  [429, '反馈提交过于频繁，请至少等待 30 秒后重试。诊断仍保留在本机。'],
+  [413, '本次诊断未通过接收检查，请复制或下载保留，并通过问题与反馈入口说明提交问题。'],
+  [409, '反馈编号与已接收内容冲突，请保留诊断并通过问题与反馈入口说明，避免反复提交。'],
+])(
+  'shows actionable HTTP %i feedback failure separately from the original diagnostic',
+  async (status, message) => {
+    const report = assetFailureDiagnostic('waiting')
+    saveAssetDiagnostic(report)
+    const fetcher = vi.fn().mockResolvedValue(
+      new Response('private server message', {
+        status: Number(status),
+        headers: { 'Retry-After': '30' },
+      }),
+    )
+    vi.stubGlobal('fetch', fetcher)
+    render(<AssetQuickReadFeedback report={report} />)
+    fireEvent.click(screen.getByText('发送反馈'))
+    await screen.findByText(message)
+    expect(screen.getByRole('button', { name: '发送反馈', hidden: true })).toBeEnabled()
+    expect(screen.getByText('复制诊断')).toBeEnabled()
+    expect(screen.getByText('下载诊断')).toBeEnabled()
+    expect(screen.getAllByText('资产快读未收到完整数据。')).toHaveLength(2)
+    expect(screen.queryByText('private server message')).not.toBeInTheDocument()
+    expect(fetcher).toHaveBeenCalledOnce()
+  },
+)

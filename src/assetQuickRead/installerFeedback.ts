@@ -99,18 +99,18 @@ export function consumeInstallerFeedbackFragment(
   return sanitizeInstallerFeedback(parsed)
 }
 
-export function readInstallerReceipt(
-  report: InstallerFeedbackReport,
+/** Restore only the last validated, acknowledged report; never submit on read. */
+export function readLastInstallerReceipt(
   storage: Storage = localStorage,
 ): InstallerFeedbackReceipt | null {
   try {
     const raw = storage.getItem(installerReceiptStorageKey)
-    if (!raw) return null
+    if (!raw || new TextEncoder().encode(raw).length > contract.maxBytes + 128) return null
     const parsed = JSON.parse(raw) as Record<string, unknown>
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return null
+    if (Object.keys(parsed).length !== 2) return null
     const safeReport = sanitizeInstallerFeedback(parsed.report)
     if (!safeReport) return null
-    if (JSON.stringify(safeReport) !== JSON.stringify(report)) return null
     if (
       typeof parsed.receivedAt !== 'string' ||
       parsed.receivedAt.length > 32 ||
@@ -122,6 +122,14 @@ export function readInstallerReceipt(
   } catch {
     return null
   }
+}
+
+export function readInstallerReceipt(
+  report: InstallerFeedbackReport,
+  storage: Storage = localStorage,
+): InstallerFeedbackReceipt | null {
+  const receipt = readLastInstallerReceipt(storage)
+  return receipt && JSON.stringify(receipt.report) === JSON.stringify(report) ? receipt : null
 }
 
 export function saveInstallerReceipt(

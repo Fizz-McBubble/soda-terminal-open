@@ -10,6 +10,19 @@ export interface ReleaseNote {
 // A local fix or commit is not a published release; add it when that release ships.
 export const releases = [
   {
+    id: '20261015-quick-read-connection-and-feedback',
+    date: '2026-10-15',
+    scope: '资产快读、画面扫描与问题反馈',
+    title: '修复快读启动和旧版升级，完善诊断回执',
+    changes: [
+      '资产快读安装器更新至 1.1.1，包内连接服务为 1.0.7；修复系统保留端口导致的启动失败，连接时自动检查固定备用地址。',
+      '修复特定旧注册仍指向失效目录时无法升级的问题；核对原版文件身份后恢复注册，保留已有结果和账户数据。',
+      '画面扫描撤销连接后及时停止排队或迟到配对；导入复核诊断显示具体类别，方便定位需要确认的结果。',
+      '帮助页可找回上次快读诊断，安装问题反馈刷新后保留成功回执；发送失败显示可重试的原因。',
+      '问题与建议反馈打开 GitHub 分类表单，可按需填写诊断编号。',
+    ],
+  },
+  {
     id: '20261015-box-and-development-closeout',
     date: '2026-10-15',
     scope: '配队、养成、驱动盘与资产快读',

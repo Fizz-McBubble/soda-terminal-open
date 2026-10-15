@@ -127,11 +127,77 @@ export function registerruntimeLifecycleCases1() {
     })
     await runtime.commands.revokePairing()
     expect(revoked).toBe(true)
-    expect(listener).toHaveBeenLastCalledWith(
-      expect.objectContaining({ state: 'connection_failed' }),
-    )
+    expect(listener).toHaveBeenLastCalledWith(expect.objectContaining({ state: 'unchecked' }))
+    const disconnected = listener.mock.calls.at(-1)![0]
+    expect(disconnected.error).toBeUndefined()
+    expect(disconnected.diagnostics).toBeUndefined()
+    expect(disconnected.readiness.helperConnected).toBe(false)
     unsubscribe()
   })
+
+  it.each(['queued', 'pairing'] as const)(
+    'does not let a %s event reconnect renew authorization after the user disconnects',
+    async (reconnectStage) => {
+      vi.useFakeTimers()
+      let stream!: ReadableStreamDefaultController<Uint8Array>
+      let resolveRenewal: ((response: Response) => void) | undefined
+      let tokenRequests = 0
+      const fetchImpl = vi.fn<typeof fetch>(async (input) => {
+        const path = new URL(String(input)).pathname
+        if (path === '/') return new Response(JSON.stringify(nativeIdentity))
+        if (path === '/token') {
+          tokenRequests += 1
+          if (reconnectStage === 'pairing' && tokenRequests === 2)
+            return new Promise<Response>((resolve) => {
+              resolveRenewal = resolve
+            })
+          return new Response(JSON.stringify({ token: 's'.repeat(48) }))
+        }
+        if (path === '/api/revoke') return new Response(JSON.stringify({ revoked: true }))
+        if (path === '/api/retry') return new Response(JSON.stringify(readySnapshot))
+        if (path === '/api/events')
+          return new Response(
+            new ReadableStream({
+              start(controller) {
+                stream = controller
+                controller.enqueue(
+                  new TextEncoder().encode(`data: ${JSON.stringify(readySnapshot)}\n\n`),
+                )
+              },
+            }),
+          )
+        throw new Error(`unexpected_request:${path}`)
+      })
+      const runtime = createScannerAssistantRuntime({ fetchImpl, reconnectDelayMs: 250 })
+      const listener = vi.fn()
+      const unsubscribe = runtime.subscribe(listener)
+      try {
+        await vi.advanceTimersByTimeAsync(0)
+        expect(listener).toHaveBeenLastCalledWith(expect.objectContaining({ state: 'ready' }))
+        stream.error(new Error('helper_events_failed_401'))
+        await vi.advanceTimersByTimeAsync(0)
+        expect(listener).toHaveBeenLastCalledWith(
+          expect.objectContaining({ state: 'connection_failed' }),
+        )
+        if (reconnectStage === 'pairing') {
+          await vi.advanceTimersByTimeAsync(250)
+          expect(resolveRenewal).toBeTypeOf('function')
+        }
+        await runtime.commands.revokePairing()
+        const callsAfterRevoke = fetchImpl.mock.calls.length
+        resolveRenewal?.(new Response(JSON.stringify({ token: 's'.repeat(48) })))
+        await vi.advanceTimersByTimeAsync(1000)
+        expect(fetchImpl).toHaveBeenCalledTimes(callsAfterRevoke)
+        expect(listener).toHaveBeenLastCalledWith(expect.objectContaining({ state: 'unchecked' }))
+        await runtime.commands.retryConnection()
+        await vi.advanceTimersByTimeAsync(0)
+        expect(listener).toHaveBeenLastCalledWith(expect.objectContaining({ state: 'ready' }))
+      } finally {
+        unsubscribe()
+        vi.useRealTimers()
+      }
+    },
+  )
 
   it('shows a disconnected native helper without claiming that installation is missing', async () => {
     const fetchImpl = vi.fn(async () => {

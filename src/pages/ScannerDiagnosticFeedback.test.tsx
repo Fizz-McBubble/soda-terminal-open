@@ -334,7 +334,15 @@ it('matches review guidance to manual calibration and displays the affected coun
     ...makeReport(),
     code: 'scan_import_review_required',
     stage: 'import',
-    counts: { processed: 12, total: 12, reviewRequired: 11 },
+    counts: {
+      processed: 12,
+      total: 12,
+      reviewRequired: 11,
+      unresolvedSet: 11,
+      unresolvedSubStat: 11,
+      invalidValue: 0,
+      otherReview: null,
+    },
   }
   const fetcher = vi.fn()
   vi.stubGlobal('fetch', fetcher)
@@ -342,6 +350,31 @@ it('matches review guidance to manual calibration and displays the affected coun
   fireEvent.click(screen.getByText('查看诊断信息'))
   expect(screen.getByText(/对照盘面手动校准，再确认导入/)).toBeVisible()
   expect(screen.getByText('需校准 11 张')).toBeVisible()
+  expect(screen.getByText(/导入检查已保护性暂停/)).toBeVisible()
+  expect(screen.getByText(/无需先发送反馈/)).toBeVisible()
+  expect(screen.getByText('套装名称未确认：11 张')).toBeVisible()
+  expect(screen.getByText('副词条信息不完整：11 张')).toBeVisible()
+  expect(screen.getByText(/分类数量不相加/)).toBeVisible()
+  expect(screen.queryByText(/词条或等级校验未通过：/)).not.toBeInTheDocument()
+  expect(screen.queryByText(/其他检查问题：/)).not.toBeInTheDocument()
+  expect(fetcher).not.toHaveBeenCalled()
+})
+
+it('restores protective review details from local history without automatically sending them', () => {
+  const report = sanitizeScanDiagnostic({
+    ...makeReport(),
+    code: 'scan_import_review_required',
+    stage: 'import',
+    counts: { reviewRequired: 1, invalidValue: 1 },
+  })!
+  saveLastScanDiagnostic(report)
+  const fetcher = vi.fn()
+  vi.stubGlobal('fetch', fetcher)
+  render(<ScannerDiagnosticFeedback report={null} compact />)
+  expect(screen.getByText(/上次：导入检查已保护性暂停/)).toBeVisible()
+  fireEvent.click(screen.getByText('查看诊断'))
+  expect(screen.getByText('词条或等级校验未通过：1 张')).toBeVisible()
+  expect(screen.queryByText(/分类数量不相加/)).not.toBeInTheDocument()
   expect(fetcher).not.toHaveBeenCalled()
 })
 

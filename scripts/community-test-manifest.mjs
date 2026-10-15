@@ -188,6 +188,7 @@ export const communityTests = Object.freeze([
   'src/scanner/runtime.test.ts',
   'src/scanner/runtimeHelperVersion.test.ts',
   'src/scanner/toolUpgradeNotice.test.ts',
+  'src/scanner/versionConsistencyAudit.test.ts',
   'src/warehouse/absoluteDiscRetention.test.ts',
   'src/warehouse/approvedRarityRetention.test.ts',
   'src/warehouse/reviewedRetentionActionKits.test.ts',

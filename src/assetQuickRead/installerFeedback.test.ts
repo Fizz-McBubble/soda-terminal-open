@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   consumeInstallerFeedbackFragment,
   readInstallerReceipt,
+  readLastInstallerReceipt,
+  installerReceiptStorageKey,
   sanitizeInstallerFeedback,
   saveInstallerReceipt,
   submitInstallerFeedback,
@@ -153,11 +155,39 @@ describe('installerFeedback sanitization and fragment consumption', () => {
     expect(readInstallerReceipt(sampleReport, mockStorage)).toBeNull()
     const receipt = { report: sampleReport, receivedAt: '2026-10-12T12:00:00.000Z' }
     saveInstallerReceipt(receipt, mockStorage)
+    expect(readLastInstallerReceipt(mockStorage)).toEqual(receipt)
     expect(readInstallerReceipt(sampleReport, mockStorage)).toEqual(receipt)
 
     // Different report does not match receipt
     const otherReport = { ...sampleReport, reportId: '00000000-0000-4000-8000-000000000002' }
     expect(readInstallerReceipt(otherReport, mockStorage)).toBeNull()
+  })
+
+  it.each([
+    'null',
+    '[]',
+    '{',
+    JSON.stringify({ report: sampleReport, receivedAt: 'invalid' }),
+    JSON.stringify({
+      report: { ...sampleReport, privatePath: 'private' },
+      receivedAt: '2026-10-15T00:00:00Z',
+    }),
+    JSON.stringify({ report: sampleReport, receivedAt: '2026-10-15T00:00:00Z', extra: 'private' }),
+    ' '.repeat(5000),
+  ])('rejects malformed or untrusted stored history safely', (raw) => {
+    const storage = {
+      getItem: (key: string) => (key === installerReceiptStorageKey ? raw : null),
+    } as Storage
+    expect(readLastInstallerReceipt(storage)).toBeNull()
+  })
+
+  it('keeps unavailable local storage a safe empty history', () => {
+    const storage = {
+      getItem: () => {
+        throw new Error('storage blocked')
+      },
+    } as unknown as Storage
+    expect(readLastInstallerReceipt(storage)).toBeNull()
   })
 
   it('submits feedback with credentials omit and returns receipt on success', async () => {

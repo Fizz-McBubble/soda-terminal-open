@@ -128,8 +128,9 @@ const guidance: Record<string, Guidance> = {
     nextAction: '重新核对接收账户和导入检查，再确认更新；仍失败时可反馈问题。',
   },
   scan_import_review_required: {
-    problem: '部分驱动盘的套装、词条或其他信息未通过检查，账户仓库尚未更新。',
-    nextAction: '对照盘面手动校准，再确认导入；无法确认时可反馈问题或重新扫描。',
+    problem: '导入检查已保护性暂停，部分驱动盘信息需要复核，账户仓库尚未更新。',
+    nextAction:
+      '对照盘面手动校准，再确认导入；无需先发送反馈。无法完成校准或认为检查有误时，可反馈此问题；无法确认盘面时可重新扫描。',
   },
   scan_file_invalid: {
     problem: '所选文件未通过格式检查。',

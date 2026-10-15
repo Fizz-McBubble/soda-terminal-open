@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { AssetQuickReadBridgeClient, assetQuickReadBridgeUrl } from './bridgeClient'
+import {
+  AssetQuickReadBridgeClient,
+  assetQuickReadBridgeUrl,
+  assetQuickReadBridgeUrls,
+} from './bridgeClient'
 
 const jobId = '1e80b26d-39fa-41a5-afbf-fca374acb6ee'
 const health = {
@@ -95,6 +99,25 @@ describe('independent asset bridge client', () => {
     })
     expect(request).toMatchObject({ credentials: 'omit', redirect: 'error', cache: 'no-store' })
   })
+  it('discovers a fixed fallback without sending account data or a token to the unavailable port', async () => {
+    const fetcher = vi.fn<typeof fetch>(async (url) => {
+      if (String(url).startsWith(assetQuickReadBridgeUrl)) throw new TypeError('excluded port')
+      if (String(url).endsWith('/health')) return new Response(JSON.stringify(health))
+      if (String(url).endsWith('/connect')) return new Response(JSON.stringify(session))
+      return new Response(JSON.stringify(job), { status: 202 })
+    })
+    const client = new AssetQuickReadBridgeClient(fetcher)
+    await client.connect()
+    await client.start("soda-source-ref:24d5780e541a1a1ad1393e8962be6e18", 'account-synthetic')
+    expect(fetcher.mock.calls.map(([url]) => url)).toEqual([
+      `${assetQuickReadBridgeUrls[0]}/health`,
+      `${assetQuickReadBridgeUrls[1]}/health`,
+      `${assetQuickReadBridgeUrls[1]}/connect`,
+      `${assetQuickReadBridgeUrls[1]}/jobs`,
+    ])
+    expect(fetcher.mock.calls[0]?.[1]?.headers).not.toHaveProperty('Authorization')
+    expect(fetcher.mock.calls[1]?.[1]?.headers).not.toHaveProperty('Authorization')
+  })
   it('rejects incompatible health before pairing or any start', async () => {
     const fetcher = transport([{ body: { ...health, protocolVersion: 9 } }])
     await expect(new AssetQuickReadBridgeClient(fetcher).connect()).rejects.toThrow()
@@ -130,7 +153,8 @@ describe('independent asset bridge client', () => {
 it('launches only from explicit connect after probing, then pairs without starting a capture', async () => {
   vi.useFakeTimers()
   const fetcher = transport([{ body: health }, { body: session }])
-  fetcher.mockRejectedValueOnce(new TypeError('service not running'))
+  for (let index = 0; index < assetQuickReadBridgeUrls.length; index++)
+    fetcher.mockRejectedValueOnce(new TypeError('service not running'))
   const launch = vi.fn()
   const pending = new AssetQuickReadBridgeClient(fetcher, launch).connect({ launchIfMissing: true })
   await vi.advanceTimersByTimeAsync(350)
@@ -138,6 +162,8 @@ it('launches only from explicit connect after probing, then pairs without starti
   expect(launch).toHaveBeenCalledOnce()
   expect(fetcher.mock.calls.map((call) => call[0])).toEqual([
     `${assetQuickReadBridgeUrl}/health`,
+    `${assetQuickReadBridgeUrls[1]}/health`,
+    `${assetQuickReadBridgeUrls[2]}/health`,
     `${assetQuickReadBridgeUrl}/health`,
     `${assetQuickReadBridgeUrl}/connect`,
   ])
@@ -156,7 +182,7 @@ it('bounds even a non-settling transport and aborts a launch wait without pairin
   abort.abort()
   await expect(pending).rejects.toMatchObject({ name: 'AbortError' })
   await vi.advanceTimersByTimeAsync(4000)
-  expect(fetcher).toHaveBeenCalledOnce()
+  expect(fetcher).toHaveBeenCalledTimes(2)
 })
 it('accepts a 1500ms delayed health response without rejecting at 1000ms', async () => {
   vi.useFakeTimers()
@@ -221,7 +247,7 @@ it('bounds the last health request by the remaining connection deadline and neve
   const launch = vi.fn()
   const fetcher = vi.fn<typeof fetch>(async (url) => {
     if (!String(url).endsWith('/health')) throw new Error('must not pair or capture')
-    if (++attempts === 1) throw new TypeError('not listening')
+    if (++attempts <= assetQuickReadBridgeUrls.length) throw new TypeError('not listening')
     return new Promise<Response>((resolve) =>
       setTimeout(() => resolve(new Response(JSON.stringify(health))), 1000),
     )
@@ -233,6 +259,6 @@ it('bounds the last health request by the remaining connection deadline and neve
   await failed
   await vi.advanceTimersByTimeAsync(1000)
   expect(launch).toHaveBeenCalledOnce()
-  expect(attempts).toBe(2)
+  expect(attempts).toBe(4)
   await expect(client.start("soda-source-ref:24d5780e541a1a1ad1393e8962be6e18", 'account-synthetic')).rejects.toThrow('先连接')
 })

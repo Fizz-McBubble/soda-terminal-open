@@ -13,6 +13,7 @@ import {
 } from '../scanner/scanFeedback'
 import { DiagnosticEntry, DiagnosticPopover } from './DiagnosticFeedbackPresentation'
 import { scannerDiagnosticGuidance } from './scannerDiagnosticGuidance'
+import { importReviewDiagnosticCategories } from '../scanner/importReviewDiagnostic'
 import './scanner-diagnostic-feedback.css'
 import './scanner-guide.css'
 import type { ScannerAssistantSnapshot } from '../scanner/runtime'
@@ -183,6 +184,11 @@ export function ScannerDiagnosticFeedback({
   const metadata: string[] = []
   if (typeof safe.counts.reviewRequired === 'number' && safe.counts.reviewRequired > 0)
     metadata.push(`需校准 ${safe.counts.reviewRequired} 张`)
+  if (safe.code === 'scan_import_review_required') {
+    const categories = importReviewDiagnosticCategories(safe.counts)
+    for (const { label, count } of categories) metadata.push(`${label}：${count} 张`)
+    if (categories.length > 1) metadata.push('同一张盘可能需要核对多项，分类数量不相加。')
+  }
   if (safe.counts.processed !== null)
     metadata.push(
       `已处理 ${safe.counts.processed}${safe.counts.total !== null ? ` / ${safe.counts.total}` : ''} 张`,

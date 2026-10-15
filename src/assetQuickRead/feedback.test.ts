@@ -10,6 +10,8 @@ import {
   readAssetReceipt,
   saveAssetDiagnostic,
   submitAssetFeedback,
+  AssetFeedbackSubmissionError,
+  assetFeedbackFailureMessage,
 } from './feedback'
 import { sanitizeScanFeedbackPayload } from '../../deploy/cloudflare/scan-feedback.mjs'
 import { assetQuickReadRelease } from './distribution'
@@ -55,6 +57,75 @@ it('distinguishes an unavailable transport without claiming a specific browser o
   expect(JSON.stringify(report)).not.toContain('private')
 })
 
+it.each([
+  [404, 'unavailable'],
+  [503, 'unavailable'],
+  [429, 'rate-limited'],
+  [400, 'rejected'],
+  [413, 'rejected'],
+  [409, 'conflict'],
+  [500, 'retry'],
+])(
+  'classifies HTTP %i without persisting a receipt or changing the diagnostic',
+  async (status, code) => {
+    const report = assetFailureDiagnostic('waiting')
+    saveAssetDiagnostic(report)
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response('private server details', {
+        status: Number(status),
+        headers: { 'Retry-After': '30' },
+      }),
+    )
+    await expect(submitAssetFeedback(report, fetcher)).rejects.toMatchObject({ code })
+    expect(readAssetReceipt(report)).toBeNull()
+    expect(readAssetDiagnostic()).toEqual(report)
+    expect(fetcher).toHaveBeenCalledOnce()
+  },
+)
+
+it.each(['null', '[]', '{', '{"status":"received"}'])(
+  'rejects malformed receipt %s safely',
+  async (body) => {
+    const report = assetFailureDiagnostic('result')
+    await expect(
+      submitAssetFeedback(report, vi.fn<typeof fetch>().mockResolvedValue(new Response(body))),
+    ).rejects.toMatchObject({ code: 'invalid-receipt' })
+    expect(readAssetReceipt(report)).toBeNull()
+  },
+)
+
+it('classifies transport failures without exposing their private messages', async () => {
+  const report = assetFailureDiagnostic('connection')
+  const error = await submitAssetFeedback(
+    report,
+    vi.fn<typeof fetch>().mockRejectedValue(new TypeError('private endpoint and path')),
+  ).catch((value: unknown) => value)
+  expect(error).toMatchObject({ code: 'network' })
+  expect(assetFeedbackFailureMessage(error)).toContain('暂未确认送达')
+  expect(assetFeedbackFailureMessage(error)).not.toContain('private')
+})
+
+it.each(['30', 'bad', '-3', '999999999'])(
+  'bounds Retry-After %s and never automatically resends',
+  async (retryAfter) => {
+    const report = assetFailureDiagnostic('waiting')
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response('', {
+        status: 429,
+        headers: { 'Retry-After': retryAfter },
+      }),
+    )
+    const error = await submitAssetFeedback(report, fetcher).catch((value: unknown) => value)
+    expect(error).toBeInstanceOf(AssetFeedbackSubmissionError)
+    expect(error).toMatchObject({
+      code: 'rate-limited',
+      retryAfterSeconds: retryAfter === '30' ? 30 : undefined,
+    })
+    expect(fetcher).toHaveBeenCalledOnce()
+    expect(assetFeedbackFailureMessage(error)).toContain('反馈提交过于频繁')
+  },
+)
+
 it.each(['import_recovery_limit_reached', 'import_snapshot_reused'] as const)(
   'passes the fixed %s import reason through the cloud allowlist without the local explanation',
   (code) => {
@@ -85,13 +156,13 @@ it('keeps the released bridge version, final counts and timing through the cloud
       counts: { agents: 33, discs: 374, engines: 1 },
       candidateAvailable: false,
     },
-    assetQuickReadRelease.bridgeVersion ?? '1.0.6',
+    assetQuickReadRelease.bridgeVersion ?? '1.0.7',
     Date.parse('2026-10-11T00:03:00Z'),
   )
-  expect(assetQuickReadRelease.bridgeVersion).toBe('1.0.6')
-  expect(assetQuickReadRelease.version).toBe('1.1.0')
+  expect(assetQuickReadRelease.bridgeVersion).toBe('1.0.7')
+  expect(assetQuickReadRelease.version).toBe('1.1.1')
   expect(report).toMatchObject({
-    versions: { bridge: '1.0.6', protocol: '1' },
+    versions: { bridge: '1.0.7', protocol: '1' },
     counts: { agents: 33, discs: 374 },
     durationMs: 180000,
     evidence: { jobState: 'timed_out' },

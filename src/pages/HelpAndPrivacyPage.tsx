@@ -2,13 +2,16 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { PlayerSelect } from '../components/PlayerSelect'
 import { readLastScanDiagnostic } from '../scanner/scanFeedback'
+import { readAssetDiagnostic } from '../assetQuickRead/feedback'
+import { AssetQuickReadFeedback } from './AssetQuickReadFeedback'
 import { ScannerDiagnosticFeedback } from './ScannerDiagnosticFeedback'
 import { ScannerGuide } from './ScannerGuide'
 import { UsageStatisticsPreference } from '../usageStatistics/UsageStatistics'
 import './help-and-privacy.css'
 
 const configuredFeedbackUrl = import.meta.env.VITE_SODA_FEEDBACK_URL?.trim()
-const defaultFeedbackUrl = 'https://github.com/Fizz-McBubble/soda-terminal-feedback/issues'
+const defaultFeedbackUrl =
+  'https://github.com/Fizz-McBubble/soda-terminal-feedback/issues/new/choose'
 const feedbackUrl = configuredFeedbackUrl?.startsWith('https://')
   ? configuredFeedbackUrl
   : defaultFeedbackUrl
@@ -36,6 +39,7 @@ export function HelpAndPrivacyPage() {
   const [stage, setStage] = useState<string>(diagnosticStages[0][1])
   const [copyState, setCopyState] = useState('')
   const [lastScanDiagnostic] = useState(readLastScanDiagnostic)
+  const [lastAssetDiagnostic] = useState(readAssetDiagnostic)
 
   async function copyDiagnostic() {
     try {
@@ -91,9 +95,12 @@ export function HelpAndPrivacyPage() {
             </p>
             {lastScanDiagnostic ? (
               <>
-                <p>上次扫描遇到问题？可在这里反馈。</p>
+                <p>上次画面扫描记录，可查看诊断或反馈。</p>
                 <ScannerDiagnosticFeedback report={lastScanDiagnostic} />
               </>
+            ) : null}
+            {lastAssetDiagnostic ? (
+              <AssetQuickReadFeedback report={lastAssetDiagnostic} previous />
             ) : null}
             <p>点击反馈才会将问题诊断发送至 Cloudflare，保留 30 天；不含账户和驱动盘资料。</p>
           </div>
@@ -110,7 +117,7 @@ export function HelpAndPrivacyPage() {
               问题与建议反馈
             </a>
             <p className="help-privacy__feedback-note">
-              请勿公开上传账户备份、游戏 UID 或扫描截图。
+              GitHub 公开讨论，提交前请检查内容；请勿公开上传账户备份、游戏 UID 或扫描截图。
             </p>
             <details className="help-privacy__diagnostic">
               <summary>简要诊断</summary>

@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { FileText, CheckCircle2, AlertCircle } from 'lucide-react'
 import {
   readInstallerReceipt,
+  readLastInstallerReceipt,
   submitInstallerFeedback,
   type InstallerFeedbackReceipt,
   type InstallerFeedbackReport,
@@ -109,7 +110,8 @@ export function InstallerFeedbackPage({
   initialReport?: InstallerFeedbackReport | null
 }) {
   // The entry point consumes the fragment once, before React StrictMode renders.
-  const report = initialReport
+  const [restoredReceipt] = useState(() => (initialReport ? null : readLastInstallerReceipt()))
+  const report = initialReport ?? restoredReceipt?.report ?? null
 
   const [receipt, setReceipt] = useState<InstallerFeedbackReceipt | null>(() => {
     if (!report) return null
@@ -205,6 +207,8 @@ export function InstallerFeedbackPage({
             <span className="installer-feedback-version">安装器版本 {report.installerVersion}</span>
           </div>
         </header>
+
+        {restoredReceipt ? <p>上次已提交的安装诊断；此记录不代表当前安装仍然失败。</p> : null}
 
         <div className="installer-feedback-guidance">
           <p>
