@@ -4,7 +4,11 @@ import {
   scannerDistributionManifest,
   type ScannerDistributionSnapshot,
 } from '../scanner/distribution'
-import { downloadScannerInstaller } from '../scanner/installerDownload'
+import {
+  downloadScannerInstaller,
+  type InstallerTransferProgress,
+} from '../scanner/installerDownload'
+import { installerTransferStatus } from '../scanner/installerTransferStatus'
 import { readInstallerRelease, type InstallerRelease } from '../scanner/installerRelease'
 import './scanner-installer-action.css'
 import { compareToolVersion } from '../scanner/toolUpgradeNotice'
@@ -30,6 +34,7 @@ export function ScannerInstallerAction({
   const [state, setState] = useState<DownloadState>('idle')
   const publishStatus = useContext(ScannerPreparationStatus)
   const [bytes, setBytes] = useState(0)
+  const [transfer, setTransfer] = useState<InstallerTransferProgress | null>(null)
   const [timedOut, setTimedOut] = useState(false)
   const [connectionNotice, setConnectionNotice] = useState('')
   const [release, setRelease] = useState<InstallerRelease | null>(null)
@@ -128,16 +133,18 @@ export function ScannerInstallerAction({
     const current = () => mounted.current && request.current === controller
     const deadline = setTimeout(
       () => controller.abort(new DOMException('download_timeout', 'TimeoutError')),
-      10 * 60 * 1000,
+      60 * 1000,
     )
     setState('downloading')
     setBytes(0)
+    setTransfer(null)
     setTimedOut(false)
     setConnectionNotice('')
     leftAfterDownload.current = false
     autoConnectAttempted.current = false
     try {
       const latestRelease = await readInstallerRelease(controller.signal)
+      clearTimeout(deadline)
       if (!current()) return
       setRelease(latestRelease)
       const result = await downloadScannerInstaller({
@@ -148,6 +155,9 @@ export function ScannerInstallerAction({
         signal: controller.signal,
         onProgress: (received) => {
           if (current()) setBytes(received)
+        },
+        onTransfer: (progress) => {
+          if (current()) setTransfer(progress)
         },
         onSaving: () => {
           if (current()) setState('saving')
@@ -182,14 +192,16 @@ export function ScannerInstallerAction({
         ? '下载已取消'
         : state === 'error'
           ? timedOut
-            ? '下载超时'
-            : '下载未完成'
+            ? '连接超时，请重新下载以继续'
+            : '下载未完成，请重试'
           : upgradeNotice ||
             (update && distribution.message.includes('有新版本') ? distribution.message : ''))
   const hidden =
     scannerDistributionManifest.runtime.releaseState !== 'published' ||
     (distribution.state === 'ready' && !update && !pending)
-  const preparationMessage = hidden ? '' : pending ? progressText : message
+  const transferText =
+    state === 'downloading' && transfer ? installerTransferStatus(transfer) : progressText
+  const preparationMessage = hidden ? '' : pending ? transferText : message
   useEffect(() => {
     publishStatus?.({ text: preparationMessage, pending })
     return () => publishStatus?.({ text: '', pending: false })
@@ -237,7 +249,7 @@ export function ScannerInstallerAction({
             <progress
               className="scanner-installer__progress"
               aria-label="画面扫描下载进度"
-              aria-valuetext={progressText}
+              aria-valuetext={`${progressText} · ${transferText}`}
               value={bytes}
               max={expectedSize}
             />
@@ -257,9 +269,9 @@ export function ScannerInstallerAction({
           </>
         ) : null}
       </div>
-      {message && !publishStatus ? (
+      {preparationMessage && !publishStatus ? (
         <div className="scanner-installer__feedback" role="status">
-          <span className="scanner-installer__notice">{message}</span>
+          <span className="scanner-installer__notice">{preparationMessage}</span>
         </div>
       ) : null}
     </div>

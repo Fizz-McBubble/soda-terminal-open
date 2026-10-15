@@ -28,6 +28,8 @@ import {
 } from '../assetQuickRead/directoryPreference'
 import {
   assetQuickReadErrorMessage as message,
+  assetQuickReadConnectionErrorMessage,
+  assetQuickReadConnectionMessage,
   assetQuickReadJobActive as active,
   type Bridge,
   type AssetQuickReadControllerProps as Props,
@@ -260,7 +262,7 @@ function AccountBoundQuickRead({
       if (scope === generation.current) {
         setConnected(false)
         recordFailure('connection', failure, null)
-        setError(message(failure))
+        setError(assetQuickReadConnectionErrorMessage(failure))
       }
       throw failure
     } finally {
@@ -528,6 +530,12 @@ function AccountBoundQuickRead({
     state === 'error' ||
     Boolean(error) ||
     (state === 'received' && Boolean(review?.issue || (review && !review.candidate.importable)))
+  const connectionError =
+    error &&
+    diagnostic &&
+    (diagnostic.stage === 'connection' || diagnostic.code === 'origin_not_allowed')
+      ? assetQuickReadConnectionMessage(diagnostic.code)
+      : ''
   const currentStatusDiagnostic = useMemo(
     () => ({
       ...assetFailureDiagnostic(
@@ -653,7 +661,7 @@ function AccountBoundQuickRead({
       remainingSeconds={job?.readyAt ? (job.remainingSeconds ?? undefined) : undefined}
       transactionNotice="导入会更新本次读到的代理人养成与驱动盘，之后仍可自行修改。导入前自动保存恢复副本；未读取的资产与盘标签保留。"
       errorMessage={
-        (workbench ? '' : error) ||
+        (workbench ? connectionError : error) ||
         (connected && !targetAccountId
           ? '请先在页面顶部选择目标账户。'
           : connected && !directory.trim() && state === 'idle'

@@ -88,7 +88,7 @@ it('replaces prepared-download feedback with a new failure and lets a later down
     vi.fn().mockImplementation(() => Promise.resolve(new Response(executable))),
   )
   const props = {
-    onConnect: vi.fn().mockRejectedValue(new Error('synthetic connection failed')),
+    onConnect: vi.fn(),
     onStart: vi.fn(),
     downloadAvailable: true,
     installer: <AssetQuickReadInstallerAction release={release} />,
@@ -114,8 +114,17 @@ it('replaces prepared-download feedback with a new failure and lets a later down
   fireEvent.click(screen.getByRole('button', { name: '重新下载' }))
   await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('文件已准备'))
   expect(screen.queryByText('本次实际读取失败')).not.toBeInTheDocument()
+  props.onConnect.mockImplementationOnce(async () => {
+    // The real Controller clears its previous error before probing. A retained
+    // read failure is not an error supplied by this new connection request.
+    view.rerender(<AssetQuickReadEntry {...props} />)
+    throw new Error('synthetic connection failed')
+  })
   fireEvent.click(screen.getByRole('button', { name: '连接资产快读' }))
-  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('资产快读连接未完成'))
+  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('未能连接资产快读'))
+  expect(screen.getByRole('status')).toHaveTextContent('请确认工具已运行')
+  expect(screen.queryByText('本次实际读取失败')).not.toBeInTheDocument()
+  expect(screen.queryByText('synthetic connection failed')).not.toBeInTheDocument()
   expect(screen.queryByText(/文件已准备/)).not.toBeInTheDocument()
   expect(screen.getAllByRole('status')).toHaveLength(1)
 })

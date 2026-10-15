@@ -6,6 +6,8 @@ import {
   type AssetQuickReadRelease,
 } from '../assetQuickRead/distribution'
 import { downloadAssetQuickReadInstaller } from '../assetQuickRead/installerDownload'
+import type { InstallerTransferProgress } from '../scanner/installerDownload'
+import { installerTransferStatus } from '../scanner/installerTransferStatus'
 import './scanner-installer-action.css'
 import './AssetQuickReadInstallerAction.css'
 import { assetQuickReadUpgradeNotice } from '../assetQuickRead/upgradeNotice'
@@ -32,6 +34,7 @@ export function AssetQuickReadInstallerAction({
   const [state, setState] = useState<State>('idle')
   const publishStatus = useContext(ScannerPreparationStatus)
   const [bytes, setBytes] = useState(0)
+  const [transfer, setTransfer] = useState<InstallerTransferProgress | null>(null)
   const [notice, setNotice] = useState('')
   const [connecting, setConnecting] = useState(false)
   const request = useRef<AbortController | null>(null)
@@ -114,6 +117,7 @@ export function AssetQuickReadInstallerAction({
     attempted.current = false
     setState('downloading')
     setBytes(0)
+    setTransfer(null)
     setNotice('')
     try {
       const result = await downloadAssetQuickReadInstaller({
@@ -121,6 +125,9 @@ export function AssetQuickReadInstallerAction({
         signal: controller.signal,
         onProgress: (value) => {
           if (current()) setBytes(value)
+        },
+        onTransfer: (progress) => {
+          if (current()) setTransfer(progress)
         },
         onSaving: () => {
           if (current()) setState('saving')
@@ -135,7 +142,7 @@ export function AssetQuickReadInstallerAction({
         restoreFocus.current ||= document.activeElement === cancelButton.current
         setState(controller.signal.aborted ? 'cancelled' : 'error')
         if (error instanceof DOMException && error.name === 'TimeoutError')
-          setNotice('下载超时，请重试。')
+          setNotice('连接超时，请重新下载以继续。')
       }
     } finally {
       if (request.current === controller) request.current = null
@@ -146,7 +153,9 @@ export function AssetQuickReadInstallerAction({
       ? '正在准备文件'
       : `下载中 ${Math.min(100, Math.floor((bytes / (release.size ?? 1)) * 100))}%`
   const feedback = pending
-    ? progress
+    ? state === 'downloading' && transfer
+      ? installerTransferStatus(transfer)
+      : progress
     : connected
       ? upgradeNotice || ''
       : notice ||
@@ -196,7 +205,7 @@ export function AssetQuickReadInstallerAction({
             <progress
               className="scanner-installer__progress"
               aria-label="资产快读下载进度"
-              aria-valuetext={progress}
+              aria-valuetext={`${progress} · ${feedback}`}
               value={bytes}
               max={release.size ?? 1}
             />

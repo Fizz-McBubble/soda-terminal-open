@@ -223,6 +223,22 @@ it('connection is a guarded probe and never grants readiness or starts capture i
   expect(onStart).not.toHaveBeenCalled()
 })
 
+it('keeps unknown connection exceptions private and gives neutral tool and browser checks', async () => {
+  render(
+    <AssetQuickReadEntry
+      onConnect={vi.fn().mockRejectedValue(new Error("soda-source-ref:20feec9dcee1b2af1b444b7eb84079ef"))}
+      renderParts={({ preparation }) => preparation}
+    />,
+  )
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '连接资产快读' })))
+  expect(screen.getByRole('status')).toHaveTextContent('请确认工具已运行')
+  expect(screen.getByRole('status')).toHaveTextContent('浏览器的网站权限')
+  expect(screen.getByRole('status')).not.toHaveTextContent('安装目录')
+  expect(document.body).not.toHaveTextContent('Private')
+  expect(document.body).not.toHaveTextContent('synthetic-secret')
+  expect(screen.getByRole('button', { name: '连接资产快读' })).toBeEnabled()
+})
+
 it('uses only supplied elapsed and remaining values, and advances to checking immediately', () => {
   const { rerender } = render(
     <AssetQuickReadEntry

@@ -2,9 +2,80 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { createEdge } from './edge.mjs'
 import scannerRelease from '../../public/downloads/scanner-installer-release.v1.json' with { type: 'json' }
-import { assetQuickReadInstallerRelease } from './asset-quick-read-release.mjs'
+import {
+  assetQuickReadInstallerRelease,
+  assetQuickReadInstallerPath,
+} from './asset-quick-read-release.mjs'
+import { installerChunkSize } from './installer-chunk-cache.mjs'
 
 const origin = 'https://sodaterminal.com'
+
+test('edge forwards waitUntil for both pinned installer chunk caches', async (t) => {
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'caches')
+  const entries = new Map(),
+    pending = []
+  const ctx = {
+    waitUntil(p) {
+      pending.push(p)
+    },
+  }
+  Object.defineProperty(globalThis, 'caches', {
+    configurable: true,
+    value: {
+      default: {
+        async match(key) {
+          return entries.get(key.url)?.clone()
+        },
+        async put(key, response) {
+          assert.equal(response.status, 200)
+          entries.set(key.url, new Response(await response.arrayBuffer(), response))
+        },
+      },
+    },
+  })
+  t.after(() => {
+    if (previous) Object.defineProperty(globalThis, 'caches', previous)
+    else delete globalThis.caches
+  })
+  for (const [path, release] of [
+    ['/downloads/Soda-Scanner-Setup.exe', scannerRelease],
+    [assetQuickReadInstallerPath, assetQuickReadInstallerRelease],
+  ]) {
+    let calls = 0
+    const start = Math.floor((release.size - 1) / installerChunkSize) * installerChunkSize
+    const data = new Uint8Array(release.size - start)
+    const edge = createEdge({
+      fetcher: async () => {
+        calls++
+        return new Response(data, {
+          status: 206,
+          headers: {
+            'content-length': String(data.length),
+            'content-range': `bytes ${start}-${release.size - 1}/${release.size}`,
+            'content-type': 'application/octet-stream',
+          },
+        })
+      },
+    })
+    for (let n = 0; n < 2; n++) {
+      const response = await edge.fetch(
+        new Request(`${origin}${path}`, {
+          headers: {
+            range: `bytes=${start}-${release.size - 1}`,
+            'if-range': `"${release.sha256}"`,
+          },
+        }),
+        env,
+        ctx,
+      )
+      assert.equal(response.status, 206)
+      assert.equal((await response.arrayBuffer()).byteLength, data.length)
+      await Promise.all(pending)
+    }
+    assert.equal(calls, 1)
+  }
+  assert.equal(entries.size, 2)
+})
 const env = {
   SODA_USAGE_STATISTICS: 'enabled',
   SODA_PUBLIC_ORIGIN: origin,

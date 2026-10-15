@@ -216,7 +216,7 @@ export function createEdge({
   const installerDownload = createInstallerDownload({ fetcher })
   const assetQuickReadDownload = createAssetQuickReadInstallerDownload({ fetcher })
   return {
-    async fetch(request, env) {
+    async fetch(request, env, ctx) {
       const url = new URL(request.url)
       if (url.pathname === installerPath || url.pathname === assetQuickReadInstallerPath) {
         if (['GET', 'HEAD'].includes(request.method)) {
@@ -224,8 +224,8 @@ export function createEdge({
           if (limited) return limited
         }
         return url.pathname === installerPath
-          ? installerDownload(request)
-          : assetQuickReadDownload(request)
+          ? installerDownload(request, ctx)
+          : assetQuickReadDownload(request, ctx)
       }
       if (url.pathname === '/api' || url.pathname.startsWith('/api/'))
         return reply(410, '此站仅提供本机计算，不提供或转发在线计算 API。')

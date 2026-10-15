@@ -10,6 +10,18 @@ export interface ReleaseNote {
 // A local fix or commit is not a published release; add it when that release ships.
 export const releases = [
   {
+    id: '20261016-installer-download-and-connection',
+    date: '2026-10-16',
+    scope: '工具下载与连接',
+    title: '优化安装包下载恢复，修复快读备用连接',
+    changes: [
+      '画面扫描与资产快读下载支持分块续传，中断、取消或刷新后可继续已完成部分；浏览器存储不可用时保留当页重试。',
+      '优化官网安装包缓存与慢网重试，在原状态区显示速度和续传进度；首次下载速度仍受网络和上游影响。',
+      '修复资产快读使用备用连接地址时被网页安全策略拦截的问题，保留更明确的连接失败原因。',
+      '本次更新网页与下载服务，沿用现有画面扫描1.1.7和资产快读1.1.1安装包。',
+    ],
+  },
+  {
     id: '20261015-box-general-and-panel-integration',
     date: '2026-10-15',
     scope: 'BOX、养成面板、驱动盘与备份',

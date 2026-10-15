@@ -348,6 +348,7 @@ export async function prepare({
       'deploy/cloudflare/edge.mjs',
       'deploy/cloudflare/scan-feedback.mjs',
       'deploy/cloudflare/scanner-installer.mjs',
+      'deploy/cloudflare/installer-chunk-cache.mjs',
       'deploy/cloudflare/asset-quick-read-installer.mjs',
       'deploy/cloudflare/asset-quick-read-release.mjs',
       'src/assetQuickRead/releaseManifest.json',

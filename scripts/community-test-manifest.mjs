@@ -195,6 +195,8 @@ export const communityTests = Object.freeze([
   'src/pages/ScannerTargetAccountPicker.test.tsx',
   'src/pages/ScannerAssistantPage.test.tsx',
   'src/scanner/installerDownload.test.ts',
+  'src/pages/InstallerTransferStatus.test.tsx',
+  'src/scanner/installerDownloadCache.test.ts',
   'src/scanner/installerRelease.test.ts',
   'src/scanner/diagnostics.test.ts',
   'src/scanner/scanFeedback.test.tsx',

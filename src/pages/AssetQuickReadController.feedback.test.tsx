@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { beforeEach, expect, it, vi } from 'vitest'
 import {
   bridge,
+  health,
   job,
   persistence,
   prepareStart,
@@ -37,6 +38,106 @@ it('captures a connection failure locally in the original preparation area', asy
   expect(readAssetDiagnostic()).toMatchObject({ stage: 'permission', code: 'origin_not_allowed' })
   expect(screen.getByText('资产快读诊断')).toBeInTheDocument()
   expect(JSON.stringify(readAssetDiagnostic())).not.toContain('private')
+  expect(document.body).not.toHaveTextContent('private path')
+})
+
+it.each([
+  ['origin_not_allowed', '资产快读尚未允许当前站点连接。', '核对工具版本与当前页面地址'],
+  ['bridge_incompatible', '资产快读版本不兼容。', '更新资产快读后重新连接'],
+] as const)(
+  'keeps safe %s detail in the real workbench status and diagnostic, then clears it on retry',
+  async (code, problem, nextAction) => {
+    const client = bridge()
+    client.connect.mockRejectedValueOnce(
+      new AssetQuickReadRequestError(code, "soda-source-ref:7b49bd2ecb2f513254b218dbc48fc648"),
+    )
+    client.connect.mockResolvedValueOnce({ ...health, version: '1.0.7' })
+    render(
+      <AssetQuickReadController
+        client={client}
+        targetAccountId={targetAccountId}
+        activeAccountId={targetAccountId}
+        targetAccountName="合成账户"
+        workbench={({ preparation, task }) => (
+          <>
+            {preparation}
+            {task}
+          </>
+        )}
+      />,
+    )
+    fireEvent.change(screen.getByLabelText('游戏安装目录'), {
+      target: { value: "soda-source-ref:24d5780e541a1a1ad1393e8962be6e18" },
+    })
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: '连接资产快读' })))
+    expect(screen.getByRole('alert')).toHaveTextContent(problem)
+    expect(screen.getByRole('alert')).toHaveTextContent(nextAction)
+    expect(screen.getByRole('status')).toHaveTextContent(problem)
+    fireEvent.click(screen.getByText('查看诊断'))
+    expect(document.body).toHaveTextContent(nextAction)
+    expect(document.body).not.toHaveTextContent('请检查安装目录后重试')
+    expect(document.body).not.toHaveTextContent('Private')
+    expect(document.body).not.toHaveTextContent('synthetic-secret')
+    expect(JSON.stringify(readAssetDiagnostic())).not.toContain('Private')
+    expect(readAssetDiagnostic()?.code).toBe(code)
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: '连接资产快读' })))
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(document.body).not.toHaveTextContent(problem)
+    expect(screen.getByRole('button', { name: '一键读取' })).toBeEnabled()
+  },
+)
+
+it('does not infer a directory, permission denial or stopped service from an unknown connection exception', async () => {
+  const client = bridge()
+  client.connect.mockRejectedValue(new Error("soda-source-ref:7b49bd2ecb2f513254b218dbc48fc648"))
+  render(
+    <AssetQuickReadController
+      client={client}
+      workbench={({ preparation, task }) => (
+        <>
+          {preparation}
+          {task}
+        </>
+      )}
+    />,
+  )
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '连接资产快读' })))
+  expect(screen.getByRole('alert')).toHaveTextContent('请确认工具已运行')
+  expect(screen.getByRole('alert')).toHaveTextContent('允许本站访问本机设备')
+  expect(document.body).not.toHaveTextContent('Private')
+  expect(document.body).not.toHaveTextContent('synthetic-secret')
+  expect(document.body).not.toHaveTextContent('请检查安装目录后重试')
+  expect(document.body).not.toHaveTextContent('资产快读尚未启动')
+  expect(readAssetDiagnostic()).toMatchObject({ stage: 'connection', code: 'bridge_unavailable' })
+})
+
+it('preserves the same safe connection code on a fresh failed retry instead of treating it as an old error', async () => {
+  const client = bridge()
+  client.connect.mockRejectedValue(
+    new AssetQuickReadRequestError('origin_not_allowed', 'private response'),
+  )
+  render(
+    <AssetQuickReadController
+      client={client}
+      workbench={({ preparation, task }) => (
+        <>
+          {preparation}
+          {task}
+        </>
+      )}
+    />,
+  )
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '连接资产快读' })))
+  const previousId = readAssetDiagnostic()!.reportId
+  expect(screen.getByRole('alert')).toHaveTextContent('资产快读尚未允许当前站点连接。')
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '连接资产快读' })))
+  expect(client.connect).toHaveBeenCalledTimes(2)
+  expect(readAssetDiagnostic()).toMatchObject({ code: 'origin_not_allowed' })
+  expect(readAssetDiagnostic()!.reportId).not.toBe(previousId)
+  expect(screen.getByRole('alert')).toHaveTextContent('资产快读尚未允许当前站点连接。')
+  expect(screen.getByRole('alert')).toHaveTextContent('核对工具版本与当前页面地址')
+  expect(document.body).not.toHaveTextContent('private response')
+  expect(document.body).not.toHaveTextContent('请确认工具已运行')
 })
 it('returns from a rejected result to preparation without appending the old diagnostic', async () => {
   persistence.prepare.mockRejectedValueOnce(new Error('snapshot_already_imported'))

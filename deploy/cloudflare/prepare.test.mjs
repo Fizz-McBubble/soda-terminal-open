@@ -98,6 +98,23 @@ async function fixture(root) {
   return dist
 }
 
+test('packaged CSP covers every quick-read port without unrelated origins or wildcard access', async () => {
+  const client = await readFile(
+    new URL('../../src/assetQuickRead/bridgeClient.ts', import.meta.url),
+    'utf8',
+  )
+  const headers = await readFile(new URL('./static-headers.txt', import.meta.url), 'utf8')
+  const endpoints = [...new Set(client.match(/http:\/\/127\.0\.0\.1:\d+/gu))]
+  assert.equal(endpoints.length, 3)
+  for (const source of [headers]) {
+    const connections = source.match(/connect-src ([^;]+)/u)?.[1].split(' ')
+    assert.deepEqual(
+      new Set(connections),
+      new Set(["'self'", 'http://127.0.0.1:43127', ...endpoints]),
+    )
+  }
+})
+
 test('explicit production switch enables custom logs without invocation logs/traces or CSP expansion', async () => {
   const root = await mkdtemp(join(tmpdir(), 'soda-usage-package-'))
   try {
@@ -120,7 +137,7 @@ test('explicit production switch enables custom logs without invocation logs/tra
     assert.equal(headers.match(/script-src ([^;]+)/u)?.[1], "'self'")
     assert.equal(
       headers.match(/connect-src ([^;]+)/u)?.[1],
-      "'self' http://127.0.0.1:43127 http://127.0.0.1:50609",
+      "'self' http://127.0.0.1:43127 http://127.0.0.1:50609 http://127.0.0.1:46009 http://127.0.0.1:46010",
     )
     assert.equal(config.analytics_engine_datasets, undefined)
     assert.equal(config.d1_databases, undefined)

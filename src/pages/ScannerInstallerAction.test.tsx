@@ -310,7 +310,7 @@ it('rejects an alias that changed between the release refresh and byte download 
   expect(createObjectURL).not.toHaveBeenCalled()
   expect(screen.getByText('v1.0.9')).toBeVisible()
 })
-it('includes the manifest refresh in the ten-minute total deadline', async () => {
+it('times out a stalled manifest independently and ignores its late release', async () => {
   vi.useFakeTimers()
   let finish!: (response: Response) => void
   const fetcher = vi
@@ -325,17 +325,15 @@ it('includes the manifest refresh in the ten-minute total deadline', async () =>
   render(<ScannerInstallerAction distribution={initialDistributionSnapshot} />)
   fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
   await act(async () => {
-    await vi.advanceTimersByTimeAsync(9 * 60 * 1000)
+    await vi.advanceTimersByTimeAsync(60 * 1000)
   })
+  expect(screen.getByRole('status')).toHaveTextContent('连接超时')
+  expect(fetcher.mock.calls[0][1].signal.aborted).toBe(true)
   await act(async () => {
     finish(Response.json(freshRelease))
   })
-  expect(fetcher).toHaveBeenCalledTimes(2)
-  await act(async () => {
-    await vi.advanceTimersByTimeAsync(60 * 1000)
-  })
-  expect(screen.getByRole('status')).toHaveTextContent('下载超时')
-  expect(fetcher.mock.calls[1][1].signal.aborted).toBe(true)
+  expect(fetcher).toHaveBeenCalledOnce()
+  expect(screen.getByRole('button', { name: '下载画面扫描' })).toBeEnabled()
   expect(createObjectURL).not.toHaveBeenCalled()
 })
 it('cancels an unmounted manifest refresh and ignores its late release', async () => {
@@ -433,7 +431,7 @@ it('ends a non-settling host fetch immediately on cancellation and ignores a lat
   expect(createObjectURL).toHaveBeenCalledOnce()
   expect(screen.getByRole('status')).toHaveTextContent('在下载列表打开安装包')
 })
-it('ends a stalled fetch at ten minutes and permits a verified retry', async () => {
+it('ends a repeatedly stalled fetch after bounded recovery and permits a verified retry', async () => {
   vi.useFakeTimers()
   const fetcher = vi.fn().mockReturnValue(new Promise(() => {}))
   setDownloadFetcher(fetcher)
@@ -442,7 +440,7 @@ it('ends a stalled fetch at ten minutes and permits a verified retry', async () 
   await act(async () => {
     await vi.advanceTimersByTimeAsync(10 * 60 * 1000)
   })
-  expect(screen.getByRole('status')).toHaveTextContent('下载超时')
+  expect(screen.getByRole('status')).toHaveTextContent('连接超时')
   expect(screen.getByRole('button', { name: '下载画面扫描' })).toBeEnabled()
   expect(screen.queryByRole('link', { name: '直接下载' })).not.toBeInTheDocument()
   expect(fetcher.mock.calls[0][1].signal.aborted).toBe(true)
@@ -471,7 +469,7 @@ it('leaves manual connection to the existing parent action after requesting save
     <ScannerInstallerAction distribution={initialDistributionSnapshot} onConnect={onConnect} />,
   )
   fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
-  await waitFor(() => expect(screen.getByRole('status')).toBeVisible())
+  await waitFor(() => expect(screen.getByRole('button', { name: /重新下载/ })).toBeEnabled())
   expect(screen.getAllByRole('button')).toHaveLength(1)
   expect(screen.getByRole('button', { name: /重新下载/ })).toBeEnabled()
   expect(onConnect).not.toHaveBeenCalled()

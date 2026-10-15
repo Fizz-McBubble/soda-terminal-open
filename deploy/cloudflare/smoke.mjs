@@ -434,7 +434,7 @@ check('prepared config is assets-first and pinned; no automatic deployment', asy
   assert.equal(headers.match(/script-src ([^;]+)/u)?.[1], "'self'")
   assert.equal(
     headers.match(/connect-src ([^;]+)/u)?.[1],
-    "'self' http://127.0.0.1:43127 http://127.0.0.1:50609",
+    "'self' http://127.0.0.1:43127 http://127.0.0.1:50609 http://127.0.0.1:46009 http://127.0.0.1:46010",
   )
   assert.match(headers, /img-src 'self' blob: data: http:\/\/127\.0\.0\.1:43127/u)
   assert.match(headers, /font-src 'self'/u)

@@ -6,6 +6,7 @@ import {
   submitAssetFeedback,
 } from '../assetQuickRead/feedback'
 import { DiagnosticEntry, DiagnosticPopover } from './DiagnosticFeedbackPresentation'
+import { assetQuickReadConnectionGuidance } from './assetQuickReadControllerContract'
 import './scanner-guide.css'
 import './scanner-diagnostic-feedback.css'
 
@@ -121,9 +122,7 @@ export function AssetQuickReadFeedback({
               problem: '这份读取结果已使用，或账户在恢复后已有修改。',
               nextAction: '重新读取最新资产，再检查并确认导入。',
             }
-          : safe.code === 'bridge_unavailable'
-            ? guidance.connection
-            : guidance[safe.stage]) ?? {
+          : (assetQuickReadConnectionGuidance(safe.code) ?? guidance[safe.stage])) ?? {
         problem: '资产快读未完成本次操作。',
         nextAction: '检查工具准备状态后重试；仍失败时可反馈。',
       })

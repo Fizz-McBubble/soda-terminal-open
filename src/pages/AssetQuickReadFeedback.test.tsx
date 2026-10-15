@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen, waitFor, cleanup } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { AssetQuickReadFeedback } from './AssetQuickReadFeedback'
-import { assetFailureDiagnostic } from '../assetQuickRead/diagnostics'
+import { assetFailureDiagnostic, AssetQuickReadRequestError } from '../assetQuickRead/diagnostics'
 vi.mock('../components/ExplanationPopover', () => import('../testing/ExplanationPopoverStub'))
 
 import { saveAssetDiagnostic } from '../assetQuickRead/feedback'
@@ -11,6 +11,28 @@ afterEach(() => {
   cleanup()
   vi.unstubAllGlobals()
 })
+it.each([
+  [
+    'origin_not_allowed',
+    '资产快读尚未允许当前站点连接。',
+    '请核对工具版本与当前页面地址后重新连接。',
+  ],
+  ['bridge_incompatible', '资产快读版本不兼容。', '请更新资产快读后重新连接。'],
+] as const)(
+  'replays known connection code %s without reducing it to stage-only advice',
+  (code, problem, nextAction) => {
+    const report = assetFailureDiagnostic(
+      'connection',
+      new AssetQuickReadRequestError(code, 'private response'),
+    )
+    render(<AssetQuickReadFeedback report={report} />)
+    fireEvent.click(screen.getByText('查看诊断'))
+    expect(screen.getAllByText(problem).length).toBeGreaterThan(0)
+    expect(screen.getByText(nextAction)).toBeInTheDocument()
+    expect(document.body).not.toHaveTextContent('Windows 权限提示')
+    expect(document.body).not.toHaveTextContent('private response')
+  },
+)
 it('never sends on mount, opens folded summary, sends only on click and restores receipt after refresh', async () => {
   const report = assetFailureDiagnostic('waiting')
   saveAssetDiagnostic(report)

@@ -98,7 +98,7 @@ const stateCopy: Record<AssetQuickReadState, string> = {
 
 type PendingAction = 'connect' | 'start' | 'import' | 'export' | 'inspect' | 'discard' | 'restart'
 const actionErrors: Record<PendingAction | 'stop', string> = {
-  connect: '资产快读连接未完成，请检查安装目录后重试。',
+  connect: '未能连接资产快读。请确认工具已运行，并在浏览器的网站权限中允许本站访问本机设备后重试。',
   start: '启动请求未完成，请检查资产快读状态后重试。',
   import: '导入请求未完成。请检查结果和目标账户，再次确认后重试。',
   export: '导出请求未完成，请重试。',
@@ -283,7 +283,7 @@ export function AssetQuickReadEntry({
           : currentStep === 0 && installerStatus.text
             ? installerStatus.text
             : actionError
-              ? actionErrors[actionError]
+              ? errorMessage || actionErrors[actionError]
               : errorMessage ||
                 (state === 'completed'
                   ? completionMessage?.split('。', 1)[0] || stateCopy.completed
@@ -334,7 +334,7 @@ export function AssetQuickReadEntry({
         )}
         {!renderParts && pendingAction === 'import' && <p>正在提交确认后的导入，请等待结果。</p>}
         {!renderParts && errorMessage && <p>{errorMessage}</p>}
-        {!renderParts && actionError && <p>{actionErrors[actionError]}</p>}
+        {!renderParts && actionError && !errorMessage && <p>{actionErrors[actionError]}</p>}
       </div>
     </>
   )
