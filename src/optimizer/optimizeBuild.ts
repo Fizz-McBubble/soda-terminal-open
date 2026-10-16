@@ -7,11 +7,11 @@ import { evaluationRules } from '../evaluation/rules'
 import { isAllowedMainStat, type BuildKnowledgeProfile } from './buildKnowledge'
 import { allowedSetCountPatterns, canStillCompleteSetPattern } from './optimizerSetPatterns'
 export { allowedSetCountPatterns, canStillCompleteSetPattern } from './optimizerSetPatterns'
-
 import {
   candidatePanelObjectiveAppliesToSetPlan,
   candidatePanelObjectiveSupportsSetPlans,
   candidatePanelObjectiveWarning,
+  candidatePanelObjectiveBeamComparator,
   compareCandidatePanelObjective,
   prepareCandidatePanelObjective,
   projectCandidatePanelObjective,
@@ -395,11 +395,11 @@ export function optimizeBuild(
               !requiredObjectiveSet || (setCounts[requiredObjectiveSet] ?? 0) + (6 - slot) >= 4
             bucket.sort(
               canStillUseObjective
-                ? (a, b) =>
-                    Math.min(objectiveTarget!.minimumAttack, baseAttack + b.attack!) -
-                      Math.min(objectiveTarget!.minimumAttack, baseAttack + a.attack!) ||
-                    b.priority! - a.priority! ||
-                    comparePartial(a, b)
+                ? candidatePanelObjectiveBeamComparator<PartialBuild>(
+                    objectiveTarget!,
+                    baseAttack,
+                    comparePartial,
+                  )
                 : comparePartial,
             )
             bucket.length = Math.max(topK * 8, 24)

@@ -179,12 +179,9 @@
   margin-bottom: 4px;
 }
 .f5v-shell .warehouse-action-drawer .explanation__trigger {
+  --explanation-underline: '';
   color: var(--f5-accent);
   font-weight: 700;
-}
-.f5v-shell .warehouse-action-drawer .explanation__label {
-  text-decoration: underline;
-  text-underline-offset: 3px;
 }
 .f5v-shell .warehouse-action-drawer .warehouse-alternatives {
   display: grid;

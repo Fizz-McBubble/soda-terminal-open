@@ -1,3 +1,9 @@
+import { targetPanelPresentation, type TargetPanel } from '../application/buildTargetPresentation'
+export {
+  targetPanelDisplayValue,
+  targetPanelLowerBound,
+  targetPanelPresentation,
+} from '../application/buildTargetPresentation'
 import {
   getCharacterPanelFields,
   formatCharacterPanelValue,
@@ -6,11 +12,6 @@ import type { RosterAgent } from '../assault/types'
 import { playerFacingPlanName } from '../application/savedPlanDisplayName'
 import type { DriveDisc, StatKey } from '../domain/schemas'
 import type { ProjectedBuildKnowledgeProfile } from '../gameDataPacks/agentProfile'
-import {
-  readTargetPanelMetricSemantic,
-  type TargetPanelMetricKey,
-  type TargetPanelMetricSemantic,
-} from '../gameDataPacks/targetPanelSemantics'
 import type { PanelResult } from '../calculation/outOfCombatPanel'
 import { formatDevelopmentEntityText } from '../application/publicRosterNames'
 import {
@@ -34,7 +35,7 @@ export const characterPanelLabels = [
   '穿透率',
   '能量自动回复',
 ] as const
-type CharacterPanelLabel = (typeof characterPanelLabels)[number]
+export type CharacterPanelLabel = (typeof characterPanelLabels)[number]
 
 export type WorkbenchFact = {
   label: string
@@ -46,6 +47,7 @@ export type WorkbenchFact = {
   current: string
   contribution: string
   target: string
+  targetConditions?: readonly string[]
   currentEvidence: CurrentEvidence
   contributionEvidence: ContributionEvidence
   targetEvidence: TargetEvidence
@@ -106,10 +108,6 @@ export type WorkbenchSlice = {
   }
 }
 type DevelopmentPlan = { name: string; warehouseRefs: string[] } | null
-type TargetPanel = {
-  value: unknown
-  status: 'formal' | 'verified_candidate' | 'candidate' | 'missing'
-} | null
 
 const contributionLabels: Partial<Record<StatKey, string>> = {
   hp_flat: '生命值',
@@ -123,127 +121,6 @@ const contributionLabels: Partial<Record<StatKey, string>> = {
   pen_ratio: '穿透率',
   energy_regen: '能量自动回复',
   pen: '穿透值',
-}
-const panelKeys: Record<CharacterPanelLabel, TargetPanelMetricKey> = {
-  生命值: 'hp',
-  攻击力: 'atk',
-  防御力: 'def',
-  冲击力: 'impact',
-  暴击率: 'critRate',
-  暴击伤害: 'critDamage',
-  异常掌控: 'anomalyMastery',
-  异常精通: 'anomalyProficiency',
-  穿透率: 'penRatio',
-  能量自动回复: 'energyRegen',
-}
-const targetKeys: Partial<Record<CharacterPanelLabel, string[]>> = {
-  生命值: ['生命值', 'hp', 'hp_flat'],
-  攻击力: ['攻击力', 'attack', 'atk'],
-  防御力: ['防御力', 'defense', 'def'],
-  冲击力: ['冲击力', 'impact'],
-  暴击率: ['暴击率', 'critRate', 'crit_rate'],
-  暴击伤害: ['暴击伤害', 'critDamage', 'crit_dmg'],
-  异常掌控: ['异常掌控', 'anomalyMastery', 'anomaly_mastery'],
-  异常精通: ['异常精通', 'anomalyProficiency', 'anomaly_proficiency'],
-  穿透率: ['穿透率', 'pen_ratio'],
-  能量自动回复: ['能量自动回复', 'energyRegen', 'energy_regen'],
-}
-
-function usesPercent(label: CharacterPanelLabel) {
-  return ['暴击率', '暴击伤害', '穿透率'].includes(label)
-}
-function readTargetValue(panel: TargetPanel, label: CharacterPanelLabel) {
-  if (
-    !panel ||
-    panel.status === 'missing' ||
-    !panel.value ||
-    typeof panel.value !== 'object' ||
-    Array.isArray(panel.value)
-  )
-    return null
-  const values = panel.value as Record<string, unknown>
-  const value = targetKeys[label]
-    ?.map((key) => values[key])
-    .find(
-      (item): item is number | { min?: number; max?: number; upperOpen?: boolean } =>
-        (typeof item === 'number' && Number.isFinite(item)) ||
-        (Boolean(item) &&
-          typeof item === 'object' &&
-          !Array.isArray(item) &&
-          (typeof (item as { min?: unknown }).min === 'number' ||
-            typeof (item as { max?: unknown }).max === 'number')),
-    )
-  if (value === undefined) return null
-  if (
-    typeof value !== 'number' &&
-    ((value.min !== undefined && !Number.isFinite(value.min)) ||
-      (value.max !== undefined &&
-        (!Number.isFinite(value.max) || (value.min !== undefined && value.max < value.min))))
-  )
-    return null
-  const inferredBoundary =
-    typeof value !== 'number' && value.min === undefined ? ('cap' as const) : ('minimum' as const)
-  const semantic = readTargetPanelMetricSemantic(values, panelKeys[label])
-  if (semantic === null || (semantic && semantic.boundary !== inferredBoundary)) return null
-  return {
-    value,
-    semantic:
-      semantic ??
-      ({
-        requirement: 'required',
-        boundary: inferredBoundary,
-        observation: 'out_of_combat',
-      } satisfies TargetPanelMetricSemantic),
-  }
-}
-
-/** Shared lower bound for numeric and range guidance; never synthesizes a target. */
-export function targetPanelLowerBound(panel: TargetPanel, label: CharacterPanelLabel) {
-  const target = readTargetValue(panel, label)
-  if (
-    target === null ||
-    target.semantic.requirement === 'optional' ||
-    target.semantic.boundary === 'cap' ||
-    target.semantic.observation !== 'out_of_combat'
-  )
-    return null
-  return typeof target.value === 'number' ? target.value : (target.value.min ?? null)
-}
-
-export function targetPanelDisplayValue(panel: TargetPanel, label: CharacterPanelLabel) {
-  const target = readTargetValue(panel, label)
-  if (target === null) {
-    // Reviewed skill-level variants are display guidance, never an unconditional
-    // numeric bound. Keep their conditions when no single target is meaningful.
-    if (!panel || panel.status === 'missing' || !panel.value || typeof panel.value !== 'object')
-      return null
-    const values = panel.value as Record<string, unknown>
-    if (targetKeys[label]?.some((key) => Object.hasOwn(values, key))) return null
-    const variants = values.displayVariants
-    if (!Array.isArray(variants)) return null
-    const matching = variants.filter(
-      (entry): entry is string => typeof entry === 'string' && entry.startsWith(`${label} `),
-    )
-    return matching.length
-      ? matching.map((entry) => entry.slice(label.length).trim()).join(' / ')
-      : null
-  }
-  const { value, semantic } = target
-  // Preserve guide precision separately from the current game's menu rounding.
-  const displayTarget = (number: number) => `${number}${usesPercent(label) ? '%' : ''}`
-  const base =
-    typeof value === 'number'
-      ? displayTarget(value)
-      : value.min === undefined
-        ? `≤${displayTarget(value.max!)}`
-        : value.max === undefined
-          ? `${displayTarget(value.min)}+`
-          : `${displayTarget(value.min)}–${displayTarget(value.max)}${value.upperOpen ? '+' : ''}`
-  const qualifiers = [
-    ...(semantic.requirement === 'optional' ? ['可选'] : []),
-    ...(semantic.observation === 'in_combat' ? ['战斗内'] : []),
-  ]
-  return qualifiers.length ? `${base}（${qualifiers.join(' · ')}）` : base
 }
 
 function candidateReferenceGroup(fieldPath: string) {
@@ -333,7 +210,13 @@ export function createAgentDevelopmentWorkbenchViewModel(input: {
     const currentValue =
       panel?.status === 'ok' ? (panel.values as Partial<Record<string, number>>)[key] : undefined
     const values = contribution.get(label) ?? []
-    const target = legacyLabel ? targetPanelDisplayValue(targetPanel, legacyLabel) : null
+    const reference = legacyLabel
+      ? targetPanelPresentation(targetPanel, legacyLabel, {
+          agentId: agent.agentId,
+          coreLevel: agent.skillLevels.core,
+        })
+      : { value: null, conditions: [] }
+    const target = reference.value
     return {
       label,
       key,
@@ -351,6 +234,7 @@ export function createAgentDevelopmentWorkbenchViewModel(input: {
           ? '已纳入六盘投影'
           : '无可证副词条',
       target: target ?? '资料不足',
+      targetConditions: reference.conditions,
       currentEvidence:
         currentValue === undefined || !Number.isFinite(currentValue)
           ? '暂不可复算'

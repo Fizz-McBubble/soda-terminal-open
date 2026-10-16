@@ -13,6 +13,35 @@ import {
   benchmarkScopeNote,
   candidateSearchLabel,
 } from './top10Labels'
+import { staticPanelTargetDisplay } from '../../gameDataPacks/targetPanelSemantics'
+
+function PanelReferenceConditions({ data }: { data: GoldenTop10Data }) {
+  if (data.statPresentation !== 'static_panel') return null
+  const notes = new Map<string, Set<string>>()
+  for (const stat of data.allStats) {
+    if (!staticPanelTargetDisplay(stat.target)) continue
+    for (const condition of data.targetConditionsByLabel?.[stat.label] ?? []) {
+      const text = condition.trim()
+      if (!text) continue
+      const labels = notes.get(text) ?? new Set<string>()
+      labels.add(stat.label)
+      notes.set(text, labels)
+    }
+  }
+  if (!notes.size) return null
+  return (
+    <section aria-label="毕业推荐适用条件">
+      <p>毕业推荐适用条件</p>
+      <ul>
+        {[...notes].map(([condition, labels]) => (
+          <li key={condition}>
+            {Array.from(labels).join('、')}：{condition}
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
 
 export function Top10({
   back,
@@ -214,6 +243,7 @@ export function Top10({
                   className="comparison-method-popover"
                 >
                   <p>{candidateSearchLabel(selectedSearch)}</p>
+                  <PanelReferenceConditions data={data} />
                 </ExplanationPopover>
               </div>
               <dl>
@@ -350,6 +380,7 @@ export function Top10({
                   {selectedBenchmark?.status !== 'supported' && selectedBenchmark ? (
                     <p>当前输出对比受限或未支持，未假设 0% 收益。</p>
                   ) : null}
+                  <PanelReferenceConditions data={data} />
                 </div>
               </ExplanationPopover>
             </div>

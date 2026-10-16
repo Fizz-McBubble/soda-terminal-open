@@ -2,6 +2,8 @@ import type { RosterAgent } from '../assault/types'
 import type { DriveDisc } from '../domain/schemas'
 import { reviewedTargetPanelGuidance } from '../gameDataPacks/reviewedTargetPanelGuidance'
 import { currentPanelData } from '../gameDataPacks/panel/currentPanelData'
+import { resolveReviewedZhaoHpTarget } from '../gameDataPacks/reviewedZhaoSupportTarget'
+import { evaluateCurrentAgentTeamActivation } from '../calculation/currentAgentMechanicContracts'
 import type {
   TargetPanelMetricKey,
   TargetPanelSemantics,
@@ -69,6 +71,7 @@ const rules: Readonly<Record<string, Rule>> = {
 }
 
 export function resolveSavedGraduationTarget(input: {
+  memberIds?: readonly string[]
   agent: RosterAgent
   engineId: string
   discs: readonly DriveDisc[]
@@ -120,6 +123,32 @@ export function resolveSavedGraduationTarget(input: {
   value.targetSemantics = semantics
   const limitations: string[] = []
   const applied: string[] = []
+  const hpTarget = resolveReviewedZhaoHpTarget({
+    agentId: input.agent.agentId,
+    coreLevel: input.agent.skillLevels.core,
+  })
+  if (hpTarget) {
+    const activation = input.memberIds
+      ? evaluateCurrentAgentTeamActivation({
+          stableId: input.agent.agentId,
+          memberIds: input.memberIds,
+          agentState: {
+            mindscape: input.agent.mindscape,
+            potentialImage: input.agent.potentialImage,
+          },
+        })
+      : null
+    if (activation?.status === 'supported' && activation.active) {
+      // Context projection only: the canonical guide and its source remain unchanged.
+      const guideHp = value.hp
+      value.hp = { min: hpTarget.minimum }
+      applied.push(
+        `独立机制目标：初始生命${hpTarget.minimum}；攻略生命参考${JSON.stringify(guideHp)}`,
+      )
+    } else limitations.push('追加能力队伍条件未闭合，机制生命目标未计入，保留攻略参考。')
+    limitations.push(...hpTarget.conditions)
+    limitations.push('完成度仅核对初始生命准备，不证明队伍增益已经激活。')
+  }
   function exclude(key: TargetPanelMetricKey, reason: string) {
     const semantic = semantics[key]
     if (semantic) semantics[key] = { ...semantic, requirement: 'optional' }

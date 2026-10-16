@@ -116,7 +116,10 @@ export function projectDevelopmentWorkbenchPresentation(
           ...(skillEvidence?.verifiedFacts ?? []),
           ...(skillEvidence?.candidateFacts ?? []),
         ].some((fact) => fact.fieldPath.startsWith('skills.') || fact.fieldPath.startsWith('core.'))
-        const currentEngineName = resolution.current?.name ?? '未记录音擎'
+        const currentEngineId = resolution.current?.engineId ?? agent.wEngineDetails.id
+        const currentEngineName =
+          resolution.current?.name ??
+          (currentEngineId ? (agent.wEngineDetails.name ?? '已记录音擎') : '未记录音擎')
         const mappedEngines = resolveWorkbenchRecommendedEngines({
           agentId,
           resolution,
@@ -208,22 +211,24 @@ export function projectDevelopmentWorkbenchPresentation(
                       ? '可用替代'
                       : '仍有提升空间'
                 }`
-              : '当前音擎未记录；可在本页“编辑当前记录”中直接录入',
+              : currentEngineId
+                ? '音擎参数未确认；请在“编辑当前状态”补充等级、突破与精炼。'
+                : '当前音擎未记录；可在本页“编辑当前状态”中直接录入',
             copyLabel: '当前音擎 · 代理人维护共享',
             copyId: null,
             copies: [],
-            currentId: resolution.current?.engineId ?? null,
-            level: resolution.current?.level ?? null,
-            refinement: resolution.current?.refinement ?? null,
+            currentId: currentEngineId,
+            level: resolution.current?.level ?? agent.wEngineDetails.level,
+            refinement: resolution.current?.refinement ?? agent.wEngineDetails.refinement,
             options: createWEngineSelectionOptions({
               specialty: catalogById.get(agentId)?.specialty ?? null,
               resolution,
             }),
-            ...(resolution.current
+            ...(currentEngineId
               ? {
                   visual: {
-                    entityId: resolution.current.engineId,
-                    name: resolution.current.name,
+                    entityId: currentEngineId,
+                    name: currentEngineName,
                   },
                 }
               : {}),

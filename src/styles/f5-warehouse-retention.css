@@ -134,11 +134,8 @@
 .f5v-shell .warehouse-retention__scores dd {
   color: var(--soda-text);
 }
-.f5v-shell .warehouse-retention__score-facts .explanation__label {
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
 .f5v-shell .warehouse-retention__score-facts .explanation__trigger {
+  --explanation-underline: '';
   color: var(--f5-accent);
   font-weight: 700;
 }

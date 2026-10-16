@@ -6,6 +6,7 @@ import { isCharacterPanelDetailRelevant } from '../../application/characterPanel
 export function WorkbenchPanelSnapshot({ subject }: { subject: GoldenWorkbenchData }) {
   const scope = subject.panelScopeKey ?? subject.agentId
   const panelId = useId()
+  const refreshState = subject.currentPanel.refreshState
   const hasDetails = subject.panelFacts.some((fact) => fact.detail)
   const detailFacts = subject.panelFacts.filter((fact) =>
     isCharacterPanelDetailRelevant(
@@ -18,32 +19,43 @@ export function WorkbenchPanelSnapshot({ subject }: { subject: GoldenWorkbenchDa
       className="panel-snapshot current-overview__panel"
       aria-labelledby="panel-snapshot-title"
       tabIndex={0}
+      aria-busy={refreshState === 'updating'}
     >
       <header>
         <div>
           <h2 id="panel-snapshot-title">当前面板</h2>
         </div>
         {hasDetails && subject.currentPanel.availability === 'available' ? (
-          <ExplanationPopover
-            key={scope}
-            className="character-panel-more"
-            label="查看完整面板"
-            title="角色完整面板"
-            closeLabel="关闭完整面板"
+          <span
+            className={refreshState ? 'panel-snapshot__placeholder' : undefined}
+            aria-hidden={refreshState ? true : undefined}
+            inert={Boolean(refreshState)}
           >
-            <dl className="character-panel-more__facts">
-              {detailFacts.map((fact) => (
-                <div className={fact.focus ? 'focus' : undefined} key={fact.key ?? fact.name}>
-                  <dt>{fact.name}</dt>
-                  <dd>{fact.value}</dd>
-                </div>
-              ))}
-            </dl>
-          </ExplanationPopover>
+            <ExplanationPopover
+              key={`${scope}:${refreshState ?? 'ready'}`}
+              className="character-panel-more"
+              label="查看完整面板"
+              title="角色完整面板"
+              closeLabel="关闭完整面板"
+            >
+              <dl className="character-panel-more__facts">
+                {detailFacts.map((fact) => (
+                  <div className={fact.focus ? 'focus' : undefined} key={fact.key ?? fact.name}>
+                    <dt>{fact.name}</dt>
+                    <dd>{fact.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            </ExplanationPopover>
+          </span>
         ) : null}
       </header>
       {subject.currentPanel.availability === 'available' ? (
-        <dl className="stat-grid" id={panelId}>
+        <dl
+          className={`stat-grid${refreshState ? ' panel-snapshot__placeholder' : ''}`}
+          id={panelId}
+          aria-hidden={refreshState ? true : undefined}
+        >
           {subject.panelFacts
             .filter((fact) => !fact.detail)
             .map((fact) => (
@@ -54,8 +66,20 @@ export function WorkbenchPanelSnapshot({ subject }: { subject: GoldenWorkbenchDa
             ))}
         </dl>
       ) : (
-        <p className="panel-snapshot__unavailable">{subject.currentPanel.summary}</p>
+        <p
+          className={`panel-snapshot__unavailable${refreshState ? ' panel-snapshot__placeholder' : ''}`}
+          aria-hidden={refreshState ? true : undefined}
+        >
+          {refreshState
+            ? subject.currentPanel.refreshPlaceholderSummary
+            : subject.currentPanel.summary}
+        </p>
       )}
+      {refreshState ? (
+        <span className="panel-snapshot__refresh-status" role="status">
+          {subject.currentPanel.summary}
+        </span>
+      ) : null}
       <WorkbenchGraduationTargets subject={subject} />
     </section>
   )
@@ -69,7 +93,7 @@ function WorkbenchGraduationTargets({ subject }: { subject: GoldenWorkbenchData 
   const hasPanelTargets = subject.graduation.panel.length > 0
   return (
     <section className="panel-graduation-targets" aria-labelledby="panel-target-title">
-      <small id="panel-target-title">{hasPanelTargets ? '毕业面板推荐' : '副词条方向'}</small>
+      <small id="panel-target-title">{hasPanelTargets ? '毕业推荐' : '副词条方向'}</small>
       <div className="panel-graduation-targets__items">
         {!hasPanelTargets && subject.graduation.panelDirection ? (
           <span className="panel-graduation-targets__direction">
@@ -86,7 +110,7 @@ function WorkbenchGraduationTargets({ subject }: { subject: GoldenWorkbenchData 
           <ExplanationPopover
             key={subject.agentId}
             label={optionalTargets.length ? '更多' : '适用条件'}
-            title={optionalTargets.length ? '毕业面板更多参考' : '毕业面板适用条件'}
+            title={optionalTargets.length ? '更多毕业推荐' : '毕业推荐适用条件'}
           >
             {optionalTargets.length ? (
               <dl className="panel-graduation-targets__optional">

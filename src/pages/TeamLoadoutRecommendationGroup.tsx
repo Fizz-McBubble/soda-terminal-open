@@ -1,4 +1,6 @@
 import { type ReactNode } from 'react'
+import { ExplanationPopover } from '../components/ExplanationPopover'
+import { TeamLoadoutPagination } from './TeamLoadoutPagination'
 import { TeamCompletionCandidates, TeamRow } from './TeamLoadoutOverviewParts'
 import type { TeamLoadoutOverviewGroup, TeamLoadoutOverviewItem } from './teamLoadoutOverviewModel'
 
@@ -34,50 +36,25 @@ export function TeamGroup({
   onOnlyFavoritesChange?: (checked: boolean) => void
 }) {
   const isRecommended = group.kind === 'recommended'
-  const changeRecommendedPage = (page: number, source: HTMLButtonElement) => {
-    const heading = source.closest('section')?.querySelector<HTMLElement>('h2')
-    onRecommendedPageChange?.(page)
-    if (heading) {
-      heading.focus({ preventScroll: true })
-      heading.scrollIntoView?.({ block: 'start', behavior: 'instant' })
-    }
-  }
-  const pagination =
-    isRecommended && recommendedPageCount > 1 ? (
-      <nav className="f5v-box-team-recommendation-pagination" aria-label="当前推荐分页（底部）">
-        <button
-          type="button"
-          disabled={recommendedPage === 1}
-          onClick={(event) => changeRecommendedPage(1, event.currentTarget)}
-        >
-          首页
-        </button>
-        <button
-          type="button"
-          disabled={recommendedPage === 1}
-          onClick={(event) => changeRecommendedPage(recommendedPage - 1, event.currentTarget)}
-        >
-          上一页
-        </button>
-        <span aria-live="polite">
-          第 {recommendedPage} / {recommendedPageCount} 页
-        </span>
-        <button
-          type="button"
-          disabled={recommendedPage === recommendedPageCount}
-          onClick={(event) => changeRecommendedPage(recommendedPage + 1, event.currentTarget)}
-        >
-          下一页
-        </button>
-      </nav>
-    ) : null
   if (!group.items.length && group.completionCandidates?.length) {
     return <TeamCompletionCandidates candidates={group.completionCandidates} />
   }
   return (
     <section className={`f5v-box-team-group is-${group.kind}`}>
       <div className={isRecommended ? 'f5v-box-team-toolbar' : undefined}>
-        <h2 tabIndex={isRecommended ? -1 : undefined}>{group.label}</h2>
+        <div className="f5v-box-team-group__heading">
+          <h2 tabIndex={isRecommended ? -1 : undefined}>{group.label}</h2>
+          {isRecommended ? (
+            <ExplanationPopover
+              label="推荐说明"
+              className="f5v-box-team-recommendation-explanation"
+            >
+              <p>这里展示现有角色下的可用配队方向，靠前不等于所有副本最优。</p>
+              <p>评级是搭配参考，请结合副本敌人、增益与实战调整。</p>
+              <p>补强建议展示补齐一位角色可解锁的方向，不代表抽卡性价比。</p>
+            </ExplanationPopover>
+          ) : null}
+        </div>
         {!isRecommended ? (
           <p className="f5v-box-team-group__description">{group.description}</p>
         ) : null}
@@ -127,7 +104,14 @@ export function TeamGroup({
           </div>
         ))}
       </div>
-      {pagination}
+      {isRecommended ? (
+        <TeamLoadoutPagination
+          label="当前推荐分页（底部）"
+          page={recommendedPage}
+          pageCount={recommendedPageCount}
+          onPageChange={(page) => onRecommendedPageChange?.(page)}
+        />
+      ) : null}
       {isRecommended && group.items.length === 0 ? (
         <div className="f5v-box-team-recommendation-empty" role="status">
           <p>

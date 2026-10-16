@@ -1,0 +1,35 @@
+.f5v-shell .testing-badge > .explanation__trigger {
+  min-height: 0;
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: #e9e3f5;
+  color: #55427c;
+  font-size: 0.625rem;
+  font-weight: 800;
+  line-height: 1.5;
+  letter-spacing: 0;
+  white-space: nowrap;
+  --explanation-underline: none;
+}
+
+.f5v-shell .testing-badge {
+  vertical-align: middle;
+  line-height: 1;
+}
+
+/* Keep the original link box while the disclosure remains a sibling control. */
+.f5v-navigation__testing-row {
+  position: relative;
+  min-width: 0;
+}
+
+.f5v-navigation .f5v-navigation__testing-row > a {
+  padding-right: 52px;
+}
+
+.f5v-navigation__testing-row > .testing-badge {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+}

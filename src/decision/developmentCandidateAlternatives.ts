@@ -1,6 +1,14 @@
 import { refineDevelopmentCandidates } from './developmentCandidateRefinement'
+import {
+  createDevelopmentValueBenchmarkEvaluator,
+  type DevelopmentValueBenchmarkEvaluator,
+} from './developmentValueBenchmark'
 import type { CurrentPlanningScenarioSelection32 } from '../application/publicPlanningScenarioContract'
 import { searchDevelopmentDynamicCandidates } from './developmentDynamicSearch'
+import {
+  rankDevelopmentCandidates,
+  type DevelopmentCandidateRankingScope,
+} from './developmentCandidateRanking'
 import type { CoreWarehouse } from '../accounts/coreFlow'
 import type { DriveDisc } from '../domain/schemas'
 import type { DevelopmentComparisonParameters } from './developmentValueBenchmark'
@@ -17,7 +25,12 @@ import {
 } from './buildIntent'
 
 export type DevelopmentCandidateSearch = {
-  rankingMethod: 'dynamic_objective' | 'source_and_local_refinement' | 'prepared_anomaly_settlement'
+  rankingMethod:
+    | 'dynamic_objective'
+    | 'source_and_local_refinement'
+    | 'prepared_anomaly_settlement'
+    | 'comparison_groups'
+  rankingScopes?: DevelopmentCandidateRankingScope[]
   status:
     | 'not_run'
     | NonNullable<ReturnType<typeof searchDevelopmentDynamicCandidates>['search']>['status']
@@ -57,6 +70,7 @@ export function projectDevelopmentCandidateAlternatives(
   parameters?: DevelopmentComparisonParameters,
   scenarioSelection?: CurrentPlanningScenarioSelection32,
   eventConditionDeclaration?: import('../calculation/reviewedTemplateEventConditions32').ReviewedTemplateEventConditionDeclaration32,
+  evaluator: DevelopmentValueBenchmarkEvaluator = createDevelopmentValueBenchmarkEvaluator(),
 ): DevelopmentCandidateAlternativesProjection {
   const agent = input.warehouse.roster.agents.find((item) => item.agentId === agentId)
   const panelInput = candidatePanelInputForAgent(
@@ -102,6 +116,7 @@ export function projectDevelopmentCandidateAlternatives(
     buildIntent.recommendations,
   )
   candidates = refineDevelopmentCandidates({
+    evaluator,
     scenarioSelection,
     eventConditionDeclaration,
     warehouse: input.warehouse,
@@ -111,6 +126,7 @@ export function projectDevelopmentCandidateAlternatives(
     parameters,
   })
   const dynamic = searchDevelopmentDynamicCandidates({
+    evaluator,
     scenarioSelection,
     eventConditionDeclaration,
     warehouse: input.warehouse,
@@ -120,15 +136,29 @@ export function projectDevelopmentCandidateAlternatives(
     parameters,
   })
   candidates = dynamic.candidates
+  const ranked = rankDevelopmentCandidates({
+    ...input,
+    evaluator,
+    agentId,
+    candidates,
+    buildIntent,
+    parameters,
+    scenarioSelection,
+    eventConditionDeclaration,
+  })
+  candidates = ranked.candidates
   const preparedSearch =
     'preparedAnomalySearch' in dynamic ? dynamic.preparedAnomalySearch : undefined
   const trace = preparedSearch ?? dynamic.search
   const candidateSearch: DevelopmentCandidateSearch = {
-    rankingMethod: dynamic.rankingApplied
-      ? preparedSearch
-        ? 'prepared_anomaly_settlement'
-        : 'dynamic_objective'
-      : 'source_and_local_refinement',
+    rankingMethod: ranked.rankingScopes.length
+      ? 'comparison_groups'
+      : dynamic.rankingApplied
+        ? preparedSearch
+          ? 'prepared_anomaly_settlement'
+          : 'dynamic_objective'
+        : 'source_and_local_refinement',
+    ...(ranked.rankingScopes.length ? { rankingScopes: ranked.rankingScopes } : {}),
     status: trace?.status ?? 'not_run',
     nodes: trace?.nodes ?? 0,
     evaluations: trace?.evaluations ?? 0,

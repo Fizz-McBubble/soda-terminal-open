@@ -69,7 +69,7 @@
   background: transparent;
 }
 
-.f5v-box-team-completion li {
+.f5v-box-team-completion > ul > li {
   display: grid;
   gap: 8px;
   padding: 0;
@@ -98,7 +98,7 @@
   gap: 4px 8px;
 }
 
-.f5v-box-team-completion ul {
+.f5v-box-team-completion > ul {
   gap: 14px;
 }
 

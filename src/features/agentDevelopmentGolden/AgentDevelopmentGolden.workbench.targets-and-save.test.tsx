@@ -57,10 +57,10 @@ describe('AgentDevelopmentGolden warehouse candidate controls', () => {
         baselineLabel="当前实装"
       />,
     )
-    expect(screen.getByRole('cell', { name: '生命值' })).not.toHaveTextContent('参考')
-    expect(screen.getByRole('cell', { name: '防御力' })).not.toHaveTextContent('参考')
+    expect(screen.getByRole('cell', { name: '生命值' })).not.toHaveTextContent('毕业推荐')
+    expect(screen.getByRole('cell', { name: '防御力' })).not.toHaveTextContent('毕业推荐')
     expect(screen.getByRole('table', { name: '属性对比' })).toHaveTextContent('8,020')
-    expect(screen.getByRole('cell', { name: '攻击力' })).toHaveTextContent('参考 3000+')
+    expect(screen.getByRole('cell', { name: '攻击力' })).toHaveTextContent('毕业推荐 3000+')
     expect(screen.getByRole('cell', { name: '攻击力' })).not.toHaveTextContent('攻略')
   })
   it('renders Seed sourced levels numerically while preserving minima and the confirmed priority marks', () => {
@@ -172,7 +172,7 @@ describe('AgentDevelopmentGolden warehouse candidate controls', () => {
     expect(
       document.getElementById(conditionButton.getAttribute('popovertarget')!),
     ).toHaveTextContent('仅适用于说明中的队伍与音擎条件')
-    expect(screen.getByRole('region', { name: '毕业面板推荐' })).toHaveTextContent('3000')
+    expect(screen.getByRole('region', { name: '毕业推荐' })).toHaveTextContent('3000')
   })
   it('keeps only required targets inline and puts optional values and conditions in one popover', () => {
     const { container } = render(
@@ -227,7 +227,7 @@ describe('AgentDevelopmentGolden warehouse candidate controls', () => {
       '暴击率 / 防御力百分比',
     )
     expect(screen.queryByText('资料待补齐')).not.toBeInTheDocument()
-    expect(screen.queryByRole('region', { name: '毕业面板推荐' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: '毕业推荐' })).not.toBeInTheDocument()
     expect(container.querySelector('.current-state-actions')).toContainElement(
       screen.getByRole('button', { name: '音擎说明' }),
     )

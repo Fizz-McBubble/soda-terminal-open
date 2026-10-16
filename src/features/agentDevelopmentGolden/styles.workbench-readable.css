@@ -45,7 +45,7 @@
 .f5v-shell .workbench--single-page .current-engine-plan b,
 .f5v-shell .workbench--single-page .loadout-recommendations :is(h3, b),
 .f5v-shell .workbench--single-page .loadout-recommendation-card > header > span,
-.f5v-shell .workbench--single-page .skill-comparison b,
+.f5v-shell .workbench--single-page :is(.skill-comparison__current, .skill-comparison__target) b,
 .f5v-shell .workbench--single-page .panel-graduation-targets b,
 .f5v-shell .workbench--single-page .disc-card :is(b, strong, li > span),
 .f5v-shell .workbench--single-page .warehouse-action-feedback {

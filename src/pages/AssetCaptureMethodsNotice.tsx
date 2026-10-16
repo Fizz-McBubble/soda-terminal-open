@@ -1,5 +1,6 @@
 import { AlertTriangle, Database, ScanLine } from 'lucide-react'
 import { ExplanationPopover } from '../components/ExplanationPopover'
+import { TestingBadge } from '../components/TestingBadge'
 import './AssetCaptureMethodsNotice.css'
 
 const officialTermsUrl =
@@ -73,9 +74,7 @@ export function AssetCaptureMethodsNotice() {
           <h3>
             <Database size={21} aria-hidden="true" />
             资产快读
-            <small className="f5v-beta" aria-label="测试版">
-              Beta
-            </small>
+            <TestingBadge scope="quickRead" />
           </h3>
           <h4>读取范围</h4>
           <p>

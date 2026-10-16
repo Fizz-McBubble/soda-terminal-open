@@ -35,6 +35,13 @@ export function preservesTeamPanelObjectives(
       right = base.panelObjective
     if (!left || !right) return left === right
     const stat = right.priorityStat ?? 'anomalyProficiency'
+    if (stat === 'source')
+      return (
+        left.priorityStat === 'source' &&
+        Number.isFinite(left.hpDeficit) &&
+        Number.isFinite(right.hpDeficit) &&
+        left.hpDeficit! <= right.hpDeficit!
+      )
     return (
       stat === (left.priorityStat ?? 'anomalyProficiency') &&
       [left.attackDeficit, right.attackDeficit, left[stat], right[stat]].every(Number.isFinite) &&

@@ -35,7 +35,7 @@ export function GraduationCompletionLabel({
       : '毕业完成度 待核对'
   const title =
     completion?.score != null
-      ? `对照三名成员的毕业参考计算，成员等权，不含技能养成。${partial ? '仅统计有参考目标且可核对的属性，不代表全部毕业目标已达成。' : ''}${discCompletion ? `\n${discCompletion.reason}` : ''}${memberText ? `\n${memberText}` : ''}`
+      ? `对照三名成员的毕业推荐计算，成员等权，不含技能养成。${partial ? '仅统计有推荐目标且可核对的属性，不代表全部毕业目标已达成。' : ''}${discCompletion ? `\n${discCompletion.reason}` : ''}${memberText ? `\n${memberText}` : ''}`
       : discCompletion
         ? `已保存方案的驱动盘数量。${completion?.reason ? `\n${completion.reason}` : ''}${memberText ? `\n${memberText}` : ''}\n${discCompletion.reason}${discCompletion.members.length ? `\n${discCompletion.members.map((member) => `${getAgentName(member.agentId)} ${member.savedCount}/${member.expectedCount}`).join(' · ')}` : ''}`
         : `当前方案暂无可用的毕业面板目标。${completion?.reason ? `\n${completion.reason}` : ''}`

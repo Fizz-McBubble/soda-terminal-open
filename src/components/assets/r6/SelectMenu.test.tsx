@@ -6,6 +6,41 @@ import { SelectMenu } from './SelectMenu'
 describe('SelectMenu shared popover contract', () => {
   afterEach(() => vi.restoreAllMocks())
 
+  it('keeps list scrolling local and reveals keyboard focus without scrolling ancestors', () => {
+    render(
+      <SelectMenu
+        label="当前音擎"
+        value="a"
+        options={[
+          { value: 'a', label: '甲' },
+          { value: 'b', label: '乙' },
+        ]}
+        onChange={vi.fn()}
+      />,
+    )
+    const trigger = screen.getByRole('button', { name: '当前音擎' })
+    fireEvent.click(trigger)
+    const list = screen.getByRole('listbox', { name: '当前音擎' })
+    const option = within(list).getByRole('option', { name: '乙' })
+    vi.spyOn(list, 'getBoundingClientRect').mockReturnValue({ top: 100, bottom: 200 } as DOMRect)
+    Object.defineProperty(list, 'clientHeight', { value: 100, configurable: true })
+    vi.spyOn(option, 'getBoundingClientRect').mockReturnValue({ top: 180, bottom: 230 } as DOMRect)
+    const focus = vi.spyOn(option, 'focus')
+    fireEvent.keyDown(list, { key: 'ArrowDown' })
+    expect(focus).toHaveBeenCalledWith({ preventScroll: true })
+    expect(list.scrollTop).toBe(30)
+
+    const measureTrigger = vi.spyOn(trigger, 'getBoundingClientRect')
+    fireEvent.scroll(list)
+    expect(measureTrigger).not.toHaveBeenCalled()
+    fireEvent.scroll(window)
+    expect(measureTrigger).toHaveBeenCalled()
+
+    const returnFocus = vi.spyOn(trigger, 'focus')
+    fireEvent.click(option)
+    expect(returnFocus).toHaveBeenCalledWith({ preventScroll: true })
+  })
+
   it.each([false, true])(
     'matches trigger zoom without double scaling the dialog portal (%s)',
     (inDialog) => {

@@ -27,6 +27,9 @@ export function AgentEditor({
     wEngineRefinement: source.wEngineDetails.refinement,
     wEngineLevel: source.wEngineDetails.level,
     wEngineLevelManuallySet: false,
+    ...('ascension' in source.wEngineDetails
+      ? { wEngineAscension: source.wEngineDetails.ascension }
+      : {}),
     wEngineCatalogId: source.wEngineDetails.id,
     wEngineRefinementManuallySet: false,
   }

@@ -23,6 +23,7 @@ import { candidateDiscFactKey } from '../optimizer/candidateSearchFacts'
 import type { CandidateWarehousePlan } from '../optimizer/candidateWarehouseSolver'
 import {
   evaluateDevelopmentValueBenchmarkSide,
+  type DevelopmentValueBenchmarkEvaluator,
   type DevelopmentComparisonParameters,
 } from './developmentValueBenchmark'
 import { evaluateDevelopmentStatWeights } from './developmentStatWeights'
@@ -42,6 +43,7 @@ const physicalKey = (discs: readonly DriveDisc[]) =>
 /** Producer for the existing comparison/save journey. Raw game-legal inventory
  * remains available to search; guide scores only seed/order budgeted visits. */
 export function searchDevelopmentDynamicCandidates(input: {
+  evaluator?: DevelopmentValueBenchmarkEvaluator
   warehouse: CoreWarehouse
   agentId: string
   buildIntent: AgentIndependentBuildIntent
@@ -122,7 +124,14 @@ export function searchDevelopmentDynamicCandidates(input: {
   const side = (discs: DriveDisc[]) => {
     const key = physicalKey(discs)
     if (!sides.has(key))
-      sides.set(key, evaluateDevelopmentValueBenchmarkSide({ ...input, discs, stale: false }))
+      sides.set(
+        key,
+        (input.evaluator ?? evaluateDevelopmentValueBenchmarkSide)({
+          ...input,
+          discs,
+          stale: false,
+        }),
+      )
     return sides.get(key)!
   }
   const originalDiscs = input.candidates.map((plan) =>
@@ -296,19 +305,32 @@ export function searchDevelopmentDynamicCandidates(input: {
       legality: plan ? 'verified' : 'invalid',
       stale: false,
       functional: baselinePanel
-        ? {
-            attack: {
-              actual: panel ? -panel.attackDeficit : null,
-              minimum: -baselinePanel.attackDeficit,
-              authorityKey: stableContentHash(baselinePanel.priorityStat ?? 'anomalyProficiency'),
-            },
-            priority: {
-              actual: panel?.[baselinePanel.priorityStat ?? 'anomalyProficiency'] ?? null,
-              minimum:
-                baselinePanel[baselinePanel.priorityStat ?? 'anomalyProficiency'] ?? Number.NaN,
-              authorityKey: baselinePanel.priorityStat ?? 'anomalyProficiency',
-            },
-          }
+        ? baselinePanel.priorityStat === 'source'
+          ? {
+              initialHp: {
+                actual:
+                  panel?.priorityStat === 'source' && Number.isFinite(panel.hpDeficit)
+                    ? -panel.hpDeficit!
+                    : null,
+                minimum: Number.isFinite(baselinePanel.hpDeficit)
+                  ? -baselinePanel.hpDeficit!
+                  : Number.NaN,
+                authorityKey: 'reviewed-initial-hp-target',
+              },
+            }
+          : {
+              attack: {
+                actual: panel ? -panel.attackDeficit : null,
+                minimum: -baselinePanel.attackDeficit,
+                authorityKey: stableContentHash(baselinePanel.priorityStat ?? 'anomalyProficiency'),
+              },
+              priority: {
+                actual: panel?.[baselinePanel.priorityStat ?? 'anomalyProficiency'] ?? null,
+                minimum:
+                  baselinePanel[baselinePanel.priorityStat ?? 'anomalyProficiency'] ?? Number.NaN,
+                authorityKey: baselinePanel.priorityStat ?? 'anomalyProficiency',
+              },
+            }
         : {},
     }
   }

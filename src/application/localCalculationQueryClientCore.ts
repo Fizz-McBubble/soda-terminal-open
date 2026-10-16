@@ -13,7 +13,10 @@ import { buildAccountDecisionInputFingerprint } from '../decision/accountDecisio
 import { createLocalTargetTeamFitQuery } from './localTargetTeamFitQuery'
 import type { AccountDecisionSnapshotCalculator } from './browserAccountDecisionWorker'
 import { projectDevelopmentCandidateAlternatives } from '../decision/developmentCandidateAlternatives'
-import { projectDevelopmentValueBenchmarks } from '../decision/developmentValueBenchmark'
+import {
+  projectDevelopmentValueBenchmarks,
+  createDevelopmentValueBenchmarkEvaluator,
+} from '../decision/developmentValueBenchmark'
 import { projectDevelopmentCandidatePresentation } from './developmentCandidatePresentation'
 import type { CurrentGameDataRuntimeSelection } from '../gameDataPacks/runtimeSelection'
 import {
@@ -31,6 +34,7 @@ import { projectDevelopmentDirectoryQuery } from './developmentDirectoryQueryPro
 import { projectDevelopmentComparisonPanels } from './developmentComparisonPanelProjection'
 import { projectDevelopmentWorkbenchPresentation } from './developmentWorkbenchPresentationProjection'
 import { projectDevelopmentWorkbenchRoute } from './developmentWorkbenchRouteProjection'
+import { createDevelopmentCandidateLoadoutCache } from './developmentCandidateLoadoutCache'
 import { projectPrivateTeamOverview } from '../pages/privateTeamLoadoutPresentationProducer'
 import { prepareRemainingBox } from './remainingBox'
 import { projectPrivateTeamRoute } from '../pages/privateTeamRouteProjection'
@@ -45,6 +49,7 @@ export function createLocalCalculationQueryClientCore(options: {
   calculateSnapshot: AccountDecisionSnapshotCalculator
 }): CalculationQueryClient {
   const runs = new Map<string, AccountDecisionRun>()
+  const candidateLoadouts = createDevelopmentCandidateLoadoutCache()
   const teamFits = new Map<
     string,
     Map<string, Awaited<ReturnType<CalculationQueryClient['calculateTargetTeamWarehouseFit']>>>
@@ -56,6 +61,7 @@ export function createLocalCalculationQueryClientCore(options: {
     for (const controller of pendingRuns.values()) controller.abort()
     pendingRuns.clear()
     runs.clear()
+    candidateLoadouts.clear()
     teamFits.clear()
   }
 
@@ -117,6 +123,8 @@ export function createLocalCalculationQueryClientCore(options: {
     releaseAccountDecisionRun(runId) {
       pendingRuns.get(runId)?.abort()
       pendingRuns.delete(runId)
+      const run = runs.get(runId)
+      if (run) candidateLoadouts.forget(run)
       runs.delete(runId)
       teamFits.delete(runId)
     },
@@ -229,7 +237,12 @@ export function createLocalCalculationQueryClientCore(options: {
       await requireCompiledRuntime()
       const run = runs.get(query.runId)
       if (!run) throw new Error(`Account Decision run is unavailable: ${query.runId}.`)
-      return projectDevelopmentWorkbenchRoute(run, query.selection, query.currentRecord)
+      return projectDevelopmentWorkbenchRoute(
+        run,
+        query.selection,
+        query.currentRecord,
+        candidateLoadouts.read(run, query.selection),
+      )
     },
 
     queryDecisionPortfolio: createLocalDecisionPortfolioQuery({
@@ -296,13 +309,22 @@ export function createLocalCalculationQueryClientCore(options: {
         eventConditionDeclarationsByAgentId,
       )
       const scenario = resolveCurrentPlanningScenario32(query.scenarioSelection)
+      const evaluator = createDevelopmentValueBenchmarkEvaluator()
       const baseProjection = projectDevelopmentCandidateAlternatives(
         run.input,
         query.agentId,
         undefined,
         scenario.selection,
         eventConditionDeclarationsByAgentId?.[query.agentId],
+        evaluator,
       )
+      // The workbench's legacy assertion uses the default scenario, without explicit declarations.
+      // Other scenarios keep that assertion's original fresh-solve path and cannot borrow this cache.
+      if (
+        scenario.identity === resolveCurrentPlanningScenario32().identity &&
+        !eventConditionDeclarationsByAgentId?.[query.agentId]
+      )
+        candidateLoadouts.remember(run, query.agentId, baseProjection.candidates)
       const projection = { ...baseProjection, candidates: [...baseProjection.candidates] }
       const explicit = query.candidateParametersByRank ?? {}
       const candidateSearchByRank: Record<
@@ -335,6 +357,7 @@ export function createLocalCalculationQueryClientCore(options: {
               parameters,
               scenario.selection,
               eventConditionDeclarationsByAgentId?.[query.agentId],
+              evaluator,
             ),
           )
         const candidate = generated.get(key)!.candidates[0]
@@ -344,17 +367,20 @@ export function createLocalCalculationQueryClientCore(options: {
           if (search) candidateSearchByRank[Number(rank)] = search
         }
       }
-      const valueBenchmarks = projectDevelopmentValueBenchmarks({
-        warehouse: run.input.warehouse,
-        agentId: query.agentId,
-        baseline: projection.baseline,
-        candidates: projection.candidates,
-        savedPlans: run.input.drafts,
-        candidateParametersByRank: explicit,
-        scenarioSelection: scenario.selection,
-        eventConditionDeclaration: eventConditionDeclarationsByAgentId?.[query.agentId],
-        stale: false,
-      })
+      const valueBenchmarks = projectDevelopmentValueBenchmarks(
+        {
+          warehouse: run.input.warehouse,
+          agentId: query.agentId,
+          baseline: projection.baseline,
+          candidates: projection.candidates,
+          savedPlans: run.input.drafts,
+          candidateParametersByRank: explicit,
+          scenarioSelection: scenario.selection,
+          eventConditionDeclaration: eventConditionDeclarationsByAgentId?.[query.agentId],
+          stale: false,
+        },
+        evaluator,
+      )
       return {
         contract: 'soda-development-candidate-alternatives/v1',
         comparisonContract: 'soda-explicit-development-comparison/v1',

@@ -349,7 +349,7 @@ export function TeamExecutionAttributeInspector({
                   : `当前面板未计算：${attributePanel.source.outOfCombat.reason ?? '资料尚未补齐。'}`}
             </p>
           ) : null}
-          {!showTargetColumn ? <p>暂无可量化的毕业参考。</p> : null}
+          {!showTargetColumn ? <p>暂无可量化的毕业推荐。</p> : null}
           {hasCompleteSuggestedLoadout && attributePanel.source.current.status === 'missing' ? (
             <p>{attributePanel.copy.current}</p>
           ) : null}

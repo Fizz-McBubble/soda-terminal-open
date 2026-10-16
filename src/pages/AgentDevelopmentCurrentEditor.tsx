@@ -38,6 +38,7 @@ export function AgentDevelopmentCurrentEditor({
         wEngineCatalogId,
         wEngineLevel,
         wEngineLevelManuallySet,
+        wEngineAscension,
         wEngineRefinement,
         wEngineRefinementManuallySet,
         ...agentPatch
@@ -51,6 +52,7 @@ export function AgentDevelopmentCurrentEditor({
           wEngineCatalogId,
           wEngineLevel,
           wEngineLevelManuallySet,
+          ...(wEngineAscension !== undefined ? { wEngineAscension } : {}),
           wEngineRefinement,
           wEngineRefinementManuallySet,
         },

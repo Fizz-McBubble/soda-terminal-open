@@ -15,8 +15,8 @@ export function TeamExecutionGraduationReference({
   return (
     <ExplanationPopover
       key={identity}
-      label="毕业参考"
-      title="毕业参考条件"
+      label="毕业推荐"
+      title="毕业推荐适用条件"
       className="team-execution__graduation-reference"
     >
       <p>

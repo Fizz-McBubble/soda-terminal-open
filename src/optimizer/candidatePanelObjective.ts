@@ -1,5 +1,10 @@
 import type { DriveDisc } from '../domain/schemas'
-import { projectOutOfCombatMenuPanel, type PanelInput } from '../calculation/outOfCombatPanel'
+import {
+  projectOutOfCombatMenuPanel,
+  projectOutOfCombatPanel,
+  type PanelInput,
+} from '../calculation/outOfCombatPanel'
+import { compareCandidatePanelPriority } from './candidateSearchFacts'
 import {
   candidatePanelPolicyPrerequisites,
   getCandidatePanelPolicy,
@@ -10,9 +15,10 @@ import {
 
 export type CandidatePanelInput = Omit<PanelInput, 'discs'>
 export const candidatePanelObjectiveVersion =
-  'reviewed-attack-threshold-menu-white-priority-r3' as const
+  'reviewed-initial-hp-and-attack-threshold-priority-r4' as const
 export type CandidatePanelObjective = {
   attackDeficit: number
+  hpDeficit?: number
   anomalyProficiency: number
   energyRegen?: number
   priorityStat?: CandidatePanelPriorityStat
@@ -57,13 +63,18 @@ export function compareCandidatePanelObjective(
   left?: CandidatePanelObjective,
   right?: CandidatePanelObjective,
 ) {
-  if (!left || !right) return 0
-  const priorityStat = left.priorityStat ?? 'anomalyProficiency'
-  if (priorityStat !== (right.priorityStat ?? 'anomalyProficiency')) return 0
-  return (
-    left.attackDeficit - right.attackDeficit ||
-    (right[priorityStat] ?? 0) - (left[priorityStat] ?? 0)
-  )
+  return compareCandidatePanelPriority(left, right)
+}
+
+/** Keep a bounded search's threshold coordinate separate from its final local tie breaker. */
+export function candidatePanelObjectiveBeamComparator<
+  T extends { attack?: number; priority?: number },
+>(target: CandidatePanelObjectiveTarget, base: number, tieBreak: (a: T, b: T) => number) {
+  const threshold = target.minimumInitialHp ?? target.minimumAttack
+  return (a: T, b: T) =>
+    Math.min(threshold, base + b.attack!) - Math.min(threshold, base + a.attack!) ||
+    b.priority! - a.priority! ||
+    tieBreak(a, b)
 }
 
 export function candidatePanelObjectiveSupportsSetPlans(
@@ -107,6 +118,10 @@ export function candidatePanelObjectiveWarning(
   status: CandidatePanelObjectiveStatus,
   mixedBranches: boolean,
 ) {
+  if (target.minimumInitialHp !== undefined)
+    return status === 'unsupported'
+      ? `初始生命目标所需核心技7或精确面板条件不足，保留来源候选顺序。`
+      : `优先缩小初始生命${target.minimumInitialHp}缺口，达标后保留来源候选取舍；实际追加增益仍需队伍及以太帷幕条件。${status === 'limited' ? '本次搜索有界。' : ''}`
   const priority = target.priorityStat === 'energyRegen' ? '能量自动回复' : '异常精通'
   if (status === 'applied')
     return `已按攻击力${target.minimumAttack}前补攻击、达标后优先${priority}比较；仍为候选配装。`
@@ -122,8 +137,20 @@ export function projectCandidatePanelObjective(
   panelInput: CandidatePanelInput,
   discs: DriveDisc[],
 ): CandidatePanelObjective | undefined {
-  const panel = projectOutOfCombatMenuPanel({ ...panelInput, discs })
+  const panel =
+    target.minimumInitialHp === undefined
+      ? projectOutOfCombatMenuPanel({ ...panelInput, discs })
+      : projectOutOfCombatPanel({ ...panelInput, discs })
   if (panel.status !== 'ok') return undefined
+  if (target.minimumInitialHp !== undefined) {
+    if (!Number.isFinite(panel.values.hp)) return undefined
+    return {
+      attackDeficit: 0,
+      hpDeficit: Math.max(0, target.minimumInitialHp - panel.values.hp),
+      anomalyProficiency: panel.values.anomalyProficiency,
+      priorityStat: 'source',
+    }
+  }
   return {
     attackDeficit: Math.max(0, target.minimumAttack - panel.values.atk),
     anomalyProficiency: panel.values.anomalyProficiency,
@@ -145,17 +172,20 @@ export function prepareCandidatePanelObjective(
   const requestedTarget = getCandidatePanelPolicy(agentId)
   const wantsPanelObjective = requestedTarget !== null
   const objectiveTarget = getCandidatePanelObjectiveTarget(agentId, panelInput)
+  const projectPanel =
+    objectiveTarget?.minimumInitialHp === undefined
+      ? projectOutOfCombatMenuPanel
+      : projectOutOfCombatPanel
+  const thresholdStat = objectiveTarget?.minimumInitialHp === undefined ? 'atk' : 'hp'
   const anchorDiscs = [1, 2, 3, 4, 5, 6].flatMap(
     (slot) => eligible.find((disc) => disc.slot === slot) ?? [],
   )
   const anchor =
-    objectiveTarget && panelInput
-      ? projectOutOfCombatMenuPanel({ ...panelInput, discs: anchorDiscs })
-      : null
+    objectiveTarget && panelInput ? projectPanel({ ...panelInput, discs: anchorDiscs }) : null
   const objectiveEnabled = anchor?.status === 'ok'
   const baseAttack =
     anchor?.trace
-      .filter((item) => item.key === 'atk' && item.operation === 'base')
+      .filter((item) => item.key === thresholdStat && item.operation === 'base')
       .reduce((sum, item) => sum + Number(item.value), 0) ?? 0
   const priorityBase =
     anchor?.trace
@@ -164,7 +194,7 @@ export function prepareCandidatePanelObjective(
   const contributions = new Map<string, { attack: number; priority: number }>()
   if (objectiveEnabled && panelInput) {
     for (const disc of eligible) {
-      const panel = projectOutOfCombatMenuPanel({
+      const panel = projectPanel({
         ...panelInput,
         discs: anchorDiscs.map((item) => (item.slot === disc.slot ? disc : item)),
       })
@@ -175,7 +205,7 @@ export function prepareCandidatePanelObjective(
       const trace = panel.trace.filter((item) => item.source.startsWith(`disc:${disc.id}:`))
       contributions.set(disc.id, {
         attack: trace
-          .filter((item) => item.key === 'atk')
+          .filter((item) => item.key === thresholdStat)
           .reduce(
             (sum, item) =>
               sum + Number(item.value) * (item.operation === 'percent' ? baseAttack / 100 : 1),

@@ -227,6 +227,7 @@ export function AssetCenterPage() {
             wEngineCatalogId,
             wEngineLevel,
             wEngineLevelManuallySet,
+            wEngineAscension,
             wEngineRefinement,
             wEngineRefinementManuallySet,
             ...agentDraft
@@ -240,6 +241,7 @@ export function AssetCenterPage() {
               wEngineCatalogId,
               wEngineLevel,
               wEngineLevelManuallySet,
+              ...(wEngineAscension !== undefined ? { wEngineAscension } : {}),
               wEngineRefinement,
               wEngineRefinementManuallySet,
             },

@@ -23,7 +23,7 @@ import {
 } from './selectTeamObjectiveAssignment'
 import { searchTeamAssignments, type TeamSearchEvidence } from './searchTeamAssignments'
 import { isAllowedMainStat } from './buildKnowledge'
-import { candidatePanelInputForAgent } from './optimizeAccountBuildsPanelInput'
+import { candidatePanelInputForSchemeAgent } from './optimizeAccountBuildsPanelInput'
 export { candidatePanelInputForAgent } from './optimizeAccountBuildsPanelInput'
 import { dynamicLegalInventory, compileDynamicCandidateLoadout } from './teamDynamicDomain'
 import type { AccountBuildResult, UnavailableDiagnosis } from './accountBuildAllocationTypes'
@@ -64,7 +64,15 @@ export function createAccountCandidateGenerationCache(
 export function candidatePanelInputsForScheme(
   agents: readonly RosterAgent[],
   memberIds: readonly string[],
-  engines: readonly { agentId: string; engineId: string; refinement: number }[] | undefined,
+  engines:
+    | readonly {
+        agentId: string
+        engineId: string
+        refinement: number
+        level?: number
+        ascension?: number | null
+      }[]
+    | undefined,
 ): AccountOptimizerOptions['panelInputsByAgent'] {
   if (
     !engines ||
@@ -79,18 +87,7 @@ export function candidatePanelInputsForScheme(
     memberIds.flatMap((agentId) => {
       const agent = agents.find((item) => item.agentId === agentId)
       const engine = engines.find((item) => item.agentId === agentId)
-      const input =
-        agent && engine
-          ? candidatePanelInputForAgent({
-              ...agent,
-              wEngineDetails: {
-                ...agent.wEngineDetails,
-                id: engine.engineId,
-                level: 60,
-                refinement: engine.refinement,
-              },
-            })
-          : undefined
+      const input = agent && engine ? candidatePanelInputForSchemeAgent(agent, engine) : undefined
       return input ? [[agentId, input]] : []
     }),
   )

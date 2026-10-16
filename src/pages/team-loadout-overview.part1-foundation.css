@@ -259,7 +259,7 @@
   line-height: 18px;
 }
 
-.f5v-box-team-completion ul {
+.f5v-box-team-completion > ul {
   display: grid;
   gap: var(--soda-space-2);
   margin: 0;
@@ -267,7 +267,7 @@
   list-style: none;
 }
 
-.f5v-box-team-completion li {
+.f5v-box-team-completion > ul > li {
   display: grid;
   gap: 3px;
   padding: 9px 10px;
@@ -278,7 +278,7 @@
   line-height: 18px;
 }
 
-.f5v-box-team-completion li strong {
+.f5v-box-team-completion > ul > li > .f5v-box-team-completion__copy > strong {
   color: var(--soda-text);
   font-size: var(--soda-font-small);
 }

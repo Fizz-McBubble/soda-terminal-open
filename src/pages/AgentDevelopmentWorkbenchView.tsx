@@ -11,7 +11,10 @@ import {
   developmentCurrentRecordBinding,
   developmentCurrentRecordAgent,
 } from '../application/publicDevelopmentWorkbenchRoute'
-import { developmentCommittedCurrentDisplay } from './developmentCommittedCurrentDisplay'
+import {
+  developmentCommittedCurrentDisplay,
+  developmentCommittedCurrentDisplayFailure,
+} from './developmentCommittedCurrentDisplay'
 import { developmentPanelDiscFingerprint } from '../application/publicDevelopmentComparisonPanels'
 import { AgentDevelopmentGolden } from '../features/agentDevelopmentGolden'
 import { AgentDevelopmentCurrentEditor } from './AgentDevelopmentCurrentEditor'
@@ -171,7 +174,7 @@ export function AgentDevelopmentWorkbenchView({
           kind: 'current_record',
           phase: 'failed',
           record: savedAgent,
-          presentation: committedPresentation,
+          presentation: developmentCommittedCurrentDisplayFailure(committedPresentation),
           error: error instanceof Error ? error.message : '资料已保存，更新暂未完成。',
         })
     }

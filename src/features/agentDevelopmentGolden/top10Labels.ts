@@ -95,9 +95,17 @@ export function candidateSearchLabel(search: GoldenTop10Data['candidateSearch'])
   const method =
     search.rankingMethod === 'prepared_anomaly_settlement'
       ? '按同条件单次异常结算排序，仅覆盖已声明结算，不代表持续输出、全角色循环或整体最优'
-      : search.rankingMethod === 'dynamic_objective'
-        ? '按已覆盖模型目标排序'
-        : '按来源建议与局部细化排序，输出对比不代表名次依据'
+      : search.rankingMethod === 'comparison_groups'
+        ? `可比候选分组取舍：${[
+            ...(search.rankingScopes?.includes('panel_target') ? ['支援按机制面板目标'] : []),
+            ...(search.rankingScopes?.includes('declared_event') ? ['已覆盖事件按输出'] : []),
+            ...(search.rankingScopes?.includes('fixed_event_slice')
+              ? ['同来源优先级、相同覆盖与功能属性的候选按已计入输出']
+              : []),
+          ].join('；')}；不同组保留原顺序，未计入效果仍未知，不代表整体收益或全局最优`
+        : search.rankingMethod === 'dynamic_objective'
+          ? '按已覆盖模型目标排序'
+          : '按来源建议与局部细化排序，输出对比不代表名次依据'
   return search.status === 'budget_exhausted'
     ? `${method}；搜索预算已用尽，不代表全局最优。`
     : search.status === 'objective_unresolved'

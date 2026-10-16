@@ -31,6 +31,17 @@
   color: var(--soda-text);
 }
 
+.f5v-box-team-group__heading {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.f5v-box-team-recommendation-explanation > .explanation__trigger {
+  --explanation-underline: '';
+}
+
 .f5v-box-team-recommendation-search {
   display: grid;
   gap: 6px;
@@ -196,8 +207,7 @@
   font-size: 13px;
   font-weight: 600;
   color: var(--soda-accent, #62499a);
-  text-decoration: underline;
-  text-underline-offset: 3px;
+  --explanation-underline: '';
 }
 
 .f5v-box-team-bangboo-options img {
@@ -276,4 +286,8 @@
 .f5v-box-team-group > div,
 .f5v-box-team-group > div > div {
   border: 0;
+}
+
+.f5v-box-completion-condition > .explanation__trigger {
+  --explanation-underline: '';
 }

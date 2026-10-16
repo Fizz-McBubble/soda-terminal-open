@@ -115,6 +115,8 @@ export function hasObservedAgentField(agent: RosterAgent, field: ObservedAgentFi
 export function hasCurrentWEngineProgression(
   agent: Pick<RosterAgent, 'observedFacts' | 'wEngineDetails'>,
 ) {
+  // Explicitly unknown differs from an absent legacy field with historical defaults.
+  if (agent.wEngineDetails.ascension === null) return false
   const facts = agent.observedFacts?.fields
   const identity = facts?.['wEngineDetails.id']
   const manual = agent.wEngineDetails.manualProgression

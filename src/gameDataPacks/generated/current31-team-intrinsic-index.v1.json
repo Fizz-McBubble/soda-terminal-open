@@ -89,14 +89,14 @@
   },
   "runtimeFingerprints": {
     "roster": "fnv1a-9efb366c",
-    "mechanicData": "fnv1a-469019de",
-    "strengthModel": "fnv1a-dafc06ca"
+    "mechanicData": "fnv1a-f71308b7",
+    "strengthModel": "fnv1a-c998add4"
   },
   "inputFiles": {
     "scripts/current31-team-intrinsic-index-inputs.mjs": "321fd99fe12798bb3f143b5508a040e40dfef86962eb33ce0f0994c3dae2273c",
     "scripts/generate-current31-team-intrinsic-index.mjs": "4605c6ad390ab6bd2737c8b7339c79d9a7ae2771881e6a4311e58cdd8aea19c3",
     "src/accounts/agentProgressionRules.ts": "bf970871e2fdbbbf25face7437eb7b60c638de59106c9a748309e7943f4f3ee5",
-    "src/accounts/observedAgentFacts.ts": "3ab3e9c1261acb96a9b39cfd8f96196a3e54f5f8e0c578571519215976a22867",
+    "src/accounts/observedAgentFacts.ts": "a42928e29088a0186b9e2b0eddb0575f5c866a3f22f235bb07276d3506c431a2",
     "src/accounts/publicWEngineInstances.ts": "9a1ded1165870e42abfdd85f2c8ca072beb9f79beda3b7568d912efe7c9857e0",
     "src/accounts/publicWEngineSIds.data.json": "76922a18a446370da58fdd1af4ab85764f9c554e5a280f24ea4506dab8acaf09",
     "src/accounts/rosterFacts.ts": "c579d1cf12562cab2c2942de4f2ceaf4f606472e812fedb8bab93ea6e48101c6",
@@ -160,7 +160,7 @@
     "src/calculation/currentPlanningBaselineObservations.ts": "afbf30e4f7515f8a3a6f21a24b6fc717e0537767b3734eb5e936fcb3ac280f42",
     "src/calculation/currentPlanningConditionCatalog32.ts": "3b4ee836611e8793d7fb2702486fe60c23eaf1e97d58228c80a601ca2851f63b",
     "src/calculation/currentPlanningConditionSourceSeeds32.ts": "43d8ccc6f01034b088623c609e309b7eef72930d4d3c8d8a0e7479dbb9c2ebf4",
-    "src/calculation/currentPlanningConsumerPolicyIdentity32.ts": "3751c8cc1d0e5853332c1bd69c3fefad028f3b2f0e357686c27021292e584709",
+    "src/calculation/currentPlanningConsumerPolicyIdentity32.ts": "a41bac01fc8713cadda0b289b93dc7234122c497ae13aa699a10307e692a8377",
     "src/calculation/currentPlanningDamageModifiers.ts": "9ae7418c52d001f3b7a42b53a34151663e5909ea9093fb965311f85a0531e0a1",
     "src/calculation/currentPlanningEffectDomain.ts": "509c843d36e586e36f68235e3a866e3f264a93f5882e3eae5534f4efefe44319",
     "src/calculation/currentPlanningEffectExpressions.ts": "9e4c0f25fe3b1d74021a3a9246a606d9260dd1b5a9d8cee4ba6eb81d3afa1b08",
@@ -249,7 +249,7 @@
     "src/calculation/valueBenchmarkComparison.ts": "517aea9c416cd4a42fba53027ec0279216a5bbba5f27406ea595a336755931f9",
     "src/calculation/valueBenchmarkEvidence.ts": "1b0e4675435213e5de6b2ad65e309bc00d812f71c43997739659190d6327745a",
     "src/calculation/verifiedPlanningFormationTimeline.ts": "a39fd2d6b32956ad6519a776b6f9c0558e3750bacbb75209e843e6ea95291678",
-    "src/components/assets/r6/types.ts": "a781215fcb09d61c1c4a805e75945fc8b8d315868be80ba3ff7899043de57040",
+    "src/components/assets/r6/types.ts": "3db8ad21388745db92c0ed223ac9647fd541d68ab9b1b3789ee69ba91899e055",
     "src/data/drive-disc-data.v1.json": "b6223ee0ebfa1aebc517194b54c1c695e463098165ed72cedbc0ba4557953d59",
     "src/data/game-data.json": "7e35b0c6123ebdd8d8de3b570494d034a0c454cec289ea050948baebb31353ee",
     "src/data/gameData.ts": "0e90f2e42702625ded6777b16ef538dc2ac1b2f4b81320afcffb8b9ef756cd7c",
@@ -365,7 +365,7 @@
     "src/gameDataPacks/generated/l3-b04c7cc7ac8ad6279074/agentDevelopmentEvidence.ts": "398ab2d90d4cd03f14147f17e5dc194908fca21069860604ccb802423c65c57e",
     "src/gameDataPacks/generated/l3-b04c7cc7ac8ad6279074/noncharacterMiyousheSidecar.ts": "4262f265b1a1d6f04532eb9a7b013533ae86172bdf628fc6c0e4f01a8505cc97",
     "src/gameDataPacks/generated/l3AgentDevelopmentEvidenceTypes.ts": "c7f7f9a523b4cb13e89f6e10ff8a1d3e191f9ebc71d79fd7258f389178d1361d",
-    "src/gameDataPacks/generated/team-strength-model.3.1.json": "a3ba4530b9232cb0fef91ced173b8e763595d97d04e6bf08d6882adaeff88812",
+    "src/gameDataPacks/generated/team-strength-model.3.1.json": "6c27dd89a577c06aa81382fcf865b6e197275f93ffccda779283c97396257539",
     "src/gameDataPacks/incremental32AffectedCapabilities.ts": "a5529991289cedad4b76190d8b371b0e3eaa107173dc944300e86102033a038a",
     "src/gameDataPacks/incremental32RecoveryPolicy.ts": "de008b796842d6448828b7a3eb7ffc757c56260459cf8fe94ae338163a2eaf9c",
     "src/gameDataPacks/l3BoxTeamTemplateProjection.ts": "a121b90bc80f11b01245a72d6dd24a0bd54947b415bbe2cf11c9b85b0b1de404",
@@ -34670,5 +34670,5 @@
     [57, 58, 59, 0, 3, 2, 77, 1, 0, 4, 0]
   ],
   "boundary": "Build-time exact-three intrinsic summaries only. Account assets, preferences, Bangboo selection, evidence objects and final recommendations remain runtime projections.",
-  "contentHash": "fnv1a-4dac61c6"
+  "contentHash": "fnv1a-df011869"
 }

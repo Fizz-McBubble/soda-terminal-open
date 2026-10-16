@@ -173,13 +173,13 @@
 
 .f5v-wengine-assignment .wengine-assignment-field__levels {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
 
 .f5v-wengine-assignment .wengine-assignment-field__levels input {
   width: 100%;
-  height: 38px;
+  height: 42px;
   padding: 0 10px;
   border: 1px solid rgb(100 89 133 / 24%);
   border-radius: var(--soda-radius-control);
@@ -285,6 +285,7 @@
   display: grid;
   align-content: start;
   overflow: auto;
+  overscroll-behavior: contain;
   padding: 6px;
   border: 1px solid rgb(90 76 127 / 20%);
   border-radius: var(--soda-radius-control);

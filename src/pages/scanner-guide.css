@@ -17,6 +17,8 @@
 }
 
 .f5v-shell .scanner-workbench .scanner-guide > .explanation__trigger {
+  --explanation-underline: '';
+  --explanation-underline-color: #baa5d1;
   min-height: 32px;
   padding: 4px 0;
   border: 0;
@@ -28,19 +30,19 @@
   white-space: nowrap;
 }
 .f5v-shell .scanner-workbench .scanner-guide .explanation__label {
-  border-bottom: 1px solid #baa5d1;
-  padding-bottom: 2px;
+  padding-bottom: 3px;
 }
 .f5v-shell .scanner-workbench .scanner-guide > .explanation__trigger:hover,
 .f5v-shell .scanner-workbench .scanner-guide > .explanation__trigger[aria-expanded='true'] {
   color: #4b286f;
 }
-.f5v-shell .scanner-workbench .scanner-guide > .explanation__trigger:hover .explanation__label {
-  border-color: currentColor;
+.f5v-shell .scanner-workbench .scanner-guide > .explanation__trigger:hover {
+  --explanation-underline-color: currentColor;
 }
 
 .scanner-guide .explanation-popover[popover] {
   width: min(420px, calc(100vw - 24px));
+  max-height: min(32rem, calc(100dvh - 24px));
 }
 .scanner-guide .explanation-popover ol {
   padding-left: 20px;

@@ -30,11 +30,14 @@ import { developmentGraduationTargets } from '../pages/developmentGraduationTarg
 import { getProjectedBuildKnowledgeProfile } from '../gameDataPacks/agentProfile'
 import { getCurrentBuildTargetPanel } from '../gameDataPacks/currentBuildAuthority'
 
-/** Private route producer: candidate assertions are checked against a fresh solve of the same captured run. */
+/** Private route producer: check an issued default loadout or freshly solve the same captured run. */
 export function projectDevelopmentWorkbenchRoute(
   run: AccountDecisionRun,
   selection: DevelopmentWorkbenchRouteSelection,
   currentRecord?: DevelopmentCurrentRecord,
+  issuedLoadout?: ReturnType<
+    typeof projectDevelopmentCandidateAlternatives
+  >['candidates'][number]['loadouts'][number],
 ): DevelopmentWorkbenchRoutePresentation {
   const warehouse = run.input.warehouse
   const base = {
@@ -101,9 +104,16 @@ export function projectDevelopmentWorkbenchRoute(
       !selection.candidateLoadoutFingerprint
     )
       return unavailable('candidate_mismatch')
-    const projection = projectDevelopmentCandidateAlternatives(run.input, selection.agentId)
-    const loadout = projection.candidates[selection.candidateRank - 1]?.loadouts[0]
-    if (!loadout || contentHash(loadout) !== selection.candidateLoadoutFingerprint)
+    const loadout =
+      issuedLoadout ??
+      projectDevelopmentCandidateAlternatives(run.input, selection.agentId).candidates[
+        selection.candidateRank - 1
+      ]?.loadouts[0]
+    if (
+      !loadout ||
+      loadout.agentId !== selection.agentId ||
+      contentHash(loadout) !== selection.candidateLoadoutFingerprint
+    )
       return unavailable('candidate_mismatch')
     candidateChoices = loadout.discs
   } else if (selection.candidateLoadoutFingerprint !== null)
@@ -176,7 +186,7 @@ export function projectDevelopmentWorkbenchRoute(
     profile: getProjectedBuildKnowledgeProfile(selection.agentId),
     activePlan: saved.plan ?? null,
     discs: warehouse.discs,
-    targetPanel: targetPanel ? { value: targetPanel.value, status: targetPanel.status } : null,
+    targetPanel,
     panel: panelProjection.result,
   })
   const graduationPanel = developmentGraduationTargets(

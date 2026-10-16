@@ -24,6 +24,7 @@ export function candidatePanelInputForAgent(
     agent.skillLevels.core !== 7 ||
     !agent.wEngineDetails.id ||
     agent.wEngineDetails.level !== 60 ||
+    (agent.wEngineDetails.ascension !== undefined && agent.wEngineDetails.ascension !== 5) ||
     !Number.isInteger(agent.wEngineDetails.refinement) ||
     agent.wEngineDetails.refinement == null ||
     agent.wEngineDetails.refinement < 1 ||
@@ -44,4 +45,22 @@ export function candidatePanelInputForAgent(
       refinement: agent.wEngineDetails.refinement,
     },
   }
+}
+
+/** Scheme operands are explicit hypothetical equipment, never current item observations. */
+export function candidatePanelInputForSchemeAgent(
+  agent: RosterAgent,
+  engine: { engineId: string; refinement: number; level?: number; ascension?: number | null },
+): CandidatePanelInput | undefined {
+  return candidatePanelInputForAgent({
+    ...agent,
+    observedFacts: undefined,
+    wEngineDetails: {
+      id: engine.engineId,
+      name: null,
+      level: engine.level ?? 60,
+      ascension: engine.ascension === undefined ? 5 : engine.ascension,
+      refinement: engine.refinement,
+    },
+  })
 }

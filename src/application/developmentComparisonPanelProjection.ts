@@ -6,7 +6,7 @@ import type { CandidateWarehousePlan } from '../optimizer/candidateWarehouseSolv
 import { createAgentDevelopmentPanelProjection } from '../pages/agentDevelopmentPanelProjection'
 import {
   characterPanelLabels,
-  targetPanelDisplayValue,
+  targetPanelPresentation,
 } from '../pages/agentDevelopmentWorkbenchViewModel'
 import { getCurrentBuildTargetPanel } from '../gameDataPacks/currentBuildAuthority'
 import { canDisplayStaticPanelTarget } from '../gameDataPacks/targetPanelSemantics'
@@ -32,16 +32,24 @@ export function projectDevelopmentComparisonPanels(input: {
   const agent = input.warehouse.roster.agents.find((item) => item.agentId === input.agentId)
   const profile = getProjectedBuildKnowledgeProfile(input.agentId)
   const targetPanel = getCurrentBuildTargetPanel(input.agentId)
-  const targetDisplayByLabel = Object.fromEntries(
-    characterPanelLabels.flatMap((label) => {
-      const target = canDisplayStaticPanelTarget(targetPanel, label)
-        ? targetPanelDisplayValue(targetPanel, label)
-        : null
-      const conditionalCrit =
-        label === '暴击率' &&
-        targetPanel?.sourceRefs.some((ref) => ref.id === 'prydwen-ye-shunguang-2.5-2026-08-05')
-      return target ? [[label, conditionalCrit ? `${target}（套装条件）` : target]] : []
+  const targetPresentations = characterPanelLabels.map((label) => ({
+    label,
+    reference: targetPanelPresentation(targetPanel, label, {
+      agentId: input.agentId,
+      coreLevel: agent?.skillLevels.core,
     }),
+  }))
+  const targetDisplayByLabel = Object.fromEntries(
+    targetPresentations.flatMap(({ label, reference }) =>
+      canDisplayStaticPanelTarget(targetPanel, label) && reference.value
+        ? [[label, reference.value]]
+        : [],
+    ),
+  )
+  const targetConditionsByLabel = Object.fromEntries(
+    targetPresentations.flatMap(({ label, reference }) =>
+      reference.conditions.length ? [[label, [...reference.conditions]]] : [],
+    ),
   )
   const savedDiscSets = input.drafts
     .filter(
@@ -103,6 +111,7 @@ export function projectDevelopmentComparisonPanels(input: {
     agentId: input.agentId,
     entries,
     targetDisplayByLabel,
+    targetConditionsByLabel,
     saveKnowledge: {
       scenario: profile.scenario,
       profileId: profile.id,

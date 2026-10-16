@@ -182,7 +182,13 @@ export function createAgentDevelopmentWorkbenchData({
         : ['资料待补齐'],
       panel: graduationPanel,
       panelDirection: graduationPanel.length ? undefined : equipment?.graduationDisplay.subStats,
-      panelConditions: targetPanel?.conditions,
+      panelConditions: [
+        ...new Set([
+          ...(targetPanel?.conditions ?? []),
+          ...(workbench?.slices.currentPanel.facts.flatMap((fact) => fact.targetConditions ?? []) ??
+            []),
+        ]),
+      ],
       teams: displayedGraduationTeams.length
         ? displayedGraduationTeams
         : [{ label: '队伍方向资料待补齐', members: catalog.playerName, visuals: [] }],

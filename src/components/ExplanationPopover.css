@@ -3,6 +3,7 @@
   min-width: 0;
 }
 .f5v-shell .explanation > .explanation__trigger {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -20,15 +21,24 @@
   text-align: left;
   cursor: pointer;
 }
+:where(.explanation) > .explanation__trigger::after {
+  content: var(--explanation-underline, none);
+  position: absolute;
+  inset-inline: 0;
+  bottom: 5px;
+  border-bottom: var(--explanation-underline-thickness, 1px) solid
+    var(--explanation-underline-color, currentColor);
+  pointer-events: none;
+}
 .explanation-popover[popover] {
   position: fixed;
   inset: auto;
   box-sizing: border-box;
   width: min(30rem, calc(100vw - 24px));
-  max-height: calc(100dvh - 24px);
+  max-height: min(32rem, calc(100dvh - 24px));
   margin: 0;
   padding: 16px;
-  overflow: auto;
+  overflow: hidden;
   visibility: hidden;
   border: 1px solid var(--soda-line);
   border-radius: var(--soda-radius-surface);
@@ -48,6 +58,8 @@
     overlay 160ms allow-discrete;
 }
 .explanation-popover[popover]:popover-open {
+  display: flex;
+  flex-direction: column;
   opacity: 1;
 }
 @starting-style {
@@ -57,10 +69,17 @@
 }
 .explanation-popover[popover] .explanation-popover__header {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   margin: 0 0 8px;
+}
+.explanation-popover__body {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
 }
 .explanation-popover[popover] .explanation-popover__header button {
   width: 30px;

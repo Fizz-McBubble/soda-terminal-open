@@ -1,31 +1,44 @@
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { loadCoreWarehouse } from '../accounts/coreWarehouse'
 import { useAccountDecisionWorld } from '../application/accountDecisionWorldHooks'
 import { useF5AccountSummary } from '../components/f5AccountSummaryContext'
 import { AccountRequiredState } from '../components/ui/AccountRequiredState'
-import { AgentPicker, AgentPlan } from './AgentLoadoutRoutes'
+import { AppLoadingState } from '../components/AppEntryState'
 import { LegacyOptimizerRouteRedirect, LegacyResultRedirect } from './OptimizerFlowSupport'
-import { TeamPlan } from './TeamPlan'
 import {
   canRestoreCurrentTeamAnalysisSession,
   currentDecisionWorldForRecovery,
   restoreCurrentTeamAnalysisSession,
 } from './teamAnalysisRecovery'
 import { currentTeamAnalysisSession, setCurrentTeamAnalysisSession } from './teamAnalysisSession'
-import { SavedPlan } from './optimizer/SavedPlan'
 import { TeamPicker } from './optimizer/TeamPicker'
 
 import './team-loadout-analysis-entry.css'
 import './team-loadout-journey.css'
 import './team-loadout-remaining-box.css'
 
+const AgentPicker = lazy(() =>
+  import('./AgentLoadoutRoutes').then((module) => ({ default: module.AgentPicker })),
+)
+const AgentPlan = lazy(() =>
+  import('./AgentPlanRoute').then((module) => ({ default: module.AgentPlan })),
+)
+const TeamPlan = lazy(() => import('./TeamPlan').then((module) => ({ default: module.TeamPlan })))
+const SavedPlan = lazy(() =>
+  import('./optimizer/SavedPlan').then((module) => ({ default: module.SavedPlan })),
+)
+
 export function OptimizerFlowPage() {
   const location = useLocation()
   if (location.pathname.startsWith('/optimizer')) return <LegacyOptimizerRouteRedirect />
   if (location.pathname === '/loadouts/team') return <TeamPicker />
-  return <OptimizerFlowWorkspace />
+  return (
+    <Suspense fallback={<AppLoadingState title="正在打开页面" />}>
+      <OptimizerFlowWorkspace />
+    </Suspense>
+  )
 }
 
 function OptimizerFlowWorkspace() {

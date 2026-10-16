@@ -4,6 +4,12 @@ import { workbench } from './AgentDevelopmentGolden.workbench.testFixture'
 import { WorkbenchPanelSnapshot } from './WorkbenchPanelSnapshot'
 import { Top10StatTable } from './Top10StatTable'
 import type { GoldenTop10Data, LoadoutRow } from './types'
+import { createEmptyRoster } from '../../assault/catalog'
+import {
+  developmentCommittedCurrentDisplay,
+  developmentCommittedCurrentDisplayFailure,
+} from '../../pages/developmentCommittedCurrentDisplay'
+import type { DevelopmentWorkbenchRoutePresentation } from '../../application/publicDevelopmentWorkbenchRoute'
 
 const baseline: LoadoutRow = {
   rank: 0,
@@ -69,6 +75,73 @@ function valuesFor(table: HTMLElement, label: string) {
 }
 
 describe('character panel local disclosures', () => {
+  it('retains hidden natural panel structure while saved facts are pending, then replaces it with settled facts', () => {
+    const agent = createEmptyRoster().agents[0]!
+    const subject = {
+      ...workbench,
+      panelFacts: [
+        { name: '攻击力', value: '1234' },
+        { name: '能量上限', value: '120', detail: true },
+      ],
+    }
+    const view = render(<WorkbenchPanelSnapshot subject={subject} />)
+    const originalGrid = view.container.querySelector('.stat-grid')!
+    const pending = developmentCommittedCurrentDisplay(subject, agent)
+    view.rerender(<WorkbenchPanelSnapshot subject={pending} />)
+    expect(view.container.querySelector('.stat-grid')).toBe(originalGrid)
+    expect(originalGrid).toHaveAttribute('aria-hidden', 'true')
+    expect(originalGrid).toHaveClass('panel-snapshot__placeholder')
+    expect(screen.getByRole('status')).toHaveTextContent('正在更新当前面板')
+    expect(screen.queryByRole('button', { name: '查看完整面板' })).not.toBeInTheDocument()
+    expect(view.container.querySelector('.panel-snapshot')).toHaveAttribute('aria-busy', 'true')
+    const route = {
+      panel: null,
+      workbench: {
+        slices: {
+          currentPanel: {
+            availability: 'available',
+            facts: [{ label: '攻击力', current: '2345' }],
+          },
+        },
+      },
+    } as unknown as DevelopmentWorkbenchRoutePresentation
+    const settled = developmentCommittedCurrentDisplay(pending, agent, route)
+    view.rerender(<WorkbenchPanelSnapshot subject={settled} />)
+    expect(view.container.querySelector('.stat-grid')).not.toHaveAttribute('aria-hidden')
+    expect(view.container.querySelector('.stat-grid')).toHaveTextContent('2345')
+    expect(view.container.querySelector('.stat-grid')).not.toHaveTextContent('1234')
+    expect(screen.queryByRole('status')).not.toBeInTheDocument()
+    expect(view.container.querySelector('.panel-snapshot')).toHaveAttribute('aria-busy', 'false')
+    expect(developmentCommittedCurrentDisplayFailure(settled)).toBe(settled)
+  })
+
+  it('retains an unavailable panel placeholder through failure and permits a fresh update', () => {
+    const agent = createEmptyRoster().agents[0]!
+    const before = {
+      ...workbench,
+      currentPanel: {
+        availability: 'unavailable' as const,
+        summary: '音擎突破未确认，请补充当前资料。',
+      },
+    }
+    const pending = developmentCommittedCurrentDisplay(before, agent)
+    const failed = developmentCommittedCurrentDisplayFailure(pending)
+    const view = render(<WorkbenchPanelSnapshot subject={failed} />)
+    expect(view.container.querySelector('.panel-snapshot')).toHaveAttribute('aria-busy', 'false')
+    expect(screen.getByRole('status')).toHaveTextContent('更新失败')
+    expect(view.container.querySelector('.panel-snapshot__unavailable')).toHaveTextContent(
+      before.currentPanel.summary,
+    )
+    expect(view.container.querySelector('.panel-snapshot__unavailable')).toHaveAttribute(
+      'aria-hidden',
+      'true',
+    )
+    const retry = developmentCommittedCurrentDisplay(failed, agent)
+    expect(retry.currentPanel.refreshState).toBe('updating')
+    expect(retry.currentPanel.refreshPlaceholderSummary).toBe(before.currentPanel.summary)
+    view.rerender(<WorkbenchPanelSnapshot subject={retry} />)
+    expect(screen.getByRole('status')).toHaveTextContent('正在更新')
+  })
   it('keeps detail rows outside the summary grid and preserves graduation placement', () => {
     const subject = {
       ...workbench,
@@ -118,7 +191,7 @@ describe('character panel local disclosures', () => {
     )
   })
 
-  it('expands comparison details inline and resets for another selected scheme or account', () => {
+  it('keeps inline details across schemes and resets for another account or agent', () => {
     const selected = {
       ...baseline,
       rank: 1,
@@ -165,6 +238,13 @@ describe('character panel local disclosures', () => {
       '+18',
       '36',
     ])
+    expect(screen.getByRole('button', { name: '收起完整面板' })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    )
+    expect(screen.getByRole('region', { name: '完整属性对比' })).toBe(panel)
+    fireEvent.click(screen.getByRole('button', { name: '收起完整面板' }))
+    rerender(<Top10StatTable {...props} selectedRow={selected} />)
     expect(screen.getByRole('button', { name: '查看完整面板' })).toHaveAttribute(
       'aria-expanded',
       'false',
@@ -178,6 +258,18 @@ describe('character panel local disclosures', () => {
       />,
     )
     expect(screen.queryByRole('region', { name: '完整属性对比' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '查看完整面板' })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    )
+    fireEvent.click(screen.getByRole('button', { name: '查看完整面板' }))
+    rerender(
+      <Top10StatTable
+        {...props}
+        data={{ ...comparison, panelScopeKey: 'account-b:agent-b' }}
+        selectedRow={selected}
+      />,
+    )
     expect(screen.getByRole('button', { name: '查看完整面板' })).toHaveAttribute(
       'aria-expanded',
       'false',
@@ -219,7 +311,7 @@ describe('character panel local disclosures', () => {
     ).not.toBeInTheDocument()
   })
 
-  it('groups nonzero supplementary fields and own resources, and closes when the baseline changes', () => {
+  it('groups supplementary fields and resources, keeping expansion across baseline and disc changes', () => {
     const data: GoldenTop10Data = {
       ...comparison,
       baseline: { ...baseline, finalStats: { ...baseline.finalStats, iceDamageBonus: 10 } },
@@ -270,11 +362,10 @@ describe('character panel local disclosures', () => {
         baselineLabel="另一比较方案"
       />,
     )
-    expect(screen.getByRole('button', { name: '查看完整面板' })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: '收起完整面板' })).toHaveAttribute(
       'aria-expanded',
-      'false',
+      'true',
     )
-    fireEvent.click(screen.getByRole('button', { name: '查看完整面板' }))
     rerender(
       <Top10StatTable
         data={data}
@@ -283,10 +374,28 @@ describe('character panel local disclosures', () => {
         baselineLabel="另一比较方案"
       />,
     )
-    expect(screen.getByRole('button', { name: '查看完整面板' })).toHaveAttribute(
+    expect(screen.getByRole('button', { name: '收起完整面板' })).toHaveAttribute(
       'aria-expanded',
-      'false',
+      'true',
     )
+    expect(screen.getByRole('region', { name: '完整属性对比' })).toBe(panel)
+    rerender(
+      <Top10StatTable
+        data={{ ...data, baseline: { ...data.baseline, discIds: differentScheme.discIds } }}
+        selectedRow={differentScheme}
+        baselineAvailable={false}
+        baselineLabel="未记录当前六盘"
+      />,
+    )
+    expect(screen.getByRole('button', { name: '收起完整面板' })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    )
+    expect(
+      within(screen.getByRole('region', { name: '完整属性对比' }))
+        .getByRole('table', { name: '资源与循环对比' })
+        .querySelectorAll('[role="columnheader"]'),
+    ).toHaveLength(2)
   })
 
   it('preserves all rows and zero totals in disc contribution mode', () => {

@@ -20,17 +20,155 @@ export {
   type DevelopmentComparisonParameters,
 } from './developmentValueBenchmarkRuntime'
 
-export function projectDevelopmentValueBenchmarks(input: {
-  warehouse: CoreWarehouse
-  agentId: string
-  baseline: DriveDisc[]
-  candidates: CandidateWarehousePlan[]
-  savedPlans?: readonly AccountPlanningDraft[]
-  stale: boolean
-  candidateParametersByRank?: Readonly<Record<number, DevelopmentComparisonParameters>>
-  scenarioSelection?: CurrentPlanningScenarioSelection32
-  eventConditionDeclaration?: ReviewedTemplateEventConditionDeclaration32
-}) {
+export type DevelopmentValueBenchmarkEvaluator = typeof evaluateDevelopmentValueBenchmarkSide
+
+/** Read plain data without invoking getters while preparing a reuse key. */
+function benchmarkDataProperty(value: unknown, key: string): unknown {
+  if (!value || typeof value !== 'object') throw new Error('Non-data benchmark input')
+  const prototype = Object.getPrototypeOf(value)
+  if (prototype !== Object.prototype && prototype !== null && prototype !== Array.prototype)
+    throw new Error('Non-plain benchmark input')
+  const descriptor = Object.getOwnPropertyDescriptor(value, key)
+  if (!descriptor && key in value) throw new Error('Inherited benchmark input')
+  if (descriptor && !('value' in descriptor)) throw new Error('Accessor benchmark input')
+  return descriptor?.value
+}
+
+/** Full, typed serialization: no truncated hash, toJSON hooks, accessors or lossy null coercion. */
+function benchmarkDataKey(value: unknown): string {
+  const active = new Set<object>()
+  let nodes = 0
+  const encode = (item: unknown, depth: number): unknown => {
+    if (++nodes > 20_000 || depth > 48) throw new Error('Benchmark key too large')
+    if (item === null) return ['null']
+    if (item === undefined) return ['undefined']
+    if (typeof item === 'string' || typeof item === 'boolean') return [typeof item, item]
+    if (typeof item === 'number') {
+      if (!Number.isFinite(item)) throw new Error('Non-finite benchmark input')
+      return ['number', Object.is(item, -0) ? '-0' : item]
+    }
+    if (typeof item !== 'object' || active.has(item)) throw new Error('Non-data benchmark input')
+    const prototype = Object.getPrototypeOf(item)
+    const array = Array.isArray(item)
+    if (prototype !== (array ? Array.prototype : Object.prototype) && prototype !== null)
+      throw new Error('Non-plain benchmark input')
+    if (Object.getOwnPropertySymbols(item).length) throw new Error('Symbol benchmark input')
+    const descriptors = Object.getOwnPropertyDescriptors(item)
+    if (Object.values(descriptors).some((entry) => !('value' in entry)))
+      throw new Error('Accessor benchmark input')
+    active.add(item)
+    try {
+      if (array) {
+        if (Object.keys(descriptors).length !== item.length + 1)
+          throw new Error('Sparse or decorated benchmark array')
+        return [
+          'array',
+          ...Array.from({ length: item.length }, (_, index) => {
+            const entry = descriptors[String(index)]
+            if (!entry) throw new Error('Sparse benchmark array')
+            return encode(entry.value, depth + 1)
+          }),
+        ]
+      }
+      return [
+        'object',
+        Object.keys(descriptors)
+          .sort()
+          .map((key) => [key, encode(descriptors[key]!.value, depth + 1)]),
+      ]
+    } finally {
+      active.delete(item)
+    }
+  }
+  return JSON.stringify(encode(value, 0))
+}
+
+/** A synchronous query owns this bounded reuse layer. Never retain it across queries or runs. */
+export function createDevelopmentValueBenchmarkEvaluator(
+  evaluate: DevelopmentValueBenchmarkEvaluator = evaluateDevelopmentValueBenchmarkSide,
+): DevelopmentValueBenchmarkEvaluator {
+  const warehouseIds = new WeakMap<CoreWarehouse, number>()
+  const cache = new Map<string, ReturnType<DevelopmentValueBenchmarkEvaluator>>()
+  let nextWarehouseId = 0
+  let keyCharacters = 0
+  return (input) => {
+    let key: string | undefined
+    try {
+      const warehouse = benchmarkDataProperty(input, 'warehouse') as CoreWarehouse
+      const roster = benchmarkDataProperty(warehouse, 'roster')
+      const agents = benchmarkDataProperty(roster, 'agents')
+      if (!Array.isArray(agents)) throw new Error('Missing agent data')
+      const agentId = benchmarkDataProperty(input, 'agentId')
+      let actor: unknown
+      for (let index = 0; index < agents.length; index++) {
+        const agent = benchmarkDataProperty(agents, String(index))
+        if (
+          benchmarkDataProperty(agent, 'agentId') === agentId &&
+          benchmarkDataProperty(agent, 'owned')
+        ) {
+          actor = agent
+          break
+        }
+      }
+      const encoded = benchmarkDataKey([
+        // Only actual evaluator inputs: stage candidates/buildIntent/evaluator are deliberately absent.
+        ...[
+          'agentId',
+          'discs',
+          'stale',
+          'parameters',
+          'scenarioSelection',
+          'eventConditionDeclaration',
+          'statProbe',
+          'resourceGrantDeclaration32',
+        ].map((field) => benchmarkDataProperty(input, field)),
+        benchmarkDataProperty(warehouse, 'accountId'),
+        actor,
+        benchmarkDataProperty(roster, 'wEngines'),
+      ])
+      if (encoded.length <= 65_536) {
+        if (!warehouseIds.has(warehouse)) warehouseIds.set(warehouse, ++nextWarehouseId)
+        key = `${warehouseIds.get(warehouse)}:${encoded}`
+      }
+    } catch {
+      // Unsafe key construction is not a calculation failure; preserve the original evaluator path.
+    }
+    if (key && cache.has(key)) return structuredClone(cache.get(key)!)
+    const result = evaluate(input) // Numerical/program errors propagate and are never cached.
+    if (key && result.state === 'supported') {
+      let snapshot: typeof result
+      try {
+        snapshot = structuredClone(result)
+      } catch {
+        return result
+      }
+      while (cache.size >= 256 || keyCharacters + key.length > 1_000_000) {
+        const oldest = cache.keys().next().value
+        if (oldest === undefined) break
+        keyCharacters -= oldest.length
+        cache.delete(oldest)
+      }
+      cache.set(key, snapshot)
+      keyCharacters += key.length
+    }
+    return result
+  }
+}
+
+export function projectDevelopmentValueBenchmarks(
+  input: {
+    warehouse: CoreWarehouse
+    agentId: string
+    baseline: DriveDisc[]
+    candidates: CandidateWarehousePlan[]
+    savedPlans?: readonly AccountPlanningDraft[]
+    stale: boolean
+    candidateParametersByRank?: Readonly<Record<number, DevelopmentComparisonParameters>>
+    scenarioSelection?: CurrentPlanningScenarioSelection32
+    eventConditionDeclaration?: ReviewedTemplateEventConditionDeclaration32
+  },
+  evaluate: DevelopmentValueBenchmarkEvaluator = evaluateDevelopmentValueBenchmarkSide,
+) {
   const scenario = resolveCurrentPlanningScenario32(input.scenarioSelection)
   const validLoadout = (discs: readonly DriveDisc[]) =>
     discs.length === 6 &&
@@ -93,7 +231,7 @@ export function projectDevelopmentValueBenchmarks(input: {
         ? '仓库方案 1（试算基线，非游戏实装）'
         : '没有第二份可比方案（非游戏实装）'
   const baseline = baselineDiscs.length
-    ? evaluateDevelopmentValueBenchmarkSide({
+    ? evaluate({
         scenarioSelection: input.scenarioSelection,
         eventConditionDeclaration: input.eventConditionDeclaration,
         warehouse: input.warehouse,
@@ -119,7 +257,7 @@ export function projectDevelopmentValueBenchmarks(input: {
       })
   return input.candidates.map((plan, index) => {
     const discs = plan.loadouts[0]?.discs.map((item) => item.disc) ?? []
-    const candidate = evaluateDevelopmentValueBenchmarkSide({
+    const candidate = evaluate({
       scenarioSelection: input.scenarioSelection,
       eventConditionDeclaration: input.eventConditionDeclaration,
       warehouse: input.warehouse,

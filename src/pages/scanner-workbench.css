@@ -45,11 +45,11 @@
   white-space: nowrap;
 }
 .f5v-shell .scanner-workbench .asset-capture-risk .explanation__trigger {
+  --explanation-underline: '';
   padding: 0;
   font-size: inherit;
 }
-.f5v-shell .scanner-workbench .asset-capture-risk a,
-.f5v-shell .scanner-workbench .asset-capture-risk .explanation__label {
+.f5v-shell .scanner-workbench .asset-capture-risk a {
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
@@ -59,9 +59,11 @@
 .f5v-shell .scanner-workbench .asset-capture-risk .explanation__trigger[aria-expanded='true'] {
   color: #8b5a10;
 }
-.f5v-shell .scanner-workbench .asset-capture-risk a:hover,
-.f5v-shell .scanner-workbench .asset-capture-risk .explanation__trigger:hover .explanation__label {
+.f5v-shell .scanner-workbench .asset-capture-risk a:hover {
   text-decoration-thickness: 2px;
+}
+.f5v-shell .scanner-workbench .asset-capture-risk .explanation__trigger:hover {
+  --explanation-underline-thickness: 2px;
 }
 
 .f5v-shell .scanner-workbench__heading,

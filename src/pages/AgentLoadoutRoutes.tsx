@@ -1,5 +1,5 @@
 import { useContext } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import type { CoreWarehouse } from '../accounts/coreFlow'
 import {
   agentCatalog,
@@ -9,9 +9,7 @@ import {
 import { VisualEntityImage } from '../components/VisualEntityImage'
 import { pickerReleaseDataDependency, sortOwnedAgentsForPicker } from './teamPickerPresentation'
 import { NoOwned } from './OptimizerFlowSupport'
-import { PlanningProfileContext, usePlanningProfile } from './planningProfile'
-import { InvalidPlan } from './InvalidPlan'
-import { PlanEditor } from './PlanEditor'
+import { PlanningProfileContext } from './planningProfile'
 
 export function AgentPicker({ warehouse }: { warehouse: CoreWarehouse }) {
   const navigate = useNavigate()
@@ -64,21 +62,5 @@ export function AgentPicker({ warehouse }: { warehouse: CoreWarehouse }) {
         })}
       </div>
     </section>
-  )
-}
-
-export function AgentPlan({ warehouse }: { warehouse: CoreWarehouse }) {
-  const { agentId = '' } = useParams()
-  const profile = usePlanningProfile(agentId)
-  const valid = warehouse.roster.agents.some((agent) => agent.owned && agent.agentId === agentId)
-  if (!valid) return <InvalidPlan back="/loadouts/agent" label="角色" />
-  return (
-    <PlanEditor
-      key={`${warehouse.accountId}:agent:${agentId}`}
-      warehouse={warehouse}
-      kind="agent"
-      profiles={[profile]}
-      back="/loadouts/agent"
-    />
   )
 }

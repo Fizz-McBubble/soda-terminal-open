@@ -10,7 +10,7 @@ import {
 } from './AgentDevelopmentGolden.workbench.testFixture'
 import { WarehouseMatchError } from '../../application/warehouseMatchFeedback'
 
-it('keeps current equipment visible while compact inventory gaps open on demand', async () => {
+it('keeps inventory feedback outside the toolbar and opens gaps in the shared popover', async () => {
   const { container } = render(
     <AgentDevelopmentGolden
       workbench={{ ...workbench, hasComparablePlan: false }}
@@ -28,8 +28,14 @@ it('keeps current equipment visible while compact inventory gaps open on demand'
   expect(container.querySelectorAll('.development-disc-card')).toHaveLength(6)
   const status = screen.getByRole('status')
   expect(status).toHaveTextContent('当前仓库还不能组成完整配装')
-  expect(screen.getByText('缺少推荐套装的号位：1–6号。')).not.toBeVisible()
-  await userEvent.click(screen.getByText('查看缺口'))
-  expect(screen.getByText('缺少推荐套装的号位：1–6号。')).toBeVisible()
+  expect(container.querySelector('.disc-workbench-actions')).not.toContainElement(status)
+  const trigger = screen.getByRole('button', { name: '查看缺口' })
+  const panel = document.getElementById(trigger.getAttribute('popovertarget')!)!
+  expect(panel).toHaveAttribute('aria-label', '仓库配装缺口')
+  expect(trigger).toHaveAttribute('popovertarget', panel.id)
+  expect(panel).toHaveAttribute('popover', 'auto')
+  expect(panel).toHaveTextContent('缺少推荐套装的号位：1–6号。')
+  expect(screen.getByRole('link', { name: '查看仓库' })).toHaveAttribute('href', '/assets/discs')
+  expect(status.querySelector('details')).toBeNull()
   expect(status).not.toHaveTextContent('1号位没有推荐套装的驱动盘')
 })

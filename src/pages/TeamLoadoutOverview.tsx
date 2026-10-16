@@ -15,7 +15,7 @@ import { rebuildVisibleFamily } from './teamVisibleFamilyPresentation'
 import { TeamGroup } from './TeamLoadoutRecommendationGroup'
 import { visibleRecommendationFamilies } from './teamRecommendationVisibility'
 
-const recommendedPageSize = 10
+import { TEAM_RECOMMENDATION_PAGE_SIZE } from './TeamLoadoutPagination'
 
 function matchesRecommendedTeam(family: TeamLoadoutOverviewGroup['items'][number], query: string) {
   const normalizedQuery = query.trim().toLocaleLowerCase()
@@ -188,13 +188,13 @@ export function TeamLoadoutOverview({
   )
   const recommendedPageCount = Math.max(
     1,
-    Math.ceil(orderedRecommendationItems.length / recommendedPageSize),
+    Math.ceil(orderedRecommendationItems.length / TEAM_RECOMMENDATION_PAGE_SIZE),
   )
   const currentRecommendedPage = Math.min(recommendedPage, recommendedPageCount)
-  const recommendationPageStart = (currentRecommendedPage - 1) * recommendedPageSize
+  const recommendationPageStart = (currentRecommendedPage - 1) * TEAM_RECOMMENDATION_PAGE_SIZE
   const recommendationItemsForDisplay = orderedRecommendationItems.slice(
     recommendationPageStart,
-    recommendationPageStart + recommendedPageSize,
+    recommendationPageStart + TEAM_RECOMMENDATION_PAGE_SIZE,
   )
   const visibleGroups = groups.map((group) => {
     if (group.kind !== 'recommended') return group

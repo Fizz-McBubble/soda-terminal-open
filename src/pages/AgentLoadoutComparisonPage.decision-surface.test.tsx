@@ -106,7 +106,7 @@ describe('golden warehouse comparison adapter', () => {
     expect(screen.getByRole('cell', { name: '防御力' })).not.toHaveTextContent('参考')
     expect(table).toHaveTextContent('参考')
     expect(table).not.toHaveTextContent('攻略参考')
-    expect(table).not.toHaveTextContent('毕业参考')
+    expect(table).not.toHaveTextContent('毕业推荐')
   })
   it('keeps a generated six-disc candidate saveable without a recorded game loadout', async () => {
     const save = vi.fn().mockResolvedValue(undefined)
@@ -386,7 +386,7 @@ describe('golden warehouse comparison adapter', () => {
     expect(screen.queryByText('6 张替换')).not.toBeInTheDocument()
     expect(screen.queryByText('需替换')).not.toBeInTheDocument()
     expect(screen.getByText('六张驱动盘的副词条合计，不含主词条和套装效果。')).toBeInTheDocument()
-    expect(screen.queryByText(/攻略参考|毕业参考/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/攻略参考|毕业推荐/)).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '查看全部属性（5）' })).not.toBeInTheDocument()
     expect(screen.getByRole('cell', { name: '穿透值' })).toBeInTheDocument()
     const saveButton = screen.getByRole('button', { name: '保存为养成方案' })

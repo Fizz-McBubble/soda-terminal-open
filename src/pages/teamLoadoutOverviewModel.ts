@@ -276,6 +276,7 @@ export function buildTeamLoadoutOverviewModel({
     ? projectTeamLoadoutCompletionCandidates({
         ownedAgentIds,
         availableAgentIds,
+        rosterAgents: warehouse?.roster.agents,
         pack: current31TeamEngineD1Pack,
       })
     : []

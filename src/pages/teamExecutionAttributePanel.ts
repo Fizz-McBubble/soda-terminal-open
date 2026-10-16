@@ -318,13 +318,13 @@ export function createTeamExecutionAttributePanel(input: {
       : `当前求解方案暂不能复算最终面板：${panel.status === 'unsupported' ? panel.reason : '缺少可用输入。'}`
   const targetCopy = rows.some((row) => row.targetStatus !== 'missing')
     ? comparable
-      ? '毕业参考与当前局外面板属于同一版本；仅量化字段会标出低于参考。'
+      ? '毕业推荐与当前局外面板属于同一版本；仅量化字段会标出低于推荐值。'
       : targetField?.conditions.length
-        ? `参考条件：${displayTargetConditions(targetField.conditions)}。条件尚未逐项核对，不标记差距。`
-        : '毕业参考已来源化，但当前局外面板版本无法证明可比；不标记差距。'
+        ? `毕业推荐适用条件：${displayTargetConditions(targetField.conditions)}。条件尚未逐项核对，不标记差距。`
+        : '毕业推荐已来源化，但当前局外面板版本无法证明可比；不标记差距。'
     : priority.length
-      ? '暂无同版本量化毕业参考；保留来源化重点属性方向，不对毕业状态作判断。'
-      : '暂无同版本量化毕业参考或重点属性方向。'
+      ? '暂无同版本量化毕业推荐；保留来源化重点属性方向，不对毕业状态作判断。'
+      : '暂无同版本量化毕业推荐或重点属性方向。'
   return {
     availability,
     rows,

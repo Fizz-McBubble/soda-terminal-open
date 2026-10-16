@@ -48,9 +48,10 @@ export function compareCandidateDiscFacts(left: CandidateSearchDisc, right: Cand
 
 export type SearchPanelObjective = {
   attackDeficit: number
+  hpDeficit?: number
   anomalyProficiency: number
   energyRegen?: number
-  priorityStat?: 'anomalyProficiency' | 'energyRegen'
+  priorityStat?: 'anomalyProficiency' | 'energyRegen' | 'source'
 }
 
 /** Existing comparator semantics; parity is verified against the application. */
@@ -61,5 +62,9 @@ export function compareCandidatePanelPriority(
   if (!left || !right) return 0
   const stat = left.priorityStat ?? 'anomalyProficiency'
   if (stat !== (right.priorityStat ?? 'anomalyProficiency')) return 0
+  if (stat === 'source')
+    return Number.isFinite(left.hpDeficit) && Number.isFinite(right.hpDeficit)
+      ? left.hpDeficit! - right.hpDeficit!
+      : 0
   return left.attackDeficit - right.attackDeficit || (right[stat] ?? 0) - (left[stat] ?? 0)
 }

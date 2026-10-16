@@ -36,13 +36,31 @@ export function developmentCommittedCurrentDisplay(
           panel.workbench?.slices.currentPanel.facts ?? [],
           before.graduation.panel,
         )
-      : [],
+      : before.panelFacts,
     currentPanel: {
       ...before.currentPanel,
-      availability: panel?.workbench?.slices.currentPanel.availability ?? 'unavailable',
-      summary: panel
-        ? developmentPanelSummary(panel.panel)
-        : '正在按已保存的等级、核心技与音擎更新当前面板…',
+      availability: panel
+        ? (panel.workbench?.slices.currentPanel.availability ?? 'unavailable')
+        : before.currentPanel.availability,
+      refreshState: panel ? undefined : 'updating',
+      refreshPlaceholderSummary: panel
+        ? undefined
+        : (before.currentPanel.refreshPlaceholderSummary ?? before.currentPanel.summary),
+      summary: panel ? developmentPanelSummary(panel.panel) : '正在更新当前面板…',
+    },
+  }
+}
+
+export function developmentCommittedCurrentDisplayFailure(
+  presentation: GoldenWorkbenchData,
+): GoldenWorkbenchData {
+  if (presentation.currentPanel.refreshState !== 'updating') return presentation
+  return {
+    ...presentation,
+    currentPanel: {
+      ...presentation.currentPanel,
+      refreshState: 'failed',
+      summary: '当前面板更新失败；请重新编辑当前状态后保存。',
     },
   }
 }

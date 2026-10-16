@@ -127,10 +127,11 @@ export function preparePlanningBenchmark32(input: PlanningBenchmarkBinding32) {
       refinement: selected?.refinement ?? recordedEngine?.refinement ?? null,
       level: selected?.level ?? recordedEngine?.level ?? null,
       ascension:
-        selected?.ascension ??
-        (selected?.level === undefined
-          ? (recordedEngine?.ascension ?? null)
-          : defaultAscensionForLevel(selected.level)),
+        selected?.ascension !== undefined
+          ? selected.ascension
+          : selected?.level === undefined
+            ? recordedEngine?.ascension
+            : defaultAscensionForLevel(selected.level),
     }
     const agent = recordedAgent &&
       engine && {

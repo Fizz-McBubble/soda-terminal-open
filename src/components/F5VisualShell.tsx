@@ -6,6 +6,7 @@ import { preloadPlayerRoute } from '../routes/preloadPlayerRoute'
 import { useDetailsDisclosureMotion } from '../motion/useDetailsDisclosureMotion'
 import { SponsorProvider, SponsorRail } from './SponsorSupport'
 import { ReleaseNotes } from './ReleaseNotes'
+import { TestingBadge } from './TestingBadge'
 
 const narrowNavigationQuery = '(max-width: 960px)'
 const publicBuild = import.meta.env.VITE_SODA_PUBLIC_BUILD === 'true'
@@ -115,6 +116,12 @@ function F5VisualShellContent({
         onKeyDown={(event) => {
           if (!navigationDialogOpen) return
           if (event.key === 'Escape') {
+            // The native top layer closes its own disclosure before the rail.
+            if (
+              (event.target as HTMLElement).closest('[popover]') ||
+              railRef.current?.querySelector('.explanation__trigger[aria-expanded="true"]')
+            )
+              return
             event.preventDefault()
             dismissNavigation()
           } else if (event.key === 'Tab') {
@@ -160,7 +167,7 @@ function F5VisualShellContent({
             group.items.map(({ label, path }) => {
               const current = isPrimaryCurrent(path)
               const destination = path === '/assets' && account.hasAccount ? '/assets/agents' : path
-              return (
+              const link = (
                 <Link
                   key={path}
                   to={destination}
@@ -171,12 +178,15 @@ function F5VisualShellContent({
                   onFocus={() => preloadPlayerRoute(destination)}
                 >
                   <span>{label}</span>
-                  {path === '/loadouts/team' || path === '/warehouse/discs' ? (
-                    <small className="f5v-beta" aria-label="测试版">
-                      Beta
-                    </small>
-                  ) : null}
                 </Link>
+              )
+              return path === '/loadouts/team' || path === '/warehouse/discs' ? (
+                <div className="f5v-navigation__testing-row" key={path}>
+                  {link}
+                  <TestingBadge scope={path === '/loadouts/team' ? 'box' : 'discs'} />
+                </div>
+              ) : (
+                link
               )
             }),
           )}

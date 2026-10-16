@@ -34,6 +34,7 @@ import {
 import { history } from '../warehouse/absoluteDiscRetentionScoring'
 import {
   evaluateDevelopmentValueBenchmarkSide,
+  type DevelopmentValueBenchmarkEvaluator,
   type DevelopmentComparisonParameters,
 } from './developmentValueBenchmark'
 import { optimizerOptionsFromBuildIntent, type AgentIndependentBuildIntent } from './buildIntent'
@@ -81,6 +82,7 @@ const coverageKey = (side: ValueBenchmarkSide) =>
 
 /** Runs before ranks reach comparison/saving. No account or saved plan writes. */
 export function refineDevelopmentCandidates(input: {
+  evaluator?: DevelopmentValueBenchmarkEvaluator
   warehouse: CoreWarehouse
   agentId: string
   candidates: readonly CandidateWarehousePlan[]
@@ -141,7 +143,7 @@ export function refineDevelopmentCandidates(input: {
     if (!sideCache.has(id))
       sideCache.set(
         id,
-        evaluateDevelopmentValueBenchmarkSide({
+        (input.evaluator ?? evaluateDevelopmentValueBenchmarkSide)({
           warehouse: input.warehouse,
           agentId: input.agentId,
           discs: plan.loadouts[0]!.discs.map((row) => row.disc),

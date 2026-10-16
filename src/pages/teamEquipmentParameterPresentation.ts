@@ -36,6 +36,8 @@ export function playerDecisionLabel(value: string) {
 }
 
 export function playerDecisionText(value: string) {
+  if (value === '异常角色较少时，可在3.1自选简作为主输出。')
+    return '历史来源建议（3.1）：异常角色较少时，可选择简作为主输出；这不是当前配队的适用条件。'
   if (value.includes('该精确三人命中') && value.includes('邦布独立评价'))
     return '评级基于这三名代理人的搭配；更换邦布不会改变评级。'
   if (value.includes('精确三人已有多源粗档')) {

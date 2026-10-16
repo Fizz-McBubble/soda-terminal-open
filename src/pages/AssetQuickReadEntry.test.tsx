@@ -434,8 +434,8 @@ it('opens risk consent only on an explicit compact read and clears it after star
       )}
     />,
   )
-  expect(screen.getByRole('heading', { name: /资产快读.*测试版/ })).toBeVisible()
-  expect(screen.getByLabelText('测试版')).toHaveTextContent('Beta')
+  expect(screen.getByRole('heading', { name: /资产快读.*测试/ })).toBeVisible()
+  expect(screen.getByText('测试')).toBeVisible()
   expect(screen.queryByRole('button', { name: '开始读取' })).not.toBeInTheDocument()
   expect(screen.queryByRole('button', { name: '开始本次资产快读' })).not.toBeInTheDocument()
   const start = screen.getByRole('button', { name: '一键读取' })

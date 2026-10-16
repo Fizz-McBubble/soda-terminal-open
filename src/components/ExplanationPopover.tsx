@@ -10,6 +10,7 @@ export function ExplanationPopover({
   className = '',
   align = 'end',
   closeLabel = '关闭说明',
+  showIndicator = true,
 }: {
   label: string
   title?: string
@@ -17,10 +18,12 @@ export function ExplanationPopover({
   className?: string
   align?: 'start' | 'end'
   closeLabel?: string
+  showIndicator?: boolean
 }) {
   const id = useId()
   const trigger = useRef<HTMLButtonElement>(null)
   const panel = useRef<HTMLDivElement>(null)
+  const body = useRef<HTMLDivElement>(null)
   const [open, setOpen] = useState(false)
 
   useLayoutEffect(() => {
@@ -31,15 +34,16 @@ export function ExplanationPopover({
       if (!anchor || !content) return
       const scale = getEffectiveZoom(content)
       content.style.maxWidth = `${Math.max(1, window.innerWidth - 24) / scale}px`
-      // Measure against the CSS cap, not the previous fitted height. Otherwise
-      // rounded scroll metrics can progressively shrink an inner scrolling body.
+      // Fit the rendered CSS-capped card, not its potentially much taller content.
+      // Temporarily removing the fitted cap must not reset a reader's scroll position.
+      const bodyScrollTop = body.current?.scrollTop ?? 0
+      const bodyScrollLeft = body.current?.scrollLeft ?? 0
       content.style.maxHeight = ''
       const bounds = content.getBoundingClientRect()
       const position = fitFloatingLayer({
         anchor,
         width: bounds.width,
-        height:
-          content.scrollHeight * scale + Math.max(0, bounds.height - content.clientHeight * scale),
+        height: bounds.height,
         scale,
         viewportWidth: window.innerWidth,
         viewportHeight: window.innerHeight,
@@ -49,16 +53,32 @@ export function ExplanationPopover({
       content.style.top = `${position.top}px`
       content.style.maxHeight = `${position.maxHeight}px`
       content.style.visibility = 'visible'
+      if (body.current) {
+        body.current.scrollTop = bodyScrollTop
+        body.current.scrollLeft = bodyScrollLeft
+      }
+    }
+    const repositionOnPageScroll = (event: Event) => {
+      if (event.target instanceof Node && panel.current?.contains(event.target)) return
+      position()
     }
     position()
     window.addEventListener('resize', position)
-    window.addEventListener('scroll', position, true)
+    window.addEventListener('scroll', repositionOnPageScroll, true)
+    panel.current?.addEventListener('toggle', position, true)
     const observer = new ResizeObserver(position)
     if (panel.current) observer.observe(panel.current)
     if (trigger.current) observer.observe(trigger.current)
+    // The card/body can stay capped while a nested disclosure changes intrinsic height.
+    if (body.current) {
+      observer.observe(body.current)
+      Array.from(body.current.children).forEach((child) => observer.observe(child))
+    }
+    const currentPanel = panel.current
     return () => {
       window.removeEventListener('resize', position)
-      window.removeEventListener('scroll', position, true)
+      window.removeEventListener('scroll', repositionOnPageScroll, true)
+      currentPanel?.removeEventListener('toggle', position, true)
       observer.disconnect()
     }
   }, [open, align])
@@ -73,7 +93,7 @@ export function ExplanationPopover({
         aria-haspopup="dialog"
         aria-expanded={open}
       >
-        <span aria-hidden="true">{open ? '▾' : '▸'}</span>
+        {showIndicator ? <span aria-hidden="true">{open ? '▾' : '▸'}</span> : null}
         <span className="explanation__label">{label}</span>
       </button>
       <div
@@ -84,6 +104,7 @@ export function ExplanationPopover({
         aria-label={title}
         className="explanation-popover"
         onToggle={(event) => {
+          if (event.target !== event.currentTarget) return
           const shown = event.newState === 'open'
           setOpen(shown)
         }}
@@ -99,7 +120,9 @@ export function ExplanationPopover({
             ×
           </button>
         </header>
-        <div className="explanation-popover__body">{children}</div>
+        <div ref={body} className="explanation-popover__body">
+          {children}
+        </div>
       </div>
     </span>
   )

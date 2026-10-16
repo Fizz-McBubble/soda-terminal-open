@@ -1,6 +1,7 @@
 import type { AccountRoster, RosterAgent } from '../assault/types'
 import {
   projectOutOfCombatMenuPanel,
+  projectOutOfCombatPanel,
   type OutOfCombatKey,
   type PanelResult,
 } from '../calculation/outOfCombatPanel'
@@ -16,6 +17,7 @@ import {
 import { resolveSuggestedWEngineParameters } from '../pages/teamExecutionAttributePanel'
 import type { TeamExecution, TeamExecutionMember } from './teamExecutionProjection'
 import { resolveSavedGraduationTarget } from './savedGraduationTargetContext'
+import { resolveReviewedZhaoHpTarget } from '../gameDataPacks/reviewedZhaoSupportTarget'
 
 const graduationPanelKeys = [
   'hp',
@@ -320,8 +322,40 @@ function evaluateMember(input: {
       input.agentId,
       projection?.reason ?? '当前角色、核心技或音擎进度没有可复算的数据。',
     )
-  const resolved = resolveSavedGraduationTarget({ agent, engineId: engine.id, discs, target })
-  const scored = scoreGraduationPanelTargets(projection.values, resolved?.value ?? target.value)
+  const resolved = resolveSavedGraduationTarget({
+    agent,
+    engineId: engine.id,
+    discs,
+    target,
+    memberIds: input.execution.memberIds,
+  })
+  let scoreValues = projection.values
+  if (
+    resolveReviewedZhaoHpTarget({
+      agentId: agent.agentId,
+      coreLevel: agent.skillLevels.core ?? undefined,
+    })
+  ) {
+    // The mechanic reads precise initial HP; menu rounding must not cross the threshold.
+    const precise = projectOutOfCombatPanel({
+      agentId: agent.agentId,
+      level: agent.level,
+      ascension: agent.ascension ?? defaultAscensionForLevel(agent.level),
+      mindscape: agent.mindscape,
+      core: agent.skillLevels.core! - 2,
+      wEngine: {
+        id: engine.id,
+        level: engine.level,
+        ascension: engine.ascension ?? defaultAscensionForLevel(engine.level),
+        refinement: engine.refinement,
+      },
+      discs: [...discs],
+    })
+    if (precise.status !== 'ok' || !Number.isFinite(precise.values.hp))
+      return unknown(input.agentId, '初始生命机制目标缺少精确面板。')
+    scoreValues = { ...scoreValues, hp: precise.values.hp }
+  }
+  const scored = scoreGraduationPanelTargets(scoreValues, resolved?.value ?? target.value)
   if (!scored) return unknown(input.agentId, '毕业目标不含可比的数值字段。')
   if (
     !resolved &&

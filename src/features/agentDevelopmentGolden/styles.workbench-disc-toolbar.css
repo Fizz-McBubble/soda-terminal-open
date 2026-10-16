@@ -198,15 +198,16 @@
   line-height: 1.2;
 }
 
-.warehouse-match-details > summary {
-  color: var(--accent);
-  font-weight: 600;
-  text-decoration: underline;
-  text-underline-offset: 0.3em;
-  cursor: pointer;
+.warehouse-match-feedback {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin-block: 8px;
+  color: var(--muted);
+  line-height: 1.5;
 }
 
-.warehouse-match-details ul {
-  margin: var(--soda-space-1) 0 0;
-  padding-left: 1.25em;
+.warehouse-match-explanation > .explanation__trigger {
+  --explanation-underline: '';
 }

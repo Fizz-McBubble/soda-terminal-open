@@ -4,6 +4,10 @@ const routeModules = {
   workbench: () => import('../pages/AgentDevelopmentWorkbenchPage'),
   comparison: () => import('../pages/AgentLoadoutComparisonPage'),
   team: () => import('../pages/OptimizerFlowPage'),
+  teamDetail: () =>
+    Promise.all([import('../pages/OptimizerFlowPage'), import('../pages/TeamPlan')]),
+  savedPlan: () =>
+    Promise.all([import('../pages/OptimizerFlowPage'), import('../pages/optimizer/SavedPlan')]),
   warehouse: () => import('../pages/WarehouseDiscsPage'),
   scanner: () => import('../pages/ScannerAssistantPage'),
   help: () => import('../pages/HelpAndPrivacyPage'),
@@ -23,15 +27,20 @@ export function preloadPlayerRoute(path: string): void {
         ? 'comparison'
         : pathname.startsWith('/development/')
           ? 'workbench'
-          : pathname.startsWith('/loadouts/team') || pathname.startsWith('/loadouts/plans/')
-            ? 'team'
-            : pathname === '/warehouse/discs'
-              ? 'warehouse'
-              : pathname === '/system/scanner'
-                ? 'scanner'
-                : pathname === '/system/help'
-                  ? 'help'
-                  : null
+          : pathname.startsWith('/loadouts/plans/')
+            ? 'savedPlan'
+            : pathname.startsWith('/loadouts/team/') &&
+                !['/loadouts/team/portfolio', '/loadouts/team/result'].includes(pathname)
+              ? 'teamDetail'
+              : pathname.startsWith('/loadouts/team')
+                ? 'team'
+                : pathname === '/warehouse/discs'
+                  ? 'warehouse'
+                  : pathname === '/system/scanner'
+                    ? 'scanner'
+                    : pathname === '/system/help'
+                      ? 'help'
+                      : null
   if (!target || pending.has(target)) return
   const request = routeModules[target]().catch(() => {
     pending.delete(target)

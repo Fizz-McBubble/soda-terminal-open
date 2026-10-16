@@ -123,9 +123,25 @@
 }
 
 .current-overview__panel {
+  position: relative;
   display: grid;
   align-content: start;
   margin-top: 0;
+}
+
+.panel-snapshot__placeholder {
+  visibility: hidden;
+}
+
+.panel-snapshot__refresh-status {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--space-md);
+  color: var(--f5v-ink-soft, #625d6a);
+  font-size: var(--soda-font-caption);
+  pointer-events: none;
 }
 
 .current-overview__panel .stat-grid {

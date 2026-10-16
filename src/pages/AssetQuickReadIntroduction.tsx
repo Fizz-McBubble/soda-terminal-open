@@ -1,5 +1,6 @@
 import { Check, Database } from 'lucide-react'
 import { AssetQuickReadGuide } from './AssetQuickReadGuide'
+import { TestingBadge } from '../components/TestingBadge'
 
 export function AssetQuickReadHeading({
   headingId,
@@ -14,17 +15,11 @@ export function AssetQuickReadHeading({
         <Database aria-hidden="true" size={22} />
         {renderParts ? (
           <h3 id={headingId}>
-            资产快读{' '}
-            <small className="f5v-beta" aria-label="测试版">
-              Beta
-            </small>
+            资产快读 <TestingBadge scope="quickRead" />
           </h3>
         ) : (
           <h2 id={headingId}>
-            资产快读{' '}
-            <small className="f5v-beta" aria-label="测试版">
-              Beta
-            </small>
+            资产快读 <TestingBadge scope="quickRead" />
           </h2>
         )}
         {renderParts ? (

@@ -44,3 +44,62 @@ it('keeps the CSS height cap stable across repeated rounded scroll measurements'
   }
   expect(panel.style.maxHeight).toBe('480px')
 })
+
+it('refits nested disclosures against the CSS cap and preserves native body scrolling', () => {
+  const observed: Element[] = []
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe(element: Element) {
+        observed.push(element)
+      }
+      disconnect() {}
+    },
+  )
+  render(
+    <ExplanationPopover label="使用说明">
+      <dl>
+        <dd>
+          <details>
+            <summary>排查故障</summary>
+            <p>完整排查内容</p>
+          </details>
+        </dd>
+      </dl>
+    </ExplanationPopover>,
+  )
+  const trigger = screen.getByRole('button', { name: '使用说明' })
+  const panel = screen.getByRole('dialog', { hidden: true })
+  const body = panel.querySelector<HTMLElement>('.explanation-popover__body')!
+  const details = panel.querySelector('details')!
+  let height = 180
+  vi.spyOn(trigger, 'getBoundingClientRect').mockReturnValue({
+    top: 30,
+    bottom: 60,
+    left: 100,
+    right: 200,
+  } as DOMRect)
+  const measure = vi
+    .spyOn(panel, 'getBoundingClientRect')
+    .mockImplementation(() => ({ width: 400, height }) as DOMRect)
+  Object.defineProperty(panel, 'scrollHeight', { get: () => 1600 })
+  const toggle = new Event('toggle')
+  Object.defineProperty(toggle, 'newState', { value: 'open' })
+  fireEvent(panel, toggle)
+  expect(panel.style.maxHeight).toBe('180px')
+  expect(observed).toContain(body.firstElementChild)
+
+  body.scrollTop = 170
+  const measurementsBeforeScroll = measure.mock.calls.length
+  fireEvent.scroll(body)
+  expect(measure.mock.calls.length).toBe(measurementsBeforeScroll)
+  expect(body.scrollTop).toBe(170)
+
+  height = 420
+  fireEvent(details, new Event('toggle'))
+  expect(panel.style.maxHeight).toBe('420px')
+  expect(body.scrollTop).toBe(170)
+  expect(trigger).toHaveAttribute('aria-expanded', 'true')
+  fireEvent(details, new Event('toggle'))
+  expect(trigger).toHaveAttribute('aria-expanded', 'true')
+})

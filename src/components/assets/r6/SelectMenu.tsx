@@ -110,7 +110,7 @@ export function SelectMenu({
       event.preventDefault()
       event.stopPropagation()
       setOpen(false)
-      window.requestAnimationFrame(() => trigger.current?.focus())
+      window.requestAnimationFrame(() => trigger.current?.focus({ preventScroll: true }))
     }
     dialog.addEventListener('cancel', keepDialogOpen)
     return () => {
@@ -122,10 +122,14 @@ export function SelectMenu({
   useLayoutEffect(() => {
     if (!open) return
     updateMenuPosition()
-    const reposition = () => updateMenuPosition()
+    const reposition = (event?: Event) => {
+      if (event?.target instanceof Node && menu.current?.contains(event.target)) return
+      updateMenuPosition()
+    }
     window.addEventListener('resize', reposition)
     window.addEventListener('scroll', reposition, true)
-    const observer = typeof ResizeObserver === 'function' ? new ResizeObserver(reposition) : null
+    const observer =
+      typeof ResizeObserver === 'function' ? new ResizeObserver(() => reposition()) : null
     if (trigger.current) observer?.observe(trigger.current)
     return () => {
       window.removeEventListener('resize', reposition)
@@ -139,7 +143,19 @@ export function SelectMenu({
     const enabledMenuOptions = menu.current?.querySelectorAll<HTMLButtonElement>(
       '[role="option"]:not(:disabled)',
     )
-    enabledMenuOptions?.[activeIndex]?.focus()
+    const option = enabledMenuOptions?.[activeIndex]
+    const list = menu.current
+    if (!option || !list) return
+    option.focus({ preventScroll: true })
+    // Reveal keyboard selection within this list only. Native focus/scrollIntoView
+    // can otherwise also scroll the editing dialog or the page behind it.
+    const bounds = list.getBoundingClientRect()
+    const item = option.getBoundingClientRect()
+    const scale = getEffectiveZoom(list)
+    const top = bounds.top + list.clientTop * scale
+    const bottom = top + list.clientHeight * scale
+    if (item.top < top) list.scrollTop += (item.top - top) / scale
+    else if (item.bottom > bottom) list.scrollTop += (item.bottom - bottom) / scale
   }, [activeIndex, open, menuPositionReady, portalContext])
 
   const openMenu = () => {
@@ -188,7 +204,7 @@ export function SelectMenu({
         if (option.disabled) return
         onChange(option.value)
         setOpen(false)
-        trigger.current?.focus()
+        trigger.current?.focus({ preventScroll: true })
       }}
     >
       <span className="filter-select__option-copy">
@@ -318,9 +334,9 @@ export function SelectMenu({
                   setOpen(false)
                   if (index >= 0 && next) {
                     event.preventDefault()
-                    next.focus()
+                    next.focus({ preventScroll: true })
                   } else {
-                    anchor?.focus()
+                    anchor?.focus({ preventScroll: true })
                   }
                 } else if (event.key === 'Escape') {
                   event.preventDefault()
@@ -328,11 +344,11 @@ export function SelectMenu({
                   if (portalContext.inDialog) {
                     window.setTimeout(() => {
                       setOpen(false)
-                      trigger.current?.focus()
+                      trigger.current?.focus({ preventScroll: true })
                     }, 0)
                   } else {
                     setOpen(false)
-                    trigger.current?.focus()
+                    trigger.current?.focus({ preventScroll: true })
                   }
                 } else if (event.key === 'ArrowDown') {
                   event.preventDefault()

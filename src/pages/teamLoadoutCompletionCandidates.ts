@@ -4,6 +4,8 @@ import { evaluateCurrent31TeamRating } from '../decision/current31TeamRating'
 import { reviewedTeamAnalysis } from '../decision/reviewedTeamAnalysis'
 import { reviewedTeamPublishedStrength } from '../decision/reviewedTeamPublishedStrength'
 import { getAgentName } from '../application/publicRosterNames'
+import { currentTeamStrengthReferenceConditions } from '../decision/teamStrengthReferenceConditions'
+import type { RosterAgent } from '../assault/types'
 
 export type TeamLoadoutCompletionCandidate = {
   id: string
@@ -20,6 +22,9 @@ export type TeamLoadoutCompletionCandidate = {
   failureCode: 'missing_core_agent' | 'no_eligible_third'
   sourceIds: string[]
   label: string
+  /** Exact-team source requirements remain separate from the account's observed state. */
+  sourceConditions?: readonly string[]
+  accountReferenceNotes?: readonly string[]
 }
 
 /**
@@ -36,6 +41,7 @@ export function projectTeamLoadoutCompletionCandidates(input: {
   ownedAgentIds: readonly string[]
   /** Members allowed in this run; defaults to the complete owned roster. */
   availableAgentIds?: readonly string[]
+  rosterAgents?: readonly Pick<RosterAgent, 'agentId' | 'potentialImage'>[]
   pack: Pick<TeamEnginePack, 'kernels'>
 }): TeamLoadoutCompletionCandidate[] {
   const owned = new Set(input.ownedAgentIds)
@@ -102,6 +108,25 @@ export function projectTeamLoadoutCompletionCandidates(input: {
       ? ('core' as const)
       : ('eligible_third' as const)
     const id = `completion:${key(memberIds)}:${missingAgentIds[0]}`
+    const reference = currentTeamStrengthReferenceConditions(memberIds)
+    const accountReferenceNotes = reference.agentConditions.flatMap((condition) => {
+      if (!owned.has(condition.agentId)) return []
+      const recorded = input.rosterAgents?.find(
+        (agent) => agent.agentId === condition.agentId,
+      )?.potentialImage
+      const current =
+        typeof recorded === 'number' && Number.isInteger(recorded) && recorded >= 0 && recorded <= 6
+          ? recorded
+          : undefined
+      const numeric = condition.numericLevel
+      if (numeric === null && !condition.requirementSource) return []
+      const observed = current === null || current === undefined ? '未记录' : String(current)
+      return [
+        numeric === null
+          ? `${getAgentName(condition.agentId)}：当前潜能${observed}；来源要求激发，具体参考等级未确认。`
+          : `${getAgentName(condition.agentId)}：当前潜能${observed}，来源参考潜能${numeric}；参考配置不是最低门槛。`,
+      ]
+    })
     projected.push({
       rank: rating.rating.ratingBand === 'S+' ? 3 : rating.rating.ratingBand === 'S' ? 2 : 1,
       candidate: {
@@ -116,6 +141,8 @@ export function projectTeamLoadoutCompletionCandidates(input: {
         failureCode: missingRole === 'core' ? 'missing_core_agent' : 'no_eligible_third',
         sourceIds: [...new Set(rating.metaCalibration.evidenceRefs)],
         label: memberIds.map(getAgentName).join(' · '),
+        sourceConditions: [...direction.conditions],
+        accountReferenceNotes,
       },
     })
   }

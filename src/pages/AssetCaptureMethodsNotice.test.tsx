@@ -31,7 +31,7 @@ it('compares only the scope, prerequisites and limits players need to choose a m
   expect(quick).toHaveTextContent('从当前装备出发，对比换装后的面板和近似输出')
   expect(quick).toHaveTextContent('未读到的潜能保留原值')
   expect(quick).not.toHaveTextContent('游戏面板校对')
-  expect(screen.getByLabelText('测试版')).toHaveTextContent('Beta')
+  expect(within(quick).getByRole('button', { name: '测试' })).toHaveAttribute('popovertarget')
   expect(screen.queryByRole('heading', { name: '能帮你做什么' })).not.toBeInTheDocument()
   expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
 })

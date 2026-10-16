@@ -8,6 +8,11 @@ import { getCandidateWarehouseConstraint } from '../gameDataPacks/candidateWareh
 import { solveCandidateWarehouse } from '../optimizer/candidateWarehouseSolver'
 import { statWeightCalibrationFixture } from './developmentStatWeights.calibrationFixture'
 import { history } from '../warehouse/absoluteDiscRetentionScoring'
+import { rankDevelopmentCandidates } from './developmentCandidateRanking'
+import { compileAgentBuildIntent } from './buildIntent'
+import { evaluateDevelopmentValueBenchmarkSide } from './developmentValueBenchmark'
+import { compareValueBenchmarkSides } from '../calculation/valueBenchmarkComparison'
+import { candidate as physicalCandidate } from './developmentValueBenchmark.fixtures'
 import {
   absoluteDiscRetentionCatalog,
   toAbsoluteRetentionDisc,
@@ -175,5 +180,107 @@ describe('development candidate alternatives projection', () => {
     expect(result.status).toBe('unavailable')
     expect(result.candidates).toEqual([])
     expect(result.gaps.length).toBeGreaterThan(0)
+  })
+})
+
+function rankingFixture() {
+  const first = statWeightCalibrationFixture('agent-billy', 'crit_rate')
+  const second = statWeightCalibrationFixture('agent-billy', 'crit_dmg')
+  const agentId = 'agent-ye-shunguang'
+  const agent = first.warehouse.roster.agents.find((row) => row.agentId === agentId)!
+  Object.assign(
+    agent,
+    first.warehouse.roster.agents.find((row) => row.agentId === 'agent-billy'),
+    { agentId },
+  )
+  first.warehouse.discs = [...first.discs, ...second.discs]
+  first.warehouse.discs.forEach((item) => {
+    item.setId = item.slot <= 4 ? 'set-white-water-ballad' : 'set-hormone-punk'
+  })
+  const candidates = [first.discs, second.discs].map((discs) => {
+    const plan = physicalCandidate(discs)
+    plan.agentIds = [agentId]
+    plan.loadouts[0]!.agentId = agentId
+    plan.loadouts[0]!.setCounts = { 'set-white-water-ballad': 4, 'set-hormone-punk': 2 }
+    return plan
+  })
+  const buildIntent = compileAgentBuildIntent({ agentId, developmentPriorityAgentIds: [] })
+  return { warehouse: first.warehouse, agentId, candidates, buildIntent, agent }
+}
+
+describe('comparison candidate order at the producer boundary', () => {
+  it('orders the same declared slice before rank binding without upgrading missing effects to overall benefits', () => {
+    const value = rankingFixture()
+    value.candidates[0]!.totalScore = 999
+    value.candidates[1]!.totalScore = 1
+    const before = JSON.stringify(value.warehouse)
+    const sides = value.candidates.map((plan) =>
+      evaluateDevelopmentValueBenchmarkSide({
+        ...value,
+        discs: plan.loadouts[0]!.discs.map((row) => row.disc),
+        stale: false,
+      }),
+    )
+    expect(sides.every((side) => side.state === 'supported')).toBe(true)
+    expect(sides[1]!.totalDamage).toBeGreaterThan(sides[0]!.totalDamage!)
+    const comparison = compareValueBenchmarkSides({
+      baseline: sides[0]!,
+      candidate: sides[1]!,
+      changedDimensions: ['disc_loadout'],
+      labels: { baseline: 'a', candidate: 'b' },
+    })
+    expect(comparison.coverage.generalConclusion).toBe('limited')
+    expect(comparison.coverage.exclusionContextChanged).toBe(true)
+    const ranked = rankDevelopmentCandidates(value)
+    expect(ranked.candidates).toEqual([value.candidates[1], value.candidates[0]])
+    expect(ranked.rankingScopes).toEqual(['fixed_event_slice'])
+    expect(JSON.stringify(value.warehouse)).toBe(before)
+    expect(sides[1]!.coverage!.excludedEffects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ effectKey: `${value.agentId}:source_mechanism_completeness` }),
+      ]),
+    )
+  })
+
+  it('does not reorder unknown equipment, different protected resource rates or explicitly ranked source branches', () => {
+    const unknown = rankingFixture()
+    unknown.agent.wEngineDetails.id = null
+    expect(rankDevelopmentCandidates(unknown).candidates).toEqual(unknown.candidates)
+    const resource = rankingFixture()
+    resource.candidates[1]!.loadouts[0]!.discs.find((row) => row.disc.slot === 6)!.disc.mainStat =
+      'energy_regen'
+    expect(rankDevelopmentCandidates(resource).candidates).toEqual(resource.candidates)
+    const source = rankingFixture()
+    source.candidates[1]!.loadouts[0]!.discs.filter((row) => row.disc.slot > 4).forEach((row) => {
+      row.disc.setId = 'set-woodpecker-electro'
+    })
+    source.buildIntent.recommendations.find(
+      (row) => row.agentId === source.agentId,
+    )!.constraint!.setPlans = [
+      {
+        pattern: '4+2',
+        primarySetIds: ['set-white-water-ballad'],
+        secondarySetIds: ['set-hormone-punk'],
+        priority: 0,
+      },
+      {
+        pattern: '4+2',
+        primarySetIds: ['set-white-water-ballad'],
+        secondarySetIds: ['set-woodpecker-electro'],
+        priority: 1,
+      },
+    ]
+    expect(rankDevelopmentCandidates(source).candidates).toEqual(source.candidates)
+  })
+
+  it('keeps support targets ahead of personal output and retains stable order after the target ties', () => {
+    const value = rankingFixture()
+    const first = value.candidates[0]!.loadouts[0]!
+    const second = value.candidates[1]!.loadouts[0]!
+    first.panelObjective = { attackDeficit: 0, anomalyProficiency: 200 }
+    second.panelObjective = { attackDeficit: 1, anomalyProficiency: 300 }
+    expect(rankDevelopmentCandidates(value).candidates).toEqual(value.candidates)
+    second.panelObjective = { ...first.panelObjective }
+    expect(rankDevelopmentCandidates(value).candidates).toEqual(value.candidates)
   })
 })

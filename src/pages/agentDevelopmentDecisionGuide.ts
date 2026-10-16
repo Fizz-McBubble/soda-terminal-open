@@ -41,7 +41,7 @@ export function createAgentDevelopmentDecisionGuide(input: {
       : []),
     ...(!input.discSets.length ? ['驱动盘套装建议资料不足。'] : []),
     ...(!input.teamCount ? ['配队建议资料不足。'] : []),
-    ...(!input.panelCount ? ['毕业属性参考尚未接入。'] : []),
+    ...(!input.panelCount ? ['毕业推荐尚未接入。'] : []),
     ...input.gaps,
   ]
   const evidence = [

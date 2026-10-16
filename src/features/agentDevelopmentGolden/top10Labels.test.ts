@@ -73,6 +73,13 @@ describe('candidate search provenance', () => {
       productionGameAccuracyCertified: false,
     } as const
     expect(candidateSearchLabel(search)).toContain('输出对比不代表名次依据')
+    expect(
+      candidateSearchLabel({
+        ...search,
+        rankingMethod: 'comparison_groups',
+        rankingScopes: ['fixed_event_slice'],
+      }),
+    ).toContain('未计入效果仍未知')
     expect(candidateSearchLabel(search)).toContain('搜索预算已用尽')
     expect(candidateSearchLabel({ ...search, rankingMethod: 'dynamic_objective' })).toContain(
       '按已覆盖模型目标排序',

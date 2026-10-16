@@ -104,7 +104,7 @@ export function createAgentDevelopmentPanelProjection(input: {
   if (!hasCurrentWEngineProgression(input.agent)) {
     return unsupported(
       source,
-      '当前音擎参数尚未同步完整；请重新读取或补充当前音擎的等级与星级。',
+      '当前音擎参数未确认；请在“编辑当前状态”补充等级、突破与精炼。',
       dataFoundation,
       graduationCandidate,
     )

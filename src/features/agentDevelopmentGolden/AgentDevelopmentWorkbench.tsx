@@ -409,20 +409,6 @@ export function Workbench({
                       : '重新从仓库搭配'}
                 </button>
               ) : null}
-              {warehouseActionError ? (
-                <div className="warehouse-action-feedback" role="status">
-                  <WarehouseMatchMessage feedback={warehouseActionError} />
-                  {routed ? (
-                    <Link className="text-action" to="/assets/discs">
-                      查看仓库
-                    </Link>
-                  ) : (
-                    <a className="text-action" href="/assets/discs">
-                      查看仓库
-                    </a>
-                  )}
-                </div>
-              ) : null}
               {!isSavedView && (onSavePlan || !canCompare || savingPlan) ? (
                 <button
                   className="primary save-plan-action"
@@ -465,6 +451,20 @@ export function Workbench({
             </div>
           }
         </header>
+        {warehouseActionError ? (
+          <div className="warehouse-match-feedback" role="status">
+            <WarehouseMatchMessage feedback={warehouseActionError} />
+            {routed ? (
+              <Link className="text-action" to="/assets/discs">
+                查看仓库
+              </Link>
+            ) : (
+              <a className="text-action" href="/assets/discs">
+                查看仓库
+              </a>
+            )}
+          </div>
+        ) : null}
         {!isSavedView && subject.candidateDifferences?.length ? (
           <p className="disc-main-stat-differences" role="status" aria-label="与推荐主词条的差异">
             {subject.candidateDifferences.join('；')}

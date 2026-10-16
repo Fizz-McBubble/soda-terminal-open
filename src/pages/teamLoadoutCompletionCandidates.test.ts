@@ -21,6 +21,27 @@ function completionCandidates(availableAgentIds: string[], ownedAgentIds = avail
 
 describe('team loadout completion candidates', () => {
   afterEach(() => vi.restoreAllMocks())
+  it('retains exact source conditions and distinguishes observed P0 from an unknown account state', () => {
+    const input = {
+      ownedAgentIds: ['agent-jane', 'agent-remielle'],
+      pack: current31TeamEngineD1Pack,
+    }
+    const unknown = projectTeamLoadoutCompletionCandidates(input).find((candidate) =>
+      candidate.memberIds.includes('agent-velina'),
+    )!
+    const observed = projectTeamLoadoutCompletionCandidates({
+      ...input,
+      rosterAgents: [{ agentId: 'agent-jane', potentialImage: 0 }],
+    }).find((candidate) => candidate.id === unknown.id)!
+    expect(unknown.sourceConditions?.length).toBeGreaterThan(0)
+    expect(unknown.accountReferenceNotes?.join(' ')).toContain('当前潜能未记录')
+    expect(observed.accountReferenceNotes?.join(' ')).toContain('当前潜能0')
+    expect(observed.accountReferenceNotes?.join(' ')).toContain('来源参考潜能6')
+    expect(observed.accountReferenceNotes?.join(' ')).toContain('不是最低门槛')
+    expect(observed.sourceConditions).toEqual(unknown.sourceConditions)
+    expect(observed.memberIds).toEqual(unknown.memberIds)
+    expect(observed.missingAgentIds).toEqual(['agent-velina'])
+  })
   it('shows the source-backed Pyrois and Sunna path when Norma is the missing core member', () => {
     const candidates = completionCandidates(['agent-pyrois', 'agent-sunna'])
 

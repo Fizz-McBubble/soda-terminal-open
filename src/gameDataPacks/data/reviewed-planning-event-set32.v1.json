@@ -4,7 +4,7 @@
   "gameVersion": "3.2",
   "upstreamCommit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
   "ready": true,
-  "semanticIdentityHash": "fnv1a-8cee0629",
+  "semanticIdentityHash": "fnv1a-740670b7",
   "scope": {
     "memberIds": ["agent-claret", "agent-roxy", "agent-rina"],
     "eventTuples": [
@@ -5313,7 +5313,7 @@
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "ac51145c00ac4f9fa21f08b727e2a9727d3507ae0cb25a417a91382903356dee",
+              "implementation_sha256": "8f2183179b6d69561457180ccece04cf688ddaf44b5c011977115fd3ac8db38e",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -10071,7 +10071,7 @@
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "ac51145c00ac4f9fa21f08b727e2a9727d3507ae0cb25a417a91382903356dee",
+              "implementation_sha256": "8f2183179b6d69561457180ccece04cf688ddaf44b5c011977115fd3ac8db38e",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -14829,7 +14829,7 @@
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "ac51145c00ac4f9fa21f08b727e2a9727d3507ae0cb25a417a91382903356dee",
+              "implementation_sha256": "8f2183179b6d69561457180ccece04cf688ddaf44b5c011977115fd3ac8db38e",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -19587,7 +19587,7 @@
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "ac51145c00ac4f9fa21f08b727e2a9727d3507ae0cb25a417a91382903356dee",
+              "implementation_sha256": "8f2183179b6d69561457180ccece04cf688ddaf44b5c011977115fd3ac8db38e",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -24345,7 +24345,7 @@
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "ac51145c00ac4f9fa21f08b727e2a9727d3507ae0cb25a417a91382903356dee",
+              "implementation_sha256": "8f2183179b6d69561457180ccece04cf688ddaf44b5c011977115fd3ac8db38e",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -29103,7 +29103,7 @@
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "ac51145c00ac4f9fa21f08b727e2a9727d3507ae0cb25a417a91382903356dee",
+              "implementation_sha256": "8f2183179b6d69561457180ccece04cf688ddaf44b5c011977115fd3ac8db38e",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -33861,7 +33861,7 @@
             "whitebox_formula": {
               "formula_family": "typed_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "ac51145c00ac4f9fa21f08b727e2a9727d3507ae0cb25a417a91382903356dee",
+              "implementation_sha256": "8f2183179b6d69561457180ccece04cf688ddaf44b5c011977115fd3ac8db38e",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -38619,7 +38619,7 @@
             "whitebox_formula": {
               "formula_family": "typed_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "ac51145c00ac4f9fa21f08b727e2a9727d3507ae0cb25a417a91382903356dee",
+              "implementation_sha256": "8f2183179b6d69561457180ccece04cf688ddaf44b5c011977115fd3ac8db38e",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -43377,7 +43377,7 @@
             "whitebox_formula": {
               "formula_family": "typed_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "ac51145c00ac4f9fa21f08b727e2a9727d3507ae0cb25a417a91382903356dee",
+              "implementation_sha256": "8f2183179b6d69561457180ccece04cf688ddaf44b5c011977115fd3ac8db38e",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -43459,25 +43459,27 @@
     "scripts/planning32-formal-proof.mjs": "c8c7d257b508f3d3401ccfec5af180048002b494562694c057494cb016adfe9f",
     "scripts/planning32-formal-proof.test.mjs": "defe097723ac77b4d16b24b3f1470728635f85d16d77b329cba0d3261c70fa69",
     "src/accounts/agentProgressionRules.ts": "bf970871e2fdbbbf25face7437eb7b60c638de59106c9a748309e7943f4f3ee5",
-    "src/accounts/observedAgentFacts.ts": "3ab3e9c1261acb96a9b39cfd8f96196a3e54f5f8e0c578571519215976a22867",
+    "src/accounts/observedAgentFacts.ts": "a42928e29088a0186b9e2b0eddb0575f5c866a3f22f235bb07276d3506c431a2",
     "src/accounts/publicWEngineInstances.ts": "9a1ded1165870e42abfdd85f2c8ca072beb9f79beda3b7568d912efe7c9857e0",
     "src/accounts/publicWEngineSIds.data.json": "76922a18a446370da58fdd1af4ab85764f9c554e5a280f24ea4506dab8acaf09",
     "src/accounts/rosterFacts.ts": "c579d1cf12562cab2c2942de4f2ceaf4f606472e812fedb8bab93ea6e48101c6",
     "src/accounts/rosterHydration.ts": "55069ad434a407812ce8965fa7cce602c652f51775f363db7db4587c8e9ae207",
     "src/accounts/wEngineInstanceRules.ts": "f217323ae0c4336a9582a25af8c86662dbe7b05ca0588c8f94e5602f3e1dc494",
     "src/application/accountDecisionWorldHooks.ts": "31662df8175352ef0e3be8d4decac60bfc58df340bcd006d53f8338048dda80c",
+    "src/application/buildTargetPresentation.ts": "d2b85d33832842a7f144e6c54957ae89a1244d8d157eb31030e78f969a0d7bcd",
     "src/application/calculationQueryContract.ts": "cb5efc674a575829316b2142af38b906076bd0af1c0eb9a64b04f39b4deb773e",
     "src/application/characterPanelFields.ts": "1ec7aae898242a1446af99273621f31389e1182670ca48c799bfe2b2ddce6004",
     "src/application/contentHash.ts": "4f118d1838c9ae18df976ba70d8d7aafc096158bb41aeccef647a7c2988d1e55",
-    "src/application/developmentComparisonPanelProjection.ts": "2b3622c27d93fe8ecf901a41b90efc8a094bf2e1c2910b7e432130fb7936b6ed",
+    "src/application/developmentCandidateLoadoutCache.ts": "efb5b4b2f495be1f8e30a87b249e4da22aa8027cf6f3e40004960d72205ce105",
+    "src/application/developmentComparisonPanelProjection.ts": "545e13f4c4773aefa1ef584cefbf36bcbb64d6182412b447b48b99aa4accfe57",
     "src/application/developmentDirectoryQueryProjection.ts": "2474b65a76f7eb66f0831a89eeda4dc9842d3158ac6f448f5141b163555a0db0",
-    "src/application/developmentWorkbenchPresentationProjection.ts": "30afcf0089e9db3c3e6ffabc1852a98403572761f42c67515e887da5eb90c02c",
-    "src/application/localCalculationQueryClientCore.ts": "cf778da3320db0262b79aaa9ff7a61ca5e6be142281353428fe407b5921f807e",
+    "src/application/developmentWorkbenchPresentationProjection.ts": "8f497ee49330dad2342c3a2120e9f96c8a7069cdae357d0c5211fa888ca4b5c9",
+    "src/application/localCalculationQueryClientCore.ts": "fedf7b54b2fe1d685a7e54e2eeccc8a41ea2830e05ec4cb42fc290b47f7502ab",
     "src/application/localTargetTeamFitQuery.ts": "a229798b4d1f3b7e7f0ea37b5fdeffb17966818110dbdc11051da241d190d6d3",
     "src/application/localTargetTeamPlayerSelection.ts": "1df5d1a723ce6ebeeb89ddc8f2ffe3b835167556495f838d5c31b0298514343f",
     "src/application/planningBenchmark32.independent.test.ts": "a79baed910f1803ca8621cd35a527dee8aed488250dc0cbde4c08fdd73616eb0",
     "src/application/privatePlanningBenchmark32.ts": "56b8d000a41e9aff98f1e1d128b82589f1ade36e24be14c41d03a036e7212c9e",
-    "src/application/privatePlanningBenchmarkBinding32.ts": "bb18d5f2a8736572d38052c8424330a8261b235acfaa997dc8640aaf3b20f8c5",
+    "src/application/privatePlanningBenchmarkBinding32.ts": "4cf6d249e78c781734e0138a54ae1cb38ad048c687ab1637b37b3cce0d4d41a7",
     "src/application/publicAnomalySnapshotStats32.ts": "8597de297ad1fff29279f0b9d72209021e07906c701361ca81e1f8c60ff380f0",
     "src/application/publicAssetCatalog.data.json": "eb21847aa5cd324d2e1dda24862b6b6863e36f9dcb4e320563b80ef7f1857e19",
     "src/application/publicAssetCatalog.ts": "b3b53923db9719325435abb6874e9e596aed06f78e8eff1ae58b3ec3d6965174",
@@ -43543,7 +43545,7 @@
     "src/calculation/currentPlanningBaselineObservations.ts": "afbf30e4f7515f8a3a6f21a24b6fc717e0537767b3734eb5e936fcb3ac280f42",
     "src/calculation/currentPlanningConditionCatalog32.ts": "3b4ee836611e8793d7fb2702486fe60c23eaf1e97d58228c80a601ca2851f63b",
     "src/calculation/currentPlanningConditionSourceSeeds32.ts": "43d8ccc6f01034b088623c609e309b7eef72930d4d3c8d8a0e7479dbb9c2ebf4",
-    "src/calculation/currentPlanningConsumerPolicyIdentity32.ts": "3751c8cc1d0e5853332c1bd69c3fefad028f3b2f0e357686c27021292e584709",
+    "src/calculation/currentPlanningConsumerPolicyIdentity32.ts": "a41bac01fc8713cadda0b289b93dc7234122c497ae13aa699a10307e692a8377",
     "src/calculation/currentPlanningDamageModifiers.ts": "9ae7418c52d001f3b7a42b53a34151663e5909ea9093fb965311f85a0531e0a1",
     "src/calculation/currentPlanningEffectDomain.ts": "509c843d36e586e36f68235e3a866e3f264a93f5882e3eae5534f4efefe44319",
     "src/calculation/currentPlanningEffectExpressions.ts": "9e4c0f25fe3b1d74021a3a9246a606d9260dd1b5a9d8cee4ba6eb81d3afa1b08",
@@ -43669,23 +43671,24 @@
     "src/decision/current31TeamStrengthCalibration.ts": "181f39394f551df60680ac0a2508566b051bbc19cd5eeb75782cfa6674bb50dc",
     "src/decision/defaultTeamRecommendationPolicy.ts": "79c480383273a07a3aa0856cb4507fd2cc759fdbeac914eca08f1aac53b5ec82",
     "src/decision/defaultTeamRecommendationSelection.ts": "debff0d1b7e2db32857170b30c3c014166fc87de2df4df9e8abfdf189fb98986",
-    "src/decision/developmentCandidateAlternatives.ts": "832fba47ac6e57945d4a06201a39425c0b1ef668a77f58008065b6a2905666eb",
-    "src/decision/developmentCandidateRefinement.ts": "b926acd8c7cec56b8e2aad60e5c635a3e56069c8938023e502fcb3db49b17f49",
-    "src/decision/developmentDynamicSearch.ts": "ee36b8258c342098f7d40817c9a67b2b17273f34ad51c599f5bdf99b0999565a",
-    "src/decision/developmentPreparedAnomalySearch.ts": "38384dcc02d78a136bcad2fbfb5fc222dac1757c900be91e03b7cf5812bc11b1",
+    "src/decision/developmentCandidateAlternatives.ts": "66ac11bedf83004a6f5986455a31b1c5dab12e8928e3b4b3e4796c48e9eed8db",
+    "src/decision/developmentCandidateRanking.ts": "7746976b6e3ba50e4360fbef462f2da4a99344370977210d8d8afc8e89974c32",
+    "src/decision/developmentCandidateRefinement.ts": "ef7f7ed417b6ed37511b0ff8c654f04dfdd008c48a7110a570bd014046e071ff",
+    "src/decision/developmentDynamicSearch.ts": "f1a9a26dfb6caac14a24978b9c1b4bf769768e26d14cddb492fd7ca3ccefe00b",
+    "src/decision/developmentPreparedAnomalySearch.ts": "fb421bbc6ff8d135945cfe40f3eaef1b1af242a061dea459a690203cac1a1f1c",
     "src/decision/developmentSourceAction32.ts": "1597c94b28c65034d6d232375bcabc70a3f2621111ae8421fd122b04e5edbcb1",
     "src/decision/developmentStatWeights.ts": "2e7779e54d93378d3ad138b61e5d1b02461ffe4eea2f0b8799b96dcdcfe735d8",
-    "src/decision/developmentValueBenchmark.ts": "0d7d0d9df1acb82578b7ddf0ed266038fd7beb0ec242de6ea978447bb4fa65c7",
+    "src/decision/developmentValueBenchmark.ts": "e3b379800176e5d7566447e0a442b3ab2b1f00b41671e16f9a36c22b0237993c",
     "src/decision/developmentValueBenchmarkProjection.ts": "b2ab4d5eda2a67e8ae67f6e4882de5dc58fbe519ab88ca938d90d8f56f84bf70",
     "src/decision/developmentValueBenchmarkRuntime.ts": "a1e5b468005e36f5ec6c1e952f6e009dec4a0fb216f15dd5a51a015ac9520dcc",
     "src/decision/incremental32PlanningSourceSelection.ts": "7e0b9d1e28e68318e0bfbbc6bfe491c2e9d8a29178eda31475f513fba3814a73",
     "src/decision/memberDisjointPortfolio.ts": "737f16f5dfb5838639497347f0425f53076e6b9d153c65d80f6b227443cd871a",
-    "src/decision/normalizedAccountFinalStats.ts": "16812509115d85b31c00d25cf66e0c17b1ee9571657b88fcacdd9f796c18425b",
+    "src/decision/normalizedAccountFinalStats.ts": "1b417c32979f0351aab5cd0b0d42ec3ac99d6ddbde86c9824bfda4d1e9b3fe58",
     "src/decision/normalizedPlanningCandidateEvaluator.ts": "fd5775697c8ebb2b1fbfe7844eb0173e9b9a6f1e9b471f6fad7b1f206b561def",
     "src/decision/reviewedTeamCombatEvidence.ts": "412c3e06b8f1c99dbcb19cf19038eb7ff9f0c96876a530c0cd5a77ba725dba5b",
     "src/decision/reviewedTeamPreferences.ts": "f7827ac86db8ffeccda37a76ac19fe68433e612427a466d0f92c5211fef1bbd5",
-    "src/decision/savedGraduationTargetContext.ts": "418c4631e64cee6b7c3c3933a56bc8cdc5dbc483a8b1609dfcec37dfcabba5d3",
-    "src/decision/savedTeamGraduationCompletion.ts": "9875348dc719ac3ad68cf6aafd4fa2e07292d307b65527885c5c43a90967b9a5",
+    "src/decision/savedGraduationTargetContext.ts": "809f54ea60482631f7dde5c1dabcb975607ae0b6a197759020f8e339e18687ab",
+    "src/decision/savedTeamGraduationCompletion.ts": "b730d220817487efa8eb54369c0936c243595d6e5cde706f7af372f892bf1ec7",
     "src/decision/skillInvestmentProjection.ts": "49c168db3346f364f4c0368c168d8a669eae631e260f4995dfe9d453c736471f",
     "src/decision/sourcePreferenceOrder.ts": "670d81b2cc9c53f74f3dcb8391e38cc5609014cbd944a6cd74c0025bed0a5eab",
     "src/decision/targetTeamAccountBoundBenchmark.ts": "016b4abaab64e3908093d6e4e4a238c0fab97fbf3d8fdca7e599f0a2f4ccc8b8",
@@ -43724,7 +43727,9 @@
     "src/gameDataPacks/archivedGuideSetSections.ts": "2c3300dc69d53426d0f3f39e092442d1247c7c6d1c04fedabc5ffcff358a9516",
     "src/gameDataPacks/assetSourceLedger.v1.json": "f3bf2f4c91b39e26d6f8addf7b8262993f1a537bbf0f893339f831bd2a623578",
     "src/gameDataPacks/buildKnowledge.ts": "589cff94289a3c6ec2d9d563b2dcdfbd462c3cbc1d30bb9356ae2a8e5e77695d",
+    "src/gameDataPacks/candidatePanelPolicy.ts": "2c584060b84985ea82411d3e146deac67caacc9748c3059a3be1dc0057565d6a",
     "src/gameDataPacks/candidateSetPlanEligibility.ts": "b37c2461221bfb08ef1efd7c1bdf6a7e17a14f2fadae90a836b27ac9e59854ae",
+    "src/gameDataPacks/candidateSetPlanPolicy.ts": "9e52ba44a6e1487061360eb490ac6b9fb2f626534868746cb78f923d1abe107a",
     "src/gameDataPacks/candidateSetPlans.ts": "275817c25e523f03c27169d063a2929b7a8bde09a128e9dab0a3f59b48f987d3",
     "src/gameDataPacks/candidateStatParsing.ts": "23c12f7e260f8ed9dd222fae1ab742a677a9101e794901344fc061ef85e7b486",
     "src/gameDataPacks/candidateWarehouseConstraints.ts": "97c19ef25a7f544c9f20023c3c2010454b9d8f6957dd19038d377126c3c4aa07",
@@ -43803,6 +43808,7 @@
     "src/gameDataPacks/reviewedBangbooRecoverySemantics.ts": "247b38015c5460bcfdb87cf6db7d5157cd39ae2435c893cea452731ca1586b6a",
     "src/gameDataPacks/reviewedDiscFieldCorrections.ts": "c280a194de2cc49b9f21d51d2139d7e3d2b2ba8024312b4708ab9b98f3b7ba72",
     "src/gameDataPacks/reviewedEventCapabilities32.ts": "3dc5cf2981ac1a36951097459dc8aa1bad66973ec595f5c91f2aa5dfabab2549",
+    "src/gameDataPacks/reviewedExternalSupportFacts.ts": "14c96937a7cff381c08ae3b7331e00b3c20912b74697f48c59e2656f30af03ea",
     "src/gameDataPacks/reviewedGuideBuildDirections.ts": "68a79d9e5c6284004cad81fbf54352100a3d4c5ad19eb89e0465dab40a9dfb02",
     "src/gameDataPacks/reviewedGuideSkillDirections.ts": "b2c8ff4df36d3a0f0a82e782d0756085a28c490b2c6991668e7cf7390b430d2c",
     "src/gameDataPacks/reviewedGuideSkillTargets20261011.ts": "97f57313ab43b6788f1b21a3a904457d527297f1f19e2867eb6dbb37adfe0fe6",
@@ -43822,20 +43828,29 @@
     "src/gameDataPacks/reviewedTargetPanelGuidance.ts": "ae7b51e5e730683055aaecc2436bac5a66cd84a22bee9524a45f201a9b82ebfa",
     "src/gameDataPacks/reviewedTeamDiscConditions.ts": "8dab8311af53454df88203632fefdfc654eba471ec66725672fa6ac28ae4b0ba",
     "src/gameDataPacks/reviewedTeammateActivationMinimum.ts": "3d3d659f0b16774f56bf1aa894ee57def0bff20aba1c111726c1d447be113ed8",
+    "src/gameDataPacks/reviewedZhaoSupportTarget.ts": "623f5fdcea0b8e6fa44be92cef7f287e23537f9cba86a55b9368c0e2416ab977",
     "src/gameDataPacks/sigridReviewedMainStats.ts": "46f18dadee2b752ed0b9b94936a0a12369ee19e45f6be89eec90f02cec346d21",
     "src/gameDataPacks/sourceIntake.ts": "14e83f584ff8a18457f78cef83aaf218add96f5dd8842542920ed1a1cde3cdc4",
     "src/gameDataPacks/types.ts": "332ec5e317a5fed3f53549c42d9434e0a8a7524119a07b85c1ddefc3f8a8148b",
-    "src/optimizer/optimizeAccountBuilds.ts": "762fed38f1e823eb80a43b3a12c24d9b41ef9ab00c1d84f884b596390c7b935b",
+    "src/optimizer/candidatePanelObjective.ts": "943de618fde58ec50ba475524243d8bc7afe6f2708ba597cf479e3dd8e1e0015",
+    "src/optimizer/candidateSearchFacts.ts": "1ae271d712d5ab72ffe0b5d0f92048fd7958ec2bd9f2ca236b7c4f7982e72009",
+    "src/optimizer/candidateWarehouseAlternativeRanking.ts": "26cf105376e753470b7169e94641356fcfd34b43d8a68c80b127bc2d99e38473",
+    "src/optimizer/candidateWarehouseSolver.ts": "d32d2307c7c44667463a7e5d59e15cd0ebce4d15cb80e9bb059b96dc4d73dd09",
+    "src/optimizer/optimizeAccountBuilds.ts": "53701c2281003b82eac92b26937745e1d288a1054d5690a50eef25eed744d801",
+    "src/optimizer/optimizeBuild.ts": "c54f91f185ab9f02fc7bb091e11f4d063c98eb232f2e9622ba82f90baff77e0f",
+    "src/optimizer/refineComparableCandidatePool.ts": "75a609f12b21abda5f1399007631abab3174e3f9a2b7493767caae5948a7b162",
+    "src/optimizer/selectTeamObjectiveAssignment.ts": "3e095d06bbb081c9f81df5c5092504694ada4485ef322dd717a6a1dc01ff3c47",
     "src/pages/agentDevelopmentCandidateSession.ts": "5997dcc7e714cf87dab63cd7d43338af5cf3510b50d508b11678311148244504",
     "src/pages/agentDevelopmentSkillPriority.ts": "911e7d5d0e1a794d05d75a3eb10f05f9af94c8cd8d8095d7994bdda7c696ceee",
     "src/pages/agentDevelopmentSkillRecommendations.ts": "14b400db99c803b59fca3ca41eed81fdad98fcf082a44f045dffdaf793b1a5a3",
-    "src/pages/agentDevelopmentWorkbenchViewModel.ts": "a43257006b02f79d41dfb58ec64b332665796befcf5660f1ea6f6d3a92a73814",
+    "src/pages/agentDevelopmentWorkbenchViewModel.ts": "014fa13657040077227a90a1366c2e6b1cdc81b71afb832944a1031476ef71dc",
     "src/pages/createComparisonSavedBuild.ts": "b3765b03b6d6131080ee52f9f45385cc51b95134cb939c8559ffecff5a899250",
     "src/pages/optimizer/savedPlanFreshness.ts": "232317873c1d499566b8bbc359d1ca56c8bb9b8bff3bc42c7fd46dfb124df6d9",
     "src/pages/optimizer/useSavedPlanReplay.ts": "24dcfda7ca66dfe8f243254795df79f8b015d0cf5516e13ba506cd4078891e1f",
     "src/pages/planEditorDraftPersistence.ts": "095b0dc1f866cb5b1b2ef5e7d5d54ce5bc2f40d0557fd7b7edaedf08e05bee00",
     "src/pages/savedPlanIdentity.ts": "a01084d9251817c8c1f64b6473f0addb31b0d5a747f5bc999a05ffbe6e93ead0",
-    "src/pages/teamLoadoutOverviewModel.ts": "8732618ecf7580b27f578edab62e34d09036bda0f2201401e6c5aeb8a12e6aaf",
+    "src/pages/teamLoadoutCompletionCandidates.ts": "5cf0ee7692e8c3e4866d2e431135a9efe7ad2541461c14e3803c70e59b4763ae",
+    "src/pages/teamLoadoutOverviewModel.ts": "5c64da6a97773bfb5ef7a50e76f914d425be1ba06b26421b8c583f9e2985d30e",
     "src/pages/teamRecommendationOrdering.ts": "0ce7b93df26bd617f4c85adec5976efb5401ecd0d19cda22eedb53e1bec86137",
     "src/pages/teamRecommendationRank.ts": "3f8a9ebefc5c2e9dcc14196d88c6912e4cf638621a9f80653f405417cba12b6b",
     "src/pages/useTeamRematch.ts": "cbc264bcbe051b32592e29b4686ebec666289ddc716aefcd0d0c271100b9a185",
@@ -44097,5 +44112,5 @@
       "synthetic_DEF_threshold_operands_do_not_assert_in_game_roll_legality"
     ]
   },
-  "contentSha256": "328e24261f2a8470896b72750ead95c5c79da92cc1f3f9912eb065163de8249a"
+  "contentSha256": "7af34c481839828f203a0948ee4eac4f9d17279849b4838982210e622092f2a3"
 }

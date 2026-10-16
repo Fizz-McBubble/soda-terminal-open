@@ -15,14 +15,8 @@ type Top10StatTableProps = {
 }
 
 export function Top10StatTable(props: Top10StatTableProps) {
-  const scope = [
-    props.data.panelScopeKey ?? props.data.agentName,
-    props.baselineAvailable,
-    props.baselineLabel,
-    props.data.baseline.discIds?.join('|'),
-    props.selectedRow?.rank,
-    props.selectedRow?.discIds?.join('|'),
-  ].join('::')
+  // Expansion belongs to this account/agent view, independently of the compared loadouts.
+  const scope = props.data.panelScopeKey ?? props.data.agentName
   return <ComparisonStatTable key={scope} {...props} />
 }
 
@@ -112,9 +106,9 @@ function ComparisonStatTable({
                   <strong role="cell" aria-label={stat.label}>
                     {stat.label}
                     {data.statPresentation !== 'disc_contribution' && target ? (
-                      <small className="comparison-priority-label">参考 {target}</small>
+                      <small className="comparison-priority-label">毕业推荐 {target}</small>
                     ) : stat.highlight ? (
-                      <small className="comparison-priority-label">参考</small>
+                      <small className="comparison-priority-label">毕业推荐</small>
                     ) : null}
                   </strong>
                   {baselineAvailable ? (

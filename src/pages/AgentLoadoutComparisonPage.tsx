@@ -361,6 +361,9 @@ export function AgentLoadoutComparisonPage() {
     valueBenchmarks: candidateSnapshot.valueBenchmarks,
     discs,
     coreStats: defaultStats,
+    targetConditionsByLabel: hasStaticPanels
+      ? candidateSnapshot.panelPresentation?.targetConditionsByLabel
+      : undefined,
     allStats: allStats.map((stat) => {
       return {
         ...stat,

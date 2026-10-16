@@ -80,7 +80,7 @@ export function savedPlanGraduationCompletion(
     members: results.flatMap((result) => result.members),
     meaning: 'quantitative_target_attainment',
     reason: scored
-      ? '按三名成员的毕业参考计算。'
+      ? '按三名成员的毕业推荐计算。'
       : `三名成员必须都有完整配装、可比面板和已自动对齐的目标条件。${memberGaps.length ? ` 未完成项：${memberGaps.join('；')}` : ''}`,
   }
 }

@@ -32,6 +32,8 @@ export type DevelopmentComparisonPanels = {
   agentId: string
   entries: DevelopmentComparisonPanel[]
   targetDisplayByLabel: Record<string, string>
+  /** Optional for v1 snapshots; absence never implies unconditional source applicability. */
+  targetConditionsByLabel?: Record<string, readonly string[]>
   saveKnowledge: {
     scenario: string
     profileId: string
@@ -83,6 +85,15 @@ export function hasDevelopmentComparisonPanels(
     typeof value.targetDisplayByLabel === 'object' &&
     !Array.isArray(value.targetDisplayByLabel) &&
     Object.values(value.targetDisplayByLabel).every((target) => typeof target === 'string') &&
+    (value.targetConditionsByLabel === undefined ||
+      (value.targetConditionsByLabel !== null &&
+        typeof value.targetConditionsByLabel === 'object' &&
+        !Array.isArray(value.targetConditionsByLabel) &&
+        Object.values(value.targetConditionsByLabel).every(
+          (conditions) =>
+            Array.isArray(conditions) &&
+            conditions.every((condition) => typeof condition === 'string'),
+        ))) &&
     typeof value.saveKnowledge?.scenario === 'string' &&
     typeof value.saveKnowledge.profileId === 'string' &&
     ['formal', 'candidate', 'missing'].includes(value.saveKnowledge.status) &&

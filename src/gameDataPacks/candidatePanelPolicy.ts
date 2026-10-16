@@ -1,13 +1,15 @@
 import reviewedTargetPanels from './data/reviewed-target-panel-guidance.3.1.json'
 import { reviewedGuideBuildConditions } from './reviewedGuideBuildDirections'
+import { resolveReviewedZhaoHpTarget } from './reviewedZhaoSupportTarget'
 
-export const candidatePanelPolicyVersion = 'source-bound-attack-priority-r1' as const
+export const candidatePanelPolicyVersion = 'source-bound-initial-hp-and-attack-priority-r2' as const
 
-export type CandidatePanelPriorityStat = 'anomalyProficiency' | 'energyRegen'
+export type CandidatePanelPriorityStat = 'anomalyProficiency' | 'energyRegen' | 'source'
 
 export type CandidatePanelPolicy = {
   agentId: string
   minimumAttack: number
+  minimumInitialHp?: number
   priorityStat: CandidatePanelPriorityStat
   requiredCoreLevel?: 7
   requiredFourPieceSet?: string
@@ -71,6 +73,19 @@ const policies = [
   reviewedSetPolicy('agent-astra', 3429, 'miyoushe-65063323-fold-56-disc-condition'),
   reviewedSetPolicy('agent-pan-yinhu', 3000, 'miyoushe-65136583-fold-51-disc-condition'),
   reviewedYuzuhaPolicy(),
+  (() => {
+    const target = resolveReviewedZhaoHpTarget({ agentId: 'agent-zhao', coreLevel: 7 })
+    return target
+      ? {
+          agentId: 'agent-zhao',
+          minimumAttack: 0,
+          minimumInitialHp: target.minimum,
+          priorityStat: 'source' as const,
+          requiredCoreLevel: 7 as const,
+          sourceId: target.sourceId,
+        }
+      : null
+  })(),
 ].filter((policy): policy is CandidatePanelPolicy => policy !== null)
 
 export function getCandidatePanelPolicy(agentId: string): CandidatePanelPolicy | null {

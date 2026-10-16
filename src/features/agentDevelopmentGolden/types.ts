@@ -231,7 +231,14 @@ export type GoldenWorkbenchData = {
     group?: 'primary' | 'supplementary' | 'resource'
     currentValue?: number
   }>
-  currentPanel: { availability: 'available' | 'unavailable'; summary: string; title?: string }
+  currentPanel: {
+    availability: 'available' | 'unavailable'
+    summary: string
+    title?: string
+    /** Retain natural layout while previous numerical facts are hidden. */
+    refreshState?: 'updating' | 'failed'
+    refreshPlaceholderSummary?: string
+  }
   valueBenchmark?: {
     comparison: import('../../calculation/valueBenchmarkComparison').ValueBenchmarkComparison
     stale: boolean
@@ -253,6 +260,8 @@ export type GoldenWorkbenchData = {
 }
 
 export type GoldenTop10Data = {
+  /** Full source applicability for the short values in allStats, keyed by player-facing label. */
+  targetConditionsByLabel?: Readonly<Record<string, readonly string[]>>
   panelScopeKey?: string
   currentLoadout?: LoadoutRow
   candidateSearch?: import('../../decision/developmentCandidateAlternatives').DevelopmentCandidateSearch

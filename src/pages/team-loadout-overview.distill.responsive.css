@@ -7,7 +7,7 @@
   gap: 12px;
 }
 
-.f5v-box-team-overview .f5v-box-team-completion li {
+.f5v-box-team-overview .f5v-box-team-completion > ul > li {
   align-content: start;
   gap: 12px;
   padding: 16px;
@@ -233,7 +233,7 @@
   display: none;
 }
 @container soda-viewport (max-width: 640px) {
-  .f5v-box-team-overview .f5v-box-team-completion li {
+  .f5v-box-team-overview .f5v-box-team-completion > ul > li {
     grid-template-columns: 126px minmax(0, 1fr);
     padding-inline: 0;
   }

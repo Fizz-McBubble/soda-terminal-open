@@ -75,15 +75,18 @@ export function searchPreparedAnomalyCandidates(input: {
       return false
     const panel = plan.loadouts[0]?.panelObjective
     const priority = baselinePanel?.priorityStat ?? 'anomalyProficiency'
-    const beforePriority = baselinePanel?.[priority]
-    const afterPriority = panel?.[priority]
+    const beforePriority =
+      priority === 'source' ? baselinePanel?.hpDeficit : baselinePanel?.[priority]
+    const afterPriority = priority === 'source' ? panel?.hpDeficit : panel?.[priority]
     if (
       baselinePanel &&
       (!panel ||
         panel.attackDeficit > baselinePanel.attackDeficit ||
-        beforePriority === undefined ||
-        afterPriority === undefined ||
-        afterPriority < beforePriority)
+        !Number.isFinite(beforePriority) ||
+        !Number.isFinite(afterPriority) ||
+        (priority === 'source'
+          ? panel.priorityStat !== 'source' || afterPriority! > beforePriority!
+          : afterPriority! < beforePriority!))
     )
       return false
     return compareValueBenchmarkSides({

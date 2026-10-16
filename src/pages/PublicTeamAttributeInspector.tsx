@@ -82,7 +82,7 @@ export function PublicTeamAttributeInspector({
         hasFinalPanel={panel.source.current.status === 'exact'}
       />
       {!panel.rows.some((row) => row.targetStatus !== 'missing') ? (
-        <p className="team-execution__attribute-notes">暂无可量化的毕业参考。</p>
+        <p className="team-execution__attribute-notes">暂无可量化的毕业推荐。</p>
       ) : null}
     </aside>
   )

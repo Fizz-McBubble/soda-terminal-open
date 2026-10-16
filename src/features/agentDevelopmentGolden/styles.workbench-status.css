@@ -113,9 +113,13 @@
   font-size: 0.5rem;
 }
 
-.skill-comparison__target span.priority {
+.skill-comparison__target span {
   background: #f2eef9;
   border-radius: var(--soda-radius-tag);
+}
+
+.skill-comparison__target span.priority {
+  font-weight: 700;
 }
 
 .skill-comparison .skill-priority-order {

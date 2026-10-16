@@ -219,6 +219,8 @@ export function projectNormalizedAccountFinalStatsDetailed(input: {
   }
 
   const explicitEngineAscension = (input.agent.wEngineDetails as { ascension?: unknown })?.ascension
+  if (explicitEngineAscension === null)
+    return { status: 'unsupported' as const, reasons: ['音擎突破阶段未确认。'] }
   let engineAscension: number
   if (explicitEngineAscension !== undefined && explicitEngineAscension !== null) {
     if (
