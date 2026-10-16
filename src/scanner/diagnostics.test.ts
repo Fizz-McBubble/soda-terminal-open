@@ -56,8 +56,8 @@ describe('allowlisted diagnostic privacy boundary', () => {
     })!
     expect(unsafe.evidence).toEqual({})
     expect(
-      sanitizeScanFeedbackPayload({ ...report, evidence: { preflightState: 'raw_text' } }).ok,
-    ).not.toBe(true)
+      sanitizeScanFeedbackPayload({ ...report, evidence: { preflightState: 'raw_text' } }),
+    ).toEqual({ status: 400 })
   })
 
   it('preserves duplicate guard finalization evidence through browser projection and local storage', () => {

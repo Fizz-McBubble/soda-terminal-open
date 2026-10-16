@@ -72,9 +72,9 @@ it('rejects malformed native evidence and raw or filename-suffixed failure strin
   const safe = assetFailureDiagnostic('startup', undefined, failedNativeJob)
   for (const value of [-1, 4294967296, 1.5, "soda-source-ref:61ed5e34eb22556ab3b6b6fcd94f5347"]) {
     expect(sanitizeAssetDiagnostic({ ...safe, evidence: { nativeErrorCode: value } })).toBeNull()
-    expect(
-      sanitizeScanFeedbackPayload({ ...safe, evidence: { childExitCode: value } }).ok,
-    ).not.toBe(true)
+    expect(sanitizeScanFeedbackPayload({ ...safe, evidence: { childExitCode: value } })).toEqual({
+      status: 400,
+    })
   }
   for (const code of [
     'protocol_file_missing:manifest.json',
