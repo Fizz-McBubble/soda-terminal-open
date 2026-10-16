@@ -4,11 +4,14 @@ import { useEffect, useState } from 'react'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { F5VisualShell } from './F5VisualShell'
-import { preloadPlayerRoute } from '../routes/preloadPlayerRoute'
+import { preloadPlayerRoute, preloadPlayerRouteIntent } from '../routes/preloadPlayerRoute'
 
 vi.mock('../motion/useDetailsDisclosureMotion', () => ({ useDetailsDisclosureMotion: vi.fn() }))
 vi.mock('../motion/useStateTransitionMotion', () => ({ useStateTransitionMotion: vi.fn() }))
-vi.mock('../routes/preloadPlayerRoute', () => ({ preloadPlayerRoute: vi.fn() }))
+vi.mock('../routes/preloadPlayerRoute', () => ({
+  preloadPlayerRoute: vi.fn(),
+  preloadPlayerRouteIntent: vi.fn(),
+}))
 
 function mockWidth(initial: boolean) {
   let narrow = initial
@@ -30,7 +33,7 @@ function mockWidth(initial: boolean) {
     })
 }
 
-function Harness() {
+function Harness({ navigationPending = false }: { navigationPending?: boolean }) {
   const [open, setOpen] = useState(false)
   const location = useLocation()
   useEffect(() => {
@@ -39,6 +42,7 @@ function Harness() {
   }, [location.pathname])
   return (
     <F5VisualShell
+      navigationPending={navigationPending}
       currentPath={location.pathname}
       currentTitle="首页"
       currentVersion="测试"
@@ -69,6 +73,62 @@ afterEach(() => {
 })
 
 describe('F5VisualShell narrow navigation', () => {
+  it('keeps current content while reporting a pending route in the existing location bar', () => {
+    mockWidth(false)
+    const { rerender } = render(
+      <MemoryRouter>
+        <Harness navigationPending />
+      </MemoryRouter>,
+    )
+    expect(screen.getByText('页面内容')).toBeVisible()
+    expect(screen.getByText('页面操作')).toBeEnabled()
+    expect(screen.getByRole('main')).toHaveAttribute('aria-busy', 'true')
+    expect(screen.getByRole('status')).toHaveTextContent('正在打开页面')
+    rerender(
+      <MemoryRouter>
+        <Harness />
+      </MemoryRouter>,
+    )
+    expect(screen.getByRole('main')).not.toHaveAttribute('aria-busy')
+    expect(screen.queryByText('正在打开页面…')).not.toBeInTheDocument()
+  })
+
+  it('forwards content navigation intent without running the click action', () => {
+    mockWidth(false)
+    setup()
+    vi.mocked(preloadPlayerRouteIntent).mockClear()
+    const action = screen.getByText('页面操作')
+    fireEvent.pointerOver(action)
+    expect(preloadPlayerRouteIntent).toHaveBeenCalledWith(action)
+    fireEvent.focus(action)
+    expect(preloadPlayerRouteIntent).toHaveBeenCalledTimes(2)
+  })
+
+  it('warms only enabled local destinations, including callback buttons and nested link content', async () => {
+    const actual = await vi.importActual<typeof import('../routes/preloadPlayerRoute')>(
+      '../routes/preloadPlayerRoute',
+    )
+    const warm = vi.fn()
+    const { container } = render(
+      <div>
+        <a href="/development/agent-billy/loadouts?plan=one">
+          <span>比较入口</span>
+        </a>
+        <button data-player-route="/loadouts/plans/saved-one">已存方案</button>
+        <button disabled data-player-route="/loadouts/team/blocked">
+          不可操作
+        </button>
+        <a href="https://example.org/development">外部链接</a>
+      </div>,
+    )
+    for (const control of container.querySelectorAll('span, button, a[href^="https"]'))
+      actual.preloadPlayerRouteIntent(control, warm)
+    expect(warm.mock.calls).toEqual([
+      ['/development/agent-billy/loadouts'],
+      ['/loadouts/plans/saved-one'],
+    ])
+  })
+
   it('keeps the desktop composition proportional and resets only for compact windows', () => {
     mockWidth(false)
     vi.stubGlobal('innerWidth', 2560)

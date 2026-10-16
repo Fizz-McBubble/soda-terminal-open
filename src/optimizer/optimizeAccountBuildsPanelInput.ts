@@ -21,7 +21,10 @@ export function candidatePanelInputForAgent(
     !hasCurrentWEngineProgression(agent) ||
     !hasCandidatePanelObjective(agent.agentId) ||
     agent.level !== 60 ||
-    agent.skillLevels.core !== 7 ||
+    agent.skillLevels.core === null ||
+    !Number.isInteger(agent.skillLevels.core) ||
+    agent.skillLevels.core < 1 ||
+    agent.skillLevels.core > 7 ||
     !agent.wEngineDetails.id ||
     agent.wEngineDetails.level !== 60 ||
     (agent.wEngineDetails.ascension !== undefined && agent.wEngineDetails.ascension !== 5) ||
@@ -36,6 +39,7 @@ export function candidatePanelInputForAgent(
     level: agent.level,
     ascension: 5,
     core: agent.skillLevels.core - 2,
+    specialLevel: agent.skillLevels.special ?? undefined,
     mindscape: agent.mindscape,
     potentialImage: agent.potentialImage,
     wEngine: {

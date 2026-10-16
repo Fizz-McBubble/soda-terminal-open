@@ -144,7 +144,7 @@ export function sourcedFunctionalMains(
               : stat === 'hp_percent' && hp
                 ? hp.detail
                 : stat === 'atk_percent' && panel
-                  ? `核对完整面板攻击力 ${panel.minimumAttack}、核心技等级${panel.requiredCoreLevel ?? '按机制'}及所需套装前提。`
+                  ? '核对实际核心与影画对应的初始攻击准备线及所需套装前提；攻略满核心参考不能套用到其他等级。'
                   : `${potential ? `需要潜影 ${potential}，并` : ''}在完整配装中核对 ${stat} 对来源机制的实际贡献与目标；单盘主词不能证明整套功能完成。`
       return sourceId
         ? [

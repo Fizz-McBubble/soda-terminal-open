@@ -18,7 +18,7 @@ function capacity(agentId: string, hp: number, core = 7, special = 12, darkbreak
 }
 
 describe('source-bound independent support capacities', () => {
-  it('caps Zhao core7 HP target progress at 27000 without freezing surplus or pricing damage', () => {
+  it('caps Zhao core-independent HP target progress at 27000 without freezing surplus or pricing damage', () => {
     const before = capacity('agent-zhao', 30000).capacities
     expect(before[0]!.value).toBe(0.4)
     expect(
@@ -27,11 +27,16 @@ describe('source-bound independent support capacities', () => {
     expect(
       preservesReviewedFunctionalCapacities32(before, capacity('agent-zhao', 26000).capacities),
     ).toBe(false)
-    expect(capacity('agent-zhao', 30000, 6).capacities[0]!.value).toBeNull()
+    for (const core of [1, 2, 3, 4, 5, 6, 7])
+      expect(capacity('agent-zhao', 30000, core).capacities[0]!.value).toBe(0.4)
     expect(before[0]!.included.join()).toContain('非团队伤害')
     expect(capacity('agent-zhao', 15000).capacities[0]!.value).toBe(0.1)
     expect(capacity('agent-zhao', 26600).capacities[0]!.value).toBe(0.39)
-    expect(capacity('agent-zhao', 26601).capacities[0]!.value).toBeNull()
+    expect(capacity('agent-zhao', 26601).capacities[0]!.value).toBe(0.39)
+    expect(capacity('agent-zhao', 26999.7).capacities[0]!.value).toBe(0.39)
+    expect(capacity('agent-zhao', 15399).capacities[0]!.value).toBe(0.1)
+    expect(capacity('agent-zhao', 15400).capacities[0]!.value).toBe(0.11)
+    expect(capacity('agent-zhao', 15401).capacities[0]!.value).toBe(0.11)
   })
   it('evaluates Lucia pinned EX expression at actual skill, independent of other HP purposes', () => {
     const before = capacity('agent-lucia', 30000, 7, 12, true).capacities

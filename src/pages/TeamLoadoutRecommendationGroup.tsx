@@ -47,6 +47,8 @@ export function TeamGroup({
           {isRecommended ? (
             <ExplanationPopover
               label="推荐说明"
+              variant="button"
+              showIndicator={false}
               className="f5v-box-team-recommendation-explanation"
             >
               <p>这里展示现有角色下的可用配队方向，靠前不等于所有副本最优。</p>

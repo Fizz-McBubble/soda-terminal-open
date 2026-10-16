@@ -119,6 +119,7 @@ export function Workbench({
           label="返回养成"
           className="back-navigation--overlay"
           onClick={toOverview}
+          data-player-route="/development"
         />
         <div className="agent-identity">
           <div className="agent-identity__name-line">
@@ -369,6 +370,7 @@ export function Workbench({
               )}
               <button
                 className="warehouse-action warehouse-action--primary button primary"
+                data-player-route={`/development/${data.agentId}/loadouts`}
                 type="button"
                 disabled={
                   savingPlan ||

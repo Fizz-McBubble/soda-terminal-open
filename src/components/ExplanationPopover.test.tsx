@@ -103,3 +103,45 @@ it('refits nested disclosures against the CSS cap and preserves native body scro
   fireEvent(details, new Event('toggle'))
   expect(trigger).toHaveAttribute('aria-expanded', 'true')
 })
+
+it('uses the existing quiet button for a toolbar disclosure while keeping body explanations as text', () => {
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      disconnect() {}
+    },
+  )
+  render(
+    <>
+      <ExplanationPopover label="推荐说明" variant="button" showIndicator={false}>
+        工具栏说明
+      </ExplanationPopover>
+      {['更多', '适用条件', '参考'].map((label) => (
+        <ExplanationPopover key={label} label={label}>
+          {label}正文
+        </ExplanationPopover>
+      ))}
+    </>,
+  )
+  const toolbarTrigger = screen.getByRole('button', { name: '推荐说明' })
+  expect(toolbarTrigger).toHaveClass('button', 'button--quiet')
+  expect(toolbarTrigger.querySelector('[aria-hidden]')).toBeNull()
+  expect(toolbarTrigger).toHaveAttribute('aria-haspopup', 'dialog')
+  expect(toolbarTrigger).toHaveAttribute('popovertarget')
+  for (const label of ['更多', '适用条件', '参考']) {
+    const trigger = screen.getByRole('button', { name: label })
+    expect(trigger).not.toHaveClass('button')
+    expect(trigger.querySelector('.explanation__label')).toHaveTextContent(label)
+    expect(trigger.querySelector('[aria-hidden]')).not.toBeNull()
+  }
+  const panel = document.getElementById(toolbarTrigger.getAttribute('popovertarget')!)!
+  const open = new Event('toggle')
+  Object.defineProperty(open, 'newState', { value: 'open' })
+  fireEvent(panel, open)
+  expect(toolbarTrigger).toHaveAttribute('aria-expanded', 'true')
+  const close = new Event('toggle')
+  Object.defineProperty(close, 'newState', { value: 'closed' })
+  fireEvent(panel, close)
+  expect(toolbarTrigger).toHaveAttribute('aria-expanded', 'false')
+})

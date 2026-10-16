@@ -2,7 +2,7 @@ import { useEffect, useRef, useSyncExternalStore, type CSSProperties, type React
 import { Menu, X } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { mobileNavigation, navigationGroups } from '../navigation'
-import { preloadPlayerRoute } from '../routes/preloadPlayerRoute'
+import { preloadPlayerRoute, preloadPlayerRouteIntent } from '../routes/preloadPlayerRoute'
 import { useDetailsDisclosureMotion } from '../motion/useDetailsDisclosureMotion'
 import { SponsorProvider, SponsorRail } from './SponsorSupport'
 import { ReleaseNotes } from './ReleaseNotes'
@@ -31,6 +31,7 @@ function desktopScale() {
 }
 
 type F5VisualShellProps = {
+  navigationPending?: boolean
   children: ReactNode
   currentPath: string
   currentTitle: string
@@ -58,6 +59,7 @@ export function F5VisualShell(props: F5VisualShellProps) {
 }
 
 function F5VisualShellContent({
+  navigationPending = false,
   children,
   currentPath,
   currentTitle,
@@ -246,6 +248,7 @@ function F5VisualShellContent({
           </button>
           <div className="f5v-location" aria-label="当前位置">
             <strong>{currentTitle}</strong>
+            {navigationPending ? <small role="status">正在打开页面…</small> : null}
           </div>
           <div className="f5v-topbar-tools">
             <ReleaseNotes key={currentPath} />
@@ -269,6 +272,9 @@ function F5VisualShellContent({
             className="f5v-page-frame"
             id="main-content"
             data-f5-scroll-owner
+            aria-busy={navigationPending || undefined}
+            onPointerOverCapture={(event) => preloadPlayerRouteIntent(event.target)}
+            onFocusCapture={(event) => preloadPlayerRouteIntent(event.target)}
           >
             {children}
           </main>

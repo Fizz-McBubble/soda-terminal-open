@@ -31,13 +31,16 @@ export function projectDevelopmentComparisonPanels(input: {
 }): DevelopmentComparisonPanels {
   const agent = input.warehouse.roster.agents.find((item) => item.agentId === input.agentId)
   const profile = getProjectedBuildKnowledgeProfile(input.agentId)
-  const targetPanel = getCurrentBuildTargetPanel(input.agentId)
+  const targetPanel = getCurrentBuildTargetPanel(input.agentId, {
+    coreLevel: agent?.skillLevels.core,
+    specialLevel: agent?.skillLevels.special,
+    engineId: agent?.wEngineDetails?.id,
+    engineRefinement: agent?.wEngineDetails?.refinement,
+    mindscape: agent?.mindscape,
+  })
   const targetPresentations = characterPanelLabels.map((label) => ({
     label,
-    reference: targetPanelPresentation(targetPanel, label, {
-      agentId: input.agentId,
-      coreLevel: agent?.skillLevels.core,
-    }),
+    reference: targetPanelPresentation(targetPanel, label),
   }))
   const targetDisplayByLabel = Object.fromEntries(
     targetPresentations.flatMap(({ label, reference }) =>

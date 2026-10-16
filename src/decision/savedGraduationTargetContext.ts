@@ -1,6 +1,8 @@
 import type { RosterAgent } from '../assault/types'
 import type { DriveDisc } from '../domain/schemas'
 import { reviewedTargetPanelGuidance } from '../gameDataPacks/reviewedTargetPanelGuidance'
+import { getCurrentBuildTargetPanel } from '../gameDataPacks/currentBuildAuthority'
+import { reviewedContextualMechanicTargets } from '../gameDataPacks/reviewedContextualTargetPanel'
 import { currentPanelData } from '../gameDataPacks/panel/currentPanelData'
 import { resolveReviewedZhaoHpTarget } from '../gameDataPacks/reviewedZhaoSupportTarget'
 import { evaluateCurrentAgentTeamActivation } from '../calculation/currentAgentMechanicContracts'
@@ -51,7 +53,7 @@ const rules: Readonly<Record<string, Rule>> = {
   'Going above ATK 4000 does not add meaningful damage. AP range depends on AP Disk 4 and 2-piece choices.':
     'note',
   'PEN Ratio 72 grants the full 30 team buff at Core Passive 6.': 'rina',
-  'Shield caps at 3750 Initial ATK but this is a hard target.': 'note',
+  'Shield caps at 3750 Initial ATK but this is hard to achieve.': 'note',
   'Crit Rate is before Additional Ability and Shadow Harmony; Crit DMG is before Core passive.':
     'note',
   'ATK is a Core Passive variant, so no unconditional ATK target is synthesized.': 'skill',
@@ -74,35 +76,53 @@ export function resolveSavedGraduationTarget(input: {
   memberIds?: readonly string[]
   agent: RosterAgent
   engineId: string
+  engineRefinement?: number
   discs: readonly DriveDisc[]
   target: { value: unknown; conditions: readonly string[]; sourceRefs?: readonly { id: string }[] }
 }) {
-  if (
-    input.agent.agentId === 'agent-sigrid' &&
-    input.target.sourceRefs?.some((ref) => ref.id === 'prydwen-sigrid-live-build-2026-09-04') &&
-    JSON.stringify(input.target.conditions) ===
-      JSON.stringify([
-        '60级攻略实践参考暴击率33.8%，不是精确满暴线；满核心且巡空枪势有效、无其他暴击加成时为99.8%，数学满暴点为34%。状态失效或配置改变时需重新计算。',
-        '暴击伤害区间受音擎副属性与 4 号位选择影响；这是攻略参考区间，不是 Formal 或唯一毕业线。',
-        '生命值与防御力为基础面板参考，不是该输出方向的毕业目标，不要求专门堆词条。',
-      ])
-  ) {
-    const value = { ...(input.target.value as Record<string, unknown>) }
-    // The reference assumes the maximum passive; do not infer it at lower core levels.
-    if (input.agent.skillLevels.core !== 7) delete value.critRate
-    return {
-      value,
-      limitations: input.agent.skillLevels.core === 7 ? [] : ['核心技未达F，暴击率参考未计入'],
-      applied: ['保留攻略参考与状态条件，不将参考区间计入局外完成度'],
-    }
+  const frozenGuide = reviewedTargetPanelGuidance(input.agent.agentId)
+  const context = {
+    coreLevel: input.agent.skillLevels.core,
+    specialLevel: input.agent.skillLevels.special,
+    engineId: input.engineId,
+    engineRefinement: input.engineRefinement ?? input.agent.wEngineDetails?.refinement,
+    mindscape: input.agent.mindscape,
   }
-  const reviewed = reviewedTargetPanelGuidance(input.agent.agentId)
+  const adopted = getCurrentBuildTargetPanel(input.agent.agentId)
+  const contextual = getCurrentBuildTargetPanel(input.agent.agentId, context)
+  const mechanic = reviewedContextualMechanicTargets({ ...context, agentId: input.agent.agentId })
+  const reviewed = [contextual, adopted, frozenGuide].find(
+    (field) =>
+      field &&
+      JSON.stringify(input.target.value) === JSON.stringify(field.value) &&
+      JSON.stringify(input.target.conditions) === JSON.stringify(field.conditions ?? []),
+  )
   const source = input.target.value as {
     sourceMetadata?: { sourceId?: string; sourceConditions?: string[] }
     sourceVariants?: string[]
     targetSemantics?: TargetPanelSemantics
     extraStats?: Record<string, unknown>
   } | null
+  if (
+    mechanic &&
+    reviewed &&
+    [
+      'agent-lucy',
+      'agent-soukaku',
+      'agent-roxy',
+      'agent-astra',
+      'agent-rina',
+      'agent-sigrid',
+      'agent-pan-yinhu',
+      'agent-yuzuha',
+    ].includes(input.agent.agentId)
+  ) {
+    return {
+      value: contextual!.value as Record<string, unknown>,
+      limitations: [...mechanic.conditions],
+      applied: ['按当前有效技能与音擎配置核对初始属性机制准备线；不证明战斗增益常驻'],
+    }
+  }
   const expected = reviewed?.value as typeof source
   // An overridden or newer authority must be reviewed independently.
   if (
@@ -128,6 +148,7 @@ export function resolveSavedGraduationTarget(input: {
     coreLevel: input.agent.skillLevels.core,
   })
   if (hpTarget) {
+    value.hp = { min: hpTarget.minimum }
     const activation = input.memberIds
       ? evaluateCurrentAgentTeamActivation({
           stableId: input.agent.agentId,
@@ -139,13 +160,11 @@ export function resolveSavedGraduationTarget(input: {
         })
       : null
     if (activation?.status === 'supported' && activation.active) {
-      // Context projection only: the canonical guide and its source remain unchanged.
-      const guideHp = value.hp
-      value.hp = { min: hpTarget.minimum }
-      applied.push(
-        `独立机制目标：初始生命${hpTarget.minimum}；攻略生命参考${JSON.stringify(guideHp)}`,
-      )
-    } else limitations.push('追加能力队伍条件未闭合，机制生命目标未计入，保留攻略参考。')
+      applied.push(`独立机制目标：初始生命${hpTarget.minimum}`)
+    } else {
+      if (semantics.hp) semantics.hp = { ...semantics.hp, requirement: 'optional' }
+      limitations.push('追加能力队伍条件未闭合，机制生命目标未计入完成度。')
+    }
     limitations.push(...hpTarget.conditions)
     limitations.push('完成度仅核对初始生命准备，不证明队伍增益已经激活。')
   }
@@ -169,8 +188,8 @@ export function resolveSavedGraduationTarget(input: {
       exclude('critRate', '暴击率50%为满核心与沧浪行歌四件套增益生效时的参考，未作为通用毕业限制')
       applied.push('保留暴击率配装参考，按攻击力与暴击伤害目标计算完成度')
     }
-    if (rule === 'astra' && input.agent.skillLevels.core !== 7)
-      exclude('atk', '核心技未达F，最高全队增益的攻击力目标未计入')
+    if (rule === 'astra' && !mechanic)
+      exclude('atk', '请录入实际核心与影画等级，以核对相应攻击准备线；攻略方向仍保留')
     if (rule === 'summit') {
       const active =
         input.discs.filter((disc) => disc.setId === 'set-king-of-the-summit').length >= 4
@@ -226,9 +245,7 @@ export function resolveSavedGraduationTarget(input: {
         exclude('critDamage', '混沌重金属四件套与暴伤参考口径不同，暴击伤害未计入')
     }
     if (rule === 'rina') {
-      if (input.agent.skillLevels.core !== 7)
-        exclude('penRatio', '丽娜的完整增益目标要求核心技F，穿透率目标未计入')
-      else applied.push('已按核心技F核对穿透率参考范围')
+      if (!mechanic) exclude('penRatio', '请录入实际核心等级，以核对相应穿透准备线；攻略方向仍保留')
     }
   }
   return { value, limitations: [...new Set(limitations)], applied }

@@ -68,36 +68,44 @@ function TeamCompletionCandidatesPage({
               <strong className="f5v-box-team-completion__candidate-label">
                 {candidate.label}
               </strong>
-              <CompletionMemberRow label="已有" agentIds={candidate.ownedAgentIds} tone="owned" />
-              <CompletionMemberRow
-                label="还缺"
-                note={
-                  candidate.missingRole !== 'core' && candidate.missingAgentIds.length > 1
-                    ? '任选一位'
-                    : undefined
-                }
-                agentIds={candidate.missingAgentIds}
-                tone="missing"
-              />
-              {candidate.sourceConditions?.length || candidate.accountReferenceNotes?.length ? (
-                <ExplanationPopover
-                  label="适用条件"
-                  title="补强方向的适用条件与来源说明"
-                  className="f5v-box-completion-condition"
+              <div className="f5v-box-team-completion__summary">
+                <span
+                  className="f5v-box-team-completion__owned"
+                  title={`已有：${candidate.ownedAgentIds.map(getAgentName).join('、')}`}
+                  aria-label={`已有：${candidate.ownedAgentIds.map(getAgentName).join('、')}`}
                 >
-                  {candidate.accountReferenceNotes?.map((note) => (
-                    <p key={note}>{note}</p>
-                  ))}
-                  {candidate.sourceConditions?.length ? (
-                    <ul>
-                      {candidate.sourceConditions.map((condition) => (
-                        <li key={condition}>{playerDecisionText(condition)}</li>
-                      ))}
-                    </ul>
-                  ) : null}
-                  <p>以上是来源方向；补齐角色后，仍需结合这些养成、配装和操作条件复核。</p>
-                </ExplanationPopover>
-              ) : null}
+                  已有 {candidate.ownedAgentIds.length} 位
+                </span>
+                <CompletionMemberRow
+                  label="还缺"
+                  note={
+                    candidate.missingRole !== 'core' && candidate.missingAgentIds.length > 1
+                      ? '任选一位'
+                      : undefined
+                  }
+                  agentIds={candidate.missingAgentIds}
+                  tone="missing"
+                />
+                {candidate.sourceConditions?.length || candidate.accountReferenceNotes?.length ? (
+                  <ExplanationPopover
+                    label="适用条件"
+                    title="补强方向的适用条件与来源说明"
+                    className="f5v-box-completion-condition"
+                  >
+                    {candidate.accountReferenceNotes?.map((note) => (
+                      <p key={note}>{note}</p>
+                    ))}
+                    {candidate.sourceConditions?.length ? (
+                      <ul>
+                        {candidate.sourceConditions.map((condition) => (
+                          <li key={condition}>{playerDecisionText(condition)}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+                    <p>以上是来源方向；补齐角色后，仍需结合这些养成、配装和操作条件复核。</p>
+                  </ExplanationPopover>
+                ) : null}
+              </div>
             </div>
           </li>
         ))}

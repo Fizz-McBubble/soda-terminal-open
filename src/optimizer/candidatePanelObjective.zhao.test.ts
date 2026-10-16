@@ -6,6 +6,7 @@ import {
   getCandidatePanelObjectiveTarget,
   projectCandidatePanelObjective,
   compareCandidatePanelObjective,
+  candidatePanelObjectiveWarning,
 } from './candidatePanelObjective'
 import { compareCandidatePanelPriority } from './candidateSearchFacts'
 import { preservesTeamPanelObjectives } from './selectTeamObjectiveAssignment'
@@ -15,8 +16,12 @@ describe('Zhao source-bound support target', () => {
   it('uses precise initial HP and never menu ceil as proof of reaching the target', () => {
     const { agent, discs } = supportObjectiveFixture('agent-zhao')
     const input = candidatePanelInputForAgent(agent)!
-    expect(getCandidatePanelObjectiveTarget(agent.agentId, { ...input, core: 4 })).toBeNull()
+    for (const core of [-1, 0, 1, 2, 3, 4, 5])
+      expect(getCandidatePanelObjectiveTarget(agent.agentId, { ...input, core })).toMatchObject({
+        minimumInitialHp: 27000,
+      })
     const target = getCandidatePanelObjectiveTarget(agent.agentId, input)!
+    expect(candidatePanelObjectiveWarning(target, 'unsupported', false)).not.toContain('核心技7')
     const original = panels.projectOutOfCombatPanel({ ...input, discs })
     expect(original.status).toBe('ok')
     const precise = vi

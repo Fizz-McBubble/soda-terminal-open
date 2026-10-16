@@ -33,9 +33,11 @@ import { OnlineCalculationConsent } from './OnlineCalculationConsent'
 import { ensureOfficialCatalogInstalled } from '../assets/visualAssetInstallCoordinator'
 
 export function AppShell({
+  navigationPending = false,
   onAllowOnlineCalculation,
   children,
 }: {
+  navigationPending?: boolean
   onAllowOnlineCalculation?: () => void
   children?: ReactNode
 }) {
@@ -239,6 +241,7 @@ export function AppShell({
     return (
       <F5AccountSummaryProvider value={f5AccountSummary}>
         <F5VisualShell
+          navigationPending={navigationPending}
           currentPath={location.pathname}
           currentTitle={routeMeta.title}
           currentVersion={currentVersion.gameVersion}

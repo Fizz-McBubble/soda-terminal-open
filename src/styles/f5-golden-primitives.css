@@ -330,3 +330,107 @@
 .f5v-shell .f5-route-boundary > small {
   color: var(--f5-muted);
 }
+
+/* Inline explanations share text and hit-area states; navigation and menus keep theirs. */
+.f5v-shell .explanation:not(.testing-badge, .release-notes) > .explanation__trigger:not(.button),
+.f5v-shell
+  details:is(
+    .tool-block-guidance,
+    .source-details,
+    .decision-evidence,
+    .warehouse-retention__details,
+    .f5v-box-team-preview__details,
+    .f5v-box-team-combat-evidence,
+    .optimizer-plan__evidence
+  )
+  > summary,
+.f5v-shell .team-execution__bangboo-conditions details > summary,
+.f5v-shell .explanation-popover details > summary {
+  min-height: 30px;
+  padding: 3px 6px;
+  border: 0;
+  border-radius: var(--soda-radius-control);
+  background: transparent;
+  color: var(--soda-text-3);
+  font-family: var(--soda-font-ui);
+  font-size: var(--soda-type-body);
+  font-weight: 400;
+  line-height: 1.5;
+  text-decoration: underline;
+  text-decoration-color: currentColor;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.f5v-shell
+  .explanation:not(.testing-badge, .release-notes)
+  > .explanation__trigger:not(.button):is(:hover, :focus-visible, [aria-expanded='true']),
+.f5v-shell
+  details:is(
+    .tool-block-guidance,
+    .source-details,
+    .decision-evidence,
+    .warehouse-retention__details,
+    .f5v-box-team-preview__details,
+    .f5v-box-team-combat-evidence,
+    .optimizer-plan__evidence
+  )
+  > summary:is(:hover, :focus-visible, [aria-expanded='true']),
+.f5v-shell
+  .team-execution__bangboo-conditions
+  details
+  > summary:is(:hover, :focus-visible, [aria-expanded='true']),
+.f5v-shell
+  .explanation-popover
+  details
+  > summary:is(:hover, :focus-visible, [aria-expanded='true']) {
+  color: var(--soda-accent);
+  background: var(--soda-surface-raised);
+}
+.f5v-shell
+  .explanation:not(.testing-badge, .release-notes)
+  > .explanation__trigger:not(.button):focus-visible,
+.f5v-shell
+  details:is(
+    .tool-block-guidance,
+    .source-details,
+    .decision-evidence,
+    .warehouse-retention__details,
+    .f5v-box-team-preview__details,
+    .f5v-box-team-combat-evidence,
+    .optimizer-plan__evidence
+  )
+  > summary:focus-visible,
+.f5v-shell .team-execution__bangboo-conditions details > summary:focus-visible,
+.f5v-shell .explanation-popover details > summary:focus-visible {
+  outline: 2px solid var(--soda-accent);
+  outline-offset: 2px;
+}
+.f5v-shell .explanation:not(.testing-badge, .release-notes) > .explanation__trigger:not(.button) {
+  text-decoration: none;
+}
+.f5v-shell
+  .explanation:not(.testing-badge, .release-notes)
+  > .explanation__trigger:not(.button)
+  > .explanation__label {
+  text-decoration: underline;
+  text-decoration-color: currentColor;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.f5v-shell
+  details[open]:is(
+    .tool-block-guidance,
+    .source-details,
+    .decision-evidence,
+    .warehouse-retention__details,
+    .f5v-box-team-preview__details,
+    .f5v-box-team-combat-evidence,
+    .optimizer-plan__evidence
+  )
+  > summary,
+.f5v-shell .team-execution__bangboo-conditions details[open] > summary,
+.f5v-shell .explanation-popover details[open] > summary {
+  color: var(--soda-accent);
+  background: var(--soda-surface-raised);
+}

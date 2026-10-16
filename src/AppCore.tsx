@@ -5,6 +5,7 @@ import {
   Outlet,
   RouterProvider,
   useLocation,
+  useNavigation,
 } from 'react-router-dom'
 import type { initializeDatabase } from './db/database'
 import { AppErrorBoundary } from './components/AppErrorBoundary'
@@ -51,6 +52,7 @@ function PlayerDecisionWorld({
   decisionEnvironment: DecisionEnvironment
 }) {
   const { pathname, search } = useLocation()
+  const navigation = useNavigation()
   const isScannerRoute = pathname.replace(/\/+$/, '').toLowerCase() === '/system/scanner'
   const onlineMode = decisionEnvironment.mode === 'remote'
   const [onlineAllowed, setOnlineAllowed] = useState(() => {
@@ -85,6 +87,7 @@ function PlayerDecisionWorld({
   }, [onlineAllowed, onlineMode, decisionEnvironment])
   return (
     <AppShell
+      navigationPending={navigation.state !== 'idle'}
       onAllowOnlineCalculation={onlineMode && !onlineAllowed ? allowOnlineCalculation : undefined}
     >
       <AppInitializationGate>
@@ -194,9 +197,13 @@ export default function AppCore({
           },
           {
             path: 'loadouts/team/:teamKey',
-            lazy: async () => ({
-              Component: (await import('./pages/OptimizerFlowPage')).OptimizerFlowPage,
-            }),
+            lazy: async () => {
+              const [page] = await Promise.all([
+                import('./pages/OptimizerFlowPage'),
+                import('./pages/TeamPlan'),
+              ])
+              return { Component: page.OptimizerFlowPage }
+            },
           },
           {
             path: 'loadouts/team/result',
@@ -220,9 +227,13 @@ export default function AppCore({
           },
           {
             path: 'loadouts/plans/:planId',
-            lazy: async () => ({
-              Component: (await import('./pages/OptimizerFlowPage')).OptimizerFlowPage,
-            }),
+            lazy: async () => {
+              const [page] = await Promise.all([
+                import('./pages/OptimizerFlowPage'),
+                import('./pages/optimizer/SavedPlan'),
+              ])
+              return { Component: page.OptimizerFlowPage }
+            },
           },
           {
             path: 'optimizer/team',

@@ -10,6 +10,19 @@ export interface ReleaseNote {
 // A local fix or commit is not a published release; add it when that release ships.
 export const releases = [
   {
+    id: '20261016-contextual-targets-and-page-continuity',
+    date: '2026-10-16',
+    scope: '养成目标与页面体验',
+    title: '修正养成目标，统一说明与保存返回',
+    changes: [
+      '修正照27000生命目标的核心等级限制，将机制准备线与攻略培养参考分开；赛斯的实用区间不再当作理论硬门槛。',
+      '按已记录的技能、核心、影画与音擎条件更新相关支援目标；未达到满档准备线时，仍可比较仓库中的合法配装。',
+      '统一展开说明的文字、下划线和选中圆角，当前推荐旁的推荐说明改为胶囊按钮，补强摘要保持紧凑。',
+      '资产快读恢复提示回到原准备区，工具卡随下载、恢复和诊断内容延展。',
+      '按导航意图预载养成与方案详情，保存后及时返回；后台刷新核对账户和当前操作，刷新页面可恢复已保存配装。',
+    ],
+  },
+  {
     id: '20261016-uninstall-and-import-consistency',
     date: '2026-10-16',
     scope: '两个导入与工具安装卸载',

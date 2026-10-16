@@ -30,6 +30,8 @@ function runEffect(
     combatCritRate?: number
     combatImpact?: number
     mindscape?: number
+    specialLevel?: number
+    coreLevel?: number
     references?: Record<string, unknown>
     teammates?: string[]
     blueprint?: CurrentAgentPlanningEffectBlueprint
@@ -37,8 +39,10 @@ function runEffect(
 ) {
   const agentId = key.split(':')[0]
   const member = createLevel60NeutralEffectRuntimeMember(agentId)
-  member.coreLevel = 7
+  member.coreLevel = input.coreLevel ?? 7
   member.mindscape = input.mindscape ?? 0
+  if (input.specialLevel !== undefined)
+    member.skillLevels = { ...member.skillLevels, special: input.specialLevel }
   member.initialStats = {
     ...member.initialStats,
     ...(input.initialAttack === undefined ? {} : { atk: input.initialAttack }),
@@ -79,6 +83,46 @@ function expectValue(row: ReturnType<typeof runEffect>, value: number) {
 }
 
 describe('reviewed adoption and actual planning runtime', () => {
+  it.each([
+    [1, 1000, 182],
+    [8, 2700, 595.8],
+    [10, 2475, 599.75],
+    [15, 2000, 600],
+    [16, 1922, 599.876],
+    [16, 1923, 600],
+  ])(
+    'uses Lucy displayed effective special level %s in both support and boar attack',
+    (level, attack, expected) => {
+      for (const effectId of ['exSpecial_atk', 'core_atk']) {
+        expectValue(
+          runEffect(`agent-lucy:${effectId}`, {
+            initialAttack: attack,
+            combatAttack: 99000,
+            specialLevel: level,
+            references: { cheerOn: 1 },
+            teammates: ['agent-billy', 'agent-soldier-11'],
+          }),
+          expected,
+        )
+      }
+    },
+  )
+
+  it('keeps Lucy core indexing and Cheer On activation independent from special-level adaptation', () => {
+    for (const cheerOn of [0, 1]) {
+      expectValue(
+        runEffect('agent-lucy:core_atk', {
+          initialAttack: 1000,
+          specialLevel: 1,
+          coreLevel: 1,
+          references: { cheerOn },
+          teammates: ['agent-billy', 'agent-soldier-11'],
+        }),
+        cheerOn ? 72.8 : 0,
+      )
+    }
+  })
+
   it('reconciles Astra M2 as additive percentage points in the actual pinned runtime', () => {
     for (const [mindscape, attack, expected] of [
       [0, 3000, 1050],

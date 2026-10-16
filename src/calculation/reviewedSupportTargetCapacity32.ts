@@ -56,26 +56,33 @@ export function evaluateReviewedSupportTargetCapacity32(input: {
       : null
     const veil = input.baselineReferencesByAgentId?.[member.agentId]?.inside_any_ether_veil
     const excess = Math.max(0, Math.min(hp, 27000) - 15000)
-    // Source target is only reviewed at core 7. Do not extrapolate other levels.
+    // The retained Additional Ability explicitly does not depend on Core level.
     if (
       bound &&
-      member.coreLevel === 7 &&
       activation?.status === 'supported' &&
       Number.isFinite(hp) &&
       hp >= 0 &&
       typeof veil === 'boolean' &&
       !gaps.length
     ) {
-      // Only exact source steps and capped endpoints have reviewed arithmetic.
-      // A fractional 400-HP step has no adopted rounding rule.
+      // Field-reviewed calculators independently use complete 400-HP steps.
+      // Never round the initial panel up across a step or the 27000 cap.
       if (!activation.active || !veil) value = 0
-      else if (Number.isInteger(excess / 400)) value = (10 + excess / 400) / 100
+      else value = (10 + Math.floor(excess / 400)) / 100
     }
-    context = { core: member.coreLevel, activation, veil, source: row?.sha256 }
+    context = {
+      core: member.coreLevel,
+      activation,
+      veil,
+      source: row?.sha256,
+      arithmetic: 'complete-400-initial-hp-steps-floor-r1',
+    }
     sourceRefs = row
       ? [
           `reviewed-external-support-target31:${row.sha256}#${check?.locator}`,
           'https://www.prydwen.gg/zenless/characters/zhao#additional-ability-crystallization',
+          'https://github.com/ZztIsolation/zzz_calculator/blob/da6a8c08bcc447c49da2bbb657891ded6dfa11d6/data/combat_buffs.json#L648',
+          'https://github.com/vidanj/ZZZ_DMG_OPT/blob/23b024e5d72d2a470233688441a236d8608fa73e/zzz_dmg_calc/agent.py#L178-L183',
         ]
       : []
   } else if (member.agentId === 'agent-remielle') {

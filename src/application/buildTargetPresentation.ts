@@ -4,7 +4,6 @@ import {
   type TargetPanelMetricKey,
   type TargetPanelMetricSemantic,
 } from '../gameDataPacks/targetPanelSemantics'
-import { resolveReviewedZhaoHpTarget } from '../gameDataPacks/reviewedZhaoSupportTarget'
 
 export type TargetPanel = {
   conditions?: readonly string[]
@@ -34,7 +33,7 @@ const targetKeys: Partial<Record<CharacterPanelLabel, string[]>> = {
   暴击伤害: ['暴击伤害', 'critDamage', 'crit_dmg'],
   异常掌控: ['异常掌控', 'anomalyMastery', 'anomaly_mastery'],
   异常精通: ['异常精通', 'anomalyProficiency', 'anomaly_proficiency'],
-  穿透率: ['穿透率', 'pen_ratio'],
+  穿透率: ['穿透率', 'penRatio', 'pen_ratio'],
   能量自动回复: ['能量自动回复', 'energyRegen', 'energy_regen'],
 }
 
@@ -135,7 +134,10 @@ function formatNumericTarget(
 ) {
   const { value, semantic } = target
   // Preserve guide precision separately from the current game's menu rounding.
-  const displayTarget = (number: number) => `${number}${usesPercent(label) ? '%' : ''}`
+  const displayTarget = (number: number) => {
+    const short = Number(number.toFixed(2))
+    return `${short === number ? '' : '≈'}${short}${usesPercent(label) ? '%' : ''}`
+  }
   const base =
     typeof value === 'number'
       ? displayTarget(value)
@@ -157,8 +159,9 @@ export type BuildTargetPresentation = { value: string | null; conditions: readon
 export function targetPanelPresentation(
   panel: TargetPanel,
   label: CharacterPanelLabel,
-  context?: { agentId: string; coreLevel?: number | null },
+  context?: ReviewedTargetContext,
 ): BuildTargetPresentation {
+  if (context) panel = resolveReviewedContextualTargetPanel(panel, context)
   const conditions = [...(panel?.conditions ?? [])]
   const target = readTargetValue(panel, label)
   if (!target) {
@@ -190,19 +193,9 @@ export function targetPanelPresentation(
     conditions.push(
       '暴击率50%是满核心、沧浪行歌四件套增益生效时的配置参考，不是所有配装的物理上限。',
     )
-  const hp =
-    label === '生命值' &&
-    context &&
-    target.semantic.requirement === 'required' &&
-    target.semantic.observation === 'out_of_combat'
-      ? resolveReviewedZhaoHpTarget(context)
-      : null
-  if (hp) {
-    conditions.push(
-      ...hp.conditions,
-      '来源攻略的生命参考为' + guide + '，与追加能力的初始生命满档目标分开保留。',
-    )
-    return { value: String(hp.minimum) + '+', conditions: [...new Set(conditions)] }
-  }
   return { value: guide, conditions: [...new Set(conditions)] }
 }
+import {
+  resolveReviewedContextualTargetPanel,
+  type ReviewedTargetContext,
+} from '../gameDataPacks/reviewedContextualTargetPanel'

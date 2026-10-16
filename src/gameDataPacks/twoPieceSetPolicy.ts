@@ -23,7 +23,7 @@ export type TwoPiecePanelContext = {
       number
     >
   >
-  /** Game-facing Core level (2-7); required to activate source-bound Core prerequisites. */
+  /** Game-facing Core level (1-7); required to activate source-bound Core prerequisites. */
   coreLevel?: number
   /** Account Mindscape level (0-6); required for Astra's context-specific ATK target. */
   mindscape?: number
@@ -138,6 +138,7 @@ export function twoPieceRecommendationPriority(
   }
   const declaredPolicy = getCandidatePanelPolicy(id)
   const policy = getCandidatePanelPolicyForContext(id, {
+    coreLevel: panelContext?.coreLevel,
     mindscape: panelContext?.mindscape,
   })
   const activePolicy = policy ?? declaredPolicy
@@ -155,7 +156,7 @@ export function twoPieceRecommendationPriority(
     })
     if (!prerequisites.executable) {
       const missing = [
-        ...(!prerequisites.coreSatisfied ? ['满级核心技'] : []),
+        ...(!prerequisites.coreSatisfied ? ['已确认实际核心技等级'] : []),
         ...(!prerequisites.fourPieceSatisfied ? ['静听嘉音4件套'] : []),
         ...(!prerequisites.mindscapeSatisfied ? ['已确认影画等级'] : []),
       ].join('、')
@@ -163,7 +164,7 @@ export function twoPieceRecommendationPriority(
         1,
         '来源条件参考',
         !prerequisites.mindscapeSatisfied
-          ? `耀嘉音的攻击目标随影画变化；先确认影画等级，当前不按3429或2963攻击目标排序。`
+          ? '攻击准备线随影画变化；先确认影画等级，当前仅保留攻略培养方向。'
           : `${activePolicy.minimumAttack}攻击的切换建议要求${missing}；当前未证明前提，不作为硬门槛排序。`,
       )
     }

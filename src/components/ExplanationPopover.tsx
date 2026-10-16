@@ -11,6 +11,7 @@ export function ExplanationPopover({
   align = 'end',
   closeLabel = '关闭说明',
   showIndicator = true,
+  variant = 'text',
 }: {
   label: string
   title?: string
@@ -19,6 +20,7 @@ export function ExplanationPopover({
   align?: 'start' | 'end'
   closeLabel?: string
   showIndicator?: boolean
+  variant?: 'text' | 'button'
 }) {
   const id = useId()
   const trigger = useRef<HTMLButtonElement>(null)
@@ -86,7 +88,7 @@ export function ExplanationPopover({
   return (
     <span className={`explanation ${className}`}>
       <button
-        className="explanation__trigger"
+        className={`explanation__trigger${variant === 'button' ? ' button button--quiet' : ''}`}
         type="button"
         ref={trigger}
         popoverTarget={id}

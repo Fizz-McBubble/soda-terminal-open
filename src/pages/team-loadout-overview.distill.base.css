@@ -38,10 +38,6 @@
   gap: 12px;
 }
 
-.f5v-box-team-recommendation-explanation > .explanation__trigger {
-  --explanation-underline: '';
-}
-
 .f5v-box-team-recommendation-search {
   display: grid;
   gap: 6px;
@@ -202,14 +198,6 @@
   overflow-wrap: anywhere;
 }
 
-.f5v-box-team-bangboo-options .explanation > .explanation__trigger {
-  min-height: 36px;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--soda-accent, #62499a);
-  --explanation-underline: '';
-}
-
 .f5v-box-team-bangboo-options img {
   width: 40px;
   height: 40px;
@@ -286,8 +274,4 @@
 .f5v-box-team-group > div,
 .f5v-box-team-group > div > div {
   border: 0;
-}
-
-.f5v-box-completion-condition > .explanation__trigger {
-  --explanation-underline: '';
 }

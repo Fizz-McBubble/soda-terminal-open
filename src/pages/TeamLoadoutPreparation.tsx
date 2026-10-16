@@ -79,6 +79,7 @@ export function TeamSavedPlanList({
               <button
                 type="button"
                 aria-label={`${savedPlanDisplayName(plan)}，${summary}，打开已保存方案`}
+                data-player-route={`/loadouts/plans/${encodeURIComponent(plan.id)}`}
                 onClick={() => onOpen(plan.id)}
               >
                 <span className="f5v-box-analysis-entry__saved-plan-portraits" aria-hidden="true">

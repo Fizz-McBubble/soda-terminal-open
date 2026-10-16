@@ -114,6 +114,7 @@ interface ReconciliationTargetConfig {
   correctedRef?: string
   replacementIr?: unknown
   replacementRootIr?: unknown
+  expectedReplacements?: number
   evidence: string[]
   prefix: string
   formulaSha256?: string
@@ -122,6 +123,47 @@ interface ReconciliationTargetConfig {
 }
 
 const RECONCILIATION_TARGETS: ReconciliationTargetConfig[] = [
+  ...(
+    [
+      [
+        'exSpecial_atk',
+        '30C02EC4763169FF8805613F4B09D0D787054E902DE1095892A5A48000F1A1B7',
+        '46a120736378c766e9e99ee1cf716598f7ff7d2f3d544e7c2c9a7dec9c8749b2',
+      ],
+      [
+        'core_atk',
+        'F82917507DBE09AF4B423E055C555F1C8C8DC429B2DCD4FE3BF16EAF1A37C7F2',
+        '6092f11cdc732277bd7a3625937b7bdb878d562653510db7f604acb68451ff7d',
+      ],
+    ] as const
+  ).map(([effectId, expressionSha256, originalIrSha256]) => ({
+    agentId: 'agent-lucy',
+    effectId,
+    targetPath: 'libs/zzz/formula/src/data/char/sheets/Lucy.ts',
+    // Character references stay zero-based for source tables. Lucy's two manual
+    // linear operands use the displayed effective skill level, including Lv1.
+    sourceRef: 'char.special',
+    expectedReplacements: 2,
+    replacementIr: {
+      kind: 'call',
+      operator: 'sum',
+      arguments: [
+        { kind: 'reference', path: 'char.special' },
+        { kind: 'literal', value: 1 },
+      ],
+    },
+    evidence: [
+      `frzyc/genshin-optimizer@${PINNED_SOURCE_COMMIT}:libs/zzz/stats/Data/Characters/Lucy.json:329-332`,
+      `frzyc/genshin-optimizer@${PINNED_SOURCE_COMMIT}:libs/zzz/formula/src/data/char/sheets/Lucy.ts:38-58,186-204`,
+      'source-level-contract:displayed-special-level-1..16;Lv1=13.8%+44;Lv15=25%+100;cap=600',
+      'runtime-reference-contract:char.special=effectiveLevel-1;retain-zero-based-core-and-skill-tables',
+      sourceReconciliationVersion,
+    ],
+    prefix: `lucy_${effectId}_displayed_special`,
+    formulaSha256: '7B7964B69D7D18A4EAD0914B2DA83915EC4DE5BB795098F078EA9A381DE5B903',
+    expressionSha256,
+    originalIrSha256,
+  })),
   {
     agentId: 'agent-nicole',
     effectId: 'ability_ether_dmg_',
@@ -372,7 +414,7 @@ export function reconcileSourceExpression<T>(input: {
       : JSON.parse(JSON.stringify(config.replacementRootIr))
   ) as T
 
-  if (changed !== 1 || alreadyCorrected !== 0) {
+  if (changed !== (config.expectedReplacements ?? 1) || alreadyCorrected !== 0) {
     throw new Error(`${config.prefix}_reconciliation_shape_changed`)
   }
 

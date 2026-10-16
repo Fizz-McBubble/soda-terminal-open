@@ -184,6 +184,7 @@
   color: var(--f5-ink);
   background: rgba(255, 255, 255, 0.82);
   overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
   min-width: 0;
 }

@@ -9,11 +9,12 @@ import {
   candidatePanelPolicyPrerequisites,
   getCandidatePanelPolicy,
   getCandidatePanelPolicyForContext,
+  hasContextualAttackTargetPolicy,
   type CandidatePanelPolicy,
   type CandidatePanelPriorityStat,
 } from '../gameDataPacks/candidatePanelPolicy'
 
-export type CandidatePanelInput = Omit<PanelInput, 'discs'>
+export type CandidatePanelInput = Omit<PanelInput, 'discs'> & { specialLevel?: number }
 export const candidatePanelObjectiveVersion =
   'reviewed-initial-hp-and-attack-threshold-priority-r4' as const
 export type CandidatePanelObjective = {
@@ -37,7 +38,7 @@ type ResolvedSetPlan = {
 }
 
 export function hasCandidatePanelObjective(agentId: string) {
-  return getCandidatePanelPolicy(agentId) !== null
+  return getCandidatePanelPolicy(agentId) !== null || hasContextualAttackTargetPolicy(agentId)
 }
 
 /** Only adopted executable targets belong here; ordinary guide ranges are not hard gates. */
@@ -49,11 +50,13 @@ export function getCandidatePanelObjectiveTarget(
     panelInput?.agentId === agentId
       ? getCandidatePanelPolicyForContext(agentId, {
           mindscape: panelInput.mindscape,
+          coreLevel: panelInput.core + 2,
+          specialLevel: panelInput.specialLevel,
         })
       : getCandidatePanelPolicy(agentId)
   if (!policy || panelInput?.agentId !== agentId) return null
   return candidatePanelPolicyPrerequisites(policy, {
-    // PanelInput stores Core A-F as 0-5; game-facing Core level is 2-7.
+    // PanelInput stores unenhanced Core as -1 and A-F as 0-5 (game levels 1-7).
     coreLevel: panelInput.core + 2,
   }).coreSatisfied
     ? policy
@@ -120,9 +123,11 @@ export function candidatePanelObjectiveWarning(
 ) {
   if (target.minimumInitialHp !== undefined)
     return status === 'unsupported'
-      ? `初始生命目标所需核心技7或精确面板条件不足，保留来源候选顺序。`
+      ? `初始生命目标所需精确面板条件不足，保留来源候选顺序。`
       : `优先缩小初始生命${target.minimumInitialHp}缺口，达标后保留来源候选取舍；实际追加增益仍需队伍及以太帷幕条件。${status === 'limited' ? '本次搜索有界。' : ''}`
   const priority = target.priorityStat === 'energyRegen' ? '能量自动回复' : '异常精通'
+  if (target.priorityStat === 'source')
+    return `按当前有效技能的精确初始攻击准备线比较，达标后保留来源候选取舍；不证明战斗增益已生效。${status === 'limited' ? '本次搜索有界。' : ''}`
   if (status === 'applied')
     return `已按攻击力${target.minimumAttack}前补攻击、达标后优先${priority}比较；仍为候选配装。`
   if (status === 'limited')
@@ -138,7 +143,7 @@ export function projectCandidatePanelObjective(
   discs: DriveDisc[],
 ): CandidatePanelObjective | undefined {
   const panel =
-    target.minimumInitialHp === undefined
+    target.minimumInitialHp === undefined && !target.requiresPreciseInitialStats
       ? projectOutOfCombatMenuPanel({ ...panelInput, discs })
       : projectOutOfCombatPanel({ ...panelInput, discs })
   if (panel.status !== 'ok') return undefined
@@ -154,6 +159,7 @@ export function projectCandidatePanelObjective(
   return {
     attackDeficit: Math.max(0, target.minimumAttack - panel.values.atk),
     anomalyProficiency: panel.values.anomalyProficiency,
+    ...(target.priorityStat === 'source' ? { priorityStat: 'source' as const } : {}),
     ...(target.priorityStat === 'energyRegen'
       ? {
           priorityStat: 'energyRegen' as const,
@@ -169,11 +175,11 @@ export function prepareCandidatePanelObjective(
   eligible: readonly DriveDisc[],
   panelInput?: CandidatePanelInput,
 ) {
-  const requestedTarget = getCandidatePanelPolicy(agentId)
-  const wantsPanelObjective = requestedTarget !== null
   const objectiveTarget = getCandidatePanelObjectiveTarget(agentId, panelInput)
+  const requestedTarget = objectiveTarget ?? getCandidatePanelPolicy(agentId)
+  const wantsPanelObjective = requestedTarget !== null
   const projectPanel =
-    objectiveTarget?.minimumInitialHp === undefined
+    objectiveTarget?.minimumInitialHp === undefined && !objectiveTarget?.requiresPreciseInitialStats
       ? projectOutOfCombatMenuPanel
       : projectOutOfCombatPanel
   const thresholdStat = objectiveTarget?.minimumInitialHp === undefined ? 'atk' : 'hp'

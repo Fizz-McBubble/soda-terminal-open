@@ -112,10 +112,18 @@ export function compileCurrentPlanningSelfEffects32(input: {
         'agent-koleda:potential_crit_dmg_',
         'agent-koleda:potential_laceration_dmg_',
       ].includes(entry.effectKey)
+    // Lucy's source explicitly grants Cheer On (and M4) to the whole team,
+    // including Lucy. Guard-boar-only core/crit effects retain event_only and
+    // the existing eventModifierRefs matcher; they are not a personal panel.
+    const lucySelfReceivingTeamBuff =
+      input.member.agentId === 'agent-lucy' &&
+      ['agent-lucy:exSpecial_atk', 'agent-lucy:m4_crit_dmg_'].includes(entry.effectKey) &&
+      metadata.receiverPath?.startsWith('teamBuff.')
     if (metadata.receiverPath?.includes('.initial.')) continue
     if (
       (!metadata.receiverPath?.startsWith('ownBuff.') &&
         !koledaSelfReceivingTeamBuff &&
+        !lucySelfReceivingTeamBuff &&
         !roxyPreparedEnemyEffect) ||
       (entry.numericExpression.sourceStatus !== 'upstream_expression_available' &&
         !isReviewedTemplateMechanicEffect32(entry))

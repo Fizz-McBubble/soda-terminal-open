@@ -155,8 +155,8 @@
 @media (max-width: 900px) {
   .f5v-shell .scanner-workbench__method,
   .f5v-shell .scanner-workbench__methods--active .scanner-workbench__method {
-    height: 485px;
     min-height: 485px;
+    height: auto;
   }
 }
 

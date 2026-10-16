@@ -343,6 +343,7 @@ export function AgentDevelopmentOverview({
               })()}
               <button
                 className="primary"
+                data-player-route={`/development/${selectedAgent.agentId}`}
                 type="button"
                 onClick={() =>
                   selectedAgent.plan && openSavedAgent

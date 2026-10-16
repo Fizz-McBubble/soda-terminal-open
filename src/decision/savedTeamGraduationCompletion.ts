@@ -100,6 +100,20 @@ export type SavedTeamGraduationMemberCompletion =
       }
     }
   | { status: 'unknown'; agentId: string; score: null; reason: string }
+  | {
+      status: 'reference'
+      agentId: string
+      score: null
+      reason: string
+      referenceMetrics: readonly {
+        key: GraduationPanelKey
+        current: number
+        minimum: number
+        difference: number
+      }[]
+      conditions: readonly string[]
+      targetSourceIds: readonly string[]
+    }
 
 type SavedTeamGraduationCompletionBase = {
   members: readonly SavedTeamGraduationMemberCompletion[]
@@ -108,7 +122,7 @@ type SavedTeamGraduationCompletionBase = {
 }
 
 export type SavedTeamGraduationCompletion = SavedTeamGraduationCompletionBase &
-  ({ status: 'scored'; score: number } | { status: 'unknown'; score: null })
+  ({ status: 'scored'; score: number } | { status: 'unknown' | 'reference'; score: null })
 
 function finiteRange(value: unknown): value is TargetRange {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false
@@ -280,7 +294,7 @@ function currentProjection(
   if (!agentAnchor || !engine || !currentPanelData.wEngines[engine.id]) return null
   if (agentAnchor.kind === 'menu_observed' && agent.mindscape !== agentAnchor.mindscape) return null
   const core = agent.skillLevels.core
-  if (core === null || core < 2 || core > 7) return null
+  if (core === null || !Number.isInteger(core) || core < 1 || core > 7) return null
   return projectOutOfCombatMenuPanel({
     agentId: agent.agentId,
     level: agent.level,
@@ -309,13 +323,20 @@ function evaluateMember(input: {
   if (!member.suggested.wEngine) return unknown(input.agentId, '已存方案没有音擎身份。')
   const discs = selectedDiscs(member, input.discs)
   if (!discs) return unknown(input.agentId, '已存方案缺少六个唯一且可找到的盘位。')
-  const target = getCurrentBuildTargetPanel(input.agentId)
+  const engine = savedPlanWEngine(member)
+  if (!engine) return unknown(input.agentId, '已存方案没有可复算的计划音擎参数。')
+  const target = getCurrentBuildTargetPanel(input.agentId, {
+    coreLevel: agent.skillLevels.core,
+    specialLevel: agent.skillLevels.special,
+    engineId: engine.id,
+    engineRefinement: engine.refinement,
+    agentLevel: agent.level,
+    mindscape: agent.mindscape,
+  })
   if (!target || !target.sourceRefs.length)
     return unknown(input.agentId, '当前版本没有可用的量化毕业面板目标。')
   // getCurrentBuildTargetPanel already requires a ready, version-qualified source.
   // Numeric panel source revisions are independent of the guide's reviewed version.
-  const engine = savedPlanWEngine(member)
-  if (!engine) return unknown(input.agentId, '已存方案没有可复算的计划音擎参数。')
   const projection = currentProjection(agent, member, discs)
   if (!projection || projection.status !== 'ok')
     return unknown(
@@ -325,12 +346,16 @@ function evaluateMember(input: {
   const resolved = resolveSavedGraduationTarget({
     agent,
     engineId: engine.id,
+    engineRefinement: engine.refinement,
     discs,
     target,
     memberIds: input.execution.memberIds,
   })
   let scoreValues = projection.values
   if (
+    (target.value &&
+      typeof target.value === 'object' &&
+      'contextualMechanicTargets' in target.value) ||
     resolveReviewedZhaoHpTarget({
       agentId: agent.agentId,
       coreLevel: agent.skillLevels.core ?? undefined,
@@ -352,8 +377,30 @@ function evaluateMember(input: {
       discs: [...discs],
     })
     if (precise.status !== 'ok' || !Number.isFinite(precise.values.hp))
-      return unknown(input.agentId, '初始生命机制目标缺少精确面板。')
-    scoreValues = { ...scoreValues, hp: precise.values.hp }
+      return unknown(input.agentId, '初始属性机制目标缺少精确面板。')
+    scoreValues = { ...scoreValues, ...precise.values }
+  }
+  const reference = (
+    target.value as { cultivationReference?: { keys: GraduationPanelKey[]; conditions: string[] } }
+  ).cultivationReference
+  if (reference) {
+    const raw = target.value as Record<string, TargetRange>
+    const metrics = reference.keys.flatMap((key) => {
+      const minimum = raw[key]?.min
+      const current = scoreValues[key]
+      return typeof minimum === 'number' && Number.isFinite(current)
+        ? [{ key, current, minimum, difference: current - minimum }]
+        : []
+    })
+    return {
+      status: 'reference',
+      agentId: input.agentId,
+      score: null,
+      reason: `培养参考对照：${metrics.map((metric) => `${metric.key === 'def' ? '防御力' : metric.key} ${metric.current}，作者参考下沿${metric.minimum}，差值${metric.difference >= 0 ? '+' : ''}${metric.difference}`).join('；')}。${reference.conditions.join('；')}`,
+      referenceMetrics: metrics,
+      conditions: reference.conditions,
+      targetSourceIds: target.sourceRefs.map((source) => source.id),
+    }
   }
   const scored = scoreGraduationPanelTargets(scoreValues, resolved?.value ?? target.value)
   if (!scored) return unknown(input.agentId, '毕业目标不含可比的数值字段。')
@@ -404,12 +451,17 @@ export function createSavedTeamGraduationCompletion(input: {
       member.status === 'scored',
   )
   if (scored.length !== 3) {
+    const onlyReference =
+      members.every((member) => member.status !== 'unknown') &&
+      members.some((member) => member.status === 'reference')
     return {
-      status: 'unknown',
+      status: onlyReference ? 'reference' : 'unknown',
       score: null,
       members,
       meaning: 'quantitative_target_attainment',
-      reason: '三名成员必须都有完整配装、可比面板和已自动对齐的目标条件。',
+      reason: onlyReference
+        ? '包含已核来源的培养参考对照；参考差值不并入机制满档完成度。'
+        : '三名成员必须都有完整配装、可比面板和已自动对齐的目标条件。',
     }
   }
   return {

@@ -16,6 +16,21 @@ const routeModules = {
 type RouteModule = keyof typeof routeModules
 const pending = new Map<RouteModule, Promise<unknown>>()
 
+/** Actual content links and callback buttons share the same navigation-intent boundary. */
+export function preloadPlayerRouteIntent(
+  target: EventTarget | null,
+  warm: (path: string) => void = preloadPlayerRoute,
+): void {
+  if (!(target instanceof Element)) return
+  const control = target.closest('a[href], [data-player-route]')
+  if (!control || control.matches(':disabled, [aria-disabled="true"]')) return
+  const path = control.getAttribute('data-player-route') ?? control.getAttribute('href')
+  if (!path) return
+  const url = new URL(path, window.location.href)
+  if (url.origin !== window.location.origin) return
+  warm(url.pathname)
+}
+
 /** Navigation intent warms only the page that the player is about to open. */
 export function preloadPlayerRoute(path: string): void {
   const pathname = path.split(/[?#]/, 1)[0]

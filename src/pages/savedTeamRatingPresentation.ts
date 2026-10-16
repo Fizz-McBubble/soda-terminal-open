@@ -11,10 +11,11 @@ type SavedRatingInput = {
 }
 
 const localPresentation =
-  import.meta.env.VITE_SODA_PUBLIC_BUILD === 'true' ||
-  import.meta.env.VITE_SODA_COMMUNITY_BUILD === 'true'
+  import.meta.env.VITE_SODA_PUBLIC_BUILD === 'true'
     ? null
-    : await import('./savedTeamRatingPresentationLocal')
+    : import.meta.env.VITE_SODA_COMMUNITY_BUILD === 'true'
+      ? null
+      : await import('./savedTeamRatingPresentationLocal')
 
 /** The browser can format an approved rating, but cannot calculate one. */
 export function publicSavedTeamRatingLabel(input: Pick<SavedRatingInput, 'plan' | 'publicItem'>) {

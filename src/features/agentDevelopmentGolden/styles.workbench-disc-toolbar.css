@@ -207,7 +207,3 @@
   color: var(--muted);
   line-height: 1.5;
 }
-
-.warehouse-match-explanation > .explanation__trigger {
-  --explanation-underline: '';
-}

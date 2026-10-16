@@ -58,6 +58,9 @@ export function savedPlanGraduationCompletion(
   }
   if (results.length === 1) return results[0]!
   const scored = results.every((result) => result.status === 'scored')
+  const reference =
+    results.every((result) => result.status !== 'unknown') &&
+    results.some((result) => result.status === 'reference')
   const memberGaps = results
     .flatMap((result) => result.members)
     .filter(
@@ -76,11 +79,13 @@ export function savedPlanGraduationCompletion(
             Math.round(results.reduce((sum, result) => sum + result.score!, 0) / results.length),
           ),
         }
-      : { status: 'unknown' as const, score: null }),
+      : { status: reference ? ('reference' as const) : ('unknown' as const), score: null }),
     members: results.flatMap((result) => result.members),
     meaning: 'quantitative_target_attainment',
     reason: scored
       ? '按三名成员的毕业推荐计算。'
-      : `三名成员必须都有完整配装、可比面板和已自动对齐的目标条件。${memberGaps.length ? ` 未完成项：${memberGaps.join('；')}` : ''}`,
+      : reference
+        ? '包含已核来源的培养参考对照；来源参考不混入机制满档评分。'
+        : `三名成员必须都有完整配装、可比面板和已自动对齐的目标条件。${memberGaps.length ? ` 未完成项：${memberGaps.join('；')}` : ''}`,
   }
 }

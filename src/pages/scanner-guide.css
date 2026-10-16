@@ -16,30 +16,6 @@
   flex: 0 0 auto;
 }
 
-.f5v-shell .scanner-workbench .scanner-guide > .explanation__trigger {
-  --explanation-underline: '';
-  --explanation-underline-color: #baa5d1;
-  min-height: 32px;
-  padding: 4px 0;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: #63428c;
-  font-size: 14px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-.f5v-shell .scanner-workbench .scanner-guide .explanation__label {
-  padding-bottom: 3px;
-}
-.f5v-shell .scanner-workbench .scanner-guide > .explanation__trigger:hover,
-.f5v-shell .scanner-workbench .scanner-guide > .explanation__trigger[aria-expanded='true'] {
-  color: #4b286f;
-}
-.f5v-shell .scanner-workbench .scanner-guide > .explanation__trigger:hover {
-  --explanation-underline-color: currentColor;
-}
-
 .scanner-guide .explanation-popover[popover] {
   width: min(420px, calc(100vw - 24px));
   max-height: min(32rem, calc(100dvh - 24px));

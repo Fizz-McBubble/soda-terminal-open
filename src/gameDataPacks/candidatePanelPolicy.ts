@@ -1,6 +1,7 @@
 import reviewedTargetPanels from './data/reviewed-target-panel-guidance.3.1.json'
 import { reviewedGuideBuildConditions } from './reviewedGuideBuildDirections'
 import { resolveReviewedZhaoHpTarget } from './reviewedZhaoSupportTarget'
+import { reviewedContextualMechanicTargets } from './reviewedContextualTargetPanel'
 
 export const candidatePanelPolicyVersion = 'source-bound-initial-hp-and-attack-priority-r2' as const
 
@@ -10,8 +11,9 @@ export type CandidatePanelPolicy = {
   agentId: string
   minimumAttack: number
   minimumInitialHp?: number
+  requiresPreciseInitialStats?: boolean
   priorityStat: CandidatePanelPriorityStat
-  requiredCoreLevel?: 7
+  requiresActualCoreLevel?: boolean
   requiredFourPieceSet?: string
   sourceId: string
 }
@@ -21,6 +23,7 @@ export type CandidatePanelPolicyContext = {
   fourPieceSetId?: string
   /** Account Mindscape level (0-6); unknown values must not imply M0/M1. */
   mindscape?: number
+  specialLevel?: number
 }
 
 function reviewedSetPolicy(
@@ -44,7 +47,7 @@ function reviewedSetPolicy(
         agentId,
         minimumAttack,
         priorityStat: 'energyRegen',
-        requiredCoreLevel: 7,
+        requiresActualCoreLevel: true,
         requiredFourPieceSet: 'set-astral-voice',
         sourceId,
       }
@@ -60,10 +63,7 @@ function reviewedYuzuhaPolicy(): CandidatePanelPolicy | null {
         agentId: 'agent-yuzuha',
         minimumAttack: 3000,
         priorityStat: 'anomalyProficiency',
-        // Preserve the previously verified solver boundary: PanelInput Core 5
-        // is game-facing Core level 7. The guide line alone does not verify
-        // that the same executable threshold applies below full Core.
-        requiredCoreLevel: 7,
+        requiresActualCoreLevel: true,
         sourceId: source.id,
       }
     : null
@@ -81,7 +81,6 @@ const policies = [
           minimumAttack: 0,
           minimumInitialHp: target.minimum,
           priorityStat: 'source' as const,
-          requiredCoreLevel: 7 as const,
           sourceId: target.sourceId,
         }
       : null
@@ -92,20 +91,53 @@ export function getCandidatePanelPolicy(agentId: string): CandidatePanelPolicy |
   return policies.find((policy) => policy.agentId === agentId) ?? null
 }
 
-/** Resolve the executable, context-specific Astra target while retaining the base declaration
- * for callers that only need to know whether a sourced panel policy exists. */
+export function hasContextualAttackTargetPolicy(agentId: string) {
+  return ['agent-lucy', 'agent-soukaku'].includes(agentId)
+}
+
+/** Resolve the actual-core/skill preparation line. Base declarations retain guide
+ * direction for consumers without context, and cannot execute without required facts. */
 export function getCandidatePanelPolicyForContext(
   agentId: string,
   context: CandidatePanelPolicyContext,
 ): CandidatePanelPolicy | null {
   const policy = getCandidatePanelPolicy(agentId)
-  if (!policy || agentId !== 'agent-astra') return policy
-  if (!Number.isInteger(context.mindscape) || context.mindscape! < 0 || context.mindscape! > 6)
-    return null
-  return {
-    ...policy,
-    minimumAttack: context.mindscape! >= 2 ? 2963 : 3429,
+  if (hasContextualAttackTargetPolicy(agentId)) {
+    const mechanic = reviewedContextualMechanicTargets({
+      agentId,
+      coreLevel: context.coreLevel,
+      specialLevel: context.specialLevel,
+    })
+    return mechanic
+      ? {
+          agentId,
+          priorityStat: 'source',
+          minimumAttack: mechanic.values.atk,
+          requiresPreciseInitialStats: true,
+          sourceId: mechanic.sourceRef.contentHash,
+        }
+      : null
   }
+  if (!policy || !['agent-astra', 'agent-pan-yinhu', 'agent-yuzuha'].includes(agentId))
+    return policy
+  if (
+    agentId !== 'agent-yuzuha' &&
+    (!Number.isInteger(context.mindscape) || context.mindscape! < 0 || context.mindscape! > 6)
+  )
+    return null
+  const mechanic = reviewedContextualMechanicTargets({
+    agentId,
+    coreLevel: context.coreLevel,
+    mindscape: context.mindscape,
+  })
+  if (mechanic)
+    return {
+      ...policy,
+      minimumAttack: mechanic.values.atk,
+      requiresPreciseInitialStats: true,
+      sourceId: mechanic.sourceRef.contentHash,
+    }
+  return null
 }
 
 export function candidatePanelPolicyPrerequisites(
@@ -113,12 +145,13 @@ export function candidatePanelPolicyPrerequisites(
   context: CandidatePanelPolicyContext,
 ) {
   const coreSatisfied =
-    policy.requiredCoreLevel === undefined || context.coreLevel === policy.requiredCoreLevel
+    !policy.requiresActualCoreLevel ||
+    (Number.isInteger(context.coreLevel) && context.coreLevel! >= 1 && context.coreLevel! <= 7)
   const fourPieceSatisfied =
     policy.requiredFourPieceSet === undefined ||
     context.fourPieceSetId === policy.requiredFourPieceSet
   const mindscapeSatisfied =
-    policy.agentId !== 'agent-astra' ||
+    !['agent-astra', 'agent-pan-yinhu'].includes(policy.agentId) ||
     (Number.isInteger(context.mindscape) && context.mindscape! >= 0 && context.mindscape! <= 6)
   return {
     coreSatisfied,

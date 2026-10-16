@@ -2,7 +2,7 @@
   display: inline-block;
   min-width: 0;
 }
-.f5v-shell .explanation > .explanation__trigger {
+.f5v-shell .explanation > .explanation__trigger:not(.button) {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -13,22 +13,8 @@
   border-radius: 4px;
   background: transparent;
   box-shadow: none;
-  color: var(--soda-text-3);
-  font-family: var(--soda-font-ui);
-  font-size: var(--soda-type-body);
-  font-weight: 400;
-  line-height: 1.5;
   text-align: left;
   cursor: pointer;
-}
-:where(.explanation) > .explanation__trigger::after {
-  content: var(--explanation-underline, none);
-  position: absolute;
-  inset-inline: 0;
-  bottom: 5px;
-  border-bottom: var(--explanation-underline-thickness, 1px) solid
-    var(--explanation-underline-color, currentColor);
-  pointer-events: none;
 }
 .explanation-popover[popover] {
   position: fixed;
@@ -122,4 +108,14 @@
 .f5v-shell .explanation button:focus-visible {
   outline: 2px solid var(--soda-accent);
   outline-offset: 2px;
+}
+
+.f5v-shell .explanation > .explanation__trigger.button {
+  min-height: 32px;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  font-size: var(--soda-type-body);
+  font-weight: 400;
+  line-height: 1.5;
+  text-decoration: none;
 }

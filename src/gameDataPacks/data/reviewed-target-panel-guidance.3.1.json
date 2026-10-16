@@ -404,8 +404,9 @@
       "id": "prydwen-seth-current-2026-08-05",
       "slug": "seth",
       "sv": "current",
+      "checkedAt": "2026-10-16T00:00:00.000Z",
       "s": ["atk:2600-3200+", "hp:11000+", "def:900+", "ap:200-300 optional"],
-      "c": ["Shield caps at 3750 Initial ATK but this is a hard target."]
+      "c": ["Shield caps at 3750 Initial ATK but this is hard to achieve."]
     },
     {
       "agentId": "agent-soldier-0-anby",

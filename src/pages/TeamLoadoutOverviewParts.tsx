@@ -450,6 +450,7 @@ export function TeamPreview({
           className="f5v-box-team-primary"
           type="button"
           disabled={preparingItemId === item.id}
+          data-player-route={item.destination}
           onClick={() => onPrimaryAction(item)}
         >
           {preparingItemId === item.id ? '正在搭配装备…' : item.primaryLabel}

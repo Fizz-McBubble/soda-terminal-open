@@ -123,6 +123,7 @@ const sources = import.meta.glob<string>(
     '../optimizer/optimizeAccountBuilds.ts',
     '../pages/agentDevelopmentWorkbenchViewModel.ts',
     '../gameDataPacks/reviewedTargetPanelGuidance.ts',
+    '../gameDataPacks/reviewedContextualTargetPanel.ts',
     '../gameDataPacks/reviewedTeamDiscConditions.ts',
     '../decision/teamStrengthMemberFacts.ts',
     '../decision/teamStrengthActionFacts.ts',

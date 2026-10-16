@@ -89,8 +89,8 @@
   },
   "runtimeFingerprints": {
     "roster": "fnv1a-9efb366c",
-    "mechanicData": "fnv1a-552010ce",
-    "strengthModel": "fnv1a-4b21eb86"
+    "mechanicData": "fnv1a-f92a761c",
+    "strengthModel": "fnv1a-6ba6ae95"
   },
   "inputFiles": {
     "scripts/current31-team-intrinsic-index-inputs.mjs": "321fd99fe12798bb3f143b5508a040e40dfef86962eb33ce0f0994c3dae2273c",
@@ -160,7 +160,7 @@
     "src/calculation/currentPlanningBaselineObservations.ts": "afbf30e4f7515f8a3a6f21a24b6fc717e0537767b3734eb5e936fcb3ac280f42",
     "src/calculation/currentPlanningConditionCatalog32.ts": "3b4ee836611e8793d7fb2702486fe60c23eaf1e97d58228c80a601ca2851f63b",
     "src/calculation/currentPlanningConditionSourceSeeds32.ts": "43d8ccc6f01034b088623c609e309b7eef72930d4d3c8d8a0e7479dbb9c2ebf4",
-    "src/calculation/currentPlanningConsumerPolicyIdentity32.ts": "a41bac01fc8713cadda0b289b93dc7234122c497ae13aa699a10307e692a8377",
+    "src/calculation/currentPlanningConsumerPolicyIdentity32.ts": "2b7ad420398a1ba60538148bddea66bc69c12248e43b69653614f0ca96219859",
     "src/calculation/currentPlanningDamageModifiers.ts": "9ae7418c52d001f3b7a42b53a34151663e5909ea9093fb965311f85a0531e0a1",
     "src/calculation/currentPlanningEffectDomain.ts": "509c843d36e586e36f68235e3a866e3f264a93f5882e3eae5534f4efefe44319",
     "src/calculation/currentPlanningEffectExpressions.ts": "9e4c0f25fe3b1d74021a3a9246a606d9260dd1b5a9d8cee4ba6eb81d3afa1b08",
@@ -174,7 +174,7 @@
     "src/calculation/currentPlanningHarumasaEventWindow32.ts": "576c7c358f05de6e482bf183a79a20a6f1f884ff6fe102138e284e44692a2749",
     "src/calculation/currentPlanningInteractionBundle.ts": "7248d0ec7771a3fee33f4f591e6a3556f13c4351081973a9c23cad695c42ddf3",
     "src/calculation/currentPlanningInteractionMechanicIR.ts": "e0e640fa0e943f94b41a6c4ad4b1b8cad6260b99e4289f942016a02ae3c4de8b",
-    "src/calculation/currentPlanningSelfEffects32.ts": "ff35b949164366bedd8f5cd6777164d92dcb8351b200cbe5261c217047c98efc",
+    "src/calculation/currentPlanningSelfEffects32.ts": "0d93890c6d90217182730b38d8967ecfee6b908fe718c0c7449c6b2edb0ae234",
     "src/calculation/currentPlanningTeamDpsRuntime.ts": "98fc977c9320f7029355deaf24a7fc87378d6b6db70d7cc7a21fb3ab69a965db",
     "src/calculation/currentPlanningTeamDpsSchedule32.ts": "6ddc5642c13f8678f11d84ff305bde087eb9b31f7761f5f11de805c1f6d59591",
     "src/calculation/currentPlanningWEngineDependencies32.ts": "258effd98415e7978af97931f1eaa37de0adfeaeaf0d374fcd4d4f1dfcf9d33f",
@@ -189,7 +189,7 @@
     "src/calculation/directDamageCore.ts": "768c3bbaec7a122f8215e93ed377a380578fe22529091630b1f7bf103bdd3b97",
     "src/calculation/dynamic/lacerationProbability.ts": "eac5a08c758c49645a0496491d8bfd1941d97b4894fd3f7362bea5fd14dabb24",
     "src/calculation/dynamic/numeric.ts": "1fe2f683666ca73eb95361cac138393e95075fdda6a1a91f0737eda5b85df212",
-    "src/calculation/dynamic/sourceExpressionReconciliation.ts": "3cd2eee47bdf4725ff0ef1c7a80a86c836378ede36c4e5bc4b9249236dca40cc",
+    "src/calculation/dynamic/sourceExpressionReconciliation.ts": "f0e7b7b357bd2f498da53e2829315ab72c79132ee023646cfe20dd2201741121",
     "src/calculation/fixedEventSupportContribution32.ts": "4b9c950d40dd6050a9e2689d033bed21646ea39708a104af18489cf9ea2265d2",
     "src/calculation/formalDamageUnsupportedContext.ts": "81874427369655215c6103a9e6b9079e18c64bb308d3743770c90d9ccc4c08a9",
     "src/calculation/functionalPlanningEffectScope32.ts": "baa62ac63e11cc4fa6f09b73cfb19375c0ea16f79e562d73ddae35554c8687f4",
@@ -233,7 +233,7 @@
     "src/calculation/reviewedRoxyTapAction32.ts": "f82581b644c33cc789b525bb1d4995230db4e51d98db99af285df5f8f873e11c",
     "src/calculation/reviewedSpringEmbraceReceivers32.ts": "3ec154e75c1a9fc653ed0398235ba3a4e992ef0a3debda20f487a784f6462d09",
     "src/calculation/reviewedSupportEventDamage32.ts": "16deb21eed694ffbf5729987b12bdd120463283e9bafc2cb021228ae758283c6",
-    "src/calculation/reviewedSupportTargetCapacity32.ts": "a2bf3897a398a2616410a232f1826fd3adf35f8cac373327f1ec010da7680356",
+    "src/calculation/reviewedSupportTargetCapacity32.ts": "4b69944ca7e80af8797939318c331088d692c324349b38a75665c0dc4b53c1c2",
     "src/calculation/reviewedTemplateMechanicEffects32.ts": "0f0861fb6d5c578cabd74fc8dcc765abe6eedccd9cc8f7d333fe5b9277987221",
     "src/calculation/reviewedWEngineReceiverSemantics32.ts": "19808847699519c9f74ac972e3252750d51639d3c82a5b242d4e12ecd1208cb3",
     "src/calculation/reviewedWEngineReceiverSemanticsIdentity32.ts": "6c2e5f4a2197d4472d9bdc52feaaa638268ee395200b1cac05416363fb5112c8",
@@ -365,7 +365,7 @@
     "src/gameDataPacks/generated/l3-b04c7cc7ac8ad6279074/agentDevelopmentEvidence.ts": "398ab2d90d4cd03f14147f17e5dc194908fca21069860604ccb802423c65c57e",
     "src/gameDataPacks/generated/l3-b04c7cc7ac8ad6279074/noncharacterMiyousheSidecar.ts": "4262f265b1a1d6f04532eb9a7b013533ae86172bdf628fc6c0e4f01a8505cc97",
     "src/gameDataPacks/generated/l3AgentDevelopmentEvidenceTypes.ts": "c7f7f9a523b4cb13e89f6e10ff8a1d3e191f9ebc71d79fd7258f389178d1361d",
-    "src/gameDataPacks/generated/team-strength-model.3.1.json": "f4d7d0597d1c1350893714c7905f87fdb3d2432e43e2a727d2ac911ae7bb19a9",
+    "src/gameDataPacks/generated/team-strength-model.3.1.json": "11557a694030456a44884a8a470e22392e484d47cf4b1b2a75834191c74b8c58",
     "src/gameDataPacks/incremental32AffectedCapabilities.ts": "a5529991289cedad4b76190d8b371b0e3eaa107173dc944300e86102033a038a",
     "src/gameDataPacks/incremental32RecoveryPolicy.ts": "de008b796842d6448828b7a3eb7ffc757c56260459cf8fe94ae338163a2eaf9c",
     "src/gameDataPacks/l3BoxTeamTemplateProjection.ts": "a121b90bc80f11b01245a72d6dd24a0bd54947b415bbe2cf11c9b85b0b1de404",
@@ -34670,5 +34670,5 @@
     [57, 58, 59, 0, 3, 2, 77, 1, 0, 4, 0]
   ],
   "boundary": "Build-time exact-three intrinsic summaries only. Account assets, preferences, Bangboo selection, evidence objects and final recommendations remain runtime projections.",
-  "contentHash": "fnv1a-b35f2441"
+  "contentHash": "fnv1a-941bcec1"
 }

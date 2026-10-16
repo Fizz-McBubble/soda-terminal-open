@@ -1,6 +1,7 @@
 /* Keep the method cards stable while each body switches between workflow steps. */
 .f5v-shell .scanner-workbench__methods,
 .f5v-shell .scanner-workbench__methods--active {
+  align-items: stretch;
   grid-template-rows: none;
   row-gap: 20px;
 }
@@ -8,9 +9,9 @@
 .f5v-shell .scanner-workbench__methods--active .scanner-workbench__method {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: 30px auto 48px minmax(0, 1fr);
-  height: 560px;
+  grid-template-rows: 30px auto 48px minmax(min-content, 1fr);
   min-height: 560px;
+  height: auto;
   row-gap: 0;
 }
 .f5v-shell .scanner-workbench__method > *,

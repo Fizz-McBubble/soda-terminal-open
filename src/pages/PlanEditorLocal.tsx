@@ -1,6 +1,8 @@
 import { claimPlanEditorSaveFromProps } from './planEditorBenchmark32Save'
 import { PlanEditorSavedStateNotices } from './PlanEditorSavedStateNotices'
 import { finishPlanEditorSave } from './planEditorSessionRefresh'
+import { usePageOperationScope } from '../components/usePageOperationScope'
+import { useF5AccountSummary } from '../components/f5AccountSummaryContext'
 import { beginUsageOperation } from '../usageStatistics/client'
 import { useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -58,6 +60,10 @@ export function PlanEditor(props: PlanEditorProps) {
     onRetryRestoredTargetFit,
   } = props
   const decisionWorld = useAccountDecisionWorld()
+  const accountSummary = useF5AccountSummary()
+  const captureSaveScope = usePageOperationScope(
+    `${accountSummary?.appSessionId}:${warehouse.accountId}:${analysisRunId}:${restored?.id}`,
+  )
   const releaseRun = useReleaseAccountDecisionRun()
   const navigate = useNavigate()
   const resolveProfile = useContext(PlanningProfileContext)
@@ -137,6 +143,7 @@ export function PlanEditor(props: PlanEditorProps) {
       : undefined
   const save = async () => {
     if (!claimPlanEditorSaveFromProps(props, saving, duplicateMemberId, setMessage)) return false
+    const isCurrentSave = captureSaveScope()
     let finishUsage: ReturnType<typeof beginUsageOperation> | undefined
     try {
       const remainingSession = assertCurrentPlanEditorReservation(
@@ -212,6 +219,7 @@ export function PlanEditor(props: PlanEditorProps) {
         remainingSession,
       })
       finishUsage('success')
+      if (!isCurrentSave()) return true
       setDraft(next)
       setSaved(true)
       setDirty(false)
@@ -223,6 +231,8 @@ export function PlanEditor(props: PlanEditorProps) {
         navigate,
         setMessage,
         savedName: next.name,
+        isCurrentSave,
+        appSessionId: accountSummary?.appSessionId,
       })
     } catch (error) {
       finishUsage?.('failure')

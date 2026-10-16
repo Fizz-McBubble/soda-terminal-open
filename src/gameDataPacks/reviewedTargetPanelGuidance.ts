@@ -145,7 +145,9 @@ const playerConditionsBySourceId: Readonly<Record<string, readonly string[]>> = 
   'prydwen-rina-current-2026-08-05': [
     '核心技 6 级时，穿透率达到 72% 才能提供完整的 30% 全队增益。',
   ],
-  'prydwen-seth-current-2026-08-05': ['护盾以初始攻击力 3750 为上限；此处为较高的硬目标。'],
+  'prydwen-seth-current-2026-08-05': [
+    '初始攻击力3750可使护盾满档，但来源指出较难达成；2600–3200+为配装参考，不是满护盾数值。',
+  ],
   'prydwen-soldier-0-anby-current-2026-08-05': [
     '暴击率按额外能力与「影之和谐」之前计算；暴击伤害按核心被动之前计算。',
   ],
@@ -339,7 +341,7 @@ export function reviewedTargetPanelGuidance(agentId: string): AgentProfileField 
   ]
   const observedText = sourceText(entry)
   const sourceVersion = entry.sv === 'current' ? null : entry.sv
-  const checkedAt = reviewedTargetPanelGuidanceData.reviewedAt
+  const checkedAt = entry.checkedAt ?? reviewedTargetPanelGuidanceData.reviewedAt
   const contentHash = stableContentHash({
     sourceId: entry.id,
     url: `https://www.prydwen.gg/zenless/characters/${entry.slug}`,

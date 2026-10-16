@@ -817,8 +817,12 @@ export function AssetQuickReadEntry({
                   <div className="asset-quick-read__connection-summary">{status}</div>
                   {preparationActions}
                   {preparationTools}
+                  {preparationRecovery && (
+                    <div className="asset-quick-read__preparation-recovery">
+                      {preparationRecovery}
+                    </div>
+                  )}
                   {extras}
-                  {preparationRecovery}
                 </div>
               )}
             </section>

@@ -691,4 +691,26 @@ it('shows completion navigation and export with visible retryable export failure
   expect(screen.queryByText('导出请求未完成，请重试。')).not.toBeInTheDocument()
 })
 
+it('renders preparation recovery inside a dedicated container before diagnostic extras', () => {
+  render(
+    <AssetQuickReadEntry
+      state="idle"
+      capability="ready"
+      preparationRecovery={<p>已保存 2026/10/16 15:22:05 的资产快读导入恢复副本。</p>}
+      workbenchExtras={() => <div data-testid="workbench-diagnostic-extras">诊断条目</div>}
+      renderParts={({ preparation }) => preparation}
+    />,
+  )
+  const recoveryWrapper = screen
+    .getByText('已保存 2026/10/16 15:22:05 的资产快读导入恢复副本。')
+    .closest<HTMLElement>('.asset-quick-read__preparation-recovery')!
+  expect(recoveryWrapper).toBeInTheDocument()
+  const extras = screen.getByTestId('workbench-diagnostic-extras')
+  const body = recoveryWrapper.closest<HTMLElement>('.scanner-workbench__body--prepare')!
+  expect(body).toBeInTheDocument()
+  expect(body).toContainElement(recoveryWrapper)
+  expect(body).toContainElement(extras)
+  expect(recoveryWrapper.compareDocumentPosition(extras)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+})
+
 registerAssetQuickReadEntryPreparationCases()

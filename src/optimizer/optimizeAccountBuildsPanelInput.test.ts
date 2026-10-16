@@ -5,6 +5,35 @@ import { candidatePanelInputsForScheme } from './optimizeAccountBuilds'
 import { getCandidatePanelObjectiveTarget } from './candidatePanelObjective'
 
 describe('account candidate panel conditions', () => {
+  it('passes actual low-core support targets using sourced curves instead of a global core7 guard', () => {
+    for (const agentId of [
+      'agent-zhao',
+      'agent-lucy',
+      'agent-soukaku',
+      'agent-astra',
+      'agent-pan-yinhu',
+      'agent-yuzuha',
+    ]) {
+      const agent = createEmptyRoster().agents.find((row) => row.agentId === agentId)!
+      agent.level = 60
+      agent.skillLevels.core = 1
+      agent.skillLevels.special = 10
+      agent.wEngineDetails = { id: 'wengine-13001', name: null, level: 60, refinement: 1 }
+      const panel = candidatePanelInputForAgent(agent)
+      {
+        expect(panel).toMatchObject({ core: -1, specialLevel: 10 })
+        const target = getCandidatePanelObjectiveTarget(agentId, panel)
+        if (agentId === 'agent-zhao') expect(target?.minimumInitialHp).toBe(27000)
+        if (agentId === 'agent-lucy')
+          expect(target?.minimumAttack).toBeCloseTo(2476.190476190476, 8)
+        if (agentId === 'agent-soukaku') expect(target?.minimumAttack).toBe(5000)
+        if (agentId === 'agent-astra')
+          expect(target?.minimumAttack).toBeCloseTo(5454.545454545454, 8)
+        if (agentId === 'agent-pan-yinhu') expect(target?.minimumAttack).toBe(6000)
+        if (agentId === 'agent-yuzuha') expect(target?.minimumAttack).toBe(1500)
+      }
+    }
+  })
   it('isolates the shared live-team and saved-replay scheme operands from current unknown observations', () => {
     const agents = ['agent-zhao', 'agent-astra', 'agent-pan-yinhu'].map((agentId) => {
       const agent = createEmptyRoster().agents.find((row) => row.agentId === agentId)!

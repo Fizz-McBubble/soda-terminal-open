@@ -11,6 +11,11 @@ import { getReviewedBuildVersionImpact32 } from './reviewedBuildVersionImpact32'
 import { stableContentHash } from './types'
 import { isPotentialGuideReference } from './reviewedPotentialGuideReferences'
 import { reviewedTargetPanelGuidance } from './reviewedTargetPanelGuidance'
+import { resolveReviewedZhaoHpTarget } from './reviewedZhaoSupportTarget'
+import {
+  resolveReviewedContextualTargetPanel,
+  type ReviewedTargetContext,
+} from './reviewedContextualTargetPanel'
 import { projectedReviewedBuild32Fields } from './agentProfileFieldProjection'
 import { reviewedBuildFieldReferenceContinuity32 } from './reviewedReferenceSupportContinuity32'
 
@@ -233,13 +238,27 @@ function selectedGuidanceField(
   fields: readonly AgentProfileField[],
   agentId: string,
 ): AgentProfileField | undefined {
-  return (
+  const field =
     projectedReviewedBuild32Fields(agentId).find((field) => field.path === fieldId) ??
     adoptedCurrentField(agentId, fieldId) ??
     fields.find((candidate) => candidate.path === fieldId && candidate.status !== 'missing') ??
     (fieldId === 'build.target_panel' ? frozenTargetPanelGuidance(agentId) : undefined) ??
     fields.find((candidate) => candidate.path === fieldId)
-  )
+  const mechanic =
+    fieldId === 'build.target_panel' ? resolveReviewedZhaoHpTarget({ agentId }) : null
+  if (!mechanic || !field?.value || typeof field.value !== 'object') return field
+  // Adopt the skill target once for every consumer. The frozen guide observation
+  // (25000+) and its payload hash stay intact in the source adapter.
+  return {
+    ...field,
+    value: { ...field.value, hp: { min: mechanic.minimum } },
+    sourceRefs: [...field.sourceRefs, mechanic.sourceRef],
+    conditions: [
+      ...(field.conditions ?? []),
+      ...mechanic.conditions,
+      '攻略的生命参考为25000+；毕业推荐采用追加能力的27000初始生命满档目标。',
+    ],
+  }
 }
 
 /** Validation must trace the selected source, including adopted field overrides. */
@@ -394,15 +413,21 @@ export function getCurrentPotentialSkillReference(stableId: string) {
 }
 
 /** Both player workbenches consume the adopted guidance, never a page-local fallback. */
-export function getCurrentBuildTargetPanel(stableId: string) {
+export function getCurrentBuildTargetPanel(
+  stableId: string,
+  context?: Omit<ReviewedTargetContext, 'agentId'>,
+) {
   const profile = getCurrentBuildAuthorityProfile(stableId)
   const field = profile?.guidance.fields.find((item) => item.fieldId === 'build.target_panel')
   if (!profile || !field || field.state !== 'ready') return null
-  return {
+  const panel = {
     value: field.value,
     status: field.sourceStatus,
     gameVersion: profile.gameVersion,
     sourceRefs: field.sourceRefs,
     conditions: field.conditions,
   }
+  return context
+    ? resolveReviewedContextualTargetPanel(panel, { ...context, agentId: stableId })
+    : panel
 }

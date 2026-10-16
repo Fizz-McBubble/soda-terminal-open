@@ -10,10 +10,11 @@ import {
 } from './savedTeamDiscCompletion'
 
 const localGraduation =
-  import.meta.env.VITE_SODA_PUBLIC_BUILD === 'true' ||
-  import.meta.env.VITE_SODA_COMMUNITY_BUILD === 'true'
+  import.meta.env.VITE_SODA_PUBLIC_BUILD === 'true'
     ? null
-    : await import('./savedPlanGraduationCompletion')
+    : import.meta.env.VITE_SODA_COMMUNITY_BUILD === 'true'
+      ? null
+      : await import('./savedPlanGraduationCompletion')
 
 export function GraduationCompletionLabel({
   completion,
@@ -31,15 +32,19 @@ export function GraduationCompletionLabel({
     (member) => member.status === 'scored' && member.limitations?.length,
   )
   const label =
-    completion?.score != null
-      ? `毕业完成度 ${completion.score}%${partial ? '（已核验部分）' : ''}`
-      : '毕业完成度 待核对'
+    completion?.status === 'reference'
+      ? '培养参考对照'
+      : completion?.score != null
+        ? `毕业完成度 ${completion.score}%${partial ? '（已核验部分）' : ''}`
+        : '毕业完成度 待核对'
   const title =
-    completion?.score != null
-      ? `对照三名成员的毕业推荐计算，成员等权，不含技能养成。${partial ? '仅统计有推荐目标且可核对的属性，不代表全部毕业目标已达成。' : ''}${discCompletion ? `\n${discCompletion.reason}` : ''}${memberText ? `\n${memberText}` : ''}`
-      : discCompletion
-        ? `已保存方案的驱动盘数量。${completion?.reason ? `\n${completion.reason}` : ''}${memberText ? `\n${memberText}` : ''}\n${discCompletion.reason}${discCompletion.members.length ? `\n${discCompletion.members.map((member) => `${getAgentName(member.agentId)} ${member.savedCount}/${member.expectedCount}`).join(' · ')}` : ''}`
-        : `当前方案暂无可用的毕业面板目标。${completion?.reason ? `\n${completion.reason}` : ''}`
+    completion?.status === 'reference'
+      ? `${completion.reason}${memberText ? `\n${memberText}` : ''}${discCompletion ? `\n${discCompletion.reason}` : ''}`
+      : completion?.score != null
+        ? `对照三名成员的毕业推荐计算，成员等权，不含技能养成。${partial ? '仅统计有推荐目标且可核对的属性，不代表全部毕业目标已达成。' : ''}${discCompletion ? `\n${discCompletion.reason}` : ''}${memberText ? `\n${memberText}` : ''}`
+        : discCompletion
+          ? `已保存方案的驱动盘数量。${completion?.reason ? `\n${completion.reason}` : ''}${memberText ? `\n${memberText}` : ''}\n${discCompletion.reason}${discCompletion.members.length ? `\n${discCompletion.members.map((member) => `${getAgentName(member.agentId)} ${member.savedCount}/${member.expectedCount}`).join(' · ')}` : ''}`
+          : `当前方案暂无可用的毕业面板目标。${completion?.reason ? `\n${completion.reason}` : ''}`
   return (
     <span className="team-graduation-completion" title={title} aria-label={`${label}。${title}`}>
       {label}

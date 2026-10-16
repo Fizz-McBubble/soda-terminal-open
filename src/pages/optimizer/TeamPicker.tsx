@@ -38,6 +38,7 @@ import { TeamAnalysisOverviewView } from './TeamAnalysisOverviewView'
 import { TeamRemainingBoxSelector } from './TeamRemainingBoxSelector'
 import { useTeamAnalysisFlow } from './useTeamAnalysisFlow'
 import { traceTeamRematch } from './teamRematchTrace'
+import { useSavedPlanEditorRefresh } from '../planEditorSessionRefresh'
 import { useTeamPickerQueries } from './useTeamPickerQueries'
 
 export function TeamPicker() {
@@ -86,6 +87,14 @@ export function TeamPicker() {
   const [lastCompleteAnalysis, setLastCompleteAnalysis] = useState<LastCompleteAnalysis | null>(
     matchingSession,
   )
+  useSavedPlanEditorRefresh({
+    analysis,
+    account: accountSummary,
+    world: decisionWorld,
+    releaseRun,
+    setAnalysis,
+    setLastCompleteAnalysis,
+  })
   const [analysisSnapshot, setAnalysisSnapshot] = useState<TeamAnalysisSnapshot | null>(null)
   const [requestedSelectedId, setRequestedSelectedId] = useState<string | null>(
     () => matchingSession?.result.overviewUiState?.selectedId ?? null,

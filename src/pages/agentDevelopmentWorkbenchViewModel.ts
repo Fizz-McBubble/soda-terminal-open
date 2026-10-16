@@ -214,6 +214,10 @@ export function createAgentDevelopmentWorkbenchViewModel(input: {
       ? targetPanelPresentation(targetPanel, legacyLabel, {
           agentId: agent.agentId,
           coreLevel: agent.skillLevels.core,
+          specialLevel: agent.skillLevels.special,
+          engineId: agent.wEngineDetails?.id,
+          engineRefinement: agent.wEngineDetails?.refinement,
+          mindscape: agent.mindscape,
         })
       : { value: null, conditions: [] }
     const target = reference.value

@@ -229,6 +229,37 @@
   display: grid;
   gap: 6px;
 }
+/* One comparison line: owned count, named gap and its existing conditions disclosure. */
+.f5v-box-team-completion__summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  min-width: 0;
+}
+.f5v-box-team-completion__owned {
+  color: var(--soda-text-2);
+  font-size: 12px;
+  line-height: 18px;
+  white-space: nowrap;
+}
+.f5v-box-team-completion__summary > .f5v-box-team-completion__member-row {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  max-width: 100%;
+  align-items: baseline;
+  gap: 4px;
+  min-width: 0;
+}
+.f5v-box-team-completion__summary .f5v-box-team-completion__member-label {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  white-space: nowrap;
+}
+.f5v-box-team-completion__summary > .f5v-box-completion-condition {
+  flex: 0 0 auto;
+}
 .f5v-box-team-completion__member-identity > .visual-entity-image {
   display: none;
 }
