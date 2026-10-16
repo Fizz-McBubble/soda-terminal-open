@@ -10,6 +10,18 @@ export interface ReleaseNote {
 // A local fix or commit is not a published release; add it when that release ships.
 export const releases = [
   {
+    id: '20261016-startup-and-installation-recovery',
+    date: '2026-10-16',
+    scope: '页面加载与资产快读',
+    title: '补齐加载失败恢复，修复同版安装',
+    changes: [
+      '资产快读安装器更新至1.1.3，连接服务为1.0.9；同版安装文件缺失或损坏时可重新修复，保留原目录，失败或取消时恢复原状态。',
+      '连接地址被占用、Windows拒绝访问或服务身份无法确认时，提供对应的重试和恢复说明，保留问题反馈入口。',
+      '页面或样式加载失败时可直接重新加载；慢网和恢复联网时进行有界重试，保留本地资产和已有离线版本。',
+      '画面扫描继续使用1.1.8，旧版快读安装包仍可获取；安装和普通启动不开始读取。',
+    ],
+  },
+  {
     id: '20261016-native-diagnostic-continuity',
     date: '2026-10-16',
     scope: '资产快读、画面扫描与问题反馈',

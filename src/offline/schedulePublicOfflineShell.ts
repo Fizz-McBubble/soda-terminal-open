@@ -2,14 +2,46 @@ import { registerPublicOfflineShell } from './registerPublicOfflineShell'
 
 /** Keep a complete offline install, but start its network work after page load and a paint/idle turn. */
 export function schedulePublicOfflineShell(
-  register: () => Promise<unknown> = registerPublicOfflineShell,
+  register: (options?: {
+    onRecoverableFailure?: () => void
+  }) => Promise<unknown> = registerPublicOfflineShell,
 ): () => void {
   let stopped = false
   let frame: number | undefined
   let idle: number | undefined
   let timer: ReturnType<typeof setTimeout> | undefined
+  let running = false
+  let recoverable = false
+  let retried = false
+  let onlineDuringAttempt = false
+  const onOnline = () => {
+    if (stopped || retried) return
+    if (running) {
+      onlineDuringAttempt = true
+      return
+    }
+    if (!recoverable) return
+    retried = true
+    window.removeEventListener('online', onOnline)
+    start()
+  }
   const start = () => {
-    if (!stopped) void register().catch(() => {})
+    if (stopped || running) return
+    running = true
+    recoverable = false
+    onlineDuringAttempt = false
+    if (!retried) window.addEventListener('online', onOnline)
+    void register({
+      onRecoverableFailure: () => {
+        recoverable = true
+      },
+    })
+      .catch(() => {})
+      .finally(() => {
+        running = false
+        if (stopped || !recoverable || retried) window.removeEventListener('online', onOnline)
+        else if (onlineDuringAttempt) onOnline()
+      })
   }
   const afterPaint = () => {
     if (stopped) return
@@ -32,6 +64,7 @@ export function schedulePublicOfflineShell(
   return () => {
     stopped = true
     window.removeEventListener('load', afterLoad)
+    window.removeEventListener('online', onOnline)
     if (frame !== undefined) window.cancelAnimationFrame(frame)
     if (idle !== undefined) window.cancelIdleCallback?.(idle)
     if (timer !== undefined) clearTimeout(timer)

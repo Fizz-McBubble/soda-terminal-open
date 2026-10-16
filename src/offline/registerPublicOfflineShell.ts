@@ -1,9 +1,12 @@
+const taggedContainers = new WeakMap<object, Set<string>>()
+
 /** Registration is deliberately dormant in local/internal builds. */
 export async function registerPublicOfflineShell(
   options: {
     publicBuild?: boolean
     releaseId?: string
     fetcher?: typeof fetch
+    onRecoverableFailure?: () => void
     serviceWorker?: Pick<ServiceWorkerContainer, 'register'> &
       Partial<Pick<ServiceWorkerContainer, 'addEventListener' | 'controller'>>
   } = {},
@@ -19,18 +22,41 @@ export async function registerPublicOfflineShell(
   if (!serviceWorker) return false
 
   // A new worker cannot infer which bundle an already open page is running.
-  serviceWorker.addEventListener?.('message', (event: MessageEvent) => {
-    if (event.data?.type === 'soda-offline-release-query')
-      event.source?.postMessage({ type: 'soda-offline-release-tag', releaseId })
-  })
-
-  try {
-    const response = await (options.fetcher ?? fetch)('/offline-shell-manifest.json', {
-      credentials: 'same-origin',
-      cache: 'no-store',
+  const taggedReleases = taggedContainers.get(serviceWorker) ?? new Set<string>()
+  if (!taggedReleases.has(releaseId)) {
+    serviceWorker.addEventListener?.('message', (event: MessageEvent) => {
+      if (event.data?.type === 'soda-offline-release-query')
+        event.source?.postMessage({ type: 'soda-offline-release-tag', releaseId })
     })
-    if (!response.ok) return false
-    const manifest: unknown = await response.json()
+    taggedReleases.add(releaseId)
+    taggedContainers.set(serviceWorker, taggedReleases)
+  }
+
+  const controller = new AbortController()
+  let timer: ReturnType<typeof setTimeout> | undefined
+  try {
+    const manifest: unknown = await Promise.race([
+      (async () => {
+        const response = await (options.fetcher ?? fetch)('/offline-shell-manifest.json', {
+          credentials: 'same-origin',
+          cache: 'no-store',
+          signal: controller.signal,
+        })
+        if (!response.ok) {
+          if (response.status === 408 || response.status === 429 || response.status >= 500)
+            options.onRecoverableFailure?.()
+          return undefined
+        }
+        return response.json()
+      })(),
+      new Promise<never>((_, reject) => {
+        timer = setTimeout(() => {
+          controller.abort()
+          reject(new DOMException('Offline manifest timed out', 'TimeoutError'))
+        }, 15000)
+      }),
+    ])
+    clearTimeout(timer)
     if (
       typeof manifest !== 'object' ||
       manifest === null ||
@@ -54,8 +80,18 @@ export async function registerPublicOfflineShell(
     if (serviceWorker.controller !== registration?.active)
       serviceWorker.controller?.postMessage(tag)
     return true
-  } catch {
+  } catch (error) {
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      'name' in error &&
+      typeof error.name === 'string' &&
+      ['TypeError', 'NetworkError', 'AbortError', 'TimeoutError'].includes(error.name)
+    )
+      options.onRecoverableFailure?.()
     // Offline support is optional; a failed check must not block local data access.
     return false
+  } finally {
+    clearTimeout(timer)
   }
 }

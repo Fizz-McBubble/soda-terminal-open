@@ -30,6 +30,53 @@ const validReport = {
   ],
 }
 
+test('same-version repair and classified service failures survive reception and stored readback', async () => {
+  const codes = [
+    'local_service_identity_unavailable',
+    'local_service_port_conflict',
+    'local_service_address_unavailable',
+    'installed_repair_files_in_use',
+    'installed_repair_switch_unavailable',
+    'installed_repair_restore_conflict',
+    'installed_version_path_conflict',
+  ]
+  for (const code of codes) {
+    let stored
+    const receiver = createScanFeedbackReceiver({
+      feedbackStore: {
+        get: async () => null,
+        put: async (_, value) => {
+          stored = value
+        },
+      },
+    })
+    const report = { ...validReport, installerVersion: '1.1.2', stage: 'failed', code }
+    const response = await receiver(
+      new Request('https://sodaterminal.com/_soda/scan-feedback', {
+        method: 'POST',
+        headers: { origin: 'https://sodaterminal.com', 'content-type': 'application/json' },
+        body: JSON.stringify(report),
+      }),
+      {
+        SODA_SCAN_FEEDBACK: 'enabled',
+        SODA_RELEASE_ID: 'soda-release-current',
+        SODA_PUBLIC_ORIGIN: 'https://sodaterminal.com',
+      },
+    )
+    assert.equal(response.status, 200, code)
+    assert.equal((await response.json()).status, 'received')
+    const { receivedAt, ...body } = JSON.parse(stored)
+    assert.ok(receivedAt)
+    const parsed = sanitizeScanFeedbackPayload(body)
+    assert.equal(parsed.ok, true, code)
+    assert.deepEqual(parsed.record, report)
+    assert.equal(
+      sanitizeInstallerFeedbackPayload({ ...report, code: code + ':raw-path' }).status,
+      400,
+    )
+  }
+})
+
 test('installer receiver accepts only the fixed archive source code', () => {
   const report = {
     ...validReport,

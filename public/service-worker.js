@@ -4,6 +4,7 @@ const cachePrefix = 'soda-public-shell-'
 const cacheName = `${cachePrefix}${releaseId}`
 const installBatchSize = 6
 const navigationNetworkTimeoutMs = 8000
+const criticalDownloadTimeoutMs = 60000
 const clientReleases = new Map()
 const completeReleases = new Set()
 let networkManifest
@@ -62,6 +63,40 @@ async function verifyAsset(response, expected) {
   ).join('')
   if (actual !== expected) throw new Error('critical_asset_release_mismatch')
   return response
+}
+
+async function fetchCriticalAsset(asset, expected) {
+  // Retry only transient transport/status failures, using the same release URL and hash.
+  // Verification belongs inside the deadline so a stalled response body is also bounded.
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const controller = new AbortController()
+    let timer
+    try {
+      return await Promise.race([
+        (async () => {
+          const response = await fetch(asset, { cache: 'no-store', signal: controller.signal })
+          if (response.status === 408 || response.status === 429 || response.status >= 500)
+            throw new Error('critical_asset_temporary_failure')
+          return verifyAsset(response, expected)
+        })(),
+        new Promise((_, reject) => {
+          timer = setTimeout(() => {
+            controller.abort()
+            reject(new Error('critical_asset_download_timeout'))
+          }, criticalDownloadTimeoutMs)
+        }),
+      ])
+    } catch (error) {
+      const transient =
+        error?.name === 'TypeError' ||
+        error?.name === 'AbortError' ||
+        error?.message === 'critical_asset_temporary_failure' ||
+        error?.message === 'critical_asset_download_timeout'
+      if (attempt !== 0 || !transient) throw error
+    } finally {
+      clearTimeout(timer)
+    }
+  }
 }
 
 async function fetchNavigation(request) {
@@ -198,7 +233,7 @@ self.addEventListener('install', (event) => {
                   // Collect verified replacements, but do not mutate until the entire set passes.
                 }
               }
-              const fetched = await verifyAsset(await fetch(asset, { cache: 'no-store' }), expected)
+              const fetched = await fetchCriticalAsset(asset, expected)
               if (existed) repairs.push([asset, fetched])
               return fetched
             }),

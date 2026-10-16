@@ -20,9 +20,9 @@ describe('versionConsistencyAudit (real consumer imports)', () => {
   it('validates asset quick-read distribution and download availability with real consumers', () => {
     // Verified against real assetQuickReadRelease object and distribution consumer
     expect(assetQuickReadDownloadAvailable(assetQuickReadRelease)).toBe(true)
-    expect(assetQuickReadRelease.version).toBe('1.1.2')
-    expect(assetQuickReadRelease.bridgeVersion).toBe('1.0.8')
-    expect(assetQuickReadRelease.fileName).toBe('SodaTerminal-AssetReader-Setup-1.1.2.exe')
+    expect(assetQuickReadRelease.version).toBe('1.1.3')
+    expect(assetQuickReadRelease.bridgeVersion).toBe('1.0.9')
+    expect(assetQuickReadRelease.fileName).toBe('SodaTerminal-AssetReader-Setup-1.1.3.exe')
     expect(assetQuickReadRelease.downloadUrl).toBe('/downloads/Soda-Asset-Quick-Read-Setup.exe')
     expect(assetQuickReadRelease.size).toBeGreaterThanOrEqual(2)
     expect(assetQuickReadRelease.sha256).toMatch(/^[a-fA-F0-9]{64}$/)
@@ -144,10 +144,10 @@ describe('versionConsistencyAudit (real consumer imports)', () => {
   })
 
   it('enforces semantic anti-conflation of independent tool components', () => {
-    // Quick-read product (1.1.2) vs Bridge internal service (1.0.8)
+    // Quick-read product (1.1.3) vs Bridge internal service (1.0.9)
     expect(assetQuickReadManifest.version).not.toBe(assetQuickReadManifest.bridgeVersion)
-    expect(assetQuickReadManifest.version).toBe('1.1.2')
-    expect(assetQuickReadManifest.bridgeVersion).toBe('1.0.8')
+    expect(assetQuickReadManifest.version).toBe('1.1.3')
+    expect(assetQuickReadManifest.bridgeVersion).toBe('1.0.9')
 
     // Scanner installer (1.1.8) vs Helper service (2.3.18) vs locked fork (1.0.49)
     expect(scannerInstallerManifest.version).not.toBe(scannerInstallerManifest.helperVersion)
@@ -158,7 +158,7 @@ describe('versionConsistencyAudit (real consumer imports)', () => {
     expect(scannerRuntimeManifest.captureVersion).toBe('ZZZ-Scanner.Next-1.0.49-soda-r34')
 
     // The next release convention is now the actual candidate identity
-    const nextPlannedQuickReadVersion = '1.1.2'
+    const nextPlannedQuickReadVersion = '1.1.3'
     expect(assetQuickReadManifest.version).toBe(nextPlannedQuickReadVersion)
     expect(compareToolVersion(assetQuickReadManifest.version, nextPlannedQuickReadVersion)).toBe(0)
   })

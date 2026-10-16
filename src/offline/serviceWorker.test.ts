@@ -44,6 +44,7 @@ function createWorker(
     invalidHash?: boolean
     legacyOld?: boolean
     redirectedIndex?: boolean
+    transient?: number | 'network' | 'stall' | 'body-stall'
   } = {},
 ) {
   const release = options.release ?? current
@@ -68,9 +69,23 @@ function createWorker(
     )
   const tabs: Tab[] = (options.tabs ?? []).map((tab) => ({ ...tab, postMessage: vi.fn() }))
   let online = true
+  let transientFailed = false
   const fetcher = vi.fn(async (request: string | { url: string }) => {
     const path = typeof request === 'string' ? request : new URL(request.url).pathname
-    if (!online || path === options.fail) throw new Error('network_unavailable')
+    if (!online || path === options.fail) throw new TypeError('network_unavailable')
+    if (path === workerAsset && options.transient !== undefined && !transientFailed) {
+      transientFailed = true
+      if (options.transient === 'network') throw new TypeError('temporary_network_failure')
+      if (options.transient === 'stall') return new Promise<Response>(() => {})
+      if (options.transient === 'body-stall') {
+        const response = new Response('stalled body')
+        vi.spyOn(response, 'clone').mockReturnValue({
+          arrayBuffer: () => new Promise<ArrayBuffer>(() => {}),
+        } as Response)
+        return response
+      }
+      return new Response('temporary failure', { status: options.transient })
+    }
     if (path === '/offline-shell-manifest.json')
       return Response.json({
         ...manifest(release),
@@ -177,6 +192,42 @@ function createWorker(
 }
 
 describe('public service worker release cache lifecycle', () => {
+  it.each([408, 429, 500, 502, 503, 'network'] as const)(
+    'retries one transient critical download (%s) with the same URL and verified hash',
+    async (transient) => {
+      const worker = createWorker({ old: [r2], transient })
+      await worker.dispatch('install')
+      const calls = worker.fetcher.mock.calls.filter(([path]) => path === workerAsset)
+      expect(calls).toHaveLength(2)
+      expect(await worker.entries.get(name(current))!.get(workerAsset)!.clone().text()).toBe(
+        `${current}:${workerAsset}`,
+      )
+      expect(worker.skipWaiting).toHaveBeenCalledOnce()
+      expect(worker.entries.has(name(r2))).toBe(true)
+    },
+  )
+
+  it.each(['stall', 'body-stall'] as const)(
+    'bounds a critical %s before its sole retry',
+    async (transient) => {
+      vi.useFakeTimers()
+      const worker = createWorker({ transient })
+      const install = worker.dispatch('install')
+      await vi.advanceTimersByTimeAsync(60001)
+      await install
+      expect(worker.fetcher.mock.calls.filter(([path]) => path === workerAsset)).toHaveLength(2)
+      expect(worker.skipWaiting).toHaveBeenCalledOnce()
+    },
+  )
+
+  it('does not retry a missing critical asset', async () => {
+    const worker = createWorker({ old: [r2], transient: 404 })
+    await expect(worker.dispatch('install')).rejects.toThrow('critical_asset_unavailable')
+    expect(worker.fetcher.mock.calls.filter(([path]) => path === workerAsset)).toHaveLength(1)
+    expect(worker.entries.has(name(current))).toBe(false)
+    expect(worker.entries.has(name(r2))).toBe(true)
+  })
+
   it.each(['interrupted', 'evicted', 'damaged'])(
     'repairs a %s same-release cache before activating',
     async (state) => {
@@ -192,7 +243,10 @@ describe('public service worker release cache lifecycle', () => {
       expect(await cache.get(workerAsset)!.clone().text()).toBe(`${current}:${workerAsset}`)
       expect(cache.has('/offline-shell-manifest.json')).toBe(true)
       expect(worker.cacheApi.delete).not.toHaveBeenCalled()
-      expect(worker.fetcher).toHaveBeenCalledWith(workerAsset, { cache: 'no-store' })
+      expect(worker.fetcher).toHaveBeenCalledWith(
+        workerAsset,
+        expect.objectContaining({ cache: 'no-store', signal: expect.any(AbortSignal) }),
+      )
       expect(worker.fetcher).not.toHaveBeenCalledWith('/index.html', { cache: 'no-store' })
       await worker.tag('new', current)
       worker.setOnline(false)
@@ -244,6 +298,7 @@ describe('public service worker release cache lifecycle', () => {
     async (corrupt) => {
       const worker = createWorker({ old: [r2], legacyOld: true, corrupt })
       await expect(worker.dispatch('install')).rejects.toThrow('critical_asset_release_mismatch')
+      expect(worker.fetcher.mock.calls.filter(([path]) => path === corrupt)).toHaveLength(1)
       expect(worker.skipWaiting).not.toHaveBeenCalled()
       expect(worker.entries.has(name(current))).toBe(false)
       expect(await worker.entries.get(name(r2))!.get('/index.html')!.clone().text()).toBe(
@@ -406,6 +461,7 @@ describe('public service worker release cache lifecycle', () => {
   it('discards a failed new install and preserves the last complete release for rollback', async () => {
     const worker = createWorker({ old: [r2], fail: workerAsset })
     await expect(worker.dispatch('install')).rejects.toThrow('network_unavailable')
+    expect(worker.fetcher.mock.calls.filter(([path]) => path === workerAsset)).toHaveLength(2)
     expect(worker.entries.has(name(current))).toBe(false)
     expect(worker.entries.has(name(r2))).toBe(true)
     expect(worker.cacheApi.delete).toHaveBeenCalledWith(name(current))
