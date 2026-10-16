@@ -196,6 +196,9 @@ function HydratedScannerAssistantPage({
       repairCompletedBatchAndRetry,
       bindCompletedResultToSelectedAccount,
       handOffFallbackJson,
+      canExportResult,
+      exportResult,
+      cancelResultRead: cancelScannerResultRead,
     },
   } = useScannerTargetBinding({
     account: { accountState, refreshAccounts, selectedAccount, newAccountName, selectedJson },
@@ -238,6 +241,7 @@ function HydratedScannerAssistantPage({
     inspectQuickFile?: (file: File) => Promise<void>,
   ) {
     if (!file || scannerBusy) return
+    cancelScannerResultRead()
     setAccountMessage('')
     filePendingRef.current = true
     setFilePending(true)
@@ -553,6 +557,7 @@ function HydratedScannerAssistantPage({
             refreshAccounts()
           }}
           onHandOffResult={() => void handOffResult()}
+          onExportResult={canExportResult ? exportResult : undefined}
           onBindCompletedResult={() => void bindCompletedResultToSelectedAccount()}
           onSetDiscardDraftConfirmationOpen={setDiscardDraftConfirmationOpen}
           onDiscardIncompleteDraftAndRetry={() => void discardIncompleteDraftAndRetry()}

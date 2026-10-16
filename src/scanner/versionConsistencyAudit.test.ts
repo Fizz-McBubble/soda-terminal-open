@@ -52,7 +52,7 @@ describe('versionConsistencyAudit (real consumer imports)', () => {
   it('verifies scanner installer naming logic with real production consumer', () => {
     // Verified with real scannerInstallerFileName function
     expect(scannerInstallerFileName(scannerInstallerManifest.version)).toBe(
-      'SodaTerminal-Scanner-Setup-1.1.8.exe',
+      'SodaTerminal-Scanner-Setup-1.1.9.exe',
     )
     expect(scannerInstallerFileName('1.0.8')).toBe('Soda-画面扫描-1.0.8.exe')
     expect(scannerInstallerFileName('1.0.9')).toBe('SodaTerminal-Scanner-Setup-1.0.9.exe')
@@ -80,7 +80,7 @@ describe('versionConsistencyAudit (real consumer imports)', () => {
         { ...scannerToolReleaseVersions, helper: '2.3.15' },
         scannerToolReleaseVersions,
       ),
-    ).toBe('画面扫描有新版本（v1.1.8），请更新。')
+    ).toBe('画面扫描有新版本（v1.1.9），请更新。')
 
     // Outdated scanner capture fork component triggers prompt
     expect(
@@ -88,7 +88,7 @@ describe('versionConsistencyAudit (real consumer imports)', () => {
         { ...scannerToolReleaseVersions, scanner: 'ZZZ-Scanner.Next-1.0.49-soda-r31' },
         scannerToolReleaseVersions,
       ),
-    ).toBe('画面扫描有新版本（v1.1.8），请更新。')
+    ).toBe('画面扫描有新版本（v1.1.9），请更新。')
 
     // When installer is omitted, notice lists specific outdated component labels
     expect(
@@ -136,7 +136,7 @@ describe('versionConsistencyAudit (real consumer imports)', () => {
     expect('1.2.0').not.toMatch(assetInstallerPattern)
     expect('2.0.0').not.toMatch(assetInstallerPattern)
 
-    // Screen scanner installer accepts the staged 1.1.8 release.
+    // Screen scanner installer accepts the staged 1.1.9 release.
     const screenInstallerPattern = new RegExp(
       scanFeedbackContract.screenScannerInstaller.versionPattern,
     )
@@ -150,11 +150,11 @@ describe('versionConsistencyAudit (real consumer imports)', () => {
     expect(assetQuickReadManifest.version).toMatch(/^\d+\.\d+\.\d+$/)
     expect(assetQuickReadManifest.bridgeVersion).toMatch(/^\d+\.\d+\.\d+$/)
 
-    // Scanner installer (1.1.8) vs Helper service (2.3.18) vs locked fork (1.0.49)
+    // Scanner installer (1.1.9) vs Helper service (2.3.18) vs locked fork (1.0.49)
     expect(scannerInstallerManifest.version).not.toBe(scannerInstallerManifest.helperVersion)
     expect(scannerInstallerManifest.helperVersion).not.toBe('1.0.49')
     expect(scannerRuntimeManifest.captureVersion).toMatch(/1\.0\.49/)
-    expect(scannerInstallerManifest.version).toBe('1.1.8')
+    expect(scannerInstallerManifest.version).toBe('1.1.9')
     expect(scannerInstallerManifest.helperVersion).toBe('2.3.18')
     expect(scannerRuntimeManifest.captureVersion).toBe('ZZZ-Scanner.Next-1.0.49-soda-r34')
 

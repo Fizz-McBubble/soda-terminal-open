@@ -229,7 +229,7 @@ it('keeps the released bridge version, final counts and timing through the cloud
     Date.parse('2026-10-11T00:03:00Z'),
   )
   expect(assetQuickReadRelease.bridgeVersion).toBe('1.0.10')
-  expect(assetQuickReadRelease.version).toBe('1.1.4')
+  expect(assetQuickReadRelease.version).toBe('1.1.5')
   expect(report).toMatchObject({
     versions: { bridge: '1.0.10', protocol: '1' },
     counts: { agents: 33, discs: 374 },

@@ -421,13 +421,8 @@ it.each([false, true])(
         />,
       ),
     )
-    if (workbench) {
-      expect(screen.queryByText(/恢复副本保留，不能直接覆盖/)).not.toBeInTheDocument()
-      expect(screen.queryByRole('button', { name: '恢复上次资产快读导入' })).not.toBeInTheDocument()
-    } else {
-      expect(screen.getByText(/恢复副本保留，不能直接覆盖/)).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: '恢复上次资产快读导入' })).toBeDisabled()
-    }
+    expect(screen.getByText(/恢复副本保留，不能直接覆盖/)).toBeVisible()
+    expect(screen.getByRole('button', { name: '恢复上次资产快读导入' })).toBeDisabled()
     expect(persistence.restore).not.toHaveBeenCalled()
   },
 )
@@ -552,6 +547,11 @@ it('imports the observed candidate directly once without a manual synchronizatio
     />,
   )
   await startAndReceive()
+  const impact = screen.getByText(
+    '导入会更新本次读到的代理人养成与驱动盘，之后仍可自行修改。导入前自动保存恢复副本；未读取的资产与盘标签保留。',
+  )
+  expect(impact).toBeVisible()
+  expect(screen.getByTestId('task')).toContainElement(impact)
   expect(screen.queryByRole('region', { name: '同步手动养成' })).not.toBeInTheDocument()
   expect(screen.queryByRole('checkbox', { name: /同时用本次读取值/ })).not.toBeInTheDocument()
   expect(

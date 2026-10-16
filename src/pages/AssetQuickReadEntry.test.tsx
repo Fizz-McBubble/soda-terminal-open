@@ -584,7 +584,7 @@ it('keeps idle preparation stable but removes unrelated controls once the inline
   expect(screen.getByRole('status')).toHaveTextContent('资产快读已就绪')
 })
 
-it('shows only counts for sixty agents and keeps explicit import and current undo', () => {
+it('shows counts and import impact for sixty agents and keeps explicit import and current undo', () => {
   const onImport = vi.fn()
   const props = {
     capability: 'ready' as const,
@@ -619,11 +619,13 @@ it('shows only counts for sixty agents and keeps explicit import and current und
           agentId: `synthetic-${i}`,
         })),
       }}
-      transactionNotice="重复的长事务说明"
+      transactionNotice="仅更新本次读取的资产；未读取的资产与盘标签保留，导入前保存恢复副本。"
     />,
   )
   expect(screen.queryByLabelText('游戏安装目录')).not.toBeInTheDocument()
-  expect(screen.queryByText('重复的长事务说明')).not.toBeInTheDocument()
+  expect(
+    screen.getByText('仅更新本次读取的资产；未读取的资产与盘标签保留，导入前保存恢复副本。'),
+  ).toBeVisible()
   expect(screen.getByText('60 位')).toBeVisible()
   expect(screen.getByText('12 张')).toBeVisible()
   expect(screen.queryByText('合成代理人')).not.toBeInTheDocument()

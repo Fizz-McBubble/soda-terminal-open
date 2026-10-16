@@ -585,7 +585,7 @@ function AccountBoundQuickRead({
     </>
   )
   const recovery =
-    recoveryNotice && !recoveryBusy && (!workbench || state === 'completed') ? (
+    recoveryNotice && !recoveryBusy && (!workbench || state === 'completed' || state === 'idle') ? (
       <AssetQuickReadRecovery
         key={`${targetAccountId}:${recoveryKey}`}
         mode={workbench ? 'current' : 'legacy'}
@@ -667,6 +667,14 @@ function AccountBoundQuickRead({
       }
       completionMessage={completion}
       completionActions={workbench && state === 'completed' ? recovery : undefined}
+      preparationRecovery={
+        workbench && state === 'idle' && recoveryNotice ? (
+          <>
+            <p>{recoveryNotice}</p>
+            {recovery}
+          </>
+        ) : undefined
+      }
       workbenchExtras={workbench ? taskExtras : undefined}
       pendingInspection={Boolean(workbench && operation === 'file')}
       renderParts={

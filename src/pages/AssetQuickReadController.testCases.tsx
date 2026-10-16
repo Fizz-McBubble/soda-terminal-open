@@ -124,7 +124,7 @@ export function registerAssetQuickReadControllerIdentityCases() {
     expect(persistence.restore).not.toHaveBeenCalled()
   })
 
-  it('reports connection in flight as busy without making it a task, and historical recovery stays internal without a workspace entry', async () => {
+  it('keeps historical recovery inside preparation and disables it during connection without making it a task', async () => {
     const harness = workbenchHarness()
     const client = bridge()
     let finish!: () => void
@@ -153,16 +153,63 @@ export function registerAssetQuickReadControllerIdentityCases() {
     expect(harness.read().recovery).toBeNull()
     expect(screen.getByTestId('recovery')).toBeEmptyDOMElement()
     expect(screen.queryByText('上次导入')).not.toBeInTheDocument()
-    expect(screen.queryByText(/已保存 .*资产快读导入恢复副本/)).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: '恢复上次资产快读导入' })).not.toBeInTheDocument()
+    expect(screen.getByText(/已保存 .*资产快读导入恢复副本/)).toBeVisible()
+    const restore = screen.getByRole('button', { name: '恢复上次资产快读导入' })
+    expect(screen.getByTestId('preparation')).toContainElement(restore)
+    expect(restore).toBeEnabled()
+    fireEvent.click(restore)
+    expect(persistence.restore).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: '取消恢复' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(persistence.restore).not.toHaveBeenCalled()
     expect(harness.read().hasTask).toBe(false)
     act(() => fireEvent.click(screen.getByRole('button', { name: '连接资产快读' })))
     expect(harness.read().busy).toBe(true)
     expect(harness.read().hasTask).toBe(false)
-    expect(screen.queryByRole('button', { name: '恢复上次资产快读导入' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '恢复上次资产快读导入' })).toBeDisabled()
     await act(async () => finish())
     expect(harness.read().busy).toBe(false)
     expect(harness.read().hasTask).toBe(false)
+    fireEvent.click(screen.getByRole('button', { name: '恢复上次资产快读导入' }))
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: '确认恢复到导入前' })))
+    expect(persistence.restore).toHaveBeenCalledExactlyOnceWith(
+      targetAccountId,
+      'saved-recovery',
+      'restore_asset_quick_read',
+    )
+  })
+
+  it('removes a historical recovery confirmation when the selected account changes', async () => {
+    const harness = workbenchHarness()
+    persistence.readRecovery.mockImplementation(async (accountId: string) =>
+      accountId === targetAccountId
+        ? { recoveryKey: 'saved-recovery', createdAt: '2026-10-10T00:00:00Z', canRestore: true }
+        : null,
+    )
+    const props = {
+      client: bridge(),
+      targetAccountId,
+      activeAccountId: targetAccountId,
+      workbench: harness.render,
+    }
+    let view!: ReturnType<typeof render>
+    await act(async () => {
+      view = render(<AssetQuickReadController {...props} />)
+    })
+    fireEvent.click(screen.getByRole('button', { name: '恢复上次资产快读导入' }))
+    await act(async () => {
+      view.rerender(
+        <AssetQuickReadController
+          {...props}
+          targetAccountId="other-account"
+          activeAccountId="other-account"
+        />,
+      )
+    })
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '恢复上次资产快读导入' })).not.toBeInTheDocument()
+    expect(persistence.restore).not.toHaveBeenCalled()
+    expect(persistence.readRecovery).toHaveBeenLastCalledWith('other-account')
   })
 
   it('blocks a reviewed candidate import and emits task start only for adopted new work', async () => {
@@ -280,7 +327,7 @@ export function registerAssetQuickReadControllerIdentityCases() {
     expect(persistence.prepare).not.toHaveBeenCalled()
   })
 
-  it('abandons only the candidate while retaining connected tools and internal historical recovery without displaying it', async () => {
+  it('abandons only the candidate while retaining connected tools and historical recovery in preparation', async () => {
     const harness = workbenchHarness()
     const client = bridge()
     persistence.readRecovery.mockResolvedValue({
@@ -306,7 +353,7 @@ export function registerAssetQuickReadControllerIdentityCases() {
     expect(harness.read().busy).toBe(false)
     expect(screen.getByLabelText('游戏安装目录')).toHaveValue("soda-source-ref:24d5780e541a1a1ad1393e8962be6e18")
     expect(screen.getByRole('button', { name: '一键读取' })).toBeEnabled()
-    expect(screen.queryByRole('button', { name: '恢复上次资产快读导入' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '恢复上次资产快读导入' })).toBeEnabled()
     expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: '一键读取' }))
     expect(screen.getByRole('checkbox', { name: /我已阅读上述风险/ })).not.toBeChecked()
@@ -390,7 +437,7 @@ export function registerAssetQuickReadControllerIdentityCases() {
     expect(screen.getByLabelText('游戏安装目录')).toHaveValue("soda-source-ref:24d5780e541a1a1ad1393e8962be6e18")
     expect(screen.getByRole('button', { name: '一键读取' })).toBeEnabled()
     expect(screen.getByRole('button', { name: '更新资产快读' })).toBeVisible()
-    expect(screen.queryByRole('button', { name: '恢复上次资产快读导入' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '恢复上次资产快读导入' })).toBeEnabled()
     expect(client.connect).toHaveBeenCalledOnce()
     expect(client.start).toHaveBeenCalledOnce()
     expect(client.cancel).not.toHaveBeenCalled()

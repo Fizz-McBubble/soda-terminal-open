@@ -32,6 +32,7 @@ export function ScannerHandoffSection({
   onReturnToTargetSelection,
   onImportSuccess,
   onHandOffResult,
+  onExportResult,
   onBindCompletedResult,
   onSetDiscardDraftConfirmationOpen,
   onDiscardIncompleteDraftAndRetry,
@@ -62,6 +63,7 @@ export function ScannerHandoffSection({
   onReturnToTargetSelection: () => void
   onImportSuccess: (imported: number) => void
   onHandOffResult: () => void
+  onExportResult?: () => void
   onBindCompletedResult: () => void
   onSetDiscardDraftConfirmationOpen: (open: boolean) => void
   onDiscardIncompleteDraftAndRetry: () => void
@@ -86,13 +88,25 @@ export function ScannerHandoffSection({
           compact
           scannerSnapshot={snapshot}
           secondaryAction={
-            <button
-              className="button button--quiet"
-              type="button"
-              onClick={onReturnToTargetSelection}
-            >
-              {sharedTargetSelection ? '放弃' : '返回准备，重新扫描'}
-            </button>
+            <>
+              {onExportResult && (
+                <button
+                  className="button button--quiet"
+                  type="button"
+                  disabled={handoffState.status === 'working'}
+                  onClick={onExportResult}
+                >
+                  导出
+                </button>
+              )}
+              <button
+                className="button button--quiet"
+                type="button"
+                onClick={onReturnToTargetSelection}
+              >
+                {sharedTargetSelection ? '放弃' : '返回准备，重新扫描'}
+              </button>
+            </>
           }
           onImportSuccess={onImportSuccess}
           onError={onImportError}

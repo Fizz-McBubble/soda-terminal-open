@@ -71,6 +71,7 @@ export interface AssetQuickReadEntryProps {
   preparationCondensed?: boolean
   onViewAssets?: () => void
   completionActions?: ReactNode
+  preparationRecovery?: ReactNode
   riskNoticeHref?: string
   installer?: ReactNode
   downloadAvailable?: boolean
@@ -142,6 +143,7 @@ export function AssetQuickReadEntry({
   blocked = false,
   onViewAssets,
   completionActions,
+  preparationRecovery,
   riskNoticeHref,
   installer,
   downloadAvailable = false,
@@ -532,7 +534,7 @@ export function AssetQuickReadEntry({
                   </ul>
                 </details>
               )}
-              {!renderParts && transactionNotice && <p>{transactionNotice}</p>}
+              {transactionNotice && <p>{transactionNotice}</p>}
               {!onImport && (
                 <p className="asset-quick-read__muted">当前导入尚未接通，可先核对结果。</p>
               )}
@@ -816,6 +818,7 @@ export function AssetQuickReadEntry({
                   {preparationActions}
                   {preparationTools}
                   {extras}
+                  {preparationRecovery}
                 </div>
               )}
             </section>

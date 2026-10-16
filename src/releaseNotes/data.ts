@@ -10,6 +10,19 @@ export interface ReleaseNote {
 // A local fix or commit is not a published release; add it when that release ships.
 export const releases = [
   {
+    id: '20261016-uninstall-and-import-consistency',
+    date: '2026-10-16',
+    scope: '两个导入与工具安装卸载',
+    title: '修复快读卸载，补齐导入恢复与导出',
+    changes: [
+      '资产快读安装器更新至1.1.5，画面扫描安装器更新至1.1.9；连接服务和扫描内核保持原版本，读取结果与旧安装包保留。',
+      '修正快读卸载对旧驱动文件占用的误判；未知进程、共享驱动与修改过的文件仍受保护。',
+      '统一两个工具的卸载确认、结果保留和完成操作；卸载失败可重试或反馈，安装成功后刷新版本显示。',
+      '快读导入前显示本次更新范围，重新进入页面可在原准备区恢复上次导入；恢复仍需明确确认。',
+      '画面扫描结果可导入、导出或放弃；导出保留原始识别结果，切换账户、取消或重新扫描后不沿用上一轮结果。',
+    ],
+  },
+  {
     id: '20261016-scan-replacement-and-local-service',
     date: '2026-10-16',
     scope: '扫描导入与资产快读',

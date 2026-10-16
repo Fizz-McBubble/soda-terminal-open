@@ -105,10 +105,24 @@ describe('OCR card result handoff', () => {
     expect(screen.getByText('冗长明细不应出现')).toBeInTheDocument()
   })
 
-  it('places discard beside the compact import action', () => {
+  it('places export and discard beside the compact import action and blocks export while checking', () => {
     const input = props()
-    render(<ScannerHandoffSection {...input} inlineImportOpen />)
+    const onExportResult = vi.fn()
+    const view = render(
+      <ScannerHandoffSection {...input} inlineImportOpen onExportResult={onExportResult} />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: '导出' }))
+    expect(onExportResult).toHaveBeenCalledOnce()
     fireEvent.click(screen.getByRole('button', { name: '放弃' }))
     expect(input.onReturnToTargetSelection).toHaveBeenCalledOnce()
+    view.rerender(
+      <ScannerHandoffSection
+        {...input}
+        inlineImportOpen
+        onExportResult={onExportResult}
+        handoffState={{ status: 'working', message: '正在检查' }}
+      />,
+    )
+    expect(screen.getByRole('button', { name: '导出' })).toBeDisabled()
   })
 })

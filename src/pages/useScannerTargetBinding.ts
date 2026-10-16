@@ -1,4 +1,5 @@
 import { createFrozenScannerTargetIssue } from './scannerAssistantTargetIssue'
+import { downloadJson } from '../components/accountRecoveryHelpers'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import {
   createPublicScannerAccount,
@@ -57,6 +58,13 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
     return result.valid ? result.binding : null
   })
   const readRef = useRef<AbortController | null>(null)
+  const [exportSource, setExportSource] = useState<{
+    json: string
+    accountId: string
+    generation: number
+    reportId: string | undefined
+    resultHandle: string | undefined
+  } | null>(null)
   const startingScanRef = useRef(false)
   const startPendingRef = useRef(false)
   const [startPending, setStartPending] = useState(false)
@@ -64,12 +72,15 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
   const readGenerationRef = useRef(0)
   const previousSnapshotRef = useRef(snapshot)
   const latestSnapshotRef = useRef(snapshot)
+  const latestExportAccountRef = useRef(accountState?.activeAccount?.id)
   useLayoutEffect(() => {
     latestSnapshotRef.current = snapshot
+    latestExportAccountRef.current = accountState?.activeAccount?.id
     if (snapshot.state === 'connection_failed') startingScanRef.current = false
-  }, [snapshot])
+  }, [snapshot, accountState?.activeAccount?.id])
 
   function cancelResultRead() {
+    setExportSource(null)
     readGenerationRef.current += 1
     bindingPendingRef.current = false
     readRef.current?.abort()
@@ -77,6 +88,11 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
   }
 
   useEffect(() => () => cancelResultRead(), [])
+  useLayoutEffect(() => {
+    // An externally changed recipient invalidates the pending read and its private source before paint.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    cancelResultRead()
+  }, [selectedAccount?.id])
   useEffect(() => {
     const previous = previousSnapshotRef.current
     previousSnapshotRef.current = snapshot
@@ -258,10 +274,13 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
     const controller = new AbortController()
     readRef.current = controller
     const sourceSnapshot = latestSnapshotRef.current
+    const generation = readGenerationRef.current
     let phase: 'read' | 'handoff' = 'read'
     function assertCurrent() {
       controller.signal.throwIfAborted()
       if (readRef.current !== controller) throw new DOMException('Cancelled', 'AbortError')
+      if (generation !== readGenerationRef.current)
+        throw new DOMException('Cancelled', 'AbortError')
       const current = latestSnapshotRef.current
       if (
         (sourceSnapshot.diagnostics?.reportId &&
@@ -291,6 +310,7 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
         return { result, staging }
       }, controller.signal)
       assertCurrent()
+      const sourceJson = JSON.stringify(staging)
       phase = 'handoff'
       setHandoffState({ status: 'working', message: '正在保存本次结果，尚未更新账户。' })
       const staged = await stageAccountPaddleScanImport(binding.accountId, staging, database)
@@ -325,6 +345,13 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
         staged.batch.reviewState.revision,
       )
       assertCurrent()
+      setExportSource({
+        json: sourceJson,
+        accountId: binding.accountId,
+        generation,
+        reportId: sourceSnapshot.diagnostics?.reportId,
+        resultHandle: sourceSnapshot.summary?.resultFileHandle,
+      })
       setPreparingAnotherScan(false)
       setInlineImportOpen(true)
       setHandoffState({
@@ -450,6 +477,30 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
     }
   }
 
+  const canExportResult = Boolean(
+    exportSource &&
+    exportSource.accountId === selectedAccount?.id &&
+    exportSource.accountId === accountState?.activeAccount?.id &&
+    exportSource.reportId === snapshot.diagnostics?.reportId &&
+    exportSource.resultHandle === snapshot.summary?.resultFileHandle &&
+    snapshot.state !== 'scanning' &&
+    handoffState.status !== 'working',
+  )
+  function exportResult() {
+    if (
+      !canExportResult ||
+      !exportSource ||
+      exportSource.accountId !== latestExportAccountRef.current ||
+      exportSource.generation !== readGenerationRef.current ||
+      exportSource.reportId !== latestSnapshotRef.current.diagnostics?.reportId ||
+      exportSource.resultHandle !== latestSnapshotRef.current.summary?.resultFileHandle ||
+      readRef.current ||
+      bindingPendingRef.current
+    )
+      return
+    downloadJson(JSON.parse(exportSource.json), 'Soda-画面扫描结果.json')
+  }
+
   return {
     binding: {
       targetBinding,
@@ -476,6 +527,9 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
       repairCompletedBatchAndRetry,
       bindCompletedResultToSelectedAccount,
       handOffFallbackJson,
+      canExportResult,
+      exportResult,
+      cancelResultRead,
     },
   }
 }
