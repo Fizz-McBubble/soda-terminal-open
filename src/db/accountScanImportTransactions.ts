@@ -191,23 +191,16 @@ export async function replaceReadyAccountScanStaging(
     throw new Error('必须先明确确认替换当前账户的正式驱动盘。')
   return db.transaction(
     'rw',
-    [
-      db.settings,
-      db.accountDriveDiscs,
-      db.accountScanImportBatches,
-      db.accountScanImportItems,
-      db.accountRosters,
-    ],
+    [db.settings, db.accountDriveDiscs, db.accountScanImportBatches, db.accountScanImportItems],
     async () => {
       await assertActiveAccountScope(accountId, db)
-      const [batch, items, existingDiscs, currentRoster] = await Promise.all([
+      const [batch, items, existingDiscs] = await Promise.all([
         db.accountScanImportBatches.where('[accountId+id]').equals([accountId, batchId]).first(),
         db.accountScanImportItems
           .where('[accountId+batchId]')
           .equals([accountId, batchId])
           .toArray(),
         db.accountDriveDiscs.where('accountId').equals(accountId).toArray(),
-        db.accountRosters.get(accountId),
       ])
       if (!batch) throw new Error('当前账号中不存在该复核批次。')
       const manifest = assertReadyScanReview(batch, items, {
@@ -244,14 +237,6 @@ export async function replaceReadyAccountScanStaging(
         throw new Error('稳定身份回接产生重复驱动盘 ID，事务未写入。')
 
       const replacementIds = new Set(replacementDiscs.map((disc) => disc.id))
-      if (
-        currentRoster?.roster.agents.some((agent) =>
-          agent.equippedDiscIds?.some((discId) => !replacementIds.has(discId)),
-        )
-      )
-        throw new Error(
-          '扫描结果缺少当前装备的驱动盘，请先核对当前装备或重新扫描；正式仓库未替换。',
-        )
       const replacedDiscs = existingDiscs
         .filter((disc) => !replacementIds.has(disc.id))
         .map((disc) => driveDiscSchema.parse(disc))

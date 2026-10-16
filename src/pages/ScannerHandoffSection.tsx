@@ -69,13 +69,16 @@ export function ScannerHandoffSection({
   sharedTargetSelection?: boolean
 }) {
   const discardTriggerRef = useRef<HTMLButtonElement>(null)
+  const canReloadIncompleteDraft =
+    handoffState.status === 'error' && handoffState.message.includes('不完整的同源识别结果')
+  const canRepairImportedDraft =
+    handoffState.status === 'error' && handoffState.message.includes('不完整扫描草稿包含已导入记录')
   return (
     <div className="scanner-web__handoff">
-      {handoffState.status === 'error' && (
-        <details className="scanner-handoff__issues" role="alert">
-          <summary>结果检查未完成 · 可重新检查</summary>
-          <p>{playerResultMessage(handoffState.message)}</p>
-        </details>
+      {handoffState.status === 'error' && !inlineImportOpen && (
+        <p className="danger-note" role="alert">
+          {playerResultMessage(handoffState.message)}
+        </p>
       )}
       {inlineImportOpen ? (
         <FormalDiscImportPage
@@ -295,10 +298,9 @@ export function ScannerHandoffSection({
         </p>
       ) : null}
       {handoffState.status === 'error' ? diagnosticFeedback : null}
-      {handoffState.status === 'error' && (
+      {(canReloadIncompleteDraft || canRepairImportedDraft) && (
         <div className="scanner-handoff__recovery-actions">
-          {handoffState.status === 'error' &&
-          handoffState.message.includes('不完整的同源识别结果') ? (
+          {canReloadIncompleteDraft ? (
             <>
               <button
                 ref={discardTriggerRef}
@@ -321,8 +323,7 @@ export function ScannerHandoffSection({
               />
             </>
           ) : null}
-          {handoffState.status === 'error' &&
-          handoffState.message.includes('不完整扫描草稿包含已导入记录') ? (
+          {canRepairImportedDraft ? (
             <button
               className="button button--quiet"
               type="button"

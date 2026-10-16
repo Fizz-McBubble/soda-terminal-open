@@ -284,9 +284,9 @@ describe('backup live-reference and legacy-core regression', () => {
     expect(batches[0]?.replacedDiscs?.[0]?.id).toBe(archived.id)
   })
 
-  it('rejects archive-only current equipment before replacement or recovery writes', async () => {
-    const { backup, archived, agent } = await backupWithArchivedDisc()
-    agent.equippedDiscIds = [archived.id]
+  it('rejects equipment absent from both live inventory and recoverable history before writes', async () => {
+    const { backup, agent } = await backupWithArchivedDisc()
+    agent.equippedDiscIds = ['missing-from-live-and-history']
     // Ensure the failure is the reference invariant, not malformed test data.
     expect(accountBackupSchema.safeParse(backup).success).toBe(true)
     const originalInput = structuredClone(backup)
@@ -326,6 +326,23 @@ describe('backup live-reference and legacy-core regression', () => {
     expect(await snapshotAccountState(target)).toEqual(before)
     expect(await readRestoreRecoveries(target)).toEqual(recoveries)
     expect(backup).toEqual(originalInput)
+  })
+
+  it('restores old equipment references as history without reviving discs removed by a full scan', async () => {
+    const { backup, archived, live, agent } = await backupWithArchivedDisc()
+    agent.equippedDiscIds = [archived.id]
+    expect(preflightAccountBackup(backup).success).toBe(true)
+    const target = createDatabase()
+    await restoreAccountBackup(backup, target)
+    expect((await target.accountDriveDiscs.toArray()).map((disc) => disc.id)).toEqual([live.id])
+    expect(
+      (await target.accountRosters.get(backup.account.id))!.roster.agents.find(
+        (row) => row.agentId === agent.agentId,
+      )!.equippedDiscIds,
+    ).toEqual([archived.id])
+    expect((await target.accountScanImportBatches.toArray())[0]!.replacedDiscs?.[0]?.id).toBe(
+      archived.id,
+    )
   })
 
   it('retains historical saved-plan archive references without making their discs live', async () => {

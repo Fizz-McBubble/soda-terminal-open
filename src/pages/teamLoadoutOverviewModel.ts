@@ -106,6 +106,7 @@ export function familyFromVariants(
 export function projectTargetTeamFitsIntoOverviewModel(
   model: TeamLoadoutOverviewModel,
   targetTeamFits: Readonly<Record<string, TargetTeamWarehouseFitQueryResult>>,
+  warehouse?: CoreWarehouse,
 ): TeamLoadoutOverviewModel {
   const fits = Object.values(targetTeamFits)
   if (!fits.length) return model
@@ -131,7 +132,7 @@ export function projectTargetTeamFitsIntoOverviewModel(
             ? fits.find((candidate) => exactMembersKey(candidate.memberIds) === memberKey)
             : undefined)
         if (!fit) return variant
-        const summary = presentTeamExecutionSummary(fit.targetExecution)
+        const summary = presentTeamExecutionSummary(fit.targetExecution, warehouse)
         const concreteGaps = [...fit.warehousePlan.gaps, ...fit.targetExecution.blockers].map(
           playerFacingExecutionBlocker,
         )

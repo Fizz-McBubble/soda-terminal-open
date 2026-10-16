@@ -103,6 +103,23 @@ describe('compact OCR import preflight', () => {
     expect(mocks.replace).not.toHaveBeenCalled()
   })
 
+  it('blocks repeated import after a transaction failure and requires explicit rechecking', async () => {
+    const current = pending()
+    current.batch.reviewState.preflight = 'complete'
+    mocks.current = current
+    mocks.replace.mockRejectedValue(new Error('当前装备无法与扫描结果唯一对应'))
+    mocks.preflight.mockResolvedValue({ complete: true })
+    render(page())
+    fireEvent.click(screen.getByRole('button', { name: '导入' }))
+    expect(await screen.findByRole('alert')).toHaveTextContent('当前装备无法与扫描结果唯一对应')
+    expect(screen.getByRole('button', { name: '导入' })).toBeDisabled()
+    expect(mocks.preflight).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: '重新检查' }))
+    await waitFor(() => expect(screen.getByRole('button', { name: '导入' })).toBeEnabled())
+    expect(mocks.preflight).toHaveBeenCalledOnce()
+    expect(mocks.replace).toHaveBeenCalledOnce()
+  })
+
   it.each(['missing', 'duplicate'])(
     'does not preflight or write a %s source record set',
     async (issue) => {

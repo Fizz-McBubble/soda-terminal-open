@@ -74,8 +74,20 @@ describe('OCR card result handoff', () => {
     fireEvent.click(screen.getByRole('button', { name: '重新检查' }))
     expect(input.onHandOffResult).toHaveBeenCalledOnce()
     expect(screen.getByRole('alert')).toHaveTextContent('读取失败')
-    expect(screen.getByRole('alert')).not.toHaveAttribute('open')
-    expect(screen.getByText('结果检查未完成 · 可重新检查')).toBeVisible()
+    expect(screen.getByRole('alert').tagName).toBe('P')
+    expect(document.querySelector('.scanner-handoff__recovery-actions')).toBeNull()
+  })
+
+  it('leaves an inline import failure in its form without a second error block', () => {
+    const input = props()
+    input.handoffState = { status: 'error', message: '更新失败，请重试' }
+    input.diagnosticFeedback = <span>发送本次诊断</span>
+    render(<ScannerHandoffSection {...input} inlineImportOpen />)
+    expect(screen.getByText('一次导入区域')).toBeVisible()
+    expect(screen.queryByText('更新失败，请重试')).not.toBeInTheDocument()
+    expect(document.querySelector('details')).toBeNull()
+    expect(document.querySelector('.scanner-handoff__recovery-actions')).toBeNull()
+    expect(screen.getByText('发送本次诊断')).toBeVisible()
   })
 
   it('retains calibration details and the guarded review action for abnormal results', () => {

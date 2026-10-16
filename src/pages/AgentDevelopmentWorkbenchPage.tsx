@@ -272,8 +272,13 @@ export function AgentDevelopmentWorkbenchPage() {
   const candidateChoices = candidateLoadout?.discs ?? []
   const hasComparablePlan = candidateChoices.length === 6
   const currentDiscIds = agent.equippedDiscIds ?? []
+  const currentDiscs = data.discs.filter((disc) => currentDiscIds.includes(disc.id))
   const replacementCount =
-    hasComparablePlan && currentDiscIds.length === 6
+    hasComparablePlan &&
+    currentDiscIds.length === 6 &&
+    new Set(currentDiscIds).size === 6 &&
+    currentDiscs.length === 6 &&
+    new Set(currentDiscs.map((disc) => disc.slot)).size === 6
       ? candidateChoices.filter((choice) => !currentDiscIds.includes(choice.disc.id)).length
       : undefined
   const selectedDiscIds = hasComparablePlan

@@ -39,6 +39,8 @@ test('same-version repair and classified service failures survive reception and 
     'installed_repair_switch_unavailable',
     'installed_repair_restore_conflict',
     'installed_version_path_conflict',
+    'uninstaller_service_stop_failed',
+    'uninstaller_files_in_use',
   ]
   for (const code of codes) {
     let stored
@@ -50,7 +52,12 @@ test('same-version repair and classified service failures survive reception and 
         },
       },
     })
-    const report = { ...validReport, installerVersion: '1.1.2', stage: 'failed', code }
+    const report = {
+      ...validReport,
+      installerVersion: '1.1.3',
+      stage: code.startsWith('uninstaller_') ? 'uninstall' : 'failed',
+      code,
+    }
     const response = await receiver(
       new Request('https://sodaterminal.com/_soda/scan-feedback', {
         method: 'POST',

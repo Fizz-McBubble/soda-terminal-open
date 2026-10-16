@@ -252,7 +252,11 @@ describe('private team presentation Query result', () => {
       fitCandidateIds: [fit.candidateId],
     })
     expect(fitOverview.overviewModel).toEqual(
-      projectTargetTeamFitsIntoOverviewModel(overview.overviewModel, { exact: fit }),
+      projectTargetTeamFitsIntoOverviewModel(
+        overview.overviewModel,
+        { exact: fit },
+        run.input.warehouse,
+      ),
     )
     const presentation = projectPrivateTeamExecution(run, fit)
     const serializedFit = JSON.parse(JSON.stringify(presentation)) as unknown
@@ -288,6 +292,23 @@ describe('private team presentation Query result', () => {
         memberIds: fit.memberIds,
       }),
     ).toBeNull()
+    expect(JSON.stringify(request.input.warehouse)).toBe(before)
+    const archivedFit = structuredClone(fit)
+    archivedFit.targetExecution.members = archivedFit.targetExecution.members.map((member) => ({
+      ...member,
+      current: {
+        ...member.current,
+        discIds: Array.from({ length: 6 }, (_, index) => `archived-${member.agentId}-${index}`),
+      },
+      actions: [{ kind: 'keep_current_build', agentId: member.agentId }],
+    }))
+    const archivedOverview = projectPrivateTeamOverview(run, undefined, undefined, [archivedFit])
+    const archivedVariant = archivedOverview.overviewModel.groups
+      .flatMap((group) => group.items.flatMap((family) => family.variants))
+      .find((item) => item.detailCandidateId === variant.detailCandidateId)
+    expect(archivedVariant?.readiness).toContain('当前装备记录待更新')
+    expect(archivedVariant?.executionStatus).toBe('adjust')
+    expect(archivedVariant?.primaryActions?.join(' ')).not.toContain('保持')
     expect(JSON.stringify(request.input.warehouse)).toBe(before)
     localCalculationQueryClient.releaseAccountDecisionRun?.(run.runId)
   }, 60_000)

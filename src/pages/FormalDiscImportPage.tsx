@@ -72,6 +72,17 @@ export function FormalDiscImportPage({
     () => loadFormalImportCurrent(successSampleMode),
     [revision, successSampleMode],
   )
+  const preflightKey =
+    current && !('bindingError' in current)
+      ? JSON.stringify([
+          current.account.id,
+          current.batch?.id,
+          current.batch?.reviewState.revision,
+          current.batch?.manifest?.payloadHash,
+          current.resultFileHandle,
+        ])
+      : ''
+  const currentImportError = state.mode === 'error' && stateKey === preflightKey
 
   const expectedTotal =
     current && !('bindingError' in current)
@@ -90,6 +101,7 @@ export function FormalDiscImportPage({
     !current.summary.duplicate
   const readyForConfirmation =
     readyForPreflight &&
+    !currentImportError &&
     current?.summary.ready === expectedTotal &&
     current.summary.needsReview === 0 &&
     current.batch?.reviewState.preflight === 'complete' &&
@@ -114,16 +126,6 @@ export function FormalDiscImportPage({
       ? expectedTotal
       : null
   })()
-  const preflightKey =
-    current && !('bindingError' in current)
-      ? JSON.stringify([
-          current.account.id,
-          current.batch?.id,
-          current.batch?.reviewState.revision,
-          current.batch?.manifest?.payloadHash,
-          current.resultFileHandle,
-        ])
-      : ''
   const latestPreflightKey = useRef(preflightKey)
   useLayoutEffect(() => {
     latestPreflightKey.current = preflightKey
@@ -133,6 +135,7 @@ export function FormalDiscImportPage({
     embedded &&
       compact &&
       readyForPreflight &&
+      !currentImportError &&
       !readyForConfirmation &&
       completedImportedTotal === null,
     busy,
@@ -418,7 +421,7 @@ export function FormalDiscImportPage({
         ready={readyForConfirmation}
         complete={readyForPreflight}
         busy={busy}
-        error={state.mode === 'error' && stateKey === preflightKey}
+        error={currentImportError}
         message={state.message}
         secondaryAction={secondaryAction}
         onImport={() => void confirmImport()}

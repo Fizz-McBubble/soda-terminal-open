@@ -214,7 +214,6 @@
 }
 .f5v-shell .scanner-workbench .scanner-prepare__observations,
 .f5v-shell .scanner-workbench .scanner-import-review__issues,
-.f5v-shell .scanner-workbench .scanner-handoff__issues,
 .f5v-shell .scanner-workbench .asset-quick-read__failure {
   margin: 0 0 16px;
   padding: 10px 12px;
@@ -226,12 +225,7 @@
 }
 .f5v-shell
   .scanner-workbench
-  :is(
-    .scanner-prepare__observations,
-    .scanner-import-review__issues,
-    .scanner-handoff__issues,
-    .asset-quick-read__failure
-  )
+  :is(.scanner-prepare__observations, .scanner-import-review__issues, .asset-quick-read__failure)
   > summary {
   cursor: pointer;
   font-size: var(--soda-font-body);

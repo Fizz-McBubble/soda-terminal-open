@@ -88,8 +88,9 @@ export function preflightAccountBackup(input: unknown): AccountBackupPreflight {
   }
   for (const agent of backup.data.roster?.agents ?? []) {
     for (const discId of agent.equippedDiscIds ?? []) {
-      // Only live discs are restored into the warehouse; archived records are history only.
-      if (!liveDiscIds.has(discId)) errors.push('一位代理人的当前装备不在该备份范围内。')
+      // A full scan can replace inventory without observing the old equipment.
+      // Keep its reference recoverable; only live discs are usable as current gear.
+      if (!discIds.has(discId)) errors.push('一位代理人的当前装备不在该备份范围内。')
     }
   }
   const planningDiscIds = backup.data.planningDrafts.flatMap(

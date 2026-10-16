@@ -212,8 +212,12 @@
 }
 .f5v-shell .scanner-workbench .scanner-web__handoff {
   align-items: stretch;
+  flex-wrap: nowrap;
   width: 100%;
   max-width: none;
+}
+.f5v-shell .scanner-workbench .scanner-web__handoff > :not(button) {
+  flex: 0 0 auto;
 }
 .f5v-shell
   .scanner-workbench

@@ -113,14 +113,24 @@ export function displayDiscMainValue(disc: DriveDisc) {
   return displayDiscMainValueWithRules(disc, driveDiscData?.rules)
 }
 
-function hasCompleteCurrentDiscRecord(member: TeamExecutionMember) {
-  return member.current.discIds.length === 6 && new Set(member.current.discIds).size === 6
+function hasCompleteCurrentDiscRecord(member: TeamExecutionMember, discs: DriveDisc[]) {
+  const current = discs.filter((disc) => member.current.discIds.includes(disc.id))
+  return (
+    member.current.discIds.length === 6 &&
+    new Set(member.current.discIds).size === 6 &&
+    current.length === 6 &&
+    new Set(current.map((disc) => disc.slot)).size === 6
+  )
 }
 
-function stateForDisc(member: TeamExecutionMember, discId: string): TeamExecutionDiscState {
+function stateForDisc(
+  member: TeamExecutionMember,
+  discId: string,
+  discs: DriveDisc[],
+): TeamExecutionDiscState {
   // A partial account record cannot establish a replacement diff. Keep the saved
   // scheme visible as a recorded loadout instead of calling every disc a change.
-  if (!hasCompleteCurrentDiscRecord(member)) return 'recorded'
+  if (!hasCompleteCurrentDiscRecord(member, discs)) return 'recorded'
   if (member.current.discIds.includes(discId)) return 'keep'
   if (
     member.actions.some(
@@ -131,15 +141,21 @@ function stateForDisc(member: TeamExecutionMember, discId: string): TeamExecutio
   return 'change'
 }
 
-function actionLine(action: TeamExecutionAction, member: TeamExecutionMember) {
+function actionLine(
+  action: TeamExecutionAction,
+  member: TeamExecutionMember,
+  currentDiscsKnown = true,
+) {
   const agentName = getAgentName(action.agentId)
   switch (action.kind) {
     case 'keep_current_build':
-      return `保持 ${agentName} 当前配装`
+      return currentDiscsKnown ? `保持 ${agentName} 当前配装` : `为 ${agentName} 使用方案配装`
     case 'change_w_engine':
       return `为 ${agentName} 更换为 ${suggestedWEngineName(member)}`
     case 'change_discs':
-      return `为 ${agentName} 更换 ${action.equipDiscIds.length} 张驱动盘`
+      return currentDiscsKnown
+        ? `为 ${agentName} 更换 ${action.equipDiscIds.length} 张驱动盘`
+        : `为 ${agentName} 配置 ${action.equipDiscIds.length} 张方案盘`
     case 'borrow_w_engine':
       return `${agentName} 借用 ${getAgentName(action.fromAgentId)} 当前音擎`
     case 'borrow_discs':
@@ -201,13 +217,30 @@ function statusFor(execution: TeamExecution): TeamExecutionPlayerStatus {
 
 export function presentTeamExecutionSummary(
   execution: TeamExecution,
+  warehouse?: CoreWarehouse,
 ): TeamExecutionSummaryPresentation {
-  const status = statusFor(execution)
-  const copy = statusCopy(status)
+  const currentEquipmentMissing =
+    warehouse &&
+    execution.members.some((member) => !hasCompleteCurrentDiscRecord(member, warehouse.discs))
+  const priorStatus = statusFor(execution)
+  const status = currentEquipmentMissing && priorStatus === 'direct' ? 'adjust' : priorStatus
+  const copy =
+    currentEquipmentMissing && execution.status === 'ready'
+      ? {
+          ...statusCopy(status),
+          headline: '方案装备已配齐；当前装备记录待更新，请按方案配置。',
+        }
+      : statusCopy(status)
   const allActions = [
     ...new Set(
       execution.members.flatMap((member) =>
-        member.actions.map((action) => actionLine(action, member)),
+        member.actions.map((action) =>
+          actionLine(
+            action,
+            member,
+            warehouse ? hasCompleteCurrentDiscRecord(member, warehouse.discs) : true,
+          ),
+        ),
       ),
     ),
   ]
@@ -297,7 +330,7 @@ function memberPresentation(
       {
         ...fact,
         conflicts: referenceOwnersForDisc(discId),
-        state: stateForDisc(member, discId),
+        state: stateForDisc(member, discId, warehouse.discs),
       } satisfies TeamExecutionDiscPresentation,
     ]
   })
@@ -309,7 +342,7 @@ function memberPresentation(
     agentName: getAgentName(member.agentId),
     statusLabel:
       member.status === 'ready'
-        ? !hasCompleteCurrentDiscRecord(member)
+        ? !hasCompleteCurrentDiscRecord(member, warehouse.discs)
           ? '配装已齐'
           : member.actions.some((action) => action.kind === 'keep_current_build')
             ? '保持当前配装'
@@ -317,7 +350,9 @@ function memberPresentation(
         : member.status === 'needs_confirmation'
           ? '待确认音擎参数'
           : '配装未完成',
-    actionLines: member.actions.map((action) => actionLine(action, member)),
+    actionLines: member.actions.map((action) =>
+      actionLine(action, member, hasCompleteCurrentDiscRecord(member, warehouse.discs)),
+    ),
     currentWEngineId: resolution.current?.engineId ?? null,
     suggestedWEngineId: suggested?.engineId ?? null,
     currentWEngineLabel: resolution.current?.name ?? '未记录音擎',
@@ -348,7 +383,7 @@ export function presentTeamExecution(
   warehouse: CoreWarehouse,
   allocation: readonly AccountLoadout[] = [],
 ): TeamExecutionPresentation {
-  const summary = presentTeamExecutionSummary(execution)
+  const summary = presentTeamExecutionSummary(execution, warehouse)
   const members = orderTeamMembers(
     execution.members,
     (member) => member.agentId,

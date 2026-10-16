@@ -430,11 +430,14 @@
       "verify",
       "register",
       "service_start",
+      "uninstall",
       "failed"
     ],
     "codes": [
       "installer_access_denied",
       "installer_local_operation_failed",
+      "uninstaller_service_stop_failed",
+      "uninstaller_files_in_use",
       "local_service_bind_or_identity_unavailable",
       "local_service_identity_unavailable",
       "local_service_port_conflict",

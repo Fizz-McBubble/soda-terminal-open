@@ -55,6 +55,7 @@ export function projectPrivateTeamOverview(
         contextDiscId: context.discId,
       }),
       Object.fromEntries(fits.map((fit, index) => [String(index), fit])),
+      warehouse,
     ),
   }
 }

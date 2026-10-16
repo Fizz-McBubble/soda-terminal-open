@@ -10,6 +10,19 @@ export interface ReleaseNote {
 // A local fix or commit is not a published release; add it when that release ships.
 export const releases = [
   {
+    id: '20261016-scan-replacement-and-local-service',
+    date: '2026-10-16',
+    scope: '扫描导入与资产快读',
+    title: '修复扫描覆盖、结果布局及旧服务切换',
+    changes: [
+      '完整画面扫描按本次结果覆盖驱动盘仓库，不再因旧装备未出现在新结果中而阻止导入；未匹配旧盘留在可恢复历史，不混入新库存。',
+      '移除结果区域新增的重复失败块和空白侧栏，保留原卡片内的导入与放弃；失败后可手动重新检查，避免自动重复检查。',
+      '修复历史装备引用的备份恢复；当前面板和换装数量只使用当前仓库中实际存在的完整装备。',
+      '资产快读安装器更新至1.1.4，连接服务为1.0.10；升级、修复和卸载统一识别备用地址上的已确认旧服务，卸载前检查文件占用并提供明确恢复提示。',
+      '快读继续更新本次已读取的资产与养成，未读取到的旧资产保留；读取结果、未知文件和旧版安装包继续保留。',
+    ],
+  },
+  {
     id: '20261016-startup-and-installation-recovery',
     date: '2026-10-16',
     scope: '页面加载与资产快读',
