@@ -8,6 +8,21 @@ import { browserCalculationInputFingerprint as fingerprint } from './browserCalc
 import { projectRemoteAccountDecisionInput } from './remoteCalculationInput'
 
 describe('browser calculation fact coverage', () => {
+  it('preserves explicit unknown engine breakthrough through JSON transport and repeated projection', () => {
+    const value = ascensionInput()
+    const agent = ascensionAgent(value)
+    agent.wEngineDetails.ascension = null
+    const before = JSON.stringify(value)
+    const projected = projectRemoteAccountDecisionInput(value)
+    const transported = JSON.parse(JSON.stringify(projected)) as typeof projected
+    expect(ascensionAgent(transported).wEngineDetails.ascension).toBeNull()
+    expect(
+      ascensionAgent(projectRemoteAccountDecisionInput(transported)).wEngineDetails.ascension,
+    ).toBeNull()
+    expect(ascensionAgent(transported)).not.toHaveProperty('observedFacts')
+    expect(ascensionAgent(transported).wEngineDetails).not.toHaveProperty('manualProgression')
+    expect(JSON.stringify(value)).toBe(before)
+  })
   it('projects unknown equipment progression and detects same-value manual confirmation without exporting provenance', () => {
     const value = ascensionInput()
     const agent = ascensionAgent(value)

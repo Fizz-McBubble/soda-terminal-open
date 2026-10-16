@@ -185,7 +185,7 @@
     "compatible_anomaly_proficiency_capability",
     "compatible_anomaly_mastery_capability"
   ],
-  "mechanicDataFingerprint": "fnv1a-f71308b7",
+  "mechanicDataFingerprint": "fnv1a-495388c9",
   "referenceConditionsIdentity": "fnv1a-da92bcd2",
   "conditionAlignment": {
     "status": "declared_standard_reference",
@@ -470,7 +470,7 @@
     "src/application/localTargetTeamPlayerSelection.ts": "1df5d1a723ce6ebeeb89ddc8f2ffe3b835167556495f838d5c31b0298514343f",
     "src/application/publicCalculationTransport.ts": "a2ce580d0e1de9a5296152a4dd167a3286e74ac12dcb3224599f8f14990662d1",
     "src/application/publicCalculationPlanTransport.ts": "61cf935c62484d7ca71d3cbd2546c469347edf33815d8d486ffbaf0df00a6b94",
-    "src/application/remoteCalculationInput.ts": "5e74608b6750b0cc43f60745b51a6efb13115e9636110b5222f1b489b048e7ab",
+    "src/application/remoteCalculationInput.ts": "3d11320079d50397a34fa167e1cc454221969efdaabe8a389610b1a673db1886",
     "src/application/remoteCalculationProtocol.ts": "06c20b7c9b9d2aa887a9d87d202cd69db2635624209f63f2f03a6b58accce3d2",
     "src/application/publicSavedTeamReplay.ts": "0dc6e42f5a2b634a7665f386501304c4d13bd1f1118e174107b78464cb2d8680",
     "src/application/accountDecisionWorldHooks.ts": "31662df8175352ef0e3be8d4decac60bfc58df340bcd006d53f8338048dda80c",

@@ -85,7 +85,11 @@ export function projectRemoteAccountDecisionInput(
               id: agent.wEngineDetails.id,
               name: null,
               level: currentEngineKnown ? agent.wEngineDetails.level : null,
-              ascension: currentEngineKnown ? agent.wEngineDetails.ascension : undefined,
+              // Explicit unknown is a calculation fact; only unconfirmed retained numbers vanish.
+              ascension:
+                currentEngineKnown || agent.wEngineDetails.ascension === null
+                  ? agent.wEngineDetails.ascension
+                  : undefined,
               refinement: currentEngineKnown ? agent.wEngineDetails.refinement : null,
             },
             wEngineCopyId: currentEngineKnown ? agent.wEngineCopyId : null,

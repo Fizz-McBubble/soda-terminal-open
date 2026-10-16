@@ -1,5 +1,5 @@
 import './AgentLoadoutComparisonPage.testMock'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { AgentDevelopmentGolden } from '../features/agentDevelopmentGolden'
@@ -104,9 +104,9 @@ describe('golden warehouse comparison adapter', () => {
     expect(table).toHaveTextContent('630')
     expect(screen.getByRole('cell', { name: '生命值' })).not.toHaveTextContent('参考')
     expect(screen.getByRole('cell', { name: '防御力' })).not.toHaveTextContent('参考')
-    expect(table).toHaveTextContent('参考')
+    expect(table).toHaveTextContent('毕业推荐')
     expect(table).not.toHaveTextContent('攻略参考')
-    expect(table).not.toHaveTextContent('毕业推荐')
+    expect(table).not.toHaveTextContent('参考')
   })
   it('keeps a generated six-disc candidate saveable without a recorded game loadout', async () => {
     const save = vi.fn().mockResolvedValue(undefined)
@@ -295,7 +295,9 @@ describe('golden warehouse comparison adapter', () => {
     expect(screen.getByLabelText('当前方案操作')).toHaveTextContent(
       '按代表动作近似比较，部分效果可能未计入。',
     )
-    expect(screen.getByLabelText('当前方案操作')).not.toHaveTextContent('推荐')
+    expect(
+      within(screen.getByLabelText('当前方案操作')).queryByText(/^推荐(?:方案)?$/),
+    ).not.toBeInTheDocument()
     expect(screen.getByLabelText('当前方案操作')).toHaveTextContent('6号位：冲击力（建议异常掌控）')
     expect(screen.getByRole('navigation', { name: '仓库方案比较' })).not.toHaveTextContent(
       '6号位：冲击力（建议异常掌控）',
@@ -386,7 +388,9 @@ describe('golden warehouse comparison adapter', () => {
     expect(screen.queryByText('6 张替换')).not.toBeInTheDocument()
     expect(screen.queryByText('需替换')).not.toBeInTheDocument()
     expect(screen.getByText('六张驱动盘的副词条合计，不含主词条和套装效果。')).toBeInTheDocument()
-    expect(screen.queryByText(/攻略参考|毕业推荐/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/攻略参考/)).not.toBeInTheDocument()
+    expect(screen.getAllByText('毕业推荐', { exact: true })).toHaveLength(5)
+    expect(screen.getByRole('table', { name: '副词条合计' })).not.toHaveTextContent('3000')
     expect(screen.queryByRole('button', { name: '查看全部属性（5）' })).not.toBeInTheDocument()
     expect(screen.getByRole('cell', { name: '穿透值' })).toBeInTheDocument()
     const saveButton = screen.getByRole('button', { name: '保存为养成方案' })

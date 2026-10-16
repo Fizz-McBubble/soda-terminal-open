@@ -89,8 +89,8 @@
   },
   "runtimeFingerprints": {
     "roster": "fnv1a-9efb366c",
-    "mechanicData": "fnv1a-f71308b7",
-    "strengthModel": "fnv1a-c998add4"
+    "mechanicData": "fnv1a-495388c9",
+    "strengthModel": "fnv1a-54e55155"
   },
   "inputFiles": {
     "scripts/current31-team-intrinsic-index-inputs.mjs": "321fd99fe12798bb3f143b5508a040e40dfef86962eb33ce0f0994c3dae2273c",
@@ -365,7 +365,7 @@
     "src/gameDataPacks/generated/l3-b04c7cc7ac8ad6279074/agentDevelopmentEvidence.ts": "398ab2d90d4cd03f14147f17e5dc194908fca21069860604ccb802423c65c57e",
     "src/gameDataPacks/generated/l3-b04c7cc7ac8ad6279074/noncharacterMiyousheSidecar.ts": "4262f265b1a1d6f04532eb9a7b013533ae86172bdf628fc6c0e4f01a8505cc97",
     "src/gameDataPacks/generated/l3AgentDevelopmentEvidenceTypes.ts": "c7f7f9a523b4cb13e89f6e10ff8a1d3e191f9ebc71d79fd7258f389178d1361d",
-    "src/gameDataPacks/generated/team-strength-model.3.1.json": "6c27dd89a577c06aa81382fcf865b6e197275f93ffccda779283c97396257539",
+    "src/gameDataPacks/generated/team-strength-model.3.1.json": "620fcdb631ff35a98758bb2a6148c5aa8150f2a5251a4ebe974b6208cd0e207f",
     "src/gameDataPacks/incremental32AffectedCapabilities.ts": "a5529991289cedad4b76190d8b371b0e3eaa107173dc944300e86102033a038a",
     "src/gameDataPacks/incremental32RecoveryPolicy.ts": "de008b796842d6448828b7a3eb7ffc757c56260459cf8fe94ae338163a2eaf9c",
     "src/gameDataPacks/l3BoxTeamTemplateProjection.ts": "a121b90bc80f11b01245a72d6dd24a0bd54947b415bbe2cf11c9b85b0b1de404",
@@ -34670,5 +34670,5 @@
     [57, 58, 59, 0, 3, 2, 77, 1, 0, 4, 0]
   ],
   "boundary": "Build-time exact-three intrinsic summaries only. Account assets, preferences, Bangboo selection, evidence objects and final recommendations remain runtime projections.",
-  "contentHash": "fnv1a-df011869"
+  "contentHash": "fnv1a-55d81297"
 }
