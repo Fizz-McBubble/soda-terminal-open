@@ -8,7 +8,7 @@ import { createAccount, setActiveAccount } from '../accounts/repository'
 import { database } from '../db/database'
 import { refreshScanBatchManifestPayloadHash } from '../domain/scanImportStaging'
 import { sanitizeScanFeedbackPayload } from '../../deploy/cloudflare/scan-feedback.mjs'
-import { lastScanDiagnosticKey } from '../scanner/scanFeedback'
+import { lastScanDiagnosticKey, readScanFeedbackReceipt } from '../scanner/scanFeedback'
 import {
   createScannerTargetAccountBinding,
   saveScannerTargetAccountBinding,
@@ -217,8 +217,14 @@ describe('completed scan with rejected OCR records', () => {
         /private-unrecognized-name|98765|account-review-test|detailPath|rawText/,
       )
       expect(JSON.parse(localStorage.getItem(lastScanDiagnosticKey)!)).toMatchObject(requests[1])
+      expect(
+        readScanFeedbackReceipt(JSON.parse(localStorage.getItem(lastScanDiagnosticKey)!)),
+      ).toMatchObject({ receivedAt: '2026-10-09T12:00:00.000Z' })
       view.unmount()
       render(<App />)
+      // Remount first rehydrates the account and scan staging. Wait for that existing route
+      // readiness signal before asserting the receipt; a missing receipt must still fail.
+      await screen.findByText(new RegExp(`${blocked} 张需要校准`), {}, { timeout: 10_000 })
       await waitFor(() => expect(screen.getByRole('button', { name: '已反馈' })).toBeDisabled())
       expect(requests).toHaveLength(2)
       expect(await database.accounts.toArray()).toEqual(before)

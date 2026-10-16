@@ -1420,7 +1420,7 @@
     "src/pages/scannerAssistantBindingOptions.ts": "d0a6c4a7b0f02302c51b9e7ddcb09c87ea1e4b9ea8c26a2156e5ca241b995059",
     "src/pages/scannerAssistantCompletedResultTests.tsx": "767292cb4181fa4354ebd24381df9b29811eb81153d0ecc2105f0b45fafb4073",
     "src/pages/ScannerAssistantPage.calibration.test.tsx": "559eee6ce40b55f6b134534b51b9fe00d50356f39a9f5c021254c9042a9b33b1",
-    "src/pages/ScannerAssistantPage.import-review.test.tsx": "57e19e5bff908f7a635c6dfcfac30b9c5f94c8b821ecaee687b94ea6918d606c",
+    "src/pages/ScannerAssistantPage.import-review.test.tsx": "5fd05f9e231fa477783cf19c4c27dca44ed3a1e0accbf581d775489be6b1d286",
     "src/pages/ScannerAssistantPage.navigation.test.tsx": "a3b8e9ee151905d4563e28afafb985d1bdc60751c552def4872e1675c7f08e63",
     "src/pages/ScannerAssistantPage.rescan.test.tsx": "a2084f6758e490dd2f1c5539f28c0e309fbf22b9961796aceb902d78dd515f10",
     "src/pages/ScannerAssistantPage.test.tsx": "6ca1583ec26f7221fbda5dfd514ef5f61a489e439e3cee46a5db09b5631cd5cb",
