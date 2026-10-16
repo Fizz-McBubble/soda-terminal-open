@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ScanLine } from 'lucide-react'
 import { JsonFilePicker } from '../components/JsonFilePicker'
@@ -450,7 +450,7 @@ function HydratedScannerAssistantPage({
         (snapshot.state === 'connection_failed' && snapshot.readiness.helperConnected) ||
         snapshot.progress?.processed),
     )
-  const scannerTask = (
+  const renderScannerTask = (diagnosticFeedback?: ReactNode) => (
     <>
       <ScannerPrepareSection
         showPreparation={showPreparation}
@@ -464,6 +464,7 @@ function HydratedScannerAssistantPage({
         onReturnToTargetSelection={() => void returnToTargetSelection()}
         actionFeedback={null}
         snapshot={snapshot}
+        diagnosticFeedback={diagnosticFeedback}
         restartingAfterCompletedResult={restartingAfterCompletedResult}
         preparingNewScan={preparingNewScan}
         inlineImportOpen={inlineImportOpen}
@@ -494,6 +495,7 @@ function HydratedScannerAssistantPage({
           targetBinding={targetBinding}
           frozenTargetIssue={frozenTargetIssue}
           snapshot={snapshot}
+          diagnosticFeedback={diagnosticFeedback}
           onReturnToTargetSelection={() => void returnToTargetSelection()}
           onSafeStop={() => runScannerAction(() => commands.safeStop())}
         />
@@ -508,6 +510,7 @@ function HydratedScannerAssistantPage({
           sharedTargetSelection
           inlineImportOpen={inlineImportOpen}
           snapshot={snapshot}
+          diagnosticFeedback={diagnosticFeedback}
           accountState={accountState}
           selectedAccount={selectedAccount}
           effectiveSelectedAccountId={effectiveSelectedAccountId}
@@ -636,6 +639,30 @@ function HydratedScannerAssistantPage({
           (startPending && preparingNewScan ? '正在启动画面扫描…' : '') ||
           (filePending && !activeTask ? '正在识别本机文件…' : '')
         const workspaceMessageRole = accountMessage || actionFeedback ? 'alert' : 'status'
+        const scannerFeedback = (
+          <ScannerDiagnosticFeedback
+            report={failureDiagnostic}
+            snapshot={snapshot}
+            compact
+            inline
+            workspaceMessage={workspaceMessage}
+            workspaceMessageRole={workspaceMessageRole}
+            secondaryAction={
+              preparingNewScan &&
+              snapshot.state === 'completed' &&
+              snapshot.summary?.resultFileHandle &&
+              !startPending ? (
+                <button
+                  className="button button--quiet"
+                  type="button"
+                  onClick={() => setPreparingAnotherScan(false)}
+                >
+                  上次结果
+                </button>
+              ) : undefined
+            }
+          />
+        )
         const newAccountForm = (
           <form
             onSubmit={(event) => {
@@ -775,7 +802,7 @@ function HydratedScannerAssistantPage({
                             className="scanner-workbench__method-task"
                             aria-label="画面扫描操作与结果"
                           >
-                            {scannerTask}
+                            {renderScannerTask(scannerFeedback)}
                           </section>
                         ) : (
                           <div className="scanner-workbench__controls scanner-workbench__preparation">
@@ -801,6 +828,7 @@ function HydratedScannerAssistantPage({
                               targetReady={targetReady}
                               targetPanel={null}
                               installer={renderInstaller(otherTaskPending)}
+                              diagnosticFeedback={scannerFeedback}
                               accountDisclosure={accountDisclosure}
                               onRecover={
                                 canOpenInstalledHelper
@@ -820,27 +848,6 @@ function HydratedScannerAssistantPage({
                             />
                           </div>
                         )}
-                        <ScannerDiagnosticFeedback
-                          report={failureDiagnostic}
-                          snapshot={snapshot}
-                          compact
-                          workspaceMessage={workspaceMessage}
-                          workspaceMessageRole={workspaceMessageRole}
-                          secondaryAction={
-                            preparingNewScan &&
-                            snapshot.state === 'completed' &&
-                            snapshot.summary?.resultFileHandle &&
-                            !startPending ? (
-                              <button
-                                className="button button--quiet"
-                                type="button"
-                                onClick={() => setPreparingAnotherScan(false)}
-                              >
-                                上次结果
-                              </button>
-                            ) : undefined
-                          }
-                        />
                       </div>
                     </section>
                     <div

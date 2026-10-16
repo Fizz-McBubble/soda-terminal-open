@@ -421,7 +421,13 @@ it.each([false, true])(
         />,
       ),
     )
-    expect(screen.getByText(/恢复副本保留，不能直接覆盖/)).toBeVisible()
+    if (!workbench) {
+      expect(screen.getByText(/恢复副本保留，不能直接覆盖/)).toBeVisible()
+    } else {
+      expect(
+        screen.getByRole('button', { name: '恢复上次资产快读导入' }),
+      ).toHaveAttribute('title', expect.stringMatching(/恢复副本保留，不能直接覆盖/))
+    }
     expect(screen.getByRole('button', { name: '恢复上次资产快读导入' })).toBeDisabled()
     expect(persistence.restore).not.toHaveBeenCalled()
   },
@@ -602,6 +608,44 @@ it('imports the observed candidate directly once without a manual synchronizatio
     'synthetic-recovery',
     'restore_asset_quick_read',
   )
+})
+
+it('renders inline diagnostic popover entry and recovery trigger inside workbench actions', async () => {
+  const harness = workbenchHarness()
+  persistence.readRecovery.mockResolvedValue({
+    recoveryKey: 'existing-recovery',
+    createdAt: '2026-10-10T00:00:00Z',
+    canRestore: true,
+  })
+  render(
+    <AssetQuickReadController
+      client={bridge()}
+      targetAccountId={targetAccountId}
+      activeAccountId={targetAccountId}
+      targetAccountName="合成主账户"
+      workbench={harness.render}
+    />,
+  )
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(100)
+  })
+
+  const diagnosisRegion = screen.getByRole('region', { name: '资产快读诊断' })
+  expect(diagnosisRegion).toHaveClass('scanner-diagnostic-entry--inline')
+  const actions = diagnosisRegion.closest<HTMLElement>('.asset-quick-read__actions')!
+  expect(actions).toBeInTheDocument()
+
+  const recoveryButton = screen.getByRole('button', { name: '恢复上次资产快读导入' })
+  expect(recoveryButton).toHaveClass('asset-quick-read__recovery-trigger')
+  expect(actions).toContainElement(recoveryButton)
+
+  fireEvent.click(recoveryButton)
+  const dialog = screen.getByRole('dialog', { name: '恢复到本次导入前？' })
+  expect(dialog).toBeInTheDocument()
+  expect(dialog).toHaveTextContent('合成主账户')
+
+  fireEvent.click(screen.getByRole('button', { name: '取消恢复' }))
+  expect(screen.queryByRole('dialog', { name: '恢复到本次导入前？' })).not.toBeInTheDocument()
 })
 
 registerAssetQuickReadControllerIdentityCases()

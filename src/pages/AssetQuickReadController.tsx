@@ -550,13 +550,23 @@ function AccountBoundQuickRead({
     }),
     [state, job, toolVersion],
   )
+  const diagnosticFeedback = (status: { message: string; role: 'alert' | 'status' }) => (
+    <AssetQuickReadFeedback
+      report={showFailureDiagnostic ? diagnostic : workbench ? currentStatusDiagnostic : null}
+      workspaceMessage={status.message}
+      workspaceMessageRole={status.role}
+      inline={Boolean(workbench)}
+    />
+  )
   const taskExtras = (status: { message: string; role: 'alert' | 'status' }) => (
     <>
-      <AssetQuickReadFeedback
-        report={showFailureDiagnostic ? diagnostic : workbench ? currentStatusDiagnostic : null}
-        workspaceMessage={status.message}
-        workspaceMessageRole={status.role}
-      />
+      {!workbench && (
+        <AssetQuickReadFeedback
+          report={showFailureDiagnostic ? diagnostic : null}
+          workspaceMessage={status.message}
+          workspaceMessageRole={status.role}
+        />
+      )}
       {state === 'error' && active(job) && (
         <div className="asset-quick-read__recovery">
           <p>连接失败时工具可能仍在等待；先尝试停止本次资产快读，再重新连接。</p>
@@ -591,6 +601,7 @@ function AccountBoundQuickRead({
         mode={workbench ? 'current' : 'legacy'}
         restoreLabel={state === 'completed' ? '恢复本次导入' : '恢复上次资产快读导入'}
         notice={recoveryNotice}
+        targetAccountName={targetAccountName}
         hasRecovery={Boolean(recoveryKey)}
         disabled={blocked || busy || !accountReady || !recoveryAvailable}
         armed={restoreArmed}
@@ -613,6 +624,7 @@ function AccountBoundQuickRead({
       preparationCondensed={preparationCondensed}
       onViewAssets={onViewAssets}
       downloadAvailable={assetQuickReadDownloadAvailable()}
+      diagnosticAction={workbench ? diagnosticFeedback : undefined}
       installer={
         workbench ? (
           <AssetQuickReadInstallerAction
@@ -667,14 +679,7 @@ function AccountBoundQuickRead({
       }
       completionMessage={completion}
       completionActions={workbench && state === 'completed' ? recovery : undefined}
-      preparationRecovery={
-        workbench && state === 'idle' && recoveryNotice ? (
-          <>
-            <p>{recoveryNotice}</p>
-            {recovery}
-          </>
-        ) : undefined
-      }
+      preparationRecovery={workbench && state === 'idle' ? recovery : undefined}
       workbenchExtras={workbench ? taskExtras : undefined}
       pendingInspection={Boolean(workbench && operation === 'file')}
       renderParts={

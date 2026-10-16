@@ -125,4 +125,55 @@ describe('OCR card result handoff', () => {
     )
     expect(screen.getByRole('button', { name: '导出' })).toBeDisabled()
   })
+
+  it('renders diagnostic feedback inline within scanner-result-ready__actions alongside discard button', () => {
+    const input = props()
+    input.diagnosticFeedback = (
+      <button type="button" data-testid="handoff-diagnostic-trigger">
+        画面扫描诊断
+      </button>
+    )
+    render(<ScannerHandoffSection {...input} />)
+    const discardButton = screen.getByRole('button', { name: '放弃' })
+    const actionsRow = discardButton.closest<HTMLElement>('.scanner-result-ready__actions')!
+    expect(actionsRow).toBeInTheDocument()
+    const diagnosticTrigger = screen.getByTestId('handoff-diagnostic-trigger')
+    expect(actionsRow).toContainElement(diagnosticTrigger)
+    expect(actionsRow).toContainElement(discardButton)
+  })
+
+  it('renders diagnostic feedback inline within scanner-target-review__actions when binding issue occurs', () => {
+    const input = props()
+    input.frozenTargetValidation = {
+      valid: false,
+      code: 'target_account_changed',
+      message: '扫描账户与目标账户不一致',
+    }
+    input.resultEligibleForFormalReview = false
+    input.selectedAccount = {
+      id: 'account-test',
+      displayName: '测试目标',
+      createdAt: '2026-10-17T00:00:00Z',
+      updatedAt: '2026-10-17T00:00:00Z',
+      isDefault: true,
+      status: 'active',
+      source: 'manual',
+    }
+    input.completedBindingIssue = {
+      title: '账户不匹配',
+      message: '扫描账户与目标账户不一致',
+    }
+    input.diagnosticFeedback = (
+      <button type="button" data-testid="target-review-diagnostic-trigger">
+        画面扫描诊断
+      </button>
+    )
+    render(<ScannerHandoffSection {...input} />)
+    const confirmButton = screen.getByRole('button', { name: '确认账户并继续' })
+    const actionsRow = confirmButton.closest<HTMLElement>('.scanner-target-review__actions')!
+    expect(actionsRow).toBeInTheDocument()
+    const diagnosticTrigger = screen.getByTestId('target-review-diagnostic-trigger')
+    expect(actionsRow).toContainElement(diagnosticTrigger)
+    expect(actionsRow).toContainElement(confirmButton)
+  })
 })

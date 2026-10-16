@@ -1,7 +1,8 @@
-import { createRef } from 'react'
+import { createRef, useContext, useEffect } from 'react'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { expect, it, vi } from 'vitest'
 import { PrepareChecklist } from './ScannerPrepareChecklist'
+import { ScannerPreparationStatus } from './ScannerPreparationStatus'
 import { createScannerRuntimeSnapshot } from './scannerAssistantTestFixture'
 import type { ScannerAssistantSnapshot } from '../scanner/runtime'
 
@@ -72,4 +73,79 @@ it('allows starting scan when runtime is ready under an installer-only update no
   expect(startBtn).toBeEnabled()
   fireEvent.click(startBtn)
   expect(onStart).toHaveBeenCalledOnce()
+})
+
+it('renders diagnosticFeedback inside actions when compact, without separate feedback row', () => {
+  const base = createScannerRuntimeSnapshot('ready') as ScannerAssistantSnapshot
+  const diagnostic = <div data-testid="test-diagnostic-feedback">诊断胶囊</div>
+  const { container, rerender } = render(
+    <PrepareChecklist
+      compact
+      snapshot={base}
+      eyebrow="准备"
+      title="画面扫描已连接"
+      body="连接就绪"
+      headingRef={createRef()}
+      targetReady
+      targetPanel={null}
+      accountDisclosure={null}
+      diagnosticFeedback={diagnostic}
+      onStart={vi.fn()}
+      onReconnect={vi.fn()}
+    />,
+  )
+  const actions = container.querySelector('.scanner-prepare__actions')!
+  expect(actions).toContainElement(screen.getByTestId('test-diagnostic-feedback'))
+  expect(container.querySelector('.scanner-prepare__feedback')).toBeNull()
+
+  rerender(
+    <PrepareChecklist
+      compact={false}
+      snapshot={base}
+      eyebrow="准备"
+      title="画面扫描已连接"
+      body="连接就绪"
+      headingRef={createRef()}
+      targetReady
+      targetPanel={null}
+      accountDisclosure={null}
+      diagnosticFeedback={diagnostic}
+      onStart={vi.fn()}
+      onReconnect={vi.fn()}
+    />,
+  )
+  const feedbackContainer = container.querySelector('.scanner-prepare__feedback')!
+  expect(feedbackContainer).toBeInTheDocument()
+  expect(feedbackContainer).toContainElement(screen.getByTestId('test-diagnostic-feedback'))
+})
+
+it('displays installer status in original body location when downloading without hiding in popover', () => {
+  const base = createScannerRuntimeSnapshot('unchecked') as ScannerAssistantSnapshot
+  function DownloadingInstaller() {
+    const setStatus = useContext(ScannerPreparationStatus)
+    useEffect(() => {
+      setStatus?.({ text: '画面扫描下载中 · 45%', pending: true })
+    }, [setStatus])
+    return <div data-testid="installer-downloading">正在下载 45%</div>
+  }
+  render(
+    <PrepareChecklist
+      compact
+      snapshot={base}
+      eyebrow="准备"
+      title="未连接画面扫描"
+      body="默认说明文字"
+      headingRef={createRef()}
+      targetReady
+      targetPanel={null}
+      accountDisclosure={null}
+      installer={<DownloadingInstaller />}
+      onStart={vi.fn()}
+      onReconnect={vi.fn()}
+    />,
+  )
+  const explanation = screen.getByText('画面扫描下载中 · 45%')
+  expect(explanation).toBeVisible()
+  expect(explanation.id).toBe('scanner-gate-explanation')
+  expect(screen.queryByText('默认说明文字')).not.toBeInTheDocument()
 })

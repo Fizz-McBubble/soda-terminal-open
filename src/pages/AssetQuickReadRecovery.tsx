@@ -4,6 +4,7 @@ export function AssetQuickReadRecovery({
   mode,
   restoreLabel,
   notice,
+  targetAccountName,
   hasRecovery,
   disabled,
   armed,
@@ -16,6 +17,7 @@ export function AssetQuickReadRecovery({
   mode: 'legacy' | 'current'
   restoreLabel: '恢复本次导入' | '恢复上次资产快读导入'
   notice: string
+  targetAccountName?: string
   hasRecovery: boolean
   disabled: boolean
   armed: boolean
@@ -48,11 +50,15 @@ export function AssetQuickReadRecovery({
       <button
         ref={triggerRef}
         type="button"
-        className="button button--quiet"
+        className="button button--quiet asset-quick-read__recovery-trigger"
+        aria-label={restoreLabel}
+        title={notice || restoreLabel}
         disabled={disabled}
         onClick={onArm}
       >
-        {restoreLabel}
+        {mode === 'current' && restoreLabel === '恢复上次资产快读导入'
+          ? '恢复上次导入'
+          : restoreLabel}
       </button>
       {armed && (
         <dialog
@@ -80,6 +86,12 @@ export function AssetQuickReadRecovery({
           }}
         >
           <h3 id={titleId}>恢复到本次导入前？</h3>
+          {notice && <p className="scanner-task__confirmation-notice">{notice}</p>}
+          {targetAccountName && (
+            <p className="scanner-task__confirmation-target">
+              目标账户：<strong>{targetAccountName}</strong>
+            </p>
+          )}
           <p role={failureMessage ? 'alert' : undefined}>
             {failureMessage ||
               '将恢复导入前的代理人和盘库。资产已修改，或保存方案仍引用将移除或回滚的盘时，会停止恢复并保留原数据。'}

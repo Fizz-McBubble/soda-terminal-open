@@ -240,13 +240,41 @@ export function scannerDiagnosticGuidance(report: ScanDiagnosticReport): Guidanc
       report.code,
     )
   ) {
+    if (report.evidence.phase === 'reset_to_top') {
+      return {
+        problem: '未能确认已回到仓库顶部。',
+        nextAction:
+          report.evidence.diagnosticSource === 'terminal_details'
+            ? '手动将驱动仓库列表滑至最顶部后重试；若仍停止，请反馈此问题。'
+            : legacyRetry,
+      }
+    }
     for (const key of ['reason', 'acceptGateReason']) {
       const detail = report.evidence[key]
-      if (typeof detail === 'string' && detailGuidance[detail])
+      if (typeof detail === 'string' && detailGuidance[detail]) {
+        if (
+          detail === 'waiting_for_panel_change' &&
+          report.evidence.diagnosticSource === 'terminal_details'
+        ) {
+          return {
+            ...detailGuidance[detail],
+            nextAction: '确认游戏窗口在前台且可正常点击，重新开始扫描；若仍中断，请反馈此问题。',
+          }
+        }
         return {
           ...detailGuidance[detail],
           nextAction: report.evidence.diagnosticSource === 'terminal_details' ? retry : legacyRetry,
         }
+      }
+    }
+    if (report.evidence.sawPanelChange === false) {
+      return {
+        ...detailGuidance.waiting_for_panel_change,
+        nextAction:
+          report.evidence.diagnosticSource === 'terminal_details'
+            ? '确认游戏窗口在前台且可正常点击，重新开始扫描；若仍中断，请反馈此问题。'
+            : legacyRetry,
+      }
     }
   }
   if (guidance[report.code]) {

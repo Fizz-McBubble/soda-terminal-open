@@ -7,12 +7,30 @@ export function DiagnosticEntry({
   status,
   statusRole,
   children,
+  inline = false,
 }: {
   title: string
   status: string
   statusRole?: 'alert' | 'status'
   children: ReactNode
+  inline?: boolean
 }) {
+  if (inline) {
+    return (
+      <section
+        className="scanner-diagnostic-entry scanner-diagnostic-entry--inline"
+        aria-label={title}
+      >
+        <span className="scanner-diagnostic-entry__heading sr-only">
+          <strong>{title}</strong>
+        </span>
+        {children}
+        <span className="scanner-diagnostic-entry__status sr-only" role={statusRole}>
+          {status}
+        </span>
+      </section>
+    )
+  }
   return (
     <section className="scanner-diagnostic-entry" aria-label={title}>
       <div className="scanner-diagnostic-entry__heading">
@@ -41,6 +59,8 @@ export function DiagnosticPopover({
   message,
   localMessage,
   previous = false,
+  variant = 'button',
+  showIndicator = false,
 }: {
   title: string
   label?: string
@@ -53,12 +73,16 @@ export function DiagnosticPopover({
   message?: string
   localMessage?: string
   previous?: boolean
+  variant?: 'text' | 'button'
+  showIndicator?: boolean
 }) {
   return (
     <ExplanationPopover
       label={label}
       title={title}
       align="start"
+      variant={variant}
+      showIndicator={showIndicator}
       className="scanner-guide scanner-diagnostic-feedback__details"
     >
       {previous ? <p>上次扫描的问题记录</p> : null}

@@ -64,4 +64,27 @@ describe('OCR in-card scanning progress', () => {
     fireEvent.click(screen.getByRole('button', { name: '返回准备步骤重新选择' }))
     expect(back).toHaveBeenCalledOnce()
   })
+
+  it('renders diagnostic feedback inline within the scan actions bar alongside stop button', () => {
+    render(
+      <ScannerScanningSection
+        targetBinding={binding()}
+        frozenTargetIssue={null}
+        snapshot={snapshot()}
+        diagnosticFeedback={
+          <button type="button" data-testid="scanning-diagnostic-trigger">
+            画面扫描诊断
+          </button>
+        }
+        onReturnToTargetSelection={vi.fn()}
+        onSafeStop={vi.fn()}
+      />,
+    )
+    const stopButton = screen.getByRole('button', { name: '停止本次扫描' })
+    const actionsRow = stopButton.closest<HTMLElement>('.scanner-web__scan-actions')!
+    expect(actionsRow).toBeInTheDocument()
+    const diagnosticTrigger = screen.getByTestId('scanning-diagnostic-trigger')
+    expect(actionsRow).toContainElement(diagnosticTrigger)
+    expect(actionsRow).toContainElement(stopButton)
+  })
 })

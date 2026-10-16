@@ -16,11 +16,13 @@ export function AssetQuickReadFeedback({
   workspaceMessage,
   workspaceMessageRole,
   previous = false,
+  inline = false,
 }: {
   report: AssetDiagnosticReport | null
   workspaceMessage?: string
   workspaceMessageRole?: 'alert' | 'status'
   previous?: boolean
+  inline?: boolean
 }) {
   const safe = sanitizeAssetDiagnostic(report)
   const key = safe ? JSON.stringify(safe) : ''
@@ -142,6 +144,7 @@ export function AssetQuickReadFeedback({
   return (
     <DiagnosticEntry
       title={previous ? '上次资产快读诊断' : '资产快读诊断'}
+      inline={inline}
       status={
         workspaceMessage ||
         (receivedAt ? '本次反馈已发送。' : `${previous ? '上次记录：' : ''}${hint.problem}`)

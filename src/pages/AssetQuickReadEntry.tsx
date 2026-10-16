@@ -75,6 +75,9 @@ export interface AssetQuickReadEntryProps {
   riskNoticeHref?: string
   installer?: ReactNode
   downloadAvailable?: boolean
+  diagnosticAction?:
+    | ReactNode
+    | ((status: { message: string; role: 'alert' | 'status' }) => ReactNode)
   workbenchExtras?:
     | ReactNode
     | ((status: { message: string; role: 'alert' | 'status' }) => ReactNode)
@@ -147,6 +150,7 @@ export function AssetQuickReadEntry({
   riskNoticeHref,
   installer,
   downloadAvailable = false,
+  diagnosticAction,
   renderParts,
   workbenchExtras,
   pendingInspection = false,
@@ -347,6 +351,13 @@ export function AssetQuickReadEntry({
           role: errorMessage || actionError ? 'alert' : 'status',
         })
       : workbenchExtras
+  const diagnostic =
+    typeof diagnosticAction === 'function'
+      ? diagnosticAction({
+          message: compactStatus,
+          role: errorMessage || actionError ? 'alert' : 'status',
+        })
+      : diagnosticAction
   const connectionButton = (
     <>
       <button
@@ -549,12 +560,16 @@ export function AssetQuickReadEntry({
                 </button>
                 {exportButton}
                 {discardButton}
+                {diagnostic}
               </div>
             </>
           ) : (
             <>
               <p>等待资产快读提供可核对的结果预览。当前不能导入。</p>
-              <div className="asset-quick-read__actions">{discardButton}</div>
+              <div className="asset-quick-read__actions">
+                {discardButton}
+                {diagnostic}
+              </div>
             </>
           )}
         </div>
@@ -597,6 +612,7 @@ export function AssetQuickReadEntry({
               </button>
             )}
             {completionActions}
+            {diagnostic}
           </div>
         </div>
       )}
@@ -737,6 +753,8 @@ export function AssetQuickReadEntry({
             </button>
           )}
           {!stageActive && installer}
+          {!stageActive && preparationRecovery}
+          {diagnostic}
           {stageActive && onPrepareAgain && (
             <button
               className="button button--quiet"
@@ -774,16 +792,30 @@ export function AssetQuickReadEntry({
   )
   const stopButton = (
     <>
-      {captureBusy && onStop && (
-        <button
-          className="button button--quiet"
-          type="button"
-          disabled={stopPending}
-          onClick={() => void stop()}
-        >
-          {stopPending ? '正在停止…' : '停止本次资产快读'}
-        </button>
-      )}
+      {captureBusy &&
+        onStop &&
+        (renderParts ? (
+          <div className="asset-quick-read__actions">
+            <button
+              className="button button--quiet"
+              type="button"
+              disabled={stopPending}
+              onClick={() => void stop()}
+            >
+              {stopPending ? '正在停止…' : '停止本次资产快读'}
+            </button>
+            {diagnostic}
+          </div>
+        ) : (
+          <button
+            className="button button--quiet"
+            type="button"
+            disabled={stopPending}
+            onClick={() => void stop()}
+          >
+            {stopPending ? '正在停止…' : '停止本次资产快读'}
+          </button>
+        ))}
     </>
   )
   const preparationTools = (
@@ -817,11 +849,6 @@ export function AssetQuickReadEntry({
                   <div className="asset-quick-read__connection-summary">{status}</div>
                   {preparationActions}
                   {preparationTools}
-                  {preparationRecovery && (
-                    <div className="asset-quick-read__preparation-recovery">
-                      {preparationRecovery}
-                    </div>
-                  )}
                   {extras}
                 </div>
               )}

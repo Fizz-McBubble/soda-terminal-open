@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { AlertTriangle, CircleStop } from 'lucide-react'
 import { StatusBanner } from '../components/ui/StatusBanner'
 import type { ScannerAssistantSnapshot } from '../scanner/runtime'
@@ -8,12 +9,14 @@ export function ScannerScanningSection({
   targetBinding,
   frozenTargetIssue,
   snapshot,
+  diagnosticFeedback,
   onReturnToTargetSelection,
   onSafeStop,
 }: {
   targetBinding: ScannerTargetAccountBinding | null
   frozenTargetIssue: { title: string; message: string } | null
   snapshot: ScannerAssistantSnapshot
+  diagnosticFeedback?: ReactNode
   onReturnToTargetSelection: () => void
   onSafeStop: () => void
 }) {
@@ -56,6 +59,7 @@ export function ScannerScanningSection({
           <CircleStop aria-hidden="true" size={17} />
           停止本次扫描
         </button>
+        {diagnosticFeedback}
         <small>停止后不会导入，可重新扫描。</small>
       </div>
     </>

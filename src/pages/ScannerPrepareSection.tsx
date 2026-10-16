@@ -131,6 +131,7 @@ export function ScannerPrepareSection({
             >
               重新扫描
             </button>
+            {diagnosticFeedback}
           </div>
         </section>
       ) : null}

@@ -138,4 +138,58 @@ export function registerScannerDiagnosticGuidanceCases(makeReport: () => ScanDia
       }).nextAction,
     ).toBe('请反馈此问题；准备好后可重新扫描。')
   })
+
+  it('explains reset_to_top phase with manual scroll guidance for terminal_details', () => {
+    const report = sanitizeScanDiagnostic({
+      ...makeReport(),
+      code: 'scan_navigation_failed',
+      stage: 'scroll',
+      counts: { processed: 0, total: null },
+      evidence: {
+        phase: 'reset_to_top',
+        reason: 'scroll_top_position_unconfirmed',
+        acceptGateReason: 'scroll_top_position_unconfirmed',
+        diagnosticSource: 'terminal_details',
+      },
+    })!
+    const result = scannerDiagnosticGuidance(report)
+    expect(result.problem).toBe('未能确认已回到仓库顶部。')
+    expect(result.nextAction).toBe('手动将驱动仓库列表滑至最顶部后重试；若仍停止，请反馈此问题。')
+  })
+
+  it('explains unobserved panel change when acceptGateReason is unknown or stale', () => {
+    const report = sanitizeScanDiagnostic({
+      ...makeReport(),
+      code: 'panel_capture_timeout',
+      stage: 'capture',
+      counts: { processed: 65, total: 1531 },
+      evidence: {
+        diagnosticSource: 'terminal_details',
+        sawPanelChange: false,
+        selectionChanged: false,
+        acceptGateReason: 'unknown',
+      },
+    })!
+    const result = scannerDiagnosticGuidance(report)
+    expect(result.problem).toBe('等待期间没有确认到目标盘面的变化。')
+    expect(result.nextAction).toBe(
+      '确认游戏窗口在前台且可正常点击，重新开始扫描；若仍中断，请反馈此问题。',
+    )
+  })
+
+  it('provides actionable window verification for waiting_for_panel_change', () => {
+    const report = sanitizeScanDiagnostic({
+      ...makeReport(),
+      code: 'panel_capture_timeout',
+      evidence: {
+        diagnosticSource: 'terminal_details',
+        acceptGateReason: 'waiting_for_panel_change',
+      },
+    })!
+    const result = scannerDiagnosticGuidance(report)
+    expect(result.problem).toBe('等待期间没有确认到目标盘面的变化。')
+    expect(result.nextAction).toBe(
+      '确认游戏窗口在前台且可正常点击，重新开始扫描；若仍中断，请反馈此问题。',
+    )
+  })
 }

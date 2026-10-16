@@ -144,16 +144,14 @@ export function PrepareChecklist({
         <header className="scanner-prepare__intro">
           {!compact && <span>{eyebrow}</span>}
           <Heading id={headingId} ref={headingRef} tabIndex={-1}>
-            {showInstallerStatus ? installerStatus.text : title}
+            {title}
           </Heading>
-          {!showInstallerStatus && (
-            <p
-              id={compact ? 'scanner-gate-explanation' : undefined}
-              aria-live={compact ? 'polite' : undefined}
-            >
-              {currentBody}
-            </p>
-          )}
+          <p
+            id={compact ? 'scanner-gate-explanation' : undefined}
+            aria-live={compact ? 'polite' : undefined}
+          >
+            {showInstallerStatus ? installerStatus.text : currentBody}
+          </p>
           {!compact &&
           snapshot.state === 'connection_failed' &&
           snapshot.error?.remedy &&
@@ -243,10 +241,11 @@ export function PrepareChecklist({
                   断开授权
                 </button>
               )}
+            {compact && diagnosticFeedback}
           </div>
         </div>
 
-        {diagnosticFeedback ? (
+        {!compact && diagnosticFeedback ? (
           <div className="scanner-prepare__feedback">{diagnosticFeedback}</div>
         ) : null}
 

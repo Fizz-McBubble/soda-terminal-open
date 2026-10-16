@@ -58,11 +58,23 @@ describe('installerFeedback sanitization and fragment consumption', () => {
       code: 'runtime_health_probe_timeout',
       attempts: [],
     }
-    expect(sanitizeInstallerFeedback(scanner)).toEqual(scanner)
+    for (const installerVersion of ['1.1.6', '1.2.0']) {
+      const report = { ...scanner, installerVersion }
+      expect(sanitizeInstallerFeedback(report)).toEqual(report)
+      const replaceState = vi.fn()
+      expect(
+        consumeInstallerFeedbackFragment(
+          { hash: `#${encodeURIComponent(JSON.stringify(report))}`, pathname: '/installer-feedback' },
+          { replaceState },
+        ),
+      ).toEqual(report)
+      expect(replaceState).toHaveBeenCalledWith(null, '', '/installer-feedback')
+    }
     for (const patch of [
       { stage: 'protocol' },
       { code: 'protocol_download_timeout' },
       { installerVersion: '1.0.9' },
+      { installerVersion: '9.9.9' },
       { attempts: sampleReport.attempts },
       { path: 'private-path' },
       { rawerror: 'private-error' },

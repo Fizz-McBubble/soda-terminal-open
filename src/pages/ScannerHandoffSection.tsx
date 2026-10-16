@@ -106,6 +106,7 @@ export function ScannerHandoffSection({
               >
                 {sharedTargetSelection ? '放弃' : '返回准备，重新扫描'}
               </button>
+              {diagnosticFeedback}
             </>
           }
           onImportSuccess={onImportSuccess}
@@ -160,6 +161,7 @@ export function ScannerHandoffSection({
                     ? '取消读取并返回准备'
                     : '放弃此结果并重新扫描'}
               </button>
+              {diagnosticFeedback}
             </div>
             {!sharedTargetSelection && <p>确认导入前不会更新账户仓库。</p>}
           </div>
@@ -221,6 +223,7 @@ export function ScannerHandoffSection({
                   ? '取消读取并返回准备'
                   : '放弃此结果并重新扫描'}
             </button>
+            {diagnosticFeedback}
           </div>
           <p className="scanner-target-review__footnote">
             仅为已有扫描结果选择接收账户，不会重新扫描、启动游戏或改动账户仓库。
@@ -303,6 +306,7 @@ export function ScannerHandoffSection({
                 </button>
               </>
             )}
+            {diagnosticFeedback}
           </div>
         </section>
       )}
@@ -311,7 +315,6 @@ export function ScannerHandoffSection({
           {playerResultMessage(handoffState.message)}
         </p>
       ) : null}
-      {handoffState.status === 'error' ? diagnosticFeedback : null}
       {(canReloadIncompleteDraft || canRepairImportedDraft) && (
         <div className="scanner-handoff__recovery-actions">
           {canReloadIncompleteDraft ? (

@@ -30,6 +30,7 @@ export function ScannerDiagnosticFeedback({
   report,
   secondaryAction,
   compact = false,
+  inline = false,
   snapshot,
   workspaceMessage,
   workspaceMessageRole,
@@ -37,6 +38,7 @@ export function ScannerDiagnosticFeedback({
   report: ScanDiagnosticReport | null
   secondaryAction?: ReactNode
   compact?: boolean
+  inline?: boolean
   snapshot?: ScannerAssistantSnapshot
   workspaceMessage?: string
   workspaceMessageRole?: 'alert' | 'status'
@@ -74,6 +76,7 @@ export function ScannerDiagnosticFeedback({
     return compact ? (
       <DiagnosticEntry
         title="扫描诊断"
+        inline={inline}
         status={workspaceMessage || '暂无扫描问题记录。'}
         statusRole={workspaceMessage ? workspaceMessageRole : undefined}
       >
@@ -226,6 +229,7 @@ export function ScannerDiagnosticFeedback({
   return compact ? (
     <DiagnosticEntry
       title="扫描诊断"
+      inline={inline}
       statusRole={workspaceMessage ? workspaceMessageRole : undefined}
       status={
         workspaceMessage ||
