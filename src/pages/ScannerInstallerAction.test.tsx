@@ -63,7 +63,7 @@ it('shows the connected old Helper upgrade in the compact preparation status', a
       installer={<ScannerInstallerAction distribution={snapshot.distribution!} />}
     />,
   )
-  expect(await screen.findByRole('heading', { name: /画面扫描有新版本.*请更新/ })).toBeVisible()
+  expect(await screen.findByText(/画面扫描有新版本.*请更新/)).toBeVisible()
   expect(screen.getByRole('button', { name: '更新画面扫描' })).toBeEnabled()
   expect(screen.getByRole('button', { name: '开始扫描' })).toBeDisabled()
   expect(screen.queryByText('连接就绪')).not.toBeInTheDocument()
@@ -98,7 +98,7 @@ it('replaces compact preparation feedback instead of adding a download status ro
   expect(screen.getByRole('heading', { name: '准备游戏' })).toBeVisible()
   fireEvent.click(screen.getByRole('button', { name: /下载画面扫描/ }))
   await waitFor(() =>
-    expect(screen.getByRole('heading', { name: '在下载列表打开安装包' })).toBeVisible(),
+    expect(screen.getByText('在下载列表打开安装包')).toBeVisible(),
   )
   expect(screen.queryByRole('status')).not.toBeInTheDocument()
   expect(screen.queryByText('旧连接提示')).not.toBeInTheDocument()
@@ -134,7 +134,7 @@ it('replaces prepared-download feedback after a new connection fails and accepts
   const view = render(<PrepareChecklist {...props} snapshot={snapshot} />)
   fireEvent.click(screen.getByRole('button', { name: /下载画面扫描/ }))
   await waitFor(() =>
-    expect(screen.getByRole('heading', { name: '在下载列表打开安装包' })).toBeVisible(),
+    expect(screen.getByText('在下载列表打开安装包')).toBeVisible(),
   )
   view.rerender(
     <PrepareChecklist
@@ -160,7 +160,7 @@ it('replaces prepared-download feedback after a new connection fails and accepts
   expect(screen.queryByText('在下载列表打开安装包')).not.toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: '重新下载' }))
   await waitFor(() =>
-    expect(screen.getByRole('heading', { name: '在下载列表打开安装包' })).toBeVisible(),
+    expect(screen.getByText('在下载列表打开安装包')).toBeVisible(),
   )
   expect(screen.queryByRole('heading', { name: '本次连接失败' })).not.toBeInTheDocument()
   expect(screen.queryByRole('status')).not.toBeInTheDocument()

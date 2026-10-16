@@ -144,7 +144,7 @@ export function PrepareChecklist({
         <header className="scanner-prepare__intro">
           {!compact && <span>{eyebrow}</span>}
           <Heading id={headingId} ref={headingRef} tabIndex={-1}>
-            {title}
+            {showInstallerStatus ? '画面扫描安装包' : title}
           </Heading>
           <p
             id={compact ? 'scanner-gate-explanation' : undefined}

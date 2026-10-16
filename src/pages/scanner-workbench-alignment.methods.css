@@ -243,6 +243,39 @@
 .f5v-shell .scanner-workbench .asset-quick-read__disclosure {
   margin: 0;
 }
+@media (min-width: 901px) and (max-width: 1279px) {
+  .f5v-shell .scanner-task.scanner-workbench .scanner-prepare__actions,
+  .f5v-shell .scanner-task.scanner-workbench .asset-quick-read__actions {
+    gap: 6px;
+  }
+  .f5v-shell .scanner-task.scanner-workbench .scanner-prepare--compact .scanner-prepare__actions > button:first-child,
+  .f5v-shell .scanner-task.scanner-workbench .scanner-prepare--compact .scanner-installer__control,
+  .f5v-shell .scanner-task.scanner-workbench .asset-quick-read__actions > button:first-child,
+  .f5v-shell .scanner-task.scanner-workbench .asset-quick-read__actions .scanner-installer__control {
+    width: auto;
+    min-width: 0;
+    flex: 1 1 0;
+  }
+  .f5v-shell .scanner-task.scanner-workbench .scanner-prepare__actions .button,
+  .f5v-shell .scanner-task.scanner-workbench .asset-quick-read__actions .button {
+    padding: 0 6px;
+    font-size: var(--soda-font-caption);
+  }
+  .f5v-shell .scanner-task.scanner-workbench .asset-quick-read__actions .asset-quick-read__recovery-trigger,
+  .f5v-shell .scanner-task.scanner-workbench .asset-quick-read__actions > button[aria-label*="恢复"] {
+    width: auto;
+    min-width: 0;
+    flex: 0 0 auto;
+    padding: 0 6px;
+    font-size: var(--soda-font-caption);
+  }
+  .f5v-shell .scanner-workbench .scanner-installer__control > .scanner-prepare__download {
+    width: 100%;
+    flex-direction: column;
+    gap: 0;
+    line-height: 1.2;
+  }
+}
 .f5v-shell .scanner-workbench .scanner-prepare__observations {
   margin-top: 12px;
 }
