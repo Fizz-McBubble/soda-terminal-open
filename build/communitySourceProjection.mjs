@@ -3,7 +3,7 @@ import { extname } from 'node:path'
 import ts from 'typescript'
 
 const privateLocator =
-  /(?:(?<![A-Za-z0-9?])[A-Za-z]:[\\/]|\/(?:Users|home)\/|(?:^|[\\/])(?:outputs|docs[\\/]audits)[\\/]|^file:\/\/)/iu
+  /(?:(?<![A-Za-z0-9?])[A-Za-z]:[\\/]|\/(?:Users|home)\/|(?:^|[\s\\/])(?:outputs|docs[\\/]audits)[\\/]|^file:\/\/)/iu
 
 function publicSourceReference(value) {
   const digest = createHash('sha256').update(value).digest('hex').slice(0, 32)
@@ -39,7 +39,25 @@ export function projectCommunitySourceText(source, filename) {
   const kind = /\.tsx$/u.test(cleanName) ? ts.ScriptKind.TSX : ts.ScriptKind.TS
   const syntax = ts.createSourceFile(cleanName, source, ts.ScriptTarget.Latest, true, kind)
   const replacements = []
+  const comments = new Map()
+  const retainComment = (start, end, commentKind) => {
+    const comment = source.slice(start, end)
+    if (!privateLocator.test(comment)) return
+    // Preserve line breaks: a newline inside a comment can affect automatic
+    // semicolon insertion even though the comment itself is not executable.
+    const breaks = (comment.match(/\r\n|\r|\n/gu) ?? []).join('')
+    comments.set(start, {
+      start,
+      end,
+      text:
+        commentKind === ts.SyntaxKind.SingleLineCommentTrivia
+          ? '// Internal source locator omitted.'
+          : `/* Internal source locator omitted.${breaks} */`,
+    })
+  }
   const visit = (node) => {
+    ts.forEachLeadingCommentRange(source, node.pos, retainComment)
+    ts.forEachTrailingCommentRange(source, node.end, retainComment)
     if (
       (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) &&
       privateLocator.test(node.text)
@@ -58,9 +76,12 @@ export function projectCommunitySourceText(source, filename) {
         text: JSON.stringify(value),
       })
     }
-    ts.forEachChild(node, visit)
+    // Include tokens such as `return`: comments between a keyword/operator and
+    // its expression are trailing token trivia, not leading AST-node trivia.
+    for (const child of node.getChildren(syntax)) visit(child)
   }
   visit(syntax)
+  replacements.push(...comments.values())
   let result = source
   for (const item of replacements.sort((left, right) => right.start - left.start))
     result = result.slice(0, item.start) + item.text + result.slice(item.end)

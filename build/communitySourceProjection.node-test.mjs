@@ -31,6 +31,28 @@ test('minified ternary syntax is not mistaken for a drive path', () => {
   )
 })
 
+test('private locators in generated and inline comments are omitted without changing code', () => {
+  const locator = (separator) => ['docs', 'audits', 'private-review'].join(separator)
+  const source = [
+    `/* Generated from ${locator('\\')}\\profiles.ndjson. */`,
+    'export function value() {',
+    `  return /* source: ${locator('/')}/input.json */ 42`,
+    '}',
+    '// Public implementation note remains available.',
+    'export const count = 3',
+    '',
+  ].join('\n')
+  const projected = projectCommunitySourceText(source, 'profiles.ts')
+  assert.doesNotMatch(projected, /docs[\\/]audits[\\/]/u)
+  assert.match(projected, /Public implementation note remains available/u)
+  const emit = (code) =>
+    ts.transpileModule(code, { compilerOptions: { removeComments: true } }).outputText
+  assert.equal(emit(projected), emit(source))
+  assert.equal(projectCommunitySourceText(projected, 'profiles.ts'), projected)
+  const newline = `export function value() { return /* ${locator('/')}\n */ 42 }`
+  assert.equal(emit(projectCommunitySourceText(newline, 'newline.ts')), emit(newline))
+})
+
 test('the actual reviewed Bangboo source projection preserves every lineup and its bound hash', async () => {
   const filename = new URL(
     '../src/gameDataPacks/generated/current31-reviewed-bangboo-source-atoms.ts',

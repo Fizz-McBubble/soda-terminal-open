@@ -1,4 +1,4 @@
-/* Generated from docs\audits\M7-GRADUATION-PROFILE-PUBLISH-PREP-R1\graduation-profiles.production-shaped.ndjson; do not edit manually. */
+/* Internal source locator omitted. */
 import { graduationCandidateProfilesPart01 } from './graduationCandidateProfilesPart01'
 import { graduationCandidateProfilesPart02 } from './graduationCandidateProfilesPart02'
 import { graduationCandidateProfilesPart03 } from './graduationCandidateProfilesPart03'
