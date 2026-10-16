@@ -44,6 +44,14 @@ const schema = z
         remainingSeconds: z.number().int().min(0).max(180).optional(),
         candidateAvailable: z.boolean().optional(),
         jobState: listed(rules.evidenceEnums.jobState).optional(),
+        jobPhase: listed(rules.evidenceEnums.jobPhase).optional(),
+        nativeErrorCode: z
+          .number()
+          .int()
+          .min(0)
+          .max(rules.evidenceLimits.nativeErrorCode)
+          .optional(),
+        childExitCode: z.number().int().min(0).max(rules.evidenceLimits.childExitCode).optional(),
       })
       .strict(),
   })
@@ -124,7 +132,8 @@ export function assetFailureDiagnostic(
     counts: {
       processed: null,
       total: null,
-      ...(scopedJob?.counts
+      ...(scopedJob?.counts &&
+      (scopedJob.candidateAvailable || Object.values(scopedJob.counts).some((value) => value > 0))
         ? Object.fromEntries(
             Object.entries(scopedJob.counts).filter(
               ([key, value]) =>
@@ -147,6 +156,21 @@ export function assetFailureDiagnostic(
       ? {
           candidateAvailable: scopedJob.candidateAvailable,
           jobState: scopedJob.state,
+          ...(rules.evidenceEnums.jobPhase.includes(scopedJob.phase)
+            ? { jobPhase: scopedJob.phase }
+            : {}),
+          ...Object.fromEntries(
+            ['nativeErrorCode', 'childExitCode'].flatMap((key) => {
+              const value =
+                scopedJob.diagnostics?.[key as keyof NonNullable<AssetBridgeJob['diagnostics']>]
+              return typeof value === 'number' &&
+                Number.isInteger(value) &&
+                value >= 0 &&
+                value <= 4294967295
+                ? [[key, value]]
+                : []
+            }),
+          ),
           ...(Number.isInteger(scopedJob.remainingSeconds) && scopedJob.remainingSeconds! <= 180
             ? { remainingSeconds: scopedJob.remainingSeconds }
             : {}),

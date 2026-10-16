@@ -10,6 +10,18 @@ export interface ReleaseNote {
 // A local fix or commit is not a published release; add it when that release ships.
 export const releases = [
   {
+    id: '20261016-native-diagnostic-continuity',
+    date: '2026-10-16',
+    scope: '资产快读、画面扫描与问题反馈',
+    title: '补齐失败诊断，保留旧版升级与恢复',
+    changes: [
+      '资产快读更新至1.1.2，连接服务为1.0.8；画面扫描更新至1.1.8，连接服务为2.3.18。旧版安装包和已有读取结果继续保留。',
+      '快读失败可保留已确认的错误类别、系统码和退出码，避免后续通用提示覆盖具体原因；尚未取得结果时不再把默认零数量当作已读取资产。',
+      '画面扫描区分未找到仓库、标题未确认及首个盘面未就绪等预检原因，按实际执行过的检查提供下一步提示；未改变识别阈值。',
+      '诊断继续仅在点击发送时提交有限匿名信息，不含账户、路径、原始日志或盘面截图；旧报告缺失的信息无法补回。',
+    ],
+  },
+  {
     id: '20261016-comparison-and-testing-guidance',
     date: '2026-10-16',
     scope: '方案比较、养成提示与测试说明',

@@ -7,6 +7,7 @@ import {
 } from '../assetQuickRead/feedback'
 import { DiagnosticEntry, DiagnosticPopover } from './DiagnosticFeedbackPresentation'
 import { assetQuickReadConnectionGuidance } from './assetQuickReadControllerContract'
+import { assetFailureGuidance } from '../assetQuickRead/diagnosticGuidance'
 import './scanner-guide.css'
 import './scanner-diagnostic-feedback.css'
 
@@ -82,7 +83,7 @@ export function AssetQuickReadFeedback({
     },
     startup: {
       problem: '资产快读未能启动本次读取。',
-      nextAction: '检查游戏目录，完全退出游戏后重新读取。',
+      nextAction: '本次失败原因尚未细分，可重试；仍失败时请发送诊断。',
     },
     waiting: {
       problem: '资产快读未收到完整数据。',
@@ -98,6 +99,7 @@ export function AssetQuickReadFeedback({
     },
   }
   const statusOnly = safe.outcome !== 'failed'
+  const detailedFailureHint = statusOnly ? undefined : assetFailureGuidance(safe.code)
   const hint = statusOnly
     ? {
         problem:
@@ -122,12 +124,18 @@ export function AssetQuickReadFeedback({
               problem: '这份读取结果已使用，或账户在恢复后已有修改。',
               nextAction: '重新读取最新资产，再检查并确认导入。',
             }
-          : (assetQuickReadConnectionGuidance(safe.code) ?? guidance[safe.stage])) ?? {
+          : (assetQuickReadConnectionGuidance(safe.code) ??
+            detailedFailureHint ??
+            guidance[safe.stage])) ?? {
         problem: '资产快读未完成本次操作。',
         nextAction: '检查工具准备状态后重试；仍失败时可反馈。',
       })
   const metadata: string[] = []
   if (safe.versions.bridge) metadata.push(`Bridge ${safe.versions.bridge}`)
+  if (typeof safe.evidence.nativeErrorCode === 'number')
+    metadata.push(`系统错误码 ${safe.evidence.nativeErrorCode}`)
+  if (typeof safe.evidence.childExitCode === 'number')
+    metadata.push(`采集进程退出码 ${safe.evidence.childExitCode}`)
   if (typeof safe.evidence.remainingSeconds === 'number')
     metadata.push(`剩余等待 ${safe.evidence.remainingSeconds} 秒`)
   if (safe.counts.processed !== null) metadata.push(`已处理 ${safe.counts.processed}`)
@@ -143,7 +151,10 @@ export function AssetQuickReadFeedback({
       <DiagnosticPopover
         key={key}
         title={previous ? '上次资产快读诊断' : '资产快读诊断'}
-        problem={workspaceMessage || `${previous ? '上次记录：' : ''}${hint.problem}`}
+        problem={
+          (!detailedFailureHint && workspaceMessage) ||
+          `${previous ? '上次记录：' : ''}${hint.problem}`
+        }
         nextAction={hint.nextAction}
         metadata={metadata}
         receiptId={receivedAt ? safe.reportId : undefined}

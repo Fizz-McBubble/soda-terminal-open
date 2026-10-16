@@ -24,6 +24,42 @@ export const validReport = {
 }
 
 describe('allowlisted diagnostic privacy boundary', () => {
+  it('keeps the observed preflight reason across browser storage and strict receiver', () => {
+    const evidence = {
+      preflightState: 'inventory_screen_unreadable',
+      captureHealthy: true,
+      captureScore: 100,
+      titleEditDistance: 2,
+      headerConfidencePermille: 420,
+      usedNormalizedImage: true,
+      warehouseHeaderDetected: false,
+      inventoryCountDetected: true,
+      stableFrames: 0,
+    }
+    const report = sanitizeScanDiagnostic({
+      ...validReport,
+      code: 'visual_preflight_failed',
+      stage: 'preflight',
+      evidence,
+    })!
+    expect(report.evidence).toEqual(evidence)
+    expect(sanitizeScanFeedbackPayload(report)).toEqual({ ok: true, record: report })
+    saveLastScanDiagnostic(report)
+    expect(readLastScanDiagnostic()).toEqual(report)
+    const unsafe = sanitizeScanDiagnostic({
+      ...report,
+      evidence: {
+        preflightState: "soda-source-ref:1108f972c93ca7ec01527caab53bca00",
+        rawText: 'private',
+        headerConfidencePermille: 1001,
+      },
+    })!
+    expect(unsafe.evidence).toEqual({})
+    expect(
+      sanitizeScanFeedbackPayload({ ...report, evidence: { preflightState: 'raw_text' } }).ok,
+    ).not.toBe(true)
+  })
+
   it('preserves duplicate guard finalization evidence through browser projection and local storage', () => {
     const report = diagnosticFromSnapshot(
       {

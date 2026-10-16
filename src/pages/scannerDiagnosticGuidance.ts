@@ -201,7 +201,40 @@ const detailGuidance: Record<string, Guidance> = {
     nextAction: retry,
   },
 }
+const preflightGuidance: Record<string, Guidance> = {
+  capture_unavailable: {
+    problem: '开始扫描前，未取得可用于检查的游戏画面。',
+    nextAction: '恢复游戏窗口并保持画面可见、未最小化后重试；仍失败时请反馈此问题。',
+  },
+  inventory_screen_unreadable: {
+    problem: '已检测到部分仓库特征，但未达到驱动仓库的联合确认条件。',
+    nextAction:
+      '检查简体中文的驱动仓库标题和完整列表是否可见，等待页面加载完成后重试；仍失败时请反馈此问题。',
+  },
+  unsupported_display_layout: {
+    problem: '当前游戏画面尺寸未通过支持布局检查。',
+    nextAction:
+      '本机版请使用支持的 16:9 分辨率；云·绝区零请调整为全屏或大尺寸游戏窗口，收起云端面板后重试。',
+  },
+  inventory_screen_not_detected: {
+    problem: '开始扫描前，未能确认驱动仓库标题和列表布局。',
+    nextAction:
+      '检查游戏是否为简体中文，并在驱动仓库完整列表加载完成后重试；仍失败时请反馈此问题。',
+  },
+}
 export function scannerDiagnosticGuidance(report: ScanDiagnosticReport): Guidance {
+  if (report.code === 'visual_preflight_failed') {
+    const state = report.evidence.preflightState
+    if (typeof state === 'string' && preflightGuidance[state]) {
+      const result = preflightGuidance[state]
+      if (
+        state === 'inventory_screen_unreadable' &&
+        report.evidence.warehouseHeaderDetected === false
+      )
+        return { ...result, problem: '已检测到部分仓库特征，但未能确认驱动仓库标题。' }
+      return result
+    }
+  }
   if (
     ['panel_capture_timeout', 'scan_navigation_failed', 'scanner_failure', 'unknown'].includes(
       report.code,

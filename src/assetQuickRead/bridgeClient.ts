@@ -25,6 +25,12 @@ const jobSchema = z.object({
     agents: z.number().int().nonnegative(),
   }),
   candidateAvailable: z.boolean(),
+  diagnostics: z
+    .object({
+      nativeErrorCode: z.number().int().min(0).max(4294967295).optional(),
+      childExitCode: z.number().int().min(0).max(4294967295).optional(),
+    })
+    .nullish(),
 })
 export type AssetBridgeJob = z.infer<typeof jobSchema>
 const bridgeVersionSchema = z

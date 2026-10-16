@@ -17,6 +17,75 @@ import { sanitizeScanFeedbackPayload } from '../../deploy/cloudflare/scan-feedba
 import { assetQuickReadRelease } from './distribution'
 import { AssetQuickReadImportError } from './importErrors'
 import { AssetQuickReadUnavailableError } from './launcher'
+import type { AssetBridgeJob } from './bridgeClient'
+
+const failedNativeJob: AssetBridgeJob = {
+  jobId: '1e80b26d-39fa-41a5-afbf-fca374acb6ee',
+  targetAccountId: 'private-account',
+  state: 'error',
+  phase: 'driver',
+  code: 'capture_open_failed',
+  startedAt: '2026-10-16T00:00:00Z',
+  readyAt: null,
+  deadline: null,
+  remainingSeconds: null,
+  counts: { agents: 0, discs: 0, engines: 0 },
+  candidateAvailable: false,
+  diagnostics: { nativeErrorCode: 5, childExitCode: 3221225477 },
+}
+
+it('retains finite native failure evidence through storage and receiver without inventing zero assets', () => {
+  const report = assetFailureDiagnostic('startup', undefined, failedNativeJob, '1.0.7')
+  expect(report.code).toBe('capture_open_failed')
+  expect(report.evidence).toEqual({
+    jobState: 'error',
+    jobPhase: 'driver',
+    candidateAvailable: false,
+    nativeErrorCode: 5,
+    childExitCode: 3221225477,
+  })
+  expect(report.counts).toEqual({ processed: null, total: null })
+  expect(sanitizeScanFeedbackPayload(report)).toEqual({ ok: true, record: report })
+  saveAssetDiagnostic(report)
+  expect(readAssetDiagnostic()).toEqual(report)
+  expect(JSON.stringify(report)).not.toMatch(/private|targetAccountId|jobId/)
+  const receivedEmpty = assetFailureDiagnostic('result', undefined, {
+    ...failedNativeJob,
+    state: 'received',
+    phase: 'complete',
+    candidateAvailable: true,
+  })
+  expect(receivedEmpty.counts).toMatchObject({ agents: 0, discs: 0, engines: 0 })
+})
+
+it.each([
+  'public_metadata_ec2b_missing',
+  'public_configuration_request_failed',
+  'protocol_file_missing',
+])('does not replace reviewed native reason %s with capture_failed', (code) => {
+  const report = assetFailureDiagnostic('startup', undefined, { ...failedNativeJob, code })
+  expect(report.code).toBe(code)
+  expect(sanitizeScanFeedbackPayload(report)).toEqual({ ok: true, record: report })
+})
+
+it('rejects malformed native evidence and raw or filename-suffixed failure strings', () => {
+  const safe = assetFailureDiagnostic('startup', undefined, failedNativeJob)
+  for (const value of [-1, 4294967296, 1.5, "soda-source-ref:61ed5e34eb22556ab3b6b6fcd94f5347"]) {
+    expect(sanitizeAssetDiagnostic({ ...safe, evidence: { nativeErrorCode: value } })).toBeNull()
+    expect(
+      sanitizeScanFeedbackPayload({ ...safe, evidence: { childExitCode: value } }).ok,
+    ).not.toBe(true)
+  }
+  for (const code of [
+    'protocol_file_missing:manifest.json',
+    'capture_open_failed_win32:5',
+    "soda-source-ref:1108f972c93ca7ec01527caab53bca00",
+  ]) {
+    expect(assetFailureDiagnostic('startup', undefined, { ...failedNativeJob, code }).code).toBe(
+      'capture_failed',
+    )
+  }
+})
 
 it.each(['connection', 'import'] as const)(
   'does not attach a retained capture task to a %s failure',
@@ -156,13 +225,13 @@ it('keeps the released bridge version, final counts and timing through the cloud
       counts: { agents: 33, discs: 374, engines: 1 },
       candidateAvailable: false,
     },
-    assetQuickReadRelease.bridgeVersion ?? '1.0.7',
+    assetQuickReadRelease.bridgeVersion ?? '1.0.8',
     Date.parse('2026-10-11T00:03:00Z'),
   )
-  expect(assetQuickReadRelease.bridgeVersion).toBe('1.0.7')
-  expect(assetQuickReadRelease.version).toBe('1.1.1')
+  expect(assetQuickReadRelease.bridgeVersion).toBe('1.0.8')
+  expect(assetQuickReadRelease.version).toBe('1.1.2')
   expect(report).toMatchObject({
-    versions: { bridge: '1.0.7', protocol: '1' },
+    versions: { bridge: '1.0.8', protocol: '1' },
     counts: { agents: 33, discs: 374 },
     durationMs: 180000,
     evidence: { jobState: 'timed_out' },

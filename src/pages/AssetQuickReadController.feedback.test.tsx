@@ -12,6 +12,7 @@ import {
 import { AssetQuickReadController } from './AssetQuickReadController'
 import { AssetQuickReadRequestError } from '../assetQuickRead/diagnostics'
 import { readAssetDiagnostic } from '../assetQuickRead/feedback'
+import { readAssetReceipt } from '../assetQuickRead/feedback'
 import { AssetQuickReadImportError } from '../assetQuickRead/importErrors'
 import { AssetQuickReadUnavailableError } from '../assetQuickRead/launcher'
 
@@ -28,6 +29,76 @@ function mount(client = bridge()) {
   )
   return client
 }
+
+it.each([
+  ['capture_open_failed', '未能打开本机采集通道'],
+  ['capture_child_start_failed', '资产快读采集进程未能启动'],
+])(
+  'keeps %s through the workbench failure card, explicit upload retry and receipt',
+  async (code, problem) => {
+    const client = bridge()
+    client.start.mockResolvedValue({
+      ...job,
+      state: 'error',
+      phase: 'driver',
+      code,
+      diagnostics: { nativeErrorCode: 5, childExitCode: 1 },
+    })
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response('unavailable', { status: 503 }))
+      .mockImplementation(async (_input, init) => {
+        const sent = JSON.parse(String(init?.body))
+        return new Response(
+          JSON.stringify({
+            status: 'received',
+            reportId: sent.reportId,
+            receivedAt: '2026-10-16T01:00:00Z',
+          }),
+        )
+      })
+    vi.stubGlobal('fetch', fetcher)
+    try {
+      render(
+        <AssetQuickReadController
+          client={client}
+          targetAccountId={targetAccountId}
+          activeAccountId={targetAccountId}
+          targetAccountName="合成账户"
+          workbench={({ preparation, task }) => (
+            <>
+              {preparation}
+              {task}
+            </>
+          )}
+        />,
+      )
+      await prepareStart()
+      await act(async () =>
+        fireEvent.click(screen.getByRole('button', { name: /^(开始本次资产快读|开始读取)$/ })),
+      )
+      expect(fetcher).not.toHaveBeenCalled()
+      expect(readAssetDiagnostic()).toMatchObject({
+        code,
+        evidence: { nativeErrorCode: 5, childExitCode: 1, jobPhase: 'driver' },
+      })
+      expect(readAssetDiagnostic()!.counts).not.toHaveProperty('agents')
+      fireEvent.click(screen.getByText('查看诊断'))
+      expect(document.body).toHaveTextContent(problem)
+      expect(document.body).toHaveTextContent('系统错误码 5')
+      await act(async () => fireEvent.click(screen.getByRole('button', { name: '发送反馈' })))
+      expect(readAssetReceipt(readAssetDiagnostic()!)).toBeNull()
+      expect(document.body).toHaveTextContent('反馈服务暂不可用')
+      await act(async () => fireEvent.click(screen.getByRole('button', { name: '发送反馈' })))
+      expect(readAssetReceipt(readAssetDiagnostic()!)).not.toBeNull()
+      expect(screen.getByRole('button', { name: '已发送' })).toBeDisabled()
+      expect(fetcher).toHaveBeenCalledTimes(2)
+      expect(persistence.confirm).not.toHaveBeenCalled()
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  },
+)
 it('captures a connection failure locally in the original preparation area', async () => {
   const client = bridge()
   client.connect.mockRejectedValue(

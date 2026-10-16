@@ -4,6 +4,60 @@ import contract from '../scanner/scanFeedback.contract.json'
 import { scannerDiagnosticGuidance } from './scannerDiagnosticGuidance'
 
 export function registerScannerDiagnosticGuidanceCases(makeReport: () => ScanDiagnosticReport) {
+  it.each([
+    ['capture_unavailable', '未取得可用于检查的游戏画面', '恢复游戏窗口'],
+    ['inventory_screen_unreadable', '联合确认条件', '标题和完整列表'],
+    ['unsupported_display_layout', '支持布局检查', '16:9'],
+    ['inventory_screen_not_detected', '未能确认驱动仓库标题和列表布局', '简体中文'],
+  ])(
+    'explains preflight observation %s with a specific recovery',
+    (preflightState, problem, action) => {
+      const report = sanitizeScanDiagnostic({
+        ...makeReport(),
+        code: 'visual_preflight_failed',
+        evidence: { preflightState, diagnosticSource: 'terminal_details' },
+      })!
+      const result = scannerDiagnosticGuidance(report)
+      expect(result.problem).toContain(problem)
+      expect(result.nextAction).toContain(action)
+      expect(result.problem).not.toMatch(/遮挡|没有打开|晃动|锚点/)
+      expect(result.nextAction).not.toContain('更新画面扫描')
+    },
+  )
+
+  it('describes a missing title confirmation without diagnosing why it failed', () => {
+    const result = scannerDiagnosticGuidance({
+      ...makeReport(),
+      code: 'visual_preflight_failed',
+      evidence: {
+        preflightState: 'inventory_screen_unreadable',
+        warehouseHeaderDetected: false,
+        headerScore: 35,
+        gridStructureScore: 100,
+        layoutScore: 100,
+        inventoryCountDetected: true,
+        anchorScore: 0,
+        stableFrames: 0,
+      },
+    })
+    expect(result.problem).toBe('已检测到部分仓库特征，但未能确认驱动仓库标题。')
+    expect(result.problem).not.toMatch(/遮挡|没有打开|晃动|锚点/)
+  })
+
+  it.each([undefined, 'unknown_private_reason'])(
+    'keeps old or unknown preflight details inconclusive (%s)',
+    (preflightState) => {
+      const report = sanitizeScanDiagnostic({
+        ...makeReport(),
+        code: 'visual_preflight_failed',
+        evidence: { preflightState, anchorScore: 0, stableFrames: 0, headerScore: 35 },
+      })!
+      const result = scannerDiagnosticGuidance(report)
+      expect(result.problem).toBe('开始扫描前，游戏画面检查没有通过。')
+      expect(result.problem).not.toMatch(/遮挡|没有打开|晃动|锚点/)
+    },
+  )
+
   it.each(contract.codes.filter((code) => !['none', 'unknown'].includes(code)))(
     'gives a concrete problem and next action for safe code %s',
     (code) => {

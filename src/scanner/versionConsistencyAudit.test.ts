@@ -20,9 +20,9 @@ describe('versionConsistencyAudit (real consumer imports)', () => {
   it('validates asset quick-read distribution and download availability with real consumers', () => {
     // Verified against real assetQuickReadRelease object and distribution consumer
     expect(assetQuickReadDownloadAvailable(assetQuickReadRelease)).toBe(true)
-    expect(assetQuickReadRelease.version).toBe('1.1.1')
-    expect(assetQuickReadRelease.bridgeVersion).toBe('1.0.7')
-    expect(assetQuickReadRelease.fileName).toBe('SodaTerminal-AssetReader-Setup-1.1.1.exe')
+    expect(assetQuickReadRelease.version).toBe('1.1.2')
+    expect(assetQuickReadRelease.bridgeVersion).toBe('1.0.8')
+    expect(assetQuickReadRelease.fileName).toBe('SodaTerminal-AssetReader-Setup-1.1.2.exe')
     expect(assetQuickReadRelease.downloadUrl).toBe('/downloads/Soda-Asset-Quick-Read-Setup.exe')
     expect(assetQuickReadRelease.size).toBeGreaterThanOrEqual(2)
     expect(assetQuickReadRelease.sha256).toMatch(/^[a-fA-F0-9]{64}$/)
@@ -51,7 +51,7 @@ describe('versionConsistencyAudit (real consumer imports)', () => {
   it('verifies scanner installer naming logic with real production consumer', () => {
     // Verified with real scannerInstallerFileName function
     expect(scannerInstallerFileName(scannerInstallerManifest.version)).toBe(
-      'SodaTerminal-Scanner-Setup-1.1.7.exe',
+      'SodaTerminal-Scanner-Setup-1.1.8.exe',
     )
     expect(scannerInstallerFileName('1.0.8')).toBe('Soda-画面扫描-1.0.8.exe')
     expect(scannerInstallerFileName('1.0.9')).toBe('SodaTerminal-Scanner-Setup-1.0.9.exe')
@@ -63,6 +63,7 @@ describe('versionConsistencyAudit (real consumer imports)', () => {
     expect(assetQuickReadUpgradeNotice('1.0.4')).toBe('资产快读有新版本，请更新资产快读。')
     expect(assetQuickReadUpgradeNotice('1.0.5')).toBe('资产快读有新版本，请更新资产快读。')
     expect(assetQuickReadUpgradeNotice('1.0.6')).toBe('资产快读有新版本，请更新资产快读。')
+    expect(assetQuickReadUpgradeNotice('1.0.7')).toBe('资产快读有新版本，请更新资产快读。')
     expect(assetQuickReadUpgradeNotice(assetQuickReadManifest.bridgeVersion)).toBeNull()
     expect(assetQuickReadUpgradeNotice(null)).toBeNull()
     expect(assetQuickReadUpgradeNotice('unknown')).toBeNull()
@@ -78,7 +79,7 @@ describe('versionConsistencyAudit (real consumer imports)', () => {
         { ...scannerToolReleaseVersions, helper: '2.3.15' },
         scannerToolReleaseVersions,
       ),
-    ).toBe('画面扫描有新版本（v1.1.7），请更新。')
+    ).toBe('画面扫描有新版本（v1.1.8），请更新。')
 
     // Outdated scanner capture fork component triggers prompt
     expect(
@@ -86,7 +87,7 @@ describe('versionConsistencyAudit (real consumer imports)', () => {
         { ...scannerToolReleaseVersions, scanner: 'ZZZ-Scanner.Next-1.0.49-soda-r31' },
         scannerToolReleaseVersions,
       ),
-    ).toBe('画面扫描有新版本（v1.1.7），请更新。')
+    ).toBe('画面扫描有新版本（v1.1.8），请更新。')
 
     // When installer is omitted, notice lists specific outdated component labels
     expect(
@@ -134,7 +135,7 @@ describe('versionConsistencyAudit (real consumer imports)', () => {
     expect('1.2.0').not.toMatch(assetInstallerPattern)
     expect('2.0.0').not.toMatch(assetInstallerPattern)
 
-    // Screen scanner installer accepts the staged 1.1.7 release.
+    // Screen scanner installer accepts the staged 1.1.8 release.
     const screenInstallerPattern = new RegExp(
       scanFeedbackContract.screenScannerInstaller.versionPattern,
     )
@@ -143,21 +144,21 @@ describe('versionConsistencyAudit (real consumer imports)', () => {
   })
 
   it('enforces semantic anti-conflation of independent tool components', () => {
-    // Quick-read product (1.1.1) vs Bridge internal service (1.0.7)
+    // Quick-read product (1.1.2) vs Bridge internal service (1.0.8)
     expect(assetQuickReadManifest.version).not.toBe(assetQuickReadManifest.bridgeVersion)
-    expect(assetQuickReadManifest.version).toBe('1.1.1')
-    expect(assetQuickReadManifest.bridgeVersion).toBe('1.0.7')
+    expect(assetQuickReadManifest.version).toBe('1.1.2')
+    expect(assetQuickReadManifest.bridgeVersion).toBe('1.0.8')
 
-    // Scanner installer (1.1.7) vs Helper service (2.3.17) vs locked fork (1.0.49)
+    // Scanner installer (1.1.8) vs Helper service (2.3.18) vs locked fork (1.0.49)
     expect(scannerInstallerManifest.version).not.toBe(scannerInstallerManifest.helperVersion)
     expect(scannerInstallerManifest.helperVersion).not.toBe('1.0.49')
     expect(scannerRuntimeManifest.captureVersion).toMatch(/1\.0\.49/)
-    expect(scannerInstallerManifest.version).toBe('1.1.7')
-    expect(scannerInstallerManifest.helperVersion).toBe('2.3.17')
-    expect(scannerRuntimeManifest.captureVersion).toBe('ZZZ-Scanner.Next-1.0.49-soda-r33')
+    expect(scannerInstallerManifest.version).toBe('1.1.8')
+    expect(scannerInstallerManifest.helperVersion).toBe('2.3.18')
+    expect(scannerRuntimeManifest.captureVersion).toBe('ZZZ-Scanner.Next-1.0.49-soda-r34')
 
     // The next release convention is now the actual candidate identity
-    const nextPlannedQuickReadVersion = '1.1.1'
+    const nextPlannedQuickReadVersion = '1.1.2'
     expect(assetQuickReadManifest.version).toBe(nextPlannedQuickReadVersion)
     expect(compareToolVersion(assetQuickReadManifest.version, nextPlannedQuickReadVersion)).toBe(0)
   })

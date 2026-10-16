@@ -1,11 +1,11 @@
 {
   "available": true,
-  "version": "1.1.1",
-  "fileName": "SodaTerminal-AssetReader-Setup-1.1.1.exe",
-  "releaseTag": "v1.1.1",
+  "version": "1.1.2",
+  "fileName": "SodaTerminal-AssetReader-Setup-1.1.2.exe",
+  "releaseTag": "v1.1.2",
   "repo": "Fizz-McBubble/soda-terminal-asset-quick-read",
   "downloadUrl": "/downloads/Soda-Asset-Quick-Read-Setup.exe",
-  "size": 186844149,
-  "sha256": "e81486b4a2ff1d32268f7befc4a176bf1c57bc5aaf35c34e42d8b9223c8962ca",
-  "bridgeVersion": "1.0.7"
+  "size": 99261439,
+  "sha256": "e5c4498ba68f6289b494e8cc866c8fd92e3b34d0b7c4c17dcc789e790603ab34",
+  "bridgeVersion": "1.0.8"
 }

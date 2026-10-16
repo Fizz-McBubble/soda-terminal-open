@@ -1,6 +1,7 @@
 import { assetFailureDiagnostic, type AssetDiagnosticReport } from '../assetQuickRead/diagnostics'
 import { readAssetDiagnostic, saveAssetDiagnostic } from '../assetQuickRead/feedback'
 import { AssetQuickReadFeedback } from './AssetQuickReadFeedback'
+import { assetFailureGuidance } from '../assetQuickRead/diagnosticGuidance'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { AssetQuickReadEntry, type AssetQuickReadState } from './AssetQuickReadEntry'
 import { AssetQuickReadBridgeClient, type AssetBridgeJob } from '../assetQuickRead/bridgeClient'
@@ -225,6 +226,7 @@ function AccountBoundQuickRead({
             if (latest.state === 'error')
               setError(
                 assetCompatibilityMessage(latest.code) ??
+                  assetFailureGuidance(latest.code)?.problem ??
                   '资产快读未完成本次读取，请核对游戏目录、管理员授权与准备状态后再试。',
               )
           }
@@ -298,6 +300,7 @@ function AccountBoundQuickRead({
         if (started.state === 'error')
           setError(
             assetCompatibilityMessage(started.code) ??
+              assetFailureGuidance(started.code)?.problem ??
               '资产快读未完成本次读取，请核对准备状态后再试。',
           )
       }
