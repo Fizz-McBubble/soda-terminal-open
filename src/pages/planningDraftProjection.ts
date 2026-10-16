@@ -1,4 +1,4 @@
-import { type PlanningDraftInput } from '../accounts/planningDrafts'
+import type { PlanningDraftInput } from '../accounts/planningDrafts'
 import { getAgentName } from '../application/publicRosterNames'
 import { localizedAgentNames } from '../application/savedPlanDisplayName'
 import type { AccountDecisionSnapshot } from '../application/calculationQueryContract'
@@ -11,8 +11,8 @@ import {
 // `import type` is fully erased; an inline `{ type X }` specifier survives as an empty side-effect
 // import and would pull the private solver into the public browser bundle.
 import type { CandidateWarehousePlan } from '../optimizer/candidateWarehouseSolver'
-import { type DecisionTeamViewModel } from './teamLoadoutDecisionViewModel'
-import { type PlanningProfile } from './planningProfile'
+import type { DecisionTeamViewModel } from './teamLoadoutDecisionViewModel'
+import type { PlanningProfile } from './planningProfile'
 
 export function decisionTeamWarehousePlan(
   decision: AccountDecisionSnapshot,

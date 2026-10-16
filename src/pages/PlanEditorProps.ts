@@ -5,8 +5,8 @@ import type {
   TargetTeamEquipmentParameterSelection,
   TargetTeamWarehouseFitQueryResult,
 } from '../application/calculationQueryContract'
-import { type DecisionTeamViewModel } from './teamLoadoutDecisionViewModel'
-import { type PlanningProfile } from './planningProfile'
+import type { DecisionTeamViewModel } from './teamLoadoutDecisionViewModel'
+import type { PlanningProfile } from './planningProfile'
 
 export type PlanEditorProps = {
   deleteAction?: import('react').ReactNode

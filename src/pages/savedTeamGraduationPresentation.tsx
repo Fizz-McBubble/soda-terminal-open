@@ -10,7 +10,8 @@ import {
 } from './savedTeamDiscCompletion'
 
 const localGraduation =
-  import.meta.env.VITE_SODA_PUBLIC_BUILD === 'true'
+  import.meta.env.VITE_SODA_PUBLIC_BUILD === 'true' ||
+  import.meta.env.VITE_SODA_COMMUNITY_BUILD === 'true'
     ? null
     : await import('./savedPlanGraduationCompletion')
 
