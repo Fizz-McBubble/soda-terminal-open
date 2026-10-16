@@ -225,7 +225,9 @@ it('recognizes a synthetic quick snapshot from the shared file without connectin
   })
   const task = await screen.findByRole('region', { name: '资产快读操作与结果' })
   await within(task).findByRole('heading', { name: '本次读取结果' })
-  expect(within(task).getByRole('heading', { name: '本次读取结果' })).toHaveFocus()
+  await waitFor(() =>
+    expect(within(task).getByRole('heading', { name: '本次读取结果' })).toHaveFocus(),
+  )
   expect(within(task).getByText('合成主账户')).toBeInTheDocument()
   expect(task.closest('#scanner-quick-read')).not.toBeNull()
   expect(screen.queryByRole('region', { name: '本次任务' })).not.toBeInTheDocument()

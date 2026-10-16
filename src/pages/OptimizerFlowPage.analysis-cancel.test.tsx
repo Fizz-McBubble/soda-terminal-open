@@ -30,7 +30,7 @@ describe('team analysis cancellation and successful retry', () => {
         await user.click(await findFitTeamEquipmentButton())
         await findTeamEquipmentHeading()
         await user.click(screen.getByRole('button', { name: '保存当前队伍方案' }))
-        await screen.findByRole('heading', { name: '当前队伍建议' })
+        await findCurrentTeamRecommendations()
         await user.click(await screen.findByText('再组一队'))
         await user.click(screen.getByRole('checkbox', { name: /18 张盘齐全/ }))
       }
