@@ -64,6 +64,12 @@
   max-width: 100%;
 }
 .f5v-shell .scanner-workbench__file-tools > .scanner-workbench__history-trigger {
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid var(--f5-line);
+  border-radius: var(--soda-radius-control);
+  background: rgba(255, 255, 255, 0.68);
+  text-decoration: none;
   white-space: nowrap;
 }
 .f5v-shell .scanner-workbench__target {
