@@ -7,7 +7,7 @@ import {
 } from './distribution'
 
 describe('scanner distribution contract', () => {
-  it('locks the RC8.16 direct-fork identity and makes v6 the single OCR runtime', () => {
+  it('locks the published direct-fork identity and makes v6 the single OCR runtime', () => {
     expect(scannerDistributionManifest.helper.sha256).toMatch(/^[a-f0-9]{64}$/)
     expect(scannerDistributionManifest.helper.size).toBeGreaterThan(
       scannerDistributionManifest.runtime.packageSize,
@@ -18,17 +18,15 @@ describe('scanner distribution contract', () => {
     expect(scannerDistributionManifest.runtime.releaseState).toBe(
       runtimeReleaseManifest.releaseState === 'published' ? 'published' : 'not_published',
     )
-    expect(scannerDistributionManifest.runtime.packageUrl).toBe(
-      'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.16-local.20261016/soda-scanner-runtime-18-rc8-16-local-20261016-win-x64.zip',
-    )
+    expect(scannerDistributionManifest.runtime.packageUrl).toBe(runtimeReleaseManifest.assetUrl)
     expect(scannerDistributionManifest.runtime.packageUrl).not.toContain('/latest/')
     expect(scannerDistributionManifest.runtime.excludedRuntimeFamilies).toEqual(
       expect.arrayContaining(['paddlepaddle', 'paddleocr', 'paddlex', 'opencv', 'python', 'venv']),
     )
     expect(scannerDistributionManifest.runtime.nativeCapture).toMatchObject({
-      componentVersion: 'ZZZ-Scanner.Next-1.0.49-soda-r34',
-      entrySize: 72590068,
-      entrySha256: '2f36495cac1cb4f5e13a49641b2cd95d489f4dcaf1285edbaf867d6706a5aa9e',
+      componentVersion: runtimeReleaseManifest.captureVersion,
+      entrySize: 72591102,
+      entrySha256: '7f54c827e4582fbcd745214e955026f10e1f086b31711070fdbcd9a887bbb2b5',
       schemaVersion: 'soda.zzz-scanner-next.direct-r4.v1',
       selfContained: true,
       publishAot: false,
@@ -36,7 +34,7 @@ describe('scanner distribution contract', () => {
     expect(scannerDistributionManifest.runtime.orchestration.entrySha256).toBe(
       scannerDistributionManifest.runtime.nativeCapture.entrySha256,
     )
-    expect(scannerDistributionManifest.runtime.installedSize).toBe(159380894)
+    expect(scannerDistributionManifest.runtime.installedSize).toBe(159381928)
     expect(scannerDistributionManifest.runtime.nativeOcr).toMatchObject({
       runtime: 'onnxruntime-1.23.1',
       selfContained: true,
