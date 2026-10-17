@@ -260,7 +260,9 @@ it('cancels a late start response after the selected account changes', async () 
     />,
   )
   await prepareStart()
-  act(() => fireEvent.click(screen.getByRole('button', { name: /^(开始本次资产快读|开始读取)$/ })))
+  act(() =>
+    fireEvent.click(screen.getByRole('button', { name: /^(一键读取|开始本次资产快读|开始读取)$/ })),
+  )
   rerender(
     <AssetQuickReadController
       client={client}
@@ -295,7 +297,7 @@ it('stops during reading and ignores a result already in flight', async () => {
   )
   await prepareStart()
   await act(async () =>
-    fireEvent.click(screen.getByRole('button', { name: /^(开始本次资产快读|开始读取)$/ })),
+    fireEvent.click(screen.getByRole('button', { name: /^(一键读取|开始本次资产快读|开始读取)$/ })),
   )
   await act(async () => {
     vi.advanceTimersByTime(1000)
@@ -528,7 +530,7 @@ it('blocks new file, connect and import actions while keeping an owned capture s
   rendered.rerender(<AssetQuickReadController {...props} />)
   await prepareStart()
   await act(async () =>
-    fireEvent.click(screen.getByRole('button', { name: /^(开始本次资产快读|开始读取)$/ })),
+    fireEvent.click(screen.getByRole('button', { name: /^(一键读取|开始本次资产快读|开始读取)$/ })),
   )
   expect(harness.read().busy).toBe(true)
   rendered.rerender(<AssetQuickReadController {...props} blocked />)

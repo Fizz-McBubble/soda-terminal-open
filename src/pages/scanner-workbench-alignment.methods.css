@@ -7,12 +7,38 @@
 }
 .f5v-shell .scanner-workbench__method,
 .f5v-shell .scanner-workbench__methods--active .scanner-workbench__method {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: 30px auto 40px minmax(0, 1fr);
   min-height: 0;
   height: 460px;
   row-gap: 0;
+  overflow: hidden;
+  overflow-anchor: none;
+  contain: layout;
+}
+.f5v-shell .scanner-workbench__method .scanner-diagnostic-entry--inline {
+  position: absolute;
+  right: 22px;
+  bottom: 22px;
+  z-index: 2;
+  display: block;
+  width: auto;
+}
+.f5v-shell
+  .scanner-workbench__method:has(.scanner-diagnostic-entry--inline)
+  :is(
+    .scanner-prepare__actions,
+    .scanner-web__scan-actions,
+    .scanner-result-ready__actions,
+    .scanner-target-review__actions,
+    .scanner-import-complete__next,
+    .scanner-dialog-import__actions,
+    .asset-quick-read__actions
+  ) {
+  box-sizing: border-box;
+  padding-right: 104px;
 }
 .f5v-shell .scanner-workbench__method > *,
 .f5v-shell .scanner-workbench .asset-quick-read--compact > * {
@@ -41,6 +67,7 @@
   min-height: 0;
   margin: 0;
   overflow: visible;
+  overflow-anchor: none;
 }
 .f5v-shell .scanner-workbench__body > .scanner-workbench__preparation {
   display: flex;
@@ -242,6 +269,10 @@
   .f5v-shell .scanner-workbench__methods--active .scanner-workbench__method {
     padding: 18px;
     grid-template-rows: 30px auto 36px minmax(0, 1fr);
+  }
+  .f5v-shell .scanner-workbench__method .scanner-diagnostic-entry--inline {
+    right: 18px;
+    bottom: 18px;
   }
   .f5v-shell .scanner-workbench__body,
   .f5v-shell .scanner-workbench__method-task {

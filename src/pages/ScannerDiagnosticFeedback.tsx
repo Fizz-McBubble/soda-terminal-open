@@ -170,7 +170,7 @@ export function ScannerDiagnosticFeedback({
   }
   const sendAction = (
     <button
-      className={compact ? 'button button--quiet' : 'button button--secondary'}
+      className={compact ? 'button button--primary' : 'button button--secondary'}
       type="button"
       disabled={Boolean(currentState?.pending || currentState?.receivedAt)}
       onClick={() => void submit()}

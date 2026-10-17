@@ -194,6 +194,30 @@
   font-size: 0.9rem;
 }
 
+.asset-quick-read__blocking-review ul {
+  margin: 8px 0 0;
+  padding-left: 20px;
+}
+
+.asset-quick-read__compact-confirmation {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 10px 0;
+  color: var(--f5-muted, #6b6777);
+  font-size: 13px;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.asset-quick-read__compact-confirmation input {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin: 1px 0 0;
+  accent-color: var(--f5-accent);
+}
+
 .asset-quick-read__timing {
   display: flex;
   flex-wrap: wrap;

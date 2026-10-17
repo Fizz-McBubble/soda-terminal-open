@@ -58,7 +58,10 @@ it('shows the failure reason directly while retry and return actions remain avai
   )
   expect(screen.getByText('读取未完成 · 可重试').closest('details, [popover]')).toBeNull()
   expect(screen.getByText('合成启动失败细项')).toBeVisible()
-  expect(screen.getByRole('button', { name: '一键读取' })).toBeEnabled()
+  const retry = screen.getByRole('button', { name: '一键读取' })
+  expect(retry).toBeDisabled()
+  fireEvent.click(screen.getByRole('checkbox', { name: /我已了解上方账号风险与权限说明/ }))
+  expect(retry).toBeEnabled()
   fireEvent.click(screen.getByRole('button', { name: '返回' }))
   expect(restart).toHaveBeenCalledOnce()
 })
@@ -421,7 +424,7 @@ it('shows completion only when the adapter reports completed and exposes offline
   expect(screen.getByRole('status')).toHaveTextContent('3 位代理人和 12 张驱动盘已更新')
 })
 
-it('opens risk consent only on an explicit compact read and clears it after starting', async () => {
+it('keeps compact risk consent inline and starts with one explicit button', async () => {
   const onStart = vi.fn()
   render(
     <AssetQuickReadEntry
@@ -440,26 +443,18 @@ it('opens risk consent only on an explicit compact read and clears it after star
   expect(screen.queryByRole('button', { name: '开始读取' })).not.toBeInTheDocument()
   expect(screen.queryByRole('button', { name: '开始本次资产快读' })).not.toBeInTheDocument()
   const start = screen.getByRole('button', { name: '一键读取' })
-  expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
-  expect(start).toBeEnabled()
+  const consent = screen.getByRole('checkbox', {
+    name: /我已了解上方账号风险与权限说明/,
+  })
+  expect(start).toBeDisabled()
   fireEvent.click(start)
   expect(onStart).not.toHaveBeenCalled()
-  const consent = screen.getByRole('checkbox', { name: /我已阅读上述风险/ })
-  expect(screen.getByRole('region', { name: '读取前确认' })).toBeVisible()
-  const confirm = screen.getByRole('button', { name: '开始读取' })
-  const back = screen.getByRole('button', { name: '返回' })
-  expect(confirm.parentElement).toBe(back.parentElement)
-  expect(confirm.parentElement).toHaveClass('asset-quick-read__actions')
-  expect(confirm).toHaveClass('button--primary')
-  expect(back).toHaveClass('button--quiet')
-  expect(confirm).toBeDisabled()
   fireEvent.click(consent)
-  await act(async () => fireEvent.click(confirm))
+  expect(start).toBeEnabled()
+  await act(async () => fireEvent.click(start))
   expect(onStart).toHaveBeenCalledOnce()
-  expect(screen.queryByRole('region', { name: '读取前确认' })).not.toBeInTheDocument()
-  fireEvent.click(screen.getByRole('button', { name: '一键读取' }))
-  expect(screen.getByRole('checkbox', { name: /我已阅读上述风险/ })).not.toBeChecked()
-  expect(screen.getByRole('button', { name: '开始读取' })).toBeDisabled()
+  expect(screen.getByRole('checkbox', { name: /我已了解上方账号风险与权限说明/ })).not.toBeChecked()
+  expect(screen.getByRole('button', { name: '一键读取' })).toBeDisabled()
 })
 
 it('focuses received results when file inspection finishes after the candidate arrives', () => {

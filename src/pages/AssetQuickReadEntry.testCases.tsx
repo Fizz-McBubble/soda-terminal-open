@@ -18,7 +18,7 @@ export function registerAssetQuickReadEntryPreparationCases() {
     }
     const view = render(<AssetQuickReadEntry {...props} capability="ready" blocked />)
     expect(screen.getByText('完成游戏更新及首次着色器编译，然后完全退出客户端。')).toBeVisible()
-    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
+    expect(screen.getByRole('checkbox')).toBeDisabled()
     expect(screen.queryByText(/读取需管理员权限和网络驱动/)).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: '一键读取' })).toBeDisabled()
     view.rerender(<AssetQuickReadEntry {...props} capability="unavailable" />)
@@ -61,12 +61,12 @@ export function registerAssetQuickReadEntryPreparationCases() {
     expect(begin).toHaveClass('button--primary')
     expect(begin.parentElement?.firstElementChild).toBe(begin)
     expect(screen.queryByRole('button', { name: '重新连接资产快读' })).not.toBeInTheDocument()
-    fireEvent.click(begin)
-    fireEvent.click(screen.getByRole('checkbox', { name: /我已阅读上述风险/ }))
-    await act(async () => fireEvent.click(screen.getByRole('button', { name: '开始读取' })))
+    expect(begin).toBeDisabled()
+    fireEvent.click(screen.getByRole('checkbox', { name: /我已了解上方账号风险/ }))
+    await act(async () => fireEvent.click(begin))
     expect(onStart).toHaveBeenCalledOnce()
-    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '一键读取' })).toBeEnabled()
+    expect(screen.getByRole('checkbox')).not.toBeChecked()
+    expect(screen.getByRole('button', { name: '一键读取' })).toBeDisabled()
   })
 
   it('returns failed workbench reads to preparation without restarting capture', async () => {
@@ -143,8 +143,8 @@ export function registerAssetQuickReadEntryPreparationCases() {
     expect(download.parentElement).toBe(
       screen.getByRole('button', { name: '一键读取' }).parentElement,
     )
-    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '一键读取' })).toBeEnabled()
+    expect(screen.getByRole('checkbox')).toBeEnabled()
+    expect(screen.getByRole('button', { name: '一键读取' })).toBeDisabled()
     expect(onStart).not.toHaveBeenCalled()
   })
 
@@ -212,9 +212,8 @@ export function registerAssetQuickReadEntryPreparationCases() {
     expect(onPrepareAgain).toHaveBeenCalledOnce()
     expect(onStart).not.toHaveBeenCalled()
     view.rerender(<AssetQuickReadEntry {...props} state="idle" />)
-    fireEvent.click(screen.getByRole('button', { name: '一键读取' }))
-    expect(screen.getByRole('checkbox', { name: /我已阅读上述风险/ })).not.toBeChecked()
-    expect(screen.getByRole('button', { name: '开始读取' })).toBeDisabled()
+    expect(screen.getByRole('checkbox', { name: /我已了解上方账号风险/ })).not.toBeChecked()
+    expect(screen.getByRole('button', { name: '一键读取' })).toBeDisabled()
     expect(onStart).not.toHaveBeenCalled()
   })
 }

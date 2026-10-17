@@ -133,14 +133,17 @@ export async function prepareStart() {
   })
   await act(async () => fireEvent.click(screen.getByRole('button', { name: '连接资产快读' })))
   const standalonePreparation = screen.queryByRole('button', { name: '准备资产快读' })
-  if (standalonePreparation) fireEvent.click(standalonePreparation)
-  else fireEvent.click(screen.getByRole('button', { name: '一键读取' }))
-  fireEvent.click(screen.getByRole('checkbox', { name: /我已阅读上述风险/ }))
+  if (standalonePreparation) {
+    fireEvent.click(standalonePreparation)
+    fireEvent.click(screen.getByRole('checkbox', { name: /我已阅读上述风险/ }))
+  } else {
+    fireEvent.click(screen.getByRole('checkbox', { name: /我已了解上方账号风险/ }))
+  }
 }
 export async function startAndReceive() {
   await prepareStart()
   await act(async () =>
-    fireEvent.click(screen.getByRole('button', { name: /^(开始本次资产快读|开始读取)$/ })),
+    fireEvent.click(screen.getByRole('button', { name: /^(一键读取|开始本次资产快读|开始读取)$/ })),
   )
   await act(async () => vi.advanceTimersByTimeAsync(1000))
 }

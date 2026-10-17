@@ -7,6 +7,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   overscroll-behavior: auto;
+  scrollbar-gutter: stable;
 }
 .f5v-shell .scanner-golden:has(.scanner-workbench),
 .f5v-shell .scanner-golden__workbench:has(.scanner-workbench) {

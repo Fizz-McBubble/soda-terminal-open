@@ -38,9 +38,10 @@
   width: min(26rem, calc(100vw - 24px));
 }
 .scanner-diagnostic-feedback__actions {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
   gap: 8px;
-  flex-wrap: nowrap;
+  width: 100%;
 }
 .scanner-diagnostic-feedback__footer {
   display: flex;
@@ -55,10 +56,11 @@
   white-space: nowrap;
 }
 .f5v-shell .scanner-diagnostic-feedback__actions > button {
+  width: 100%;
   min-width: 0;
-  min-height: 32px;
-  padding: 6px 8px;
-  font-size: 12px;
+  min-height: 38px;
+  padding: 0 12px;
+  font-size: var(--soda-font-body, 14px);
   white-space: nowrap;
 }
 .scanner-diagnostic-feedback__guidance {
@@ -80,20 +82,21 @@
   .scanner-diagnostic-feedback__metadata {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  padding: 0;
+  gap: 4px 12px;
+  padding: 8px 0 10px;
   margin: 10px 0;
-  list-style: none;
+  border-top: 1px solid rgb(106 86 164 / 10%);
+  color: var(--f5-muted);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
 }
 .scanner-diagnostic-feedback__metadata:empty {
   display: none;
 }
-.scanner-diagnostic-feedback__metadata li {
-  padding: 3px 8px;
-  border-radius: 8px;
-  background: rgb(106 86 164 / 8%);
-  color: var(--f5-muted);
-  font-size: 12px;
+.scanner-diagnostic-feedback__metadata span + span::before {
+  content: '·';
+  margin-right: 12px;
+  color: rgb(106 86 164 / 38%);
 }
 .scanner-diagnostic-feedback__privacy {
   color: var(--f5-muted);
@@ -148,7 +151,7 @@
 }
 .scanner-diagnostic-entry {
   display: grid;
-  grid-template-rows: 22px 42px;
+  grid-template-rows: auto auto;
   gap: 8px;
   min-width: 0;
   margin: 0;
@@ -172,19 +175,24 @@
   margin: 0;
 }
 .scanner-diagnostic-entry > .scanner-diagnostic-entry__status {
-  height: 42px;
+  min-height: 42px;
   box-sizing: border-box;
   display: flex;
   align-items: center;
   margin: 0;
-  padding: 0 14px;
+  padding: 9px 14px;
   border: 1px solid rgba(103, 90, 144, 0.24);
   border-radius: 8px;
   font: inherit;
   color: var(--f5-ink);
   background: rgba(255, 255, 255, 0.82);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.5;
+  white-space: normal;
   min-width: 0;
+}
+.scanner-diagnostic-entry .explanation__trigger.button {
+  min-height: var(--soda-control-height, 42px);
+  padding: 0 14px;
+  font-size: var(--soda-font-body, 14px);
+  white-space: nowrap;
 }

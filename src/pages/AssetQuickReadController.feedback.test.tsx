@@ -86,7 +86,9 @@ it.each([
       mount(client)
       await prepareStart()
       await act(async () =>
-        fireEvent.click(screen.getByRole('button', { name: /^(开始本次资产快读|开始读取)$/ })),
+        fireEvent.click(
+          screen.getByRole('button', { name: /^(一键读取|开始本次资产快读|开始读取)$/ }),
+        ),
       )
       expect(fetcher).not.toHaveBeenCalled()
       expect(readAssetDiagnostic()).toMatchObject({
@@ -210,6 +212,8 @@ it.each([
     await act(async () => fireEvent.click(screen.getByRole('button', { name: '连接资产快读' })))
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     expect(document.body).not.toHaveTextContent(problem)
+    expect(screen.getByRole('button', { name: '一键读取' })).toBeDisabled()
+    fireEvent.click(screen.getByRole('checkbox', { name: /我已了解上方账号风险/ }))
     expect(screen.getByRole('button', { name: '一键读取' })).toBeEnabled()
   },
 )
@@ -282,7 +286,7 @@ it('preserves concrete UAC failure on the starting response', async () => {
   mount(client)
   await prepareStart()
   await act(async () =>
-    fireEvent.click(screen.getByRole('button', { name: /^(开始本次资产快读|开始读取)$/ })),
+    fireEvent.click(screen.getByRole('button', { name: /^(一键读取|开始本次资产快读|开始读取)$/ })),
   )
   expect(readAssetDiagnostic()).toMatchObject({ stage: 'permission', code: 'uac_declined' })
 })
@@ -348,7 +352,7 @@ it('records unavailable transport during startup as a connection failure code', 
   mount(client)
   await prepareStart()
   await act(async () =>
-    fireEvent.click(screen.getByRole('button', { name: /^(开始本次资产快读|开始读取)$/ })),
+    fireEvent.click(screen.getByRole('button', { name: /^(一键读取|开始本次资产快读|开始读取)$/ })),
   )
   expect(readAssetDiagnostic()).toMatchObject({
     stage: 'startup',

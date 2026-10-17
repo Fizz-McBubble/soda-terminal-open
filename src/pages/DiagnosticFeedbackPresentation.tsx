@@ -96,11 +96,11 @@ export function DiagnosticPopover({
           <span>{nextAction}</span>
         </p>
       </div>
-      <ul className="scanner-diagnostic-feedback__metadata" aria-label={metadataLabel}>
+      <div className="scanner-diagnostic-feedback__metadata" aria-label={metadataLabel}>
         {metadata.map((item) => (
-          <li key={item}>{item}</li>
+          <span key={item}>{item}</span>
         ))}
-      </ul>
+      </div>
       {receiptId ? (
         <p className="scanner-diagnostic-feedback__receipt">
           <strong>回执编号</strong>

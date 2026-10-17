@@ -11,12 +11,24 @@ export function focusScannerWorkspaceTarget(target: HTMLElement | null, revealOn
   const frameBounds = frame.getBoundingClientRect()
   const scale = frame.offsetHeight ? frameBounds.height / frame.offsetHeight : 1
   const targetBounds = target.getBoundingClientRect()
+  const targetHeight = Math.max(1, targetBounds.height)
+  const visibleHeight = Math.max(
+    0,
+    Math.min(targetBounds.bottom, frameBounds.bottom) - Math.max(targetBounds.top, frameBounds.top),
+  )
+  // Keep the viewport steady when a newly focused step is already substantially visible.
+  const alreadyVisible =
+    revealOnly &&
+    visibleHeight >= Math.min(targetHeight, 96 * scale) &&
+    targetBounds.top >= frameBounds.top
   const top = revealOnly
-    ? targetBounds.top < frameBounds.top + 20 * scale
-      ? frame.scrollTop + (targetBounds.top - frameBounds.top) / scale - 20
-      : targetBounds.bottom > frameBounds.bottom - 20 * scale
-        ? frame.scrollTop + (targetBounds.bottom - frameBounds.bottom) / scale + 20
-        : frame.scrollTop
+    ? alreadyVisible
+      ? frame.scrollTop
+      : targetBounds.top < frameBounds.top + 20 * scale
+        ? frame.scrollTop + (targetBounds.top - frameBounds.top) / scale - 20
+        : targetBounds.bottom > frameBounds.bottom - 20 * scale
+          ? frame.scrollTop + (targetBounds.bottom - frameBounds.bottom) / scale + 20
+          : frame.scrollTop
     : frame.scrollTop + (targetBounds.top - frameBounds.top) / scale - 20
   // Native fragment/focus scrolling can also move overflow:hidden ancestors and hide the header.
   document.documentElement.scrollTop = 0

@@ -10,7 +10,6 @@ import {
 } from './AssetQuickReadIntroduction'
 import { AssetCaptureRiskDetails } from './AssetCaptureMethodsNotice'
 import { ScannerMethodSteps } from './ScannerMethodSteps'
-import { AssetQuickReadIssueDetails } from './AssetQuickReadIssueDetails'
 import { AssetQuickReadConsentStage } from './AssetQuickReadConsentDialog'
 import { ScannerPreparationStatus, type PreparationStatus } from './ScannerPreparationStatus'
 
@@ -215,7 +214,7 @@ export function AssetQuickReadEntry({
   const actionBlocked = busy || blocked
   const hasTask = state !== 'idle' || pendingAction === 'start'
   const consentOpen = Boolean(
-    renderParts && disclosureOpen && !captureBusy && state !== 'received' && state !== 'completed',
+    !renderParts && disclosureOpen && !captureBusy && state !== 'received' && state !== 'completed',
   )
   const stageActive = hasTask || consentOpen || pendingInspection
   const preparationBlocked = actionBlocked || state === 'received'
@@ -572,35 +571,33 @@ export function AssetQuickReadEntry({
                   ))}
                 </ul>
               )}
-              {renderParts && preview.compactSummary && preview.validSummary.length > 2 && (
-                <AssetQuickReadIssueDetails
-                  issues={preview.validSummary}
-                  label="查看变更详情"
-                  title="导入变更详情"
-                  description="以下是本次导入将更新与保留的内容。确认导入前不会修改账户。"
-                />
-              )}
-              {!importAvailable && preview.issues.length > 0 && (
-                <QuickReadDetail
-                  compact={Boolean(renderParts)}
-                  className="asset-quick-read__issues"
-                  label={`暂时不能导入 · ${preview.issues.length} 项需核对`}
-                >
-                  <ul>
-                    {(renderParts && preview.issueSummary
-                      ? preview.issueSummary
-                      : preview.issues
-                    ).map((issue, index) => (
-                      <li key={index}>{issue}</li>
-                    ))}
-                  </ul>
-                  {renderParts &&
-                    preview.issueSummary &&
-                    preview.issueSummary.length < preview.issues.length && (
-                      <AssetQuickReadIssueDetails issues={preview.issues} />
-                    )}
-                </QuickReadDetail>
-              )}
+              {!importAvailable &&
+                preview.issues.length > 0 &&
+                (renderParts ? (
+                  <section
+                    className="asset-quick-read__issues asset-quick-read__blocking-review"
+                    aria-label={`暂时不能导入，${preview.issues.length} 项需核对`}
+                  >
+                    <h4>暂时不能导入 · {preview.issues.length} 项需核对</h4>
+                    <ul>
+                      {(preview.issueSummary ?? preview.issues).map((issue, index) => (
+                        <li key={index}>{issue}</li>
+                      ))}
+                    </ul>
+                  </section>
+                ) : (
+                  <QuickReadDetail
+                    compact={false}
+                    className="asset-quick-read__issues"
+                    label={`暂时不能导入 · ${preview.issues.length} 项需核对`}
+                  >
+                    <ul>
+                      {preview.issues.map((issue, index) => (
+                        <li key={index}>{issue}</li>
+                      ))}
+                    </ul>
+                  </QuickReadDetail>
+                ))}
               {transactionNotice && importAvailable && <p>{transactionNotice}</p>}
               {!onImport && (
                 <p className="asset-quick-read__muted">当前导入尚未接通，可先核对结果。</p>
@@ -789,60 +786,66 @@ export function AssetQuickReadEntry({
         </div>
       )}
       {renderParts && (
-        <div className="asset-quick-read__actions">
-          {capability !== 'ready' ? (
-            connectionButton
-          ) : (
-            <button
-              ref={startTriggerRef}
-              className="button button--primary"
-              type="button"
-              disabled={!available || preparationBlocked}
-              onClick={() => setDisclosureOpen(true)}
-            >
-              一键读取
-            </button>
-          )}
-          {!renderParts && disclosureOpen && capability !== 'ready' && (
-            <button className="button button--primary" type="button" disabled>
-              开始本次资产快读
-            </button>
-          )}
-          {!stageActive && installer}
-          {!stageActive && !resumeAvailable && preparationRecovery}
-          {diagnostic}
-          {stageActive && onPrepareAgain && (
-            <button
-              className="button button--quiet"
-              type="button"
-              disabled={actionBlocked}
-              onClick={() => {
-                setDisclosureOpen(false)
-                setAcknowledgedAccount(null)
-                void runAction('restart', onPrepareAgain)
-              }}
-            >
-              返回
-            </button>
-          )}
-          {!renderParts && disclosureOpen && (
-            <button className="button button--quiet" type="button" onClick={closeDisclosure}>
-              关闭风险告知
-            </button>
-          )}
-          {onContinueScanning && (
-            <button
-              className="button button--quiet"
-              type="button"
-              onClick={() => {
-                closeDisclosure()
-                onContinueScanning()
-              }}
-            >
-              改用画面扫描或手动录入
-            </button>
-          )}
-        </div>
+        <>
+          {capability === 'ready' &&
+          (!stageActive || ['error', 'stopped', 'timed_out'].includes(state)) ? (
+            <label className="asset-quick-read__compact-confirmation">
+              <input
+                type="checkbox"
+                checked={acknowledged}
+                disabled={preparationBlocked || !available}
+                onChange={(event) =>
+                  setAcknowledgedAccount(event.target.checked ? riskAccountKey : null)
+                }
+              />
+              <span>我已了解上方账号风险与权限说明，自愿开始本次读取。</span>
+            </label>
+          ) : null}
+          <div className="asset-quick-read__actions">
+            {capability !== 'ready' ? (
+              connectionButton
+            ) : (
+              <button
+                ref={startTriggerRef}
+                className="button button--primary"
+                type="button"
+                disabled={!available || preparationBlocked || !acknowledged}
+                onClick={() => void start()}
+              >
+                一键读取
+              </button>
+            )}
+            {!stageActive && installer}
+            {!stageActive && !resumeAvailable && preparationRecovery}
+            {diagnostic}
+            {stageActive && onPrepareAgain && (
+              <button
+                className="button button--quiet"
+                type="button"
+                disabled={actionBlocked}
+                onClick={() => {
+                  setDisclosureOpen(false)
+                  setAcknowledgedAccount(null)
+                  void runAction('restart', onPrepareAgain)
+                }}
+              >
+                返回
+              </button>
+            )}
+            {onContinueScanning && (
+              <button
+                className="button button--quiet"
+                type="button"
+                onClick={() => {
+                  closeDisclosure()
+                  onContinueScanning()
+                }}
+              >
+                改用画面扫描或手动录入
+              </button>
+            )}
+          </div>
+        </>
       )}
     </div>
   )

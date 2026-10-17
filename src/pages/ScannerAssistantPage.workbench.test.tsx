@@ -149,9 +149,8 @@ async function prepareQuick() {
     target: { value: "soda-source-ref:ee09b7b910b89ca3d044849bf8cbb524" },
   })
   await act(async () => fireEvent.click(screen.getByRole('button', { name: '连接资产快读' })))
-  fireEvent.click(screen.getByRole('button', { name: '一键读取' }))
-  fireEvent.click(screen.getByRole('checkbox', { name: /我已阅读上述风险/ }))
-  await act(async () => fireEvent.click(screen.getByRole('button', { name: '开始读取' })))
+  fireEvent.click(screen.getByRole('checkbox', { name: /我已了解上方账号风险/ }))
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '一键读取' })))
 }
 
 it('presents one account area, both acquisition methods and exactly one file input without an initial task', async () => {

@@ -312,7 +312,9 @@ export function registerAssetQuickReadControllerIdentityCases() {
     const rendered = render(<AssetQuickReadController {...props} />)
     await prepareStart()
     await act(async () =>
-      fireEvent.click(screen.getByRole('button', { name: /^(开始本次资产快读|开始读取)$/ })),
+      fireEvent.click(
+        screen.getByRole('button', { name: /^(一键读取|开始本次资产快读|开始读取)$/ }),
+      ),
     )
     act(() => fireEvent.click(screen.getByRole('button', { name: '停止本次资产快读' })))
     rendered.rerender(
@@ -354,12 +356,9 @@ export function registerAssetQuickReadControllerIdentityCases() {
     expect(harness.read().hasTask).toBe(false)
     expect(harness.read().busy).toBe(false)
     expect(screen.getByLabelText('游戏安装目录')).toHaveValue("soda-source-ref:24d5780e541a1a1ad1393e8962be6e18")
-    expect(screen.getByRole('button', { name: '一键读取' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: '一键读取' })).toBeDisabled()
     expect(screen.getByRole('button', { name: '撤销上次导入' })).toBeEnabled()
-    expect(screen.queryByRole('checkbox')).not.toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: '一键读取' }))
-    expect(screen.getByRole('checkbox', { name: /我已阅读上述风险/ })).not.toBeChecked()
-    expect(screen.getByRole('button', { name: '开始读取' })).toBeDisabled()
+    expect(screen.getByRole('checkbox', { name: /我已了解上方账号风险/ })).not.toBeChecked()
     expect(persistence.confirm).not.toHaveBeenCalled()
     expect(persistence.readRecovery).toHaveBeenCalledWith(targetAccountId)
     expect(persistence.restore).not.toHaveBeenCalled()
@@ -437,7 +436,7 @@ export function registerAssetQuickReadControllerIdentityCases() {
     expect(harness.read().busy).toBe(false)
     expect(harness.read().hasTask).toBe(false)
     expect(screen.getByLabelText('游戏安装目录')).toHaveValue("soda-source-ref:24d5780e541a1a1ad1393e8962be6e18")
-    expect(screen.getByRole('button', { name: '一键读取' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: '一键读取' })).toBeDisabled()
     expect(screen.getByRole('button', { name: '更新资产快读' })).toBeVisible()
     expect(screen.getByRole('button', { name: '撤销上次导入' })).toBeEnabled()
     expect(client.connect).toHaveBeenCalledOnce()
@@ -447,9 +446,8 @@ export function registerAssetQuickReadControllerIdentityCases() {
     expect(persistence.restore).not.toHaveBeenCalled()
     expect(refresh).toHaveBeenCalledOnce()
 
-    fireEvent.click(screen.getByRole('button', { name: '一键读取' }))
-    expect(screen.getByRole('checkbox', { name: /我已阅读上述风险/ })).not.toBeChecked()
-    const secondStart = screen.getByRole('button', { name: '开始读取' })
+    expect(screen.getByRole('checkbox', { name: /我已了解上方账号风险/ })).not.toBeChecked()
+    const secondStart = screen.getByRole('button', { name: '一键读取' })
     expect(secondStart).toBeDisabled()
     fireEvent.click(secondStart)
     expect(client.start).toHaveBeenCalledOnce()
@@ -461,7 +459,7 @@ export function registerAssetQuickReadControllerIdentityCases() {
       sha256: 'b'.repeat(64),
       capturedAt: '2026-10-10T00:01:00Z',
     })
-    fireEvent.click(screen.getByRole('checkbox', { name: /我已阅读上述风险/ }))
+    fireEvent.click(screen.getByRole('checkbox', { name: /我已了解上方账号风险/ }))
     await act(async () => fireEvent.click(secondStart))
     await act(async () => vi.advanceTimersByTimeAsync(1000))
     expect(client.start).toHaveBeenCalledTimes(2)
