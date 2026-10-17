@@ -64,13 +64,31 @@
   max-width: 100%;
 }
 .f5v-shell .scanner-workbench__file-tools > .scanner-workbench__history-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 42px;
-  padding: 0 16px;
-  border: 1px solid var(--f5-line);
-  border-radius: var(--soda-radius-control);
-  background: rgba(255, 255, 255, 0.68);
+  height: 42px;
+  padding: 8px 14px;
+  border: 1px solid var(--soda-line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--f5-ink);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.5;
   text-decoration: none;
   white-space: nowrap;
+  cursor: pointer;
+}
+.f5v-shell .scanner-workbench__file-tools > .scanner-workbench__history-trigger:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.f5v-shell .scanner-workbench__file-tools > .scanner-workbench__history-trigger:focus-visible {
+  outline: 2px solid var(--f5-accent);
+  outline-offset: 3px;
 }
 .f5v-shell .scanner-workbench__target {
   grid-template-columns:
