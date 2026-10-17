@@ -168,7 +168,7 @@ export function AssetQuickReadFeedback({
           <>
             <button
               type="button"
-              className="button button--quiet"
+              className="button button--primary"
               disabled={Boolean(shown?.pending) || Boolean(receivedAt)}
               onClick={() => void send()}
             >

@@ -471,13 +471,6 @@
   color: #fff;
 }
 
-.asset-quick-read.asset-quick-read--compact .button.button--quiet,
-.asset-quick-read__task .button.button--quiet {
-  background: #fff;
-  border: 1px solid var(--f5-line, #dedbe6);
-  color: var(--f5-ink, #252332);
-}
-
 .asset-quick-read.asset-quick-read--compact .asset-quick-read__actions > .button,
 .asset-quick-read__task .asset-quick-read__actions > .button {
   flex: 0 0 auto;

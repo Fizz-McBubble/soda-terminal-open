@@ -211,7 +211,7 @@
   min-height: 46px;
   margin-top: 10px;
   font-size: 1rem;
-  font-weight: 750;
+  font-weight: 700;
 }
 .f5v-shell
   :is(.scanner-prepare__actions, .scanner-target-review__actions)
