@@ -21,7 +21,7 @@ export function JsonFilePicker({
       <button
         ref={buttonRef}
         type="button"
-        className="soda-json-file-picker"
+        className="button soda-json-file-picker"
         disabled={disabled}
         title={
           checking

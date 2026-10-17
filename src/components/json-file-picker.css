@@ -1,36 +1,12 @@
 .f5v-shell .soda-json-file-picker,
 .f5v-shell .r6-golden .soda-json-file-picker {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 42px;
-  height: 42px;
   width: 168px;
   flex-shrink: 0;
-  padding: 8px 14px;
-  border: 1px solid var(--soda-line);
-  border-radius: 10px;
-  background: #fff;
-  color: var(--f5-ink);
-  font: inherit;
-  font-size: 0.82rem;
-  font-weight: 600;
-  line-height: 1.5;
-  cursor: pointer;
-  white-space: nowrap;
+  padding-inline: var(--soda-space-4);
 }
 .f5v-shell .scanner-workbench__target > .soda-json-file-picker {
   grid-area: file;
   margin-left: auto;
-}
-.f5v-shell .soda-json-file-picker:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-.f5v-shell .soda-json-file-picker:focus-visible {
-  outline: 2px solid var(--f5-accent);
-  outline-offset: 3px;
 }
 .f5v-shell [data-file-dragging='true'] .soda-json-file-picker {
   outline: 2px dashed var(--f5-accent);

@@ -770,7 +770,7 @@ function HydratedScannerAssistantPage({
                     />
                     <button
                       type="button"
-                      className="button button--quiet scanner-workbench__history-trigger"
+                      className="button button--quiet"
                       disabled={
                         !selectedAccount ||
                         accountLocked ||
