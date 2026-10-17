@@ -438,7 +438,12 @@ check('prepared config is assets-first and pinned; no automatic deployment', asy
   )
   assert.match(headers, /img-src 'self' blob: data: http:\/\/127\.0\.0\.1:43127/u)
   assert.match(headers, /font-src 'self'/u)
-  assert.doesNotMatch(headers, /(?:https?:\/\/\*|\*\.\w|connect-src[^;]*\*)/u)
+  const contentSecurityPolicy = headers.match(/Content-Security-Policy: ([^\n]+)/u)?.[1]
+  assert.ok(contentSecurityPolicy)
+  assert.doesNotMatch(
+    contentSecurityPolicy,
+    /(?:https?:\/\/\*|\*\.\w|connect-src[^;]*\*)/u,
+  )
   assert.match(headers, /X-Content-Type-Options: nosniff/u)
   assert.equal(report.fileCount, 6)
   assert.equal(report.sourceInventorySha256.length, 64)
