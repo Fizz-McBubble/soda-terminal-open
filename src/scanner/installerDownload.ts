@@ -5,6 +5,7 @@ import {
 } from './installerDownloadCache'
 
 export type InstallerDownloadResult = 'save_requested'
+export const installerDownloadConcurrency = 4
 export type InstallerTransferProgress = {
   bytes: number
   total: number
@@ -72,6 +73,14 @@ async function retryPause(ms: number, signal: AbortSignal) {
   } finally {
     clearTimeout(timer)
   }
+}
+
+function batchOffsets(offset: number, size: number, concurrency: number) {
+  const remaining = Math.ceil((size - offset) / installerDownloadChunkSize)
+  return Array.from(
+    { length: Math.min(remaining, concurrency) },
+    (_, index) => offset + index * installerDownloadChunkSize,
+  )
 }
 
 async function receiveRange(
@@ -180,7 +189,10 @@ async function receiveRange(
   }
 }
 
-/** Receive bounded ranges, checkpoint complete chunks, then verify before browser saving. */
+/**
+ * Receive a bounded parallel window, checkpoint contiguous chunks as soon as possible,
+ * then verify the whole package before browser saving.
+ */
 export async function downloadScannerInstaller({
   url,
   fileName,
@@ -209,7 +221,12 @@ export async function downloadScannerInstaller({
   try {
     await waitForAbortable(cache.open(), signal)
     let resumedBytes = cache.bytes
+    let parallelism = Math.min(
+      installerDownloadConcurrency,
+      Math.ceil((expectedSize - cache.bytes) / installerDownloadChunkSize),
+    )
     let restarted = false
+    let lastProgress = cache.bytes
     const notify = (
       bytes: number,
       bytesPerSecond = 0,
@@ -224,55 +241,136 @@ export async function downloadScannerInstaller({
         phase,
         retryAttempt,
       })
-    if (resumedBytes) onProgress(resumedBytes)
+    const reportProgress = (bytes: number, allowReset = false) => {
+      const next = Math.min(expectedSize, Math.max(allowReset ? 0 : lastProgress, bytes))
+      if (allowReset || next !== lastProgress) {
+        lastProgress = next
+        onProgress(next)
+      }
+    }
+    if (resumedBytes) reportProgress(resumedBytes)
     notify(resumedBytes)
     while (cache.bytes < expectedSize) {
-      let failures = 0
-      while (true) {
-        signal.throwIfAborted()
-        const offset = cache.bytes
-        const started = performance.now()
-        notify(offset, 0, 'downloading', failures)
-        try {
-          const bytes = await receiveRange(
-            url,
-            offset,
-            expectedSize,
-            expectedSha256,
-            signal,
-            (total) => {
-              onProgress(total)
-              notify(
-                total,
-                ((total - offset) * 1000) / Math.max(1, performance.now() - started),
-                'downloading',
-                failures,
-              )
-            },
-          )
-          for (let start = 0; start < bytes.byteLength; start += installerDownloadChunkSize)
-            await waitForAbortable(
-              cache.checkpoint(bytes.slice(start, start + installerDownloadChunkSize)),
-              signal,
-            )
-          break // A complete successful segment resets the consecutive retry budget.
-        } catch (error) {
-          if (signal.aborted) throw signal.reason
-          if (error instanceof RestartTransfer && !restarted) {
-            restarted = true
-            await waitForAbortable(cache.reset(), signal)
-            resumedBytes = 0
-            onProgress(0)
-            break
-          }
-          if (!(error instanceof RetryableTransferError)) throw error
-          if (failures >= 3) throw error.cause
-          failures++
-          resumedBytes = cache.bytes
-          notify(cache.bytes, 0, 'retrying', failures)
-          await retryPause(error.retryAfter ?? 1000 * 2 ** (failures - 1), signal)
+      signal.throwIfAborted()
+      const batchStart = cache.bytes
+      const offsets = batchOffsets(batchStart, expectedSize, parallelism)
+      const started = performance.now()
+      const batchAbort = new AbortController()
+      const batchSignal = AbortSignal.any([signal, batchAbort.signal])
+      const loaded = new Map<number, number>()
+      const results = new Map<number, Uint8Array<ArrayBuffer>>()
+      const errors = new Map<number, unknown>()
+      let nextCommit = 0
+      let commitError: unknown
+      let commitChain = Promise.resolve()
+      const aggregateBytes = () => {
+        let bytes = cache.bytes
+        for (const offset of offsets) {
+          if (offset < cache.bytes) continue
+          const expected = Math.min(installerDownloadChunkSize, expectedSize - offset)
+          const loadedBytes = loaded.get(offset) ?? 0
+          bytes += Math.min(expected, loadedBytes)
+          if (loadedBytes < expected) break
+        }
+        return Math.min(expectedSize, bytes)
+      }
+      const reportLoaded = (retryAttempt = 0) => {
+        const bytes = aggregateBytes()
+        reportProgress(bytes)
+        notify(
+          bytes,
+          ((bytes - batchStart) * 1000) / Math.max(1, performance.now() - started),
+          'downloading',
+          retryAttempt,
+        )
+      }
+      const commitReady = () => {
+        while (results.has(nextCommit)) {
+          const index = nextCommit++
+          const bytes = results.get(index)!
+          results.delete(index)
+          loaded.delete(offsets[index])
+          commitChain = commitChain
+            .then(async () => {
+              for (let start = 0; start < bytes.byteLength; start += installerDownloadChunkSize)
+                await waitForAbortable(
+                  cache.checkpoint(bytes.slice(start, start + installerDownloadChunkSize)),
+                  signal,
+                )
+              reportLoaded()
+            })
+            .catch((error: unknown) => {
+              commitError ??= error
+              batchAbort.abort(error)
+              throw error
+            })
         }
       }
+      const tasks = offsets.map(async (offset, index) => {
+        let failures = 0
+        while (true) {
+          batchSignal.throwIfAborted()
+          try {
+            const bytes = await receiveRange(
+              url,
+              offset,
+              expectedSize,
+              expectedSha256,
+              batchSignal,
+              (total) => {
+                loaded.set(offset, total - offset)
+                reportLoaded(failures)
+              },
+            )
+            results.set(index, bytes)
+            commitReady()
+            return
+          } catch (error) {
+            loaded.delete(offset)
+            if (signal.aborted) throw signal.reason
+            if (batchSignal.aborted) {
+              errors.set(index, batchSignal.reason)
+              return
+            }
+            if (error instanceof RestartTransfer) {
+              errors.set(index, error)
+              batchAbort.abort(error)
+              return
+            }
+            if (!(error instanceof RetryableTransferError)) {
+              errors.set(index, error)
+              batchAbort.abort(error)
+              return
+            }
+            if (failures >= 3) {
+              errors.set(index, error.cause)
+              batchAbort.abort(error.cause)
+              return
+            }
+            failures++
+            notify(aggregateBytes(), 0, 'retrying', failures)
+            await retryPause(error.retryAfter ?? 1000 * 2 ** (failures - 1), batchSignal)
+          }
+        }
+      })
+      await Promise.all(tasks)
+      await commitChain.catch(() => {})
+      if (commitError !== undefined) throw commitError
+      if (cache.bytes === expectedSize) break
+      const failure = offsets
+        .map((_, index) => errors.get(index))
+        .find((error) => error !== undefined)
+      if (failure instanceof RestartTransfer && !restarted) {
+        restarted = true
+        parallelism = 1
+        await waitForAbortable(cache.reset(), signal)
+        resumedBytes = 0
+        reportProgress(0, true)
+        notify(0)
+        continue
+      }
+      if (failure !== undefined) throw failure
+      continue
     }
     if (cache.chunks[0]?.[0] !== 0x4d || cache.chunks[0]?.[1] !== 0x5a) {
       await waitForAbortable(cache.discard(), signal)

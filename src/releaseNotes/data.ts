@@ -10,6 +10,16 @@ export interface ReleaseNote {
 // A local fix or commit is not a published release; add it when that release ships.
 export const releases = [
   {
+    id: '20261017-parallel-installer-download',
+    date: '2026-10-17',
+    scope: '画面扫描与资产快读',
+    title: '改善国内安装器下载速度',
+    changes: [
+      '画面扫描与资产快读安装器改为最多四路分段并行下载，改善部分国内网络下单连接速度很低的问题。',
+      '下载中断后仍可继续已保存的连续分段；全部文件到齐并通过完整性校验后才请求保存。',
+    ],
+  },
+  {
     id: '20261017-import-workspace-and-recovery',
     date: '2026-10-17',
     scope: '画面扫描与资产快读',

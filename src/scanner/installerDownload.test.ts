@@ -293,7 +293,7 @@ it.each([
   expect(fetcher).not.toHaveBeenCalled()
 })
 
-it('requests fixed serial ranges and binds every resumed range to the release SHA ETag', async () => {
+it('requests the bounded range window and binds every resumed range to the release SHA ETag', async () => {
   const bytes = binary(installerDownloadChunkSize + 8)
   const input = await pinned(bytes)
   const fetcher = vi
@@ -318,6 +318,49 @@ it('requests fixed serial ranges and binds every resumed range to the release SH
     }),
   )
   expect(input.onTransfer.mock.calls.some(([status]) => status.bytesPerSecond > 0)).toBe(true)
+})
+
+it('starts at most four ranges concurrently and commits out-of-order results by offset', async () => {
+  const bytes = binary(installerDownloadChunkSize * 5)
+  const input = await pinned(bytes)
+  const pending = new Map<number, (response: Response) => void>()
+  const ranges: number[] = []
+  const fetcher = vi.fn((_url: string, init: RequestInit) => {
+    const start = Number(/^bytes=(\d+)-/u.exec(new Headers(init.headers).get('range') ?? '')![1])
+    ranges.push(start)
+    return new Promise<Response>((resolve) => pending.set(start, resolve))
+  })
+  vi.stubGlobal('fetch', fetcher)
+
+  const download = downloadScannerInstaller(input)
+  await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(4))
+  expect(ranges).toEqual([0, 1, 2, 3].map((index) => index * installerDownloadChunkSize))
+
+  pending.get(installerDownloadChunkSize * 2)!(
+    segment(bytes, input.expectedSha256, 2 * installerDownloadChunkSize),
+  )
+  pending.get(installerDownloadChunkSize * 3)!(
+    segment(bytes, input.expectedSha256, 3 * installerDownloadChunkSize),
+  )
+  await new Promise((resolve) => setTimeout(resolve, 0))
+  expect(fetcher).toHaveBeenCalledTimes(4)
+  expect(input.onProgress).not.toHaveBeenCalled()
+
+  pending.get(0)!(segment(bytes, input.expectedSha256))
+  pending.get(installerDownloadChunkSize)!(
+    segment(bytes, input.expectedSha256, installerDownloadChunkSize),
+  )
+  await vi.waitFor(() =>
+    expect(input.onProgress).toHaveBeenLastCalledWith(installerDownloadChunkSize * 4),
+  )
+  await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(5))
+  pending.get(installerDownloadChunkSize * 4)!(
+    segment(bytes, input.expectedSha256, installerDownloadChunkSize * 4),
+  )
+
+  await expect(download).resolves.toBe('save_requested')
+  expect(createObjectURL.mock.calls[0]![0].size).toBe(bytes.length)
+  expect(input.onProgress).toHaveBeenLastCalledWith(bytes.length)
 })
 
 const invalidRangeHeaders: Record<string, string>[] = [
@@ -382,6 +425,9 @@ it('safely restarts from zero when a server ignores a resumed Range', async () =
   expect(fetcher).toHaveBeenCalledTimes(3)
   expect(fetcher.mock.calls[2]![1].headers.Range).toBe(`bytes=0-${installerDownloadChunkSize - 1}`)
   expect(input.onProgress).toHaveBeenCalledWith(0)
+  expect(input.onTransfer).toHaveBeenLastCalledWith(
+    expect.objectContaining({ bytes: bytes.length, resumedBytes: 0 }),
+  )
   expect(createObjectURL.mock.calls[0]![0].size).toBe(bytes.length)
 })
 
@@ -439,11 +485,15 @@ it('retries a rate limit after its window and resets the budget after each succe
   const bytes = binary(installerDownloadChunkSize * 2 + 8)
   const input = await pinned(bytes)
   vi.useFakeTimers()
-  const fetcher = vi.fn()
-  for (let start = 0; start < bytes.length; start += installerDownloadChunkSize)
-    fetcher
-      .mockResolvedValueOnce(new Response(null, { status: 429, headers: { 'retry-after': '2' } }))
-      .mockResolvedValueOnce(segment(bytes, input.expectedSha256, start))
+  const attempts = new Map<number, number>()
+  const fetcher = vi.fn(async (_url: string, init: RequestInit) => {
+    const start = Number(/^bytes=(\d+)-/u.exec(new Headers(init.headers).get('range') ?? '')![1])
+    const attempt = attempts.get(start) ?? 0
+    attempts.set(start, attempt + 1)
+    return attempt === 0
+      ? new Response(null, { status: 429, headers: { 'retry-after': '2' } })
+      : segment(bytes, input.expectedSha256, start)
+  })
   vi.stubGlobal('fetch', fetcher)
   const pending = downloadScannerInstaller(input)
   await vi.advanceTimersByTimeAsync(6_000)
