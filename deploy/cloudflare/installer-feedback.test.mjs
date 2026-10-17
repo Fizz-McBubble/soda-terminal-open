@@ -429,12 +429,12 @@ test('installer receiver accepts next release 1.1.0 asset_quick_read_installer d
     400,
   )
 
-  // 2. screen_scanner_installer 1.1.6 is accepted and Owner retrieval verified
+  // 2. screen_scanner_installer 1.2.1 is accepted and Owner retrieval verified
   const scannerInstallerReport = {
     schema: 1,
     tool: 'screen_scanner_installer',
     reportId: '11600000-0000-4000-8000-000000000001',
-    installerVersion: '1.1.6',
+    installerVersion: '1.2.1',
     stage: 'verify',
     code: 'runtime_health_probe_timeout',
     durationMs: 35000,
