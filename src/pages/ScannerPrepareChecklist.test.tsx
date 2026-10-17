@@ -1,12 +1,21 @@
 import { createRef, useContext, useEffect } from 'react'
 import { fireEvent, render, screen } from '@testing-library/react'
-import { expect, it, vi } from 'vitest'
+import { afterEach, expect, it, vi } from 'vitest'
 import { PrepareChecklist } from './ScannerPrepareChecklist'
 import { ScannerPreparationStatus } from './ScannerPreparationStatus'
 import { createScannerRuntimeSnapshot } from './scannerAssistantTestFixture'
 import type { ScannerAssistantSnapshot } from '../scanner/runtime'
 
-it('keeps every failed preparation check in a collapsed card before the recovery action', () => {
+afterEach(() => vi.unstubAllGlobals())
+
+it('shows failed preparation checks directly before recovery and keeps measurements in details', () => {
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      disconnect() {}
+    },
+  )
   const onStart = vi.fn()
   render(
     <PrepareChecklist
@@ -23,13 +32,24 @@ it('keeps every failed preparation check in a collapsed card before the recovery
       onReconnect={vi.fn()}
     />,
   )
-  const details = screen.getByLabelText('实际准备检查结果')
-  expect(details).not.toHaveAttribute('open')
-  expect(details.querySelectorAll('li')).toHaveLength(3)
-  expect(details).toHaveTextContent('1600 × 900')
-  expect(details).toHaveTextContent('384 / 3000')
+  const reasons = screen.getByRole('list', { name: '扫描前需处理的问题' })
+  expect(reasons).toBeVisible()
+  expect(reasons.closest('[popover], details')).toBeNull()
+  expect(reasons.querySelectorAll('li')).toHaveLength(3)
+  const trigger = screen.getByRole('button', { name: '检查结果' })
+  expect(trigger).not.toHaveClass('button')
+  expect(trigger.closest('.scanner-prepare__intro')).not.toBeNull()
+  expect(trigger).toHaveAttribute('aria-expanded', 'false')
+  const panel = trigger.closest('.explanation')!.querySelector<HTMLElement>('[role="dialog"]')!
+  expect(panel).toHaveAttribute('aria-label', '实际准备检查结果')
+  expect(panel).toHaveTextContent('1600 × 900')
+  expect(panel).toHaveTextContent('384 / 3000')
+  const opened = new Event('toggle')
+  Object.defineProperty(opened, 'newState', { value: 'open' })
+  fireEvent(panel, opened)
+  expect(trigger).toHaveAttribute('aria-expanded', 'true')
   const action = screen.getByRole('button', { name: '重新扫描' })
-  expect(details.compareDocumentPosition(action) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  expect(trigger.compareDocumentPosition(action) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
   fireEvent.click(action)
   expect(onStart).toHaveBeenCalledOnce()
 })

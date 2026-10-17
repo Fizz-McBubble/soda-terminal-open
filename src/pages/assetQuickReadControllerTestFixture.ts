@@ -3,6 +3,11 @@ import { afterEach, beforeEach, vi } from 'vitest'
 import type { AssetBridgeJob, AssetQuickReadBridgeClient } from '../assetQuickRead/bridgeClient'
 import type { AssetQuickReadCandidate } from '../assetQuickRead/snapshotAdapter'
 import { syntheticAssetSnapshot } from '../assetQuickRead/syntheticAssetSnapshotTestFixture'
+vi.mock('../assetQuickRead/pendingResult', () => ({
+  savePendingAssetResult: vi.fn().mockResolvedValue(true),
+  readPendingAssetResult: vi.fn().mockResolvedValue(null),
+  clearPendingAssetResult: vi.fn().mockResolvedValue(undefined),
+}))
 
 const persistence = vi.hoisted(() => ({
   prepare: vi.fn(),

@@ -1,4 +1,4 @@
-/* Keep the method cards stable while each body switches between workflow steps. */
+/* Fixed method cards keep workflow layers in place; long details use top-layer UI. */
 .f5v-shell .scanner-workbench__methods,
 .f5v-shell .scanner-workbench__methods--active {
   align-items: stretch;
@@ -9,9 +9,9 @@
 .f5v-shell .scanner-workbench__methods--active .scanner-workbench__method {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: 30px auto 48px minmax(min-content, 1fr);
-  min-height: 560px;
-  height: auto;
+  grid-template-rows: 30px auto 40px minmax(0, 1fr);
+  min-height: 0;
+  height: 460px;
   row-gap: 0;
 }
 .f5v-shell .scanner-workbench__method > *,
@@ -42,9 +42,24 @@
   margin: 0;
   overflow: visible;
 }
-.f5v-shell .scanner-workbench__body > .scanner-workbench__preparation,
+.f5v-shell .scanner-workbench__body > .scanner-workbench__preparation {
+  display: flex;
+  flex-direction: column;
+}
+.f5v-shell .scanner-workbench__body--prepare > * {
+  flex-shrink: 0;
+}
 .f5v-shell .scanner-workbench .scanner-prepare--compact {
-  display: block;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 0;
+}
+.f5v-shell .scanner-workbench .scanner-prepare--compact > * {
+  flex-shrink: 0;
+}
+.f5v-shell .scanner-workbench .scanner-prepare--compact .scanner-prepare__intro {
+  margin-top: auto;
 }
 .f5v-shell .scanner-workbench__body > .scanner-workbench__method-task {
   flex: 1;
@@ -59,7 +74,9 @@
   min-height: 0;
   overflow: visible;
 }
-.f5v-shell .scanner-workbench__body > .scanner-diagnostic-entry:not(.scanner-diagnostic-entry--inline),
+.f5v-shell
+  .scanner-workbench__body
+  > .scanner-diagnostic-entry:not(.scanner-diagnostic-entry--inline),
 .f5v-shell .scanner-workbench__body > .asset-quick-read__tools {
   flex-shrink: 0;
   margin-top: auto;
@@ -86,13 +103,10 @@
 .f5v-shell .scanner-workbench .scanner-prepare--compact .scanner-prepare__intro,
 .f5v-shell .scanner-workbench .asset-quick-read__connection-summary {
   box-sizing: border-box;
-  min-height: 56px;
+  min-height: 0;
   margin: 0 0 8px;
 }
-.f5v-shell
-  .scanner-task.scanner-workbench
-  .scanner-prepare--compact
-  .scanner-prepare__actions {
+.f5v-shell .scanner-task.scanner-workbench .scanner-prepare--compact .scanner-prepare__actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -110,10 +124,7 @@
   .scanner-prepare--compact
   .scanner-prepare__actions
   > button,
-.f5v-shell
-  .scanner-task.scanner-workbench
-  .scanner-prepare--compact
-  .scanner-installer__control {
+.f5v-shell .scanner-task.scanner-workbench .scanner-prepare--compact .scanner-installer__control {
   box-sizing: border-box;
   width: auto;
   min-width: 0;
@@ -124,43 +135,29 @@
   .scanner-prepare--compact
   .scanner-prepare__actions
   > button:first-child,
-.f5v-shell
-  .scanner-task.scanner-workbench
-  .scanner-prepare--compact
-  .scanner-installer__control {
+.f5v-shell .scanner-task.scanner-workbench .scanner-prepare--compact .scanner-installer__control {
   width: 168px;
   min-width: 168px;
   flex: 0 0 168px;
 }
-.f5v-shell
-  .scanner-task.scanner-workbench
-  .asset-quick-read__actions {
+.f5v-shell .scanner-task.scanner-workbench .asset-quick-read__actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 10px;
 }
-.f5v-shell
-  .scanner-task.scanner-workbench
-  .asset-quick-read__actions
-  > button {
+.f5v-shell .scanner-task.scanner-workbench .asset-quick-read__actions > button {
   box-sizing: border-box;
   width: auto;
   min-width: 0;
   flex: 0 0 auto;
 }
-.f5v-shell
-  .scanner-task.scanner-workbench
-  .asset-quick-read__actions
-  > button:first-child {
+.f5v-shell .scanner-task.scanner-workbench .asset-quick-read__actions > button:first-child {
   width: 168px;
   min-width: 168px;
   flex: 0 0 168px;
 }
-.f5v-shell
-  .scanner-task.scanner-workbench
-  .asset-quick-read__actions
-  .scanner-installer__control {
+.f5v-shell .scanner-task.scanner-workbench .asset-quick-read__actions .scanner-installer__control {
   width: 168px;
   min-width: 168px;
   flex: 0 0 168px;
@@ -169,10 +166,7 @@
   .scanner-task.scanner-workbench
   .asset-quick-read__actions
   .asset-quick-read__recovery-trigger,
-.f5v-shell
-  .scanner-task.scanner-workbench
-  .asset-quick-read__actions
-  > button[aria-label*="恢复"] {
+.f5v-shell .scanner-task.scanner-workbench .asset-quick-read__actions > button[aria-label*='恢复'] {
   box-sizing: border-box;
   width: 110px;
   min-width: 110px;
@@ -244,25 +238,56 @@
   margin: 0;
 }
 @media (min-width: 901px) and (max-width: 1279px) {
+  .f5v-shell .scanner-workbench__method,
+  .f5v-shell .scanner-workbench__methods--active .scanner-workbench__method {
+    padding: 18px;
+    grid-template-rows: 30px auto 36px minmax(0, 1fr);
+  }
+  .f5v-shell .scanner-workbench__body,
+  .f5v-shell .scanner-workbench__method-task {
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .f5v-shell .scanner-workbench .scanner-prepare__requirements,
+  .f5v-shell .scanner-workbench .asset-quick-read__game-preparation {
+    min-height: 0;
+  }
+  .f5v-shell .scanner-workbench .scanner-prepare--compact .scanner-prepare__intro,
+  .f5v-shell .scanner-workbench .asset-quick-read__connection-summary {
+    min-height: 46px;
+  }
   .f5v-shell .scanner-task.scanner-workbench .scanner-prepare__actions,
   .f5v-shell .scanner-task.scanner-workbench .asset-quick-read__actions {
     gap: 6px;
   }
-  .f5v-shell .scanner-task.scanner-workbench .scanner-prepare--compact .scanner-prepare__actions > button:first-child,
+  .f5v-shell
+    .scanner-task.scanner-workbench
+    .scanner-prepare--compact
+    .scanner-prepare__actions
+    > button:first-child,
   .f5v-shell .scanner-task.scanner-workbench .scanner-prepare--compact .scanner-installer__control,
   .f5v-shell .scanner-task.scanner-workbench .asset-quick-read__actions > button:first-child,
-  .f5v-shell .scanner-task.scanner-workbench .asset-quick-read__actions .scanner-installer__control {
-    width: auto;
-    min-width: 0;
-    flex: 1 1 0;
+  .f5v-shell
+    .scanner-task.scanner-workbench
+    .asset-quick-read__actions
+    .scanner-installer__control {
+    width: 96px;
+    min-width: 96px;
+    flex: 0 0 96px;
   }
   .f5v-shell .scanner-task.scanner-workbench .scanner-prepare__actions .button,
   .f5v-shell .scanner-task.scanner-workbench .asset-quick-read__actions .button {
     padding: 0 6px;
     font-size: var(--soda-font-caption);
   }
-  .f5v-shell .scanner-task.scanner-workbench .asset-quick-read__actions .asset-quick-read__recovery-trigger,
-  .f5v-shell .scanner-task.scanner-workbench .asset-quick-read__actions > button[aria-label*="恢复"] {
+  .f5v-shell
+    .scanner-task.scanner-workbench
+    .asset-quick-read__actions
+    .asset-quick-read__recovery-trigger,
+  .f5v-shell
+    .scanner-task.scanner-workbench
+    .asset-quick-read__actions
+    > button[aria-label*='恢复'] {
     width: auto;
     min-width: 0;
     flex: 0 0 auto;
@@ -303,7 +328,8 @@
   align-self: flex-start;
 }
 .f5v-shell .scanner-workbench .scanner-import-complete__next {
-  margin: 16px 0 0;
+  margin: auto 0 0;
+  padding-top: 16px;
   justify-content: flex-start;
   align-self: flex-start;
 }
@@ -364,12 +390,12 @@
   > .asset-quick-read__actions,
 .f5v-shell .scanner-workbench .asset-quick-read__consent-stage > .asset-quick-read__actions,
 .f5v-shell .scanner-workbench .asset-quick-read__complete > .asset-quick-read__actions {
-  margin-top: 16px;
-  padding-top: 0;
+  margin-top: auto;
+  padding-top: 16px;
 }
 .f5v-shell .scanner-workbench .scanner-dialog-import__actions {
-  margin-top: 16px;
-  padding-top: 0;
+  margin-top: auto;
+  padding-top: 16px;
 }
 .f5v-shell .scanner-workbench .asset-quick-read__retry {
   display: flex;

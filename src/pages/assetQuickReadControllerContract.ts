@@ -14,6 +14,7 @@ export type AssetQuickReadWorkbenchView = {
   preparation: ReactNode
   task: ReactNode | null
   recovery: ReactNode | null
+  importHistory?: ReactNode
   state: AssetQuickReadState
   busy: boolean
   hasTask: boolean

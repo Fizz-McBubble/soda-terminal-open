@@ -1,7 +1,19 @@
 import contract from '../scanner/scanFeedback.contract.json'
 
+type AssetFailureEvidence = {
+  nativeErrorCode?: number
+}
+
 /** Choose recovery text only from reviewed codes; never display child output. */
-export function assetFailureGuidance(code?: string | null) {
+export function assetFailureGuidance(
+  code?: string | null,
+  evidence?: AssetFailureEvidence | null,
+) {
+  if (code === 'candidate_validation_issues')
+    return {
+      problem: '本次读取结果未通过校验。',
+      nextAction: '请保留诊断和当前库存；不要据此导入未校验结果。',
+    }
   if (!code || !contract.assetQuickRead.codes.includes(code)) return undefined
   if (code.startsWith('public_'))
     return {
@@ -22,6 +34,11 @@ export function assetFailureGuidance(code?: string | null) {
     return {
       problem: '资产快读采集依赖未能加载。',
       nextAction: '请保留诊断并反馈工具运行文件问题。',
+    }
+  if (code === 'capture_open_failed' && evidence?.nativeErrorCode === 1450)
+    return {
+      problem: 'Windows 未能分配采集所需的系统资源。',
+      nextAction: '请结束当前读取后重试；仍失败时发送诊断。',
     }
   if (code === 'capture_open_failed' || code === 'capture_receive_failed')
     return {

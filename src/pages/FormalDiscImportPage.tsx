@@ -38,7 +38,8 @@ export function FormalDiscImportPage({
   compact = false,
   onImportSuccess,
   onError,
-  secondaryAction,
+  secondaryAction: providedSecondaryAction,
+  diagnosticFeedback,
   scannerSnapshot,
 }: {
   embedded?: boolean
@@ -46,8 +47,17 @@ export function FormalDiscImportPage({
   onImportSuccess?: (imported: number) => void
   onError?: (issueCode: 'scan_import_failed' | 'scan_file_invalid', message: string) => void
   secondaryAction?: ReactNode
+  diagnosticFeedback?: ReactNode
   scannerSnapshot?: ScannerAssistantSnapshot
 } = {}) {
+  const secondaryAction = diagnosticFeedback ? (
+    <>
+      {providedSecondaryAction}
+      {diagnosticFeedback}
+    </>
+  ) : (
+    providedSecondaryAction
+  )
   const searchParams = new URLSearchParams(window.location.search)
   const successSampleMode = import.meta.env.DEV && searchParams.get('successSample') === '400'
   const [revision, setRevision] = useState(0)
@@ -399,7 +409,7 @@ export function FormalDiscImportPage({
         key={current.batch?.id}
         current={current}
         snapshot={scannerSnapshot}
-        secondaryAction={secondaryAction}
+        secondaryAction={providedSecondaryAction}
       />
     ) : (
       <Navigate

@@ -71,8 +71,9 @@ describe('preparing another scan', () => {
     rendered.rerender(page())
     expect(screen.queryByRole('region', { name: '已完成扫描结果' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '查看上次扫描结果' })).not.toBeInTheDocument()
-    const previousResult = screen.getByRole('button', { name: '上次结果', hidden: true })
-    expect(previousResult.closest('[popover]')).not.toBeNull()
+    const previousResult = screen.getByRole('button', { name: '继续上次扫描' })
+    expect(previousResult.closest('[popover]')).toBeNull()
+    expect(previousResult).toBeVisible()
     expect(previousResult).toHaveClass('button--quiet')
     let finish!: () => void
     runtime.commands.startScan.mockImplementationOnce(

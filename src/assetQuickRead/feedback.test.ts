@@ -15,6 +15,7 @@ import {
 } from './feedback'
 import { sanitizeScanFeedbackPayload } from '../../deploy/cloudflare/scan-feedback.mjs'
 import { assetQuickReadRelease } from './distribution'
+import { assetFailureGuidance } from './diagnosticGuidance'
 import { AssetQuickReadImportError } from './importErrors'
 import { AssetQuickReadUnavailableError } from './launcher'
 import type { AssetBridgeJob } from './bridgeClient'
@@ -31,19 +32,28 @@ const failedNativeJob: AssetBridgeJob = {
   remainingSeconds: null,
   counts: { agents: 0, discs: 0, engines: 0 },
   candidateAvailable: false,
-  diagnostics: { nativeErrorCode: 5, childExitCode: 3221225477 },
+  diagnostics: {
+    nativeErrorCode: 1450,
+    childExitCode: 3221225477,
+    candidateStatus: 'validation_failed',
+    candidateIssueCount: 7,
+  },
 }
 
-it('retains finite native failure evidence through storage and receiver without inventing zero assets', () => {
+it('retains finite native and candidate evidence through storage and receiver without inventing zero assets', () => {
   const report = assetFailureDiagnostic('startup', undefined, failedNativeJob, '1.0.7')
   expect(report.code).toBe('capture_open_failed')
   expect(report.evidence).toEqual({
     jobState: 'error',
     jobPhase: 'driver',
     candidateAvailable: false,
-    nativeErrorCode: 5,
+    nativeErrorCode: 1450,
     childExitCode: 3221225477,
+    candidateStatus: 'validation_failed',
+    candidateIssueCount: 7,
   })
+  expect(report.schema).toBe(1)
+  expect(new TextEncoder().encode(JSON.stringify(report)).length).toBeLessThanOrEqual(4096)
   expect(report.counts).toEqual({ processed: null, total: null })
   expect(sanitizeScanFeedbackPayload(report)).toEqual({ ok: true, record: report })
   saveAssetDiagnostic(report)
@@ -70,11 +80,21 @@ it.each([
 
 it('rejects malformed native evidence and raw or filename-suffixed failure strings', () => {
   const safe = assetFailureDiagnostic('startup', undefined, failedNativeJob)
-  for (const value of [-1, 4294967296, 1.5, "soda-source-ref:61ed5e34eb22556ab3b6b6fcd94f5347"]) {
-    expect(sanitizeAssetDiagnostic({ ...safe, evidence: { nativeErrorCode: value } })).toBeNull()
-    expect(sanitizeScanFeedbackPayload({ ...safe, evidence: { childExitCode: value } })).toEqual({
-      status: 400,
-    })
+  for (const evidence of [
+    { nativeErrorCode: -1 },
+    { nativeErrorCode: 4294967296 },
+    { nativeErrorCode: 1.5 },
+    { nativeErrorCode: "soda-source-ref:61ed5e34eb22556ab3b6b6fcd94f5347" },
+    { childExitCode: 4294967296 },
+    { candidateStatus: 'private status' },
+    { candidateIssueCount: 101 },
+    { candidateIssueCount: 1.5 },
+    { status: 'validation_failed' },
+    { issues: ['private issue body'] },
+  ]) {
+    const poisoned = { ...safe, evidence: { ...safe.evidence, ...evidence } }
+    expect(sanitizeAssetDiagnostic(poisoned)).toBeNull()
+    expect(sanitizeScanFeedbackPayload(poisoned)).toEqual({ status: 400 })
   }
   for (const code of [
     'protocol_file_missing:manifest.json',
@@ -85,6 +105,17 @@ it('rejects malformed native evidence and raw or filename-suffixed failure strin
       'capture_failed',
     )
   }
+})
+
+it('explains candidate validation without sending users back to the game directory', () => {
+  expect(assetFailureGuidance('candidate_validation_issues')).toEqual({
+    problem: '本次读取结果未通过校验。',
+    nextAction: '请保留诊断和当前库存；不要据此导入未校验结果。',
+  })
+  expect(assetFailureGuidance('capture_open_failed', { nativeErrorCode: 1450 })).toEqual({
+    problem: 'Windows 未能分配采集所需的系统资源。',
+    nextAction: '请结束当前读取后重试；仍失败时发送诊断。',
+  })
 })
 
 it.each(['connection', 'import'] as const)(

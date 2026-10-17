@@ -36,7 +36,7 @@ function openDisclosure() {
   fireEvent.click(screen.getByRole('button', { name: /准备资产快读|开始读取/ }))
 }
 
-it('keeps failure details collapsed while the existing retry and return actions remain available', () => {
+it('shows the failure reason directly while retry and return actions remain available', () => {
   const restart = vi.fn()
   render(
     <AssetQuickReadEntry
@@ -56,9 +56,8 @@ it('keeps failure details collapsed while the existing retry and return actions 
       )}
     />,
   )
-  const details = screen.getByText('读取未完成 · 可重试').closest('details')!
-  expect(details).not.toHaveAttribute('open')
-  expect(details).toHaveTextContent('合成启动失败细项')
+  expect(screen.getByText('读取未完成 · 可重试').closest('details, [popover]')).toBeNull()
+  expect(screen.getByText('合成启动失败细项')).toBeVisible()
   expect(screen.getByRole('button', { name: '一键读取' })).toBeEnabled()
   fireEvent.click(screen.getByRole('button', { name: '返回' }))
   expect(restart).toHaveBeenCalledOnce()
@@ -722,7 +721,11 @@ it('renders diagnosticAction callback inside actions with computed status and ro
       capability="ready"
       diagnosticAction={(status) => {
         receivedStatus = status
-        return <button type="button" data-testid="inline-diagnostic-button">诊断</button>
+        return (
+          <button type="button" data-testid="inline-diagnostic-button">
+            诊断
+          </button>
+        )
       }}
       renderParts={({ preparation }) => preparation}
     />,
@@ -755,6 +758,28 @@ it('keeps installer status and connection details visible in original summary lo
   const summary = screen.getByText('资产快读正在下载 60%')
   expect(summary).toBeVisible()
   expect(summary.closest('.asset-quick-read__connection-summary')).not.toBeNull()
+})
+
+it('gives a saved pending result its own compact preparation choice instead of adding a fourth setup action', () => {
+  const onConnect = vi.fn()
+  render(
+    <AssetQuickReadEntry
+      state="idle"
+      resumeAvailable
+      targetAccountId="account-saved-result"
+      onConnect={onConnect}
+      preparationRecovery={<button type="button">继续上次读取</button>}
+      installer={<button type="button">下载资产快读</button>}
+      renderParts={({ preparation }) => preparation}
+    />,
+  )
+  expect(screen.getByRole('button', { name: '继续上次读取' })).toBeVisible()
+  expect(screen.queryByRole('button', { name: '下载资产快读' })).not.toBeInTheDocument()
+  expect(screen.queryByText('准备游戏')).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: '重新读取' }))
+  expect(screen.getByText('准备游戏')).toBeVisible()
+  expect(screen.getByRole('button', { name: '连接资产快读' })).toBeVisible()
+  expect(onConnect).not.toHaveBeenCalled()
 })
 
 it('renders diagnostic feedback inline within actions during capturing alongside stop button', () => {

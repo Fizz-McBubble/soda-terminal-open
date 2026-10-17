@@ -11,9 +11,45 @@ export type Reviewed = {
 
 export function previewOf(review: Reviewed): AssetQuickReadPreview {
   const { candidate, plan } = review
+  const groups = new Map<string, number>()
+  for (const issue of candidate.issues) {
+    const label = ['duplicate_uid', 'unknown_disc_catalog', 'unsupported_disc_catalog'].includes(
+      issue.code,
+    )
+      ? '驱动盘身份需核对'
+      : issue.kind === 'discs'
+        ? '驱动盘词条需核对'
+        : '读取结果完整性需核对'
+    groups.set(label, (groups.get(label) ?? 0) + 1)
+  }
   return {
     snapshotId: candidate.snapshotSha256,
     counts: { agents: candidate.counts.importableAgents, discs: candidate.counts.sDiscs },
+    compactSummary: [
+      ...(plan
+        ? [
+            `驱动盘新增 ${plan.summary.newDiscs} 张、更新 ${plan.summary.updatedDiscs} 张、保留 ${plan.summary.retainedDiscs} 张。`,
+            [
+              plan.summary.syncedManualProgressionFields
+                ? `更新手动养成 ${plan.summary.syncedManualProgressionFields} 项`
+                : '',
+              plan.summary.protectedFields
+                ? `保留未读取等字段 ${plan.summary.protectedFields} 项`
+                : '',
+              plan.summary.inferredDiscLinks
+                ? `按相同属性匹配旧扫描盘 ${plan.summary.inferredDiscLinks} 张，请核对盘数`
+                : '',
+            ]
+              .filter(Boolean)
+              .join('；'),
+          ]
+        : []),
+      ...((candidate.warnings ?? []).some(
+        (warning) => !warning.startsWith('本次仅检查已出现的代理人和S级盘'),
+      )
+        ? ['未读全的代理人或音擎资料保留原值，可手动补齐。']
+        : []),
+    ].filter(Boolean),
     validSummary: [
       ...(plan
         ? [
@@ -39,6 +75,12 @@ export function previewOf(review: Reviewed): AssetQuickReadPreview {
     ],
     issues: [
       ...candidate.issues.map((issue) => issue.message),
+      ...(review.issue ? [review.issue] : []),
+    ],
+    issueSummary: [
+      ...(candidate.issues.length > 3
+        ? [...groups].map(([label, count]) => `${label}：${count} 项`)
+        : candidate.issues.map((issue) => issue.message)),
       ...(review.issue ? [review.issue] : []),
     ],
     agents: candidate.agents.map((agent) => {

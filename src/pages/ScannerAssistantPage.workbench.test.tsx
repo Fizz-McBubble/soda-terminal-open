@@ -431,7 +431,7 @@ it.each(['none', 'optional-agent', 'disc-identity'] as const)(
     expect(screen.getByRole('button', { name: '开始扫描' })).toBeDisabled()
     await act(async () => fireEvent.click(screen.getByRole('button', { name: '放弃' })))
     expect(screen.queryByRole('region', { name: '本次任务' })).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '开始扫描' })).toBeEnabled()
+    await waitFor(() => expect(screen.getByRole('button', { name: '开始扫描' })).toBeEnabled())
     expect(screen.getByLabelText('选择本机文件（JSON）')).toBeEnabled()
     expect(await facts()).toEqual(before)
     fireEvent.change(screen.getByLabelText('选择本机文件（JSON）'), {
@@ -469,9 +469,9 @@ it('keeps a production recovery blocker in its modal and preserves real persiste
   })
   const before = await facts()
   const preferences = await database.accountPreferences.toArray()
-  fireEvent.click(screen.getByRole('button', { name: '恢复本次导入' }))
-  const dialog = screen.getByRole('dialog', { name: '恢复到本次导入前？' })
-  fireEvent.click(within(dialog).getByRole('button', { name: '确认恢复到导入前' }))
+  fireEvent.click(screen.getByRole('button', { name: '撤销本次导入' }))
+  const dialog = screen.getByRole('dialog', { name: '撤销这次资产快读导入？' })
+  fireEvent.click(within(dialog).getByRole('button', { name: '确认撤销导入' }))
   await waitFor(() =>
     expect(within(dialog).getByRole('alert')).toHaveTextContent('合成恢复保护方案'),
   )
@@ -480,7 +480,7 @@ it('keeps a production recovery blocker in its modal and preserves real persiste
   expect(await facts()).toEqual(before)
   expect(await database.accountPlanningDrafts.toArray()).toEqual([saved])
   expect(await database.accountPreferences.toArray()).toEqual(preferences)
-  fireEvent.click(within(dialog).getByRole('button', { name: '取消恢复' }))
-  expect(screen.queryByRole('dialog', { name: '恢复到本次导入前？' })).not.toBeInTheDocument()
+  fireEvent.click(within(dialog).getByRole('button', { name: '取消撤销' }))
+  expect(screen.queryByRole('dialog', { name: '撤销这次资产快读导入？' })).not.toBeInTheDocument()
   expect(screen.queryByText(/合成恢复保护方案/)).not.toBeInTheDocument()
 })

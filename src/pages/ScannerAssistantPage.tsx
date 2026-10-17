@@ -22,6 +22,7 @@ import {
   getScannerPresentedStateCopy,
   getScannerStateCopy,
   readCompletedScannerImport,
+  completedScannerImportKey,
   type CompletedScannerImport,
 } from './scannerAssistantStatePresentation'
 import { AssetQuickReadController } from './AssetQuickReadController'
@@ -32,6 +33,7 @@ import { PrepareChecklist } from './ScannerPrepareChecklist'
 import { ScannerGuide } from './ScannerGuide'
 import { ScannerWorkbenchNavigation } from './ScannerWorkbenchGuides'
 import { ScannerMethodSteps } from './ScannerMethodSteps'
+import { ScannerImportHistory, ScannerUndoImportAction } from './ScannerImportHistory'
 import { focusScannerWorkspaceTarget, navigateScannerWorkspace } from './scannerWorkbenchNavigation'
 import { ScannerHandoffSection } from './ScannerHandoffSection'
 import { ScannerCompletedSummary } from './ScannerCompletedSummary'
@@ -84,6 +86,7 @@ function HydratedScannerAssistantPage({
   const [selectedAccountId, setSelectedAccountId] = useState('')
   const [newAccountName, setNewAccountName] = useState('')
   const [accountMessage, setAccountMessage] = useState('')
+  const [historyMode, setHistoryMode] = useState<'list' | 'scanner-confirm' | null>(null)
   const [actionFeedback, setActionFeedback] = useState<string | null>(null)
   const [actionIssueCode, setActionIssueCode] = useState<string | null>(null)
   const snapshot = useScannerHelperAction(runtimeSnapshot, actionIssueCode)
@@ -465,6 +468,14 @@ function HydratedScannerAssistantPage({
         actionFeedback={null}
         snapshot={snapshot}
         diagnosticFeedback={diagnosticFeedback}
+        undoAction={
+          selectedAccount ? (
+            <ScannerUndoImportAction
+              accountId={selectedAccount.id}
+              onOpen={() => setHistoryMode('scanner-confirm')}
+            />
+          ) : undefined
+        }
         restartingAfterCompletedResult={restartingAfterCompletedResult}
         preparingNewScan={preparingNewScan}
         inlineImportOpen={inlineImportOpen}
@@ -647,22 +658,21 @@ function HydratedScannerAssistantPage({
             inline
             workspaceMessage={workspaceMessage}
             workspaceMessageRole={workspaceMessageRole}
-            secondaryAction={
-              preparingNewScan &&
-              snapshot.state === 'completed' &&
-              snapshot.summary?.resultFileHandle &&
-              !startPending ? (
-                <button
-                  className="button button--quiet"
-                  type="button"
-                  onClick={() => setPreparingAnotherScan(false)}
-                >
-                  上次结果
-                </button>
-              ) : undefined
-            }
           />
         )
+        const scannerResumeAction =
+          preparingNewScan &&
+          snapshot.state === 'completed' &&
+          snapshot.summary?.resultFileHandle &&
+          !startPending ? (
+            <button
+              className="button button--quiet"
+              type="button"
+              onClick={() => setPreparingAnotherScan(false)}
+            >
+              {completedImportCount === null ? '继续上次扫描' : '查看上次扫描'}
+            </button>
+          ) : undefined
         const newAccountForm = (
           <form
             onSubmit={(event) => {
@@ -753,11 +763,51 @@ function HydratedScannerAssistantPage({
                     />
                   </div>
                   <div className="scanner-workbench__new-account">{newAccountForm}</div>
-                  <JsonFilePicker
-                    disabled={fileLocked}
-                    onFile={(file) => inspectJson(file, quick.inspectFile)}
-                  />
+                  <div className="scanner-workbench__file-tools">
+                    <JsonFilePicker
+                      disabled={fileLocked}
+                      onFile={(file) => inspectJson(file, quick.inspectFile)}
+                    />
+                    <button
+                      type="button"
+                      className="scanner-workbench__history-trigger"
+                      disabled={
+                        !selectedAccount ||
+                        accountLocked ||
+                        scannerReviewPending ||
+                        quick.state === 'received'
+                      }
+                      onClick={() => setHistoryMode('list')}
+                    >
+                      导入记录
+                    </button>
+                  </div>
                 </section>
+                {selectedAccount && historyMode && (
+                  <ScannerImportHistory
+                    key={selectedAccount.id + historyMode}
+                    accountId={selectedAccount.id}
+                    accountName={selectedAccount.displayName}
+                    open
+                    confirmScanner={historyMode === 'scanner-confirm'}
+                    disabled={accountLocked || scannerReviewPending || quick.state === 'received'}
+                    quickHistory={quick.importHistory}
+                    onClose={() => setHistoryMode(null)}
+                    onScannerRestored={() => {
+                      try {
+                        window.localStorage.removeItem(completedScannerImportKey)
+                      } catch {
+                        /* IndexedDB remains authoritative. */
+                      }
+                      setCompletedImport(null)
+                      setImportedThisVisit(false)
+                      setInlineImportOpen(false)
+                      setPreparingAnotherScan(true)
+                      setTargetBinding(null)
+                      refreshAccounts()
+                    }}
+                  />
+                )}
                 <AssetCaptureRiskNotice />
                 <section
                   id="scanner-acquisition"
@@ -829,6 +879,7 @@ function HydratedScannerAssistantPage({
                               targetPanel={null}
                               installer={renderInstaller(otherTaskPending)}
                               diagnosticFeedback={scannerFeedback}
+                              resumeAction={scannerResumeAction}
                               accountDisclosure={accountDisclosure}
                               onRecover={
                                 canOpenInstalledHelper

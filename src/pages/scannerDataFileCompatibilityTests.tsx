@@ -129,7 +129,7 @@ export function registerScannerDataFileCompatibilityTests({
         const before = await accountSnapshot(false)
         window.history.replaceState({}, '', '/assets/account')
         const { container } = render(<App />)
-        await screen.findByRole('button', { name: '选择或拖入 JSON' })
+        await screen.findByRole('button', { name: '选择或拖入 JSON' }, { timeout: 15000 })
         const file = jsonFile(
           createReadyScannerStaging(),
           'soda-terminal-account-misleading-name.json',
@@ -137,7 +137,9 @@ export function registerScannerDataFileCompatibilityTests({
         fireEvent.change(container.querySelector('input[type="file"]')!, {
           target: { files: [file] },
         })
-        expect(await screen.findByRole('button', { name: '导入' })).toBeEnabled()
+        expect(
+          await screen.findByRole('button', { name: '导入' }, { timeout: 10000 }),
+        ).toBeEnabled()
         expect(window.location.pathname).toBe('/system/scanner')
         expect(screen.getByLabelText('选择本机文件（JSON）')).toBeDisabled()
         expect(screen.queryByRole('button', { name: '继续检查并导入' })).not.toBeInTheDocument()

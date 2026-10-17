@@ -98,7 +98,7 @@ it('replaces compact preparation feedback instead of adding a download status ro
   expect(screen.getByRole('heading', { name: '准备游戏' })).toBeVisible()
   fireEvent.click(screen.getByRole('button', { name: /下载画面扫描/ }))
   await waitFor(() =>
-    expect(screen.getByText('在下载列表打开安装包')).toBeVisible(),
+    expect(screen.getByText('文件已准备，请在下载列表打开安装包，安装后点击连接。')).toBeVisible(),
   )
   expect(screen.queryByRole('status')).not.toBeInTheDocument()
   expect(screen.queryByText('旧连接提示')).not.toBeInTheDocument()
@@ -134,7 +134,7 @@ it('replaces prepared-download feedback after a new connection fails and accepts
   const view = render(<PrepareChecklist {...props} snapshot={snapshot} />)
   fireEvent.click(screen.getByRole('button', { name: /下载画面扫描/ }))
   await waitFor(() =>
-    expect(screen.getByText('在下载列表打开安装包')).toBeVisible(),
+    expect(screen.getByText('文件已准备，请在下载列表打开安装包，安装后点击连接。')).toBeVisible(),
   )
   view.rerender(
     <PrepareChecklist
@@ -144,7 +144,9 @@ it('replaces prepared-download feedback after a new connection fails and accepts
       title="正在连接画面扫描"
     />,
   )
-  expect(screen.queryByText('在下载列表打开安装包')).not.toBeInTheDocument()
+  expect(
+    screen.queryByText('文件已准备，请在下载列表打开安装包，安装后点击连接。'),
+  ).not.toBeInTheDocument()
   const failed: ScannerAssistantSnapshot = {
     ...snapshot,
     state: 'connection_failed',
@@ -157,10 +159,12 @@ it('replaces prepared-download feedback after a new connection fails and accepts
   view.rerender(<PrepareChecklist {...props} snapshot={failed} title="本次连接失败" />)
   expect(screen.getByRole('heading', { name: '本次连接失败' })).toBeVisible()
   expect(screen.getByText('重新打开画面扫描后连接。')).toBeVisible()
-  expect(screen.queryByText('在下载列表打开安装包')).not.toBeInTheDocument()
+  expect(
+    screen.queryByText('文件已准备，请在下载列表打开安装包，安装后点击连接。'),
+  ).not.toBeInTheDocument()
   fireEvent.click(screen.getByRole('button', { name: '重新下载' }))
   await waitFor(() =>
-    expect(screen.getByText('在下载列表打开安装包')).toBeVisible(),
+    expect(screen.getByText('文件已准备，请在下载列表打开安装包，安装后点击连接。')).toBeVisible(),
   )
   expect(screen.queryByRole('heading', { name: '本次连接失败' })).not.toBeInTheDocument()
   expect(screen.queryByRole('status')).not.toBeInTheDocument()
@@ -279,7 +283,11 @@ it('starts fetching in the click task without calling an exposed non-settling sa
     streamController.enqueue(executableFixture)
     streamController.close()
   })
-  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('在下载列表打开安装包'))
+  await waitFor(() =>
+    expect(screen.getByRole('status')).toHaveTextContent(
+      '文件已准备，请在下载列表打开安装包，安装后点击连接。',
+    ),
+  )
   expect(createObjectURL.mock.calls[0][0].size).toBe(8)
   expect(screen.getByText('v1.0.9')).toBeVisible()
   expect(
@@ -371,7 +379,11 @@ it('shows streamed bytes before EOF and requests browser save only after all byt
     streamController.enqueue(executableFixture.subarray(4))
     streamController.close()
   })
-  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('在下载列表打开安装包'))
+  await waitFor(() =>
+    expect(screen.getByRole('status')).toHaveTextContent(
+      '文件已准备，请在下载列表打开安装包，安装后点击连接。',
+    ),
+  )
   expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
   expect(screen.queryByText(/下载完成。打开/)).not.toBeInTheDocument()
 })
@@ -404,7 +416,11 @@ it('cancels a partial stream and permits a fresh download', async () => {
   expect(fetcher.mock.calls[0][1].signal.aborted).toBe(true)
   fetcher.mockResolvedValue(new Response(executableFixture))
   fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
-  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('在下载列表打开安装包'))
+  await waitFor(() =>
+    expect(screen.getByRole('status')).toHaveTextContent(
+      '文件已准备，请在下载列表打开安装包，安装后点击连接。',
+    ),
+  )
   expect(fetcher).toHaveBeenCalledTimes(2)
 })
 it('ends a non-settling host fetch immediately on cancellation and ignores a late result', async () => {
@@ -424,12 +440,18 @@ it('ends a non-settling host fetch immediately on cancellation and ignores a lat
   expect(screen.queryByRole('link', { name: '直接下载' })).not.toBeInTheDocument()
   fetcher.mockResolvedValue(new Response(executableFixture))
   fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
-  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('在下载列表打开安装包'))
+  await waitFor(() =>
+    expect(screen.getByRole('status')).toHaveTextContent(
+      '文件已准备，请在下载列表打开安装包，安装后点击连接。',
+    ),
+  )
   await act(async () => {
     finishFetch(new Response(executableFixture))
   })
   expect(createObjectURL).toHaveBeenCalledOnce()
-  expect(screen.getByRole('status')).toHaveTextContent('在下载列表打开安装包')
+  expect(screen.getByRole('status')).toHaveTextContent(
+    '文件已准备，请在下载列表打开安装包，安装后点击连接。',
+  )
 })
 it('ends a repeatedly stalled fetch after bounded recovery and permits a verified retry', async () => {
   vi.useFakeTimers()

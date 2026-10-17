@@ -33,6 +33,18 @@ it.each([
     expect(document.body).not.toHaveTextContent('private response')
   },
 )
+it('keeps candidate validation guidance about preserving diagnostics and inventory', () => {
+  const report = assetFailureDiagnostic(
+    'result',
+    new AssetQuickReadRequestError('candidate_validation_issues', 'private issue body'),
+  )
+  render(<AssetQuickReadFeedback report={report} />)
+  fireEvent.click(screen.getByText('查看诊断'))
+  expect(document.body).toHaveTextContent('本次读取结果未通过校验。')
+  expect(document.body).toHaveTextContent('请保留诊断和当前库存；不要据此导入未校验结果。')
+  expect(document.body).not.toHaveTextContent('核对游戏目录')
+  expect(document.body).not.toHaveTextContent('private issue body')
+})
 it('never sends on mount, opens folded summary, sends only on click and restores receipt after refresh', async () => {
   const report = assetFailureDiagnostic('waiting')
   saveAssetDiagnostic(report)

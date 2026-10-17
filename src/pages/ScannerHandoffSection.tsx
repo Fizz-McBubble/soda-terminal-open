@@ -106,9 +106,9 @@ export function ScannerHandoffSection({
               >
                 {sharedTargetSelection ? '放弃' : '返回准备，重新扫描'}
               </button>
-              {diagnosticFeedback}
             </>
           }
+          diagnosticFeedback={diagnosticFeedback}
           onImportSuccess={onImportSuccess}
           onError={onImportError}
         />
@@ -116,7 +116,7 @@ export function ScannerHandoffSection({
         <section className="scanner-result-ready" aria-label="扫描结果与下一步">
           <div className="scanner-result-ready__facts">
             <div className="scanner-completed-account">
-              <span>本次扫描保存到</span>
+              <span>导入目标：</span>
               <strong title={frozenTargetValidation.binding.displayName}>
                 {frozenTargetValidation.binding.displayName}
               </strong>

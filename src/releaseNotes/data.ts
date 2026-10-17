@@ -10,6 +10,18 @@ export interface ReleaseNote {
 // A local fix or commit is not a published release; add it when that release ships.
 export const releases = [
   {
+    id: '20261017-import-workspace-and-recovery',
+    date: '2026-10-17',
+    scope: '画面扫描与资产快读',
+    title: '统一导入工作区，完善继续读取与撤销导入',
+    changes: [
+      '两种导入方式采用统一固定工作区，保留正常字号和间距；下载进度、完成提示与操作按钮一致展示。',
+      '资产快读结果尚未导入时，可在刷新后继续检查，无需重新连接和读取。',
+      '账户旁新增导入记录；新扫描导入支持安全撤销，后续资产或方案已变化时会阻止覆盖。',
+      '导入阻断原因直接展示，大量重复问题按类别汇总并保留逐项核对，复杂校准在独立界面完成。',
+    ],
+  },
+  {
     id: '20261017-installer-and-diagnostic-guidance',
     date: '2026-10-17',
     scope: '工具安装、诊断与工作区',

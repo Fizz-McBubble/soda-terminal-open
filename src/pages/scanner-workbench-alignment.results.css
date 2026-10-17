@@ -152,14 +152,6 @@
 .f5v-shell .scanner-workbench .scanner-web__scan-actions {
   padding-top: 0;
 }
-@media (max-width: 900px) {
-  .f5v-shell .scanner-workbench__method,
-  .f5v-shell .scanner-workbench__methods--active .scanner-workbench__method {
-    min-height: 485px;
-    height: auto;
-  }
-}
-
 /* Both acquisition methods use the same compact phase actions. */
 .f5v-shell
   .scanner-workbench
@@ -204,13 +196,59 @@
 }
 .f5v-shell .scanner-workbench .scanner-result-ready {
   display: flex;
+  flex: 1;
   flex-direction: column;
   align-items: stretch;
   gap: 16px;
 }
+.f5v-shell .scanner-workbench .scanner-result-ready__next {
+  margin-top: auto;
+}
 .f5v-shell .scanner-workbench .scanner-result-ready__facts {
+  align-items: stretch;
+  flex-direction: column;
+  gap: 12px;
+}
+.f5v-shell .scanner-workbench .scanner-completed-account {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  flex: 0 0 auto;
+  width: auto;
+  padding: 0;
+}
+.f5v-shell .scanner-workbench .scanner-completed-account strong {
+  display: inline;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.f5v-shell .scanner-workbench .scanner-web__summary {
+  display: flex;
   align-items: flex-start;
   flex-wrap: wrap;
+  flex: 0 0 auto;
+  gap: 12px 24px;
+  width: auto;
+  margin: 0;
+}
+.f5v-shell .scanner-workbench .scanner-web__summary article {
+  display: grid;
+  grid-template-columns: max-content max-content;
+  align-items: baseline;
+  gap: 4px 8px;
+  padding: 0;
+}
+.f5v-shell .scanner-workbench .scanner-web__summary strong {
+  font-size: var(--soda-font-body);
+}
+.f5v-shell .scanner-workbench .scanner-web__summary small {
+  display: block;
+  grid-column: 1 / -1;
 }
 .f5v-shell .scanner-workbench .scanner-prepare__observations,
 .f5v-shell .scanner-workbench .scanner-import-review__issues,
@@ -231,19 +269,6 @@
   font-size: var(--soda-font-body);
   font-weight: 600;
 }
-.f5v-shell
-  .scanner-workbench__body--diagnostic
-  > :is(.scanner-workbench__preparation, .scanner-workbench__method-task):has(details[open]) {
-  overflow-y: auto;
-  overscroll-behavior-y: contain;
-  scrollbar-gutter: stable;
-}
-.f5v-shell .scanner-workbench .asset-quick-read__task:has(details[open]) > :first-child {
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior-y: contain;
-  scrollbar-gutter: stable;
-}
 .f5v-shell .scanner-workbench :is(.scanner-import-review__footer, .scanner-calibration) .button {
   height: var(--soda-control-height, 42px);
   min-height: var(--soda-control-height, 42px);
@@ -261,4 +286,164 @@
 }
 .f5v-shell .scanner-workbench .scanner-diagnostic-feedback__actions {
   flex-wrap: wrap;
+}
+
+.f5v-shell .scanner-workbench .asset-quick-read__consent-stage h3 {
+  margin-bottom: 8px;
+  font-size: var(--soda-type-subsection, 14px);
+  line-height: 1.4;
+}
+.f5v-shell
+  .scanner-workbench
+  :is(.scanner-prepare__requirements, .asset-quick-read__game-preparation) {
+  min-height: 0;
+}
+.f5v-shell .scanner-workbench .scanner-workbench__body--prepare > .asset-quick-read__tools {
+  margin-top: 0;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__connection-summary .asset-quick-read__status {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__connection-summary .asset-quick-read__tool-status {
+  display: block;
+  line-height: 1.6;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__connection-summary .asset-quick-read__status-hint {
+  line-height: 1.65;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__consent-stage p {
+  margin-bottom: 8px;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__consent-stage .asset-quick-read__confirmation {
+  margin: 8px 0;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__detail-entry {
+  display: block;
+  margin: 0 0 8px;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__resume-actions {
+  margin-top: auto;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__resume-summary h4 {
+  margin: 0 0 8px;
+  font-size: var(--soda-font-body);
+}
+.f5v-shell .scanner-workbench .asset-quick-read__resume-summary p {
+  margin: 0;
+}
+.f5v-shell .scanner-workbench .scanner-import-review__reasons,
+.f5v-shell .scanner-workbench .scanner-prepare__blocking-reasons {
+  margin: 8px 0 0;
+  padding-left: 20px;
+  line-height: 1.6;
+}
+.f5v-shell .scanner-workbench .scanner-import-review__reasons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  padding: 0;
+  list-style: none;
+}
+.f5v-shell .scanner-workbench .asset-quick-read__detail-entry p {
+  margin: 0 0 6px;
+}
+.f5v-shell .scanner-workbench .explanation.scanner-prepare__observations,
+.f5v-shell .scanner-workbench .explanation.scanner-import-review__issues {
+  margin: 0 0 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.f5v-shell .scanner-workbench .scanner-prepare__status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.f5v-shell .scanner-workbench .scanner-prepare__status-row > h4 {
+  margin: 0;
+}
+.f5v-shell .scanner-workbench .scanner-prepare__status-row > .scanner-prepare__observations {
+  display: inline-flex;
+  margin: 0;
+}
+.f5v-shell
+  .scanner-workbench
+  .scanner-workbench__body--prepare
+  > .asset-quick-read__connection-summary {
+  margin-top: auto;
+}
+.f5v-shell .scanner-workbench .scanner-prepare--compact .scanner-prepare__intro {
+  margin-top: auto;
+}
+.f5v-shell
+  .scanner-workbench
+  :is(.scanner-prepare__requirements, .asset-quick-read__game-preparation)
+  li {
+  text-wrap: pretty;
+}
+.f5v-shell .scanner-workbench .scanner-import-review__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: 16px;
+}
+.f5v-shell .scanner-workbench .scanner-web__handoff > .scanner-import-review {
+  display: flex;
+  flex-direction: column;
+}
+.f5v-shell .scanner-workbench .scanner-import-review__actions .explanation__trigger.button {
+  min-height: var(--soda-control-height, 42px);
+  padding: 0 14px;
+  font-size: var(--soda-font-body);
+  border-radius: var(--soda-radius-control, 8px);
+}
+.f5v-shell .scanner-workbench .asset-quick-read__detail-entry > .button,
+.f5v-shell .scanner-workbench .scanner-prepare__observations > .button,
+.f5v-shell .scanner-workbench .scanner-import-review__issues > .button {
+  min-height: var(--soda-control-height, 42px);
+  font-size: var(--soda-font-body);
+  border-radius: var(--soda-radius-control, 8px);
+}
+
+.f5v-shell dialog.scanner-calibration-dialog {
+  box-sizing: border-box;
+  width: min(1120px, calc(100vw - 48px));
+  padding: 20px;
+  max-height: calc(100dvh - 40px);
+  overflow: auto;
+}
+.f5v-shell .scanner-workbench dialog.scanner-task__confirmation {
+  box-sizing: border-box;
+  max-width: calc(100vw - 40px);
+  max-height: calc(100dvh - 40px);
+  overflow: auto;
+  overflow-wrap: anywhere;
+}
+.f5v-shell .scanner-calibration-dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.f5v-shell .scanner-calibration-dialog__header h3 {
+  margin: 0;
+  font-size: 16px;
+}
+.f5v-shell .scanner-calibration-dialog .scanner-calibration {
+  margin: 16px 0 0;
+}
+.f5v-shell .scanner-workbench .scanner-calibration-dialog .scanner-calibration__body {
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 20px;
+  padding: 16px;
+}
+@media (max-width: 760px) {
+  .f5v-shell .scanner-workbench .scanner-calibration-dialog .scanner-calibration__body {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

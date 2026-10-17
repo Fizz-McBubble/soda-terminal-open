@@ -326,6 +326,8 @@
       "candidate_size_invalid",
       "candidate_schema_invalid",
       "candidate_status_invalid",
+      "candidate_coverage_incomplete",
+      "candidate_validation_issues",
       "candidate_safety_flags_invalid",
       "candidate_semantics_invalid",
       "candidate_source_invalid",
@@ -401,10 +403,20 @@
     "evidenceLimits": {
       "remainingSeconds": 180,
       "nativeErrorCode": 4294967295,
-      "childExitCode": 4294967295
+      "childExitCode": 4294967295,
+      "candidateIssueCount": 100
     },
     "evidenceBooleans": ["candidateAvailable"],
     "evidenceEnums": {
+      "candidateStatus": [
+        "validation_failed",
+        "staged_for_field_review",
+        "response_semantics_unverified",
+        "load_responses_observed",
+        "timed_out",
+        "cancelled",
+        "unknown"
+      ],
       "jobState": ["starting", "capturing", "received", "timed_out", "stopped", "error"],
       "jobPhase": [
         "uac",

@@ -43,18 +43,48 @@ afterEach(() => {
   vi.unstubAllGlobals()
 })
 describe('independent asset bridge client', () => {
-  it('preserves optional finite failure details from the job DTO and strips arbitrary output', async () => {
-    const details = { nativeErrorCode: 5, childExitCode: 3221225477 }
+  it('preserves reviewed candidate evidence and strips raw status or issue output from the job DTO', async () => {
+    const details = {
+      nativeErrorCode: 1450,
+      childExitCode: 3221225477,
+      candidateStatus: 'validation_failed',
+      candidateIssueCount: 7,
+    }
     const fetcher = transport([
       { body: health },
       { body: session },
-      { status: 202, body: { ...job, diagnostics: { ...details, stderr: 'private output' } } },
+      {
+        status: 202,
+        body: {
+          ...job,
+          diagnostics: {
+            ...details,
+            status: 'private raw status',
+            issues: ['private issue body'],
+            stderr: 'private output',
+          },
+        },
+      },
     ])
     const client = new AssetQuickReadBridgeClient(fetcher)
     await client.connect()
     expect((await client.start("soda-source-ref:24d5780e541a1a1ad1393e8962be6e18", 'account-synthetic')).diagnostics).toEqual(
       details,
     )
+  })
+  it.each([
+    { candidateStatus: 'private status' },
+    { candidateIssueCount: 101 },
+    { candidateIssueCount: 1.5 },
+  ])('rejects unreviewed candidate evidence %o from the job DTO', async (diagnostics) => {
+    const fetcher = transport([
+      { body: health },
+      { body: session },
+      { status: 202, body: { ...job, diagnostics } },
+    ])
+    const client = new AssetQuickReadBridgeClient(fetcher)
+    await client.connect()
+    await expect(client.start("soda-source-ref:24d5780e541a1a1ad1393e8962be6e18", 'account-synthetic')).rejects.toThrow()
   })
 
   it.each(['1.0.0', '1.0.1', '1.0.2'])('pairs with supported bridge %s', async (version) => {

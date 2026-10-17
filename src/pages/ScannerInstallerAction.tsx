@@ -8,7 +8,10 @@ import {
   downloadScannerInstaller,
   type InstallerTransferProgress,
 } from '../scanner/installerDownload'
-import { installerTransferStatus } from '../scanner/installerTransferStatus'
+import {
+  installerTransferStatus,
+  installerOutcomeMessage,
+} from '../scanner/installerTransferStatus'
 import { readInstallerRelease, type InstallerRelease } from '../scanner/installerRelease'
 import './scanner-installer-action.css'
 import { compareToolVersion } from '../scanner/toolUpgradeNotice'
@@ -186,16 +189,9 @@ export function ScannerInstallerAction({
 
   const message =
     connectionNotice ||
-    (complete
-      ? '在下载列表打开安装包'
-      : state === 'cancelled'
-        ? '下载已取消'
-        : state === 'error'
-          ? timedOut
-            ? '连接超时，请重新下载以继续'
-            : '下载未完成，请重试'
-          : upgradeNotice ||
-            (update && distribution.message.includes('有新版本') ? distribution.message : ''))
+    installerOutcomeMessage(state, timedOut) ||
+    upgradeNotice ||
+    (update && distribution.message.includes('有新版本') ? distribution.message : '')
   const hidden =
     scannerDistributionManifest.runtime.releaseState !== 'published' ||
     (distribution.state === 'ready' && !update && !pending)

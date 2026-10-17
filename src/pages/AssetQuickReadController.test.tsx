@@ -231,9 +231,9 @@ it('imports only after the explicit import click and offers guarded recovery', a
     sameGameAccountAndCounts: true,
   })
   expect(screen.getByRole('status')).toHaveTextContent('本机')
-  fireEvent.click(screen.getByRole('button', { name: '恢复本次导入' }))
+  fireEvent.click(screen.getByRole('button', { name: '撤销本次导入' }))
   expect(persistence.restore).not.toHaveBeenCalled()
-  await act(async () => fireEvent.click(screen.getByRole('button', { name: '确认恢复到导入前' })))
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '确认撤销导入' })))
   expect(persistence.restore).toHaveBeenCalledWith(
     targetAccountId,
     'synthetic-recovery',
@@ -392,9 +392,9 @@ it('offers persisted recovery after remounting without pairing, capture or autom
     ),
   )
   expect(persistence.readRecovery).toHaveBeenCalledWith(targetAccountId)
-  expect(screen.getByRole('button', { name: '恢复上次资产快读导入' })).toBeEnabled()
-  fireEvent.click(screen.getByRole('button', { name: '恢复上次资产快读导入' }))
-  expect(screen.getByRole('button', { name: '确认恢复到导入前' })).toBeEnabled()
+  expect(screen.getByRole('button', { name: '撤销上次导入' })).toBeEnabled()
+  fireEvent.click(screen.getByRole('button', { name: '撤销上次导入' }))
+  expect(screen.getByRole('button', { name: '确认撤销导入' })).toBeEnabled()
   expect(persistence.restore).not.toHaveBeenCalled()
   expect(persistence.confirm).not.toHaveBeenCalled()
   expect(client.connect).not.toHaveBeenCalled()
@@ -424,11 +424,12 @@ it.each([false, true])(
     if (!workbench) {
       expect(screen.getByText(/恢复副本保留，不能直接覆盖/)).toBeVisible()
     } else {
-      expect(
-        screen.getByRole('button', { name: '恢复上次资产快读导入' }),
-      ).toHaveAttribute('title', expect.stringMatching(/恢复副本保留，不能直接覆盖/))
+      expect(screen.getByRole('button', { name: '撤销上次导入' })).toHaveAttribute(
+        'title',
+        expect.stringMatching(/恢复副本保留，不能直接覆盖/),
+      )
     }
-    expect(screen.getByRole('button', { name: '恢复上次资产快读导入' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: '撤销上次导入' })).toBeDisabled()
     expect(persistence.restore).not.toHaveBeenCalled()
   },
 )
@@ -465,7 +466,7 @@ it('ignores a saved-recovery lookup arriving after the selected account changes'
       canRestore: true,
     }),
   )
-  expect(screen.queryByRole('button', { name: '恢复上次资产快读导入' })).not.toBeInTheDocument()
+  expect(screen.queryByRole('button', { name: '撤销上次导入' })).not.toBeInTheDocument()
   expect(persistence.restore).not.toHaveBeenCalled()
 })
 
@@ -591,14 +592,14 @@ it('imports the observed candidate directly once without a manual synchronizatio
   )
   expect(screen.getByRole('heading', { name: '导入完成' })).toBeVisible()
   expect(harness.read().recovery).toBeNull()
-  const restore = screen.getByRole('button', { name: '恢复本次导入' })
+  const restore = screen.getByRole('button', { name: '撤销本次导入' })
   expect(restore.closest('.asset-quick-read__actions')).toContainElement(
     screen.getByRole('button', { name: '导出' }),
   )
   expect(screen.getByTestId('task')).toContainElement(restore)
   fireEvent.click(restore)
   expect(persistence.restore).not.toHaveBeenCalled()
-  const confirmRestore = screen.getByRole('button', { name: '确认恢复到导入前' })
+  const confirmRestore = screen.getByRole('button', { name: '确认撤销导入' })
   await act(async () => {
     fireEvent.click(confirmRestore)
     fireEvent.click(confirmRestore)
@@ -610,7 +611,7 @@ it('imports the observed candidate directly once without a manual synchronizatio
   )
 })
 
-it('renders inline diagnostic popover entry and recovery trigger inside workbench actions', async () => {
+it('keeps diagnostics in workbench actions and moves undo into import history', async () => {
   const harness = workbenchHarness()
   persistence.readRecovery.mockResolvedValue({
     recoveryKey: 'existing-recovery',
@@ -635,17 +636,18 @@ it('renders inline diagnostic popover entry and recovery trigger inside workbenc
   const actions = diagnosisRegion.closest<HTMLElement>('.asset-quick-read__actions')!
   expect(actions).toBeInTheDocument()
 
-  const recoveryButton = screen.getByRole('button', { name: '恢复上次资产快读导入' })
+  const recoveryButton = screen.getByRole('button', { name: '撤销上次导入' })
   expect(recoveryButton).toHaveClass('asset-quick-read__recovery-trigger')
-  expect(actions).toContainElement(recoveryButton)
+  expect(actions).not.toContainElement(recoveryButton)
+  expect(screen.getByTestId('import-history')).toContainElement(recoveryButton)
 
   fireEvent.click(recoveryButton)
-  const dialog = screen.getByRole('dialog', { name: '恢复到本次导入前？' })
+  const dialog = screen.getByRole('dialog', { name: '撤销这次资产快读导入？' })
   expect(dialog).toBeInTheDocument()
   expect(dialog).toHaveTextContent('合成主账户')
 
-  fireEvent.click(screen.getByRole('button', { name: '取消恢复' }))
-  expect(screen.queryByRole('dialog', { name: '恢复到本次导入前？' })).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: '取消撤销' }))
+  expect(screen.queryByRole('dialog', { name: '撤销这次资产快读导入？' })).not.toBeInTheDocument()
 })
 
 registerAssetQuickReadControllerIdentityCases()

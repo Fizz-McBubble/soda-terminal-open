@@ -29,6 +29,25 @@ const jobSchema = z.object({
     .object({
       nativeErrorCode: z.number().int().min(0).max(4294967295).optional(),
       childExitCode: z.number().int().min(0).max(4294967295).optional(),
+      candidateStatus: z
+        .enum(
+          diagnosticContract.assetQuickRead.evidenceEnums.candidateStatus as [
+            'validation_failed',
+            'staged_for_field_review',
+            'response_semantics_unverified',
+            'load_responses_observed',
+            'timed_out',
+            'cancelled',
+            'unknown',
+          ],
+        )
+        .optional(),
+      candidateIssueCount: z
+        .number()
+        .int()
+        .min(0)
+        .max(diagnosticContract.assetQuickRead.evidenceLimits.candidateIssueCount)
+        .optional(),
     })
     .nullish(),
 })

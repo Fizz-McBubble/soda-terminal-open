@@ -12,6 +12,7 @@ import {
 } from '../domain/scanImportStaging'
 import { driveDiscSchema } from '../domain/schemas'
 import { getScopedId } from '../accounts/types'
+import { readScannerImportFacts, saveScannerImportRecovery } from './accountScanImportRecovery'
 
 export async function stageAccountPaddleScanImport(
   accountId: string,
@@ -87,16 +88,26 @@ export async function importReadyAccountScanStaging(
 ) {
   return db.transaction(
     'rw',
-    [db.settings, db.accountDriveDiscs, db.accountScanImportBatches, db.accountScanImportItems],
+    [
+      db.accounts,
+      db.settings,
+      db.accountDriveDiscs,
+      db.accountRosters,
+      db.accountPreferences,
+      db.accountPlanningDrafts,
+      db.accountScanImportBatches,
+      db.accountScanImportItems,
+    ],
     async () => {
       await assertActiveAccountScope(accountId, db)
-      const [batch, items, existingDiscs] = await Promise.all([
+      const [batch, items, existingDiscs, beforeFacts] = await Promise.all([
         db.accountScanImportBatches.where('[accountId+id]').equals([accountId, batchId]).first(),
         db.accountScanImportItems
           .where('[accountId+batchId]')
           .equals([accountId, batchId])
           .toArray(),
         db.accountDriveDiscs.where('accountId').equals(accountId).toArray(),
+        readScannerImportFacts(accountId, db),
       ])
       if (!batch) throw new Error('当前账号中不存在该复核批次。')
       if (existingDiscs.length !== 0)
@@ -162,6 +173,14 @@ export async function importReadyAccountScanStaging(
       const finalCount = await db.accountDriveDiscs.where('accountId').equals(accountId).count()
       if (finalCount !== manifest.expectedTotal)
         throw new Error('账号正式仓库数量校验失败，事务已回滚。')
+      await saveScannerImportRecovery(
+        accountId,
+        batchId,
+        'empty_account',
+        beforeFacts,
+        importedAt,
+        db,
+      )
       beforeCommit?.()
       return {
         accountId,
@@ -191,16 +210,26 @@ export async function replaceReadyAccountScanStaging(
     throw new Error('必须先明确确认替换当前账户的正式驱动盘。')
   return db.transaction(
     'rw',
-    [db.settings, db.accountDriveDiscs, db.accountScanImportBatches, db.accountScanImportItems],
+    [
+      db.accounts,
+      db.settings,
+      db.accountDriveDiscs,
+      db.accountRosters,
+      db.accountPreferences,
+      db.accountPlanningDrafts,
+      db.accountScanImportBatches,
+      db.accountScanImportItems,
+    ],
     async () => {
       await assertActiveAccountScope(accountId, db)
-      const [batch, items, existingDiscs] = await Promise.all([
+      const [batch, items, existingDiscs, beforeFacts] = await Promise.all([
         db.accountScanImportBatches.where('[accountId+id]').equals([accountId, batchId]).first(),
         db.accountScanImportItems
           .where('[accountId+batchId]')
           .equals([accountId, batchId])
           .toArray(),
         db.accountDriveDiscs.where('accountId').equals(accountId).toArray(),
+        readScannerImportFacts(accountId, db),
       ])
       if (!batch) throw new Error('当前账号中不存在该复核批次。')
       const manifest = assertReadyScanReview(batch, items, {
@@ -279,6 +308,7 @@ export async function replaceReadyAccountScanStaging(
       const finalCount = await db.accountDriveDiscs.where('accountId').equals(accountId).count()
       if (finalCount !== manifest.expectedTotal)
         throw new Error('账号正式仓库数量校验失败，事务已回滚。')
+      await saveScannerImportRecovery(accountId, batchId, 'replace', beforeFacts, importedAt, db)
       beforeCommit?.()
       return {
         accountId,

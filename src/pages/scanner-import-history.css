@@ -1,0 +1,86 @@
+.f5v-shell dialog.scanner-import-history {
+  box-sizing: border-box;
+  width: min(640px, calc(100vw - 40px));
+  max-height: calc(100dvh - 40px);
+  margin: auto;
+  padding: 24px;
+  border: 1px solid var(--soda-border);
+  border-radius: var(--soda-radius-control, 8px);
+  background: var(--soda-surface, #fff);
+  color: var(--f5-ink);
+  overflow: auto;
+  overflow-wrap: anywhere;
+}
+.f5v-shell .scanner-import-history::backdrop {
+  background: rgb(28 24 43 / 35%);
+}
+.f5v-shell .scanner-import-history header,
+.f5v-shell .scanner-import-history__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.f5v-shell .scanner-import-history h3 {
+  margin: 0;
+  font-size: 16px;
+}
+.f5v-shell .scanner-import-history h4 {
+  margin: 0 0 8px;
+}
+.f5v-shell .scanner-import-history p {
+  margin: 8px 0;
+  line-height: 1.6;
+}
+.f5v-shell .scanner-import-history section {
+  margin-top: 20px;
+}
+.f5v-shell .scanner-import-history__actions {
+  justify-content: flex-start;
+  margin-top: 16px;
+}
+.f5v-shell .scanner-workbench__history-trigger {
+  flex: 0 0 auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--f5-accent);
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.f5v-shell .scanner-workbench__history-trigger:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.f5v-shell .scanner-workbench__file-tools {
+  grid-area: file;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: max-content;
+  max-width: 100%;
+}
+.f5v-shell .scanner-workbench__file-tools > .scanner-workbench__history-trigger {
+  white-space: nowrap;
+}
+.f5v-shell .scanner-workbench__target {
+  grid-template-columns:
+    calc(84px + var(--scanner-account-input-width)) calc(200px + var(--scanner-account-input-width))
+    max-content;
+}
+@container (max-width: 956px) {
+  .f5v-shell .scanner-workbench__target {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+@container (max-width: 560px) {
+  .f5v-shell .scanner-workbench__target {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .f5v-shell .scanner-workbench__file-tools {
+    flex-wrap: wrap;
+  }
+}

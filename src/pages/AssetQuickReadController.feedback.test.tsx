@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { beforeEach, expect, it, vi } from 'vitest'
 import {
   bridge,
@@ -29,20 +29,44 @@ function mount(client = bridge()) {
   )
   return client
 }
+function expectVisibleMainError(problem: string) {
+  const mainStatus = document.querySelector('.asset-quick-read__status')
+  expect(mainStatus).not.toBeNull()
+  expect(mainStatus).toBeVisible()
+  expect(mainStatus).toHaveTextContent(problem)
+}
+function diagnosticRegion() {
+  return screen.getByRole('region', { name: '资产快读诊断' })
+}
 
 it.each([
-  ['capture_open_failed', '未能打开本机采集通道'],
-  ['capture_child_start_failed', '资产快读采集进程未能启动'],
+  [
+    'capture_open_failed',
+    'Windows 未能分配采集所需的系统资源。',
+    '请结束当前读取后重试；仍失败时发送诊断。',
+    {
+      nativeErrorCode: 1450,
+      childExitCode: 1,
+      candidateStatus: 'validation_failed',
+      candidateIssueCount: 7,
+    },
+  ],
+  [
+    'capture_child_start_failed',
+    '资产快读采集进程未能启动。',
+    '重试仍失败时请发送诊断，已取得的系统错误码会一并保留。',
+    { nativeErrorCode: 5, childExitCode: 1 },
+  ],
 ])(
-  'keeps %s through the workbench failure card, explicit upload retry and receipt',
-  async (code, problem) => {
+  'keeps %s through the visible terminal status, explicit upload retry and receipt',
+  async (code, problem, nextAction, diagnostics) => {
     const client = bridge()
     client.start.mockResolvedValue({
       ...job,
       state: 'error',
       phase: 'driver',
       code,
-      diagnostics: { nativeErrorCode: 5, childExitCode: 1 },
+      diagnostics,
     })
     const fetcher = vi
       .fn<typeof fetch>()
@@ -59,20 +83,7 @@ it.each([
       })
     vi.stubGlobal('fetch', fetcher)
     try {
-      render(
-        <AssetQuickReadController
-          client={client}
-          targetAccountId={targetAccountId}
-          activeAccountId={targetAccountId}
-          targetAccountName="合成账户"
-          workbench={({ preparation, task }) => (
-            <>
-              {preparation}
-              {task}
-            </>
-          )}
-        />,
-      )
+      mount(client)
       await prepareStart()
       await act(async () =>
         fireEvent.click(screen.getByRole('button', { name: /^(开始本次资产快读|开始读取)$/ })),
@@ -80,25 +91,70 @@ it.each([
       expect(fetcher).not.toHaveBeenCalled()
       expect(readAssetDiagnostic()).toMatchObject({
         code,
-        evidence: { nativeErrorCode: 5, childExitCode: 1, jobPhase: 'driver' },
+        evidence: { ...diagnostics, jobPhase: 'driver' },
       })
       expect(readAssetDiagnostic()!.counts).not.toHaveProperty('agents')
-      fireEvent.click(screen.getByText('查看诊断'))
-      expect(document.body).toHaveTextContent(problem)
-      expect(document.body).toHaveTextContent('系统错误码 5')
+      expectVisibleMainError(problem)
+      const diagnostic = diagnosticRegion()
+      expect(within(diagnostic).getByText(nextAction)).not.toBeVisible()
+      fireEvent.click(within(diagnostic).getByText('查看诊断'))
+      const guidance = diagnostic.querySelector<HTMLElement>(
+        '.scanner-diagnostic-feedback__guidance',
+      )
+      expect(guidance).not.toBeNull()
+      expect(within(guidance!).getByText(problem)).toBeVisible()
+      expect(within(guidance!).getByText(nextAction)).toBeVisible()
+      expect(
+        within(diagnostic).getByText(`系统错误码 ${diagnostics.nativeErrorCode}`),
+      ).toBeVisible()
       await act(async () => fireEvent.click(screen.getByRole('button', { name: '发送反馈' })))
       expect(readAssetReceipt(readAssetDiagnostic()!)).toBeNull()
       expect(document.body).toHaveTextContent('反馈服务暂不可用')
+      const firstBody = fetcher.mock.calls[0]![1]!.body
       await act(async () => fireEvent.click(screen.getByRole('button', { name: '发送反馈' })))
       expect(readAssetReceipt(readAssetDiagnostic()!)).not.toBeNull()
       expect(screen.getByRole('button', { name: '已发送' })).toBeDisabled()
       expect(fetcher).toHaveBeenCalledTimes(2)
+      expect(fetcher.mock.calls[1]![1]!.body).toBe(firstBody)
+      expect(JSON.parse(String(firstBody)).evidence).toMatchObject(diagnostics)
       expect(persistence.confirm).not.toHaveBeenCalled()
     } finally {
       vi.unstubAllGlobals()
     }
   },
 )
+it('uses the same native 1450 evidence in the status-poll failure and diagnostic popover', async () => {
+  const client = bridge()
+  const diagnostics = {
+    nativeErrorCode: 1450,
+    childExitCode: 1,
+    candidateStatus: 'validation_failed' as const,
+    candidateIssueCount: 7,
+  }
+  client.status.mockResolvedValue({
+    ...job,
+    state: 'error',
+    phase: 'capture',
+    code: 'capture_open_failed',
+    diagnostics,
+  })
+  mount(client)
+  await startAndReceive()
+  expect(readAssetDiagnostic()).toMatchObject({
+    code: 'capture_open_failed',
+    evidence: { ...diagnostics, jobState: 'error', jobPhase: 'capture' },
+  })
+  expectVisibleMainError('Windows 未能分配采集所需的系统资源。')
+  const diagnostic = diagnosticRegion()
+  const nextAction = '请结束当前读取后重试；仍失败时发送诊断。'
+  expect(within(diagnostic).getByText(nextAction)).not.toBeVisible()
+  fireEvent.click(within(diagnostic).getByText('查看诊断'))
+  const guidance = diagnostic.querySelector<HTMLElement>('.scanner-diagnostic-feedback__guidance')
+  expect(guidance).not.toBeNull()
+  expect(within(guidance!).getByText('Windows 未能分配采集所需的系统资源。')).toBeVisible()
+  expect(within(guidance!).getByText(nextAction)).toBeVisible()
+  expect(persistence.confirm).not.toHaveBeenCalled()
+})
 it('captures a connection failure locally in the original preparation area', async () => {
   const client = bridge()
   client.connect.mockRejectedValue(

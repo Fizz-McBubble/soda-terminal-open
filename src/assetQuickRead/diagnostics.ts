@@ -43,6 +43,13 @@ const schema = z
       .object({
         remainingSeconds: z.number().int().min(0).max(180).optional(),
         candidateAvailable: z.boolean().optional(),
+        candidateStatus: listed(rules.evidenceEnums.candidateStatus).optional(),
+        candidateIssueCount: z
+          .number()
+          .int()
+          .min(0)
+          .max(rules.evidenceLimits.candidateIssueCount)
+          .optional(),
         jobState: listed(rules.evidenceEnums.jobState).optional(),
         jobPhase: listed(rules.evidenceEnums.jobPhase).optional(),
         nativeErrorCode: z
@@ -159,14 +166,20 @@ export function assetFailureDiagnostic(
           ...(rules.evidenceEnums.jobPhase.includes(scopedJob.phase)
             ? { jobPhase: scopedJob.phase }
             : {}),
+          ...(scopedJob.diagnostics?.candidateStatus &&
+          rules.evidenceEnums.candidateStatus.includes(scopedJob.diagnostics.candidateStatus)
+            ? { candidateStatus: scopedJob.diagnostics.candidateStatus }
+            : {}),
           ...Object.fromEntries(
-            ['nativeErrorCode', 'childExitCode'].flatMap((key) => {
+            ['nativeErrorCode', 'childExitCode', 'candidateIssueCount'].flatMap((key) => {
               const value =
                 scopedJob.diagnostics?.[key as keyof NonNullable<AssetBridgeJob['diagnostics']>]
+              const max =
+                rules.evidenceLimits[key as keyof typeof rules.evidenceLimits]
               return typeof value === 'number' &&
                 Number.isInteger(value) &&
                 value >= 0 &&
-                value <= 4294967295
+                value <= max
                 ? [[key, value]]
                 : []
             }),

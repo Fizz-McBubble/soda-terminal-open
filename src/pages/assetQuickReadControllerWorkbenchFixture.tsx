@@ -10,6 +10,7 @@ export function workbenchHarness() {
           <div data-testid="preparation">{view.preparation}</div>
           <div data-testid="task">{view.task}</div>
           <div data-testid="recovery">{view.recovery}</div>
+          {view.state === 'idle' && <div data-testid="import-history">{view.importHistory}</div>}
         </>
       )
     },

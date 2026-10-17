@@ -7,7 +7,10 @@ import {
 } from '../assetQuickRead/distribution'
 import { downloadAssetQuickReadInstaller } from '../assetQuickRead/installerDownload'
 import type { InstallerTransferProgress } from '../scanner/installerDownload'
-import { installerTransferStatus } from '../scanner/installerTransferStatus'
+import {
+  installerTransferStatus,
+  installerOutcomeMessage,
+} from '../scanner/installerTransferStatus'
 import './scanner-installer-action.css'
 import './AssetQuickReadInstallerAction.css'
 import { assetQuickReadUpgradeNotice } from '../assetQuickRead/upgradeNotice'
@@ -158,14 +161,7 @@ export function AssetQuickReadInstallerAction({
       : progress
     : connected
       ? upgradeNotice || ''
-      : notice ||
-        (state === 'save_requested'
-          ? '文件已准备，请打开安装包，完成后点击连接。'
-          : state === 'cancelled'
-            ? '下载已取消，可重新下载。'
-            : state === 'error'
-              ? '下载未完成，请重试。'
-              : '')
+      : notice || installerOutcomeMessage(state)
   useEffect(() => {
     publishStatus?.({ text: feedback, pending })
     return () => publishStatus?.({ text: '', pending: false })

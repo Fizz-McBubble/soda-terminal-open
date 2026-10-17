@@ -1,6 +1,6 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../App'
@@ -69,20 +69,51 @@ describe('manual scanner calibration journey', () => {
       await screen.findByRole('button', { name: '检查需确认的记录' }, { timeout: 10_000 }),
     )
     expect(screen.queryByRole('button', { name: '手动校准未识别记录' })).not.toBeInTheDocument()
-    const calibration = await screen.findByText('校准后确认导入', { selector: 'summary' })
-    expect(calibration.closest('details')).not.toHaveAttribute('open')
+    const reasonPanel = await screen.findByRole('list', { name: '未通过检查的原因' })
+    expect(reasonPanel).toBeVisible()
+    expect(reasonPanel.closest('[popover], details')).toBeNull()
+    expect(reasonPanel).toHaveAttribute('aria-label', '未通过检查的原因')
+    expect(reasonPanel.querySelectorAll('li')).toHaveLength(3)
+    expect(reasonPanel).toHaveTextContent('套装名称未确认')
+    expect(reasonPanel).toHaveTextContent('副词条信息不完整')
+    expect(reasonPanel).toHaveTextContent('词条或等级校验未通过')
+    const calibration = await screen.findByRole('button', { name: '校准后确认导入' })
+    const dialog = document.querySelector<HTMLDialogElement>('.scanner-calibration-dialog')!
+    expect(calibration).toHaveAttribute('aria-expanded', 'false')
+    expect(dialog).not.toHaveAttribute('open')
+    const titleId = dialog.getAttribute('aria-labelledby')
+    expect(titleId).toBeTruthy()
+    expect(dialog.querySelector(`#${titleId}`)).toHaveTextContent('校准后确认导入')
+    expect(document.querySelector('.scanner-import-review details')).toBeNull()
     await user.click(calibration)
+    await waitFor(() => expect(dialog).toHaveAttribute('open'))
+    expect(screen.getByRole('dialog', { name: '校准后确认导入' })).toBe(dialog)
+    expect(calibration).toHaveAttribute('aria-expanded', 'true')
+    const close = within(dialog).getByRole('button', { name: '关闭校准后确认导入' })
+    expect(close).toHaveFocus()
     await screen.findByText('暂时无法读取盘面')
     expect(screen.getByText('还需处理 2 张')).toBeInTheDocument()
     expect(screen.queryByLabelText(/锁定/)).not.toBeInTheDocument()
     await choosePlayerSelect(
-      screen.getByRole('combobox', { name: '套装名称' }),
+      within(dialog).getByRole('combobox', { name: '套装名称' }),
       fixture.answers[0].setId!,
     )
-    await choosePlayerSelect(screen.getByRole('combobox', { name: '副词条 1' }), 'crit_dmg')
-    await user.type(screen.getByRole('spinbutton', { name: '副词条 1 数值' }), '14.4')
-    await user.click(screen.getByRole('button', { name: '保存并下一张' }))
-    await screen.findByRole('form', { name: '校准第 2 张驱动盘' })
+    await choosePlayerSelect(within(dialog).getByRole('combobox', { name: '副词条 1' }), 'crit_dmg')
+    await user.type(within(dialog).getByRole('spinbutton', { name: '副词条 1 数值' }), '14.4')
+    await user.click(close)
+    await waitFor(() => expect(dialog).not.toHaveAttribute('open'))
+    expect(calibration).toHaveFocus()
+    await user.click(calibration)
+    await waitFor(() => expect(dialog).toHaveAttribute('open'))
+    expect(within(dialog).getByRole('spinbutton', { name: '副词条 1 数值' })).toHaveValue(14.4)
+    await user.keyboard('{Escape}')
+    await waitFor(() => expect(dialog).not.toHaveAttribute('open'))
+    expect(calibration).toHaveFocus()
+    await user.click(calibration)
+    await waitFor(() => expect(dialog).toHaveAttribute('open'))
+    expect(within(dialog).getByRole('spinbutton', { name: '副词条 1 数值' })).toHaveValue(14.4)
+    await user.click(within(dialog).getByRole('button', { name: '保存并下一张' }))
+    await within(dialog).findByRole('form', { name: '校准第 2 张驱动盘' })
     expect(await screen.findByText('还需处理 1 张')).toBeInTheDocument()
     expect(await database.accountDriveDiscs.count()).toBe(0)
     const saved = await database.accountScanImportItems
@@ -96,15 +127,22 @@ describe('manual scanner calibration journey', () => {
     view.unmount()
     render(<App />)
     await user.click(await screen.findByRole('button', { name: '检查需确认的记录' }))
-    await screen.findByRole('form', { name: '校准第 2 张驱动盘' })
+    const reopenedCalibration = await screen.findByRole('button', { name: '校准后确认导入' })
+    const reopenedDialog = reopenedCalibration
+      .closest('.scanner-import-review')!
+      .querySelector<HTMLDialogElement>('.scanner-calibration-dialog')!
+    expect(reopenedDialog).not.toHaveAttribute('open')
+    await user.click(reopenedCalibration)
+    await waitFor(() => expect(reopenedDialog).toHaveAttribute('open'))
+    await within(reopenedDialog).findByRole('form', { name: '校准第 2 张驱动盘' })
     // Invalid values cannot silently enter staging or unlock import.
-    await user.click(screen.getByRole('button', { name: '保存并检查' }))
+    await user.click(within(reopenedDialog).getByRole('button', { name: '保存并检查' }))
     expect(screen.getByText('请先处理下方提示，再保存这张盘。')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '导入' })).not.toBeInTheDocument()
-    const mainValue = screen.getByRole('spinbutton', { name: '主词条数值' })
+    const mainValue = within(reopenedDialog).getByRole('spinbutton', { name: '主词条数值' })
     await user.clear(mainValue)
     await user.type(mainValue, String(fixture.answers[1].mainStatValue))
-    await user.click(screen.getByRole('button', { name: '保存并检查' }))
+    await user.click(within(reopenedDialog).getByRole('button', { name: '保存并检查' }))
     const confirm = await screen.findByRole('button', { name: '导入' })
     await waitFor(() => expect(confirm).toBeEnabled())
     expect(await database.accountDriveDiscs.count()).toBe(0)
@@ -113,5 +151,16 @@ describe('manual scanner calibration journey', () => {
     await waitFor(async () => expect(await database.accountDriveDiscs.count()).toBe(3))
     expect(fetcher).not.toHaveBeenCalled()
     expect(commands.startScan).not.toHaveBeenCalled()
+    // The same real account transaction is undoable from its completion layer.
+    await user.click(await screen.findByRole('button', { name: '撤销本次导入' }))
+    const undo = await screen.findByRole('dialog', { name: '撤销这次扫描导入？' })
+    await user.click(await within(undo).findByRole('button', { name: '确认撤销导入' }))
+    await waitFor(async () => expect(await database.accountDriveDiscs.count()).toBe(0))
+    expect(await database.accounts.toArray()).toEqual(before)
+    expect(screen.queryByRole('heading', { name: '导入完成' })).not.toBeInTheDocument()
+    expect(
+      (await database.accountScanImportItems.toArray()).every((item) => item.state === 'ready'),
+    ).toBe(true)
+    expect(fetcher).not.toHaveBeenCalled()
   }, 20_000)
 })

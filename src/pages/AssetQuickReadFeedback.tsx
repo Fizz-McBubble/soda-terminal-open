@@ -101,7 +101,9 @@ export function AssetQuickReadFeedback({
     },
   }
   const statusOnly = safe.outcome !== 'failed'
-  const detailedFailureHint = statusOnly ? undefined : assetFailureGuidance(safe.code)
+  const detailedFailureHint = statusOnly
+    ? undefined
+    : assetFailureGuidance(safe.code, safe.evidence)
   const hint = statusOnly
     ? {
         problem:

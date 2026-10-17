@@ -85,7 +85,7 @@
   display: grid;
   grid-template-columns:
     calc(84px + var(--scanner-account-input-width))
-    calc(200px + var(--scanner-account-input-width)) 168px;
+    calc(200px + var(--scanner-account-input-width)) max-content;
   grid-template-areas: 'account create file';
   align-items: center;
   justify-content: flex-start;

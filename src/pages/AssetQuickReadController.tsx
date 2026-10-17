@@ -20,6 +20,8 @@ import {
 import { previewOf, type Reviewed } from './assetQuickReadControllerPreview'
 import { AssetQuickReadImportError } from '../assetQuickRead/importErrors'
 import { AssetQuickReadRecovery } from './AssetQuickReadRecovery'
+import { AssetQuickReadPendingResult } from './AssetQuickReadPendingResult'
+import { savePendingAssetResult, clearPendingAssetResult } from '../assetQuickRead/pendingResult'
 import { AssetQuickReadInstallerAction } from './AssetQuickReadInstallerAction'
 import { assetQuickReadDownloadAvailable } from '../assetQuickRead/distribution'
 import { setPublicScannerActiveAccount } from '../accounts/publicScannerAccountCreation'
@@ -80,6 +82,8 @@ function AccountBoundQuickRead({
     setDiagnostic(report)
   }
   const [completion, setCompletion] = useState('')
+  const [pendingSaveNotice, setPendingSaveNotice] = useState('')
+  const [pendingAvailable, setPendingAvailable] = useState(false)
   const [recoveryKey, setRecoveryKey] = useState('')
   const [recoveryNotice, setRecoveryNotice] = useState('')
   const [recoveryAvailable, setRecoveryAvailable] = useState(false)
@@ -115,6 +119,7 @@ function AccountBoundQuickRead({
     setState('idle')
     setError('')
     setCompletion('')
+    setPendingAvailable(false)
     setRecoveryKey('')
     setRecoveryAvailable(false)
     setRecoveryNotice('')
@@ -189,6 +194,15 @@ function AccountBoundQuickRead({
       )
     setReview({ raw, candidate, plan, issue })
     setState('received')
+    if (targetAccountId) {
+      try {
+        await savePendingAssetResult(targetAccountId, raw, sha256)
+        if (generation.current === scope) setPendingSaveNotice('')
+      } catch {
+        if (generation.current === scope)
+          setPendingSaveNotice('结果未能自动保存在本机，请先导出；刷新后可能需要重新读取。')
+      }
+    }
   }
   useEffect(() => {
     if (!job || !active(job)) return
@@ -226,7 +240,7 @@ function AccountBoundQuickRead({
             if (latest.state === 'error')
               setError(
                 assetCompatibilityMessage(latest.code) ??
-                  assetFailureGuidance(latest.code)?.problem ??
+                  assetFailureGuidance(latest.code, latest.diagnostics)?.problem ??
                   '资产快读未完成本次读取，请核对游戏目录、管理员授权与准备状态后再试。',
               )
           }
@@ -300,7 +314,7 @@ function AccountBoundQuickRead({
         if (started.state === 'error')
           setError(
             assetCompatibilityMessage(started.code) ??
-              assetFailureGuidance(started.code)?.problem ??
+              assetFailureGuidance(started.code, started.diagnostics)?.problem ??
               '资产快读未完成本次读取，请核对准备状态后再试。',
           )
       }
@@ -377,6 +391,9 @@ function AccountBoundQuickRead({
         `已处理 ${receipt.observedAgents} 位代理人和 ${receipt.observedDiscs} 张 S 盘。账户盘库共 ${receipt.totalDiscs} 张；本次导入前的恢复副本已保存在本机。`,
       )
       setState('completed')
+      void clearPendingAssetResult(targetAccountId, review.candidate.snapshotSha256).catch(
+        () => undefined,
+      )
       onImported?.()
     } catch (failure) {
       if (scope === generation.current) {
@@ -481,6 +498,8 @@ function AccountBoundQuickRead({
   const discardResult = () =>
     runOperation('discard', async () => {
       if (state !== 'received') return
+      if (targetAccountId && review)
+        await clearPendingAssetResult(targetAccountId, review.candidate.snapshotSha256)
       generation.current++
       ownedJob.current = null
       setJob(null)
@@ -599,7 +618,7 @@ function AccountBoundQuickRead({
       <AssetQuickReadRecovery
         key={`${targetAccountId}:${recoveryKey}`}
         mode={workbench ? 'current' : 'legacy'}
-        restoreLabel={state === 'completed' ? '恢复本次导入' : '恢复上次资产快读导入'}
+        restoreLabel={state === 'completed' ? '撤销本次导入' : '撤销上次导入'}
         notice={recoveryNotice}
         targetAccountName={targetAccountName}
         hasRecovery={Boolean(recoveryKey)}
@@ -622,6 +641,7 @@ function AccountBoundQuickRead({
     <AssetQuickReadEntry
       targetRequired
       preparationCondensed={preparationCondensed}
+      resumeAvailable={pendingAvailable}
       onViewAssets={onViewAssets}
       downloadAvailable={assetQuickReadDownloadAvailable()}
       diagnosticAction={workbench ? diagnosticFeedback : undefined}
@@ -668,7 +688,10 @@ function AccountBoundQuickRead({
           : undefined
       }
       remainingSeconds={job?.readyAt ? (job.remainingSeconds ?? undefined) : undefined}
-      transactionNotice="导入会更新本次读到的代理人养成与驱动盘，之后仍可自行修改。导入前自动保存恢复副本；未读取的资产与盘标签保留。"
+      transactionNotice={
+        pendingSaveNotice ||
+        '导入会更新本次读到的代理人养成与驱动盘，之后仍可自行修改。导入前自动保存恢复副本；未读取的资产与盘标签保留。'
+      }
       errorMessage={
         (workbench ? assetQuickReadConnectionStatus(error, diagnostic) : error) ||
         (connected && !targetAccountId
@@ -679,7 +702,22 @@ function AccountBoundQuickRead({
       }
       completionMessage={completion}
       completionActions={workbench && state === 'completed' ? recovery : undefined}
-      preparationRecovery={workbench && state === 'idle' ? recovery : undefined}
+      preparationRecovery={
+        workbench && state === 'idle' && accountReady && targetAccountId ? (
+          <AssetQuickReadPendingResult
+            key={targetAccountId}
+            accountId={targetAccountId}
+            onAvailableChange={setPendingAvailable}
+            disabled={blocked || busy}
+            onContinue={(saved) => {
+              void runOperation('continue', async () => {
+                onTaskStart?.()
+                await inspect(saved.snapshot, saved.snapshotSha256, generation.current)
+              })
+            }}
+          />
+        ) : undefined
+      }
       workbenchExtras={workbench ? taskExtras : undefined}
       pendingInspection={Boolean(workbench && operation === 'file')}
       renderParts={
@@ -697,6 +735,12 @@ function AccountBoundQuickRead({
                     </>
                   ) : null,
                 recovery: null,
+                importHistory: recoveryNotice ? (
+                  <>
+                    <p>{recoveryNotice}</p>
+                    {recovery}
+                  </>
+                ) : null,
                 state,
                 busy,
                 hasTask: hasTask || parts.stageActive,

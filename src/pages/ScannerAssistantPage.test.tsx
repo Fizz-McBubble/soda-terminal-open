@@ -464,7 +464,9 @@ describe('ScannerAssistantPage', () => {
 
     expect(await screen.findByRole('region', { name: '已完成扫描结果' })).toBeInTheDocument()
     const result = screen.getByRole('region', { name: '已完成扫描结果' })
-    expect(result).toHaveTextContent('本次结果 · 平均 230 张/分钟384可直接导入 350 · 待检查 30')
+    expect(result).toHaveTextContent(
+      '本次结果 · 平均 230 张/分钟384 张可直接导入 350 张待校准30 张',
+    )
     expect(screen.getByRole('button', { name: '确认账户并继续' })).toBeDisabled()
     await user.type(screen.getByRole('textbox', { name: '新账户名称' }), '扫描结果账户')
     await user.click(screen.getByRole('button', { name: '创建并选用' }))

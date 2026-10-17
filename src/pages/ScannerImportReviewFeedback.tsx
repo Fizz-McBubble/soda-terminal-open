@@ -1,4 +1,4 @@
-import { useEffect, useMemo, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import type { ScannerAssistantSnapshot } from '../scanner/runtime'
 import {
   createImportReviewDiagnostic,
@@ -10,8 +10,8 @@ import {
   saveImportReviewDiagnosticId,
 } from '../scanner/importReviewDiagnosticIdentity'
 import { ScannerDiagnosticFeedback } from './ScannerDiagnosticFeedback'
+import { ScannerCalibrationDialog } from './ScannerCalibrationDialog'
 import type { LoadedFormalImportCurrent } from './formalDiscImportCurrent'
-import { ScannerManualCalibration } from './ScannerManualCalibration'
 
 export function ScannerImportReviewFeedback({
   current,
@@ -22,6 +22,8 @@ export function ScannerImportReviewFeedback({
   snapshot?: ScannerAssistantSnapshot
   secondaryAction?: ReactNode
 }) {
+  const calibrationTriggerRef = useRef<HTMLButtonElement>(null)
+  const [calibrationOpen, setCalibrationOpen] = useState(false)
   const { items, resultFileHandle } = current
   const matchedSnapshot =
     resultFileHandle && resultFileHandle === snapshot?.summary?.resultFileHandle
@@ -47,23 +49,33 @@ export function ScannerImportReviewFeedback({
         还有 {review.counts.reviewRequired} 张需要校准，完成后可确认导入。
       </p>
       {review.categories.length ? (
-        <details className="scanner-import-review__issues">
-          <summary>暂时不能导入 · {review.categories.length} 类问题需核对</summary>
-          <ul className="scanner-import-review__reasons" aria-label="未通过检查的原因">
-            {review.categories.map(({ key, label, count }) => (
-              <li key={key}>
-                {label}：{count} 张
-              </li>
-            ))}
-          </ul>
-        </details>
+        <ul className="scanner-import-review__reasons" aria-label="未通过检查的原因">
+          {review.categories.map(({ key, label, count }) => (
+            <li key={key}>
+              {label}：{count} 张
+            </li>
+          ))}
+        </ul>
       ) : null}
-      <details className="scanner-import-review__calibration">
-        <summary>校准后确认导入</summary>
-        <ScannerManualCalibration current={current} />
-      </details>
-      <div className="scanner-import-review__footer">
-        <ScannerDiagnosticFeedback report={report} secondaryAction={secondaryAction} />
+      <ScannerCalibrationDialog
+        open={calibrationOpen}
+        current={current}
+        triggerRef={calibrationTriggerRef}
+        onClose={() => setCalibrationOpen(false)}
+      />
+      <div className="scanner-import-review__footer scanner-import-review__actions">
+        <button
+          ref={calibrationTriggerRef}
+          className="button button--primary scanner-import-review__calibration"
+          type="button"
+          aria-haspopup="dialog"
+          aria-expanded={calibrationOpen}
+          onClick={() => setCalibrationOpen(true)}
+        >
+          校准后确认导入
+        </button>
+        {secondaryAction}
+        <ScannerDiagnosticFeedback report={report} compact inline />
       </div>
     </div>
   )

@@ -15,7 +15,7 @@ export function AssetQuickReadRecovery({
   onRestore,
 }: {
   mode: 'legacy' | 'current'
-  restoreLabel: '恢复本次导入' | '恢复上次资产快读导入'
+  restoreLabel: '撤销本次导入' | '撤销上次导入'
   notice: string
   targetAccountName?: string
   hasRecovery: boolean
@@ -38,10 +38,10 @@ export function AssetQuickReadRecovery({
       if (typeof dialog.showModal === 'function') dialog.showModal()
       else dialog.setAttribute('open', '')
     }
-    cancelRef.current?.focus()
+    cancelRef.current?.focus({ preventScroll: true })
     const trigger = triggerRef.current
     return () => {
-      if (trigger?.isConnected) trigger.focus()
+      if (trigger?.isConnected) trigger.focus({ preventScroll: true })
     }
   }, [armed])
 
@@ -56,9 +56,7 @@ export function AssetQuickReadRecovery({
         disabled={disabled}
         onClick={onArm}
       >
-        {mode === 'current' && restoreLabel === '恢复上次资产快读导入'
-          ? '恢复上次导入'
-          : restoreLabel}
+        {restoreLabel}
       </button>
       {armed && (
         <dialog
@@ -85,7 +83,7 @@ export function AssetQuickReadRecovery({
             }
           }}
         >
-          <h3 id={titleId}>恢复到本次导入前？</h3>
+          <h3 id={titleId}>撤销这次资产快读导入？</h3>
           {notice && <p className="scanner-task__confirmation-notice">{notice}</p>}
           {targetAccountName && (
             <p className="scanner-task__confirmation-target">
@@ -94,7 +92,7 @@ export function AssetQuickReadRecovery({
           )}
           <p role={failureMessage ? 'alert' : undefined}>
             {failureMessage ||
-              '将恢复导入前的代理人和盘库。资产已修改，或保存方案仍引用将移除或回滚的盘时，会停止恢复并保留原数据。'}
+              '撤销后恢复到这次导入前的代理人和盘库。资产已有后续修改，或保存方案引用将移除或回滚的盘时，会停止撤销并保留原数据。'}
           </p>
           <div className="scanner-task__confirmation-actions">
             <button
@@ -104,7 +102,7 @@ export function AssetQuickReadRecovery({
               disabled={restoring}
               onClick={onCancel}
             >
-              取消恢复
+              取消撤销
             </button>
             <button
               type="button"
@@ -112,7 +110,7 @@ export function AssetQuickReadRecovery({
               disabled={disabled}
               onClick={() => void onRestore()}
             >
-              {restoring ? '恢复中…' : '确认恢复到导入前'}
+              {restoring ? '正在撤销…' : '确认撤销导入'}
             </button>
           </div>
         </dialog>

@@ -29,6 +29,62 @@ test('asset receiver strictly rejects raw/private facts and cross-tool whitelist
   ])
     assert.equal(sanitizeScanFeedbackPayload({ ...report, ...fields }).status, 400)
 })
+test('retains reviewed candidate evidence through receiver storage and Owner readback', async () => {
+  const candidateReport = {
+    ...report,
+    evidence: {
+      ...report.evidence,
+      candidateStatus: 'validation_failed',
+      candidateIssueCount: 7,
+    },
+  }
+  assert.deepEqual(sanitizeScanFeedbackPayload(candidateReport), {
+    ok: true,
+    record: candidateReport,
+  })
+  for (const evidence of [
+    { status: 'validation_failed' },
+    { issues: ['private issue body'] },
+    { candidateStatus: 'private status' },
+    { candidateIssueCount: 101 },
+    { candidateIssueCount: 1.5 },
+  ])
+    assert.equal(
+      sanitizeScanFeedbackPayload({
+        ...candidateReport,
+        evidence: { ...candidateReport.evidence, ...evidence },
+      }).status,
+      400,
+    )
+
+  const records = new Map()
+  const receiver = createScanFeedbackReceiver({
+    now: () => Date.parse('2026-10-17T00:00:00Z'),
+    feedbackStore: {
+      get: async (key) => records.get(key) ?? null,
+      put: async (key, value) => records.set(key, value),
+    },
+  })
+  const response = await receiver(
+    new Request('https://sodaterminal.com/_soda/scan-feedback', {
+      method: 'POST',
+      headers: { origin: 'https://sodaterminal.com', 'content-type': 'application/json' },
+      body: JSON.stringify(candidateReport),
+    }),
+    {
+      SODA_SCAN_FEEDBACK: 'enabled',
+      SODA_RELEASE_ID: candidateReport.release,
+      SODA_PUBLIC_ORIGIN: 'https://sodaterminal.com',
+    },
+  )
+  assert.equal(response.status, 200)
+  const [stored] = records.values()
+  const { receivedAt, ...retrieved } = JSON.parse(stored)
+  assert.ok(Number.isFinite(Date.parse(receivedAt)))
+  const ownerValidation = sanitizeScanFeedbackPayload(retrieved)
+  assert.equal(ownerValidation.ok, true)
+  assert.deepEqual(ownerValidation.record, candidateReport)
+})
 test('uses existing receiver and KV TTL, immutable content addressing and stable retry receipt', async () => {
   const records = new Map()
   const receiver = createScanFeedbackReceiver({

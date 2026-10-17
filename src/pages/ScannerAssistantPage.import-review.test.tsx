@@ -1,6 +1,6 @@
 import { mkdirSync, writeFileSync } from 'node:fs'
 import { dirname } from 'node:path'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../App'
@@ -26,6 +26,8 @@ const commands = createScannerRuntimeCommands(vi.fn)
 vi.mock('../scanner/runtime', () => ({
   useScannerAssistantRuntime: () => ({ snapshot: runtime.snapshot, commands }),
 }))
+// jsdom uses the existing disclosure fallback; native top-layer positioning is checked in Chrome.
+vi.mock('../components/ExplanationPopover', () => import('../testing/ExplanationPopoverStub'))
 vi.mock('../scanner/detailEvidenceClient', () => ({
   requestScannerDetailEvidence: vi.fn().mockRejectedValue(new Error('sample image unavailable')),
 }))
@@ -184,12 +186,12 @@ describe('completed scan with rejected OCR records', () => {
             ? '副词条信息不完整：1 张'
             : '词条或等级校验未通过：1 张',
       )
-      const issues = screen.getByLabelText('未通过检查的原因').closest('details')!
-      expect(issues).not.toHaveAttribute('open')
-      await user.click(issues.querySelector('summary')!)
+      expect(screen.getByLabelText('未通过检查的原因').closest('details')).toBeNull()
       expect(screen.getByLabelText('未通过检查的原因')).toBeVisible()
       expect(screen.queryByRole('button', { name: '导入' })).not.toBeInTheDocument()
       expect(fetcher).not.toHaveBeenCalled()
+      const feedbackActions = document.querySelector<HTMLElement>('.scanner-import-review__footer')!
+      await user.click(within(feedbackActions).getByText('查看诊断', { selector: 'summary' }))
       expect(screen.getAllByRole('button', { name: '反馈此问题' })).toHaveLength(1)
       await user.click(screen.getByRole('button', { name: '反馈此问题' }))
       await screen.findByText('发送失败，请再试一次。')
@@ -225,6 +227,8 @@ describe('completed scan with rejected OCR records', () => {
       // Remount first rehydrates the account and scan staging. Wait for that existing route
       // readiness signal before asserting the receipt; a missing receipt must still fail.
       await screen.findByText(new RegExp(`${blocked} 张需要校准`), {}, { timeout: 10_000 })
+      const restoredActions = document.querySelector<HTMLElement>('.scanner-import-review__footer')!
+      await user.click(within(restoredActions).getByText('查看诊断', { selector: 'summary' }))
       await waitFor(() => expect(screen.getByRole('button', { name: '已反馈' })).toBeDisabled())
       expect(requests).toHaveLength(2)
       expect(await database.accounts.toArray()).toEqual(before)

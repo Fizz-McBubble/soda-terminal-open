@@ -7,8 +7,17 @@ import { createScannerTargetAccountBinding } from '../scanner/targetAccountBindi
 import { createScannerRuntimeSnapshot } from './scannerAssistantTestFixture'
 
 vi.mock('./FormalDiscImportPage', () => ({
-  FormalDiscImportPage: ({ secondaryAction }: { secondaryAction: React.ReactNode }) => (
-    <div>一次导入区域{secondaryAction}</div>
+  FormalDiscImportPage: ({
+    secondaryAction,
+    diagnosticFeedback,
+  }: {
+    secondaryAction: React.ReactNode
+    diagnosticFeedback: React.ReactNode
+  }) => (
+    <div>
+      一次导入区域{secondaryAction}
+      {diagnosticFeedback}
+    </div>
   ),
 }))
 

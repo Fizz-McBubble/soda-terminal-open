@@ -53,7 +53,16 @@ export function ScannerScanningSection({
         <AlertTriangle aria-hidden="true" size={20} />
         <p>扫描期间请不要操作、切换或最小化游戏。</p>
       </div>
-      <ScannerProgress snapshot={snapshot} />
+      {frozenTargetIssue ? (
+        <p role="status">
+          {snapshot.progress?.processed == null
+            ? '处理数量待确认'
+            : `已处理 ${snapshot.progress.processed} 张`}
+          ；当前账户归属未通过检查，结果不会直接导入。
+        </p>
+      ) : (
+        <ScannerProgress snapshot={snapshot} />
+      )}
       <div className="scanner-web__scan-actions">
         <button className="button button--quiet" type="button" onClick={onSafeStop}>
           <CircleStop aria-hidden="true" size={17} />

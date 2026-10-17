@@ -95,7 +95,7 @@ export function registerAssetQuickReadEntryPreparationCases() {
     expect(onStart).not.toHaveBeenCalled()
   })
 
-  it('orders compact preparation before real tool status and directory settings', () => {
+  it('keeps game preparation and directory before status and the primary action', () => {
     render(
       <AssetQuickReadEntry
         capability="ready"
@@ -111,10 +111,10 @@ export function registerAssetQuickReadEntryPreparationCases() {
     const status = screen.getByText('资产快读已连接')
     const directory = screen.getByLabelText('游戏安装目录')
     expect(
-      requirement.compareDocumentPosition(status) & Node.DOCUMENT_POSITION_FOLLOWING,
+      requirement.compareDocumentPosition(directory) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy()
     expect(
-      status.compareDocumentPosition(directory) & Node.DOCUMENT_POSITION_FOLLOWING,
+      directory.compareDocumentPosition(status) & Node.DOCUMENT_POSITION_FOLLOWING,
     ).toBeTruthy()
     expect(status.tagName).toBe('STRONG')
   })

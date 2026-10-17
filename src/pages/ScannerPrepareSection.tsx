@@ -19,6 +19,7 @@ export function ScannerPrepareSection({
   actionFeedback,
   snapshot,
   diagnosticFeedback,
+  undoAction,
   restartingAfterCompletedResult,
   preparingNewScan,
   inlineImportOpen,
@@ -52,6 +53,7 @@ export function ScannerPrepareSection({
   actionFeedback: string | null
   snapshot: ScannerAssistantSnapshot
   diagnosticFeedback?: React.ReactNode
+  undoAction?: React.ReactNode
   restartingAfterCompletedResult: boolean
   preparingNewScan: boolean
   inlineImportOpen: boolean
@@ -131,6 +133,7 @@ export function ScannerPrepareSection({
             >
               重新扫描
             </button>
+            {undoAction}
             {diagnosticFeedback}
           </div>
         </section>
