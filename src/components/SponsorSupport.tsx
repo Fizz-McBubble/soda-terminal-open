@@ -67,7 +67,13 @@ function amountHint(amount: Amount, channel: Channel) {
 function QrImage({ channel, amount }: { channel: Channel; amount: Amount }) {
   return (
     <span className="sponsor-qr" aria-hidden="true">
-      <img src={qrImage(channel, amount)} alt="" draggable="false" />
+      <img
+        src={qrImage(channel, amount)}
+        alt=""
+        draggable="false"
+        loading="lazy"
+        decoding="async"
+      />
     </span>
   )
 }

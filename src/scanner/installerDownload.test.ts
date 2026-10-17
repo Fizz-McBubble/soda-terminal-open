@@ -1,7 +1,11 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { webcrypto } from 'node:crypto'
 import Dexie from 'dexie'
-import { downloadScannerInstaller, scannerInstallerFileName } from './installerDownload'
+import {
+  downloadScannerInstaller,
+  installerDownloadConcurrency,
+  scannerInstallerFileName,
+} from './installerDownload'
 import { InstallerDownloadCache, installerDownloadIdentity } from './installerDownloadCache'
 import { installerDownloadChunkSize } from './installerDownloadCache'
 const executable = new Uint8Array([0x4d, 0x5a, 1, 2, 3, 4, 5, 6])
@@ -320,8 +324,8 @@ it('requests the bounded range window and binds every resumed range to the relea
   expect(input.onTransfer.mock.calls.some(([status]) => status.bytesPerSecond > 0)).toBe(true)
 })
 
-it('starts at most four ranges concurrently and commits out-of-order results by offset', async () => {
-  const bytes = binary(installerDownloadChunkSize * 5)
+it('starts a bounded parallel window and commits out-of-order results by offset', async () => {
+  const bytes = binary(installerDownloadChunkSize * (installerDownloadConcurrency + 1))
   const input = await pinned(bytes)
   const pending = new Map<number, (response: Response) => void>()
   const ranges: number[] = []
@@ -333,8 +337,13 @@ it('starts at most four ranges concurrently and commits out-of-order results by 
   vi.stubGlobal('fetch', fetcher)
 
   const download = downloadScannerInstaller(input)
-  await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(4))
-  expect(ranges).toEqual([0, 1, 2, 3].map((index) => index * installerDownloadChunkSize))
+  await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(installerDownloadConcurrency))
+  expect(ranges).toEqual(
+    Array.from(
+      { length: installerDownloadConcurrency },
+      (_, index) => index * installerDownloadChunkSize,
+    ),
+  )
 
   pending.get(installerDownloadChunkSize * 2)!(
     segment(bytes, input.expectedSha256, 2 * installerDownloadChunkSize),
@@ -343,7 +352,7 @@ it('starts at most four ranges concurrently and commits out-of-order results by 
     segment(bytes, input.expectedSha256, 3 * installerDownloadChunkSize),
   )
   await new Promise((resolve) => setTimeout(resolve, 0))
-  expect(fetcher).toHaveBeenCalledTimes(4)
+  expect(fetcher).toHaveBeenCalledTimes(installerDownloadConcurrency)
   expect(input.onProgress).not.toHaveBeenCalled()
 
   pending.get(0)!(segment(bytes, input.expectedSha256))
@@ -353,9 +362,18 @@ it('starts at most four ranges concurrently and commits out-of-order results by 
   await vi.waitFor(() =>
     expect(input.onProgress).toHaveBeenLastCalledWith(installerDownloadChunkSize * 4),
   )
-  await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(5))
-  pending.get(installerDownloadChunkSize * 4)!(
-    segment(bytes, input.expectedSha256, installerDownloadChunkSize * 4),
+  for (let index = 4; index < installerDownloadConcurrency; index += 1)
+    pending.get(installerDownloadChunkSize * index)!(
+      segment(bytes, input.expectedSha256, installerDownloadChunkSize * index),
+    )
+  await vi.waitFor(() =>
+    expect(input.onProgress).toHaveBeenLastCalledWith(
+      installerDownloadChunkSize * installerDownloadConcurrency,
+    ),
+  )
+  await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(installerDownloadConcurrency + 1))
+  pending.get(installerDownloadChunkSize * installerDownloadConcurrency)!(
+    segment(bytes, input.expectedSha256, installerDownloadChunkSize * installerDownloadConcurrency),
   )
 
   await expect(download).resolves.toBe('save_requested')

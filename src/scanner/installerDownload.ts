@@ -5,7 +5,7 @@ import {
 } from './installerDownloadCache'
 
 export type InstallerDownloadResult = 'save_requested'
-export const installerDownloadConcurrency = 4
+export const installerDownloadConcurrency = 8
 export type InstallerTransferProgress = {
   bytes: number
   total: number
