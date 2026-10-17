@@ -6,6 +6,12 @@
   Content-Security-Policy: default-src 'self'; script-src 'self'; worker-src 'self'; connect-src 'self' http://127.0.0.1:43127 http://127.0.0.1:50609 http://127.0.0.1:46009 http://127.0.0.1:46010; img-src 'self' blob: data: http://127.0.0.1:43127; font-src 'self'; style-src 'self' 'unsafe-inline'; manifest-src 'self'; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'
 
 /assets/*
+  Cache-Control: public, max-age=86400, stale-while-revalidate=86400
+
+/assets/*.js
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/*.css
   Cache-Control: public, max-age=31536000, immutable
 
 /sponsor/*

@@ -27,7 +27,7 @@
     "deploy/cloudflare/scanner-installer.mjs": "ed51caa0a1b378f460720346dafe45f69b9a7d7573c0113b43684e282f42ece3",
     "deploy/cloudflare/scanner-installer.test.mjs": "65bb9cd17e32f8709b29944da4ccda770907ea39040b1b61c0f210bf36e08f26",
     "deploy/cloudflare/smoke.mjs": "7021be8de4e43093b3a19cbfef77bf0a99f944ce792647582a298966e1e13314",
-    "deploy/cloudflare/static-headers.txt": "e0831f52616c186ac17ea75aba5cf00d87b464084e893916b0abcb73d65cf074",
+    "deploy/cloudflare/static-headers.txt": "3e03c853f48935cf662cf4aa9f861a4c31a65ddb814bb8b118420de100d19409",
     "deploy/cloudflare/wrangler.template.json": "cfa3a9bb679468b6141df5931adb6656079f75073cc39d5cb21eadeeaaef1644",
     "deploy/open-source/LICENSE": "abc6fc21f216147742f0b08a45cee40dde1ad5acf84a9e93395467070f20ee9a",
     "deploy/public-media-allowlist.v1.json": "661cc20735ec7dc6df6bdbf1ae3548871413c2656a1f21ae3081b96a21588aa8",
