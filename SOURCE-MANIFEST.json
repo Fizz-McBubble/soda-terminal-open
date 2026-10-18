@@ -1625,7 +1625,7 @@
     "src/pages/WarehouseUsedAgents.tsx": "4e7366023318b643b174221b5b7ce866ad4d4fa971d1374d06715e0bbcdb932b",
     "src/pages/WarehouseWorkbenchHeader.tsx": "33e945683706ea36700c7fa13996cd0299db3c4b90321479eb2a15fdaf417af7",
     "src/releaseInfo.ts": "a3acb34180f7f65356a81217ce7080019edc727660f0ac78bd6da44dd150ed79",
-    "src/releaseNotes/data.ts": "cea36144432c22c7575582982b3e7261b7b884fefe5b1af28fde474c0e66c2b7",
+    "src/releaseNotes/data.ts": "78a8dda0eeca178e9f951f1141c8795e1fc610b247c95e2093271f82b3885057",
     "src/routes/legacyRedirects.tsx": "31acec67fbb08e1dacea953b28c520169098af2d4fcb02d22cac106ab80725b8",
     "src/routes/preloadPlayerRoute.ts": "2a566e61dc40c93474cca3c21ef53adca0e1d17df1598c61ba649380954d095b",
     "src/scanner/assistant.ts": "958cb30d59e3f300cc3cb9f4ef374e9b0b53fdef70b57c3d2439ef3b78f2b4d2",

@@ -10,6 +10,17 @@ export interface ReleaseNote {
 // A local fix or commit is not a published release; add it when that release ships.
 export const releases = [
   {
+    id: '20261018-development-resources-diagnostics',
+    date: '2026-10-18',
+    scope: '养成、资源面板与工具诊断',
+    title: '完善养成目标与资源展示，细化工具诊断',
+    changes: [
+      '目录与养成工作台统一使用技能来源档位，区分精确目标、推荐下限和未知状态；补录未知技能时不再遮住其余已知缺口。',
+      '资源面板按角色实际资源展示，未确认的自动回复、获得效率和上限显示为未知，不再套用统一数值。',
+      '资产快读诊断区分健康探测、连接交换和原生错误阶段，并针对 1450 等有限错误给出明确恢复建议。',
+    ],
+  },
+  {
     id: '20261017-parallel-installer-download',
     date: '2026-10-17',
     scope: '画面扫描与资产快读',
