@@ -102,4 +102,81 @@ describe('source-bound independent support capacities', () => {
       }).capacities[0]!.value,
     ).toBeNull()
   })
+
+  it('preserves Refringe as an independent AP capacity rather than team damage', () => {
+    const member = createLevel60NeutralEffectRuntimeMember('agent-remielle')
+    member.mindscape = 2
+    member.finalStats.anomProf = 400
+    const evaluate = (actor = member, members = [actor]) =>
+      evaluateReviewedSupportTargetCapacity32({
+        member: actor,
+        members,
+        equipmentExclusions: [],
+      }).capacities.filter((row) => row.key === 'agent-remielle:refringe_coefficient')
+    const baseline = evaluate()
+    expect(baseline[0]!.value).toBeCloseTo(0.28)
+    const worse = { ...member, finalStats: { ...member.finalStats, anomProf: 300 } }
+    expect(preservesReviewedFunctionalCapacities32(baseline, evaluate(worse))).toBe(false)
+    expect(
+      preservesReviewedFunctionalCapacities32(
+        baseline,
+        evaluate({
+          ...member,
+          finalStats: { ...member.finalStats, anomProf: 500 },
+        }),
+      ),
+    ).toBe(true)
+    expect(
+      evaluate(member, [
+        member,
+        createLevel60NeutralEffectRuntimeMember('agent-grace'),
+        createLevel60NeutralEffectRuntimeMember('agent-jane'),
+      ])[0]!.value,
+    ).toBeCloseTo(0.38)
+    expect(evaluate(member, [member, member])[0]!.value).toBeNull()
+    expect(baseline[0]!.excluded.join()).toContain('不代表异常伤害')
+  })
+
+  it('does not invent Refringe AP from unobserved or conflicting equipment', () => {
+    const member = createLevel60NeutralEffectRuntimeMember('agent-remielle')
+    const value = (input: Partial<Parameters<typeof evaluateReviewedSupportTargetCapacity32>[0]>) =>
+      evaluateReviewedSupportTargetCapacity32({
+        member,
+        members: [member],
+        ...input,
+      }).capacities.find((row) => row.key === 'agent-remielle:refringe_coefficient')!.value
+    expect(value({})).toBeNull()
+    expect(
+      value({ equipmentExclusions: [{ effectKey: 'unknown', sourceRefs: ['test'] }] }),
+    ).toBeNull()
+    const bucket = {
+      bucketId: 'ap',
+      effectKey: 'ap',
+      providerAgentId: member.agentId,
+      recipientAgentIds: [member.agentId],
+      receiverPath: 'ownBuff.combat.anomProf',
+      damageType: null,
+      action: null,
+      attribute: null,
+      application: 'anomaly_proficiency_flat' as const,
+      value: 50,
+      sourceRefs: ['test:observed_AP'],
+    }
+    const baseline = value({ equipmentExclusions: [] })!
+    expect(
+      value({ equipmentExclusions: [], equipmentModifierBuckets: [bucket, bucket] }),
+    ).toBeCloseTo(baseline + 0.01)
+    expect(
+      value({
+        equipmentExclusions: [],
+        equipmentModifierBuckets: [bucket, { ...bucket, value: 60 }],
+      }),
+    ).toBeNull()
+    expect(
+      value({
+        equipmentExclusions: [],
+        equipmentModifierBuckets: [{ ...bucket, action: 'basic' }],
+      }),
+    ).toBeNull()
+  })
 })

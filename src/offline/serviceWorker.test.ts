@@ -268,6 +268,12 @@ describe('public service worker release cache lifecycle', () => {
     async (operation) => {
       const worker = createWorker()
       await worker.dispatch('install')
+      // A cached immutable hit no longer needs cache enumeration. Evict these
+      // entries to exercise the unavailable-cache network recovery boundary.
+      if (operation === 'keys') {
+        worker.entries.get(name(current))!.delete(workerAsset)
+        worker.entries.get(name(current))!.delete('/assets/entry-abcd1234.js')
+      }
       worker.cacheApi[operation].mockRejectedValue(
         new DOMException('Cache disabled', 'SecurityError'),
       )
@@ -450,12 +456,31 @@ describe('public service worker release cache lifecycle', () => {
     await worker.tag('new', current)
     expect([...worker.entries.keys()]).toEqual([name(r1), name(r2), name(current)])
     worker.setOnline(false)
-    expect(await (await worker.asset('/assets/entry-abcd1234.js', 'unknown'))?.text()).toBe(
-      `${r2}:/assets/entry-abcd1234.js`,
+    // A mutable URL still belongs to the old, not-yet-tagged page.
+    worker.entries.get(name(r2))!.set('/assets/legacy-entry.js', new Response('old mutable entry'))
+    expect(await (await worker.asset('/assets/legacy-entry.js', 'unknown'))?.text()).toBe(
+      'old mutable entry',
     )
     worker.tabs.shift()
     await worker.tag('new', current)
     expect(worker.entries.has(name(r1))).toBe(false)
+  })
+
+  it('serves untagged immutable current hits without searching old releases or tabs', async () => {
+    const worker = createWorker({ old: [r1, r2], tabs: [{ id: 'unknown' }] })
+    await worker.dispatch('install')
+    await worker.dispatch('activate')
+    worker.cacheApi.keys.mockClear()
+    worker.cacheApi.open.mockClear()
+    worker.fetcher.mockClear()
+    for (const path of ['/assets/entry-abcd1234.js', workerAsset])
+      expect(await (await worker.asset(path, 'unknown'))?.text()).toBe(`${current}:${path}`)
+    expect(worker.cacheApi.keys).not.toHaveBeenCalled()
+    expect(worker.cacheApi.open).toHaveBeenCalledTimes(2)
+    expect(worker.fetcher).not.toHaveBeenCalled()
+    // A tagged older page keeps its own release even before any network fetch.
+    await worker.tag('unknown', r1)
+    expect(await (await worker.asset(workerAsset, 'unknown'))?.text()).toBe(`${r1}:${workerAsset}`)
   })
 
   it('discards a failed new install and preserves the last complete release for rollback', async () => {

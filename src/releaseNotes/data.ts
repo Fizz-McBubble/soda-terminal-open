@@ -10,6 +10,16 @@ export interface ReleaseNote {
 // A local fix or commit is not a published release; add it when that release ships.
 export const releases = [
   {
+    id: '20261018-offline-native-closeout',
+    date: '2026-10-18',
+    scope: '访问与资产快读',
+    title: '优化重复访问，补齐资产快读诊断',
+    changes: [
+      '重复访问优先读取当前版本的本地资源，离线准备遇到临时网络错误时会进行一次有界重试。',
+      '资产快读更新至 1.1.7，补齐原生读取问题反馈，并保留历史版本的一次卸载与结果保护。',
+    ],
+  },
+  {
     id: '20261018-development-resources-diagnostics',
     date: '2026-10-18',
     scope: '养成、资源面板与工具诊断',

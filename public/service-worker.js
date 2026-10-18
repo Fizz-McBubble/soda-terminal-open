@@ -312,14 +312,20 @@ self.addEventListener('fetch', (event) => {
       let cache
       let manifest
       try {
-        if (clientReleases.get(event.clientId) !== releaseId) {
+        const tagged = clientReleases.get(event.clientId)
+        // Vite's hashed JS/CSS URLs identify immutable bytes across releases.
+        // An untagged page requests its entry chunks before it can send a tag;
+        // do not enumerate all old caches and tabs for every such current hit.
+        const immutable = /^\/assets\/.+-[A-Za-z0-9_-]{8,}\.(?:js|css|wasm)$/.test(url.pathname)
+        const preferCurrent = tagged === releaseId || (!validRelease(tagged) && immutable)
+        if (!preferCurrent) {
           const old = await matchingOldAsset(request, event.clientId)
           if (old) return old
         }
         cache = await caches.open(cacheName)
         const cached = await cache.match(request)
         if (cached) return cached
-        if (clientReleases.get(event.clientId) === releaseId) {
+        if (preferCurrent) {
           const previous = await matchingOldAsset(request, event.clientId)
           if (previous) return previous
         }

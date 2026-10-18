@@ -38,6 +38,7 @@ const sources = import.meta.glob<string>(
     './planningNaturalEnergyModifiers32.ts',
     './reviewedBenShieldCapacity32.ts',
     './reviewedSupportTargetCapacity32.ts',
+    './reviewedLumifluxMechanics32.ts',
     './reviewedSupportEventDamage32.ts',
     './fixedEventSupportContribution32.ts',
     './dynamic/sourceExpressionReconciliation.ts',

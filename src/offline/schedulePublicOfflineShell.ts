@@ -1,5 +1,7 @@
 import { registerPublicOfflineShell } from './registerPublicOfflineShell'
 
+const recoverableRetryDelayMs = 2000
+
 /** Keep a complete offline install, but start its network work after page load and a paint/idle turn. */
 export function schedulePublicOfflineShell(
   register: (options?: {
@@ -10,6 +12,7 @@ export function schedulePublicOfflineShell(
   let frame: number | undefined
   let idle: number | undefined
   let timer: ReturnType<typeof setTimeout> | undefined
+  let retryTimer: ReturnType<typeof setTimeout> | undefined
   let running = false
   let recoverable = false
   let retried = false
@@ -20,7 +23,11 @@ export function schedulePublicOfflineShell(
       onlineDuringAttempt = true
       return
     }
-    if (!recoverable) return
+    if (!recoverable || navigator.onLine === false) return
+    if (retryTimer !== undefined) {
+      clearTimeout(retryTimer)
+      retryTimer = undefined
+    }
     retried = true
     window.removeEventListener('online', onOnline)
     start()
@@ -41,6 +48,11 @@ export function schedulePublicOfflineShell(
         running = false
         if (stopped || !recoverable || retried) window.removeEventListener('online', onOnline)
         else if (onlineDuringAttempt) onOnline()
+        else if (navigator.onLine !== false)
+          retryTimer = setTimeout(() => {
+            retryTimer = undefined
+            onOnline()
+          }, recoverableRetryDelayMs)
       })
   }
   const afterPaint = () => {
@@ -68,5 +80,6 @@ export function schedulePublicOfflineShell(
     if (frame !== undefined) window.cancelAnimationFrame(frame)
     if (idle !== undefined) window.cancelIdleCallback?.(idle)
     if (timer !== undefined) clearTimeout(timer)
+    if (retryTimer !== undefined) clearTimeout(retryTimer)
   }
 }

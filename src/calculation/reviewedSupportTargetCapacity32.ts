@@ -13,14 +13,23 @@ import {
   type UpstreamExpressionIR,
 } from './currentUpstreamExpressionIR'
 import type { ReviewedFunctionalCapacity32 } from './reviewedFunctionalCapacity32'
+import type { SourceBackedPlanningEffectBucket } from './currentPlanningDamageModifiers'
+import {
+  evaluateReviewedRefringeCoefficient32,
+  reviewedLumifluxMechanicsHash32,
+  reviewedLumifluxMechanicsIdentity32,
+} from './reviewedLumifluxMechanics32'
 
-/** Independent support targets, never damage or a claim that all HP benefits cap. */
-export function evaluateReviewedSupportTargetCapacity32(input: {
+type SupportTargetCapacityInput32 = {
   member: PlanningEffectRuntimeMember
   members?: readonly PlanningEffectRuntimeMember[]
   equipmentExclusions?: readonly unknown[]
+  equipmentModifierBuckets?: readonly SourceBackedPlanningEffectBucket[]
   baselineReferencesByAgentId?: Readonly<Record<string, Readonly<Record<string, unknown>>>>
-}) {
+}
+
+/** Independent support targets, never damage or a claim that all HP benefits cap. */
+export function evaluateReviewedSupportTargetCapacity32(input: SupportTargetCapacityInput32) {
   const { member } = input
   const capacities: ReviewedFunctionalCapacity32[] = []
   const blockers: string[] = []
@@ -178,5 +187,89 @@ export function evaluateReviewedSupportTargetCapacity32(input: {
     included,
     excluded: ['其他属性收益、持续时间、覆盖率、治疗、实际团队伤害。', ...gaps],
   })
+  if (member.agentId === 'agent-remielle') {
+    const refringe = reviewedRefringeCapacity32(input)
+    capacities.push(refringe.capacity)
+    blockers.push(...refringe.blockers)
+  }
   return { capacities, blockers }
+}
+
+/** A coefficient constraint on an explicitly scoped formation, not anomaly
+ * damage, trigger eligibility, Voidflare ownership or a complete resource cycle. */
+function reviewedRefringeCapacity32(input: SupportTargetCapacityInput32) {
+  const { member } = input
+  const members = input.members ?? [member]
+  const formationValid =
+    members.length >= 1 &&
+    members.length <= 3 &&
+    new Set(members.map((row) => row.agentId)).size === members.length &&
+    members.some((row) => row.agentId === member.agentId) &&
+    members.every(
+      (row) =>
+        getCurrentAgentEventContract(row.agentId)?.source.commit ===
+        reviewedLumifluxMechanicsIdentity32.source.commit,
+    )
+  const anomalyCount = members.filter(
+    (row) => getCurrentAgentEventContract(row.agentId)?.identity.specialty === 'anomaly',
+  ).length
+  const gaps = functionalEquipmentGaps32(input.equipmentExclusions, member.agentId, [
+    'initial.anomProf',
+    'combat.anomProf',
+  ])
+  const buckets = (input.equipmentModifierBuckets ?? []).filter(
+    (row) =>
+      row.recipientAgentIds.includes(member.agentId) &&
+      (row.application === 'anomaly_proficiency_flat' || row.receiverPath?.endsWith('.anomProf')),
+  )
+  const seen = new Map<string, SourceBackedPlanningEffectBucket>()
+  for (const row of buckets) {
+    const previous = seen.get(row.effectKey)
+    if (previous && sha256(canonicalJson(previous)) !== sha256(canonicalJson(row)))
+      gaps.push('refringe_conflicting_AP_bucket')
+    seen.set(row.effectKey, row)
+    if (
+      !Number.isFinite(row.value) ||
+      !row.sourceRefs.length ||
+      row.action !== null ||
+      row.attribute !== null ||
+      row.damageType !== null ||
+      row.applicationScope === 'event_only' ||
+      row.sourceFormula?.finalStatReferences.length ||
+      !members.some((actor) => actor.agentId === row.providerAgentId)
+    )
+      gaps.push('refringe_AP_event_context_unbound')
+  }
+  const anomalyProficiency =
+    member.finalStats.anomProf + [...seen.values()].reduce((sum, row) => sum + row.value, 0)
+  const evaluated = evaluateReviewedRefringeCoefficient32({
+    anomalyProficiency,
+    anomalyMemberCount: anomalyCount,
+    mindscape: member.mindscape,
+  })
+  const value =
+    formationValid && !gaps.length && evaluated.status === 'limited_benchmark'
+      ? evaluated.coefficient
+      : null
+  const sourceRefs = [
+    `${reviewedLumifluxMechanicsIdentity32.source.localizationPath}#${reviewedLumifluxMechanicsIdentity32.source.localizationSha256}#core.desc[0..6].0;mindscapes.2.desc`,
+    ...[...seen.values()].flatMap((row) => row.sourceRefs),
+  ]
+  const capacity: ReviewedFunctionalCapacity32 = {
+    key: 'agent-remielle:refringe_coefficient',
+    kind: 'source_support_target',
+    value,
+    contextKey: sha256(
+      canonicalJson({
+        source: reviewedLumifluxMechanicsHash32,
+        members: members.map((row) => row.agentId).sort(),
+        mindscape: member.mindscape,
+        scope: input.members ? 'declared_formation_coefficient' : 'independent_actor_coefficient',
+      }),
+    ),
+    sourceRefs,
+    included: ['实际异常精通对应的折光系数；三异常与影画2分量相加。'],
+    excluded: ['不代表异常伤害、触发频率、虚光快照或完整循环。', ...gaps],
+  }
+  return { capacity, blockers: value === null ? ['refringe_coefficient_context_unresolved'] : [] }
 }

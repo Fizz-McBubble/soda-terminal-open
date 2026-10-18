@@ -114,6 +114,7 @@ export const communityTests = Object.freeze([
   'src/calculation/reviewedPreparedJaneAssault32.test.ts',
   'src/calculation/reviewedFunctionalCapacity32.test.ts',
   'src/calculation/reviewedSupportTargetCapacity32.test.ts',
+  'src/calculation/reviewedLumifluxMechanics32.test.ts',
   'src/calculation/reviewedTemplateMechanicEffects32.test.ts',
   'src/calculation/reviewedTemplatePreparedEvents32.test.ts',
   'src/calculation/reviewedPotentialSourceClosure32.test.ts',

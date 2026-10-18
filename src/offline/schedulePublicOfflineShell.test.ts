@@ -85,6 +85,73 @@ describe('public offline installation scheduling', () => {
     cancel()
   })
 
+  it('retries once after a transient failure while the browser stays online', async () => {
+    vi.useFakeTimers()
+    vi.spyOn(document, 'readyState', 'get').mockReturnValue('complete')
+    vi.stubGlobal('requestIdleCallback', undefined)
+    const nextFrame = frames()
+    const register = vi.fn(async (options?: { onRecoverableFailure?: () => void }) => {
+      options?.onRecoverableFailure?.()
+      return false
+    })
+    const cancel = schedulePublicOfflineShell(register)
+    nextFrame()
+    nextFrame()
+    await vi.advanceTimersByTimeAsync(1000)
+    expect(register).toHaveBeenCalledOnce()
+    await vi.advanceTimersByTimeAsync(1999)
+    expect(register).toHaveBeenCalledOnce()
+    await vi.advanceTimersByTimeAsync(1)
+    expect(register).toHaveBeenCalledTimes(2)
+    await vi.advanceTimersByTimeAsync(10000)
+    expect(register).toHaveBeenCalledTimes(2)
+    cancel()
+  })
+
+  it('waits offline for the online event without consuming the retry', async () => {
+    vi.useFakeTimers()
+    vi.spyOn(document, 'readyState', 'get').mockReturnValue('complete')
+    vi.stubGlobal('requestIdleCallback', undefined)
+    const nextFrame = frames()
+    let online = false
+    vi.spyOn(window.navigator, 'onLine', 'get').mockImplementation(() => online)
+    const register = vi.fn(async (options?: { onRecoverableFailure?: () => void }) => {
+      options?.onRecoverableFailure?.()
+      return false
+    })
+    const cancel = schedulePublicOfflineShell(register)
+    nextFrame()
+    nextFrame()
+    await vi.advanceTimersByTimeAsync(1000)
+    expect(register).toHaveBeenCalledOnce()
+    await vi.advanceTimersByTimeAsync(10000)
+    expect(register).toHaveBeenCalledOnce()
+    online = true
+    window.dispatchEvent(new Event('online'))
+    await vi.advanceTimersByTimeAsync(0)
+    expect(register).toHaveBeenCalledTimes(2)
+    cancel()
+  })
+
+  it('cancels a pending recoverable retry', async () => {
+    vi.useFakeTimers()
+    vi.spyOn(document, 'readyState', 'get').mockReturnValue('complete')
+    vi.stubGlobal('requestIdleCallback', undefined)
+    const nextFrame = frames()
+    const register = vi.fn(async (options?: { onRecoverableFailure?: () => void }) => {
+      options?.onRecoverableFailure?.()
+      return false
+    })
+    const cancel = schedulePublicOfflineShell(register)
+    nextFrame()
+    nextFrame()
+    await vi.advanceTimersByTimeAsync(1000)
+    expect(register).toHaveBeenCalledOnce()
+    cancel()
+    await vi.advanceTimersByTimeAsync(10000)
+    expect(register).toHaveBeenCalledOnce()
+  })
+
   it.each(['success', 'invalid', 'cancelled'])('does not retry online after %s', async (state) => {
     vi.useFakeTimers()
     vi.spyOn(document, 'readyState', 'get').mockReturnValue('complete')
