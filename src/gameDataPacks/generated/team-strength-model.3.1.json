@@ -185,7 +185,7 @@
     "compatible_anomaly_proficiency_capability",
     "compatible_anomaly_mastery_capability"
   ],
-  "mechanicDataFingerprint": "fnv1a-72e92871",
+  "mechanicDataFingerprint": "fnv1a-2d9616e0",
   "referenceConditionsIdentity": "fnv1a-da92bcd2",
   "conditionAlignment": {
     "status": "declared_standard_reference",
@@ -350,7 +350,7 @@
     "src/calculation/current31ReferenceCombatBuilds.ts": "c019749cd507898d36807f988046aeb87139215a16649a9ce5068a75770a432c",
     "src/calculation/currentPlanningEventDamage32.ts": "ac96a9c14d8b6911840f98c1c6e06effd5a11010fc6418f7f455b793146be833",
     "src/calculation/currentPlanningHarumasaEventWindow32.ts": "576c7c358f05de6e482bf183a79a20a6f1f884ff6fe102138e284e44692a2749",
-    "src/calculation/currentPlanningFormationEffectEvaluation.ts": "664529abf8ff29bbc83e84f7db54697fbab66c9a58672611c60d5e0e73fbb794",
+    "src/calculation/currentPlanningFormationEffectEvaluation.ts": "c325784c576abddd0218425ce9bf604528d92bb9026cd3749827adf90771f18f",
     "src/calculation/currentPlanningTeamDpsRuntime.ts": "98fc977c9320f7029355deaf24a7fc87378d6b6db70d7cc7a21fb3ab69a965db",
     "src/calculation/currentPlanningTeamDpsSchedule32.ts": "6ddc5642c13f8678f11d84ff305bde087eb9b31f7761f5f11de805c1f6d59591",
     "src/decision/teamStrengthReferenceBuild.ts": "8acd2bbc461956cce68bcd9ebbb408df8ab76635964b10d955ecebca59019927",
