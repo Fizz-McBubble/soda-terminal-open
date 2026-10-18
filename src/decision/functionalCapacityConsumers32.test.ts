@@ -59,7 +59,7 @@ describe('functional source capacities reach actual loadout consumers', () => {
     )!
     const totals = production.mechanismGrants32!.totals.find((row) => row.agentId === 'agent-anby')!
     expect(totals.nominalEnergyPoints).toBeCloseTo(44.4, 9)
-    expect(production.gamePoints.energy).toBeNull()
+    expect(production.gamePoints.energy).toBe(0)
     expect(observed.totalDamage).toBe(baseline.totalDamage)
     expect(observed.fingerprint).not.toBe(baseline.fingerprint)
     expect(JSON.stringify(input.warehouse)).toBe(before)
@@ -98,7 +98,7 @@ describe('functional source capacities reach actual loadout consumers', () => {
     expect(
       observed.sourceResourceProduction32?.mechanismGrants32?.totals[0].nominalDecibelPoints,
     ).toBe(300)
-    expect(observed.sourceResourceProduction32?.gamePoints.decibels).toBeNull()
+    expect(observed.sourceResourceProduction32?.gamePoints.decibels).toEqual(expect.any(Number))
     expect(observed.totalDamage).toBe(baseline.totalDamage)
     expect(observed.totalDamage).toBeGreaterThan(0)
     expect(JSON.stringify(input.warehouse)).toBe(before)
@@ -252,7 +252,7 @@ describe('functional source capacities reach actual loadout consumers', () => {
         agentId,
         energy: { unit: 'upstream_SpRecovery' },
         decibels: { unit: 'upstream_FeverRecovery' },
-        gamePoints: { energy: null, decibels: null },
+        gamePoints: { energy: expect.any(Number), decibels: expect.any(Number) },
       })
       const capacity = result.functionalCapacities32!.capacities[0]!
       expect(capacity.key).toContain(agentId)
@@ -319,7 +319,7 @@ describe('functional source capacities reach actual loadout consumers', () => {
     )
     expect(
       result.memberSourceResourceProduction32.every(
-        (row) => row.sourceStatus === 'supported' && row.gamePoints.energy === null,
+        (row) => row.sourceStatus === 'supported' && typeof row.gamePoints.energy === 'number',
       ),
     ).toBe(true)
     const capacity = result.memberFunctionalCapacities32

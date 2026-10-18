@@ -11,6 +11,7 @@ import {
   accountSkillLevel,
   projectNormalizedAccountFinalStatsDetailed,
 } from './normalizedPlanningCandidateEvaluator'
+import { hasCompleteAgentSkillLevels } from '../accounts/agentProgressionRules'
 
 /** Compile account-owned assets and event members without evaluating team effects. */
 export function compileTargetTeamPlanningMembers(input: TargetTeamPlanningContextInput) {
@@ -43,6 +44,10 @@ export function compileTargetTeamPlanningMembers(input: TargetTeamPlanningContex
         accountSkillLevel(agent, skill),
       ]),
     )
+    if (!hasCompleteAgentSkillLevels(skillLevels)) {
+      blockers.push(`${agentId}：技能等级未完整观测，不能用默认值补算。`)
+      continue
+    }
     const schedule = compileNormalizedAgentEventSchedule({ agentId, skillLevels })
     const selectedPotential = input.parameters.potentialByAgentId?.[agentId] ?? agent.potentialImage
     if (
@@ -109,7 +114,7 @@ export function compileTargetTeamPlanningMembers(input: TargetTeamPlanningContex
       level: agent.level,
       mindscape: agent.mindscape,
       potential: resolvePotentialImage(agentId, selectedPotential) ?? null,
-      coreLevel: Math.min(7, accountSkillLevel(agent, 'core')),
+      coreLevel: skillLevels.core,
       skillLevels,
       initialStats: stats.initialStats,
       finalStats: stats.finalStats,

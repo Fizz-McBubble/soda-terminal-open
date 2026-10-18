@@ -301,6 +301,36 @@ it('does not let a late settling connection response overwrite an aborted or sup
   await expect(client.start("soda-source-ref:24d5780e541a1a1ad1393e8962be6e18", 'account-synthetic')).rejects.toThrow('先连接')
 })
 
+it('records the finite failed health-probe stage without exposing a local address', async () => {
+  const fetcher = vi.fn<typeof fetch>().mockRejectedValue(new TypeError('private local detail'))
+  const client = new AssetQuickReadBridgeClient(fetcher)
+  const failure = await client.probe(undefined, 3000).catch((error: unknown) => error)
+  expect(failure).toMatchObject({
+    message: expect.not.stringContaining('private local detail'),
+    diagnostic: {
+      connectionStage: 'health_probe',
+      protocolLaunchAttempted: false,
+      healthProbeAttempts: assetQuickReadBridgeUrls.length,
+    },
+  })
+})
+
+it('classifies an incompatible connect response without exposing its private body', async () => {
+  const fetcher = vi.fn<typeof fetch>(async (url) => {
+    if (String(url).endsWith('/health')) return new Response(JSON.stringify(health))
+    return new Response(
+      JSON.stringify({ ['token']: 'private short token', version: 'private' }),
+    )
+  })
+  const client = new AssetQuickReadBridgeClient(fetcher)
+  const failure = await client.connect().catch((error: unknown) => error)
+  expect(failure).toMatchObject({
+    diagnosticCode: 'bridge_incompatible',
+    diagnostic: { connectionStage: 'connect_exchange' },
+  })
+  expect(JSON.stringify(failure)).not.toContain('private')
+})
+
 it('bounds the last health request by the remaining connection deadline and never pairs its late response', async () => {
   vi.useFakeTimers()
   let attempts = 0

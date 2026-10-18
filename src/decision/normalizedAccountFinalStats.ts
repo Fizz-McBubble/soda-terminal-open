@@ -26,6 +26,7 @@ import {
   calculateWEngineSecondaryStat,
   defaultAscensionForLevel,
 } from '../gameDataPacks/panel/wEngineGrowth'
+import { getDefaultAgentSkillLevels } from '../accounts/agentProgressionRules'
 
 export type NormalizedPercentageStat = 'hp' | 'atk' | 'def' | 'impact' | 'anomMas' | 'enerRegen'
 
@@ -142,9 +143,17 @@ export function addStaticTwoPieceModifiers(input: {
 
 export function accountSkillLevel(agent: AccountRoster['agents'][number], skill: string) {
   const recorded = agent.skillLevels[skill as keyof typeof agent.skillLevels]
-  if (typeof recorded === 'number' && recorded > 0) return recorded
   const rarity = getCurrentAgentEventContract(agent.agentId)?.identity.rarity
-  return rarity === 'A' ? 15 : 11
+  const maximum = skill === 'core' ? 7 : 16
+  if (Number.isInteger(recorded) && Number(recorded) >= 1 && Number(recorded) <= maximum)
+    return Number(recorded)
+  if (agent.manualSource !== 'manual_initial_default' || agent.progressionManuallySet === true)
+    return null
+  if (skill === 'core') return 7
+  if (!['basic', 'dodge', 'assist', 'special', 'chain'].includes(skill)) return null
+  return getDefaultAgentSkillLevels(rarity ?? null, agent.mindscape)[
+    skill as 'basic' | 'dodge' | 'assist' | 'special' | 'chain'
+  ]
 }
 
 export function projectNormalizedAccountFinalStatsDetailed(input: {

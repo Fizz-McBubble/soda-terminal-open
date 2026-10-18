@@ -36,6 +36,16 @@ export type SourceResourceGrantDeclaration32 = {
    * must not be later than the window start. */
   lastTriggerAtSeconds: Readonly<Record<string, number | null>>
   triggers: readonly SourceResourceGrantTrigger32[]
+  /** Explicit pre-window state for receipt and overflow. Absence keeps receipt unknown. */
+  resourceStates?: readonly SourceResourceReceiptState32[]
+  sourceRefs: readonly string[]
+}
+export type SourceResourceReceiptState32 = {
+  agentId: string
+  unit: 'energy_points' | 'decibel_points'
+  initialValue: number
+  /** null means the game contract declares no cap for this window. */
+  capacity: number | null
   sourceRefs: readonly string[]
 }
 const specifications = {
@@ -79,6 +89,113 @@ export const sourceMechanismResourceGrantIdentity32 = Object.freeze({
     'Only listed source-bound nominal grants, separate from unconverted hit fields and actual receipt.',
 })
 type Grant32 = { agentId: string; atSeconds: number | null; nominalValue: number | null }
+type ResourceUnit32 = 'energy_points' | 'decibel_points'
+
+function settleResourceReceipts32(input: {
+  rows: readonly {
+    unit: ResourceUnit32 | null
+    grants: readonly Grant32[]
+  }[]
+  states: readonly SourceResourceReceiptState32[]
+  memberIds: readonly string[]
+}) {
+  const blockers: string[] = []
+  const stateByKey = new Map<string, SourceResourceReceiptState32>()
+  for (const state of input.states) {
+    const key = `${state.agentId}:${state.unit}`
+    if (
+      !input.memberIds.includes(state.agentId) ||
+      !['energy_points', 'decibel_points'].includes(state.unit) ||
+      !Number.isFinite(state.initialValue) ||
+      state.initialValue < 0 ||
+      (state.capacity !== null &&
+        (!Number.isFinite(state.capacity) || state.capacity < state.initialValue)) ||
+      !state.sourceRefs.length ||
+      state.sourceRefs.some((ref) => !ref.trim()) ||
+      stateByKey.has(key)
+    ) {
+      blockers.push(`invalid_resource_receipt_state:${key}`)
+      continue
+    }
+    stateByKey.set(key, state)
+  }
+  const stateValues = new Map(
+    [...stateByKey].map(([key, state]) => [key, state.initialValue] as const),
+  )
+  const receipts: Array<
+    Array<
+      | {
+          receivedValue: number
+          overflowValue: number
+          status: 'supported'
+        }
+      | { receivedValue: null; overflowValue: null; status: 'unknown' }
+    >
+  > = []
+  const indexed = input.rows.flatMap((row, rowIndex) =>
+    row.unit
+      ? row.grants.flatMap((grant, grantIndex) =>
+          grant.nominalValue === null || grant.atSeconds === null
+            ? []
+            : [{ row, rowIndex, grant, grantIndex, unit: row.unit }],
+        )
+      : [],
+  )
+  indexed.sort(
+    (left, right) =>
+      left.grant.atSeconds! - right.grant.atSeconds! ||
+      left.rowIndex - right.rowIndex ||
+      left.grantIndex - right.grantIndex,
+  )
+  for (const row of input.rows)
+    receipts.push(
+      row.grants.map(() => ({
+        receivedValue: null,
+        overflowValue: null,
+        status: 'unknown' as const,
+      })),
+    )
+  for (const entry of indexed) {
+    if (entry.grant.nominalValue === 0) {
+      receipts[entry.rowIndex]![entry.grantIndex] = {
+        receivedValue: 0,
+        overflowValue: 0,
+        status: 'supported',
+      }
+      continue
+    }
+    const key = `${entry.grant.agentId}:${entry.unit}`
+    const state = stateByKey.get(key)
+    const current = stateValues.get(key)
+    if (!state || current === undefined) {
+      blockers.push(`resource_receipt_state_missing:${key}`)
+      continue
+    }
+    const available =
+      state.capacity === null ? Number.POSITIVE_INFINITY : Math.max(0, state.capacity - current)
+    const receivedValue = Math.min(entry.grant.nominalValue!, available)
+    const overflowValue = entry.grant.nominalValue! - receivedValue
+    stateValues.set(key, current + receivedValue)
+    receipts[entry.rowIndex]![entry.grantIndex] = {
+      receivedValue,
+      overflowValue,
+      status: 'supported',
+    }
+  }
+  return {
+    status:
+      !input.rows.some((row) => row.grants.length) ||
+      input.rows.every((row, rowIndex) =>
+        row.grants.every(
+          (_, grantIndex) => receipts[rowIndex]![grantIndex]!.status === 'supported',
+        ),
+      )
+        ? ('supported' as const)
+        : ('unknown' as const),
+    receipts,
+    blockers: [...new Set(blockers)],
+  }
+}
 
 /** Consume retained parameters with explicit triggers and cooldown history.
  * Unknown receipt, overflow and resource feasibility are not invented. */
@@ -118,7 +235,7 @@ export function summarizeSourceMechanismResourceGrants32(input: {
       switchUseCounts.set(key, (switchUseCounts.get(key) ?? 0) + 1)
     }
   }
-  const rows = [...(declaration?.triggers ?? [])]
+  const unsettledRows = [...(declaration?.triggers ?? [])]
     .sort((a, b) => a.atSeconds - b.atSeconds)
     .map((trigger) => {
       const isSupport = trigger.mechanism === 'reviewed_support_ultimate_energy'
@@ -371,28 +488,48 @@ export function summarizeSourceMechanismResourceGrants32(input: {
         blockers: errors,
       }
     })
+  const receiptSettlement = settleResourceReceipts32({
+    rows: unsettledRows.map((row) => ({ unit: row.unit, grants: row.grants })),
+    states: declaration?.resourceStates ?? [],
+    memberIds,
+  })
+  const rows = unsettledRows.map((row, rowIndex) => {
+    const receipts = receiptSettlement.receipts[rowIndex]!
+    return {
+      ...row,
+      grants: row.grants.map((grant, grantIndex) => ({
+        ...grant,
+        ...receipts[grantIndex],
+      })),
+      receivedValue: receipts.every((receipt) => receipt.status === 'supported')
+        ? receipts.reduce((sum, receipt) => sum + receipt.receivedValue!, 0)
+        : null,
+    }
+  })
   const structuralInvalid = issues.some((issue) => issue.startsWith('invalid_'))
   const totals = input.members.map(({ agentId }) => {
-    const sum = (unit: 'energy_points' | 'decibel_points') => {
+    const sum = (unit: ResourceUnit32, field: 'nominalValue' | 'receivedValue') => {
       const selected = rows
         .filter((row) => row.unit === unit)
         .flatMap((row) => row.grants.filter((grant) => grant.agentId === agentId))
-      return declarationInvalid ||
-        structuralInvalid ||
-        selected.some((row) => row.nominalValue === null)
+      return declarationInvalid || structuralInvalid || selected.some((row) => row[field] === null)
         ? null
-        : selected.reduce((total, row) => total + row.nominalValue!, 0)
+        : selected.reduce((total, row) => total + row[field]!, 0)
     }
     return {
       agentId,
-      nominalEnergyPoints: sum('energy_points'),
-      nominalDecibelPoints: sum('decibel_points'),
+      nominalEnergyPoints: sum('energy_points', 'nominalValue'),
+      nominalDecibelPoints: sum('decibel_points', 'nominalValue'),
+      receivedEnergyPoints: sum('energy_points', 'receivedValue'),
+      receivedDecibelPoints: sum('decibel_points', 'receivedValue'),
     }
   })
   const core = {
     status: issues.length ? ('unknown' as const) : ('supported' as const),
     rows,
     totals,
+    receiptStatus: receiptSettlement.status,
+    receiptBlockers: receiptSettlement.blockers,
     blockers: [...new Set(issues)],
     declaration: declaration ?? null,
     coveredMechanisms: [
@@ -402,7 +539,7 @@ export function summarizeSourceMechanismResourceGrants32(input: {
     ],
     sourceIdentity: sourceMechanismResourceGrantIdentity32,
     boundary:
-      'Listed explicit mechanism triggers only. Missing trigger/history/receiver is unknown; nominal grants are separate from actual receipt, unconverted hit fields, overflow and a full cycle.',
+      'Listed explicit mechanism triggers only. Missing trigger/history/receiver is unknown. Actual receipt and overflow require an explicitly declared pre-window resource state and capacity; they remain separate from unconverted hit fields and a full cycle.',
   }
   return { ...core, fingerprint: stableContentHash(core) }
 }

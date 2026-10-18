@@ -166,6 +166,7 @@ export function projectDevelopmentValueBenchmarks(
     candidateParametersByRank?: Readonly<Record<number, DevelopmentComparisonParameters>>
     scenarioSelection?: CurrentPlanningScenarioSelection32
     eventConditionDeclaration?: ReviewedTemplateEventConditionDeclaration32
+    resourceGrantDeclaration32?: import('../calculation/sourceMechanismResourceGrants32').SourceResourceGrantDeclaration32
   },
   evaluate: DevelopmentValueBenchmarkEvaluator = evaluateDevelopmentValueBenchmarkSide,
 ) {
@@ -234,6 +235,7 @@ export function projectDevelopmentValueBenchmarks(
     ? evaluate({
         scenarioSelection: input.scenarioSelection,
         eventConditionDeclaration: input.eventConditionDeclaration,
+        resourceGrantDeclaration32: input.resourceGrantDeclaration32,
         warehouse: input.warehouse,
         agentId: input.agentId,
         discs: baselineDiscs,
@@ -260,6 +262,7 @@ export function projectDevelopmentValueBenchmarks(
     const candidate = evaluate({
       scenarioSelection: input.scenarioSelection,
       eventConditionDeclaration: input.eventConditionDeclaration,
+      resourceGrantDeclaration32: input.resourceGrantDeclaration32,
       warehouse: input.warehouse,
       agentId: input.agentId,
       discs,

@@ -277,7 +277,14 @@ describe('reviewed Jane once self-Assault preparation', () => {
             ascension: 5,
             mindscape: 2,
             potentialImage: 3,
-            skillLevels: { ...row.skillLevels, core: 7 },
+            skillLevels: {
+              basic: 12,
+              dodge: 12,
+              assist: 12,
+              special: 12,
+              chain: 12,
+              core: 7,
+            },
             equippedDiscIds: discs.map((x) => x.id),
             wEngineDetails: {
               id: 'wengine-13008',

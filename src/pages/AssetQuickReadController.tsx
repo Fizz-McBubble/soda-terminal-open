@@ -1,8 +1,14 @@
-import { assetFailureDiagnostic, type AssetDiagnosticReport } from '../assetQuickRead/diagnostics'
+import {
+  assetFailureDiagnostic,
+  assetQuickReadStatusDiagnostic,
+  type AssetDiagnosticAction,
+  type AssetDiagnosticReport,
+} from '../assetQuickRead/diagnostics'
 import { readAssetDiagnostic, saveAssetDiagnostic } from '../assetQuickRead/feedback'
 import { AssetQuickReadFeedback } from './AssetQuickReadFeedback'
 import { assetFailureGuidance } from '../assetQuickRead/diagnosticGuidance'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { assetSnapshotMaxBytes } from '../application/localDataFile'
 import { AssetQuickReadEntry, type AssetQuickReadState } from './AssetQuickReadEntry'
 import { AssetQuickReadBridgeClient, type AssetBridgeJob } from '../assetQuickRead/bridgeClient'
 import { convertAssetSnapshot } from '../assetQuickRead/snapshotAdapter'
@@ -76,8 +82,17 @@ function AccountBoundQuickRead({
     stage: Parameters<typeof assetFailureDiagnostic>[0],
     failure?: unknown,
     failedJob?: AssetBridgeJob | null,
+    action: AssetDiagnosticAction = 'status_feedback',
   ) => {
-    const report = assetFailureDiagnostic(stage, failure, failedJob, toolVersion)
+    const report = assetFailureDiagnostic(
+      stage,
+      failure,
+      failedJob,
+      toolVersion,
+      Date.now(),
+      action,
+      state,
+    )
     saveAssetDiagnostic(report)
     setDiagnostic(report)
   }
@@ -162,7 +177,12 @@ function AccountBoundQuickRead({
       cancelled = true
     }
   }, [targetAccountId, accountReady, recoveryBusy, state, recoveryKey])
-  async function inspect(raw: unknown, sha256: string, scope: number) {
+  async function inspect(
+    raw: unknown,
+    sha256: string,
+    scope: number,
+    action: AssetDiagnosticAction = 'start',
+  ) {
     if (generation.current !== scope) return
     const candidate = convertAssetSnapshot(raw, { snapshotSha256: sha256 })
     if (!candidate.importable && prepareAssetSnapshotExport(raw)?.pendingUpdate) {
@@ -191,6 +211,8 @@ function AccountBoundQuickRead({
       recordFailure(
         'import',
         issueFailure ?? new AssetQuickReadImportError('import_review_required', issue ?? ''),
+        null,
+        action,
       )
     setReview({ raw, candidate, plan, issue })
     setState('received')
@@ -236,6 +258,7 @@ function AccountBoundQuickRead({
                 latest.state === 'timed_out' || latest.readyAt ? 'waiting' : 'startup',
                 undefined,
                 latest,
+                'start',
               )
             if (latest.state === 'error')
               setError(
@@ -246,7 +269,7 @@ function AccountBoundQuickRead({
           }
         } catch (failure) {
           if (valid()) {
-            recordFailure(failureStage, failure, ownedJob.current ?? currentJob)
+            recordFailure(failureStage, failure, ownedJob.current ?? currentJob, 'start')
             setError(message(failure))
             setState('error')
             if (active(ownedJob.current))
@@ -277,7 +300,7 @@ function AccountBoundQuickRead({
     } catch (failure) {
       if (scope === generation.current) {
         setConnected(false)
-        recordFailure('connection', failure, null)
+        recordFailure('connection', failure, null, 'connect')
         setError(assetQuickReadConnectionErrorMessage(failure))
       }
       throw failure
@@ -310,7 +333,12 @@ function AccountBoundQuickRead({
       setJob(started)
       setState(started.state)
       if (started.state === 'error' || started.state === 'timed_out') {
-        recordFailure(started.state === 'timed_out' ? 'waiting' : 'startup', undefined, started)
+        recordFailure(
+          started.state === 'timed_out' ? 'waiting' : 'startup',
+          undefined,
+          started,
+          'start',
+        )
         if (started.state === 'error')
           setError(
             assetCompatibilityMessage(started.code) ??
@@ -320,7 +348,7 @@ function AccountBoundQuickRead({
       }
     } catch (failure) {
       if (scope === generation.current) {
-        recordFailure('startup', failure)
+        recordFailure('startup', failure, null, 'start')
         setError(message(failure))
         setState('error')
       }
@@ -357,16 +385,16 @@ function AccountBoundQuickRead({
     setRestoreArmed(false)
     setCompletion('')
     try {
-      if (file.size > 16 * 1024 * 1024) throw new Error('候选文件超过 16 MiB，未读取。')
+      if (file.size > assetSnapshotMaxBytes) throw new Error('候选文件超过 16 MiB，未读取。')
       const bytes = await file.arrayBuffer()
       if (generation.current !== scope) return
       const sha = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), (byte) =>
         byte.toString(16).padStart(2, '0'),
       ).join('')
-      await inspect(JSON.parse(new TextDecoder().decode(bytes)), sha, scope)
+      await inspect(JSON.parse(new TextDecoder().decode(bytes)), sha, scope, 'inspect_file')
     } catch (failure) {
       if (scope === generation.current) {
-        recordFailure('result', failure)
+        recordFailure('result', failure, null, 'inspect_file')
         setError(
           failure instanceof SyntaxError ? '文件不是有效的 JSON，未读取。' : message(failure),
         )
@@ -397,9 +425,9 @@ function AccountBoundQuickRead({
       onImported?.()
     } catch (failure) {
       if (scope === generation.current) {
-        recordFailure('import', failure)
+        recordFailure('import', failure, null, 'import')
         setError(message(failure))
-        await inspect(review.raw, review.candidate.snapshotSha256, scope)
+        await inspect(review.raw, review.candidate.snapshotSha256, scope, 'import')
       }
       throw failure
     }
@@ -553,20 +581,7 @@ function AccountBoundQuickRead({
     Boolean(error) ||
     (state === 'received' && Boolean(review?.issue || (review && !review.candidate.importable)))
   const currentStatusDiagnostic = useMemo(
-    () => ({
-      ...assetFailureDiagnostic(
-        state === 'capturing'
-          ? 'waiting'
-          : ['received', 'completed'].includes(state)
-            ? 'result'
-            : 'connection',
-        undefined,
-        job,
-        toolVersion,
-      ),
-      outcome: state === 'completed' ? 'completed' : 'unknown',
-      code: 'unknown',
-    }),
+    () => assetQuickReadStatusDiagnostic(state, job, toolVersion),
     [state, job, toolVersion],
   )
   const diagnosticFeedback = (status: { message: string; role: 'alert' | 'status' }) => (

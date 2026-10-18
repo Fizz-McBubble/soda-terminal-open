@@ -137,6 +137,7 @@ export async function refreshDevelopmentCandidatesAfterSave({
     parameters?: import('../application/calculationQueryContract').DevelopmentCandidateAlternativesQuery['candidateParametersByRank'],
     scenarioSelection?: import('../application/publicPlanningScenarioContract').CurrentPlanningScenarioSelection32,
     eventConditionDeclarationsByAgentId?: import('../calculation/reviewedEventConditionDeclarations32').ReviewedEventConditionDeclarations32,
+    resourceGrantDeclaration32?: import('../calculation/sourceMechanismResourceGrants32').SourceResourceGrantDeclaration32,
   ) => Promise<DevelopmentCandidateAlternativesQueryResult>
 }) {
   const previousSnapshot = readDevelopmentCandidateSnapshot(accountId, agentId)
@@ -150,18 +151,33 @@ export async function refreshDevelopmentCandidatesAfterSave({
     eventConditionDeclarationsByAgentId ?? previousSnapshot?.eventConditionDeclarationsByAgentId,
     [agentId],
   )
+  const resourceGrantDeclaration32 = previousSnapshot?.resourceGrantDeclaration32
   const declarationIdentity = reviewedEventConditionDeclarationsIdentity32(declarations)
   const request = (
     runId: string,
     parameters?: import('../application/calculationQueryContract').DevelopmentCandidateAlternativesQuery['candidateParametersByRank'],
   ) =>
     declarations
-      ? query(runId, agentId, parameters, effectiveScenario, declarations)
+      ? query(
+          runId,
+          agentId,
+          parameters,
+          effectiveScenario,
+          declarations,
+          resourceGrantDeclaration32,
+        )
       : effectiveScenario
-        ? query(runId, agentId, parameters, effectiveScenario)
+        ? query(
+            runId,
+            agentId,
+            parameters,
+            effectiveScenario,
+            undefined,
+            resourceGrantDeclaration32,
+          )
         : parameters
-          ? query(runId, agentId, parameters)
-          : query(runId, agentId)
+          ? query(runId, agentId, parameters, undefined, undefined, resourceGrantDeclaration32)
+          : query(runId, agentId, undefined, undefined, undefined, resourceGrantDeclaration32)
   try {
     const run = await refresh()
     if (!isCurrent()) return null

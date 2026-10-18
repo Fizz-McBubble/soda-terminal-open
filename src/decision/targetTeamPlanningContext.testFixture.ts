@@ -35,7 +35,15 @@ function fixture() {
           ...agent,
           owned: true,
           level: 60,
-          skillLevels: { ...agent.skillLevels, core: 7 },
+          skillLevels: {
+            basic: 12,
+            dodge: 12,
+            assist: 12,
+            special: 12,
+            chain: 12,
+            core: 7,
+          },
+          manualSource: 'manual_override' as const,
           completeness: 'complete' as const,
         }
       : agent,

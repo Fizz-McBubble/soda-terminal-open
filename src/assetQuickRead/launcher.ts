@@ -1,5 +1,19 @@
 export const assetQuickReadLaunchUri = 'soda-asset-quick-read://launch'
-export class AssetQuickReadUnavailableError extends Error {}
+export type AssetQuickReadUnavailableDiagnostic = {
+  connectionStage?: 'health_probe' | 'protocol_launch' | 'connect_exchange'
+  protocolLaunchAttempted?: boolean
+  healthProbeAttempts?: number
+}
+export class AssetQuickReadUnavailableError extends Error {
+  readonly diagnostic?: AssetQuickReadUnavailableDiagnostic
+  constructor(
+    message: string,
+    options?: ErrorOptions & { diagnostic?: AssetQuickReadUnavailableDiagnostic },
+  ) {
+    super(message, { cause: options?.cause })
+    this.diagnostic = options?.diagnostic
+  }
+}
 export function launchAssetQuickReadService() {
   const anchor = document.createElement('a')
   anchor.href = assetQuickReadLaunchUri
@@ -44,26 +58,37 @@ export async function awaitAssetQuickReadService<T>({
   signal?.throwIfAborted()
   const deadline = Date.now() + timeoutMs
   const effectiveMaxAttempts = maxAttempts ?? Math.ceil(timeoutMs / retryDelayMs)
-  const timeoutError = () =>
-    new Error(
+  const timeoutError = (protocolLaunchAttempted: boolean, healthProbeAttempts: number) =>
+    new AssetQuickReadUnavailableError(
       '资产快读尚未启动。请先下载并完成安装，再点击连接；允许浏览器打开资产快读和访问本机设备。',
+      {
+        diagnostic: {
+          connectionStage: protocolLaunchAttempted ? 'protocol_launch' : 'health_probe',
+          protocolLaunchAttempted,
+          healthProbeAttempts,
+        },
+      },
     )
+  let healthProbeAttempts = 0
   const boundedProbe = async () => {
     const remaining = deadline - Date.now()
-    if (remaining <= 0) throw timeoutError()
+    if (remaining <= 0) throw timeoutError(protocolLaunched, healthProbeAttempts)
+    healthProbeAttempts += 1
     const result = await probe(signal, Math.min(3000, remaining))
     signal?.throwIfAborted()
-    if (Date.now() >= deadline) throw timeoutError()
+    if (Date.now() >= deadline) throw timeoutError(protocolLaunched, healthProbeAttempts)
     return result
   }
+  let protocolLaunched = false
   try {
     return await boundedProbe()
   } catch (error) {
     signal?.throwIfAborted()
     if (!(error instanceof AssetQuickReadUnavailableError) || !launchIfMissing) throw error
   }
-  if (Date.now() >= deadline) throw timeoutError()
+  if (Date.now() >= deadline) throw timeoutError(false, healthProbeAttempts)
   protocolLauncher()
+  protocolLaunched = true
   for (let attempt = 0; attempt < effectiveMaxAttempts && Date.now() < deadline; attempt++) {
     const remaining = deadline - Date.now()
     if (remaining <= 0) break
@@ -77,5 +102,5 @@ export async function awaitAssetQuickReadService<T>({
       if (!(error instanceof AssetQuickReadUnavailableError)) throw error
     }
   }
-  throw timeoutError()
+  throw timeoutError(true, healthProbeAttempts)
 }

@@ -28,15 +28,25 @@ function presentation(extra: Record<string, number> = {}): DevelopmentComparison
 describe('public optional panel attribute transport', () => {
   it('round-trips known extended values while preserving missing resource values', () => {
     const decoded = JSON.parse(
-      JSON.stringify(presentation({ sheerForce: 567.9732, etherDamageBonus: 30, pen: 9 })),
+      JSON.stringify(
+        presentation({
+          sheerForce: 567.9732,
+          etherDamageBonus: 30,
+          pen: 9,
+          adrenalineGenerationRate: 100,
+          maxAdrenaline: 120,
+        }),
+      ),
     ) as DevelopmentComparisonPanels
     expect(hasDevelopmentComparisonPanels(decoded, 'agent-yixuan')).toBe(true)
     expect(decoded.entries[0]?.values).toMatchObject({
       sheerForce: 567.9732,
       etherDamageBonus: 30,
       pen: 9,
+      adrenalineGenerationRate: 100,
+      maxAdrenaline: 120,
     })
-    expect(decoded.entries[0]?.values.maxAdrenaline).toBeUndefined()
+    expect(decoded.entries[0]?.values.maxSharpEnergy).toBeUndefined()
   })
   it('accepts old snapshots without inventing new attributes, and rejects malformed known optional fields', () => {
     expect(hasDevelopmentComparisonPanels(presentation(), 'agent-yixuan')).toBe(true)

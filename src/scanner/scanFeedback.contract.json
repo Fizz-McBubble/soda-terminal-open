@@ -309,6 +309,7 @@
       "import_review_required",
       "import_recovery_limit_reached",
       "import_snapshot_reused",
+      "status_only",
       "unknown",
       "uac_declined",
       "token_invalid",
@@ -404,9 +405,14 @@
       "remainingSeconds": 180,
       "nativeErrorCode": 4294967295,
       "childExitCode": 4294967295,
-      "candidateIssueCount": 100
+      "candidateIssueCount": 100,
+      "healthProbeAttempts": 10000
     },
-    "evidenceBooleans": ["candidateAvailable"],
+    "evidenceBooleans": [
+      "candidateAvailable",
+      "candidateStatusReported",
+      "protocolLaunchAttempted"
+    ],
     "evidenceEnums": {
       "candidateStatus": [
         "validation_failed",
@@ -416,6 +422,27 @@
         "timed_out",
         "cancelled",
         "unknown"
+      ],
+      "uiState": [
+        "idle",
+        "connecting",
+        "starting",
+        "capturing",
+        "received",
+        "timed_out",
+        "stopped",
+        "error",
+        "completed"
+      ],
+      "lastAction": ["connect", "start", "inspect_file", "import", "status_feedback"],
+      "connectionStage": ["health_probe", "protocol_launch", "connect_exchange"],
+      "captureOpenReason": [
+        "file_not_found",
+        "access_denied",
+        "sharing_violation",
+        "invalid_parameter",
+        "system_resources_unavailable",
+        "other"
       ],
       "jobState": ["starting", "capturing", "received", "timed_out", "stopped", "error"],
       "jobPhase": [

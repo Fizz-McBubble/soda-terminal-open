@@ -84,12 +84,39 @@ describe('shared out-of-combat detail attributes', () => {
       result.trace.some((row) => row.key === 'sheerForce' && row.source.includes('3456cd0')),
     ).toBe(true)
   })
-  it('does not invent unverified menu resource values or a nonexistent seventh base element', () => {
+  it('keeps unregistered resource efficiency and capacity unknown', () => {
     const result = projectOutOfCombatPanel(input)
     expect(result.values.energyGenerationRate).toBeUndefined()
     expect(result.values.maxEnergy).toBeUndefined()
+    expect(result.values.namedResourceRegen).toBeUndefined()
     expect(result.values.adrenalineRegen).toBeUndefined()
     expect(result.values.lumifluxDamageBonus).toBeUndefined()
+    expect(
+      result.trace.filter((row) => ['energyGenerationRate', 'maxEnergy'].includes(row.key)),
+    ).toEqual([])
+    const rupture = projectOutOfCombatPanel({
+      ...input,
+      agentId: 'agent-yixuan',
+    })
+    expect(rupture.values.namedResourceRegen).toBeUndefined()
+    expect(rupture.values.namedResourceGenerationRate).toBeUndefined()
+    expect(rupture.values.maxNamedResource).toBeUndefined()
+    expect(rupture.values.adrenalineRegen).toBeUndefined()
+    expect(rupture.values.maxAdrenaline).toBeUndefined()
+    const armorer = projectOutOfCombatPanel({
+      ...input,
+      agentId: 'agent-claret',
+    })
+    expect(armorer.values.sharpEnergyRegen).toBeUndefined()
+    expect(armorer.values.sharpEnergyGenerationRate).toBeUndefined()
+    expect(armorer.values.maxSharpEnergy).toBeUndefined()
+    const roxy = projectOutOfCombatPanel({
+      ...input,
+      agentId: 'agent-roxy',
+    })
+    expect(roxy.values.energyGenerationRate).toBeUndefined()
+    expect(roxy.values.maxEnergy).toBeUndefined()
+    expect(roxy.values.sharpEnergyRegen).toBeUndefined()
     expect(
       projectOutOfCombatPanel({ ...input, wEngine: { ...input.wEngine, id: 'unknown' } }).status,
     ).toBe('unsupported')

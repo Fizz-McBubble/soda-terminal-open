@@ -42,8 +42,8 @@ function diagnosticRegion() {
 it.each([
   [
     'capture_open_failed',
-    'Windows 未能分配采集所需的系统资源。',
-    '请结束当前读取后重试；仍失败时发送诊断。',
+    'Windows 未能打开采集通道，系统返回资源不可用（1450）。',
+    '确认本次管理员授权已完成，关闭其他抓包或网络驱动工具，重启资产快读后重试；仍失败时发送诊断。',
     {
       nativeErrorCode: 1450,
       childExitCode: 1,
@@ -146,14 +146,17 @@ it('uses the same native 1450 evidence in the status-poll failure and diagnostic
     code: 'capture_open_failed',
     evidence: { ...diagnostics, jobState: 'error', jobPhase: 'capture' },
   })
-  expectVisibleMainError('Windows 未能分配采集所需的系统资源。')
+  expectVisibleMainError('Windows 未能打开采集通道，系统返回资源不可用（1450）。')
   const diagnostic = diagnosticRegion()
-  const nextAction = '请结束当前读取后重试；仍失败时发送诊断。'
+  const nextAction =
+    '确认本次管理员授权已完成，关闭其他抓包或网络驱动工具，重启资产快读后重试；仍失败时发送诊断。'
   expect(within(diagnostic).getByText(nextAction)).not.toBeVisible()
   fireEvent.click(within(diagnostic).getByText('查看诊断'))
   const guidance = diagnostic.querySelector<HTMLElement>('.scanner-diagnostic-feedback__guidance')
   expect(guidance).not.toBeNull()
-  expect(within(guidance!).getByText('Windows 未能分配采集所需的系统资源。')).toBeVisible()
+  expect(
+    within(guidance!).getByText('Windows 未能打开采集通道，系统返回资源不可用（1450）。'),
+  ).toBeVisible()
   expect(within(guidance!).getByText(nextAction)).toBeVisible()
   expect(persistence.confirm).not.toHaveBeenCalled()
 })

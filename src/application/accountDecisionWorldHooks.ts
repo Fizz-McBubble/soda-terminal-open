@@ -131,6 +131,7 @@ export function useDevelopmentCandidateAlternativesCalculation() {
       candidateParametersByRank?: import('./calculationQueryContract').DevelopmentCandidateAlternativesQuery['candidateParametersByRank'],
       scenarioSelection?: import('./publicPlanningScenarioContract').CurrentPlanningScenarioSelection32,
       eventConditionDeclarationsByAgentId?: import('../calculation/reviewedEventConditionDeclarations32').ReviewedEventConditionDeclarations32,
+      resourceGrantDeclaration32?: import('../calculation/sourceMechanismResourceGrants32').SourceResourceGrantDeclaration32,
     ): Promise<DevelopmentCandidateAlternativesQueryResult> => {
       if (!client) throw new Error('Calculation/Query client is unavailable.')
       return client.queryDevelopmentCandidateAlternatives({
@@ -141,6 +142,7 @@ export function useDevelopmentCandidateAlternativesCalculation() {
         candidateParametersByRank,
         scenarioSelection,
         eventConditionDeclarationsByAgentId,
+        resourceGrantDeclaration32,
       })
     },
     [client],

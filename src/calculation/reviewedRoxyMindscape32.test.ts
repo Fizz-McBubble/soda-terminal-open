@@ -28,7 +28,14 @@ function evaluate(mindscape: number, stunMultiplier = 1, special = 12) {
     coreLevel: 7,
     mindscape,
     potential: 0,
-    skillLevels: { basic: 12, special },
+    skillLevels: {
+      basic: 12,
+      dodge: 12,
+      assist: 12,
+      special,
+      chain: 12,
+      core: 7,
+    },
     initialStats: { ...stats },
     finalStats: { ...stats },
   }
@@ -157,7 +164,14 @@ describe('Roxy mindscapes through the existing eighteen-disc consumer', () => {
             ascension: 4,
             mindscape: 0,
             potentialImage: 0,
-            skillLevels: { ...agent.skillLevels, basic: 12, special: 12, chain: 12, core: 7 },
+            skillLevels: {
+              basic: 12,
+              dodge: 12,
+              assist: 12,
+              special: 12,
+              chain: 12,
+              core: 7,
+            },
           }
         : agent,
     )

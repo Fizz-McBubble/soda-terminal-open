@@ -72,6 +72,12 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
           props.onOpenScanFile(file)
           return
         }
+        if (kind === 'asset-snapshot') {
+          setOperationError(
+            '这是资产快读结果，请到“扫描与导入”页面使用“选择或拖入 JSON”继续。账户资料未被修改。',
+          )
+          return
+        }
       }
       const next = await props.onInspectBackup(file)
       if (generation !== inspectionGeneration.current) return

@@ -53,7 +53,16 @@ export function statWeightCalibrationFixture(
     ascension: 5,
     mindscape: 0,
     potentialImage: 0,
-    skillLevels: { ...agent.skillLevels, basic: 12, special: 12, chain: 12, core: 7 },
+    manualSource: 'manual_override',
+    progressionManuallySet: true,
+    skillLevels: {
+      basic: 12,
+      dodge: 12,
+      assist: 12,
+      special: 12,
+      chain: 12,
+      core: 7,
+    },
     wEngineDetails: {
       id: claret ? 'wengine-14161' : 'wengine-12001',
       name: null,

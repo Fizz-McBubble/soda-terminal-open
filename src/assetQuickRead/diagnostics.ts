@@ -2,7 +2,10 @@ import { z } from 'zod'
 import contract from '../scanner/scanFeedback.contract.json'
 import type { AssetBridgeJob } from './bridgeClient'
 import { browserDiagnostic } from '../scanner/diagnostics'
-import { AssetQuickReadUnavailableError } from './launcher'
+import {
+  AssetQuickReadUnavailableError,
+  type AssetQuickReadUnavailableDiagnostic,
+} from './launcher'
 import { AssetQuickReadImportError } from './importErrors'
 
 const rules = contract.assetQuickRead
@@ -50,6 +53,18 @@ const schema = z
           .min(0)
           .max(rules.evidenceLimits.candidateIssueCount)
           .optional(),
+        candidateStatusReported: z.boolean().optional(),
+        protocolLaunchAttempted: z.boolean().optional(),
+        healthProbeAttempts: z
+          .number()
+          .int()
+          .min(0)
+          .max(rules.evidenceLimits.healthProbeAttempts)
+          .optional(),
+        uiState: listed(rules.evidenceEnums.uiState).optional(),
+        lastAction: listed(rules.evidenceEnums.lastAction).optional(),
+        connectionStage: listed(rules.evidenceEnums.connectionStage).optional(),
+        captureOpenReason: listed(rules.evidenceEnums.captureOpenReason).optional(),
         jobState: listed(rules.evidenceEnums.jobState).optional(),
         jobPhase: listed(rules.evidenceEnums.jobPhase).optional(),
         nativeErrorCode: z
@@ -71,11 +86,33 @@ export type AssetDiagnosticStage =
   | 'waiting'
   | 'result'
   | 'import'
+export type AssetDiagnosticAction =
+  | 'connect'
+  | 'start'
+  | 'inspect_file'
+  | 'import'
+  | 'status_feedback'
+export type AssetDiagnosticUiState =
+  | 'idle'
+  | 'connecting'
+  | 'starting'
+  | 'capturing'
+  | 'received'
+  | 'timed_out'
+  | 'stopped'
+  | 'error'
+  | 'completed'
 export class AssetQuickReadRequestError extends Error {
   readonly diagnosticCode: string
-  constructor(code: string, message: string) {
-    super(message)
+  readonly diagnostic?: AssetQuickReadUnavailableDiagnostic
+  constructor(
+    code: string,
+    message: string,
+    options?: ErrorOptions & { diagnostic?: AssetQuickReadUnavailableDiagnostic },
+  ) {
+    super(message, { cause: options?.cause })
     this.diagnosticCode = rules.codes.includes(code) ? code : 'unknown'
+    this.diagnostic = options?.diagnostic
   }
 }
 export function sanitizeAssetDiagnostic(value: unknown): AssetDiagnosticReport | null {
@@ -93,6 +130,8 @@ export function assetFailureDiagnostic(
   job?: AssetBridgeJob | null,
   version?: string,
   now = Date.now(),
+  lastAction?: AssetDiagnosticAction,
+  uiState?: AssetDiagnosticUiState,
 ): AssetDiagnosticReport {
   // Import and connection failures do not describe a retained capture task.
   const scopedJob = stage === 'import' || stage === 'connection' ? null : job
@@ -124,6 +163,61 @@ export function assetFailureDiagnostic(
     : code.startsWith('candidate_') || code === 'progress_invalid'
       ? 'result'
       : stage
+  const connectionEvidence =
+    error instanceof AssetQuickReadUnavailableError || error instanceof AssetQuickReadRequestError
+      ? error.diagnostic
+      : undefined
+  const captureOpenReason =
+    code === 'capture_open_failed' && typeof scopedJob?.diagnostics?.nativeErrorCode === 'number'
+      ? ((
+          {
+            2: 'file_not_found',
+            5: 'access_denied',
+            32: 'sharing_violation',
+            87: 'invalid_parameter',
+            1450: 'system_resources_unavailable',
+          } as const
+        )[scopedJob.diagnostics.nativeErrorCode as 2 | 5 | 32 | 87 | 1450] ?? 'other')
+      : undefined
+  const jobEvidence = scopedJob
+    ? {
+        candidateAvailable: scopedJob.candidateAvailable,
+        jobState: scopedJob.state,
+        ...(rules.evidenceEnums.jobPhase.includes(scopedJob.phase)
+          ? { jobPhase: scopedJob.phase }
+          : {}),
+        ...(code === 'candidate_status_invalid'
+          ? { candidateStatusReported: Boolean(scopedJob.diagnostics?.candidateStatus) }
+          : {}),
+        ...(captureOpenReason ? { captureOpenReason } : {}),
+        ...(scopedJob.diagnostics?.candidateStatus &&
+        rules.evidenceEnums.candidateStatus.includes(scopedJob.diagnostics.candidateStatus)
+          ? { candidateStatus: scopedJob.diagnostics.candidateStatus }
+          : {}),
+        ...Object.fromEntries(
+          ['nativeErrorCode', 'childExitCode', 'candidateIssueCount'].flatMap((key) => {
+            const value =
+              scopedJob.diagnostics?.[key as keyof NonNullable<AssetBridgeJob['diagnostics']>]
+            const max = rules.evidenceLimits[key as keyof typeof rules.evidenceLimits]
+            return typeof value === 'number' &&
+              Number.isInteger(value) &&
+              value >= 0 &&
+              value <= max
+              ? [[key, value]]
+              : []
+          }),
+        ),
+        ...(Number.isInteger(scopedJob.remainingSeconds) && scopedJob.remainingSeconds! <= 180
+          ? { remainingSeconds: scopedJob.remainingSeconds }
+          : {}),
+      }
+    : {}
+  const evidence = {
+    ...jobEvidence,
+    ...connectionEvidence,
+    ...(lastAction ? { lastAction } : {}),
+    ...(uiState ? { uiState } : {}),
+  }
   return sanitizeAssetDiagnostic({
     schema: 1,
     tool: 'asset_quick_read',
@@ -159,35 +253,27 @@ export function assetFailureDiagnostic(
         ? Math.min(contract.durationMaxMs, Math.round(now - Date.parse(scopedJob.startedAt)))
         : null,
     environment: browserDiagnostic(navigator.userAgent),
-    evidence: scopedJob
-      ? {
-          candidateAvailable: scopedJob.candidateAvailable,
-          jobState: scopedJob.state,
-          ...(rules.evidenceEnums.jobPhase.includes(scopedJob.phase)
-            ? { jobPhase: scopedJob.phase }
-            : {}),
-          ...(scopedJob.diagnostics?.candidateStatus &&
-          rules.evidenceEnums.candidateStatus.includes(scopedJob.diagnostics.candidateStatus)
-            ? { candidateStatus: scopedJob.diagnostics.candidateStatus }
-            : {}),
-          ...Object.fromEntries(
-            ['nativeErrorCode', 'childExitCode', 'candidateIssueCount'].flatMap((key) => {
-              const value =
-                scopedJob.diagnostics?.[key as keyof NonNullable<AssetBridgeJob['diagnostics']>]
-              const max =
-                rules.evidenceLimits[key as keyof typeof rules.evidenceLimits]
-              return typeof value === 'number' &&
-                Number.isInteger(value) &&
-                value >= 0 &&
-                value <= max
-                ? [[key, value]]
-                : []
-            }),
-          ),
-          ...(Number.isInteger(scopedJob.remainingSeconds) && scopedJob.remainingSeconds! <= 180
-            ? { remainingSeconds: scopedJob.remainingSeconds }
-            : {}),
-        }
-      : {},
+    evidence,
   })!
+}
+
+export function assetQuickReadStatusDiagnostic(
+  state: AssetDiagnosticUiState,
+  job?: AssetBridgeJob | null,
+  version?: string,
+  now = Date.now(),
+): AssetDiagnosticReport {
+  const stage =
+    state === 'idle' || state === 'connecting'
+      ? 'connection'
+      : state === 'starting'
+        ? 'startup'
+        : state === 'capturing' || state === 'timed_out' || state === 'stopped'
+          ? 'waiting'
+          : 'result'
+  return {
+    ...assetFailureDiagnostic(stage, undefined, job, version, now, 'status_feedback', state),
+    outcome: state === 'completed' ? 'completed' : 'unknown',
+    code: 'status_only',
+  }
 }

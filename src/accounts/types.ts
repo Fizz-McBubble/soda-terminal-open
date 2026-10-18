@@ -73,6 +73,7 @@ export type PlanningSolutionContext = {
   scenarioIdentity?: string
   eventConditionDeclarationsByAgentId?: import('../calculation/reviewedEventConditionDeclarations32').ReviewedEventConditionDeclarations32
   eventConditionDeclarationsIdentity?: string
+  resourceGrantDeclaration32?: import('../calculation/sourceMechanismResourceGrants32').SourceResourceGrantDeclaration32
   /** Explicit comparison choices, saved only with the player-owned proposal. */
   comparisonParameters?: {
     wEngine?: { engineId: string; level: number; ascension?: number; refinement: number }

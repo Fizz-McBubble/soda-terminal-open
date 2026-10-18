@@ -1,6 +1,11 @@
 import { stableContentHash } from '../gameDataPacks/types'
 import { currentAgentDecisionMechanicContracts } from './currentAgentDecisionMechanicContracts'
 import {
+  resolveCurrentAgentResourceInitialState32,
+  type CurrentAgentResourceFlow32,
+  type CurrentAgentResourceFlowEntry32,
+} from './currentAgentResourceFlow32'
+import {
   compileNormalizedAgentEventSchedule,
   currentNormalizedPlanningBaseline,
 } from './currentNormalizedPlanningBaseline'
@@ -175,27 +180,29 @@ function numericParameter(parameters: Readonly<Record<string, unknown>>, keys: r
 
 function resourceBounds(input: {
   resource: string
+  resourceFlow: CurrentAgentResourceFlow32
+  resourceEntry: CurrentAgentResourceFlowEntry32
   parameters: Readonly<Record<string, unknown>>
   stateParameterKeys: readonly string[]
 }) {
-  const resourceKey = normalizedKey(input.resource)
-  const parameterKeys = Object.keys(input.parameters)
-  const initialKeys = parameterKeys.filter((key) => {
-    const normalized = normalizedKey(key)
-    return normalized.includes(resourceKey) && normalized.includes('initial')
-  })
   const capKeys = input.stateParameterKeys.filter((key) => {
     const normalized = normalizedKey(key)
     return normalized.includes('cap') || normalized.includes('max')
   })
-  const initialValue = numericParameter(input.parameters, initialKeys) ?? 0
+  const initial = resolveCurrentAgentResourceInitialState32(input.resourceFlow, input.resourceEntry)
+  if (initial.status === 'unknown')
+    return {
+      status: 'unknown_initial_value' as const,
+      reason: initial.reason,
+    }
+  const initialValue = initial.value
   const declaredMaximum = numericParameter(input.parameters, capKeys)
   const stateValues = input.stateParameterKeys.flatMap((key) => {
     const value = input.parameters[key]
     return typeof value === 'number' && Number.isFinite(value) ? [value] : []
   })
   const maximum = Math.max(initialValue, declaredMaximum ?? 0, ...stateValues, 1)
-  return { initialValue, minimum: 0, maximum }
+  return { status: 'supported' as const, initialValue, minimum: 0, maximum }
 }
 
 export function compileCurrentPlanningBaselineResourceContracts(
@@ -203,6 +210,13 @@ export function compileCurrentPlanningBaselineResourceContracts(
 ) {
   const baselineRef = `planning-baseline:${currentNormalizedPlanningBaseline.baselineId}:neutral-resource-state`
   const contracts: PlanningInteractionContract[] = []
+  const resourceStateAudit: Array<{
+    agentId: string
+    resource: string
+    status: 'source_backed' | 'not_applicable' | 'no_runtime_edges' | 'unknown_initial_value'
+    reason?: string
+    sourceRefs: readonly string[]
+  }> = []
   for (const agentId of memberIds) {
     const contract = currentAgentDecisionMechanicContracts.find((item) => item.agentId === agentId)
     const resourceFlow = contract?.resourceContract?.resourceFlow
@@ -213,12 +227,68 @@ export function compileCurrentPlanningBaselineResourceContracts(
     )
     for (const resource of resourceFlow.resources as readonly {
       resource: string
+      producerParameterKeys?: readonly string[]
+      consumerParameterKeys?: readonly string[]
       stateParameterKeys: readonly string[]
     }[]) {
+      if (!resource.producerParameterKeys?.length && !resource.consumerParameterKeys?.length) {
+        resourceStateAudit.push({
+          agentId,
+          resource: resource.resource,
+          status: 'not_applicable',
+          reason: `${resource.resource}: no source-backed producer or consumer is compiled.`,
+          sourceRefs: unique([
+            baselineRef,
+            ...(capability?.sourceRefs ?? []),
+            resourceFlow.evidenceLocator,
+          ]),
+        })
+        continue
+      }
       const bounds = resourceBounds({
         resource: resource.resource,
+        resourceFlow,
+        resourceEntry: resource,
         parameters,
         stateParameterKeys: resource.stateParameterKeys,
+      })
+      if (bounds.status === 'unknown_initial_value') {
+        resourceStateAudit.push({
+          agentId,
+          resource: resource.resource,
+          status: bounds.status,
+          reason: bounds.reason,
+          sourceRefs: unique([
+            baselineRef,
+            ...(capability?.sourceRefs ?? []),
+            resourceFlow.evidenceLocator,
+          ]),
+        })
+        continue
+      }
+      if (contract.readiness.resourceFlow !== 'compiled') {
+        resourceStateAudit.push({
+          agentId,
+          resource: resource.resource,
+          status: 'no_runtime_edges',
+          reason: `${resource.resource}: resource flow is not runtime-compiled.`,
+          sourceRefs: unique([
+            baselineRef,
+            ...(capability?.sourceRefs ?? []),
+            resourceFlow.evidenceLocator,
+          ]),
+        })
+        continue
+      }
+      resourceStateAudit.push({
+        agentId,
+        resource: resource.resource,
+        status: 'source_backed',
+        sourceRefs: unique([
+          baselineRef,
+          ...(capability?.sourceRefs ?? []),
+          resourceFlow.evidenceLocator,
+        ]),
       })
       contracts.push({
         contractId: `${currentNormalizedPlanningBaseline.baselineId}:${agentId}:resource:${resource.resource}`,
@@ -226,7 +296,9 @@ export function compileCurrentPlanningBaselineResourceContracts(
         authority: 'source_backed',
         sourceRefs: unique([baselineRef, ...(capability?.sourceRefs ?? [])]),
         resourceKey: resource.resource,
-        ...bounds,
+        initialValue: bounds.initialValue,
+        minimum: bounds.minimum,
+        maximum: bounds.maximum,
         transitions: [
           {
             atSeconds: 0,
@@ -250,8 +322,9 @@ export function compileCurrentPlanningBaselineResourceContracts(
     : {
         status: 'supported' as const,
         contracts,
+        resourceStateAudit,
         sourceCompilation: compilation,
-        resourceObservationHash: stableContentHash({ memberIds, contracts }),
+        resourceObservationHash: stableContentHash({ memberIds, contracts, resourceStateAudit }),
       }
 }
 
@@ -266,7 +339,14 @@ export const currentPlanningBaselineObservationAudit = Object.freeze({
     (observation) => observation.fieldTimeWeight > 0,
   ).length,
   neutralResourceStateEntityCount: currentAgentDecisionMechanicContracts.filter(
-    (contract) => (contract.resourceContract?.resourceFlow.resources.length ?? 0) > 0,
+    (contract) =>
+      (contract.resourceContract?.resourceFlow.resources.length ?? 0) > 0 &&
+      contract.readiness.resourceFlow === 'compiled',
+  ).length,
+  pendingResourceStateEntityCount: currentAgentDecisionMechanicContracts.filter(
+    (contract) =>
+      (contract.resourceContract?.resourceFlow.resources.length ?? 0) > 0 &&
+      contract.readiness.resourceFlow !== 'compiled',
   ).length,
   transitionSeconds,
   activeBudgetSeconds,

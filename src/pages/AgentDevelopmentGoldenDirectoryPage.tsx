@@ -9,6 +9,7 @@ import { AgentDevelopmentGolden, type AgentSummary } from '../features/agentDeve
 import { AgentDevelopmentReadError } from './AgentDevelopmentReadError'
 import { SavedOverviewDeleteDialog } from './SavedOverviewDeleteDialog'
 import { projectAgentDevelopmentCatalogJoin } from './agentDevelopmentCatalogJoin'
+import { projectDirectorySkillTraining } from './directorySkillTraining'
 
 export function AgentDevelopmentGoldenDirectoryPage() {
   const navigate = useNavigate()
@@ -129,52 +130,14 @@ export function AgentDevelopmentGoldenDirectoryPage() {
         decisionWorld.status === 'stale' ? 'stale' : (decision?.current.status ?? 'unsupported')
       const hasReliableTarget = decisionStatus !== 'unsupported' && decisionStatus !== 'stale'
 
+      const training = projectDirectorySkillTraining({ agent: record, decision })
       let skillStatus: import('../features/agentDevelopmentGolden/types').AgentSkillTrainingStatus
       if (advicePending) {
         skillStatus = 'pending'
       } else if (decisionWorld.status === 'stale' || decisionStatus === 'stale') {
         skillStatus = 'stale'
-      } else if (
-        !decision ||
-        !decision.skills?.length ||
-        decision.skills.every((skill) => skill.targetLevel === null)
-      ) {
-        skillStatus = 'no-target'
-      } else {
-        const targetedSkills = decision.skills.filter((skill) => skill.targetLevel !== null)
-        const hasUnknown = targetedSkills.some(
-          (skill) =>
-            record.skillLevels[skill.key] === null || record.skillLevels[skill.key] === undefined,
-        )
-        if (hasUnknown) {
-          skillStatus = 'unknown'
-        } else {
-          const gaps = targetedSkills.filter(
-            (skill) => record.skillLevels[skill.key]! < skill.targetLevel!,
-          )
-          if (gaps.length > 0) {
-            skillStatus = 'has-gaps'
-          } else {
-            skillStatus = 'complete'
-          }
-        }
-      }
-
-      const nextTrainingSteps =
-        skillStatus === 'has-gaps'
-          ? decision!.skills
-              .filter(
-                (skill) =>
-                  skill.targetLevel !== null &&
-                  record.skillLevels[skill.key] !== null &&
-                  record.skillLevels[skill.key]! < skill.targetLevel!,
-              )
-              .sort((left, right) => Number(right.priority) - Number(left.priority))
-              .map(
-                (skill) =>
-                  `${skill.label} ${record.skillLevels[skill.key]} → ${skill.targetLevel}级`,
-              )
-          : []
+      } else skillStatus = training.status
+      const nextTrainingSteps = training.nextTrainingSteps
       return [
         {
           agentId,

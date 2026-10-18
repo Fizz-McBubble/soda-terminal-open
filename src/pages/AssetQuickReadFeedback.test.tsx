@@ -1,7 +1,12 @@
 import { act, fireEvent, render, screen, waitFor, cleanup } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { AssetQuickReadFeedback } from './AssetQuickReadFeedback'
-import { assetFailureDiagnostic, AssetQuickReadRequestError } from '../assetQuickRead/diagnostics'
+import {
+  assetFailureDiagnostic,
+  assetQuickReadStatusDiagnostic,
+  AssetQuickReadRequestError,
+} from '../assetQuickRead/diagnostics'
+import { AssetQuickReadUnavailableError } from '../assetQuickRead/launcher'
 vi.mock('../components/ExplanationPopover', () => import('../testing/ExplanationPopoverStub'))
 
 import { saveAssetDiagnostic } from '../assetQuickRead/feedback'
@@ -44,6 +49,126 @@ it('keeps candidate validation guidance about preserving diagnostics and invento
   expect(document.body).toHaveTextContent('请保留诊断和当前库存；不要据此导入未校验结果。')
   expect(document.body).not.toHaveTextContent('核对游戏目录')
   expect(document.body).not.toHaveTextContent('private issue body')
+})
+it('records finite connection, action and UI evidence without exposing a local address', () => {
+  const report = assetFailureDiagnostic(
+    'connection',
+    new AssetQuickReadUnavailableError('private local address', {
+      diagnostic: {
+        connectionStage: 'protocol_launch',
+        protocolLaunchAttempted: true,
+        healthProbeAttempts: 12,
+      },
+    }),
+    null,
+    undefined,
+    undefined,
+    'connect',
+    'connecting',
+  )
+  render(<AssetQuickReadFeedback report={report} />)
+  fireEvent.click(screen.getByText('查看诊断'))
+  expect(document.body).toHaveTextContent('失败阶段 启动本机服务')
+  expect(document.body).toHaveTextContent('健康检查 12 次')
+  expect(document.body).toHaveTextContent('最后操作 连接资产快读')
+  expect(document.body).toHaveTextContent('界面状态 连接中')
+  expect(document.body).not.toHaveTextContent('private local address')
+})
+it('classifies capture-open evidence and gives actionable recovery guidance', () => {
+  const report = assetFailureDiagnostic(
+    'startup',
+    undefined,
+    {
+      jobId: '1e80b26d-39fa-41a5-afbf-fca374acb6ee',
+      targetAccountId: 'account-synthetic',
+      state: 'error',
+      phase: 'driver',
+      code: 'capture_open_failed',
+      startedAt: '2026-10-10T00:00:00Z',
+      readyAt: null,
+      deadline: null,
+      remainingSeconds: null,
+      counts: { discs: 0, engines: 0, agents: 0 },
+      candidateAvailable: false,
+      diagnostics: { nativeErrorCode: 1450, childExitCode: 1 },
+    },
+    '1.0.10',
+    undefined,
+    'start',
+    'error',
+  )
+  render(<AssetQuickReadFeedback report={report} />)
+  fireEvent.click(screen.getByText('查看诊断'))
+  expect(document.body).toHaveTextContent('采集通道 系统资源不可用')
+  expect(document.body).toHaveTextContent('关闭其他抓包或网络驱动工具')
+  expect(report.evidence).toMatchObject({
+    captureOpenReason: 'system_resources_unavailable',
+    lastAction: 'start',
+    uiState: 'error',
+  })
+})
+it('keeps a neutral status report precise and secondary', async () => {
+  const report = assetQuickReadStatusDiagnostic('idle', null, '1.0.10')
+  const fetcher = vi.fn().mockResolvedValue(
+    new Response(
+      JSON.stringify({
+        status: 'received',
+        reportId: report.reportId,
+        receivedAt: '2026-10-18T00:00:00Z',
+      }),
+    ),
+  )
+  vi.stubGlobal('fetch', fetcher)
+  render(<AssetQuickReadFeedback report={report} />)
+  fireEvent.click(screen.getByText('查看诊断'))
+  const action = screen.getByRole('button', { name: '报告界面状态' })
+  expect(action).toHaveClass('button--quiet')
+  expect(document.body).toHaveTextContent('界面状态 未连接')
+  fireEvent.click(action)
+  await screen.findByText('已发送')
+  const sent = JSON.parse(fetcher.mock.calls[0][1].body)
+  expect(sent).toMatchObject({
+    code: 'status_only',
+    evidence: { lastAction: 'status_feedback', uiState: 'idle' },
+  })
+})
+it('keeps task evidence for a status-only report and shows reviewed candidate facts', () => {
+  const report = assetQuickReadStatusDiagnostic(
+    'stopped',
+    {
+      jobId: '1e80b26d-39fa-41a5-afbf-fca374acb6ee',
+      targetAccountId: 'account-synthetic',
+      state: 'stopped',
+      phase: 'validation',
+      code: 'candidate_status_invalid',
+      startedAt: '2026-10-18T00:00:00Z',
+      readyAt: null,
+      deadline: null,
+      remainingSeconds: 120,
+      counts: { discs: 0, engines: 0, agents: 0 },
+      candidateAvailable: false,
+      diagnostics: {
+        candidateStatus: 'unknown',
+        candidateIssueCount: 0,
+      },
+    },
+    '1.0.10',
+  )
+  render(<AssetQuickReadFeedback report={report} />)
+  fireEvent.click(screen.getByText('查看诊断'))
+  expect(document.body).toHaveTextContent('界面状态 已停止')
+  expect(document.body).toHaveTextContent('候选状态 未识别')
+  expect(document.body).toHaveTextContent('校验问题 0 项')
+  expect(report).toMatchObject({
+    stage: 'result',
+    outcome: 'unknown',
+    code: 'status_only',
+    evidence: {
+      jobState: 'stopped',
+      candidateStatus: 'unknown',
+      candidateIssueCount: 0,
+    },
+  })
 })
 it('never sends on mount, opens folded summary, sends only on click and restores receipt after refresh', async () => {
   const report = assetFailureDiagnostic('waiting')

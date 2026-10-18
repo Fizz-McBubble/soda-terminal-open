@@ -16,6 +16,16 @@ export type DevelopmentDirectoryDecision = {
     key: 'basic' | 'dodge' | 'assist' | 'special' | 'chain' | 'core'
     label: string
     targetLevel: number | null
+    recommended?: string
+    targetType?: 'exact_integer' | 'minimum_reference' | 'soda_derived'
+    exactTarget?: number | null
+    minimumReference?: number | null
+    sodaDerived: {
+      band: string
+      targetLevel: number
+      baseTargetLevel?: number
+      label: string
+    } | null
     priority: boolean
     nextLevel?: SkillNextLevelDisplay | null
   }>

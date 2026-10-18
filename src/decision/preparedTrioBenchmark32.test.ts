@@ -47,7 +47,14 @@ describe('shared prepared three-agent fixed benchmark', () => {
           coreLevel: 7,
           mindscape: 0,
           potential: agentId === 'agent-koleda' ? potential : 0,
-          skillLevels: { basic: 12, special: 12 },
+          skillLevels: {
+            basic: 12,
+            dodge: 12,
+            assist: 12,
+            special: 12,
+            chain: 12,
+            core: 7,
+          },
           initialStats: { ...stats },
           finalStats: { ...stats },
         }
@@ -111,7 +118,14 @@ describe('shared prepared three-agent fixed benchmark', () => {
             ascension: 4,
             mindscape: 0,
             potentialImage: agent.agentId === 'agent-koleda' ? 6 : 0,
-            skillLevels: { ...agent.skillLevels, basic: 12, special: 12, chain: 12, core: 7 },
+            skillLevels: {
+              basic: 12,
+              dodge: 12,
+              assist: 12,
+              special: 12,
+              chain: 12,
+              core: 7,
+            },
           }
         : agent,
     )

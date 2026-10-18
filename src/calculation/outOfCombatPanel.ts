@@ -26,7 +26,6 @@ import {
   getReviewedAgentMenuBaseStats,
   getReviewedWEngineMenuBaseStat,
 } from '../gameDataPacks/panel/reviewedMenuBaseStats'
-
 import {
   outOfCombatKeys,
   type OutOfCombatKey,

@@ -17,7 +17,14 @@ export function registerDevelopmentPreparedActionTests32() {
         ascension: 4,
         mindscape: 0,
         potentialImage,
-        skillLevels: { ...agent.skillLevels, basic: 12, core: 7 },
+        skillLevels: {
+          basic: 12,
+          dodge: 12,
+          assist: 12,
+          special: 12,
+          chain: 12,
+          core: 7,
+        },
       })
       const parameters = {
         wEngine: { engineId: 'wengine-12001', level: 40, ascension: 3, refinement: 1 },
@@ -62,7 +69,14 @@ export function registerDevelopmentPreparedActionTests32() {
         ascension: 4,
         mindscape: 0,
         potentialImage: 0,
-        skillLevels: { ...agent.skillLevels, basic: 12, special: 12, chain: 12, core: 7 },
+        skillLevels: {
+          basic: 12,
+          dodge: 12,
+          assist: 12,
+          special: 12,
+          chain: 12,
+          core: 7,
+        },
         wEngineDetails: {
           id: agentId === 'agent-roxy' ? 'wengine-12006' : 'wengine-13017',
           name: null,
@@ -122,7 +136,14 @@ export function registerDevelopmentPreparedActionTests32() {
               ascension: 4,
               mindscape: 0,
               potentialImage: 0,
-              skillLevels: { ...row.skillLevels, special: 12, core: 7 },
+              skillLevels: {
+                basic: 12,
+                dodge: 12,
+                assist: 12,
+                special: 12,
+                chain: 12,
+                core: 7,
+              },
             }
           : row,
       )
@@ -158,7 +179,14 @@ export function registerDevelopmentPreparedActionTests32() {
       ascension: 4,
       mindscape: 0,
       potentialImage: 0,
-      skillLevels: { ...agent.skillLevels, special: 12, core: 7 },
+      skillLevels: {
+        basic: 12,
+        dodge: 12,
+        assist: 12,
+        special: 12,
+        chain: 12,
+        core: 7,
+      },
     })
     const before = JSON.stringify(warehouse)
     for (const engineId of ['wengine-14161', 'wengine-13017']) {
@@ -191,7 +219,14 @@ export function registerDevelopmentPreparedActionTests32() {
       ascension: 4,
       mindscape: 0,
       potentialImage: 0,
-      skillLevels: { ...agent.skillLevels, special: 12, core: 7 },
+      skillLevels: {
+        basic: 12,
+        dodge: 12,
+        assist: 12,
+        special: 12,
+        chain: 12,
+        core: 7,
+      },
     })
     // Off-specialty equipment keeps conditional passives out of this arithmetic check.
     const engine = { id: 'wengine-12001', name: '', level: 40, ascension: 3, refinement: 1 }
@@ -245,7 +280,14 @@ export function registerDevelopmentPreparedActionTests32() {
       ascension: 4,
       mindscape: 0,
       potentialImage: 0,
-      skillLevels: { ...agent.skillLevels, basic: 12, special: 12, chain: 12, core: 7 },
+      skillLevels: {
+        basic: 12,
+        dodge: 12,
+        assist: 12,
+        special: 12,
+        chain: 12,
+        core: 7,
+      },
     })
     // Off-specialty passive isolates sourced Maim and resistance changes;
     // each side still projects the same actual level and typed DEF panel.

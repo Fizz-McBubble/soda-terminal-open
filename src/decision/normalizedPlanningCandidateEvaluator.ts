@@ -35,6 +35,7 @@ import {
   accountSkillLevel,
   projectNormalizedAccountFinalStats,
 } from './normalizedAccountFinalStats'
+import { hasCompleteAgentSkillLevels } from '../accounts/agentProgressionRules'
 export {
   accountSkillLevel,
   projectNormalizedAccountFinalStatsDetailed,
@@ -111,6 +112,7 @@ export function evaluateNormalizedPlanningCandidate(input: {
         accountSkillLevel(rosterAgent, skill),
       ]),
     )
+    if (!hasCompleteAgentSkillLevels(skillLevels)) return null
     const schedule = compileNormalizedAgentEventSchedule({ agentId, skillLevels })
     // This evaluator computes the suggested scheme, not the current equipped item.
     // Legacy scheme recommendations omit growth and retain the established Lv60
@@ -170,7 +172,7 @@ export function evaluateNormalizedPlanningCandidate(input: {
       // Formula tables index the seven core-skill nodes, whereas account skill
       // defaults use combat-skill caps. Keep the runtime input in the source
       // table's 1..7 domain and never substitute a combat-skill level here.
-      coreLevel: Math.min(7, accountSkillLevel(rosterAgent, 'core')),
+      coreLevel: skillLevels.core,
       skillLevels,
       initialStats: stats.initialStats,
       finalStats: stats.finalStats,

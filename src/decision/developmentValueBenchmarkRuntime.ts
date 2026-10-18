@@ -14,6 +14,7 @@ import { completePersonalValueBenchmarkCoverage } from '../calculation/personalV
 import { getCurrentWEngineStaticData } from '../gameDataPacks/currentWEngineStaticCatalog'
 import { summarizeSourceResourceProduction32 } from '../calculation/sourceResourceProduction32'
 import { summarizeSourceMechanismResourceGrants32 } from '../calculation/sourceMechanismResourceGrants32'
+import { hasCompleteAgentSkillLevels } from '../accounts/agentProgressionRules'
 import { compileNormalizedAgentEventSchedule } from '../calculation/currentNormalizedPlanningBaseline'
 import { compileCurrentDriveDiscPlanningEffects } from '../calculation/currentDriveDiscPlanningEffects'
 import { compileCurrentWEnginePersonalPlanningEffects } from '../calculation/currentWEnginePersonalPlanningEffects'
@@ -130,6 +131,13 @@ export function evaluateDevelopmentValueBenchmarkSide(
       accountSkillLevel(agent, skill),
     ]),
   )
+  if (!hasCompleteAgentSkillLevels(skillLevels))
+    return unavailable({
+      agentId: input.agentId,
+      discs: input.discs,
+      engineKey,
+      reasons: ['技能等级未完整观测，不能用默认值补算。'],
+    })
   if (!stats)
     return unavailable({
       agentId: input.agentId,
@@ -142,7 +150,7 @@ export function evaluateDevelopmentValueBenchmarkSide(
     level: agent.level,
     mindscape: agent.mindscape,
     potential,
-    coreLevel: Math.min(7, accountSkillLevel(agent, 'core')),
+    coreLevel: skillLevels.core,
     skillLevels,
     initialStats: stats.initialStats,
     finalStats: stats.finalStats,
@@ -365,6 +373,14 @@ export function evaluateDevelopmentValueBenchmarkSide(
       engineKey,
       reasons: runtime.blockers,
     })
+  const sourceResourceProduction32 = summarizeSourceResourceProduction32({
+    agentId: member.agentId,
+    eventUsages,
+    mechanismGrants32: summarizeSourceMechanismResourceGrants32({
+      members: [member],
+      declaration: input.resourceGrantDeclaration32,
+    }),
+  })
   const baseCoverage = completePersonalValueBenchmarkCoverage({
     discCoverage,
     engine,
@@ -378,6 +394,8 @@ export function evaluateDevelopmentValueBenchmarkSide(
         .map((row) => row.effectKey),
       ...runtime.sourceResolvedInactiveEffectKeys,
     ],
+    // Resource-cycle incompleteness is reported separately and must not
+    // invalidate a comparison whose objective does not consume that cycle.
     sourceEffectExclusions: runtime.sourceEffectExclusions,
   })
   const coverage = projectDevelopmentValueBenchmarkCoverage({
@@ -447,14 +465,6 @@ export function evaluateDevelopmentValueBenchmarkSide(
         : potentialPreparation
           ? { [member.agentId]: potentialPreparation.baselineReferences }
           : undefined,
-  })
-  const sourceResourceProduction32 = summarizeSourceResourceProduction32({
-    agentId: member.agentId,
-    eventUsages,
-    mechanismGrants32: summarizeSourceMechanismResourceGrants32({
-      members: [member],
-      declaration: input.resourceGrantDeclaration32,
-    }),
   })
   const functionalStats32 = {
     impact: stats.finalStats.impact,

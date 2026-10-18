@@ -1,5 +1,8 @@
 import { resolveCurrentAgentResourceEvent32 } from './currentAgentMechanicContracts'
-import { currentAgentResourceEventIdentity32 } from './currentAgentResourceEvents32'
+import {
+  currentAgentResourceEventIdentity32,
+  currentAgentResourceGamePointConversion32,
+} from './currentAgentResourceEvents32'
 import { stableContentHash } from '../gameDataPacks/types'
 import { isSourceRateEvent32 } from './sourceEventQuantity32'
 import type { PlanningEventUsage } from './planningCalculationContextCompiler'
@@ -71,19 +74,50 @@ export function summarizeSourceResourceProduction32(input: {
   }
   energyUnknown ||= !Number.isFinite(energy)
   decibelsUnknown ||= !Number.isFinite(decibels)
+  const grant = input.mechanismGrants32
+  const productionBlockers = [
+    ...blockers,
+    ...(decibels !== 0 ? ['decibel_conversion_limited_benchmark'] : []),
+  ].filter((value, index, values) => values.indexOf(value) === index)
+  const resourceCycleBlockers = [
+    ...productionBlockers,
+    ...(!grant ? ['mechanism_resource_grant_declaration_missing'] : []),
+    ...(grant && grant.status !== 'supported' ? grant.blockers : []),
+    ...(grant && grant.status === 'supported' && grant.receiptStatus !== 'supported'
+      ? ['mechanism_resource_receipt_state_unknown']
+      : []),
+    'complete_resource_cycle_transition_ledger_missing',
+  ].filter((value, index, values) => values.indexOf(value) === index)
   const core = {
     sourceStatus: blockers.length ? ('unknown' as const) : ('supported' as const),
+    resourceProductionStatus: productionBlockers.length
+      ? ('unknown' as const)
+      : ('supported' as const),
+    resourceProductionBlockers: productionBlockers,
+    resourceCycleStatus: 'unknown' as 'unknown' | 'supported',
+    resourceCycleBlockers,
     agentId: input.agentId,
     events,
     energy: { value: energyUnknown ? null : energy, unit: 'upstream_SpRecovery' as const },
     decibels: { value: decibelsUnknown ? null : decibels, unit: 'upstream_FeverRecovery' as const },
-    gamePoints: { energy: null, decibels: null },
+    gamePoints: {
+      energy:
+        energyUnknown ||
+        currentAgentResourceGamePointConversion32.energy.upstreamUnitsPerPoint === null
+          ? null
+          : energy / currentAgentResourceGamePointConversion32.energy.upstreamUnitsPerPoint,
+      decibels:
+        decibelsUnknown ||
+        currentAgentResourceGamePointConversion32.decibels.upstreamUnitsPerPoint === null
+          ? null
+          : decibels / currentAgentResourceGamePointConversion32.decibels.upstreamUnitsPerPoint,
+    },
     teammateDecibelDistribution: 'unverified' as const,
     ...(input.mechanismGrants32 ? { mechanismGrants32: input.mechanismGrants32 } : {}),
-    blockers: [...new Set(blockers)],
+    blockers: [...new Set(productionBlockers)],
     sourceIdentity: currentAgentResourceEventIdentity32,
     boundary:
-      'Declared source-row production only; point conversion, receipt, elapsed time, overflow and spending are separate.',
+      'Declared source-row production only. SpRecovery/100 has the reviewed game-energy scale; FeverRecovery/100 is benchmark-limited. Resource production can be known while teammate distribution, elapsed time, capacity, receipt, overflow, spending and the complete cycle remain unresolved.',
   }
   return { ...core, fingerprint: stableContentHash(core) }
 }

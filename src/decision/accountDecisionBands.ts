@@ -5,6 +5,14 @@ import { reviewedTeamDiscDirections } from '../gameDataPacks/reviewedTeamDiscCon
 import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
 import type { scoreCurrent31ExhaustiveAccountCandidates } from './exhaustiveAccountCandidateScoring'
 import type { assetConflictBands, CultivationPriorityInput } from './teamDecisionAuthority'
+import {
+  getCurrentBuildProfile,
+  getBuildRecommendation,
+  getSelectedBuildBranchId,
+} from '../assault/currentBuildProfiles'
+import { getProjectedBuildKnowledgeProfile } from '../gameDataPacks/agentProfile'
+import { getCandidateWarehouseConstraint } from '../gameDataPacks/candidateWarehouseConstraints'
+import { agentDevelopmentSkillRecommendations } from '../pages/agentDevelopmentSkillRecommendations'
 
 export type RankedFormation = ReturnType<
   typeof scoreCurrent31ExhaustiveAccountCandidates
@@ -28,24 +36,39 @@ export type AccountBandContext = {
   potentialDirectionsByMembers: Map<string, (typeof reviewedTeamDiscDirections)[number][]>
 }
 
-const skillTargets = Object.freeze({
-  basic: 12,
-  dodge: 12,
-  assist: 12,
-  special: 12,
-  chain: 12,
-  core: 7,
-})
+export function inspectSkillInvestments(agent: RosterAgent | undefined) {
+  if (!agent) return { knownGapCount: 7, unknownCount: 0 }
+  const profile = getProjectedBuildKnowledgeProfile(agent.agentId)
+  const currentProfile = getCurrentBuildProfile(agent.agentId)
+  const recommendation = currentProfile
+    ? getBuildRecommendation(
+        currentProfile,
+        getSelectedBuildBranchId(agent) ?? currentProfile.defaultBranchId,
+      )
+    : null
+  const skills = agentDevelopmentSkillRecommendations(
+    agent.agentId,
+    profile.recommendation?.skillPriority ??
+      getCandidateWarehouseConstraint(agent.agentId)?.progressionDirection ??
+      [],
+    recommendation?.skillPriority ?? [],
+    { skillLevels: agent.skillLevels, mindscape: agent.mindscape },
+  ).skills
+  let knownGapCount = agent.level >= 60 ? 0 : 1
+  let unknownCount = 0
+  for (const skill of skills) {
+    const current = agent.skillLevels[skill.key]
+    if (current === null || current === undefined) {
+      unknownCount++
+      continue
+    }
+    if (current < skill.targetLevel) knownGapCount++
+  }
+  return { knownGapCount, unknownCount }
+}
 
 export function missingSkillInvestments(agent: RosterAgent | undefined) {
-  if (!agent) return Object.keys(skillTargets).length + 1
-  return (
-    (agent.level >= 60 ? 0 : 1) +
-    Object.entries(skillTargets).filter(([skill, target]) => {
-      const current = agent.skillLevels[skill as keyof RosterAgent['skillLevels']]
-      return current === null || current < target
-    }).length
-  )
+  return inspectSkillInvestments(agent).knownGapCount
 }
 
 export function createAccountBandContext(
@@ -122,8 +145,15 @@ export function deriveAccountBands(
         return total + Math.max(0, 6 - (loadout?.discs.length ?? 0))
       }, 0)
     : null
-  const missingSkillInvestmentCount = candidate.memberIds.reduce(
-    (total, agentId) => total + missingSkillInvestments(context.agentById.get(agentId)),
+  const skillAudits = candidate.memberIds.map((agentId) =>
+    inspectSkillInvestments(context.agentById.get(agentId)),
+  )
+  const missingSkillInvestmentCount = skillAudits.reduce(
+    (total, audit) => total + audit.knownGapCount,
+    0,
+  )
+  const unknownSkillInvestmentCount = skillAudits.reduce(
+    (total, audit) => total + audit.unknownCount,
     0,
   )
   const potentialGaps = derivePotentialGaps(candidate, context)
@@ -142,7 +172,7 @@ export function deriveAccountBands(
   const currentReadiness: AccountBands['currentReadiness'] =
     missingAgents > 0 || missingWEngines > 0
       ? 'blocked'
-      : !allocationAssessed
+      : !allocationAssessed || unknownSkillInvestmentCount > 0
         ? 'not_evaluated'
         : allGlobal &&
             missingDiscSlots === 0 &&

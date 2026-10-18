@@ -11,6 +11,7 @@ import { planningEffectResolutionIdentity32 } from '../calculation/currentPlanni
 import { getPlanningDamageEventSemantics } from '../calculation/currentPlanningTeamDpsRuntime'
 import { accountSkillLevel } from '../decision/normalizedPlanningCandidateEvaluator'
 import { projectNormalizedAccountFinalStatsDetailed } from '../decision/normalizedAccountFinalStats'
+import { hasCompleteAgentSkillLevels } from '../accounts/agentProgressionRules'
 import type { TargetTeamWarehouseFit } from '../decision/targetTeamWarehouseFit'
 import type { TargetTeamEquipmentParameterSelection } from '../decision/targetTeamAccountBoundBenchmark'
 import { getCurrentWEngineStaticData } from '../gameDataPacks/currentWEngineStaticCatalog'
@@ -186,13 +187,17 @@ export function preparePlanningBenchmark32(input: PlanningBenchmarkBinding32) {
         accountSkillLevel(agent, skill),
       ]),
     )
+    if (!hasCompleteAgentSkillLevels(skillLevels)) {
+      gaps.push(`${agentId}：技能等级未完整观测，不能用默认值补算。`)
+      continue
+    }
     const potential = agent.potentialImage ?? null
     const member = {
       agentId,
       level: agent.level,
       mindscape: agent.mindscape,
       potential,
-      coreLevel: Math.min(7, skillLevels.core!),
+      coreLevel: skillLevels.core,
       skillLevels,
       initialStats: projection.stats.initialStats,
       finalStats: projection.stats.finalStats,

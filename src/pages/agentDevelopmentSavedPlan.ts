@@ -33,6 +33,12 @@ export function createAgentDevelopmentSavedPlan(input: {
   const profileSave = equipment.profileSave
   const discIds = candidate.discs.map((item) => item.disc.id)
   const valueBenchmark = candidateSnapshot?.valueBenchmarks?.[candidateIndex]
+  if (
+    valueBenchmark?.candidate.sourceResourceProduction32?.mechanismGrants32?.receiptStatus ===
+      'supported' &&
+    !candidateSnapshot?.resourceGrantDeclaration32
+  )
+    throw new Error('资源到账输入未持久化，请重新比较后再保存。')
   const benchmarkDisposition = valueBenchmarkSaveLabel(valueBenchmark)
   return {
     name: `${agentName} · 养成方案`,
@@ -75,6 +81,9 @@ export function createAgentDevelopmentSavedPlan(input: {
       exactVariantKey: null,
       eventConditionDeclarationsByAgentId: declarations,
       eventConditionDeclarationsIdentity: declarationIdentity,
+      ...(candidateSnapshot?.resourceGrantDeclaration32
+        ? { resourceGrantDeclaration32: candidateSnapshot.resourceGrantDeclaration32 }
+        : {}),
       scenarioSelection: candidateSnapshot?.scenarioSelection,
       scenarioIdentity: candidateSnapshot?.scenarioIdentity,
       ...(candidateSnapshot?.candidateParametersByRank?.[candidateIndex + 1]

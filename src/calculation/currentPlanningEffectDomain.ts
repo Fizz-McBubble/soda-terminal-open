@@ -118,6 +118,9 @@ export function planningCharacterReferences32(member: PlanningEffectRuntimeMembe
     'char.core': member.coreLevel - 1,
     'own.char.core': member.coreLevel - 1,
   }
+  // These generic skill references are zero-based table coordinates. Source
+  // expressions that use an effective skill level directly are rebound by the
+  // expression consumer before evaluation.
   for (const [skill, level] of Object.entries(member.skillLevels)) {
     if (!['basic', 'dodge', 'assist', 'special', 'chain'].includes(skill)) continue
     references[`char.${skill}`] = level - 1

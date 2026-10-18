@@ -369,6 +369,17 @@ export function compileTargetTeamPlanningContext(input: TargetTeamPlanningContex
       fingerprint: stableContentHash({ compilation, runtime, bangbooDamage }),
       ...koledaMetadata,
     }
+  const mechanismGrants32 = summarizeSourceMechanismResourceGrants32({
+    members: effectRuntimeMembers,
+    declaration: input.calibrationObservations?.resourceGrantDeclaration32,
+  })
+  const memberSourceResourceProduction32 = effectRuntimeMembers.map((member) =>
+    summarizeSourceResourceProduction32({
+      agentId: member.agentId,
+      eventUsages,
+      mechanismGrants32,
+    }),
+  )
   const memberDamage = runtime.memberDamage.reduce((sum, member) => sum + member.totalDamage, 0)
   const totalDamage = memberOnly ? memberDamage : memberDamage + bangbooDamage!
   const coverage = compileTargetTeamPlanningCoverage({
@@ -377,14 +388,11 @@ export function compileTargetTeamPlanningContext(input: TargetTeamPlanningContex
     discEffects,
     modifierProjection,
     effectRuntimeMembers,
+    resourceProduction: memberSourceResourceProduction32,
     sourceBoundaries: [
       ...sourceSelection.sourcePackets.map((row) => row.boundary),
       ...templatePreparations.map((row) => row.boundary),
     ],
-  })
-  const mechanismGrants32 = summarizeSourceMechanismResourceGrants32({
-    members: effectRuntimeMembers,
-    declaration: input.calibrationObservations?.resourceGrantDeclaration32,
   })
   const core = {
     ...koledaMetadata,
@@ -451,13 +459,7 @@ export function compileTargetTeamPlanningContext(input: TargetTeamPlanningContex
         baselineReferencesByAgentId: observedReferences,
       }),
     ),
-    memberSourceResourceProduction32: effectRuntimeMembers.map((member) =>
-      summarizeSourceResourceProduction32({
-        agentId: member.agentId,
-        eventUsages,
-        mechanismGrants32,
-      }),
-    ),
+    memberSourceResourceProduction32,
     interactionBundleHash: interactions.bundleHash,
     interactionStateHash: compilation.interactionStateHash,
     interactionOperatorCoverage: compilation.interactionOperatorCoverage,

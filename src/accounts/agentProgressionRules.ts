@@ -48,6 +48,15 @@ export function getDefaultAgentSkillLevels(rarity: string | null, mindscape: num
   )
 }
 
+export function hasCompleteAgentSkillLevels(
+  skillLevels: Readonly<Record<string, number | null>>,
+): skillLevels is Readonly<Record<string, number>> {
+  return ['basic', 'dodge', 'assist', 'special', 'chain', 'core'].every((field) => {
+    const value = skillLevels[field]
+    return Number.isInteger(value) && Number(value) > 0
+  })
+}
+
 /** Stored skill levels are effective levels; apply only the M3/M5 delta. */
 export function applyMindscapeSkillLevelChange<T extends RegularAgentSkillLevels>(
   skillLevels: T,

@@ -177,11 +177,13 @@ export class AssetQuickReadBridgeClient {
   async probe(signal?: AbortSignal, timeoutMs = 3000) {
     const deadline = Date.now() + timeoutMs
     let lastUnavailable: AssetQuickReadUnavailableError | null = null
+    let attempts = 0
     for (const [index, baseUrl] of assetQuickReadBridgeUrls.entries()) {
       signal?.throwIfAborted()
       const remaining = deadline - Date.now()
       if (remaining <= 0) break
       try {
+        attempts += 1
         // A probe sends neither a session token nor account/game data.
         const parsed = healthSchema.safeParse(
           await this.request(
@@ -207,10 +209,26 @@ export class AssetQuickReadBridgeClient {
         return parsed.data
       } catch (error) {
         if (!(error instanceof AssetQuickReadUnavailableError)) throw error
-        lastUnavailable = error
+        lastUnavailable = new AssetQuickReadUnavailableError(error.message, {
+          cause: error,
+          diagnostic: {
+            connectionStage: 'health_probe',
+            protocolLaunchAttempted: error.diagnostic?.protocolLaunchAttempted ?? false,
+            healthProbeAttempts: attempts,
+          },
+        })
       }
     }
-    throw lastUnavailable ?? new AssetQuickReadUnavailableError('未能连接独立资产快读。')
+    throw (
+      lastUnavailable ??
+      new AssetQuickReadUnavailableError('未能连接独立资产快读。', {
+        diagnostic: {
+          connectionStage: 'health_probe',
+          protocolLaunchAttempted: false,
+          healthProbeAttempts: attempts,
+        },
+      })
+    )
   }
 
   async connect({
@@ -237,13 +255,43 @@ export class AssetQuickReadBridgeClient {
     if (this.activeConnectId !== connectId) {
       throw new DOMException('Aborted', 'AbortError')
     }
-    const session = z
-      .object({
-        token: z.string().min(32).max(256),
-        version: bridgeVersionSchema,
-        expiresAt: z.string(),
-      })
-      .parse(await this.request('/connect', 'POST', {}, false, signal))
+    let session: { token: string; version: string; expiresAt: string }
+    try {
+      session = z
+        .object({
+          token: z.string().min(32).max(256),
+          version: bridgeVersionSchema,
+          expiresAt: z.string(),
+        })
+        .parse(await this.request('/connect', 'POST', {}, false, signal))
+    } catch (error) {
+      if (error instanceof AssetQuickReadUnavailableError)
+        throw new AssetQuickReadUnavailableError(error.message, {
+          cause: error.cause ?? error,
+          diagnostic: {
+            connectionStage: 'connect_exchange',
+          },
+        })
+      if (error instanceof AssetQuickReadRequestError)
+        throw new AssetQuickReadRequestError(error.diagnosticCode, error.message, {
+          cause: error,
+          diagnostic: {
+            connectionStage: 'connect_exchange',
+          },
+        })
+      if (error instanceof z.ZodError)
+        throw new AssetQuickReadRequestError(
+          'bridge_incompatible',
+          '资产快读连接响应不兼容，请更新工具。',
+          {
+            cause: error,
+            diagnostic: {
+              connectionStage: 'connect_exchange',
+            },
+          },
+        )
+      throw error
+    }
     signal?.throwIfAborted()
     if (this.activeConnectId !== connectId) {
       throw new DOMException('Aborted', 'AbortError')

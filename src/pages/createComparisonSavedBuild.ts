@@ -31,6 +31,12 @@ export function createComparisonSavedBuild(
   const candidate = candidatePlan.loadouts[0]!
   const candidatePresentation = candidateSnapshot.presentation!
   const valueBenchmark = candidateSnapshot.valueBenchmarks?.[rank - 1]
+  if (
+    valueBenchmark?.candidate.sourceResourceProduction32?.mechanismGrants32?.receiptStatus ===
+      'supported' &&
+    !candidateSnapshot.resourceGrantDeclaration32
+  )
+    throw new Error('资源到账输入未持久化，请重新比较后再保存。')
   const benchmarkDisposition = valueBenchmarkSaveLabel(valueBenchmark)
   const knowledge = candidateSnapshot.panelPresentation!.saveKnowledge
   const explicitParameters = candidateSnapshot.candidateParametersByRank?.[rank]
@@ -91,6 +97,9 @@ export function createComparisonSavedBuild(
       exactVariantKey: null,
       eventConditionDeclarationsByAgentId: declarations,
       eventConditionDeclarationsIdentity: declarationIdentity,
+      ...(candidateSnapshot.resourceGrantDeclaration32
+        ? { resourceGrantDeclaration32: candidateSnapshot.resourceGrantDeclaration32 }
+        : {}),
       ...(candidateSnapshot.candidateParametersByRank?.[rank]
         ? { comparisonParameters: candidateSnapshot.candidateParametersByRank[rank] }
         : {}),

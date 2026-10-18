@@ -1,5 +1,6 @@
 import { publicDevelopmentDirectoryCatalog } from './publicDevelopmentDirectoryCatalog'
 import { attributePanelKeys } from '../domain/characterPanelStats'
+import { getCurrentAgentDecisionMechanicContract } from '../calculation/currentAgentDecisionMechanicContracts'
 export {
   attributePanelKeys,
   extendedPanelKeys,
@@ -25,13 +26,37 @@ const attributeLabels = {
   wind: '风属性伤害加成',
 } as const
 
+const namedResourceLabels: Readonly<Record<string, string>> = {
+  technique_points: '术法点',
+  determination: '决意',
+  wrathful_fires: '忿火',
+  decibels: '喧响值',
+  blazing_heart: '炽心',
+}
+
+function resolveNamedRuptureResource(agentId: string, specialty: string | undefined) {
+  if (specialty !== 'rupture') return null
+  const resources =
+    getCurrentAgentDecisionMechanicContract(agentId)?.resourceContract?.resourceFlow.resources ?? []
+  if (resources.length !== 1) return null
+  const resourceId = resources[0]!.resource
+  return {
+    resourceId,
+    label: namedResourceLabels[resourceId] ?? `具名资源（${resourceId}）`,
+  }
+}
+
 /** Presentation only. Display eligibility never creates a stat, target, or scoring weight. */
 export function getCharacterPanelFields(agentId: string): CharacterPanelField[] {
   const identity = publicDevelopmentDirectoryCatalog.find((row) => row.stableId === agentId)
   const specialty = identity?.specialty
   const attribute = identity?.attribute as keyof typeof attributePanelKeys | 'lumiflux' | undefined
-  const usesAdrenaline = agentId === 'agent-yixuan'
-  const usesSharpEnergy = specialty === 'armorer'
+  const namedRuptureResource = resolveNamedRuptureResource(agentId, specialty)
+  const usesSharpEnergy = Boolean(
+    getCurrentAgentDecisionMechanicContract(agentId)?.resourceContract?.resourceFlow.resources.some(
+      (resource) => resource.resource === 'sharpness',
+    ),
+  )
   const fields: CharacterPanelField[] = [
     { key: 'hp', label: '生命值', unit: '', weightKey: 'hp_percent' },
     usesSharpEnergy
@@ -46,8 +71,12 @@ export function getCharacterPanelFields(agentId: string): CharacterPanelField[] 
     specialty === 'rupture'
       ? { key: 'sheerForce', label: '贯穿力', unit: '', presentationPriority: true }
       : { key: 'penRatio', label: '穿透率', unit: '%', weightKey: 'pen_ratio' },
-    usesAdrenaline
-      ? { key: 'adrenalineRegen', label: '闪能自动累积', unit: '' }
+    namedRuptureResource
+      ? {
+          key: 'namedResourceRegen',
+          label: `${namedRuptureResource.label}自动累积`,
+          unit: '',
+        }
       : usesSharpEnergy
         ? { key: 'sharpEnergyRegen', label: '锐能自动累积', unit: '' }
         : { key: 'energyRegen', label: '能量自动回复', unit: '', weightKey: 'energy_regen' },
@@ -97,16 +126,22 @@ export function getCharacterPanelFields(agentId: string): CharacterPanelField[] 
         group: 'supplementary',
       })
   }
-  if (usesAdrenaline)
+  if (namedRuptureResource)
     fields.push(
       {
-        key: 'adrenalineGenerationRate',
-        label: '闪能获得效率',
+        key: 'namedResourceGenerationRate',
+        label: `${namedRuptureResource.label}获得效率`,
         unit: '%',
         detail: true,
         group: 'resource',
       },
-      { key: 'maxAdrenaline', label: '闪能上限', unit: '', detail: true, group: 'resource' },
+      {
+        key: 'maxNamedResource',
+        label: `${namedRuptureResource.label}上限`,
+        unit: '',
+        detail: true,
+        group: 'resource',
+      },
     )
   else if (usesSharpEnergy)
     fields.push(
@@ -142,7 +177,7 @@ export function isCharacterPanelDetailRelevant(
   if (!field.detail || field.group === 'resource') return true
   // Preserve resource semantics for older presentation records without group metadata.
   if (
-    /^(?:energyGenerationRate|maxEnergy|adrenalineGenerationRate|maxAdrenaline|sharpEnergyGenerationRate|maxSharpEnergy)$/.test(
+    /^(?:energyGenerationRate|maxEnergy|namedResourceGenerationRate|maxNamedResource|adrenalineGenerationRate|maxAdrenaline|sharpEnergyGenerationRate|maxSharpEnergy)$/.test(
       field.key,
     )
   )
@@ -162,7 +197,8 @@ export function formatCharacterPanelValue(
 ) {
   if (value === undefined || !Number.isFinite(value)) return '—'
   const scale =
-    field.unit === '%' || ['energyRegen', 'adrenalineRegen', 'sharpEnergyRegen'].includes(field.key)
+    field.unit === '%' ||
+    ['energyRegen', 'namedResourceRegen', 'adrenalineRegen', 'sharpEnergyRegen'].includes(field.key)
       ? 10
       : 1
   const rounded =

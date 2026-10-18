@@ -77,6 +77,11 @@ const planningSolutionContextSchema = z.object({
   scenarioIdentity: z.string().optional(),
   eventConditionDeclarationsByAgentId: historicalEventConditionDeclarationsSchema32.optional(),
   eventConditionDeclarationsIdentity: z.string().optional(),
+  resourceGrantDeclaration32: z
+    .custom<
+      import('../calculation/sourceMechanismResourceGrants32').SourceResourceGrantDeclaration32
+    >(() => true)
+    .optional(),
   comparisonParameters: z
     .object({
       wEngine: z

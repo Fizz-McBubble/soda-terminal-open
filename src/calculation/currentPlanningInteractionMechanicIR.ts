@@ -111,7 +111,7 @@ function compileAgentMechanicIR(agentId: string): CurrentPlanningInteractionMech
     ...reviewedEffects.map((entry) => entry.effectKey),
   ]
   const fieldTimeMode = contract.fieldTimeContract?.mode
-  const resourceFlowStatus = contract.resourceContract?.resourceFlow.status
+  const resourceFlowReady = contract.readiness.resourceFlow === 'compiled'
   const resourceParameterClassification =
     contract.resourceContract?.resourceFlow.parameterClassification
   const specialInteraction = contract.specialInteractionContract
@@ -128,7 +128,7 @@ function compileAgentMechanicIR(agentId: string): CurrentPlanningInteractionMech
     {
       operator: 'resource_state_transition',
       readiness:
-        resourceKeys.length > 0 && resourceFlowStatus === 'compiled'
+        resourceKeys.length > 0 && resourceFlowReady
           ? 'baseline_observation_required'
           : resourceKeys.length > 0
             ? 'mechanic_contract_pending'
@@ -138,7 +138,7 @@ function compileAgentMechanicIR(agentId: string): CurrentPlanningInteractionMech
       sourceRefs: refs.resource,
       resourceKeys,
       blockers:
-        resourceKeys.length > 0 && resourceFlowStatus === 'compiled'
+        resourceKeys.length > 0 && resourceFlowReady
           ? ['缺本次 PlanningBaseline 的资源初值、增减时点与原因。']
           : resourceKeys.length > 0
             ? ['资源/状态名称与局部边界已归一，但 producer/consumer 转换仍不完整。']
@@ -409,12 +409,12 @@ export const currentPlanningInteractionMechanicIRAudit = Object.freeze({
   resourceCalculationReadyEntityCount: currentAgentDecisionMechanicContracts.filter(
     (item) =>
       item.resourceContract?.resourceFlow.parameterClassification === 'named_resource_or_state' &&
-      item.resourceContract.resourceFlow.status === 'compiled',
+      item.readiness.resourceFlow === 'compiled',
   ).length,
   partialResourceTransitionEntityCount: currentAgentDecisionMechanicContracts.filter(
     (item) =>
       item.resourceContract?.resourceFlow.parameterClassification === 'named_resource_or_state' &&
-      item.resourceContract.resourceFlow.status !== 'compiled',
+      item.readiness.resourceFlow !== 'compiled',
   ).length,
   incompleteResourceCandidateEntityCount: currentAgentDecisionMechanicContracts.filter(
     (item) =>

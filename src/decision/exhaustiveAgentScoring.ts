@@ -29,6 +29,7 @@ import {
   projectNormalizedAccountFinalStats,
 } from './normalizedPlanningCandidateEvaluator'
 import { developmentSourceAction32 } from './developmentSourceAction32'
+import { hasCompleteAgentSkillLevels } from '../accounts/agentProgressionRules'
 
 export type AgentAlternative = {
   agentId: string
@@ -81,6 +82,8 @@ export function compileAgentAlternatives(input: {
             accountSkillLevel(agent, skill),
           ]),
         )
+        if (!hasCompleteAgentSkillLevels(skillLevels))
+          return [agent.agentId, [] as AgentAlternative[]] as const
         const schedule = compileNormalizedAgentEventSchedule({
           agentId: agent.agentId,
           skillLevels,
@@ -131,7 +134,7 @@ export function compileAgentAlternatives(input: {
               level: stats.progression.agentLevel,
               mindscape: agent.mindscape,
               potential: resolvePotentialImage(agent.agentId, agent.potentialImage) ?? null,
-              coreLevel: Math.min(7, accountSkillLevel(agent, 'core')),
+              coreLevel: skillLevels.core,
               skillLevels,
               initialStats: stats.initialStats,
               finalStats: stats.finalStats,

@@ -67,6 +67,13 @@ export type PotentialApplicationBindingInput = {
 
 export type PotentialApplicationStatus = 'applied' | 'excluded'
 
+/** These source windows have no reviewed runtime consumer yet. Keep them
+ * visible as unsupported so a duration is never mistaken for event damage. */
+export const unreviewedPotentialConsumerEffectKeys32: ReadonlySet<string> = new Set([
+  'agent-rina:potential_meter_window_duration',
+  'agent-burnice:potential_afterburn_interval',
+])
+
 /**
  * Consumer-ready source semantics for one event. This is intentionally not a
  * direct-damage result: `bucket`, event scope, and status let each supported
@@ -206,6 +213,11 @@ export function bindReviewedPotentialApplications(
       return excluded({
         ...common,
         reason: 'Potential image is level 0; this source effect is disabled.',
+      })
+    if (unreviewedPotentialConsumerEffectKeys32.has(common.effectKey))
+      return excluded({
+        ...common,
+        reason: 'Source effect has no reviewed state/action consumer in this formula family.',
       })
 
     const base = effect.valueByLevel[potential]

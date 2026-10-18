@@ -168,6 +168,7 @@ export type DevelopmentCandidateAlternativesQuery = {
   >
   eventConditionDeclarationsByAgentId?: import('../calculation/reviewedEventConditionDeclarations32').ReviewedEventConditionDeclarations32
   scenarioSelection?: CurrentPlanningScenarioSelection32
+  resourceGrantDeclaration32?: import('../calculation/sourceMechanismResourceGrants32').SourceResourceGrantDeclaration32
 }
 
 export type DevelopmentWorkbenchRouteQuery = {
@@ -179,6 +180,7 @@ export type DevelopmentWorkbenchRouteQuery = {
 }
 
 export type DevelopmentCandidateAlternativesQueryResult = {
+  resourceGrantDeclaration32?: import('../calculation/sourceMechanismResourceGrants32').SourceResourceGrantDeclaration32
   eventConditionDeclarationsByAgentId?: import('../calculation/reviewedEventConditionDeclarations32').ReviewedEventConditionDeclarations32
   eventConditionDeclarationsIdentity?: string
   scenarioSelection?: CurrentPlanningScenarioSelection32

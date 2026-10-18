@@ -26,7 +26,8 @@ export function getAgentName(agentId: string) {
 }
 
 export function getBangbooName(bangbooId: string) {
-  return bangbooNames.get(bangbooId) ?? bangbooId
+  const stableId = resolveCurrentReleasedIdentity(bangbooId)
+  return bangbooNames.get(stableId) ?? stableId
 }
 
 const releasedNames = new Map(

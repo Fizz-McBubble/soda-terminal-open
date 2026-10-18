@@ -81,13 +81,31 @@ export function projectDevelopmentDirectoryQuery(
                 confidence: projection.authorityRecommendation.confidence,
               }
             : null,
-          skills: guidance.skills.map(({ key, label, targetLevel, priority, nextLevel }) => ({
-            key,
-            label,
-            targetLevel,
-            priority,
-            nextLevel: nextLevel ?? null,
-          })),
+          skills: guidance.skills.map(
+            ({
+              key,
+              label,
+              targetLevel,
+              recommended,
+              targetType,
+              exactTarget,
+              minimumReference,
+              sodaDerived,
+              priority,
+              nextLevel,
+            }) => ({
+              key,
+              label,
+              targetLevel,
+              recommended,
+              targetType,
+              exactTarget,
+              minimumReference,
+              sodaDerived,
+              priority,
+              nextLevel: nextLevel ?? null,
+            }),
+          ),
         }
       }),
   }

@@ -47,6 +47,7 @@ it('retains finite native and candidate evidence through storage and receiver wi
     jobState: 'error',
     jobPhase: 'driver',
     candidateAvailable: false,
+    captureOpenReason: 'system_resources_unavailable',
     nativeErrorCode: 1450,
     childExitCode: 3221225477,
     candidateStatus: 'validation_failed',
@@ -113,8 +114,9 @@ it('explains candidate validation without sending users back to the game directo
     nextAction: '请保留诊断和当前库存；不要据此导入未校验结果。',
   })
   expect(assetFailureGuidance('capture_open_failed', { nativeErrorCode: 1450 })).toEqual({
-    problem: 'Windows 未能分配采集所需的系统资源。',
-    nextAction: '请结束当前读取后重试；仍失败时发送诊断。',
+    problem: 'Windows 未能打开采集通道，系统返回资源不可用（1450）。',
+    nextAction:
+      '确认本次管理员授权已完成，关闭其他抓包或网络驱动工具，重启资产快读后重试；仍失败时发送诊断。',
   })
 })
 

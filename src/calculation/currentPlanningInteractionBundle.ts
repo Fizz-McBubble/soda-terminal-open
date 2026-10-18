@@ -115,12 +115,14 @@ export function compileCurrentPlanningInteractionBundle(input: {
   return {
     status: 'supported' as const,
     contracts,
+    resourceStateAudit: resources.resourceStateAudit,
     requiredOperators,
     effectDispositions: effects.dispositions,
     sourceCompilation: compilation,
     bundleHash: stableContentHash({
       memberIds: input.memberIds,
       contracts,
+      resourceStateAudit: resources.resourceStateAudit,
       effectDispositions: effects.dispositions,
     }),
   }

@@ -38,6 +38,26 @@ it('rejects multiple dropped backups without inspecting or restoring either file
   expect(screen.getByRole('alert')).toHaveTextContent('请一次拖入一个 JSON 文件')
 })
 
+it('keeps a quick-read snapshot out of backup inspection and points to the correct entry', async () => {
+  const props = assetGoldenProps([])
+  const onOpenScanFile = vi.fn()
+  const onInspectBackup = vi.mocked(props.onInspectBackup)
+  const file = new File(
+    [JSON.stringify({ schema: 'soda-asset-snapshot-probe/v1', observations: [] })],
+    'asset-snapshot.json',
+    { type: 'application/json' },
+  )
+  render(<AccountWorkspace props={{ ...props, onOpenScanFile }} />)
+  await act(async () =>
+    fireEvent.drop(screen.getByRole('region', { name: '选择或拖入本机备份' }), {
+      dataTransfer: { files: [file], types: ['Files'] },
+    }),
+  )
+  expect(onOpenScanFile).not.toHaveBeenCalled()
+  expect(onInspectBackup).not.toHaveBeenCalled()
+  expect(screen.getByRole('alert')).toHaveTextContent('这是资产快读结果')
+})
+
 it('uses the same dialog for a separately named independent restore', async () => {
   const props = assetGoldenProps([])
   vi.mocked(props.onRestore).mockResolvedValue(undefined)

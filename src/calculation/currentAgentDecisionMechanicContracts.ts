@@ -1,6 +1,7 @@
 import decisionMechanicCatalog from '../gameDataPacks/generated/current-agent-decision-mechanic-catalog.v1.json'
 import { agentCatalog } from '../assault/catalogData'
 import { currentReleasedIdentityMap } from '../gameDataPacks/currentReleasedIdentityMap'
+import { isRuntimeResourceFlowCompiled32 } from './currentAgentResourceFlow32'
 
 const stableIdByExternalId = new Map<string, string>([
   ...agentCatalog.map(([stableId, , , externalId]) => [externalId, stableId] as const),
@@ -68,7 +69,7 @@ export const currentAgentDecisionMechanicContracts = Object.freeze(
       resourceFlow:
         resourceByAgentId.get(agentId)?.resourceFlow.parameterClassification ===
           'named_resource_or_state' &&
-        resourceByAgentId.get(agentId)?.resourceFlow.status === 'compiled'
+        isRuntimeResourceFlowCompiled32(resourceByAgentId.get(agentId)?.resourceFlow)
           ? 'compiled'
           : resourceByAgentId.get(agentId)?.resourceFlow.parameterClassification ===
                 'effect_or_state_parameters_only' ||
@@ -120,5 +121,5 @@ export const currentAgentDecisionMechanicCoverage = Object.freeze({
     .filter((item) => item.readiness.specialInteraction === 'compiled_capability')
     .map((item) => item.agentId),
   boundary:
-    'Graduation facts compile resource/state flow; formula AST compiles effect recipients; current guide relations compile observed partners and five source-backed field-time modes. Field-time values are shared planning-budget weights, not measured seconds or percentages. Historical continuity does not prove current strength and no seed or guide set is an exhaustive pair universe.',
+    'Graduation facts compile resource/state flow only when a named resource has a runtime edge, transition template and declared initial state; formula AST compiles effect recipients; current guide relations compile observed partners and five source-backed field-time modes. Field-time values are shared planning-budget weights, not measured seconds or percentages. Historical continuity does not prove current strength and no seed or guide set is an exhaustive pair universe.',
 })

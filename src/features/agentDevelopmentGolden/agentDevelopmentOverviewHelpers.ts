@@ -94,6 +94,16 @@ export function getSkillDisplayInfo(agent: AgentSummary, defaultDetail: string) 
         line2: agent.guideNote || '重新分析后将更新技能目标',
       }
     case 'unknown':
+      if (steps.length) {
+        return {
+          heading: '已知缺口，仍需补录技能等级',
+          hasMorePopover: steps.length > 2,
+          popoverCount: steps.length > 2 ? steps.length - 2 : 0,
+          popoverContent: steps.slice(2).join('；'),
+          line1: steps.slice(0, 2).join('；'),
+          line2: '其余技能等级待补录后继续核对',
+        }
+      }
       return {
         heading: '技能等级待录入',
         hasMorePopover: false,

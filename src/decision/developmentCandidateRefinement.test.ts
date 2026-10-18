@@ -36,7 +36,14 @@ function claretFixture() {
     ascension: 5,
     mindscape: 0,
     potentialImage: 0,
-    skillLevels: { ...agent.skillLevels, basic: 12, special: 12, chain: 12, core: 7 },
+    skillLevels: {
+      basic: 12,
+      dodge: 12,
+      assist: 12,
+      special: 12,
+      chain: 12,
+      core: 7,
+    },
     wEngineDetails: { id: 'wengine-14161', name: null, level: 60, ascension: 5, refinement: 1 },
   })
   const baseline: DriveDisc[] = ([1, 2, 3, 4, 5, 6] as const).map((slot) => ({

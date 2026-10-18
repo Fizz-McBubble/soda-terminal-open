@@ -44,7 +44,11 @@ import { ScannerScanningSection } from './ScannerScanningSection'
 import { useScannerTargetBinding } from './useScannerTargetBinding'
 import { useScannerJsonReadIdentity } from './useScannerJsonReadIdentity'
 import { beginUsageOperation } from '../usageStatistics/client'
-import { detectLocalDataFileKind } from '../application/localDataFile'
+import {
+  detectLocalDataFileKind,
+  localDataFileMaxBytes,
+  localDataFileSizeIssue,
+} from '../application/localDataFile'
 import { useScannerDataFileHandoff } from '../scanner/useScannerDataFileHandoff'
 import { setPublicScannerActiveAccount } from '../accounts/publicScannerAccountCreation'
 import { database } from '../db/databaseCore'
@@ -252,20 +256,17 @@ function HydratedScannerAssistantPage({
     const requestId = ++jsonReadRef.current
     setSelectedJson(null)
     try {
-      if (file.size > 32 * 1024 * 1024) throw new Error('file_too_large')
+      if (file.size > localDataFileMaxBytes) throw new Error('file_too_large')
       const text = await file.text()
       if (!fileReadMountedRef.current || requestId !== jsonReadRef.current) return
-      if (detectLocalDataFileKind(text) === 'account-backup') {
+      const kind = detectLocalDataFileKind(text)
+      if (kind === 'account-backup') {
         forwardDataFile(file, 'account-backup')
         return
       }
-      const value: unknown = JSON.parse(text)
-      if (
-        value &&
-        typeof value === 'object' &&
-        'schema' in value &&
-        value.schema === 'soda-asset-snapshot-probe/v1'
-      ) {
+      if (kind === 'asset-snapshot') {
+        const sizeIssue = localDataFileSizeIssue(kind, file.size)
+        if (sizeIssue) throw new Error(sizeIssue)
         if (!inspectQuickFile) throw new Error('quick_read_handler_unavailable')
         setTaskSource('quick-read')
         await inspectQuickFile(file)
@@ -281,12 +282,18 @@ function HydratedScannerAssistantPage({
         if (targetReady) await handOffFallbackJson(file)
       } else
         setHandoffState({ status: 'error', message: next.message, issueCode: 'scan_file_invalid' })
-    } catch {
+    } catch (error) {
       if (!fileReadMountedRef.current || requestId !== jsonReadRef.current) return
       setTaskSource('scan-file')
+      const message =
+        error instanceof Error && error.message === 'file_too_large'
+          ? '文件超过 32 MiB，请选择有效的扫描结果文件（JSON）。'
+          : error instanceof Error && error.message === 'asset_snapshot_too_large'
+            ? '资产快读结果超过 16 MiB，请缩小或重新读取；账户资料未被修改。'
+            : '无法读取这份文件，请重新选择有效的扫描结果文件（JSON）。'
       setHandoffState({
         status: 'error',
-        message: '无法读取这份文件，请重新选择有效的扫描结果文件（JSON）。',
+        message,
         issueCode: 'scan_file_invalid',
       })
     } finally {

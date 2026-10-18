@@ -143,6 +143,62 @@ export function AssetQuickReadFeedback({
   if (typeof safe.evidence.remainingSeconds === 'number')
     metadata.push(`剩余等待 ${safe.evidence.remainingSeconds} 秒`)
   if (safe.counts.processed !== null) metadata.push(`已处理 ${safe.counts.processed}`)
+  const uiStateLabels: Record<string, string> = {
+    idle: '未连接',
+    connecting: '连接中',
+    starting: '准备读取',
+    capturing: '等待游戏数据',
+    received: '结果已收到',
+    timed_out: '等待已结束',
+    stopped: '已停止',
+    error: '发生错误',
+    completed: '导入完成',
+  }
+  const actionLabels: Record<string, string> = {
+    connect: '连接资产快读',
+    start: '开始读取',
+    inspect_file: '检查结果文件',
+    import: '确认导入',
+    status_feedback: '报告界面状态',
+  }
+  if (safe.evidence.uiState) metadata.push(`界面状态 ${uiStateLabels[safe.evidence.uiState]}`)
+  if (safe.evidence.lastAction) metadata.push(`最后操作 ${actionLabels[safe.evidence.lastAction]}`)
+  if (safe.evidence.connectionStage) {
+    const stages: Record<string, string> = {
+      health_probe: '本机服务探测',
+      protocol_launch: '启动本机服务',
+      connect_exchange: '建立连接',
+    }
+    metadata.push(`失败阶段 ${stages[safe.evidence.connectionStage]}`)
+  }
+  if (typeof safe.evidence.healthProbeAttempts === 'number')
+    metadata.push(`健康检查 ${safe.evidence.healthProbeAttempts} 次`)
+  if (safe.evidence.candidateStatusReported === false) metadata.push('旧版工具未上报候选状态')
+  if (safe.evidence.candidateStatus) {
+    const candidateStatuses: Record<string, string> = {
+      validation_failed: '校验未通过',
+      staged_for_field_review: '等待字段复核',
+      response_semantics_unverified: '响应语义未验证',
+      load_responses_observed: '已观察加载响应',
+      timed_out: '读取超时',
+      cancelled: '已取消',
+      unknown: '未识别',
+    }
+    metadata.push(`候选状态 ${candidateStatuses[safe.evidence.candidateStatus]}`)
+  }
+  if (typeof safe.evidence.candidateIssueCount === 'number')
+    metadata.push(`校验问题 ${safe.evidence.candidateIssueCount} 项`)
+  if (safe.evidence.captureOpenReason) {
+    const reasons: Record<string, string> = {
+      file_not_found: '采集组件缺失',
+      access_denied: '权限不足',
+      sharing_violation: '采集组件正在被占用',
+      invalid_parameter: '采集参数无效',
+      system_resources_unavailable: '系统资源不可用',
+      other: '其他系统错误',
+    }
+    metadata.push(`采集通道 ${reasons[safe.evidence.captureOpenReason]}`)
+  }
   return (
     <DiagnosticEntry
       title={previous ? '上次资产快读诊断' : '资产快读诊断'}
@@ -168,7 +224,7 @@ export function AssetQuickReadFeedback({
           <>
             <button
               type="button"
-              className="button button--primary"
+              className={statusOnly ? 'button button--quiet' : 'button button--primary'}
               disabled={Boolean(shown?.pending) || Boolean(receivedAt)}
               onClick={() => void send()}
             >
@@ -177,7 +233,7 @@ export function AssetQuickReadFeedback({
                 : shown?.pending
                   ? '发送中…'
                   : statusOnly
-                    ? '反馈当前状态'
+                    ? '报告界面状态'
                     : '发送反馈'}
             </button>
             <button

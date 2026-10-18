@@ -377,6 +377,7 @@ export function createLocalCalculationQueryClientCore(options: {
           candidateParametersByRank: explicit,
           scenarioSelection: scenario.selection,
           eventConditionDeclaration: eventConditionDeclarationsByAgentId?.[query.agentId],
+          resourceGrantDeclaration32: query.resourceGrantDeclaration32,
           stale: false,
         },
         evaluator,
@@ -390,6 +391,11 @@ export function createLocalCalculationQueryClientCore(options: {
           parameters: explicit,
           scenarioIdentity: scenario.identity,
           eventConditionDeclarationsIdentity,
+          ...(query.resourceGrantDeclaration32
+            ? {
+                resourceGrantDeclaration32: stableContentHash(query.resourceGrantDeclaration32),
+              }
+            : {}),
           candidateSearch: projection.candidateSearch,
           candidateSearchByRank,
           comparisons: valueBenchmarks.map((row) => row.candidate.calculationFingerprint),
@@ -397,6 +403,7 @@ export function createLocalCalculationQueryClientCore(options: {
         candidateParametersByRank: explicit,
         scenarioSelection: scenario.selection,
         scenarioIdentity: scenario.identity,
+        resourceGrantDeclaration32: query.resourceGrantDeclaration32,
         eventConditionDeclarationsByAgentId,
         eventConditionDeclarationsIdentity,
         candidateSearchByRank,

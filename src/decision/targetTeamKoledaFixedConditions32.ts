@@ -69,6 +69,8 @@ export function compileTargetTeamKoledaFixedConditions32(input: {
   const blockers: string[] = []
   if (member && contract?.source.commit !== source.commit)
     blockers.push('珂蕾妲固定事件条件与锁定公式来源不一致。')
+  if (member && member.potential == null)
+    blockers.push('珂蕾妲潜能未知，不能默认按未激活计算。')
   if (!metadata && input.declaration !== undefined)
     blockers.push('该队伍没有珂蕾妲，不能采用她的潜能事件条件。')
   let references: Record<string, Record<string, number | boolean>> | undefined

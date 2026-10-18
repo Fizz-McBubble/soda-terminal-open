@@ -3,6 +3,7 @@ import type { PlanningEffectRuntimeMember } from '../calculation/currentPlanning
 import type { evaluateSourceBackedPlanningTeamDps } from '../calculation/currentPlanningTeamDpsRuntime'
 import type { compileCurrentPlanningInteractionBundle } from '../calculation/currentPlanningInteractionBundle'
 import type { compileCurrentDriveDiscPlanningEffects } from '../calculation/currentDriveDiscPlanningEffects'
+import type { summarizeSourceResourceProduction32 } from '../calculation/sourceResourceProduction32'
 import type { TargetTeamEquipmentModifierProjection } from '../calculation/targetTeamEquipmentModifierProjection'
 
 /** Coverage is retained once per distinct exclusion, including event-specific
@@ -14,6 +15,7 @@ export function compileTargetTeamPlanningCoverage({
   modifierProjection,
   effectRuntimeMembers,
   sourceBoundaries,
+  resourceProduction,
 }: {
   runtime: Extract<ReturnType<typeof evaluateSourceBackedPlanningTeamDps>, { status: 'supported' }>
   interactions: Extract<
@@ -24,6 +26,7 @@ export function compileTargetTeamPlanningCoverage({
   modifierProjection: TargetTeamEquipmentModifierProjection
   effectRuntimeMembers: readonly PlanningEffectRuntimeMember[]
   sourceBoundaries: readonly string[]
+  resourceProduction: readonly ReturnType<typeof summarizeSourceResourceProduction32>[]
 }) {
   // A source preparation can bind a varying operand only at the actual event
   // (for example Koleda's consumed Furnace Fire). The coarse formation pass
@@ -91,6 +94,14 @@ export function compileTargetTeamPlanningCoverage({
           fields: ['potential', 'event_context', row.bucket],
           sourceRefs: [...row.sourceRefs],
         })),
+      ...interactions.resourceStateAudit
+        .filter((row) => row.status !== 'source_backed' && row.status !== 'not_applicable')
+        .map((row) => ({
+          effectKey: `resource:${row.agentId}:${row.resource}`,
+          reason: row.reason ?? `Resource state is ${row.status}.`,
+          fields: ['resource_state'],
+          sourceRefs: [...row.sourceRefs],
+        })),
     ],
     exclusionContextFingerprint: stableContentHash({
       members: effectRuntimeMembers,
@@ -99,6 +110,8 @@ export function compileTargetTeamPlanningCoverage({
         discEffects.exclusions,
         modifierProjection.directRuntime.exclusions,
         runtime.potentialApplications,
+        interactions.resourceStateAudit,
+        resourceProduction,
       ],
     }),
     boundary: [runtime.boundary, ...sourceBoundaries].join(' '),

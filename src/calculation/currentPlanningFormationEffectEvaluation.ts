@@ -14,7 +14,11 @@ import {
   bindPanMeridianFlowRecipient32,
   panMeridianFlowEffectKey32,
 } from './currentPlanningDamageModifiers'
-import { requiredReferences, effectReceiverMetadata } from './currentPlanningEffectExpressions'
+import {
+  bindPlanningSkillLevelValueReferences32,
+  requiredReferences,
+  effectReceiverMetadata,
+} from './currentPlanningEffectExpressions'
 import { stableContentHash } from '../gameDataPacks/types'
 import { reviewedInlineAbilityEffectSources } from '../gameDataPacks/reviewedTeammateActivationMinimum'
 import { getCurrentAgentDecisionMechanicContract } from './currentAgentDecisionMechanicContracts'
@@ -159,7 +163,16 @@ export function evaluateFormationEffects(
       memberIds: input.memberIds,
       references: provided,
     })
-    const expression = observation.expression
+    // Reconciled IR already encodes any effective-level offset against the
+    // generic zero-based skill references.
+    const expression =
+      blueprint.numericExpression.originalSource ||
+      blueprint.effectKey === 'agent-lucia:exSpecial_harmony_dmg_'
+        ? observation.expression
+        : bindPlanningSkillLevelValueReferences32({
+            expression: observation.expression,
+            provider,
+          })
     const isUnboundGenericPlaceholder =
       blueprint.numericExpression.sourceStatus === 'declarative_baseline_input' &&
       !isReviewedTemplateMechanicEffect32(blueprint) &&

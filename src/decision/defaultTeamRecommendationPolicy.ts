@@ -3,7 +3,8 @@ import { getCurrentAgentDecisionMechanicContract } from '../calculation/currentA
 import { resolveCurrentReleasedIdentity } from '../gameDataPacks/currentReleasedIdentityMap'
 
 /** Missing optional effect quantities lower confidence, not the team's legality.
- * Conflicting sources or an unavailable required resource contract still block. */
+ * Conflicting sources still block; partial resource contracts remain visible in
+ * reliability and limitations without rejecting the whole team by default. */
 export function hasDefaultTeamRecommendationEvidence(
   features: Pick<TeamStrengthMechanicFeatures, 'eligibility' | 'supportEvidence'>,
   memberIds: readonly string[],
@@ -12,10 +13,11 @@ export function hasDefaultTeamRecommendationEvidence(
   return (
     features.eligibility.eligible &&
     evidence.sourceConflictProviderIds.length === 0 &&
-    memberIds.every((id) => {
-      const contract = getCurrentAgentDecisionMechanicContract(resolveCurrentReleasedIdentity(id))
-      return contract !== null && contract.readiness.resourceFlow !== 'mechanic_contract_pending'
-    })
+    memberIds.length === 3 &&
+    new Set(memberIds).size === 3 &&
+    memberIds.every(
+      (id) => getCurrentAgentDecisionMechanicContract(resolveCurrentReleasedIdentity(id)) !== null,
+    )
   )
 }
 

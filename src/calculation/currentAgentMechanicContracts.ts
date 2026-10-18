@@ -8,6 +8,7 @@ import {
   reviewedTeammateActivationTerms,
 } from '../gameDataPacks/reviewedTeammateActivationMinimum'
 import {
+  currentAgentResourceGamePointConversion32,
   currentAgentResourceEventIdentity32,
   getCurrentAgentResourceEvent32,
 } from './currentAgentResourceEvents32'
@@ -234,7 +235,7 @@ export function resolveCurrentAgentResourceEvent32(input: {
     skillLevel: input.skillLevel,
     energy: { value: energy.value, unit: 'upstream_SpRecovery' as const },
     decibels: { value: decibels.value, unit: 'upstream_FeverRecovery' as const },
-    gamePointConversion: 'unverified' as const,
+    gamePointConversion: currentAgentResourceGamePointConversion32,
     sourceRefs: [`${row.source.statsPath}#${row.source.statsSha256}#${input.eventId}`],
     sourceIdentity: currentAgentResourceEventIdentity32,
   }

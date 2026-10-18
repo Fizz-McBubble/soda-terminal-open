@@ -114,10 +114,40 @@ describe('click-scoped independent service launcher', () => {
     })
     await vi.advanceTimersByTimeAsync(29000)
     expect(launch).toHaveBeenCalledOnce()
-    const rejected = expect(pending).rejects.toThrow('资产快读尚未启动')
+    const rejected = expect(pending).rejects.toMatchObject({
+      message: expect.stringContaining('资产快读尚未启动'),
+      diagnostic: {
+        connectionStage: 'protocol_launch',
+        protocolLaunchAttempted: true,
+        healthProbeAttempts: expect.any(Number),
+      },
+    })
     await vi.advanceTimersByTimeAsync(2000)
     await rejected
     expect(launch).toHaveBeenCalledOnce()
     vi.useRealTimers()
+  })
+  it('preserves a finite probe-stage diagnostic when installation return cannot launch', async () => {
+    const protocolLauncher = vi.fn()
+    const failure = new AssetQuickReadUnavailableError('synthetic missing', {
+      diagnostic: {
+        connectionStage: 'health_probe',
+        protocolLaunchAttempted: false,
+        healthProbeAttempts: 3,
+      },
+    })
+    await expect(
+      awaitAssetQuickReadService({
+        probe: vi.fn().mockRejectedValue(failure),
+        protocolLauncher,
+      }),
+    ).rejects.toMatchObject({
+      diagnostic: {
+        connectionStage: 'health_probe',
+        protocolLaunchAttempted: false,
+        healthProbeAttempts: 3,
+      },
+    })
+    expect(protocolLauncher).not.toHaveBeenCalled()
   })
 })
