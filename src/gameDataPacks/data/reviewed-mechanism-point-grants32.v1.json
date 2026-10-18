@@ -16,6 +16,11 @@
       "path": "libs/zzz/dm-localization/assets/locales/en/char_Roxy_gen.json",
       "sha256": "2479fd13c7812cbce726361c41322997758236dc237665b3410ce2a820cc67bd",
       "locator": "ability.desc.0;ability.desc.4"
+    },
+    "agent-remielle": {
+      "path": "libs/zzz/dm-localization/assets/locales/en/char_Remielle_gen.json",
+      "sha256": "3a9de7b70de53de6316d7d85728a28dad51a4362b090b8e32fde4cd7c02bd065",
+      "locator": "mindscapes.1.desc"
     }
   },
   "supportUltimates": [

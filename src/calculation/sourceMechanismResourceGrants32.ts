@@ -7,48 +7,37 @@ import {
   getCurrentAgentEventContract,
 } from './currentAgentMechanicContracts'
 import type { PlanningEffectRuntimeMember } from './currentPlanningEffectDomain'
+import {
+  validateSourceResourceGrantDeclaration32,
+  type SourceResourceReceiptState32,
+  type SourceResourceGrantDeclaration32,
+} from './sourceMechanismResourceGrantContract32'
 
-/** Action triggers are distinct from coefficient rows: multi-hit damage cannot
- * grant an action's launch bonus repeatedly. These are internal observations. */
-export type SourceResourceGrantTrigger32 = {
-  id: string
-  providerAgentId: string
-  mechanism:
+export type {
+  SourceResourceGrantDeclaration32,
+  SourceResourceGrantTrigger32,
+  SourceResourceReceiptState32,
+} from './sourceMechanismResourceGrantContract32'
+type SourceMechanismGrantSpecification32 = {
+  agentId: 'agent-anby' | 'agent-claret' | 'agent-remielle' | 'agent-roxy'
+  amountKey: string
+  amount: number
+  cooldownKey: string
+  cooldown: number
+  unit: 'energy_points' | 'decibel_points'
+  minimumMindscape?: number
+  requiresAdditionalAbility?: boolean
+}
+
+const specifications: Readonly<
+  Record<
     | 'anby_additional_dodge_counter_energy'
     | 'claret_contamination_decibels'
-    | 'roxy_investigation_entry_energy'
-    | 'reviewed_support_ultimate_energy'
-    | 'yidhari_hp_loss_decibels'
-    | 'yuzuha_ultimate_energy'
-    | 'yuzuha_m1_investigation_entry_energy'
-  atSeconds: number
-  /** Source-stated HP percentage lost at this event, not a net start/end delta. */
-  hpLossPercent?: number
-  /** Next actual switch after this ultimate. null explicitly declares none in
-   * this window; absence leaves the additional grant unknown. */
-  nextSwitchIn?: { agentId: string; atSeconds: number } | null
-  sourceRefs: readonly string[]
-}
-export type SourceResourceGrantDeclaration32 = {
-  authority: 'declared_resource_triggers'
-  durationSeconds: number
-  /** null means no preceding trigger; missing is unknown. A preceding time
-   * must not be later than the window start. */
-  lastTriggerAtSeconds: Readonly<Record<string, number | null>>
-  triggers: readonly SourceResourceGrantTrigger32[]
-  /** Explicit pre-window state for receipt and overflow. Absence keeps receipt unknown. */
-  resourceStates?: readonly SourceResourceReceiptState32[]
-  sourceRefs: readonly string[]
-}
-export type SourceResourceReceiptState32 = {
-  agentId: string
-  unit: 'energy_points' | 'decibel_points'
-  initialValue: number
-  /** null means the game contract declares no cap for this window. */
-  capacity: number | null
-  sourceRefs: readonly string[]
-}
-const specifications = {
+    | 'remielle_m1_assist_decibels'
+    | 'roxy_investigation_entry_energy',
+    SourceMechanismGrantSpecification32
+  >
+> = {
   anby_additional_dodge_counter_energy: {
     agentId: 'agent-anby',
     amountKey: 'additional_dodge_counter_energy',
@@ -65,6 +54,16 @@ const specifications = {
     cooldown: 18,
     unit: 'decibel_points' as const,
   },
+  remielle_m1_assist_decibels: {
+    agentId: 'agent-remielle',
+    amountKey: 'remielle_m1_assist_decibel_gain',
+    amount: 200,
+    cooldownKey: 'remielle_m1_assist_decibel_cooldown_seconds',
+    cooldown: 18,
+    unit: 'decibel_points' as const,
+    minimumMindscape: 1,
+    requiresAdditionalAbility: false,
+  },
   roxy_investigation_entry_energy: {
     agentId: 'agent-roxy',
     amountKey: 'energy_enter_gain',
@@ -73,14 +72,14 @@ const specifications = {
     cooldown: 180,
     unit: 'energy_points' as const,
   },
-} as const
+}
 const extendedSpecifications = {
   yidhari_hp_loss_decibels: { agentId: 'agent-yidhari', unit: 'decibel_points' as const },
   yuzuha_ultimate_energy: { agentId: 'agent-yuzuha', unit: 'energy_points' as const },
   yuzuha_m1_investigation_entry_energy: { agentId: 'agent-yuzuha', unit: 'energy_points' as const },
 } as const
 export const sourceMechanismResourceGrantIdentity32 = Object.freeze({
-  revision: 'declared-source-point-grants-r2',
+  revision: 'declared-source-point-grants-r3',
   commit: '3456cd0f6f5bea10e168074502460dac2fcd6df4',
   specifications,
   extendedSpecifications,
@@ -203,17 +202,12 @@ export function summarizeSourceMechanismResourceGrants32(input: {
   members: readonly PlanningEffectRuntimeMember[]
   declaration?: SourceResourceGrantDeclaration32
 }) {
-  const declaration = input.declaration
+  const declarationValidation = validateSourceResourceGrantDeclaration32(input.declaration)
+  const declaration =
+    declarationValidation.status === 'valid' ? declarationValidation.declaration : undefined
   const memberIds = input.members.map((row) => row.agentId)
   const issues: string[] = []
-  if (
-    !declaration ||
-    declaration.authority !== 'declared_resource_triggers' ||
-    !Number.isFinite(declaration.durationSeconds) ||
-    declaration.durationSeconds <= 0 ||
-    !declaration.sourceRefs.length ||
-    declaration.sourceRefs.some((ref) => !ref.trim())
-  )
+  if (declarationValidation.status !== 'valid')
     issues.push('resource_grant_declaration_missing_or_invalid')
   if (
     !memberIds.length ||
@@ -242,7 +236,7 @@ export function summarizeSourceMechanismResourceGrants32(input: {
       const support = isSupport
         ? reviewedSources.supportUltimates.find((row) => row.agentId === trigger.providerAgentId)
         : undefined
-      const spec = isSupport
+      const spec: SourceMechanismGrantSpecification32 | undefined = isSupport
         ? undefined
         : specifications[trigger.mechanism as keyof typeof specifications]
       const extended =
@@ -267,7 +261,11 @@ export function summarizeSourceMechanismResourceGrants32(input: {
         trigger.providerAgentId,
       )?.resourceContract
       const parameters = contract?.resourceFlow.parameters as Record<string, unknown> | undefined
-      const descriptionSource = spec ? reviewedSources.mechanismSources[spec.agentId] : undefined
+      const descriptionSource = spec
+        ? reviewedSources.mechanismSources[
+            spec.agentId as keyof typeof reviewedSources.mechanismSources
+          ]
+        : undefined
       const contractSource = contract?.source
       const sourceBound =
         Boolean(contractSource?.profileHash) ||
@@ -287,13 +285,27 @@ export function summarizeSourceMechanismResourceGrants32(input: {
       let active: boolean | null = true
       if (spec) {
         const provider = input.members.find((row) => row.agentId === trigger.providerAgentId)
-        const activation = evaluateCurrentAgentTeamActivation({
-          stableId: trigger.providerAgentId,
-          memberIds,
-          agentState: { mindscape: provider?.mindscape, potentialImage: provider?.potential },
-        })
-        active = activation.status === 'supported' ? activation.active : null
-        if (active === null) errors.push('resource_grant_additional_ability_unresolved')
+        if (spec.requiresAdditionalAbility === false) {
+          active =
+            spec.minimumMindscape === undefined
+              ? true
+              : Number.isInteger(provider?.mindscape)
+                ? provider!.mindscape >= spec.minimumMindscape
+                : null
+        } else {
+          const activation = evaluateCurrentAgentTeamActivation({
+            stableId: trigger.providerAgentId,
+            memberIds,
+            agentState: { mindscape: provider?.mindscape, potentialImage: provider?.potential },
+          })
+          active = activation.status === 'supported' ? activation.active : null
+        }
+        if (active === null)
+          errors.push(
+            spec.minimumMindscape === undefined
+              ? 'resource_grant_additional_ability_unresolved'
+              : 'resource_grant_rank_unresolved',
+          )
       }
       const grants: Grant32[] = []
       let state: 'unknown' | 'granted' | 'inactive' | 'cooldown' = 'unknown'
@@ -458,11 +470,9 @@ export function summarizeSourceMechanismResourceGrants32(input: {
         declarationInvalid || errors.length || grants.some((row) => row.nominalValue === null)
           ? null
           : grants.reduce((sum, row) => sum + row.nominalValue!, 0)
-      const source = spec
-        ? reviewedSources.mechanismSources[spec.agentId]
-        : extended
-          ? reviewedSources.extendedMechanismSources[extended.agentId]
-          : support?.source
+      const source =
+        descriptionSource ??
+        (extended ? reviewedSources.extendedMechanismSources[extended.agentId] : support?.source)
       return {
         ...trigger,
         grants,

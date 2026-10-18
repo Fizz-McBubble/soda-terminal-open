@@ -1,6 +1,7 @@
 import { database, type SodaDatabase } from '../db/databaseCore'
 import { getScopedId, type AccountPlanningDraft } from './types'
 import { resolvePlanningDiscReferences } from './planningDiscReferences'
+import { isSourceResourceGrantDeclaration32 } from '../calculation/sourceMechanismResourceGrantContract32'
 
 export type PlanningDraftInput = Omit<
   AccountPlanningDraft,
@@ -50,6 +51,14 @@ function assertDeploymentOrders(input: PlanningDraftInput) {
     throw new Error('队伍站位必须恰好包含执行快照中的三名不同代理人。')
 }
 
+function assertResourceGrantDeclaration(input: {
+  solutionContext?: { resourceGrantDeclaration32?: unknown }
+}) {
+  const declaration = input.solutionContext?.resourceGrantDeclaration32
+  if (declaration !== undefined && !isSourceResourceGrantDeclaration32(declaration))
+    throw new Error('资源到账声明格式无效，方案没有保存。')
+}
+
 /** New saves bind only current account entities; compatibility history stays readable. */
 async function assertPlanningDiscReferences(
   accountId: string,
@@ -93,6 +102,7 @@ export async function saveAccountPlanningDraft(
   db: SodaDatabase = database,
   beforeSave?: (db: SodaDatabase) => Promise<void>,
 ) {
+  assertResourceGrantDeclaration(input)
   return db.transaction(
     'rw',
     db.accountPlanningDrafts,
@@ -136,6 +146,7 @@ export async function saveCurrentAgentBuild(
   input: CurrentAgentBuildInput,
   db: SodaDatabase = database,
 ) {
+  assertResourceGrantDeclaration(input)
   return db.transaction(
     'rw',
     db.accountPlanningDrafts,

@@ -13,6 +13,7 @@ import {
   authorComparisonAccountFactBindingSchema,
   refineAuthorComparisonBangbooIdentity,
 } from './backupAuthorComparisonSchemas'
+import { isSourceResourceGrantDeclaration32 } from '../calculation/sourceMechanismResourceGrantContract32'
 
 export const accountBackupFormat = 'soda-terminal-account-backup'
 export const accountBackupFormatVersion = 1
@@ -80,7 +81,9 @@ const planningSolutionContextSchema = z.object({
   resourceGrantDeclaration32: z
     .custom<
       import('../calculation/sourceMechanismResourceGrants32').SourceResourceGrantDeclaration32
-    >(() => true)
+    >(isSourceResourceGrantDeclaration32, {
+      message: 'resource_grant_declaration_missing_or_invalid',
+    })
     .optional(),
   comparisonParameters: z
     .object({

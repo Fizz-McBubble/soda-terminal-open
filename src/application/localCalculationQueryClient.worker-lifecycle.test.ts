@@ -111,6 +111,29 @@ describe('background snapshot lifecycle', () => {
         scenarioSelection: { schemaVersion: 9, id: 'future' } as never,
       }),
     ).rejects.toThrow('规划场景版本')
+    await expect(
+      client.queryDevelopmentCandidateAlternatives({
+        ...base,
+        resourceGrantDeclaration32: {
+          authority: 'declared_resource_triggers',
+          durationSeconds: 30,
+          lastTriggerAtSeconds: {},
+          sourceRefs: undefined,
+        } as never,
+      }),
+    ).rejects.toThrow('资源到账声明格式无效')
+    await expect(
+      client.queryDevelopmentCandidateAlternatives({
+        ...base,
+        resourceGrantDeclaration32: {
+          authority: 'declared_resource_triggers',
+          durationSeconds: 30,
+          lastTriggerAtSeconds: {},
+          triggers: { atSeconds: 0 },
+          sourceRefs: ['fixture'],
+        } as never,
+      }),
+    ).rejects.toThrow('资源到账声明格式无效')
     expect(JSON.stringify(request.input)).toBe(before)
     await expect(
       client.queryDevelopmentCandidateAlternatives({

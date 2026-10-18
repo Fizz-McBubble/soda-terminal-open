@@ -43,6 +43,7 @@ import { projectPrivateSavedTeamSolutionComponents } from './privateSavedTeamSol
 import { projectPlanningBenchmark32 } from './privatePlanningBenchmark32'
 import { projectCommonAnomalySettlementQuery32 } from './privateCommonAnomalySettlementQuery32'
 import { resolveCurrentPlanningScenario32 } from '../calculation/currentPlanningScenario32'
+import { validateSourceResourceGrantDeclaration32 } from '../calculation/sourceMechanismResourceGrantContract32'
 
 export function createLocalCalculationQueryClientCore(options: {
   readRuntimeSelection: () => Promise<CurrentGameDataRuntimeSelection>
@@ -296,6 +297,13 @@ export function createLocalCalculationQueryClientCore(options: {
     async queryDevelopmentCandidateAlternatives(query) {
       if (query.contractVersion !== calculationQueryContractVersion)
         throw new Error(`Unsupported Calculation/Query contract: ${query.contractVersion}.`)
+      const resourceGrantValidation = validateSourceResourceGrantDeclaration32(
+        query.resourceGrantDeclaration32,
+      )
+      if (resourceGrantValidation.status === 'invalid')
+        throw new Error('资源到账声明格式无效，请重新填写后分析。')
+      const resourceGrantDeclaration32 =
+        resourceGrantValidation.status === 'valid' ? resourceGrantValidation.declaration : undefined
       await requireCompiledRuntime()
       const run = runs.get(query.runId)
       if (!run) throw new Error(`Account Decision run is unavailable: ${query.runId}.`)
@@ -377,7 +385,7 @@ export function createLocalCalculationQueryClientCore(options: {
           candidateParametersByRank: explicit,
           scenarioSelection: scenario.selection,
           eventConditionDeclaration: eventConditionDeclarationsByAgentId?.[query.agentId],
-          resourceGrantDeclaration32: query.resourceGrantDeclaration32,
+          resourceGrantDeclaration32,
           stale: false,
         },
         evaluator,
@@ -391,9 +399,9 @@ export function createLocalCalculationQueryClientCore(options: {
           parameters: explicit,
           scenarioIdentity: scenario.identity,
           eventConditionDeclarationsIdentity,
-          ...(query.resourceGrantDeclaration32
+          ...(resourceGrantDeclaration32
             ? {
-                resourceGrantDeclaration32: stableContentHash(query.resourceGrantDeclaration32),
+                resourceGrantDeclaration32: stableContentHash(resourceGrantDeclaration32),
               }
             : {}),
           candidateSearch: projection.candidateSearch,
@@ -403,7 +411,7 @@ export function createLocalCalculationQueryClientCore(options: {
         candidateParametersByRank: explicit,
         scenarioSelection: scenario.selection,
         scenarioIdentity: scenario.identity,
-        resourceGrantDeclaration32: query.resourceGrantDeclaration32,
+        resourceGrantDeclaration32,
         eventConditionDeclarationsByAgentId,
         eventConditionDeclarationsIdentity,
         candidateSearchByRank,

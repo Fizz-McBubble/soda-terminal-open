@@ -147,20 +147,24 @@
       "agentId": "agent-remielle",
       "resourceFlow": {
         "status": "compiled",
-        "coverageBoundary": "source-backed declared actions; Phase Flow automatic drain cadence remains an explicit unsupported event until a PlanningBaseline observation supplies it",
+        "coverageBoundary": "source-backed baseline and declared actions; two independent current guides confirm Floating Radiance starts at 120, while the Phase Flow automatic drain cadence remains an explicit unsupported event until a PlanningBaseline observation supplies it",
         "parameters": {
           "floating_radiance_cap": 120,
+          "floating_radiance_initial": 120,
           "floating_radiance_basic_hit_gains": [5, 5, 15, 35],
           "floating_radiance_solo_dance_gain": 30,
           "floating_radiance_rainbow_gain": 120,
           "floating_radiance_fleeting_gain": 120,
           "floating_radiance_flower_feather_cost": 40,
-          "floating_radiance_flower_feather_no_cost_at_or_below": 90
+          "floating_radiance_flower_feather_no_cost_at_or_below": 90,
+          "remielle_m1_assist_decibel_gain": 200,
+          "remielle_m1_assist_decibel_cooldown_seconds": 18
         },
         "resources": [
           {
             "resource": "floating_radiance",
             "producerParameterKeys": [
+              "floating_radiance_initial",
               "floating_radiance_basic_hit_gains",
               "floating_radiance_solo_dance_gain",
               "floating_radiance_rainbow_gain",
@@ -171,6 +175,12 @@
           }
         ],
         "transitionTemplates": [
+          {
+            "eventKey": "battle_entry",
+            "resource": "floating_radiance",
+            "operation": "set",
+            "parameterKey": "floating_radiance_initial"
+          },
           {
             "eventKey": "basic.leap.hit1",
             "resource": "floating_radiance",
@@ -226,7 +236,12 @@
           }
         ],
         "unsupportedEventKeys": ["phase_flow.auto_attack"],
-        "evidenceLocator": "ZZZ-DATA-AGENT-REMIELLE-DELTA-R2C:ENTITY_FACTS#floating_radiance | ACTION_TIMELINE#declared-resource-deltas"
+        "sourceQuality": "guide_corroborated",
+        "sourceRefs": [
+          "https://www.prydwen.gg/zenless/characters/remielle#review-intro-unique-mechanic",
+          "https://hoyobuild.com/en/zzz/characters/remielle#how-to-play"
+        ],
+        "evidenceLocator": "ZZZ-DATA-AGENT-REMIELLE-DELTA-R2C:ENTITY_FACTS#floating_radiance | ACTION_TIMELINE#declared-resource-deltas | prydwen-remielle#review-intro-unique-mechanic | hoyobuild-remielle#how-to-play"
       }
     },
     {

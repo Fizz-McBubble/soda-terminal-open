@@ -89,8 +89,8 @@
   },
   "runtimeFingerprints": {
     "roster": "fnv1a-9efb366c",
-    "mechanicData": "fnv1a-813ea788",
-    "strengthModel": "fnv1a-af357c69"
+    "mechanicData": "fnv1a-72e92871",
+    "strengthModel": "fnv1a-3f9eebd5"
   },
   "inputFiles": {
     "scripts/current31-team-intrinsic-index-inputs.mjs": "321fd99fe12798bb3f143b5508a040e40dfef86962eb33ce0f0994c3dae2273c",
@@ -171,7 +171,7 @@
     "src/calculation/currentPlanningEffectRuntime.ts": "0fb53589b352d7c86d0d1ba58099c6021b2ae6309c6fa61aa21877987b24fa4a",
     "src/calculation/currentPlanningEventDamage32.ts": "ac96a9c14d8b6911840f98c1c6e06effd5a11010fc6418f7f455b793146be833",
     "src/calculation/currentPlanningEventEffectResolution32.ts": "abf9b3ad7b9fc46aeaf0a84b2f1c1715a61b3f6ad2e1b36f4f9e283b53863603",
-    "src/calculation/currentPlanningFormationEffectEvaluation.ts": "141b2cb426d2feadb79014cfc166ded28eebf36d28f35900214cd9d17108ef15",
+    "src/calculation/currentPlanningFormationEffectEvaluation.ts": "664529abf8ff29bbc83e84f7db54697fbab66c9a58672611c60d5e0e73fbb794",
     "src/calculation/currentPlanningHarumasaEventWindow32.ts": "576c7c358f05de6e482bf183a79a20a6f1f884ff6fe102138e284e44692a2749",
     "src/calculation/currentPlanningInteractionBundle.ts": "3d245bd8ab739f15d7e8b0e8b0553cf25228ecc15ebeea85ff883d4ae6ae44f8",
     "src/calculation/currentPlanningInteractionMechanicIR.ts": "8285d77048944d8f4c6535270f66aadde8bd0abe85f7440c915e6c2e4e65b491",
@@ -244,7 +244,8 @@
     "src/calculation/sourceDazeCapacity32.ts": "8aed09b6becf9e2b3cf17d3751f64112ad671bf88895a1ec6da4948571693c13",
     "src/calculation/sourceEnergyRecoveryRate32.ts": "e27ce780e02c00d3dd4be1ec7470d2b4a23a40cb450661bcde661289de83b25c",
     "src/calculation/sourceEventQuantity32.ts": "20c6dba95694f828fe8ea3bb6bef088942deb9b7ac6acaa9b8d46a4bdb984b88",
-    "src/calculation/sourceMechanismResourceGrants32.ts": "976b108e382f7dc248414653ec354be066aec2998dd2148c21ba67b641906fc3",
+    "src/calculation/sourceMechanismResourceGrantContract32.ts": "8d4116d0c337ec9f6e6d3a46725306499bae78232285b406d70fbaf1f64c9254",
+    "src/calculation/sourceMechanismResourceGrants32.ts": "7c1bef6b5aee3e92416b0daa1c57f7db494bef771cd3fd67050acf93d02a0335",
     "src/calculation/sourceResourceProduction32.ts": "35f6277ada21bdc7d2c79d89ac88a56e7cb81353c92dd2d8a54e0558826bf587",
     "src/calculation/staticReferenceBuild.ts": "01cc2f16ba058180ca50617bf6238b85a91a80d6294eee1cc3468b1e9505166a",
     "src/calculation/valueBenchmarkComparison.ts": "517aea9c416cd4a42fba53027ec0279216a5bbba5f27406ea595a336755931f9",
@@ -327,7 +328,7 @@
     "src/gameDataPacks/currentWEngineStaticCatalog.ts": "e4e2a31343864679e32082e0db660016cf0420159ace7d6cc4d778a457d60007",
     "src/gameDataPacks/data/reviewed-agent-attack-types32.v1.json": "fc7beab2ca630e09ff85124d3c865a65bf3516cbbdc35d60df15b1448c80c275",
     "src/gameDataPacks/data/reviewed-external-support-target31.3.1.json": "305bdb450b3b9a2b2ae1d243f3349d6446eb9d9c243402cea0ad08f5ee03cbea",
-    "src/gameDataPacks/data/reviewed-mechanism-point-grants32.v1.json": "b1cba14b4418e0ef8d9d11d2636e1ca2514846271ae665d9cd0321993aad5a88",
+    "src/gameDataPacks/data/reviewed-mechanism-point-grants32.v1.json": "840de413a376fbe710d282eddb3f06331ef0f14546ca0da5e202a188a127e21e",
     "src/gameDataPacks/data/reviewed-team-analysis.3.1.json": "73569c3d1a3e36eb5c3a51a30aa0109a600e3a6da9115aa03cba085b02600219",
     "src/gameDataPacks/data/reviewed-team-compatibility-notes.3.1.json": "a896cdf75786d2241b8772a193a14e1e27cf6e1014556fb81a6e76a4056ba403",
     "src/gameDataPacks/data/reviewed-team-direction-reuse.3.1.json": "fa5e556ed7fe74992cceba6611a58fbafdf32c79c68c334ed6263e9ea26d75c1",
@@ -351,9 +352,9 @@
     "src/gameDataPacks/gameData31SourceGraph.ts": "5ad915cf0f6d9bc1a760509bb708cfc4f6dc0af20bd2ada648f447a552e35977",
     "src/gameDataPacks/gameData32BuildGuidance.ts": "dee3f42e40f896d730333fed0628507472267a176aba946d864599bb0937a694",
     "src/gameDataPacks/gameData32CatalogEntities.ts": "edcea478bc49511e90896c6d8bc7d9fd1e7ceb74a4c804f6517c46a51016f7fd",
-    "src/gameDataPacks/generated/current-agent-decision-mechanic-catalog.v1.json": "030b4c95d8ccfad43fa6d0c1859576ef5aa9f9f237624038a457f38b22b2af60",
+    "src/gameDataPacks/generated/current-agent-decision-mechanic-catalog.v1.json": "55a2adbb834f3d1e52d04256efba95374e43cccd75e502e5fa450e5f23bd9b9a",
     "src/gameDataPacks/generated/current-agent-mechanic-catalog.v1.json": "848a798c78f1f64754ad40295b08c6a7bff7843cd4710baf1d719a546fc28b3b",
-    "src/gameDataPacks/generated/current-agent-resource-events32.v1.json": "678a422cb0b003e4823f37c385465a486c94cb98e15e2b4593663bbbe617995b",
+    "src/gameDataPacks/generated/current-agent-resource-events32.v1.json": "575ac63e6dfcba7d770fdcbecfd117ea8338155ccfced2a98770975c51db512e",
     "src/gameDataPacks/generated/current-bangboo-numeric-catalog.v1.json": "726b0e18ba63b28518542c5b6780cfb2a8ea8a1586f72c2716e657475721a0bb",
     "src/gameDataPacks/generated/current-drive-disc-formula-catalog.v1.json": "c2bac251e6915c6adde575c9201c56d2dc402aa06122d795a082ae03dcb61e79",
     "src/gameDataPacks/generated/current-formula-mechanic-contract-catalog.v1.json": "48dcd64e3b9d0a751363f413636b0d77516031ff40dba41a61e3a27e5f64dd6c",
@@ -366,7 +367,7 @@
     "src/gameDataPacks/generated/l3-b04c7cc7ac8ad6279074/agentDevelopmentEvidence.ts": "398ab2d90d4cd03f14147f17e5dc194908fca21069860604ccb802423c65c57e",
     "src/gameDataPacks/generated/l3-b04c7cc7ac8ad6279074/noncharacterMiyousheSidecar.ts": "4262f265b1a1d6f04532eb9a7b013533ae86172bdf628fc6c0e4f01a8505cc97",
     "src/gameDataPacks/generated/l3AgentDevelopmentEvidenceTypes.ts": "c7f7f9a523b4cb13e89f6e10ff8a1d3e191f9ebc71d79fd7258f389178d1361d",
-    "src/gameDataPacks/generated/team-strength-model.3.1.json": "2237e67953be4decc3a2d0da6d0f399781c9f6d7b53630cbce17c976172627af",
+    "src/gameDataPacks/generated/team-strength-model.3.1.json": "7fec70ba09439c23c3a6245b43f834b0982c4273d6977a5ae3bf0013a8e79782",
     "src/gameDataPacks/incremental32AffectedCapabilities.ts": "a5529991289cedad4b76190d8b371b0e3eaa107173dc944300e86102033a038a",
     "src/gameDataPacks/incremental32RecoveryPolicy.ts": "de008b796842d6448828b7a3eb7ffc757c56260459cf8fe94ae338163a2eaf9c",
     "src/gameDataPacks/l3BoxTeamTemplateProjection.ts": "a121b90bc80f11b01245a72d6dd24a0bd54947b415bbe2cf11c9b85b0b1de404",
@@ -34671,5 +34672,5 @@
     [57, 58, 59, 0, 3, 2, 77, 1, 0, 4, 0]
   ],
   "boundary": "Build-time exact-three intrinsic summaries only. Account assets, preferences, Bangboo selection, evidence objects and final recommendations remain runtime projections.",
-  "contentHash": "fnv1a-b4284aac"
+  "contentHash": "fnv1a-2d57457b"
 }

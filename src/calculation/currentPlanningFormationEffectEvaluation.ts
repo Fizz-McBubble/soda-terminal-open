@@ -165,14 +165,12 @@ export function evaluateFormationEffects(
     })
     // Reconciled IR already encodes any effective-level offset against the
     // generic zero-based skill references.
-    const expression =
-      blueprint.numericExpression.originalSource ||
-      blueprint.effectKey === 'agent-lucia:exSpecial_harmony_dmg_'
-        ? observation.expression
-        : bindPlanningSkillLevelValueReferences32({
-            expression: observation.expression,
-            provider,
-          })
+    const expression = blueprint.numericExpression.originalSource
+      ? observation.expression
+      : bindPlanningSkillLevelValueReferences32({
+          expression: observation.expression,
+          provider,
+        })
     const isUnboundGenericPlaceholder =
       blueprint.numericExpression.sourceStatus === 'declarative_baseline_input' &&
       !isReviewedTemplateMechanicEffect32(blueprint) &&
