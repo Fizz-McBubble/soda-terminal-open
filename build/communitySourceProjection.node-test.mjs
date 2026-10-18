@@ -31,6 +31,41 @@ test('minified ternary syntax is not mistaken for a drive path', () => {
   )
 })
 
+test('mapped-stat identity survives moving the upstream checkout between drives', () => {
+  const suffix = 'libs/zzz/stats/src/mappedStats/char/maps/Yixuan.ts'
+  const project = (prefix) =>
+    JSON.parse(
+      projectCommunitySourceText(
+        JSON.stringify({
+          mappedStatsPath: `${prefix}/${suffix}`,
+          mappedStatsSha256: 'retained-byte-pin',
+          allStatPath: `${prefix}/libs/zzz/stats/src/allStat_gen.json`,
+          unrelatedPath: `${prefix}/private/notes.json`,
+        }),
+        'catalog.json',
+      ),
+    )
+  for (const prefix of [
+    ['..', 'outputs', '3.2-update', 'upstream'].join('/'),
+    ['F:', 'derived', 'upstream'].join('/'),
+    ['E:', 'scratch', 'source'].join('\\'),
+  ]) {
+    const projected = project(prefix)
+    assert.equal(projected.mappedStatsPath, suffix)
+    assert.equal(projected.allStatPath, 'libs/zzz/stats/src/allStat_gen.json')
+    assert.equal(projected.mappedStatsSha256, 'retained-byte-pin')
+    assert.match(projected.unrelatedPath, /^soda-source-ref:[a-f0-9]{32}$/u)
+    assert.equal(hasPrivateCommunityLocator(JSON.stringify(projected)), false)
+  }
+  const forged = JSON.parse(
+    projectCommunitySourceText(
+      JSON.stringify({ mappedStatsPath: ['F:', 'private', 'Yixuan.ts'].join('/') }),
+      'catalog.json',
+    ),
+  )
+  assert.match(forged.mappedStatsPath, /^soda-source-ref:[a-f0-9]{32}$/u)
+})
+
 test('private locators in generated and inline comments are omitted without changing code', () => {
   const locator = (separator) => ['docs', 'audits', 'private-review'].join(separator)
   const source = [

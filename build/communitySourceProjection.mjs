@@ -10,13 +10,24 @@ function publicSourceReference(value) {
   return `soda-source-ref:${digest}`
 }
 
-function projectValue(value) {
-  if (typeof value === 'string')
+function projectValue(value, key) {
+  if (typeof value === 'string') {
+    // These public upstream locators must not depend on the maintainer's
+    // checkout drive. Runtime consumers still verify repository, commit and
+    // file hashes before accepting this repository-relative path.
+    if (key === 'mappedStatsPath' || key === 'allStatPath') {
+      const normalized = value.replaceAll('\\', '/')
+      const locator = normalized.match(
+        /(?:^|\/)(libs\/zzz\/stats\/src\/(?:allStat_gen\.json|mappedStats\/char\/maps\/[A-Za-z0-9_]+\.ts))$/u,
+      )
+      if (locator) return locator[1]
+    }
     return privateLocator.test(value) ? publicSourceReference(value) : value
-  if (Array.isArray(value)) return value.map(projectValue)
+  }
+  if (Array.isArray(value)) return value.map((entry) => projectValue(entry))
   if (value && typeof value === 'object')
     return Object.fromEntries(
-      Object.entries(value).map(([key, entry]) => [key, projectValue(entry)]),
+      Object.entries(value).map(([key, entry]) => [key, projectValue(entry, key)]),
     )
   return value
 }
