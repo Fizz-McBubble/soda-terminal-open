@@ -935,3 +935,46 @@ test('asynchronous content digest errors return 503 and release the concurrency 
   digestMock.mock.restore()
   assert.equal((await handler(makeRequest(), env)).status, 200)
 })
+
+test('installer failure facts survive the receiver contract without admitting private details or changing old reports', () => {
+  const report = {
+    schema: 1,
+    tool: 'asset_quick_read_installer',
+    reportId: 'c7b28014-9ff5-4e3a-96e0-20f781df03aa',
+    installerVersion: '1.1.7',
+    stage: 'uninstall',
+    code: 'installer_access_denied',
+    durationMs: 100,
+    attempts: [],
+  }
+  const failure = { operation: 'delete_preflight', kind: 'read_only', nativeErrorCode: 5 }
+  assert.deepEqual(sanitizeScanFeedbackPayload(report).record, report)
+  assert.deepEqual(sanitizeScanFeedbackPayload({ ...report, failure }).record.failure, failure)
+  for (const invalid of [
+    { ...failure, path: '/synthetic/private' },
+    { ...failure, kind: 'private error' },
+    { ...failure, nativeErrorCode: -1 },
+    { ...failure, nativeErrorCode: 65536 },
+    { ...failure, nativeErrorCode: null },
+  ])
+    assert.equal(sanitizeScanFeedbackPayload({ ...report, failure: invalid }).status, 400)
+  assert.equal(
+    sanitizeScanFeedbackPayload({ ...report, tool: 'screen_scanner_installer', failure }).status,
+    400,
+  )
+})
+test('geometry and reset facts remain finite through receiver projection', () => {
+  const evidence = {
+    clientKind: 'local',
+    geometryFailure: 'client_size_unsupported',
+    requiredDetailWidth: 450,
+    resetAction: 'track_click',
+    resetThumbReferenceKnown: false,
+    resetColorMaxDelta: 120,
+    resetColorTolerance: 20,
+  }
+  const result = sanitizeScanFeedbackPayload({ ...validReport, evidence })
+  assert.equal(result.ok, true)
+  for (const [key, value] of Object.entries(evidence))
+    assert.equal(result.record.evidence[key], value)
+})

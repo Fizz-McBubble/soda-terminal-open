@@ -64,7 +64,10 @@ describe('installerFeedback sanitization and fragment consumption', () => {
       const replaceState = vi.fn()
       expect(
         consumeInstallerFeedbackFragment(
-          { hash: `#${encodeURIComponent(JSON.stringify(report))}`, pathname: '/installer-feedback' },
+          {
+            hash: `#${encodeURIComponent(JSON.stringify(report))}`,
+            pathname: '/installer-feedback',
+          },
           { replaceState },
         ),
       ).toEqual(report)
@@ -240,4 +243,28 @@ describe('installerFeedback sanitization and fragment consumption', () => {
       submitInstallerFeedback(sampleReport, failFetch as unknown as typeof fetch),
     ).rejects.toThrow('retry')
   })
+})
+
+it('preserves finite installer failure facts and rejects private or invented extensions', () => {
+  const failure = { operation: 'delete_preflight', kind: 'read_only', nativeErrorCode: 5 }
+  expect(sanitizeInstallerFeedback({ ...sampleReport, failure })?.failure).toEqual(failure)
+  expect(
+    sanitizeInstallerFeedback({
+      ...sampleReport,
+      failure: { ...failure, path: "soda-source-ref:72fe760bebbabdd4c08f330550dea68b" },
+    }),
+  ).toBeNull()
+  expect(
+    sanitizeInstallerFeedback({ ...sampleReport, failure: { ...failure, nativeErrorCode: 65536 } }),
+  ).toBeNull()
+  expect(
+    sanitizeInstallerFeedback({
+      ...sampleReport,
+      failure: { ...failure, kind: 'private_message' },
+    }),
+  ).toBeNull()
+  expect(
+    sanitizeInstallerFeedback({ ...sampleReport, tool: 'screen_scanner_installer', failure }),
+  ).toBeNull()
+  expect(sanitizeInstallerFeedback(sampleReport)?.failure).toBeUndefined()
 })

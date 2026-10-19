@@ -25,12 +25,26 @@ const installerFeedbackSchema = z
     stage: z.string(),
     code: z.string(),
     durationMs: z.number().int().min(0).max(installerRules.durationMaxMs),
+    failure: z
+      .object({
+        operation: z.string().refine((value) => installerRules.failureOperations.includes(value)),
+        kind: z.string().refine((value) => installerRules.failureKinds.includes(value)),
+        nativeErrorCode: z.number().int().min(0).max(65535).optional(),
+      })
+      .strict()
+      .optional(),
     attempts: z.array(attemptSchema).max(installerRules.maxAttempts),
   })
   .strict()
   .superRefine((report, context) => {
     const rules =
       report.tool === 'screen_scanner_installer' ? contract.screenScannerInstaller : installerRules
+    if (report.failure !== undefined && report.tool !== 'asset_quick_read_installer')
+      context.addIssue({
+        code: 'custom',
+        path: ['failure'],
+        message: 'Unsupported installer failure evidence',
+      })
     for (const [field, valid] of [
       ['installerVersion', new RegExp(rules.versionPattern).test(report.installerVersion)],
       ['stage', (rules.stages as readonly string[]).includes(report.stage)],

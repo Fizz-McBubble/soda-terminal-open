@@ -160,7 +160,7 @@ describe('versionConsistencyAudit (real consumer imports)', () => {
     expect(scannerInstallerManifest.helperVersion).not.toBe('1.0.49')
     expect(scannerRuntimeManifest.captureVersion).toMatch(/1\.0\.49/)
     expect(scannerInstallerManifest.version).toMatch(/^\d+\.\d+\.\d+$/)
-    expect(scannerInstallerManifest.helperVersion).toBe('2.3.18')
+    expect(scannerInstallerManifest.helperVersion).toBe('2.3.19')
     expect(scannerRuntimeManifest.captureVersion).toBe(
       scannerDistributionManifest.runtime.nativeCapture.componentVersion,
     )

@@ -96,6 +96,13 @@
   "captureModes": ["gdi", "dxgi", "unknown"],
   "browsers": ["edge", "chrome", "firefox", "safari", "other", "unknown"],
   "evidenceLimits": {
+    "detailWidth": 20000,
+    "detailHeight": 20000,
+    "requiredDetailWidth": 20000,
+    "requiredDetailHeight": 20000,
+    "fixedFieldCount": 100,
+    "resetColorMaxDelta": 255,
+    "resetColorTolerance": 255,
     "itemIndex": 100000,
     "logicalRow": 100000,
     "visualRow": 100,
@@ -150,6 +157,7 @@
     "positionMovementDistance": 100000
   },
   "evidenceBooleans": [
+    "resetThumbReferenceKnown",
     "sawPanelChange",
     "selectionChanged",
     "warehouseHeaderDetected",
@@ -164,6 +172,14 @@
     "sawMovement"
   ],
   "evidenceEnums": {
+    "clientKind": ["local", "cloud"],
+    "geometryFailure": [
+      "profile_mismatch",
+      "client_size_unsupported",
+      "detail_bounds_invalid",
+      "roi_mapping_incompatible"
+    ],
+    "resetAction": ["not_run", "fast_wheel", "track_click"],
     "preflightState": [
       "capture_unavailable",
       "inventory_screen_unreadable",
@@ -461,6 +477,36 @@
     "missingRois": []
   },
   "assetQuickReadInstaller": {
+    "failureKinds": [
+      "access_denied",
+      "read_only",
+      "sharing_violation",
+      "invalid_data",
+      "file_missing",
+      "path_too_long",
+      "io_error",
+      "cancelled",
+      "other"
+    ],
+    "failureOperations": [
+      "prepare",
+      "payload_path",
+      "payload_extract",
+      "payload_wait",
+      "payload_verify",
+      "copy",
+      "protocol",
+      "verify",
+      "register",
+      "service_start",
+      "uninstall",
+      "delete_preflight",
+      "delete_files",
+      "delete_uninstaller",
+      "remove_protocol",
+      "remove_registration",
+      "remove_directories"
+    ],
     "stages": [
       "prepare",
       "payload_verify",

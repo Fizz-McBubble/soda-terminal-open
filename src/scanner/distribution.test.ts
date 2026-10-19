@@ -25,8 +25,8 @@ describe('scanner distribution contract', () => {
     )
     expect(scannerDistributionManifest.runtime.nativeCapture).toMatchObject({
       componentVersion: runtimeReleaseManifest.captureVersion,
-      entrySize: 72591102,
-      entrySha256: '7f54c827e4582fbcd745214e955026f10e1f086b31711070fdbcd9a887bbb2b5',
+      entrySize: 72591607,
+      entrySha256: 'e0a366a1ba1bd34f5185aa41e333bb5936dc7aa8c0252aba6603396f9412a41c',
       schemaVersion: 'soda.zzz-scanner-next.direct-r4.v1',
       selfContained: true,
       publishAot: false,
@@ -34,7 +34,7 @@ describe('scanner distribution contract', () => {
     expect(scannerDistributionManifest.runtime.orchestration.entrySha256).toBe(
       scannerDistributionManifest.runtime.nativeCapture.entrySha256,
     )
-    expect(scannerDistributionManifest.runtime.installedSize).toBe(159381928)
+    expect(scannerDistributionManifest.runtime.installedSize).toBe(159385505)
     expect(scannerDistributionManifest.runtime.nativeOcr).toMatchObject({
       runtime: 'onnxruntime-1.23.1',
       selfContained: true,

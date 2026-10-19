@@ -40,8 +40,9 @@ export function sanitizeInstallerFeedbackPayload(payload) {
       : baseContract.assetQuickReadInstaller
   const keys = Object.keys(payload)
   if (
-    keys.length !== KNOWN_INSTALLER_KEYS.length ||
-    keys.some((k) => !KNOWN_INSTALLER_KEYS.includes(k))
+    keys.length < KNOWN_INSTALLER_KEYS.length ||
+    keys.length > KNOWN_INSTALLER_KEYS.length + 1 ||
+    keys.some((k) => !KNOWN_INSTALLER_KEYS.includes(k) && k !== 'failure')
   ) {
     return { status: 400 }
   }
@@ -136,6 +137,32 @@ export function sanitizeInstallerFeedbackPayload(payload) {
     })
   }
 
+  let failure
+  if (Object.hasOwn(payload, 'failure')) {
+    const value = payload.failure
+    if (
+      payload.tool !== 'asset_quick_read_installer' ||
+      !value ||
+      typeof value !== 'object' ||
+      Array.isArray(value) ||
+      Object.keys(value).some((key) => !['operation', 'kind', 'nativeErrorCode'].includes(key)) ||
+      !installerRules.failureOperations.includes(value.operation) ||
+      !installerRules.failureKinds.includes(value.kind) ||
+      (Object.hasOwn(value, 'nativeErrorCode') &&
+        (!Number.isInteger(value.nativeErrorCode) ||
+          value.nativeErrorCode < 0 ||
+          value.nativeErrorCode > 65535))
+    )
+      return { status: 400 }
+    failure = {
+      operation: value.operation,
+      kind: value.kind,
+      ...(Object.hasOwn(value, 'nativeErrorCode')
+        ? { nativeErrorCode: value.nativeErrorCode }
+        : {}),
+    }
+  }
+
   const record = {
     schema: 1,
     tool: payload.tool,
@@ -145,6 +172,7 @@ export function sanitizeInstallerFeedbackPayload(payload) {
     code: payload.code,
     durationMs: payload.durationMs,
     attempts: sanitizedAttempts,
+    ...(failure ? { failure } : {}),
   }
 
   const serialized = JSON.stringify(record)
