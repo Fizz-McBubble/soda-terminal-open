@@ -25,7 +25,7 @@ const client = createLocalCalculationQueryClientCore({
   // creating a nested snapshot Worker and preserves the accepted calculation implementation.
   calculateSnapshot: async (input, options) => {
     options?.signal?.throwIfAborted()
-    return buildAccountDecisionSnapshot(input)
+    return buildAccountDecisionSnapshot({ ...input, deferDiagnosticInference: true })
   },
 })
 
@@ -54,7 +54,9 @@ export async function calculateBrowserQueryResponse(
   try {
     const result = await dispatchCalculationQuery(client, request.query, {
       transform: (kind, value) =>
-        kind === 'common_anomaly_settlement32' || kind === 'planning_benchmark32'
+        kind === 'account_decision' ||
+        kind === 'common_anomaly_settlement32' ||
+        kind === 'planning_benchmark32'
           ? projectPublicCalculationResult(kind, value)
           : value,
     })

@@ -63,7 +63,7 @@ describe('AgentDevelopmentGolden warehouse candidate controls', () => {
     expect(screen.getByRole('cell', { name: '攻击力' })).toHaveTextContent('毕业推荐 3000+')
     expect(screen.getByRole('cell', { name: '攻击力' })).not.toHaveTextContent('攻略')
   })
-  it('renders Seed sourced levels numerically while preserving minima and the confirmed priority marks', () => {
+  it('renders Seed numeric references while preserving source minima and confirmed priorities', () => {
     const directions = getProjectedBuildKnowledgeProfile('agent-seed').recommendation!.skillPriority
     const { skills } = agentDevelopmentSkillRecommendations('agent-seed', directions, [])
     const { container } = render(
@@ -83,12 +83,13 @@ describe('AgentDevelopmentGolden warehouse candidate controls', () => {
     ]
     expect(levels.map((node) => node.querySelector('b')?.textContent)).toEqual([
       '12',
-      '≥7',
-      '≥7',
-      '≥11',
-      '≥11',
+      '7',
+      '7',
+      '11',
+      '11',
       '7',
     ])
+    expect(skills.find((skill) => skill.key === 'special')?.targetType).toBe('minimum_reference')
     expect(
       levels
         .filter((node) => node.classList.contains('priority'))

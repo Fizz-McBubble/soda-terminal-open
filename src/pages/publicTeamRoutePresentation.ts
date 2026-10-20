@@ -1,6 +1,7 @@
 import type { ReviewedTeamAnalysis } from '../decision/reviewedTeamAnalysis'
 import type { DecisionTeamViewModel } from './teamLoadoutDecisionViewModel'
 import type { PlayerConfirmableBangbooOption } from './PlayerConfirmableBangbooSelector'
+import type { TeamStrengthInference } from '../decision/teamStrengthModel'
 
 export const teamRoutePresentationContract = 'soda-team-route-presentation/v1' as const
 
@@ -20,6 +21,8 @@ export type TeamRoutePresentation = {
   recommendationScore: number | null
   teamRatingLabel: string
   alternativeTeams: DecisionTeamViewModel[]
+  /** Diagnostic only; resolved for the selected team, never a source rating or rank. */
+  mechanicDiagnostic?: TeamStrengthInference | null
 }
 
 export function acceptTeamRoutePresentation(

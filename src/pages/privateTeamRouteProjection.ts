@@ -10,6 +10,7 @@ import { playerFacingBangbooLabel } from '../application/playerFacingLabels'
 import { displayableLocalAnalysis, localAnalysisRatingLabel } from './teamLocalAnalysisPresentation'
 import { decisionTeamAlternativeVariants, teamRatingSummary } from './teamLoadoutDecisionViewModel'
 import { formatTeamRating } from './teamRatingText'
+import { inferredStrengthCalibration } from '../decision/teamStrengthModel'
 import { resolveTargetTeamFitEntry } from './teamTargetFitEntry'
 import {
   teamRoutePresentationContract,
@@ -88,5 +89,15 @@ export function projectPrivateTeamRoute(
     recommendationScore,
     teamRatingLabel,
     alternativeTeams: team ? decisionTeamAlternativeVariants(run.snapshot, team.id) : [],
+    ...(ratingCandidate?.mechanicDiagnosticDeferred
+      ? {
+          mechanicDiagnostic:
+            inferredStrengthCalibration(
+              ratingCandidate.metaCalibration,
+              ratingCandidate.memberIds,
+              ratingCandidate.mechanicValidity === 'invalid',
+            ).inference ?? null,
+        }
+      : {}),
   }
 }

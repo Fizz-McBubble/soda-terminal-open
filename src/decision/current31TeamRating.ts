@@ -44,7 +44,7 @@ export function evaluateCurrent31TeamRating(input: {
   /** Compatibility input; Bangboo conditions belong to its separate assessment. */
   bangbooConditionBlockers?: readonly string[]
   hardPrunes?: readonly HardPruneDecision[]
-  /** Offline calibration labels must bypass the model being evaluated. */
+  /** Source/mechanic-only projections bypass model diagnostics; the default retains them. */
   reviewedOnly?: boolean
   /** Offline refits read labels in their source version, never as current meta. */
   sourceReviewVersion?: '3.1'

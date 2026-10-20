@@ -15,7 +15,7 @@ import type {
 } from './calculationQueryContract'
 import type { CurrentGameDataRuntimeSelection } from '../gameDataPacks/runtimeSelection'
 
-export const browserCalculationQueryProtocolVersion = 'soda-browser-calculation-query/v4' as const
+export const browserCalculationQueryProtocolVersion = 'soda-browser-calculation-query/v5' as const
 
 export type BrowserCalculationQuery =
   | CommonAnomalySettlement32Query

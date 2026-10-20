@@ -7,6 +7,8 @@ import {
   type BrowserCalculationQueryResponse,
 } from './browserCalculationQueryProtocol'
 import { query } from './localCalculationQueryClient.testFixture'
+import { packPublicWarehouseActions } from './publicWarehouseActionTransport'
+import type { WarehouseActionProjection } from './warehouseActionContract'
 
 class FakeQueryWorker {
   onmessage: ((event: MessageEvent<BrowserCalculationQueryResponse>) => void) | null = null
@@ -80,13 +82,41 @@ function harness(autoReady = true) {
 }
 
 describe('browser Query Worker lifecycle', () => {
+  it('restores the compact response with its captured input and warehouse evidence', async () => {
+    const { client, workers } = harness()
+    const request = query('compact-response', ['agent-aria'])
+    const captured = structuredClone(request.input)
+    const task = client.calculateAccountDecision(request)
+    request.input.warehouse.roster.agents[0]!.level = 1
+    await vi.waitFor(() => expect(workers[0]?.requests).toHaveLength(1))
+    const warehouseActions = {
+      runId: request.runId,
+      fingerprint: 'captured',
+      accountId: captured.warehouse.accountId,
+      state: 'current',
+      sideEffect: 'read_only',
+      claim: { status: 'limited', summary: 'captured' },
+      counts: { keep: 0, enhance: 0, cleanup: 0 },
+      actions: [],
+    } as WarehouseActionProjection
+    workers[0]!.respond(1, {
+      runId: request.runId,
+      inputFingerprint: 'captured',
+      warehouseActions: packPublicWarehouseActions(warehouseActions),
+    })
+    const run = await task
+    expect(run.input).toEqual(captured)
+    expect(run.input).not.toBe(request.input)
+    expect(run.warehouseActions).toEqual(warehouseActions)
+    expect(client.hasAccountDecisionRun!(request.runId)).toBe(true)
+  })
   it('rejects an older Worker before accepting any mixed-version comparison response', async () => {
     const { client, workers } = harness(false)
     const task = client.calculateAccountDecision(query('mixed-worker'))
     const rejected = expect(task).rejects.toMatchObject({ name: 'BrowserCalculationProtocolError' })
     await vi.waitFor(() => expect(workers).toHaveLength(1))
     workers[0]!.onmessage?.({
-      data: { protocolVersion: 'soda-browser-calculation-query/v2', requestId: 0, status: 'ready' },
+      data: { protocolVersion: 'soda-browser-calculation-query/v4', requestId: 0, status: 'ready' },
     } as unknown as MessageEvent<BrowserCalculationQueryResponse>)
     await rejected
     expect(workers[0]!.terminated).toBe(true)

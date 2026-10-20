@@ -114,11 +114,22 @@
 }
 
 .skill-comparison__target span {
-  background: #f2eef9;
-  border-radius: var(--soda-radius-tag);
+  background: var(--soda-surface-raised);
+  border-radius: var(--soda-radius-control);
+}
+
+.skill-comparison__target span b {
+  color: var(--soda-text-2);
+  font-weight: 500;
 }
 
 .skill-comparison__target span.priority {
+  background: #ebe3f5;
+}
+
+.skill-comparison__target span.priority > small,
+.skill-comparison__target span.priority b {
+  color: var(--soda-accent-ink);
   font-weight: 700;
 }
 

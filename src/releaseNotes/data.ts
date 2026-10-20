@@ -10,6 +10,16 @@ export interface ReleaseNote {
 // A local fix or commit is not a published release; add it when that release ships.
 export const releases = [
   {
+    id: '20261020-skill-targets-and-loading',
+    date: '2026-10-20',
+    scope: '技能目标与加载体验',
+    title: '统一技能推荐数字，减轻分析等待',
+    changes: [
+      '技能推荐统一显示明确数值，仅高亮来源建议优先提升的技能，调整底色、字重与圆角。',
+      '减少首次分析的重复计算与页面接收的数据量，队伍详情按需计算，保留原有推荐、配装与保存流程。',
+    ],
+  },
+  {
     id: '20261020-build-context-and-warehouse',
     date: '2026-10-20',
     scope: 'BOX、配装与驱动盘',

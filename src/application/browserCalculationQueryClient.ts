@@ -5,6 +5,7 @@ import { planningEventDeclarationsInputFingerprint32 } from './publicPlanningEve
 import type { CurrentGameDataRuntimeSelection } from '../gameDataPacks/runtimeSelection'
 import type { CalculationQueryClient } from './calculationQueryContract'
 import { browserCalculationInputFingerprint } from './browserCalculationInputFingerprint'
+import { unpackPublicWarehouseActions } from './publicWarehouseActionTransport'
 import {
   browserCalculationQueryProtocolVersion,
   type BrowserCalculationQuery,
@@ -306,13 +307,24 @@ export function createBrowserCalculationQueryClient(options: {
     },
     async calculateAccountDecision(query) {
       release(query.runId)
-      const browser = browserCalculationInputFingerprint(query.input)
-      const run =
-        await submit<Awaited<ReturnType<CalculationQueryClient['calculateAccountDecision']>>>(query)
+      const input = structuredClone(query.input)
+      const browser = browserCalculationInputFingerprint(input)
+      const run = await submit<
+        Awaited<ReturnType<CalculationQueryClient['calculateAccountDecision']>>
+      >({
+        ...query,
+        input,
+      })
       liveRuns.add(query.runId)
       fingerprints.set(query.runId, { browser, core: run.inputFingerprint })
       notifyRunChange()
-      return run
+      return {
+        ...run,
+        input,
+        warehouseActions: run.warehouseActions
+          ? unpackPublicWarehouseActions(run.warehouseActions)
+          : undefined,
+      }
     },
     async queryCommonAnomalySettlement32(request) {
       const query = structuredClone(request)

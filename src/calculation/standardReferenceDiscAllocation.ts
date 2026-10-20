@@ -27,6 +27,7 @@ const policy = standardReferenceDiscAllocationPolicy
 const rules = driveDiscData?.rules.subStatStepsByRarity.S ?? []
 const knownSets = new Set(driveDiscImportSetIdentities.map((set) => set.id))
 type Allocation = number[][]
+const feasibleSeeds = new Map<string, { allocation: Allocation | null; nodes: number }>()
 
 function templateError(discs: readonly DriveDisc[]) {
   if (rules.length !== 10 || new Set(rules.map((rule) => rule.stat)).size !== 10)
@@ -103,6 +104,15 @@ function totalsOf(allocation: Allocation) {
 /** Four lines of two rolls each give legal initial-three-line +15 histories.
  * Backtracking covers all ten stats without assuming any particular mains. */
 function feasibleSeed(templates: readonly DriveDisc[]) {
+  // Only stat identities and ordered main stats constrain this pure feasibility
+  // search. Cache no account data or objective; callers get independent rows.
+  const key = JSON.stringify([
+    rules.map((rule) => rule.stat),
+    templates.map((disc) => disc.mainStat),
+  ])
+  const cached = feasibleSeeds.get(key)
+  if (cached)
+    return { allocation: cached.allocation?.map((row) => [...row]) ?? null, nodes: cached.nodes }
   const choices = templates.map((disc) => {
     const allowed = rules.flatMap((rule, index) => (rule.stat === disc.mainStat ? [] : [index]))
     const combinations: number[][] = []
@@ -111,7 +121,7 @@ function feasibleSeed(templates: readonly DriveDisc[]) {
         for (let c = b + 1; c < allowed.length - 1; c++)
           for (let d = c + 1; d < allowed.length; d++)
             combinations.push([allowed[a]!, allowed[b]!, allowed[c]!, allowed[d]!])
-    return combinations
+    return combinations.sort((a, b) => a.join(',').localeCompare(b.join(',')))
   })
   const totals = rules.map(() => 0)
   const allocation: Allocation = []
@@ -127,12 +137,12 @@ function feasibleSeed(templates: readonly DriveDisc[]) {
       )
     )
       return false
-    const ordered = [...choices[slot]!].sort(
-      (a, b) =>
-        a.reduce((sum, stat) => sum + totals[stat]!, 0) -
-          b.reduce((sum, stat) => sum + totals[stat]!, 0) || a.join(',').localeCompare(b.join(',')),
-    )
-    for (const selected of ordered) {
+    const ordered = choices[slot]!.map((selected, rank) => ({
+      selected,
+      rank,
+      score: selected.reduce((sum, stat) => sum + totals[stat]!, 0),
+    })).sort((a, b) => a.score - b.score || a.rank - b.rank)
+    for (const { selected } of ordered) {
       const row = rules.map((_, index) => (selected.includes(index) ? 2 : 0))
       selected.forEach((stat) => (totals[stat]! += 2))
       allocation.push(row)
@@ -142,7 +152,13 @@ function feasibleSeed(templates: readonly DriveDisc[]) {
     }
     return false
   }
-  return { allocation: visit(0) ? allocation : null, nodes }
+  const result = { allocation: visit(0) ? allocation : null, nodes }
+  if (feasibleSeeds.size >= 128) feasibleSeeds.delete(feasibleSeeds.keys().next().value!)
+  feasibleSeeds.set(key, {
+    allocation: result.allocation?.map((row) => [...row]) ?? null,
+    nodes,
+  })
+  return result
 }
 
 const cloneAllocation = (allocation: Allocation) => allocation.map((row) => [...row])

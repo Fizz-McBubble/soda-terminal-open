@@ -168,6 +168,7 @@ export function projectPublicCalculationResult(
         recommendationScore,
         teamRatingLabel,
         alternativeTeams,
+        mechanicDiagnostic,
       } = view
       return {
         contract,
@@ -184,6 +185,7 @@ export function projectPublicCalculationResult(
         recommendationScore,
         teamRatingLabel,
         alternativeTeams,
+        ...(mechanicDiagnostic === undefined ? {} : { mechanicDiagnostic }),
       }
     }
     case 'saved_team_plan_replay': {

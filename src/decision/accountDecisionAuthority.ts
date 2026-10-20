@@ -1,8 +1,7 @@
+import type { AccountDecisionAuthorityInput } from './accountDecisionAuthorityInput'
 import { projectAccountDecisionRecommendation } from './accountDecisionRecommendationProjection'
 import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
-import type { AccountRoster } from '../assault/types'
 import { currentNormalizedPlanningBaseline } from '../calculation/currentNormalizedPlanningBaseline'
-import type { AccountBuildResult } from '../optimizer/optimizeAccountBuilds'
 import type { TeamPortfolioPreference } from '../accounts/teamPortfolioPreference'
 import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
 import { stableContentHash } from '../gameDataPacks/types'
@@ -20,7 +19,6 @@ import {
   reviewedAuthorComparisonMembership32,
 } from './reviewedAuthorComparisonMembership32'
 import { projectOutputPotentialBands } from './outputPotentialBand'
-import { type RankedFormation } from './accountDecisionBands'
 import type { AgentRealInvestmentDetail } from './accountCultivationRealInvestment'
 import {
   Current31TeamIntrinsicIndexMismatchError,
@@ -53,17 +51,6 @@ function hardConstraintBlockers(preference: TeamPortfolioPreference) {
   return preference.templateIds.length
     ? ['当前 exhaustive formation 尚无 templateId crosswalk；具名模板硬约束不能静默忽略。']
     : []
-}
-
-type AccountDecisionAuthorityInput = {
-  rankedFormations: readonly RankedFormation[]
-  roster: AccountRoster
-  allocation: AccountBuildResult
-  preference: TeamPortfolioPreference
-  recommendationLimit?: number
-  decisionIssueClassificationFingerprint?: string
-  /** Validation oracle; production always uses the generated intrinsic index when current. */
-  validationIntrinsicProjectionMode?: 'indexed' | 'direct'
 }
 
 function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthorityInput) {
@@ -470,6 +457,7 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
       teamStrengthRankById,
       cultivationRankById,
       validationIntrinsicProjectionMode: input.validationIntrinsicProjectionMode,
+      deferDiagnosticInference: input.deferDiagnosticInference,
     })
     const marginalYield = marginalYieldByCandidateId.get(item.candidate.candidateId)
     return {

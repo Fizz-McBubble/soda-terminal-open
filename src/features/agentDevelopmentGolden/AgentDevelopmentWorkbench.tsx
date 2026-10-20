@@ -16,6 +16,7 @@ import { AgentVisualSlot } from './agentVisualSlot'
 import { BackNavigation } from '../../components/BackNavigation'
 import { usePageOperationScope } from '../../components/usePageOperationScope'
 import { specialtyIconIds, presentationTargetLevel } from './agentDevelopmentWorkbenchPresentation'
+import { SkillRecommendationTargets } from './SkillRecommendationTargets'
 import type { AgentDevelopmentGoldenProps, GoldenWorkbenchData, JourneyScenario } from './types'
 export function Workbench({
   toOverview,
@@ -203,19 +204,7 @@ export function Workbench({
                   ))}
                 </div>
               </div>
-              <section className="skill-comparison__target" aria-label="技能推荐等级">
-                <small id="skill-target-title">推荐等级</small>
-                <div>
-                  {subject.graduation.skills.map((skill) => (
-                    <span className={skill.priority ? 'priority' : undefined} key={skill.label}>
-                      <small>{skill.label}</small>
-                      <b title={skill.nextLevel?.tooltip ?? skill.recommended}>
-                        {presentationTargetLevel(skill.recommended)}
-                      </b>
-                    </span>
-                  ))}
-                </div>
-              </section>
+              <SkillRecommendationTargets skills={subject.graduation.skills} />
               {subject.graduation.potentialSkillReference ? (
                 <section
                   className="skill-comparison__target"

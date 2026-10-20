@@ -1,3 +1,4 @@
+import type { AccountPlanningDraft } from '../accounts/types'
 import { authorityTargetBuildDirection } from './authorityTargetBuildDirection'
 import { resolveAuthorityExecutionCandidate } from './accountDecisionAuthorityExecutionCandidates'
 import {
@@ -223,4 +224,34 @@ export function currentSavedTeamBuildIntent(
     effectiveEquipmentParameters: plan.teamEquipmentParameters,
     accountFactBinding: undefined,
   }
+}
+
+export function currentSavedTeamBuildIntents(
+  drafts: readonly AccountPlanningDraft[],
+  snapshot: Parameters<typeof currentSavedTeamBuildIntent>[1],
+  warehouse: CoreWarehouse,
+) {
+  return Object.fromEntries(
+    drafts.flatMap((draft) => {
+      if (draft.state !== 'saved' || draft.kind !== 'team') return []
+      try {
+        const current = currentSavedTeamBuildIntent(draft, snapshot, warehouse)
+        return current
+          ? [
+              [
+                draft.id,
+                {
+                  buildIntent: current.buildIntent,
+                  effectiveEquipmentParameters: current.effectiveEquipmentParameters,
+                },
+              ],
+            ]
+          : []
+      } catch {
+        // A malformed historical plan retains ordinary reference protection;
+        // it cannot supply a current whole-team replacement objective.
+        return []
+      }
+    }),
+  )
 }

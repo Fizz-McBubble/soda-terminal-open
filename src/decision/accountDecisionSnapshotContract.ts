@@ -136,6 +136,8 @@ export type AccountDecisionSnapshot = {
 }
 
 export type BuildAccountDecisionInput = {
+  /** Browser summaries defer model-only diagnostics until a concrete team is opened. */
+  deferDiagnosticInference?: boolean
   warehouse: CoreWarehouse
   profiles?: AgentDiscProfile[]
   drafts: AccountPlanningDraft[]

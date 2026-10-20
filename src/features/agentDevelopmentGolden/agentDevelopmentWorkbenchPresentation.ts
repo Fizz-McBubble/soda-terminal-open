@@ -1,3 +1,5 @@
+import type { GoldenWorkbenchData } from './types'
+
 export const specialtyIconIds: Record<string, { entityId: string; name: string }> = {
   锋御: { entityId: 'specialty-armorer', name: '锋御特性' },
   异常: { entityId: 'specialty-anomaly', name: '异常特性' },
@@ -9,13 +11,22 @@ export const specialtyIconIds: Record<string, { entityId: string; name: string }
 }
 
 export function presentationTargetLevel(recommended: string) {
-  // F is the canonical seven-level core cap. A source's '+' is a minimum,
-  // never permission to round the target up to the next exact level.
+  // Display a concrete reference level; source floors remain in the skill data.
+  // F maps to the canonical seven-level core cap.
   const trimmed = recommended.trim()
   if (/^(?:核心技|核心)?(?:优先升至\s*)?[≥>=]*F\+?$/i.test(trimmed)) {
-    return /[+≥>]/u.test(trimmed) ? '≥7' : '7'
+    return '7'
   }
-  const isMinimum = trimmed.startsWith('≥') || trimmed.startsWith('>=') || trimmed.includes('+')
   const level = trimmed.match(/(\d+)/)
-  return level ? `${isMinimum ? '≥' : ''}${level[1]}` : recommended
+  return level ? level[1]! : recommended
+}
+
+export function presentationSkillTargetDescription(
+  skill: GoldenWorkbenchData['graduation']['skills'][number],
+) {
+  const level = presentationTargetLevel(skill.recommended)
+  const target = `${skill.targetType === 'soda_derived' ? '建议等级' : '推荐等级'}：${level}${/^\d+$/.test(level) ? '级' : ''}`
+  return [skill.priority ? '优先升级' : null, target, skill.nextLevel?.tooltip]
+    .filter(Boolean)
+    .join('；')
 }

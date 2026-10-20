@@ -27,6 +27,7 @@ export function projectAccountDecisionRecommendation(
     teamStrengthRankById: ReadonlyMap<string, number>
     cultivationRankById: ReadonlyMap<string, number>
     validationIntrinsicProjectionMode?: 'indexed' | 'direct'
+    deferDiagnosticInference?: boolean
   },
 ) {
   const {
@@ -44,6 +45,7 @@ export function projectAccountDecisionRecommendation(
     bangbooId: item.candidate.bestBangbooId,
     outputPotentialBand: 'unknown',
     benchmark: intrinsicRatingBenchmark,
+    reviewedOnly: context.deferDiagnosticInference,
   })
   if (current.rating.status !== 'rated')
     throw new Error(`短名单 Team Rating 与全域投影不一致：${item.candidate.candidateId}。`)
@@ -83,6 +85,7 @@ export function projectAccountDecisionRecommendation(
     mechanicRating: current.mechanicRating,
     referencePerformance: current.referencePerformance,
     metaCalibration: current.metaCalibration,
+    ...(context.deferDiagnosticInference ? { mechanicDiagnosticDeferred: true as const } : {}),
     mainstreamRecognition: current.mainstreamRecognition,
     accountInputs: {
       ...item.account,

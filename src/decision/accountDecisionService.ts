@@ -1,5 +1,5 @@
 import { warehouseDecisionDemand } from './warehouseDecisionDemand'
-import { currentSavedTeamBuildIntent } from './savedTeamBuildIntent'
+import { currentSavedTeamBuildIntents } from './savedTeamBuildIntent'
 import { enumerateActiveTeamHardConstraints } from '../accounts/teamPortfolioPreference'
 import { currentBangbooDirectory } from '../assault/catalog'
 import { contentHash } from '../evaluation/contentHash'
@@ -87,6 +87,7 @@ export function buildAccountDecisionSnapshot({
   capturedAt,
   planningDpsEvaluations = [],
   planningCandidateAuthorities,
+  deferDiagnosticInference,
 }: BuildAccountDecisionInput): AccountDecisionSnapshot {
   if (!warehouse.accountId) throw new Error('决策服务只接受具名活动账户，不能回退到旧表。')
 
@@ -148,6 +149,7 @@ export function buildAccountDecisionSnapshot({
     ? { ...preference, templateIds: [] }
     : preference
   const decisionAuthority = projectAccountDecisionAuthority({
+    deferDiagnosticInference,
     rankedFormations: exhaustiveCandidateScoring.authorityFormations,
     roster: warehouse.roster,
     allocation,
@@ -344,32 +346,10 @@ export function buildAccountDecisionSnapshot({
       requestedTeamCount: 3,
     }),
   }
-  const savedTeamBuildIntentsByDraftId = Object.fromEntries(
-    drafts.flatMap((draft) => {
-      if (draft.state !== 'saved' || draft.kind !== 'team') return []
-      try {
-        const current = currentSavedTeamBuildIntent(
-          draft,
-          { decisionAuthority, teamEngine, allocation },
-          warehouse,
-        )
-        return current
-          ? [
-              [
-                draft.id,
-                {
-                  buildIntent: current.buildIntent,
-                  effectiveEquipmentParameters: current.effectiveEquipmentParameters,
-                },
-              ],
-            ]
-          : []
-      } catch {
-        // A malformed historical plan retains ordinary reference protection;
-        // it cannot supply a current whole-team replacement objective.
-        return []
-      }
-    }),
+  const savedTeamBuildIntentsByDraftId = currentSavedTeamBuildIntents(
+    drafts,
+    { decisionAuthority, teamEngine, allocation },
+    warehouse,
   )
   const warehouseAnalysis = analyzeAccountWarehouse({
     accountId: warehouse.accountId,
