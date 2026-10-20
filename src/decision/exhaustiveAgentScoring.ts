@@ -136,6 +136,7 @@ export function compileAgentAlternatives(input: {
               potential: resolvePotentialImage(agent.agentId, agent.potentialImage) ?? null,
               coreLevel: skillLevels.core,
               skillLevels,
+              statBasis32: stats.statBasis32,
               initialStats: stats.initialStats,
               finalStats: stats.finalStats,
             }

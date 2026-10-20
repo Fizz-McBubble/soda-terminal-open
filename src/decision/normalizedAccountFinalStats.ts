@@ -458,6 +458,7 @@ export function projectNormalizedAccountFinalStatsDetailed(input: {
     sharpDamageBonus,
   }
   const stats = {
+    statBasis32: 'out_of_combat' as const,
     attack,
     defense,
     baseHp: characterHp,

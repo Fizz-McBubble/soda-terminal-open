@@ -16,6 +16,7 @@ import {
 import { reviewedDriveDiscSemanticsIdentity32 as identity } from './reviewedDriveDiscSemanticsIdentity32'
 
 const applications = {
+  'combat.atk_': 'attack_percent',
   'combat.common_dmg_': 'damage_bonus',
   'combat.crit_': 'crit_rate',
   'combat.crit_dmg_': 'crit_damage',
@@ -67,6 +68,11 @@ export function compileReviewedDriveDiscEventEffects32(input: {
         if (!Number.isInteger(stack) || stack! < 0 || stack! > 3)
           return unsupported('静听嘉音层数必须为0至3的整数。')
       }
+      if (setId === 'set-woodpecker-electro') {
+        const stack = runtime?.accumulators?.['WoodpeckerElectro:crit_basic_dodge_ex']
+        if (!Number.isInteger(stack) || stack! < 0 || stack! > 3)
+          return unsupported('啄木鸟电音必须声明当前各技能独立6秒增益的种类数，且为0至3整数。')
+      }
       const result = resolveCurrentDriveDiscFourPieceContract({
         stableId: setId,
         equippedPieces: count,
@@ -79,14 +85,13 @@ export function compileReviewedDriveDiscEventEffects32(input: {
         `libs/zzz/dm-localization/assets/locales/en/disc_${source.pin.key}_gen.json#sha256=${source.pin.localizationSha256}`,
         identity.revision,
       ]
-      const recipients =
-        setId === 'set-34200'
-          ? [member.agentId]
-          : setId === 'set-astral-voice'
-            ? runtime!.flags!['AstralVoice:eligible_event_owner']
-              ? [input.ownerAgentId]
-              : []
-            : input.members.map((row) => row.agentId)
+      const recipients = ['set-34200', 'set-fanged-metal', 'set-woodpecker-electro'].includes(setId)
+        ? [member.agentId]
+        : setId === 'set-astral-voice'
+          ? runtime!.flags!['AstralVoice:eligible_event_owner']
+            ? [input.ownerAgentId]
+            : []
+          : input.members.map((row) => row.agentId)
       const effects: readonly Record<string, unknown>[] =
         setId === 'set-king-of-the-summit'
           ? [{ kind: 'modifier', target: 'team', stat: 'combat.crit_dmg_', value: 0 }]

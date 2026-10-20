@@ -1,4 +1,5 @@
 import { warehouseDecisionDemand } from './warehouseDecisionDemand'
+import { currentSavedTeamBuildIntent } from './savedTeamBuildIntent'
 import { enumerateActiveTeamHardConstraints } from '../accounts/teamPortfolioPreference'
 import { currentBangbooDirectory } from '../assault/catalog'
 import { contentHash } from '../evaluation/contentHash'
@@ -343,6 +344,33 @@ export function buildAccountDecisionSnapshot({
       requestedTeamCount: 3,
     }),
   }
+  const savedTeamBuildIntentsByDraftId = Object.fromEntries(
+    drafts.flatMap((draft) => {
+      if (draft.state !== 'saved' || draft.kind !== 'team') return []
+      try {
+        const current = currentSavedTeamBuildIntent(
+          draft,
+          { decisionAuthority, teamEngine, allocation },
+          warehouse,
+        )
+        return current
+          ? [
+              [
+                draft.id,
+                {
+                  buildIntent: current.buildIntent,
+                  effectiveEquipmentParameters: current.effectiveEquipmentParameters,
+                },
+              ],
+            ]
+          : []
+      } catch {
+        // A malformed historical plan retains ordinary reference protection;
+        // it cannot supply a current whole-team replacement objective.
+        return []
+      }
+    }),
+  )
   const warehouseAnalysis = analyzeAccountWarehouse({
     accountId: warehouse.accountId,
     discs: warehouse.discs,
@@ -350,6 +378,7 @@ export function buildAccountDecisionSnapshot({
     drafts,
     activePlanIds: currentPlanIdsByAgent,
     priorityAgentIds: preferredAgentIds,
+    savedTeamBuildIntentsByDraftId,
     ...warehouseDecisionDemand(preference, coordination, portfolioProjection.candidates, drafts),
     dataVersion: currentVersionProjection.packageVersion,
     now: capturedAt,

@@ -6,6 +6,11 @@ import {
   type SavedTeamGraduationCompletion,
 } from '../decision/savedTeamGraduationCompletion'
 import type { TeamExecution } from '../decision/teamExecutionProjection'
+import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
+import {
+  normalizeReviewedEventConditionDeclarations32,
+  reviewedEventConditionDeclarationsIdentity32,
+} from '../calculation/reviewedEventConditionDeclarations32'
 
 function unknownCompletion(reason: string): SavedTeamGraduationCompletion {
   return {
@@ -37,7 +42,8 @@ function savedExecutions(
 }
 
 export function savedPlanGraduationCompletion(
-  plan: Pick<AccountPlanningDraft, 'teamExecutionSnapshot' | 'teamPortfolioSnapshot'>,
+  plan: Pick<AccountPlanningDraft, 'teamExecutionSnapshot' | 'teamPortfolioSnapshot'> &
+    Pick<Partial<AccountPlanningDraft>, 'solutionContext'>,
   warehouse?: Pick<CoreWarehouse, 'roster' | 'discs'>,
 ): SavedTeamGraduationCompletion {
   const saved = savedExecutions(plan)
@@ -45,12 +51,30 @@ export function savedPlanGraduationCompletion(
   if (!warehouse)
     return unknownCompletion('当前账户角色与驱动盘数据未提供，无法按保存快照复算毕业面板。')
   let results: SavedTeamGraduationCompletion[]
+  let declarations
+  try {
+    declarations = normalizeReviewedEventConditionDeclarations32(
+      plan.solutionContext?.eventConditionDeclarationsByAgentId,
+      saved.executions.flatMap((execution) => execution.memberIds),
+    )
+    if (
+      reviewedEventConditionDeclarationsIdentity32(declarations) !==
+      plan.solutionContext?.eventConditionDeclarationsIdentity
+    )
+      return unknownCompletion('保存方案的事件条件身份已失效；请按当前条件重新比较，原方案仍保留。')
+    if (declarations && plan.solutionContext?.gameVersion !== currentVersionProjection.gameVersion)
+      return unknownCompletion('保存方案的事件条件版本已过期；请按当前版本重新比较，原方案仍保留。')
+  } catch {
+    return unknownCompletion('保存方案的事件条件无法核验；请按当前条件重新比较，原方案仍保留。')
+  }
   try {
     results = saved.executions.map((execution) =>
       createSavedTeamGraduationCompletion({
         execution,
         roster: warehouse.roster,
         discs: warehouse.discs,
+        scenarioSelection: plan.solutionContext?.scenarioSelection,
+        eventConditionDeclarationsByAgentId: declarations,
       }),
     )
   } catch {

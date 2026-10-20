@@ -17,7 +17,12 @@ import { orderTeamMembersForDisplay } from '../application/teamMemberDisplayOrde
 
 type SavedTeamPlanSummary = Pick<
   AccountPlanningDraft,
-  'id' | 'name' | 'selection' | 'teamPortfolioSnapshot' | 'teamExecutionSnapshot'
+  | 'id'
+  | 'name'
+  | 'selection'
+  | 'teamPortfolioSnapshot'
+  | 'teamExecutionSnapshot'
+  | 'solutionContext'
 >
 
 export function TeamSavedPlanList({

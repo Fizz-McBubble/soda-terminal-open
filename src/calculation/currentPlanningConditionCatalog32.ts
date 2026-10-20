@@ -36,7 +36,7 @@ function matchesMappedSourceLocator(path: string, key: string) {
   )
 }
 export const currentPlanningConditionCatalogIdentity32 = Object.freeze({
-  version: 'planning32-source-condition-domains-v6',
+  version: 'planning32-source-condition-domains-v7',
   repository,
   commit,
   sourceHash: stableContentHash({
@@ -106,6 +106,11 @@ const actorIds: Record<string, string> = {
   Rina: 'agent-rina',
 }
 const labels: Record<string, string> = {
+  hit_behind: '钢铁肉垫：本次命中从敌人背后发生（被动物伤来源冲突仍需单独处理）',
+  hit_away: '仿制星徽引擎：普攻或冲刺攻击命中至少6米外目标后的8秒物伤增益仍有效',
+  offField: '家政员：穿戴者当前处于场外，固定能量回复按每秒单位消费',
+  exSpecialHits:
+    '家政员：强化特殊技命中所叠的当前有效层数；至多15层，持续1秒，重复触发刷新持续时间',
   crimsonInscription: '猩红铭刻',
   perfectDodge: '极限闪避效果',
   remnantEdge: '余锋效果',
@@ -128,7 +133,13 @@ const seedRefs = (seed: SourceSeed) => [
   `${seed.formulaPath}#sha256=${seed.formulaHash}`,
   `${seed.metaPath}#sha256=${seed.metaHash}`,
   ...(seed.dataPath ? [`${seed.dataPath}#sha256=${seed.dataHash}`] : []),
+  ...(seed.localizationPath ? [`${seed.localizationPath}#sha256=${seed.localizationHash}`] : []),
 ]
+
+/** Registration only; projection still verifies actual specialty and both source contracts. */
+export function hasCurrentPlanningWEngineConditionSource32(engineId: string): boolean {
+  return sourceSeeds.some((seed) => seed.kind === 'wengine' && seed.engineId === engineId)
+}
 const producerFor = (ref: string) =>
   /^dm\./.test(ref)
     ? 'locked_mapped_stats'
@@ -228,7 +239,7 @@ export function projectCurrentPlanningConditionCatalog32(
           : valueKind === 'number'
             ? 'integer_stack'
             : 'source_enum',
-      meaning: `上游 ${seed.key}.${ref} 条件；激活持续时间和事件状态必须由具名声明提供。`,
+      meaning: `${labels[ref] ?? `上游 ${seed.key}.${ref} 条件`}；激活持续时间和事件状态必须由具名声明提供。`,
       integerOnly: cond.int_only === true,
       runtimeReference,
       effectKeys: effects.map((x) => x.effectKey),

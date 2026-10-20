@@ -9,19 +9,16 @@ import {
   type CultivationPriorityResult,
   type TeamRatingResult,
 } from './teamDecisionAuthority'
+import {
+  evaluateAccountCultivationMarginalYield,
+  type AccountCultivationMarginalYield,
+} from './accountCultivationMarginalYield'
+import {
+  refineRealInvestmentDiscFit,
+  type AccountCultivationRealInvestment,
+} from './accountCultivationRealInvestment'
 
-export function marginalGain(
-  rating: TeamRatingResult,
-  coverageGain: CultivationPriorityInput['coverageGain'],
-): CultivationPriorityInput['marginalAccountGain'] {
-  if (rating.status !== 'rated') return 'unknown'
-  if (coverageGain === 'new_required_team' && ['S+', 'S'].includes(rating.ratingBand))
-    return 'transformative'
-  if (coverageGain === 'new_required_team' || ['S+', 'S', 'A+'].includes(rating.ratingBand))
-    return 'high'
-  if (rating.ratingBand === 'A') return 'medium'
-  return 'low'
-}
+export { marginalGain } from './accountCultivationMarginalYield'
 
 export function nextAction(tier: CultivationPriorityResult['tier']) {
   if (tier === 'ready_now') return '复核成员配装与实体盘互斥后，可进入单队配装。'
@@ -89,23 +86,52 @@ export function createPriorityResult(input: CultivationPriorityInput): Cultivati
   })
 }
 
+export {
+  evaluateAccountCultivationRealInvestment,
+  type AgentRealInvestmentDetail,
+  type RealInvestmentMaterialTotals,
+  type AccountCultivationRealInvestment,
+  type AccountCultivationRealInvestmentInput,
+} from './accountCultivationRealInvestment'
+
+export {
+  evaluateAccountCultivationMarginalYield,
+  compareCultivationPriorityPartialOrder,
+  type CultivationYieldCategory,
+  type AccountCultivationMarginalYield,
+  type AccountCultivationMarginalYieldInput,
+  type PartialOrderComparisonResult,
+} from './accountCultivationMarginalYield'
+
 export function refineCultivationPriorityWithTargetFit(input: {
   recommendation: {
     candidateId: string
     teamRating: TeamRatingResult
     accountInputs: Omit<CultivationPriorityInput, 'contract' | 'candidateId' | 'teamRating'>
+    realInvestment?: AccountCultivationRealInvestment | null
+    marginalYield?: AccountCultivationMarginalYield | null
   }
   fit: {
     status: 'ready' | 'partial' | 'unavailable'
     uniqueDiscCount: number
     gaps: readonly string[]
   }
+  realInvestment?: AccountCultivationRealInvestment
 }) {
   const previous = input.recommendation.accountInputs
+  const previousInvestment = input.realInvestment ?? input.recommendation.realInvestment ?? null
   // Unavailable conflates missing constraints with no physical fit. Until the query
   // provides a typed physical cause, it cannot prove eighteen missing inventory slots.
   const missingDiscSlots =
     input.fit.status === 'unavailable' ? null : Math.max(0, 18 - input.fit.uniqueDiscCount)
+  const realInvestment = previousInvestment
+    ? refineRealInvestmentDiscFit(previousInvestment, missingDiscSlots)
+    : null
+  const unknownInvestment =
+    realInvestment &&
+    (realInvestment.missingSummary.unrecordedSkillsCount > 0 ||
+      realInvestment.agentInvestments.some((agent) => agent.owned && agent.level.gap === null))
+  const knownLevelGap = realInvestment?.agentInvestments.some((agent) => (agent.level.gap ?? 0) > 0)
   const distance = {
     ...previous.buildCompletionDistance,
     missingWEngines: 0,
@@ -114,10 +140,11 @@ export function refineCultivationPriorityWithTargetFit(input: {
   const currentReadiness: CultivationPriorityInput['currentReadiness'] =
     distance.missingAgents > 0
       ? 'blocked'
-      : input.fit.status === 'unavailable'
+      : input.fit.status === 'unavailable' || unknownInvestment
         ? 'not_evaluated'
         : input.fit.status === 'ready' &&
             distance.missingSkillInvestments === 0 &&
+            !knownLevelGap &&
             distance.missingPotentialInvestments === 0
           ? 'ready'
           : missingDiscSlots !== null &&
@@ -127,14 +154,15 @@ export function refineCultivationPriorityWithTargetFit(input: {
             ? 'near_ready'
             : 'development'
   const investmentCost: CultivationPriorityInput['investmentCost'] =
-    currentReadiness === 'ready'
+    realInvestment?.investmentCost ??
+    (currentReadiness === 'ready'
       ? 'low'
       : currentReadiness === 'near_ready'
         ? 'medium'
         : currentReadiness === 'development'
           ? 'high'
-          : 'unknown'
-  const priorityInput = createCultivationPriorityInput({
+          : 'unknown')
+  const priorityDraft = {
     contract: teamDecisionAuthorityContractId,
     candidateId: input.recommendation.candidateId,
     teamRating: input.recommendation.teamRating,
@@ -150,9 +178,36 @@ export function refineCultivationPriorityWithTargetFit(input: {
     replacementCost:
       input.fit.status === 'ready' ? 'low' : input.fit.status === 'partial' ? 'medium' : 'unknown',
     buildCompletionDistance: distance,
+  } satisfies Omit<CultivationPriorityInput, 'marginalAccountGain'>
+  const marginalYield = evaluateAccountCultivationMarginalYield({
+    candidateId: input.recommendation.candidateId,
+    teamRating: input.recommendation.teamRating,
+    coverageGain: priorityDraft.coverageGain,
+    currentReadiness: priorityDraft.currentReadiness,
+    investmentCost: priorityDraft.investmentCost,
+    ...(realInvestment ? { realInvestment } : {}),
+  })
+  const priorityInput = createCultivationPriorityInput({
+    ...priorityDraft,
+    marginalAccountGain: marginalYield.marginalAccountGain,
   })
   const base = createPriorityResult(priorityInput)
   const gaps = [...new Set(input.fit.gaps)]
+
+  const additionalReasons: string[] = []
+  if (realInvestment) {
+    if (realInvestment.missingSummary.unrecordedWEnginesCount > 0) {
+      additionalReasons.push(
+        `音擎提示：队伍中有 ${realInvestment.missingSummary.unrecordedWEnginesCount} 名成员未记录当前实装音擎；不假定为未装备或0级，推荐音擎按60级基线供确认。`,
+      )
+    }
+    if (realInvestment.materialTotals.denny > 0) {
+      additionalReasons.push(
+        `技能材料预估：需丁尼 ×${realInvestment.materialTotals.denny.toLocaleString('zh-CN')}，仓鼠笼访问器 ×${realInvestment.materialTotals.hamsterCagePasses}，周本材料 ×${realInvestment.materialTotals.notoriousHuntMaterials}。`,
+      )
+    }
+  }
+
   const cultivationPriority = cultivationPriorityResultSchema.parse({
     ...base,
     reasons: [
@@ -160,8 +215,10 @@ export function refineCultivationPriorityWithTargetFit(input: {
       missingDiscSlots === null
         ? '本次未能完成配装计算，尚不能确定实际缺盘数量。'
         : `显式目标配装：${input.fit.status}，驱动盘 ${18 - missingDiscSlots}/18；音擎与邦布按推荐候选由玩家确认，不计入实体库存缺口。`,
+      ...additionalReasons,
+      ...(realInvestment?.reasons ?? []),
     ],
-    tradeoffs: [...base.tradeoffs, ...gaps],
+    tradeoffs: [...base.tradeoffs, ...gaps, ...(realInvestment?.tradeoffs ?? [])],
     nextAction:
       input.fit.status === 'ready'
         ? base.nextAction
@@ -176,6 +233,8 @@ export function refineCultivationPriorityWithTargetFit(input: {
     accountInputs: priorityInput,
     cultivationPriority,
     gaps,
+    realInvestment: realInvestment ?? null,
+    marginalYield,
     sideEffect: 'read_only' as const,
     boundary:
       '只细化当前已点击目标队伍的账号完成度与培养建议；不回写基础短名单、不改 Team Rating，也不触发其他队伍求解。',

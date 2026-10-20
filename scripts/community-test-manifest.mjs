@@ -1,5 +1,7 @@
 // Shared by the public regression runner and clean source dependency graph.
 export const incremental32CommunityTests = Object.freeze([
+  'src/application/savedLuminizeReplay32.test.ts',
+  'src/pages/PlanEditorSavedStateNotices.test.tsx',
   'src/gameDataPacks/reviewedPotentialIdentity.test.ts',
   'src/pages/AgentLoadoutComparisonPage.decision-surface.test.tsx',
   'src/features/agentDevelopmentGolden/AgentDevelopmentGolden.workbench.targets-and-save.test.tsx',
@@ -115,6 +117,11 @@ export const communityTests = Object.freeze([
   'src/calculation/reviewedFunctionalCapacity32.test.ts',
   'src/calculation/reviewedSupportTargetCapacity32.test.ts',
   'src/calculation/reviewedLumifluxMechanics32.test.ts',
+  'src/calculation/reviewedLuminizeSettlement32.test.ts',
+  'src/calculation/reviewedClaretResourceEvents32.test.ts',
+  'src/calculation/compileDeclaredRemielleRadiance32.test.ts',
+  'src/calculation/declaredRemielleResourceConsumer32.test.ts',
+  'src/accounts/luminizePlanPersistence32.test.ts',
   'src/calculation/reviewedTemplateMechanicEffects32.test.ts',
   'src/calculation/reviewedTemplatePreparedEvents32.test.ts',
   'src/calculation/reviewedPotentialSourceClosure32.test.ts',

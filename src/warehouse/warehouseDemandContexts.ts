@@ -1,3 +1,4 @@
+import { targetTeamBuildDirectionConditions } from '../application/targetTeamEffectivePotentialConditions'
 import type { AccountRoster } from '../assault/types'
 import type { AccountPlanningDraft } from '../accounts/types'
 import { resolvePlanningDiscReferences } from '../accounts/planningDiscReferences'
@@ -25,6 +26,15 @@ import {
 } from '../gameDataPacks/reviewedTeamDiscConditions'
 import { resolveCurrentReleasedIdentity } from '../gameDataPacks/currentReleasedIdentityMap'
 import { stableContentHash } from '../gameDataPacks/types'
+import {
+  prepareWarehouseCompleteBuildObjective,
+  type WarehouseCompleteBuildObjective,
+} from './warehouseCompleteBuildObjective'
+import {
+  prepareWarehouseSavedTeamObjective,
+  type WarehouseSavedTeamBuildIntents,
+  type WarehouseSavedTeamObjective,
+} from './warehouseSavedTeamObjective'
 
 export type WarehouseDemandContext = {
   id: string
@@ -35,12 +45,16 @@ export type WarehouseDemandContext = {
   setPlan: CandidateSetPlan
   eligibility: 'eligible' | 'unknown'
   memberIds?: string[]
+  completeBuild?: WarehouseCompleteBuildObjective
+  completeTeamBuild?: WarehouseSavedTeamObjective
 }
 
 type Input = {
+  accountId?: string
   roster: AccountRoster
   discs: DriveDisc[]
   drafts: AccountPlanningDraft[]
+  savedTeamBuildIntentsByDraftId?: WarehouseSavedTeamBuildIntents
   priorityAgentIds?: readonly string[]
   activePlanIds?: Readonly<Record<string, string | null | undefined>>
   selectedTeamAgentIds?: readonly (readonly string[])[]
@@ -50,6 +64,7 @@ type DemandSource = {
   agentIds: string[]
   memberIds?: string[]
   selectedLoadouts?: CandidateSetPlanEligibilityContext['selectedLoadouts']
+  savedBuild?: { draft: AccountPlanningDraft; discIdsByAgentId: Record<string, string[]> }
 }
 const identities = (ids: readonly string[]) => ids.map(resolveCurrentReleasedIdentity)
 const completeTrio = (ids: readonly string[]) => ids.length === 3 && new Set(ids).size === 3
@@ -120,18 +135,48 @@ export function resolveWarehouseDemandContexts(input: Input) {
     if (!activeAgentIds.includes(id)) sources.push({ id: `reserve:${id}`, agentIds: [id] })
   }
   const contexts: WarehouseDemandContext[] = []
-  const agentStateById = Object.fromEntries(
-    [...owned].map(([id, agent]) => [id, { potentialImage: agent.potentialImage }]),
-  )
+  const directionConditions = targetTeamBuildDirectionConditions({
+    memberIds: [...owned.keys()],
+    roster: input.roster,
+  })
+  const { agentStateById } = directionConditions
+
   for (const source of sources) {
+    const completeTeamBuild = source.savedBuild
+      ? prepareWarehouseSavedTeamObjective({
+          accountId: input.accountId,
+          roster: input.roster,
+          discs: input.discs,
+          draft: source.savedBuild.draft,
+          resolved: input.savedTeamBuildIntentsByDraftId?.[source.savedBuild.draft.id],
+          discIdsByAgentId: source.savedBuild.discIdsByAgentId,
+        })
+      : undefined
     for (const agentId of source.agentIds) {
+      const agent = owned.get(agentId)!
+      const completeBuild = source.savedBuild
+        ? prepareWarehouseCompleteBuildObjective({
+            agent,
+            discs: input.discs,
+            basis: 'saved_scheme',
+            draft: source.savedBuild.draft,
+            discIds: source.savedBuild.discIdsByAgentId[agentId] ?? [],
+          })
+        : !source.id.startsWith('saved:')
+          ? prepareWarehouseCompleteBuildObjective({
+              agent,
+              discs: input.discs,
+              basis: 'equipped',
+              discIds: agent.equippedDiscIds ?? [],
+            })
+          : undefined
       const base = getCandidateWarehouseConstraint(agentId)
       if (!base || base.status !== 'candidate') {
         unresolved.add(agentId)
         coverageComplete = false
         continue
       }
-      const teamContext = { memberIds: source.memberIds, agentStateById }
+      const teamContext = { memberIds: source.memberIds, ...directionConditions }
       const directions = resolveReviewedTeamDiscDirections(agentId, teamContext)
       // Never use a merged team constraint for retained base branches: its overrides
       // belong only to the reviewed branch, not every plan sharing this agent.
@@ -152,7 +197,12 @@ export function resolveWarehouseDemandContexts(input: Input) {
       }
       if (directions.length === 1) {
         const constraint = getCandidateWarehouseConstraintForTeam(agentId, teamContext)!
-        branches.push({ constraint, plan: directions[0]!.setPlan, key: directions[0]!.id })
+        const direction = directions[0]!
+        const plans =
+          direction.targetPanelPolicy === 'omit_base_reference' && direction.retainBasePlans
+            ? candidateSetPlansForConstraint(constraint)
+            : [direction.setPlan]
+        branches.push(...plans.map((plan) => ({ constraint, plan, key: direction.id })))
       } else if (directions.length > 1) {
         unresolved.add(agentId)
       }
@@ -217,6 +267,8 @@ export function resolveWarehouseDemandContexts(input: Input) {
           setPlan: plan,
           eligibility: unknown ? 'unknown' : 'eligible',
           ...(source.memberIds ? { memberIds: [...source.memberIds] } : {}),
+          ...(!unknown && !constraint.buildObjective && completeBuild ? { completeBuild } : {}),
+          ...(!unknown && completeTeamBuild ? { completeTeamBuild } : {}),
         })
       }
     }
@@ -294,6 +346,7 @@ function savedSource(
   )
     return null
   const counts: Record<string, Record<string, number>> = {}
+  const discIdsByAgentId: Record<string, string[]> = {}
   if (
     executions.some((team) => {
       const declared = identities(team.memberIds)
@@ -313,6 +366,7 @@ function savedSource(
     if (selected.some((disc) => !disc) || new Set(selected.map((disc) => disc!.slot)).size !== 6)
       return null
     counts[agentId] = {}
+    discIdsByAgentId[agentId] = [...loadout.discIds]
     for (const disc of selected)
       counts[agentId]![disc!.setId] = (counts[agentId]![disc!.setId] ?? 0) + 1
     for (const team of executions) {
@@ -348,6 +402,7 @@ function savedSource(
   return trios.map((trio) => ({
     id: `saved:${draft.id}:${[...trio].sort().join(',')}`,
     agentIds: trio,
+    savedBuild: { draft, discIdsByAgentId },
     ...(completeTrio(trio)
       ? {
           memberIds: [...trio].sort(),

@@ -47,6 +47,7 @@ export function n4ValidationDisc(index: number): DriveDisc {
       { stat: 'crit_rate', value: 9.6, upgrades: 3 },
       { stat: 'crit_dmg', value: 9.6, upgrades: 1 },
       { stat: 'def_flat', value: 15, upgrades: 1 },
+      { stat: 'hp_percent', value: 3, upgrades: 0 },
     ],
     locked: false,
     favorite: false,

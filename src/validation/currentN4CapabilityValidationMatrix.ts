@@ -54,6 +54,13 @@ export type N4CapabilityValidationRow = {
   openRisks: readonly string[]
 }
 
+const independentAcceptanceStatus: N4ValidationCheckStatus =
+  current31MainstreamAuthorityEvaluationGate.blindMetaHoldout.independentAcceptanceStatus ===
+    'pass' ||
+  current31MainstreamAuthorityEvaluationGate.blindMetaHoldout.independentAcceptanceStatus === 'fail'
+    ? current31MainstreamAuthorityEvaluationGate.blindMetaHoldout.independentAcceptanceStatus
+    : 'not_evaluated'
+
 const commonMissingModelMetrics = {
   goldDiagnosticSplit: 'missing',
   blindHoldout: 'missing',
@@ -163,7 +170,7 @@ export const currentN4CapabilityValidationRows = Object.freeze([
     claimCeiling: 'candidate_direction_only',
     evidence: {
       goldDiagnosticSplit: 'pass',
-      blindHoldout: 'pass',
+      blindHoldout: independentAcceptanceStatus,
       topKRecall: current31MainstreamAuthorityEvaluationGate.metricStatus.topKRecall,
       pairwiseAccuracy:
         current31MainstreamAuthorityEvaluationGate.metricStatus.highConfidencePairwise,
@@ -183,7 +190,7 @@ export const currentN4CapabilityValidationRows = Object.freeze([
       'src/decision/bangbooRecommendationAuthority.test.ts',
     ],
     openRisks: [
-      '105条留出标签仍有跨两档与false-S错误；独立 Top-K 与 mainstream Unknown 分母不足，严格为 not_evaluated。来源评级优先，模型评分仅作有界候选；代表账户可执行性不构成邦布效果拟合或 Product Accepted。',
+      '105条旧标签仍有跨两档与false-S错误；旧4档/5偏序已暴露于 Gold/训练路径，只能作回归诊断。独立 Top-K、Band、Pairwise 与 mainstream Unknown 分母不足，严格为 not_evaluated。来源评级优先，模型评分仅作有界候选；代表账户可执行性不构成邦布效果拟合或 Product Accepted。',
     ],
   },
   {

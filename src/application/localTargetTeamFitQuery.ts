@@ -32,7 +32,10 @@ import { projectTargetTeamValueBenchmark } from '../decision/targetTeamValueBenc
 import { calculateTargetTeamWarehouseFit } from '../decision/targetTeamWarehouseFit'
 import { projectTeamEquipmentRecommendations } from '../decision/teamEquipmentRecommendations'
 import { projectTargetTeamExecution } from '../decision/teamExecutionProjection'
-import { candidatePanelInputsForScheme } from '../optimizer/optimizeAccountBuilds'
+import {
+  candidatePanelInputsForScheme,
+  type AccountLoadout,
+} from '../optimizer/optimizeAccountBuilds'
 import { projectPrivateTeamExecution } from '../pages/privateTeamLoadoutPresentationProducer'
 import type { BangbooStar, TeamEngineCandidate } from '../teamEngine/contracts'
 import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
@@ -43,7 +46,13 @@ import {
 } from './calculationQueryContract'
 import { resolvePlayerConfirmedTargetTeamQuery } from './localTargetTeamPlayerSelection'
 import { authorComparisonAccountBinding } from './publicAuthorComparisonAccountBinding'
-import { targetTeamEffectivePotentialConditions } from './targetTeamEffectivePotentialConditions'
+import { targetTeamBuildDirectionConditions } from './targetTeamEffectivePotentialConditions'
+import { preparePlanningBenchmark32 } from './privatePlanningBenchmarkBinding32'
+import { projectPlanningBenchmark32 } from './privatePlanningBenchmark32'
+import { validatePlanningEventDeclarations32 } from './publicPlanningEventDeclarations32'
+import type { DeclaredEventGoal32 } from '../decision/targetTeamDeclaredEventObjective32'
+import { contentHash } from './contentHash'
+import { prepareTargetTeamStandardReference32 } from './targetTeamStandardReference32'
 
 function defaultSchemeBangbooId(candidate: TeamEngineCandidate) {
   if (candidate.bangbooId) return candidate.bangbooId
@@ -77,6 +86,56 @@ export function createLocalTargetTeamFitQuery({
       await requireCompiledRuntime()
       const run = runs.get(query.runId)
       if (!run) throw new Error(`Account Decision run is unavailable: ${query.runId}.`)
+      let declaredEventGoal32: DeclaredEventGoal32 | undefined
+      let declaredEventReferenceAssignments: readonly AccountLoadout[] | undefined
+      if (query.declaredEventComparison32) {
+        if (
+          query.scenarioSelection?.id === 'declared-stun-comparison' ||
+          Object.keys(query.eventConditionDeclarationsByAgentId ?? {}).length
+        )
+          throw new Error('逐次事件条件不能与全局固定状态混用。')
+        const reference = teamFits.get(run.runId)?.get(query.candidateId)
+        const comparison = query.declaredEventComparison32
+        if (
+          !reference ||
+          reference.status !== 'ready' ||
+          reference.fingerprint !== comparison.fitFingerprint ||
+          !reference.effectiveEquipmentParameters
+        )
+          throw new Error('逐次事件参考配装已变化，请重新读取条件。')
+        const binding = {
+          runId: run.runId,
+          candidateId: query.candidateId,
+          accountFingerprint: run.inputFingerprint,
+          capturedAt: run.capturedAt,
+          warehouse: run.input.warehouse,
+          fit: reference,
+          selectedEquipment: reference.effectiveEquipmentParameters,
+        }
+        const prepared = preparePlanningBenchmark32(binding)
+        if (
+          prepared.gaps.length ||
+          !prepared.metadata ||
+          prepared.sourceBindingFingerprint !== comparison.sourceBindingFingerprint ||
+          validatePlanningEventDeclarations32(comparison.declarations, prepared.metadata).gaps
+            .length
+        )
+          throw new Error('逐次事件的来源、账户或声明已变化，请重新读取条件。')
+        declaredEventGoal32 = {
+          declarations: structuredClone(comparison.declarations),
+          sourceBindingFingerprint: comparison.sourceBindingFingerprint,
+          referenceAccountFingerprint: run.inputFingerprint,
+          referenceSelectedEquipment: reference.effectiveEquipmentParameters,
+          referenceFit: {
+            fingerprint: reference.fingerprint,
+            loadouts: reference.loadouts.map(({ agentId, discIds }) => ({
+              agentId,
+              discIds: [...discIds],
+            })),
+          },
+        }
+        declaredEventReferenceAssignments = structuredClone(reference.warehousePlan.loadouts)
+      }
       const playerConfirmedQuery = resolvePlayerConfirmedTargetTeamQuery(query, run)
       if (playerConfirmedQuery) return calculateTargetTeamWarehouseFitQuery(playerConfirmedQuery)
       if (run.snapshot.decisionAuthority.status !== 'ready')
@@ -108,12 +167,7 @@ export function createLocalTargetTeamFitQuery({
           candidateId: query.candidateId,
           memberIds,
           ownedAgentIds,
-          agentStateById: Object.fromEntries(
-            run.input.warehouse.roster.agents.map((row) => [
-              row.agentId,
-              { potentialImage: row.potentialImage },
-            ]),
-          ),
+          ...targetTeamBuildDirectionConditions({ memberIds, roster: run.input.warehouse.roster }),
         })
         const fit = calculateTargetTeamWarehouseFit({
           warehouse: run.input.warehouse,
@@ -136,6 +190,7 @@ export function createLocalTargetTeamFitQuery({
           memberIds,
         )
         const context = {
+          sourceInputFingerprint: run.inputFingerprint,
           eventConditionDeclarationsByAgentId,
           scenarioSelection: query.scenarioSelection,
           warehouse: run.input.warehouse,
@@ -375,7 +430,7 @@ export function createLocalTargetTeamFitQuery({
         query.eventConditionDeclarationsByAgentId,
         candidate.memberIds,
       )
-      const effectiveAgentStateById = targetTeamEffectivePotentialConditions({
+      const directionConditions = targetTeamBuildDirectionConditions({
         memberIds: candidate.memberIds,
         roster: run.input.warehouse.roster,
         potentialByAgentId: schemeParameters?.potentialByAgentId,
@@ -386,17 +441,15 @@ export function createLocalTargetTeamFitQuery({
         bangbooId: selectedBangbooId,
         scenarioTags: executionIdentity.scenarioTags,
         ...(panelInputsByAgent ? { optimizerOptions: { panelInputsByAgent } } : {}),
-        agentStateById: effectiveAgentStateById,
+        ...directionConditions,
       })
-      const fit = calculateTargetTeamWarehouseFit({
-        warehouse: run.input.warehouse,
-        buildIntent,
-        bangbooSelection: compatibleBangbooSelection,
-        ...(schemeParameters
-          ? {
-              teamAssignmentObjective: createTargetTeamAssignmentObjective({
-                eventConditionDeclarationsByAgentId,
-                scenarioSelection: query.scenarioSelection,
+      // Team selection is the boundary where the independent standard may be
+      // prepared. Exact finite source goals can select immediately; every other
+      // team receives its issued metadata without guessed event counts.
+      const standardReference = schemeParameters
+        ? prepareTargetTeamStandardReference32(
+            {
+              input: {
                 warehouse: run.input.warehouse,
                 candidate: executionIdentity,
                 parameters: schemeParameters,
@@ -404,12 +457,46 @@ export function createLocalTargetTeamFitQuery({
                 warehouseHash: run.snapshot.fingerprint.components.warehouseHash,
                 planningHash: run.snapshot.fingerprint.components.planningHash,
                 capturedAt: run.capturedAt,
-              }),
-            }
-          : {}),
+                scenarioSelection: query.scenarioSelection,
+              },
+            },
+            query.standardReference32,
+          )
+        : undefined
+      const teamAssignmentObjective = schemeParameters
+        ? createTargetTeamAssignmentObjective({
+            buildIntent,
+            declaredEventGoal32,
+            eventConditionDeclarationsByAgentId,
+            scenarioSelection: query.scenarioSelection,
+            warehouse: run.input.warehouse,
+            candidate: executionIdentity,
+            parameters: schemeParameters,
+            rosterHash: run.snapshot.fingerprint.components.rosterHash,
+            warehouseHash: run.snapshot.fingerprint.components.warehouseHash,
+            planningHash: run.snapshot.fingerprint.components.planningHash,
+            capturedAt: run.capturedAt,
+          })
+        : undefined
+      if (declaredEventGoal32) {
+        // An explicit goal cannot silently become a source-score solve when its
+        // conditions or protected functions remain unknown.
+        if (
+          !teamAssignmentObjective ||
+          !declaredEventReferenceAssignments ||
+          teamAssignmentObjective.evaluate(declaredEventReferenceAssignments) === null
+        )
+          throw new Error('逐次目标的装备条件或功能尚未闭合，不能改用旧目标生成配装。')
+      }
+      const fit = calculateTargetTeamWarehouseFit({
+        warehouse: run.input.warehouse,
+        buildIntent,
+        bangbooSelection: compatibleBangbooSelection,
+        ...(teamAssignmentObjective ? { teamAssignmentObjective } : {}),
       })
       const benchmarkCandidate = executionIdentity
-      const accountBoundBenchmark = projectTargetTeamAccountBoundBenchmark({
+      const normalizedBenchmark = projectTargetTeamAccountBoundBenchmark({
+        sourceInputFingerprint: run.inputFingerprint,
         eventConditionDeclarationsByAgentId,
         scenarioSelection: query.scenarioSelection,
         warehouse: run.input.warehouse,
@@ -421,6 +508,42 @@ export function createLocalTargetTeamFitQuery({
         capturedAt: run.capturedAt,
         equipmentParameters: query.equipmentParameters,
       })
+      // The normalized protocol is a different objective. Its numbers cannot
+      // stand in for an explicitly declared event comparison in legacy readers.
+      const accountBoundBenchmark = declaredEventGoal32
+        ? (() => {
+            const benchmark = { ...normalizedBenchmark }
+            Reflect.deleteProperty(benchmark, 'fingerprint')
+            const reason = '本次采用逐次声明目标；旧固定事件比较不能代替同目标的比较结果。'
+            const blocked = {
+              ...benchmark,
+              status: 'unavailable' as const,
+              baselineId: null,
+              declaredDurationSeconds: null,
+              totalDamage: null,
+              planningDps: null,
+              assetBindingFingerprint: null,
+              luminizeSnapshot32: undefined,
+              calculationProjection: {
+                status: 'unsupported' as const,
+                blockers: [reason],
+                fingerprint: declaredEventGoal32.sourceBindingFingerprint,
+              },
+              binding: {
+                ...benchmark.binding,
+                equipmentParameterStatus: 'confirmed_but_calculation_unsupported' as const,
+              },
+              gaps: [reason],
+            }
+            return {
+              ...blocked,
+              fingerprint: contentHash({
+                ...blocked,
+                objective: fit.assignmentObjectiveFingerprint,
+              }),
+            }
+          })()
+        : normalizedBenchmark
       const effectiveEquipmentParameters = query.equipmentParameters
         ? accountBoundBenchmark.equipmentParameters
           ? confirmedTargetTeamEquipmentParameters(query.equipmentParameters)
@@ -429,6 +552,10 @@ export function createLocalTargetTeamFitQuery({
       const result: Awaited<ReturnType<CalculationQueryClient['calculateTargetTeamWarehouseFit']>> =
         {
           ...fit,
+          ...(standardReference ? { standardReference32: standardReference.result } : {}),
+          ...(query.standardReference32
+            ? { standardReferenceRequest32: structuredClone(query.standardReference32) }
+            : {}),
           portfolioContinuationEligible: isAdoptedPortfolioTeam(fit.memberIds),
           effectiveEquipmentParameters,
           targetExecution: projectTargetTeamExecution({
@@ -472,6 +599,27 @@ export function createLocalTargetTeamFitQuery({
           }),
         }
       Object.assign(result, {
+        ...(declaredEventGoal32
+          ? {
+              declaredEventBenchmark32: (() => {
+                const binding = {
+                  runId: run.runId,
+                  candidateId: result.candidateId,
+                  accountFingerprint: run.inputFingerprint,
+                  capturedAt: run.capturedAt,
+                  warehouse: run.input.warehouse,
+                  fit,
+                  selectedEquipment: effectiveEquipmentParameters,
+                }
+                const current = preparePlanningBenchmark32(binding)
+                return projectPlanningBenchmark32(
+                  binding,
+                  declaredEventGoal32.declarations,
+                  current.sourceBindingFingerprint,
+                )
+              })(),
+            }
+          : {}),
         scenarioSelection: accountBoundBenchmark.scenarioSelection,
         scenarioIdentity: accountBoundBenchmark.scenarioIdentity,
         eventConditionDeclarationsByAgentId,

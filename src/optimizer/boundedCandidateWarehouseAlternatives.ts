@@ -1,6 +1,7 @@
 import type { DriveDisc } from '../domain/schemas'
 import type { CandidateWarehousePlan } from './candidateWarehouseSolver'
 import { compareCandidatePanelObjective } from './optimizeBuild'
+import { compareCandidateEffectiveCritObjective } from './candidateEffectiveCritObjective'
 
 /** Explore every replaceable slot of each visited plan within a fixed solve budget.
  * The results are useful alternatives, not a proof of global Top-K completeness.
@@ -46,9 +47,23 @@ export function boundedAlternatives(
       .join(';')
   const candidates = new Map([[key(initial), initial]])
   const compare = (a: CandidateWarehousePlan, b: CandidateWarehousePlan) =>
-    compareCandidatePanelObjective(
-      a.loadouts.find((item) => item.panelObjective)?.panelObjective,
-      b.loadouts.find((item) => item.panelObjective)?.panelObjective,
+    expectedAgentIds.reduce(
+      (difference, id) =>
+        difference ||
+        compareCandidatePanelObjective(
+          a.loadouts.find((item) => item.agentId === id)?.panelObjective,
+          b.loadouts.find((item) => item.agentId === id)?.panelObjective,
+        ),
+      0,
+    ) ||
+    expectedAgentIds.reduce(
+      (difference, id) =>
+        difference ||
+        compareCandidateEffectiveCritObjective(
+          a.loadouts.find((item) => item.agentId === id)?.effectiveCritObjective,
+          b.loadouts.find((item) => item.agentId === id)?.effectiveCritObjective,
+        ),
+      0,
     ) ||
     b.totalScore - a.totalScore ||
     key(a).localeCompare(key(b))

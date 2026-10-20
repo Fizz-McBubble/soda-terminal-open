@@ -102,6 +102,21 @@ export function calculateCurrentPlanningEventDamage32(input: {
   const identity = getCurrentAgentEventContract(input.member.agentId)?.identity
   if (!identity) return null
   const damage = input.eventUsages.reduce((sum, usage) => {
+    const hasBoundAnomaly = Object.values(
+      input.eventEffectContext?.baselineReferencesByAgentId ?? {},
+    ).some((references) => Object.hasOwn(references, 'anomalyLifecycle32'))
+    if (
+      hasBoundAnomaly &&
+      (usage.occurrenceCount !== 1 ||
+        input.eventUsages.filter(
+          (row) => row.ownerAgentId === usage.ownerAgentId && row.eventId === usage.eventId,
+        ).length !== 1)
+    ) {
+      input.diagnosticBlockers?.push(
+        `${usage.eventId}:anomaly_lifecycle_requires_unique_occurrence32`,
+      )
+      return Number.NaN
+    }
     const dispatchGap = isDamageFormula32Version(input.baseline.gameVersion)
       ? reviewedRinaCleanupDispatchGap32(usage.ownerAgentId, usage.eventId)
       : null
@@ -156,6 +171,7 @@ export function calculateCurrentPlanningEventDamage32(input: {
     })
     const scopedEvent = {
       ...event,
+      targetId: input.baseline.enemy.id,
       damageTypes: [event.damageType, ...(aftershock === true ? ['aftershock'] : [])],
     }
     let actionDamageBonus = 0
@@ -383,6 +399,13 @@ export function calculateCurrentPlanningEventDamage32(input: {
       )
       .forEach((bucket) => addModifier(modifiers, bucket))
     const source32 = isDamageFormula32Version(input.baseline.gameVersion)
+    if (
+      input.baseline.enemy.stunMultiplier <= 1 &&
+      !Number.isFinite(modifiers.nonStunnedStunDamageBonus)
+    ) {
+      input.diagnosticBlockers?.push('non_stunned_stun_multiplier_source_unreviewed32')
+      return Number.NaN
+    }
     if (modifiers.flatDamage !== 0 && (!source32 || semantics.family !== 'direct')) {
       input.diagnosticBlockers?.push(
         `${usage.eventId}：附加基础伤害没有当前伤害类型的已核消费合同。`,
@@ -464,11 +487,14 @@ export function calculateCurrentPlanningEventDamage32(input: {
           resistanceIgnore: isDamageFormula32Version(input.baseline.gameVersion)
             ? modifiers.resistanceIgnore
             : 0,
-          // Fixed stun state only: this does not simulate earlier stun or add a
-          // new window. A neutral non-stunned target receives no stun bonus.
+          // Preserve the declared stun state. A source that explicitly applies
+          // outside stun contributes to this same additive multiplier; this
+          // does not create a stun window or open other providers' conditions.
           stunMultiplier:
             input.baseline.enemy.stunMultiplier +
-            (input.baseline.enemy.stunMultiplier > 1 ? modifiers.stunDamageBonus : 0),
+            (input.baseline.enemy.stunMultiplier > 1
+              ? modifiers.stunDamageBonus
+              : modifiers.nonStunnedStunDamageBonus),
         }).expectedDamage
       )
     } catch {

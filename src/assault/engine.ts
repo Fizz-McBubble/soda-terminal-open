@@ -1,4 +1,5 @@
 import type { BuildProfile, DriveDisc } from '../domain/schemas'
+import type { CandidateEffectiveCritObjective } from '../optimizer/candidateEffectiveCritObjective'
 import { contentHash } from '../evaluation/contentHash'
 import { assaultDataVersion, assaultModelVersion, teamTemplates } from './catalog'
 import type {
@@ -14,6 +15,7 @@ export type AgentDiscProfile = Pick<
   BuildProfile,
   'agentId' | 'version' | 'statWeights' | 'mainStatFit' | 'setFit'
 > & {
+  effectiveCritObjective?: CandidateEffectiveCritObjective
   confidence: 'high' | 'medium' | 'low'
   gameVersion: string
   scenario?: string

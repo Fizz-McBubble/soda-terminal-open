@@ -14,6 +14,9 @@ import reviewedCompatibilityNotes from './data/reviewed-team-compatibility-notes
 import { current31ReviewedBangbooSourceAtoms } from './generated/current31-reviewed-bangboo-source-atoms'
 import { isReviewedSourceAtomContractValid } from './reviewedBangbooSourceContract'
 import { reviewedSourceTeamDirectionProjection32 } from './reviewedSourceTeamDirectionProjection32'
+import { reviewedCurrentTeamGuidance32 } from './reviewedCurrentTeamGuidance32'
+import type { TeamOutputModuleResolution } from './teamOutputModuleContract'
+import { resolveReviewedTeamOutputModule } from './reviewedTeamOutputModuleEvidence'
 
 type NestedDirectionRecord = (typeof nestedTeamDirections.records)[number] & {
   additionalConditionSources?: NonNullable<
@@ -23,6 +26,7 @@ type NestedDirectionRecord = (typeof nestedTeamDirections.records)[number] & {
 
 export type ReviewedTeamSourceDirection = {
   memberIds: readonly [string, string, string]
+  outputModule?: TeamOutputModuleResolution
   sourceRefs: {
     id: string
     url: string
@@ -264,6 +268,9 @@ export function currentReviewedTeamSourceDirections(
       .map((entry) => entry.stableId),
   )
   const observations: ReviewedTeamSourceDirection[] = [
+    ...(reviewVersion === reviewedCurrentTeamGuidance32.gameVersion
+      ? reviewedCurrentTeamGuidance32.entries
+      : []),
     ...reviewedSourceTeamDirectionProjection32(reviewVersion),
     ...reviewedTeamPublishedStrength.facts
       .filter((fact) => !fact.withdrawn && fact.sourceVersion === reviewVersion)
@@ -448,8 +455,12 @@ export function currentReviewedTeamSourceDirections(
     )
       continue
     const key = memberKey(observation.memberIds)
+    observation.outputModule ??= resolveReviewedTeamOutputModule(observation.memberIds)
     observation.sourceRefs = observation.sourceRefs
       .map((ref) => {
+        // A local 3.2 exact-team review remains current even when its original
+        // author page is older; replay metadata applies only to older claims.
+        if (ref.verificationStatus === 'reviewed_exact_team_current_32') return ref
         // Nested replay is an independent unit, not an older top-level page verification.
         if (ref.nestedEvidence || ref.imageEvidence) return ref
         const replay = reviewedTeamGuides.records.find(
@@ -466,6 +477,8 @@ export function currentReviewedTeamSourceDirections(
         }
       })
       .map((ref) =>
+        ref.verificationStatus === 'reviewed_exact_team_current_32' ||
+        ref.verificationStatus === 'reviewed_current_aggregate_composition_32' ||
         ref.sourceVersion === reviewVersion
           ? ref
           : { ...ref, verificationStatus: 'historical_membership_reference' },

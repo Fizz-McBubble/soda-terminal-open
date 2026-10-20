@@ -108,6 +108,36 @@ function makeMockFit(
   } as TargetTeamWarehouseFitQueryResult
 }
 
+function standardReference(selectionIdentity = 'selection-standard') {
+  return {
+    protocol: 'local-standard-s0-a6-3x48-native-objective32' as const,
+    status: 'selected' as const,
+    preparedIdentity: 'prepared-standard',
+    referenceFingerprint: 'reference-standard',
+    sourceBindingFingerprint: 'source-standard',
+    metadata: null,
+    selectionIdentity,
+    objectiveIdentity: 'objective-standard',
+    coverageIdentity: 'coverage-standard',
+    searchCompleteness: 'bounded' as const,
+    equipment: memberIds.map((agentId, index) => ({
+      agentId,
+      engineId: `engine-${index}`,
+      refinement: 1,
+      branchIdentity: `branch-${index}`,
+      discCount: 6,
+    })),
+    consumerBindings: {
+      status: 'bound' as const,
+      selectionIdentity,
+      capacityReferenceIdentity: 'capacity-standard',
+      supportReferenceIdentity: 'support-standard',
+      gaps: [],
+    },
+    gaps: [],
+  }
+}
+
 describe('savedPlanIdentity scenario validation and compatibility', () => {
   it('resolves legacy absent selection and rejects explicit null', () => {
     expect(resolveSavedPlanScenarioSelection(undefined)).toEqual({
@@ -252,4 +282,34 @@ it('binds saved eighteen-disc replay to the same declared event preparation and 
   expect(() => savedTeamDiscAssignmentFingerprint(plan)).not.toThrow()
   expect(savedTeamTargetFitMatchesSavedDiscs(plan, fit)).toBe(false)
   expect(plan.candidateWarehouse!.loadouts).toHaveLength(3)
+})
+
+it('requires the current replay to reissue the saved standard selection identity', () => {
+  const plan = makeMockPlan()
+  const savedStandard = standardReference()
+  plan.solutionContext!.standardReference32 = savedStandard
+  plan.solutionContext!.standardReferenceRequest32 = {
+    stage: 'select',
+    preparedIdentity: savedStandard.preparedIdentity,
+    sourceBindingFingerprint: savedStandard.sourceBindingFingerprint,
+    declarations: {
+      contract: 'soda-planning-event-declarations32/v1',
+      sourceFingerprint: savedStandard.sourceBindingFingerprint,
+      confirmedDeclaredConditions: true,
+      occurrences: [],
+    },
+  }
+  expect(savedTeamTargetFitMatchesSavedDiscs(plan, makeMockFit())).toBe(false)
+  expect(
+    savedTeamTargetFitMatchesSavedDiscs(plan, {
+      ...makeMockFit(),
+      standardReference32: standardReference(),
+    }),
+  ).toBe(true)
+  expect(
+    savedTeamTargetFitMatchesSavedDiscs(plan, {
+      ...makeMockFit(),
+      standardReference32: standardReference('different-selection'),
+    }),
+  ).toBe(false)
 })

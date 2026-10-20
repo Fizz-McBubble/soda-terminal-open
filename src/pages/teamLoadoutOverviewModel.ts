@@ -28,6 +28,7 @@ import { authorityConsumerRecommendations } from '../application/authorityConsum
 import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
 import { orderRecommendationFamilies, orderTeamRecommendations } from './teamRecommendationOrdering'
 import { projectTeamLoadoutCompletionCandidates } from './teamLoadoutCompletionCandidates'
+import { genericTeamRatingScopeCopy } from './teamRatingText'
 import type {
   TeamLoadoutOverviewFamily,
   TeamLoadoutOverviewGroup,
@@ -337,7 +338,7 @@ export function buildTeamLoadoutOverviewModel({
       {
         kind: 'recommended',
         label: '当前推荐',
-        description: '按评级与评分从高到低排列，选定后搭配装备。',
+        description: `${genericTeamRatingScopeCopy.listDescription}同档无已发布关系时保持并列。`,
         items: visibleRecommendationFamilies,
       },
       {

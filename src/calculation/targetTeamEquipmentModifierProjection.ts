@@ -215,6 +215,8 @@ export function projectTargetTeamWEngineModifiers(input: {
   members?: readonly PlanningEffectRuntimeMember[]
   runtimeByAgentId?: Readonly<Record<string, CurrentWEngineFormulaRuntime>>
   wEngineLevelsByAgentId?: Readonly<Record<string, number>>
+  /** A finite operand comparison may vary one provider while recipients stay fixed. */
+  selectionScope?: 'complete_team' | 'declared_subset'
 }) {
   const wEngines = input.parameters.wEngines.map((selection) => {
     const staticData = getCurrentWEngineStaticData(selection.engineId)
@@ -368,12 +370,15 @@ export function projectTargetTeamWEngineModifiers(input: {
   }
   const directRuntime = { ...directRuntimeCore, fingerprint: stableContentHash(directRuntimeCore) }
   const memberSetValid =
-    input.parameters.wEngines.length === input.memberIds.length &&
+    (input.selectionScope === 'declared_subset'
+      ? input.parameters.wEngines.length > 0 &&
+        input.parameters.wEngines.every((item) => input.memberIds.includes(item.agentId))
+      : input.parameters.wEngines.length === input.memberIds.length &&
+        input.memberIds.every((agentId) =>
+          input.parameters.wEngines.some((item) => item.agentId === agentId),
+        )) &&
     new Set(input.parameters.wEngines.map((item) => item.agentId)).size ===
-      input.memberIds.length &&
-    input.memberIds.every((agentId) =>
-      input.parameters.wEngines.some((item) => item.agentId === agentId),
-    )
+      input.parameters.wEngines.length
   const blockers = unique([
     ...(memberSetValid ? [] : ['方案音擎参数没有与三名目标成员逐一对应。']),
     ...wEngines.flatMap((item) => item.blockers.map((blocker) => `${item.agentId}：${blocker}`)),
@@ -383,6 +388,7 @@ export function projectTargetTeamWEngineModifiers(input: {
     contract: 'soda-target-team-wengine-modifier-projection/v1' as const,
     status: blockers.length ? ('partial' as const) : ('supported' as const),
     memberSetValid,
+    ...(input.selectionScope === 'declared_subset' ? { selectionScope: input.selectionScope } : {}),
     wEngines,
     directRuntime,
     blockers,

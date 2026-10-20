@@ -3,7 +3,7 @@ import type { StatKey } from '../domain/schemas'
 import { evaluateDevelopmentValueBenchmarkSide } from './developmentValueBenchmark'
 import { evaluateDevelopmentStatWeights } from './developmentStatWeights'
 import { statWeightCalibrationFixture } from './developmentStatWeights.calibrationFixture'
-import agentSource from '../gameDataPacks/generated/current-agent-mechanic-catalog.v1.json'
+import agentSource from '../gameDataPacks/generated/current-agent-mechanic-catalog.v1.json' with { type: 'json' }
 import engineSource from '../gameDataPacks/generated/current-wengine-static-catalog.v1.json'
 
 type Fixture = ReturnType<typeof statWeightCalibrationFixture>

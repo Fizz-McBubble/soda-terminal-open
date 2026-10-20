@@ -17,6 +17,10 @@ import { compileTargetTeamPlanningContext } from './targetTeamPlanningContext'
 import type { TargetTeamWarehouseFit } from './targetTeamWarehouseFit'
 import type { TargetTeamPlanningContextInput } from './targetTeamPlanningContextInput'
 import { resolveCurrentPlanningScenario32 } from '../calculation/currentPlanningScenario32'
+import { compileTargetTeamPlanningMembers } from './targetTeamPlanningMembers'
+import { projectAccountLuminizeEquipmentSnapshot32 } from './accountLuminizeEquipmentSnapshot32'
+import { resolveTargetTeamResourceTimeline32 } from './targetTeamResourceTimeline32'
+import { luminizeEquipmentPreparationProtocol32 } from '../application/publicLuminizeComparison32'
 
 export const targetTeamAccountBoundBenchmarkContract =
   'soda-target-team-account-bound-benchmark/v2' as const
@@ -37,13 +41,21 @@ export function projectTargetTeamAccountBoundBenchmark(input: {
   warehouseHash: string
   planningHash: string
   capturedAt: string
+  sourceInputFingerprint?: string
   equipmentParameters?: TargetTeamEquipmentParameterSelection
   scenarioSelection?: TargetTeamPlanningContextInput['scenarioSelection']
   eventConditionDeclarationsByAgentId?: TargetTeamPlanningContextInput['eventConditionDeclarationsByAgentId']
+  resourceTimelineDeclaration32?: TargetTeamPlanningContextInput['resourceTimelineDeclaration32']
 }) {
   const scenario = resolveCurrentPlanningScenario32(input.scenarioSelection)
   const fitGaps = [...new Set(input.fit.gaps)]
   const parameters = input.equipmentParameters
+  const resourceDeclaration = resolveTargetTeamResourceTimeline32({
+    memberIds: input.fit.memberIds,
+    durationSeconds: scenario.baseline.declaredDurationSeconds,
+    declaration: input.resourceTimelineDeclaration32,
+    parameterDeclaration: parameters?.resourceTimelineDeclaration32,
+  })
   const selectedAgentIds = parameters?.wEngines.map((item) => item.agentId) ?? []
   const memberIds = [...input.fit.memberIds]
   const parametersMatchMembers =
@@ -64,6 +76,7 @@ export function projectTargetTeamAccountBoundBenchmark(input: {
   const parameterGaps = parameters
     ? [
         ...(parametersMatchMembers ? [] : ['音擎参数必须与目标队三名代理人逐一对应。']),
+        ...(resourceDeclaration.status === 'unsupported' ? resourceDeclaration.blockers : []),
         ...Object.entries(parameters.potentialByAgentId ?? {}).flatMap(([id, value]) =>
           memberIds.includes(id) &&
           supportsPotentialImage(id) &&
@@ -133,9 +146,45 @@ export function projectTargetTeamAccountBoundBenchmark(input: {
           capturedAt: input.capturedAt,
           scenarioSelection: scenario.selection,
           eventConditionDeclarationsByAgentId: input.eventConditionDeclarationsByAgentId,
+          resourceTimelineDeclaration32:
+            resourceDeclaration.status === 'supported'
+              ? resourceDeclaration.declaration
+              : undefined,
         })
       : null
   const calculationSupported = planningContextCompilation?.status === 'supported'
+  const luminizeOptions =
+    parameters?.luminizeComparison32 ??
+    (memberIds.includes('agent-remielle') ? luminizeEquipmentPreparationProtocol32 : undefined)
+  const luminizeSnapshot32 =
+    parametersValid &&
+    parameters &&
+    luminizeOptions &&
+    equipmentModifierProjection &&
+    input.fit.status === 'ready' &&
+    input.fit.uniqueDiscCount === 18
+      ? (() => {
+          const members = compileTargetTeamPlanningMembers({
+            ...input,
+            parameters,
+            modifierProjection: equipmentModifierProjection,
+          })
+          return projectAccountLuminizeEquipmentSnapshot32({
+            members: members.effectRuntimeMembers,
+            memberIds,
+            options: luminizeOptions,
+            baseline: scenario.baseline,
+            assetBindingFingerprint: stableContentHash({
+              rosterHash: input.rosterHash,
+              warehouseHash: input.warehouseHash,
+              assets: members.assets,
+              parameters,
+              scenario: scenario.identity,
+            }),
+            sourceRefs: [scenario.identity, ...members.assets.flatMap((row) => row.evidenceRefs)],
+          })
+        })()
+      : undefined
   const koledaMetadata =
     planningContextCompilation &&
     'koledaFixedEventConditionsMetadata32' in planningContextCompilation
@@ -157,14 +206,22 @@ export function projectTargetTeamAccountBoundBenchmark(input: {
         ]
       : []
   const core = {
+    ...(luminizeSnapshot32 === undefined ? {} : { luminizeSnapshot32 }),
     ...(koledaMetadata ? { koledaFixedEventConditionsMetadata32: koledaMetadata } : {}),
     contract: targetTeamAccountBoundBenchmarkContract,
+    ...(input.sourceInputFingerprint === undefined
+      ? {}
+      : { sourceInputFingerprint: input.sourceInputFingerprint }),
     candidateId: input.candidate.candidateId,
     scenarioSelection: scenario.selection,
     scenarioIdentity: scenario.identity,
     scenarioBoundary: scenario.boundary,
     comparisonBaseline: scenario.baseline,
     eventConditionDeclarationsByAgentId: input.eventConditionDeclarationsByAgentId ?? null,
+    resourceTimelineDeclaration32:
+      resourceDeclaration.status === 'supported' ? (resourceDeclaration.declaration ?? null) : null,
+    resourceTimelineDeclarationIdentity32:
+      resourceDeclaration.status === 'supported' ? (resourceDeclaration.identity ?? null) : null,
     status: calculationSupported ? ('supported' as const) : ('unavailable' as const),
     baselineId: calculationSupported ? planningContextCompilation.baselineId : null,
     declaredDurationSeconds: calculationSupported
@@ -207,6 +264,14 @@ export function projectTargetTeamAccountBoundBenchmark(input: {
             interactionBundleHash: planningContextCompilation.interactionBundleHash,
             interactionStateHash: planningContextCompilation.interactionStateHash,
             interactionOperatorCoverage: planningContextCompilation.interactionOperatorCoverage,
+            resourceObservationHash: planningContextCompilation.resourceObservationHash,
+            selectedActionResourceProduction32:
+              planningContextCompilation.selectedActionResourceProduction32,
+            ...('resourceTimeline32' in planningContextCompilation
+              ? { resourceTimeline32: planningContextCompilation.resourceTimeline32 }
+              : {}),
+            memberSourceResourceProduction32:
+              planningContextCompilation.memberSourceResourceProduction32,
             memberDamage: planningContextCompilation.memberDamage,
             memberModelQualification32: planningContextCompilation.memberModelQualification32,
             bangbooDamage: planningContextCompilation.bangbooDamage,

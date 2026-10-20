@@ -1,0 +1,2941 @@
+{
+  "schema": "soda-reviewed-decision-contexts/v1",
+  "gameVersion": "3.2",
+  "boundary": "Field-time modes use existing soda-field-time-demand/v1 recommendation budget weights, not measured seconds or percentages. Resource transitions below are retained partial facts, not a repeatable schedule or complete resource loop.",
+  "fieldTimeContracts": [
+    {
+      "agentId": "agent-claret",
+      "mode": "primary_field",
+      "rationale": "The original guide places repeated Maim attacks, enhanced Basics, Chain and Ultimate in an active stun-window burst; it does not establish dominant total field time. The twelve-second window is a source claim, not per-action timing.",
+      "source": {
+        "sourceId": "prydwen-original-claret32",
+        "sourceVersion": "3.2",
+        "url": "https://www.prydwen.gg/zenless/characters/claret",
+        "locator": "How to play: pre-stack Gash and perform the six-Maim stun burst; retained public-source-extraction.json sources[id=prydwen-original-claret32].facts",
+        "retrievedAt": "2026-09-30T12:29:08.9543617Z",
+        "contentHash": "028F278DA96D0EB8073767A8790FAF55F8D64F018B91296E3CC098876ECF069A",
+        "retainedEvidence": "soda-source-ref:f3e7cb29554097c81545a6c5870e0944",
+        "hashDefinition": "Retained minimal fact extraction, not raw HTML"
+      }
+    },
+    {
+      "agentId": "agent-roxy",
+      "mode": "shared_rotation",
+      "rationale": "The original guide describes held EX for on-field Daze, swaps for Assists and Ultimates, and explicit competition with teammate resource/time demands. This supports shared rotation rather than background or a brief burst-swap default. Fifty-second buffs do not measure her field time.",
+      "source": {
+        "sourceId": "prydwen-original-roxy32",
+        "sourceVersion": "3.2",
+        "url": "https://www.prydwen.gg/zenless/characters/roxy",
+        "locator": "Review / How to play lines 323, 359-405: held EX, occasional swaps, time and resources to build Daze",
+        "retrievedAt": "2026-09-30",
+        "contentHash": "B3394250A2196D3921FA016BC99D30969407EAD133CDD28C074CD17284D02D05",
+        "retainedEvidence": "soda-source-ref:14ca56fcd11a4eddabf8581a6bc124de",
+        "hashDefinition": "Retained minimal fact extraction, not raw HTML"
+      }
+    }
+  ],
+  "resourceContracts": [
+    {
+      "agentId": "agent-claret",
+      "gameFactsVersion": "3.2",
+      "formulaFamily": "sharp_damage",
+      "objectiveTopology": "sharp",
+      "resourceFlow": {
+        "status": "partial",
+        "parameters": {
+          "sharpness_enter_gain": 60,
+          "sharpness_cap": 120,
+          "sharpness_enter_investigation_cooldown_seconds": 180,
+          "sharpness_auto_gain_per_second": 1.5,
+          "sharpness_ex_cost": 60,
+          "sharpness_ultimate_activation_gain": 10,
+          "gash_max_stacks": 3,
+          "gash_maim_cost": 1,
+          "contamination_decibel_gain": 300,
+          "contamination_decibel_cooldown_seconds": 18,
+          "crimson_inscription_duration_seconds": 16,
+          "crimson_inscription_chain_extension_seconds": 2,
+          "crimson_inscription_defeat_hit_window_seconds": 0.5,
+          "crimson_inscription_defeat_extension_seconds": 3,
+          "crimson_inscription_defeat_extension_cooldown_seconds": 3
+        },
+        "resources": [
+          {
+            "resource": "sharpness",
+            "producerParameterKeys": [
+              "sharpness_enter_gain",
+              "sharpness_auto_gain_per_second",
+              "sharpness_ultimate_activation_gain"
+            ],
+            "consumerParameterKeys": ["sharpness_ex_cost"],
+            "stateParameterKeys": [
+              "sharpness_cap",
+              "sharpness_enter_investigation_cooldown_seconds"
+            ]
+          },
+          {
+            "resource": "gash",
+            "producerParameterKeys": [],
+            "consumerParameterKeys": ["gash_maim_cost"],
+            "stateParameterKeys": ["gash_max_stacks"]
+          },
+          {
+            "resource": "decibels",
+            "producerParameterKeys": ["contamination_decibel_gain"],
+            "consumerParameterKeys": [],
+            "stateParameterKeys": ["contamination_decibel_cooldown_seconds"]
+          },
+          {
+            "resource": "crimson_inscription",
+            "producerParameterKeys": [
+              "crimson_inscription_chain_extension_seconds",
+              "crimson_inscription_defeat_extension_seconds"
+            ],
+            "consumerParameterKeys": [],
+            "stateParameterKeys": [
+              "crimson_inscription_duration_seconds",
+              "crimson_inscription_defeat_hit_window_seconds",
+              "crimson_inscription_defeat_extension_cooldown_seconds"
+            ]
+          }
+        ],
+        "transitionTemplates": [
+          {
+            "eventKey": "battle_entry",
+            "resource": "sharpness",
+            "operation": "add",
+            "parameterKey": "sharpness_enter_gain"
+          },
+          {
+            "eventKey": "elapsed_second",
+            "resource": "sharpness",
+            "operation": "add_per_second",
+            "parameterKey": "sharpness_auto_gain_per_second"
+          },
+          {
+            "eventKey": "special.EXSpecialAttackBloodbloomOathSecretForgingTechniques",
+            "resource": "sharpness",
+            "operation": "consume",
+            "parameterKey": "sharpness_ex_cost"
+          },
+          {
+            "eventKey": "chain.UltimateBloodbloomOathTrialAfterTrial.activation",
+            "resource": "sharpness",
+            "operation": "add",
+            "parameterKey": "sharpness_ultimate_activation_gain"
+          }
+        ],
+        "transitions": [
+          {
+            "trigger": "enter_battlefield",
+            "resource": "sharpness",
+            "operation": "gain",
+            "parameterKey": "sharpness_enter_gain",
+            "condition": "In Investigation Zone, limited by sharpness_enter_investigation_cooldown_seconds",
+            "locator": "char_Claret_gen.json#/core/desc/2"
+          },
+          {
+            "trigger": "Cleaving Gold and Iron or Blood Burial Assault hits enemy with Gash",
+            "resource": "gash",
+            "operation": "consume",
+            "parameterKey": "gash_maim_cost",
+            "result": "Maim",
+            "locator": "char_Claret_gen.json#/core/desc/0"
+          },
+          {
+            "trigger": "squad member triggers Contamination",
+            "resource": "decibels",
+            "operation": "gain",
+            "parameterKey": "contamination_decibel_gain",
+            "condition": "Additional Ability active; contamination_decibel_cooldown_seconds",
+            "locator": "char_Claret_gen.json#/ability/desc/1"
+          },
+          {
+            "trigger": "Secret Forging Techniques activation",
+            "resource": "crimson_inscription",
+            "operation": "enter_state",
+            "parameterKey": "crimson_inscription_duration_seconds",
+            "condition": "Duration pauses off-field; this is not an action duration",
+            "locator": "char_Claret_gen.json#/special/EXSpecialAttackBloodbloomOathSecretForgingTechniques/desc/2"
+          },
+          {
+            "trigger": "Trial After Trial activation",
+            "resource": "sharpness",
+            "operation": "gain",
+            "parameterKey": "sharpness_ultimate_activation_gain",
+            "locator": "char_Claret_gen.json#/chain/UltimateBloodbloomOathTrialAfterTrial/desc/3"
+          },
+          {
+            "trigger": "Chain Attack",
+            "resource": "crimson_inscription",
+            "operation": "extend_state",
+            "parameterKey": "crimson_inscription_chain_extension_seconds",
+            "locator": "char_Claret_gen.json#/core/desc/3"
+          },
+          {
+            "trigger": "Enemy defeated within 0.5 seconds of Claret hit while Crimson Inscription remains active",
+            "resource": "crimson_inscription",
+            "operation": "extend_state",
+            "parameterKey": "crimson_inscription_defeat_extension_seconds",
+            "condition": "Once per 3 seconds; duration pauses off-field and cannot end during qualifying Maim skills/Ultimate",
+            "locator": "char_Claret_gen.json#/special/EXSpecialAttackBloodbloomOathSecretForgingTechniques/desc/2"
+          }
+        ],
+        "missingTransitions": [
+          "Release Gash buildup threshold; 28 action-segment base production rows are adopted separately in reviewed-claret-action-resources32.json, not missing",
+          "Actual initial state before the additive battlefield-entry grant; Sharpness capacity 120 is adopted from the pinned client row",
+          "Full Decibel expenditure/recovery and receipt ledger",
+          "Crimson Inscription extension interactions in an actual cycle"
+        ],
+        "sourceQuality": "structured_data_and_guide_corroborated",
+        "sourceRefs": [
+          "https://zzz.honeyhunterworld.com/1611-char/?lang=EN&ver=3_2_1#sharpness-cost-60",
+          "https://zzz.gachabase.net/agents/1611/claret/release/3.2.0/19437730?lang=en",
+          "reviewed-claret-action-resources32.json#/source/rawSource/capacityField",
+          "https://www.prydwen.gg/zenless/characters/claret#review",
+          "https://mobalytics.gg/zzz/builds/claret-build"
+        ],
+        "evidenceLocator": "Pinned Claret core and Secret Forging Techniques descriptions; Honey Hunter Sharpness Cost 60; Gachabase/Mobalytics/Prydwen 1.5 Sharpness auto-accumulation; local-mechanic-extract.json and local-resource-and-timing-checklist.json"
+      },
+      "source": {
+        "sourceId": "upstream-localization-Claret",
+        "sourceVersion": "3.2",
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Claret_gen.json",
+        "contentHash": "9EBB0A9057D9B797C89E62B78636413730D1628688D028A2F641287BE8B17C3F",
+        "retrievedAt": "2026-09-30"
+      }
+    },
+    {
+      "agentId": "agent-roxy",
+      "gameFactsVersion": "3.2",
+      "formulaFamily": "direct",
+      "objectiveTopology": "direct",
+      "resourceFlow": {
+        "status": "partial",
+        "parameters": {
+          "energy_enter_gain": 40,
+          "energy_enter_investigation_cooldown_seconds": 180,
+          "wind_energy_per_energy_consumed": 25,
+          "wind_energy_gain": 1,
+          "wind_energy_max_stacks": 3,
+          "eye_per_wind_energy_consumed": 1,
+          "eye_max_count": 9,
+          "eye_auto_detonation_seconds": 30,
+          "forgive_followup_combined_threshold": 3,
+          "forgive_eye_detonation_cap": 3
+        },
+        "resources": [
+          {
+            "resource": "energy",
+            "producerParameterKeys": ["energy_enter_gain"],
+            "consumerParameterKeys": [],
+            "stateParameterKeys": ["energy_enter_investigation_cooldown_seconds"]
+          },
+          {
+            "resource": "wind_energy",
+            "producerParameterKeys": ["wind_energy_gain"],
+            "consumerParameterKeys": [],
+            "stateParameterKeys": ["wind_energy_per_energy_consumed", "wind_energy_max_stacks"]
+          },
+          {
+            "resource": "eye_of_the_storm",
+            "producerParameterKeys": ["eye_per_wind_energy_consumed"],
+            "consumerParameterKeys": ["forgive_eye_detonation_cap"],
+            "stateParameterKeys": [
+              "eye_max_count",
+              "eye_auto_detonation_seconds",
+              "forgive_followup_combined_threshold"
+            ]
+          }
+        ],
+        "transitions": [
+          {
+            "trigger": "enter_battlefield",
+            "resource": "energy",
+            "operation": "gain",
+            "parameterKey": "energy_enter_gain",
+            "condition": "Additional Ability active; Investigation Zone cooldown",
+            "locator": "char_Roxy_gen.json#/ability/desc/4"
+          },
+          {
+            "trigger": "every 25 Energy consumed",
+            "resource": "wind_energy",
+            "operation": "gain",
+            "parameterKey": "wind_energy_gain",
+            "capParameterKey": "wind_energy_max_stacks",
+            "locator": "char_Roxy_gen.json#/core/desc/0"
+          },
+          {
+            "trigger": "Kindly Rest in Peace",
+            "resource": "wind_energy",
+            "operation": "consume_all",
+            "result": "One Eye of the Storm per Wind Energy consumed",
+            "locator": "char_Roxy_gen.json#/special/EXSpecialAttackKindlyRestInPeace/desc/1-2"
+          },
+          {
+            "trigger": "Eyes on field plus Wind Energy reaches threshold after Kindly Rest in Peace",
+            "resource": "eye_of_the_storm",
+            "operation": "detonate_hit_eyes",
+            "parameterKey": "forgive_eye_detonation_cap",
+            "condition": "Forgive Me follow-up; threshold is combined resources, not Eyes alone",
+            "locator": "char_Roxy_gen.json#/special/SpecialAttackForgiveMeForNotSeeingYouOff/desc/0-3"
+          },
+          {
+            "trigger": "Eye timer expires or count exceeds cap",
+            "resource": "eye_of_the_storm",
+            "operation": "detonate",
+            "parameterKey": "eye_auto_detonation_seconds",
+            "capParameterKey": "eye_max_count",
+            "locator": "char_Roxy_gen.json#/special/EyeOfTheStorm/desc/0-1"
+          }
+        ],
+        "missingTransitions": [
+          "Complete Energy consumption/recovery and initial resource schedule",
+          "Actual held-EX release duration and per-hit schedule",
+          "Wind Energy overflow/carry semantics in a repeated cycle",
+          "Eye positioning and actual hits determining detonation"
+        ],
+        "evidenceLocator": "Pinned Roxy core, Kindly Rest in Peace, Forgive Me and Eye descriptions; local-mechanic-extract.json and local-resource-and-timing-checklist.json"
+      },
+      "source": {
+        "sourceId": "upstream-localization-Roxy",
+        "sourceVersion": "3.2",
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Roxy_gen.json",
+        "contentHash": "2479FD13C7812CBCE726361C41322997758236DC237665B3410CE2A820CC67BD",
+        "retrievedAt": "2026-09-30"
+      }
+    }
+  ],
+  "namedResourceProductionContracts": [
+    {
+      "agentId": "agent-norma",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Norma_gen.json",
+        "sha256": "84038D08D8D7230726ED1A9AAA839F341404135C816DAF660FAFBFEEED494F2B"
+      },
+      "rules": [
+        {
+          "eventKey": "battlefield_entry",
+          "resource": "preheated_chamber",
+          "operation": "add",
+          "amount": 60,
+          "unit": "percentage_points",
+          "conditionKeys": ["entry_grant_cooldown_ready"],
+          "locator": "core.desc.6.3"
+        },
+        {
+          "eventKey": "active_combat_clock",
+          "resource": "preheated_chamber",
+          "operation": "add_per_unit",
+          "amount": 1.5,
+          "unit": "percentage_points",
+          "conditionKeys": ["active_character", "in_combat"],
+          "locator": "basic.BasicAttackHatTrick.desc.0",
+          "quantityUnit": "effective_seconds"
+        },
+        {
+          "eventKey": "ex_barrage_completed",
+          "resource": "preheated_chamber",
+          "operation": "add",
+          "amount": 16,
+          "unit": "percentage_points",
+          "conditionKeys": [],
+          "locator": "special.EXSpecialAttackEnNahBarrage.desc.4"
+        },
+        {
+          "eventKey": "held_barrage_energy_spent",
+          "resource": "preheated_chamber",
+          "operation": "add_per_unit",
+          "amount": 0.4,
+          "unit": "percentage_points",
+          "conditionKeys": [],
+          "locator": "special.EXSpecialAttackEnNahBarrage.desc.5",
+          "quantityUnit": "energy_points",
+          "maximumQuantity": 40
+        },
+        {
+          "eventKey": "hat_trick_chain_conversion",
+          "resource": "preheated_chamber",
+          "operation": "consume",
+          "amount": 80,
+          "unit": "percentage_points",
+          "conditionKeys": ["at_least_80_preheated_chamber"],
+          "locator": "core.desc.6.4"
+        },
+        {
+          "eventKey": "ultimate_activation",
+          "resource": "preheated_chamber",
+          "operation": "add",
+          "amount": 30,
+          "unit": "percentage_points",
+          "conditionKeys": [],
+          "locator": "chain.UltimateDoctrineOfSuperiorFirepower.desc.2"
+        }
+      ],
+      "nonResourceStates": [],
+      "unresolved": ["Top Hat off-field storage/retrieval requires its actual target/hit timeline."]
+    },
+    {
+      "agentId": "agent-starlight-billy",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_StarlightBilly_gen.json",
+        "sha256": "6D1551380D231BF44916757F82FB55D725D600702E70E29743BB3AFEDE29756A"
+      },
+      "rules": [
+        {
+          "eventKey": "cool_wheelie_hit",
+          "resource": "determination",
+          "operation": "add",
+          "amount": 8,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "special.EXSpecialAttackCoolWheelie.desc.2"
+        },
+        {
+          "eventKey": "perfect_dodge",
+          "resource": "determination",
+          "operation": "add",
+          "amount": 3,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "core.desc.6.3",
+          "cooldownSeconds": 0.5
+        },
+        {
+          "eventKey": "full_throttle_activation",
+          "resource": "determination",
+          "operation": "consume",
+          "amount": 100,
+          "unit": "resource_points",
+          "conditionKeys": ["at_least_100_determination"],
+          "locator": "core.desc.6.4"
+        },
+        {
+          "eventKey": "chain_activation",
+          "resource": "determination",
+          "operation": "add",
+          "amount": 15,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "chain.ChainAttackKnightsSwagger.desc.2"
+        },
+        {
+          "eventKey": "battlefield_entry",
+          "resource": "adrenaline",
+          "operation": "add",
+          "amount": 60,
+          "unit": "resource_points",
+          "conditionKeys": ["entry_grant_cooldown_ready"],
+          "locator": "core.desc.6.1"
+        }
+      ],
+      "nonResourceStates": [],
+      "unresolved": [
+        "Slow passive Determination and unspecified attack-specific gains remain unsourced numerically in the pinned 3.2 localization and stats.",
+        "Lost Void Stunt Show's 10 Determination per second is mode-specific and is excluded from the ordinary passive rate."
+      ]
+    },
+    {
+      "agentId": "agent-cissia",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Cissia_gen.json",
+        "sha256": "983D0EAF576ECEF50E064173D8AB05CDBC62EE586794F470111EF79D1FBC8CC9"
+      },
+      "rules": [
+        {
+          "eventKey": "battlefield_entry",
+          "resource": "venom",
+          "operation": "add",
+          "amount": 3,
+          "unit": "resource_points",
+          "conditionKeys": ["entry_grant_cooldown_ready"],
+          "locator": "core.desc.6.0"
+        },
+        {
+          "eventKey": "basic_four_hit",
+          "resource": "venom",
+          "operation": "add",
+          "amount": 2,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "basic.BasicAttackTongueFlick.desc.2"
+        },
+        {
+          "eventKey": "basic_four_hit",
+          "resource": "venom",
+          "operation": "add",
+          "amount": 1,
+          "unit": "resource_points",
+          "conditionKeys": ["target_stunned"],
+          "locator": "basic.BasicAttackTongueFlick.desc.2"
+        },
+        {
+          "eventKey": "venomous_bite_activation",
+          "resource": "venom",
+          "operation": "add",
+          "amount": 3,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "special.EXSpecialAttackVenomousBite.desc.4"
+        },
+        {
+          "eventKey": "held_bite_additional_energy_spent",
+          "resource": "venom",
+          "operation": "add_per_unit",
+          "amount": 1,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "special.EXSpecialAttackVenomousBite.desc.4",
+          "quantityUnit": "additional_energy_points",
+          "maximumQuantity": 60,
+          "conversionStep": 20,
+          "carryAcrossEvents": false
+        },
+        {
+          "eventKey": "chain_completed",
+          "resource": "venom",
+          "operation": "add",
+          "amount": 3,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "chain.ChainAttackGangOperation.desc.2"
+        },
+        {
+          "eventKey": "venom_periodic_tick",
+          "resource": "venom",
+          "operation": "consume",
+          "amount": 1,
+          "unit": "resource_points",
+          "conditionKeys": ["in_combat", "possesses_venom"],
+          "locator": "core.desc.6.1",
+          "cooldownSeconds": 5
+        },
+        {
+          "eventKey": "venom_acquisition_conversion",
+          "resource": "serpentine_shadow",
+          "operation": "add_per_unit",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "basic.BasicAttackSerpentsKiss.desc.3",
+          "quantityUnit": "acquired_venom_points",
+          "conversionStep": 6,
+          "carryAcrossEvents": true
+        },
+        {
+          "eventKey": "battlefield_entry",
+          "resource": "serpentine_shadow",
+          "operation": "add",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "basic.BasicAttackSerpentsKiss.desc.4"
+        },
+        {
+          "eventKey": "serpents_kiss_activation",
+          "resource": "serpentine_shadow",
+          "operation": "consume",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "basic.BasicAttackSerpentsKiss.desc.5"
+        },
+        {
+          "eventKey": "serpents_kiss_hit",
+          "resource": "venom",
+          "operation": "clear",
+          "amount": null,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "basic.BasicAttackSerpentsKiss.desc.6"
+        }
+      ],
+      "nonResourceStates": ["def_ignore"],
+      "unresolved": [
+        "Venom overflow-to-Corrode and floor/carry across six gained points require current counter/receipt state."
+      ]
+    },
+    {
+      "agentId": "agent-nangong",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_NangongYu_gen.json",
+        "sha256": "191AE529186874799B9CF4EA147926E1A14A51BF7AB93F1334A4B369F4051CF0"
+      },
+      "rules": [
+        {
+          "eventKey": "battlefield_entry",
+          "resource": "downbeats",
+          "operation": "add",
+          "amount": 30,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "core.desc.6.8"
+        },
+        {
+          "eventKey": "combat_clock",
+          "resource": "downbeats",
+          "operation": "add_per_unit",
+          "amount": 3.8,
+          "unit": "resource_points",
+          "conditionKeys": ["in_combat"],
+          "locator": "core.desc.6.7",
+          "quantityUnit": "effective_seconds"
+        },
+        {
+          "eventKey": "squad_attribute_anomaly",
+          "resource": "downbeats",
+          "operation": "add",
+          "amount": 12,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "core.desc.6.7",
+          "cooldownSeconds": 6
+        },
+        {
+          "eventKey": "explosive_impact_second_or_third_hit",
+          "resource": "downbeats",
+          "operation": "consume",
+          "amount": 50,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "basic.BasicAttackAdorableExplosiveImpact.desc.1"
+        },
+        {
+          "eventKey": "enemy_anomaly_disorder_or_abloom",
+          "resource": "vibrato",
+          "operation": "add",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": ["target_stunned", "vibrato_not_locked_for_stun"],
+          "locator": "core.desc.6.2"
+        },
+        {
+          "eventKey": "vibrato_clear",
+          "resource": "vibrato",
+          "operation": "clear",
+          "amount": null,
+          "unit": "stacks",
+          "conditionKeys": ["maximum_with_anomaly_or_stun_recovery"],
+          "locator": "core.desc.6.4"
+        },
+        {
+          "eventKey": "qualified_polarity_disorder",
+          "resource": "dance_prowess",
+          "operation": "consume",
+          "amount": 1,
+          "unit": "resource_points",
+          "conditionKeys": [
+            "same_team_aria",
+            "qualified_aria_heavy_hit",
+            "target_stunned_and_anomaly",
+            "fully_participated_in_attack"
+          ],
+          "locator": "ability.desc.4"
+        }
+      ],
+      "nonResourceStates": [],
+      "unresolved": [
+        "Vibrato is enemy-specific and locks after one clear per stun; enemy identity/stun epochs are required for full cycles."
+      ]
+    },
+    {
+      "agentId": "agent-aria",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Aria_gen.json",
+        "sha256": "8E80FA26C57DB27E904F9B9AD0B1B4B9888913349D0B9BADAAB71ABA0ACCDD64"
+      },
+      "rules": [
+        {
+          "eventKey": "ether_veil_activation",
+          "resource": "fandom_power",
+          "operation": "add",
+          "amount": 4,
+          "unit": "resource_points",
+          "conditionKeys": ["additional_ability_active"],
+          "locator": "ability.desc.1",
+          "cooldownSeconds": 1
+        },
+        {
+          "eventKey": "fast_level_three_charge",
+          "resource": "fandom_power",
+          "operation": "consume",
+          "amount": 2,
+          "unit": "resource_points",
+          "conditionKeys": ["qualified_prior_action", "two_fandom_power_nearby"],
+          "locator": "basic.BasicAttackPerfectPitch.desc.3"
+        },
+        {
+          "eventKey": "moment_of_delusion_entry",
+          "resource": "all_out_cheering",
+          "operation": "add",
+          "amount": 3,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "chain.Ultimate100Energy.desc.2"
+        },
+        {
+          "eventKey": "all_out_cheering_stack_consumed",
+          "resource": "all_out_cheering",
+          "operation": "consume",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": ["possesses_all_out_cheering"],
+          "locator": "chain.Ultimate100Energy.desc.3"
+        },
+        {
+          "eventKey": "remaining_cheering_conversion",
+          "resource": "fandom_power",
+          "operation": "add_per_unit",
+          "amount": 2,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "chain.Ultimate100Energy.desc.4",
+          "quantityUnit": "remaining_all_out_cheering_stacks",
+          "quantityStep": 1
+        }
+      ],
+      "nonResourceStates": [],
+      "unresolved": [
+        "Fandom Power is field pickup state; placement/collection and charge transitions require explicit input."
+      ]
+    },
+    {
+      "agentId": "agent-sunna",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Sunna_gen.json",
+        "sha256": "3C95C73514FD97C7C84B1EB0E3E1D7A32F1BE4135EF88787C8D659D8DE69EACF"
+      },
+      "rules": [
+        {
+          "eventKey": "squad_ether_veil_activation",
+          "resource": "claw_sharpener",
+          "operation": "add",
+          "amount": 2,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "basic.BasicAttackNaughtyCatSpotted.desc.1"
+        },
+        {
+          "eventKey": "squad_attribute_anomaly",
+          "resource": "claw_sharpener",
+          "operation": "add",
+          "amount": 1,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "basic.BasicAttackNaughtyCatSpotted.desc.2",
+          "cooldownSeconds": 10
+        },
+        {
+          "eventKey": "bubblegum_automatic_attack",
+          "resource": "claw_sharpener",
+          "operation": "consume",
+          "amount": 1,
+          "unit": "resource_points",
+          "conditionKeys": ["in_combat", "off_field", "no_enemy_cat_gaze"],
+          "locator": "basic.BasicAttackNaughtyCatSpotted.desc.0"
+        },
+        {
+          "eventKey": "ultimate_heavy_activation",
+          "resource": "claw_sharpener",
+          "operation": "add",
+          "amount": 6,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "chain.UltimateSmashItAll.desc.2"
+        }
+      ],
+      "nonResourceStates": ["team_atk"],
+      "unresolved": [
+        "Claw Sharpener target selection and Cat Gaze consumption require actual off-field/target state."
+      ]
+    },
+    {
+      "agentId": "agent-zhao",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Zhao_gen.json",
+        "sha256": "422023A95ACBBDD953967757BFA0650061F89A0EBE15602CF959F88AE67F7734"
+      },
+      "rules": [
+        {
+          "eventKey": "battlefield_entry",
+          "resource": "frostbite",
+          "operation": "add",
+          "amount": 100,
+          "unit": "resource_points",
+          "conditionKeys": ["entry_grant_cooldown_ready"],
+          "locator": "core.desc.6.1"
+        },
+        {
+          "eventKey": "active_character_hit",
+          "resource": "frostbite",
+          "operation": "add",
+          "amount": 6,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "core.desc.6.2",
+          "cooldownSeconds": 3
+        },
+        {
+          "eventKey": "ex_activation",
+          "resource": "frostbite",
+          "operation": "add",
+          "amount": 20,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "special.EXSpecialAttackFrostflowTundra.desc.3"
+        },
+        {
+          "eventKey": "chain_completed",
+          "resource": "frostbite",
+          "operation": "add",
+          "amount": 5,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "chain.ChainAttackTemporaryAlliance.desc.2"
+        },
+        {
+          "eventKey": "frostbite_full_trigger",
+          "resource": "frostbite",
+          "operation": "clear",
+          "amount": null,
+          "unit": "resource_points",
+          "conditionKeys": ["frostbite_full"],
+          "locator": "basic.BasicAttackFinalVerdict.desc.4"
+        },
+        {
+          "eventKey": "ultimate_completed",
+          "resource": "frostbite",
+          "operation": "add",
+          "amount": 20,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "chain.UltimateBunnyBarrage.desc.2"
+        }
+      ],
+      "nonResourceStates": [],
+      "unresolved": [
+        "Frostbite full-trigger consumption requires current resource state and actual Ether Veil trigger."
+      ]
+    },
+    {
+      "agentId": "agent-ye-shunguang",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_YeShunguang_gen.json",
+        "sha256": "E6B9F09FD78573BF27CF6877AE30BE679CA99311CD3D769BEFA686BD71D513ED"
+      },
+      "rules": [
+        {
+          "eventKey": "gale_suppression_completed",
+          "resource": "qingming_sword_force",
+          "operation": "add",
+          "amount": 1,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "special.EXSpecialAttackGaleSuppression.desc.3"
+        },
+        {
+          "eventKey": "squad_ether_veil_activation",
+          "resource": "qingming_sword_force",
+          "operation": "add",
+          "amount": 3,
+          "unit": "resource_points",
+          "conditionKeys": ["not_enlightened_mind", "additional_ability_active"],
+          "locator": "ability.desc.1"
+        },
+        {
+          "eventKey": "squad_ether_veil_activation",
+          "resource": "bearer",
+          "operation": "add",
+          "amount": 3,
+          "unit": "stacks",
+          "conditionKeys": ["enlightened_mind", "additional_ability_active"],
+          "locator": "ability.desc.1"
+        },
+        {
+          "eventKey": "sunderlight_maximum_hit",
+          "resource": "qingming_sword_force",
+          "operation": "consume",
+          "amount": 1,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "basic.BasicAttackEnlightenedMindSunderlightMaximum.desc.1"
+        },
+        {
+          "eventKey": "sunderlight_annihilation_hit",
+          "resource": "qingming_sword_force",
+          "operation": "consume",
+          "amount": 2,
+          "unit": "resource_points",
+          "conditionKeys": ["at_least_two_sword_force"],
+          "locator": "basic.BasicAttackEnlightenedMindSunderlightAnnihilation.desc.2"
+        },
+        {
+          "eventKey": "sword_force_overflow",
+          "resource": "bearer",
+          "operation": "add_per_unit",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "core.desc.6.0",
+          "quantityUnit": "excess_sword_force_points",
+          "quantityStep": 1
+        },
+        {
+          "eventKey": "enlightened_mind_exit_bearer_conversion",
+          "resource": "qingming_sword_force",
+          "operation": "add_per_unit",
+          "amount": 1,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "core.desc.6.0",
+          "quantityUnit": "consumed_bearer_stacks",
+          "quantityStep": 1
+        },
+        {
+          "eventKey": "ultimate_activation",
+          "resource": "qingming_sword_force",
+          "operation": "add",
+          "amount": 6,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "chain.UltimateChasingStorms.desc.1"
+        },
+        {
+          "eventKey": "enlightened_soaring_light_activation",
+          "resource": "qingming_sword_force",
+          "operation": "consume",
+          "amount": 1,
+          "unit": "resource_points",
+          "conditionKeys": ["possesses_sword_force", "not_consuming_culmination"],
+          "locator": "basic.BasicAttackEnlightenedMindSunderlightMaximum.desc.3"
+        }
+      ],
+      "nonResourceStates": ["veil_vulnerability"],
+      "unresolved": [
+        "Enlightened Mind replacement/overflow needs exact mode and current Bearer state. Ordinary attack gains are not numerically specified in text."
+      ]
+    },
+    {
+      "agentId": "agent-banyue",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Banyue_gen.json",
+        "sha256": "43877BAAD43CC18FEA5BCA4D941CC7CBB7023CAEFC3E3E673B9E1AA64CD9D372"
+      },
+      "rules": [
+        {
+          "eventKey": "adrenaline_consumed",
+          "resource": "wrathful_fires",
+          "operation": "add_per_unit",
+          "amount": 0.5,
+          "unit": "resource_points",
+          "conditionKeys": ["not_visage_of_wrath"],
+          "locator": "core.desc.6.4",
+          "quantityUnit": "adrenaline_points"
+        },
+        {
+          "eventKey": "defensive_assist_activation",
+          "resource": "wrathful_fires",
+          "operation": "add",
+          "amount": 4,
+          "unit": "resource_points",
+          "conditionKeys": ["not_visage_of_wrath"],
+          "locator": "core.desc.6.5"
+        },
+        {
+          "eventKey": "parry",
+          "resource": "wrathful_fires",
+          "operation": "add",
+          "amount": 4,
+          "unit": "resource_points",
+          "conditionKeys": ["not_perfect_block", "not_visage_of_wrath"],
+          "locator": "core.desc.6.6",
+          "cooldownSeconds": 1
+        },
+        {
+          "eventKey": "perfect_block",
+          "resource": "wrathful_fires",
+          "operation": "add",
+          "amount": 6,
+          "unit": "resource_points",
+          "conditionKeys": ["not_visage_of_wrath"],
+          "locator": "core.desc.6.6",
+          "cooldownSeconds": 1
+        },
+        {
+          "eventKey": "perfect_dodge",
+          "resource": "wrathful_fires",
+          "operation": "add",
+          "amount": 4,
+          "unit": "resource_points",
+          "conditionKeys": ["not_visage_of_wrath"],
+          "locator": "core.desc.6.7",
+          "cooldownSeconds": 1
+        },
+        {
+          "eventKey": "toppling_mountain_activation",
+          "resource": "wrathful_fires",
+          "operation": "consume",
+          "amount": 120,
+          "unit": "resource_points",
+          "conditionKeys": ["visage_of_wrath"],
+          "locator": "basic.BasicAttackTopplingMountain.desc.0"
+        },
+        {
+          "eventKey": "battlefield_entry",
+          "resource": "adrenaline",
+          "operation": "add",
+          "amount": 60,
+          "unit": "resource_points",
+          "conditionKeys": ["entry_grant_cooldown_ready"],
+          "locator": "core.desc.6.2"
+        },
+        {
+          "eventKey": "visage_entry",
+          "resource": "mountains_might",
+          "operation": "add",
+          "amount": 4,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "core.desc.6.9"
+        },
+        {
+          "eventKey": "visage_ex_activation",
+          "resource": "mountains_might",
+          "operation": "consume",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": ["visage_of_wrath", "possesses_mountains_might"],
+          "locator": "core.desc.6.9"
+        },
+        {
+          "eventKey": "visage_ex_activation",
+          "resource": "adrenaline",
+          "operation": "add",
+          "amount": 10,
+          "unit": "resource_points",
+          "conditionKeys": ["visage_of_wrath", "possesses_mountains_might"],
+          "locator": "core.desc.6.9"
+        }
+      ],
+      "nonResourceStates": [],
+      "unresolved": [
+        "Inflame HP-to-fire unspecified quantity and Visage entry/exit state are needed for a repeatable cycle."
+      ]
+    },
+    {
+      "agentId": "agent-dialyn",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Dialyn_gen.json",
+        "sha256": "678CCEB4D030EBAF58DE87AEFB9D7FFF858182EE0DE49DC850A89269546AAC1A"
+      },
+      "rules": [
+        {
+          "eventKey": "battlefield_entry",
+          "resource": "positive_reviews",
+          "operation": "add",
+          "amount": 60,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "core.desc.6.0"
+        },
+        {
+          "eventKey": "combat_clock",
+          "resource": "positive_reviews",
+          "operation": "add_per_unit",
+          "amount": 0.6,
+          "unit": "resource_points",
+          "conditionKeys": ["in_combat"],
+          "locator": "core.desc.6.4",
+          "quantityUnit": "effective_seconds"
+        },
+        {
+          "eventKey": "rock_scissors_paper_heavy_hit",
+          "resource": "positive_reviews",
+          "operation": "add",
+          "amount": 7.5,
+          "unit": "resource_points",
+          "conditionKeys": ["once_per_skill_activation"],
+          "locator": "core.desc.6.4"
+        },
+        {
+          "eventKey": "ally_converted_ultimate",
+          "resource": "positive_reviews",
+          "operation": "consume",
+          "amount": 60,
+          "unit": "resource_points",
+          "conditionKeys": ["at_least_90_positive_reviews", "qualified_chain_conversion"],
+          "locator": "core.desc.6.5"
+        },
+        {
+          "eventKey": "get_lost_forced_chain",
+          "resource": "positive_reviews",
+          "operation": "consume",
+          "amount": 90,
+          "unit": "resource_points",
+          "conditionKeys": ["at_least_90_positive_reviews", "did_not_trigger_chain_window"],
+          "locator": "core.desc.6.6"
+        },
+        {
+          "eventKey": "positive_reviews_reaches_90_or_ultimate",
+          "resource": "customer_complaint",
+          "operation": "add",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "core.desc.6.7"
+        },
+        {
+          "eventKey": "get_lost_activation",
+          "resource": "customer_complaint",
+          "operation": "consume",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "special.EXSpecialAttackGetLost.desc.1"
+        }
+      ],
+      "nonResourceStates": [],
+      "unresolved": [
+        "Positive Review threshold-crossing and chain-to-Ultimate are distinct events; full cycle needs prior counter and actual conversion choice."
+      ]
+    },
+    {
+      "agentId": "agent-lucia",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Lucia_gen.json",
+        "sha256": "28F2EEDF29329FD7D47C31B92880F782FF97B0D3F6AF6E0BFBDA330E2C4F1E3A"
+      },
+      "rules": [
+        {
+          "eventKey": "battlefield_entry",
+          "resource": "dream_points",
+          "operation": "add",
+          "amount": 60,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "core.desc.6.0"
+        },
+        {
+          "eventKey": "orbital_combo_whim",
+          "resource": "dream_points",
+          "operation": "add",
+          "amount": 40,
+          "unit": "resource_points",
+          "conditionKeys": ["in_combat", "not_dream"],
+          "locator": "basic.BasicAttackOrbitalCombo.desc.3"
+        },
+        {
+          "eventKey": "storm_whim",
+          "resource": "dream_points",
+          "operation": "add",
+          "amount": 20,
+          "unit": "resource_points",
+          "conditionKeys": ["in_combat", "not_dream"],
+          "locator": "special.SpecialAttackSymphonyOfTheReaperStorm.desc.2",
+          "cooldownSeconds": 5
+        },
+        {
+          "eventKey": "dodge_counter_whim",
+          "resource": "dream_points",
+          "operation": "add",
+          "amount": 20,
+          "unit": "resource_points",
+          "conditionKeys": ["not_dream"],
+          "locator": "dodge.DodgeCounterStardustEcho.desc.2",
+          "cooldownSeconds": 5
+        },
+        {
+          "eventKey": "daybreak_harmony",
+          "resource": "dream_points",
+          "operation": "add",
+          "amount": 60,
+          "unit": "resource_points",
+          "conditionKeys": ["not_dream"],
+          "locator": "special.EXSpecialAttackSymphonyOfTheReaperDaybreak.desc.6"
+        },
+        {
+          "eventKey": "dream_whim_upgrade",
+          "resource": "dream_points",
+          "operation": "consume",
+          "amount": 25,
+          "unit": "resource_points",
+          "conditionKeys": ["dream"],
+          "locator": "core.desc.6.2"
+        },
+        {
+          "eventKey": "dream_aftershock",
+          "resource": "dream_points",
+          "operation": "consume",
+          "amount": 25,
+          "unit": "resource_points",
+          "conditionKeys": ["dream", "other_active_character_hit", "aftershock_cooldown_ready"],
+          "locator": "core.desc.6.2",
+          "cooldownSeconds": 8
+        },
+        {
+          "eventKey": "chain_harmony",
+          "resource": "dream_points",
+          "operation": "add",
+          "amount": 40,
+          "unit": "resource_points",
+          "conditionKeys": ["not_dream"],
+          "locator": "chain.ChainAttackStageOfBrilliance.desc.2"
+        },
+        {
+          "eventKey": "ultimate_harmony",
+          "resource": "dream_points",
+          "operation": "add",
+          "amount": 100,
+          "unit": "resource_points",
+          "conditionKeys": ["not_dream"],
+          "locator": "chain.UltimateChargeGreatArmor.desc.4"
+        },
+        {
+          "eventKey": "ultimate_deferred_dream_exit_grant",
+          "resource": "dream_points",
+          "operation": "add",
+          "amount": 100,
+          "unit": "resource_points",
+          "conditionKeys": ["ultimate_activated_in_dream", "deferred_grant_not_used"],
+          "locator": "chain.UltimateChargeGreatArmor.desc.4"
+        },
+        {
+          "eventKey": "quick_assist_whim",
+          "resource": "dream_points",
+          "operation": "add",
+          "amount": 20,
+          "unit": "resource_points",
+          "conditionKeys": ["not_dream"],
+          "locator": "assist.QuickAssistCrushingMist.desc.2",
+          "cooldownSeconds": 5
+        },
+        {
+          "eventKey": "assist_followup_harmony",
+          "resource": "dream_points",
+          "operation": "add",
+          "amount": 40,
+          "unit": "resource_points",
+          "conditionKeys": ["not_dream"],
+          "locator": "assist.AssistFollowUpHarmonyOfPaintedDreams.desc.2"
+        }
+      ],
+      "nonResourceStates": [],
+      "unresolved": [
+        "Dream threshold 100 is not an asserted storage capacity; overflow/capacity is not supplied by the pinned text."
+      ]
+    },
+    {
+      "agentId": "agent-orphie-magus",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_OrphieMagus_gen.json",
+        "sha256": "28AD704A9B45D69E3216152A29DC6D34547B396A0AC3D0894E0B5579DF212A98"
+      },
+      "rules": [
+        {
+          "eventKey": "SpecialAttackCorrosiveFlash.activation",
+          "resource": "bottled_heat",
+          "operation": "add",
+          "amount": 20,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "special.SpecialAttackCorrosiveFlash.desc.3"
+        },
+        {
+          "eventKey": "EXSpecialAttackWatchYourStep.activation",
+          "resource": "bottled_heat",
+          "operation": "add",
+          "amount": 20,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "special.EXSpecialAttackWatchYourStep.desc.3"
+        },
+        {
+          "eventKey": "EXSpecialAttackCrimsonVortex.activation",
+          "resource": "bottled_heat",
+          "operation": "add",
+          "amount": 20,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "special.EXSpecialAttackCrimsonVortex.desc.2"
+        },
+        {
+          "eventKey": "chain_activation",
+          "resource": "bottled_heat",
+          "operation": "add",
+          "amount": 20,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "chain.ChainAttackOverheatedBarrel.desc.2"
+        },
+        {
+          "eventKey": "heat_charge_activation",
+          "resource": "bottled_heat",
+          "operation": "consume",
+          "amount": 100,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "special.EXSpecialAttackHeatCharge.desc.1"
+        },
+        {
+          "eventKey": "ultimate_activation",
+          "resource": "bottled_heat",
+          "operation": "add",
+          "amount": 20,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "chain.UltimateDanceWithFire.desc.3"
+        },
+        {
+          "eventKey": "battlefield_initial_state",
+          "resource": "bottled_heat",
+          "operation": "add",
+          "amount": 100,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "core.desc.6.1"
+        },
+        {
+          "eventKey": "off_field_auto_ex_activation",
+          "resource": "energy",
+          "operation": "consume",
+          "amount": 30,
+          "unit": "resource_points",
+          "conditionKeys": ["off_field", "corrosive_flash_available", "energy_at_least_60"],
+          "locator": "core.desc.6.2"
+        }
+      ],
+      "nonResourceStates": [],
+      "unresolved": ["Actual off-field automatic EX energy and attack qualification stay explicit."]
+    },
+    {
+      "agentId": "agent-seed",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Seed_gen.json",
+        "sha256": "AA6537D7800671E159947FEC72BDD34398DB32E116FCF943F298CB52775530ED"
+      },
+      "rules": [
+        {
+          "eventKey": "battlefield_entry",
+          "resource": "steel_charge",
+          "operation": "add",
+          "amount": 60,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "basic.BasicAttackFallingPetalsDownfall.desc.1"
+        },
+        {
+          "eventKey": "qualified_energy_spent",
+          "resource": "steel_charge",
+          "operation": "add_per_unit",
+          "amount": 0.5,
+          "unit": "resource_points",
+          "conditionKeys": ["seed_or_active_vanguard_energy"],
+          "locator": "core.desc.6.6",
+          "quantityUnit": "energy_points"
+        },
+        {
+          "eventKey": "downfall_form_activation",
+          "resource": "steel_charge",
+          "operation": "consume",
+          "amount": 60,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "basic.BasicAttackFallingPetalsDownfall.desc.1"
+        }
+      ],
+      "nonResourceStates": [],
+      "unresolved": [
+        "A complete Downfall spends two forms of 60; each form is separately declared and not inferred from one damage row."
+      ]
+    },
+    {
+      "agentId": "agent-alice",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Alice_gen.json",
+        "sha256": "2FE510E8A460864BF870630BA09D497608E15AE8E584793F4AA7194C70F27943"
+      },
+      "rules": [
+        {
+          "eventKey": "battlefield_entry",
+          "resource": "blade_etiquette",
+          "operation": "add",
+          "amount": 300,
+          "unit": "resource_points",
+          "conditionKeys": ["additional_ability_active", "entry_grant_cooldown_ready"],
+          "locator": "ability.desc.3"
+        },
+        {
+          "eventKey": "own_assault",
+          "resource": "blade_etiquette",
+          "operation": "add",
+          "amount": 10,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "core.desc.6.1"
+        },
+        {
+          "eventKey": "squad_disorder",
+          "resource": "blade_etiquette",
+          "operation": "add",
+          "amount": 30,
+          "unit": "resource_points",
+          "conditionKeys": ["additional_ability_active"],
+          "locator": "ability.desc.1"
+        },
+        {
+          "eventKey": "EXSpecialAttackAuroraThrustNorthernCross.activation",
+          "resource": "blade_etiquette",
+          "operation": "add",
+          "amount": 10,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "special.EXSpecialAttackAuroraThrustNorthernCross.desc.2"
+        },
+        {
+          "eventKey": "EXSpecialAttackAuroraThrustSouthernCross.activation",
+          "resource": "blade_etiquette",
+          "operation": "add",
+          "amount": 10,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "special.EXSpecialAttackAuroraThrustSouthernCross.desc.2"
+        },
+        {
+          "eventKey": "ultimate_activation",
+          "resource": "blade_etiquette",
+          "operation": "add",
+          "amount": 200,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "chain.UltimateStarfallFinale.desc.2"
+        }
+      ],
+      "nonResourceStates": ["disorder_remaining_second_bonus"],
+      "unresolved": [
+        "Ordinary attack-specific Blade Etiquette gains are unspecified; receipt/overflow remains unknown."
+      ]
+    },
+    {
+      "agentId": "agent-yuzuha",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Yuzuha_gen.json",
+        "sha256": "15EA219CAD4890D0EC8EEDB014648A32ECA7534412E47F6BA221CF50F77BBB77"
+      },
+      "rules": [
+        {
+          "eventKey": "battlefield_entry",
+          "resource": "sugar_points",
+          "operation": "add",
+          "amount": 3,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "core.desc.6.0"
+        },
+        {
+          "eventKey": "tanuki_parry",
+          "resource": "sugar_points",
+          "operation": "add",
+          "amount": 1,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "basic.BasicAttackTanukiCloak.desc.2"
+        },
+        {
+          "eventKey": "EXSpecialAttackCavityAlert.activation",
+          "resource": "sugar_points",
+          "operation": "add",
+          "amount": 2,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "special.EXSpecialAttackCavityAlert.desc.3"
+        },
+        {
+          "eventKey": "EXSpecialAttackCavityAlertRightNow.activation",
+          "resource": "sugar_points",
+          "operation": "add",
+          "amount": 2,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "special.EXSpecialAttackCavityAlertRightNow.desc.3"
+        },
+        {
+          "eventKey": "chain_activation",
+          "resource": "sugar_points",
+          "operation": "add",
+          "amount": 1,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "chain.ChainAttackPrankAssault.desc.2"
+        },
+        {
+          "eventKey": "ultimate_activation",
+          "resource": "sugar_points",
+          "operation": "add",
+          "amount": 2,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "chain.UltimateSurrenderOrSufferTheMischief.desc.4"
+        },
+        {
+          "eventKey": "defensive_assist_parry",
+          "resource": "sugar_points",
+          "operation": "add",
+          "amount": 1,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "assist.DefensiveAssistReplenishYourFun.desc.2"
+        },
+        {
+          "eventKey": "hard_candy_heavy_hit",
+          "resource": "sugar_points",
+          "operation": "consume",
+          "amount": 1,
+          "unit": "resource_points",
+          "conditionKeys": ["possesses_sugar_points", "hard_candy_cooldown_ready"],
+          "locator": "basic.BasicAttackHardCandyShot.desc.0"
+        }
+      ],
+      "nonResourceStates": ["additional_ability", "sweet_scare_atk"],
+      "unresolved": [
+        "Hard Candy actual heavy hit/cooldown and active target state remain explicit."
+      ]
+    },
+    {
+      "agentId": "agent-ju-fufu",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_JuFufu_gen.json",
+        "sha256": "032051B4AC32D1CD91BD001DA322B8E3B95300309FB85A0CD8DF329D73DB82B9"
+      },
+      "rules": [
+        {
+          "eventKey": "hu_wei_skill_hit",
+          "resource": "might",
+          "operation": "add",
+          "amount": 20,
+          "unit": "resource_points",
+          "conditionKeys": ["once_per_skill_activation"],
+          "locator": "basic.BasicAttackHuWei.desc.1"
+        },
+        {
+          "eventKey": "momentum_spin_contact",
+          "resource": "momentum",
+          "operation": "consume",
+          "amount": 1,
+          "unit": "resource_points",
+          "conditionKeys": ["possesses_momentum"],
+          "locator": "dodge.DashAttackTigerSevenFormsMountainKingsGame.desc.2"
+        },
+        {
+          "eventKey": "momentum_spin_contact",
+          "resource": "might",
+          "operation": "add",
+          "amount": 25,
+          "unit": "resource_points",
+          "conditionKeys": ["possesses_momentum"],
+          "locator": "dodge.DashAttackTigerSevenFormsMountainKingsGame.desc.2"
+        },
+        {
+          "eventKey": "ex_activation",
+          "resource": "momentum",
+          "operation": "add",
+          "amount": 3,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "special.EXSpecialAttackTigerSevenFormsAltMountainDescendingSavageTiger.desc.2"
+        },
+        {
+          "eventKey": "ex_activation",
+          "resource": "might",
+          "operation": "add",
+          "amount": 80,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "special.EXSpecialAttackTigerSevenFormsAltMountainDescendingSavageTiger.desc.2"
+        },
+        {
+          "eventKey": "ultimate_activation",
+          "resource": "momentum",
+          "operation": "add",
+          "amount": 6,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "chain.UltimateTigerSevenFormsRagingTigerExplosion.desc.2"
+        },
+        {
+          "eventKey": "ultimate_activation",
+          "resource": "might",
+          "operation": "add",
+          "amount": 100,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "chain.UltimateTigerSevenFormsRagingTigerExplosion.desc.2"
+        },
+        {
+          "eventKey": "assist_followup_activation",
+          "resource": "momentum",
+          "operation": "add",
+          "amount": 1,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "assist.AssistFollowUpFeralBlazingMaw.desc.2",
+          "cooldownSeconds": 10
+        },
+        {
+          "eventKey": "suppressing_tiger_cauldron_activation",
+          "resource": "might",
+          "operation": "consume",
+          "amount": 100,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "chain.ChainAttackSuppressingTigerCauldron.desc.1"
+        }
+      ],
+      "nonResourceStates": ["tigers_roar_crit_dmg"],
+      "unresolved": [
+        "Automatic Might-to-Chain needs current Momentum/Might and the exact contact order."
+      ]
+    },
+    {
+      "agentId": "agent-yixuan",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Yixuan_gen.json",
+        "sha256": "F2D4720681F1077476E7CE23E2B72EE83916B74BD24F114598D9FAE4A4DBA52C"
+      },
+      "rules": [
+        {
+          "eventKey": "adrenaline_consumed",
+          "resource": "technique_points",
+          "operation": "add_per_unit",
+          "amount": 0.667,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "core.desc.6.4",
+          "quantityUnit": "adrenaline_points"
+        },
+        {
+          "eventKey": "endless_talisman_activation",
+          "resource": "technique_points",
+          "operation": "consume",
+          "amount": 120,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "chain.UltimateEndlessTalismanSuppression.desc.1"
+        },
+        {
+          "eventKey": "endless_talisman_completed",
+          "resource": "auric_ink_points",
+          "operation": "add",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "core.desc.6.6"
+        },
+        {
+          "eventKey": "auric_array_activation",
+          "resource": "auric_ink_points",
+          "operation": "consume",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "core.desc.6.6"
+        },
+        {
+          "eventKey": "auric_array_channel_clock",
+          "resource": "adrenaline",
+          "operation": "add_per_unit",
+          "amount": 7,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "basic.BasicAttackAuricArray.desc.3",
+          "quantityUnit": "effective_seconds",
+          "maximumQuantity": 3
+        },
+        {
+          "eventKey": "own_auric_ink_anomaly",
+          "resource": "adrenaline",
+          "operation": "add",
+          "amount": 10,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "core.desc.6.2",
+          "cooldownSeconds": 10
+        },
+        {
+          "eventKey": "perfect_dodge",
+          "resource": "adrenaline",
+          "operation": "add",
+          "amount": 5,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "core.desc.6.3",
+          "cooldownSeconds": 1
+        },
+        {
+          "eventKey": "perfect_block",
+          "resource": "adrenaline",
+          "operation": "add",
+          "amount": 10,
+          "unit": "resource_points",
+          "conditionKeys": ["perfect_block_cooldown_ready"],
+          "locator": "special.EXSpecialAttackInkManifestation.desc.3",
+          "cooldownSeconds": 0.5
+        },
+        {
+          "eventKey": "perfect_assist_followup",
+          "resource": "adrenaline",
+          "operation": "add",
+          "amount": 5,
+          "unit": "resource_points",
+          "conditionKeys": ["additional_ability_active"],
+          "locator": "ability.desc.1"
+        },
+        {
+          "eventKey": "qingming_eruption_break_activation",
+          "resource": "adrenaline",
+          "operation": "consume",
+          "amount": 20,
+          "unit": "resource_points",
+          "conditionKeys": ["qualified_prior_cloud_blitz_break"],
+          "locator": "special.EXSpecialAttackInkManifestation.desc.8"
+        }
+      ],
+      "nonResourceStates": [],
+      "unresolved": [
+        "Adrenaline cap, all EX source parameter costs and actual mode/HP/energy timeline are distinct from these retained discrete gains.",
+        "Ally Ultimate text says continuously recovers 2 Adrenaline for 10 seconds without an explicit tick unit; no automatic 2-per-second rate inferred."
+      ]
+    },
+    {
+      "agentId": "agent-hugo",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Hugo_gen.json",
+        "sha256": "9D5357163D94A01485E5630189FDD826C7E4E6B104E0866B7ACE55B64837F3E9"
+      },
+      "rules": [
+        {
+          "eventKey": "normal_enemy_totalize",
+          "resource": "energy",
+          "operation": "add",
+          "amount": 20,
+          "unit": "resource_points",
+          "conditionKeys": ["additional_ability_active", "normal_enemy", "totalize_triggered"],
+          "locator": "ability.desc.1",
+          "cooldownSeconds": 30
+        }
+      ],
+      "nonResourceStates": ["daze_recovery", "totalize_multiplier_bonus"],
+      "unresolved": []
+    },
+    {
+      "agentId": "agent-vivian",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Vivian_gen.json",
+        "sha256": "A2B6B7E47277D2FA35BE4F28FE07684355879D0BDF1D3A821E88031270BE2AED"
+      },
+      "rules": [
+        {
+          "eventKey": "battlefield_entry",
+          "resource": "flight_feather",
+          "operation": "add",
+          "amount": 2,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "core.desc.6.2"
+        },
+        {
+          "eventKey": "noblewoman_waltz_hit",
+          "resource": "flight_feather",
+          "operation": "add",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "basic.BasicAttackNoblewomanWaltz.desc.1"
+        },
+        {
+          "eventKey": "noblewoman_waltz_perfect_dodge",
+          "resource": "flight_feather",
+          "operation": "add",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "basic.BasicAttackNoblewomanWaltz.desc.3"
+        },
+        {
+          "eventKey": "chain_activation",
+          "resource": "flight_feather",
+          "operation": "add",
+          "amount": 2,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "chain.ChainAttackChorusOfCelestialWings.desc.1"
+        },
+        {
+          "eventKey": "ultimate_activation",
+          "resource": "flight_feather",
+          "operation": "add",
+          "amount": 5,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "chain.UltimateSoaringBirdsSong.desc.1"
+        },
+        {
+          "eventKey": "assist_followup",
+          "resource": "flight_feather",
+          "operation": "add",
+          "amount": 2,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "assist.AssistFollowUpFeatherbladeExecution.desc.1"
+        },
+        {
+          "eventKey": "fluttering_frock_consumed_feathers",
+          "resource": "guard_feather",
+          "operation": "add_per_unit",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "basic.BasicAttackFlutteringFrockSuspension.desc.2",
+          "quantityUnit": "consumed_flight_feathers",
+          "quantityStep": 1
+        },
+        {
+          "eventKey": "squad_ex_featherbloom",
+          "resource": "guard_feather",
+          "operation": "consume",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": ["once_per_skill_activation"],
+          "locator": "basic.BasicAttackFeatherbloom.desc.0"
+        },
+        {
+          "eventKey": "squad_anomaly_featherbloom",
+          "resource": "guard_feather",
+          "operation": "consume",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": ["additional_ability_active"],
+          "locator": "ability.desc.1",
+          "cooldownSeconds": 0.5
+        }
+      ],
+      "nonResourceStates": [],
+      "unresolved": [
+        "Flight-to-Guard consumes the actual acquired queue; full cycle needs carry/overflow and real EX trigger identities."
+      ]
+    },
+    {
+      "agentId": "agent-trigger",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Trigger_gen.json",
+        "sha256": "157725D57DB749BDF8B8C3E0442D3E489D3CB2B311D86B5E282C0BCB12E71E11"
+      },
+      "rules": [
+        {
+          "eventKey": "sniper_continuous_or_counter_hit",
+          "resource": "purge",
+          "operation": "add",
+          "amount": 25,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "basic.BasicAttackSilencedShot.desc.7"
+        },
+        {
+          "eventKey": "harmonizing_shot_activation",
+          "resource": "purge",
+          "operation": "consume",
+          "amount": 3,
+          "unit": "resource_points",
+          "conditionKeys": ["not_coordinated_support"],
+          "locator": "basic.BasicAttackHarmonizingShot.desc.2"
+        },
+        {
+          "eventKey": "tartarus_activation",
+          "resource": "purge",
+          "operation": "consume",
+          "amount": 5,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "basic.BasicAttackHarmonizingShotTartarus.desc.2"
+        },
+        {
+          "eventKey": "ex_coordinated_support_entry",
+          "resource": "coordinated_support_uses",
+          "operation": "add",
+          "amount": 4,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "special.EXSpecialAttackFlashBurial.desc.4"
+        },
+        {
+          "eventKey": "ultimate_coordinated_support_entry",
+          "resource": "coordinated_support_uses",
+          "operation": "add",
+          "amount": 6,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "chain.UltimateUnderworldRequiem.desc.4"
+        },
+        {
+          "eventKey": "free_harmonizing_shot",
+          "resource": "coordinated_support_uses",
+          "operation": "consume",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": ["coordinated_support_active", "other_active_character_hit"],
+          "locator": "special.EXSpecialAttackFlashBurial.desc.4"
+        },
+        {
+          "eventKey": "free_harmonizing_shot",
+          "resource": "purge",
+          "operation": "consume",
+          "amount": 0,
+          "unit": "resource_points",
+          "conditionKeys": ["coordinated_support_active", "other_active_character_hit"],
+          "locator": "special.EXSpecialAttackFlashBurial.desc.4"
+        }
+      ],
+      "nonResourceStates": ["daze_bonus"],
+      "unresolved": [
+        "Coordinated Support free shots have their own finite trigger budget/window; normal costs must not be applied to free shots."
+      ]
+    },
+    {
+      "agentId": "agent-astra",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_AstraYao_gen.json",
+        "sha256": "DED18DE6DAD3E4D41E90E494FC2CC5CBBB1978E30F05460509216D9952F2F015"
+      },
+      "rules": [
+        {
+          "eventKey": "qualified_assist_tremolo",
+          "resource": "energy",
+          "operation": "consume",
+          "amount": 25,
+          "unit": "resource_points",
+          "conditionKeys": ["other_character_qualified_assist_switch"],
+          "locator": "special.Chord.desc.4"
+        }
+      ],
+      "nonResourceStates": ["idyllic_cadenza_atk"],
+      "unresolved": []
+    },
+    {
+      "agentId": "agent-miyabi",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Miyabi_gen.json",
+        "sha256": "6699421F2AAD531EF33626EBE15C764DB68D59E251CD205CD7A547E0E775F631"
+      },
+      "rules": [
+        {
+          "eventKey": "battlefield_entry",
+          "resource": "fallen_frost",
+          "operation": "add",
+          "amount": 3,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "basic.BasicAttackShimotsuki.desc.4"
+        },
+        {
+          "eventKey": "hisetsu_first_activation",
+          "resource": "fallen_frost",
+          "operation": "add",
+          "amount": 2,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "special.EXSpecialAttackHisetsu.desc.2"
+        },
+        {
+          "eventKey": "hisetsu_followup_activation",
+          "resource": "fallen_frost",
+          "operation": "add",
+          "amount": 2,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "special.EXSpecialAttackHisetsu.desc.6"
+        },
+        {
+          "eventKey": "ultimate_activation",
+          "resource": "fallen_frost",
+          "operation": "add",
+          "amount": 3,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "chain.UltimateLingeringSnow.desc.2"
+        },
+        {
+          "eventKey": "shimotsuki_charge_stage",
+          "resource": "fallen_frost",
+          "operation": "consume",
+          "amount": 2,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "basic.BasicAttackShimotsuki.desc.1"
+        }
+      ],
+      "nonResourceStates": ["crit_to_frost_buildup"],
+      "unresolved": [
+        "Frostburn actual trigger/cooldown and charge-stage completion require explicit events."
+      ]
+    },
+    {
+      "agentId": "agent-harumasa",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Harumasa_gen.json",
+        "sha256": "F9761ED9705C7AB9586ECC4638C35119C324B4997E07A4C69ADD08220A52E5A7"
+      },
+      "rules": [
+        {
+          "eventKey": "basic_fifth_hit_or_ground",
+          "resource": "quiver",
+          "operation": "add",
+          "amount": 2,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "basic.BasicAttackHaOtoNoYa.desc.0"
+        },
+        {
+          "eventKey": "ex_hit_or_ground",
+          "resource": "quiver",
+          "operation": "add",
+          "amount": 6,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "basic.BasicAttackHaOtoNoYa.desc.0"
+        },
+        {
+          "eventKey": "chain_hit_or_ground",
+          "resource": "quiver",
+          "operation": "add",
+          "amount": 6,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "basic.BasicAttackHaOtoNoYa.desc.0"
+        },
+        {
+          "eventKey": "squad_attribute_anomaly",
+          "resource": "quiver",
+          "operation": "add",
+          "amount": 6,
+          "unit": "stacks",
+          "conditionKeys": ["no_electro_quivers_on_field"],
+          "locator": "basic.BasicAttackHaOtoNoYa.desc.0",
+          "cooldownSeconds": 12
+        },
+        {
+          "eventKey": "awakened_dash_slash_hit",
+          "resource": "electro_prison",
+          "operation": "consume",
+          "amount": 2,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "dodge.DashAttackHitenNoTsuruSlash.desc.4"
+        },
+        {
+          "eventKey": "falling_feather_hit",
+          "resource": "electro_prison",
+          "operation": "add",
+          "amount": 2,
+          "unit": "stacks",
+          "conditionKeys": ["additional_ability_active", "target_stunned_or_anomaly"],
+          "locator": "ability.desc.1"
+        }
+      ],
+      "nonResourceStates": [],
+      "unresolved": [
+        "Electro Quiver target seeking, field capacity and target-specific Prison expiry require actual identities/times."
+      ]
+    },
+    {
+      "agentId": "agent-lighter",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Lighter_gen.json",
+        "sha256": "75FC1A891B6735DE45179E3211F1BA6F21D8802B23659A7453D165C38604EE4A"
+      },
+      "rules": [
+        {
+          "eventKey": "non_burst_combat_clock",
+          "resource": "morale",
+          "operation": "add_per_unit",
+          "amount": 2.9,
+          "unit": "resource_points",
+          "conditionKeys": ["not_morale_burst"],
+          "locator": "core.desc.6.0",
+          "quantityUnit": "effective_seconds"
+        },
+        {
+          "eventKey": "squad_energy_consumed",
+          "resource": "morale",
+          "operation": "add_per_unit",
+          "amount": 0.26,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "core.desc.6.0",
+          "quantityUnit": "energy_points"
+        }
+      ],
+      "nonResourceStates": [],
+      "unresolved": [
+        "Continuous enhanced-Basic Morale consumption has no numeric rate in this pinned text; no fabricated drain."
+      ]
+    },
+    {
+      "agentId": "agent-burnice",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Burnice_gen.json",
+        "sha256": "8C233547BAAFEAAEF0FCD90F1CAD596B407A8306113EFDE808C9CC84247BA81E"
+      },
+      "rules": [
+        {
+          "eventKey": "battlefield_entry",
+          "resource": "heat",
+          "operation": "add",
+          "amount": 100,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "core.desc.6.0"
+        },
+        {
+          "eventKey": "own_energy_consumed",
+          "resource": "heat",
+          "operation": "add_per_unit",
+          "amount": 1.4,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "core.desc.6.0",
+          "quantityUnit": "energy_points"
+        },
+        {
+          "eventKey": "ultimate_activation",
+          "resource": "heat",
+          "operation": "add",
+          "amount": 50,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "chain.UltimateGloriousInferno.desc.3"
+        },
+        {
+          "eventKey": "mixed_flame_blend_activation",
+          "resource": "heat",
+          "operation": "consume",
+          "amount": 20,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "basic.BasicAttackMixedFlameBlend.desc.3"
+        },
+        {
+          "eventKey": "afterburn_trigger",
+          "resource": "heat",
+          "operation": "consume",
+          "amount": 8,
+          "unit": "resource_points",
+          "conditionKeys": ["nitro_fuel_cocktail", "teammate_hits_scorched_target"],
+          "locator": "core.desc.6.1",
+          "cooldownSeconds": 1.5
+        },
+        {
+          "eventKey": "twelve_qualified_afterburns",
+          "resource": "emberflow",
+          "operation": "add",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": ["no_existing_emberflow"],
+          "locator": "special.EXSpecialAttackIntenseHeatTossingMethod.desc.1"
+        },
+        {
+          "eventKey": "emberflow_switch_entry",
+          "resource": "emberflow",
+          "operation": "consume",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": ["possesses_emberflow"],
+          "locator": "special.EXSpecialAttackIntenseHeatTossingMethod.desc.1"
+        }
+      ],
+      "nonResourceStates": ["afterburn_ap_bonus"],
+      "unresolved": [
+        "Actual Afterburn target qualification, entry/exit and Emberflow count carry require input."
+      ]
+    },
+    {
+      "agentId": "agent-jane",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Jane_gen.json",
+        "sha256": "CA43022212633181D9B04C66BB8A94F713D123DFD7B74451ACCBEF1F50624911"
+      },
+      "rules": [
+        {
+          "eventKey": "chain_activation",
+          "resource": "passion_stream",
+          "operation": "set_to_cap",
+          "amount": null,
+          "unit": "source_defined_full_gauge",
+          "conditionKeys": [],
+          "locator": "chain.ChainAttackFlowersOfSin.desc.2"
+        },
+        {
+          "eventKey": "ultimate_activation",
+          "resource": "passion_stream",
+          "operation": "set_to_cap",
+          "amount": null,
+          "unit": "source_defined_full_gauge",
+          "conditionKeys": [],
+          "locator": "chain.UltimateFinalCurtain.desc.2"
+        }
+      ],
+      "nonResourceStates": ["passion_attack_bonus"],
+      "unresolved": [
+        "Passion Stream numeric capacity and per-action/passive gains/costs are absent from the pinned current 3.2 descriptions and stats; full restore is symbolic, not default 100.",
+        "QQ 2.6 BasicAttackDancingBlades G values and the 2025 author's 100-point scale are a version-limited candidate, not adopted current 3.2 production.",
+        "Missing current evidence: the current 3.2 G-field rows for BasicAttackDancingBlades with unit and normal/Passion branches; Hakush API/page access failed with TLS credential error.",
+        "Perfect Dodge and Defensive Assist numeric regeneration remain candidate-only without current action-row proof."
+      ]
+    },
+    {
+      "agentId": "agent-qingyi",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Qingyi_gen.json",
+        "sha256": "A84899E709F04BC6B631198B574995C6791CBEEF429A140A9DF836C5884BAD0A"
+      },
+      "rules": [
+        {
+          "eventKey": "enchanted_finisher_hit",
+          "resource": "subjugation",
+          "operation": "add",
+          "amount": 5,
+          "unit": "stacks",
+          "conditionKeys": ["not_finisher_perfect_dodge"],
+          "locator": "core.desc.6"
+        },
+        {
+          "eventKey": "enchanted_finisher_rush_bonus",
+          "resource": "subjugation",
+          "operation": "add_per_unit",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "core.desc.6",
+          "quantityUnit": "completed_rush_attacks",
+          "maximumQuantity": 5,
+          "quantityStep": 1
+        },
+        {
+          "eventKey": "enchanted_finisher_perfect_dodge",
+          "resource": "subjugation",
+          "operation": "add",
+          "amount": 10,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "core.desc.6"
+        },
+        {
+          "eventKey": "target_stun_recovery",
+          "resource": "subjugation",
+          "operation": "clear",
+          "amount": null,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "core.desc.6"
+        }
+      ],
+      "nonResourceStates": ["additional_attack_bonus"],
+      "unresolved": [
+        "Flash Connect per-action production is not numerically stated; Subjugation is target/stun-specific."
+      ]
+    },
+    {
+      "agentId": "agent-koleda",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Koleda_gen.json",
+        "sha256": "6C373EEC42DF94701ABB12D4CC44E55BC6C4212AAEBEDB2779C5813AAA0E491C"
+      },
+      "rules": [
+        {
+          "eventKey": "assist_followup",
+          "resource": "furnace_fire",
+          "operation": "add",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "assist.AssistFollowUpHammerBell.desc.1",
+          "sourceRef": "https://www.prydwen.gg/zenless/characters/koleda#review"
+        },
+        {
+          "eventKey": "ex_activation",
+          "resource": "furnace_fire",
+          "operation": "add",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "special.EXSpecialAttackBoilingFurnace.desc.1",
+          "sourceRef": "https://www.prydwen.gg/zenless/characters/koleda#review"
+        },
+        {
+          "eventKey": "chain_activation",
+          "resource": "furnace_fire",
+          "operation": "add",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "chain.ChainAttackNaturalDisaster.desc.1",
+          "sourceRef": "https://www.prydwen.gg/zenless/characters/koleda#review"
+        },
+        {
+          "eventKey": "ultimate_activation",
+          "resource": "furnace_fire",
+          "operation": "add",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "chain.UltimateHammerquake.desc.1",
+          "sourceRef": "https://www.prydwen.gg/zenless/characters/koleda#review"
+        },
+        {
+          "eventKey": "enhanced_basic_activation",
+          "resource": "furnace_fire",
+          "operation": "clear",
+          "amount": null,
+          "unit": "stacks",
+          "conditionKeys": ["possesses_furnace_fire"],
+          "locator": "basic.BasicAttackSmashNBash.desc.4"
+        }
+      ],
+      "resourceStates": [
+        {
+          "resource": "furnace_fire",
+          "unit": "stacks",
+          "minimum": 0,
+          "maximum": 2,
+          "locator": "basic.BasicAttackSmashNBash.desc.4"
+        }
+      ],
+      "potentialEffects": [
+        {
+          "effectKey": "enhanced_basic_second_hit_damage_bonus",
+          "eventKey": "enhanced_basic_activation",
+          "amount": 0.1,
+          "unit": "ratio",
+          "minimumPotential": 1,
+          "conditionKey": "potential_awakening_active",
+          "scaleByConsumedStacks": true,
+          "requiresConsumption": true,
+          "oncePerEvent": true,
+          "locator": "libs/zzz/formula/src/data/char/sheets/Koleda.ts#basic_dmg_"
+        },
+        {
+          "effectKey": "enhanced_basic_second_hit_daze_bonus",
+          "eventKey": "enhanced_basic_activation",
+          "amount": 0.2,
+          "unit": "ratio",
+          "minimumPotential": 1,
+          "conditionKey": "potential_awakening_active",
+          "scaleByConsumedStacks": true,
+          "requiresConsumption": true,
+          "oncePerEvent": true,
+          "locator": "libs/zzz/formula/src/data/char/sheets/Koleda.ts#basic_dazeInc_"
+        },
+        {
+          "effectKey": "ex_special_daze_bonus",
+          "eventKey": "ex_activation",
+          "amount": 0.1,
+          "unit": "ratio",
+          "minimumPotential": 1,
+          "conditionKey": "potential_awakening_active",
+          "scaleByConsumedStacks": false,
+          "requiresConsumption": false,
+          "oncePerEvent": true,
+          "locator": "libs/zzz/formula/src/data/char/sheets/Koleda.ts#exSpecial_dazeInc_"
+        },
+        {
+          "effectKey": "furnace_consumption_team_damage_bonus",
+          "eventKey": "enhanced_basic_activation",
+          "amount": 0.35,
+          "unit": "ratio",
+          "minimumPotential": 1,
+          "conditionKey": "potential_awakening_active",
+          "scaleByConsumedStacks": false,
+          "requiresConsumption": true,
+          "oncePerEvent": true,
+          "durationSeconds": 40,
+          "locator": "libs/zzz/formula/src/data/char/sheets/Koleda.ts#basic_common_dmg_"
+        }
+      ],
+      "formulaSource": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/formula/src/data/char/sheets/Koleda.ts",
+        "sha256": "632180C58A583A7024641799AF82A21906D78973C2046A48C2DFB88E21E59C8C"
+      },
+      "nonResourceStates": ["stunned_chain"],
+      "unresolved": [
+        "Furnace Fire acquisition order and actual action timing remain declared inputs; production adoption does not prove a complete cycle.",
+        "M1 15% Daze is a mindscape condition and remains separate from potential qualification and Furnace Fire consumption."
+      ]
+    },
+    {
+      "agentId": "agent-grace",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Grace_gen.json",
+        "sha256": "3F99E3DEFE1A2682640AC20A6DCB75625A5542267EA97422F457566080A8D9D3"
+      },
+      "rules": [
+        {
+          "eventKey": "physical_basic_or_dash_hit",
+          "resource": "zap",
+          "operation": "add",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "core.desc.6"
+        },
+        {
+          "eventKey": "special_at_full_zap",
+          "resource": "zap",
+          "operation": "clear",
+          "amount": null,
+          "unit": "stacks",
+          "conditionKeys": ["zap_at_maximum"],
+          "locator": "core.desc.6"
+        },
+        {
+          "eventKey": "ultimate_activation",
+          "resource": "zap",
+          "operation": "add",
+          "amount": 8,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "chain.UltimateDemolitionBlastBeware.desc.2"
+        },
+        {
+          "eventKey": "ultimate_activation",
+          "resource": "pulse",
+          "operation": "add",
+          "amount": 25,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "chain.UltimateDemolitionBlastBeware.desc.2"
+        },
+        {
+          "eventKey": "zap_gained_while_pulse",
+          "resource": "pulse",
+          "operation": "consume",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": ["possesses_pulse"],
+          "locator": "special.Pulse.desc.0"
+        }
+      ],
+      "nonResourceStates": ["next_shock"],
+      "unresolved": [
+        "Pulse/Abloom is a distinct current-source state; current source damage chronology remains explicit."
+      ]
+    },
+    {
+      "agentId": "agent-ellen",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Ellen_gen.json",
+        "sha256": "5AF3454668BE724FC3994FEADE0E88BB3AFC28FD2E581CAFE46AEC072B36A15D"
+      },
+      "rules": [
+        {
+          "eventKey": "swift_scissors_hit",
+          "resource": "flash_freeze_charge",
+          "operation": "add",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "dodge.DashAttackArcticAmbush.desc.2"
+        },
+        {
+          "eventKey": "charged_scissors_hit",
+          "resource": "flash_freeze_charge",
+          "operation": "add",
+          "amount": 3,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "dodge.DashAttackArcticAmbush.desc.6"
+        },
+        {
+          "eventKey": "tail_swipe_hit",
+          "resource": "flash_freeze_charge",
+          "operation": "add",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "special.EXSpecialAttackTailSwipe.desc.2"
+        },
+        {
+          "eventKey": "sharknami_hit",
+          "resource": "flash_freeze_charge",
+          "operation": "add",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "special.EXSpecialAttackSharknami.desc.2"
+        },
+        {
+          "eventKey": "flash_freeze_basic_attack",
+          "resource": "flash_freeze_charge",
+          "operation": "consume",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "basic.BasicAttackFlashFreezeTrimming.desc.2"
+        },
+        {
+          "eventKey": "cold_snap_activation",
+          "resource": "flash_freeze_charge",
+          "operation": "consume",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "dodge.DashAttackColdSnap.desc.2"
+        },
+        {
+          "eventKey": "glacial_blade_activation",
+          "resource": "flash_freeze_charge",
+          "operation": "consume",
+          "amount": 2,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "basic.BasicAttackGlacialBladeWave.desc.1"
+        }
+      ],
+      "nonResourceStates": ["ice_damage"],
+      "unresolved": []
+    },
+    {
+      "agentId": "agent-rina",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Rina_gen.json",
+        "sha256": "9D7856DACD5455B5FE8F087C9AED0524915BC12AF296C87A6C88E96206E9DE80"
+      },
+      "rules": [
+        {
+          "eventKey": "morning_cleanup_attack",
+          "resource": "spotless_fright",
+          "operation": "add",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": ["spotless_state"],
+          "locator": "basic.BasicAttackMorningCleanup.desc"
+        },
+        {
+          "eventKey": "midnight_cleanup_conversion",
+          "resource": "spotless_fright",
+          "operation": "clear",
+          "amount": null,
+          "unit": "stacks",
+          "conditionKeys": ["six_fright_stacks"],
+          "locator": "basic.BasicAttackMidnightCleanup.desc"
+        }
+      ],
+      "nonResourceStates": ["pen_ratio"],
+      "unresolved": [
+        "Fright is separate from PEN Ratio. Actual Morning Cleanup hits and Spotless windows, not wall time, determine generated stacks."
+      ]
+    },
+    {
+      "agentId": "agent-manato",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Manato_gen.json",
+        "sha256": "06614A5E10D56C28F8BC0F083AC4143E6ECAC5B440537BADEE358BF5928CF280"
+      },
+      "rules": [
+        {
+          "eventKey": "sacrifice_completed_charge",
+          "resource": "blazing_heart",
+          "operation": "add",
+          "amount": 100,
+          "unit": "resource_points",
+          "conditionKeys": ["full_charge_hp_conditions_met"],
+          "locator": "special.SpecialAttackReturnToAshesSacrifice.desc.1"
+        },
+        {
+          "eventKey": "defensive_assist_activation",
+          "resource": "blazing_heart",
+          "operation": "add",
+          "amount": 75,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "assist.DefensiveAssistLoneShadowMountainStand.desc.2"
+        },
+        {
+          "eventKey": "molten_edge_clock",
+          "resource": "blazing_heart",
+          "operation": "consume_per_unit",
+          "amount": 3.3,
+          "unit": "resource_points",
+          "conditionKeys": ["molten_edge"],
+          "locator": "core.desc.6.2",
+          "quantityUnit": "effective_seconds"
+        }
+      ],
+      "nonResourceStates": [],
+      "unresolved": []
+    },
+    {
+      "agentId": "agent-pan-yinhu",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_PanYinhu_gen.json",
+        "sha256": "38082081255C8468520318704EC06F52A957849C5FB76C6022E5EB4BE6128FCD"
+      },
+      "rules": [
+        {
+          "eventKey": "ex_activation",
+          "resource": "break_force",
+          "operation": "add",
+          "amount": 3,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "special.EXSpecialAttackMountainousPulseStrike.desc.2"
+        },
+        {
+          "eventKey": "touch_of_death_activation",
+          "resource": "break_force",
+          "operation": "consume",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "special.SpecialAttackTouchOfDeath.desc.2"
+        }
+      ],
+      "nonResourceStates": ["meridian_flow_atk"],
+      "unresolved": []
+    },
+    {
+      "agentId": "agent-seth",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Seth_gen.json",
+        "sha256": "BD9D9C9678FA8AE923CFBBB6DAC646ECFEFA7DBA7759D6DE7C759DBDEB14D838"
+      },
+      "rules": [
+        {
+          "eventKey": "ultimate_activation",
+          "resource": "resolve",
+          "operation": "add",
+          "amount": 75,
+          "unit": "percentage_points",
+          "conditionKeys": [],
+          "locator": "chain.UltimateJusticePrevails.desc.2"
+        },
+        {
+          "eventKey": "defensive_assist_activation",
+          "resource": "resolve",
+          "operation": "add",
+          "amount": 25,
+          "unit": "percentage_points",
+          "conditionKeys": [],
+          "locator": "assist.DefensiveAssistThundershield.desc.2"
+        },
+        {
+          "eventKey": "lightning_strike_activation",
+          "resource": "resolve",
+          "operation": "consume",
+          "amount": 75,
+          "unit": "percentage_points",
+          "conditionKeys": [],
+          "locator": "basic.BasicAttackLightningStrikeElectrified.desc.1"
+        }
+      ],
+      "nonResourceStates": ["shield"],
+      "unresolved": [
+        "Shield is an ATK-derived defensive effect, not a rechargeable scalar resource. Resolve initial/EX gains need their source parameters."
+      ]
+    },
+    {
+      "agentId": "agent-billy",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Billy_gen.json",
+        "sha256": "3BCD88AF22D88B3D3095C71B87EC68B037CCB29DEF3D729C6E7DD09051F09E8A"
+      },
+      "rules": [],
+      "nonResourceStates": ["chain_ultimate"],
+      "unresolved": []
+    },
+    {
+      "agentId": "agent-soukaku",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Soukaku_gen.json",
+        "sha256": "566822CEF785434957D811CE3535E42BCD7C02150F6B909CD8221C80818C0803"
+      },
+      "rules": [
+        {
+          "eventKey": "ex_activation",
+          "resource": "vortex",
+          "operation": "add",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "special.SpecialAttackRally.desc.5"
+        },
+        {
+          "eventKey": "chain_activation",
+          "resource": "vortex",
+          "operation": "add",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "special.SpecialAttackRally.desc.6"
+        },
+        {
+          "eventKey": "ultimate_activation",
+          "resource": "vortex",
+          "operation": "add",
+          "amount": 3,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "special.SpecialAttackRally.desc.7"
+        },
+        {
+          "eventKey": "fly_the_flag_full_vortex",
+          "resource": "vortex",
+          "operation": "consume",
+          "amount": 3,
+          "unit": "stacks",
+          "conditionKeys": ["three_vortex_stacks"],
+          "locator": "special.SpecialAttackRally.desc.3"
+        }
+      ],
+      "nonResourceStates": ["flat_atk", "vortex_doubled"],
+      "unresolved": []
+    },
+    {
+      "agentId": "agent-piper",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Piper_gen.json",
+        "sha256": "B9631D390D7ECB9B5E80920C1FDAF6FC5B0D1D06DC79C185A42B0B63AE3E7DDC"
+      },
+      "rules": [
+        {
+          "eventKey": "engine_spin_or_ultimate_hit",
+          "resource": "power",
+          "operation": "add",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "core.desc.6"
+        }
+      ],
+      "nonResourceStates": [],
+      "unresolved": [
+        "Power expires 12 seconds after the last qualifying hit; no inferred hit cadence."
+      ]
+    },
+    {
+      "agentId": "agent-sigrid",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Sigrid_gen.json",
+        "sha256": "87B5E3959FC5CA37EBE38572F2F42EE274FAC24025DD82DD0F9301F3C1248C5C"
+      },
+      "rules": [
+        {
+          "eventKey": "unbridled_spear_qualified_hit",
+          "resource": "converging_spear_uses",
+          "operation": "set_to_cap",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": ["in_combat"],
+          "locator": "core.desc.6.1"
+        },
+        {
+          "eventKey": "converging_spear_successful_block",
+          "resource": "converging_spear_uses",
+          "operation": "set_to_cap",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "basic.BasicAttackConvergingSpear.desc.3"
+        }
+      ],
+      "nonResourceStates": ["converging_spear_stage"],
+      "unresolved": [
+        "Stage selection and Aerial Patrol durations require the real hit/charge sequence; usable charge token is distinct from stage number."
+      ]
+    },
+    {
+      "agentId": "agent-claret",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Claret_gen.json",
+        "sha256": "9EBB0A9057D9B797C89E62B78636413730D1628688D028A2F641287BE8B17C3F"
+      },
+      "rules": [
+        {
+          "eventKey": "battlefield_entry",
+          "resource": "sharpness",
+          "operation": "add",
+          "amount": 60,
+          "unit": "resource_points",
+          "conditionKeys": ["entry_grant_cooldown_ready"],
+          "locator": "core.desc.6.2"
+        },
+        {
+          "eventKey": "ultimate_activation",
+          "resource": "sharpness",
+          "operation": "add",
+          "amount": 10,
+          "unit": "resource_points",
+          "conditionKeys": [],
+          "locator": "chain.UltimateBloodbloomOathTrialAfterTrial.desc.3"
+        },
+        {
+          "eventKey": "maim_trigger",
+          "resource": "gash",
+          "operation": "consume",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": ["qualifying_special_hits_gashed_target"],
+          "locator": "core.desc.6.0"
+        },
+        {
+          "eventKey": "squad_contamination",
+          "resource": "decibels",
+          "operation": "add",
+          "amount": 300,
+          "unit": "resource_points",
+          "conditionKeys": ["additional_ability_active"],
+          "locator": "ability.desc.1",
+          "cooldownSeconds": 18
+        },
+        {
+          "eventKey": "automatic_sharpness_clock",
+          "resource": "sharpness",
+          "operation": "add_per_unit",
+          "amount": 1.5,
+          "unit": "resource_points",
+          "quantityUnit": "effective_seconds",
+          "conditionKeys": [],
+          "locator": "release_stats.automatic_sharpness_accumulation",
+          "sourceRef": "https://zzz.gachabase.net/agents/1611/claret/release/3.2.0/19437730?lang=en#sha256=ad3c6b30b9209059b4722a6795c57f5ee85ffd2245bd1b4f1076f0e85f9196f1:Automatic-Sharpness-Accumulation"
+        }
+      ],
+      "nonResourceStates": ["crimson_inscription"],
+      "unresolved": [
+        "Release Gash threshold and Sharpness capacity remain absent; locked source and release D19437730/R19437730 do not establish beta 1200."
+      ]
+    },
+    {
+      "agentId": "agent-roxy",
+      "source": {
+        "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+        "path": "libs/zzz/dm-localization/assets/locales/en/char_Roxy_gen.json",
+        "sha256": "2479FD13C7812CBCE726361C41322997758236DC237665B3410CE2A820CC67BD"
+      },
+      "rules": [
+        {
+          "eventKey": "energy_consumed_conversion",
+          "resource": "wind_energy",
+          "operation": "add_per_unit",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "core.desc.6.0",
+          "quantityUnit": "energy_points",
+          "conversionStep": 25,
+          "carryAcrossEvents": true
+        },
+        {
+          "eventKey": "ultimate_completed",
+          "resource": "wind_energy",
+          "operation": "add",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "chain.UltimateRequiemForTheNightBurial.desc.2"
+        },
+        {
+          "eventKey": "kindly_rest_consumed_wind",
+          "resource": "eye_of_the_storm",
+          "operation": "add_per_unit",
+          "amount": 1,
+          "unit": "stacks",
+          "conditionKeys": [],
+          "locator": "special.EXSpecialAttackKindlyRestInPeace.desc.2",
+          "quantityUnit": "consumed_wind_energy_points",
+          "maximumQuantity": 3,
+          "quantityStep": 1
+        },
+        {
+          "eventKey": "battlefield_entry",
+          "resource": "energy",
+          "operation": "add",
+          "amount": 40,
+          "unit": "resource_points",
+          "conditionKeys": ["additional_ability_active", "entry_grant_cooldown_ready"],
+          "locator": "ability.desc.4"
+        }
+      ],
+      "nonResourceStates": [],
+      "unresolved": [
+        "Wind Energy conversion carry/overflow, active Eye positions/hits and exact energy receipt/capacity remain timeline inputs."
+      ]
+    }
+  ],
+  "synergyContracts": [
+    {
+      "agentId": "agent-claret",
+      "partnerIds": ["agent-roxy", "agent-rina"],
+      "applicability": "published_m0_aggregate_observation",
+      "sourceConfidence": "aggregate_composition_observation_only",
+      "source": {
+        "sourceId": "lvlurarti-shiyustats-3.2.3-claret-rina-roxy",
+        "sourceVersion": "3.2.3",
+        "url": "https://huggingface.co/datasets/LvlUrArti/ShiyuDataProcessed/tree/219a1881324ab76887e0245062f2635900a9d6d2",
+        "locator": "reviewed-team-performance.3.2.3.json#targetTrios[id=trio-2-claret-rina-roxy]; exact composition observation only",
+        "retrievedAt": "2026-10-14"
+      }
+    },
+    {
+      "agentId": "agent-roxy",
+      "partnerIds": ["agent-claret", "agent-rina"],
+      "applicability": "published_m0_aggregate_observation",
+      "sourceConfidence": "aggregate_composition_observation_only",
+      "source": {
+        "sourceId": "lvlurarti-shiyustats-3.2.3-claret-rina-roxy",
+        "sourceVersion": "3.2.3",
+        "url": "https://huggingface.co/datasets/LvlUrArti/ShiyuDataProcessed/tree/219a1881324ab76887e0245062f2635900a9d6d2",
+        "locator": "reviewed-team-performance.3.2.3.json#targetTrios[id=trio-2-claret-rina-roxy]; exact composition observation only",
+        "retrievedAt": "2026-10-14"
+      }
+    }
+  ]
+}

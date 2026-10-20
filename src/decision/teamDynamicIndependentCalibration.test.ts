@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { DriveDisc, StatKey } from '../domain/schemas'
 import { teamDynamicFixture } from './teamDynamicIntegration.testFixture'
 import { compileTargetTeamPlanningContext } from './targetTeamPlanningContext'
-import agentSource from '../gameDataPacks/generated/current-agent-mechanic-catalog.v1.json'
+import agentSource from '../gameDataPacks/generated/current-agent-mechanic-catalog.v1.json' with { type: 'json' }
 import bangbooSource from '../gameDataPacks/generated/current-bangboo-numeric-catalog.v1.json'
 
 type Fixture = ReturnType<typeof teamDynamicFixture>

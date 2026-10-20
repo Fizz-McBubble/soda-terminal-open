@@ -10,6 +10,19 @@ export type WarehouseRetentionBasis =
   | 'scarce_reserve'
   | 'unresolved'
 
+/** Captured positive uses are separate from absolute disc quality. */
+export function warehouseCompleteBuildUseAgentIds(decision: WarehouseDiscDecision): string[] {
+  const use = decision.useAssessment
+  if (!use || (use.status !== 'keep' && use.status !== 'develop')) return []
+  return [
+    ...new Set(
+      (use.completeBuildImprovements ?? [])
+        .filter((row) => row.replacementDiscId === decision.discId)
+        .map((row) => row.agentId),
+    ),
+  ]
+}
+
 /** An explanation of the captured decision, not another retention policy. */
 export function warehouseRetentionBasis(
   decision: WarehouseDiscDecision,
@@ -24,6 +37,8 @@ export function warehouseRetentionBasis(
     safety.portfolioReferenced
   )
     return 'in_use'
+  if (warehouseCompleteBuildUseAgentIds(decision).some((id) => accountAgentIds.has(id)))
+    return 'account_fit'
   if (decision.absoluteRetention) {
     if (decision.absoluteRetention.disposition !== 'keep') return 'unresolved'
     if (decision.absoluteRetention.ownedUseAgentIds.some((id) => accountAgentIds.has(id)))

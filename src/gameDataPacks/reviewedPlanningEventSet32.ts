@@ -91,6 +91,10 @@ export function qualifyReviewedPlanningEventSet32(
   declarations: PlanningEventDeclarationsInput32,
 ) {
   const gaps: string[] = []
+  if (
+    declarations.occurrences.some((row) => Object.keys(row.anomalyLifecycleByAgentId ?? {}).length)
+  )
+    gaps.push('异常生命周期声明未包含在既有具名事件集的独立精算资格中。')
   if (!parsed.success)
     return { allowed: false, gaps: ['具名事件集模型证据尚未通过全部验证。'], evidenceRefs: [] }
   const capsule = parsed.data

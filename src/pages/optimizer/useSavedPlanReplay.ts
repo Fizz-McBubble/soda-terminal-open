@@ -178,6 +178,11 @@ export function useSavedPlanReplay({
           inputFingerprint: decision.fingerprint.inputHash,
           planId: plan.id,
           planHash,
+          luminizeSnapshotFingerprint:
+            plan.solutionContext?.declaredLuminizeSettlement32?.snapshotFingerprint,
+          standardReferenceIdentity:
+            plan.solutionContext?.standardReference32?.selectionIdentity ??
+            plan.solutionContext?.standardReference32?.preparedIdentity,
         })
         setSavedReplay({ identity: replayIdentity, presentation: accepted })
       })
@@ -426,6 +431,8 @@ export function useSavedPlanReplay({
       stableSavedTargetParameters,
       savedTargetScenarioSelection,
       plan?.solutionContext?.eventConditionDeclarationsByAgentId,
+      undefined,
+      plan?.solutionContext?.standardReferenceRequest32,
     )
       .then((fit) => {
         if (!active || fit.candidateId !== savedTargetCandidateId) return

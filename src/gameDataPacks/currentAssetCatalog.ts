@@ -14,6 +14,8 @@ export type CurrentAssetCatalogEntry = {
   rarity: 'S' | 'A' | 'B' | null
   specialty: string | null
   evidence: AssetEvidenceStrength
+  /** Identity authority is independent from evidence strength of the attached asset fields. */
+  identityEvidence: AssetEvidenceStrength
   releaseState: AssetReleaseState
   releaseAt: string | null
   sourceVersion: string
@@ -40,6 +42,7 @@ function project(entity: GameData31CatalogEntity): CurrentAssetCatalogEntry | nu
     rarity: asRarity(entity.fields.rarity),
     specialty: typeof entity.fields.specialty === 'string' ? entity.fields.specialty : null,
     evidence: entity.status,
+    identityEvidence: currentScope?.identityEvidence ?? 'missing',
     releaseState: currentScope?.releaseState ?? 'unreleased',
     releaseAt: currentScope?.releaseAt ?? null,
     sourceVersion: entity.source.sourceVersion,

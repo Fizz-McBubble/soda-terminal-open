@@ -1,4 +1,5 @@
 import type { CandidateBuild } from './accountBuildCandidates'
+import { compareCandidateEffectiveCritObjective } from './candidateEffectiveCritObjective'
 import { compareCandidatePanelPriority as compareCandidatePanelObjective } from './candidateSearchFacts'
 import {
   selectTeamObjectiveAssignment,
@@ -72,6 +73,15 @@ export function selectPriorityBuilds(
               compareCandidatePanelObjective(
                 left.selected.find((item) => item.agentId === id)?.panelObjective,
                 right.selected.find((item) => item.agentId === id)?.panelObjective,
+              ),
+            0,
+          ) ||
+          priorityIds.reduce(
+            (difference, id) =>
+              difference ||
+              compareCandidateEffectiveCritObjective(
+                left.selected.find((item) => item.agentId === id)?.effectiveCritObjective,
+                right.selected.find((item) => item.agentId === id)?.effectiveCritObjective,
               ),
             0,
           ) ||

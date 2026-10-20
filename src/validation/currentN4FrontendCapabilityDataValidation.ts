@@ -1,4 +1,6 @@
 import { current31TeamRatingCoverage } from './current31TeamRatingCoverage'
+import { currentBuildAuthority } from '../gameDataPacks/currentBuildAuthority'
+import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
 
 export const currentN4FrontendCapabilityDataValidationContract =
   'soda-n4-frontend-capability-data-validation/v1' as const
@@ -257,8 +259,7 @@ export const currentN4FrontendCapabilityDataValidationRows = Object.freeze([
       'src/gameDataPacks/currentBuildAuthority.ts',
       'src/gameDataPacks/panel/currentPanelData.ts',
     ],
-    primaryGap:
-      '58人来源化面板、技能指导及条件化盘参考已接入；有限成员/潜能/邦布星级条件复核通过。柚叶3000攻击后AP已消费于单人、团队、替代搜索和保存重放；真实18盘方案2921攻击/248AP诚实显示未达标。仅具名支持参数和有界候选，完整独立质量/留出验证仍缺，不外推全角色或统一毕业最优。',
+    primaryGap: `当前${currentBuildAuthority.gameVersion}养成目录覆盖${currentBuildAuthority.coverage.unique}名代理人，指导字段完整${currentBuildAuthority.coverage.guidanceReady}名、部分可用${currentBuildAuthority.coverage.guidancePartial}名；字段可用数${currentBuildAuthority.coverage.guidanceFieldsReady}/${currentBuildAuthority.coverage.guidanceFieldsTotal}，来源明确不适用${currentBuildAuthority.coverage.guidanceFieldsNotApplicable}项。有限成员/潜能/邦布星级条件复核及柚叶3000攻击后AP的单人、团队、替代搜索和保存重放证据保留；完整独立质量/留出验证仍缺，不外推统一毕业最优。`,
   }),
   capability({
     capabilityId: 'single_agent_warehouse_compare_save',
@@ -391,7 +392,7 @@ export const currentN4FrontendCapabilityDataValidationRows = Object.freeze([
       'src/gameDataPacks/runtimeSelection.test.ts',
     ],
     primaryGap:
-      '当前编译3.1包的隔离回归已覆盖10项能力指纹门，以及实际Query的单人候选、单队18盘比较、双队历史兼容、来源评级、仓库输出：切到不匹配旧包时旧run和新计算均拒绝，修复配套包后输出及指纹复现，隔离账户资产与方案不变。此为当前版本消费者的有界恢复证据，不代表未来3.2逐能力真实迁移或生产账户回退。历史未检出希格莉德实装后具名官方热修，其更新状态仍未核实。',
+      '3.1历史隔离回归覆盖10项能力指纹门，以及实际Query的单人候选、单队18盘比较、双队历史兼容、来源评级、仓库输出：切到不匹配旧包时旧run和新计算均拒绝，修复配套包后输出及指纹复现，隔离账户资产与方案不变。该历史证据不自动证明当前版本逐能力迁移或生产账户回退；当前证据按受影响消费者单独核对。历史未检出希格莉德实装后具名官方热修，其更新状态仍未核实。',
   }),
   capability({
     capabilityId: 'cross_module_stale_and_recovery',
@@ -454,7 +455,7 @@ export function summarizeFrontendCapabilityValidation(
 
 export const currentN4FrontendCapabilityDataValidation = Object.freeze({
   contract: currentN4FrontendCapabilityDataValidationContract,
-  gameVersion: '3.1-phase-ii' as const,
+  gameVersion: `${currentVersionProjection.gameVersion}-${currentVersionProjection.phase.replace('_', '-')}`,
   rows: currentN4FrontendCapabilityDataValidationRows,
   ...summarizeFrontendCapabilityValidation(currentN4FrontendCapabilityDataValidationRows),
   boundary:

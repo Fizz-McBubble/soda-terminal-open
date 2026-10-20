@@ -34,6 +34,8 @@ export type CurrentAssetProjectionEntry = {
   specialty: string | null
   attribute: string | null
   evidence: CurrentAssetEvidence
+  /** Formal release identity can coexist with candidate-level combat/build fields. */
+  identityEvidence: CurrentAssetEvidence
   releaseState: CurrentAssetReleaseState
   accountOwnable: boolean
   sort: {
@@ -188,6 +190,7 @@ function formalEntry(
     specialty,
     attribute: domain === 'agent' ? l3FactString(l3, 'identity.attribute') : null,
     evidence: 'formal',
+    identityEvidence: 'formal',
     releaseState: 'released',
     accountOwnable: true,
     sort: {
@@ -222,6 +225,7 @@ function candidateEntry(entity: GameData31CatalogEntity): CurrentAssetProjection
     specialty: typeof entity.fields.specialty === 'string' ? entity.fields.specialty : null,
     attribute: typeof entity.fields.attribute === 'string' ? entity.fields.attribute : null,
     evidence: entity.status,
+    identityEvidence: currentScope?.identityEvidence ?? 'missing',
     releaseState: currentReleaseState,
     accountOwnable: currentScope?.accountOwnable ?? false,
     sort: {

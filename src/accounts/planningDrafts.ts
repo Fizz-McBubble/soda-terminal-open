@@ -2,6 +2,8 @@ import { database, type SodaDatabase } from '../db/databaseCore'
 import { getScopedId, type AccountPlanningDraft } from './types'
 import { resolvePlanningDiscReferences } from './planningDiscReferences'
 import { isSourceResourceGrantDeclaration32 } from '../calculation/sourceMechanismResourceGrantContract32'
+import { isSavedDeclaredLuminizeSettlement32Current } from './luminizePlanPersistence32'
+import { assertCurrentPlanningResourceTimeline32 } from './resourceTimelinePlanPersistence32'
 
 export type PlanningDraftInput = Omit<
   AccountPlanningDraft,
@@ -59,6 +61,25 @@ function assertResourceGrantDeclaration(input: {
     throw new Error('资源到账声明格式无效，方案没有保存。')
 }
 
+function assertLuminizeSettlementDeclaration(input: PlanningDraftInput) {
+  const declaration = input.solutionContext?.declaredLuminizeSettlement32
+  if (declaration === undefined) return
+  if (!isSavedDeclaredLuminizeSettlement32Current(declaration))
+    throw new Error('Luminize 结算输入已失效或格式无效，方案没有保存。')
+  const members = declaration.declaration.memberAgentIds
+  const selected = input.selection.agentIds
+  if (
+    input.kind !== 'team' ||
+    input.solutionContext?.scope !== 'team_joint' ||
+    members.length !== selected.length ||
+    new Set(selected).size !== selected.length ||
+    selected.some((agentId) => !members.includes(agentId)) ||
+    (input.teamExecutionSnapshot?.deploymentOrder !== undefined &&
+      input.teamExecutionSnapshot.deploymentOrder.join(':') !== members.join(':'))
+  )
+    throw new Error('Luminize 结算的队伍或站位与当前方案不一致，方案没有保存。')
+}
+
 /** New saves bind only current account entities; compatibility history stays readable. */
 async function assertPlanningDiscReferences(
   accountId: string,
@@ -102,7 +123,9 @@ export async function saveAccountPlanningDraft(
   db: SodaDatabase = database,
   beforeSave?: (db: SodaDatabase) => Promise<void>,
 ) {
+  assertCurrentPlanningResourceTimeline32(input)
   assertResourceGrantDeclaration(input)
+  assertLuminizeSettlementDeclaration(input)
   return db.transaction(
     'rw',
     db.accountPlanningDrafts,
@@ -146,7 +169,9 @@ export async function saveCurrentAgentBuild(
   input: CurrentAgentBuildInput,
   db: SodaDatabase = database,
 ) {
+  assertCurrentPlanningResourceTimeline32({ ...input, kind: 'agent' })
   assertResourceGrantDeclaration(input)
+  assertLuminizeSettlementDeclaration({ ...input, kind: 'agent' })
   return db.transaction(
     'rw',
     db.accountPlanningDrafts,

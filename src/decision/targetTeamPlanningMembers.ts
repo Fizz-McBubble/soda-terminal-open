@@ -116,6 +116,7 @@ export function compileTargetTeamPlanningMembers(input: TargetTeamPlanningContex
       potential: resolvePotentialImage(agentId, selectedPotential) ?? null,
       coreLevel: skillLevels.core,
       skillLevels,
+      statBasis32: stats.statBasis32,
       initialStats: stats.initialStats,
       finalStats: stats.finalStats,
     })

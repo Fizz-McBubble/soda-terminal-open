@@ -1,4 +1,4 @@
-import agentCatalog from '../generated/current-agent-mechanic-catalog.v1.json'
+import agentCatalog from '../generated/current-agent-mechanic-catalog.v1.json' with { type: 'json' }
 import { stableContentHash } from '../types'
 import { sheerForceCommonSource32 } from '../../calculation/currentSourceBoundSheerForceIdentity32'
 

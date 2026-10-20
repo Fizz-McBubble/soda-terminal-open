@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { Current31MetaCalibration } from './current31TeamStrengthCalibration'
 
-// Isolate the projection contract from generated-model freshness. The full
-// model suite separately checks real inference after the owner regenerates it.
+// Simulate a stale caller that still promotes model output. Projection must
+// reject it even when its status, tier and recommendation score are populated.
 vi.mock('./teamStrengthModel', async (importOriginal) => {
   const actual = await importOriginal<typeof import('./teamStrengthModel')>()
   return {
@@ -48,22 +48,23 @@ function evaluate(memberIds: readonly [string, string, string]) {
   })
 }
 
-describe('model reference recommendation score projection', () => {
-  it('keeps distinct same-tier model scores visible instead of replacing them with fit scores', () => {
+describe('diagnostic model score authority boundary', () => {
+  it('rejects legacy promoted model tiers and scores while retaining diagnostics', () => {
     const lower = evaluate(['agent-astra', 'agent-cissia', 'agent-seed'])
     const higher = evaluate(['agent-aria', 'agent-burnice', 'agent-remielle'])
     expect(lower.metaCalibration.authority).toBe('model_inference')
     expect(higher.metaCalibration.authority).toBe('model_inference')
-    expect(lower.rating).toMatchObject({ ratingBand: 'A+', confidence: 'low' })
-    expect(higher.rating).toMatchObject({ ratingBand: 'A+', confidence: 'low' })
-    expect(lower.metaCalibration.recommendationScore).toBe(83)
-    expect(higher.metaCalibration.recommendationScore).toBe(87)
-    expect(lower.metaCalibration.recommendationScore).toBeLessThan(
-      higher.metaCalibration.recommendationScore!,
-    )
-    expect(teamRecommendationScore(lower.realityCheck.strengthBand, lower.featureVector)).toBe(
-      teamRecommendationScore(higher.realityCheck.strengthBand, higher.featureVector),
-    )
+    for (const result of [lower, higher]) {
+      expect(result.rating).toMatchObject({
+        ratingBand: 'Experimental',
+        confidence: 'experimental',
+      })
+      expect(result.realityCheck.strengthBand).toBeNull()
+      expect(result.realityCheck.status).not.toBe('calibrated_band_supported')
+      expect(result.metaCalibration.recommendationScore).toBeUndefined()
+    }
+    expect(lower.metaCalibration.inference?.score).toBe(83)
+    expect(higher.metaCalibration.inference?.score).toBe(87)
   })
 
   it('keeps the reviewed source tier and its established fit score', () => {

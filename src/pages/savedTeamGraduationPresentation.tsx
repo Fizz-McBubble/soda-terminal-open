@@ -58,7 +58,7 @@ export function SavedPlanGraduationLabel({
   publicCompletion,
 }: {
   plan: Pick<AccountPlanningDraft, 'teamExecutionSnapshot' | 'teamPortfolioSnapshot'> &
-    Partial<Pick<AccountPlanningDraft, 'warehouseRefs' | 'candidateWarehouse'>>
+    Partial<Pick<AccountPlanningDraft, 'warehouseRefs' | 'candidateWarehouse' | 'solutionContext'>>
   warehouse?: Pick<CoreWarehouse, 'roster' | 'discs'>
   publicCompletion?: SavedTeamGraduationCompletion | null
 }) {

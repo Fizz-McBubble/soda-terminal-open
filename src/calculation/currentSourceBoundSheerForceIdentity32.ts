@@ -62,12 +62,12 @@ export const sourceBoundSheerForceIdentity32 = Object.freeze({
 })
 export const sourceBoundSheerForceHash32 = stableContentHash(sourceBoundSheerForceIdentity32)
 
-// Exact aliases emitted by communitySourceProjection for the reviewed mapped-stat locators.
+// Stable repository-relative aliases emitted by communitySourceProjection for the reviewed mapped-stat locators.
 // Repository, commit and byte hashes still bind the source before these aliases are accepted.
 export const reviewedPublicMappedStatLocators32 = Object.freeze({
-  Yixuan: 'soda-source-ref:c53a29fadb975355901878732b433d75',
-  Manato: 'soda-source-ref:7b871e97e4c815dc78e1564f2a62e8ff',
-  Banyue: 'soda-source-ref:f96cee14c3d7c473c241d09643ee033f',
-  Yidhari: 'soda-source-ref:406ff73b1fd14b8368dd81b3aa8764eb',
-  StarlightBilly: 'soda-source-ref:f045cbf04da6e7c5217200493151af66',
+  Yixuan: 'libs/zzz/stats/src/mappedStats/char/maps/Yixuan.ts',
+  Manato: 'libs/zzz/stats/src/mappedStats/char/maps/Manato.ts',
+  Banyue: 'libs/zzz/stats/src/mappedStats/char/maps/Banyue.ts',
+  Yidhari: 'libs/zzz/stats/src/mappedStats/char/maps/Yidhari.ts',
+  StarlightBilly: 'libs/zzz/stats/src/mappedStats/char/maps/StarlightBilly.ts',
 })

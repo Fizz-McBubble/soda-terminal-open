@@ -29,8 +29,16 @@ describe('team rematch lifecycle', () => {
       await user.click(await findAnalyzeCurrentTeamButton())
       await user.click(await findFitTeamEquipmentButton())
       await findTeamEquipmentHeading()
-      await user.click(screen.getByRole('button', { name: '保存当前队伍方案' }))
-      await screen.findByRole('heading', { name: '当前队伍建议' })
+      const savePlan = screen.getByRole('button', { name: '保存当前队伍方案' })
+      await waitFor(() => expect(savePlan).toBeEnabled(), {
+        timeout: optimizerFlowIntegrationTestTimeout,
+      })
+      await user.click(savePlan)
+      await screen.findByRole(
+        'heading',
+        { name: '当前队伍建议' },
+        { timeout: optimizerFlowIntegrationTestTimeout },
+      )
       const stored = (await database.accountPlanningDrafts.toArray()).find(
         (row) => row.kind === 'team',
       )

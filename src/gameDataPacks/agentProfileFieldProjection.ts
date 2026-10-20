@@ -6,6 +6,7 @@ import { type VisualAssetEntityType } from '../assets/visualAssets'
 import type { canonicalFieldConflictLedger } from './canonicalBaseline'
 import { type BuildKnowledgeProfile } from './buildKnowledge'
 import type { getCandidateWarehouseConstraint } from './candidateWarehouseConstraints'
+import { isBuildFieldAffectedByVersion32 } from './buildApplicabilityDependencyAnalysis'
 
 export const agentProfileFieldStatuses = [
   'formal',
@@ -19,11 +20,15 @@ export type AgentProfileSourceRef = {
   id: string
   url: string
   sourceVersion: string | null
+  originalSourceVersion?: string | null
   checkedAt: string | null
   contentHash: string | null
   licenseBoundary: string
   supportedValues?: string[]
   conditionsByValue?: Record<string, string[]>
+  authorReviewedVersion?: string | null
+  pageUpdatedAt?: string | null
+  retrievedAt?: string | null
 }
 
 export type AgentProfileField = {
@@ -46,6 +51,8 @@ export type AgentProfileField = {
   conflict: (typeof canonicalFieldConflictLedger)[number] | null
   reason: string
   conditions?: readonly string[]
+  authorReviewedVersion?: string | null
+  applicabilityReason?: string
 }
 
 export type AgentProfileVisualRef = {
@@ -134,9 +141,13 @@ function constraintSourceRefs(
     id: source.id,
     url: source.url,
     sourceVersion: source.sourceVersion,
+    originalSourceVersion: source.originalSourceVersion ?? source.sourceVersion,
     checkedAt: source.checkedAt,
     contentHash: source.contentHash,
     licenseBoundary: source.licenseBoundary,
+    authorReviewedVersion: source.authorReviewedVersion ?? null,
+    pageUpdatedAt: source.pageUpdatedAt ?? null,
+    retrievedAt: source.retrievedAt ?? source.checkedAt,
   }))
 }
 
@@ -149,21 +160,42 @@ export function projectedCurrentConstraintFields(
   constraint: NonNullable<ReturnType<typeof getCandidateWarehouseConstraint>>,
 ): AgentProfileField[] {
   const sourceRefs = constraintSourceRefs(constraint)
+  const originalVersions = [...new Set(sourceRefs.map((source) => source.originalSourceVersion))]
+  const authorReviews = [
+    ...new Set(sourceRefs.map((source) => source.authorReviewedVersion ?? null)),
+  ]
   const checkedAt =
     constraint.sources
       .map((source) => source.checkedAt)
       .filter(Boolean)
       .sort()
       .at(-1) ?? null
-  const common = {
-    group: 'build_guidance' as const,
-    gameVersion: constraint.gameVersion,
-    originalSourceVersion: constraint.gameVersion,
-    lastChangeVersion: constraint.gameVersion,
-    currentApplicability: 'continuous' as const,
-    sourceRefs,
-    verifiedAt: checkedAt,
-    conflict: null,
+  const buildCommon = (path: string, conditions?: readonly string[]) => {
+    const check = isBuildFieldAffectedByVersion32(constraint.agentId, path)
+    return {
+      group: 'build_guidance' as const,
+      gameVersion: constraint.gameVersion,
+      originalSourceVersion: originalVersions.length === 1 ? originalVersions[0]! : null,
+      lastChangeVersion: check.affected ? '3.2' : null,
+      currentApplicability: check.affected
+        ? ('affected_pending' as const)
+        : constraint.sources.some((source) => source.verified)
+          ? ('continuous' as const)
+          : ('unknown' as const),
+      sourceRefs,
+      verifiedAt: checkedAt,
+      conflict: null,
+      authorReviewedVersion: authorReviews.length === 1 ? authorReviews[0]! : null,
+      retrievedAt: checkedAt,
+      ...(check.affected
+        ? {
+            applicabilityReason: check.reason,
+            conditions: [...(conditions ?? []), check.reason!],
+          }
+        : conditions?.length
+          ? { conditions }
+          : {}),
+    }
   }
   const statLines = (['4', '5', '6'] as const).flatMap((slot) => {
     const stats = constraint.mainStats[slot] ?? []
@@ -189,7 +221,7 @@ export function projectedCurrentConstraintFields(
 
   return [
     {
-      ...common,
+      ...buildCommon('build.wengines'),
       path: 'build.wengines',
       value: wEngineIds.length > 0 ? [...new Set(wEngineIds)] : null,
       status: wEngineIds.length > 0 ? 'verified_candidate' : 'missing',
@@ -199,7 +231,7 @@ export function projectedCurrentConstraintFields(
           : '当前版本候选约束缺少可归一化的音擎稳定身份。',
     },
     {
-      ...common,
+      ...buildCommon('build.drive_disc_sets'),
       path: 'build.drive_disc_sets',
       value: executableSets ? constraint.setPlanReadiness : null,
       status: executableSets ? 'verified_candidate' : 'missing',
@@ -210,7 +242,7 @@ export function projectedCurrentConstraintFields(
           : '当前版本候选套装尚未形成可执行组合。',
     },
     {
-      ...common,
+      ...buildCommon('build.main_sub_stats'),
       path: 'build.main_sub_stats',
       value: completeMainStats ? [...statLines, `副词条：${subStats.join('、')}`] : null,
       status: completeMainStats ? 'verified_candidate' : 'missing',
@@ -219,7 +251,7 @@ export function projectedCurrentConstraintFields(
         : '当前版本候选约束缺少完整的 4/5/6 号位或副词条方向。',
     },
     {
-      ...common,
+      ...buildCommon('build.progression'),
       path: 'build.progression',
       value: constraint.progressionDirection,
       status: constraint.progressionDirection.length > 0 ? 'candidate' : 'missing',
@@ -229,7 +261,7 @@ export function projectedCurrentConstraintFields(
           : '当前版本候选约束缺少养成方向。',
     },
     {
-      ...common,
+      ...buildCommon('build.team_bangboo_scenario'),
       path: 'build.team_bangboo_scenario',
       value: completeTeamScenario ? constraint.teamAndBangbooPreconditions : null,
       status: completeTeamScenario ? 'candidate' : 'missing',
@@ -238,7 +270,7 @@ export function projectedCurrentConstraintFields(
         : '现有候选约束尚未形成队伍与邦布均完整的同源建议；保留缺口，不外推为完整配队。',
     },
     {
-      ...common,
+      ...buildCommon('build.target_panel', targetPanel?.conditions ?? []),
       path: 'build.target_panel',
       value: targetPanel
         ? {
@@ -248,7 +280,6 @@ export function projectedCurrentConstraintFields(
               : {}),
           }
         : null,
-      conditions: targetPanel?.conditions ?? [],
       status: targetPanel && targetPanelSources.length > 0 ? 'candidate' : 'missing',
       sourceRefs: targetPanelSources,
       reason:

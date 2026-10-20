@@ -40,6 +40,7 @@ export const currentReleasedIdentitySourceRegistry = {
       stableIds: [
         'agent-remielle',
         'agent-sigrid',
+        'wengine-14158',
         'wengine-14159',
         'bangboo-ariel',
         'set-34100',
@@ -117,6 +118,17 @@ export const currentReleasedIdentityMap = {
         '3.1 Phase II 稳定项目身份与 released 状态已闭合；战斗、构筑和精确伤害字段继续服从 Candidate/Formal 门。',
     },
     {
+      stableId: 'wengine-14158',
+      aliases: ['candidate-3.1-wengine-ode-of-resurrected-wings'],
+      gameEvidenceId: '14158',
+      playerName: '空羽复归之诗',
+      releaseState: 'released',
+      releaseAt: '2026-07-29',
+      sourceRefs: ['official-3.1-update-2026-07-29'],
+      boundary:
+        '官方3.1更新公告闭合身份、上线和可获取状态；精炼、被动数值与触发条件仍按独立字段来源准入。',
+    },
+    {
       stableId: 'wengine-14159',
       aliases: ['candidate-3.1-wengine-knights-extolment'],
       gameEvidenceId: '14159',
@@ -174,4 +186,32 @@ export function getCurrentReleasedIdentity(identity: string) {
 
 export function resolveCurrentReleasedIdentity(identity: string) {
   return getCurrentReleasedIdentity(identity)?.stableId ?? identity
+}
+
+/** Registry announcements may cover more IDs than this map; mapped IDs must cite matching coverage. */
+export function findReleasedIdentityRegistryMismatches(
+  identities: readonly { stableId: string; sourceRefs: readonly string[] }[],
+  sources: readonly { id: string; stableIds: readonly string[] }[],
+) {
+  const sourceById = new Map(sources.map((source) => [source.id, source]))
+  return identities
+    .filter((identity) => identity.sourceRefs.some((ref) => ref.startsWith('official-')))
+    .filter(
+      (identity) =>
+        !identity.sourceRefs.some((ref) =>
+          sourceById.get(ref)?.stableIds.includes(identity.stableId),
+        ),
+    )
+    .map((identity) => identity.stableId)
+}
+
+/** Every explicitly announced agent ID needs a stable identity mapping; other domains may be supersets. */
+export function findUnmappedAnnouncedAgentIds(
+  identities: readonly { stableId: string }[],
+  sources: readonly { stableIds: readonly string[] }[],
+) {
+  const mappedIds = new Set(identities.map((identity) => identity.stableId))
+  return [...new Set(sources.flatMap((source) => source.stableIds))]
+    .filter((stableId) => stableId.startsWith('agent-') && !mappedIds.has(stableId))
+    .sort()
 }

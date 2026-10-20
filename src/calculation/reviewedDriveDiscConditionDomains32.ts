@@ -17,6 +17,10 @@ export type DriveDiscEventRuntimeBinding32 = {
   runtime: DriveDiscFormulaRuntime32
 }
 const labels: Record<string, string> = {
+  'FangedMetal:inflict_assault':
+    '獠牙重金属：任意队员对该目标触发强击后的12秒内，穿戴者对该目标的增伤仍有效',
+  'WoodpeckerElectro:crit_basic_dodge_ex':
+    '啄木鸟电音：穿戴者普攻、闪避反击、强化特殊技暴击各自6秒独立有效增益的种类数（0至3）',
   'KingOfTheSummit:launchExSpecialOrChain':
     '山大王：穿戴者施放强化特殊技或连携技后的15秒增益仍有效',
   'AstralVoice:astral': '静听嘉音：当前15秒内有效的星语层数',
@@ -67,7 +71,7 @@ export function appendReviewedDriveDiscConditions32(
         result.blockers.push(`四件套条件尚未审核：${equipped.setId}/${ref}`)
         continue
       }
-      const stack = ref === 'AstralVoice:astral'
+      const stack = ref === 'AstralVoice:astral' || ref === 'WoodpeckerElectro:crit_basic_dodge_ex'
       const referenceKey = `disc:${equipped.setId}:${ref}`
       if (
         result.defs.some(

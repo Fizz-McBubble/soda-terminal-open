@@ -21,6 +21,7 @@ import {
 } from './reviewedAuthorComparisonMembership32'
 import { projectOutputPotentialBands } from './outputPotentialBand'
 import { type RankedFormation } from './accountDecisionBands'
+import type { AgentRealInvestmentDetail } from './accountCultivationRealInvestment'
 import {
   Current31TeamIntrinsicIndexMismatchError,
   projectAccountIntrinsicCandidates,
@@ -35,7 +36,14 @@ import {
   denseOrder,
   resolveMemberDisjointPortfolio,
 } from './accountDecisionOrdering'
-import { lightweightPriorityTier } from './accountCultivationPriority'
+import {
+  lightweightPriorityTier,
+  evaluateAccountCultivationRealInvestment,
+  evaluateAccountCultivationMarginalYield,
+  compareCultivationPriorityPartialOrder,
+  type AccountCultivationRealInvestment,
+  type AccountCultivationMarginalYield,
+} from './accountCultivationPriority'
 export { refineCultivationPriorityWithTargetFit } from './accountCultivationPriority'
 export { projectCurrent31TeamStrengthOrder } from './accountDecisionOrdering'
 
@@ -168,10 +176,6 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
         : [],
     ),
   )
-  const intrinsicScore = (item: (typeof projected)[number]) =>
-    typeof item.recommendationScore === 'number' && Number.isFinite(item.recommendationScore)
-      ? item.recommendationScore
-      : -1
   const baseIntrinsicDisplayComparator = (
     left: (typeof projected)[number],
     right: (typeof projected)[number],
@@ -181,7 +185,6 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
     return (
       (teamStrengthRankById.get(left.candidate.candidateId) ?? Number.MAX_SAFE_INTEGER) -
         (teamStrengthRankById.get(right.candidate.candidateId) ?? Number.MAX_SAFE_INTEGER) ||
-      intrinsicScore(right) - intrinsicScore(left) ||
       confidenceOrder(left.rating.confidence) - confidenceOrder(right.rating.confidence) ||
       Number(right.mechanicallyClosed) - Number(left.mechanicallyClosed) ||
       left.candidate.candidateId.localeCompare(right.candidate.candidateId)
@@ -298,12 +301,50 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
     intrinsicShortlist.map((item) => item.candidate.candidateId),
   )
   const ordered = [...projected].sort(baseComparator)
+  const realInvestmentCache = new Map<string, AccountCultivationRealInvestment>()
+  const realInvestmentAgentCache = new Map<string, AgentRealInvestmentDetail>()
+  const realInvestmentFor = (item: (typeof ordered)[number]) => {
+    const missingDiscSlots = item.account.buildCompletionDistance.missingDiscSlots
+    const cacheKey = JSON.stringify([
+      item.memberIds.toSorted(),
+      missingDiscSlots,
+      item.account.potentialGaps.map((gap) => [gap.agentId, gap.current, gap.minimum]),
+    ])
+    const cached = realInvestmentCache.get(cacheKey)
+    if (cached) return cached
+    const realInvestment = evaluateAccountCultivationRealInvestment({
+      memberIds: item.memberIds,
+      roster: input.roster,
+      agentInvestmentCache: realInvestmentAgentCache,
+      ...(missingDiscSlots === null
+        ? {}
+        : {
+            targetFit: {
+              status: missingDiscSlots === 0 ? ('ready' as const) : ('partial' as const),
+              uniqueDiscCount: Math.max(0, 18 - missingDiscSlots),
+              gaps: [],
+            },
+          }),
+      potentialGaps: item.account.potentialGaps,
+    })
+    realInvestmentCache.set(cacheKey, realInvestment)
+    return realInvestment
+  }
   const accountProjected = ordered.flatMap((item) => {
     if (item.rating.status !== 'rated') return []
+    const missingDiscSlots = item.account.buildCompletionDistance.missingDiscSlots
+    const realInvestment = realInvestmentFor(item)
+    const account = {
+      ...item.account,
+      investmentCost:
+        missingDiscSlots === null ? item.account.investmentCost : realInvestment.investmentCost,
+    }
     return [
       {
         ...item,
-        priorityTier: lightweightPriorityTier(item.rating, item.account),
+        account,
+        realInvestment,
+        priorityTier: lightweightPriorityTier(item.rating, account),
       },
     ]
   })
@@ -365,17 +406,54 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
       ? 'new_required_team'
       : 'redundancy') as CultivationPriorityInput['coverageGain'],
   }))
+  const marginalYieldByCandidateId = new Map<string, AccountCultivationMarginalYield>(
+    enriched.map((item) => [
+      item.candidate.candidateId,
+      evaluateAccountCultivationMarginalYield({
+        candidateId: item.candidate.candidateId,
+        teamRating: item.rating,
+        coverageGain: item.coverageGain,
+        currentReadiness: item.account.currentReadiness,
+        investmentCost: item.account.investmentCost,
+        realInvestment: item.realInvestment,
+      }),
+    ]),
+  )
+  const marginalYieldOrder = (
+    left: (typeof enriched)[number],
+    right: (typeof enriched)[number],
+  ) => {
+    const categoryOrder: Record<AccountCultivationMarginalYield['yieldCategory'], number> = {
+      immediate_high_impact: 0,
+      high_efficiency_progression: 1,
+      strategic_high_potential: 2,
+      standard_development: 3,
+      redundant_marginal: 4,
+      unrealizable: 5,
+    }
+    const leftYield = marginalYieldByCandidateId.get(left.candidate.candidateId)!
+    const rightYield = marginalYieldByCandidateId.get(right.candidate.candidateId)!
+    const categoryDifference =
+      categoryOrder[leftYield.yieldCategory] - categoryOrder[rightYield.yieldCategory]
+    if (categoryDifference) return categoryDifference
+    const partialOrder = compareCultivationPriorityPartialOrder(leftYield, rightYield)
+    if (partialOrder.relation === 'left_dominates') return -1
+    if (partialOrder.relation === 'right_dominates') return 1
+    return 0
+  }
   enriched.sort(
     (left, right) =>
-      compareAccountCultivationState(left, right) ||
       coverageOrder.indexOf(left.coverageGain) - coverageOrder.indexOf(right.coverageGain) ||
+      marginalYieldOrder(left, right) ||
+      compareAccountCultivationState(left, right) ||
       intrinsicDisplayComparator(left, right),
   )
   const cultivationOrder = denseOrder(
     enriched,
     (left, right) =>
-      compareAccountCultivationState(left, right) ||
       coverageOrder.indexOf(left.coverageGain) - coverageOrder.indexOf(right.coverageGain) ||
+      marginalYieldOrder(left, right) ||
+      compareAccountCultivationState(left, right) ||
       intrinsicDisplayComparator(left, right),
   )
   const cultivationRankById = new Map(
@@ -385,14 +463,29 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
     left: (typeof enriched)[number],
     right: (typeof enriched)[number],
   ) => intrinsicDisplayComparator(left, right)
-  const toRecommendation = (item: (typeof enriched)[number]) =>
-    projectAccountDecisionRecommendation(item, {
+  const toRecommendation = (item: (typeof enriched)[number]) => {
+    const recommendation = projectAccountDecisionRecommendation(item, {
       explicitMembershipById,
       preparedBenchmarkIds,
       teamStrengthRankById,
       cultivationRankById,
       validationIntrinsicProjectionMode: input.validationIntrinsicProjectionMode,
     })
+    const marginalYield = marginalYieldByCandidateId.get(item.candidate.candidateId)
+    return {
+      ...recommendation,
+      realInvestment: item.realInvestment,
+      marginalYield,
+      cultivationPriority: {
+        ...recommendation.cultivationPriority,
+        reasons: [...recommendation.cultivationPriority.reasons, ...item.realInvestment.reasons],
+        tradeoffs: [
+          ...recommendation.cultivationPriority.tradeoffs,
+          ...item.realInvestment.tradeoffs,
+        ],
+      },
+    }
+  }
   // Owned BOX constrains membership; inventory costs stay outside intrinsic strength ordering.
   const recommendations = enriched
     .filter((item) => intrinsicShortlistIds.has(item.candidate.candidateId))

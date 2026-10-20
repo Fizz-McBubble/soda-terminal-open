@@ -63,6 +63,8 @@ export function canApplyReviewedReferenceSupport32(input: {
   )
 }
 
+import { isBuildFieldAffectedByVersion32 } from './buildApplicabilityDependencyAnalysis'
+
 export function reviewedBuildFieldReferenceContinuity32(input: {
   agentId: string
   targetVersion: string
@@ -84,6 +86,7 @@ export function reviewedBuildFieldReferenceContinuity32(input: {
     field.currentApplicability !== 'continuous' ||
     !field.sourceRefs.length ||
     field.path === 'build.version_change_impact' ||
+    isBuildFieldAffectedByVersion32(input.agentId, field.path).affected ||
     (field.path === 'progression.potential_overlay' &&
       ['agent-koleda', 'agent-miyabi', 'agent-nekomata', 'agent-piper'].includes(input.agentId)) ||
     !canApplyReviewedReferenceSupport32({

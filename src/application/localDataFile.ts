@@ -8,8 +8,7 @@ export function localDataFileSizeIssue(
   bytes: number,
 ): 'file_too_large' | 'asset_snapshot_too_large' | null {
   if (bytes > localDataFileMaxBytes) return 'file_too_large'
-  if (kind === 'asset-snapshot' && bytes > assetSnapshotMaxBytes)
-    return 'asset_snapshot_too_large'
+  if (kind === 'asset-snapshot' && bytes > assetSnapshotMaxBytes) return 'asset_snapshot_too_large'
   return null
 }
 

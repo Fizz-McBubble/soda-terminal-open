@@ -5,7 +5,7 @@ import { hasCurrentWEngineProgression } from '../decision/wEngineResolver'
 import { projectOutOfCombatMenuPanel, type PanelResult } from '../calculation/outOfCombatPanel'
 import {
   getGraduationCandidateProfile,
-  type GraduationCandidateProfile,
+  type RuntimeGraduationCandidateProfile,
 } from '../gameDataPacks/graduationCandidateProfileProjection'
 import {
   getL3AgentDevelopmentEvidence,
@@ -16,14 +16,14 @@ export type AgentDevelopmentPanelProjection = {
   source: '本次匹配方案' | '当前保存方案' | '当前已装备' | '暂无完整配装'
   result: PanelResult
   dataFoundation: L3AgentDevelopmentEvidence | null
-  graduationCandidate: GraduationCandidateProfile | null
+  graduationCandidate: RuntimeGraduationCandidateProfile | null
 }
 
 function unsupported(
   source: AgentDevelopmentPanelProjection['source'],
   reason: string,
   dataFoundation: L3AgentDevelopmentEvidence | null,
-  graduationCandidate: GraduationCandidateProfile | null,
+  graduationCandidate: RuntimeGraduationCandidateProfile | null,
 ): AgentDevelopmentPanelProjection {
   return {
     source,

@@ -1,8 +1,6 @@
 import type { PortfolioJointBuildIntent } from '../decision/buildIntent'
-import {
-  buildAccountDecisionInputFingerprint,
-  type BuildAccountDecisionInput,
-} from '../decision/accountDecisionService'
+import type { BuildAccountDecisionInput } from '../decision/accountDecisionService'
+import { buildSavedTeamSolutionInputComponents } from '../decision/accountDecisionFingerprint'
 import {
   buildSavedTeamPlanSolutionFingerprintFromComponents,
   buildSavedTeamPortfolioPlanSolutionFingerprintFromComponents,
@@ -15,10 +13,7 @@ export {
 } from '../application/publicSavedPlanFreshness'
 
 function nonPlanningComponents(decisionInput: BuildAccountDecisionInput) {
-  const fingerprint = buildAccountDecisionInputFingerprint(decisionInput)
-  return Object.fromEntries(
-    Object.entries(fingerprint.components).filter(([key]) => key !== 'planningHash'),
-  )
+  return buildSavedTeamSolutionInputComponents(decisionInput)
 }
 
 export function buildSavedTeamPlanSolutionFingerprint({

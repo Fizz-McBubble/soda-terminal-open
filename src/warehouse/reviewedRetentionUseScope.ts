@@ -70,6 +70,23 @@ export interface ScopedResult extends ExistingFact {
   evidenceUrls: string[]
 }
 
+/**
+ * Guidance applicability is current source/reference continuity, not the
+ * reviewed ordinary-build constraint itself. Keep it in contentHash for
+ * general consumers, but do not let that derived projection invalidate an
+ * explicitly reviewed normal-build adoption.
+ */
+export function reviewedNormalM0ProfileFingerprint(
+  constraint: CandidateWarehouseConstraint,
+): string {
+  const payload = Object.fromEntries(
+    Object.entries(constraint).filter(
+      ([key]) => key !== 'contentHash' && key !== 'guidanceApplicability',
+    ),
+  )
+  return stableContentHash(payload)
+}
+
 /** Explicit reserve objective policy, never an account or special-mode observation. */
 export function getReviewedNormalM0UseScope(
   constraint: CandidateWarehouseConstraint,
@@ -77,14 +94,12 @@ export function getReviewedNormalM0UseScope(
   goal: string,
   contract: CurrentAgentEventContract | null,
 ): { context: Context; review: Review; adoption: Adoption } | undefined {
-  const { contentHash, ...payload } = constraint
-  const actualFingerprint = stableContentHash(payload)
+  const actualFingerprint = reviewedNormalM0ProfileFingerprint(constraint)
   const binding = normalAdoptions.rows.find(
     (row) =>
       row.actorAgentId === actorAgentId &&
       row.approved &&
       row.profileFingerprint === actualFingerprint &&
-      contentHash === actualFingerprint &&
       row.goals.includes(goal) &&
       row.mindscape === 0 &&
       row.mode === 'standard_combat' &&

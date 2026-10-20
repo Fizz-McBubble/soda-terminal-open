@@ -18,7 +18,7 @@ export type ReviewedClaretHeldActionInput32 = {
 export const reviewedClaretHeldActionIdentity32 = Object.freeze({
   ...reviewedClaretTapActionIdentity32,
   revision: 'reviewed-claret-prepared-blood-burial-aggregate-r1',
-  contractRef: "soda-source-ref:d724aa2504f262c7ecd3aad4fd68aa8e",
+  contractRef: 'soda-source-ref:d724aa2504f262c7ecd3aad4fd68aa8e',
   maimSource: 'https://www.kocpc.com.tw/archives/669096',
   maimLocator: '特殊技派生: three held detonations equal three separate tap detonations',
   scope: 'source-M0-M6-P0-finite-prepared-held-constant-state',

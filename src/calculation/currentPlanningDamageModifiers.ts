@@ -1,3 +1,5 @@
+import { sourceStunAppliesOutsideStun32 } from './sourceBoundStunApplication32'
+
 /** Sourced modifier domains, recipient binding and event scope matching; no damage calculation. */
 export type SourceBackedPlanningEffectBucket = {
   bucketId: string
@@ -108,6 +110,7 @@ type DirectDamageModifiers = {
   buffBonus: number
   vulnerability: number
   stunDamageBonus: number
+  nonStunnedStunDamageBonus: number
   motionValueMultiplier: number
   critRate: number
   critDamage: number
@@ -290,6 +293,7 @@ export function emptyModifiers(): DirectDamageModifiers {
     buffBonus: 0,
     vulnerability: 0,
     stunDamageBonus: 0,
+    nonStunnedStunDamageBonus: 0,
     motionValueMultiplier: 0,
     critRate: 0,
     critDamage: 0,
@@ -334,7 +338,12 @@ export function addModifier(
   if (bucket.application === 'direct_damage_bonus') target.directDamageBonus += bucket.value
   if (bucket.application === 'buff_bonus') target.buffBonus += bucket.value
   if (bucket.application === 'vulnerability') target.vulnerability += bucket.value
-  if (bucket.application === 'stun_damage_bonus') target.stunDamageBonus += bucket.value
+  if (bucket.application === 'stun_damage_bonus') {
+    target.stunDamageBonus += bucket.value
+    const outsideStun = sourceStunAppliesOutsideStun32(bucket)
+    if (outsideStun === null) target.nonStunnedStunDamageBonus = Number.NaN
+    else if (outsideStun) target.nonStunnedStunDamageBonus += bucket.value
+  }
   if (bucket.application === 'motion_value_multiplier') target.motionValueMultiplier += bucket.value
   if (bucket.application === 'crit_rate') target.critRate += bucket.value
   if (bucket.application === 'crit_damage') target.critDamage += bucket.value

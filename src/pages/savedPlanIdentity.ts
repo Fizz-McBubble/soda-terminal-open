@@ -78,6 +78,24 @@ export function savedTeamTargetFitMatchesSavedDiscs(
   ) {
     return false
   }
+  const savedStandard = plan.solutionContext?.standardReference32
+  if (savedStandard) {
+    const currentStandard = targetTeamFit.standardReference32
+    if (!currentStandard || currentStandard.status !== savedStandard.status) return false
+    if (
+      savedStandard.status === 'selected' &&
+      (currentStandard.selectionIdentity !== savedStandard.selectionIdentity ||
+        currentStandard.objectiveIdentity !== savedStandard.objectiveIdentity ||
+        currentStandard.coverageIdentity !== savedStandard.coverageIdentity)
+    )
+      return false
+    if (
+      savedStandard.status === 'metadata' &&
+      (currentStandard.preparedIdentity !== savedStandard.preparedIdentity ||
+        currentStandard.sourceBindingFingerprint !== savedStandard.sourceBindingFingerprint)
+    )
+      return false
+  }
 
   const savedLoadouts = plan.candidateWarehouse?.loadouts
   const savedExecution = plan.teamExecutionSnapshot

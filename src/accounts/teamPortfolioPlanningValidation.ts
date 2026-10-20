@@ -92,6 +92,23 @@ export function frozenPortfolioBuildIntentValid(
     Object.values(potential).some((value) => !Number.isInteger(value) || value < 0)
   )
     errors.push('多队草稿冻结的 Build Intent 缺少已解析的潜能条件。')
+  const mindscapes = intent.agentMindscapeById
+  if (
+    mindscapes &&
+    (!sameSet(Object.keys(mindscapes), unique(agents)) ||
+      Object.values(mindscapes).some(
+        (value) => value !== null && (!Number.isInteger(value) || value < 0 || value > 6),
+      ))
+  )
+    errors.push('多队草稿冻结的 Build Intent 影画条件不匹配。')
+  // Old snapshots remain readable. Current recommendation validation separately
+  // refuses to execute a source branch that lacks these observed conditions.
+  const selected = intent.selectedDirectionIdByAgentId
+  if (
+    selected &&
+    Object.entries(selected).some(([id, value]) => !agents.includes(id) || !value.trim())
+  )
+    errors.push('多队草稿冻结的 Build Intent 显式玩法条件不匹配。')
   const equipmentParameters = intent.equipmentParametersByCandidateId
   if (equipmentParameters) {
     const executionByCandidateId = new Map(

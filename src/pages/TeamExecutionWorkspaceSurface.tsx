@@ -17,6 +17,7 @@ import {
   presentTeamExecution,
 } from './teamExecutionPresentation'
 import { createTeamExecutionAttributePanel } from './teamExecutionAttributePanel'
+import { targetTeamBuildDirectionConditions } from '../application/targetTeamEffectivePotentialConditions'
 import { useStateTransitionMotion } from '../motion/useStateTransitionMotion'
 import { substitutesForMember } from './teamExecutionWorkspaceSubstitutes'
 import {
@@ -141,6 +142,11 @@ export function TeamExecutionWorkspaceSurface({
           discs: warehouse.discs,
           wEngines: warehouse.roster.wEngines,
           memberIds: view.members.map((member) => member.agentId),
+          buildDirectionConditions: targetTeamBuildDirectionConditions({
+            memberIds: view.members.map((member) => member.agentId),
+            roster: warehouse.roster,
+            potentialByAgentId: targetTeamFit?.effectiveEquipmentParameters?.potentialByAgentId,
+          }),
         })
       : null
   useEffect(() => {

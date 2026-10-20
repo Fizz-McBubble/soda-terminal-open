@@ -10,6 +10,10 @@ const portfolioBuildSourceSchema = z
     contentHash: z.string().min(1),
     licenseBoundary: z.string().min(1),
     verified: z.boolean(),
+    originalSourceVersion: z.string().nullable().optional(),
+    authorReviewedVersion: z.string().nullable().optional(),
+    retrievedAt: z.string().nullable().optional(),
+    pageUpdatedAt: z.string().nullable().optional(),
   })
   .strict()
 
@@ -104,6 +108,83 @@ export const portfolioConstraintSchema = z
       )
       .optional(),
     subStatWeights: z.partialRecord(statKeySchema, z.number()),
+    reviewedSubStatCandidates: z.array(statKeySchema).optional(),
+    reviewedTeamDirectionId: z.string().min(1).optional(),
+    reviewedTeamMindscapeByAgentId: z
+      .record(z.string().min(1), z.number().int().min(0).max(6).nullable())
+      .optional(),
+    buildObjective: z.literal('declared_luminize_static_volley32').optional(),
+    targetPanelApplicability: z
+      .object({
+        disposition: z.literal('base_reference_not_applicable'),
+        directionId: z.string().min(1),
+        reason: z.string().min(1),
+      })
+      .strict()
+      .optional(),
+    reviewedTeamDirectionSource: z
+      .object({
+        postId: z.string().min(1),
+        url: z.string().url(),
+        contentHash: z.string().min(1),
+        bodyHash: z.string().min(1),
+        sourceVersion: z.string().nullable(),
+        targetVersion: z.enum(['3.1', '3.2']),
+        authorVersion: z.string().optional(),
+        localReviewVersion: z.literal('3.2').optional(),
+        localReviewedAt: z.string().optional(),
+        localReviewScope: z.string().optional(),
+        locator: z
+          .object({
+            kind: z.enum(['structured_text_span', 'archived_image_region']),
+            text: z.string(),
+          })
+          .strict(),
+        secondaryEvidence: z
+          .array(
+            z
+              .object({
+                url: z.string().url(),
+                contentHash: z.string().min(1),
+                sourceVersion: z.string(),
+                locator: z.string(),
+              })
+              .strict(),
+          )
+          .optional(),
+      })
+      .strict()
+      .optional(),
+    guidanceApplicability: z
+      .array(
+        z
+          .object({
+            agentId: z.string().min(1),
+            status: z.enum(['continuous', 'affected_pending', 'unreviewed_reference', 'missing']),
+            version: z.string(),
+            source: z
+              .object({
+                id: z.string().nullable(),
+                sourceVersion: z.string().nullable(),
+                originalSourceVersion: z.string().nullable(),
+                checkedAt: z.string().nullable(),
+              })
+              .strict(),
+            authorReview: z
+              .object({
+                isExplicitAuthorReview: z.boolean(),
+                authorReviewedVersion: z.string().nullable(),
+              })
+              .strict(),
+            localAdoptionReviewId: z.string().nullable(),
+            dependencyFingerprint: z.string(),
+            isCurrentGuidanceComplete: z.boolean(),
+            affectedFieldPaths: z.array(z.string()),
+            applicabilityReasons: z.array(z.string()),
+          })
+          .strict(),
+      )
+      .optional(),
     wEngineDirections: z.array(z.string()),
     teamAndBangbooPreconditions: z.array(z.string()),
     progressionDirection: z.array(z.string()),

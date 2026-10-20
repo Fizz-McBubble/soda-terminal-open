@@ -16,6 +16,7 @@ import type {
   PlanningInteractionContract,
   PlanningInteractionOperator,
 } from './planningInteractionOperators'
+import type { PlanningEventUsage } from './planningCalculationContextCompiler'
 
 function unique<T>(values: readonly T[]) {
   return [...new Set(values)]
@@ -89,10 +90,18 @@ export function compileCurrentPlanningInteractionBundle(input: {
   memberIds: readonly [string, string, string]
   members: readonly PlanningEffectRuntimeMember[]
   baselineReferencesByAgentId?: Readonly<Record<string, Readonly<Record<string, unknown>>>>
+  remielleRadiance32?: unknown
+  resourceTimelineDeclaration32?: unknown
+  sourceActionUsages32?: readonly PlanningEventUsage[]
 }) {
   const timeline = compileCurrentPlanningFormationEffectTimeline(input.memberIds)
   if (timeline.status === 'unsupported') return timeline
-  const resources = compileCurrentPlanningBaselineResourceContracts(input.memberIds)
+  const resources = compileCurrentPlanningBaselineResourceContracts(
+    input.memberIds,
+    input.remielleRadiance32,
+    input.resourceTimelineDeclaration32,
+    input.sourceActionUsages32,
+  )
   if (resources.status === 'unsupported') return resources
   const effects = compileCurrentPlanningFormationEffectObservations(input, timeline)
   if (effects.status === 'unsupported') return effects
@@ -116,6 +125,14 @@ export function compileCurrentPlanningInteractionBundle(input: {
     status: 'supported' as const,
     contracts,
     resourceStateAudit: resources.resourceStateAudit,
+    selectedActionResourceProduction32: resources.selectedActionResourceProduction32,
+    resourceObservationHash: resources.resourceObservationHash,
+    ...('resourceTimeline32' in resources
+      ? { resourceTimeline32: resources.resourceTimeline32 }
+      : {}),
+    ...('declaredRemielleRadiance32' in resources
+      ? { declaredRemielleRadiance32: resources.declaredRemielleRadiance32 }
+      : {}),
     requiredOperators,
     effectDispositions: effects.dispositions,
     sourceCompilation: compilation,
@@ -123,6 +140,7 @@ export function compileCurrentPlanningInteractionBundle(input: {
       memberIds: input.memberIds,
       contracts,
       resourceStateAudit: resources.resourceStateAudit,
+      resourceObservationHash: resources.resourceObservationHash,
       effectDispositions: effects.dispositions,
     }),
   }

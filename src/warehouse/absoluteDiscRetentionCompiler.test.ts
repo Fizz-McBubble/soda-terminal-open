@@ -236,7 +236,7 @@ describe('retention compiler source boundaries', () => {
     )
     expect(missing.length).toBeGreaterThan(0)
     for (const profile of missing) {
-      expect(profile.verified).toBe(true)
+      expect(profile.sourceIds.length).toBeGreaterThan(0)
       for (const action of ['basic', 'dash']) {
         const fact = resolveRetentionActionFact(
           action as 'basic' | 'dash',

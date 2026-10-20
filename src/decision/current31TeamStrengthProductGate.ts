@@ -242,7 +242,10 @@ export const current31TeamStrengthProductReadiness = Object.freeze({
   exactBangbooStrengthGoldCaseCount:
     current31BoxReliableGate.coverage.exactBangbooStrengthGoldCaseCount,
   strengthGoldCalibrationCaseCount: current31StrengthGoldSet.calibrationCases.length,
-  strengthGoldIndependentHoldoutCaseCount: current31StrengthGoldSet.independentHoldoutCases.length,
+  strengthGoldIndependentHoldoutCaseCount:
+    current31BoxReliableGate.coverage.strengthGoldIndependentHoldoutCaseCount,
+  strengthGoldLegacyDiagnosticCaseCount:
+    current31BoxReliableGate.coverage.strengthGoldLegacyDiagnosticCaseCount,
   observedRealityCaseCount:
     current31Shiyu313ObservedCalibration.observations.length +
     current31DeadlyAssault313ObservedCalibration.observations.length +
@@ -266,6 +269,11 @@ export const current31TeamStrengthProductReadiness = Object.freeze({
     current31Shiyu313ObservedCalibration.sourceIndependentHoldoutCount +
     current31DeadlyAssault313ObservedCalibration.sourceIndependentHoldoutCount +
     current31MainstreamAuthorityEvaluationGate.evaluationSets.blindOrTemporalHoldout.bandCaseCount,
+  independentCurrentVersionLabelCaseCount:
+    current31MainstreamAuthorityEvaluationGate.evaluationSets.currentVersion
+      .independentCurrentVersionLabelCaseCount,
+  independentLabelVersionStatus:
+    current31MainstreamAuthorityEvaluationGate.evaluationSets.currentVersion.status,
   metrics: [
     {
       metricId: 'mainstream_recognition',
@@ -282,7 +290,7 @@ export const current31TeamStrengthProductReadiness = Object.freeze({
       target: current31MainstreamAuthorityEvaluationGate.targets.topKRecall,
       unit: 'ratio',
       explanation:
-        '暂无与 production membership identity 解耦的 exact 3-agent 主流 Top-K 标签，因此严格为 not_evaluated；这不影响独立 Band/Pairwise 的既有结论。',
+        '暂无与 production membership identity 解耦的 exact 3-agent 主流 Top-K 标签，严格为 not_evaluated；旧 Band/Pairwise 标签也已暴露，不能作为独立验收。',
     },
     {
       metricId: 'pairwise_consistency',
@@ -290,7 +298,7 @@ export const current31TeamStrengthProductReadiness = Object.freeze({
       observed: current31MainstreamAuthorityEvaluationGate.metrics.highConfidencePairwise,
       target: current31MainstreamAuthorityEvaluationGate.targets.highConfidencePairwise,
       unit: 'ratio',
-      explanation: `新的行级 label-independent holdout 达到 ${current31MainstreamAuthorityEvaluationGate.blindMetaHoldout.alignedPairwiseCount}/${current31MainstreamAuthorityEvaluationGate.blindMetaHoldout.pairwiseRelationCount}；现有 10 条 production partial order 关系不计入分母。旧 Shiyu/DA 同源顺序 ${observedStrictConcordantPairCount}/${observedComparablePairCount} 继续只作诊断。`,
+      explanation: `旧五条偏序来自已进入 Gold/训练标签的四个精确队伍，独立分母为零。source-reference 回归 ${current31MainstreamAuthorityEvaluationGate.blindMetaHoldout.alignedPairwiseCount}/${current31MainstreamAuthorityEvaluationGate.blindMetaHoldout.pairwiseRelationCount}、production partial order 与 Shiyu/DA 同源顺序 ${observedStrictConcordantPairCount}/${observedComparablePairCount} 均只作诊断；未取得新冻结解盲证据。`,
     },
     {
       metricId: 'band_agreement',
@@ -299,7 +307,7 @@ export const current31TeamStrengthProductReadiness = Object.freeze({
       target: current31MainstreamAuthorityEvaluationGate.targets.bandAgreement,
       unit: 'ratio',
       explanation:
-        '旧 10 支 construction-leaked diagnostic 不计入验收；新冻结行级 holdout 覆盖 Apex/Meta/Viable，生产证据不读取其最终标签。',
+        '旧 10 支 construction-leaked diagnostic 与四条已进入 Gold/训练集的来源档位均不计入独立验收；保留案例和标签作回归。independent_evaluation 隔离 prior 标签路径，但旧标签不能成为新冻结解盲证据，当前独立 Band 指标未评估。',
     },
     {
       metricId: 'mainstream_unknown_ratio',

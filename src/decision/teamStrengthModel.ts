@@ -10,13 +10,22 @@ import {
 import { assertValidStrengthRegression, predictStrengthRegression } from './teamStrengthRegression'
 import { TeamStrengthNumericError, type TeamStrengthNumericIssue } from './teamStrengthNumericError'
 import { constrainTeamStrengthScore, strengthBandForScore } from './teamStrengthModelScore'
-import type { Current31MetaCalibration } from './current31TeamStrengthCalibration'
+import type {
+  Current31MetaCalibration,
+  TeamStrengthEvidenceMode,
+} from './current31TeamStrengthCalibration'
 import { reviewedTeamAnalysis } from './reviewedTeamAnalysis'
 import { isReviewedFallbackTeam } from './reviewedTeamRecommendationDisposition'
 import {
   currentTeamStrengthReferenceConditions,
   teamStrengthReferenceConditionsIdentity,
 } from './teamStrengthReferenceConditions'
+import { resolveTeamStrengthRecipientContext } from './teamStrengthSourceCapacity'
+import {
+  resolveTeamStrengthReferenceMindscape,
+  teamStrengthReferenceStateIdentity,
+} from './teamStrengthReferenceState'
+import type { ResolvedTeamStrengthReferenceConditions } from './teamStrengthReferenceConditionsTypes'
 
 export const teamStrengthModelPolicy = {
   contract: artifact.contract,
@@ -25,6 +34,7 @@ export const teamStrengthModelPolicy = {
   reviewedForVersion: artifact.reviewedForVersion,
   trainingCount: artifact.regression.sampleCount,
   confidence: 'low' as const,
+  diagnosticOnly: true as const,
 }
 
 const inferenceCache = new Map<string, ReturnType<typeof infer>>()
@@ -50,7 +60,44 @@ const withdrawnKeys = new Set(
     .map((row) => [...row.memberIds].sort().join('|')),
 )
 
-function infer(memberIds: readonly string[]) {
+function inferenceKey(memberIds: readonly string[], evidenceMode: TeamStrengthEvidenceMode) {
+  return `${evidenceMode}:${[...memberIds].sort().join('|')}`
+}
+
+/** The frozen model's declared baseline, without source-selected team overrides.
+ * This is diagnostic input, not proof of the new equipment/cycle standard. */
+function isolatedDiagnosticReferenceConditions(
+  memberIds: readonly string[],
+): ResolvedTeamStrengthReferenceConditions {
+  const normalizedMemberIds = [...memberIds].sort()
+  const conditions = {
+    potentialByAgentId: {},
+    evidenceRefs: [],
+    status: 'standard_reference' as const,
+    sourceAuthority: 'none' as const,
+    normalizedMemberIds,
+    calculationAssumption:
+      'level60-base-skill11-core7-s0-a6-supported-p6-explicit-override' as const,
+    teamStrengthReferenceStateIdentity,
+    agentConditions: normalizedMemberIds.map((agentId) => ({
+      agentId,
+      status: 'unrecorded' as const,
+      numericLevel: null,
+      numericLevelBasis: null,
+      mindscapeLevel: resolveTeamStrengthReferenceMindscape(agentId),
+      minimumDemonstratedLevel: null,
+      demonstrationEvidence: null,
+      requirementSource: null,
+      evidenceRefs: [],
+    })),
+    unhandledConditions: [],
+    diagnostics: ['独立诊断采用模型声明的本地基线，不读取作者构筑或来源标签。'],
+    sourceContext: { authority: null, direction: null },
+  }
+  return { ...conditions, identity: stableContentHash(conditions) }
+}
+
+function infer(memberIds: readonly string[], evidenceMode: TeamStrengthEvidenceMode) {
   if (modelNumericIssue()) return null
   if (
     ![artifact.gameVersion, artifact.reviewedForVersion].includes(
@@ -65,8 +112,15 @@ function infer(memberIds: readonly string[]) {
     JSON.stringify(artifact.featureNames) !== JSON.stringify(teamStrengthMechanicFeatureNames)
   )
     return null
-  const referenceConditions = currentTeamStrengthReferenceConditions(memberIds)
-  const features = extractTeamStrengthMechanicFeatures(memberIds, {}, referenceConditions)
+  const referenceConditions =
+    evidenceMode === 'independent_evaluation'
+      ? isolatedDiagnosticReferenceConditions(memberIds)
+      : currentTeamStrengthReferenceConditions(memberIds)
+  const features = extractTeamStrengthMechanicFeatures(
+    memberIds,
+    resolveTeamStrengthRecipientContext(memberIds, referenceConditions),
+    referenceConditions,
+  )
   if (!features.eligibility.eligible) return null
   let score: number
   try {
@@ -74,7 +128,7 @@ function infer(memberIds: readonly string[]) {
     score = constrainTeamStrengthScore(rawScore, features.guardrails)
   } catch (error) {
     if (!(error instanceof TeamStrengthNumericError)) throw error
-    inferenceIssues.set([...memberIds].sort().join('|'), error.code)
+    inferenceIssues.set(inferenceKey(memberIds, evidenceMode), error.code)
     return null
   }
   return {
@@ -88,19 +142,26 @@ function infer(memberIds: readonly string[]) {
     guardrails: features.guardrails,
     referenceConditions,
     confidence: 'low' as const,
+    diagnosticOnly: true as const,
   }
 }
 
 /** This path never asks whether a guide lists the exact trio. All three members
  * contribute fresh mechanism/recipient features; no sibling tier is inherited. */
-export function inferTeamStrength(memberIds: readonly string[]) {
-  const key = [...memberIds].sort().join('|')
-  if (!inferenceCache.has(key)) inferenceCache.set(key, infer(memberIds))
+export function inferTeamStrength(
+  memberIds: readonly string[],
+  evidenceMode: TeamStrengthEvidenceMode = 'source_reference',
+) {
+  const key = inferenceKey(memberIds, evidenceMode)
+  if (!inferenceCache.has(key)) inferenceCache.set(key, infer(memberIds, evidenceMode))
   return inferenceCache.get(key)!
 }
 
-export function getTeamStrengthInferenceIssue(memberIds: readonly string[]) {
-  return modelNumericIssue() ?? inferenceIssues.get([...memberIds].sort().join('|')) ?? null
+export function getTeamStrengthInferenceIssue(
+  memberIds: readonly string[],
+  evidenceMode: TeamStrengthEvidenceMode = 'source_reference',
+) {
+  return modelNumericIssue() ?? inferenceIssues.get(inferenceKey(memberIds, evidenceMode)) ?? null
 }
 
 export type TeamStrengthInference = NonNullable<ReturnType<typeof inferTeamStrength>>
@@ -109,6 +170,7 @@ export function inferredStrengthCalibration(
   calibration: Current31MetaCalibration,
   memberIds: readonly string[],
   disabled = false,
+  sourceEvidenceIsolated = false,
 ): Current31MetaCalibration {
   if (
     disabled ||
@@ -116,13 +178,14 @@ export function inferredStrengthCalibration(
     calibration.evidenceStatus === 'conflict' ||
     // Explicit source fallback guidance must not be promoted to a mainstream
     // tier by an unvalidated regression. Exact reviewed tiers still win above.
-    isReviewedFallbackTeam(memberIds) ||
-    withdrawnKeys.has([...memberIds].sort().join('|'))
+    (!sourceEvidenceIsolated &&
+      (isReviewedFallbackTeam(memberIds) || withdrawnKeys.has([...memberIds].sort().join('|'))))
   )
     return calibration
-  const inference = inferTeamStrength(memberIds)
+  const evidenceMode = sourceEvidenceIsolated ? 'independent_evaluation' : 'source_reference'
+  const inference = inferTeamStrength(memberIds, evidenceMode)
   if (!inference) {
-    const issue = getTeamStrengthInferenceIssue(memberIds)
+    const issue = getTeamStrengthInferenceIssue(memberIds, evidenceMode)
     if (!issue) return calibration
     return {
       ...calibration,
@@ -142,18 +205,10 @@ export function inferredStrengthCalibration(
   }
   return {
     ...calibration,
-    status: 'aligned',
-    authority: 'model_inference',
-    confidenceCeiling: 'low',
-    kernelId: null,
-    familyId: null,
-    versionPosition: null,
-    projectedStrengthBand: inference.band,
-    // The bounded source-tier reference estimate supplies both the inferred
-    // band and its visible recommendation score; it is never damage or DPS.
-    recommendationScore: inference.score,
+    // A model result remains inspectable without granting tier or ordering
+    // authority. Keep the exact source/legacy evidence state intact.
+    recommendationScore: undefined,
     inference,
-    evidenceRefs: [`model:${inference.modelFingerprint}`],
-    explanation: '依据当前三人机制特征与已审阅队伍校准的参考判断；低置信度，不代表实测伤害。',
+    evidenceRefs: [...calibration.evidenceRefs, `model:${inference.modelFingerprint}`],
   }
 }

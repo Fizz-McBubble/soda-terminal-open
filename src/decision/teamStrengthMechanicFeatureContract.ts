@@ -1,4 +1,5 @@
 import type { TeamStrengthSupportContactEvidence } from './teamStrengthSupportContributionFeatures'
+import type { TeamStrengthSourceCapacity } from './teamStrengthSourceCapacity'
 
 /** Source facts and structural capacities, never a team label, agent tier, or DPS. */
 export const teamStrengthMechanicFeatureNames = [
@@ -54,6 +55,15 @@ export const teamStrengthMechanicFeatureNames = [
   'source_self_aftershock_daze_capacity',
   'compatible_anomaly_proficiency_capability',
   'compatible_anomaly_mastery_capability',
+  'source_comparable_action_capacity',
+  'source_secondary_action_capacity',
+  'source_support_primary_contact_gain',
+  'source_support_secondary_contact_gain',
+  'source_support_anomaly_proficiency_gain',
+  'source_support_anomaly_mastery_gain',
+  'source_support_stun_capacity',
+  'source_support_anomaly_damage_capacity',
+  'source_support_anomaly_buildup_capacity',
 ] as const
 export type TeamStrengthMechanicFeatureName = (typeof teamStrengthMechanicFeatureNames)[number]
 // Ceteris paribus, more usable damage/support capacity cannot lower strength,
@@ -64,12 +74,17 @@ export const teamStrengthCoefficientDirections = teamStrengthMechanicFeatureName
     name,
   )
     ? -1
-    : /^(?:compatible_|reference_potential_|source_self_)/.test(name) ||
-        /(?:action_scale|action_buildup|action_multiplier)$/.test(name)
+    : /^(?:compatible_|reference_potential_|source_self_|source_support_|source_comparable_|source_secondary_)/.test(
+          name,
+        ) || /(?:action_scale|action_buildup|action_multiplier)$/.test(name)
       ? 1
       : 0,
 )
 export type TeamStrengthMechanicFeatures = {
+  backgroundActionEvidence?: ReturnType<
+    typeof import('./teamStrengthBackgroundActions').teamStrengthBackgroundAction
+  >[]
+  sourceCapacityEvidence?: TeamStrengthSourceCapacity
   supportContributionEvidence?: TeamStrengthSupportContactEvidence
   featureNames: typeof teamStrengthMechanicFeatureNames
   values: number[]

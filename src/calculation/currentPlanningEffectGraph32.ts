@@ -1,9 +1,11 @@
 import { evaluateInitialCritConversion32 } from './currentInitialCritConversion32'
 import { evaluateReviewedDialynInitialImpact32 } from './reviewedFunctionalInitialImpact32'
 import { applyPlanningNaturalEnergyModifiers32 } from './planningNaturalEnergyModifiers32'
+import { resolvePlanningEventSheerForce32 } from './currentSourceBoundSheerForce32'
 import type {
   PlanningEffectRuntimeMember,
   PlanningEffectRuntimeStats,
+  PlanningEffectProducerReceipt32,
 } from './currentPlanningEffectDomain'
 import {
   emptyModifiers,
@@ -15,10 +17,12 @@ export type PlanningEffectGraphNode32 = {
   id: string
   reads: readonly string[]
   writes: readonly string[]
-  evaluate: (
-    stats: Readonly<Record<string, PlanningEffectRuntimeStats>>,
-  ) =>
-    | { status: 'supported'; buckets: SourceBackedPlanningEffectBucket[] }
+  evaluate: (stats: Readonly<Record<string, PlanningEffectRuntimeStats>>) =>
+    | {
+        status: 'supported'
+        buckets: SourceBackedPlanningEffectBucket[]
+        producerReceipts?: PlanningEffectProducerReceipt32[]
+      }
     | { status: 'unsupported'; blockers: string[] }
 }
 const statByApplication: Partial<
@@ -48,10 +52,18 @@ const statByApplication: Partial<
   penetration_ratio: 'pen_',
 }
 export function planningEffectWrittenStats32(
-  bucket: Pick<SourceBackedPlanningEffectBucket, 'application' | 'recipientAgentIds'>,
+  bucket: Pick<SourceBackedPlanningEffectBucket, 'application' | 'recipientAgentIds'> &
+    Partial<Pick<SourceBackedPlanningEffectBucket, 'receiverPath'>>,
 ) {
   const stat = statByApplication[bucket.application]
-  return stat ? bucket.recipientAgentIds.map((id) => `${id}:${stat}`) : []
+  return stat
+    ? bucket.recipientAgentIds.flatMap((id) => [
+        `${id}:${stat}`,
+        ...(stat === 'crit_dmg_' && !bucket.receiverPath?.includes('.final.')
+          ? [`${id}:combatCritDamage32`]
+          : []),
+      ])
+    : []
 }
 export const planningFinalStatAlias32: Readonly<Record<string, string>> = {
   laceration_dmg_: 'lacerationDamage',
@@ -67,6 +79,8 @@ export const planningFinalStatAlias32: Readonly<Record<string, string>> = {
 function resolvedStats(
   members: readonly PlanningEffectRuntimeMember[],
   buckets: readonly SourceBackedPlanningEffectBucket[],
+  requiredStats: ReadonlySet<string>,
+  uncovered: ReadonlyMap<string, string[]>,
 ) {
   const stats: Record<string, PlanningEffectRuntimeStats> = {}
   for (const member of members) {
@@ -146,6 +160,34 @@ function resolvedStats(
         ? {}
         : { directDamageBonus: panel.directDamageBonus + mods.directDamageBonus }),
     }
+    const resolved = stats[member.agentId]!
+    // The original panel is explicitly an out-of-combat producer output.
+    // An untyped final panel or a bucket with unknown stage cannot prove a
+    // combat subtotal, even when its displayed value happens to be unchanged.
+    const critical = admitted.filter((row) => row.application === 'crit_damage')
+    delete resolved.combatCritDamage32
+    if (
+      member.statBasis32 === 'out_of_combat' &&
+      panel.crit_dmg_ === member.initialStats.crit_dmg_ &&
+      critical.every((row) => /\.(?:combat|final)\./.test(row.receiverPath ?? '')) &&
+      !uncovered.has(`${member.agentId}:combatCritDamage32`)
+    )
+      resolved.combatCritDamage32 = critical
+        .filter((row) => row.receiverPath!.includes('.combat.'))
+        .reduce((sum, row) => sum + row.value, 0)
+    if (requiredStats.has(`${member.agentId}:sheerForce`)) {
+      const missing = uncovered.get(`${member.agentId}:sheerForce`)
+      if (missing?.length) return { status: 'unsupported' as const, blockers: missing }
+      const sheer = resolvePlanningEventSheerForce32({
+        member,
+        attack: resolved.atk,
+        hp: resolved.hp,
+        combatSheerForce: mods.sheerForce,
+      })
+      if (sheer.status !== 'supported') return sheer
+      resolved.sheerForce = sheer.sheerForce
+    }
+    if (uncovered.has(`${member.agentId}:sheerForce`)) delete resolved.sheerForce
   }
   return { status: 'supported' as const, stats }
 }
@@ -155,6 +197,8 @@ export function resolvePlanningEffectGraph32(input: {
   members: readonly PlanningEffectRuntimeMember[]
   buckets: readonly SourceBackedPlanningEffectBucket[]
   nodes: readonly PlanningEffectGraphNode32[]
+  /** Complete, event-scoped source inventory, including sources with no bucket. */
+  producerCoverage?: readonly { stat: string; effectKeys: readonly string[] }[]
 }) {
   if (new Set(input.nodes.map((node) => node.id)).size !== input.nodes.length)
     return { status: 'unsupported' as const, blockers: ['事件效果图包含重复来源节点。'] }
@@ -163,6 +207,25 @@ export function resolvePlanningEffectGraph32(input: {
   const pending = [...input.nodes]
   const buckets = [...input.buckets]
   const order: string[] = []
+  const producerReceipts: PlanningEffectProducerReceipt32[] = []
+  const uncovered = () => {
+    const missing = new Map<string, string[]>()
+    for (const coverage of input.producerCoverage ?? []) {
+      const recipient = coverage.stat.slice(0, coverage.stat.lastIndexOf(':'))
+      for (const key of coverage.effectKeys) {
+        const receipt = producerReceipts.find(
+          (row) => row.effectKey === key && row.recipientAgentId === recipient,
+        )
+        if (!receipt || receipt.status === 'unknown')
+          missing.set(coverage.stat, [
+            ...(missing.get(coverage.stat) ?? []),
+            `事件属性来源未闭合：${coverage.stat} <- ${key} (${receipt?.fields.join(', ') ?? 'missing_receipt'})`,
+          ])
+      }
+    }
+    return missing
+  }
+  const requiredStats = new Set(input.nodes.flatMap((node) => node.reads))
   while (pending.length) {
     const ready = pending.filter(
       (node) =>
@@ -173,7 +236,17 @@ export function resolvePlanningEffectGraph32(input: {
         status: 'unsupported' as const,
         blockers: [`事件最终属性存在循环依赖：${pending.map((node) => node.id).join(', ')}`],
       }
-    const resolved = resolvedStats(input.members, buckets)
+    const needed = new Set(ready.flatMap((node) => node.reads))
+    const missing = uncovered()
+    const blockers = [...needed].flatMap((stat) => missing.get(stat) ?? [])
+    if (blockers.length)
+      return {
+        status: 'unsupported' as const,
+        blockers,
+        producerReceipts,
+        producerCoverage: input.producerCoverage ?? [],
+      }
+    const resolved = resolvedStats(input.members, buckets, needed, missing)
     if (resolved.status !== 'supported') return resolved
     for (const node of ready) {
       for (const ref of node.reads) {
@@ -193,12 +266,20 @@ export function resolvePlanningEffectGraph32(input: {
       if (result.buckets.some((bucket) => !Number.isFinite(bucket.value)))
         return { status: 'unsupported' as const, blockers: [`事件效果数值无效：${node.id}`] }
       buckets.push(...result.buckets)
+      producerReceipts.push(...(result.producerReceipts ?? []))
       order.push(node.id)
       pending.splice(pending.indexOf(node), 1)
     }
   }
-  const result = resolvedStats(input.members, buckets)
+  const result = resolvedStats(input.members, buckets, requiredStats, uncovered())
   return result.status !== 'supported'
     ? result
-    : { status: 'supported' as const, buckets, finalStats: result.stats, order }
+    : {
+        status: 'supported' as const,
+        buckets,
+        finalStats: result.stats,
+        order,
+        producerReceipts,
+        producerCoverage: input.producerCoverage ?? [],
+      }
 }

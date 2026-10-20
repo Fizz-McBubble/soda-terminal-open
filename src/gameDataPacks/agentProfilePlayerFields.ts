@@ -11,6 +11,8 @@ import {
   type AgentProfileSourceRef,
   type AgentProfileField,
 } from './agentProfileFieldProjection'
+import { resolveBuildFieldApplicability } from './buildApplicabilityDependencyAnalysis'
+
 // Frozen review identity; moving the projection does not upgrade its source version.
 const legacyProfileReviewVersion = '3.1'
 export function sourceRef(source: PlayerBuildSource | null): AgentProfileSourceRef[] {
@@ -20,9 +22,13 @@ export function sourceRef(source: PlayerBuildSource | null): AgentProfileSourceR
       id: source.id,
       url: source.url,
       sourceVersion: source.sourceVersion,
+      originalSourceVersion: source.originalSourceVersion ?? source.sourceVersion,
       checkedAt: source.checkedAt,
       contentHash: source.contentHash,
       licenseBoundary: source.licenseBoundary,
+      authorReviewedVersion: source.authorReviewedVersion ?? null,
+      pageUpdatedAt: source.pageUpdatedAt ?? null,
+      retrievedAt: source.retrievedAt ?? source.checkedAt,
     },
   ]
 }
@@ -46,10 +52,15 @@ function playerFieldGroup(path: string): AgentProfileField['group'] {
 
 export function projectedPlayerField(field: PlayerBuildField, agentId: string): AgentProfileField {
   const conflict = conflictsFor(agentId, field.path)
-  const potentialAffected = field.path === 'progression.potential_overlay'
   const supplements = getReviewedGuideBuildConditions(agentId, field.path)
   const historicalWEngines =
     field.path === 'build.wengines' ? getReviewedHistoricalWEngineReferences(agentId) : []
+  const applicabilityResult = resolveBuildFieldApplicability(
+    agentId,
+    field.path,
+    field.source,
+    '3.2',
+  )
   const conditions = [
     ...(agentId === 'agent-banyue' && field.path === 'build.drive_disc_sets'
       ? [
@@ -73,9 +84,16 @@ export function projectedPlayerField(field: PlayerBuildField, agentId: string): 
       : []),
     ...supplements.flatMap((supplement) => supplement.conditions),
     ...historicalWEngines.flatMap((reference) => reference.conditions),
+    ...(applicabilityResult.currentApplicability === 'affected_pending'
+      ? [applicabilityResult.reason]
+      : []),
   ]
   const archivedSets =
     field.path === 'build.drive_disc_sets' ? getArchivedGuideSetSupplements(agentId) : null
+  const currentApplicability = applicabilityResult.currentApplicability
+  const lastChangeVersion =
+    applicabilityResult.currentApplicability === 'affected_pending' ? '3.2' : null
+
   return {
     group: playerFieldGroup(field.path),
     path: field.path,
@@ -92,13 +110,19 @@ export function projectedPlayerField(field: PlayerBuildField, agentId: string): 
         ? 'verified_candidate'
         : field.status,
     gameVersion: legacyProfileReviewVersion,
-    originalSourceVersion: field.source?.sourceVersion ?? null,
-    lastChangeVersion: potentialAffected ? '3.0' : null,
-    currentApplicability: potentialAffected
-      ? 'affected_pending'
-      : field.status === 'missing' || !field.source?.verified
-        ? 'unknown'
-        : 'continuous',
+    originalSourceVersion:
+      field.originalSourceVersion ??
+      field.source?.originalSourceVersion ??
+      field.source?.sourceVersion ??
+      null,
+    lastChangeVersion,
+    currentApplicability,
+    authorReviewedVersion:
+      applicabilityResult.authorReviewedVersion ??
+      field.authorReviewedVersion ??
+      field.source?.authorReviewedVersion ??
+      null,
+    applicabilityReason: applicabilityResult.reason,
     sourceRefs: [
       ...sourceRef(field.source).map((ref) =>
         field.sourceValues ? { ...ref, supportedValues: field.sourceValues } : ref,

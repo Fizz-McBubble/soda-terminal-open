@@ -1,6 +1,6 @@
 import { savedDiscAgentIds } from '../warehouse/discWarehousePlanAssignments'
 import { warehouseDevelopmentAdvice } from './warehouseDevelopmentAdvice'
-import { warehouseRetentionBasis } from './warehouseRetention'
+import { warehouseCompleteBuildUseAgentIds, warehouseRetentionBasis } from './warehouseRetention'
 import { resolveCurrentReleasedIdentity } from '../gameDataPacks/currentReleasedIdentityMap'
 import type {
   WarehouseDiscCategory,
@@ -202,7 +202,12 @@ export function projectWarehouseActions(
         return draft ? savedDiscAgentIds(draft, decision.discId) : []
       }),
     ])
-    const affectedAgentIds = uniqueInOrder([...decision.fitAgentIds, ...usageAgentIds])
+    const completeBuildUseAgentIds = stale ? [] : warehouseCompleteBuildUseAgentIds(decision)
+    const affectedAgentIds = uniqueInOrder([
+      ...decision.fitAgentIds,
+      ...usageAgentIds,
+      ...completeBuildUseAgentIds,
+    ])
     const needsReview = decision.absoluteRetention
       ? decision.absoluteRetention.disposition === 'review' ||
         decision.absoluteRetention.disposition === 'observe' ||
@@ -228,7 +233,8 @@ export function projectWarehouseActions(
       decision.cleanupSafety.activePlanReferenced ||
       decision.cleanupSafety.savedPlanReferenced ||
       decision.cleanupSafety.portfolioReferenced
-    const action = stale || explicitlyProtected ? 'keep' : baseAction
+    const action =
+      stale || explicitlyProtected || completeBuildUseAgentIds.length ? 'keep' : baseAction
     const retentionBasis =
       action === 'keep'
         ? stale
@@ -269,19 +275,24 @@ export function projectWarehouseActions(
         recommendationState: stale ? 'stale' : needsReview ? 'needs_review' : 'current',
         reasons: uniqueInOrder(decision.reasons),
         statuses: affectedPlanStatuses,
-        compatibleAgentIds: uniqueInOrder(
-          decision.absoluteRetention
+        compatibleAgentIds: uniqueInOrder([
+          ...completeBuildUseAgentIds,
+          ...(decision.absoluteRetention
             ? [
                 ...decision.absoluteRetention.ownedUseAgentIds,
                 ...decision.absoluteRetention.unownedUseAgentIds,
               ]
             : (decision.useAssessment?.compatibleAgentIds ??
-                decision.enhancementPotential.relevantAgentIds),
-        ),
-        retentionAgentIds:
-          stale || (decision.absoluteRetention && decision.absoluteRetention.disposition !== 'keep')
-            ? []
-            : uniqueInOrder(decision.fitAgentIds),
+              decision.enhancementPotential.relevantAgentIds)),
+        ]),
+        retentionAgentIds: stale
+          ? []
+          : uniqueInOrder([
+              ...completeBuildUseAgentIds,
+              ...(!decision.absoluteRetention || decision.absoluteRetention.disposition === 'keep'
+                ? decision.fitAgentIds
+                : []),
+            ]),
         usageAgentIds,
         affectedAgentIds,
         affectedPlans,

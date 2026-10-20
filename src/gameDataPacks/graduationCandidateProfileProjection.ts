@@ -6,6 +6,17 @@ import {
 
 export { graduationCandidateProfileProjectionIdentity }
 export type GraduationCandidateProfile = (typeof graduationCandidateProfiles)[number]
+export type RuntimeGraduationCandidateProfile = Omit<
+  GraduationCandidateProfile,
+  'agentId' | 'profileId'
+> & {
+  /** Current released identity consumed by production callers. */
+  agentId: string
+  /** Current runtime profile identity; the frozen source profile remains separate. */
+  profileId: string
+  sourceAgentId: GraduationCandidateProfile['agentId']
+  sourceProfileId: GraduationCandidateProfile['profileId']
+}
 
 function sourceAgentId(agentId: string) {
   const resolved = resolveCurrentReleasedIdentity(agentId)
@@ -16,11 +27,20 @@ function sourceAgentId(agentId: string) {
  * Read-only runtime projection for the frozen Candidate Graduation Profile sidecar.
  * It intentionally has no Formal fallback and does not feed legacy target_panel data.
  */
-export function getGraduationCandidateProfile(agentId: string): GraduationCandidateProfile | null {
+export function getGraduationCandidateProfile(
+  agentId: string,
+): RuntimeGraduationCandidateProfile | null {
+  const runtimeAgentId = resolveCurrentReleasedIdentity(agentId)
   const profile = graduationCandidateProfiles.find(
     (item) => item.agentId === sourceAgentId(agentId),
   )
   if (!profile || profile.model_candidate !== true || profile.formal_supported !== false)
     return null
-  return profile
+  return {
+    ...profile,
+    agentId: runtimeAgentId,
+    profileId: `graduation:${runtimeAgentId}`,
+    sourceAgentId: profile.agentId,
+    sourceProfileId: profile.profileId,
+  }
 }

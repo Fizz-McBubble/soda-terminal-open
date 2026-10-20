@@ -5,6 +5,7 @@ import {
 import type { DevelopmentCandidateAlternativesQueryResult } from '../application/calculationQueryContract'
 import { hasDevelopmentComparisonPanels } from '../application/publicDevelopmentComparisonPanels'
 import { resolveSavedPlanScenarioSelection } from './savedPlanIdentity'
+import { buildIntentFingerprintMatches } from '../application/publicBuildIntentFingerprint'
 
 type CandidateSnapshot = DevelopmentCandidateAlternativesQueryResult & { status: 'ready' }
 
@@ -49,6 +50,7 @@ export function readDevelopmentCandidateSnapshot(accountId: string, agentId: str
       typeof snapshot.inputFingerprint !== 'string' ||
       snapshot.buildIntent?.contract !== 'soda-build-intent/v1' ||
       snapshot.buildIntent.scope !== 'agent_independent' ||
+      !buildIntentFingerprintMatches(snapshot.buildIntent) ||
       !Array.isArray(snapshot.baseline) ||
       !Array.isArray(snapshot.candidates) ||
       !hasPresentation(snapshot.presentation) ||
@@ -81,6 +83,8 @@ export function cacheDevelopmentCandidateSnapshot(
     result.comparisonContract !== 'soda-explicit-development-comparison/v1' ||
     typeof result.comparisonFingerprint !== 'string' ||
     !hasPresentation(result.presentation) ||
+    !result.buildIntent ||
+    !buildIntentFingerprintMatches(result.buildIntent) ||
     !hasDevelopmentComparisonPanels(result.panelPresentation, result.agentId)
   )
     return null
@@ -107,7 +111,12 @@ export function isDevelopmentCandidateSnapshotStale(
   snapshot: CandidateSnapshot,
   liveFingerprint: string | null,
 ) {
-  return !liveFingerprint || snapshot.inputFingerprint !== liveFingerprint
+  return (
+    !liveFingerprint ||
+    snapshot.inputFingerprint !== liveFingerprint ||
+    !snapshot.buildIntent ||
+    !buildIntentFingerprintMatches(snapshot.buildIntent)
+  )
 }
 
 /** Saving changes planning facts; refresh the candidates before continuing the same selection. */

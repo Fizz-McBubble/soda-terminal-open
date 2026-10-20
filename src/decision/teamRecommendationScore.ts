@@ -4,7 +4,8 @@ import type { TeamFeatureBand, TeamFeatureVector, TeamRatingBand } from './teamD
  * Source or inferred tiers use the same scale; mechanism fit only refines that tier.
  * Missing evidence is neutral, not a claim that the team is weak. */
 export const teamRecommendationScorePolicy = Object.freeze({
-  version: 'reviewed-tier-and-mechanism-fit/v1',
+  version: 'diagnostic-reviewed-tier-and-mechanism-fit/v2',
+  use: 'diagnostic_only' as const,
   bases: { 'S+': 90, S: 90, 'A+': 80, A: 70, B: 60 },
   factors: {
     mechanic_synergy: 3,
@@ -14,7 +15,7 @@ export const teamRecommendationScorePolicy = Object.freeze({
   },
   resolution: 2,
   boundary:
-    '主观推荐指数；粗档内只按机制配合细分，不是伤害百分比或独立强度测量。证据置信度不算作实力，邦布、仓库和观测均分不参与。',
+    '仅用于诊断机制差异的参考指数，不参与默认准入、同档顺序或玩家界面强度；不是伤害百分比或独立强度测量。',
 })
 
 const fit: Record<TeamFeatureBand, number> = {

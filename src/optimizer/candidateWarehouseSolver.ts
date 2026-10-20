@@ -1,3 +1,11 @@
+import {
+  candidateConstraintFromIntent,
+  getCandidateWarehouseProfiles,
+} from './candidateWarehouseProfiles'
+export {
+  candidateConstraintForAgent,
+  getCandidateWarehouseProfiles,
+} from './candidateWarehouseProfiles'
 import { boundedAlternatives } from './boundedCandidateWarehouseAlternatives'
 import type { DriveDisc } from '../domain/schemas'
 import {
@@ -5,13 +13,7 @@ import {
   excludeDisprovenSourcePlans,
 } from './candidateWarehouseSourceConditions'
 import { compareCandidatePanelObjective } from './optimizeBuild'
-import {
-  candidateConstraintToDiscProfile,
-  candidateSetPlansForConstraint,
-  getCandidateWarehouseConstraint,
-  type CandidateWarehouseConstraint,
-} from '../gameDataPacks/candidateWarehouseConstraints'
-import { getAgentProfile } from '../gameDataPacks/agentProfile'
+import { candidateSetPlansForConstraint } from '../gameDataPacks/candidateWarehouseConstraints'
 import {
   createAccountCandidateGenerationCache,
   optimizeAccountBuilds,
@@ -26,6 +28,7 @@ import {
   candidateLoadoutMatchesSetPlan,
 } from './candidateWarehouseAlternativeRanking'
 import { orderedCandidateSetPlans } from '../gameDataPacks/candidateSetPlanPolicy'
+import { compareCandidateEffectiveCritObjective } from './candidateEffectiveCritObjective'
 
 export type CandidateWarehousePlan = {
   scope: 'agent' | 'team' | 'portfolio'
@@ -62,6 +65,7 @@ export type CandidateWarehouseOptions = Pick<
   | 'allowLocked'
   | 'priorityAgentIds'
   | 'panelInputsByAgent'
+  | 'effectiveCritObjectivesByAgent'
   | 'teamAssignmentObjective'
   | 'candidateGenerationCache'
 >
@@ -70,25 +74,6 @@ export { createAccountCandidateGenerationCache }
 
 const boundary =
   '候选仓库匹配分只比较目标成员的实际驱动盘、套装、主词条和有效副词条强化；生产求解当前为 bounded heuristic，不代表 DPS、最高伤害、全仓正式最优或自动装备。'
-
-export function candidateConstraintForAgent(agentId: string): CandidateWarehouseConstraint | null {
-  const constraint = getCandidateWarehouseConstraint(agentId)
-  if (constraint?.status !== 'candidate') return null
-  // 3.1 catalogue intake is a separate candidate layer until the agent receives a
-  // formal game ID/Profile projection. Do not let the 3.0-only profile fallback
-  // erase an otherwise sourced candidate warehouse constraint.
-  if (constraint.gameVersion === '3.1' || constraint.gameVersion === '3.2') return constraint
-  return getAgentProfile(agentId).warehouseStatus === 'candidate' ? constraint : null
-}
-
-function candidateConstraintFromIntent(
-  agentId: string,
-  recommendations?: readonly CandidateWarehouseRecommendation[],
-): CandidateWarehouseConstraint | null {
-  const compiled = recommendations?.find((item) => item.agentId === agentId)
-  if (recommendations) return compiled?.constraint ?? null
-  return candidateConstraintForAgent(agentId)
-}
 
 /** Keep a source-declared set branch intact when a caller compares or coordinates its discs. */
 export function candidateRecommendationForSetPlan(
@@ -106,37 +91,6 @@ export function candidateRecommendationForSetPlan(
       setPlanReadiness: { status: 'executable', ...branch },
     },
   }
-}
-
-export function getCandidateWarehouseProfiles(
-  agentIds: string[],
-  availableSetIds: string[],
-  recommendations?: readonly CandidateWarehouseRecommendation[],
-) {
-  return agentIds.flatMap((agentId) => {
-    const constraint = candidateConstraintFromIntent(agentId, recommendations)
-    const profile = constraint ? candidateConstraintToDiscProfile(constraint) : null
-    if (!profile) return []
-    // Candidate constraints can retain a historical evidence id while the
-    // account and solver use the released stable id. Keep provenance on the
-    // constraint, but solve and return the plan for the selected account agent.
-    const accountProfile = { ...profile, agentId }
-    if (constraint!.setIds.length > 1) return [accountProfile]
-    return [
-      {
-        ...accountProfile,
-        setPlans: [
-          {
-            pattern: '4+2' as const,
-            primarySets: [constraint!.setIds[0]!],
-            // The source supports the 4-piece direction but does not claim a specific 2-piece.
-            // Keep the unscored two-piece explicit in the result instead of fabricating a set bonus.
-            secondarySets: availableSetIds.filter((setId) => setId !== constraint!.setIds[0]),
-          },
-        ],
-      },
-    ]
-  })
 }
 
 function asGaps(
@@ -231,6 +185,46 @@ export function solveCandidateWarehouse(
     )
     result = optimizeAccountBuilds(discs, profiles, solveOptions)
   }
+  if (scope === 'agent' && agentIds.length === 1 && result.independent[0]) {
+    const agentId = agentIds[0]!
+    const currentConstraints = agentIds.map((id) => ({
+      agentId: id,
+      constraint: candidateConstraintFromIntent(id, effectiveRecommendations),
+    }))
+    const selected = result.independent[0]
+    const currentConstraint = currentConstraints[0]?.constraint
+    const selectedAsTransition = currentConstraint
+      ? candidateSetPlansForConstraint(currentConstraint).some(
+          (plan) => plan.purpose === 'transition' && candidateLoadoutMatchesSetPlan(selected, plan),
+        )
+      : false
+    if (selectedAsTransition) {
+      const sourceOnlyRecommendations = currentConstraints.map((row) => ({
+        ...row,
+        constraint: row.constraint && {
+          ...row.constraint,
+          setPlans: candidateSetPlansForConstraint(row.constraint).filter(
+            (plan) => plan.purpose !== 'transition',
+          ),
+        },
+      }))
+      const sourceProfiles = getCandidateWarehouseProfiles(
+        agentIds,
+        [...new Set(discs.map((disc) => disc.setId))],
+        sourceOnlyRecommendations,
+      )
+      const sourceResult = optimizeAccountBuilds(discs, sourceProfiles, solveOptions)
+      if (
+        sourceResult.independent.some(
+          (loadout) => loadout.agentId === agentId && loadout.discs.length === 6,
+        )
+      ) {
+        effectiveRecommendations = sourceOnlyRecommendations
+        profiles = sourceProfiles
+        result = sourceResult
+      }
+    }
+  }
   // A sourced six-disc result always takes precedence. This fallback proves only
   // one selected agent's transition use; it does not widen team/source authority.
   let transitionUsed = false
@@ -302,6 +296,18 @@ export function solveCandidateWarehouse(
         }
       : loadout
   })
+  const conditionalPlanGaps =
+    scope === 'agent' && agentIds.length === 1 && !loadouts.length
+      ? (() => {
+          const constraint = candidateConstraintFromIntent(agentIds[0]!, recommendations)
+          return constraint ? candidateSetPlansForConstraint(constraint) : []
+        })()
+          .filter((plan) => Boolean(plan.condition))
+          .map(
+            (plan) =>
+              `来源条件方案需要完整、唯一三人队伍与对应队友条件：${plan.sourceText ?? plan.primarySetIds.join(' + ')}`,
+          )
+      : []
   const alternatives = scope === 'agent' ? loadouts.slice(1) : []
   const gaps = [
     ...(!loadouts.length
@@ -311,6 +317,7 @@ export function solveCandidateWarehouse(
           ? ['当前固定或排除条件下没有完整配装；可取消冲突条件后重新搭配。']
           : ['当前仓库暂不满足推荐套装与六个号位的组合；请补充以下库存后重新搭配。']
       : []),
+    ...conditionalPlanGaps,
     ...sourceConditionGaps,
     ...rejectedConditions
       .filter(
@@ -442,23 +449,26 @@ export function solveCandidateAgentAlternatives(
     return !plan.inventoryTransition && plan.loadouts[0]?.discs.length === 6 ? [plan] : []
   })
   const count = Math.min(10, Math.floor(limit))
+  // One branch can contribute several better event-scored physical solutions.
+  // Merge them all before the final count cut; source representatives do not
+  // reserve that quota or erase an already discovered stronger alternative.
   const unique = new Map(
-    [global[0]!, ...representatives].map((plan) => [loadoutKey(plan.loadouts), plan]),
+    [...representatives, ...global].map((plan) => [loadoutKey(plan.loadouts), plan]),
   )
-  for (const plan of global) {
-    if (unique.size >= count) break
-    unique.set(loadoutKey(plan.loadouts), plan)
-  }
   return [...unique.values()]
     .sort(
       (a, b) =>
         Number(Boolean(a.loadouts[0]?.degraded)) - Number(Boolean(b.loadouts[0]?.degraded)) ||
-        candidateLoadoutSourcePlanRank(a.loadouts[0], sourcePlans) -
-          candidateLoadoutSourcePlanRank(b.loadouts[0], sourcePlans) ||
         compareCandidatePanelObjective(
           a.loadouts[0]?.panelObjective,
           b.loadouts[0]?.panelObjective,
         ) ||
+        compareCandidateEffectiveCritObjective(
+          a.loadouts[0]?.effectiveCritObjective,
+          b.loadouts[0]?.effectiveCritObjective,
+        ) ||
+        candidateLoadoutSourcePlanRank(a.loadouts[0], sourcePlans) -
+          candidateLoadoutSourcePlanRank(b.loadouts[0], sourcePlans) ||
         b.totalScore - a.totalScore ||
         loadoutKey(a.loadouts).localeCompare(loadoutKey(b.loadouts)),
     )

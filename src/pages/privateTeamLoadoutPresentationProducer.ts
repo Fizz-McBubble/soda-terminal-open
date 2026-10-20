@@ -13,6 +13,7 @@ import {
 } from './teamLoadoutOverviewModel'
 import { presentTeamExecution } from './teamExecutionPresentation'
 import { createTeamExecutionAttributePanel } from './teamExecutionAttributePanel'
+import { targetTeamBuildDirectionConditions } from '../application/targetTeamEffectivePotentialConditions'
 
 /** Private Query producer. The browser consumes only its serialized result. */
 export function projectPrivateTeamOverview(
@@ -87,6 +88,11 @@ export function projectPrivateTeamExecution(
                 discs: warehouse.discs,
                 wEngines: warehouse.roster.wEngines,
                 memberIds: fit.targetExecution.memberIds,
+                buildDirectionConditions: targetTeamBuildDirectionConditions({
+                  memberIds: fit.targetExecution.memberIds,
+                  roster: warehouse.roster,
+                  potentialByAgentId: fit.effectiveEquipmentParameters?.potentialByAgentId,
+                }),
               }),
             ] as const,
           ]

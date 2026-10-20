@@ -1,9 +1,9 @@
 import { compileTargetTeamPlanningMembers } from './targetTeamPlanningMembers'
 import type { TargetTeamPlanningContextInput } from './targetTeamPlanningContextInput'
+import { resolveTargetTeamWEngineRuntime } from './targetTeamPlanningContextInput'
 import { compileTargetTeamPlanningCoverage } from './targetTeamPlanningCoverage'
 import { compileCurrentDriveDiscPlanningEffects } from '../calculation/currentDriveDiscPlanningEffects'
-import { summarizeSourceResourceProduction32 } from '../calculation/sourceResourceProduction32'
-import { summarizeSourceMechanismResourceGrants32 } from '../calculation/sourceMechanismResourceGrants32'
+import { compileTargetTeamSourceResourceProduction32 } from './targetTeamSourceResourceProduction32'
 import { mergePlanningReferenceMaps32 } from '../calculation/currentPlanningEffectDomain'
 import { compileCurrentPlanningInteractionBundle } from '../calculation/currentPlanningInteractionBundle'
 import { evaluateSourceBackedPlanningTeamDps } from '../calculation/currentPlanningTeamDpsRuntime'
@@ -23,12 +23,21 @@ import { qualifyReviewedPreparedTeamBenchmark32 } from '../calculation/reviewedP
 import { evaluateReviewedFunctionalCapacity32 } from '../calculation/reviewedFunctionalCapacity32'
 import { prepareReviewedPotentialEvents32 } from '../calculation/reviewedPotentialPreparedEvents32'
 import { prepareReviewedTemplateEvents32 } from '../calculation/reviewedTemplatePreparedEvents32'
+import { rejectTargetTeamTemplateConditions32 } from './targetTeamPlanningTemplateConditions32'
 import { resolveCurrentPlanningScenario32 } from '../calculation/currentPlanningScenario32'
+import { resolveTargetTeamResourceTimeline32 } from './targetTeamResourceTimeline32'
 
 const unique = (values: readonly string[]) => [...new Set(values)]
 
 export function compileTargetTeamPlanningContext(input: TargetTeamPlanningContextInput) {
   const scenario = resolveCurrentPlanningScenario32(input.scenarioSelection)
+  const resourceDeclaration = resolveTargetTeamResourceTimeline32({
+    memberIds: input.fit.memberIds,
+    durationSeconds: scenario.baseline.declaredDurationSeconds,
+    declaration: input.resourceTimelineDeclaration32,
+    parameterDeclaration: input.parameters.resourceTimelineDeclaration32,
+  })
+  if (resourceDeclaration.status === 'unsupported') return resourceDeclaration
   const blockers: string[] = []
   const unknownConditionProviders = Object.keys(
     input.eventConditionDeclarationsByAgentId ?? {},
@@ -195,23 +204,16 @@ export function compileTargetTeamPlanningContext(input: TargetTeamPlanningContex
         })
         return prepared ? [{ agentId: member.agentId, ...prepared }] : []
       })
+  const templateRejection = rejectTargetTeamTemplateConditions32(
+    input,
+    templatePreparations,
+    scenario.identity,
+  )
+  if (templateRejection) return templateRejection
   const observedReferences = mergePlanningReferenceMaps32(
     existingReferences,
     Object.fromEntries(templatePreparations.map((row) => [row.agentId, row.baselineReferences])),
   )
-  const conditionBlockers = templatePreparations.flatMap(
-    (row) => row.conditionPreparation?.blockers ?? [],
-  )
-  if (conditionBlockers.length)
-    return {
-      status: 'unsupported' as const,
-      blockers: unique(conditionBlockers),
-      fingerprint: stableContentHash({
-        scenario: scenario.identity,
-        conditionBlockers,
-        declarations: input.eventConditionDeclarationsByAgentId,
-      }),
-    }
   const commonAnomalyEvents = Object.fromEntries(
     [
       ...new Set(templatePreparations.flatMap((row) => Object.keys(row.commonAnomalyEvents ?? {}))),
@@ -220,12 +222,19 @@ export function compileTargetTeamPlanningContext(input: TargetTeamPlanningContex
       templatePreparations.flatMap((row) => row.commonAnomalyEvents?.[key] ?? []),
     ]),
   )
+  const wEngineRuntime = resolveTargetTeamWEngineRuntime({
+    memberIds: input.fit.memberIds,
+    parameters: input.parameters,
+    declarations: input.wEngineRuntimeDeclarations,
+    prepared: sourceSelection.runtimeByAgentId,
+  })
+  if (wEngineRuntime.status === 'unsupported') return wEngineRuntime
   const modifierProjection = projectTargetTeamEquipmentModifiers({
     baseline: scenario.baseline,
     memberIds: input.fit.memberIds,
     parameters: input.parameters,
     members: effectRuntimeMembers,
-    runtimeByAgentId: sourceSelection.runtimeByAgentId,
+    runtimeByAgentId: wEngineRuntime.runtimeByAgentId,
     bangbooScope: sourceSelection.preparedTeamConditions
       ? 'excluded_from_member_model'
       : 'included',
@@ -263,6 +272,8 @@ export function compileTargetTeamPlanningContext(input: TargetTeamPlanningContex
     memberIds: [...input.fit.memberIds],
     members: effectRuntimeMembers,
     baselineReferencesByAgentId: observedReferences,
+    resourceTimelineDeclaration32: resourceDeclaration.declaration,
+    sourceActionUsages32: eventUsages,
   })
   if (interactions.status === 'unsupported')
     return {
@@ -318,6 +329,7 @@ export function compileTargetTeamPlanningContext(input: TargetTeamPlanningContex
     constraintsHash: stableContentHash({
       scenario: scenario.identity,
       eventConditionDeclarations: input.eventConditionDeclarationsByAgentId ?? null,
+      resourceObservationHash: interactions.resourceObservationHash,
       candidateId: input.candidate.candidateId,
       fitFingerprint: input.fit.fingerprint,
       modifierFingerprint: input.modifierProjection.fingerprint,
@@ -369,16 +381,10 @@ export function compileTargetTeamPlanningContext(input: TargetTeamPlanningContex
       fingerprint: stableContentHash({ compilation, runtime, bangbooDamage }),
       ...koledaMetadata,
     }
-  const mechanismGrants32 = summarizeSourceMechanismResourceGrants32({
-    members: effectRuntimeMembers,
-    declaration: input.calibrationObservations?.resourceGrantDeclaration32,
-  })
-  const memberSourceResourceProduction32 = effectRuntimeMembers.map((member) =>
-    summarizeSourceResourceProduction32({
-      agentId: member.agentId,
-      eventUsages,
-      mechanismGrants32,
-    }),
+  const memberSourceResourceProduction32 = compileTargetTeamSourceResourceProduction32(
+    effectRuntimeMembers,
+    eventUsages,
+    input.calibrationObservations?.resourceGrantDeclaration32,
   )
   const memberDamage = runtime.memberDamage.reduce((sum, member) => sum + member.totalDamage, 0)
   const totalDamage = memberOnly ? memberDamage : memberDamage + bangbooDamage!
@@ -395,6 +401,7 @@ export function compileTargetTeamPlanningContext(input: TargetTeamPlanningContex
     ],
   })
   const core = {
+    wEngineRuntimeIdentity: wEngineRuntime.identity,
     ...koledaMetadata,
     coverage,
     modifierProjection,
@@ -460,6 +467,11 @@ export function compileTargetTeamPlanningContext(input: TargetTeamPlanningContex
       }),
     ),
     memberSourceResourceProduction32,
+    selectedActionResourceProduction32: interactions.selectedActionResourceProduction32,
+    resourceObservationHash: interactions.resourceObservationHash,
+    ...('resourceTimeline32' in interactions
+      ? { resourceTimeline32: interactions.resourceTimeline32 }
+      : {}),
     interactionBundleHash: interactions.bundleHash,
     interactionStateHash: compilation.interactionStateHash,
     interactionOperatorCoverage: compilation.interactionOperatorCoverage,

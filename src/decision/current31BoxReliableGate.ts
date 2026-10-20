@@ -7,6 +7,8 @@ import { current31StrengthGoldSet } from './current31StrengthGoldSet'
 import { current31StrengthGoldSetEvaluation } from './current31StrengthGoldSetEvaluation'
 import { current31ProductionPartialOrder } from './current31ProductionPartialOrder'
 import { current31MainstreamAuthorityEvaluationGate } from './current31MainstreamAuthorityEvaluationGate'
+import { currentTeamOutputModuleCoverage } from '../gameDataPacks/currentTeamOutputModuleCoverage'
+import { teamPrimaryOutputKindLabels } from '../gameDataPacks/teamOutputModuleContract'
 
 export const current31BoxReliableGateContractId = 'soda-current-3.1-box-reliable-gate/v1' as const
 
@@ -27,6 +29,19 @@ const exactBangbooStrengthGoldCaseCount = current31StrengthGoldSet.bandLabelCoun
 const reliablePairwiseLabelCount = current31StrengthGoldSet.highConfidencePairwise.length
 const reliableMetricsEligible =
   current31MainstreamAuthorityEvaluationGate.status === 'ready_for_product_evaluation'
+const missingCurrentOutputKinds = currentTeamOutputModuleCoverage.missingCurrentPrimaryOutputKinds
+const missingTeamSynergyAgentIds =
+  currentTeamOutputModuleCoverage.coordinationContracts.teamSynergyContracts.missingAgentIds
+const outputModuleCoverageBlocker =
+  `输出体系合同已为 ${currentTeamOutputModuleCoverage.currentClassifiedTeamCount}/${currentTeamOutputModuleCoverage.currentExactTeamCount} 个当前精确队归类，` +
+  `另有 ${currentTeamOutputModuleCoverage.unclassifiedExactTeamCount} 个精确成员观察未完成队伍级语义归类；` +
+  (missingCurrentOutputKinds.length
+    ? `当前仍缺 ${missingCurrentOutputKinds.map((kind) => teamPrimaryOutputKindLabels[kind]).join('、')} 主输出代表；`
+    : '当前主输出类型均有具名代表；') +
+  `追加能力契约 ${currentTeamOutputModuleCoverage.coordinationContracts.activationContracts.compiledAgentCount}/${currentTeamOutputModuleCoverage.coordinationContracts.activationContracts.totalAgentCount}；` +
+  (missingTeamSynergyAgentIds.length
+    ? `协同合同 ${currentTeamOutputModuleCoverage.coordinationContracts.teamSynergyContracts.compiledAgentCount}/${currentTeamOutputModuleCoverage.coordinationContracts.teamSynergyContracts.totalAgentCount}，缺 ${missingTeamSynergyAgentIds.join('、')}。`
+    : '协同合同已按当前目录闭合。')
 
 export const current31BoxReliableGate = Object.freeze({
   contract: current31BoxReliableGateContractId,
@@ -42,12 +57,17 @@ export const current31BoxReliableGate = Object.freeze({
     mainstreamRecognitionBandLabelCount: current31IndependentConsensusGoldSet.bandLabelCount,
     mainstreamRecognitionPairwiseLabelCount:
       current31IndependentConsensusGoldSet.pairwiseLabelCount,
+    independentCurrentVersionLabelCaseCount:
+      current31MainstreamAuthorityEvaluationGate.evaluationSets.currentVersion
+        .independentCurrentVersionLabelCaseCount,
+    independentLabelVersionStatus:
+      current31MainstreamAuthorityEvaluationGate.evaluationSets.currentVersion.status,
     strengthBandCaseCount,
     preliminaryStrengthBandMinimumCoverageRatio: preliminaryMinimumCoverageRatio,
     exactBangbooStrengthGoldCaseCount,
     strengthGoldCalibrationCaseCount: current31StrengthGoldSet.calibrationCases.length,
-    strengthGoldIndependentHoldoutCaseCount:
-      current31StrengthGoldSet.independentHoldoutCases.length,
+    strengthGoldIndependentHoldoutCaseCount: 0,
+    strengthGoldLegacyDiagnosticCaseCount: current31StrengthGoldSet.independentHoldoutCases.length,
     reliableGoldMinimumCoverageRatio:
       exactBangbooStrengthGoldCaseCount / current31BoxReliableTargets.strengthGoldSetMinimum,
     pairwiseLabelCount,
@@ -60,6 +80,7 @@ export const current31BoxReliableGate = Object.freeze({
     },
     recoveredCalibrationProductAuthorityEligible:
       current31MetaStrengthR1Lineage.productAuthorityEligible,
+    outputModules: currentTeamOutputModuleCoverage,
   },
   metrics: {
     topKRecall: current31MainstreamAuthorityEvaluationGate.metrics.topKRecall,
@@ -77,6 +98,14 @@ export const current31BoxReliableGate = Object.freeze({
       current31MainstreamAuthorityEvaluationGate.metricStatus.mainstreamUnknownRatio,
   },
   provisionalDiagnostics: {
+    legacyExposedBandCases:
+      current31MainstreamAuthorityEvaluationGate.blindMetaHoldout.bandCaseCount,
+    legacyExposedPairwiseRelations:
+      current31MainstreamAuthorityEvaluationGate.blindMetaHoldout.pairwiseRelationCount,
+    legacyExposedSourceReferenceBandAgreement:
+      current31MainstreamAuthorityEvaluationGate.blindMetaHoldout.bandAgreement,
+    legacyExposedSourceReferencePairwiseConsistency:
+      current31MainstreamAuthorityEvaluationGate.blindMetaHoldout.pairwiseConsistency,
     holdoutCaseCount: current31StrengthGoldSetEvaluation.holdoutCaseCount,
     bandAgreement: current31StrengthGoldSetEvaluation.bandAgreement,
     runtimeGoldLeakCount: current31StrengthGoldSetEvaluation.runtimeGoldLeakCount,
@@ -136,8 +165,9 @@ export const current31BoxReliableGate = Object.freeze({
     ],
   },
   blockers: [
-    'Structural、Semantic、Meta Gold/Holdout、N4-4 Consumer/Foundation 与 Value Benchmark V1 已通过工程门；Value Benchmark 仍需在代表真实账户上取得同条件双侧 supported 结果。',
+    '旧四条 Band 与五条偏序已进入 Gold/训练标签，只能作诊断；当前独立 Band/Pairwise、Top-K 与 Unknown 仍未评估。Value Benchmark 仍需在代表真实账户上取得同条件双侧 supported 结果。',
     '代表真实账户的培养差异、18 盘互斥、解释、刷新/stale 与生产页面旅程尚未完成本轮 Product Validation。',
+    outputModuleCoverageBlocker,
   ],
   deferredEnhancement: {
     capability: 'reference_combat_model' as const,

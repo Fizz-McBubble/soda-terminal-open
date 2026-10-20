@@ -3,6 +3,7 @@ import { supportsPotentialImage } from '../assault/agentCapabilities'
 import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
 import {
   currentPlanningConditionCatalogIdentity32,
+  hasCurrentPlanningWEngineConditionSource32,
   projectCurrentPlanningConditionCatalog32,
 } from '../calculation/currentPlanningConditionCatalog32'
 import { currentNormalizedPlanningBaseline } from '../calculation/currentNormalizedPlanningBaseline'
@@ -22,6 +23,8 @@ import {
 } from '../gameDataPacks/incremental32RecoveryPolicy'
 import { stableContentHash } from '../gameDataPacks/types'
 import { reviewedPlanningEventSetIdentity32 } from '../gameDataPacks/reviewedPlanningEventSetIdentity32'
+import { triggerAftershockWindowIdentity32 } from '../calculation/triggerAftershockWindow32'
+import { isSourceRateEvent32 } from '../calculation/sourceEventQuantity32'
 import {
   planningEventDeclarations32Contract,
   planningEventDeclarationsMetadataFingerprint32,
@@ -57,13 +60,6 @@ export const planningBenchmarkContextPolicy32 = Object.freeze({
   enemyLevel: 70,
   rounding: { stage: 'display', precision: 2, mode: 'half_away_from_zero', preserveRawSum: true },
 })
-const incrementalEngines = new Set([
-  'wengine-14161',
-  'wengine-14162',
-  'wengine-13021',
-  'wengine-13017',
-  'wengine-12016',
-])
 
 export function preparePlanningBenchmark32(input: PlanningBenchmarkBinding32) {
   const gaps: string[] = []
@@ -199,6 +195,7 @@ export function preparePlanningBenchmark32(input: PlanningBenchmarkBinding32) {
       potential,
       coreLevel: skillLevels.core,
       skillLevels,
+      statBasis32: projection.stats.statBasis32,
       initialStats: projection.stats.initialStats,
       finalStats: projection.stats.finalStats,
     }
@@ -231,7 +228,7 @@ export function preparePlanningBenchmark32(input: PlanningBenchmarkBinding32) {
     .filter((row) => {
       const specialty = getCurrentAgentEventContract(row.agentId)?.identity.specialty
       return (
-        incrementalEngines.has(row.engineId) &&
+        hasCurrentPlanningWEngineConditionSource32(row.engineId) &&
         getCurrentWEngineStaticData(row.engineId)?.specialty ===
           (specialty === 'attack' ? 'damage' : specialty)
       )
@@ -277,6 +274,9 @@ export function preparePlanningBenchmark32(input: PlanningBenchmarkBinding32) {
         ownerAgentId: member.agentId,
         eventId: event.eventId,
         skillLevel,
+        ...(isSourceRateEvent32(member.agentId, event.eventId)
+          ? { quantityUnit: 'seconds' as const }
+          : {}),
         requiresWindsweptObservation: hasWind,
         sourceRefs: [
           `${contract.source.repository}@${contract.source.commit}`,
@@ -293,6 +293,9 @@ export function preparePlanningBenchmark32(input: PlanningBenchmarkBinding32) {
     phaseId: 'phase_ii' as const,
     declaredDurationSeconds: planningBenchmarkBaseline32.declaredDurationSeconds,
     memberIds: [...memberIds],
+    ...(memberIds.includes('agent-trigger')
+      ? { triggerAftershockWindowSourceIdentity32: triggerAftershockWindowIdentity32 }
+      : {}),
     events,
   }
   const metadata: PlanningEventDeclarationsMetadata32 | null =

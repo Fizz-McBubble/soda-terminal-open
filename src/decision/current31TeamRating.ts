@@ -9,7 +9,10 @@ import {
   extractTeamFeatureVector,
   projectAgentRulesToTeamFeatureSignals,
 } from './teamRatingEvaluator'
-import { projectCurrent31TeamStrength } from './current31TeamStrengthCalibration'
+import {
+  projectCurrent31TeamStrength,
+  type TeamStrengthEvidenceMode,
+} from './current31TeamStrengthCalibration'
 import { resolveCurrent31BangbooVariant } from './current31TeamCoreAggregation'
 import { stableContentHash } from '../gameDataPacks/types'
 
@@ -45,6 +48,8 @@ export function evaluateCurrent31TeamRating(input: {
   reviewedOnly?: boolean
   /** Offline refits read labels in their source version, never as current meta. */
   sourceReviewVersion?: '3.1'
+  /** Explicit blind evaluation isolates exact-team source labels, not mechanisms. */
+  evidenceMode?: TeamStrengthEvidenceMode
 }) {
   const memberIds = [...input.memberIds].sort() as [string, string, string]
   const teamIdentity = resolveCurrent31BangbooVariant(memberIds, input.bangbooId)
@@ -103,6 +108,7 @@ export function evaluateCurrent31TeamRating(input: {
     benchmark,
     reviewedOnly: input.reviewedOnly,
     sourceReviewVersion: input.reviewedOnly ? input.sourceReviewVersion : undefined,
+    evidenceMode: input.evidenceMode,
   })
   return {
     contract: current31TeamRatingContractId,

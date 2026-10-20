@@ -4,6 +4,10 @@ import type { SavedTeamPlanSnapshotFreshness } from '../accounts/planningSnapsho
 export function savedPlanStaleNotice(freshness: SavedTeamPlanSnapshotFreshness) {
   if (!freshness.stale) return undefined
   switch (freshness.reason) {
+    case 'luminize-source-stale':
+      return '辉映计算依据已经更新，已保存快照仍保留。请重新分析当前队伍后再保存。'
+    case 'luminize-declaration-invalid':
+      return '已保存辉映快照与当前方案不一致，历史配装仍可查看。请重新分析当前队伍后再保存。'
     case 'legacy-unverifiable':
       return '这份旧方案尚未按当前账户重新匹配，原配装仍可查看。重新匹配后可保存新的配装。'
     case 'unmatched':

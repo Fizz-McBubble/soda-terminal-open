@@ -84,7 +84,9 @@ export type ValueBenchmarkComparisonBasis = {
   rankingMethod: 'fixed_event_planning_dps_delta' | 'prepared_anomaly_settlement_damage_delta'
 }
 
-export type ValueBenchmarkComparison = ReturnType<typeof compareValueBenchmarkSides>
+export type ValueBenchmarkComparison = ReturnType<typeof compareValueBenchmarkSides> & {
+  luminizeComparison32?: import('../application/publicLuminizeComparison32').LuminizeEquipmentComparison32
+}
 
 const lockedDimensions: ValueBenchmarkDimension[] = [
   'game_version',

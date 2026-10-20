@@ -1,4 +1,5 @@
 import { supportsPotentialImage } from '../assault/agentCapabilities'
+import { currentAgentDirectory } from '../assault/catalog'
 import {
   currentAgentEventContracts,
   getCurrentAgentEventContract,
@@ -15,20 +16,29 @@ import {
 } from '../gameDataPacks/panel/currentPanelData'
 import { stableContentHash } from '../gameDataPacks/types'
 import type { TeamStrengthReferenceConditions } from './teamStrengthReferenceConditionsTypes'
+import { resolveSkillInvestmentMindscapeBonus } from './skillInvestmentProjection'
 
 /** Local comparison protocol, never an author build or account observation. */
 export const teamStrengthReferenceStatePolicy = Object.freeze({
-  id: 'team-strength-reference-level60-skill11-core7-m0-supported-p6/v1',
+  id: 'team-strength-reference-level60-base-skill11-core7-s0-a6-supported-p6/v2',
   level: 60,
-  skillLevel: 11,
+  baseSkillLevel: 11,
   coreLevel: 7,
-  mindscape: 0,
+  mindscapeByRarity: { S: 0, A: 6 },
   supportedPotential: 6,
   unsupportedPotential: 0,
   explicitNumericPotentialWins: true,
   potentialCombatEffects: 'owned-by-source-prepared-event-consumer',
   equipment: 'none',
 })
+
+/** The common comparison uses S0/A6, independently of the player's account. */
+export function resolveTeamStrengthReferenceMindscape(agentId: string) {
+  const rarity = currentAgentDirectory.find((row) => row.id === agentId)?.rarity
+  if (rarity === 'S') return teamStrengthReferenceStatePolicy.mindscapeByRarity.S
+  if (rarity === 'A') return teamStrengthReferenceStatePolicy.mindscapeByRarity.A
+  throw new Error(`评级标准缺少明确S/A身份：${agentId}`)
+}
 
 export function resolveTeamStrengthReferencePotential(
   agentId: string,
@@ -80,6 +90,8 @@ export function createTeamStrengthReferenceRuntimeMember(
     throw new Error(`缺少评级参考养成来源：${agentId}`)
   const core = growth.values
   const base = contract.baseStats
+  const mindscape = resolveTeamStrengthReferenceMindscape(agentId)
+  const effectiveSkill = 11 + (resolveSkillInvestmentMindscapeBonus(mindscape) ?? 0)
   const potential = resolveTeamStrengthReferencePotential(agentId, referenceConditions)
   const baseAttack = base.atk_base + base.atk_growth * 59 + promotion.atk + (core.atk ?? 0)
   const baseDefense = base.def_base + base.def_growth * 59 + promotion.def
@@ -115,10 +127,18 @@ export function createTeamStrengthReferenceRuntimeMember(
   return {
     agentId,
     level: 60,
-    mindscape: 0,
+    mindscape,
     potential,
     coreLevel: 7,
-    skillLevels: { basic: 11, dodge: 11, assist: 11, special: 11, chain: 11, core: 7 },
+    skillLevels: {
+      basic: effectiveSkill,
+      dodge: effectiveSkill,
+      assist: effectiveSkill,
+      special: effectiveSkill,
+      chain: effectiveSkill,
+      core: 7,
+    },
+    statBasis32: 'out_of_combat',
     initialStats: { ...stats },
     finalStats: { ...stats },
   }

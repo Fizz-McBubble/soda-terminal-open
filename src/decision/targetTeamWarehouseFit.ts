@@ -467,6 +467,9 @@ export function calculateTargetTeamWarehouseFit(input: {
     candidateId: buildIntent.exactTeam.candidateId,
     memberIds,
     buildIntent,
+    ...(input.teamAssignmentObjective
+      ? { assignmentObjectiveFingerprint: input.teamAssignmentObjective.fingerprint }
+      : {}),
     status,
     solverMethod: 'bounded_heuristic' as const,
     exactWithinModel: false as const,

@@ -350,4 +350,66 @@ describe('SelectMenu shared popover contract', () => {
       'open',
     )
   })
+
+  it('keeps a nested menu, Tab and Escape inside the existing popover', async () => {
+    const user = userEvent.setup()
+    const outerKey = vi.fn()
+    render(
+      <>
+        <button>页面之前</button>
+        <div
+          popover="manual"
+          style={{ display: 'block' }}
+          data-testid="explanation"
+          onKeyDown={outerKey}
+        >
+          <SelectMenu
+            label="说明内音擎"
+            value="a"
+            options={[
+              { value: 'a', label: '甲' },
+              { value: 'b', label: '乙' },
+            ]}
+            onChange={vi.fn()}
+          />
+          <button>说明内下一步</button>
+        </div>
+        <button>页面之后</button>
+      </>,
+    )
+    const trigger = screen.getByRole('button', { name: '说明内音擎', hidden: true })
+    fireEvent.click(trigger)
+    const listbox = screen.getByRole('listbox', { hidden: true })
+    expect(screen.getByTestId('explanation').contains(listbox)).toBe(true)
+    await user.tab()
+    expect(screen.getByText('说明内下一步')).toHaveFocus()
+    fireEvent.click(trigger)
+    fireEvent.keyDown(screen.getByRole('listbox', { hidden: true }), { key: 'Escape' })
+    expect(screen.queryByRole('listbox', { hidden: true })).not.toBeInTheDocument()
+    expect(trigger).toHaveFocus()
+    expect(outerKey).not.toHaveBeenCalledWith(expect.objectContaining({ key: 'Escape' }))
+  })
+
+  it('returns Tab to the popover header when the remaining parameter is unavailable', async () => {
+    const user = userEvent.setup()
+    render(
+      <>
+        <div popover="manual" style={{ display: 'block' }}>
+          <button>关闭说明</button>
+          <SelectMenu
+            label="未选择音擎"
+            value="a"
+            options={[{ value: 'a', label: '甲' }]}
+            onChange={vi.fn()}
+          />
+          <button disabled>精炼未选择</button>
+        </div>
+        <button>底层页面操作</button>
+      </>,
+    )
+    fireEvent.click(screen.getByRole('button', { name: '未选择音擎' }))
+    await user.tab()
+    expect(screen.getByRole('button', { name: '关闭说明' })).toHaveFocus()
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+  })
 })

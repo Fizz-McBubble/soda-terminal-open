@@ -84,6 +84,79 @@ const gaps = (input: unknown, metadata: PlanningEventDeclarationsMetadata32) =>
   validatePlanningEventDeclarations32(input, metadata).gaps
 
 describe('public planning event declarations 3.2', () => {
+  it('binds source rate seconds without converting intervals to hit counts', () => {
+    const { metadata, input } = fixture()
+    metadata.events[0]!.quantityUnit = 'seconds'
+    metadata.sourceFingerprint = planningEventDeclarationsMetadataFingerprint32(metadata)
+    input.sourceFingerprint = metadata.sourceFingerprint
+    input.occurrences[0]!.durationSeconds = 0.5
+    input.occurrences[0]!.rateState = 'constant_over_interval'
+    expect(gaps(input, metadata)).toEqual([])
+    const identity = planningEventDeclarationsInputFingerprint32(input)
+    input.occurrences[0]!.durationSeconds = 2
+    expect(planningEventDeclarationsInputFingerprint32(input)).not.toBe(identity)
+    input.occurrences.push({
+      ...structuredClone(input.occurrences[0]!),
+      occurrenceId: 'overlap',
+      atSeconds: 1,
+    })
+    expect(gaps(input, metadata)).toContain('overlapping_rate_interval:overlap')
+    input.occurrences[1]!.atSeconds = 2
+    expect(gaps(input, metadata)).toEqual([])
+    input.occurrences[1]!.durationSeconds = 19
+    expect(gaps(input, metadata)).toContain('invalid_rate_interval:overlap')
+    delete input.occurrences[1]!.durationSeconds
+    expect(gaps(input, metadata)).toContain('invalid_rate_interval:overlap')
+  })
+
+  it('rejects duration amplification on a coefficient-per-use source event', () => {
+    const { metadata, input } = fixture()
+    input.occurrences[0]!.durationSeconds = 2
+    expect(gaps(input, metadata)).toContain('unexpected_rate_interval:first')
+  })
+
+  it('binds an optional Trigger timeline to trusted metadata and real occurrence identities', () => {
+    const { metadata, input } = fixture()
+    metadata.memberIds[1] = 'agent-trigger'
+    metadata.triggerAftershockWindowSourceIdentity32 = 'trusted-trigger-policy'
+    metadata.events[0]!.conditions[0] = {
+      ...metadata.events[0]!.conditions[0]!,
+      providerAgentId: 'agent-trigger',
+      referenceKey: 'aftershock_hit',
+    }
+    metadata.events.push({
+      ...structuredClone(metadata.events[0]!),
+      ownerAgentId: 'agent-trigger',
+      eventId: 'trusted-aftershock-event',
+    })
+    metadata.sourceFingerprint = planningEventDeclarationsMetadataFingerprint32(metadata)
+    input.sourceFingerprint = metadata.sourceFingerprint
+    input.occurrences[0]!.conditions = input.occurrences[0]!.conditions.filter(
+      (row) => row.referenceKey !== 'buff',
+    )
+    input.occurrences.push({
+      ...structuredClone(input.occurrences[0]!),
+      occurrenceId: 'accepted-trigger-hit',
+      ownerAgentId: 'agent-trigger',
+      eventId: 'trusted-aftershock-event',
+      atSeconds: 1,
+    })
+    input.triggerAftershockWindow32 = {
+      sourceIdentityHash: 'trusted-trigger-policy',
+      targetId: 'declared-target',
+      hitOccurrenceIds: ['accepted-trigger-hit'],
+      sourceRefs: ['declared-finite-contact-input'],
+    }
+    expect(gaps(input, metadata)).toEqual([])
+    const before = planningEventDeclarationsInputFingerprint32(input)
+    input.triggerAftershockWindow32.initialState = 'inactive'
+    expect(planningEventDeclarationsInputFingerprint32(input)).not.toBe(before)
+    input.triggerAftershockWindow32.sourceIdentityHash = 'changed'
+    expect(gaps(input, metadata)).toContain('trigger_aftershock_window_source_changed32')
+    input.triggerAftershockWindow32.sourceIdentityHash = 'trusted-trigger-policy'
+    input.triggerAftershockWindow32.hitOccurrenceIds = ['first']
+    expect(gaps(input, metadata)).toContain('trigger_aftershock_window_hit_identity_invalid32')
+  })
   it('preserves explicit zero and false and distinct per-occurrence states', () => {
     const { metadata, input } = fixture()
     input.occurrences.push({

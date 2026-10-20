@@ -8,6 +8,7 @@ import { useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { buildSavedTeamPlanSolutionFingerprint } from '../accounts/planningSnapshotFreshness'
 import { buildExactTeamVariantKey } from '../accounts/planningSolutionContext'
+import { getActiveAccount } from '../accounts/repository'
 import {
   useAccountDecisionWorld,
   useReleaseAccountDecisionRun,
@@ -144,6 +145,7 @@ export function PlanEditor(props: PlanEditorProps) {
   const save = async () => {
     if (!claimPlanEditorSaveFromProps(props, saving, duplicateMemberId, setMessage)) return false
     const isCurrentSave = captureSaveScope()
+    const originatingPathname = window.location.pathname
     let finishUsage: ReturnType<typeof beginUsageOperation> | undefined
     try {
       const remainingSession = assertCurrentPlanEditorReservation(
@@ -219,7 +221,14 @@ export function PlanEditor(props: PlanEditorProps) {
         remainingSession,
       })
       finishUsage('success')
-      if (!isCurrentSave()) return true
+      if (!isCurrentSave()) {
+        const activeAccount = await getActiveAccount()
+        if (
+          activeAccount?.id !== warehouse.accountId ||
+          window.location.pathname !== originatingPathname
+        )
+          return true
+      }
       setDraft(next)
       setSaved(true)
       setDirty(false)
@@ -231,7 +240,7 @@ export function PlanEditor(props: PlanEditorProps) {
         navigate,
         setMessage,
         savedName: next.name,
-        isCurrentSave,
+        isCurrentSave: () => true,
         appSessionId: accountSummary?.appSessionId,
       })
     } catch (error) {
@@ -337,6 +346,7 @@ export function PlanEditor(props: PlanEditorProps) {
         <SavedTeamHistory plan={restored} warehouse={warehouse} />
       ) : null}
       <PlanEditorSavedStateNotices
+        luminizeSettlement32={props.luminizeSettlement32}
         objectiveNote={restored?.candidateWarehouse?.panelObjectiveNote}
         needsTeamRecovery={kind === 'team' && !team && readOnly}
         staleNotice={staleNotice}

@@ -69,6 +69,19 @@ export type AccountDecisionFingerprint = {
   }
 }
 
+/**
+ * A saved team solution needs account facts, its exact build intent, and calculation authorities.
+ * Global BOX review/candidate changes still refresh discovery, but must not invalidate an
+ * unrelated saved solution whose own build intent and calculation inputs are unchanged.
+ */
+export const savedTeamSolutionCalculationAuthorityFacts = Object.freeze({
+  contract: 'soda-saved-team-calculation-authority/v1',
+  currentVersion: currentDataAuthorityProjection.currentVersion,
+  versionGate: currentDataAuthorityProjection.versionGate,
+  verifiedIncrementalCalculation: currentDataAuthorityProjection.verifiedIncrementalCalculation,
+  staticPlanningCalculation: currentDataAuthorityProjection.staticPlanningCalculation,
+})
+
 function sortedRecord(input: Readonly<Record<string, unknown>>) {
   return Object.fromEntries(
     Object.entries(input).sort(([left], [right]) => left.localeCompare(right)),
@@ -142,6 +155,21 @@ export function buildAccountDecisionInputFingerprint({
     contract: accountDecisionFingerprintContract,
     inputHash: contentHash(components),
     components,
+  }
+}
+
+export function buildSavedTeamSolutionInputComponents(input: BuildAccountDecisionInput) {
+  const { components } = buildAccountDecisionInputFingerprint(input)
+  return {
+    calculationAuthorityHash: contentHash(savedTeamSolutionCalculationAuthorityFacts),
+    accountHash: components.accountHash,
+    warehouseHash: components.warehouseHash,
+    rosterHash: components.rosterHash,
+    preferenceHash: components.preferenceHash,
+    profilesHash: components.profilesHash,
+    optimizerOptionsHash: components.optimizerOptionsHash,
+    planningEvaluationHash: components.planningEvaluationHash,
+    planningAuthorityHash: components.planningAuthorityHash,
   }
 }
 import { current31VariantBangbooRecommendationSet } from './current31VariantBangbooRecommendation'

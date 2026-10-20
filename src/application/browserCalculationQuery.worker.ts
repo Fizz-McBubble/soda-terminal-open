@@ -1,5 +1,6 @@
 import { buildAccountDecisionSnapshot } from '../decision/accountDecisionService'
 import { projectPublicCalculationResult } from './publicCalculationTransport'
+import { dispatchCalculationQuery } from './calculationQueryDispatch'
 import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
 import { createLocalCalculationQueryClientCore } from './localCalculationQueryClientCore'
 import {
@@ -51,59 +52,12 @@ export async function calculateBrowserQueryResponse(
 
   runtime = request.runtime
   try {
-    let result: unknown
-    switch (request.query.kind) {
-      case 'common_anomaly_settlement32':
-        if (!client.queryCommonAnomalySettlement32) throw new Error('风异常声明结算不可用。')
-        result = projectPublicCalculationResult(
-          'common_anomaly_settlement32',
-          await client.queryCommonAnomalySettlement32(request.query),
-        )
-        break
-      case 'account_decision':
-        result = await client.calculateAccountDecision(request.query)
-        break
-      case 'target_team_warehouse_fit':
-        result = await client.calculateTargetTeamWarehouseFit(request.query)
-        break
-      case 'team_overview_presentation':
-        result = await client.queryTeamOverviewPresentation(request.query)
-        break
-      case 'team_route_presentation':
-        result = await client.queryTeamRoutePresentation(request.query)
-        break
-      case 'saved_team_plan_replay':
-        result = await client.querySavedTeamPlanReplay(request.query)
-        break
-      case 'saved_team_solution_components':
-        result = await client.querySavedTeamSolutionComponents(request.query)
-        break
-      case 'decision_portfolio':
-        result = await client.queryDecisionPortfolio(request.query)
-        break
-      case 'development_candidate_alternatives':
-        result = await client.queryDevelopmentCandidateAlternatives(request.query)
-        break
-      case 'reviewed_incremental_event32':
-        if (!client.queryReviewedIncrementalEvent32) throw new Error('单次命中计算不可用。')
-        result = await client.queryReviewedIncrementalEvent32(request.query)
-        break
-      case 'planning_benchmark32':
-        if (!client.queryPlanningBenchmark32) throw new Error('逐次事件基准计算不可用。')
-        result = projectPublicCalculationResult(
-          'planning_benchmark32',
-          await client.queryPlanningBenchmark32(request.query),
-        )
-        break
-      case 'development_workbench_route':
-        result = await client.queryDevelopmentWorkbenchRoute(request.query)
-        break
-      case 'warehouse_disc_transition_uses':
-        result = await client.queryWarehouseDiscTransitionUses?.(request.query)
-        break
-      default:
-        throw new Error('不支持的计算请求。')
-    }
+    const result = await dispatchCalculationQuery(client, request.query, {
+      transform: (kind, value) =>
+        kind === 'common_anomaly_settlement32' || kind === 'planning_benchmark32'
+          ? projectPublicCalculationResult(kind, value)
+          : value,
+    })
     return { ...response, status: 'succeeded', result }
   } catch (error) {
     return {

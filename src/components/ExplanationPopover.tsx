@@ -12,6 +12,7 @@ export function ExplanationPopover({
   closeLabel = '关闭说明',
   showIndicator = true,
   variant = 'text',
+  onOpenChange,
 }: {
   label: string
   title?: string
@@ -21,6 +22,7 @@ export function ExplanationPopover({
   closeLabel?: string
   showIndicator?: boolean
   variant?: 'text' | 'button'
+  onOpenChange?: (open: boolean) => void
 }) {
   const id = useId()
   const trigger = useRef<HTMLButtonElement>(null)
@@ -68,7 +70,16 @@ export function ExplanationPopover({
     window.addEventListener('resize', position)
     window.addEventListener('scroll', repositionOnPageScroll, true)
     panel.current?.addEventListener('toggle', position, true)
-    const observer = new ResizeObserver(position)
+    // Fit outside the observer delivery so changing the observed card's cap
+    // cannot create an undelivered resize loop in the same layout cycle.
+    let resizeFrame: number | undefined
+    const observer = new ResizeObserver(() => {
+      if (resizeFrame !== undefined) return
+      resizeFrame = window.requestAnimationFrame(() => {
+        resizeFrame = undefined
+        position()
+      })
+    })
     if (panel.current) observer.observe(panel.current)
     if (trigger.current) observer.observe(trigger.current)
     // The card/body can stay capped while a nested disclosure changes intrinsic height.
@@ -82,6 +93,7 @@ export function ExplanationPopover({
       window.removeEventListener('scroll', repositionOnPageScroll, true)
       currentPanel?.removeEventListener('toggle', position, true)
       observer.disconnect()
+      if (resizeFrame !== undefined) window.cancelAnimationFrame(resizeFrame)
     }
   }, [open, align])
 
@@ -109,6 +121,7 @@ export function ExplanationPopover({
           if (event.target !== event.currentTarget) return
           const shown = event.newState === 'open'
           setOpen(shown)
+          onOpenChange?.(shown)
         }}
       >
         <header className="explanation-popover__header">

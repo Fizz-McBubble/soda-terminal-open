@@ -44,5 +44,7 @@ export function resolvePlayerConfirmedTargetTeamQuery(
     equipmentParameters,
     scenarioSelection: query.scenarioSelection,
     eventConditionDeclarationsByAgentId: query.eventConditionDeclarationsByAgentId,
+    declaredEventComparison32: query.declaredEventComparison32,
+    standardReference32: query.standardReference32,
   }
 }

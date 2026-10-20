@@ -95,13 +95,12 @@ describe('account candidate panel conditions', () => {
         engines.map((engine) => ({ ...engine, ascension: null })),
       ),
     ).toBeUndefined()
-    expect(
-      candidatePanelInputsForScheme(
-        agents,
-        ids,
-        engines.map((engine) => ({ ...engine, level: 40, ascension: 3 })),
-      ),
-    ).toBeUndefined()
+    const actualLowerEngine = candidatePanelInputsForScheme(
+      agents,
+      ids,
+      engines.map((engine) => ({ ...engine, level: 40, ascension: 3 })),
+    )
+    expect(actualLowerEngine?.['agent-zhao']?.wEngine).toMatchObject({ level: 40, ascension: 3 })
     expect(
       candidatePanelInputsForScheme(
         agents,

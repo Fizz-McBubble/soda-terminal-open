@@ -47,6 +47,7 @@ export const savedPlanningBenchmark32Schema = z
             ownerAgentId: text,
             eventId: text,
             atSeconds: nonnegative,
+            durationSeconds: z.number().finite().positive().optional(),
             snapshotAtSeconds: nonnegative.nullable(),
             totalDamage: nonnegative,
             runtimeHash: text,
@@ -90,6 +91,7 @@ export const savedPlanningBenchmark32Schema = z
               item.ownerAgentId === event.ownerAgentId &&
               item.eventId === event.eventId &&
               item.atSeconds === event.atSeconds &&
+              item.durationSeconds === event.durationSeconds &&
               (item.snapshotAtSeconds ?? null) === event.snapshotAtSeconds &&
               contentHash([...item.sourceRefs].sort()) ===
                 contentHash([...event.sourceRefs].sort()),

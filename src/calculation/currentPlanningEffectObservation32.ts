@@ -1,5 +1,6 @@
 import type { CurrentAgentPlanningEffectBlueprint } from './currentAgentPlanningEffectBlueprint'
 import type { PlanningEffectRuntimeMember } from './currentPlanningEffectDomain'
+import { planningObservedReferences32 } from './currentPlanningEffectDomain'
 import { reduceObservedPlanningEffect32 } from './planningKnownInactiveEffects32'
 import { requiredReferences } from './currentPlanningEffectExpressions'
 import type { UpstreamExpressionIR } from './currentUpstreamExpressionIR'
@@ -13,10 +14,11 @@ export function planningEffectObservation32(input: {
   memberIds: readonly string[]
   references: Readonly<Record<string, unknown>>
 }) {
+  const references = planningObservedReferences32(input.references)
   const reduced = reduceObservedPlanningEffect32(
     input.entry,
     input.member,
-    input.references,
+    references,
     input.memberIds,
   )
   const expression = reduced?.expression ?? input.expression
@@ -26,7 +28,11 @@ export function planningEffectObservation32(input: {
         ref,
       ),
   )
-  const missing = required.filter((ref) => !Object.hasOwn(input.references, ref))
+  const missing = required.filter((ref) =>
+    ref === 'own.combat.crit_dmg_'
+      ? typeof references[ref] !== 'number' || !Number.isFinite(references[ref])
+      : !Object.hasOwn(references, ref),
+  )
   const operators = new Set<string>()
   const visit = (node: UpstreamExpressionIR) => {
     if (node.kind === 'call') {
@@ -47,8 +53,7 @@ export function planningEffectObservation32(input: {
     ['besiege', 'besiege'],
     ['besiegeDisplay', 'besiegeDisplay'],
   ])
-    if (operators.has(operator!) && !Object.hasOwn(input.references, reference!))
-      missing.push(reference!)
+    if (operators.has(operator!) && !Object.hasOwn(references, reference!)) missing.push(reference!)
   const inactive = reduced?.inactive ?? false
   return { expression, inactive, missing: inactive ? [] : [...new Set(missing)] }
 }

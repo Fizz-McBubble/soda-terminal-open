@@ -116,7 +116,9 @@ function profile(
       constraint.status === 'candidate' &&
       sources.length > 0 &&
       Object.values(constraint.mainStats).every((stats) => stats.length > 0) &&
-      Object.values(constraint.subStatWeights).some((weight) => (weight ?? 0) > 0),
+      (Object.values(quality.weights).some((weight) => weight > 0) ||
+        (facts.goal === 'functional' &&
+          quality.weightEvidence.method === 'source_proven_no_functional_substat_goal')),
     ...quality,
     goal: facts.goal,
     mainStatsBySlot,

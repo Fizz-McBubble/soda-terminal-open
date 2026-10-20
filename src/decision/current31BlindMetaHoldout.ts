@@ -1,6 +1,18 @@
 import { stableContentHash } from '../gameDataPacks/types'
+import { resolveCurrentReleasedIdentity } from '../gameDataPacks/currentReleasedIdentityMap'
+import publishedLabels from '../gameDataPacks/data/reviewed-team-strength.v1.json'
+import editorialLabels from '../gameDataPacks/data/reviewed-team-analysis.3.1.json'
+import guideVerification from '../gameDataPacks/data/reviewed-team-guide-verification.3.1.json'
+import performance31 from '../gameDataPacks/data/reviewed-team-performance.3.1.json'
+import performance323 from '../gameDataPacks/data/reviewed-team-performance.3.2.3.json'
+import { currentReviewedTeamSourceDirections } from '../gameDataPacks/reviewedTeamSourceDirections'
 import type { TeamRatingBand } from './teamDecisionAuthority'
 import { evaluateCurrent31TeamRating } from './current31TeamRating'
+import { current31StrengthGoldSet } from './current31StrengthGoldSet'
+import { current31VariantRealityProfileSet } from './current31VariantRealityProfile'
+import { current31IndependentConsensusGoldSet } from './current31IndependentConsensusGoldSet'
+import { evaluateCurrent31IndependentQualityCases } from './current31IndependentQualityEvaluation'
+import { current31ObservedFormationRobustnessDiagnostics } from './current31ObservedPerformanceDataQuality'
 
 export const current31BlindMetaHoldoutContractId = 'soda-current-3.1-blind-meta-holdout/v1' as const
 
@@ -90,16 +102,90 @@ const ratingRank: Record<TeamRatingBand, number> = {
   Experimental: 5,
 }
 
+function memberKey(memberIds: readonly string[]) {
+  return [...memberIds].map(resolveCurrentReleasedIdentity).sort().join('|')
+}
+
+const goldMembers = new Set(
+  [
+    ...current31StrengthGoldSet.cases,
+    ...current31StrengthGoldSet.versionedTeamStrengthSupplements,
+  ].map((row) => memberKey(row.memberIds)),
+)
+const publishedMembers = new Set(publishedLabels.records.map((row) => memberKey(row.memberIds)))
+const editorialMembers = new Set(editorialLabels.records.map((row) => memberKey(row.memberIds)))
+// These are the exact-team label authorities used by the frozen reviewedOnly collector.
+// Include withdrawn historical rows: withdrawal cannot make a previously seen label unseen.
+const frozenTrainingLabelMembers = new Set([
+  ...goldMembers,
+  ...publishedMembers,
+  ...editorialMembers,
+])
+const realityMembers = new Set(
+  current31VariantRealityProfileSet.profiles.map((row) => memberKey(row.memberIds)),
+)
+const consensusMembers = new Set(
+  current31IndependentConsensusGoldSet.observations.map((row) => memberKey(row.memberIds)),
+)
+const performanceMembers = new Set(
+  [...performance31.targetTrios, ...performance323.targetTrios].map((row) =>
+    memberKey(row.stableMemberIds),
+  ),
+)
+const sourceDirectionMembers = new Set(
+  currentReviewedTeamSourceDirections().map((row) => memberKey(row.memberIds)),
+)
+const guideVerificationMembers = new Set(
+  guideVerification.records.map((row) => memberKey(row.memberIds)),
+)
+const observedPerformanceMembers = new Set(
+  current31ObservedFormationRobustnessDiagnostics.map((row) => row.exactAgentFormationKey),
+)
+
+export function current31BlindMetaAuthorityExposure(memberIds: readonly string[]) {
+  const key = memberKey(memberIds)
+  return Object.freeze({
+    exactMemberKey: key,
+    goldLabelSeen: goldMembers.has(key),
+    publisherLabelSeen: publishedMembers.has(key),
+    editorialLabelSeen: editorialMembers.has(key),
+    frozenTrainingLabelSeen: frozenTrainingLabelMembers.has(key),
+    realityProfileSeen: realityMembers.has(key),
+    consensusMembershipSeen: consensusMembers.has(key),
+    performanceDataSeen: performanceMembers.has(key),
+    sourceDirectionSeen: sourceDirectionMembers.has(key),
+    guideVerificationSeen: guideVerificationMembers.has(key),
+    observedPerformanceSeen: observedPerformanceMembers.has(key),
+  })
+}
+
 const cases = holdoutCases.map((item) => {
-  const result = evaluateCurrent31TeamRating({
+  const input = {
     candidateId: item.caseId,
     memberIds: item.memberIds,
     bangbooId: null,
-    outputPotentialBand: 'unknown',
+    outputPotentialBand: 'unknown' as const,
     benchmark: unavailableBenchmark,
+  }
+  const independentResult = evaluateCurrent31TeamRating({
+    ...input,
+    evidenceMode: 'independent_evaluation',
   })
+  // Retain the prior source-reference regression result without calling it a blind prediction.
+  const result = evaluateCurrent31TeamRating({ ...input, evidenceMode: 'source_reference' })
   const observedBand = result.rating.status === 'rated' ? result.rating.ratingBand : null
   const productionEvidenceRefs = result.metaCalibration.evidenceRefs
+  const authorityExposure = current31BlindMetaAuthorityExposure(item.memberIds)
+  const sourceUrlSeen = productionEvidenceRefs.includes(gameVikaSnapshot.url)
+  const labelLeak =
+    authorityExposure.frozenTrainingLabelSeen ||
+    authorityExposure.realityProfileSeen ||
+    authorityExposure.consensusMembershipSeen ||
+    authorityExposure.performanceDataSeen ||
+    authorityExposure.sourceDirectionSeen ||
+    authorityExposure.guideVerificationSeen ||
+    authorityExposure.observedPerformanceSeen ||
+    sourceUrlSeen
   return Object.freeze({
     ...item,
     sourceUrl: gameVikaSnapshot.url,
@@ -107,7 +193,18 @@ const cases = holdoutCases.map((item) => {
     observedBand,
     aligned: observedBand === item.expectedBand,
     productionEvidenceRefs,
-    labelLeak: productionEvidenceRefs.includes(gameVikaSnapshot.url),
+    sourceUrlSeen,
+    authorityExposure,
+    labelLeak,
+    eligibleForIndependentAcceptance: !labelLeak,
+    independentEvaluation: Object.freeze({
+      evidenceMode: 'independent_evaluation' as const,
+      observedBand:
+        independentResult.rating.status === 'rated' ? independentResult.rating.ratingBand : null,
+      calibrationStatus: independentResult.metaCalibration.status,
+      evidenceRefs: independentResult.metaCalibration.evidenceRefs,
+      recommendationScore: independentResult.metaCalibration.recommendationScore ?? null,
+    }),
   })
 })
 
@@ -127,6 +224,8 @@ const pairwiseRelations = cases.flatMap((left, leftIndex) =>
         strongerCaseId: expectedStronger.caseId,
         weakerCaseId: expectedWeaker.caseId,
         aligned,
+        eligibleForIndependentAcceptance:
+          left.eligibleForIndependentAcceptance && right.eligibleForIndependentAcceptance,
       }),
     ]
   }),
@@ -135,11 +234,38 @@ const pairwiseRelations = cases.flatMap((left, leftIndex) =>
 const alignedBandCount = cases.filter((item) => item.aligned).length
 const alignedPairwiseCount = pairwiseRelations.filter((item) => item.aligned).length
 const labelLeakCount = cases.filter((item) => item.labelLeak).length
+const independentQualityEvaluation = evaluateCurrent31IndependentQualityCases({
+  cases: cases.map((item) => ({
+    caseId: item.caseId,
+    labelIndependent: item.eligibleForIndependentAcceptance,
+    acceptanceProtocolVerified: false,
+    expectedBand: item.expectedBand,
+    predictedBand: item.independentEvaluation.observedBand,
+  })),
+  bandAgreementTarget: 0.95,
+  pairwiseConsistencyTarget: 0.95,
+  mainstreamUnknownRatioMaximum: 0.05,
+})
+const independentMetricStatuses = [
+  independentQualityEvaluation.bandAgreement.status,
+  independentQualityEvaluation.pairwiseConsistency.status,
+  independentQualityEvaluation.mainstreamUnknownRatio.status,
+] as const
+const independentAcceptanceStatus = independentMetricStatuses.includes('fail')
+  ? ('fail' as const)
+  : independentMetricStatuses.every((status) => status === 'not_evaluated')
+    ? ('not_evaluated' as const)
+    : independentMetricStatuses.every((status) => status === 'pass')
+      ? ('pass' as const)
+      : ('incomplete' as const)
 
 export const current31BlindMetaHoldout = Object.freeze({
   contract: current31BlindMetaHoldoutContractId,
   gameVersion: '3.1',
-  split: 'row_level_label_independent_holdout' as const,
+  split: 'known_label_regression' as const,
+  diagnosticEvidenceMode: 'source_reference' as const,
+  blindEvidenceMode: 'independent_evaluation' as const,
+  frozenTrainingLabelCaseCount: frozenTrainingLabelMembers.size,
   sourceSnapshot: Object.freeze({
     ...gameVikaSnapshot,
     sourceContentHash,
@@ -161,6 +287,12 @@ export const current31BlindMetaHoldout = Object.freeze({
   pairwiseConsistency: alignedPairwiseCount / pairwiseRelations.length,
   labelLeakCount,
   labelIndependent: labelLeakCount === 0,
+  independentQualityEvaluation,
+  independentBandCaseCount: independentQualityEvaluation.bandAgreement.denominator,
+  independentPairwiseRelationCount: independentQualityEvaluation.pairwiseConsistency.denominator,
+  independentAcceptanceStatus,
+  predictionFreezeStatus: 'legacy_labels_already_exposed' as const,
+  predictionFreezeVerified: false as boolean,
   boundary:
-    'Holdout 只保留冻结抓取中的四条未进入生产来源的最终 tier 行；生产预测只读取既有 Icy/Prydwen/Biligame Versioned Strength claims。GameVika 同页其他行可用于 Delta 诊断，但本四行不得回写生产校准。publisher/URL 隔离不是硬门，行级标签依赖隔离是硬门。',
+    '保留四条旧来源标签和五条派生偏序作诊断回归；其完整三人成员标签已进入 Gold 与冻结训练集，URL 未读取不证明整链独立。独立执行显式使用 independent_evaluation 隔离 prior 标签路径；旧标签已暴露，不能因此成为一次新冻结预测解盲证据，也不计入当前独立验收分母。标签独立但只有 Experimental 的样本只进入 Unknown 分母，不进入档位或偏序准确率分母。来源原生 3.1 标签不证明本地标准条件下的 3.2 Meta。',
 })

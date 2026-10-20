@@ -3,6 +3,14 @@ import {
   type KoledaFixedEventConditionsInput32,
 } from './publicKoledaFixedEventConditions32'
 import { contentHash } from './contentHash'
+import {
+  resourceTimelineDeclarationSchema32,
+  type ResourceTimelineDeclaration32,
+} from '../calculation/resourceTimelineDeclarationContract32'
+import {
+  luminizeEquipmentComparisonOptionsSchema32,
+  type LuminizeEquipmentComparisonOptions32,
+} from './publicLuminizeComparison32'
 
 export type TargetTeamEquipmentDisplayParameters = {
   wEngines: Array<{
@@ -14,6 +22,8 @@ export type TargetTeamEquipmentDisplayParameters = {
   }>
   potentialByAgentId?: Record<string, number>
   koledaFixedEventConditions32?: KoledaFixedEventConditionsInput32
+  luminizeComparison32?: LuminizeEquipmentComparisonOptions32
+  resourceTimelineDeclaration32?: ResourceTimelineDeclaration32
   bangbooId: string
   bangbooStars: number
 }
@@ -26,6 +36,14 @@ export function normalizeTargetTeamEquipmentParameters<
     parameters.koledaFixedEventConditions32 === undefined
       ? undefined
       : koledaFixedEventConditionsInputSchema32.parse(parameters.koledaFixedEventConditions32)
+  const luminize =
+    parameters.luminizeComparison32 === undefined
+      ? undefined
+      : luminizeEquipmentComparisonOptionsSchema32.parse(parameters.luminizeComparison32)
+  const resourceTimeline =
+    parameters.resourceTimelineDeclaration32 === undefined
+      ? undefined
+      : resourceTimelineDeclarationSchema32.parse(parameters.resourceTimelineDeclaration32)
   return {
     wEngines: parameters.wEngines
       .map((item) => ({
@@ -60,6 +78,8 @@ export function normalizeTargetTeamEquipmentParameters<
                 }),
           },
         }),
+    ...(luminize === undefined ? {} : { luminizeComparison32: luminize }),
+    ...(resourceTimeline === undefined ? {} : { resourceTimelineDeclaration32: resourceTimeline }),
     bangbooId: parameters.bangbooId,
     bangbooStars: parameters.bangbooStars,
   }

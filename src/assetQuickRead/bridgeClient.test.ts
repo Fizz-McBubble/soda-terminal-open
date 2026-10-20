@@ -318,9 +318,7 @@ it('records the finite failed health-probe stage without exposing a local addres
 it('classifies an incompatible connect response without exposing its private body', async () => {
   const fetcher = vi.fn<typeof fetch>(async (url) => {
     if (String(url).endsWith('/health')) return new Response(JSON.stringify(health))
-    return new Response(
-      JSON.stringify({ ['token']: 'private short token', version: 'private' }),
-    )
+    return new Response(JSON.stringify({ ['token']: 'private short token', version: 'private' }))
   })
   const client = new AssetQuickReadBridgeClient(fetcher)
   const failure = await client.connect().catch((error: unknown) => error)

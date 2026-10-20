@@ -121,5 +121,5 @@ export const currentAgentDecisionMechanicCoverage = Object.freeze({
     .filter((item) => item.readiness.specialInteraction === 'compiled_capability')
     .map((item) => item.agentId),
   boundary:
-    'Graduation facts compile resource/state flow only when a named resource has a runtime edge, transition template and declared initial state; formula AST compiles effect recipients; current guide relations compile observed partners and five source-backed field-time modes. Field-time values are shared planning-budget weights, not measured seconds or percentages. Historical continuity does not prove current strength and no seed or guide set is an exhaustive pair universe.',
+    'Graduation facts compile resource/state flow only when a named resource has a runtime edge, transition template and declared initial state; formula AST compiles effect recipients; current guide and reviewed aggregate exact-team observations compile observed partners and five source-backed field-time modes. Aggregate composition is neither a recommendation nor a strength label. Field-time values are shared planning-budget weights, not measured seconds or percentages. Historical continuity does not prove current strength and no seed or guide set is an exhaustive pair universe.',
 })

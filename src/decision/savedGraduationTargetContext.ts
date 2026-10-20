@@ -1,7 +1,10 @@
 import type { RosterAgent } from '../assault/types'
 import type { DriveDisc } from '../domain/schemas'
 import { reviewedTargetPanelGuidance } from '../gameDataPacks/reviewedTargetPanelGuidance'
-import { getCurrentBuildTargetPanel } from '../gameDataPacks/currentBuildAuthority'
+import {
+  getCurrentBuildTargetPanel,
+  type CurrentBuildTargetPanelContext,
+} from '../gameDataPacks/currentBuildAuthority'
 import { reviewedContextualMechanicTargets } from '../gameDataPacks/reviewedContextualTargetPanel'
 import { currentPanelData } from '../gameDataPacks/panel/currentPanelData'
 import { resolveReviewedZhaoHpTarget } from '../gameDataPacks/reviewedZhaoSupportTarget'
@@ -74,11 +77,17 @@ const rules: Readonly<Record<string, Rule>> = {
 
 export function resolveSavedGraduationTarget(input: {
   memberIds?: readonly string[]
+  agentStateById?: CurrentBuildTargetPanelContext['agentStateById']
+  selectedDirectionIdByAgentId?: CurrentBuildTargetPanelContext['selectedDirectionIdByAgentId']
   agent: RosterAgent
   engineId: string
   engineRefinement?: number
   discs: readonly DriveDisc[]
-  target: { value: unknown; conditions: readonly string[]; sourceRefs?: readonly { id: string }[] }
+  target: {
+    value: unknown
+    conditions?: readonly string[]
+    sourceRefs?: readonly { id: string }[]
+  }
 }) {
   const frozenGuide = reviewedTargetPanelGuidance(input.agent.agentId)
   const context = {
@@ -87,15 +96,32 @@ export function resolveSavedGraduationTarget(input: {
     engineId: input.engineId,
     engineRefinement: input.engineRefinement ?? input.agent.wEngineDetails?.refinement,
     mindscape: input.agent.mindscape,
+    memberIds: input.memberIds,
+    agentStateById: input.agentStateById ?? {
+      [input.agent.agentId]: {
+        mindscape: input.agent.mindscape,
+        potentialImage: input.agent.potentialImage,
+      },
+    },
+    selectedDirectionIdByAgentId: input.selectedDirectionIdByAgentId,
   }
+  const targetConditions = input.target.conditions ?? []
   const adopted = getCurrentBuildTargetPanel(input.agent.agentId)
   const contextual = getCurrentBuildTargetPanel(input.agent.agentId, context)
+  // A frozen numerical payload cannot bypass the current team/source gate.
+  if (
+    input.agent.agentId === 'agent-miyabi' &&
+    (!contextual ||
+      JSON.stringify(input.target.value) !== JSON.stringify(contextual.value) ||
+      JSON.stringify(targetConditions) !== JSON.stringify(contextual.conditions))
+  )
+    return null
   const mechanic = reviewedContextualMechanicTargets({ ...context, agentId: input.agent.agentId })
   const reviewed = [contextual, adopted, frozenGuide].find(
     (field) =>
       field &&
       JSON.stringify(input.target.value) === JSON.stringify(field.value) &&
-      JSON.stringify(input.target.conditions) === JSON.stringify(field.conditions ?? []),
+      JSON.stringify(targetConditions) === JSON.stringify(field.conditions ?? []),
   )
   const source = input.target.value as {
     sourceMetadata?: { sourceId?: string; sourceConditions?: string[] }
@@ -129,7 +155,7 @@ export function resolveSavedGraduationTarget(input: {
     !source?.sourceMetadata?.sourceId ||
     source.sourceMetadata.sourceId !== expected?.sourceMetadata?.sourceId ||
     JSON.stringify(input.target.value) !== JSON.stringify(reviewed?.value) ||
-    JSON.stringify(input.target.conditions) !== JSON.stringify(reviewed?.conditions ?? [])
+    JSON.stringify(targetConditions) !== JSON.stringify(reviewed?.conditions ?? [])
   )
     return null
   const notes = source.sourceMetadata.sourceConditions ?? []

@@ -1,4 +1,4 @@
-import agentMechanicCatalog from '../gameDataPacks/generated/current-agent-mechanic-catalog.v1.json'
+import agentMechanicCatalog from '../gameDataPacks/generated/current-agent-mechanic-catalog.v1.json' with { type: 'json' }
 import { agentCatalog } from '../assault/catalogData'
 import { resolvePotentialImage } from '../assault/agentCapabilities'
 import { currentReleasedIdentityMap } from '../gameDataPacks/currentReleasedIdentityMap'

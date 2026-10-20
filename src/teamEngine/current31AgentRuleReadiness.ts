@@ -101,7 +101,11 @@ export const current31AgentRuleReadiness = {
   ),
   missingRecommendationExecutableAgentIds: idsWhere((entry) => !entry.recommendationExecutable),
   missingActivationDecisionAgentIds: idsWhere((entry) => !entry.activationDecisionReady),
-  sourceFactGapAgentIds: [] as const,
+  sourceFactGapAgentIds: idsWhere(
+    (entry) =>
+      !mechanicContractById.has(entry.agentId) ||
+      !getCurrentAgentDecisionMechanicContract(entry.agentId),
+  ),
   mechanicContractPendingAgentIds: idsWhere((entry) => !entry.activationDecisionReady),
   recommendationEngineeringBacklogAgentIds: idsWhere((entry) => !entry.recommendationExecutable),
   resourceFlowPendingAgentIds: idsWhere((entry) =>
@@ -114,6 +118,5 @@ export const current31AgentRuleReadiness = {
   teamSynergyPendingAgentIds: idsWhere((entry) =>
     entry.remainingDimensions.includes('team_synergy'),
   ),
-  boundary:
-    '现有 corpus/ledger、锁定公式与具名 current supplement 已覆盖 58 名来源事实，Source Fact Gap=0；activation、资源流、效果接收者、场上时间与已观察协同已编译为 58 个 recommendation-executable AgentRule。current_limited、historical_continuity 与 current guide relation 仍只证明具名搭配且保留适用性，不证明协同全集、当前强度、完整循环或 decision score。',
+  boundary: `当前${currentVersionProjection.gameVersion}目录有${releasedAgentIds.length}名已发布且可拥有代理人；${idsWhere((entry) => entry.recommendationExecutable).length}名具备可执行推荐规则，${idsWhere((entry) => !entry.recommendationExecutable).length}名仍缺规则。来源缺项按当前身份与锁定机制目录逐名核对；规则可执行不证明全部字段、协同全集、当前强度或完整循环。`,
 } as const

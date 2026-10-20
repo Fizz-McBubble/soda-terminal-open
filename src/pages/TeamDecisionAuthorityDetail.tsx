@@ -31,6 +31,18 @@ export function TeamDecisionAuthorityDetail({
   const sameMembers =
     targetTeamFit.memberIds?.length === memberIds.length &&
     memberIds.every((id) => targetTeamFit.memberIds.includes(id))
+  const luminize = sameMembers ? comparison?.luminizeComparison32 : undefined
+  const number = (value: number) => value.toLocaleString('zh-CN', { maximumFractionDigits: 2 })
+  const mechanismNote =
+    luminize?.status === 'supported' &&
+    luminize.currentDamage !== null &&
+    luminize.candidateDamage !== null &&
+    luminize.delta !== null
+      ? `单次辉映（同一静态配装准备，非暴击）：当前 ${number(luminize.currentDamage)}，方案 ${number(luminize.candidateDamage)}，差值 ${luminize.delta > 0 ? '+' : ''}${number(luminize.delta)}。`
+      : luminize?.status === 'stale'
+        ? '配装机制比较已失效，请重新分析；保存的历史条件仍保留。'
+        : null
+  const notes = [...new Set(teamGaps), ...(mechanismNote ? [mechanismNote] : [])]
   const qualifiedComparison =
     sameMembers &&
     comparison?.status === 'supported' &&
@@ -45,7 +57,7 @@ export function TeamDecisionAuthorityDetail({
     comparison.baseline.planningDps === baselineModel.planningDps &&
     comparison.candidate.planningDps === candidateModel.planningDps
   const comparisonLabel = qualifiedComparison ? benchmarkLabel(comparison, false) : null
-  if (!teamGaps.length && !missingEffects && !comparisonLabel) return null
+  if (!notes.length && !missingEffects && !comparisonLabel) return null
   return (
     <div className="team-decision-summary" aria-label="配装结果摘要">
       {comparisonLabel ? (
@@ -57,7 +69,11 @@ export function TeamDecisionAuthorityDetail({
       {missingEffects && !qualifiedComparison ? (
         <p>有 {missingEffects} 名成员的音擎效果资料未齐，暂不能完整比较收益。</p>
       ) : null}
-      {teamGaps.length ? <p role="status">方案说明：{[...new Set(teamGaps)].join('；')}</p> : null}
+      {notes.length ? (
+        <p role="status" title={mechanismNote ? luminize?.boundary : undefined}>
+          方案说明：{notes.join('；')}
+        </p>
+      ) : null}
     </div>
   )
 }

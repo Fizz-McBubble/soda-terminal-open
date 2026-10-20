@@ -9,6 +9,7 @@ import { formatCandidateSkillDirections } from '../application/publicCandidateLa
 import { publicVersionIdentity } from '../application/publicVersionIdentity'
 import { valueBenchmarkSaveLabel } from '../application/valueBenchmarkSaveLabel'
 import { readDevelopmentCandidateSnapshot } from './agentDevelopmentCandidateSession'
+import { buildIntentFingerprintMatches } from '../application/publicBuildIntentFingerprint'
 
 type CandidateSnapshot = NonNullable<ReturnType<typeof readDevelopmentCandidateSnapshot>>
 type CandidatePlan = CandidateSnapshot['candidates'][number]
@@ -22,6 +23,8 @@ export function createAgentDevelopmentSavedPlan(input: {
   equipment: DevelopmentWorkbenchEquipmentDecision
 }): CurrentAgentBuildInput {
   const { agentId, agentName, candidatePlan, candidateSnapshot, candidateIndex, equipment } = input
+  if (candidateSnapshot && !buildIntentFingerprintMatches(candidateSnapshot.buildIntent))
+    throw new Error('构筑目标已更新，请重新比较后再保存。')
   const declarations = normalizeReviewedEventConditionDeclarations32(
     candidateSnapshot?.eventConditionDeclarationsByAgentId,
     [agentId],
@@ -34,6 +37,8 @@ export function createAgentDevelopmentSavedPlan(input: {
   const discIds = candidate.discs.map((item) => item.disc.id)
   const valueBenchmark = candidateSnapshot?.valueBenchmarks?.[candidateIndex]
   if (
+    valueBenchmark?.candidate.sourceResourceProduction32?.mechanismGrants32?.status ===
+      'supported' &&
     valueBenchmark?.candidate.sourceResourceProduction32?.mechanismGrants32?.receiptStatus ===
       'supported' &&
     !candidateSnapshot?.resourceGrantDeclaration32

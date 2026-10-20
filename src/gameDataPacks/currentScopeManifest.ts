@@ -1,6 +1,10 @@
 import sourceLedger from './assetSourceLedger.v1.json'
 import { gameCurrent31CatalogLedger } from './catalogLedger'
 import {
+  currentReleasedIdentityMap,
+  currentReleasedIdentitySourceRegistry,
+  findUnmappedAnnouncedAgentIds,
+  findReleasedIdentityRegistryMismatches,
   getCurrentReleasedIdentity,
   resolveCurrentReleasedIdentity,
 } from './currentReleasedIdentityMap'
@@ -17,6 +21,8 @@ export type CurrentScopeManifestEntry = {
   aliases: readonly string[]
   domain: CurrentScopeDomain
   displayName: string
+  /** Identity/release authority is independent from field evidence below. */
+  identityEvidence: CurrentScopeEvidence
   evidence: CurrentScopeEvidence
   releaseAt: string | null
   releaseState: CurrentScopeReleaseState
@@ -48,22 +54,22 @@ export type CurrentScopeManifest = {
 }
 
 const effectiveAsOf = '2026-09-30'
-const accountOwnableCandidateIds = new Set([
-  'agent-sigrid',
-  'bangboo-ariel',
-  'wengine-14158',
-  'wengine-14159',
-  'set-34100',
-  'set-34200',
-  'agent-claret',
-  'agent-roxy',
-  'wengine-14161',
-  'wengine-14162',
-  'wengine-13021',
-  'wengine-13017',
-  'wengine-12016',
-])
-
+const registryMismatches = findReleasedIdentityRegistryMismatches(
+  currentReleasedIdentityMap.entries,
+  currentReleasedIdentitySourceRegistry.sources,
+)
+if (registryMismatches.length > 0) {
+  throw new Error(`released identity source registry mismatch: ${registryMismatches.join(', ')}`)
+}
+const unmappedAnnouncedAgents = findUnmappedAnnouncedAgentIds(
+  currentReleasedIdentityMap.entries,
+  currentReleasedIdentitySourceRegistry.sources,
+)
+if (unmappedAnnouncedAgents.length > 0) {
+  throw new Error(
+    `released identity map missing announced agents: ${unmappedAnnouncedAgents.join(', ')}`,
+  )
+}
 function isCurrentScopeDomain(
   value: GameData31CatalogEntity['domain'],
 ): value is CurrentScopeDomain {
@@ -87,6 +93,7 @@ const formalEntries: CurrentScopeManifestEntry[] = gameCurrent31CatalogLedger.en
       aliases: [],
       domain: entry.entityType as CurrentScopeDomain,
       displayName: entry.displayName,
+      identityEvidence: 'formal',
       evidence: 'formal',
       releaseAt: dateOnly(release?.releaseAt),
       releaseState: 'released',
@@ -108,21 +115,22 @@ const candidateEntries: CurrentScopeManifestEntry[] = currentCatalogEntities
     const sourceIdentity = entity.identity.projectStableId ?? entity.id
     const releasedIdentity = getCurrentReleasedIdentity(sourceIdentity)
     const stableId = releasedIdentity?.stableId ?? resolveCurrentReleasedIdentity(sourceIdentity)
-    const releaseAt = dateOnly(
-      typeof entity.fields.releaseAt === 'string'
-        ? entity.fields.releaseAt
-        : releasedIdentity?.releaseAt,
-    )
+    const officialReleaseAt = dateOnly(releasedIdentity?.releaseAt)
+    const releaseAt =
+      officialReleaseAt ??
+      dateOnly(typeof entity.fields.releaseAt === 'string' ? entity.fields.releaseAt : null)
     const releaseState = isCurrentScopeReleased(releaseAt) ? 'released' : 'unreleased'
     return {
       stableId,
       aliases: stableId === entity.id ? [] : [entity.id],
       domain: entity.domain,
       displayName: entity.displayName,
+      identityEvidence:
+        releasedIdentity && isCurrentScopeReleased(officialReleaseAt) ? 'formal' : 'candidate',
       evidence: 'candidate',
       releaseAt,
       releaseState,
-      accountOwnable: accountOwnableCandidateIds.has(stableId) && releaseState === 'released',
+      accountOwnable: releasedIdentity?.releaseState === 'released' && releaseState === 'released',
       sourceVersion: entity.source.sourceVersion,
       sourceId: releasedIdentity?.sourceRefs[0] ?? entity.source.id,
     }
@@ -141,6 +149,53 @@ for (const entry of [...formalEntries, ...candidateEntries]) {
 }
 
 const entries = [...entriesById.values()]
+
+export type ReleasedIdentityScopeCheckEntry = {
+  stableId: string
+  releaseState: string
+  releaseAt: string | null
+}
+export type ReleasedIdentityScopeEntry = {
+  stableId: string
+  identityEvidence: string
+  releaseState: string
+}
+
+/** Official released IDs must resolve into this dated scope; source registries may be broader. */
+export function findMissingReleasedIdentityScopeEntries(
+  identities: readonly ReleasedIdentityScopeCheckEntry[],
+  scope: readonly ReleasedIdentityScopeEntry[],
+  asOf: string,
+) {
+  return identities
+    .filter(
+      (identity) =>
+        identity.releaseState === 'released' &&
+        identity.releaseAt !== null &&
+        identity.releaseAt <= asOf,
+    )
+    .filter(
+      (identity) =>
+        !scope.some(
+          (entry) =>
+            entry.stableId === identity.stableId &&
+            entry.identityEvidence === 'formal' &&
+            entry.releaseState === 'released',
+        ),
+    )
+    .map((identity) => identity.stableId)
+}
+
+const missingReleasedIdentityIds = findMissingReleasedIdentityScopeEntries(
+  currentReleasedIdentityMap.entries,
+  entries,
+  effectiveAsOf,
+)
+if (missingReleasedIdentityIds.length > 0) {
+  throw new Error(
+    `current scope missing released identities: ${missingReleasedIdentityIds.join(', ')}`,
+  )
+}
 const domains: CurrentScopeDomain[] = ['agent', 'wengine', 'bangboo', 'drive_disc_set']
 const coverage = {
   directoryTotal: entries.length,

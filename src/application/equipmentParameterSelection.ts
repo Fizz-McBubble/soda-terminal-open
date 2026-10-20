@@ -1,5 +1,6 @@
 import { targetTeamEquipmentParametersFingerprint } from './publicTargetTeamEquipmentFingerprint'
 import { publicAssetCatalog } from './publicAssetCatalog'
+import { normalizeResourceTimelineDeclaration32 } from '../calculation/resourceTimelineDeclarationContract32'
 import type {
   TargetTeamEquipmentParameterSelection,
   TargetTeamWarehouseFitQueryResult,
@@ -84,6 +85,18 @@ export function equipmentParameterSelection({
     ...(effectiveParameters?.koledaFixedEventConditions32 === undefined
       ? {}
       : { koledaFixedEventConditions32: effectiveParameters.koledaFixedEventConditions32 }),
+    ...(effectiveParameters?.luminizeComparison32 === undefined ||
+    !memberIds.includes('agent-remielle')
+      ? {}
+      : { luminizeComparison32: effectiveParameters.luminizeComparison32 }),
+    ...(effectiveParameters?.resourceTimelineDeclaration32 === undefined
+      ? {}
+      : {
+          resourceTimelineDeclaration32: normalizeResourceTimelineDeclaration32(
+            effectiveParameters.resourceTimelineDeclaration32,
+            memberIds,
+          ),
+        }),
     bangbooId: bangboo?.bangbooId ?? '',
     bangbooStars:
       bangboo?.bangbooId === effectiveParameters?.bangbooId

@@ -4,6 +4,9 @@ import type { SourceBackedEquipmentModifierBucket } from './currentPlanningDamag
 import type { PotentialApplicationEvent } from './potentialApplicationBinding'
 import { isDamageFormula32Version } from './sharpDamageCore'
 import { isSourceRateEvent32, resolveSourceEventQuantity32 } from './sourceEventQuantity32'
+import { compilePlanningAnomalyLifecycle32 } from './currentPlanningAnomalyLifecycle32'
+import type { PublicPlanningAnomalyLifecycle32 } from '../application/publicPlanningAnomalyLifecycle32'
+import type { PublicTriggerAftershockWindow32 } from '../application/publicTriggerAftershockWindow32'
 
 /** Private, validated projection of the public per-occurrence declarations.
  * These states describe a benchmark input; they do not prove a legal rotation. */
@@ -21,12 +24,14 @@ export type PlanningEventOccurrenceState32 = {
   potentialEvent?: PotentialApplicationEvent
   equipmentModifierBuckets?: readonly SourceBackedEquipmentModifierBucket[]
   sourceRefs: readonly string[]
+  anomalyLifecycleByAgentId?: Readonly<Record<string, PublicPlanningAnomalyLifecycle32>>
 }
 
 export type PlanningEventSchedule32 = {
   sourceFingerprint: string
   declarationFingerprint: string
   occurrences: readonly PlanningEventOccurrenceState32[]
+  triggerAftershockWindow32?: PublicTriggerAftershockWindow32
 }
 
 export function planningEventScheduleGaps32(input: {
@@ -69,6 +74,22 @@ export function planningEventScheduleGaps32(input: {
       gaps.push(`逐次事件时刻或快照无效：${id}`)
     if (!occurrence.sourceRefs.length || occurrence.sourceRefs.some((ref) => !ref.trim()))
       gaps.push(`逐次事件缺少来源：${id}`)
+    for (const [providerId, declaration] of Object.entries(
+      occurrence.anomalyLifecycleByAgentId ?? {},
+    )) {
+      const state = compilePlanningAnomalyLifecycle32({
+        declaration,
+        memberIds: input.memberIds,
+        eventId: occurrence.eventId,
+        ownerAgentId: occurrence.ownerAgentId,
+      })
+      if (
+        !input.memberIds.includes(providerId) ||
+        declaration.event.atSeconds !== occurrence.atSeconds
+      )
+        gaps.push(`anomaly_lifecycle_occurrence_mismatch:${id}:${providerId}`)
+      if (state.status !== 'supported') gaps.push(...state.blockers.map((gap) => `${id}:${gap}`))
+    }
     const quantity = resolveSourceEventQuantity32({ ...occurrence, occurrenceCount: 1 })
     if (quantity.status === 'unsupported') gaps.push(`${id}：${quantity.reason}`)
     if (isSourceRateEvent32(occurrence.ownerAgentId, occurrence.eventId)) {

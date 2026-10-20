@@ -13,9 +13,9 @@ function candidate(
   return {
     candidateId: id,
     memberIds: ['primary', 'support', id],
-    sourceRecommended: false,
+    sourceRecommended: true,
     explicitSelectionOnly: false,
-    inferredStrength: true,
+    inferredStrength: false,
     ratingStatus: 'rated',
     ratingBand: 'A+',
     confidence: 'low',
@@ -26,7 +26,7 @@ function candidate(
   }
 }
 
-describe('source-preserving bounded default inference supplements', () => {
+describe('source-preserving default recommendations', () => {
   it('preserves partial support evidence without treating a source conflict as usable', () => {
     const ids = ['agent-astra', 'agent-vivian', 'agent-yuzuha']
     const features = extractTeamStrengthMechanicFeatures(ids)
@@ -82,31 +82,28 @@ describe('source-preserving bounded default inference supplements', () => {
     },
   )
 
-  it('retains source rows and does not spend a supplement quota on rejected evidence', () => {
+  it('retains source rows while model-only supplements remain outside the default pool', () => {
     const rejected = candidate('gap')
     const rows = [
-      rejected,
-      candidate('one'),
-      candidate('two'),
-      candidate('three'),
+      { ...rejected, sourceRecommended: false },
+      candidate('one', { sourceRecommended: false }),
+      candidate('two', { sourceRecommended: false }),
+      candidate('three', { sourceRecommended: false }),
       candidate('source', { sourceRecommended: true }),
     ]
     expect([
       ...selectDefaultTeamRecommendationIds(rows, (row) => (row === rejected ? null : 'primary')),
-    ]).toEqual(['one', 'two', 'three', 'source'])
+    ]).toEqual(['source'])
   })
 
   it.each([
-    ['below threshold', { recommendationScore: 79 }],
-    ['unknown score', { recommendationScore: null }],
-    ['nonfinite score', { recommendationScore: Infinity }],
     ['not mechanically closed', { mechanicallyClosed: false }],
     ['fallback or withdrawn source', { sourceExcluded: true }],
     ['explicit author/prepared selection', { explicitSelectionOnly: true }],
     ['hard player constraint', { ratingStatus: 'hard_invalid' }],
     ['Experimental', { ratingBand: 'Experimental', confidence: 'experimental' }],
   ] satisfies [string, Partial<DefaultTeamRecommendationCandidate>][])(
-    'rejects %s as a model supplement',
+    'rejects %s from confirmed source defaults',
     (_name, patch) => {
       expect([
         ...selectDefaultTeamRecommendationIds(
@@ -116,7 +113,7 @@ describe('source-preserving bounded default inference supplements', () => {
       ]).toEqual(['boundary'])
     },
   )
-  it('uses distinct exact trios and independent primary quotas, retaining source candidates', () => {
+  it('retains every source candidate without manufacturing a same-band score order', () => {
     const one = candidate('one')
     const order = [
       one,
@@ -128,14 +125,14 @@ describe('source-preserving bounded default inference supplements', () => {
       candidate('source', {
         sourceRecommended: true,
         recommendationScore: 1,
-        mechanicallyClosed: false,
+        mechanicallyClosed: true,
       }),
     ]
     expect([
       ...selectDefaultTeamRecommendationIds(order, (row) =>
         row.memberIds.includes('primary') ? 'primary' : 'other',
       ),
-    ]).toEqual(['one', 'variant', 'two', 'three', 'other-primary', 'source'])
+    ]).toEqual(['one', 'variant', 'two', 'three', 'four', 'other-primary', 'source'])
   })
   it('requires an actual member as primary output and never promotes missing or conflicted features', () => {
     expect([...selectDefaultTeamRecommendationIds([candidate('missing')], () => null)]).toEqual([])
@@ -144,16 +141,26 @@ describe('source-preserving bounded default inference supplements', () => {
     ]).toEqual([])
   })
 
-  it('offers a correctly rated A fallback only when this BOX has no stronger direction', () => {
+  it('admits source-rated teams independently of the retired score thresholds', () => {
     const available = candidate('available', { ratingBand: 'A', recommendationScore: 78 })
-    const weak = candidate('weak', { ratingBand: 'B', recommendationScore: 69 })
+    const weak = candidate('weak', {
+      ratingBand: 'B',
+      sourceRecommended: false,
+      recommendationScore: 99,
+    })
     expect([...selectDefaultTeamRecommendationIds([available, weak], () => 'primary')]).toEqual([
       'available',
     ])
     expect([...selectDefaultTeamRecommendationIds([weak], () => 'primary')]).toEqual([])
     expect([
-      ...selectDefaultTeamRecommendationIds([candidate('strong'), available], () => 'primary'),
-    ]).toEqual(['strong'])
+      ...selectDefaultTeamRecommendationIds(
+        [
+          candidate('unknown-score', { ratingBand: 'A', recommendationScore: null }),
+          candidate('low-score', { ratingBand: 'A', recommendationScore: 1 }),
+        ],
+        () => 'primary',
+      ),
+    ]).toEqual(['unknown-score', 'low-score'])
     expect([
       ...selectDefaultTeamRecommendationIds(
         [{ ...available, mechanicallyClosed: false }],

@@ -1,3 +1,4 @@
+import { sourceStunAppliesOutsideStun32 } from './sourceBoundStunApplication32'
 import {
   currentAgentPlanningEffectBlueprints,
   type CurrentAgentPlanningEffectBlueprint,
@@ -42,8 +43,8 @@ export type FixedEventSupportInput32 = {
   equipmentEffectExclusions: readonly unknown[]
 }
 
-// These providers have no implicit potential/team-action dispatch that could
-// restore their effects after entries and buckets have been excluded.
+// Counterfactuals preserve formation membership and disable the named source in
+// entries, buckets and the event-final dependency graph, including Trigger M2.
 const counterfactualProviders = new Set([
   'agent-sunna',
   'agent-zhao',
@@ -51,6 +52,7 @@ const counterfactualProviders = new Set([
   'agent-yuzuha',
   'agent-lucy',
   'agent-nicole',
+  'agent-trigger',
 ])
 
 const record = (value: unknown): Record<string, unknown> | null =>
@@ -120,8 +122,10 @@ function packetDependencies(input: FixedEventSupportInput32) {
     )
       return false
     const metadata = effectReceiverMetadata(entry.numericExpression.expressionIr)
+    const application = applicationForReceiver(metadata.receiverPath)
     return (
-      applications.has(applicationForReceiver(metadata.receiverPath)) &&
+      (applications.has(application) ||
+        (application === 'stun_damage_bonus' && sourceStunAppliesOutsideStun32(entry) !== false)) &&
       recipientIds({
         ...entry,
         memberIds: input.memberIds,

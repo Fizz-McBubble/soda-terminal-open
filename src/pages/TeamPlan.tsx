@@ -28,6 +28,7 @@ import {
   type CurrentPlanningScenarioSelection32,
 } from '../application/publicPlanningScenarioContract'
 import type { TeamPlanProps } from './teamPlanProps'
+import { teamRatingLabelTitle } from './teamRatingPresentation'
 
 export function TeamPlan({
   warehouse,
@@ -343,7 +344,7 @@ export function TeamPlan({
                   ? `${automaticBangboo.name}（推荐）`
                   : '邦布待确认'}
             </p>
-            <p title={!ratingAnalysis && recommendationScore != null ? '队伍强度参考' : undefined}>
+            <p title={!ratingAnalysis && teamRatingLabel ? teamRatingLabelTitle() : undefined}>
               {ratingAnalysis ? (
                 <TeamLocalAnalysisEvidence
                   analysis={ratingAnalysis}

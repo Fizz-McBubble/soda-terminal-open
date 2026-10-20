@@ -1,11 +1,15 @@
 import type { BuildProfile, DriveDisc, StatKey } from '../domain/schemas'
 import { contentHash } from '../evaluation/contentHash'
-import { retainSetRepresentatives } from './retainSetRepresentatives'
 import { actualDiscScoreVersion, scoreActualDisc, scoreSetFit } from './scoreActualDisc'
 import { insertTopK } from './retainTopK'
 import { evaluationRules } from '../evaluation/rules'
 import { isAllowedMainStat, type BuildKnowledgeProfile } from './buildKnowledge'
 import { allowedSetCountPatterns, canStillCompleteSetPattern } from './optimizerSetPatterns'
+import { optimizeEffectiveCritBuild } from './optimizeEffectiveCritBuild'
+import type {
+  CandidateEffectiveCritObjective,
+  CandidateEffectiveCritProjection,
+} from './candidateEffectiveCritObjective'
 export { allowedSetCountPatterns, canStillCompleteSetPattern } from './optimizerSetPatterns'
 import {
   candidatePanelObjectiveAppliesToSetPlan,
@@ -33,11 +37,11 @@ export type OptimizerKnowledge = Pick<
 >
 
 export type OptimizerOptions = {
+  effectiveCritObjective?: CandidateEffectiveCritObjective
   fixedDiscId?: string | null
   allowLocked?: boolean
   allowEquipped?: boolean
   topK?: number
-  candidateLimitPerSlot?: number
   panelInput?: CandidatePanelInput
   /** Internal same-call identity; ignored unless it refers to the exact input array. */
   warehouseSnapshot?: { discs: DriveDisc[]; hash: string }
@@ -53,6 +57,7 @@ export type DiscContribution = {
 }
 
 export type OptimizedBuild = {
+  effectiveCritObjective?: CandidateEffectiveCritProjection
   rank: number
   discs: DiscContribution[]
   totalScore: number
@@ -67,6 +72,7 @@ export type OptimizedBuild = {
 }
 
 export type OptimizationResult = {
+  effectiveCritObjectiveStatus?: CandidateEffectiveCritProjection['status']
   builds: OptimizedBuild[]
   consideredCount: number
   excludedLockedCount: number
@@ -247,14 +253,9 @@ export function optimizeBuild(
       )
       .map((disc) => scoreActualDisc(disc, profile))
       .sort((left, right) => right.score - left.score || left.disc.id.localeCompare(right.disc.id))
-    if (useObjective || options.candidateLimitPerSlot === undefined) {
-      candidates.set(slot, scoredSlotCandidates)
-      continue
-    }
-    candidates.set(
-      slot,
-      retainSetRepresentatives(scoredSlotCandidates, options.candidateLimitPerSlot, topK),
-    )
+    // Static score orders visits only. A legal record can still be required by
+    // aggregate constraints or a later team assignment, regardless of its rank.
+    candidates.set(slot, scoredSlotCandidates)
   }
   const candidateCounts = Object.fromEntries(
     [...candidates].map(([slot, items]) => [slot, items.length]),
@@ -293,6 +294,82 @@ export function optimizeBuild(
     }
   }
 
+  if (options.effectiveCritObjective) {
+    const eventResult = optimizeEffectiveCritBuild({
+      candidates,
+      objective: options.effectiveCritObjective,
+      panelInput,
+      patterns: allowedPatterns,
+      knowledge,
+      topK,
+      resolveSetPlan: (counts) => resolveSetPlan(counts, profile, knowledge),
+      ...(useObjective && panelInput
+        ? {
+            panelObjectiveForSelection: (items: DiscContribution[]) => {
+              const counts: Record<string, number> = {}
+              for (const { disc } of items) counts[disc.setId] = (counts[disc.setId] ?? 0) + 1
+              const plan = resolveSetPlan(counts, profile, knowledge)
+              return plan && candidatePanelObjectiveAppliesToSetPlan(objectiveTarget, plan)
+                ? projectCandidatePanelObjective(
+                    objectiveTarget!,
+                    panelInput,
+                    items.map((item) => item.disc),
+                  )
+                : undefined
+            },
+          }
+        : {}),
+    })
+    return {
+      ...baseResult,
+      builds: eventResult.builds,
+      ...(wantsPanelObjective
+        ? {
+            panelObjectiveStatus: resolveCandidatePanelObjectiveStatus({
+              requested: true,
+              hasApplicableBuild: eventResult.builds.some((build) => Boolean(build.panelObjective)),
+              hasOtherBuild: eventResult.builds.some((build) => !build.panelObjective),
+              searchLimited: eventResult.searchLimited,
+            }).status,
+          }
+        : {}),
+      effectiveCritObjectiveStatus: eventResult.objectiveStatus,
+      elapsedMs: round(performance.now() - startedAt),
+      warnings: [
+        '按具名固定事件比较六盘攻击、有效暴击、暴伤与来源公式；不代表实战循环或DPS。',
+        ...new Set(
+          eventResult.builds.flatMap((build) => build.effectiveCritObjective?.reasons ?? []),
+        ),
+      ],
+    }
+  }
+
+  const minimumTargets = Object.entries(knowledge.minimumSubstatValues)
+    .filter(([, value]) => value! > 0)
+    .sort(([left], [right]) => left.localeCompare(right))
+  const stateKey = (counts: Record<string, number>, discs: DiscContribution[]) => {
+    const sets = countKey(counts)
+    if (!minimumTargets.length) return sets
+    // Only actual hard constraints belong here. Values beyond a minimum are
+    // equivalent for feasibility; a deficient prefix is not score-dominated by
+    // another prefix with different progress toward that requirement.
+    return JSON.stringify([
+      sets,
+      minimumTargets.map(([stat, minimum]) =>
+        Math.min(
+          minimum!,
+          discs.reduce(
+            (sum, item) =>
+              sum +
+              item.disc.subStats
+                .filter((line) => line.stat === stat)
+                .reduce((value, line) => value + line.value, 0),
+            0,
+          ),
+        ),
+      ),
+    ])
+  }
   let states = new Map<string, PartialBuild[]>([
     ['', [{ discs: [], score: 0, setCounts: {}, tieBreakKey: '' }]],
   ])
@@ -314,10 +391,12 @@ export function optimizeBuild(
             [setId]: (sourceCounts[setId] ?? 0) + 1,
           }
           if (!canStillCompleteSetPattern(setCounts, 6 - slot, allowedPatterns)) continue
-          const key = countKey(setCounts)
-          const bucket = scalarNext.get(key) ?? []
+          const setKey = countKey(setCounts)
+          const sharedBucket = minimumTargets.length ? undefined : (scalarNext.get(setKey) ?? [])
           for (const partial of partials) {
             for (const candidate of setCandidates) {
+              const key = sharedBucket ? setKey : stateKey(setCounts, [...partial.discs, candidate])
+              const bucket = sharedBucket ?? scalarNext.get(key) ?? []
               insertTopK(
                 bucket,
                 {
@@ -330,9 +409,10 @@ export function optimizeBuild(
                 topK,
                 comparePartial,
               )
+              if (!sharedBucket) scalarNext.set(key, bucket)
             }
           }
-          scalarNext.set(key, bucket)
+          if (sharedBucket) scalarNext.set(setKey, sharedBucket)
         }
       }
       for (const [key, extensions] of scalarNext)
@@ -356,7 +436,7 @@ export function optimizeBuild(
             [candidate.disc.setId]: (partial.setCounts[candidate.disc.setId] ?? 0) + 1,
           }
           if (!canStillCompleteSetPattern(setCounts, 6 - slot, allowedPatterns)) continue
-          const key = countKey(setCounts)
+          const key = stateKey(setCounts, [...partial.discs, candidate])
           const bucket = next.get(key) ?? []
           bucket.push({
             discs: [...partial.discs, candidate],

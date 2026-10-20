@@ -156,6 +156,11 @@ export function SavedPlan({
         restoredTargetFitState={restoredTargetFitState}
         onRetryRestoredTargetFit={() => setRestoredTargetFitRetry((current) => current + 1)}
         staleNotice={staleNotice}
+        luminizeSettlement32={
+          savedReplay?.identity === replayIdentity
+            ? savedReplay?.presentation?.luminizeSettlement32
+            : undefined
+        }
         onReanalyze={() =>
           navigate(`/loadouts/team?reanalyze=1&rematchPlan=${encodeURIComponent(plan.id)}`)
         }

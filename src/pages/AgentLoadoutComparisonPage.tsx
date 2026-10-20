@@ -6,6 +6,13 @@ import {
 import { rebindComparisonParameters } from './rebindComparisonParameters'
 import { staticPanelTargetDisplay } from '../gameDataPacks/targetPanelSemantics'
 import { createComparisonSavedBuild } from './createComparisonSavedBuild'
+import { TeamSchemeWEngineControl } from './TeamEquipmentParameterForm'
+import {
+  developmentWEngineComparisonSelection,
+  selectedDevelopmentWEngineOptionKey,
+  selectDevelopmentWEngineOption,
+} from './developmentWEngineSelection'
+import type { DevelopmentCandidateAlternativesQueryResult } from '../application/calculationQueryContract'
 import { AppLoadingState } from '../components/AppEntryState'
 import { useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
@@ -49,6 +56,8 @@ export function AgentLoadoutComparisonPage() {
   const [comparisonPending, setComparisonPending] = useState(false)
   const [comparisonError, setComparisonError] = useState<string | null>(null)
   const comparisonGeneration = useRef(0)
+  const [equipmentRank, setEquipmentRank] = useState<number | null>(null)
+  const equipmentRequest = useRef<string | null>(null)
   const decisionWorld = useAccountDecisionWorld()
   const queryDevelopmentCandidateAlternatives = useDevelopmentCandidateAlternativesCalculation()
   const pageAccountId =
@@ -56,6 +65,9 @@ export function AgentLoadoutComparisonPage() {
       ? decisionWorld.liveInput?.warehouse.accountId
       : decisionWorld.run?.input.warehouse.accountId
   const capturePageScope = usePageOperationScope(JSON.stringify([pageAccountId, agentId]))
+  const captureEquipmentScope = usePageOperationScope(
+    JSON.stringify([pageAccountId, agentId, decisionWorld.liveFingerprint]),
+  )
   if (decisionWorld.status === 'loading')
     return <AppLoadingState title="正在读取账户配装…" compact />
   if (decisionWorld.status !== 'current' && decisionWorld.status !== 'stale')
@@ -416,6 +428,112 @@ export function AgentLoadoutComparisonPage() {
     next.set('candidate', String(refreshedRank))
     setParams(next, { replace: true })
   }
+  const recalculateEquipment = async (
+    rank: number,
+    parameters = candidateSnapshot.candidateParametersByRank,
+    comparePool = false,
+  ) => {
+    if (snapshotStale) return
+    const binding = developmentWEngineComparisonSelection(candidateSnapshot, rank)
+    const key = JSON.stringify([
+      candidateSnapshot.comparisonFingerprint,
+      binding,
+      parameters,
+      comparePool,
+    ])
+    if (equipmentRequest.current === key) return
+    equipmentRequest.current = key
+    const isCurrentPage = captureEquipmentScope()
+    const generation = ++comparisonGeneration.current
+    const active = () => isCurrentPage() && generation === comparisonGeneration.current
+    setComparisonPending(true)
+    setComparisonError(null)
+    try {
+      const changed =
+        JSON.stringify(parameters ?? {}) !==
+        JSON.stringify(candidateSnapshot.candidateParametersByRank ?? {})
+      let result = await queryDevelopmentCandidateAlternatives(
+        candidateSnapshot.runId,
+        agentId,
+        parameters,
+        candidateSnapshot.scenarioSelection ?? defaultPlanningScenarioSelection32,
+        candidateSnapshot.eventConditionDeclarationsByAgentId,
+        candidateSnapshot.resourceGrantDeclaration32,
+        comparePool && !changed ? binding : undefined,
+      )
+      if (!active()) return
+      if (comparePool && changed) {
+        result = await queryDevelopmentCandidateAlternatives(
+          result.runId,
+          agentId,
+          parameters,
+          result.scenarioSelection ?? defaultPlanningScenarioSelection32,
+          result.eventConditionDeclarationsByAgentId,
+          result.resourceGrantDeclaration32,
+          developmentWEngineComparisonSelection(result, rank),
+        )
+        if (!active()) return
+      }
+      const liveSnapshot = readDevelopmentCandidateSnapshot(accountId, agentId)
+      if (
+        liveSnapshot?.comparisonFingerprint !== candidateSnapshot.comparisonFingerprint ||
+        result.inputFingerprint !== binding.inputFingerprint ||
+        result.runId !== candidateSnapshot.runId ||
+        (!changed &&
+          developmentWEngineComparisonSelection(result, rank).loadoutFingerprint !==
+            binding.loadoutFingerprint)
+      )
+        throw new Error('音擎对应的账户或六盘方案已变化，请重新比较。')
+      if (!cacheDevelopmentCandidateSnapshot(result))
+        throw new Error('音擎参数未进入有效的配装结果，请重试。')
+      setSnapshotVersion((version) => version + 1)
+    } catch (error) {
+      if (active())
+        setComparisonError(error instanceof Error ? error.message : '音擎计算失败，请重试。')
+    } finally {
+      if (active()) {
+        setComparisonPending(false)
+        equipmentRequest.current = null
+      }
+    }
+  }
+  const showEquipment = (rank: number) => {
+    if (rank <= 0 || snapshotStale || comparisonPending) return
+    setEquipmentRank(rank)
+    if (candidateSnapshot.wEngineComparison?.candidateRank !== rank)
+      void recalculateEquipment(rank, undefined, true)
+  }
+  const chooseEquipment = (optionKey: string) => {
+    if (!equipmentRank || comparisonPending) return
+    try {
+      const parameters = selectDevelopmentWEngineOption(candidateSnapshot, {
+        runId: candidateSnapshot.runId,
+        comparisonFingerprint: candidateSnapshot.comparisonFingerprint!,
+        candidateRank: equipmentRank,
+        optionKey,
+      })
+      void recalculateEquipment(equipmentRank, parameters, true)
+    } catch (error) {
+      setComparisonError(error instanceof Error ? error.message : '音擎选项已过期。')
+    }
+  }
+  const changeRefinement = (refinement: number) => {
+    if (
+      !equipmentRank ||
+      comparisonPending ||
+      !Number.isInteger(refinement) ||
+      refinement < 1 ||
+      refinement > 5
+    )
+      return
+    const current = candidateSnapshot.candidateParametersByRank?.[equipmentRank]
+    if (!current?.wEngine) return
+    const parameters: DevelopmentCandidateAlternativesQueryResult['candidateParametersByRank'] = {
+      ...structuredClone(candidateSnapshot.candidateParametersByRank),
+      [equipmentRank]: { ...structuredClone(current), wEngine: { ...current.wEngine, refinement } },
+    }
+    void recalculateEquipment(equipmentRank, parameters, true)
+  }
   const recalculateComparison = async (selection: CurrentPlanningScenarioSelection32) => {
     const isCurrentPage = capturePageScope()
     const generation = ++comparisonGeneration.current
@@ -483,7 +601,37 @@ export function AgentLoadoutComparisonPage() {
           )
         }}
         onSavePlan={persist}
+        onComparisonDetailsOpen={showEquipment}
+        comparisonEquipmentControl={
+          equipmentRank === selectedCandidateRank && !snapshotStale ? (
+            <>
+              <TeamSchemeWEngineControl
+                agentId={agentId}
+                pending={comparisonPending}
+                comparison={{
+                  entries:
+                    candidateSnapshot.wEngineComparison?.candidateRank === equipmentRank
+                      ? candidateSnapshot.wEngineComparison.entries
+                      : [],
+                  selectedOptionKey: selectedDevelopmentWEngineOptionKey(
+                    candidateSnapshot,
+                    equipmentRank,
+                  ),
+                  parameters: candidateSnapshot.candidateParametersByRank?.[equipmentRank]?.wEngine,
+                  onSelect: chooseEquipment,
+                  onRefinement: changeRefinement,
+                }}
+              />
+              {comparisonPending ? <p role="status">正在计算音擎参数…</p> : null}
+            </>
+          ) : null
+        }
         onSelectCandidatePlan={(rank) => {
+          ++comparisonGeneration.current
+          equipmentRequest.current = null
+          setComparisonPending(false)
+          setEquipmentRank(null)
+          setComparisonError(null)
           const next = new URLSearchParams(params)
           next.set('candidate', String(rank))
           setParams(next, { replace: true })

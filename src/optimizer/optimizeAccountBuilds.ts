@@ -28,6 +28,7 @@ export { candidatePanelInputForAgent } from './optimizeAccountBuildsPanelInput'
 import { dynamicLegalInventory, compileDynamicCandidateLoadout } from './teamDynamicDomain'
 import type { AccountBuildResult, UnavailableDiagnosis } from './accountBuildAllocationTypes'
 import { diagnoseIndependent } from './accountBuildUnavailableDiagnosis'
+import type { CandidateEffectiveCritObjective } from './candidateEffectiveCritObjective'
 export type {
   AccountBuildResult,
   AccountDiscChoice,
@@ -36,6 +37,7 @@ export type {
 } from './accountBuildAllocationTypes'
 
 export type AccountOptimizerOptions = {
+  effectiveCritObjectivesByAgent?: Record<string, CandidateEffectiveCritObjective>
   priorityAgentIds?: string[]
   fixedDiscByAgent?: Record<string, string>
   excludedDiscIds?: string[]
@@ -109,6 +111,7 @@ export function accountOptimizerInputHash(
     excludedDiscIds: [...(options.excludedDiscIds ?? [])].sort(),
     allowLocked: options.allowLocked ?? true,
     panelInputsByAgent: options.panelInputsByAgent,
+    effectiveCritObjectivesByAgent: options.effectiveCritObjectivesByAgent,
     ...(options.teamAssignmentObjective
       ? { teamAssignmentObjective: options.teamAssignmentObjective.fingerprint }
       : {}),
@@ -130,8 +133,8 @@ function cachedCandidates(
     excludedDiscIds: [...(options.excludedDiscIds ?? [])].sort(),
     allowLocked: options.allowLocked,
     topK: options.topK,
-    candidateLimitPerSlot: options.candidateLimitPerSlot ?? null,
     panelInput: options.panelInput ?? null,
+    effectiveCritObjective: options.effectiveCritObjective ?? null,
   })
   const cached = cache.entries.get(key)
   if (cached) return cached
@@ -197,6 +200,7 @@ export function optimizeAccountBuilds(
         allowLocked: options.allowLocked ?? true,
         topK: 24,
         panelInput: options.panelInputsByAgent?.[profile.agentId],
+        effectiveCritObjective: options.effectiveCritObjectivesByAgent?.[profile.agentId],
         warehouseSnapshot: {
           discs: solveCache.warehouse,
           hash: solveCache.warehouseHash,
@@ -227,8 +231,8 @@ export function optimizeAccountBuilds(
       excludedDiscIds: dynamicExcluded,
       allowLocked: options.allowLocked ?? true,
       topK: 1,
-      candidateLimitPerSlot: 60,
       panelInput: options.panelInputsByAgent?.[profile.agentId],
+      effectiveCritObjective: options.effectiveCritObjectivesByAgent?.[profile.agentId],
       warehouseSnapshot: {
         discs: solveCache.warehouse,
         hash: solveCache.warehouseHash,
@@ -294,6 +298,9 @@ export function optimizeAccountBuilds(
               topK: 1,
               allowLocked: options.allowLocked,
               panelInput: options.panelInputsByAgent?.[profile.agentId],
+              effectiveCritObjective:
+                options.effectiveCritObjectivesByAgent?.[profile.agentId] ??
+                profile.effectiveCritObjective,
             },
           ).builds[0]
           return build
@@ -379,8 +386,8 @@ export function optimizeAccountBuilds(
         excludedDiscIds: dynamicExcluded,
         allowLocked: options.allowLocked ?? true,
         topK: 1,
-        candidateLimitPerSlot: 60,
         panelInput: options.panelInputsByAgent?.[profile.agentId],
+        effectiveCritObjective: options.effectiveCritObjectivesByAgent?.[profile.agentId],
         warehouseSnapshot: {
           discs: solveCache.warehouse,
           hash: solveCache.warehouseHash,

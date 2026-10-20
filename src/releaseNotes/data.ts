@@ -10,6 +10,19 @@ export interface ReleaseNote {
 // A local fix or commit is not a published release; add it when that release ships.
 export const releases = [
   {
+    id: '20261020-build-context-and-warehouse',
+    date: '2026-10-20',
+    scope: 'BOX、配装与驱动盘',
+    title: '完善构筑条件，修正配装比较与仓库建议',
+    changes: [
+      '按队伍、影画与构筑分支使用对应配装目标，比较、保存与重新打开保持相同条件。',
+      '叶瞬光按实际生效条件计算暴击收益；菜单暴击略超参考线、但整套收益更好的方案仍可参与推荐。',
+      '修正部分条件用途与品质权重未被正确采用的问题，保留用途尚未确认的驱动盘。',
+      '当前有来源但尚无强度评级的队伍继续展示，来源方向与体系评级分别呈现。',
+      '修复保存后重算和相关构筑更新的失效判断，保留已有账户、资产与历史方案。',
+    ],
+  },
+  {
     id: '20261018-offline-native-closeout',
     date: '2026-10-18',
     scope: '访问与资产快读',

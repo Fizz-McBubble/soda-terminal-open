@@ -3,6 +3,7 @@ import {
   type ReviewedEventConditionDeclarations32,
 } from '../calculation/reviewedEventConditionDeclarations32'
 import { hasCurrentWEngineProgression } from '../accounts/observedAgentFacts'
+import { savedDeclaredLuminizeSettlement32Schema } from '../accounts/luminizeSavedContract32'
 import type { AccountDecisionQueryInput } from './calculationQueryContract'
 import { normalizeTargetTeamEquipmentParameters } from './publicTargetTeamEquipmentFingerprint'
 import type { CurrentPlanningScenarioSelection32 } from './publicPlanningScenarioContract'
@@ -151,11 +152,22 @@ export function projectRemoteAccountDecisionInput(
             exactVariantKey: draft.solutionContext.exactVariantKey,
             scenarioSelection: sanitizeScenarioSelection(draft.solutionContext.scenarioSelection),
             scenarioIdentity: draft.solutionContext.scenarioIdentity,
+            standardReference32:
+              draft.solutionContext.standardReference32 === undefined
+                ? undefined
+                : structuredClone(draft.solutionContext.standardReference32),
             eventConditionDeclarationsByAgentId: sanitizeEventDeclarations(
               draft.solutionContext.eventConditionDeclarationsByAgentId,
             ),
             eventConditionDeclarationsIdentity:
               draft.solutionContext.eventConditionDeclarationsIdentity,
+            ...(draft.solutionContext.declaredLuminizeSettlement32 === undefined
+              ? {}
+              : {
+                  declaredLuminizeSettlement32: savedDeclaredLuminizeSettlement32Schema.parse(
+                    draft.solutionContext.declaredLuminizeSettlement32,
+                  ),
+                }),
             comparisonParameters: draft.solutionContext.comparisonParameters
               ? {
                   potential: draft.solutionContext.comparisonParameters.potential,

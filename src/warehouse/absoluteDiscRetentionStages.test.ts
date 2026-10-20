@@ -365,6 +365,9 @@ describe('independent staged retention contract', () => {
     expect(assess(item, [baseProfile, bad]).reasonKind).toBe('proven_low_ceiling')
     const relevant = { ...bad, effectUtility: { atk_: 'valid' as const } }
     expect(assess(item, [baseProfile, relevant]).reasonKind).toBe('missing_fact')
+    expect(
+      assess(item, [{ ...relevant, verified: false, availability: 'conditional' }]).reasonKind,
+    ).toBe('missing_fact')
   })
   it('reports every material blocker, including profiles outside top three scores', () => {
     const profiles = Array.from(

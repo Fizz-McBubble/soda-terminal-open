@@ -6,7 +6,10 @@ import {
   projectReviewedIncrementalEvent32,
   projectReviewedIncrementalEventMetadata32,
 } from './privateReviewedIncrementalEvent32'
-import { currentWEngineDirectory } from '../assault/planningCatalog'
+import {
+  projectDevelopmentWEngineComparison,
+  projectDevelopmentWEngineOptions,
+} from './developmentWEngineComparisonProjection'
 import { supportsPotentialImage } from '../assault/agentCapabilities'
 import { stableContentHash } from '../gameDataPacks/types'
 import { buildAccountDecisionInputFingerprint } from '../decision/accountDecisionService'
@@ -294,7 +297,8 @@ export function createLocalCalculationQueryClientCore(options: {
       }
     },
 
-    async queryDevelopmentCandidateAlternatives(query) {
+    async queryDevelopmentCandidateAlternatives(request) {
+      const query = structuredClone(request)
       if (query.contractVersion !== calculationQueryContractVersion)
         throw new Error(`Unsupported Calculation/Query contract: ${query.contractVersion}.`)
       const resourceGrantValidation = validateSourceResourceGrantDeclaration32(
@@ -309,6 +313,18 @@ export function createLocalCalculationQueryClientCore(options: {
       if (!run) throw new Error(`Account Decision run is unavailable: ${query.runId}.`)
       const accountId = run.input.warehouse.accountId
       if (!accountId) throw new Error(`Account Decision run has no account: ${query.runId}.`)
+      if (
+        query.wEngineComparison &&
+        (!Number.isSafeInteger(query.wEngineComparison.candidateRank) ||
+          query.wEngineComparison.candidateRank < 1 ||
+          !query.wEngineComparison.inputFingerprint ||
+          !query.wEngineComparison.loadoutFingerprint ||
+          (query.wEngineComparison.progressionMode !== undefined &&
+            !['account_owned_if_available', 'theoretical_benchmark_only'].includes(
+              query.wEngineComparison.progressionMode,
+            )))
+      )
+        throw new Error('音擎比较须绑定当前账户及有效的六盘候选。')
       const eventConditionDeclarationsByAgentId = normalizeReviewedEventConditionDeclarations32(
         query.eventConditionDeclarationsByAgentId,
         [query.agentId],
@@ -390,6 +406,26 @@ export function createLocalCalculationQueryClientCore(options: {
         },
         evaluator,
       )
+      const engineDiscs = query.wEngineComparison
+        ? projection.candidates[query.wEngineComparison.candidateRank - 1]?.loadouts[0]?.discs.map(
+            (row) => row.disc,
+          )
+        : undefined
+      if (query.wEngineComparison && !engineDiscs)
+        throw new Error('音擎比较候选已不可用，请重新比较。')
+      const wEngineComparison = projectDevelopmentWEngineComparison({
+        warehouse: run.input.warehouse,
+        agentId: query.agentId,
+        inputFingerprint: run.snapshot.fingerprint.inputHash,
+        discs: engineDiscs ?? [],
+        query: {
+          ...query,
+          scenarioSelection: scenario.selection,
+          eventConditionDeclarationsByAgentId,
+          resourceGrantDeclaration32,
+        },
+        evaluator,
+      })
       return {
         contract: 'soda-development-candidate-alternatives/v1',
         comparisonContract: 'soda-explicit-development-comparison/v1',
@@ -407,8 +443,10 @@ export function createLocalCalculationQueryClientCore(options: {
           candidateSearch: projection.candidateSearch,
           candidateSearchByRank,
           comparisons: valueBenchmarks.map((row) => row.candidate.calculationFingerprint),
+          ...(wEngineComparison ? { wEngineComparison: wEngineComparison.fingerprint } : {}),
         }),
         candidateParametersByRank: explicit,
+        ...(wEngineComparison ? { wEngineComparison } : {}),
         scenarioSelection: scenario.selection,
         scenarioIdentity: scenario.identity,
         resourceGrantDeclaration32,
@@ -417,9 +455,9 @@ export function createLocalCalculationQueryClientCore(options: {
         candidateSearchByRank,
         comparisonOptions: {
           reviewedEvent32: projectReviewedIncrementalEventMetadata32(query.agentId),
-          wEngines: currentWEngineDirectory
-            .filter((row) => row.releaseState === 'released' && row.accountOwnable)
-            .map((row) => ({ engineId: row.id, name: row.name })),
+          wEngines:
+            wEngineComparison?.entries ??
+            projectDevelopmentWEngineOptions(run.input.warehouse, query.agentId),
           potentialSupported: supportsPotentialImage(query.agentId),
         },
         runId: run.runId,

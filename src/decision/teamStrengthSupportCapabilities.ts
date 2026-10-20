@@ -23,12 +23,14 @@ import {
 } from './teamStrengthActionFacts'
 import { createTeamStrengthReferenceRuntimeMember } from './teamStrengthReferenceState'
 import type { TeamStrengthReferenceConditions } from './teamStrengthReferenceConditions'
+import type { TeamStrengthRecipientContext } from './teamStrengthReferenceConditionsTypes'
 import {
   type EffectReceiver,
   baseReferenceExpression,
   baseEffectReceivers,
   hasConditionalGate,
   effectReceivers,
+  expressionReferences,
 } from './teamStrengthSupportExpression'
 type SupportMember = {
   agentId: string
@@ -58,9 +60,9 @@ export const selfCapabilitySourceFingerprint = stableContentHash(
   ]),
 )
 const attributes = new Set(['physical', 'fire', 'ice', 'electric', 'ether', 'frost', 'wind'])
-export type SupportRecipientContext = { contaminationAttributes?: readonly string[] }
+export type SupportRecipientContext = TeamStrengthRecipientContext
 
-type Capability =
+export type Capability =
   | 'damage'
   | 'attack'
   | 'critical'
@@ -90,7 +92,7 @@ const reviewedCapability: Record<ReviewedExternalSupportChannel, Capability> = {
   electric_defense_ignore: 'defense',
 }
 
-function capabilityFor(receiver: EffectReceiver, effectId: string): Capability | null {
+export function capabilityFor(receiver: EffectReceiver, effectId: string): Capability | null {
   const label = `${receiver.path}.${receiver.damageType ?? ''}.${effectId}`.toLowerCase()
   if (receiver.damageType === 'aftershock') {
     if (/crit/.test(receiver.path)) return 'aftershock_critical'
@@ -116,7 +118,7 @@ function capabilityFor(receiver: EffectReceiver, effectId: string): Capability |
   return null
 }
 
-function recipientCompatible(
+export function recipientCompatible(
   member: SupportMember,
   capability: Capability,
   receiver: EffectReceiver,
@@ -132,15 +134,36 @@ function recipientCompatible(
   // A stunner may have real aftershock damage. Specialty alone neither proves
   // nor disproves that source-bound action; never lend it to an ordinary attack.
   if (receiver.damageType === 'aftershock') return member.hasAftershockCapacity === true
-  if (!outputSpecialties.has(member.specialty)) return false
+  if (!outputSpecialties.has(member.specialty) && member.specialty !== 'stun') return false
   const actions = member.actionFacts ?? teamStrengthActionFacts({ agentId: member.agentId })
+  if (!actions?.damage) return false
   const direct = teamStrengthSourceActionSemantics(actions?.direct ?? null)
   const sheer = teamStrengthSourceActionSemantics(actions?.sheer ?? null)
   const sharp = teamStrengthSourceActionSemantics(actions?.sharp ?? null)
   if (capability === 'sharp' || capability === 'laceration') return sharp?.family === 'sharp'
   if (capability === 'attack')
     return direct?.scalingAttribute === 'attack' || sheer?.family === 'sheer'
-  if (capability === 'sheer') return sheer?.family === 'sheer'
+  if (capability === 'sheer') {
+    if (sheer?.family === 'sheer') return true
+    // Sheer Force can feed a sourced personal conversion on a non-Rupture
+    // actor (Norma). This admits the stat grant, never Sheer DMG bonuses.
+    return (
+      receiver.path.endsWith('.sheerForce') &&
+      direct?.scalingAttribute === 'attack' &&
+      (selfBlueprintsByAgent.get(member.agentId) ?? []).some(
+        (entry) =>
+          isReviewedTemplateMechanicEffect32(entry) &&
+          !entry.numericExpression.todoBoundary &&
+          entry.targetKinds.includes('self') &&
+          effectReceivers(entry.numericExpression.expressionIr).some(
+            (effect) => effect.path === 'ownBuff.combat.atk',
+          ) &&
+          expressionReferences(entry.numericExpression.expressionIr).includes(
+            'own.final.sheerForce',
+          ),
+      )
+    )
+  }
   if (capability === 'health') return member.hpToSheer
   if (
     ['anomaly', 'anomaly_critical', 'anomaly_proficiency', 'anomaly_mastery'].includes(capability)
@@ -211,8 +234,7 @@ export function compatibleCapabilities(
         (capability === 'critical' ||
           capability === 'laceration' ||
           receiver.path.includes('direct_dmg_')) &&
-        target.attribute !== 'wind' &&
-        !recipientContext.contaminationAttributes?.includes(target.attribute)
+        !roxyRecipientWindowCompatible(target, capability, recipientContext)
       ) {
         attributeConditionalRecipients.add(target.agentId)
         continue
@@ -376,10 +398,13 @@ export function compatibleCapabilities(
   }
   const outputCount = members.filter((member) => outputSpecialties.has(member.specialty)).length
   const aftershockCount = members.filter((member) => member.hasAftershockCapacity).length
+  const recipientCount = (capability: Capability) =>
+    capability.startsWith('aftershock_')
+      ? aftershockCount
+      : Math.max(outputCount, covered.get(capability)?.size ?? 0)
   return {
     coverage: (capability: Capability) =>
-      (covered.get(capability)?.size ?? 0) /
-      Math.max(1, capability.startsWith('aftershock_') ? aftershockCount : outputCount),
+      (covered.get(capability)?.size ?? 0) / Math.max(1, recipientCount(capability)),
     selfCoverage: (capability: string) =>
       (selfCovered.get(capability)?.size ?? 0) /
       Math.max(1, capability.startsWith('aftershock_') ? aftershockCount : outputCount),
@@ -395,6 +420,28 @@ export function compatibleCapabilities(
       Math.max(1, outputCount),
     conditional,
   }
+}
+
+function roxyRecipientWindowCompatible(
+  target: SupportMember,
+  capability: Capability,
+  context: SupportRecipientContext,
+) {
+  const window = context.roxyWindowsByRecipientId?.[target.agentId]
+  if (!window)
+    return (
+      target.attribute === 'wind' ||
+      context.contaminationAttributes?.includes(target.attribute) === true
+    )
+  if (capability === 'critical' || capability === 'laceration')
+    return target.attribute === 'wind'
+      ? window.wind
+      : target.attribute === 'electric' && window.wind && window.electric
+  return (
+    window.windsweptObserved &&
+    window.squadWindswept &&
+    (target.attribute === 'wind' || window.contaminationMatches)
+  )
 }
 
 export { expressionReferences, effectReceivers } from './teamStrengthSupportExpression'

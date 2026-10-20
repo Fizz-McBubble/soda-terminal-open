@@ -19,6 +19,23 @@ import {
 import { predictStrengthRegression } from './teamStrengthRegression'
 import { teamRecommendationScore } from './teamRecommendationScore'
 import { constrainTeamStrengthScore } from './teamStrengthModelScore'
+import { currentScopeManifest } from '../gameDataPacks/currentScopeManifest'
+import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
+
+// Only the compatibility metadata is refreshed inside this test module. The
+// frozen coefficients/labels stay unchanged; production freshness is untouched.
+vi.mock('../gameDataPacks/generated/team-strength-model.3.1.json', async (importOriginal) => {
+  const actual = await importOriginal<{ default: Record<string, unknown> }>()
+  const features = await import('./teamStrengthMechanicFeatures')
+  const conditions = await import('./teamStrengthReferenceConditions')
+  return {
+    default: {
+      ...actual.default,
+      mechanicDataFingerprint: features.teamStrengthMechanicDataFingerprint,
+      referenceConditionsIdentity: conditions.teamStrengthReferenceConditionsIdentity,
+    },
+  }
+})
 
 const unavailableBenchmark = {
   status: 'unavailable' as const,
@@ -84,7 +101,22 @@ function evaluate(
   })
 }
 
-describe('team strength model fallback', () => {
+describe('team strength model diagnostics', () => {
+  it('reviews the exact current released population instead of an inherited numeric sample size', () => {
+    const released = currentScopeManifest.entries
+      .filter(
+        (entry) =>
+          entry.domain === 'agent' && entry.releaseState === 'released' && entry.accountOwnable,
+      )
+      .map((entry) => entry.stableId)
+      .sort()
+    expect([...(strengthArtifact.reviewedSubjectIds ?? [])].sort()).toEqual(released)
+    expect(new Set(strengthArtifact.reviewedSubjectIds ?? []).size).toBe(released.length)
+    for (const id of released) expect(getCurrentAgentEventContract(id), id).not.toBeNull()
+    expect(released).toEqual(
+      expect.arrayContaining(['agent-remielle', 'agent-claret', 'agent-roxy']),
+    )
+  })
   it('never lowers a prediction when only a usable capacity grows, or rewards a proven cost', () => {
     for (const memberIds of [...sourceRatedTeams(), inferredTeam]) {
       const features = extractTeamStrengthMechanicFeatures(memberIds)
@@ -139,25 +171,27 @@ describe('team strength model fallback', () => {
     }
   })
 
-  it('rates a current trio with no exact source and exposes a finite reference score', () => {
+  it('keeps an unrated legal trio inspectable without granting a model tier or rank', () => {
     const sourceKeys = new Set(sourceRatedTeams().map(exactKey))
     expect(sourceKeys.has(exactKey(inferredTeam))).toBe(false)
 
     const result = evaluate(inferredTeam)
     expect(result.mainstreamRecognition.status).toBe('unknown')
     expect(result.metaCalibration).toMatchObject({
-      status: 'aligned',
-      authority: 'model_inference',
-      confidenceCeiling: 'low',
+      status: 'insufficient',
+      authority: 'none',
+      projectedStrengthBand: null,
     })
     expect(result.metaCalibration.inference).toBeDefined()
-    expect(result.metaCalibration.recommendationScore).toBe(result.metaCalibration.inference?.score)
-    expect(Number.isFinite(result.metaCalibration.recommendationScore)).toBe(true)
-    expect(Number.isInteger(result.metaCalibration.recommendationScore)).toBe(true)
+    expect(result.metaCalibration.inference?.diagnosticOnly).toBe(true)
+    expect(Number.isFinite(result.metaCalibration.inference?.score)).toBe(true)
+    expect(Number.isInteger(result.metaCalibration.inference?.score)).toBe(true)
+    expect(result.metaCalibration.recommendationScore).toBeUndefined()
+    expect(result.realityCheck.strengthBand).toBeNull()
     expect(result.rating).toMatchObject({
       status: 'rated',
-      ratingBand: result.metaCalibration.inference?.band,
-      confidence: 'low',
+      ratingBand: 'Experimental',
+      confidence: 'experimental',
     })
   })
 
@@ -194,30 +228,35 @@ describe('team strength model fallback', () => {
     ).toBe(94)
   })
 
-  it('preserves the model reference score and the existing reviewed tier/fit score', () => {
+  it('keeps diagnostic scores separate while preserving reviewed tier/fit scores', () => {
     const teams = [inferredTeam, ...sourceRatedTeams().slice(0, 4)]
     const authorities = new Set<string>()
     for (const ids of teams) {
       const result = evaluate(ids as readonly [string, string, string])
       authorities.add(result.metaCalibration.authority)
-      const expected =
-        result.metaCalibration.inference?.score ??
-        teamRecommendationScore(result.realityCheck.strengthBand, result.featureVector)
+      const expected = teamRecommendationScore(
+        result.realityCheck.strengthBand,
+        result.featureVector,
+      )
       expect(result.metaCalibration.recommendationScore).toBe(expected ?? undefined)
       if (result.metaCalibration.authority !== 'model_inference' && expected !== null)
         expect(expected % 2).toBe(0)
     }
-    expect(authorities.has('model_inference')).toBe(true)
+    expect(authorities.has('model_inference')).toBe(false)
+    expect(authorities.has('none')).toBe(true)
     expect([...authorities].some((authority) => authority !== 'model_inference')).toBe(true)
   })
 
-  it('exposes the same score from fallback calibration and the final production projection', () => {
+  it('exposes the same diagnostic through calibration and production without a current tier', () => {
     const calibration = inferredStrengthCalibration(emptyCalibration(), inferredTeam)
     const projected = evaluate(inferredTeam)
-    expect(calibration.authority).toBe('model_inference')
-    expect(calibration.recommendationScore).toBe(inferTeamStrength(inferredTeam)?.score)
+    expect(calibration.authority).toBe('none')
+    expect(calibration.inference).toEqual(inferTeamStrength(inferredTeam))
+    expect(calibration.recommendationScore).toBeUndefined()
     expect(projected.metaCalibration.recommendationScore).toBe(calibration.recommendationScore)
-    expect(projected.metaCalibration.inference?.band).toBe(calibration.projectedStrengthBand)
+    expect(projected.metaCalibration.inference).toEqual(calibration.inference)
+    expect(calibration.projectedStrengthBand).toBeNull()
+    expect(projected.realityCheck.strengthBand).toBeNull()
   })
 
   it('does not cross reviewed-only, hard-prune, or source-conflict gates', () => {
@@ -359,7 +398,36 @@ describe('team strength model fallback', () => {
       expect(source.metaCalibration.authority).not.toBe('model_inference')
       expect(source.metaCalibration.recommendationScore).toEqual(expect.any(Number))
     } finally {
-      vi.doUnmock('../gameDataPacks/generated/team-strength-model.3.1.json')
+      vi.doMock('../gameDataPacks/generated/team-strength-model.3.1.json', () => ({
+        default: strengthArtifact,
+      }))
+      vi.resetModules()
+    }
+  })
+
+  it('keeps the production freshness guard closed for stale inputs in both evidence modes', async () => {
+    vi.resetModules()
+    vi.doMock('../gameDataPacks/currentVersionProjection', async (importOriginal) => {
+      const actual =
+        await importOriginal<typeof import('../gameDataPacks/currentVersionProjection')>()
+      return {
+        ...actual,
+        currentVersionProjection: {
+          ...actual.currentVersionProjection,
+          gameVersion: 'fixture:stale',
+        },
+      }
+    })
+    try {
+      const isolated = await import('./teamStrengthModel')
+      expect(isolated.inferTeamStrength(inferredTeam)).toBeNull()
+      expect(isolated.inferTeamStrength(inferredTeam, 'independent_evaluation')).toBeNull()
+      const unavailable = isolated.inferredStrengthCalibration(emptyCalibration(), inferredTeam)
+      expect(unavailable.inference).toBeUndefined()
+      expect(unavailable.projectedStrengthBand).toBeNull()
+      expect(unavailable.recommendationScore).toBeUndefined()
+    } finally {
+      vi.doUnmock('../gameDataPacks/currentVersionProjection')
       vi.resetModules()
     }
   })

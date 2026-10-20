@@ -122,6 +122,12 @@ export function playerRetentionCopy(
   const action = evidence.nextAction
   const reason = evidence.reasonKind
   const protectedKeep = action?.kind === 'keep' && action.stopWhen.startsWith('当前保护')
+  const completeBuildKeep =
+    action?.kind === 'keep' &&
+    (action.basis === 'complete_build_positive_use' ||
+      action.basis === 'finite_luminize_static_preparation_positive_use')
+  const finiteLuminizeKeep =
+    completeBuildKeep && action!.basis === 'finite_luminize_static_preparation_positive_use'
   const uncalibrated = evidence.blockedBy?.some(
     (blocker) => blocker.kind === 'policy' && blocker.field === 'calibration',
   )
@@ -150,26 +156,32 @@ export function playerRetentionCopy(
     approved_rarity_cleanup: 'A/B 级盘直接归入清理候选，不需要继续强化。',
     invalid_record: '词条记录与强化规则不一致，请先核对或重新导入。',
   }
-  const stop = protectedKeep
-    ? '处理前请先确认是否仍在使用。'
-    : trial
-      ? null
-      : action?.kind === 'manual_cleanup'
-        ? '清理前请在游戏内确认未装备，并检查是否仍用于方案。'
-        : action?.kind === 'check_condition'
-          ? '条件未确认前，先别强化或清理。'
-          : null
+  const stop = completeBuildKeep
+    ? null
+    : protectedKeep
+      ? '处理前请先确认是否仍在使用。'
+      : trial
+        ? null
+        : action?.kind === 'manual_cleanup'
+          ? '清理前请在游戏内确认未装备，并检查是否仍用于方案。'
+          : action?.kind === 'check_condition'
+            ? '条件未确认前，先别强化或清理。'
+            : null
   return {
     title: `下一步：${reason === 'invalid_record' ? '核对词条记录' : action ? titles[action.kind] : '暂留，核对盘记录'}`,
-    explanation: protectedKeep
-      ? readableDetail(action!.detail)
-      : investmentPending
-        ? '该用途的投入门槛需单独校准，暂不建议强化或清理。'
-        : uncalibrated
-          ? '这一类盘的清理标准尚未校准，目前只作观察，不建议清理。'
-          : reason
-            ? explanations[reason]
-            : '暂时无法确认适合的用途，先保留现状。',
+    explanation: completeBuildKeep
+      ? finiteLuminizeKeep
+        ? '当前方案中可提升辉映收益，留作备选。'
+        : '同槽替换能提升当前配装，留作备选。'
+      : protectedKeep
+        ? readableDetail(action!.detail)
+        : investmentPending
+          ? '该用途的投入门槛需单独校准，暂不建议强化或清理。'
+          : uncalibrated
+            ? '这一类盘的清理标准尚未校准，目前只作观察，不建议清理。'
+            : reason
+              ? explanations[reason]
+              : '暂时无法确认适合的用途，先保留现状。',
     stop,
   }
 }

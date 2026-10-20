@@ -14,6 +14,10 @@ import {
   projectCandidatePanelObjective,
 } from './candidatePanelObjective'
 import type { CandidatePanelInput, OptimizedBuild } from './optimizeBuild'
+import {
+  projectCandidateEffectiveCritObjective,
+  type CandidateEffectiveCritObjective,
+} from './candidateEffectiveCritObjective'
 
 /** Reuse game-record validation, independently of retention quality/cleanup decisions. */
 export function dynamicLegalInventory(discs: readonly DriveDisc[]) {
@@ -51,6 +55,7 @@ export function compileDynamicCandidateLoadout(
   selection: DriveDisc[],
   profile: AgentDiscProfile,
   panelInput?: CandidatePanelInput,
+  effectiveCritObjective?: CandidateEffectiveCritObjective,
 ) {
   if (
     selection.length !== 6 ||
@@ -80,6 +85,10 @@ export function compileDynamicCandidateLoadout(
   const panelObjective =
     target && panelInput ? projectCandidatePanelObjective(target, panelInput, selection) : undefined
   const discScore = discs.reduce((sum, disc) => sum + disc.score, 0)
+  const eventTarget = effectiveCritObjective ?? profile.effectiveCritObjective
+  const eventProjection = eventTarget
+    ? projectCandidateEffectiveCritObjective(eventTarget, panelInput, selection)
+    : undefined
   const build: OptimizedBuild = {
     rank: 1,
     discs,
@@ -95,6 +104,7 @@ export function compileDynamicCandidateLoadout(
         .map((disc) => [disc.slot, disc.id]),
     ),
     ...(panelObjective ? { panelObjective, panelObjectiveStatus: 'applied' as const } : {}),
+    ...(eventProjection ? { effectiveCritObjective: eventProjection } : {}),
   }
   return toCandidate(build, profile, false, [])
 }

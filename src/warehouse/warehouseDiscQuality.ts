@@ -1,5 +1,4 @@
 import type { DriveDisc, StatKey } from '../domain/schemas'
-import { currentAgentDirectory } from '../assault/catalog'
 import { deriveSubStatHistory } from '../evaluation/subStatHistory'
 import { driveDiscData } from '../data/gameData'
 import { resolveDriveDiscMainStatValue } from '../calculation/outOfCombatPanel'
@@ -8,6 +7,8 @@ import { hasConsistentDevelopmentStats, realizedScore } from './discEnhancementS
 import { legalSubStats } from './discEnhancementCeiling'
 import type { WarehouseDemandContext } from './warehouseDemandContexts'
 import { getCandidatePanelPolicy } from '../gameDataPacks/candidatePanelPolicy'
+import { sourcedFunctionalMains } from './absoluteDiscRetentionFunctions'
+import { resolveRetentionUseFacts } from './absoluteDiscRetentionUseFacts'
 
 /** Account investment policy, not game damage, roll probability or a graduation standard. */
 export { warehouseUsePolicyVersion } from './warehousePolicyVersion'
@@ -30,16 +31,25 @@ export type WarehouseContextQuality = {
   score: number
 }
 
-const specialties = new Map(currentAgentDirectory.map((agent) => [agent.id, agent.specialty]))
-const functionalSpecialties = new Set(['support', 'stun', 'defense'])
-const functionalStats = new Set<StatKey>([
-  'atk_percent',
-  'hp_percent',
-  'def_percent',
-  'impact',
-  'energy_regen',
-  'anomaly_mastery',
-])
+const functionalMainsByContext = new WeakMap<
+  WarehouseDemandContext,
+  ReturnType<typeof sourcedFunctionalMains>
+>()
+
+function functionalMainsForContext(context: WarehouseDemandContext) {
+  const cached = functionalMainsByContext.get(context)
+  if (cached) return cached
+  const source = context.constraint.sources.find((entry) => entry.verified)
+  const mains = sourcedFunctionalMains(
+    context.constraint,
+    context.agentId,
+    context.setPlan.pattern === '4+2' ? context.setPlan.primarySetIds : [],
+    source ? `${source.id}:${source.contentHash}` : '',
+    resolveRetentionUseFacts(context.constraint, context.agentId).goal,
+  )
+  functionalMainsByContext.set(context, mains)
+  return mains
+}
 
 export function hasReliableWarehouseDiscRecord(disc: DriveDisc) {
   const maximum = driveDiscData?.rules.maxLevelByRarity[disc.rarity ?? 'S']
@@ -98,13 +108,13 @@ export function assessWarehouseContextQuality(
       : 'two_piece'
   // A sourced functional main stat has actual value even without crit rolls.
   // This value does not depend on a cultivation flag and never applies to
-  // fixed HP/ATK/DEF slots merely because a six-piece loadout is incomplete.
-  const functionMain =
+  // fixed HP/ATK/DEF slots or slot 5 attribute stats merely because a six-piece loadout is incomplete.
+  const functionMain = Boolean(
     disc.slot >= 4 &&
-    functionalSpecialties.has(specialties.get(context.agentId) ?? '') &&
-    functionalStats.has(disc.mainStat) &&
-    (['impact', 'energy_regen', 'anomaly_mastery'].includes(disc.mainStat) ||
-      critical(disc.mainStat))
+    functionalMainsForContext(context).some(
+      (entry) => entry.slot === disc.slot && entry.stat === disc.mainStat,
+    ),
+  )
   const objectiveRolls = attackObjective
     ? disc.subStats.reduce(
         (sum, line) =>

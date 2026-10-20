@@ -89,9 +89,29 @@ export type PublicAccountDecisionRun = Omit<AccountDecisionRun, 'input' | 'snaps
   }
 }
 
+type TargetTeamCalculationProjection = NonNullable<
+  TargetTeamWarehouseFitQueryResult['accountBoundBenchmark']['calculationProjection']
+>
+export type PublicTargetTeamCalculationProjection =
+  | Pick<
+      Extract<TargetTeamCalculationProjection, { status: 'supported' }>,
+      | 'status'
+      | 'resourceObservationHash'
+      | 'selectedActionResourceProduction32'
+      | 'memberSourceResourceProduction32'
+      | 'resourceTimeline32'
+    >
+  | Pick<
+      Extract<TargetTeamCalculationProjection, { status: 'unavailable' }>,
+      'status' | 'blockers' | 'fingerprint'
+    >
+
 export type PublicTargetTeamWarehouseFit = Pick<
   TargetTeamWarehouseFitQueryResult,
   | 'contract'
+  | 'declaredEventBenchmark32'
+  | 'standardReference32'
+  | 'standardReferenceRequest32'
   | 'candidateId'
   | 'memberIds'
   | 'status'
@@ -113,6 +133,7 @@ export type PublicTargetTeamWarehouseFit = Pick<
   | 'accountFactBinding'
   | 'targetExecution'
   | 'teamExecutionPresentation'
+  | 'valueBenchmark'
 > & {
   warehousePlan: PublicCandidateWarehousePlan
   buildIntent: {
@@ -123,6 +144,13 @@ export type PublicTargetTeamWarehouseFit = Pick<
     exactTeam: { candidateId: string; bangbooId: string | null }
   }
   accountBoundBenchmark: {
+    sourceInputFingerprint?: string
+    resourceTimelineDeclaration32?:
+      | import('../calculation/resourceTimelineDeclarationContract32').ResourceTimelineDeclaration32
+      | null
+    resourceTimelineDeclarationIdentity32?: string | null
+    calculationProjection: PublicTargetTeamCalculationProjection | null
+    luminizeSnapshot32?: import('./publicLuminizeComparison32').LuminizeEquipmentSnapshot32
     equipmentModifierProjection: {
       wEngines: Array<{ passiveStatus: string }>
     } | null
@@ -141,8 +169,9 @@ export type PublicSavedTeamReplay = Omit<SavedTeamReplayPresentation, 'match'> &
 
 export type PublicDevelopmentCandidateAlternatives = Omit<
   DevelopmentCandidateAlternativesQueryResult,
-  'buildIntent' | 'candidates'
+  'buildIntent' | 'candidates' | 'wEngineComparison'
 > & {
+  wEngineComparison?: import('./publicDevelopmentWEngineComparison').DevelopmentWEngineComparisonDto
   buildIntent: Pick<
     DevelopmentCandidateAlternativesQueryResult['buildIntent'],
     'contract' | 'scope' | 'fingerprint'

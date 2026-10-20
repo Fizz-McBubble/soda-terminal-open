@@ -1,3 +1,3 @@
-export const warehouseUsePolicyVersion = 'warehouse-use-r6-record-isolation'
+export const warehouseUsePolicyVersion = 'warehouse-use-r9-saved-team-objective-positive-use'
 export const warehouseAnalysisRuleVersion =
-  'warehouse-analysis-r4.12-source-hp-secondary-investment'
+  'warehouse-analysis-r4.15-saved-team-objective-positive-use'

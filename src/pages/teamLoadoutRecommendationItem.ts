@@ -14,6 +14,7 @@ import { reviewedTeamCombatEvidence } from '../decision/reviewedTeamCombatEviden
 import { targetTeamBangbooOptions } from '../decision/targetTeamSourceBangbooOptions'
 import { isReviewedFallbackTeam } from '../decision/reviewedTeamRecommendationDisposition'
 import { reviewedTeamPreferences } from '../decision/reviewedTeamPreferences'
+import { resolveReviewedTeamOutputModule } from '../gameDataPacks/reviewedTeamOutputModuleEvidence'
 
 /** Returning from a fit shows the actual scheme choice without changing its source rating. */
 export function targetFitBangbooPresentation(
@@ -160,6 +161,7 @@ export function recommendationItem(
       recommendation.trace.find((step) => step.stage === 'pair_synergy')?.detail ??
         recommendation.claim,
     ),
+    outputModule: resolveReviewedTeamOutputModule(recommendation.memberIds) ?? null,
     bangbooId: schemeBangbooId,
     bangbooAlternativeIds: automaticBangbooId
       ? defaultOptions.slice(1).map((option) => option.bangbooId)

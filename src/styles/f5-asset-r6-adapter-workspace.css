@@ -283,6 +283,7 @@
   position: fixed;
   z-index: calc(var(--z-overlay, 20) + 1);
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   align-content: start;
   overflow: auto;
   overscroll-behavior: contain;
@@ -305,6 +306,7 @@
   justify-content: space-between;
   gap: 10px;
   width: 100%;
+  min-width: 0;
   min-height: 44px;
   padding: 5px 7px;
   border: 0;
@@ -315,6 +317,11 @@
   font-size: 0.75rem;
   text-align: left;
   cursor: pointer;
+}
+
+.f5v-select-menu-popover.select-menu__popover .filter-select__option-copy > span:last-child {
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .f5v-select-menu-popover.select-menu__popover.filter-select__menu button:hover,
@@ -338,6 +345,7 @@
 
 .f5v-select-menu-popover.select-menu__popover .filter-select__group {
   display: grid;
+  min-width: 0;
 }
 
 .f5v-select-menu-popover.select-menu__popover .filter-select__group > strong {

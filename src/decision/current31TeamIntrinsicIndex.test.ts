@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import reviewedStrengthModel from '../gameDataPacks/generated/team-strength-model.3.1.json'
+import { releasedAgentIds as reviewed31AgentIds } from './current31SemanticEvidence'
 import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
 import { inspectCurrent31FormationMechanicState } from '../teamEngine/current31FormationMechanicAudit'
 import { evaluateCurrent31TeamRating } from './current31TeamRating'
@@ -19,7 +20,9 @@ const benchmark = {
 const agentIds = current31TeamEngineD1Pack.agentRules
   .map((rule) => rule.agentId)
   .sort((left, right) => left.localeCompare(right))
-const oldIds = new Set(reviewedStrengthModel.reviewedSubjectIds)
+// Historical coverage stays tied to the frozen 3.1 cohort after model adoption
+// extends its reviewed scope to the two current-version subjects.
+const oldIds = new Set(reviewed31AgentIds)
 const pairCount = (count: number) => (count * (count - 1)) / 2
 // Each sorted triple belongs to exactly one first-member partition. Bound the
 // individual test's work without sampling or changing the direct oracle.
@@ -64,15 +67,20 @@ describe('current 3.1 build-time team intrinsic index', () => {
         memberIds.includes('agent-jane' as never) ||
         memberIds.includes('agent-zhu-yuan' as never)
       ) {
-        expect(indexed?.metaAuthority).toBe('model_inference')
-        expect(indexed?.recommendationScore).toEqual(expect.any(Number))
-        expect(indexed?.ratingBand).not.toBe('Experimental')
+        expect(indexed?.metaAuthority).toBe('none')
+        expect(indexed?.recommendationScore).toBeNull()
+        expect(indexed?.ratingBand).toBe('Experimental')
       }
     }
   })
   it('covers the old 58-agent cohort and the explicit two-agent identity extension exactly once', () => {
     expect(oldIds.size).toBe(58)
     expect(agentIds.filter((id) => !oldIds.has(id))).toEqual(['agent-claret', 'agent-roxy'])
+    expect(
+      [...reviewedStrengthModel.reviewedSubjectIds].sort((left, right) =>
+        left.localeCompare(right),
+      ),
+    ).toEqual(agentIds)
     expect(oraclePartitions.map(({ first }) => first)).toEqual(
       Array.from({ length: agentIds.length - 2 }, (_, first) => first),
     )

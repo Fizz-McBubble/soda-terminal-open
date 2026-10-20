@@ -107,7 +107,9 @@ export type Current31MetaCalibration = {
     | 'none'
   confidenceCeiling?: 'medium' | 'low'
   analysis?: ReviewedTeamAnalysis
+  /** Candidate discovery diagnostics; never tier or recommendation authority. */
   inference?: TeamStrengthInference
+  /** Mechanism-weighted diagnostic only; never default admission or ordering. */
   recommendationScore?: number
   evidenceStatus?: 'supported' | 'unknown' | 'conflict'
   kernelId: string | null
@@ -164,13 +166,29 @@ const continuitySourceHashes = [
   ['editorialAnalysis', stableContentHash(reviewedTeamAnalysis)],
 ] as const
 
+export type TeamStrengthEvidenceMode = 'source_reference' | 'independent_evaluation'
+
 export function resolveCurrent31MetaCalibration(input: {
   memberIds: readonly [string, string, string]
   bangbooId: string | null
   predictedRating: TeamRatingResult
   benchmark: BenchmarkEvidence
   sourceReviewVersion?: '3.1'
+  /** Blind evaluation excludes every exact-team source/label projection. */
+  evidenceMode?: TeamStrengthEvidenceMode
 }): Current31MetaCalibration {
+  if (input.evidenceMode === 'independent_evaluation')
+    return {
+      contract: current31TeamStrengthCalibrationContractId,
+      status: 'insufficient',
+      authority: 'none',
+      kernelId: null,
+      familyId: null,
+      versionPosition: null,
+      projectedStrengthBand: null,
+      evidenceRefs: [],
+      explanation: '独立评价隔离来源标签；来源档位、Reality Profile 和历史兼容均不作为预测。',
+    }
   const targetVersion = input.sourceReviewVersion ?? currentVersionProjection.gameVersion
   const continued =
     isExistingReviewed31Formation(input.memberIds) &&
@@ -339,6 +357,7 @@ export function resolveCurrent31RealityCheck(input: {
   mainstreamRecognition: Current31MainstreamRecognition
   metaCalibration: Current31MetaCalibration
   bangbooId: string | null
+  evidenceMode?: TeamStrengthEvidenceMode
 }): Current31RealityCheck {
   if (input.mechanicValidity === 'invalid')
     return {
@@ -348,7 +367,16 @@ export function resolveCurrent31RealityCheck(input: {
       referencePerformanceRequiredForCurrentGate: false,
       explanation: '机制硬条件未闭合；现实校准不能覆盖机制无效。',
     }
-  const sourceProjectionAvailable = input.metaCalibration.status === 'aligned'
+  const independentEvaluation = input.evidenceMode === 'independent_evaluation'
+  const sourceProjectionAvailable =
+    !independentEvaluation &&
+    input.metaCalibration.status === 'aligned' &&
+    [
+      'strength_gold',
+      'variant_reality_profile',
+      'single_publisher_tier',
+      'local_editorial_estimate',
+    ].includes(input.metaCalibration.authority)
   if (input.metaCalibration.projectedStrengthBand && sourceProjectionAvailable)
     return {
       status: 'calibrated_band_supported',
@@ -357,7 +385,7 @@ export function resolveCurrent31RealityCheck(input: {
       referencePerformanceRequiredForCurrentGate: false,
       explanation: input.metaCalibration.explanation,
     }
-  if (input.mainstreamRecognition.status === 'confirmed')
+  if (!independentEvaluation && input.mainstreamRecognition.status === 'confirmed')
     return {
       status: 'mainstream_confirmed_band_unknown',
       strengthBand: null,
@@ -385,12 +413,16 @@ export function projectCurrent31TeamStrength(input: {
   reviewedOnly?: boolean
   /** Explicit immutable source-label version for offline collection only. */
   sourceReviewVersion?: '3.1'
+  evidenceMode?: TeamStrengthEvidenceMode
 }) {
   const mechanicValidity = deriveCurrent31MechanicValidity(input.featureVector)
-  const mainstreamRecognition = resolveCurrent31MainstreamRecognition(
-    input.memberIds,
-    input.reviewedOnly ? input.sourceReviewVersion : undefined,
-  )
+  const mainstreamRecognition: Current31MainstreamRecognition =
+    input.evidenceMode === 'independent_evaluation'
+      ? { status: 'unknown', evidenceRefs: [], explanation: '独立评价不读取来源成员标签。' }
+      : resolveCurrent31MainstreamRecognition(
+          input.memberIds,
+          input.reviewedOnly ? input.sourceReviewVersion : undefined,
+        )
   const metaCalibration = inferredStrengthCalibration(
     resolveCurrent31MetaCalibration({
       ...input,
@@ -399,6 +431,7 @@ export function projectCurrent31TeamStrength(input: {
     }),
     input.memberIds,
     input.reviewedOnly || mechanicValidity === 'invalid',
+    input.evidenceMode === 'independent_evaluation',
   )
   const realityCheck = resolveCurrent31RealityCheck({
     memberIds: input.memberIds,
@@ -406,14 +439,11 @@ export function projectCurrent31TeamStrength(input: {
     mainstreamRecognition,
     metaCalibration,
     bangbooId: input.bangbooId,
+    evidenceMode: input.evidenceMode,
   })
-  // Model teams keep the bounded integer reference score that determined their
-  // tier, so the displayed score preserves their within-tier order. Reviewed
-  // teams retain the existing tier/fit index. Both are reference judgements,
-  // never damage or DPS, and coarse tiers remain the first ordering boundary.
-  const score =
-    metaCalibration.inference?.score ??
-    teamRecommendationScore(realityCheck.strengthBand, input.featureVector)
+  // Diagnostic inference scores cannot become a ranking signal, including
+  // through a calibration object created before the authority boundary.
+  const score = teamRecommendationScore(realityCheck.strengthBand, input.featureVector)
   metaCalibration.recommendationScore = score ?? undefined
   if (input.mechanicRating.status !== 'rated')
     return {
@@ -460,6 +490,9 @@ export function projectCurrent31TeamStrength(input: {
 
 export const current31TeamStrengthCalibrationBoundary = Object.freeze({
   contract: current31TeamStrengthCalibrationContractId,
+  evaluationScope: 'generic_team_reference_only' as const,
+  specificScenarioPolicy: 'separate_current_scenario_comparison_only' as const,
+  historicalLabelPolicy: 'low_confidence_community_prior_not_truth' as const,
   // Requested eligibility target, not an upgrade of any imported source review.
   sourceReviewVersion: currentVersionProjection.gameVersion,
   // Included in Account Decision fingerprints so old status projections go stale.
@@ -474,12 +507,14 @@ export const current31TeamStrengthCalibrationBoundary = Object.freeze({
   // Compatibility field: this is a source-backed diagnostic count, never a strength-authority count.
   sourceBackedFormationCount: legacyDiagnosticByFormationKey.size,
   strengthGoldCalibrationCaseCount: current31StrengthGoldSet.calibrationCases.length,
-  strengthGoldIndependentHoldoutCaseCount: current31StrengthGoldSet.independentHoldoutCases.length,
+  strengthGoldIndependentHoldoutCaseCount: 0,
+  strengthGoldLegacyDiagnosticHoldoutCaseCount:
+    current31StrengthGoldSet.independentHoldoutCases.length,
   mainstreamRecognitionFormationCount: recognitionIndex(currentVersionProjection.gameVersion).size,
   reviewedTeamSourceFingerprint: stableContentHash(currentReviewedTeamSourceDirections()),
   reviewedTeamCompatibilityFingerprint: stableContentHash(currentReviewedTeamCompatibilityNotes()),
   recoveredCalibrationLineage: current31MetaStrengthR1Lineage,
   versionPositions: ['apex', 'meta', 'viable'] as const,
   boundary:
-    '当前版本的精确三人编辑校准优先，其次为公开整队档位，最后是低置信本地分析。发布方分歧不以本地分析覆盖；不依赖邦布，旧版本不自动继承。legacy kernel 与 Reference Performance 仅保留诊断；百分制为粗档内的推荐指数，不是连续强度或伤害测量。',
+    '105条历史档位是社区或本地编辑判断，只作低置信先验；公开来源、自建模型和本地分析都不能互相升级为绝对队伍强度。该评级只回答泛用框架与配队闭环，不吸收式舆、危局、当期Buff或特定Boss排序；精确关卡结论必须在独立场景比较中冻结。同档没有已发布偏序时保持并列，百分制指数只作诊断。',
 })

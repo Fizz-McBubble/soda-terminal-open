@@ -89,6 +89,8 @@ export function useTargetTeamWarehouseFitCalculation() {
       equipmentParameters?: import('./calculationQueryContract').TargetTeamEquipmentParameterSelection,
       scenarioSelection?: import('./publicPlanningScenarioContract').CurrentPlanningScenarioSelection32,
       eventConditionDeclarationsByAgentId?: import('../calculation/reviewedEventConditionDeclarations32').ReviewedEventConditionDeclarations32,
+      declaredEventComparison32?: import('./calculationQueryContract').TargetTeamWarehouseFitQuery['declaredEventComparison32'],
+      standardReference32?: import('./targetTeamStandardReference32').TargetTeamStandardReferenceRequest32,
     ): Promise<TargetTeamWarehouseFitQueryResult> => {
       if (!client) throw new Error('Calculation/Query client is unavailable.')
       return client.calculateTargetTeamWarehouseFit({
@@ -99,6 +101,8 @@ export function useTargetTeamWarehouseFitCalculation() {
         equipmentParameters,
         scenarioSelection,
         eventConditionDeclarationsByAgentId,
+        declaredEventComparison32,
+        standardReference32,
       })
     },
     [client],
@@ -132,6 +136,7 @@ export function useDevelopmentCandidateAlternativesCalculation() {
       scenarioSelection?: import('./publicPlanningScenarioContract').CurrentPlanningScenarioSelection32,
       eventConditionDeclarationsByAgentId?: import('../calculation/reviewedEventConditionDeclarations32').ReviewedEventConditionDeclarations32,
       resourceGrantDeclaration32?: import('../calculation/sourceMechanismResourceGrants32').SourceResourceGrantDeclaration32,
+      wEngineComparison?: import('./publicDevelopmentWEngineComparison').DevelopmentWEngineComparisonSelection,
     ): Promise<DevelopmentCandidateAlternativesQueryResult> => {
       if (!client) throw new Error('Calculation/Query client is unavailable.')
       return client.queryDevelopmentCandidateAlternatives({
@@ -143,6 +148,7 @@ export function useDevelopmentCandidateAlternativesCalculation() {
         scenarioSelection,
         eventConditionDeclarationsByAgentId,
         resourceGrantDeclaration32,
+        wEngineComparison,
       })
     },
     [client],

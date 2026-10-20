@@ -20,7 +20,7 @@ export type AgentReferenceCondition = {
   status: ReferenceConditionStatus
   numericLevel: number | null
   numericLevelBasis: 'source_reference_configuration' | 'local_adjudicated_reference' | null
-  /** M0 is a calculation assumption, not an observed source build. */
+  /** S0/A6 is a calculation assumption, not an observed source build. */
   mindscapeLevel: number
   minimumDemonstratedLevel: number | null
   demonstrationEvidence: string | null
@@ -31,6 +31,25 @@ export type AgentReferenceCondition = {
 export type TeamStrengthReferenceConditions = {
   potentialByAgentId: Readonly<Record<string, number>>
   evidenceRefs: readonly string[]
+  /** Declared comparison states, never inferred account/combat observations. */
+  supportReferencesByAgentId?: Readonly<Record<string, Readonly<Record<string, unknown>>>>
+  recipientContext?: TeamStrengthRecipientContext
+}
+export type TeamStrengthRecipientContext = {
+  /** Legacy explicit current attribute declaration; does not certify a historical core window. */
+  contaminationAttributes?: readonly string[]
+  roxyWindowsByRecipientId?: Readonly<
+    Record<
+      string,
+      {
+        wind: boolean
+        electric: boolean
+        squadWindswept: boolean
+        contaminationMatches: boolean
+        windsweptObserved: boolean
+      }
+    >
+  >
 }
 export type ResolvedTeamStrengthReferenceConditions = TeamStrengthReferenceConditions & {
   status: ReferenceConditionStatus
@@ -38,7 +57,7 @@ export type ResolvedTeamStrengthReferenceConditions = TeamStrengthReferenceCondi
   editorialRecordId?: string
   normalizedMemberIds: readonly string[]
   identity: string
-  calculationAssumption: 'level60-skill11-core7-m0-supported-p6-explicit-override'
+  calculationAssumption: 'level60-base-skill11-core7-s0-a6-supported-p6-explicit-override'
   agentConditions: readonly AgentReferenceCondition[]
   unhandledConditions: readonly UnhandledCondition[]
   diagnostics: readonly string[]

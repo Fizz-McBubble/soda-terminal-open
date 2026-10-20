@@ -201,7 +201,7 @@ function getEngineName(engineId: string) {
   return knownNames[engineId] ?? null
 }
 
-export function getSelectedBuildBranchId(agent: RosterAgent) {
+export function getSelectedBuildBranchId(agent: Pick<RosterAgent, 'agentId' | 'lockedFields'>) {
   const profile = getCurrentBuildProfile(agent.agentId)
   if (!profile) return null
   const prefix = `buildBranch:${profile.agentId}:`

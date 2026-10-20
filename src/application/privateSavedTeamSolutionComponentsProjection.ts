@@ -1,4 +1,4 @@
-import { buildAccountDecisionInputFingerprint } from '../decision/accountDecisionService'
+import { buildSavedTeamSolutionInputComponents } from '../decision/accountDecisionFingerprint'
 import type { AccountDecisionRun, AccountDecisionQueryInput } from './calculationQueryContract'
 import {
   projectedSavedTeamInputHash,
@@ -19,11 +19,7 @@ export function projectPrivateSavedTeamSolutionComponents(
   // The same projection is used for local and remote clients so personal labels never enter
   // this producer's fingerprint or the remote request.
   const projectedInput = projectRemoteAccountDecisionInput(currentInput)
-  const nonPlanningComponents = Object.fromEntries(
-    Object.entries(buildAccountDecisionInputFingerprint(projectedInput).components).filter(
-      ([key]) => key !== 'planningHash',
-    ),
-  )
+  const nonPlanningComponents = buildSavedTeamSolutionInputComponents(projectedInput)
   return {
     contract: savedTeamSolutionComponentsContract,
     runId: run.runId,

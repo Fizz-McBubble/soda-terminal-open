@@ -8,10 +8,14 @@ import { compileReviewedDriveDiscEventEffects32 } from '../calculation/reviewedD
 import { reviewedDriveDiscSemanticsIdentity32 } from '../calculation/reviewedDriveDiscSemanticsIdentity32'
 import type { DriveDiscEventRuntimeBinding32 } from '../calculation/reviewedDriveDiscConditionDomains32'
 import { resolveCurrentPlanningConditionDeclarations32 } from '../calculation/currentPlanningConditionCatalog32'
-import { evaluateSourceBackedPlanningTeamDps } from '../calculation/currentPlanningTeamDpsRuntime'
+import {
+  evaluateSourceBackedPlanningTeamDps,
+  type SourceBackedPlanningTeamDpsInput,
+} from '../calculation/currentPlanningTeamDpsRuntime'
 import type { PlanningEventSchedule32 } from '../calculation/planningEventOccurrenceState32'
 import { projectTargetTeamWEngineModifiers } from '../calculation/targetTeamEquipmentModifierProjection'
 import type { CurrentWEngineFormulaRuntime } from '../calculation/currentWEnginePersonalPlanningEffects'
+import { getCurrentFormulaContractRequirements } from '../calculation/currentFormulaMechanicContracts'
 import { stableContentHash } from '../gameDataPacks/types'
 import { qualifyReviewedPlanningEventSet32 } from '../gameDataPacks/reviewedPlanningEventSet32'
 import { reviewedPlanningEventSetIdentity32 } from '../gameDataPacks/reviewedPlanningEventSetIdentity32'
@@ -42,8 +46,14 @@ export function analyzePlanningBenchmark32Candidate(
   input: PlanningBenchmarkBinding32,
   declarations?: PlanningEventDeclarationsInput32,
   expectedSourceBindingFingerprint?: string,
-): { result: PlanningBenchmarkResult32; context: CalculationContext | null } {
+): {
+  result: PlanningBenchmarkResult32
+  context: CalculationContext | null
+  /** Private shared operands for function-aware equipment comparisons. */
+  runtimeInput32: SourceBackedPlanningTeamDpsInput | null
+} {
   let context: CalculationContext | null = null
+  let runtimeInput32: SourceBackedPlanningTeamDpsInput | null = null
   const prepared = preparePlanningBenchmark32(input)
   const payload: Omit<PlanningBenchmarkResult32, 'resultFingerprint'> = {
     contract: planningBenchmark32Contract,
@@ -87,6 +97,7 @@ export function analyzePlanningBenchmark32Candidate(
     return {
       result: { ...payload, resultFingerprint: planningBenchmarkResultFingerprint32(payload) },
       context,
+      runtimeInput32,
     }
   }
   if (!prepared.metadata || !declarations) return finish()
@@ -119,6 +130,9 @@ export function analyzePlanningBenchmark32Candidate(
     sourceFingerprint: prepared.sourceBindingFingerprint,
     declarationFingerprint: payload.inputFingerprint!,
     occurrences: [],
+    ...(declarations.triggerAftershockWindow32
+      ? { triggerAftershockWindow32: declarations.triggerAftershockWindow32 }
+      : {}),
   }
   for (const occurrence of validated.occurrences) {
     const projection = prepared.projections.get(occurrence.ownerAgentId)!
@@ -162,9 +176,17 @@ export function analyzePlanningBenchmark32Candidate(
         const state = runtimeByAgentId[row.providerAgentId] ?? { flags: {}, numbers: {} }
         if (typeof row.value === 'boolean')
           state.flags = { ...state.flags, [evidence.runtimeReference]: row.value }
-        else if (typeof row.value === 'number')
-          state.numbers = { ...state.numbers, [evidence.runtimeReference]: row.value }
-        else {
+        else if (typeof row.value === 'number') {
+          const requirements = getCurrentFormulaContractRequirements('wengine', evidence.engineId)
+          if (requirements?.accumulators.includes(evidence.runtimeReference))
+            state.accumulators = { ...state.accumulators, [evidence.runtimeReference]: row.value }
+          else if (requirements?.numbers.includes(evidence.runtimeReference))
+            state.numbers = { ...state.numbers, [evidence.runtimeReference]: row.value }
+          else {
+            payload.gaps.push(`音擎数值条件没有对应来源输入：${row.referenceKey}`)
+            continue
+          }
+        } else {
           payload.gaps.push(`音擎枚举尚未映射到实际公式：${row.referenceKey}`)
           continue
         }
@@ -230,6 +252,9 @@ export function analyzePlanningBenchmark32Candidate(
         ownerAgentId: occurrence.ownerAgentId,
         eventId: occurrence.eventId,
         atSeconds: occurrence.atSeconds,
+        ...(occurrence.durationSeconds === undefined
+          ? {}
+          : { durationSeconds: occurrence.durationSeconds, rateState: occurrence.rateState }),
         ...(occurrence.snapshotAtSeconds === undefined
           ? {}
           : { snapshotAtSeconds: occurrence.snapshotAtSeconds }),
@@ -250,6 +275,9 @@ export function analyzePlanningBenchmark32Candidate(
           ...reviewedDiscs.buckets,
         ],
         sourceRefs: occurrence.sourceRefs,
+        ...(occurrence.anomalyLifecycleByAgentId
+          ? { anomalyLifecycleByAgentId: occurrence.anomalyLifecycleByAgentId }
+          : {}),
       },
     ]
   }
@@ -264,6 +292,7 @@ export function analyzePlanningBenchmark32Candidate(
       eventId: string
       skillLevel: number
       occurrenceCount: number
+      durationSeconds?: number
       evidenceRefs: string[]
     }
   >()
@@ -277,6 +306,8 @@ export function analyzePlanningBenchmark32Candidate(
       evidenceRefs: occurrence.sourceRefs,
     }
     usage.occurrenceCount++
+    if (occurrence.durationSeconds !== undefined)
+      usage.durationSeconds = (usage.durationSeconds ?? 0) + occurrence.durationSeconds
     usageMap.set(eventKey(occurrence), usage)
   }
   // Named event/loadout readiness is independently derived. It does not grant
@@ -354,13 +385,14 @@ export function analyzePlanningBenchmark32Candidate(
     ],
   })
   context = calculationContext
-  const result = evaluateSourceBackedPlanningTeamDps({
+  runtimeInput32 = {
     memberIds: input.fit.memberIds,
     members: prepared.members,
     eventUsages: [...usageMap.values()],
     baseline,
     eventSchedule32: schedule,
-  })
+  }
+  const result = evaluateSourceBackedPlanningTeamDps(runtimeInput32)
   if (result.status !== 'supported' || !('eventResults' in result)) {
     payload.status = 'unsupported'
     payload.gaps.push(

@@ -21,7 +21,7 @@ export const reviewedClaretTapActionIdentity32 = Object.freeze({
   dumpCommit: '1277ebca4b8a7a6c3bcbaac6d5708dc9f4a55f23',
   sourcePath: 'libs/zzz/stats/Data/Characters/Claret.json',
   localizationPath: 'libs/zzz/dm-localization/assets/locales/en/char_Claret_gen.json',
-  contractRef: "soda-source-ref:6fdf9825b8238440b2a90bf52df1ab10",
+  contractRef: 'soda-source-ref:6fdf9825b8238440b2a90bf52df1ab10',
   scope: 'source-M0-P0-finite-prepared-tap-only',
 })
 

@@ -18,6 +18,14 @@ import { resolveSuggestedWEngineParameters } from '../pages/teamExecutionAttribu
 import type { TeamExecution, TeamExecutionMember } from './teamExecutionProjection'
 import { resolveSavedGraduationTarget } from './savedGraduationTargetContext'
 import { resolveReviewedZhaoHpTarget } from '../gameDataPacks/reviewedZhaoSupportTarget'
+import {
+  resolveSavedGraduationBuildObjective,
+  type SavedGraduationBuildObjective,
+} from './savedGraduationBuildObjective'
+import { candidatePanelInputForSchemeAgent } from '../optimizer/optimizeAccountBuildsPanelInput'
+import type { CurrentPlanningScenarioSelection32 } from '../application/publicPlanningScenarioContract'
+import type { ReviewedEventConditionDeclarations32 } from '../calculation/reviewedEventConditionDeclarations32'
+import { targetTeamBuildDirectionConditions } from '../application/targetTeamEffectivePotentialConditions'
 
 const graduationPanelKeys = [
   'hp',
@@ -80,7 +88,9 @@ export type GraduationMetricCompletion = {
   met: boolean
 }
 
-export type SavedTeamGraduationMemberCompletion =
+export type SavedTeamGraduationMemberCompletion = {
+  buildObjective?: SavedGraduationBuildObjective
+} & (
   | {
       status: 'scored'
       agentId: string
@@ -114,6 +124,7 @@ export type SavedTeamGraduationMemberCompletion =
       conditions: readonly string[]
       targetSourceIds: readonly string[]
     }
+)
 
 type SavedTeamGraduationCompletionBase = {
   members: readonly SavedTeamGraduationMemberCompletion[]
@@ -316,6 +327,8 @@ function evaluateMember(input: {
   execution: TeamExecution
   roster: AccountRoster
   discs: readonly DriveDisc[]
+  scenarioSelection?: CurrentPlanningScenarioSelection32
+  eventConditionDeclarationsByAgentId?: ReviewedEventConditionDeclarations32
 }): SavedTeamGraduationMemberCompletion {
   const member = input.execution.members.find((item) => item.agentId === input.agentId)
   const agent = input.roster.agents.find((item) => item.agentId === input.agentId && item.owned)
@@ -325,6 +338,10 @@ function evaluateMember(input: {
   if (!discs) return unknown(input.agentId, '已存方案缺少六个唯一且可找到的盘位。')
   const engine = savedPlanWEngine(member)
   if (!engine) return unknown(input.agentId, '已存方案没有可复算的计划音擎参数。')
+  const directionConditions = targetTeamBuildDirectionConditions({
+    memberIds: input.execution.memberIds,
+    roster: input.roster,
+  })
   const target = getCurrentBuildTargetPanel(input.agentId, {
     coreLevel: agent.skillLevels.core,
     specialLevel: agent.skillLevels.special,
@@ -332,9 +349,9 @@ function evaluateMember(input: {
     engineRefinement: engine.refinement,
     agentLevel: agent.level,
     mindscape: agent.mindscape,
+    memberIds: input.execution.memberIds,
+    ...directionConditions,
   })
-  if (!target || !target.sourceRefs.length)
-    return unknown(input.agentId, '当前版本没有可用的量化毕业面板目标。')
   // getCurrentBuildTargetPanel already requires a ready, version-qualified source.
   // Numeric panel source revisions are independent of the guide's reviewed version.
   const projection = currentProjection(agent, member, discs)
@@ -343,14 +360,50 @@ function evaluateMember(input: {
       input.agentId,
       projection?.reason ?? '当前角色、核心技或音擎进度没有可复算的数据。',
     )
-  const resolved = resolveSavedGraduationTarget({
+  const resolved = target
+    ? resolveSavedGraduationTarget({
+        agent,
+        engineId: engine.id,
+        engineRefinement: engine.refinement,
+        discs,
+        target,
+        memberIds: input.execution.memberIds,
+        ...directionConditions,
+      })
+    : null
+  const objective = resolveSavedGraduationBuildObjective({
     agent,
-    engineId: engine.id,
-    engineRefinement: engine.refinement,
-    discs,
-    target,
+    agents: input.roster.agents,
     memberIds: input.execution.memberIds,
+    discs,
+    panelInput: candidatePanelInputForSchemeAgent(agent, {
+      engineId: engine.id,
+      level: engine.level,
+      ascension: engine.ascension,
+      refinement: engine.refinement,
+    }),
+    target: resolved?.value,
+    scenarioSelection: input.scenarioSelection,
+    eventConditionDeclaration: input.eventConditionDeclarationsByAgentId?.[agent.agentId],
   })
+  if (objective?.referenceReason)
+    return {
+      status: 'reference',
+      agentId: input.agentId,
+      score: null,
+      reason: objective.referenceReason,
+      referenceMetrics: [],
+      conditions: objective.conditions,
+      targetSourceIds: [
+        ...new Set([
+          ...(target?.sourceRefs.map((source) => source.id) ?? []),
+          ...objective.evidence.sourceRefs,
+        ]),
+      ],
+      buildObjective: objective.evidence,
+    }
+  if (!target || !target.sourceRefs.length)
+    return unknown(input.agentId, '当前版本没有可用的量化毕业面板目标。')
   let scoreValues = projection.values
   if (
     (target.value &&
@@ -414,8 +467,9 @@ function evaluateMember(input: {
     agentId: input.agentId,
     score: scored.score,
     metrics: scored.metrics,
-    limitations: resolved?.limitations ?? [],
+    limitations: [...(resolved?.limitations ?? []), ...(objective?.conditions ?? [])],
     appliedConditions: resolved?.applied ?? [],
+    ...(objective ? { buildObjective: objective.evidence } : {}),
     targetStatus: target.status,
     targetSourceIds: target.sourceRefs.map((source) => source.id),
     targetGameVersion: target.gameVersion,
@@ -434,6 +488,8 @@ export function createSavedTeamGraduationCompletion(input: {
   execution: TeamExecution
   roster: AccountRoster
   discs: readonly DriveDisc[]
+  scenarioSelection?: CurrentPlanningScenarioSelection32
+  eventConditionDeclarationsByAgentId?: ReviewedEventConditionDeclarations32
 }): SavedTeamGraduationCompletion {
   const memberIds = input.execution.memberIds
   if (memberIds.length !== 3 || new Set(memberIds).size !== 3) {

@@ -16,6 +16,8 @@ import {
 } from './targetTeamAccountBoundBenchmark'
 import type { TargetTeamWarehouseFit } from './targetTeamWarehouseFit'
 import { resolveWEngine } from './wEngineResolver'
+import { compareReviewedLuminizeSettlements32 } from '../calculation/reviewedLuminizeSettlement32'
+import type { LuminizeEquipmentComparison32 } from '../application/publicLuminizeComparison32'
 
 const teamRuntimeIdentity = 'source-backed-target-team-fixed-event/v2'
 
@@ -141,7 +143,7 @@ function side(input: {
       progressionHash: projection?.progressionHash ?? null,
       bangbooId: memberOnly ? null : (parameters?.bangbooId ?? input.candidate.bangbooId),
     }),
-    scenario: `${input.benchmark.scenarioIdentity}:${stableContentHash(input.benchmark.eventConditionDeclarationsByAgentId)}${memberModel ? `:${memberModel.policyId}` : ''}`,
+    scenario: `${input.benchmark.scenarioIdentity}:${stableContentHash(input.benchmark.eventConditionDeclarationsByAgentId)}:${input.benchmark.resourceTimelineDeclarationIdentity32 ?? 'no-resource-timeline'}${memberModel ? `:${memberModel.policyId}` : ''}`,
     event_set: projection?.eventSetHash ?? input.benchmark.comparisonBaseline.baselineId,
     potential: projection?.potentialHash ?? 'unavailable',
     duration: String(input.benchmark.comparisonBaseline.declaredDurationSeconds),
@@ -226,6 +228,7 @@ export function projectTargetTeamValueBenchmark(input: {
   stale: boolean
   scenarioSelection?: TargetTeamPlanningContextInput['scenarioSelection']
   eventConditionDeclarationsByAgentId?: TargetTeamPlanningContextInput['eventConditionDeclarationsByAgentId']
+  resourceTimelineDeclaration32?: TargetTeamPlanningContextInput['resourceTimelineDeclaration32']
 }) {
   const savedTeamPlan = latestSavedTeamLoadouts({
     candidate: input.candidate,
@@ -301,7 +304,15 @@ export function projectTargetTeamValueBenchmark(input: {
       : []
   })
   const currentEquipmentParameters = allSavedPlans
-    ? input.equipmentParameters
+    ? input.equipmentParameters && {
+        ...input.equipmentParameters,
+        ...(savedTeamPlan?.teamEquipmentParameters?.resourceTimelineDeclaration32 === undefined
+          ? {}
+          : {
+              resourceTimelineDeclaration32:
+                savedTeamPlan.teamEquipmentParameters.resourceTimelineDeclaration32,
+            }),
+      }
     : allCurrentEquipment &&
         input.equipmentParameters &&
         currentWEngines.length === input.candidate.memberIds.length
@@ -321,6 +332,15 @@ export function projectTargetTeamValueBenchmark(input: {
                   input.equipmentParameters.koledaFixedEventConditions32,
               }
             : {}),
+          ...(input.equipmentParameters.luminizeComparison32 === undefined
+            ? {}
+            : { luminizeComparison32: input.equipmentParameters.luminizeComparison32 }),
+          ...(input.equipmentParameters.resourceTimelineDeclaration32 === undefined
+            ? {}
+            : {
+                resourceTimelineDeclaration32:
+                  input.equipmentParameters.resourceTimelineDeclaration32,
+              }),
         }
       : undefined
   const ready =
@@ -353,6 +373,10 @@ export function projectTargetTeamValueBenchmark(input: {
   const currentBenchmark = projectTargetTeamAccountBoundBenchmark({
     scenarioSelection: input.scenarioSelection,
     eventConditionDeclarationsByAgentId: input.eventConditionDeclarationsByAgentId,
+    resourceTimelineDeclaration32:
+      currentEquipmentParameters?.resourceTimelineDeclaration32 ??
+      input.resourceTimelineDeclaration32,
+    sourceInputFingerprint: input.targetBenchmark.sourceInputFingerprint,
     warehouse: input.warehouse,
     candidate: input.candidate,
     fit: currentFit,
@@ -389,7 +413,55 @@ export function projectTargetTeamValueBenchmark(input: {
       ? []
       : (['w_engine'] as const)),
   ]
+  const currentLuminize = currentBenchmark.luminizeSnapshot32
+  const candidateLuminize = input.targetBenchmark.luminizeSnapshot32
+  let luminizeComparison32: LuminizeEquipmentComparison32 | undefined
+  if (currentLuminize || candidateLuminize) {
+    const boundary = candidateLuminize?.boundary ?? currentLuminize!.boundary
+    const unavailable = (status: 'unsupported' | 'stale', blockers: string[]) => ({
+      status,
+      currentDamage: null,
+      candidateDamage: null,
+      delta: null,
+      basis: 'account_equipment_static_preparation' as const,
+      boundary,
+      blockers,
+    })
+    if (input.stale) {
+      luminizeComparison32 = unavailable('stale', ['账户或仓库已变化，请重新比较辉映。'])
+    } else if (
+      currentLuminize?.status !== 'supported' ||
+      candidateLuminize?.status !== 'supported' ||
+      !currentLuminize.snapshot ||
+      !candidateLuminize.snapshot
+    ) {
+      luminizeComparison32 = unavailable('unsupported', [
+        ...new Set([
+          ...(currentLuminize?.blockers ?? ['比较基线缺少完整的账号配装快照。']),
+          ...(candidateLuminize?.blockers ?? ['候选方案缺少完整的账号配装快照。']),
+        ]),
+      ])
+    } else {
+      const compared = compareReviewedLuminizeSettlements32(
+        currentLuminize.snapshot.declaration,
+        candidateLuminize.snapshot.declaration,
+      )
+      luminizeComparison32 =
+        compared.status === 'declared_comparison'
+          ? {
+              status: 'supported',
+              currentDamage: compared.currentDamage,
+              candidateDamage: compared.candidateDamage,
+              delta: compared.delta,
+              basis: 'account_equipment_static_preparation',
+              boundary,
+              blockers: [],
+            }
+          : unavailable('unsupported', ['两侧辉映事件、目标或快照准备条件不一致。'])
+    }
+  }
   return {
+    ...(luminizeComparison32 === undefined ? {} : { luminizeComparison32 }),
     ...compareValueBenchmarkSides({
       baseline: side({
         benchmark: currentBenchmark,

@@ -137,7 +137,7 @@ export type GoldenWorkbenchData = {
       recommended: string
       priority: boolean
       key?: string
-      targetLevel?: number
+      targetLevel?: number | null
       targetType?: 'exact_integer' | 'minimum_reference' | 'soda_derived'
       exactTarget?: number | null
       minimumReference?: number | null
@@ -324,6 +324,8 @@ export type AgentDevelopmentGoldenProps = {
   /** Replaces a prior frozen candidate snapshot with a fresh bounded, read-only solve. */
   onReanalyzeWarehouse?: () => void | Promise<void>
   comparisonScenarioControl?: import('react').ReactNode
+  comparisonEquipmentControl?: import('react').ReactNode
+  onComparisonDetailsOpen?: (candidateRank: number) => void
   /** Kept for isolated component tests; production always uses the shared AppShell. */
   embedded?: boolean
 }

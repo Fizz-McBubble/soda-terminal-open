@@ -87,6 +87,16 @@ export type TargetTeamWarehouseFitQuery = {
   equipmentParameters?: TargetTeamEquipmentParameterSelection
   eventConditionDeclarationsByAgentId?: import('../calculation/reviewedEventConditionDeclarations32').ReviewedEventConditionDeclarations32
   scenarioSelection?: CurrentPlanningScenarioSelection32
+  /** Reuse conditions issued for this run's exact eighteen-disc comparison. */
+  declaredEventComparison32?: Pick<
+    PlanningBenchmark32Query,
+    'fitFingerprint' | 'sourceBindingFingerprint' | 'declarations'
+  > & {
+    sourceBindingFingerprint: string
+    declarations: NonNullable<PlanningBenchmark32Query['declarations']>
+  }
+  /** Standard reference has its own issued cultivation, eighteen facts and vocabulary. */
+  standardReference32?: import('./targetTeamStandardReference32').TargetTeamStandardReferenceRequest32
   /** Private producer resolves a player-confirmed Bangboo into the exact equipment parameters. */
   playerBangbooSelection?: {
     teamKey: string
@@ -134,6 +144,11 @@ export type SavedTeamSolutionComponentsQuery = {
 
 export type TargetTeamWarehouseFitQueryResult =
   import('../decision/targetTeamWarehouseFit').TargetTeamWarehouseFit & {
+    /** Finite declared events; never substituted for the legacy normalized benchmark. */
+    declaredEventBenchmark32?: import('./publicPlanningBenchmark32').PlanningBenchmarkResult32
+    standardReference32?: import('./targetTeamStandardReference32').TargetTeamStandardReferenceResult32
+    /** Exact request needed to reissue the independently saved standard goal. */
+    standardReferenceRequest32?: import('./targetTeamStandardReference32').TargetTeamStandardReferenceRequest32
     eventConditionDeclarationsByAgentId?: import('../calculation/reviewedEventConditionDeclarations32').ReviewedEventConditionDeclarations32
     eventConditionDeclarationsIdentity?: string
     scenarioSelection?: CurrentPlanningScenarioSelection32
@@ -166,6 +181,8 @@ export type DevelopmentCandidateAlternativesQuery = {
   candidateParametersByRank?: Readonly<
     Record<number, import('../decision/developmentValueBenchmark').DevelopmentComparisonParameters>
   >
+  /** Optional work inside the existing detailed comparison, bound to its issued six discs. */
+  wEngineComparison?: import('./publicDevelopmentWEngineComparison').DevelopmentWEngineComparisonSelection
   eventConditionDeclarationsByAgentId?: import('../calculation/reviewedEventConditionDeclarations32').ReviewedEventConditionDeclarations32
   scenarioSelection?: CurrentPlanningScenarioSelection32
   resourceGrantDeclaration32?: import('../calculation/sourceMechanismResourceGrants32').SourceResourceGrantDeclaration32
@@ -180,6 +197,7 @@ export type DevelopmentWorkbenchRouteQuery = {
 }
 
 export type DevelopmentCandidateAlternativesQueryResult = {
+  wEngineComparison?: import('./publicDevelopmentWEngineComparison').DevelopmentWEngineComparisonDto
   resourceGrantDeclaration32?: import('../calculation/sourceMechanismResourceGrants32').SourceResourceGrantDeclaration32
   eventConditionDeclarationsByAgentId?: import('../calculation/reviewedEventConditionDeclarations32').ReviewedEventConditionDeclarations32
   eventConditionDeclarationsIdentity?: string
@@ -199,7 +217,7 @@ export type DevelopmentCandidateAlternativesQueryResult = {
     reviewedEvent32?:
       | import('./publicReviewedIncrementalEvent32').ReviewedIncrementalEventMetadata32
       | null
-    wEngines: Array<{ engineId: string; name: string }>
+    wEngines: import('./publicDevelopmentWEngineComparison').DevelopmentWEngineOption[]
     potentialSupported: boolean
   }
   candidateParametersByRank?: Readonly<

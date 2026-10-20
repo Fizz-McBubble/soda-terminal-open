@@ -26,6 +26,9 @@ export type TeamLoadoutOverviewItem = {
   deploymentOrder?: import('../decision/teamDeployment').TeamDeploymentOrder
   coreAgentIds: string[]
   mechanism: string
+  outputModule?:
+    | import('../gameDataPacks/teamOutputModuleContract').TeamOutputModuleResolution
+    | null
   bangbooId: string | null
   bangbooLabel: string
   bangbooReason?: string | null
@@ -65,6 +68,7 @@ export type TeamLoadoutOverviewItem = {
   /** Exact-team local editorial analysis supplied by Decision Authority. */
   ratingAnalysis?: ReviewedTeamAnalysis | null
   /** Authority-owned recommendation index. It is not damage or a band conversion. */
+  /** Mechanism-weighted diagnostic only; never player-facing strength or order. */
   recommendationScore?: number | null
   graduationCompletion?:
     | import('../decision/savedTeamGraduationCompletion').SavedTeamGraduationCompletion

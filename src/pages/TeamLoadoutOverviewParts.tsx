@@ -15,6 +15,7 @@ import {
   ratingTitle,
   referenceSummary,
 } from './teamRatingPresentation'
+import { teamOutputModuleLabel } from './teamOutputModulePresentation'
 export {
   TeamSavedPlanList,
   TeamCompletionCandidates,
@@ -330,6 +331,9 @@ export function TeamPreview({
             <p className="f5v-box-team-favorite-match">{item.favoriteLabel}</p>
           ) : null}
           {ratingExplanation(item) ? <p>{ratingExplanation(item)}</p> : null}
+          {item.outputModule?.status === 'classified' ? (
+            <p>体系：{teamOutputModuleLabel(item.outputModule.module)}</p>
+          ) : null}
           {item.kind === 'saved' ? (
             <GraduationCompletionLabel completion={item.graduationCompletion} />
           ) : null}

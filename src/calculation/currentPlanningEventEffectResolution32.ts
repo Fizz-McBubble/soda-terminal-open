@@ -1,5 +1,6 @@
 import {
   getCurrentAgentPlanningEffectBlueprint,
+  currentAgentPlanningEffectBlueprints,
   type CurrentAgentPlanningEffectBlueprint,
 } from './currentAgentPlanningEffectBlueprint'
 import { stableContentHash } from '../gameDataPacks/types'
@@ -8,7 +9,11 @@ import { getCurrentAgentEventContract } from './currentAgentMechanicContracts'
 import { applyReviewedWEngineReceiverSemantics32 } from './reviewedWEngineReceiverSemantics32'
 import { applyReviewedSpringEmbraceReceivers32 } from './reviewedSpringEmbraceReceivers32'
 import { evaluateCurrentPlanningEffectEntries32 } from './currentPlanningEffectRuntime'
-import { statReferences, type PlanningEffectRuntimeMember } from './currentPlanningEffectDomain'
+import {
+  statReferences,
+  planningObservedReferences32,
+  type PlanningEffectRuntimeMember,
+} from './currentPlanningEffectDomain'
 import {
   effectReceiverMetadata,
   effectAttributeForReceiver,
@@ -27,7 +32,11 @@ import {
   panMeridianFlowEffectKey32,
   panMeridianFlowIncomingReference32,
 } from './currentPlanningDamageModifiers'
-import { planningRuntimeEffectBuckets32 } from './currentPlanningSelfEffects32'
+import {
+  planningRuntimeEffectBuckets32,
+  planningRuntimeEffectReceipts32,
+} from './currentPlanningSelfEffects32'
+import { reduceObservedPlanningEffect32 } from './planningKnownInactiveEffects32'
 import { bindReviewedClaretIntrinsicAction32 } from './reviewedClaretIntrinsicAction32'
 import { bindReviewedPlanningConditionSemantics32 } from './reviewedPlanningConditionSemantics32'
 import { bindReviewedRoxyAttributeWindows32 } from './reviewedRoxyAttributeWindows32'
@@ -56,9 +65,11 @@ import {
   evaluateReviewedDriveDiscFinalNode32,
   deduplicateReviewedDriveDiscEffects32,
 } from './reviewedDriveDiscEventEffects32'
+import { bindPlanningAnomalyLifecycleReferences32 } from './currentPlanningAnomalyLifecycle32'
 
 type EventScope = {
   eventId: string
+  targetId?: string
   actionId: string
   skill: string
   damageType?: string
@@ -77,6 +88,7 @@ export function resolveCurrentPlanningEventEffects32(input: {
   attribute: string
   buckets: readonly SourceBackedPlanningEffectBucket[]
   entries: readonly CurrentAgentPlanningEffectBlueprint[]
+  disabledSupportProviderIds?: readonly string[]
   baselineReferencesByAgentId?: Readonly<Record<string, Readonly<Record<string, unknown>>>>
   commonAnomalyObservations?: readonly CommonAnomalyEventObservation32[]
 }) {
@@ -94,16 +106,26 @@ export function resolveCurrentPlanningEventEffects32(input: {
     )
   )
     return { status: 'unsupported' as const, blockers: ['事件效果缺少唯一真实成员或受益者。'] }
-  const references = Object.fromEntries(
-    input.memberIds.map((id) => [
-      id,
-      {
-        ...input.baselineReferencesByAgentId?.[id],
-        ...(common.observation === null ? {} : { windswept: common.observation }),
-      },
-    ]),
-  )
-  for (const bucket of input.buckets.filter(
+  const disabledProviders = new Set(input.disabledSupportProviderIds ?? [])
+  const activeBuckets = input.buckets.filter((row) => !disabledProviders.has(row.providerAgentId))
+  const references: Record<string, Record<string, unknown>> = {}
+  for (const id of input.memberIds) {
+    const bound = bindPlanningAnomalyLifecycleReferences32({
+      references: input.baselineReferencesByAgentId?.[id],
+      memberIds: input.memberIds,
+      eventId: input.event.eventId,
+      ownerAgentId: input.ownerAgentId,
+      targetId: input.event.targetId,
+      providerAgentId: id,
+      providerMindscape: input.members.find((member) => member.agentId === id)?.mindscape,
+    })
+    if (bound.status !== 'supported') return bound
+    references[id] = {
+      ...planningObservedReferences32(bound.references),
+      ...(common.observation === null ? {} : { windswept: common.observation }),
+    }
+  }
+  for (const bucket of activeBuckets.filter(
     (row) => row.effectKey === panMeridianFlowEffectKey32,
   )) {
     const bound = bindPanMeridianFlowRecipient32({
@@ -124,7 +146,7 @@ export function resolveCurrentPlanningEventEffects32(input: {
       }
   }
   // Stat dependencies can use another member's unconditional combat stat, but cannot infer that member's action.
-  const scoped = input.buckets.filter((bucket) =>
+  const scoped = activeBuckets.filter((bucket) =>
     bucket.recipientAgentIds.includes(input.ownerAgentId)
       ? matchesEventScope(bucket, input.event, input.attribute)
       : !bucket.action && !bucket.damageType && bucket.applicationScope !== 'event_only',
@@ -137,7 +159,112 @@ export function resolveCurrentPlanningEventEffects32(input: {
     sourceRefs: string[]
   }> = []
   const actorKeys = new Set<string>()
-  for (const entry of input.entries) {
+  const entries = new Map(
+    input.entries
+      .filter((entry) => !disabledProviders.has(entry.providerAgentId))
+      .map((entry) => [entry.effectKey, entry]),
+  )
+  // The ordinary production caller historically selected only upstream IR.
+  // This reviewed source conversion must participate in the same event DAG.
+  if (input.memberIds.includes('agent-norma')) {
+    const conversion = getCurrentAgentPlanningEffectBlueprint(
+      'agent-norma:reviewed_sheer_force_attack32',
+    )!
+    entries.set(conversion.effectKey, conversion)
+  }
+  const refsFor = (entry: CurrentAgentPlanningEffectBlueprint) => {
+    const extracted = extractUpstreamEffectValueIr(entry.numericExpression.expressionIr)
+    if (extracted.status !== 'supported') return []
+    const member = input.members.find((row) => row.agentId === entry.providerAgentId)
+    const reduced =
+      member &&
+      reduceObservedPlanningEffect32(
+        entry,
+        member,
+        references[entry.providerAgentId],
+        input.memberIds,
+      )
+    return requiredReferences(
+      reduced?.expression ?? (extracted.value as UpstreamExpressionIR),
+    ).filter((ref) => /^(own|target)\.final\./.test(ref) || ref === 'own.combat.crit_dmg_')
+  }
+  const possibleRecipients = (entry: CurrentAgentPlanningEffectBlueprint) => {
+    const meta = effectReceiverMetadata(entry.numericExpression.expressionIr)
+    return entry.effectKey === panMeridianFlowEffectKey32
+      ? input.memberIds.filter((id) => id !== entry.providerAgentId)
+      : recipientIds({ ...entry, memberIds: input.memberIds, receiverPath: meta.receiverPath })
+  }
+  const demandedStats = () =>
+    new Set(
+      [...entries.values()].flatMap((entry) =>
+        refsFor(entry).flatMap((ref) =>
+          ref === 'own.combat.crit_dmg_'
+            ? [dependency(entry.providerAgentId, 'combatCritDamage32')]
+            : ref.startsWith('own.')
+              ? [dependency(entry.providerAgentId, ref.slice(10))]
+              : possibleRecipients(entry).map((id) => dependency(id, ref.slice(13))),
+        ),
+      ),
+    )
+  const coverage = new Map<string, Set<string>>(
+    input.memberIds.flatMap((id) =>
+      ['combatCritDamage32', 'sheerForce'].map(
+        (stat) => [dependency(id, stat), new Set<string>()] as const,
+      ),
+    ),
+  )
+  const donorKeys = new Set<string>()
+  // Inventory the actual formation's eligible producers, even when the caller
+  // supplies only a consumer. A missing bucket is never a coverage receipt.
+  let expanded = true
+  while (expanded) {
+    expanded = false
+    const demanded = demandedStats()
+    for (const donor of currentAgentPlanningEffectBlueprints) {
+      if (
+        !input.memberIds.includes(donor.providerAgentId) ||
+        disabledProviders.has(donor.providerAgentId) ||
+        (donor.numericExpression.sourceStatus !== 'upstream_expression_available' &&
+          !isReviewedTemplateMechanicEffect32(donor))
+      )
+        continue
+      const meta = effectReceiverMetadata(donor.numericExpression.expressionIr)
+      const application = applicationForReceiver(meta.receiverPath)
+      const stat =
+        application === 'sheer_force'
+          ? 'sheerForce'
+          : application === 'crit_damage' && meta.receiverPath?.includes('.combat.')
+            ? 'combatCritDamage32'
+            : null
+      if (!stat) continue
+      const scope = {
+        effectKey: donor.effectKey,
+        effectId: donor.effectId,
+        applicationScope: donor.applicationScope,
+        action: null,
+        damageType: meta.damageType,
+        attribute: effectAttributeForReceiver(meta.receiverPath),
+      }
+      const recipients = possibleRecipients(donor).filter((id) =>
+        id === input.ownerAgentId
+          ? matchesEventScope(scope, input.event, input.attribute)
+          : !meta.damageType && donor.applicationScope !== 'event_only',
+      )
+      for (const id of recipients) {
+        const key = dependency(id, stat)
+        const sources = coverage.get(key) ?? new Set<string>()
+        sources.add(donor.effectKey)
+        coverage.set(key, sources)
+        if (!demanded.has(key)) continue
+        donorKeys.add(donor.effectKey)
+        if (!entries.has(donor.effectKey)) {
+          entries.set(donor.effectKey, donor)
+          expanded = true
+        }
+      }
+    }
+  }
+  for (const entry of entries.values()) {
     const panTransfer = entry.effectKey === panMeridianFlowEffectKey32
     let declaredRecipientAgentIds: readonly string[] | undefined
     if (panTransfer) {
@@ -160,6 +287,19 @@ export function resolveCurrentPlanningEventEffects32(input: {
           fields: ['meridian_flow', panMeridianFlowIncomingReference32],
           sourceRefs: effect.sourceRefs,
         })
+        if (donorKeys.has(entry.effectKey)) {
+          const producerReceipts = planningRuntimeEffectReceipts32(
+            transfer.results,
+            input.memberIds,
+          )
+          nodes.push({
+            id: entry.effectKey,
+            reads: [],
+            writes: possibleRecipients(entry).map((id) => dependency(id, 'sheerForce')),
+            evaluate: () => ({ status: 'supported', buckets: [], producerReceipts }),
+          })
+          actorKeys.add(entry.effectKey)
+        }
         continue
       }
       if (effect?.status !== 'supported')
@@ -170,7 +310,7 @@ export function resolveCurrentPlanningEventEffects32(input: {
     if (extracted.status !== 'supported') return extracted
     // Extraction returns a subtree of the already typed source root, not an evaluated scalar.
     const expression = extracted.value as UpstreamExpressionIR
-    const refs = requiredReferences(expression).filter((ref) => /^(own|target)\.final\./.test(ref))
+    const refs = refsFor(entry)
     // Explicit common state can activate a previously neutral character Windswept branch.
     const commonDependent =
       common.observation !== null && requiredReferences(expression).includes('windswept')
@@ -212,12 +352,16 @@ export function resolveCurrentPlanningEventEffects32(input: {
     if (roxyTrigger.status !== 'supported') return roxyTrigger
     if (
       !refs.length &&
+      !requiredReferences(expression).some(
+        (ref) => /^(own|target)\.final\./.test(ref) || ref === 'own.combat.crit_dmg_',
+      ) &&
       !commonDependent &&
       !intrinsic.active &&
       !semantics.active &&
       !harmony.active &&
       !roxyWindow.active &&
       !roxyTrigger.active &&
+      !donorKeys.has(entry.effectKey) &&
       !panTransfer
     )
       continue
@@ -256,7 +400,7 @@ export function resolveCurrentPlanningEventEffects32(input: {
         })
       continue
     }
-    const recipients = recipientIds({
+    let recipients = recipientIds({
       targetKinds: entry.targetKinds,
       providerAgentId: entry.providerAgentId,
       memberIds: input.memberIds,
@@ -264,6 +408,8 @@ export function resolveCurrentPlanningEventEffects32(input: {
       effectKey: entry.effectKey,
       declaredRecipientAgentIds,
     })
+    if (panTransfer && donorKeys.has(entry.effectKey) && !recipients.length)
+      recipients = possibleRecipients(entry)
     const scope = {
       effectKey: entry.effectKey,
       effectId: entry.effectId,
@@ -286,18 +432,30 @@ export function resolveCurrentPlanningEventEffects32(input: {
     nodes.push({
       id: entry.effectKey,
       reads: refs.flatMap((ref) =>
-        ref.startsWith('own.')
-          ? [dependency(entry.providerAgentId, ref.slice(10))]
-          : recipients.map((id) => dependency(id, ref.slice(13))),
+        ref === 'own.combat.crit_dmg_'
+          ? [dependency(entry.providerAgentId, 'combatCritDamage32')]
+          : ref.startsWith('own.')
+            ? [dependency(entry.providerAgentId, ref.slice(10))]
+            : recipients.map((id) => dependency(id, ref.slice(13))),
       ),
-      writes: planningEffectWrittenStats32({ application, recipientAgentIds: recipients }),
+      writes: planningEffectWrittenStats32({
+        application,
+        recipientAgentIds:
+          panTransfer && donorKeys.has(entry.effectKey) ? possibleRecipients(entry) : recipients,
+        receiverPath: meta.receiverPath,
+      }),
       evaluate: (stats) => {
+        const combatCritDamage = stats[entry.providerAgentId]?.combatCritDamage32
         const result = evaluateCurrentPlanningEffectEntries32(
           {
             memberIds: input.memberIds,
             members: input.members,
             baselineReferencesByAgentId:
-              intrinsic.active || semantics.active || roxyWindow.active || roxyTrigger.active
+              intrinsic.active ||
+              semantics.active ||
+              roxyWindow.active ||
+              roxyTrigger.active ||
+              combatCritDamage !== undefined
                 ? {
                     ...references,
                     [entry.providerAgentId]: {
@@ -306,6 +464,9 @@ export function resolveCurrentPlanningEventEffects32(input: {
                       ...roxyWindow.overrides,
                       ...roxyTrigger.overrides,
                       ...(intrinsic.active ? { crimsonInscription: true } : {}),
+                      ...(combatCritDamage === undefined
+                        ? {}
+                        : { 'own.combat.crit_dmg_': combatCritDamage }),
                     },
                   }
                 : references,
@@ -334,6 +495,7 @@ export function resolveCurrentPlanningEventEffects32(input: {
           return { status: 'unsupported', blockers: [`来源TODO条件未闭合：${entry.effectKey}`] }
         return {
           status: 'supported',
+          producerReceipts: planningRuntimeEffectReceipts32(result.results, input.memberIds),
           buckets: planningRuntimeEffectBuckets32(result.results, input.memberIds).map(
             (bucket) => ({
               ...bucket,
@@ -452,6 +614,10 @@ export function resolveCurrentPlanningEventEffects32(input: {
       ...common.buckets,
     ],
     nodes,
+    producerCoverage: [...coverage].map(([stat, effectKeys]) => ({
+      stat,
+      effectKeys: [...effectKeys],
+    })),
   })
   if (result.status !== 'supported') return result
   const uniqueDiscs = deduplicateReviewedDriveDiscEffects32(result.buckets)

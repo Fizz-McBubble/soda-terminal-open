@@ -71,9 +71,17 @@ export type PlanningSolutionContext = {
   exactVariantKey: string | null
   scenarioSelection?: import('../application/publicPlanningScenarioContract').CurrentPlanningScenarioSelection32
   scenarioIdentity?: string
+  /** Independently issued standard reference; absent on historical plans and account-only runs. */
+  standardReference32?: import('../application/targetTeamStandardReference32').TargetTeamStandardReferenceResult32
+  /** Exact source/declaration request that can be reissued against the current run. */
+  standardReferenceRequest32?: import('../application/targetTeamStandardReference32').TargetTeamStandardReferenceRequest32
   eventConditionDeclarationsByAgentId?: import('../calculation/reviewedEventConditionDeclarations32').ReviewedEventConditionDeclarations32
   eventConditionDeclarationsIdentity?: string
   resourceGrantDeclaration32?: import('../calculation/sourceMechanismResourceGrants32').SourceResourceGrantDeclaration32
+  resourceTimelineDeclaration32?: import('../calculation/resourceTimelineDeclarationContract32').ResourceTimelineDeclaration32
+  resourceTimelineDeclarationIdentity32?: string
+  /** Exact declared Luminize volley inputs; the reviewed source is rechecked on current replay. */
+  declaredLuminizeSettlement32?: import('./luminizePlanPersistence32').SavedDeclaredLuminizeSettlement32
   /** Explicit comparison choices, saved only with the player-owned proposal. */
   comparisonParameters?: {
     wEngine?: { engineId: string; level: number; ascension?: number; refinement: number }

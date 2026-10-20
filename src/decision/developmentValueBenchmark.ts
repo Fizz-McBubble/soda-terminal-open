@@ -313,3 +313,11 @@ export function projectDevelopmentValueBenchmarks(
     }
   })
 }
+
+export {
+  createComparableGroupIdentity,
+  projectDevelopmentWEngineValueBenchmarks,
+  type DevelopmentWEngineBenchmarkInput,
+  type DevelopmentWEngineBenchmarkEntry,
+  type DevelopmentWEngineBenchmarkResult,
+} from './developmentValueBenchmarkWEngine'

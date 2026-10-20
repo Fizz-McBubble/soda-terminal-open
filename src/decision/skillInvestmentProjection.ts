@@ -131,19 +131,48 @@ export function projectSkillNextLevelDisplay(
     gainText = growths.length ? `${growths.join('，')}（静态成长）` : '本级没有额外面板属性。'
   } else if ('events' in evidence && Array.isArray(evidence.events)) {
     const supportedEvents = evidence.events.filter((e) => e.status === 'supported')
-    const coefficientRange = (key: 'damageCoefficient' | 'dazeCoefficient', label: string) => {
+    const coefficientRange = (
+      key: 'damageCoefficient' | 'dazeCoefficient' | 'anomalyCoefficient',
+      label: string,
+    ) => {
       const gains = supportedEvents.flatMap((event) => {
-        const value = event[key]?.relativeGain
-        return value == null || !Number.isFinite(value) ? [] : [value]
+        const value = event.status === 'supported' ? event[key]?.relativeGain : null
+        return value == null || !Number.isFinite(value) || value <= 0 ? [] : [value]
       })
       if (!gains.length) return ''
       const min = formatPercent(Math.min(...gains))
       const max = formatPercent(Math.max(...gains))
       return `${label} +${min}${min === max ? '' : `～${max}`}`
     }
+    const resourceRange = () => {
+      const energyGains = supportedEvents.flatMap((event) => {
+        const deltaVal =
+          event.status === 'supported' ? event.resourceRecoveryGains?.energy?.delta : null
+        return deltaVal && deltaVal > 0 ? [deltaVal] : []
+      })
+      const decibelGains = supportedEvents.flatMap((event) => {
+        const deltaVal =
+          event.status === 'supported' ? event.resourceRecoveryGains?.decibels?.delta : null
+        return deltaVal && deltaVal > 0 ? [deltaVal] : []
+      })
+      const res: string[] = []
+      if (energyGains.length) {
+        const min = Math.min(...energyGains)
+        const max = Math.max(...energyGains)
+        res.push(`能量积蓄 +${min === max ? min : `${min}～${max}`}`)
+      }
+      if (decibelGains.length) {
+        const min = Math.min(...decibelGains)
+        const max = Math.max(...decibelGains)
+        res.push(`喧响值 +${min === max ? min : `${min}～${max}`}`)
+      }
+      return res.join('，')
+    }
     const parts = [
       coefficientRange('damageCoefficient', '伤害倍率'),
       coefficientRange('dazeCoefficient', '失衡倍率'),
+      coefficientRange('anomalyCoefficient', '属性积蓄'),
+      resourceRange(),
     ].filter(Boolean)
     gainText = parts.join('，') || '本级没有可对比的技能倍率。'
     if (parts.length && evidence.status === 'partial') gainText += '（已覆盖招式）'

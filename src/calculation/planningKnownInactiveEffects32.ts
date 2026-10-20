@@ -15,6 +15,7 @@ import {
   extractUpstreamEffectValueIr,
   type UpstreamExpressionIR,
 } from './currentUpstreamExpressionIR'
+import { planningAnomalyLifecycleEffectInactive32 } from './currentPlanningAnomalyLifecycleIdentity32'
 
 /** Only factual growth, team activation and explicitly declared action conditions
  * may close a branch. Missing observations are deliberately absent, never zero.
@@ -26,6 +27,8 @@ export function reduceObservedPlanningEffect32(
   memberIds: readonly string[] = [member.agentId],
 ) {
   if (entry.numericExpression.sourceStatus !== 'upstream_expression_available') return null
+  if (planningAnomalyLifecycleEffectInactive32(entry.effectKey, observations))
+    return { expression: { kind: 'literal', value: 0 } as UpstreamExpressionIR, inactive: true }
   const contract = getCurrentAgentDecisionMechanicContract(member.agentId)
   const extracted = extractUpstreamEffectValueIr(entry.numericExpression.expressionIr)
   if (!contract || extracted.status !== 'supported') return null

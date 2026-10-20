@@ -47,6 +47,7 @@ export interface RetentionBlocker {
   readonly sourceIds: readonly string[]
 }
 export interface RetentionNextAction {
+  readonly basis?: 'complete_build_positive_use' | 'finite_luminize_static_preparation_positive_use'
   readonly kind:
     | 'keep'
     | 'try_upgrade'

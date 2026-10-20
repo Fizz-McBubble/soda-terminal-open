@@ -66,8 +66,9 @@ describe('observed potential and shared panel inputs', () => {
         createAgentDevelopmentPanelProjection({ agent, discs, ...selection }).result.values,
       ).toEqual(direct.values)
     }
-    // Observing potential does not invent a reviewed optimizer policy for Rina.
-    expect(candidatePanelInputForAgent(agent)).toBeUndefined()
+    // Exact progression may feed declared fixed events; it does not invent a
+    // panel threshold or an active event policy for this character.
+    expect(candidatePanelInputForAgent(agent)).toMatchObject({ potentialImage: 5, core: 5 })
   })
 
   it.each([0, 5, undefined])(

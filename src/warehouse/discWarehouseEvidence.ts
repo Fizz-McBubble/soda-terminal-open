@@ -146,6 +146,7 @@ export type WarehouseAnalysisInput = {
   discs: DriveDisc[]
   roster: AccountRoster
   drafts: AccountPlanningDraft[]
+  savedTeamBuildIntentsByDraftId?: import('./warehouseSavedTeamObjective').WarehouseSavedTeamBuildIntents
   activePlanIds?: Readonly<Record<string, string | null | undefined>>
   priorityAgentIds?: readonly string[]
   selectedTeamAgentIds?: readonly (readonly string[])[]

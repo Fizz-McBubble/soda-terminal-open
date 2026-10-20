@@ -30,11 +30,11 @@ const delta = (before: number, after: number) => ({
   relativeGain: before === 0 ? null : (after - before) / before,
 })
 export const skillInvestmentNextLevelIdentity = Object.freeze({
-  revision: 'source-event-next-paid-level-r1',
+  revision: 'source-event-next-paid-level-r2',
   eventSource: currentAgentMechanicIdentity,
   materials: skillInvestmentMaterialsIdentity,
   boundary:
-    'same named event coefficient; damage and daze separate; no frequency, rotation, damage total or resource ROI',
+    'same named event coefficient; damage, daze and anomaly buildup separate; resource recovery tracked; no frequency, rotation, damage total or resource ROI',
   baseCombatCap: 12,
   coreCap: 7,
 })
@@ -158,6 +158,21 @@ export function evaluateSkillInvestmentNextLevel(input: SkillInvestmentNextLevel
         : ('coefficient_use' as const),
       damageCoefficient: delta(before.damageMultiplier, after.damageMultiplier),
       dazeCoefficient: delta(before.dazeMultiplier, after.dazeMultiplier),
+      anomalyCoefficient: delta(before.anomalyBuildup, after.anomalyBuildup),
+      resourceRecoveryGains:
+        before.resourceRecovery?.status === 'supported' &&
+        after.resourceRecovery?.status === 'supported'
+          ? {
+              energy: delta(
+                before.resourceRecovery.energy.value,
+                after.resourceRecovery.energy.value,
+              ),
+              decibels: delta(
+                before.resourceRecovery.decibels.value,
+                after.resourceRecovery.decibels.value,
+              ),
+            }
+          : null,
       sourceRefs: [
         `${contract.source.statsPath}#${contract.source.statsSha256}:${event.eventId}`,
         `${contract.source.formulaPath}#${contract.source.formulaSha256}`,

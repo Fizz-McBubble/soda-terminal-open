@@ -1,5 +1,6 @@
 import type { ReviewedTeamAnalysis } from '../decision/reviewedTeamAnalysis'
 import { localAnalysisRatingLabel } from './teamLocalAnalysisPresentation'
+import { genericTeamRatingScopeCopy } from './teamRatingText'
 
 /** Compact player-facing marker. Detailed provenance remains in Decision Authority. */
 export function TeamLocalAnalysisEvidence({
@@ -9,5 +10,9 @@ export function TeamLocalAnalysisEvidence({
   analysis: ReviewedTeamAnalysis
   recommendationScore?: number | null
 }) {
-  return <span title="队伍强度参考">{localAnalysisRatingLabel(analysis, recommendationScore)}</span>
+  return (
+    <span title={genericTeamRatingScopeCopy.title}>
+      {localAnalysisRatingLabel(analysis, recommendationScore)}
+    </span>
+  )
 }

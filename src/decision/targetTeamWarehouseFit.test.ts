@@ -1,10 +1,11 @@
+import { legalSubStats } from '../gameDataPacks/candidateWarehouseConstraint.testFixture'
 import { describe, expect, it } from 'vitest'
 import { createEmptyRoster } from '../assault/catalog'
 import { n4ValidationDisc } from '../testing/n4RecommendationValidationFixture'
 import { calculateTargetTeamWarehouseFit } from './targetTeamWarehouseFit'
 import { projectTargetTeamAccountBoundBenchmark } from './targetTeamAccountBoundBenchmark'
 import { defaultEquipmentRankForRarity } from './teamEquipmentRecommendations'
-import { compileTeamBuildIntent } from './buildIntent'
+import { compileTeamBuildIntent, computeBuildIntentFingerprint } from './buildIntent'
 import { compileAgentBuildIntent, buildIntentFingerprintMatches } from './buildIntent'
 import { sampleDiscs } from '../evaluation/fixtures'
 import { driveDiscData } from '../data/gameData'
@@ -30,10 +31,24 @@ describe('explicit target-team warehouse fit', () => {
     'carries the exact nonstandard branch through an 18-disc solve and replay for %j',
     (...members) => {
       const memberIds = members as [string, string, string]
+      const usesExperimentalYanagiBranch = memberIds.includes('agent-yanagi')
       const intent = compileTeamBuildIntent({
         candidateId: `condition:${memberIds.join('+')}`,
         memberIds,
         bangbooId: 'bangboo-ariel',
+        agentStateById: memberIds.includes('agent-miyabi')
+          ? {
+              'agent-miyabi': {
+                mindscape: usesExperimentalYanagiBranch ? 2 : 0,
+                potentialImage: 0,
+              },
+            }
+          : undefined,
+        selectedDirectionIdByAgentId: usesExperimentalYanagiBranch
+          ? {
+              'agent-miyabi': 'miyoushe-77017654-miyabi-remielle-yanagi-experimental',
+            }
+          : undefined,
       })
       const roster = createEmptyRoster('2026-10-14T00:00:00.000Z')
       for (const member of roster.agents)
@@ -44,6 +59,14 @@ describe('explicit target-team warehouse fit', () => {
         const plan = constraint.setPlanReadiness
         return Array.from({ length: 6 }, (_, index) => {
           const slot = (index + 1) as DriveDisc['slot']
+          const mainStat =
+            slot === 1
+              ? 'hp_flat'
+              : slot === 2
+                ? 'atk_flat'
+                : slot === 3
+                  ? 'def_flat'
+                  : constraint.mainStats[String(slot) as '4' | '5' | '6']![0]!
           return {
             ...sampleDiscs.treasureCandidate,
             id: `${agentId}:condition:${slot}`,
@@ -51,15 +74,8 @@ describe('explicit target-team warehouse fit', () => {
             level: 15,
             slot,
             setId: index < 4 ? plan.primarySetIds[0]! : plan.secondarySetIds[0]!,
-            mainStat:
-              slot === 1
-                ? 'hp_flat'
-                : slot === 2
-                  ? 'atk_flat'
-                  : slot === 3
-                    ? 'def_flat'
-                    : constraint.mainStats[String(slot) as '4' | '5' | '6']![0]!,
-            subStats: [],
+            mainStat,
+            subStats: legalSubStats(mainStat),
             locked: false,
           }
         })
@@ -132,11 +148,16 @@ describe('explicit target-team warehouse fit', () => {
       bangbooId: 'bangboo-amillion',
     })
     const template = getCandidateWarehouseConstraint(comparisonMembers[0])!
+    const currentHashes = new Map(
+      intent.recommendations.map((row) => [row.agentId, row.constraint?.contentHash ?? null]),
+    )
     intent.recommendations = comparisonMembers.map((agentId) => {
       const constraint = syntheticBranchConstraint(agentId, template)
       constraint.setPlans = constraint.setPlans!.map((plan) => ({ ...plan, priority: 0 }))
+      constraint.contentHash = currentHashes.get(agentId) ?? template.contentHash
       return { agentId, constraint }
     })
+    intent.fingerprint = computeBuildIntentFingerprint(intent)
     const objective = {
       fingerprint: 'prefer-explicit-test-team-output',
       evaluate: (loadouts: readonly { discs: { disc: DriveDisc }[] }[]) =>

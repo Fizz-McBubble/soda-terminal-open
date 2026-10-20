@@ -44,6 +44,7 @@ import { useTeamPickerQueries } from './useTeamPickerQueries'
 export function TeamPicker() {
   const navigate = useNavigate()
   const accountSummary = useF5AccountSummary()
+  const accountHydrating = !accountSummary || accountSummary.hydrating
   const savedPlanWarehouse = useLiveQuery(() => loadCoreWarehouse(), [accountSummary?.accountId])
   const decisionWorld = useAccountDecisionWorld()
   const calculationClient = useContext(CalculationQueryClientContext)
@@ -87,6 +88,25 @@ export function TeamPicker() {
   const [lastCompleteAnalysis, setLastCompleteAnalysis] = useState<LastCompleteAnalysis | null>(
     matchingSession,
   )
+  useEffect(() => {
+    if (accountHydrating || !accountSummary?.accountId || analysis.kind !== 'ready') return
+    let active = true
+    queueMicrotask(() => {
+      if (!active) return
+      const recovered = currentTeamAnalysisSession
+      if (
+        !recovered ||
+        recovered.result.appSessionId !== accountSummary.appSessionId ||
+        recovered.result.warehouse.accountId !== accountSummary.accountId
+      )
+        return
+      setAnalysis(recovered)
+      setLastCompleteAnalysis(recovered)
+    })
+    return () => {
+      active = false
+    }
+  }, [accountHydrating, accountSummary?.accountId, accountSummary?.appSessionId, analysis.kind])
   useSavedPlanEditorRefresh({
     analysis,
     account: accountSummary,
@@ -147,7 +167,6 @@ export function TeamPicker() {
     [],
   )
 
-  const accountHydrating = !accountSummary || accountSummary.hydrating
   const savedTeamPlans = useLiveQuery(async () => {
     if (!accountSummary?.accountId) return []
     const plans = (await listAccountPlanningDrafts(accountSummary.accountId))

@@ -1,5 +1,5 @@
 import review from './data/reviewed-build-patch-impact.3.2.json'
-import mechanicCatalog from './generated/current-agent-mechanic-catalog.v1.json'
+import mechanicCatalog from './generated/current-agent-mechanic-catalog.v1.json' with { type: 'json' }
 import { currentReleasedIdentityMap } from './currentReleasedIdentityMap'
 import { currentVersionAdoption32 } from './currentVersionAdoption32'
 import { stableContentHash } from './types'
@@ -144,6 +144,11 @@ const fieldPaths = [
   targetPath,
 ]
 
+import {
+  analyzeBuildDependencyImpact,
+  isBuildFieldAffectedByVersion32,
+} from './buildApplicabilityDependencyAnalysis'
+
 /** Review the installed source delta against the actual adopted guidance. Ready
  * qualifies this bounded review, never a claim that every build/ranking is stable. */
 export function getReviewedBuildVersionImpact32(
@@ -165,6 +170,7 @@ export function getReviewedBuildVersionImpact32(
   const adopted = [...new Map(fields.map((field) => [field.path, field])).values()].filter(
     (field) => fieldPaths.includes(field.path),
   )
+  const dependencyAnalysis = analyzeBuildDependencyImpact(agentId)
   const sourceRefs: AgentProfileField['sourceRefs'] = [
     {
       id: `locked-build-delta32:${subject.upstreamKey}`,
@@ -180,6 +186,7 @@ export function getReviewedBuildVersionImpact32(
     '锁定3.1→3.2公式与原始字段的有限复核；机制采用不代表配装、队伍优劣重排或作者重审。',
     ...(introduced ? ['3.2新增代理人没有3.1同角色数值；仅核对当前已采用字段及配置条件。'] : []),
     ...branches.flatMap((branch) => [...branch.conditions]),
+    ...dependencyAnalysis.reasons,
     ...(introduced ? adopted.flatMap((field) => [...(field.conditions ?? [])]) : []),
   ]
   return {
@@ -198,16 +205,30 @@ export function getReviewedBuildVersionImpact32(
       numericSourceComparison:
         review.numericChanges.find((row) => row.upstreamKey === subject.upstreamKey) ?? null,
       branchMappings: branches,
-      adoptedBuildFields: adopted.map((field) => ({
-        fieldPath: field.path,
-        value: field.value,
-        contentHash: stableContentHash(field),
-        sourceReviewVersion: field.gameVersion,
-        sourceStatus: field.status,
-        authorityState: field.authorityState ?? 'not_evaluated',
-        conditions: field.conditions ?? [],
-        adoption: introduced ? 'current_source32' : 'retained_reviewed_reference_not_reranked',
-      })),
+      dependencyImpact: {
+        impactKind: dependencyAnalysis.impactKind,
+        triggerCategories: dependencyAnalysis.triggerCategories,
+        affectedFieldPaths: dependencyAnalysis.affectedFieldPaths,
+        reasons: dependencyAnalysis.reasons,
+        beneficiaries: dependencyAnalysis.beneficiaryAgentIds,
+      },
+      adoptedBuildFields: adopted.map((field) => {
+        const fieldAffected = isBuildFieldAffectedByVersion32(agentId, field.path).affected
+        return {
+          fieldPath: field.path,
+          value: field.value,
+          contentHash: stableContentHash(field),
+          sourceReviewVersion: field.gameVersion,
+          sourceStatus: field.status,
+          authorityState: field.authorityState ?? 'not_evaluated',
+          conditions: field.conditions ?? [],
+          adoption: introduced
+            ? 'current_source32'
+            : fieldAffected
+              ? 'affected_pending_review'
+              : 'retained_reviewed_reference_not_reranked',
+        }
+      }),
       rankingReview: 'not_claimed',
       formalPromotion: false,
     },

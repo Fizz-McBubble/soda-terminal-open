@@ -10,6 +10,7 @@ import type { CoreWarehouse } from '../accounts/coreFlow'
 import { savedPlanGraduationCompletion } from './savedPlanGraduationCompletion'
 import { attachSavedTeamDiscCompletion, savedTeamDiscCompletion } from './savedTeamDiscCompletion'
 import { targetTeamBangbooOptions } from '../decision/targetTeamSourceBangbooOptions'
+import { resolveReviewedTeamOutputModule } from '../gameDataPacks/reviewedTeamOutputModuleEvidence'
 
 type AuthorityRecommendation = Extract<
   AccountDecisionSnapshot['decisionAuthority'],
@@ -285,6 +286,10 @@ export function savedPlanItem(
     deploymentOrder: plan.teamExecutionSnapshot?.deploymentOrder,
     coreAgentIds: savedMemberIds.slice(0, 2),
     mechanism: '已保存的队伍配装',
+    outputModule:
+      savedMemberIds.length === 3
+        ? (resolveReviewedTeamOutputModule(savedMemberIds as [string, string, string]) ?? null)
+        : null,
     bangbooId: plan.teamPortfolioSnapshot ? null : plan.selection.bangbooId,
     bangbooLabel: savedPlanBangbooLabel(plan),
     bangbooSuggestions: targetTeamBangbooOptions({ memberIds: savedMemberIds }).map(

@@ -3,9 +3,9 @@ import { formatTeamRating } from './teamRatingText'
 
 export function localAnalysisRatingLabel(
   analysis: ReviewedTeamAnalysis,
-  recommendationScore?: number | null,
+  diagnosticScore?: number | null,
 ) {
-  return formatTeamRating(analysis.band, recommendationScore)
+  return formatTeamRating(analysis.band, diagnosticScore)
 }
 
 export function displayableLocalAnalysis(

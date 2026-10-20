@@ -56,7 +56,7 @@
       "buildKey": "enlightened-mind-basic-rotation",
       "goals": ["crit_damage"],
       "profileId": "retention-normal-m0:agent-ye-shunguang:enlightened-mind-basic-rotation",
-      "profileFingerprint": "fnv1a-4eb6491f",
+      "profileFingerprint": "fnv1a-8d6c01f8",
       "sourceCommit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
       "formulaSha256": "C9B8003134CB45D551D4F4583B1D468FEB0BB4F2C3FAF708EFE06F9966B222FD",
       "statsSha256": "99342202B3CD34C9BE1AAC5E15E85F394019AE15D33C442230187A43B3D20BA5",
@@ -568,6 +568,14 @@
         "previousFingerprint": "fnv1a-b9c7f60",
         "currentFingerprint": "fnv1a-c62da535",
         "fields": [".targetPanel.conditions", ".targetPanel.targetSemantics"]
+      }
+    ],
+    "postReviewRefreshes": [
+      {
+        "actorAgentId": "agent-ye-shunguang",
+        "previousFingerprint": "fnv1a-4eb6491f",
+        "currentFingerprint": "fnv1a-8d6c01f8",
+        "reason": "The reviewed ordinary-build fingerprint excludes derived guidanceApplicability; the remaining delta is the source metadata already applied by the current build authority."
       }
     ]
   }

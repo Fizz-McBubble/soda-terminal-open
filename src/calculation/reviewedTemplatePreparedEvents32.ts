@@ -27,6 +27,10 @@ const windows: Readonly<Record<string, readonly string[]>> = {
   'agent-zhao': ['zhaoWellspringAttackWindow32'],
 }
 
+export function reviewedTemplateWindowStateNames32(agentId: string) {
+  return windows[agentId] ?? []
+}
+
 /** This comparison counts ordinary contacts with no Harmony final-hit bonus.
  * It is an explicit neutral coordinate, not an inferred game/account state. */
 export const normalizedLuciaEventReferences32 = Object.freeze({ luciaHarmonyFinalHit32: false })
@@ -37,7 +41,7 @@ export const normalizedLuciaEventReferences32 = Object.freeze({ luciaHarmonyFina
  * Source expressions and actual squad ability gates remain the numeric authority.
  */
 export function prepareReviewedTemplateEvents32(input: {
-  member: PlanningEffectRuntimeMember
+  member: Pick<PlanningEffectRuntimeMember, 'agentId'>
   eventUsages: readonly PlanningEventUsage[]
   references?: Readonly<Record<string, unknown>>
   conditionDeclaration?: ReviewedTemplateEventConditionDeclaration32
@@ -49,7 +53,7 @@ export function prepareReviewedTemplateEvents32(input: {
         declaration: input.conditionDeclaration,
       })
     : null
-  const stateNames = windows[input.member.agentId] ?? []
+  const stateNames = reviewedTemplateWindowStateNames32(input.member.agentId)
   if (!stateNames.length && !conditionPreparation) return null
   const ownEvents = input.eventUsages.filter((event) => event.ownerAgentId === input.member.agentId)
   if (

@@ -26,6 +26,7 @@ export type PlanningBenchmarkResult32 = {
     ownerAgentId: string
     eventId: string
     atSeconds: number
+    durationSeconds?: number
     snapshotAtSeconds: number | null
     totalDamage: number
     runtimeHash: string
@@ -80,6 +81,7 @@ const resultSchema = z
           ownerAgentId: text,
           eventId: text,
           atSeconds: finiteNonnegative,
+          durationSeconds: z.number().finite().positive().optional(),
           snapshotAtSeconds: finiteNonnegative.nullable(),
           totalDamage: finiteNonnegative,
           runtimeHash: text,
@@ -204,6 +206,15 @@ export function planningBenchmarkResultGaps32(
       gaps.push(`invalid_benchmark_event_time:${event.occurrenceId}`)
     if (event.snapshotAtSeconds !== null && event.snapshotAtSeconds > event.atSeconds)
       gaps.push(`invalid_benchmark_snapshot_time:${event.occurrenceId}`)
+    if (definition?.quantityUnit === 'seconds') {
+      if (
+        event.durationSeconds === undefined ||
+        result.declaredDurationSeconds === null ||
+        event.atSeconds + event.durationSeconds > result.declaredDurationSeconds
+      )
+        gaps.push(`invalid_benchmark_rate_interval:${event.occurrenceId}`)
+    } else if (event.durationSeconds !== undefined)
+      gaps.push(`unexpected_benchmark_rate_interval:${event.occurrenceId}`)
     if (duplicate(event.sourceRefs))
       gaps.push(`duplicate_benchmark_event_source:${event.occurrenceId}`)
     if (definition) {

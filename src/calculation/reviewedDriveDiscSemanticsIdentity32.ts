@@ -1,6 +1,6 @@
 /** Locked formula identities; recipient corrections are separate from source IR. */
 export const reviewedDriveDiscSemanticsIdentity32 = Object.freeze({
-  revision: 'explicit-four-piece-event-state-and-recipients-r1',
+  revision: 'explicit-four-piece-event-state-and-recipients-r2',
   commit: '3456cd0f6f5bea10e168074502460dac2fcd6df4',
   policies: {
     conditions: 'source-explicit-per-occurrence-no-defaults',
@@ -10,6 +10,18 @@ export const reviewedDriveDiscSemanticsIdentity32 = Object.freeze({
     stacking: 'single-active-provider-or-identical-value-once-otherwise-unresolved',
   },
   sources: {
+    'set-fanged-metal': {
+      key: 'FangedMetal',
+      sha256: 'B44962F0D42F16CAAF59807C0F141FD79402B4722B13F95542A334D007116B1C',
+      conditionalsSha256: 'FFCE77974A210B2E4EDCD069B63A0FA59F3A4BAFCD8418F3F8176342FAA4894E',
+      localizationSha256: '7CA87309B4CE0A1A5AE66A2BD2CC9B71D406DD2D16CBE0E11C85B8606A150FD3',
+    },
+    'set-woodpecker-electro': {
+      key: 'WoodpeckerElectro',
+      sha256: 'F3A907EC9D512BE55775D190FB70BD9EB526278F6A344C43F7D2A6B33F04C8C1',
+      conditionalsSha256: '8E36F6AB6C251E4AB0040D0D323DDB4321A6525962D93FD14204947738CBAF38',
+      localizationSha256: 'EB5616CF5B1D470B12202AB7A4E39BDDDFDEF68DDD1A464CFAD1E04236478276',
+    },
     'set-34200': {
       key: 'ThornedRose',
       sha256: '02F0E8E219B8A86601E696D35EB21240D3DA2B0961C043834E824E5EC62B1EDA',

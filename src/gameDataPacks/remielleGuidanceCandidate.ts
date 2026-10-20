@@ -6,8 +6,9 @@ type SkillKey = keyof RosterAgent['skillLevels']
  * A narrow consumer projection of existing 3.1 L3 candidate evidence.
  *
  * The community guide establishes which skill families should receive investment, while the
- * structured skill records establish the associated mechanics. Neither source states individual
- * target levels, so this carries no inferred Lv.12 targets. The separately sourced
+ * structured skill records establish the associated mechanics. The archived author's explicit
+ * maximum targets are separate from priority order and effective cinema-boosted levels.
+ * The separately sourced
  * low-investment exception below uses the user's level-7 budget convention.
  */
 const remielleSkillGuidanceCandidate = {
@@ -16,6 +17,22 @@ const remielleSkillGuidanceCandidate = {
   status: 'candidate' as const,
   primaryPriority: ['basic', 'assist', 'chain', 'core'] as readonly SkillKey[],
   supplementalSkills: ['special'] as readonly SkillKey[],
+  explicitTargets: {
+    combatMaximumSkills: ['basic', 'assist', 'special', 'chain'] as readonly SkillKey[],
+    combatTargetBasis: 'paid_base_maximum',
+    core: 'F',
+    source: {
+      id: 'miyoushe-77017654-explicit-skill-maximums',
+      url: 'https://www.miyoushe.com/zzz/article/77017654',
+      sourceVersion: '3.1',
+      checkedAt: '2026-10-19',
+      contentHash: '61077E8797FA13E43CF1BB22398D6F945B468A6057A92BD5B541A7004F302003',
+      ledgerSha256: 'BB7556959A2E4FB7ED28DBE9AC7F63C3ACCE7C485836138198ACBC53873A21B5',
+      locators: ['77017654:text:0013', '77017654:text:0014', '77017654:text:0015'],
+      localReviewVersion: '3.2',
+      localReviewScope: 'explicit maximum target and skill-family mapping; not investment order',
+    },
+  },
   // Guides establish low investment value in the usual off-field rotation;
   // level 7 is the user's Soda budget default, not a quoted guide target.
   lowInvestmentSkills: ['dodge'] as readonly SkillKey[],
@@ -68,7 +85,7 @@ const remielleSkillGuidanceCandidate = {
     },
   ],
   boundary:
-    '3.1 社区候选映射技能投资方向；常规后台玩法的闪避低投入结论另经两篇攻略核对，7级为用户指定预算默认。其余省略技能不自动生成等级。',
+    '3.1 社区候选分别记录技能投资方向与原文明示的升满目标；满级按付费基础上限解释，有效等级须用实际影画换算，不据此解决当前来源排序冲突。常规后台玩法的闪避7级仍为用户预算默认。',
 } as const
 
 export function getRemielleSkillGuidanceCandidate(agentId: string) {

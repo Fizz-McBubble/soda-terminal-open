@@ -3,7 +3,11 @@ import {
   type CurrentAgentPlanningEffectBlueprint,
 } from './currentAgentPlanningEffectBlueprint'
 import { evaluateCurrentPlanningEffectEntries32 } from './currentPlanningEffectRuntime'
-import type { PlanningEffectRuntimeMember } from './currentPlanningEffectDomain'
+import type {
+  PlanningEffectRuntimeMember,
+  PlanningEffectProducerReceipt32,
+} from './currentPlanningEffectDomain'
+import { planningObservedReferences32 } from './currentPlanningEffectDomain'
 import {
   effectReceiverMetadata,
   effectAttributeForReceiver,
@@ -25,6 +29,57 @@ type EffectResult = Extract<
   ReturnType<typeof evaluateCurrentPlanningEffectEntries32>,
   { status: 'supported' }
 >['results'][number]
+/** Preserve unknown and proven zero branches which deliberately have no bucket. */
+export function planningRuntimeEffectReceipts32(
+  results: readonly EffectResult[],
+  memberIds: readonly string[],
+): PlanningEffectProducerReceipt32[] {
+  return results.flatMap((effect) => {
+    if (effect.status === 'unsupported') return []
+    const recipients = recipientIds({
+      ...effect,
+      memberIds,
+      declaredRecipientAgentIds:
+        effect.status === 'supported' ? effect.recipientAgentIds : undefined,
+    })
+    // An unknown unique transfer can reach any eligible other member; an
+    // explicitly zero transfer reaches none but proves zero for all of them.
+    const uniqueTransfer = effect.effectKey === 'agent-pan-yinhu:core_sheerForce'
+    const possible = uniqueTransfer
+      ? memberIds.filter((id) => id !== effect.providerAgentId)
+      : recipients
+    return possible.map((recipientAgentId): PlanningEffectProducerReceipt32 => {
+      const value =
+        effect.status === 'supported'
+          ? uniqueTransfer && recipients.length === 1 && !recipients.includes(recipientAgentId)
+            ? 0
+            : (effect.recipientValues.find((row) => row.agentId === recipientAgentId)?.value ??
+              effect.value)
+          : undefined
+      const known =
+        typeof value === 'number' &&
+        Number.isFinite(value) &&
+        effect.status === 'supported' &&
+        (value === 0 || effect.active)
+      return {
+        effectKey: effect.effectKey,
+        providerAgentId: effect.providerAgentId,
+        recipientAgentId,
+        receiverPath: effect.receiverPath,
+        status: known ? (value === 0 ? 'known_zero' : 'known_value') : 'unknown',
+        ...(known ? { value: value as number } : {}),
+        fields:
+          effect.status === 'excluded_unknown'
+            ? effect.missing
+            : known
+              ? []
+              : ['unadmitted_source_value'],
+        sourceRefs: effect.sourceRefs,
+      }
+    })
+  })
+}
+
 export function planningRuntimeEffectBuckets32(
   results: readonly EffectResult[],
   memberIds: readonly string[],
@@ -72,6 +127,7 @@ export function compileCurrentPlanningSelfEffects32(input: {
   member: PlanningEffectRuntimeMember
   references?: Readonly<Record<string, unknown>>
 }) {
+  input = { ...input, references: planningObservedReferences32(input.references) }
   const entries: CurrentAgentPlanningEffectBlueprint[] = []
   const resolvedInactiveEffectKeys: string[] = []
   const exclusions: Array<{

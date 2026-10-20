@@ -34,6 +34,10 @@ import {
   type ReviewedMainStatAlternative,
 } from './reviewedMainStatAlternatives'
 export { candidateStatKeys, candidateSubStatWeights } from './candidateStatParsing'
+import {
+  getBuildApplicabilityIdentity,
+  type BuildApplicabilityIdentity,
+} from './buildApplicabilityDependencyAnalysis'
 
 export type CandidateWarehouseConstraint = {
   agentId: string
@@ -53,6 +57,8 @@ export type CandidateWarehouseConstraint = {
         missingEvidence: string
       }
   sources: PlayerBuildSource[]
+  /** Source/reference continuity is separate from current author build review. */
+  guidanceApplicability?: BuildApplicabilityIdentity[]
   setIds: string[]
   /** Explicit source branches; readiness is the first-branch compatibility projection. */
   setPlans?: CandidateSetPlan[]
@@ -61,6 +67,18 @@ export type CandidateWarehouseConstraint = {
   /** Sourced purpose-specific guidance; never flattened into automatic eligibility. */
   mainStatAlternatives?: ReviewedMainStatAlternative[]
   subStatWeights: Partial<Record<StatKey, number>>
+  /** Frozen identity and goal of a source-reviewed exact-team branch. */
+  reviewedTeamDirectionId?: string
+  reviewedTeamDirectionSource?: AppliedReviewedTeamDiscDirection['source']
+  reviewedTeamMindscapeByAgentId?: Record<string, number | null>
+  /** Source-named candidates without fabricated numerical importance. */
+  reviewedSubStatCandidates?: readonly StatKey[]
+  targetPanelApplicability?: {
+    disposition: 'base_reference_not_applicable'
+    directionId: string
+    reason: string
+  }
+  buildObjective?: AppliedReviewedTeamDiscDirection['objective']
   wEngineDirections: string[]
   teamAndBangbooPreconditions: string[]
   progressionDirection: string[]
@@ -249,9 +267,34 @@ export const candidateWarehouseConstraints30 = playerBuildProfiles30.map((profil
   candidateConstraint(profile.agentId),
 )
 
+const currentConstraintSnapshots = new WeakMap<
+  CandidateWarehouseConstraint,
+  CandidateWarehouseConstraint
+>()
+
+function withGuidanceApplicability(
+  constraint: CandidateWarehouseConstraint,
+): CandidateWarehouseConstraint {
+  const input = {
+    ...constraint,
+    guidanceApplicability: constraint.sources.map((source) =>
+      getBuildApplicabilityIdentity(
+        resolveCurrentReleasedIdentity(constraint.agentId) ?? constraint.agentId,
+        { source },
+      ),
+    ),
+  }
+  const contentHash = stableContentHash({ ...input, contentHash: undefined })
+  const previous = currentConstraintSnapshots.get(constraint)
+  if (previous?.contentHash === contentHash) return previous
+  const snapshot = { ...input, contentHash }
+  currentConstraintSnapshots.set(constraint, snapshot)
+  return snapshot
+}
+
 export function getCandidateWarehouseConstraint(agentId: string) {
   const releasedAgentId = resolveCurrentReleasedIdentity(agentId)
-  return (
+  const constraint =
     candidateWarehouseConstraints30.find(
       (constraint) => resolveCurrentReleasedIdentity(constraint.agentId) === releasedAgentId,
     ) ??
@@ -259,7 +302,8 @@ export function getCandidateWarehouseConstraint(agentId: string) {
       (constraint) => resolveCurrentReleasedIdentity(constraint.agentId) === releasedAgentId,
     ) ??
     candidateWarehouseConstraints32.find((constraint) => constraint.agentId === releasedAgentId)
-  )
+  if (!constraint) return undefined
+  return withGuidanceApplicability(constraint)
 }
 
 function sourceForReviewedTeamDiscDirection(
@@ -269,7 +313,10 @@ function sourceForReviewedTeamDiscDirection(
     id: `reviewed-team-disc-${direction.id}`,
     url: direction.source.url,
     sourceVersion: direction.source.sourceVersion,
-    checkedAt: '2026-09-08T00:00:00.000Z',
+    checkedAt: direction.source.localReviewedAt ?? '2026-09-08T00:00:00.000Z',
+    ...(direction.source.authorVersion
+      ? { authorReviewedVersion: direction.source.authorVersion }
+      : {}),
     contentHash: direction.source.contentHash,
     licenseBoundary:
       '米游社原帖的精确队伍条件化候选构筑方向；仅用于本地 candidate 盘套分支，不作为 Formal、精确伤害、最高伤害或自动写入。',
@@ -288,9 +335,8 @@ export function getCandidateWarehouseConstraintForTeam(
 ): CandidateWarehouseConstraint | undefined {
   const base = getCandidateWarehouseConstraint(agentId)
   if (!base) return undefined
-  // New source scenarios are advisory. No operation/stack evidence is inferred
-  // from composition, and a non-matching recipe does not delete legal inventory.
-  if (base.gameVersion === '3.2') return base
+  // Version does not bypass exact-team branch matching or source conditions.
+  // Unknown operation/stack evidence remains unknown in the eligibility gate.
   const directions = resolveReviewedTeamDiscDirections(base.agentId, context)
   if (!directions.length) {
     const plans = candidateSetPlansForConstraint(base)
@@ -320,8 +366,27 @@ export function getCandidateWarehouseConstraintForTeam(
       : [direction.setPlan, ...retainedBasePlans]
   const input = {
     ...base,
+    reviewedTeamDirectionId: direction.id,
+    reviewedTeamDirectionSource: direction.source,
+    reviewedTeamMindscapeByAgentId: direction.effectiveMindscapeByAgentId,
+    ...(direction.source.targetVersion === '3.2' ? { gameVersion: '3.2' as const } : {}),
+    ...(direction.objective ? { buildObjective: direction.objective } : {}),
     ...(direction.mainStats ? { mainStats: { ...base.mainStats, ...direction.mainStats } } : {}),
     ...(direction.subStatWeights ? { subStatWeights: direction.subStatWeights } : {}),
+    ...(direction.subStatCandidates
+      ? { reviewedSubStatCandidates: direction.subStatCandidates }
+      : {}),
+    ...(direction.targetPanelPolicy === 'omit_base_reference'
+      ? {
+          targetPanel: undefined,
+          targetPanelApplicability: {
+            disposition: 'base_reference_not_applicable' as const,
+            directionId: direction.id,
+            reason:
+              '异常驾驶员不适用传统双暴来源面板；精通/掌控毕业门未提供，不补数值。战斗暴击转换封顶和条件增益由共同目标分别计算。',
+          },
+        }
+      : {}),
     sources: [
       ...base.sources,
       sourceForReviewedTeamDiscDirection(direction),
@@ -339,7 +404,7 @@ export function getCandidateWarehouseConstraintForTeam(
     ],
     boundary: `${base.boundary} ${direction.boundary}`,
   }
-  return { ...input, contentHash: stableContentHash(input) }
+  return withGuidanceApplicability({ ...input, contentHash: stableContentHash(input) })
 }
 
 /** Adapts sourced candidate directions to the existing optimizer input without making it formal. */

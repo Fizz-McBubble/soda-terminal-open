@@ -41,6 +41,7 @@ export type Current31TeamIntrinsicSummary = {
   ratingStatus: 'rated' | 'hard_invalid' | 'blocked'
   ratingBand: TeamRatingBand | null
   confidence: DecisionConfidenceBand | null
+  /** Diagnostic only; never admission or same-band ordering authority. */
   recommendationScore: number | null
   mechanicValidity: Current31MechanicValidity
   mainstreamStatus: 'unknown' | 'confirmed'

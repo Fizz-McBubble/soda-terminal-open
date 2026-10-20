@@ -6,6 +6,7 @@ import {
   absoluteDiscRetentionPolicy,
 } from './absoluteDiscRetentionCatalog'
 import { assessDisc, twoPieceApplicability } from './absoluteDiscRetentionKernel'
+import { profileValid } from './absoluteDiscRetentionScoring'
 import { analyzeAccountWarehouse } from './discWarehouseAnalysis'
 import { warehouseClearAlternative, warehouseTestDisc } from './discWarehouseAnalysis.testFixtures'
 
@@ -32,6 +33,13 @@ describe('production absolute-retention adapter', () => {
     )
     expect(absoluteDiscRetentionCoverage.missingAgentIds).toEqual([])
     expect(absoluteDiscRetentionCoverage.complete).toBe(true)
+    const anomalyBranches = absoluteDiscRetentionCatalog.profiles.filter(
+      (row) => row.agentId === 'agent-miyabi' && row.goal === 'anomaly_damage',
+    )
+    expect(anomalyBranches).toHaveLength(3)
+    expect(
+      anomalyBranches.every((row) => profileValid(row, absoluteDiscRetentionCatalog.rules)),
+    ).toBe(true)
   })
 
   it('keeps intrinsic quality invariant to another copy, order, identity and ownership', () => {

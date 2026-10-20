@@ -129,6 +129,11 @@ export function useTeamPickerQueries({
       inputFingerprint: result.decisionSnapshot.fingerprint.inputHash,
       planId: plan.id,
       planHash,
+      luminizeSnapshotFingerprint:
+        plan.solutionContext?.declaredLuminizeSettlement32?.snapshotFingerprint,
+      standardReferenceIdentity:
+        plan.solutionContext?.standardReference32?.selectionIdentity ??
+        plan.solutionContext?.standardReference32?.preparedIdentity,
     })
     if (!accepted) throw new Error('已保存方案重放结果缺失或过期。')
     return accepted

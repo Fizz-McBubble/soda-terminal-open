@@ -1,0 +1,331 @@
+{
+  "contract": "soda-claret-source-action-resources32/v1",
+  "source": {
+    "url": "https://zzz.gachabase.net/agents/1611/claret/release/3.2.0/19437730?lang=en",
+    "designRevision": 19437730,
+    "resourceRevision": 19437730,
+    "htmlSha256": "ad3c6b30b9209059b4722a6795c57f5ee85ffd2245bd1b4f1076f0e85f9196f1",
+    "pairedUpstreamCommit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+    "pairedUpstreamStatsSha256": "49BDB5A6D64AC3CA2727F376765BF97F884C7DDF03F9B954017532757C85388C",
+    "rawSource": {
+      "repository": "https://git.mero.moe/dimbreath/ZenlessData",
+      "commit": "462563ec0f8ffc7493f6e2a46f64f8b34ea2d547",
+      "path": "FileCfg/AvatarBattleTemplateTb.json",
+      "sha256": "72200125D2E776027C53ACE22914FA0473698AF4DA9CC019684D0ECDD8C6FBDD",
+      "gitBlobSha1": "026836df4668600b0f3731d7ff8b5329ce10637a",
+      "row": "PFOAJKNPCHL=1611",
+      "capacityField": {
+        "name": "EIKLCFBDHCN",
+        "value": 120
+      },
+      "fieldSchemaCorroboration": "https://github.com/thexeondev/remielle/blob/5152b36a782ecb166fdf2f76dc07ef4c00841893/src/assets/templates/avatar_battle.zig"
+    }
+  },
+  "rawToDisplayedPointDivisors": {
+    "gash": 100,
+    "sharpness": 10000
+  },
+  "resourceRules": {
+    "source": {
+      "commit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+      "path": "libs/zzz/dm-localization/assets/locales/en/char_Claret_gen.json",
+      "sha256": "9EBB0A9057D9B797C89E62B78636413730D1628688D028A2F641287BE8B17C3F",
+      "releaseCorroboration": "D19437730/R19437730 core, EX and Ultimate descriptions"
+    },
+    "sharpness": {
+      "automaticGainPerSecond": 1.5,
+      "battlefieldEntryAdditiveGain": 60,
+      "entryInvestigationCooldownSeconds": 180,
+      "exCost": 60,
+      "ultimateActivationGain": 10,
+      "capacity": 120,
+      "capacityStatus": "current_client_row_with_ex_cost_corroboration",
+      "initialBeforeEntryGrant": null
+    },
+    "gash": {
+      "maximumStacks": 3,
+      "maimCostStacks": 1,
+      "counterAssistDirectGrantStacks": 1,
+      "bloodAxeBuildupRatioBonus": 0.5,
+      "maimConsumptionCondition": "ByWoundStackCount>=1",
+      "maimConsumptionPerQualifyingHit": 1,
+      "buildupPerStack": null,
+      "perStackThresholdStatus": "missing_after_reuse",
+      "durationAndDecayStatus": "missing_after_reuse",
+      "observedBuildupPerStack": 1200,
+      "buildupStatus": "pre_release_training_mode_observation_unmapped_units",
+      "buildupEvidence": {
+        "claimedVersion": "3.2.1",
+        "source": "https://t.me/justleifa/2306",
+        "messageId": 2306,
+        "publishedAt": "2026-08-02T07:44:38Z",
+        "versionContext": "Before the official 3.2 release on 2026-09-09; 3.2.1 is a prerelease/beta label in this leaks context, not evidence of a live release build.",
+        "sourceMessage": "Gash Buildup Clarifications",
+        "method": "Training Mode against several enemies, as reported by the theorycrafter",
+        "unit": "reported Training Mode Gash buildup per stack; conversion to extracted row units is unknown",
+        "scope": "pre-release observation only; not a confirmed release threshold",
+        "crossCheck": "Prydwen Claret guide is reviewed for Patch 3.2 and confirms the 3-stack mechanic and buildup-rate modifiers, but does not publish the threshold.",
+        "additionalAbilityScale": "The prerelease observation reports 3% -> 30 for a beta Additional Ability. The pinned live-release localization instead describes 300 Decibels on Contamination with an 18-second cooldown (/ability/desc/1); the beta remark cannot establish a live Gash threshold or conversion to extracted action-row units."
+      },
+      "excludedPreReleaseObservation": {
+        "buildupPerStack": 1200,
+        "status": "benchmark_only",
+        "url": "https://t.me/justleifa/2307",
+        "reason": "A separate beta-era Training Mode observation reports the same number, but neither establishes the release threshold or a mapping to extracted action-row units."
+      },
+      "mechanicSource": [
+        {
+          "path": "Data/_unsorted/Claret_UniqueSkill.json",
+          "sha256": "D0A5C47EDFE28682D83A4EC4E4148FB42D861C2E95F3770579605818B4EB936C",
+          "locators": [
+            "/Claret_Attack_WrestleAid_AttackProperty_07/ModifyWoundCurStackCount",
+            "/BloodAxeStatUpModifier/Actor_AddedWoundRatio"
+          ]
+        },
+        {
+          "path": "Data/_unsorted/Claret_MaimWound.json",
+          "sha256": "B5A7EF8D1B92F3FEE94D4645FF72283AC78433CDE8FE7A80B8E4E816F5F498FA",
+          "locators": [
+            "/DirectMaimWoundAction/ByWoundStackCount",
+            "/DirectMaimWoundAction/ToModifyStackCount"
+          ]
+        }
+      ]
+    },
+    "crimsonInscription": {
+      "baseDurationSeconds": 16,
+      "pausesOffField": true,
+      "chainExtensionSeconds": 2,
+      "defeatHitWindowSeconds": 0.5,
+      "defeatExtensionSeconds": 3,
+      "defeatExtensionCooldownSeconds": 3
+    }
+  },
+  "boundary": "Base source action-segment production only; does not apply Core/M1 buildup modifiers or generation-rate bonuses. Empty attack_data does not prove physical per-hit timing. The 1200 Gash value is a pre-release Training Mode observation, not a confirmed release threshold; enemy-specific resistance and exact conversion to extracted action-row units remain unverified. Sharpness capacity comes from the current client row and is corroborated by Claret's two 60-point EX uses. Maim consumes one existing Gash stack per qualifying hit. No refunds, passive regeneration, receipt or complete cycle inferred.",
+  "events": [
+    {
+      "eventId": "basic.BasicAttackBloodforgingFourForms.hit-0",
+      "rawId": "1611001",
+      "gashBuildupRaw": 3151.0,
+      "sharpnessGainRaw": 9460.0,
+      "sharpnessGrowthRaw": 0.0,
+      "sourceSignature": [0.544, 0.05, 0.347, 0.016, 31.5]
+    },
+    {
+      "eventId": "basic.BasicAttackBloodforgingFourForms.hit-1",
+      "rawId": "1611002",
+      "gashBuildupRaw": 3900.0,
+      "sharpnessGainRaw": 11700.0,
+      "sharpnessGrowthRaw": 0.0,
+      "sourceSignature": [0.672, 0.062, 0.429, 0.02, 38.99]
+    },
+    {
+      "eventId": "basic.BasicAttackBloodforgingFourForms.hit-2",
+      "rawId": "1611003",
+      "gashBuildupRaw": 5530.0,
+      "sharpnessGainRaw": 16590.0,
+      "sharpnessGrowthRaw": 0.0,
+      "sourceSignature": [0.952, 0.087, 0.609, 0.028, 55.29]
+    },
+    {
+      "eventId": "basic.BasicAttackBloodforgingFourForms.hit-3",
+      "rawId": "1611004",
+      "gashBuildupRaw": 16254.0,
+      "sharpnessGainRaw": 48770.0,
+      "sharpnessGrowthRaw": 0.0,
+      "sourceSignature": [2.895, 0.264, 1.788, 0.082, 162.53]
+    },
+    {
+      "eventId": "basic.BasicAttackBloodbloomOathStarforging.hit-0",
+      "rawId": "1611005",
+      "gashBuildupRaw": 5996.0,
+      "sharpnessGainRaw": 0.0,
+      "sharpnessGrowthRaw": 0.0,
+      "sourceSignature": [1.077, 0.098, 0.55, 0.025, 49.96]
+    },
+    {
+      "eventId": "basic.BasicAttackBloodbloomOathStarforging.hit-1",
+      "rawId": "1611006",
+      "gashBuildupRaw": 16000.0,
+      "sharpnessGainRaw": 0.0,
+      "sharpnessGrowthRaw": 0.0,
+      "sourceSignature": [2.874, 0.262, 1.467, 0.067, 133.33]
+    },
+    {
+      "eventId": "basic.BasicAttackBloodbloomOathStarforging.hit-2",
+      "rawId": "1611007",
+      "gashBuildupRaw": 20400.0,
+      "sharpnessGainRaw": 0.0,
+      "sharpnessGrowthRaw": 0.0,
+      "sourceSignature": [4.521, 0.411, 1.87, 0.085, 170]
+    },
+    {
+      "eventId": "basic.BasicAttackBloodbloomOathStarforging.hit-3",
+      "rawId": "1611029",
+      "gashBuildupRaw": 8000.0,
+      "sharpnessGainRaw": 0.0,
+      "sharpnessGrowthRaw": 0.0,
+      "sourceSignature": [1.773, 0.162, 0.734, 0.034, 66.66]
+    },
+    {
+      "eventId": "basic.BasicAttackBloodbloomOathSubduingAxe.hit-0",
+      "rawId": "1611008",
+      "gashBuildupRaw": 14801.0,
+      "sharpnessGainRaw": 0.0,
+      "sharpnessGrowthRaw": 0.0,
+      "sourceSignature": [3.28, 0.299, 1.357, 0.062, 123.33]
+    },
+    {
+      "eventId": "dodge.DashAttackTempering.hit-0",
+      "rawId": "1611016",
+      "gashBuildupRaw": 3916.0,
+      "sharpnessGainRaw": 11750.0,
+      "sharpnessGrowthRaw": 0.0,
+      "sourceSignature": [0.529, 0.049, 0.431, 0.02, 39.15]
+    },
+    {
+      "eventId": "dodge.DodgeCounterReturningEdge.hit-0",
+      "rawId": "1611018",
+      "gashBuildupRaw": 7834.0,
+      "sharpnessGainRaw": 23510.0,
+      "sharpnessGrowthRaw": 0.0,
+      "sourceSignature": [2.725, 0.248, 1.962, 0.09, 78.33]
+    },
+    {
+      "eventId": "dodge.DodgeCounterBloodbloomOathReturningEdge.hit-0",
+      "rawId": "1611019",
+      "gashBuildupRaw": 8801.0,
+      "sharpnessGainRaw": 0.0,
+      "sharpnessGrowthRaw": 0.0,
+      "sourceSignature": [3.3, 0.3, 1.907, 0.087, 73.33]
+    },
+    {
+      "eventId": "assist.QuickAssistReturnOfTheDireMoon.hit-0",
+      "rawId": "1611022",
+      "gashBuildupRaw": 3917.0,
+      "sharpnessGainRaw": 11760.0,
+      "sharpnessGrowthRaw": 0.0,
+      "sourceSignature": [0.529, 0.049, 0.431, 0.02, 39.16]
+    },
+    {
+      "eventId": "assist.QuickAssistBloodbloomOathReturnOfTheDireMoon.hit-0",
+      "rawId": "1611023",
+      "gashBuildupRaw": 3667.0,
+      "sharpnessGainRaw": 0.0,
+      "sharpnessGrowthRaw": 0.0,
+      "sourceSignature": [1.158, 0.106, 0.404, 0.019, 36.66]
+    },
+    {
+      "eventId": "assist.DefensiveAssistUnyieldingHeartOfTheFurnace.hit-0",
+      "rawId": "1611024",
+      "gashBuildupRaw": 0.0,
+      "sharpnessGainRaw": 0.0,
+      "sharpnessGrowthRaw": 0.0,
+      "sourceSignature": [0, 0, 2.713, 0.124, 0]
+    },
+    {
+      "eventId": "assist.DefensiveAssistUnyieldingHeartOfTheFurnace.hit-1",
+      "rawId": "1611025",
+      "gashBuildupRaw": 0.0,
+      "sharpnessGainRaw": 0.0,
+      "sharpnessGrowthRaw": 0.0,
+      "sourceSignature": [0, 0, 3.428, 0.156, 0]
+    },
+    {
+      "eventId": "assist.DefensiveAssistUnyieldingHeartOfTheFurnace.hit-2",
+      "rawId": "1611026",
+      "gashBuildupRaw": 0.0,
+      "sharpnessGainRaw": 0.0,
+      "sharpnessGrowthRaw": 0.0,
+      "sourceSignature": [0, 0, 1.668, 0.076, 0]
+    },
+    {
+      "eventId": "assist.AssistFollowUpBloodbloomOathPureforgedEdge.hit-0",
+      "rawId": "1611027",
+      "gashBuildupRaw": 15667.0,
+      "sharpnessGainRaw": 0.0,
+      "sharpnessGrowthRaw": 0.0,
+      "sourceSignature": [4.462, 0.406, 3.158, 0.144, 308.72]
+    },
+    {
+      "eventId": "assist.CounterAssistGiveNotAnInchOfSteel.hit-0",
+      "rawId": "1611028",
+      "gashBuildupRaw": 44600.0,
+      "sharpnessGainRaw": 0.0,
+      "sharpnessGrowthRaw": 0.0,
+      "sourceSignature": [11.53, 1.049, 7.149, 0.325, 696.19]
+    },
+    {
+      "eventId": "assist.AssistFollowUpBloodbloomOathHammerIntoShape.hit-0",
+      "rawId": "1611030",
+      "gashBuildupRaw": 13400.0,
+      "sharpnessGainRaw": 0.0,
+      "sharpnessGrowthRaw": 0.0,
+      "sourceSignature": [8.563, 0.779, 5.264, 0.24, 539.63]
+    },
+    {
+      "eventId": "special.SpecialAttackPorcelumesFirstCall.hit-0",
+      "rawId": "1611009",
+      "gashBuildupRaw": 3335.0,
+      "sharpnessGainRaw": 0.0,
+      "sharpnessGrowthRaw": 0.0,
+      "sourceSignature": [0.901, 0.082, 0.367, 0.017, 33.34]
+    },
+    {
+      "eventId": "special.EXSpecialAttackBloodbloomOathSecretForgingTechniques.hit-0",
+      "rawId": "1611010",
+      "gashBuildupRaw": 28197.0,
+      "sharpnessGainRaw": 0.0,
+      "sharpnessGrowthRaw": 0.0,
+      "sourceSignature": [6.248, 0.568, 2.585, 0.118, 234.96]
+    },
+    {
+      "eventId": "special.SpecialAttackBloodbloomOathCleavingGoldAndIron.hit-0",
+      "rawId": "1611011",
+      "gashBuildupRaw": 0.0,
+      "sharpnessGainRaw": 0.0,
+      "sharpnessGrowthRaw": 0.0,
+      "sourceSignature": [0.766, 0.07, 0.312, 0.015, 0]
+    },
+    {
+      "eventId": "special.SpecialAttackBloodbloomOathCleavingGoldAndIron.hit-1",
+      "rawId": "1611012",
+      "gashBuildupRaw": 0.0,
+      "sharpnessGainRaw": 0.0,
+      "sharpnessGrowthRaw": 0.0,
+      "sourceSignature": [0.877, 0.08, 0.358, 0.017, 0]
+    },
+    {
+      "eventId": "special.SpecialAttackBloodbloomOathCleavingGoldAndIron.hit-2",
+      "rawId": "1611013",
+      "gashBuildupRaw": 0.0,
+      "sharpnessGainRaw": 0.0,
+      "sharpnessGrowthRaw": 0.0,
+      "sourceSignature": [8.127, 0.739, 0, 0, 0]
+    },
+    {
+      "eventId": "special.SpecialAttackBloodbloomOathBloodBurialAssault.hit-0",
+      "rawId": "1611014",
+      "gashBuildupRaw": 0.0,
+      "sharpnessGainRaw": 0.0,
+      "sharpnessGrowthRaw": 0.0,
+      "sourceSignature": [3.128, 0.285, 2.549, 0.116, 0]
+    },
+    {
+      "eventId": "chain.ChainAttackBloodbloomOathResonantBloodPact.hit-0",
+      "rawId": "1611020",
+      "gashBuildupRaw": 30200.0,
+      "sharpnessGainRaw": 0.0,
+      "sharpnessGrowthRaw": 0.0,
+      "sourceSignature": [10.58, 0.962, 2.769, 0.126, 451.16]
+    },
+    {
+      "eventId": "chain.UltimateBloodbloomOathTrialAfterTrial.hit-0",
+      "rawId": "1611021",
+      "gashBuildupRaw": 40097.0,
+      "sharpnessGainRaw": 0.0,
+      "sharpnessGrowthRaw": 0.0,
+      "sourceSignature": [22.52, 2.048, 3.538, 0.161, 321.63]
+    }
+  ]
+}

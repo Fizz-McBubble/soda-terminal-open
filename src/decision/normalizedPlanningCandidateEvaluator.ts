@@ -174,6 +174,7 @@ export function evaluateNormalizedPlanningCandidate(input: {
       // table's 1..7 domain and never substitute a combat-skill level here.
       coreLevel: skillLevels.core,
       skillLevels,
+      statBasis32: stats.statBasis32,
       initialStats: stats.initialStats,
       finalStats: stats.finalStats,
     })

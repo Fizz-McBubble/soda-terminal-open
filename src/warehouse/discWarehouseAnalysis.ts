@@ -158,6 +158,9 @@ export function analyzeAccountWarehouse(input: WarehouseAnalysisInput): Warehous
   const decisions = input.discs.map<WarehouseDiscDecision>((disc, discIndex) => {
     const retention = absoluteRetention[discIndex]!
     const useAssessment = uses.get(disc.id)!
+    const finiteLuminizeUse = useAssessment.completeBuildImprovements?.some(
+      (row) => row.objectiveScope === 'finite_luminize_static_preparation',
+    )
     const adoptedSetIdentity = hasAdoptedCurrentSetIdentity(disc.setId)
     const subStatHistory = deriveSubStatHistory(disc)
     const planIds = refs.get(disc.id) ?? []
@@ -188,7 +191,19 @@ export function analyzeAccountWarehouse(input: WarehouseAnalysisInput): Warehous
             detail: '先核对选定队伍的同时用盘范围与实体引用。',
             stopWhen: '用盘范围未闭合时暂停清理。',
           }
-        : retention.nextAction
+        : useAssessment.completeBuildImprovements?.length
+          ? {
+              basis: finiteLuminizeUse
+                ? ('finite_luminize_static_preparation_positive_use' as const)
+                : ('complete_build_positive_use' as const),
+              kind: 'keep' as const,
+              targetLevel: null,
+              detail: finiteLuminizeUse
+                ? '在已保存的辉映比较条件下，同槽替换可提高该项收益，作为备选盘保留。'
+                : '已核对完整配装的同槽替换收益，作为该方案的备选盘保留。',
+              stopWhen: '此用途只适用于对应配装与条件，不改变盘面品质，也不作为其他盘的清理依据。',
+            }
+          : retention.nextAction
     // References name physical entities. A stale saved ID never reserves every unrelated copy.
     const protectedDemandReferencesResolved =
       capturedDiscIdCounts.get(disc.id) === 1 && (!directlyProtected || allDemandReferencesResolved)
@@ -231,11 +246,15 @@ export function analyzeAccountWarehouse(input: WarehouseAnalysisInput): Warehous
         ? 'current_plan_key'
         : directlyProtected
           ? 'targeted_keep'
-          : retention.qualityDisposition === 'cleanup_candidate' && complete && deleteAfterFeasible
-            ? 'cleanup_candidate'
-            : retention.qualityDisposition === 'keep'
-              ? 'targeted_keep'
-              : 'enhance_watch'
+          : useAssessment.completeBuildImprovements?.length
+            ? 'targeted_keep'
+            : retention.qualityDisposition === 'cleanup_candidate' &&
+                complete &&
+                deleteAfterFeasible
+              ? 'cleanup_candidate'
+              : retention.qualityDisposition === 'keep'
+                ? 'targeted_keep'
+                : 'enhance_watch'
     const fitAgentIds = [
       ...new Set([...retention.ownedUseAgentIds, ...retention.unownedUseAgentIds]),
     ]
@@ -245,11 +264,11 @@ export function analyzeAccountWarehouse(input: WarehouseAnalysisInput): Warehous
       )
       .sort(
         (left, right) =>
-          Number(retention.witnessProfileIds.includes(right.profileId)) -
-            Number(retention.witnessProfileIds.includes(left.profileId)) ||
+          Number(right.useState === 'valid') - Number(left.useState === 'valid') ||
           Number(right.mainFit === 'valid' && right.setFit === 'valid') -
             Number(left.mainFit === 'valid' && left.setFit === 'valid') ||
-          Number(right.useState === 'valid') - Number(left.useState === 'valid') ||
+          Number(retention.witnessProfileIds.includes(right.profileId)) -
+            Number(retention.witnessProfileIds.includes(left.profileId)) ||
           right.currentScore - left.currentScore ||
           left.profileId.localeCompare(right.profileId),
       )

@@ -2,7 +2,10 @@ import { stableContentHash } from '../gameDataPacks/types'
 import { supportsPotentialImage } from '../assault/agentCapabilities'
 import { resolveCurrentReleasedIdentity } from '../gameDataPacks/currentReleasedIdentityMap'
 import { currentReviewedTeamSourceDirections } from '../gameDataPacks/reviewedTeamSourceDirections'
-import { teamStrengthReferenceStateIdentity } from './teamStrengthReferenceState'
+import {
+  resolveTeamStrengthReferenceMindscape,
+  teamStrengthReferenceStateIdentity,
+} from './teamStrengthReferenceState'
 import {
   resolveTeamStrengthGuidePotentialReference,
   teamStrengthGuidePotentialReferences,
@@ -24,8 +27,9 @@ import type {
 } from './teamStrengthReferenceConditionsTypes'
 export type * from './teamStrengthReferenceConditionsTypes'
 
-const calculationAssumption = 'level60-skill11-core7-m0-supported-p6-explicit-override' as const
-const contract = 'soda-team-strength-reference-conditions/v5'
+const calculationAssumption =
+  'level60-base-skill11-core7-s0-a6-supported-p6-explicit-override' as const
+const contract = 'soda-team-strength-reference-conditions/v6'
 // Build once: the intrinsic index asks for every legal trio. Source membership
 // supplies provenance and raw conditions, never an inherited rating or level.
 const sourceDirectionsByKey = new Map(
@@ -62,7 +66,7 @@ export function computeTeamStrengthReferenceConditionsIdentity() {
       ({ memberIds, conditions, sourceRefs }) => ({ memberIds, conditions, sourceRefs }),
     ),
     unresolvedMeaning: 'retained-source-text-not-numericalized',
-    defaultMeaning: 'local-standard-reference-supported-p6-not-source-or-account-observation',
+    defaultMeaning: 'local-standard-reference-s0-a6-supported-p6-not-source-or-account-observation',
   })
 }
 export const teamStrengthReferenceConditionsIdentity =
@@ -100,7 +104,7 @@ export function currentTeamStrengthReferenceConditions(
       numericLevel: guide?.level ?? (catReference ? 6 : null),
       numericLevelBasis:
         guide?.numericLevelBasis ?? (catReference ? 'local_adjudicated_reference' : null),
-      mindscapeLevel: 0,
+      mindscapeLevel: resolveTeamStrengthReferenceMindscape(agentId),
       minimumDemonstratedLevel: cfg?.minimumDemonstratedLevel ?? null,
       demonstrationEvidence: guide
         ? `${guide.sourceUrl}#image=${guide.imageName};sha256=${guide.imageSha256};locator=${guide.locator}`
@@ -145,7 +149,7 @@ export function currentTeamStrengthReferenceConditions(
     requiredFutureFields: ['same-condition-source-review'],
   }))
   const diagnostics = [
-    '本地标准比较协议为60级、技能11、核心7、M0；当前支持潜能者P6，其余P0，显式数值优先。这不是作者构筑或账户观测。',
+    '本地标准比较协议为60级、基础技能11（按S0/A6计算有效等级）、核心7；当前支持潜能者P6，其余P0，显式数值优先。这不是作者构筑或账户观测。',
     ...(agentConditions.some((agent) => agent.status === 'activated_unknown_level')
       ? ['部分激发主体的来源参考等级仍未核实；标准P6不证明来源等级。']
       : []),

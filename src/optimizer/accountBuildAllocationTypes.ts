@@ -1,6 +1,7 @@
 import type { AgentDiscProfile } from '../assault/engine'
 import type { DiscContribution, CandidatePanelObjective, OptimizedBuild } from './optimizeBuild'
 import type { TeamSearchEvidence } from './searchTeamAssignments'
+import type { CandidateEffectiveCritProjection } from './candidateEffectiveCritObjective'
 
 export type AccountDiscChoice = DiscContribution & {
   effectiveLines: number
@@ -9,6 +10,7 @@ export type AccountDiscChoice = DiscContribution & {
 }
 
 export type AccountLoadout = {
+  effectiveCritObjective?: CandidateEffectiveCritProjection
   agentId: string
   discs: AccountDiscChoice[]
   totalScore: number

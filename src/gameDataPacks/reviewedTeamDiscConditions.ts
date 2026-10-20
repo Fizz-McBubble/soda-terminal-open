@@ -12,6 +12,8 @@ import { reviewedImageDiscDirections } from './reviewedImageDiscDirections'
 
 export type ReviewedTeamAgentState = {
   potentialImage?: number | null
+  /** Observed account state. Unknown is never projected to M0. */
+  mindscape?: number | null
 }
 
 /**
@@ -21,6 +23,7 @@ export type ReviewedTeamAgentState = {
 export type ReviewedTeamDiscConditionContext = {
   memberIds?: readonly string[]
   agentStateById?: Readonly<Record<string, ReviewedTeamAgentState>>
+  selectedDirectionIdByAgentId?: Readonly<Record<string, string>>
 }
 
 export type ReviewedTeamDiscDirection = {
@@ -34,6 +37,12 @@ export type ReviewedTeamDiscDirection = {
   teamCondition?: 'aria' | 'other-anomaly-support' | 'direct-damage' | 'anomaly-damage'
   mainStats?: Partial<Record<'4' | '5' | '6', StatKey[]>>
   subStatWeights?: Partial<Record<StatKey, number>>
+  subStatCandidates?: readonly StatKey[]
+  targetPanelPolicy?: 'omit_base_reference'
+  mindscapeRangeByAgentId?: Readonly<Record<string, { minimum: number; maximum: number }>>
+  requiresExplicitSelection?: boolean
+  /** A named, limited numerical goal for this exact source branch. */
+  objective?: 'declared_luminize_static_volley32'
   potentialMinimumByAgentId: Readonly<Record<string, number>>
   setPlan: CandidateSetPlan
   source: {
@@ -42,7 +51,17 @@ export type ReviewedTeamDiscDirection = {
     contentHash: string
     bodyHash: string
     sourceVersion: string | null
-    targetVersion: '3.1'
+    targetVersion: '3.1' | '3.2'
+    authorVersion?: string
+    localReviewVersion?: '3.2'
+    localReviewedAt?: string
+    localReviewScope?: string
+    secondaryEvidence?: readonly {
+      url: string
+      contentHash: string
+      sourceVersion: string
+      locator: string
+    }[]
     locator: {
       kind: 'structured_text_span' | 'archived_image_region'
       text: string
@@ -60,13 +79,62 @@ export type AppliedReviewedTeamDiscDirection = Pick<
   | 'boundary'
   | 'mainStats'
   | 'subStatWeights'
+  | 'subStatCandidates'
+  | 'targetPanelPolicy'
+  | 'objective'
   | 'additionalSources'
   | 'retainBasePlans'
 > & {
   exactMemberIds: [string, string, string]
   potentialMinimumByAgentId: Record<string, number>
   effectivePotentialByAgentId: Record<string, number>
+  effectiveMindscapeByAgentId: Record<string, number | null>
 }
+
+const miyabiDanSource: ReviewedTeamDiscDirection['source'] = {
+  postId: '77017654',
+  url: 'https://www.miyoushe.com/zzz/article/77017654',
+  contentHash: '61077E8797FA13E43CF1BB22398D6F945B468A6057A92BD5B541A7004F302003',
+  bodyHash: '93079E5DABA56EC66D9227F96A3284805B826AFBDF4606482F41ACAF07097CB0',
+  sourceVersion: '3.1',
+  authorVersion: '3.1',
+  targetVersion: '3.2',
+  localReviewVersion: '3.2',
+  localReviewedAt: '2026-10-19T09:42:04.885727Z',
+  localReviewScope:
+    '精确三人当前可行与单次已存普通虚光的精通方向；不证明当前最优、完整循环或毕业阈值。',
+  locator: {
+    kind: 'structured_text_span',
+    text: '77017654:text:0167-0170；text:0168 UTF16[5983:6026) spanSha256=BD78B6AF5074E44FDABBAB50FA6B5272E4CE07397F85F25E37E9007EC15E4CCB；0167丹柏雅保留直伤；0168丹维雅精通4掌控6、副词双暴；0169二影/六影保留原套装；0170仅称高配柳。',
+  },
+  secondaryEvidence: [
+    {
+      url: 'https://zzz.gachabase.net/guides/1/covenant-of-dayat-remielle-dan-guide',
+      contentHash: '798ff54dfb97eb10d76369cc8e671b9ac398dc1ee8838b7511e63299d8af2760',
+      sourceVersion: '3.1',
+      locator:
+        'Leifa 2026-07-27；Teambuilding > Ice Vortex；AP/CR雅替代方向；Luminize存储AP不存双暴；Attribute Flux不改变丹身份。',
+    },
+  ],
+}
+
+const miyabiDanAnomalyDirection = {
+  agentId: 'agent-miyabi',
+  potentialMinimumByAgentId: {},
+  mainStats: { '4': ['anomaly_proficiency'], '6': ['anomaly_mastery'] },
+  // The author names CR/CD directions, not numerical equality or an AP roll budget.
+  subStatCandidates: ['crit_rate', 'crit_dmg'],
+  subStatWeights: {},
+  targetPanelPolicy: 'omit_base_reference',
+  objective: 'declared_luminize_static_volley32',
+  setPlan: {
+    pattern: '4+2',
+    primarySetIds: ['set-freedom-blues'],
+    secondarySetIds: ['set-phaethons-melody'],
+    sourceText: '丹维雅可选自由4法厄同2；4精通6掌控，副词双暴。该候选不排除其他合法精通副词盘。',
+  },
+  source: miyabiDanSource,
+} satisfies Omit<ReviewedTeamDiscDirection, 'id' | 'exactMemberSets' | 'boundary'>
 
 const source = {
   postId: '76994144',
@@ -111,41 +179,106 @@ const nangongSource: ReviewedTeamDiscDirection['source'] = {
 const nangongBoundary =
   '复用2.7原帖明确的队伍类型配盘方向，仅作为带队伍条件的当前候选，不宣称当前最优；未匹配其他队伍不表示其不能使用，也不代表技能硬限制。静听嘉音分支需通过快速支援叠加效果，精确成员匹配不等于已完成实际操作或叠满。'
 
+const claretNormaRinaSource: ReviewedTeamDiscDirection['source'] = {
+  postId: 'prydwen-claret-32',
+  url: 'https://www.prydwen.gg/zenless/characters/claret',
+  contentHash: '028F278DA96D0EB8073767A8790FAF55F8D64F018B91296E3CC098876ECF069A',
+  bodyHash: '028F278DA96D0EB8073767A8790FAF55F8D64F018B91296E3CC098876ECF069A',
+  sourceVersion: '3.2',
+  authorVersion: '3.2',
+  targetVersion: '3.2',
+  locator: {
+    kind: 'structured_text_span',
+    text: 'Full Team calculations；克拉蕾+诺姆+丽娜；荆棘玫瑰4件+河豚电音2件，4暴击、5穿透、6防御。',
+  },
+}
+
+const claretKoledaRinaSource: ReviewedTeamDiscDirection['source'] = {
+  postId: 'prydwen-claret-32-koleda',
+  url: 'https://www.prydwen.gg/zenless/characters/claret',
+  contentHash: 'F40C8569D4AC9586A7AD4826ED3D64715C09FFDECA32043258C28CF4C742975C',
+  bodyHash: 'F40C8569D4AC9586A7AD4826ED3D64715C09FFDECA32043258C28CF4C742975C',
+  sourceVersion: '3.2',
+  authorVersion: '3.2',
+  targetVersion: '3.2',
+  locator: {
+    kind: 'structured_text_span',
+    text: 'Best teammates；珂蕾妲为击破替代；荆棘玫瑰4件+啄木鸟/河豚2件。',
+  },
+}
+
 /**
  * Reviewed, source-local condition declarations.  New directions are data
  * entries here; matching below has no agent-specific branch.
  */
 export const reviewedTeamDiscDirections: readonly ReviewedTeamDiscDirection[] = [
   {
+    ...miyabiDanAnomalyDirection,
+    // Keep the historical identity readable; execution now requires observed M0/M1.
     id: 'miyoushe-77017654-miyabi-remielle-anomaly',
-    agentId: 'agent-miyabi',
-    exactMemberSets: [
-      ['agent-miyabi', 'agent-remielle', 'agent-velina'],
-      ['agent-miyabi', 'agent-remielle', 'agent-yanagi'],
-    ],
+    exactMemberSets: [['agent-miyabi', 'agent-remielle', 'agent-velina']],
+    mindscapeRangeByAgentId: { 'agent-miyabi': { minimum: 0, maximum: 1 } },
+    boundary:
+      '丹维雅零/一影精通驾驶员可选方向；丹柏雅保留直伤。5号沿用独立合法候选，副词双暴不表示数值等权；精通副词合法域保留，整体收益由共同目标比较。无精通/掌控毕业门，不证明完整循环或当前最优。',
+  },
+  {
+    ...miyabiDanAnomalyDirection,
+    id: 'miyoushe-77017654-miyabi-remielle-anomaly-m2plus',
+    exactMemberSets: [['agent-miyabi', 'agent-remielle', 'agent-velina']],
+    mindscapeRangeByAgentId: { 'agent-miyabi': { minimum: 2, maximum: 6 } },
+    retainBasePlans: true,
+    boundary:
+      '原文0169明确二影/六影可保留原套装、只换4精通6掌控；三至五影沿二影机制继承为本地推断。自由方案与原来源套装均保留，不预定胜者。二影战斗暴击及六影动作须由实际目标消费；不沿用传统毕业面板。',
+  },
+  {
+    ...miyabiDanAnomalyDirection,
+    id: 'miyoushe-77017654-miyabi-remielle-yanagi-experimental',
+    exactMemberSets: [['agent-miyabi', 'agent-remielle', 'agent-yanagi']],
+    mindscapeRangeByAgentId: { 'agent-miyabi': { minimum: 0, maximum: 6 } },
+    requiresExplicitSelection: true,
+    retainBasePlans: true,
+    boundary:
+      '原文0170仅称高配柳可尝试，未定义影画/音擎/面板资格。仅显式选择此实验玩法时开放借用的精通候选并保留原套装；这是本地实验选择，不是作者对柳队的精确配盘建议或高配门槛已满足。',
+  },
+  {
+    id: 'prydwen-claret32-norma-rina',
+    agentId: 'agent-claret',
+    exactMemberSets: [['agent-claret', 'agent-norma', 'agent-rina']],
     potentialMinimumByAgentId: {},
-    mainStats: { '4': ['anomaly_proficiency'], '6': ['anomaly_mastery'] },
-    subStatWeights: { anomaly_proficiency: 1, crit_rate: 1, crit_dmg: 1 },
+    mainStats: {
+      '4': ['crit_rate'],
+      '5': ['pen_ratio'],
+      '6': ['def_percent', 'atk_percent'],
+    },
     setPlan: {
       pattern: '4+2',
-      primarySetIds: ['set-freedom-blues'],
-      secondarySetIds: ['set-phaethons-melody'],
-      sourceText: '雅可选4自由+2法厄同来提高烈霜积蓄，4号精通盘/6号掌控盘，由副词条来堆双暴。',
+      primarySetIds: ['set-34200'],
+      secondarySetIds: ['set-puffer-electro'],
+      sourceText: '克拉蕾+诺姆+丽娜；荆棘玫瑰4+河豚电音2；4暴击、5穿透、6防御。',
     },
-    source: {
-      postId: '77017654',
-      url: 'https://www.miyoushe.com/zzz/article/77017654',
-      contentHash: '61077E8797FA13E43CF1BB22398D6F945B468A6057A92BD5B541A7004F302003',
-      bodyHash: '93079E5DABA56EC66D9227F96A3284805B826AFBDF4606482F41ACAF07097CB0',
-      sourceVersion: '3.1',
-      targetVersion: '3.1',
-      locator: {
-        kind: 'structured_text_span',
-        text: '77017654:text:0167-0170；text:0168 UTF16[5983:6026) spanSha256=BD78B6AF5074E44FDABBAB50FA6B5272E4CE07397F85F25E37E9007EC15E4CCB；雅自由4法厄同2、4精通6掌控、副词条双暴；无维琳娜时可尝试高配柳。',
-      },
-    },
+    source: claretNormaRinaSource,
     boundary:
-      '仅对两支来源精确三人采用异常驾驶员构筑，不改变其他雅队或独立个人常规双暴方向；5号沿用既有来源合法候选。副属性等权是候选政策，不是作者精确权重或高配柳投入证据，不证明耀变改变异常类型或持续轮转。',
+      '仅用于来源精确三人。6号攻击作为无来源固定防御盘时的合法库存备选，不冒充作者首选；作者全队百分比只作观察，不成为当前强度档、Formal 伤害或完整循环。',
+  },
+  {
+    id: 'prydwen-claret32-koleda-rina',
+    agentId: 'agent-claret',
+    exactMemberSets: [['agent-claret', 'agent-koleda', 'agent-rina']],
+    potentialMinimumByAgentId: {},
+    mainStats: {
+      '4': ['crit_rate'],
+      '5': ['pen_ratio'],
+      '6': ['def_percent', 'atk_percent'],
+    },
+    setPlan: {
+      pattern: '4+2',
+      primarySetIds: ['set-34200'],
+      secondarySetIds: ['set-woodpecker-electro', 'set-puffer-electro'],
+      sourceText: '克拉蕾+珂蕾妲+丽娜；荆棘玫瑰4+啄木鸟/河豚2。',
+    },
+    source: claretKoledaRinaSource,
+    boundary:
+      '珂蕾妲提供击破替代方向；潜能收益仍归属珂蕾妲真实接受者。精确成员与套装条件不证明当前强度档、固定毁伤次数或完整循环。',
   },
   {
     id: 'miyoushe-77017654-yanagi-remielle-velina-disorder',
@@ -352,6 +485,21 @@ export function reviewedTeamPotentialByAgentId(context: ReviewedTeamDiscConditio
   )
 }
 
+/** Observed identity used by direction matching and Build Intent fingerprints. */
+export function reviewedTeamMindscapeByAgentId(context: ReviewedTeamDiscConditionContext) {
+  return Object.fromEntries(
+    [...new Set(context.memberIds ?? [])].sort().map((agentId) => {
+      const value = context.agentStateById?.[agentId]?.mindscape
+      return [
+        agentId,
+        typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 6
+          ? value
+          : null,
+      ]
+    }),
+  ) as Record<string, number | null>
+}
+
 /** Resolves only exact, source-declared team branches; it never expands a pair. */
 export function resolveReviewedTeamDiscDirections(
   agentId: string,
@@ -359,8 +507,21 @@ export function resolveReviewedTeamDiscDirections(
 ): AppliedReviewedTeamDiscDirection[] {
   const members = context.memberIds
   if (!members || members.length !== 3 || new Set(members).size !== 3) return []
+  const observedMindscapes = reviewedTeamMindscapeByAgentId(context)
   return reviewedTeamDiscDirections.flatMap((direction) => {
     if (direction.agentId !== agentId) return []
+    if (
+      direction.requiresExplicitSelection &&
+      context.selectedDirectionIdByAgentId?.[agentId] !== direction.id
+    )
+      return []
+    if (
+      Object.entries(direction.mindscapeRangeByAgentId ?? {}).some(([id, range]) => {
+        const value = observedMindscapes[id]
+        return value == null || value < range.minimum || value > range.maximum
+      })
+    )
+      return []
     let exactMemberIds = direction.exactMemberSets.find((candidate) =>
       sameMembers(candidate, members),
     )
@@ -411,11 +572,20 @@ export function resolveReviewedTeamDiscDirections(
         boundary: direction.boundary,
         mainStats: direction.mainStats,
         subStatWeights: direction.subStatWeights,
+        subStatCandidates: direction.subStatCandidates,
+        targetPanelPolicy: direction.targetPanelPolicy,
+        objective: direction.objective,
         additionalSources: direction.additionalSources,
         retainBasePlans: direction.retainBasePlans,
         exactMemberIds: [...exactMemberIds],
         potentialMinimumByAgentId: { ...direction.potentialMinimumByAgentId },
         effectivePotentialByAgentId,
+        effectiveMindscapeByAgentId: Object.fromEntries(
+          Object.keys(direction.mindscapeRangeByAgentId ?? {}).map((id) => [
+            id,
+            observedMindscapes[id] ?? null,
+          ]),
+        ),
       },
     ]
   })

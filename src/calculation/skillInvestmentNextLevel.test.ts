@@ -30,6 +30,8 @@ describe('source-bound next paid skill level', () => {
     expect(event.dazeCoefficient.before).toBeCloseTo(0.395)
     expect(event.dazeCoefficient.after).toBeCloseTo(0.408)
     expect(event.dazeCoefficient.delta).toBeCloseTo(0.013)
+    expect(event.anomalyCoefficient).toBeDefined()
+    expect(event.resourceRecoveryGains).toBeDefined()
     expect(event.quantityUnit).toBe('coefficient_use')
     expect(event.sourceRefs.every((ref) => !ref.includes('undefined'))).toBe(true)
     expect(result.materials).toMatchObject({

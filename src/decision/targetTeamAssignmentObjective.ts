@@ -15,12 +15,88 @@ import {
   sourceReviewedProtectedUtilityIndices32,
 } from './teamFunctionalConstraints32'
 import { isReviewedPreparedMemberDamageExclusion32 } from '../calculation/reviewedPreparedTeamBenchmark32'
+import type { TeamJointBuildIntent } from './buildIntent'
+import { createTargetTeamDeclaredEventObjective32 } from './targetTeamDeclaredEventObjective32'
+import { targetTeamObjectiveConditionsIdentity } from './targetTeamPlanningContextInput'
+import {
+  createTargetTeamLuminizeAssignmentObjective32,
+  frozenMiyabiLuminizeDirection32,
+} from './targetTeamLuminizeAssignmentObjective32'
 
-type ContextInput = Parameters<typeof compileTargetTeamPlanningContext>[0]
+export type TargetTeamObjectiveContextInput = Parameters<
+  typeof compileTargetTeamPlanningContext
+>[0] & {
+  buildIntent?: TeamJointBuildIntent
+}
+type ContextInput = TargetTeamObjectiveContextInput
+export type TargetTeamObjectiveContextResolver = {
+  identity: string
+  resolve: (
+    assignments: Parameters<TeamAssignmentObjective['evaluate']>[0],
+  ) => TargetTeamObjectiveContextInput | null
+}
+export type TargetTeamObjectiveOptions = { contextResolver?: TargetTeamObjectiveContextResolver }
+
+export function resolveTargetTeamObjectiveContext(
+  input: Omit<ContextInput, 'fit' | 'modifierProjection'>,
+  assignments: Parameters<TeamAssignmentObjective['evaluate']>[0],
+  modifierProjection: ContextInput['modifierProjection'],
+  options?: TargetTeamObjectiveOptions,
+): ContextInput | null {
+  const loadouts = assignments.map((row) => ({
+    agentId: row.agentId,
+    discIds: row.discs.map((choice) => choice.disc.id),
+  }))
+  const uniqueDiscCount = new Set(loadouts.flatMap((row) => row.discIds)).size
+  const context = options?.contextResolver
+    ? options.contextResolver.resolve(assignments)
+    : {
+        ...input,
+        modifierProjection,
+        fit: {
+          memberIds: input.candidate.memberIds,
+          loadouts,
+          status: 'ready' as const,
+          uniqueDiscCount,
+          fingerprint: stableContentHash(loadouts),
+        },
+      }
+  if (
+    !context ||
+    targetTeamObjectiveConditionsIdentity(context) !==
+      targetTeamObjectiveConditionsIdentity(input) ||
+    assignments.length !== 3 ||
+    uniqueDiscCount !== 18 ||
+    new Set(assignments.map((row) => row.agentId)).size !== 3 ||
+    context.candidate.candidateId !== input.candidate.candidateId ||
+    stableContentHash(context.candidate.memberIds) !==
+      stableContentHash(input.candidate.memberIds) ||
+    context.fit.status !== 'ready' ||
+    context.fit.uniqueDiscCount !== 18 ||
+    stableContentHash(context.fit.loadouts) !== stableContentHash(loadouts) ||
+    assignments.some(
+      (row) =>
+        !input.candidate.memberIds.includes(row.agentId) ||
+        row.discs.length !== 6 ||
+        row.discs.some(
+          ({ disc }) =>
+            stableContentHash(disc) !==
+            stableContentHash(context.warehouse.discs.find((item) => item.id === disc.id)),
+        ),
+    )
+  )
+    return null
+  return context
+}
 
 export function createTargetTeamAssignmentObjective(
   input: Omit<ContextInput, 'fit' | 'modifierProjection'>,
+  options?: TargetTeamObjectiveOptions,
 ): TeamAssignmentObjective {
+  if (input.declaredEventGoal32) return createTargetTeamDeclaredEventObjective32(input, options)
+  const luminizeDirection = frozenMiyabiLuminizeDirection32(input)
+  if (luminizeDirection)
+    return createTargetTeamLuminizeAssignmentObjective32(input, luminizeDirection, options)
   const scenario = resolveCurrentPlanningScenario32(input.scenarioSelection)
   const modifierProjection = projectTargetTeamEquipmentModifiers({
     baseline: scenario.baseline,
@@ -56,6 +132,8 @@ export function createTargetTeamAssignmentObjective(
     ),
     fingerprint: stableContentHash({
       policy: teamAssignmentObjectivePolicy,
+      contextResolverIdentity: options?.contextResolver?.identity ?? null,
+      wEngineRuntimeDeclarations: input.wEngineRuntimeDeclarations ?? null,
       candidate: input.candidate,
       parameters: input.parameters,
       rosterHash: input.rosterHash,
@@ -110,27 +188,13 @@ export function createTargetTeamAssignmentObjective(
       return cache.get(disc.id)!
     },
     evaluate: (assignments) => {
-      const loadouts = assignments.map((loadout) => ({
-        agentId: loadout.agentId,
-        discIds: loadout.discs.map((choice) => choice.disc.id),
-      }))
-      const uniqueDiscCount = new Set(loadouts.flatMap((item) => item.discIds)).size
-      const context: ContextInput = {
-        ...input,
+      const context = resolveTargetTeamObjectiveContext(
+        input,
+        assignments,
         modifierProjection,
-        fit: {
-          memberIds: input.candidate.memberIds,
-          loadouts,
-          status:
-            loadouts.length === 3 &&
-            loadouts.every((item) => item.discIds.length === 6) &&
-            uniqueDiscCount === 18
-              ? 'ready'
-              : 'partial',
-          uniqueDiscCount,
-          fingerprint: stableContentHash(loadouts),
-        },
-      }
+        options,
+      )
+      if (!context) return null
       const result = compileTargetTeamPlanningContext(context)
       if (result.status !== 'supported') return null
       // A matching gap list is not a dependency proof. The production goal is

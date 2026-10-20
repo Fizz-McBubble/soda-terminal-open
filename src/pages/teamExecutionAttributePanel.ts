@@ -5,7 +5,10 @@ import { resolveWEngine, type ResolvedWEngine } from '../decision/wEngineResolve
 import { getAgentProfile, getProjectedBuildKnowledgeProfile } from '../gameDataPacks/agentProfile'
 import { currentPanelData } from '../gameDataPacks/panel/currentPanelData'
 import { defaultAscensionForLevel } from '../gameDataPacks/panel/wEngineGrowth'
-import { getCurrentBuildTargetPanel } from '../gameDataPacks/currentBuildAuthority'
+import {
+  getCurrentBuildTargetPanel,
+  type CurrentBuildTargetPanelContext,
+} from '../gameDataPacks/currentBuildAuthority'
 import { createAgentDevelopmentPanelProjection } from './agentDevelopmentPanelProjection'
 import {
   evaluateSourceBoundAttackSupport,
@@ -181,17 +184,35 @@ export function createTeamExecutionAttributePanel(input: {
   discs: readonly DriveDisc[]
   wEngines?: AccountRoster['wEngines']
   memberIds?: readonly string[]
+  buildDirectionConditions?: Pick<
+    CurrentBuildTargetPanelContext,
+    'agentStateById' | 'selectedDirectionIdByAgentId'
+  >
 }): TeamExecutionAttributePanel {
   const profile = getProjectedBuildKnowledgeProfile(input.agent.agentId)
   const agentProfile = getAgentProfile(input.agent.agentId)
-  const targetField = getCurrentBuildTargetPanel(input.agent.agentId)
-  const targetStatus = sourceStatus(targetField?.status)
   const suggested = input.member.suggested
   const wEngineResolution = resolveWEngine({
     agent: input.agent,
     legacyWEngines: input.wEngines,
     recommendedWEngineIds: suggested.wEngine ? [suggested.wEngine.engineId] : undefined,
   })
+  const targetField = getCurrentBuildTargetPanel(
+    input.agent.agentId,
+    input.memberIds
+      ? {
+          memberIds: input.memberIds,
+          ...input.buildDirectionConditions,
+          agentStateById: input.buildDirectionConditions?.agentStateById ?? {
+            [input.agent.agentId]: {
+              mindscape: input.agent.mindscape,
+              potentialImage: input.agent.potentialImage,
+            },
+          },
+        }
+      : undefined,
+  )
+  const targetStatus = sourceStatus(targetField?.status)
   const currentEngine = wEngineResolution.current
   const currentProjectionAgent = agentWithWEngine(input.agent, currentEngine)
   const outOfCombatPanel = createAgentDevelopmentPanelProjection({

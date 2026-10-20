@@ -6,6 +6,7 @@ import { useF5AccountSummary } from '../components/f5AccountSummaryContext'
 import { beginUsageOperation } from '../usageStatistics/client'
 import { useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { getActiveAccount } from '../accounts/repository'
 import { buildExactTeamVariantKey } from '../accounts/planningSolutionContext'
 import {
   CalculationQueryClientContext,
@@ -151,6 +152,7 @@ export function PlanEditor(props: PlanEditorProps) {
   const save = async () => {
     if (!claimPlanEditorSaveFromProps(props, saving, duplicateMemberId, setMessage)) return false
     const isCurrentSave = captureSaveScope()
+    const originatingPathname = window.location.pathname
     let finishUsage: ReturnType<typeof beginUsageOperation> | undefined
     try {
       const remainingSession = assertCurrentPlanEditorReservation(
@@ -256,7 +258,14 @@ export function PlanEditor(props: PlanEditorProps) {
         remainingSession,
       })
       finishUsage('success')
-      if (!isCurrentSave()) return true
+      if (!isCurrentSave()) {
+        const activeAccount = await getActiveAccount()
+        if (
+          activeAccount?.id !== warehouse.accountId ||
+          window.location.pathname !== originatingPathname
+        )
+          return true
+      }
       setDraft(next)
       setSaved(true)
       setDirty(false)
@@ -268,7 +277,7 @@ export function PlanEditor(props: PlanEditorProps) {
         navigate,
         setMessage,
         savedName: next.name,
-        isCurrentSave,
+        isCurrentSave: () => true,
         appSessionId: accountSummary?.appSessionId,
       })
     } catch (error) {
@@ -400,6 +409,7 @@ export function PlanEditor(props: PlanEditorProps) {
         </section>
       ) : null}
       <PlanEditorSavedStateNotices
+        luminizeSettlement32={props.luminizeSettlement32}
         objectiveNote={restored?.candidateWarehouse?.panelObjectiveNote}
         needsTeamRecovery={kind === 'team' && !team && readOnly}
         staleNotice={staleNotice}

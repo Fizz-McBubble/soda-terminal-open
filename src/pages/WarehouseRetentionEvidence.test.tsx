@@ -7,6 +7,49 @@ import { RetentionScoreDetails } from './WarehouseRetentionDetails'
 import { registerWarehouseRetentionEvidenceCases } from './WarehouseRetentionEvidence.testCases'
 
 describe('absolute retention evidence', () => {
+  it('shows the saved finite Luminize use without presenting a complete team-damage claim', () => {
+    const source = evidence({
+      reasonKind: 'quality_borderline',
+      nextAction: {
+        basis: 'finite_luminize_static_preparation_positive_use',
+        kind: 'keep',
+        targetLevel: null,
+        detail: '在已保存的辉映比较条件下，同槽替换可提高该项收益，作为备选盘保留。',
+        stopWhen: '此用途只适用于对应配装与条件，不改变盘面品质，也不作为其他盘的清理依据。',
+      },
+    })
+    render(
+      <WarehouseRetentionEvidence ownedAgentIds={new Set()} evidence={source} discLevel={15} />,
+    )
+    expect(screen.getByText('下一步：保留')).toBeVisible()
+    expect(screen.getByText('当前方案中可提升辉映收益，留作备选。')).toBeVisible()
+    expect(screen.queryByText(source.nextAction!.detail)).not.toBeInTheDocument()
+    expect(screen.queryByText(source.nextAction!.stopWhen)).not.toBeInTheDocument()
+  })
+
+  it.each(['quality_keep', 'quality_borderline', 'no_supported_use'] as const)(
+    'shows the complete-build retention basis independently of absolute quality (%s)',
+    (reasonKind) => {
+      const source = evidence({
+        reasonKind,
+        nextAction: {
+          basis: 'complete_build_positive_use',
+          kind: 'keep',
+          targetLevel: null,
+          detail: '已核对完整配装的同槽替换收益，作为该方案的备选盘保留。',
+          stopWhen: '此用途只适用于对应配装与条件，不改变盘面品质，也不作为其他盘的清理依据。',
+        },
+      })
+      const before = structuredClone(source)
+      render(
+        <WarehouseRetentionEvidence ownedAgentIds={new Set()} evidence={source} discLevel={15} />,
+      )
+      expect(screen.getByText('下一步：保留')).toBeVisible()
+      expect(screen.getByText('同槽替换能提升当前配装，留作备选。')).toBeVisible()
+      expect(screen.queryByText(source.nextAction!.stopWhen)).not.toBeInTheDocument()
+      expect(source).toEqual(before)
+    },
+  )
   it('uses actual ownership even when an owned reference has no qualifying retention use', () => {
     const source = evidence({
       ownedUseAgentIds: [],

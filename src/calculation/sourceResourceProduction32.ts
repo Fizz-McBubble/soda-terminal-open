@@ -6,6 +6,7 @@ import {
 import { stableContentHash } from '../gameDataPacks/types'
 import { isSourceRateEvent32 } from './sourceEventQuantity32'
 import type { PlanningEventUsage } from './planningCalculationContextCompiler'
+import { summarizeReviewedClaretResourceProduction32 } from './reviewedClaretResourceEvents32'
 
 /** Declared source-row production, separate from natural regeneration, grants,
  * resource spending and point conversion. Never priced as damage or efficiency. */
@@ -113,6 +114,9 @@ export function summarizeSourceResourceProduction32(input: {
           : decibels / currentAgentResourceGamePointConversion32.decibels.upstreamUnitsPerPoint,
     },
     teammateDecibelDistribution: 'unverified' as const,
+    ...(input.agentId === 'agent-claret'
+      ? { claretActionProduction32: summarizeReviewedClaretResourceProduction32(rows) }
+      : {}),
     ...(input.mechanismGrants32 ? { mechanismGrants32: input.mechanismGrants32 } : {}),
     blockers: [...new Set(productionBlockers)],
     sourceIdentity: currentAgentResourceEventIdentity32,

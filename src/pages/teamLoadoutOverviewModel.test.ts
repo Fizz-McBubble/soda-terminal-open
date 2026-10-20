@@ -213,6 +213,9 @@ describe('team loadout overview result layers', () => {
 
     expect(model.groups.map((group) => group.kind)).toEqual(['recommended', 'saved'])
     expect(model.groups[0]?.label).toBe('当前推荐')
+    expect(model.groups[0]?.description).toContain('泛用体系评级')
+    expect(model.groups[0]?.description).not.toContain('式舆')
+    expect(model.groups[0]?.description).not.toContain('危局')
     expect(model.groups[1]?.label).toBe('已保存方案')
     expect(model.initialSelectedId).toBe(model.groups[0]?.items[0]?.id)
     expect(model.answer.blockers).toEqual([])

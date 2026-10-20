@@ -1,4 +1,8 @@
 import { memberFacts, type Member } from './teamStrengthMemberFacts'
+import {
+  teamStrengthBackgroundAction,
+  teamStrengthBackgroundActionIdentity,
+} from './teamStrengthBackgroundActions'
 import { supportsPotentialImage } from '../assault/agentCapabilities'
 import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
 import { getCurrentAgentDecisionMechanicContract } from '../calculation/currentAgentDecisionMechanicContracts'
@@ -18,6 +22,11 @@ import { bindReviewedPotentialApplications } from '../calculation/potentialAppli
 import { currentPlanningConsumerPolicyIdentity32 } from '../calculation/currentPlanningConsumerPolicyIdentity32'
 import { teamStrengthSourceActionSemantics } from './teamStrengthActionFacts'
 import { anomalyDamageCoreIdentity } from '../calculation/anomalyDamageCore'
+import {
+  projectTeamStrengthSourceCapacity,
+  resolveTeamStrengthRecipientContext,
+  teamStrengthSourceCapacityIdentity,
+} from './teamStrengthSourceCapacity'
 import {
   createTeamStrengthReferenceRuntimeMember,
   teamStrengthReferenceStateIdentity,
@@ -49,7 +58,7 @@ export {
 const ruleById = new Map(current31TeamEngineD1Pack.agentRules.map((rule) => [rule.agentId, rule]))
 const outputSpecialties = new Set(['attack', 'anomaly', 'rupture', 'armorer'])
 const fieldBudget = 1.35
-export const teamStrengthMechanicFeaturesVersion = 'source-fact-team-features/v14' as const
+export const teamStrengthMechanicFeaturesVersion = 'source-fact-team-features/v16' as const
 /** Only inputs actually used here; guide rows, evidence counts and labels are excluded. */
 export const teamStrengthMechanicDataFingerprint = stableContentHash({
   version: teamStrengthMechanicFeaturesVersion,
@@ -64,6 +73,8 @@ export const teamStrengthMechanicDataFingerprint = stableContentHash({
   reviewedGenericEffectDispositionsFingerprint,
   reference: teamStrengthReferenceStateIdentity,
   supportContact: teamStrengthSupportContactIdentity,
+  sourceCapacity: teamStrengthSourceCapacityIdentity,
+  backgroundAction: teamStrengthBackgroundActionIdentity,
   agents: [...ruleById.values()]
     .sort((left, right) => left.agentId.localeCompare(right.agentId))
     .map((rule) => {
@@ -228,7 +239,14 @@ export function extractTeamStrengthMechanicFeatures(
     )
   }
   const frontline = output.filter((member) => member.demand >= 0.7)
-  const background = output.filter((member) => member.demand <= 0.3)
+  const backgroundActionEvidence = members.map(teamStrengthBackgroundAction)
+  const background = members.filter((member) =>
+    backgroundActionEvidence.some((row) => row.agentId === member.agentId && row.action !== null),
+  )
+  const backgroundScale = (member: Member) =>
+    member.attack *
+    (backgroundActionEvidence.find((row) => row.agentId === member.agentId)?.action
+      ?.damageMultiplier ?? 0)
   const anomalies = output.filter((member) => member.specialty === 'anomaly')
   // A specialty/attribute label alone does not prove a second anomaly channel.
   // Keep special damage (for example lumiflux) separate from reviewed disorder
@@ -243,12 +261,21 @@ export function extractTeamStrengthMechanicFeatures(
       .map((member) => member.attribute),
   )
   const fieldDemand = members.reduce((sum, member) => sum + member.demand, 0)
+  const effectiveRecipientContext = Object.keys(recipientContext).length
+    ? recipientContext
+    : resolveTeamStrengthRecipientContext(ids, referenceConditions)
   const capabilities = compatibleCapabilities(
     members,
     abilityById,
     context,
-    recipientContext,
+    effectiveRecipientContext,
     referenceConditions,
+  )
+  const sourceCapacityEvidence = projectTeamStrengthSourceCapacity(
+    members,
+    abilityById,
+    referenceConditions,
+    effectiveRecipientContext,
   )
   const potentialEffects = members.flatMap((member) => {
     const runtimeMember = runtimeById.get(member.agentId)!
@@ -330,12 +357,7 @@ export function extractTeamStrengthMechanicFeatures(
         (member) => (member.impact * member.dazeMultiplier) / 100,
       ),
     ),
-    Math.log1p(
-      maximum(
-        background.filter((member) => member.actionFacts.direct !== null),
-        directScale,
-      ),
-    ),
+    Math.log1p(maximum(background, backgroundScale)),
     fieldDemand,
     Math.max(0, fieldDemand - fieldBudget),
     output.length,
@@ -358,12 +380,7 @@ export function extractTeamStrengthMechanicFeatures(
         (member) => (member.impact * member.dazeMultiplier) / 100,
       ),
     ),
-    Math.log1p(
-      second(
-        background.filter((member) => member.actionFacts.direct !== null),
-        directScale,
-      ),
-    ),
+    Math.log1p(second(background, backgroundScale)),
     Math.log1p(
       second(anomalies, (member) => (member.anomalyBuildup * member.anomalyMastery) / 100),
     ),
@@ -405,6 +422,38 @@ export function extractTeamStrengthMechanicFeatures(
     capabilities.selfCoverage('aftershock_stun'),
     capabilities.coverage('anomaly_proficiency'),
     capabilities.coverage('anomaly_mastery'),
+    Math.log1p(
+      Math.max(
+        0,
+        ...sourceCapacityEvidence.actions
+          .filter((row) => output.some((member) => member.agentId === row.agentId))
+          .map((row) => row.value ?? 0),
+      ),
+    ),
+    // Real source damage from stun/support actors is retained independently
+    // of primary-output role priors. It never turns three supports into a DPS team.
+    Math.log1p(
+      Math.max(
+        0,
+        ...sourceCapacityEvidence.actions
+          .filter((row) =>
+            members.some(
+              (member) =>
+                member.agentId === row.agentId &&
+                member.agentId !== primary?.agentId &&
+                (outputSpecialties.has(member.specialty) || member.specialty === 'stun'),
+            ),
+          )
+          .map((row) => row.value ?? 0),
+      ),
+    ),
+    sourceCapacityEvidence.primarySupportGain,
+    sourceCapacityEvidence.secondarySupportGain,
+    sourceCapacityEvidence.anomalyProficiencyGain,
+    sourceCapacityEvidence.anomalyMasteryGain,
+    sourceCapacityEvidence.stunCapacity,
+    sourceCapacityEvidence.anomalyDamageCapacity,
+    sourceCapacityEvidence.anomalyBuildupCapacity,
   ]
   // Additional source capacities are learned jointly; none is a fixed role bonus
   // or a claim that mutually exclusive actions form continuous throughput.
@@ -414,10 +463,7 @@ export function extractTeamStrengthMechanicFeatures(
       members.filter((member) => member.specialty === 'stun'),
       (member) => (member.impact * member.dazeMultiplier) / 100,
     ),
-    secondBackgroundAction: second(
-      background.filter((member) => member.actionFacts.direct !== null),
-      directScale,
-    ),
+    secondBackgroundAction: second(background, backgroundScale),
     secondAnomalyBuildup: second(
       anomalies,
       (member) => (member.anomalyBuildup * member.anomalyMastery) / 100,
@@ -429,6 +475,11 @@ export function extractTeamStrengthMechanicFeatures(
       ? (referenceConditions as ResolvedTeamStrengthReferenceConditions)
       : null
   const limitations = [
+    ...backgroundActionEvidence
+      .filter((row) => row.status === 'unknown')
+      .map(
+        (row) => `${row.agentId}: ${row.blockers.join('; ')}; source=${row.sourceRefs.join(',')}`,
+      ),
     '代表动作、站场预算和增益能力描述机制规模，不是实战频率、持续覆盖或伤害。',
     '普通直伤与异常积蓄按来源分别保留；动作包容量未给出各通道的实战贡献比例，第二输出不表示同时满额输出。',
     ...new Set(members.flatMap((member) => member.actionLimitations)),
@@ -445,6 +496,9 @@ export function extractTeamStrengthMechanicFeatures(
       ? ['浸染 / 涤净属性尚未给定，相应非风属性增益未计入覆盖。']
       : []),
     ...(resourceUnknown ? ['部分资源转换未完整表达；未将缺失资料当作资源无法满足。'] : []),
+    ...(sourceCapacityEvidence.gaps.length
+      ? ['有限接触中未解析的来源条件保留在具名提供者/字段诊断；不补成零收益或持续覆盖。']
+      : []),
     ...(capabilities.unverifiedProviders.length
       ? [
           '部分外部效果尚未绑定具体来源事实；覆盖值仅统计已确认能力，不能解释为这些角色没有其他能力。',
@@ -466,6 +520,8 @@ export function extractTeamStrengthMechanicFeatures(
   ]
   return {
     featureNames: teamStrengthMechanicFeatureNames,
+    sourceCapacityEvidence,
+    backgroundActionEvidence,
     supportContributionEvidence,
     values,
     playstyleCapacities,
@@ -475,11 +531,13 @@ export function extractTeamStrengthMechanicFeatures(
       reasons: missingOutputActions.length ? ['主要输出缺少可比较的代表动作数值。'] : [],
     },
     reliability:
+      backgroundActionEvidence.some((row) => row.status === 'unknown') ||
       resourceUnknown ||
       capabilities.unverifiedProviders.length > 0 ||
       capabilities.reviewedProviders.length > 0 ||
       capabilities.deferredProviders.length > 0 ||
       capabilities.sourceConflictProviders.length > 0 ||
+      sourceCapacityEvidence.gaps.length > 0 ||
       !members.every((member) => member.actionReady)
         ? 'partial'
         : 'supported',

@@ -1,10 +1,6 @@
 import { stableContentHash } from '../gameDataPacks/types'
 import { currentAgentDecisionMechanicContracts } from './currentAgentDecisionMechanicContracts'
-import {
-  resolveCurrentAgentResourceInitialState32,
-  type CurrentAgentResourceFlow32,
-  type CurrentAgentResourceFlowEntry32,
-} from './currentAgentResourceFlow32'
+import { resolveCurrentAgentResourceBounds32 } from './currentAgentResourceFlow32'
 import {
   compileNormalizedAgentEventSchedule,
   currentNormalizedPlanningBaseline,
@@ -12,6 +8,13 @@ import {
 import { getCurrentPlanningInteractionMechanicIR } from './currentPlanningInteractionMechanicIR'
 import { compileSourceBackedPlanningInteractionContracts } from './currentPlanningInteractionMechanicIR'
 import { type PlanningInteractionContract } from './planningInteractionOperators'
+import { compileDeclaredRemielleRadiance32 } from './compileDeclaredRemielleRadiance32'
+import { compileDeclaredResourceTimeline32 } from './declaredResourceTimeline32'
+import {
+  summarizeSourceNamedResourceActionProduction32,
+  summarizeNamedResourceProductionFromUsages32,
+} from './sourceNamedResourceActionProduction32'
+import type { PlanningEventUsage } from './planningCalculationContextCompiler'
 
 const transitionSeconds = 3
 const activeBudgetSeconds =
@@ -83,6 +86,20 @@ export const currentPlanningBaselineAgentObservations = Object.freeze(
 
 const observationByAgentId = new Map(
   currentPlanningBaselineAgentObservations.map((observation) => [observation.agentId, observation]),
+)
+// The fixed baseline selects the same source packet for an agent in every
+// formation. Reuse its immutable production result instead of hashing it anew
+// for each candidate team; actual query packets are still compiled separately.
+const baselineResourceProductionByAgentId32 = new Map(
+  currentPlanningBaselineAgentObservations.map((observation) => [
+    observation.agentId,
+    summarizeSourceNamedResourceActionProduction32({
+      agentId: observation.agentId,
+      actionId: observation.actionId,
+      occurrenceCount: observation.occurrenceCount,
+      sourceRefs: observation.eventSourceRefs,
+    }),
+  ]),
 )
 
 function allocateFieldTime(memberIds: readonly string[]) {
@@ -166,54 +183,91 @@ export function compileCurrentPlanningBaselineTimelineContracts(
       }
 }
 
-function normalizedKey(value: string) {
-  return value.replaceAll('_', '').toLowerCase()
-}
-
-function numericParameter(parameters: Readonly<Record<string, unknown>>, keys: readonly string[]) {
-  for (const key of keys) {
-    const value = parameters[key]
-    if (typeof value === 'number' && Number.isFinite(value)) return value
-  }
-  return null
-}
-
-function resourceBounds(input: {
-  resource: string
-  resourceFlow: CurrentAgentResourceFlow32
-  resourceEntry: CurrentAgentResourceFlowEntry32
-  parameters: Readonly<Record<string, unknown>>
-  stateParameterKeys: readonly string[]
-}) {
-  const capKeys = input.stateParameterKeys.filter((key) => {
-    const normalized = normalizedKey(key)
-    return normalized.includes('cap') || normalized.includes('max')
-  })
-  const initial = resolveCurrentAgentResourceInitialState32(input.resourceFlow, input.resourceEntry)
-  if (initial.status === 'unknown')
-    return {
-      status: 'unknown_initial_value' as const,
-      reason: initial.reason,
-    }
-  const initialValue = initial.value
-  const declaredMaximum = numericParameter(input.parameters, capKeys)
-  const stateValues = input.stateParameterKeys.flatMap((key) => {
-    const value = input.parameters[key]
-    return typeof value === 'number' && Number.isFinite(value) ? [value] : []
-  })
-  const maximum = Math.max(initialValue, declaredMaximum ?? 0, ...stateValues, 1)
-  return { status: 'supported' as const, initialValue, minimum: 0, maximum }
-}
-
 export function compileCurrentPlanningBaselineResourceContracts(
   memberIds: readonly [string, string, string],
+  remielleRadiance32?: unknown,
+  resourceTimelineDeclaration32?: unknown,
+  sourceActionUsages32?: readonly PlanningEventUsage[],
 ) {
+  if (memberIds.some((agentId) => !observationByAgentId.has(agentId)))
+    return { status: 'unsupported' as const, blockers: ['resource_baseline_member_unknown'] }
+  const resourceTimeline =
+    resourceTimelineDeclaration32 === undefined
+      ? undefined
+      : compileDeclaredResourceTimeline32(resourceTimelineDeclaration32)
+  if (
+    resourceTimeline &&
+    (resourceTimeline.status !== 'declared_resource_production' ||
+      resourceTimeline.declaration.durationSeconds !==
+        currentNormalizedPlanningBaseline.declaredDurationSeconds ||
+      stableContentHash(resourceTimeline.declaration.memberAgentIds) !==
+        stableContentHash(memberIds))
+  )
+    return {
+      status: 'unsupported' as const,
+      blockers: ['resource_timeline_invalid_for_formation_or_baseline'],
+    }
+  if (
+    resourceTimeline?.status === 'declared_resource_production' &&
+    resourceTimeline.declaration.remielle &&
+    remielleRadiance32 !== undefined &&
+    stableContentHash(resourceTimeline.declaration.remielle) !==
+      stableContentHash(remielleRadiance32)
+  )
+    return {
+      status: 'unsupported' as const,
+      blockers: ['resource_timeline_duplicate_remielle_declarations_disagree'],
+    }
+  const declaredRadiance =
+    resourceTimeline?.status === 'declared_resource_production' && resourceTimeline.remielle
+      ? resourceTimeline.remielle
+      : remielleRadiance32 === undefined
+        ? undefined
+        : compileDeclaredRemielleRadiance32(remielleRadiance32)
+  if (
+    declaredRadiance &&
+    (declaredRadiance.status === 'unsupported' ||
+      !memberIds.includes('agent-remielle') ||
+      declaredRadiance.durationSeconds !==
+        currentNormalizedPlanningBaseline.declaredDurationSeconds)
+  )
+    return {
+      status: 'unsupported' as const,
+      blockers: ['declared_remielle_resource_timeline_invalid_for_formation'],
+    }
   const baselineRef = `planning-baseline:${currentNormalizedPlanningBaseline.baselineId}:neutral-resource-state`
+  const selectedActionResourceProduction32 =
+    sourceActionUsages32 === undefined
+      ? memberIds
+          .filter(
+            (agentId) =>
+              resourceTimeline?.status !== 'declared_resource_production' ||
+              (!resourceTimeline.declaration.events.some(
+                (event) => event.ownerAgentId === agentId,
+              ) &&
+                !(resourceTimeline.declaration.remielle && agentId === 'agent-remielle')),
+          )
+          .map((agentId) => baselineResourceProductionByAgentId32.get(agentId)!)
+      : summarizeNamedResourceProductionFromUsages32(sourceActionUsages32).filter(
+          (row) =>
+            memberIds.includes(row.agentId) &&
+            (resourceTimeline?.status !== 'declared_resource_production' ||
+              (!resourceTimeline.declaration.events.some(
+                (event) => event.ownerAgentId === row.agentId,
+              ) &&
+                !(resourceTimeline.declaration.remielle && row.agentId === 'agent-remielle'))),
+        )
   const contracts: PlanningInteractionContract[] = []
   const resourceStateAudit: Array<{
     agentId: string
     resource: string
-    status: 'source_backed' | 'not_applicable' | 'no_runtime_edges' | 'unknown_initial_value'
+    status:
+      | 'source_backed'
+      | 'not_applicable'
+      | 'no_runtime_edges'
+      | 'unknown_initial_value'
+      | 'unknown_capacity'
+      | 'invalid_source_bounds'
     reason?: string
     sourceRefs: readonly string[]
   }> = []
@@ -221,7 +275,6 @@ export function compileCurrentPlanningBaselineResourceContracts(
     const contract = currentAgentDecisionMechanicContracts.find((item) => item.agentId === agentId)
     const resourceFlow = contract?.resourceContract?.resourceFlow
     if (!contract || !resourceFlow || resourceFlow.status !== 'compiled') continue
-    const parameters = resourceFlow.parameters as Readonly<Record<string, unknown>>
     const capability = getCurrentPlanningInteractionMechanicIR(agentId)?.capabilities.find(
       (item) => item.operator === 'resource_state_transition',
     )
@@ -245,14 +298,8 @@ export function compileCurrentPlanningBaselineResourceContracts(
         })
         continue
       }
-      const bounds = resourceBounds({
-        resource: resource.resource,
-        resourceFlow,
-        resourceEntry: resource,
-        parameters,
-        stateParameterKeys: resource.stateParameterKeys,
-      })
-      if (bounds.status === 'unknown_initial_value') {
+      const bounds = resolveCurrentAgentResourceBounds32(resourceFlow, resource)
+      if (bounds.status !== 'supported') {
         resourceStateAudit.push({
           agentId,
           resource: resource.resource,
@@ -290,6 +337,31 @@ export function compileCurrentPlanningBaselineResourceContracts(
           resourceFlow.evidenceLocator,
         ]),
       })
+      if (
+        agentId === 'agent-remielle' &&
+        resource.resource === 'floating_radiance' &&
+        declaredRadiance?.status === 'declared_resource_arithmetic'
+      ) {
+        contracts.push({
+          ...declaredRadiance.resourceContract,
+          sourceRefs: unique([
+            ...declaredRadiance.resourceContract.sourceRefs,
+            ...(capability?.sourceRefs ?? []),
+            `planning-baseline:${currentNormalizedPlanningBaseline.baselineId}:declared-radiance:${declaredRadiance.inputFingerprint}`,
+          ]),
+          transitions: declaredRadiance.resourceContract.transitions.length
+            ? declaredRadiance.resourceContract.transitions
+            : [
+                {
+                  atSeconds: 0,
+                  ownerAgentId: agentId,
+                  delta: 0,
+                  reason: 'Explicit initial resource state; no action selected.',
+                },
+              ],
+        })
+        continue
+      }
       contracts.push({
         contractId: `${currentNormalizedPlanningBaseline.baselineId}:${agentId}:resource:${resource.resource}`,
         operator: 'resource_state_transition',
@@ -323,8 +395,25 @@ export function compileCurrentPlanningBaselineResourceContracts(
         status: 'supported' as const,
         contracts,
         resourceStateAudit,
+        selectedActionResourceProduction32,
+        ...(resourceTimeline?.status === 'declared_resource_production'
+          ? { resourceTimeline32: resourceTimeline }
+          : {}),
+        ...(declaredRadiance?.status === 'declared_resource_arithmetic'
+          ? { declaredRemielleRadiance32: declaredRadiance }
+          : {}),
         sourceCompilation: compilation,
-        resourceObservationHash: stableContentHash({ memberIds, contracts, resourceStateAudit }),
+        resourceObservationHash: stableContentHash({
+          memberIds,
+          contracts,
+          resourceStateAudit,
+          selectedActionResourceProduction32: selectedActionResourceProduction32.map(
+            (row) => row.fingerprint,
+          ),
+          ...(resourceTimeline?.status === 'declared_resource_production'
+            ? { resourceTimeline: resourceTimeline.inputFingerprint }
+            : {}),
+        }),
       }
 }
 

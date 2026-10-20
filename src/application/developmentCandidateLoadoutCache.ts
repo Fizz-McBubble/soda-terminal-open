@@ -2,6 +2,7 @@ import type { CandidateWarehousePlan } from '../optimizer/candidateWarehouseSolv
 import type { AccountDecisionRun } from './calculationQueryContract'
 import type { DevelopmentWorkbenchRouteSelection } from './publicDevelopmentWorkbenchRoute'
 import { contentHash } from './contentHash'
+import { getCandidateWarehouseConstraint } from '../gameDataPacks/candidateWarehouseConstraints'
 
 type Loadout = CandidateWarehousePlan['loadouts'][number]
 const binding = (run: AccountDecisionRun) =>
@@ -18,7 +19,13 @@ const key = (agentId: string, rank: number, fingerprint: string) =>
 
 /** Private, issued default loadouts only. A miss keeps the original fresh-solve validation. */
 export function createDevelopmentCandidateLoadoutCache() {
-  let runs = new WeakMap<AccountDecisionRun, { binding: string; loadouts: Map<string, Loadout> }>()
+  let runs = new WeakMap<
+    AccountDecisionRun,
+    {
+      binding: string
+      loadouts: Map<string, { loadout: Loadout; guidanceHash: string | null }>
+    }
+  >()
   return {
     remember(run: AccountDecisionRun, agentId: string, candidates: CandidateWarehousePlan[]) {
       const identity = binding(run)
@@ -35,7 +42,10 @@ export function createDevelopmentCandidateLoadoutCache() {
         const snapshot = structuredClone(loadout)
         const id = key(agentId, index + 1, contentHash(snapshot))
         loadouts.delete(id)
-        loadouts.set(id, snapshot)
+        loadouts.set(id, {
+          loadout: snapshot,
+          guidanceHash: getCandidateWarehouseConstraint(agentId)?.contentHash ?? null,
+        })
         while (loadouts.size > 128) loadouts.delete(loadouts.keys().next().value!)
       })
     },
@@ -49,10 +59,16 @@ export function createDevelopmentCandidateLoadoutCache() {
         return undefined
       const entry = runs.get(run)
       if (!entry || entry.binding !== binding(run)) return undefined
-      const loadout = entry.loadouts.get(
+      const cached = entry.loadouts.get(
         key(selection.agentId, selection.candidateRank, selection.candidateLoadoutFingerprint),
       )
-      return loadout ? structuredClone(loadout) : undefined
+      if (
+        !cached ||
+        cached.guidanceHash !==
+          (getCandidateWarehouseConstraint(selection.agentId)?.contentHash ?? null)
+      )
+        return undefined
+      return structuredClone(cached.loadout)
     },
     forget(run: AccountDecisionRun) {
       runs.delete(run)

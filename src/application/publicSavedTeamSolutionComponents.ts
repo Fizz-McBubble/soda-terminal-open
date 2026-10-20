@@ -2,7 +2,7 @@ import type { AccountDecisionQueryInput } from './calculationQueryContract'
 import { contentHash } from './contentHash'
 import { projectRemoteAccountDecisionInput } from './remoteCalculationInput'
 
-export const savedTeamSolutionComponentsContract = 'soda-saved-team-solution-components/v1' as const
+export const savedTeamSolutionComponentsContract = 'soda-saved-team-solution-components/v2' as const
 
 export function projectedSavedTeamInputHash(input: AccountDecisionQueryInput) {
   return contentHash(projectRemoteAccountDecisionInput(input))
@@ -18,17 +18,15 @@ export type SavedTeamSolutionComponents = {
 }
 
 const requiredComponentKeys = [
-  'dataAuthorityHash',
+  'calculationAuthorityHash',
   'accountHash',
   'warehouseHash',
   'rosterHash',
   'preferenceHash',
   'profilesHash',
   'optimizerOptionsHash',
-  'teamEnginePackHash',
   'planningEvaluationHash',
   'planningAuthorityHash',
-  'decisionModelHash',
 ] as const
 
 export function acceptSavedTeamSolutionComponents(

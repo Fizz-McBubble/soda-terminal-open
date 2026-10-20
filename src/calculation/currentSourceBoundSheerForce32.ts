@@ -36,6 +36,76 @@ export function evaluateSourceBoundSheerForce32(input: {
 }) {
   const actor = getCurrentAgentEventContract(input.agentId)
   const effects = getCurrentAgentDecisionMechanicContract(input.agentId)?.effectContract
+  // Norma's reviewed conversion consumes team-granted Sheer Force despite
+  // being Stun. common/index.ts explicitly disables both ATK conversions for
+  // her specialty; this is an evaluated source branch, not a missing-stat 0.
+  if (actor?.stableId === 'agent-norma' && effects) {
+    if (
+      actor.upstreamKey !== 'Norma' ||
+      actor.identity.specialty !== 'stun' ||
+      actor.source.repository !== sheerForceCommonSource32.repository ||
+      effects.source.repository !== sheerForceCommonSource32.repository ||
+      actor.source.commit !== sheerForceCommonSource32.commit ||
+      effects.source.commit !== sheerForceCommonSource32.commit ||
+      actor.source.formulaSha256 !==
+        '604F9C881524A683CFDCF824573F5333A8A144DC103C8CBC7B2C7628B0BD6F46' ||
+      effects.source.formulaSha256 !== actor.source.formulaSha256 ||
+      actor.source.statsSha256 !==
+        'CBBBAEF46BF461B100E179753E5EF2F24A8461FAD4B2C679935E84033A494FDC' ||
+      effects.runtimeDefaults.source.mappedStatsSha256 !==
+        '0FAF9A7714D6558BC31F94E18E5EFD93D58B94D90E305101C54793E2179E1A89' ||
+      !effects.runtimeDefaults.source.mappedStatsPath.endsWith(
+        'libs/zzz/stats/src/mappedStats/char/maps/Norma.ts',
+      ) ||
+      !Number.isInteger(input.level) ||
+      input.level < 1 ||
+      input.level > 60 ||
+      !Number.isInteger(input.coreLevel) ||
+      input.coreLevel < 2 ||
+      input.coreLevel > 7 ||
+      ![
+        input.initialStats.atk,
+        input.initialStats.hp,
+        input.finalStats.atk,
+        input.finalStats.hp,
+      ].every((n) => Number.isFinite(n) && n >= 0)
+    )
+      return unsupported('Norma贯穿力消费者来源或实际面板身份不匹配。')
+    const branch = evaluateUpstreamExpressionIr(
+      {
+        kind: 'call',
+        operator: 'cmpEq',
+        arguments: [
+          { kind: 'reference', path: 'own.char.specialty' },
+          { kind: 'literal', value: 'rupture' },
+          { kind: 'literal', value: 1 },
+          { kind: 'literal', value: 0 },
+        ],
+      },
+      { references: { 'own.char.specialty': actor.identity.specialty } },
+    )
+    if (branch.status !== 'supported' || branch.value !== 0)
+      return unsupported('Norma公共贯穿力转换分支不匹配。')
+    const sourceRefs = [
+      `${sheerForceCommonSource32.path}#${sheerForceCommonSource32.sha256}`,
+      `${actor.source.formulaPath}#${actor.source.formulaSha256}`,
+      `${actor.source.statsPath}#${actor.source.statsSha256}`,
+    ]
+    return {
+      status: 'supported' as const,
+      sheerForce: branch.value,
+      initialAttackContribution: branch.value,
+      combatAttackContribution: branch.value,
+      personalContribution: branch.value,
+      sourceRefs,
+      bindingHash: stableContentHash({
+        source: actor.source,
+        mapped: effects.runtimeDefaults.source.mappedStatsSha256,
+        common: sheerForceCommonSource32,
+        rule: 'non-rupture-no-personal-sheer-source-v1',
+      }),
+    }
+  }
   const review = actor && reviewedSources.get(actor.upstreamKey)
   if (!actor || actor.identity.specialty !== 'rupture' || !effects || !review)
     return unsupported('未建立该主体的来源绑定贯穿力投影。')
@@ -157,6 +227,8 @@ export function resolvePlanningEventSheerForce32(input: {
   hp: number
   combatSheerForce: number
 }) {
+  if (![input.attack, input.hp, input.combatSheerForce].every((n) => Number.isFinite(n) && n >= 0))
+    return unsupported('事件攻血与实际贯穿力授予必须为有限非负值。')
   const stats = input.member.finalStats
   if (stats.sheerForce !== undefined && !stats.sheerForceBasis) {
     if (input.attack !== stats.atk || input.hp !== stats.hp || input.combatSheerForce !== 0)

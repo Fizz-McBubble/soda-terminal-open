@@ -2,6 +2,7 @@ import {
   planningProviderReferences32,
   teamCounts,
   effectRuntimeReferences,
+  planningObservedReferences32,
 } from './currentPlanningEffectDomain'
 import { bindReviewedRoxyEnergyConversion32 } from './reviewedRoxyEnergyConversion32'
 import { knownInactivePlanningEffect32 } from './planningKnownInactiveEffects32'
@@ -35,6 +36,7 @@ import {
   type UpstreamExpressionIR,
 } from './currentUpstreamExpressionIR'
 import type { evaluateCurrentPlanningEffectEntries32 } from './currentPlanningEffectRuntime'
+import { bindPlanningAnomalyLifecycleReferences32 } from './currentPlanningAnomalyLifecycle32'
 // Legacy expressions retain source values; only the shared per-event potential
 // binding activates them. A level is not proof that an action occurred.
 const potentialValueOnlyKeys = new Set(
@@ -64,6 +66,22 @@ export function evaluateFormationEffects(
   })
   if (blueprints.status === 'unsupported') blockers.push(...blueprints.blockers)
   if (blockers.length) return { status: 'unsupported' as const, blockers: unique(blockers) }
+
+  const lifecycleSources = new Map<string, string[]>()
+  const observedReferences: Record<string, Record<string, unknown>> = {}
+  for (const agentId of input.memberIds) {
+    const bound = bindPlanningAnomalyLifecycleReferences32({
+      references: input.baselineReferencesByAgentId?.[agentId],
+      memberIds: input.memberIds,
+      providerAgentId: agentId,
+      providerMindscape: memberById.get(agentId)?.mindscape,
+    })
+    if (bound.status !== 'supported')
+      return { status: 'unsupported' as const, blockers: bound.blockers }
+    observedReferences[agentId] = bound.references
+    lifecycleSources.set(agentId, bound.sourceRefs)
+  }
+  input = { ...input, baselineReferencesByAgentId: observedReferences }
 
   const counts = teamCounts(input.memberIds)
   const parameters = reviewedPotentialParameterBlueprints.filter((entry) =>
@@ -106,7 +124,9 @@ export function evaluateFormationEffects(
         status: 'unsupported' as const,
         blockers: [blueprint.numericExpression.todoBoundary],
       }
-    const provided = input.baselineReferencesByAgentId?.[blueprint.providerAgentId] ?? {}
+    const provided = planningObservedReferences32(
+      input.baselineReferencesByAgentId?.[blueprint.providerAgentId],
+    )
     const observationValidity = validateReviewedTemplateMechanicObservations32({
       entry: blueprint,
       references: provided,
@@ -202,6 +222,7 @@ export function evaluateFormationEffects(
         receiverPath: metadata.receiverPath,
         damageType: metadata.damageType,
         status: 'excluded_unknown' as const,
+        missing: observation.missing,
         active: false as const,
         todoBoundary: blueprint.numericExpression.todoBoundary,
         sourceRefs: blueprint.sourceRefs,
@@ -221,6 +242,28 @@ export function evaluateFormationEffects(
       baseReferences: providerRuntime.baseReferences,
       requiredReferences: requiredReferences(expression),
     })
+    // Formation evaluation precedes the event DAG. A missing final-stat
+    // producer must remain unknown here so that the actual event can resolve it.
+    const missingFinal = requiredReferences(expression).filter(
+      (ref) =>
+        /^(own|target)\.final\./.test(ref) &&
+        (typeof rawReferences[ref] !== 'number' || !Number.isFinite(rawReferences[ref])),
+    )
+    if (!observation.inactive && missingFinal.length)
+      return {
+        effectKey: blueprint.effectKey,
+        providerAgentId: blueprint.providerAgentId,
+        effectId: blueprint.effectId,
+        applicationScope: blueprint.applicationScope ?? 'generic',
+        targetKinds: blueprint.targetKinds,
+        receiverPath: metadata.receiverPath,
+        damageType: metadata.damageType,
+        status: 'excluded_unknown' as const,
+        active: false as const,
+        missing: missingFinal,
+        todoBoundary: blueprint.numericExpression.todoBoundary,
+        sourceRefs: blueprint.sourceRefs,
+      }
     const conversion = bindReviewedRoxyEnergyConversion32({
       agentId: provider.agentId,
       effectId: blueprint.effectId,
@@ -319,9 +362,11 @@ export function evaluateFormationEffects(
         ((typeof evaluated.value === 'number' && evaluated.value !== 0) ||
           recipientValues.some((row) => typeof row.value === 'number' && row.value !== 0)),
       todoBoundary: blueprint.numericExpression.todoBoundary,
-      sourceRefs: reviewedAbilitySource
-        ? [...blueprint.sourceRefs, reviewedAbilitySource]
-        : [...blueprint.sourceRefs, ...conversion.sourceRefs],
+      sourceRefs: [
+        ...blueprint.sourceRefs,
+        ...(reviewedAbilitySource ? [reviewedAbilitySource] : conversion.sourceRefs),
+        ...(lifecycleSources.get(blueprint.providerAgentId) ?? []),
+      ],
     }
   })
   // Numeric source parameters are visible to shared consumers but cannot

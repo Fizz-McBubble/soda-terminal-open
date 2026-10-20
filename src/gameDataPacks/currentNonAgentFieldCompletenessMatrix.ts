@@ -77,15 +77,21 @@ function promoted(stableId: string, fieldId: string, fallback: NonAgentFieldAsse
 }
 
 function identityField(entry: CurrentAssetProjectionEntry) {
-  return entry.evidence === 'formal'
-    ? ready('currentAssetProjection/formal-L3')
+  return entry.identityEvidence === 'formal'
+    ? ready('currentScopeManifest/released-identity')
     : candidate('gameData31CatalogIntake/current-candidate')
 }
 
 function releaseField(entry: CurrentAssetProjectionEntry) {
-  return entry.evidence === 'formal'
-    ? ready('assetSourceLedger/currentAssetProjection')
+  return entry.identityEvidence === 'formal'
+    ? ready('currentScopeManifest/official-release-identity')
     : candidate('currentScopeManifest/gameData31CatalogIntake')
+}
+
+function fieldEvidence(entry: CurrentAssetProjectionEntry) {
+  return entry.evidence === 'formal'
+    ? ready('currentAssetProjection/formal-L3')
+    : candidate('gameData31CatalogIntake/current-candidate')
 }
 
 function mediaField(entry: CurrentAssetProjectionEntry) {
@@ -124,7 +130,7 @@ const wEngines: NonAgentCompletenessRow[] = currentAssetProjection.wEngines.map(
     release: promoted(entry.stableId, 'release', releaseField(entry)),
     rarityAndSpecialty:
       entry.rarity && entry.specialty
-        ? promoted(entry.stableId, 'rarityAndSpecialty', identityField(entry))
+        ? promoted(entry.stableId, 'rarityAndSpecialty', fieldEvidence(entry))
         : missing('rarity-or-specialty-not-resolved'),
     level60StaticStats: staticData
       ? ready('currentWEngineStaticCatalog/locked-upstream')

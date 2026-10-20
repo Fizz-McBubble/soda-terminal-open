@@ -7,8 +7,81 @@ import {
   getCandidateWarehouseConstraint,
 } from '../gameDataPacks/candidateWarehouseConstraints'
 import { compileDynamicCandidateLoadout, dynamicLegalInventory } from './teamDynamicDomain'
+import { createEmptyRoster } from '../assault/catalog'
+import { candidatePanelInputForAgent } from './optimizeAccountBuildsPanelInput'
+import { developmentCandidateEventObjective32 } from '../decision/developmentCandidateEventObjective32'
+import { compileAgentBuildIntent, optimizerOptionsFromBuildIntent } from '../decision/buildIntent'
+import { projectCandidateEffectiveCritObjective } from './candidateEffectiveCritObjective'
 
 describe('current adopted drive-disc identities in dynamic inventory', () => {
+  it('recomputes a raw dynamic replacement against the exact frozen BuildIntent event target', () => {
+    const agentId = 'agent-ye-shunguang'
+    const agent = createEmptyRoster('2026-10-19T00:00:00Z').agents.find(
+      (row) => row.agentId === agentId,
+    )!
+    Object.assign(agent, {
+      owned: true,
+      level: 60,
+      ascension: 5,
+      mindscape: 0,
+      skillLevels: { basic: 11, dodge: 11, assist: 11, special: 11, chain: 11, core: 7 },
+      wEngineDetails: { id: 'wengine-12001', name: null, level: 60, ascension: 5, refinement: 1 },
+    })
+    const panelInput = candidatePanelInputForAgent(agent)!
+    const objective = developmentCandidateEventObjective32({
+      agent,
+      panelInput,
+      eventConditionDeclaration: {
+        sourceRefs: ['test:explicit-comparison-window'],
+        whiteWaterBalladCritWindow: true,
+        whiteWaterBalladAttackWindow: false,
+      },
+    })!
+    const buildIntent = compileAgentBuildIntent({
+      agentId,
+      optimizerOptions: {
+        panelInputsByAgent: { [agentId]: panelInput },
+        effectiveCritObjectivesByAgent: { [agentId]: objective },
+      },
+    })
+    const options = optimizerOptionsFromBuildIntent(buildIntent)
+    const frozen = options.effectiveCritObjectivesByAgent![agentId]!
+    const profile = candidateConstraintToDiscProfile(getCandidateWarehouseConstraint(agentId)!)!
+    const current = Array.from({ length: 6 }, (_, index) =>
+      legalTeamDisc(index, {
+        setId: index < 4 ? 'set-white-water-ballad' : 'set-woodpecker-electro',
+      }),
+    )
+    const replacement = current.map((disc, index) =>
+      index !== 0
+        ? disc
+        : {
+            ...disc,
+            id: 'raw-dynamic-higher-cd',
+            subStats: disc.subStats.map((line) =>
+              line.stat === 'crit_dmg'
+                ? { ...line, upgrades: 1, value: 9.6 }
+                : line.stat === 'hp_percent'
+                  ? { ...line, upgrades: 4, value: 15 }
+                  : line,
+            ),
+          },
+    )
+    const before = compileDynamicCandidateLoadout(current, profile, panelInput, frozen)!
+    const after = compileDynamicCandidateLoadout(replacement, profile, panelInput, frozen)!
+    expect(after.effectiveCritObjective).toEqual(
+      projectCandidateEffectiveCritObjective(frozen, panelInput, replacement),
+    )
+    expect(after.effectiveCritObjective?.objectiveId).toBe(
+      buildIntent.constraints.effectiveCritObjectivesByAgent![agentId]!.id,
+    )
+    expect(after.effectiveCritObjective?.totalDamage).toBeGreaterThan(
+      before.effectiveCritObjective!.totalDamage!,
+    )
+    expect(after.effectiveCritObjective).not.toEqual(before.effectiveCritObjective)
+    objective.id = 'caller-mutated-after-freeze'
+    expect(after.effectiveCritObjective?.objectiveId).not.toBe(objective.id)
+  })
   it('retains every released account-ownable set from the current formula and scope catalogs', () => {
     const sets = currentDriveDiscFormulaCatalog.items.filter((set) => {
       const scope = getCurrentScopeEntry(set.stableId)

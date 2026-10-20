@@ -31,6 +31,7 @@ export type PlanEditorProps = {
   ) => void
   onConfirmEquipmentParameters?: (selection: TargetTeamEquipmentParameterSelection) => Promise<void>
   staleNotice?: string
+  luminizeSettlement32?: import('../application/savedLuminizeReplay32').SavedLuminizeReplay32
   equipmentParametersRequireRefresh?: boolean
   /** A saved snapshot whose exact target identity is being replayed read-only. */
   restoredExecutionIsFresh?: boolean

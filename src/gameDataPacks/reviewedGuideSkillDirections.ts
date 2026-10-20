@@ -1,6 +1,20 @@
 import type { PlayerBuildSource } from './playerBuildProfiles'
 import { stableContentHash } from './types'
 import { reviewedGuideSkillTargets20261011 } from './reviewedGuideSkillTargets20261011'
+import { yeShunguangSkillGuidance32 } from './yeShunguangSkillGuidance32'
+
+export type ReviewedGuideSkillDirection = {
+  directions: string[]
+  source: PlayerBuildSource
+  authorTargets?: {
+    combatTargetKind?: 'minimum_reference' | 'exact_integer'
+    combatSourceLevelBasis?:
+      | 'paid_base'
+      | 'effective'
+      | 'image_displayed_unspecified_paid_vs_effective'
+    combatPriorityOrder?: readonly string[] | null
+  }
+}
 
 /** Field-only adoption of reviewed public guide facts, not an entire build override. */
 const harumasaPrydwenSkillPriorityFact = {
@@ -15,9 +29,8 @@ const harumasaPrydwenSkillPriorityFact = {
   },
 } as const
 
-export const reviewedGuideSkillDirections: Partial<
-  Record<string, { directions: string[]; source: PlayerBuildSource }>
-> = {
+export const reviewedGuideSkillDirections: Partial<Record<string, ReviewedGuideSkillDirection>> = {
+  'agent-ye-shunguang': yeShunguangSkillGuidance32,
   ...Object.fromEntries(
     [
       {

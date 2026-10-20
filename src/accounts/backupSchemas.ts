@@ -1,6 +1,10 @@
 import { portfolioConstraintSchema } from './backupFrozenConstraintSchemas'
 import { koledaFixedEventConditionsInputSchema32 } from '../application/publicKoledaFixedEventConditions32'
 import { savedPlanningBenchmark32Schema } from '../application/publicSavedPlanningBenchmark32'
+import {
+  planningEventDeclarationsInputShapeGaps32,
+  planningEventDeclarationsMetadataGaps32,
+} from '../application/publicPlanningEventDeclarations32'
 import { z } from 'zod'
 import { rosterSnapshotSchema } from './publicRosterSnapshot'
 import { databaseSchemaVersion } from '../db/databaseCore'
@@ -14,6 +18,10 @@ import {
   refineAuthorComparisonBangbooIdentity,
 } from './backupAuthorComparisonSchemas'
 import { isSourceResourceGrantDeclaration32 } from '../calculation/sourceMechanismResourceGrantContract32'
+import { savedDeclaredLuminizeSettlement32Schema } from './luminizeSavedContract32'
+import { luminizeEquipmentComparisonOptionsSchema32 } from '../application/publicLuminizeComparison32'
+import { resourceTimelineDeclarationSchema32 } from '../calculation/resourceTimelineDeclarationContract32'
+import { refinePlanningResourceTimeline32 } from './resourceTimelineSavedContract32'
 
 export const accountBackupFormat = 'soda-terminal-account-backup'
 export const accountBackupFormatVersion = 1
@@ -39,6 +47,89 @@ const historicalEventConditionDeclarationsSchema32 = z
     (raw) =>
       raw as import('../calculation/reviewedEventConditionDeclarations32').ReviewedEventConditionDeclarations32,
   )
+
+const targetTeamStandardReferenceResultSchema32 = z
+  .object({
+    protocol: z.literal('local-standard-s0-a6-3x48-native-objective32'),
+    status: z.enum(['metadata', 'selected', 'unsupported']),
+    preparedIdentity: z.string().min(1).nullable(),
+    referenceFingerprint: z.string().min(1).nullable(),
+    sourceBindingFingerprint: z.string().min(1).nullable(),
+    metadata: z
+      .custom<
+        NonNullable<
+          import('../application/targetTeamStandardReference32').TargetTeamStandardReferenceResult32['metadata']
+        >
+      >((value) => planningEventDeclarationsMetadataGaps32(value).length === 0, {
+        message: 'standard_reference_metadata_invalid',
+      })
+      .nullable(),
+    selectionIdentity: z.string().min(1).nullable(),
+    objectiveIdentity: z.string().min(1).nullable(),
+    coverageIdentity: z.string().min(1).nullable(),
+    searchCompleteness: z.literal('bounded').nullable(),
+    equipment: z.array(
+      z
+        .object({
+          agentId: z.string().min(1),
+          engineId: z.string().min(1),
+          refinement: z.number().int().min(1).max(5),
+          branchIdentity: z.string().min(1),
+          discCount: z.number().int().positive(),
+        })
+        .strict(),
+    ),
+    consumerBindings: z
+      .object({
+        status: z.enum(['bound', 'unsupported']),
+        selectionIdentity: z.string().min(1),
+        capacityReferenceIdentity: z.string().min(1).nullable(),
+        supportReferenceIdentity: z.string().min(1).nullable(),
+        gaps: z.array(z.string().min(1)),
+      })
+      .strict()
+      .optional(),
+    gaps: z.array(z.string().min(1)),
+  })
+  .strict()
+  .superRefine((value, context) => {
+    if (
+      value.status === 'selected' &&
+      (value.equipment.length !== 3 ||
+        !value.preparedIdentity ||
+        !value.sourceBindingFingerprint ||
+        !value.selectionIdentity ||
+        !value.objectiveIdentity ||
+        !value.coverageIdentity ||
+        value.consumerBindings?.status !== 'bound')
+    )
+      context.addIssue({
+        code: 'custom',
+        message: 'standard_reference_selected_result_incomplete',
+      })
+  })
+
+const targetTeamStandardReferenceRequestSchema32 = z.discriminatedUnion('stage', [
+  z
+    .object({
+      stage: z.literal('prepare'),
+      potentialByAgentId: z.record(z.string().min(1), z.number().int().min(0).max(6)).optional(),
+    })
+    .strict(),
+  z
+    .object({
+      stage: z.literal('select'),
+      preparedIdentity: z.string().min(1),
+      sourceBindingFingerprint: z.string().min(1),
+      declarations: z
+        .custom<
+          import('../application/publicPlanningEventDeclarations32').PlanningEventDeclarationsInput32
+        >((value) => planningEventDeclarationsInputShapeGaps32(value).length === 0, { message: 'standard_reference_declarations_invalid' })
+        .optional(),
+      potentialByAgentId: z.record(z.string().min(1), z.number().int().min(0).max(6)).optional(),
+    })
+    .strict(),
+])
 
 const planningSolutionContextSchema = z.object({
   contract: z.literal('soda-solution-context/v1'),
@@ -76,6 +167,8 @@ const planningSolutionContextSchema = z.object({
     >(() => true)
     .optional(),
   scenarioIdentity: z.string().optional(),
+  standardReference32: targetTeamStandardReferenceResultSchema32.optional(),
+  standardReferenceRequest32: targetTeamStandardReferenceRequestSchema32.optional(),
   eventConditionDeclarationsByAgentId: historicalEventConditionDeclarationsSchema32.optional(),
   eventConditionDeclarationsIdentity: z.string().optional(),
   resourceGrantDeclaration32: z
@@ -85,6 +178,9 @@ const planningSolutionContextSchema = z.object({
       message: 'resource_grant_declaration_missing_or_invalid',
     })
     .optional(),
+  declaredLuminizeSettlement32: savedDeclaredLuminizeSettlement32Schema.optional(),
+  resourceTimelineDeclaration32: resourceTimelineDeclarationSchema32.optional(),
+  resourceTimelineDeclarationIdentity32: z.string().min(1).optional(),
   comparisonParameters: z
     .object({
       wEngine: z
@@ -133,6 +229,8 @@ const teamEquipmentParameterSelectionSchema = z
     ),
     potentialByAgentId: z.record(z.string().min(1), z.number().int().min(0).max(6)).optional(),
     koledaFixedEventConditions32: koledaFixedEventConditionsInputSchema32.optional(),
+    luminizeComparison32: luminizeEquipmentComparisonOptionsSchema32.optional(),
+    resourceTimelineDeclaration32: resourceTimelineDeclarationSchema32.optional(),
     bangbooId: z.string().min(1),
     bangbooStars: z.number().int().min(0),
   })
@@ -301,7 +399,7 @@ export const teamExecutionPortfolioSnapshotSchema = z
   })
   .strict()
 
-const teamPortfolioBuildIntentSchema = z
+export const teamPortfolioBuildIntentSchema = z
   .object({
     contract: z.literal('soda-build-intent/v1'),
     scope: z.literal('portfolio_joint'),
@@ -321,6 +419,10 @@ const teamPortfolioBuildIntentSchema = z
       .array(z.tuple([z.string().min(1), z.string().min(1), z.string().min(1)]))
       .optional(),
     agentPotentialById: z.record(z.string().min(1), z.number().int().min(0)).optional(),
+    agentMindscapeById: z
+      .record(z.string().min(1), z.number().int().min(0).max(6).nullable())
+      .optional(),
+    selectedDirectionIdByAgentId: z.record(z.string().min(1), z.string().min(1)).optional(),
     fingerprint: z.string().min(1),
   })
   .strict()
@@ -352,48 +454,50 @@ const teamPortfolioDiscChoicesSchema = z
   })
   .strict()
 
-const planningDraftSchema = z.object({
-  scopedId: z.string().min(1),
-  accountId: accountIdSchema,
-  id: z.string().min(1),
-  kind: z.enum(['agent', 'team']),
-  name: z.string().min(1),
-  state: z.enum(['draft', 'saved']),
-  selection: z.object({
-    agentIds: z.array(z.string()),
-    bangbooId: z.string().nullable(),
-    scenario: z.string(),
-  }),
-  manualOverrides: z.object({
-    wEngineDirection: z.string(),
-    discDirection: z.string(),
-    progressionDirection: z.string(),
-    notes: z.string(),
-  }),
-  knowledgeRefs: z.array(
-    z.object({
-      profileId: z.string(),
-      status: z.enum(['formal', 'candidate', 'missing']),
-      version: z.string(),
-      source: z.string(),
+const planningDraftSchema = z
+  .object({
+    scopedId: z.string().min(1),
+    accountId: accountIdSchema,
+    id: z.string().min(1),
+    kind: z.enum(['agent', 'team']),
+    name: z.string().min(1),
+    state: z.enum(['draft', 'saved']),
+    selection: z.object({
+      agentIds: z.array(z.string()),
+      bangbooId: z.string().nullable(),
+      scenario: z.string(),
     }),
-  ),
-  warehouseRefs: z.array(z.string()),
-  solutionContext: planningSolutionContextSchema.optional(),
-  savedRole: z.enum(['current_reference', 'history']).optional(),
-  candidateWarehouse: candidateWarehouseSchema.optional(),
-  teamExecutionSnapshot: teamExecutionSchema.optional(),
-  teamPortfolioSnapshot: teamExecutionPortfolioSnapshotSchema.optional(),
-  teamPortfolioBuildIntent: teamPortfolioBuildIntentSchema.optional(),
-  teamPortfolioDiscChoices: teamPortfolioDiscChoicesSchema.optional(),
-  teamEquipmentParameters: teamEquipmentParametersSchema.optional(),
-  planningBenchmark32: savedPlanningBenchmark32Schema.optional(),
-  teamAccountFactBinding: authorComparisonAccountFactBindingSchema.optional(),
-  comparisonCapability: z.enum(['formal', 'direction']),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
-  revision: z.number().int().nonnegative(),
-})
+    manualOverrides: z.object({
+      wEngineDirection: z.string(),
+      discDirection: z.string(),
+      progressionDirection: z.string(),
+      notes: z.string(),
+    }),
+    knowledgeRefs: z.array(
+      z.object({
+        profileId: z.string(),
+        status: z.enum(['formal', 'candidate', 'missing']),
+        version: z.string(),
+        source: z.string(),
+      }),
+    ),
+    warehouseRefs: z.array(z.string()),
+    solutionContext: planningSolutionContextSchema.optional(),
+    savedRole: z.enum(['current_reference', 'history']).optional(),
+    candidateWarehouse: candidateWarehouseSchema.optional(),
+    teamExecutionSnapshot: teamExecutionSchema.optional(),
+    teamPortfolioSnapshot: teamExecutionPortfolioSnapshotSchema.optional(),
+    teamPortfolioBuildIntent: teamPortfolioBuildIntentSchema.optional(),
+    teamPortfolioDiscChoices: teamPortfolioDiscChoicesSchema.optional(),
+    teamEquipmentParameters: teamEquipmentParametersSchema.optional(),
+    planningBenchmark32: savedPlanningBenchmark32Schema.optional(),
+    teamAccountFactBinding: authorComparisonAccountFactBindingSchema.optional(),
+    comparisonCapability: z.enum(['formal', 'direction']),
+    createdAt: z.string().datetime(),
+    updatedAt: z.string().datetime(),
+    revision: z.number().int().nonnegative(),
+  })
+  .superRefine(refinePlanningResourceTimeline32)
 
 const accountBackupDataSchema = z.object({
   driveDiscs: z.array(driveDiscSchema.extend(accountScopeShape)),

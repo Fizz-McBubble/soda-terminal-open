@@ -100,6 +100,7 @@ export function searchDevelopmentDynamicCandidates(input: {
       discs,
       { ...profile, agentId: input.agentId },
       panelInput,
+      options.effectiveCritObjectivesByAgent?.[input.agentId],
     )
     if (!loadout) return null
     const plan: CandidateWarehousePlan = {

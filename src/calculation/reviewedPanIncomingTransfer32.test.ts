@@ -60,8 +60,8 @@ describe('source-bound Pan next incoming recipient through runtime and event gra
     expect(resolved.buckets.filter((row) => row.effectKey === panMeridianFlowEffectKey32)).toEqual(
       [],
     )
-    expect(resolved.finalStats['agent-yixuan'].sheerForce).toBe(2000)
-    expect(resolved.finalStats['agent-yidhari'].sheerForce).toBe(2000)
+    expect(resolved.finalStats['agent-yixuan'].sheerForce).toBeUndefined()
+    expect(resolved.finalStats['agent-yidhari'].sheerForce).toBeUndefined()
     expect(resolved.exclusions).toContainEqual(
       expect.objectContaining({
         effectKey: panMeridianFlowEffectKey32,

@@ -8,6 +8,8 @@ export type PlanningEffectRuntimeStats = {
   hp: number
   crit_: number
   crit_dmg_: number
+  /** Produced from this event's combat-stage buckets; excludes final-stage returns. */
+  combatCritDamage32?: number
   anomMas: number
   anomProf: number
   impact: number
@@ -49,6 +51,8 @@ export type PlanningEffectRuntimeMember = {
   potential?: number | null
   coreLevel: number
   skillLevels: Readonly<Record<string, number>>
+  /** Producer provenance, not an inference from equal initial/final values. */
+  statBasis32?: 'out_of_combat'
   initialStats: PlanningEffectRuntimeStats
   finalStats: PlanningEffectRuntimeStats
 }
@@ -143,6 +147,17 @@ export function mergePlanningReferenceMaps32(
 
 /** Bind factual character/party identities and source constants separately from
  * the explicitly supplied combat observations. No missing trigger is invented. */
+export function planningObservedReferences32(references: Readonly<Record<string, unknown>> = {}) {
+  return Object.fromEntries(
+    Object.entries(references).filter(
+      ([, value]) =>
+        value !== undefined &&
+        value !== null &&
+        (typeof value !== 'number' || Number.isFinite(value)),
+    ),
+  )
+}
+
 export function planningProviderReferences32(input: {
   member: PlanningEffectRuntimeMember
   sourceReferences: Readonly<Record<string, unknown>>
@@ -152,6 +167,9 @@ export function planningProviderReferences32(input: {
 }) {
   const member = input.member
   const identity = getCurrentAgentEventContract(member.agentId)?.identity
+  const observations = planningObservedReferences32(input.observations)
+  // Combat is a typed event output, never an externally selectable condition.
+  delete observations['own.combat.crit_dmg_']
   return bindPlanningEffectRuntimePotentialReference({
     agentId: member.agentId,
     potential: member.potential,
@@ -168,10 +186,13 @@ export function planningProviderReferences32(input: {
       ),
       ...statReferences('own.initial', member.initialStats),
       ...statReferences('own.final', member.finalStats),
-      ...input.observations,
+      ...observations,
       ...planningCharacterReferences32(member),
       ...(member.level === undefined ? {} : { 'char.lvl': member.level }),
       ...(input.finalStats ? statReferences('own.final', input.finalStats) : {}),
+      ...(input.finalStats?.combatCritDamage32 === undefined
+        ? {}
+        : { 'own.combat.crit_dmg_': input.finalStats.combatCritDamage32 }),
       'char.specialty': identity?.specialty,
       'char.attribute': identity?.attribute,
       'char.faction': identity?.faction,
@@ -243,7 +264,19 @@ export function createLevel60NeutralEffectRuntimeMember(
     potential: 0,
     coreLevel: 1,
     skillLevels: { basic: 1, dodge: 1, assist: 1, special: 1, chain: 1, core: 1 },
+    statBasis32: 'out_of_combat',
     initialStats: stats,
     finalStats: stats,
   }
+}
+/** A source evaluation receipt is distinct from an optional, nonzero damage bucket. */
+export type PlanningEffectProducerReceipt32 = {
+  effectKey: string
+  providerAgentId: string
+  recipientAgentId: string
+  receiverPath: string | null
+  status: 'known_value' | 'known_zero' | 'unknown'
+  value?: number
+  fields: string[]
+  sourceRefs: readonly string[]
 }

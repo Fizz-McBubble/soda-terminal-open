@@ -8,10 +8,33 @@ import { VisualEntityImage } from '../components/VisualEntityImage'
 import './team-equipment-parameters.css'
 import { BangbooActivationDetails } from './BangbooActivationDetails'
 import { wEngineOptions } from '../application/equipmentParameterSelection'
+import type { DevelopmentWEngineComparisonDto } from '../application/publicDevelopmentWEngineComparison'
+import type { DevelopmentComparisonParameters } from '../decision/developmentValueBenchmark'
 // eslint-disable-next-line react-refresh/only-export-components
 export { equipmentParameterSelection } from '../application/equipmentParameterSelection'
 
 type EquipmentRecommendations = TargetTeamWarehouseFitQueryResult['equipmentRecommendations']
+
+type WEngineControlProps = { agentId: string; pending: boolean } & (
+  | {
+      comparison: {
+        entries: DevelopmentWEngineComparisonDto['entries']
+        selectedOptionKey: string | null
+        parameters?: DevelopmentComparisonParameters['wEngine']
+        onSelect: (optionKey: string) => void
+        onRefinement: (refinement: number) => void
+      }
+      recommendations?: never
+      selection?: never
+      onChange?: never
+    }
+  | {
+      comparison?: undefined
+      recommendations: EquipmentRecommendations
+      selection: TargetTeamEquipmentParameterSelection
+      onChange: (selection: TargetTeamEquipmentParameterSelection) => void
+    }
+)
 
 export function TeamSchemeWEngineControl({
   agentId,
@@ -19,13 +42,75 @@ export function TeamSchemeWEngineControl({
   selection,
   pending,
   onChange,
-}: {
-  agentId: string
-  recommendations: EquipmentRecommendations
-  selection: TargetTeamEquipmentParameterSelection
-  pending: boolean
-  onChange: (selection: TargetTeamEquipmentParameterSelection) => void
-}) {
+  comparison,
+}: WEngineControlProps) {
+  if (comparison) {
+    const groups = [
+      ...new Set(
+        comparison.entries.flatMap((entry) =>
+          entry.comparisonGroupId ? [entry.comparisonGroupId] : [],
+        ),
+      ),
+    ]
+    const selected = comparison.entries.find(
+      (entry) => entry.optionKey === comparison.selectedOptionKey,
+    )
+    return (
+      <div className="team-execution__scheme-control team-execution__scheme-control--confirmation">
+        <label>
+          <span>音擎</span>
+          <PlayerSelect
+            aria-label={`${getAgentName(agentId)} 方案音擎`}
+            disabled={pending || !comparison.entries.length}
+            value={comparison.selectedOptionKey ?? (comparison.parameters ? '__adjusted__' : '')}
+            onChange={comparison.onSelect}
+          >
+            <option value="" disabled>
+              {pending ? '正在计算音擎选项…' : '选择音擎参数'}
+            </option>
+            {comparison.parameters && !comparison.selectedOptionKey ? (
+              <option value="__adjusted__" disabled>
+                {comparison.entries.find(
+                  (entry) => entry.engineId === comparison.parameters!.engineId,
+                )?.name ?? comparison.parameters.engineId}
+                {` · 方案参数 Lv.${comparison.parameters.level} / P${comparison.parameters.refinement}`}
+              </option>
+            ) : null}
+            {comparison.entries.map((entry) => (
+              <option key={entry.optionKey} value={entry.optionKey} disabled={!entry.parameters}>
+                {entry.label ?? entry.name}
+                {entry.rankWithinGroup !== null && entry.comparisonGroupId
+                  ? ` · 同条件组${groups.indexOf(entry.comparisonGroupId) + 1} 第${entry.rankWithinGroup}`
+                  : ' · 未排序'}
+                {entry.value !== null
+                  ? ` · ${Number(entry.value.toFixed(2))}${entry.metric === 'prepared_anomaly_damage' ? ' 单次结算' : ' 固定事件规划DPS'}`
+                  : ''}
+              </option>
+            ))}
+          </PlayerSelect>
+        </label>
+        <label>
+          <span>精炼</span>
+          <PlayerSelect
+            aria-label={`${getAgentName(agentId)} 方案音擎精炼`}
+            disabled={pending || !comparison.parameters}
+            value={comparison.parameters?.refinement ?? ''}
+            onChange={(value) => comparison.onRefinement(Number(value))}
+          >
+            <option value="" disabled>
+              未选择
+            </option>
+            {[1, 2, 3, 4, 5].map((rank) => (
+              <option key={rank} value={rank}>
+                P{rank}
+              </option>
+            ))}
+          </PlayerSelect>
+        </label>
+        {selected?.reasons.length ? <p>{selected.reasons.join('；')}</p> : null}
+      </div>
+    )
+  }
   const recommendation = recommendations.wEngines.find((item) => item.agentId === agentId)
   if (!recommendation)
     return <span className="team-execution__scheme-unavailable">暂无推荐音擎</span>

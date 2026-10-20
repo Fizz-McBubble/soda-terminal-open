@@ -4,6 +4,7 @@ import { getCurrentAgentEventContract } from '../calculation/currentAgentMechani
 import { stableContentHash } from '../gameDataPacks/types'
 import {
   getReviewedNormalM0UseScope,
+  reviewedNormalM0ProfileFingerprint,
   resolveReviewedUseScope,
   type ExistingFact,
 } from './reviewedRetentionUseScope'
@@ -110,10 +111,9 @@ describe('source-bound ordinary M0 reserve policy', () => {
           approved: false,
         }).applied,
       ).toBe(false)
-      const { contentHash, ...payload } = constraint
-      expect(contentHash).toBe(binding.profileFingerprint)
+      expect(reviewedNormalM0ProfileFingerprint(constraint)).toBe(binding.profileFingerprint)
       const weightPayload = {
-        ...payload,
+        ...constraint,
         subStatWeights: { ...constraint.subStatWeights, hp_flat: 999 },
       }
       expect(
@@ -203,9 +203,13 @@ describe('source-bound ordinary M0 reserve policy', () => {
   it('base adoption fingerprints are exact full constraints, not actor labels', () => {
     for (const row of adoptions.rows) {
       const c = getCandidateWarehouseConstraint(row.actorAgentId)!
-      const { contentHash, ...payload } = c
-      expect(row.profileFingerprint).toBe(stableContentHash(payload))
-      expect(contentHash).toBe(row.profileFingerprint)
+      expect(row.profileFingerprint).toBe(reviewedNormalM0ProfileFingerprint(c))
+      const withoutGuidance = { ...c }
+      delete withoutGuidance.guidanceApplicability
+      expect(reviewedNormalM0ProfileFingerprint(withoutGuidance)).toBe(row.profileFingerprint)
+      expect(stableContentHash({ ...withoutGuidance, guidanceApplicability: 'changed' })).not.toBe(
+        row.profileFingerprint,
+      )
     }
   })
 })

@@ -20,7 +20,7 @@ import {
 const candidate = (id, memberIds, score = 85, patch = {}) => ({
   candidateId: id,
   memberIds,
-  sourceRecommended: false,
+  sourceRecommended: true,
   explicitSelectionOnly: false,
   inferredStrength: true,
   ratingStatus: 'rated',
@@ -50,16 +50,16 @@ const solvePool = (rows, k, options = {}) => {
 }
 const ids = (result) => result.selected.map((x) => x.candidate.candidateId)
 
-test('display cap preserves only three carry triples but both portfolios can use the fourth', () => {
+test('eligibility keeps all reviewed candidates while the upper display layer applies its own cap', () => {
   const p = pool(rows, primary)
-  assert.deepEqual([...p.defaultIds], ['p1', 'p2', 'p3', 'q'])
+  assert.deepEqual([...p.defaultIds], ['p1', 'p2', 'p3', 'p4', 'q'])
   assert.deepEqual([...p.eligibleIds], ['p1', 'p2', 'p3', 'p4', 'q'])
   assert.deepEqual(ids(solvePool(rows, 2)), ['p4', 'q'])
 })
 test('compatibility wrapper retains the bounded default ID contract', () => {
   assert.deepEqual(defaults(rows, primary), pool(rows, primary).defaultIds)
 })
-test('per-carry cap counts physical trios and does not count reordered or Bangboo variants twice', () => {
+test('reordered trios retain distinct candidate identities until the upper display cap', () => {
   const p = pool(
     [
       rows[0],
@@ -68,8 +68,9 @@ test('per-carry cap counts physical trios and does not count reordered or Bangbo
     ],
     primary,
   )
+  assert.ok(p.defaultIds.has('p1'))
   assert.ok(p.defaultIds.has('variant'))
-  assert.ok(!p.defaultIds.has('p4'))
+  assert.ok(p.defaultIds.has('p4'))
   assert.equal(
     ids(solvePool([{ ...rows[0] }, { ...rows[0], candidateId: 'variant' }], 2)).length,
     1,
@@ -86,21 +87,14 @@ test('explicitly withdrawn source-rated rows cannot suppress a valid A fallback'
   assert.deepEqual([...p.defaultIds], ['a'])
   assert.deepEqual([...p.eligibleIds], ['a'])
 })
-test('retained source tier is not rejected merely for a fallback designation or missing optional score', () => {
+test('retained source tier can omit the optional inferred score', () => {
   const c = candidate('source', ['a', 'b', 'c'], 75, {
     sourceRecommended: true,
-    sourceExcluded: true,
+    sourceExcluded: false,
     recommendationScore: null,
-    mechanicallyClosed: false,
+    mechanicallyClosed: true,
   })
-  assert.deepEqual(
-    [
-      ...pool([c], () => {
-        throw new Error('source does not require inferred primary')
-      }).defaultIds,
-    ],
-    ['source'],
-  )
+  assert.deepEqual([...pool([c], () => 'a').defaultIds], ['source'])
 })
 test('source and inferred routes both preserve exact membership, rating and deliberate-selection gates', () => {
   const invalid = [
@@ -121,16 +115,16 @@ test('source and inferred routes both preserve exact membership, rating and deli
         0,
       )
 })
-test('inferred rows still require finite scores, closure, non-exclusion and valid primary identity', () => {
-  for (const patch of [
-    { recommendationScore: null },
-    { recommendationScore: NaN },
-    { recommendationScore: Infinity },
-    { recommendationScore: 69.99 },
-    { mechanicallyClosed: false },
-    { sourceExcluded: true },
-    { inferredStrength: false },
-  ])
+test('model-only rows stay outside default eligibility even with a valid finite score', () => {
+  for (const recommendationScore of [95, 75, null, NaN, Infinity])
+    assert.equal(
+      pool(
+        [candidate('bad', ['a', 'b', 'c'], 95, { sourceRecommended: false, recommendationScore })],
+        primary,
+      ).eligibleIds.size,
+      0,
+    )
+  for (const patch of [{ mechanicallyClosed: false }, { sourceExcluded: true }])
     assert.equal(pool([candidate('bad', ['a', 'b', 'c'], 95, patch)], primary).eligibleIds.size, 0)
   for (const invalidPrimary of [null, 'foreign'])
     assert.equal(pool(rows, () => invalidPrimary).eligibleIds.size, 0)
@@ -162,14 +156,14 @@ test('invalid high-score rows do not suppress an otherwise eligible A direction'
     ['ok'],
   )
 })
-test('normal default selection does not execute lower-score fallback features unnecessarily', () => {
+test('reviewed default selection evaluates every source candidate', () => {
   const calls = []
   const input = [candidate('high', ['a', 'b', 'c'], 85), candidate('low', ['d', 'e', 'f'], 75)]
   assert.deepEqual(
     [...pool(input, (c) => (calls.push(c.candidateId), primary(c))).defaultIds],
-    ['high'],
+    ['high', 'low'],
   )
-  assert.deepEqual(calls, ['high'])
+  assert.deepEqual(calls, ['high', 'low'])
 })
 test('multi-team eligibility includes existing A backups without lowering the default-card gate', () => {
   const low = [
@@ -182,7 +176,7 @@ test('multi-team eligibility includes existing A backups without lowering the de
   const p = pool(input, (c) => (calls.push(c.candidateId), primary(c)), {
     includePortfolioFallback: true,
   })
-  assert.deepEqual([...p.defaultIds], ['high'])
+  assert.deepEqual([...p.defaultIds], ['high', 'a1', 'a2', 'a3'])
   assert.equal(p.eligibleIds.size, 4)
   assert.equal(new Set(calls).size, calls.length)
   assert.deepEqual(ids(solvePool(input, 3, { includePortfolioFallback: true })), ['a1', 'a2', 'a3'])
@@ -240,11 +234,14 @@ test('540 combined eligibility-plus-portfolio cases match an independent exhaust
     }
     for (const k of [1, 2, 3]) {
       // Independent eligibility is intentionally literal and does not call pool().
-      const valid = input.filter(
-        (c) => !c.withdrawn && !c.explicitSelectionOnly && c.mechanicallyClosed,
+      const eligible = input.filter(
+        (c) =>
+          c.sourceRecommended &&
+          !c.withdrawn &&
+          !c.explicitSelectionOnly &&
+          c.mechanicallyClosed &&
+          !c.sourceExcluded,
       )
-      const high = valid.filter((c) => c.recommendationScore >= 80)
-      const eligible = k > 1 ? valid : high.length ? high : valid
       const result = solvePool(input, k, { includePortfolioFallback: k > 1 })
       assert.deepEqual(ids(result), oracle(eligible, k))
       assert.notEqual(result.status, 'budget_exhausted')

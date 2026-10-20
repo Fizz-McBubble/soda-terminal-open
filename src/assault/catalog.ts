@@ -33,6 +33,8 @@ export type CurrentDirectoryEntry = {
   rarity: 'S' | 'A' | 'B' | null
   specialty: string | null
   evidence: 'formal' | 'candidate' | 'missing'
+  /** Release identity evidence is kept separate from field-level source evidence. */
+  identityEvidence: 'formal' | 'candidate' | 'missing'
   releaseState: 'released' | 'unreleased'
   releaseAt: string | null
   releaseSourceVersion: string | null
@@ -54,6 +56,7 @@ function formalDirectoryEntry(
     rarity,
     specialty,
     evidence: 'formal',
+    identityEvidence: 'formal',
     releaseState: 'released',
     releaseAt: null,
     releaseSourceVersion: null,
@@ -69,18 +72,49 @@ function candidateDirectoryEntry(entry: CurrentAssetCatalogEntry): CurrentDirect
 }
 
 /** Current player directory only. It deliberately does not feed roster defaults or hydration. */
-export const currentAgentDirectory = [
+function uniqueDirectoryEntries(entries: readonly CurrentDirectoryEntry[]) {
+  const byStableId = new Map<string, CurrentDirectoryEntry>()
+  for (const entry of entries) {
+    const existing = byStableId.get(entry.id)
+    if (!existing) {
+      byStableId.set(entry.id, entry)
+      continue
+    }
+    // A source supplement may add field evidence for an existing identity, but must not
+    // create another roster entity or downgrade the identity's formal/released status.
+    const identityEvidence =
+      existing.identityEvidence === 'formal' || entry.identityEvidence === 'formal'
+        ? 'formal'
+        : existing.identityEvidence
+    const releaseState =
+      existing.releaseState === 'released' || entry.releaseState === 'released'
+        ? 'released'
+        : 'unreleased'
+    byStableId.set(entry.id, {
+      ...existing,
+      identityEvidence,
+      releaseState,
+      releaseAt: existing.releaseAt ?? entry.releaseAt,
+      releaseSourceVersion: existing.releaseSourceVersion ?? entry.releaseSourceVersion,
+      accountOwnable: existing.accountOwnable || entry.accountOwnable,
+      gaps: existing.evidence === 'formal' || existing.gaps.length > 0 ? existing.gaps : entry.gaps,
+    })
+  }
+  return [...byStableId.values()]
+}
+
+export const currentAgentDirectory = uniqueDirectoryEntries([
   ...agentCatalog.map(([id, name, specialty, , rarity]) =>
     formalDirectoryEntry(id, name, rarity, specialty),
   ),
   ...currentAssetCatalog.agents.map(candidateDirectoryEntry),
-]
+])
 
 /** Current player directory only. It deliberately does not feed roster defaults or hydration. */
-export const currentBangbooDirectory = [
+export const currentBangbooDirectory = uniqueDirectoryEntries([
   ...bangbooCatalog.map(([id, name, , rarity]) => formalDirectoryEntry(id, name, rarity, null)),
   ...currentAssetCatalog.bangboos.map(candidateDirectoryEntry),
-]
+])
 
 const catalogCore = {
   schemaVersion: 1,

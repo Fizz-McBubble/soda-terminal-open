@@ -1,4 +1,5 @@
 import { refineDevelopmentCandidates } from './developmentCandidateRefinement'
+import { developmentCandidateEventObjective32 } from './developmentCandidateEventObjective32'
 import {
   createDevelopmentValueBenchmarkEvaluator,
   type DevelopmentValueBenchmarkEvaluator,
@@ -90,10 +91,25 @@ export function projectDevelopmentCandidateAlternatives(
         }
       : agent,
   )
+  const eventObjective = developmentCandidateEventObjective32({
+    agent,
+    panelInput,
+    scenarioSelection,
+    eventConditionDeclaration,
+  })
   const buildIntent = compileAgentBuildIntent({
     agentId,
     developmentPriorityAgentIds: input.developmentPriorityAgentIds,
-    ...(panelInput ? { optimizerOptions: { panelInputsByAgent: { [agentId]: panelInput } } } : {}),
+    ...(panelInput
+      ? {
+          optimizerOptions: {
+            panelInputsByAgent: { [agentId]: panelInput },
+            ...(eventObjective
+              ? { effectiveCritObjectivesByAgent: { [agentId]: eventObjective } }
+              : {}),
+          },
+        }
+      : {}),
   })
   if (!agent?.owned)
     return {

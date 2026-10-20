@@ -7,6 +7,8 @@ export type StrengthTrainingRow = {
   group: string
   values: readonly number[]
   target: number
+  /** Evidence-quality weight chosen before validation; defaults to one. */
+  weight?: number
 }
 
 export type StrengthRegression = {
@@ -16,6 +18,7 @@ export type StrengthRegression = {
   intercept: number
   alpha: number
   sampleCount: number
+  weightSum?: number
   coefficientDirections?: number[]
 }
 
@@ -38,6 +41,8 @@ export function assertValidStrengthRegression(model: StrengthRegression) {
     model.alpha <= 0 ||
     !Number.isSafeInteger(model.sampleCount) ||
     model.sampleCount <= 0 ||
+    (model.weightSum !== undefined &&
+      (!Number.isFinite(model.weightSum) || model.weightSum <= 0)) ||
     (model.coefficientDirections !== undefined &&
       (!Array.isArray(model.coefficientDirections) ||
         model.coefficientDirections.length !== dimensions ||
@@ -112,7 +117,8 @@ export function fitStrengthRegression(
       (row) =>
         row.values.length !== dimensions ||
         !Array.from(row.values).every(Number.isFinite) ||
-        !Number.isFinite(row.target),
+        !Number.isFinite(row.target) ||
+        (row.weight !== undefined && (!Number.isFinite(row.weight) || row.weight <= 0)),
     )
   )
     throw new Error('Invalid strength training row')
@@ -122,16 +128,19 @@ export function fitStrengthRegression(
       Array.from(coefficientDirections).some((value) => ![-1, 0, 1].includes(value)))
   )
     throw new Error('Invalid strength coefficient directions')
+  const weightSum = rows.reduce((sum, row) => sum + (row.weight ?? 1), 0)
   const means = Array.from(
     { length: dimensions },
-    (_, i) => rows.reduce((sum, row) => sum + row.values[i]!, 0) / rows.length,
+    (_, i) => rows.reduce((sum, row) => sum + row.values[i]! * (row.weight ?? 1), 0) / weightSum,
   )
   const scales = means.map(
     (mean, i) =>
-      Math.sqrt(rows.reduce((sum, row) => sum + (row.values[i]! - mean) ** 2, 0) / rows.length) ||
-      1,
+      Math.sqrt(
+        rows.reduce((sum, row) => sum + (row.values[i]! - mean) ** 2 * (row.weight ?? 1), 0) /
+          weightSum,
+      ) || 1,
   )
-  const intercept = rows.reduce((sum, row) => sum + row.target, 0) / rows.length
+  const intercept = rows.reduce((sum, row) => sum + row.target * (row.weight ?? 1), 0) / weightSum
   if (
     !means.every(Number.isFinite) ||
     !scales.every(Number.isFinite) ||
@@ -142,9 +151,10 @@ export function fitStrengthRegression(
   const rhs = means.map(() => 0)
   for (const row of rows) {
     const values = row.values.map((value, i) => (value - means[i]!) / scales[i]!)
+    const weight = row.weight ?? 1
     for (let i = 0; i < dimensions; i += 1) {
-      rhs[i]! += values[i]! * (row.target - intercept)
-      for (let j = 0; j < dimensions; j += 1) matrix[i]![j]! += values[i]! * values[j]!
+      rhs[i]! += weight * values[i]! * (row.target - intercept)
+      for (let j = 0; j < dimensions; j += 1) matrix[i]![j]! += weight * values[i]! * values[j]!
     }
   }
   if (!rhs.every(Number.isFinite) || matrix.some((row) => !row.every(Number.isFinite)))
@@ -158,6 +168,7 @@ export function fitStrengthRegression(
     intercept,
     alpha,
     sampleCount: rows.length,
+    weightSum,
     ...(coefficientDirections ? { coefficientDirections: [...coefficientDirections] } : {}),
   }
   assertValidStrengthRegression(model)

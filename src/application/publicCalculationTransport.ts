@@ -13,6 +13,7 @@ import {
 import { commonAnomalySettlementQueryResultSchema32 } from './publicCommonAnomalySettlementQuery32'
 import type { DevelopmentWorkbenchRoutePresentation } from './publicDevelopmentWorkbenchRoute'
 import type { SavedTeamReplayPresentation } from './publicSavedTeamReplay'
+import { savedLuminizeReplaySchema32 } from './savedLuminizeReplay32'
 import type { SavedTeamSolutionComponents } from './publicSavedTeamSolutionComponents'
 import { packPublicWarehouseActions } from './publicWarehouseActionTransport'
 import type { RemoteCalculationRequest, RemoteCalculationResult } from './remoteCalculationProtocol'
@@ -196,6 +197,9 @@ export function projectPublicCalculationResult(
         planId,
         planHash,
         status,
+        ...(view.luminizeSettlement32 === undefined
+          ? {}
+          : { luminizeSettlement32: savedLuminizeReplaySchema32.parse(view.luminizeSettlement32) }),
         match: view.match
           ? {
               buildIntent: {

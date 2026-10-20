@@ -86,7 +86,7 @@ export function SelectMenu({
         viewportHeight: window.innerHeight,
         minimumHeight: 220 * scale,
       }),
-      // Body portals need the trigger's zoom; dialog portals already inherit it.
+      // Body portals need the trigger's zoom; top-layer portals inherit their host's zoom.
       zoom: scale / getEffectiveZoom(portalContext.target),
     })
   }, [enabledOptionCount, options, portalContext])
@@ -128,13 +128,23 @@ export function SelectMenu({
     }
     window.addEventListener('resize', reposition)
     window.addEventListener('scroll', reposition, true)
+    let resizeFrame: number | undefined
     const observer =
-      typeof ResizeObserver === 'function' ? new ResizeObserver(() => reposition()) : null
+      typeof ResizeObserver === 'function'
+        ? new ResizeObserver(() => {
+            if (resizeFrame !== undefined) return
+            resizeFrame = window.requestAnimationFrame(() => {
+              resizeFrame = undefined
+              reposition()
+            })
+          })
+        : null
     if (trigger.current) observer?.observe(trigger.current)
     return () => {
       window.removeEventListener('resize', reposition)
       window.removeEventListener('scroll', reposition, true)
       observer?.disconnect()
+      if (resizeFrame !== undefined) window.cancelAnimationFrame(resizeFrame)
     }
   }, [open, options.length, updateMenuPosition])
 
@@ -160,9 +170,10 @@ export function SelectMenu({
 
   const openMenu = () => {
     if (disabled) return
-    const dialog = root.current?.closest('dialog')
+    const layer = root.current?.closest<HTMLElement>('dialog, [popover]')
+    const dialog = layer instanceof HTMLDialogElement ? layer : null
     setPortalContext({
-      target: dialog?.querySelector('form') ?? dialog ?? document.body,
+      target: dialog?.querySelector('form') ?? layer ?? document.body,
       inDialog: Boolean(dialog),
     })
     const currentIndex = enabledOptions.findIndex((option) => option.value === value)
@@ -292,7 +303,7 @@ export function SelectMenu({
               onKeyDown={(event) => {
                 if (event.key === 'Tab') {
                   const anchor = trigger.current
-                  const scope = anchor?.closest('dialog[open]') ?? document.body
+                  const scope = anchor?.closest('dialog[open], [popover]') ?? document.body
                   const candidates = [
                     ...scope.querySelectorAll<HTMLElement>(
                       'a[href], button, input:not([type="hidden"]), select, textarea, summary, [tabindex]',
@@ -330,7 +341,11 @@ export function SelectMenu({
                       return aOrder === bOrder ? 0 : aOrder - bOrder
                     })
                   const index = anchor ? candidates.indexOf(anchor) : -1
-                  const next = candidates[index + (event.shiftKey ? -1 : 1)]
+                  const next =
+                    candidates[index + (event.shiftKey ? -1 : 1)] ??
+                    (scope.matches('[popover]')
+                      ? candidates[event.shiftKey ? candidates.length - 1 : 0]
+                      : undefined)
                   setOpen(false)
                   if (index >= 0 && next) {
                     event.preventDefault()

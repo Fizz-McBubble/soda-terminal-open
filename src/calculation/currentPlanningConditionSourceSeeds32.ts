@@ -20,9 +20,71 @@ export type SourceSeed = {
   dataPath?: string
   dataHash?: string
   mappedHash?: string
+  localizationPath?: string
+  localizationHash?: string
   conditionals: Record<string, Conditional>
 }
 export const sourceSeeds: readonly SourceSeed[] = [
+  {
+    kind: 'wengine',
+    key: 'SteelCushion',
+    engineId: 'wengine-14102',
+    specialty: 'damage',
+    formulaPath: 'libs/zzz/formula/src/data/wengine/sheets/SteelCushion.ts',
+    formulaHash: '39360E37B6A70E8422CC1EBF6AFB907F139ADC18DD79944EC757ED0F17E94E0D',
+    metaPath: 'libs/zzz/formula/src/meta/wengine/SteelCushion/conditionals.ts',
+    metaHash: '9238F435BCBD833745042C38BAD5354036C9477EDCBDD49209A90D171F3D0FC0',
+    dataPath: 'libs/zzz/stats/Data/Wengine/SteelCushion.json',
+    dataHash: 'BF56ED4B057ED8938A3949F2B2BD70C3D7D76D22F24F01946331F16C1AEFCA97',
+    localizationPath: 'libs/zzz/dm-localization/assets/locales/en/wengine_SteelCushion_gen.json',
+    localizationHash: 'A2650CD0067A612B7320B398DFCF73F77170CBECA51D2A7EB53E484F644590CF',
+    conditionals: {
+      hit_behind: { sheet: 'SteelCushion', name: 'hit_behind', type: 'bool' },
+    },
+  },
+  {
+    kind: 'wengine',
+    key: 'StarlightEngineReplica',
+    engineId: 'wengine-13108',
+    specialty: 'damage',
+    formulaPath: 'libs/zzz/formula/src/data/wengine/sheets/StarlightEngineReplica.ts',
+    formulaHash: 'E3ADF1D7F037F9D8DA388968213711DEDC59605B7AC74887C7B6D7C10F449940',
+    metaPath: 'libs/zzz/formula/src/meta/wengine/StarlightEngineReplica/conditionals.ts',
+    metaHash: '2A5C44D42D7CC56C2F3B364462794E638E60DC088544B6F8DAFF36EE5713C8A1',
+    dataPath: 'libs/zzz/stats/Data/Wengine/StarlightEngineReplica.json',
+    dataHash: '3C392AC8C2035825412ABE8504358D395926624EA579031F561C347302728EA1',
+    localizationPath:
+      'libs/zzz/dm-localization/assets/locales/en/wengine_StarlightEngineReplica_gen.json',
+    localizationHash: '59E45845F73E74BA5039EDA42D496F396903140D86B879E4AF8CF57FB6331508',
+    conditionals: {
+      hit_away: { sheet: 'StarlightEngineReplica', name: 'hit_away', type: 'bool' },
+    },
+  },
+  {
+    kind: 'wengine',
+    key: 'Housekeeper',
+    engineId: 'wengine-13106',
+    specialty: 'damage',
+    formulaPath: 'libs/zzz/formula/src/data/wengine/sheets/Housekeeper.ts',
+    formulaHash: 'C3742392062750767610AB0032F98F9B9FE360E6662046DF01523A64CA918F54',
+    metaPath: 'libs/zzz/formula/src/meta/wengine/Housekeeper/conditionals.ts',
+    metaHash: 'FC376922195AED9A4C521661946DC92CD361B97A76E5A2CE0D2A0E9FE8217F8E',
+    dataPath: 'libs/zzz/stats/Data/Wengine/Housekeeper.json',
+    dataHash: '0D98DABBC1736D942E5CA7EEDD55A2389B8F7BD53FA82AC5FFEB56ADBEF87F0F',
+    localizationPath: 'libs/zzz/dm-localization/assets/locales/en/wengine_Housekeeper_gen.json',
+    localizationHash: 'AA69BED6B6E47DB0DA6FCD69E02A4F1F906EC6922CE94ECB7EAC89A7F916C228',
+    conditionals: {
+      offField: { sheet: 'Housekeeper', name: 'offField', type: 'bool' },
+      exSpecialHits: {
+        sheet: 'Housekeeper',
+        name: 'exSpecialHits',
+        type: 'num',
+        int_only: true,
+        min: 0,
+        max: 15,
+      },
+    },
+  },
   {
     kind: 'char',
     key: 'Claret',

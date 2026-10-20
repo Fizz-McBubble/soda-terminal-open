@@ -2,6 +2,7 @@ import type { DriveDisc } from '../domain/schemas'
 import { candidateSetPlanPriority } from '../gameDataPacks/candidateSetPlanPolicy'
 import { allowedSetCountPatterns } from '../optimizer/optimizerSetPatterns'
 import { twoPieceRecommendationPriority } from '../gameDataPacks/twoPieceSetPolicy'
+import { isConstraintCompatible } from './discEnhancementPotential'
 import type { WarehouseDemandContext } from './warehouseDemandContexts'
 import {
   assessWarehouseContextQuality,
@@ -9,6 +10,10 @@ import {
   warehouseQualityIsAdmitted,
   type WarehouseContextQuality,
 } from './warehouseDiscQuality'
+import {
+  warehouseCompleteBuildImprovements,
+  type WarehouseCompleteBuildImprovement,
+} from './warehouseCompleteBuildObjective'
 
 export type WarehouseUseAssessment = {
   status: 'keep' | 'develop' | 'cleanup' | 'verify'
@@ -28,6 +33,8 @@ export type WarehouseUseAssessment = {
   worthInvestment: boolean
   compatibleAgentIds: string[]
   retainedAgentIds: string[]
+  /** Additional positive use only; never absolute quality or a cleanup proof. */
+  completeBuildImprovements?: readonly WarehouseCompleteBuildImprovement[]
 }
 type Entry = { disc: DriveDisc; quality: WarehouseContextQuality }
 type Choice = {
@@ -130,6 +137,7 @@ export function assessWarehouseUses(
 ) {
   const qualities = new Map<string, WarehouseContextQuality[]>()
   const byContext = new Map<string, Entry[]>()
+  const unknownQualityDiscIds = new Set<string>()
   const capturedCounts = new Map<string, number>()
   for (const disc of discs) capturedCounts.set(disc.id, (capturedCounts.get(disc.id) ?? 0) + 1)
   for (const disc of discs) {
@@ -139,6 +147,14 @@ export function assessWarehouseUses(
     }
     const matched = contexts.flatMap((context) => {
       const quality = assessWarehouseContextQuality(disc, context)
+      if (
+        !quality &&
+        !Object.values(context.constraint.subStatWeights).some(
+          (weight) => Number.isFinite(weight) && weight > 0,
+        ) &&
+        isConstraintCompatible(disc, context.constraint)
+      )
+        unknownQualityDiscIds.add(disc.id)
       return quality ? [quality] : []
     })
     qualities.set(disc.id, matched)
@@ -150,6 +166,8 @@ export function assessWarehouseUses(
     }
   }
   const retained = new Map<string, WarehouseContextQuality[]>()
+  const completeBuildUses = new Map<string, WarehouseCompleteBuildImprovement[]>()
+  const completeBuildContexts = new Map<string, WarehouseDemandContext[]>()
   const retain = ({ disc, quality }: Entry) =>
     retained.set(disc.id, [...(retained.get(disc.id) ?? []), quality])
   const groups = new Map<string, WarehouseDemandContext[]>()
@@ -286,11 +304,41 @@ export function assessWarehouseUses(
       if (!dominated) retain(entry)
     }
   }
+  const completeBuildCache = new Map<string, readonly WarehouseCompleteBuildImprovement[]>()
+  for (const context of coverageComplete ? contexts : []) {
+    for (const improvement of warehouseCompleteBuildImprovements(
+      discs,
+      context,
+      completeBuildCache,
+    )) {
+      const quality = qualities
+        .get(improvement.replacementDiscId)
+        ?.find((row) => row.context.id === context.id)
+      const disc = discs.find((row) => row.id === improvement.replacementDiscId)
+      if (
+        !disc ||
+        capturedCounts.get(disc.id) !== 1 ||
+        !hasReliableWarehouseDiscRecord(disc) ||
+        !isConstraintCompatible(disc, context.constraint) ||
+        (!quality && !context.completeTeamBuild)
+      )
+        continue
+      // A verified whole-team positive use does not supply static roll weights.
+      // Retain real quality when available; never manufacture one for this proof.
+      if (quality) retain({ disc, quality })
+      const previous = completeBuildUses.get(disc.id) ?? []
+      if (!previous.some((row) => row.sourceIdentity === improvement.sourceIdentity)) {
+        completeBuildUses.set(disc.id, [...previous, improvement])
+        completeBuildContexts.set(disc.id, [...(completeBuildContexts.get(disc.id) ?? []), context])
+      }
+    }
+  }
   return new Map(
     discs.map((disc): [string, WarehouseUseAssessment] => {
       const matched = qualities.get(disc.id) ?? []
       const uses = retained.get(disc.id) ?? []
       const eligible = matched.filter((quality) => quality.context.eligibility === 'eligible')
+      const provenContexts = completeBuildContexts.get(disc.id) ?? []
       const best = [...(uses.length ? uses : eligible)].sort(
         (a, b) =>
           Number(b.context.demand === 'active') - Number(a.context.demand === 'active') ||
@@ -298,6 +346,7 @@ export function assessWarehouseUses(
       )[0]
       const uncertain =
         !coverageComplete ||
+        unknownQualityDiscIds.has(disc.id) ||
         matched.some(
           (quality) =>
             warehouseQualityIsAdmitted(quality) && incompleteSearchContexts.has(quality.context.id),
@@ -332,35 +381,54 @@ export function assessWarehouseUses(
           ? worthInvestment
             ? 'develop'
             : 'keep'
-          : uncertain
-            ? 'verify'
-            : 'cleanup'
+          : provenContexts.length
+            ? 'keep'
+            : uncertain
+              ? 'verify'
+              : 'cleanup'
       const basis = !reliable
         ? 'invalid_record'
         : uses.length
           ? uses.some((quality) => quality.context.demand === 'active')
             ? 'active_use'
             : 'quality_reserve'
-          : uncertain
-            ? 'uncertain_context'
-            : eligible.length === 0
-              ? 'no_current_use'
-              : (best?.stopReason ??
-                (!eligible.some((quality) => quality.context.demand === 'active') &&
-                !eligible.some((quality) => quality.premium)
-                  ? 'low_reserve_value'
-                  : 'surplus'))
+          : provenContexts.length
+            ? 'active_use'
+            : uncertain
+              ? 'uncertain_context'
+              : eligible.length === 0
+                ? 'no_current_use'
+                : (best?.stopReason ??
+                  (!eligible.some((quality) => quality.context.demand === 'active') &&
+                  !eligible.some((quality) => quality.premium)
+                    ? 'low_reserve_value'
+                    : 'surplus'))
+      const selectedContext = uses.length ? best?.context : (provenContexts[0] ?? best?.context)
+      const selectedQuality = matched.find((row) => row.context.id === selectedContext?.id)
       return [
         disc.id,
         {
           status,
           basis,
-          agentId: best?.context.agentId ?? null,
-          contextId: best?.context.id ?? null,
-          effectiveRolls: best?.effectiveRolls ?? null,
+          agentId: selectedContext?.agentId ?? null,
+          contextId: selectedContext?.id ?? null,
+          effectiveRolls: selectedQuality?.effectiveRolls ?? null,
           worthInvestment,
-          compatibleAgentIds: [...new Set(eligible.map((quality) => quality.context.agentId))],
-          retainedAgentIds: [...new Set(uses.map((quality) => quality.context.agentId))],
+          compatibleAgentIds: [
+            ...new Set([
+              ...eligible.map((quality) => quality.context.agentId),
+              ...provenContexts.map((context) => context.agentId),
+            ]),
+          ],
+          retainedAgentIds: [
+            ...new Set([
+              ...uses.map((quality) => quality.context.agentId),
+              ...provenContexts.map((context) => context.agentId),
+            ]),
+          ],
+          ...(completeBuildUses.has(disc.id)
+            ? { completeBuildImprovements: completeBuildUses.get(disc.id)! }
+            : {}),
         },
       ]
     }),

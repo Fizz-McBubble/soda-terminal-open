@@ -1,7 +1,11 @@
 import type { RosterAgent } from '../assault/types'
 import { getRemielleSkillGuidanceCandidate } from '../gameDataPacks/remielleGuidanceCandidate'
+import { reviewedGuideSkillDirections } from '../gameDataPacks/reviewedGuideSkillDirections'
 import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
-import { fieldTimeIndependentSkillInvestment } from '../calculation/skillInvestmentPolicy'
+import {
+  fieldTimeIndependentSkillInvestment,
+  skillInvestmentPolicy,
+} from '../calculation/skillInvestmentPolicy'
 import { evaluateSkillInvestmentNextLevel } from '../calculation/skillInvestmentNextLevel'
 import {
   projectSkillNextLevelDisplay,
@@ -25,8 +29,9 @@ export type AgentSkillRecommendationContext = {
 export type AgentSkillRecommendationItem = {
   key: keyof typeof skillLabels
   label: string
-  targetLevel: number
+  targetLevel: number | null
   baseTargetLevel?: number | null
+  targetBasis?: 'paid_base_maximum'
   recommended: string
   priority: boolean
   targetType: SkillTargetType
@@ -73,8 +78,9 @@ export function agentDevelopmentSkillRecommendations(
       const explicit = targets[key]
       const lowInvestment = remielle?.lowInvestmentSkills.includes(key) ?? false
 
-      let targetLevel: number
+      let targetLevel: number | null
       let baseTargetLevel: number | null = null
+      let targetBasis: 'paid_base_maximum' | undefined
       let targetType: SkillTargetType
       let exactTarget: number | null = null
       let minimumReference: number | null = null
@@ -88,14 +94,16 @@ export function agentDevelopmentSkillRecommendations(
 
       if (key === 'core') {
         // 核心技独立上限 7，不得误套战斗技最低 7
-        const isCoreF = explicit === 'F' || explicit === '7'
+        const isCoreF =
+          explicit === 'F' || explicit === '7' || remielle?.explicitTargets.core === 'F'
         const isCoreFMin =
           explicit === 'F+' || explicit === '7+' || explicit === '≥F' || explicit === '≥7'
         if (isCoreF) {
           targetLevel = 7
           targetType = 'exact_integer'
           exactTarget = 7
-          recommended = explicit
+          baseTargetLevel = 7
+          recommended = explicit ?? 'F'
         } else if (isCoreFMin) {
           targetLevel = 7
           targetType = 'minimum_reference'
@@ -145,7 +153,31 @@ export function agentDevelopmentSkillRecommendations(
           explicit &&
           (explicit.includes('+') || explicit.startsWith('≥') || explicit.startsWith('>=')),
         )
-        if (isMinimum && explicit) {
+        const sourceLevelBasisUnknown =
+          isMinimum &&
+          reviewedGuideSkillDirections[agentId]?.authorTargets?.combatSourceLevelBasis ===
+            'image_displayed_unspecified_paid_vs_effective'
+        if (remielle?.explicitTargets.combatMaximumSkills.includes(key)) {
+          // "升满" targets the paid cap, not effective Lv.12 at every cinema.
+          baseTargetLevel = skillInvestmentPolicy.combatSkillCap
+          targetLevel = knownMindscapeBonus === null ? null : baseTargetLevel + knownMindscapeBonus
+          targetBasis = 'paid_base_maximum'
+          targetType = 'exact_integer'
+          exactTarget = targetLevel
+          recommended = targetLevel === null ? '升满' : String(targetLevel)
+        } else if (isMinimum && explicit && sourceLevelBasisUnknown) {
+          const raw = explicit.replace('+', '').replace('≥', '').replace('>=', '').trim()
+          const parsed = Number(raw)
+          const reference = Number.isNaN(parsed) ? 7 : parsed
+          // The archived image does not say whether 11+/9+ means paid or
+          // effective levels. Display the source floor, but do not infer a
+          // paid target or claim the current effective level has reached it.
+          targetLevel = null
+          baseTargetLevel = null
+          targetType = 'minimum_reference'
+          minimumReference = reference
+          recommended = explicit
+        } else if (isMinimum && explicit) {
           const raw = explicit.replace('+', '').replace('≥', '').replace('>=', '').trim()
           const parsed = Number(raw)
           const validNum = Number.isNaN(parsed) ? 7 : parsed
@@ -205,15 +237,16 @@ export function agentDevelopmentSkillRecommendations(
         }
       }
 
-      const nextLevelEvidence = context?.skillLevels
-        ? evaluateSkillInvestmentNextLevel({
-            agentId,
-            skill: key,
-            currentLevel: context.skillLevels[key],
-            targetLevel,
-            effectiveLevelBonus: key === 'core' ? 0 : knownMindscapeBonus,
-          })
-        : null
+      const nextLevelEvidence =
+        context?.skillLevels || targetLevel === null
+          ? evaluateSkillInvestmentNextLevel({
+              agentId,
+              skill: key,
+              currentLevel: context?.skillLevels?.[key] ?? null,
+              targetLevel,
+              effectiveLevelBonus: key === 'core' ? 0 : knownMindscapeBonus,
+            })
+          : null
       const nextLevel = nextLevelEvidence ? projectSkillNextLevelDisplay(nextLevelEvidence) : null
 
       return {
@@ -221,6 +254,7 @@ export function agentDevelopmentSkillRecommendations(
         label,
         targetLevel,
         baseTargetLevel,
+        ...(targetBasis ? { targetBasis } : {}),
         recommended,
         priority: primaryPriority.includes(key),
         targetType,

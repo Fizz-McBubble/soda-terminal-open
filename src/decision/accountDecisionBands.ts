@@ -31,12 +31,19 @@ export type AssetConflictBand = (typeof assetConflictBands)[number]
 
 export type AccountBandContext = {
   agentById: Map<string, RosterAgent>
+  skillInvestmentsByAgentId?: ReadonlyMap<string, ReturnType<typeof inspectSkillInvestments>>
   globalById: Map<string, AccountBuildResult['global'][number]>
   independentById: Map<string, AccountBuildResult['independent'][number]>
   potentialDirectionsByMembers: Map<string, (typeof reviewedTeamDiscDirections)[number][]>
 }
 
-export function inspectSkillInvestments(agent: RosterAgent | undefined) {
+export function inspectSkillInvestments(
+  agent:
+    | (Pick<RosterAgent, 'agentId' | 'level' | 'skillLevels' | 'lockedFields'> & {
+        mindscape?: number | null
+      })
+    | undefined,
+) {
   if (!agent) return { knownGapCount: 7, unknownCount: 0 }
   const profile = getProjectedBuildKnowledgeProfile(agent.agentId)
   const currentProfile = getCurrentBuildProfile(agent.agentId)
@@ -58,7 +65,7 @@ export function inspectSkillInvestments(agent: RosterAgent | undefined) {
   let unknownCount = 0
   for (const skill of skills) {
     const current = agent.skillLevels[skill.key]
-    if (current === null || current === undefined) {
+    if (current === null || current === undefined || skill.targetLevel === null) {
       unknownCount++
       continue
     }
@@ -89,6 +96,13 @@ export function createAccountBandContext(
   }
   return {
     agentById: new Map(roster.agents.map((agent) => [agent.agentId, agent])),
+    // Skill targets depend only on the captured roster agent. Compute them once
+    // per decision run instead of re-projecting the same agent for every trio.
+    skillInvestmentsByAgentId: new Map(
+      roster.agents
+        .filter((agent) => agent.owned)
+        .map((agent) => [agent.agentId, inspectSkillInvestments(agent)]),
+    ),
     globalById: new Map(allocation.global.map((loadout) => [loadout.agentId, loadout])),
     independentById: new Map(allocation.independent.map((loadout) => [loadout.agentId, loadout])),
     potentialDirectionsByMembers,
@@ -145,8 +159,10 @@ export function deriveAccountBands(
         return total + Math.max(0, 6 - (loadout?.discs.length ?? 0))
       }, 0)
     : null
-  const skillAudits = candidate.memberIds.map((agentId) =>
-    inspectSkillInvestments(context.agentById.get(agentId)),
+  const skillAudits = candidate.memberIds.map(
+    (agentId) =>
+      context.skillInvestmentsByAgentId?.get(agentId) ??
+      inspectSkillInvestments(context.agentById.get(agentId)),
   )
   const missingSkillInvestmentCount = skillAudits.reduce(
     (total, audit) => total + audit.knownGapCount,

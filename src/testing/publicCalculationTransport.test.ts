@@ -155,6 +155,7 @@ describe('browser transport projection', () => {
       domain: 'target_team_three_agents_eighteen_discs',
     })
     expect(projected.accountBoundBenchmark).toEqual({
+      calculationProjection: null,
       equipmentModifierProjection: { wEngines: [{ passiveStatus: 'supported' }] },
     })
   })

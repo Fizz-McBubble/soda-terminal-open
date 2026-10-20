@@ -51,6 +51,8 @@ export function Top10({
   onSelectCandidatePlan,
   onReanalyzeWarehouse,
   comparisonScenarioControl,
+  comparisonEquipmentControl,
+  onComparisonDetailsOpen,
 }: {
   back: () => void
   scenario: JourneyScenario
@@ -59,6 +61,8 @@ export function Top10({
   onSelectCandidatePlan?: AgentDevelopmentGoldenProps['onSelectCandidatePlan']
   onReanalyzeWarehouse?: AgentDevelopmentGoldenProps['onReanalyzeWarehouse']
   comparisonScenarioControl?: AgentDevelopmentGoldenProps['comparisonScenarioControl']
+  comparisonEquipmentControl?: AgentDevelopmentGoldenProps['comparisonEquipmentControl']
+  onComparisonDetailsOpen?: AgentDevelopmentGoldenProps['onComparisonDetailsOpen']
 }) {
   const preferredRank =
     data.selectedCandidateRank ??
@@ -371,11 +375,16 @@ export function Top10({
                 </span>
               ) : null}
               <ExplanationPopover
+                key={selectedRow?.rank}
                 label="排序与计算限制"
                 title="方案排序与计算限制"
                 className="comparison-method-popover"
+                onOpenChange={(open) => {
+                  if (open && selectedRow) onComparisonDetailsOpen?.(selectedRow.rank)
+                }}
               >
                 <div className="comparison-method-popover__content">
+                  {selectedRow && selectedRow.rank > 0 ? comparisonEquipmentControl : null}
                   <p>{candidateSearchLabel(selectedSearch)}</p>
                   {selectedBenchmark?.status !== 'supported' && selectedBenchmark ? (
                     <p>当前输出对比受限或未支持，未假设 0% 收益。</p>

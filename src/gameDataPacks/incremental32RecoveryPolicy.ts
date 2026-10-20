@@ -1,7 +1,7 @@
 /** Build-time compatibility recovery. Storage and released identities remain intact. */
 export const incremental32RecoveryPolicy = Object.freeze({
   id: 'incremental-32-compatibility-recovery-v1',
-  enabled: import.meta.env.VITE_SODA_INCREMENTAL32_RECOVERY === 'true',
+  enabled: import.meta.env?.VITE_SODA_INCREMENTAL32_RECOVERY === 'true',
   preservesReleasedIdentities: true,
   preservesAccountAndSavedPlans: true,
   disabledCapabilityScope: '3.2_precision_only',

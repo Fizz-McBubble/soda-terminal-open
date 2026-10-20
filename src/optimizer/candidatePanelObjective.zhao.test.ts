@@ -71,7 +71,7 @@ describe('Zhao source-bound support target', () => {
       },
       { ...knowledge, mainStats: { ...knowledge.mainStats, '6': ['atk_percent', 'hp_percent'] } },
       '3.1',
-      { panelInput: candidatePanelInputForAgent(agent)!, candidateLimitPerSlot: 1 },
+      { panelInput: candidatePanelInputForAgent(agent)! },
     )
     expect(result.panelObjectiveStatus).toBe('applied')
     expect(result.builds[0]!.discs.map((row) => row.disc.id)).toContain(hpDisc.id)

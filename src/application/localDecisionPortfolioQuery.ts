@@ -1,3 +1,4 @@
+import { targetTeamBuildDirectionConditions } from './targetTeamEffectivePotentialConditions'
 import { coordinateDecisionPortfolio } from '../decision/accountDecisionCoordination'
 import { projectSimultaneousTeamExecutionPortfolio } from '../decision/teamExecutionProjection'
 import { authorityPortfolioCandidates } from '../decision/authorityPortfolioCandidates'
@@ -103,12 +104,20 @@ export function createLocalDecisionPortfolioQuery({
             ]),
           )
         : undefined,
-      agentStateById: Object.fromEntries(
-        run.input.warehouse.roster.agents.map((agent) => [
-          agent.agentId,
-          { potentialImage: agent.potentialImage },
-        ]),
-      ),
+      ...targetTeamBuildDirectionConditions({
+        memberIds: resolvedAgentIds,
+        roster: run.input.warehouse.roster,
+        potentialByAgentId: Object.assign(
+          {},
+          ...confirmedFits.map((fit) =>
+            Object.fromEntries(
+              Object.entries(fit.effectiveEquipmentParameters?.potentialByAgentId ?? {}).filter(
+                ([id]) => resolvedAgentIds.includes(id),
+              ),
+            ),
+          ),
+        ),
+      }),
     })
     const warehousePlan =
       resolvedAgentIds.length === buildIntent.teamCount * 3

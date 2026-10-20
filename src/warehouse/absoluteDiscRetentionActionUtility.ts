@@ -11,6 +11,7 @@ import type {
   RetentionUtilityState,
 } from './absoluteDiscRetentionUseFacts'
 import {
+  reviewedNormalM0ProfileFingerprint,
   resolveReviewedUseScope,
   type Context,
   type Review,
@@ -58,7 +59,7 @@ export function resolveActionUtility(
       !/^[a-f\d]{64}$/i.test(reviewedScope.review.sourceArtifactSha256 ?? '') ||
       !eventContract ||
       reviewedScope.context.actorAgentId !== fact.actorAgentId ||
-      reviewedScope.context.profileFingerprint !== constraint.contentHash ||
+      reviewedScope.context.profileFingerprint !== reviewedNormalM0ProfileFingerprint(constraint) ||
       reviewedScope.context.externalId !== eventContract.externalId ||
       reviewedScope.context.sourceCommit !== eventContract.source.commit ||
       reviewedScope.context.formulaSha256.toUpperCase() !==

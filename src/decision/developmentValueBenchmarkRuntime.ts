@@ -152,6 +152,7 @@ export function evaluateDevelopmentValueBenchmarkSide(
     potential,
     coreLevel: skillLevels.core,
     skillLevels,
+    statBasis32: stats.statBasis32,
     initialStats: stats.initialStats,
     finalStats: stats.finalStats,
   }

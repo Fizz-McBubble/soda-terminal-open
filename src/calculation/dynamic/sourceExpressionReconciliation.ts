@@ -123,6 +123,47 @@ interface ReconciliationTargetConfig {
 }
 
 const RECONCILIATION_TARGETS: ReconciliationTargetConfig[] = [
+  {
+    agentId: 'agent-trigger',
+    effectId: 'm1_stun_',
+    targetPath: 'libs/zzz/formula/src/data/char/sheets/Trigger.ts',
+    sourceRef: 'enemyDebuff.common.stun_',
+    // M1 augments the same enemy Core debuff. Aftershock is the trigger,
+    // not a restriction on which teammate damage can receive the debuff.
+    replacementRootIr: {
+      kind: 'call',
+      operator: 'add',
+      receiver: { kind: 'reference', path: 'enemyDebuff.common.stun_' },
+      arguments: [
+        {
+          kind: 'call',
+          operator: 'cmpGE',
+          arguments: [
+            { kind: 'reference', path: 'char.mindscape' },
+            { kind: 'literal', value: 1 },
+            {
+              kind: 'call',
+              operator: 'ifOn',
+              receiver: { kind: 'reference', path: 'aftershock_hit' },
+              arguments: [{ kind: 'reference', path: 'dm.m1.stun_' }],
+            },
+          ],
+        },
+      ],
+    },
+    evidence: [
+      `frzyc/genshin-optimizer@${PINNED_SOURCE_COMMIT}:libs/zzz/formula/src/data/char/sheets/Trigger.ts:167-171`,
+      `frzyc/genshin-optimizer@${PINNED_SOURCE_COMMIT}:libs/zzz/dm-localization/assets/locales/en/char_Trigger_gen.json:/core/desc/6,/mindscapes/1/desc`,
+      'localization-sha256:7f2afba79c80a441dd59427e40c6b1c2a7365dfeccabfe97be4f6e5d6b52c03e',
+      'independent-corroboration:https://www.prydwen.gg/zenless/characters/trigger#review;M1-core-debuff-35-to-55-percent-for-the-whole-party;checked-2026-10-19',
+      'source-semantic-contract:Aftershock-hit-activates-the-enemy-debuff;M1-adds20-percent-to-the-same-core-debuff;retain-M0-gate-and-unknown-hit-state',
+      sourceReconciliationVersion,
+    ],
+    prefix: 'trigger_m1_core_debuff_receiver',
+    formulaSha256: 'C24093AAEF041B0CA582F19729665387060E64C6CDDC9DAF7B338DA37075B0A6',
+    expressionSha256: 'FA0D560D6A6296B43181C24C6F1B6CC7FA6B34A54BBD10D989DD43A2AD43A730',
+    originalIrSha256: '0bd9a494235746a2907a976faf99b3b10cba36cd314c13320ab24e8bc4d5c17d',
+  },
   ...(
     [
       [

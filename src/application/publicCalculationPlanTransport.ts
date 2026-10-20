@@ -4,6 +4,67 @@ import type {
   TargetTeamWarehouseFitQueryResult,
 } from './calculationQueryContract'
 import type { RemoteCalculationResult } from './remoteCalculationProtocol'
+import { luminizeEquipmentSnapshotSchema32 } from './publicLuminizeComparison32'
+import { resourceTimelineDeclarationSchema32 } from '../calculation/resourceTimelineDeclarationContract32'
+import {
+  publicDevelopmentWEngineComparison,
+  publicDevelopmentWEngineOption,
+} from './publicDevelopmentWEngineComparison'
+import type { ValueBenchmarkComparison } from '../calculation/valueBenchmarkComparison'
+
+const publicValueBenchmarkKeys = [
+  'contract',
+  'evidencePolicy',
+  'status',
+  'comparable',
+  'sideEffect',
+  'changedDimensions',
+  'attribution',
+  'comparabilityKey',
+  'baseline',
+  'candidate',
+  'totalDamageDelta',
+  'totalDamagePercentDelta',
+  'planningDpsDelta',
+  'planningDpsPercentDelta',
+  'coverage',
+  'comparisonBasis',
+  'verdict',
+  'candidateDisposition',
+  'direction',
+  'reasons',
+  'boundary',
+  'fingerprint',
+  'luminizeComparison32',
+] as const
+
+function projectPublicValueBenchmark(value: ValueBenchmarkComparison | undefined) {
+  if (!value || value.contract !== 'soda-value-benchmark-comparison/v1') return undefined
+  return Object.fromEntries(
+    publicValueBenchmarkKeys.filter((key) => key in value).map((key) => [key, value[key]]),
+  ) as ValueBenchmarkComparison
+}
+
+function projectPublicTargetTeamCalculationProjection32(
+  projection: TargetTeamWarehouseFitQueryResult['accountBoundBenchmark']['calculationProjection'],
+) {
+  if (!projection) return null
+  if (projection.status === 'unsupported')
+    return {
+      status: projection.status,
+      blockers: projection.blockers,
+      fingerprint: projection.fingerprint,
+    } as const
+  return {
+    status: projection.status,
+    resourceObservationHash: projection.resourceObservationHash,
+    selectedActionResourceProduction32: projection.selectedActionResourceProduction32,
+    memberSourceResourceProduction32: projection.memberSourceResourceProduction32,
+    ...('resourceTimeline32' in projection
+      ? { resourceTimeline32: projection.resourceTimeline32 }
+      : {}),
+  }
+}
 
 export function projectCandidatePlan(plan: CandidateWarehousePlan): CandidateWarehousePlan {
   const {
@@ -62,10 +123,19 @@ export function projectPublicTargetTeamFit(
     accountFactBinding,
     targetExecution,
     teamExecutionPresentation,
+    valueBenchmark,
     accountBoundBenchmark,
   } = fit
+  const publicValueBenchmark = projectPublicValueBenchmark(valueBenchmark)
   return {
     scenarioSelection: fit.scenarioSelection,
+    ...(fit.standardReference32 ? { standardReference32: fit.standardReference32 } : {}),
+    ...(fit.standardReferenceRequest32
+      ? { standardReferenceRequest32: fit.standardReferenceRequest32 }
+      : {}),
+    ...(fit.declaredEventBenchmark32
+      ? { declaredEventBenchmark32: fit.declaredEventBenchmark32 }
+      : {}),
     scenarioIdentity: fit.scenarioIdentity,
     eventConditionDeclarationsByAgentId: fit.eventConditionDeclarationsByAgentId,
     eventConditionDeclarationsIdentity: fit.eventConditionDeclarationsIdentity,
@@ -88,8 +158,34 @@ export function projectPublicTargetTeamFit(
     accountFactBinding,
     targetExecution,
     teamExecutionPresentation,
+    ...(publicValueBenchmark ? { valueBenchmark: publicValueBenchmark } : {}),
     accountBoundBenchmark: accountBoundBenchmark
       ? {
+          ...(accountBoundBenchmark.sourceInputFingerprint === undefined
+            ? {}
+            : { sourceInputFingerprint: accountBoundBenchmark.sourceInputFingerprint }),
+          ...(accountBoundBenchmark.resourceTimelineDeclaration32 === undefined
+            ? {}
+            : {
+                resourceTimelineDeclaration32:
+                  accountBoundBenchmark.resourceTimelineDeclaration32 === null
+                    ? null
+                    : resourceTimelineDeclarationSchema32.parse(
+                        accountBoundBenchmark.resourceTimelineDeclaration32,
+                      ),
+                resourceTimelineDeclarationIdentity32:
+                  accountBoundBenchmark.resourceTimelineDeclarationIdentity32,
+              }),
+          calculationProjection: projectPublicTargetTeamCalculationProjection32(
+            accountBoundBenchmark.calculationProjection,
+          ),
+          ...(accountBoundBenchmark.luminizeSnapshot32 === undefined
+            ? {}
+            : {
+                luminizeSnapshot32: luminizeEquipmentSnapshotSchema32.parse(
+                  accountBoundBenchmark.luminizeSnapshot32,
+                ),
+              }),
           ...(accountBoundBenchmark.koledaFixedEventConditionsMetadata32
             ? {
                 koledaFixedEventConditionsMetadata32:
@@ -138,6 +234,7 @@ export function projectPublicDevelopmentAlternatives(
     eventConditionDeclarationsIdentity,
     comparisonFingerprint,
     comparisonOptions,
+    wEngineComparison,
     candidateParametersByRank,
     candidateSearch,
     candidateSearchByRank,
@@ -164,7 +261,16 @@ export function projectPublicDevelopmentAlternatives(
     eventConditionDeclarationsByAgentId,
     eventConditionDeclarationsIdentity,
     comparisonFingerprint,
-    comparisonOptions,
+    comparisonOptions: comparisonOptions
+      ? {
+          reviewedEvent32: comparisonOptions.reviewedEvent32,
+          potentialSupported: comparisonOptions.potentialSupported,
+          wEngines: comparisonOptions.wEngines.map(publicDevelopmentWEngineOption),
+        }
+      : undefined,
+    ...(wEngineComparison
+      ? { wEngineComparison: publicDevelopmentWEngineComparison(wEngineComparison) }
+      : {}),
     candidateParametersByRank,
     candidateSearch,
     candidateSearchByRank,

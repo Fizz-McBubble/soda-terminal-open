@@ -42,11 +42,7 @@ export function current31TeamRatingCoverage() {
       result.metaAuthority === 'none'
     )
       counts.unrated++
-    else if (
-      !Number.isFinite(result.recommendationScore) ||
-      result.recommendationScore === null ||
-      result.confidence === null
-    ) {
+    else if (result.confidence === null) {
       counts.unavailable++
       issues.push(`队伍评级字段不完整：${key}`)
     } else if (result.metaAuthority === 'variant_reality_profile') counts.ruleDerived++

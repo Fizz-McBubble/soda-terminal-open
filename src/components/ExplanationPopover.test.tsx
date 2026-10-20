@@ -2,10 +2,14 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { ExplanationPopover } from './ExplanationPopover'
 
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => {
+  vi.unstubAllGlobals()
+  vi.restoreAllMocks()
+})
 
 it('keeps the CSS height cap stable across repeated rounded scroll measurements', () => {
   let resize = () => {}
+  const onOpenChange = vi.fn()
   vi.stubGlobal(
     'ResizeObserver',
     class {
@@ -16,7 +20,11 @@ it('keeps the CSS height cap stable across repeated rounded scroll measurements'
       disconnect() {}
     },
   )
-  render(<ExplanationPopover label="更新日志">可滚动的多条日志</ExplanationPopover>)
+  render(
+    <ExplanationPopover label="更新日志" onOpenChange={onOpenChange}>
+      可滚动的多条日志
+    </ExplanationPopover>,
+  )
   const trigger = screen.getByRole('button', { name: '更新日志' })
   const panel = screen.getByRole('dialog', { hidden: true })
   const measuredHeight = () =>
@@ -37,7 +45,9 @@ it('keeps the CSS height cap stable across repeated rounded scroll measurements'
   const toggle = new Event('toggle')
   Object.defineProperty(toggle, 'newState', { value: 'open' })
   fireEvent(panel, toggle)
+  expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(true)
   expect(panel.style.maxHeight).toBe('480px')
+  expect(onOpenChange).toHaveBeenCalledTimes(1)
   for (let index = 0; index < 8; index += 1) {
     act(() => resize())
     fireEvent.scroll(window)
@@ -144,4 +154,44 @@ it('uses the existing quiet button for a toolbar disclosure while keeping body e
   Object.defineProperty(close, 'newState', { value: 'closed' })
   fireEvent(panel, close)
   expect(toolbarTrigger).toHaveAttribute('aria-expanded', 'false')
+})
+
+it('coalesces resize fitting outside observer delivery and cancels a pending fit when closed', () => {
+  let resize = () => {}
+  let frame: FrameRequestCallback | undefined
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      constructor(callback: () => void) {
+        resize = callback
+      }
+      observe() {}
+      disconnect() {}
+    },
+  )
+  const request = vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+    frame = callback
+    return 77
+  })
+  const cancel = vi.spyOn(window, 'cancelAnimationFrame')
+  const view = render(<ExplanationPopover label="动态方案说明">方案参数</ExplanationPopover>)
+  const panel = screen.getByRole('dialog', { hidden: true })
+  const measure = vi
+    .spyOn(panel, 'getBoundingClientRect')
+    .mockReturnValue({ width: 400, height: 200 } as DOMRect)
+  const toggle = new Event('toggle')
+  Object.defineProperty(toggle, 'newState', { value: 'open' })
+  fireEvent(panel, toggle)
+  const before = measure.mock.calls.length
+  act(() => {
+    resize()
+    resize()
+  })
+  expect(request).toHaveBeenCalledOnce()
+  expect(measure).toHaveBeenCalledTimes(before)
+  act(() => frame!(0))
+  expect(measure).toHaveBeenCalledTimes(before + 1)
+  act(() => resize())
+  view.unmount()
+  expect(cancel).toHaveBeenCalledWith(77)
 })

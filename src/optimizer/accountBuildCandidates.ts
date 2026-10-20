@@ -9,6 +9,7 @@ import {
   type CandidatePanelInput,
 } from './optimizeBuild'
 import type { AccountLoadout } from './optimizeAccountBuilds'
+import type { CandidateEffectiveCritObjective } from './candidateEffectiveCritObjective'
 
 export type CandidateBuild = AccountLoadout & { discIds: Set<string> }
 
@@ -75,6 +76,9 @@ export function toCandidate(
     agentId: profile.agentId,
     discs,
     totalScore: build.totalScore,
+    ...(build.effectiveCritObjective
+      ? { effectiveCritObjective: build.effectiveCritObjective }
+      : {}),
     ...(build.panelObjective ? { panelObjective: build.panelObjective } : {}),
     ...(build.panelObjectiveStatus ? { panelObjectiveStatus: build.panelObjectiveStatus } : {}),
     setCounts: build.setCounts,
@@ -85,7 +89,14 @@ export function toCandidate(
     teamAssumptions: profile.teamAssumptions ?? [],
     bangbooIds: profile.bangbooIds ?? [],
     degraded,
-    degradeReasons,
+    degradeReasons: [
+      ...degradeReasons,
+      ...(build.effectiveCritObjective?.status === 'unsupported'
+        ? ['当前事件比较条件不足，保留完整来源候选方案。']
+        : build.effectiveCritObjective?.status === 'limited'
+          ? ['部分效果条件尚未确认或搜索有界；结果仅适用于声明的比较条件。']
+          : []),
+    ],
     discIds: new Set(discs.map((item) => item.disc.id)),
   }
 }
@@ -143,8 +154,8 @@ export function generateCandidates(
     excludedDiscIds?: Set<string>
     allowLocked: boolean
     topK: number
-    candidateLimitPerSlot?: number
     panelInput?: CandidatePanelInput
+    effectiveCritObjective?: CandidateEffectiveCritObjective
     warehouseSnapshot?: { discs: DriveDisc[]; hash: string }
   },
 ) {
@@ -165,8 +176,8 @@ export function generateCandidates(
       fixedDiscId: options.fixedDiscId,
       allowLocked: options.allowLocked,
       topK: options.topK,
-      candidateLimitPerSlot: options.candidateLimitPerSlot ?? 20,
       panelInput: options.panelInput,
+      effectiveCritObjective: options.effectiveCritObjective ?? profile.effectiveCritObjective,
       warehouseSnapshot,
     },
   )
@@ -194,8 +205,8 @@ export function generateCandidates(
       fixedDiscId: options.fixedDiscId,
       allowLocked: options.allowLocked,
       topK: options.topK,
-      candidateLimitPerSlot: options.candidateLimitPerSlot ?? 20,
       panelInput: options.panelInput,
+      effectiveCritObjective: options.effectiveCritObjective ?? profile.effectiveCritObjective,
       warehouseSnapshot,
     },
   )

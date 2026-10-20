@@ -1,3 +1,8 @@
+import {
+  bindStandardTeamReferenceSelection,
+  bindStandardTeamContactEquipment,
+  type StandardTeamReferenceSelectionBundle,
+} from './standardTeamReferenceSelection'
 import { stableContentHash } from '../gameDataPacks/types'
 import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
 import { currentWEngineStaticCatalog } from '../gameDataPacks/currentWEngineStaticCatalog'
@@ -6,16 +11,28 @@ import { currentAgentPlanningEffectBlueprints } from '../calculation/currentAgen
 import {
   currentAgentMechanicIdentity,
   resolveCurrentAgentEvent,
+  getCurrentAgentEventContract,
 } from '../calculation/currentAgentMechanicContracts'
 import { currentNormalizedPlanningBaseline } from '../calculation/currentNormalizedPlanningBaseline'
 import { projectFixedEventSupportContribution32 } from '../calculation/fixedEventSupportContribution32'
-import { bindDeclaredTeamStrengthSupportInput } from './teamStrengthSupportContribution'
-import { teamStrengthEquippedReferenceBuildPolicy } from './teamStrengthReferenceBuild'
+import {
+  bindDeclaredTeamStrengthSupportInput,
+  type StandardTeamReferenceEvidence,
+} from './teamStrengthSupportContribution'
+import {
+  teamStrengthEquippedReferenceBuildPolicy,
+  localStandardReferenceBuildPolicy,
+} from './teamStrengthReferenceBuild'
 import { teamStrengthReferenceStateIdentity } from './teamStrengthReferenceState'
 import { getCandidateWarehouseConstraintForTeam } from '../gameDataPacks/candidateWarehouseConstraints'
 import { resolveTeamStrengthReferencePotential } from './teamStrengthReferenceState'
 import type { TeamStrengthReferenceConditions } from './teamStrengthReferenceConditionsTypes'
 import type { TeamStrengthSourceAction } from './teamStrengthActionFacts'
+import {
+  standardSupportEquipmentPolicy,
+  type StandardSupportEquipmentGoal,
+} from './teamStrengthStandardSupportEquipment'
+import { standardReferenceDiscAllocationPolicy } from '../calculation/standardReferenceDiscAllocation'
 
 const providers = new Set([
   'agent-sunna',
@@ -42,6 +59,9 @@ export const teamStrengthSupportContactIdentity = stableContentHash({
   version: currentVersionProjection.gameVersion,
   events: currentAgentMechanicIdentity,
   equipped: teamStrengthEquippedReferenceBuildPolicy,
+  localStandard: localStandardReferenceBuildPolicy,
+  standardSupportEquipment: standardSupportEquipmentPolicy,
+  standardDiscAllocation: standardReferenceDiscAllocationPolicy,
   reference: teamStrengthReferenceStateIdentity,
   engineCatalog: currentWEngineStaticCatalog.contentHash,
   discCatalog: currentDriveDiscFormulaCatalog.contentHash,
@@ -58,6 +78,9 @@ export type TeamStrengthSupportContactInput = {
   referenceConditions?: TeamStrengthReferenceConditions
   /** Overrides the declared contact window; absent numeric state stays absent. */
   references?: References
+  /** Only a caller with explicit engine states can adopt the new equipment goal. */
+  standardSupportEquipmentGoal?: StandardSupportEquipmentGoal
+  standardTeamReferenceSelection?: StandardTeamReferenceSelectionBundle
 }
 export type TeamStrengthSupportContactRow = {
   recipientAgentId: string
@@ -66,7 +89,7 @@ export type TeamStrengthSupportContactRow = {
     eventId: string
     attribute: string
     formulaFamily: string
-    skillLevel: 11
+    skillLevel: number
     occurrences: 1
     quantityUnit: 'coefficient_uses'
   } | null
@@ -91,6 +114,8 @@ export type TeamStrengthSupportContactRow = {
     refinement: number
     equipmentIdentity: string
   }[]
+  standardEquipmentEvidence?: unknown
+  standardTeamReferenceEvidence?: StandardTeamReferenceEvidence
 }
 export type TeamStrengthSupportContactEvidence = {
   policy: typeof teamStrengthSupportContactPolicy
@@ -149,6 +174,12 @@ export function projectTeamStrengthSupportContactEvidence(
 ): TeamStrengthSupportContactEvidence {
   const memberIds = [...input.memberIds].sort()
   const activeProviders = memberIds.filter((id) => providers.has(id))
+  const standard = input.standardTeamReferenceSelection
+    ? bindStandardTeamReferenceSelection(input.standardTeamReferenceSelection, {
+        memberIds,
+        referenceConditions: input.referenceConditions,
+      })
+    : undefined
   if (memberIds.length !== 3 || new Set(memberIds).size !== 3) {
     const rows = input.recipients
       .slice(0, 2)
@@ -186,7 +217,10 @@ export function projectTeamStrengthSupportContactEvidence(
   const states = Object.fromEntries(
     memberIds.map((id) => [
       id,
-      { potentialImage: resolveTeamStrengthReferencePotential(id, input.referenceConditions) },
+      {
+        potentialImage: resolveTeamStrengthReferencePotential(id, input.referenceConditions),
+        mindscape: 0,
+      },
     ]),
   )
   const equipment = activeProviders.length
@@ -203,6 +237,8 @@ export function projectTeamStrengthSupportContactEvidence(
     conditions: input.referenceConditions,
     equipment,
     references: input.references,
+    standardSupportEquipmentGoal: input.standardSupportEquipmentGoal,
+    standardTeamReferenceSelection: input.standardTeamReferenceSelection ?? null,
   })
   const cached = cache.get(key)
   if (cached) {
@@ -213,24 +249,82 @@ export function projectTeamStrengthSupportContactEvidence(
   const rows = input.recipients
     .slice(0, 2)
     .map(({ agentId, action }): TeamStrengthSupportContactRow => {
+      if (standard?.status === 'unsupported')
+        return emptyRow(agentId, 'unsupported', standard.reason)
+      if (input.standardTeamReferenceSelection && input.standardSupportEquipmentGoal)
+        return emptyRow(agentId, 'unsupported', '整队标准配装与单支援装备目标冲突。')
+      const skillLevelFor = (eventId: string) => {
+        if (standard?.status !== 'ready') return 11
+        const event = getCurrentAgentEventContract(agentId)?.eventContract.events.find(
+          (row) => row.eventId === eventId,
+        )
+        return event
+          ? standard.builds.find((row) => row.runtimeMember.agentId === agentId)?.runtimeMember
+              .skillLevels[event.skill]
+          : undefined
+      }
       if (!activeProviders.some((id) => id !== agentId))
         return emptyRow(agentId, 'not_applicable', '本局部协议没有已接通的其他提供者。')
-      if (!action || action.quantities.some((q) => q.unit !== 'coefficient_uses' || q.value !== 1))
+      const declaredContacts =
+        standard?.status === 'ready'
+          ? standard.context.declaredEventGoal32?.declarations.occurrences.filter(
+              (row) => row.ownerAgentId === agentId,
+            )
+          : undefined
+      if (
+        declaredContacts
+          ? !declaredContacts.length ||
+            declaredContacts.some((row) => row.durationSeconds !== undefined)
+          : !action || action.quantities.some((q) => q.unit !== 'coefficient_uses' || q.value !== 1)
+      )
         return emptyRow(
           agentId,
           'unsupported',
           '没有可用的单次来源动作；不猜每秒曝光或异常结算频率。',
         )
-      const events = action.eventIds
-        .map((eventId) => resolveCurrentAgentEvent({ stableId: agentId, eventId, skillLevel: 11 }))
+      const eventIds = declaredContacts
+        ? [...new Set(declaredContacts.map((row) => row.eventId))]
+        : action!.eventIds
+      const resolvedEvents = []
+      for (const eventId of eventIds) {
+        const skillLevel = skillLevelFor(eventId)
+        if (skillLevel === undefined)
+          return emptyRow(agentId, 'unsupported', '标准事件的有效技能等级缺失。')
+        resolvedEvents.push({
+          ...resolveCurrentAgentEvent({
+            stableId: agentId,
+            eventId,
+            skillLevel,
+          }),
+          skillLevel,
+        })
+      }
+      const events = resolvedEvents
         .filter((row) => row.status === 'supported')
         .sort(
           (a, b) => b.damageMultiplier - a.damageMultiplier || a.eventId.localeCompare(b.eventId),
         )
       const event = events[0]
-      if (!event || events.length !== action.eventIds.length || !memberIds.includes(agentId))
+      if (!event || events.length !== eventIds.length || !memberIds.includes(agentId))
         return emptyRow(agentId, 'unsupported', '单次来源事件或精确三人身份缺失。')
-      const references = declaredReferences(memberIds, agentId)
+      const sourceState =
+        standard?.status === 'ready'
+          ? bindStandardTeamContactEquipment(standard, [
+              {
+                ownerAgentId: agentId,
+                eventId: event.eventId,
+                skillLevel: event.skillLevel,
+                occurrenceCount: 1,
+                evidenceRefs: [],
+              },
+            ])
+          : undefined
+      if (sourceState?.status === 'unsupported')
+        return emptyRow(agentId, 'unsupported', sourceState.reason)
+      const references =
+        sourceState?.status === 'ready' && sourceState.referencesByAgentId
+          ? sourceState.referencesByAgentId
+          : declaredReferences(memberIds, agentId)
       const baselineReferencesByAgentId = Object.fromEntries(
         memberIds.map((id) => [id, { ...references[id], ...input.references?.[id] }]),
       )
@@ -241,7 +335,7 @@ export function projectTeamStrengthSupportContactEvidence(
           {
             ownerAgentId: agentId,
             eventId: event.eventId,
-            skillLevel: 11,
+            skillLevel: event.skillLevel,
             occurrenceCount: 1,
             evidenceRefs: [teamStrengthSupportContactPolicy.id],
           },
@@ -254,6 +348,8 @@ export function projectTeamStrengthSupportContactEvidence(
         equipmentModifierBuckets: [],
         equipmentEffectExclusions: [],
         referenceConditions: input.referenceConditions,
+        standardSupportEquipmentGoal: input.standardSupportEquipmentGoal,
+        standardTeamReferenceSelection: input.standardTeamReferenceSelection,
       })
       if (bound.status === 'unsupported')
         return emptyRow(agentId, 'unsupported', bound.blockers.join('；'))
@@ -301,7 +397,7 @@ export function projectTeamStrengthSupportContactEvidence(
           eventId: event.eventId,
           attribute: event.attribute ?? '',
           formulaFamily: event.formulaFamily ?? '',
-          skillLevel: 11,
+          skillLevel: event.skillLevel,
           occurrences: 1,
           quantityUnit: 'coefficient_uses',
         },
@@ -314,6 +410,8 @@ export function projectTeamStrengthSupportContactEvidence(
           ...result.exclusions.map((row) => `${row.effectKey}:${row.reason}`),
         ],
         referenceIdentity: stableContentHash(bound.builds),
+        standardEquipmentEvidence: bound.standardEquipmentEvidence,
+        standardTeamReferenceEvidence: bound.standardTeamReferenceEvidence,
         referenceBuilds: bound.builds.map((row) => ({
           agentId: row.agentId,
           engineId: row.equipment.engineId,

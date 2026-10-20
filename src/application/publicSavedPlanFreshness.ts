@@ -1,4 +1,5 @@
 import type { AccountPlanningDraft } from '../accounts/types'
+import { inspectSavedLuminizeReplay32 } from './savedLuminizeReplay32'
 
 const savedTeamFingerprintPrefix = 'saved-team/v2:'
 const savedTeamPortfolioFingerprintPrefix = 'saved-team-portfolio/v1:'
@@ -12,6 +13,8 @@ export type SavedTeamPlanSnapshotFreshness =
         | 'current-result-unavailable'
         | 'legacy-unverifiable'
         | 'unmatched'
+        | 'luminize-declaration-invalid'
+        | 'luminize-source-stale'
     }
 
 export type SavedTeamPortfolioSnapshotFreshness =
@@ -23,15 +26,21 @@ export type SavedTeamPortfolioSnapshotFreshness =
         | 'current-result-unavailable'
         | 'legacy-unverifiable'
         | 'unmatched'
+        | 'luminize-declaration-invalid'
+        | 'luminize-source-stale'
     }
 
 export function inspectSavedTeamPortfolioPlanSnapshotFreshness(
   plan: Pick<
     AccountPlanningDraft,
     'kind' | 'solutionContext' | 'teamPortfolioSnapshot' | 'teamPortfolioBuildIntent'
-  >,
+  > &
+    Partial<Pick<AccountPlanningDraft, 'selection' | 'teamExecutionSnapshot'>>,
   currentSavedPortfolioFingerprint: string | null | undefined,
 ): SavedTeamPortfolioSnapshotFreshness {
+  const luminize = inspectSavedLuminizeReplay32(plan)
+  if (luminize.status === 'invalid') return { stale: true, reason: 'luminize-declaration-invalid' }
+  if (luminize.status === 'stale') return { stale: true, reason: 'luminize-source-stale' }
   const context = plan.solutionContext
   if (
     plan.kind !== 'team' ||
@@ -57,11 +66,15 @@ export function inspectSavedTeamPlanSnapshotFreshness(
   plan: Pick<
     AccountPlanningDraft,
     'kind' | 'solutionContext' | 'teamEquipmentParameters' | 'teamAccountFactBinding'
-  >,
+  > &
+    Partial<Pick<AccountPlanningDraft, 'selection' | 'teamExecutionSnapshot'>>,
   liveInputFingerprint: string | null | undefined,
   legacyCombinedFingerprint?: string,
   currentSavedTeamFingerprint?: string,
 ): SavedTeamPlanSnapshotFreshness {
+  const luminize = inspectSavedLuminizeReplay32(plan)
+  if (luminize.status === 'invalid') return { stale: true, reason: 'luminize-declaration-invalid' }
+  if (luminize.status === 'stale') return { stale: true, reason: 'luminize-source-stale' }
   if (plan.kind !== 'team') return { stale: false, format: 'current-input' }
   const context = plan.solutionContext
   if (

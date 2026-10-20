@@ -1,5 +1,13 @@
 import { z } from 'zod'
 import { contentHash } from './contentHash'
+import {
+  publicTriggerAftershockWindowSchema32,
+  type PublicTriggerAftershockWindow32,
+} from './publicTriggerAftershockWindow32'
+import {
+  publicPlanningAnomalyLifecycleSchema32,
+  type PublicPlanningAnomalyLifecycle32,
+} from './publicPlanningAnomalyLifecycle32'
 
 export const planningEventDeclarations32Contract = 'soda-planning-event-declarations32/v1' as const
 
@@ -20,10 +28,13 @@ export type PlanningEventDeclarationsMetadata32 = {
   sourceFingerprint: string
   declaredDurationSeconds: number
   memberIds: string[]
+  triggerAftershockWindowSourceIdentity32?: string
   events: Array<{
     ownerAgentId: string
     eventId: string
     skillLevel: number
+    /** Explicit source coefficient unit; omitted historical rows are per use. */
+    quantityUnit?: 'seconds'
     requiresWindsweptObservation: boolean
     sourceRefs: string[]
     conditions: PlanningEventConditionDefinition32[]
@@ -39,16 +50,20 @@ export type PlanningEventOccurrence32 = {
   ownerAgentId: string
   eventId: string
   atSeconds: number
+  durationSeconds?: number
+  rateState?: 'constant_over_interval'
   snapshotAtSeconds?: number
   conditions: PlanningEventDeclaredCondition32[]
   windswept: 'active' | 'inactive' | 'unobserved'
   sourceRefs: string[]
+  anomalyLifecycleByAgentId?: Record<string, PublicPlanningAnomalyLifecycle32>
 }
 export type PlanningEventDeclarationsInput32 = {
   contract: typeof planningEventDeclarations32Contract
   sourceFingerprint: string
   confirmedDeclaredConditions: boolean
   occurrences: PlanningEventOccurrence32[]
+  triggerAftershockWindow32?: PublicTriggerAftershockWindow32
 }
 export type PlanningEventDeclarationsValidation32 = {
   occurrences: PlanningEventOccurrence32[]
@@ -85,6 +100,7 @@ const metadataSchema = z
     sourceFingerprint: text,
     declaredDurationSeconds: finite.positive(),
     memberIds: z.array(text).min(1).max(3),
+    triggerAftershockWindowSourceIdentity32: text.optional(),
     events: z
       .array(
         z
@@ -92,6 +108,7 @@ const metadataSchema = z
             ownerAgentId: text,
             eventId: text,
             skillLevel: finite.int().min(1).max(16),
+            quantityUnit: z.literal('seconds').optional(),
             requiresWindsweptObservation: z.boolean(),
             sourceRefs: refs,
             conditions: z.array(conditionDefinition),
@@ -106,6 +123,7 @@ const inputSchema = z
     contract: z.literal(planningEventDeclarations32Contract),
     sourceFingerprint: text,
     confirmedDeclaredConditions: z.boolean(),
+    triggerAftershockWindow32: publicTriggerAftershockWindowSchema32.optional(),
     occurrences: z
       .array(
         z
@@ -114,12 +132,17 @@ const inputSchema = z
             ownerAgentId: text,
             eventId: text,
             atSeconds: finite.nonnegative(),
+            durationSeconds: finite.positive().optional(),
+            rateState: z.literal('constant_over_interval').optional(),
             snapshotAtSeconds: finite.nonnegative().optional(),
             conditions: z.array(
               z.object({ providerAgentId: text, referenceKey: text, value: scalar }).strict(),
             ),
             windswept: z.enum(['active', 'inactive', 'unobserved']),
             sourceRefs: refs,
+            anomalyLifecycleByAgentId: z
+              .record(text, publicPlanningAnomalyLifecycleSchema32)
+              .optional(),
           })
           .strict(),
       )
@@ -156,6 +179,11 @@ export function planningEventDeclarationsMetadataFingerprint32(
     phaseId: metadata.phaseId,
     declaredDurationSeconds: metadata.declaredDurationSeconds,
     memberIds: sorted(metadata.memberIds),
+    ...(metadata.triggerAftershockWindowSourceIdentity32
+      ? {
+          triggerAftershockWindowSourceIdentity32: metadata.triggerAftershockWindowSourceIdentity32,
+        }
+      : {}),
     events: byKey(metadata.events, eventKey).map((event) => ({
       ...event,
       sourceRefs: sorted(event.sourceRefs),
@@ -179,6 +207,11 @@ export function planningEventDeclarationsMetadataGaps32(raw: unknown): string[] 
   const metadata = parsed.data
   const gaps: string[] = []
   if (duplicate(metadata.memberIds)) gaps.push('duplicate_member_id')
+  if (
+    metadata.triggerAftershockWindowSourceIdentity32 &&
+    !metadata.memberIds.includes('agent-trigger')
+  )
+    gaps.push('trigger_window_metadata_provider_missing32')
   if (duplicate(metadata.events.map(eventKey))) gaps.push('duplicate_metadata_event')
   for (const event of metadata.events) {
     const key = eventKey(event)
@@ -230,8 +263,28 @@ export function validatePlanningEventDeclarations32(
   if (input.sourceFingerprint !== trustedMetadata.sourceFingerprint)
     gaps.push('source_fingerprint_mismatch')
   if (!input.confirmedDeclaredConditions) gaps.push('unconfirmed_declared_conditions')
+  if (
+    input.triggerAftershockWindow32 &&
+    input.triggerAftershockWindow32.sourceIdentityHash !==
+      trustedMetadata.triggerAftershockWindowSourceIdentity32
+  )
+    gaps.push('trigger_aftershock_window_source_changed32')
+  if (input.triggerAftershockWindow32) {
+    const hitIds = input.triggerAftershockWindow32.hitOccurrenceIds
+    if (
+      duplicate(hitIds) ||
+      hitIds.some(
+        (id) =>
+          !input.occurrences.some(
+            (row) => row.occurrenceId === id && row.ownerAgentId === 'agent-trigger',
+          ),
+      )
+    )
+      gaps.push('trigger_aftershock_window_hit_identity_invalid32')
+  }
   if (duplicate(input.occurrences.map((occurrence) => occurrence.occurrenceId)))
     gaps.push('duplicate_occurrence_id')
+  const rateIntervals = new Map<string, Array<{ start: number; end: number }>>()
   for (const occurrence of input.occurrences) {
     const id = occurrence.occurrenceId
     const event = trustedMetadata.events.find(
@@ -242,6 +295,24 @@ export function validatePlanningEventDeclarations32(
     if (!event) gaps.push(`unknown_occurrence_event:${id}`)
     if (occurrence.atSeconds >= trustedMetadata.declaredDurationSeconds)
       gaps.push(`invalid_occurrence_time:${id}`)
+    if (event?.quantityUnit === 'seconds') {
+      const duration = occurrence.durationSeconds
+      if (
+        duration === undefined ||
+        occurrence.rateState !== 'constant_over_interval' ||
+        occurrence.atSeconds + duration > trustedMetadata.declaredDurationSeconds
+      )
+        gaps.push(`invalid_rate_interval:${id}`)
+      else {
+        const key = eventKey(occurrence)
+        const intervals = rateIntervals.get(key) ?? []
+        const interval = { start: occurrence.atSeconds, end: occurrence.atSeconds + duration }
+        if (intervals.some((other) => interval.start < other.end && other.start < interval.end))
+          gaps.push(`overlapping_rate_interval:${id}`)
+        rateIntervals.set(key, [...intervals, interval])
+      }
+    } else if (occurrence.durationSeconds !== undefined || occurrence.rateState !== undefined)
+      gaps.push(`unexpected_rate_interval:${id}`)
     if (
       occurrence.snapshotAtSeconds !== undefined &&
       occurrence.snapshotAtSeconds > occurrence.atSeconds
@@ -252,6 +323,17 @@ export function validatePlanningEventDeclarations32(
     if (duplicate(occurrence.conditions.map(conditionKey)))
       gaps.push(`duplicate_declared_condition:${id}`)
     if (duplicate(occurrence.sourceRefs)) gaps.push(`duplicate_occurrence_source:${id}`)
+    for (const [providerId, lifecycle] of Object.entries(
+      occurrence.anomalyLifecycleByAgentId ?? {},
+    )) {
+      if (
+        !trustedMetadata.memberIds.includes(providerId) ||
+        lifecycle.event.eventId !== occurrence.eventId ||
+        lifecycle.event.ownerAgentId !== occurrence.ownerAgentId ||
+        lifecycle.event.atSeconds !== occurrence.atSeconds
+      )
+        gaps.push(`anomaly_lifecycle_occurrence_mismatch:${id}:${providerId}`)
+    }
     if (!event) continue
     const acceptedRefs = new Set([
       ...event.sourceRefs,
@@ -284,6 +366,15 @@ export function validatePlanningEventDeclarations32(
     }
     for (const definition of event.conditions)
       if (
+        !(
+          input.triggerAftershockWindow32 &&
+          definition.providerAgentId === 'agent-trigger' &&
+          definition.referenceKey === 'aftershock_hit'
+        ) &&
+        !(
+          occurrence.anomalyLifecycleByAgentId?.[definition.providerAgentId] &&
+          ['anomTimePassed', 'polarityDisorder.value'].includes(definition.referenceKey)
+        ) &&
         !occurrence.conditions.some(
           (condition) => conditionKey(condition) === conditionKey(definition),
         )
