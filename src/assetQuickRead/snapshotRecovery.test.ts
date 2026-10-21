@@ -73,4 +73,9 @@ it('explains client compatibility without echoing untrusted failure text', () =>
     '等待资产快读适配更新',
   )
   expect(assetCompatibilityMessage('secret')).toBeNull()
+  expect(assetCompatibilityMessage('client_dispatch_version_rejected')).toContain('配置版本')
+  expect(assetCompatibilityMessage('client_dispatch_seed_shape_rejected')).toContain('参数格式')
+  expect(assetCompatibilityMessage('client_dispatch_version_and_seed_shape_rejected')).toContain(
+    '均未通过',
+  )
 })

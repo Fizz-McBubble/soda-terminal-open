@@ -1,5 +1,12 @@
 import contract from '../scanner/scanFeedback.contract.json'
 
+const compatibilityProblems: Record<string, string> = {
+  client_dispatch_version_rejected: '客户端配置版本未通过检查。',
+  client_dispatch_seed_shape_rejected: '客户端请求参数格式未通过检查。',
+  client_dispatch_version_and_seed_shape_rejected: '客户端配置版本与请求参数格式均未通过检查。',
+  client_dispatch_version_or_seed_shape_rejected: '客户端版本或配置未通过检查。',
+}
+
 type AssetFailureEvidence = {
   nativeErrorCode?: number
 }
@@ -16,11 +23,6 @@ export function assetFailureGuidance(code?: string | null, evidence?: AssetFailu
     return {
       problem: '游戏公共配置未能准备完成。',
       nextAction: '确认游戏资源服务可访问后重试；仍失败时请发送诊断。',
-    }
-  if (code.startsWith('client_resource_') || code.startsWith('client_dispatch_'))
-    return {
-      problem: '游戏资源未通过读取或兼容检查。',
-      nextAction: '确认所选目录是当前游戏的实际安装目录；仍失败时请发送诊断以便核对兼容性。',
     }
   if (code === 'client_directory_rejected')
     return {
@@ -41,6 +43,52 @@ export function assetFailureGuidance(code?: string | null, evidence?: AssetFailu
     return {
       problem: '游戏目录包含目录链接。',
       nextAction: '请选择游戏实际所在目录，不要使用快捷方式、junction 或目录链接。',
+    }
+  const compatibility = compatibilityProblems[code]
+  if (compatibility)
+    return {
+      problem: compatibility,
+      nextAction: '发送诊断可保留本次具体校验分支，无需上传游戏文件或账户。',
+    }
+  if (code.startsWith('client_resource_') || code.startsWith('client_dispatch_'))
+    return {
+      problem: '游戏资源未通过读取或兼容检查。',
+      nextAction: '确认所选目录是当前游戏的实际安装目录；仍失败时请发送诊断以便核对兼容性。',
+    }
+  if (code === 'import_account_changed' || code === 'import_scope_changed')
+    return {
+      problem: '目标账户或数据在检查后发生变化，本次导入已停止。',
+      nextAction: '请重新检查导入影响，再确认导入。',
+    }
+  if (code === 'import_identity_conflict')
+    return {
+      problem: '读取结果与现有驱动盘的实例对应关系无法确认。',
+      nextAction: '请保留当前库存与读取结果并发送诊断，不要通过删除旧盘消除冲突。',
+    }
+  if (code === 'import_snapshot_stale')
+    return {
+      problem: '读取结果早于已保存的数据，导入已停止。',
+      nextAction: '请使用新的读取结果，现有库存保持不变。',
+    }
+  if (code === 'import_conservation_failed')
+    return {
+      problem: '导入后的账户守恒检查未通过，事务已回滚。',
+      nextAction: '请保留读取结果并发送诊断，以便核对导入事务。',
+    }
+  if (code === 'import_snapshot_update_required')
+    return {
+      problem: '读取结果需要资产快读适配更新。',
+      nextAction: '可先导出待适配结果，更新后重新检查；账户未修改。',
+    }
+  if (code === 'import_restore_unavailable' || code === 'import_restore_conflict')
+    return {
+      problem: '恢复副本不可用，或导入后已有其他修改，本次恢复已停止。',
+      nextAction: '请保留当前库存与恢复副本，按页面具体提示核对后再操作。',
+    }
+  if (code === 'import_restore_conservation_failed')
+    return {
+      problem: '恢复后的账户守恒检查未通过，事务已回滚。',
+      nextAction: '请保留当前库存与恢复副本并发送诊断。',
     }
   if (code.startsWith('protocol_') || code.startsWith('driver_'))
     return {

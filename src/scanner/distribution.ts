@@ -1,208 +1,220 @@
 export type ScannerDistributionState =
-  | 'not_installed'
-  | 'downloading'
-  | 'verifying'
-  | 'installing'
-  | 'ready'
-  | 'repair_required'
-  | 'update_available'
-  | 'blocked'
+  | "not_installed"
+  | "downloading"
+  | "verifying"
+  | "installing"
+  | "ready"
+  | "repair_required"
+  | "update_available"
+  | "blocked";
 
 export type ScannerDistributionSnapshot = {
-  state: ScannerDistributionState
-  installedVersion: string | null
-  targetVersion: string
-  progressPercent: number | null
-  action: 'download' | 'continue' | 'repair' | 'update' | 'open' | 'none'
-  message: string
-}
+  state: ScannerDistributionState;
+  installedVersion: string | null;
+  targetVersion: string;
+  progressPercent: number | null;
+  action: "download" | "continue" | "repair" | "update" | "open" | "none";
+  message: string;
+};
 
 export const scannerDistributionManifest = {
   schemaVersion: 1,
-  installationRoot: '%LOCALAPPDATA%\\SodaTerminal\\Scanner',
-  connection: 'bundled-loopback-helper',
+  installationRoot: "%LOCALAPPDATA%\\SodaTerminal\\Scanner",
+  connection: "bundled-loopback-helper",
   helper: {
     version: installerReleaseManifest.helperVersion,
     installerVersion: installerReleaseManifest.version,
-    upstreamCommit: '051642b677315c23f4c3e838d0093ec2ea849ca9',
-    license: 'MIT; bundled runtime licenses retained',
-    downloadUrl: '/downloads/Soda-Scanner-Setup.exe',
+    upstreamCommit: "051642b677315c23f4c3e838d0093ec2ea849ca9",
+    license: "MIT; bundled runtime licenses retained",
+    downloadUrl: "/downloads/Soda-Scanner-Setup.exe",
     size: installerReleaseManifest.size,
     sha256: installerReleaseManifest.sha256,
     entry: installerReleaseManifest.assetName,
   },
   runtime: {
     version: runtimeReleaseManifest.runtimeVersion,
-    license: 'MIT + Apache-2.0',
-    entry: 'scanner-runtime.json',
-    defaultOcr: 'PP-OCRv6-small-ONNX',
+    license: "MIT + Apache-2.0",
+    entry: "scanner-runtime.json",
+    defaultOcr: "PP-OCRv6-small-ONNX",
     releaseState:
-      runtimeReleaseManifest.releaseState === 'published' ? 'published' : 'not_published',
+      runtimeReleaseManifest.releaseState === "published"
+        ? "published"
+        : "not_published",
     releaseTag: runtimeReleaseManifest.releaseTag,
     packageUrl: runtimeReleaseManifest.assetUrl,
     packageSize: runtimeReleaseManifest.size,
     packageSha256: runtimeReleaseManifest.sha256,
-    installedSize: 159385505,
+    installedSize: 159387225,
     packaging:
-      'self-contained ZZZ-Scanner.Next 1.0.49 Soda fork + direct PP-OCRv6/R4 + bundled Helper',
+      "self-contained ZZZ-Scanner.Next 1.0.49 Soda fork + direct PP-OCRv6/R4 + bundled Helper",
     orchestration: {
-      entry: 'native/ZZZ-Scanner.Next.Soda.exe',
-      entrySha256: 'e0a366a1ba1bd34f5185aa41e333bb5936dc7aa8c0252aba6603396f9412a41c',
-      geometrySchema: 'soda.scanner.detail-geometry.v1',
-      geometrySha256: '2a20163ae13d47d6f53f6fd8ced26ca2c76c90764e803fd9e64c8732e385dd67',
-      catalogSha256: 'b6223ee0ebfa1aebc517194b54c1c695e463098165ed72cedbc0ba4557953d59',
+      entry: "native/ZZZ-Scanner.Next.Soda.exe",
+      entrySha256:
+        "c83e01b3cf3671139c60b382542e178bcbd697ac8e5149337bfd5d24be290f35",
+      geometrySchema: "soda.scanner.detail-geometry.v1",
+      geometrySha256:
+        "2a20163ae13d47d6f53f6fd8ced26ca2c76c90764e803fd9e64c8732e385dd67",
+      catalogSha256:
+        "b6223ee0ebfa1aebc517194b54c1c695e463098165ed72cedbc0ba4557953d59",
     },
     excludedRuntimeFamilies: [
-      'paddlepaddle',
-      'paddleocr',
-      'paddlex',
-      'opencv',
-      'pandas',
-      'python',
-      'pip',
-      'venv',
-      'PP-OCRv5',
+      "paddlepaddle",
+      "paddleocr",
+      "paddlex",
+      "opencv",
+      "pandas",
+      "python",
+      "pip",
+      "venv",
+      "PP-OCRv5",
     ],
     nativeCapture: {
       componentVersion: runtimeReleaseManifest.captureVersion,
-      upstreamCommit: 'ff90891140016d3f1b738d73cb6cd9b291e17cec',
-      schemaVersion: 'soda.zzz-scanner-next.direct-r4.v1',
-      entry: 'native/ZZZ-Scanner.Next.Soda.exe',
-      entrySize: 72591607,
-      entrySha256: 'e0a366a1ba1bd34f5185aa41e333bb5936dc7aa8c0252aba6603396f9412a41c',
+      upstreamCommit: "ff90891140016d3f1b738d73cb6cd9b291e17cec",
+      schemaVersion: "soda.zzz-scanner-next.direct-r4.v1",
+      entry: "native/ZZZ-Scanner.Next.Soda.exe",
+      entrySize: 72592303,
+      entrySha256:
+        "c83e01b3cf3671139c60b382542e178bcbd697ac8e5149337bfd5d24be290f35",
       selfContained: true,
       singleFile: true,
       publishAot: false,
     },
     nativeOcr: {
-      entry: 'ocr/Soda.ScannerPpOcrV6.exe',
+      entry: "ocr/Soda.ScannerPpOcrV6.exe",
       entrySize: 41054562,
-      entrySha256: 'b0cb05b350f3381f972ef8312b2c9f1a3698872afbf06b043464eefd57ac2338',
-      runtime: 'onnxruntime-1.23.1',
+      entrySha256:
+        "b0cb05b350f3381f972ef8312b2c9f1a3698872afbf06b043464eefd57ac2338",
+      runtime: "onnxruntime-1.23.1",
       selfContained: true,
       singleFile: true,
       publishAot: false,
     },
   },
   ocr: {
-    version: 'PP-OCRv6-small-rec-onnx-2026-07-31',
-    license: 'Apache-2.0',
+    version: "PP-OCRv6-small-rec-onnx-2026-07-31",
+    license: "Apache-2.0",
     activatedByDefault: true,
-    benchmarkEvidence: 'r8-fixed-30-native-onnx-benchmark',
+    benchmarkEvidence: "r8-fixed-30-native-onnx-benchmark",
     models: [
       {
-        id: 'PP-OCRv6_small_rec_onnx',
-        revision: 'main@2026-07-31',
+        id: "PP-OCRv6_small_rec_onnx",
+        revision: "main@2026-07-31",
         files: [
           {
-            file: 'inference.onnx',
+            file: "inference.onnx",
             size: 21_159_378,
-            sha256: '5435fd747c9e0efe15a96d0b378d5bd157e9492ed8fd80edf08f30d02fa24634',
+            sha256:
+              "5435fd747c9e0efe15a96d0b378d5bd157e9492ed8fd80edf08f30d02fa24634",
           },
           {
-            file: 'inference.yml',
+            file: "inference.yml",
             size: 150_579,
-            sha256: 'ab078671bb49f06228eadccd34f1bb501e157f7a047095ffb943ba81512c77d1',
+            sha256:
+              "ab078671bb49f06228eadccd34f1bb501e157f7a047095ffb943ba81512c77d1",
           },
         ],
       },
     ],
   },
-} as const
+} as const;
 
 export const initialDistributionSnapshot: ScannerDistributionSnapshot = {
-  state: 'not_installed',
+  state: "not_installed",
   installedVersion: null,
   targetVersion: scannerDistributionManifest.runtime.version,
   progressPercent: null,
-  action: 'none',
-  message: '扫描组件发布包尚未就绪，暂时不能下载。',
-}
+  action: "none",
+  message: "扫描组件发布包尚未就绪，暂时不能下载。",
+};
 
-export function scannerDistributionActionLabel(snapshot: ScannerDistributionSnapshot) {
+export function scannerDistributionActionLabel(
+  snapshot: ScannerDistributionSnapshot,
+) {
   switch (snapshot.action) {
-    case 'download':
-      return '下载扫描组件'
-    case 'continue':
-      return '继续下载'
-    case 'repair':
-      return '修复组件'
-    case 'update':
-      return '更新组件'
-    case 'open':
-      return '打开画面扫描'
+    case "download":
+      return "下载扫描组件";
+    case "continue":
+      return "继续下载";
+    case "repair":
+      return "修复组件";
+    case "update":
+      return "更新组件";
+    case "open":
+      return "打开画面扫描";
     default:
-      return '当前不可用'
+      return "当前不可用";
   }
 }
 
 export function resolveDistributionSnapshot(input: {
-  installedVersion?: string | null
-  downloadProgress?: number | null
-  phase?: 'idle' | 'downloading' | 'verifying' | 'installing'
-  integrity?: 'valid' | 'invalid' | 'unknown'
-  blockedReason?: string | null
-  releaseState?: 'not_published' | 'published'
+  installedVersion?: string | null;
+  downloadProgress?: number | null;
+  phase?: "idle" | "downloading" | "verifying" | "installing";
+  integrity?: "valid" | "invalid" | "unknown";
+  blockedReason?: string | null;
+  releaseState?: "not_published" | "published";
 }): ScannerDistributionSnapshot {
-  const targetVersion = scannerDistributionManifest.runtime.version
-  const releaseState = input.releaseState ?? scannerDistributionManifest.runtime.releaseState
+  const targetVersion = scannerDistributionManifest.runtime.version;
+  const releaseState =
+    input.releaseState ?? scannerDistributionManifest.runtime.releaseState;
   if (input.blockedReason)
     return {
-      state: 'blocked',
+      state: "blocked",
       installedVersion: input.installedVersion ?? null,
       targetVersion,
       progressPercent: null,
-      action: 'none',
+      action: "none",
       message: input.blockedReason,
-    }
-  if (input.phase && input.phase !== 'idle')
+    };
+  if (input.phase && input.phase !== "idle")
     return {
       state: input.phase,
       installedVersion: input.installedVersion ?? null,
       targetVersion,
       progressPercent: input.downloadProgress ?? null,
-      action: input.phase === 'downloading' ? 'continue' : 'none',
+      action: input.phase === "downloading" ? "continue" : "none",
       message:
-        input.phase === 'downloading'
-          ? '正在下载本机组件，可中断后继续。'
-          : input.phase === 'verifying'
-            ? '正在校验文件身份。'
-            : '正在原子安装组件。',
-    }
-  if (input.installedVersion && input.integrity === 'invalid')
+        input.phase === "downloading"
+          ? "正在下载本机组件，可中断后继续。"
+          : input.phase === "verifying"
+            ? "正在校验文件身份。"
+            : "正在原子安装组件。",
+    };
+  if (input.installedVersion && input.integrity === "invalid")
     return {
-      state: 'repair_required',
+      state: "repair_required",
       installedVersion: input.installedVersion,
       targetVersion,
       progressPercent: null,
-      action: 'repair',
-      message: '组件文件不完整，可从上一可用版本安全修复。',
-    }
+      action: "repair",
+      message: "组件文件不完整，可从上一可用版本安全修复。",
+    };
   if (input.installedVersion && input.installedVersion !== targetVersion)
     return {
-      state: 'update_available',
+      state: "update_available",
       installedVersion: input.installedVersion,
       targetVersion,
       progressPercent: null,
-      action: 'update',
-      message: '有可校验的新版本；更新失败会保留当前版本。',
-    }
-  if (input.installedVersion && input.integrity === 'valid')
+      action: "update",
+      message: "有可校验的新版本；更新失败会保留当前版本。",
+    };
+  if (input.installedVersion && input.integrity === "valid")
     return {
-      state: 'ready',
+      state: "ready",
       installedVersion: input.installedVersion,
       targetVersion,
       progressPercent: null,
-      action: 'open',
-      message: '扫描组件已校验，可由网页直接打开。',
-    }
-  if (releaseState === 'published')
+      action: "open",
+      message: "扫描组件已校验，可由网页直接打开。",
+    };
+  if (releaseState === "published")
     return {
       ...initialDistributionSnapshot,
-      action: 'download',
-      message: '扫描组件已发布，可下载后校验并安装。',
-    }
-  return initialDistributionSnapshot
+      action: "download",
+      message: "扫描组件已发布，可下载后校验并安装。",
+    };
+  return initialDistributionSnapshot;
 }
-import runtimeReleaseManifest from '../../public/downloads/scanner-runtime-release.v1.json'
-import installerReleaseManifest from '../../public/downloads/scanner-installer-release.v1.json'
+import runtimeReleaseManifest from "../../public/downloads/scanner-runtime-release.v1.json";
+import installerReleaseManifest from "../../public/downloads/scanner-installer-release.v1.json";

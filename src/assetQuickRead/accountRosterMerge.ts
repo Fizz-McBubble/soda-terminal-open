@@ -3,6 +3,7 @@ import { assertBangbooSkillFacts, assertRosterAscensionFacts } from '../accounts
 import { getObservedAgentFieldValue, hasObservedAgentField } from '../accounts/observedAgentFacts'
 import type { AssetQuickReadCandidate } from './snapshotAdapter'
 import { resolveCurrentReleasedIdentity } from '../gameDataPacks/currentReleasedIdentityMap'
+import { AssetQuickReadImportError } from './importErrors'
 
 const currentEngineFields: ObservedAgentField[] = [
   'wEngineDetails.id',
@@ -46,7 +47,10 @@ function manuallyProtected(agent: RosterAgent, field: ObservedAgentField) {
 function hasNewerObservation(agent: RosterAgent, field: ObservedAgentField, capturedAt: string) {
   const timestamp = agent.observedFacts?.fields[field]?.capturedAt
   if (timestamp && !Number.isFinite(Date.parse(timestamp)))
-    throw new Error('已保存的观察时间无效，请先核对来源时间，未写入账户。')
+    throw new AssetQuickReadImportError(
+      'import_snapshot_invalid',
+      '已保存的观察时间无效，请先核对来源时间，未写入账户。',
+    )
   // Dates can carry different UTC offsets, so lexical order is not chronological order.
   return Boolean(timestamp && Date.parse(timestamp) > Date.parse(capturedAt))
 }
@@ -62,7 +66,10 @@ export function mergeAssetQuickReadRoster(
     (manualUpdatedAt !== undefined && !Number.isFinite(Date.parse(manualUpdatedAt))) ||
     !Number.isFinite(Date.parse(current.updatedAt))
   )
-    throw new Error('账户或快照时间无效，无法核对手动修改顺序，未写入账户。')
+    throw new AssetQuickReadImportError(
+      'import_snapshot_invalid',
+      '账户或快照时间无效，无法核对手动修改顺序，未写入账户。',
+    )
   let protectedFields = 0
   let syncedManualProgressionFields = 0
   const unequippedEngineAgents = new Set<string>()
@@ -77,10 +84,16 @@ export function mergeAssetQuickReadRoster(
     }
   }
   if (ambiguousCanonicalAgentIds.size > 0)
-    throw new Error('快照中存在指向同一代理人的多个别名记录，存在歧义未写入账户。')
+    throw new AssetQuickReadImportError(
+      'import_identity_conflict',
+      '快照中存在指向同一代理人的多个别名记录，存在歧义未写入账户。',
+    )
   const existingIds = current.agents.map((agent) => resolveCurrentReleasedIdentity(agent.agentId))
   if (new Set(existingIds).size !== existingIds.length)
-    throw new Error('账户中存在指向同一代理人的多个别名记录，请先核对，未写入账户。')
+    throw new AssetQuickReadImportError(
+      'import_identity_conflict',
+      '账户中存在指向同一代理人的多个别名记录，请先核对，未写入账户。',
+    )
   const roster: AccountRoster = {
     ...current,
     agents: current.agents.map((existing) => {
@@ -151,7 +164,8 @@ export function mergeAssetQuickReadRoster(
           previousValue !== null &&
           differs
         )
-          throw new Error(
+          throw new AssetQuickReadImportError(
+            'import_snapshot_stale',
             '本次读取早于代理人养成或当前装备的后续手动修改，请重新读取，未写入账户。',
           )
         if (
@@ -163,7 +177,10 @@ export function mergeAssetQuickReadRoster(
           continue
         }
         if (field === 'equippedDiscIds' && (value as unknown[]).some((id) => !id))
-          throw new Error('代理人装备盘无法对应到本次账户盘库，未导入。')
+          throw new AssetQuickReadImportError(
+            'import_identity_conflict',
+            '代理人装备盘无法对应到本次账户盘库，未导入。',
+          )
         const [parent, child] = field.split('.')
         if (clearingEngine) {
           const empty = observation.fields.wEngineDetails!
@@ -174,7 +191,10 @@ export function mergeAssetQuickReadRoster(
             empty.ascension != null ||
             empty.manualProgression !== undefined
           )
-            throw new Error('未装备音擎的观察状态不一致，未写入账户。')
+            throw new AssetQuickReadImportError(
+              'import_preflight_failed',
+              '未装备音擎的观察状态不一致，未写入账户。',
+            )
           next.wEngineDetails = { id: null, name: null, level: null, refinement: null }
           next.wEngine = ''
           next.refinement = 0
@@ -197,7 +217,11 @@ export function mergeAssetQuickReadRoster(
                 ? next.wEngineDetails.id
                 : value
             next.wEngineDetails = { ...next.wEngineDetails, [child]: nextChildValue }
-          } else throw new Error('资产快读字段不在可导入范围内。')
+          } else
+            throw new AssetQuickReadImportError(
+              'import_preflight_failed',
+              '资产快读字段不在可导入范围内。',
+            )
         } else {
           Object.assign(next, { [parent]: value })
         }
@@ -215,7 +239,10 @@ export function mergeAssetQuickReadRoster(
             snapshotSha256: candidate.snapshotSha256,
           }
         if (!hasObservedAgentField(next, field))
-          throw new Error('资产快读代理人字段未通过值与来源检查，未导入。')
+          throw new AssetQuickReadImportError(
+            'import_preflight_failed',
+            '资产快读代理人字段未通过值与来源检查，未导入。',
+          )
         adopted = true
         adoptedFields.add(field)
         if (field === 'wEngineDetails.id' && differs) delete next.wEngineDetails.manualProgression
@@ -269,7 +296,10 @@ export function mergeAssetQuickReadRoster(
     for (const id of agent.equippedDiscIds ?? []) {
       const owner = physicalOwners.get(id)
       if (owner && owner !== canonicalAgentId)
-        throw new Error('本次装备引用与保留的手动或旧装备记录冲突，请先核对该盘的装备归属。')
+        throw new AssetQuickReadImportError(
+          'import_identity_conflict',
+          '本次装备引用与保留的手动或旧装备记录冲突，请先核对该盘的装备归属。',
+        )
       physicalOwners.set(id, canonicalAgentId)
     }
   }

@@ -210,7 +210,15 @@ function AccountBoundQuickRead({
     if (issue || !candidate.importable)
       recordFailure(
         'import',
-        issueFailure ?? new AssetQuickReadImportError('import_review_required', issue ?? ''),
+        issueFailure ??
+          new AssetQuickReadImportError(
+            !targetAccountId
+              ? 'import_scope_changed'
+              : candidate.issues.some((item) => item.code === 'snapshot_update_required')
+                ? 'import_snapshot_update_required'
+                : 'import_review_required',
+            issue ?? '',
+          ),
         null,
         action,
       )
@@ -471,7 +479,10 @@ function AccountBoundQuickRead({
       setRestoreArmed(false)
       onImported?.()
     } catch (failure) {
-      if (scope === generation.current) setRestoreFailure(message(failure))
+      if (scope === generation.current) {
+        recordFailure('import', failure, null, 'restore')
+        setRestoreFailure(message(failure))
+      }
     } finally {
       if (scope === generation.current) setRestoring(false)
     }

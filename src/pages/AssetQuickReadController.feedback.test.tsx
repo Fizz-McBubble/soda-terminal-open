@@ -331,6 +331,19 @@ it('records import failure only after the user import action', async () => {
   expect(readAssetDiagnostic()).toMatchObject({ evidence: {}, durationMs: null })
 })
 
+it.each(['import_scope_changed', 'import_account_changed', 'import_conservation_failed'] as const)(
+  'keeps the actual transaction blocker %s after refreshing the import preview',
+  async (code) => {
+    mount()
+    await startAndReceive()
+    persistence.confirm.mockRejectedValue(new AssetQuickReadImportError(code, '账户保护已阻止导入'))
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: '导入' })))
+    expect(readAssetDiagnostic()).toMatchObject({ stage: 'import', code, evidence: {} })
+    expect(JSON.stringify(readAssetDiagnostic())).not.toContain(targetAccountId)
+    expect(screen.getByRole('button', { name: '导入' })).toBeEnabled()
+  },
+)
+
 it('keeps the recovery quota reason without the captured job facts or account writes', async () => {
   persistence.prepare.mockRejectedValue(
     new AssetQuickReadImportError('import_recovery_limit_reached', '已达 10 份'),

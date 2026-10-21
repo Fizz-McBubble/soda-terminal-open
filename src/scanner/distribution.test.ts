@@ -1,134 +1,182 @@
-import runtimeReleaseManifest from '../../public/downloads/scanner-runtime-release.v1.json'
-import { describe, expect, it } from 'vitest'
+import runtimeReleaseManifest from "../../public/downloads/scanner-runtime-release.v1.json";
+import { describe, expect, it } from "vitest";
 import {
   initialDistributionSnapshot,
   resolveDistributionSnapshot,
   scannerDistributionManifest,
-} from './distribution'
+} from "./distribution";
 
-describe('scanner distribution contract', () => {
-  it('locks the published direct-fork identity and makes v6 the single OCR runtime', () => {
-    expect(scannerDistributionManifest.helper.sha256).toMatch(/^[a-f0-9]{64}$/)
+describe("scanner distribution contract", () => {
+  it("locks the published direct-fork identity and makes v6 the single OCR runtime", () => {
+    expect(scannerDistributionManifest.helper.sha256).toMatch(/^[a-f0-9]{64}$/);
     expect(scannerDistributionManifest.helper.size).toBeGreaterThan(
       scannerDistributionManifest.runtime.packageSize,
-    )
-    expect(scannerDistributionManifest.runtime.defaultOcr).toBe('PP-OCRv6-small-ONNX')
-    expect(scannerDistributionManifest.runtime.packageSize).toBeLessThan(170 * 1024 * 1024)
-    expect(scannerDistributionManifest.runtime.packageSha256).toHaveLength(64)
+    );
+    expect(scannerDistributionManifest.runtime.defaultOcr).toBe(
+      "PP-OCRv6-small-ONNX",
+    );
+    expect(scannerDistributionManifest.runtime.packageSize).toBeLessThan(
+      170 * 1024 * 1024,
+    );
+    expect(scannerDistributionManifest.runtime.packageSha256).toHaveLength(64);
     expect(scannerDistributionManifest.runtime.releaseState).toBe(
-      runtimeReleaseManifest.releaseState === 'published' ? 'published' : 'not_published',
-    )
-    expect(scannerDistributionManifest.runtime.packageUrl).toBe(runtimeReleaseManifest.assetUrl)
-    expect(scannerDistributionManifest.runtime.packageUrl).not.toContain('/latest/')
+      runtimeReleaseManifest.releaseState === "published"
+        ? "published"
+        : "not_published",
+    );
+    expect(scannerDistributionManifest.runtime.packageUrl).toBe(
+      runtimeReleaseManifest.assetUrl,
+    );
+    expect(scannerDistributionManifest.runtime.packageUrl).not.toContain(
+      "/latest/",
+    );
     expect(scannerDistributionManifest.runtime.excludedRuntimeFamilies).toEqual(
-      expect.arrayContaining(['paddlepaddle', 'paddleocr', 'paddlex', 'opencv', 'python', 'venv']),
-    )
+      expect.arrayContaining([
+        "paddlepaddle",
+        "paddleocr",
+        "paddlex",
+        "opencv",
+        "python",
+        "venv",
+      ]),
+    );
     expect(scannerDistributionManifest.runtime.nativeCapture).toMatchObject({
       componentVersion: runtimeReleaseManifest.captureVersion,
-      entrySize: 72591607,
-      entrySha256: 'e0a366a1ba1bd34f5185aa41e333bb5936dc7aa8c0252aba6603396f9412a41c',
-      schemaVersion: 'soda.zzz-scanner-next.direct-r4.v1',
+      entrySize: 72592303,
+      entrySha256:
+        "c83e01b3cf3671139c60b382542e178bcbd697ac8e5149337bfd5d24be290f35",
+      schemaVersion: "soda.zzz-scanner-next.direct-r4.v1",
       selfContained: true,
       publishAot: false,
-    })
+    });
     expect(scannerDistributionManifest.runtime.orchestration.entrySha256).toBe(
       scannerDistributionManifest.runtime.nativeCapture.entrySha256,
-    )
-    expect(scannerDistributionManifest.runtime.installedSize).toBe(159385505)
+    );
+    expect(scannerDistributionManifest.runtime.installedSize).toBe(159387225);
     expect(scannerDistributionManifest.runtime.nativeOcr).toMatchObject({
-      runtime: 'onnxruntime-1.23.1',
+      runtime: "onnxruntime-1.23.1",
       selfContained: true,
       singleFile: true,
-    })
-    expect(scannerDistributionManifest.runtime.nativeOcr.entrySha256).toHaveLength(64)
+    });
+    expect(
+      scannerDistributionManifest.runtime.nativeOcr.entrySha256,
+    ).toHaveLength(64);
     expect(scannerDistributionManifest.runtime.orchestration).toMatchObject({
-      entry: 'native/ZZZ-Scanner.Next.Soda.exe',
-      geometrySchema: 'soda.scanner.detail-geometry.v1',
-    })
-    expect(scannerDistributionManifest.runtime.orchestration.geometrySha256).toHaveLength(64)
-    expect(scannerDistributionManifest.ocr.activatedByDefault).toBe(true)
-    expect(scannerDistributionManifest.ocr.models).toHaveLength(1)
+      entry: "native/ZZZ-Scanner.Next.Soda.exe",
+      geometrySchema: "soda.scanner.detail-geometry.v1",
+    });
+    expect(
+      scannerDistributionManifest.runtime.orchestration.geometrySha256,
+    ).toHaveLength(64);
+    expect(scannerDistributionManifest.ocr.activatedByDefault).toBe(true);
+    expect(scannerDistributionManifest.ocr.models).toHaveLength(1);
     expect(
       scannerDistributionManifest.ocr.models.every((model) =>
         model.files.every((file) => file.sha256.length === 64),
       ),
-    ).toBe(true)
-  })
+    ).toBe(true);
+  });
 
-  it('offers the published runtime while refusing download when an unpublished state is injected', () => {
-    expect(initialDistributionSnapshot).toMatchObject({ state: 'not_installed', action: 'none' })
-    expect(resolveDistributionSnapshot({ releaseState: 'published' })).toMatchObject({
-      state: 'not_installed',
-      action: 'download',
-    })
-    expect(resolveDistributionSnapshot({ releaseState: 'not_published' })).toMatchObject({
-      state: 'not_installed',
-      action: 'none',
-    })
+  it("offers the published runtime while refusing download when an unpublished state is injected", () => {
+    expect(initialDistributionSnapshot).toMatchObject({
+      state: "not_installed",
+      action: "none",
+    });
     expect(
-      resolveDistributionSnapshot({ phase: 'downloading', downloadProgress: 42 }),
-    ).toMatchObject({ state: 'downloading', action: 'continue', progressPercent: 42 })
-    expect(resolveDistributionSnapshot({ phase: 'verifying' }).state).toBe('verifying')
-    expect(resolveDistributionSnapshot({ phase: 'installing' }).state).toBe('installing')
+      resolveDistributionSnapshot({ releaseState: "published" }),
+    ).toMatchObject({
+      state: "not_installed",
+      action: "download",
+    });
     expect(
-      resolveDistributionSnapshot({
-        installedVersion: 'soda-scanner-zzz-next-ppocrv6-18-rc6',
-        integrity: 'invalid',
-      }),
-    ).toMatchObject({ state: 'repair_required', action: 'repair' })
+      resolveDistributionSnapshot({ releaseState: "not_published" }),
+    ).toMatchObject({
+      state: "not_installed",
+      action: "none",
+    });
     expect(
       resolveDistributionSnapshot({
-        installedVersion: 'soda-scanner-native-ppocrv6-1',
-        integrity: 'valid',
+        phase: "downloading",
+        downloadProgress: 42,
       }),
-    ).toMatchObject({ state: 'update_available', action: 'update' })
+    ).toMatchObject({
+      state: "downloading",
+      action: "continue",
+      progressPercent: 42,
+    });
+    expect(resolveDistributionSnapshot({ phase: "verifying" }).state).toBe(
+      "verifying",
+    );
+    expect(resolveDistributionSnapshot({ phase: "installing" }).state).toBe(
+      "installing",
+    );
     expect(
       resolveDistributionSnapshot({
-        installedVersion: 'soda-scanner-zzz-next-ppocrv6-17',
-        integrity: 'valid',
+        installedVersion: "soda-scanner-zzz-next-ppocrv6-18-rc6",
+        integrity: "invalid",
       }),
-    ).toMatchObject({ state: 'update_available', action: 'update' })
+    ).toMatchObject({ state: "repair_required", action: "repair" });
     expect(
       resolveDistributionSnapshot({
-        installedVersion: 'soda-scanner-zzz-next-ppocrv6-18-rc6',
-        integrity: 'valid',
+        installedVersion: "soda-scanner-native-ppocrv6-1",
+        integrity: "valid",
       }),
-    ).toMatchObject({ state: 'update_available', action: 'update' })
+    ).toMatchObject({ state: "update_available", action: "update" });
     expect(
       resolveDistributionSnapshot({
-        installedVersion: 'soda-scanner-zzz-next-ppocrv6-18-rc8-1',
-        integrity: 'valid',
+        installedVersion: "soda-scanner-zzz-next-ppocrv6-17",
+        integrity: "valid",
       }),
-    ).toMatchObject({ state: 'update_available', action: 'update' })
+    ).toMatchObject({ state: "update_available", action: "update" });
     expect(
       resolveDistributionSnapshot({
-        installedVersion: 'soda-scanner-zzz-next-ppocrv6-18-rc8-5',
-        integrity: 'valid',
+        installedVersion: "soda-scanner-zzz-next-ppocrv6-18-rc6",
+        integrity: "valid",
       }),
-    ).toMatchObject({ state: 'update_available', action: 'update' })
+    ).toMatchObject({ state: "update_available", action: "update" });
     expect(
       resolveDistributionSnapshot({
-        installedVersion: 'soda-scanner-zzz-next-ppocrv6-18-rc8-6',
-        integrity: 'valid',
+        installedVersion: "soda-scanner-zzz-next-ppocrv6-18-rc8-1",
+        integrity: "valid",
       }),
-    ).toMatchObject({ state: 'update_available', action: 'update' })
+    ).toMatchObject({ state: "update_available", action: "update" });
+    expect(
+      resolveDistributionSnapshot({
+        installedVersion: "soda-scanner-zzz-next-ppocrv6-18-rc8-5",
+        integrity: "valid",
+      }),
+    ).toMatchObject({ state: "update_available", action: "update" });
+    expect(
+      resolveDistributionSnapshot({
+        installedVersion: "soda-scanner-zzz-next-ppocrv6-18-rc8-6",
+        integrity: "valid",
+      }),
+    ).toMatchObject({ state: "update_available", action: "update" });
     expect(
       resolveDistributionSnapshot({
         installedVersion: scannerDistributionManifest.runtime.version,
-        integrity: 'valid',
+        integrity: "valid",
       }),
-    ).toMatchObject({ state: 'ready', action: 'open' })
+    ).toMatchObject({ state: "ready", action: "open" });
     expect(
-      resolveDistributionSnapshot({ blockedReason: '未知服务占用了助手端口。' }),
-    ).toMatchObject({ state: 'blocked', action: 'none' })
-    expect(resolveDistributionSnapshot({ releaseState: 'published' })).toMatchObject({
-      state: 'not_installed',
-      action: 'download',
-    })
-  })
+      resolveDistributionSnapshot({
+        blockedReason: "未知服务占用了助手端口。",
+      }),
+    ).toMatchObject({ state: "blocked", action: "none" });
+    expect(
+      resolveDistributionSnapshot({ releaseState: "published" }),
+    ).toMatchObject({
+      state: "not_installed",
+      action: "download",
+    });
+  });
 
-  it('downloads the complete native installer for the strict loopback helper', () => {
-    expect(scannerDistributionManifest.helper.downloadUrl).toBe('/downloads/Soda-Scanner-Setup.exe')
-    expect(scannerDistributionManifest.connection).toBe('bundled-loopback-helper')
-  })
-})
+  it("downloads the complete native installer for the strict loopback helper", () => {
+    expect(scannerDistributionManifest.helper.downloadUrl).toBe(
+      "/downloads/Soda-Scanner-Setup.exe",
+    );
+    expect(scannerDistributionManifest.connection).toBe(
+      "bundled-loopback-helper",
+    );
+  });
+});

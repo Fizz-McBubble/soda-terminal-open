@@ -25,7 +25,30 @@ const STAGE_LABELS: Record<string, string> = {
   failed: '安装失败',
 }
 
-function problemForCode(code: string, toolLabel: string): { problem: string; nextAction: string } {
+function problemForCode(
+  code: string,
+  toolLabel: string,
+  failure?: InstallerFeedbackReport['failure'],
+): { problem: string; nextAction: string } {
+  if (
+    failure?.operation === 'repair_switch' ||
+    code === 'installed_repair_switch_unavailable' ||
+    code === 'installed_repair_files_in_use'
+  )
+    return {
+      problem:
+        failure?.nativeErrorCode === 5
+          ? 'Windows 拒绝了切换现有版本目录；文件占用也可能导致此错误。'
+          : code === 'installed_repair_files_in_use' || failure?.kind === 'sharing_violation'
+            ? '切换现有版本目录时，文件正在被使用。'
+            : '现有版本目录未能切换为备份。',
+      nextAction: '先完成或取消读取，退出已确认的资产快读后在安装器中重试；原目录与读取结果保留。',
+    }
+  if (failure?.operation === 'delete_preflight' && failure.kind === 'read_only')
+    return {
+      problem: '卸载预检发现只读文件，操作已停止。',
+      nextAction: '请保留原文件并发送诊断，现有结果与账户保留。',
+    }
   switch (code) {
     case 'installer_access_denied':
       return {
@@ -104,6 +127,27 @@ function problemForCode(code: string, toolLabel: string): { problem: string; nex
   }
 }
 
+const OPERATION_LABELS: Record<string, string> = {
+  prepare: '准备安装',
+  payload_path: '定位安装组件',
+  payload_extract: '准备安装组件',
+  payload_wait: '等待安装组件',
+  payload_verify: '校验安装组件',
+  copy: '写入文件',
+  protocol: '准备协议数据',
+  verify: '校验文件',
+  repair_switch: '切换现有版本目录',
+  register: '添加工具入口',
+  service_start: '启动连接服务',
+  uninstall: '卸载工具',
+  delete_preflight: '卸载前文件检查',
+  delete_files: '移除程序文件',
+  delete_uninstaller: '移除卸载程序',
+  remove_protocol: '移除启动入口',
+  remove_registration: '移除卸载登记',
+  remove_directories: '移除空目录',
+}
+
 export function InstallerFeedbackPage({
   initialReport = null,
 }: {
@@ -155,7 +199,7 @@ export function InstallerFeedbackPage({
   }
 
   const toolLabel = report.tool === 'screen_scanner_installer' ? '画面扫描' : '资产快读'
-  const { problem, nextAction } = problemForCode(report.code, toolLabel)
+  const { problem, nextAction } = problemForCode(report.code, toolLabel, report.failure)
 
   async function handleSend() {
     if (!report || isSending || receipt) return
@@ -229,8 +273,16 @@ export function InstallerFeedbackPage({
 
         <ul className="installer-feedback-metadata" aria-label="本次诊断概况">
           <li className="installer-feedback-tag">
-            阶段：{STAGE_LABELS[report.stage] ?? report.stage}
+            {report.failure ? '记录阶段' : '阶段'}：{STAGE_LABELS[report.stage] ?? report.stage}
           </li>
+          {report.failure ? (
+            <li className="installer-feedback-tag">
+              失败操作：{OPERATION_LABELS[report.failure.operation] ?? '本机安装操作'}
+            </li>
+          ) : null}
+          {report.failure?.nativeErrorCode !== undefined ? (
+            <li className="installer-feedback-tag">系统返回码：{report.failure.nativeErrorCode}</li>
+          ) : null}
           <li className="installer-feedback-tag">代码：{report.code}</li>
           <li className="installer-feedback-tag">
             耗时：{Math.round(report.durationMs / 1000)} 秒

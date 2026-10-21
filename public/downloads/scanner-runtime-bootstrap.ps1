@@ -44,7 +44,8 @@ function Read-SodaRuntimeManifest {
         'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.13-local.20261011/soda-scanner-runtime-18-rc8-13-local-20261011-win-x64.zip',
         'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.16-local.20261016/soda-scanner-runtime-18-rc8-16-local-20261016-win-x64.zip',
         'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.17-local.20261017/soda-scanner-runtime-18-rc8-17-local-20261017-win-x64.zip',
-        'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.18-local.20261019/soda-scanner-runtime-18-rc8-18-local-20261019-win-x64.zip'
+        'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.18-local.20261019/soda-scanner-runtime-18-rc8-18-local-20261019-win-x64.zip',
+        'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.19-local.20261021/soda-scanner-runtime-18-rc8-19-local-20261021-win-x64.zip'
     )
     $sameOrigin = $manifest.assetUrl -ceq ('/downloads/' + $manifest.assetName)
     $pinnedGitHub = ($manifest.assetUrl -ceq $pinnedAssets[0] -and
@@ -79,7 +80,10 @@ function Read-SodaRuntimeManifest {
         $manifest.releaseTag -ceq 'scanner-runtime-v18.0.0-rc.8.17-local.20261017') -or
         ($manifest.assetUrl -ceq $pinnedAssets[10] -and
         $manifest.assetName -ceq 'soda-scanner-runtime-18-rc8-18-local-20261019-win-x64.zip' -and
-        $manifest.releaseTag -ceq 'scanner-runtime-v18.0.0-rc.8.18-local.20261019')
+        $manifest.releaseTag -ceq 'scanner-runtime-v18.0.0-rc.8.18-local.20261019') -or
+        ($manifest.assetUrl -ceq $pinnedAssets[11] -and
+        $manifest.assetName -ceq 'soda-scanner-runtime-18-rc8-19-local-20261021-win-x64.zip' -and
+        $manifest.releaseTag -ceq 'scanner-runtime-v18.0.0-rc.8.19-local.20261021')
     if ($manifest.assetName -notmatch '^[a-zA-Z0-9._-]+\.zip$' -or
         -not ($sameOrigin -or $pinnedGitHub)) {
         throw 'release_manifest_asset_url_invalid'
@@ -104,7 +108,8 @@ function Assert-SodaRuntimeTrustedDownloadUri {
         'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.5/soda-scanner-runtime-18-rc8-5-win-x64.zip',
         'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.16-local.20261016/soda-scanner-runtime-18-rc8-16-local-20261016-win-x64.zip',
         'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.17-local.20261017/soda-scanner-runtime-18-rc8-17-local-20261017-win-x64.zip',
-        'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.18-local.20261019/soda-scanner-runtime-18-rc8-18-local-20261019-win-x64.zip'
+        'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.18-local.20261019/soda-scanner-runtime-18-rc8-18-local-20261019-win-x64.zip',
+        'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.19-local.20261021/soda-scanner-runtime-18-rc8-19-local-20261021-win-x64.zip'
     )
     if ($Uri.Scheme -cne 'https' -or -not $Uri.IsDefaultPort -or $Uri.UserInfo -ne '' -or
         $Uri.Fragment -ne '' -or
@@ -194,7 +199,8 @@ function Copy-SodaRuntimeAsset {
         'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.5/soda-scanner-runtime-18-rc8-5-win-x64.zip',
         'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.16-local.20261016/soda-scanner-runtime-18-rc8-16-local-20261016-win-x64.zip',
         'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.17-local.20261017/soda-scanner-runtime-18-rc8-17-local-20261017-win-x64.zip',
-        'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.18-local.20261019/soda-scanner-runtime-18-rc8-18-local-20261019-win-x64.zip'
+        'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.18-local.20261019/soda-scanner-runtime-18-rc8-18-local-20261019-win-x64.zip',
+        'https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.19-local.20261021/soda-scanner-runtime-18-rc8-19-local-20261021-win-x64.zip'
         )
         $externalAsset = $pinnedAssets -ccontains $Manifest.assetUrl
         $assetUri = if ($externalAsset) { [System.Uri]::new($Manifest.assetUrl) } else { [System.Uri]::new($origin, $Manifest.assetUrl) }

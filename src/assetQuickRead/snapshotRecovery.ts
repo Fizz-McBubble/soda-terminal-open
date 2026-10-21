@@ -21,7 +21,16 @@ export function prepareAssetSnapshotExport(raw: unknown) {
 }
 
 export function assetCompatibilityMessage(code?: string | null): string | null {
-  return code === 'client_dispatch_version_or_seed_shape_rejected'
-    ? '游戏客户端版本或配置与当前资产快读适配不一致，请等待资产快读适配更新后再试；账户未修改。'
-    : null
+  switch (code) {
+    case 'client_dispatch_version_rejected':
+      return '游戏客户端配置版本与当前资产快读适配不一致，请等待资产快读适配更新后再试；账户未修改。'
+    case 'client_dispatch_seed_shape_rejected':
+      return '游戏客户端配置中的请求参数格式未通过检查，请发送诊断以便核对适配；账户未修改。'
+    case 'client_dispatch_version_and_seed_shape_rejected':
+      return '游戏客户端配置版本和请求参数格式均未通过检查，请发送诊断以便核对适配；账户未修改。'
+    case 'client_dispatch_version_or_seed_shape_rejected':
+      return '游戏客户端版本或配置与当前资产快读适配不一致，请等待资产快读适配更新后再试；账户未修改。'
+    default:
+      return null
+  }
 }

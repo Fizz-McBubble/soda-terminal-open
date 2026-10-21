@@ -15,6 +15,8 @@ import {
 } from './assetQuickReadControllerTestFixture'
 import type { AssetBridgeJob } from '../assetQuickRead/bridgeClient'
 import { AssetQuickReadController } from './AssetQuickReadController'
+import { AssetQuickReadImportError } from '../assetQuickRead/importErrors'
+import { readAssetDiagnostic } from '../assetQuickRead/feedback'
 
 import { syntheticFile, workbenchHarness } from './assetQuickReadControllerWorkbenchFixture'
 export function registerAssetQuickReadControllerIdentityCases() {
@@ -35,7 +37,9 @@ export function registerAssetQuickReadControllerIdentityCases() {
     await act(async () => fireEvent.click(screen.getByRole('button', { name: '导入' })))
     const reason =
       '规划“合成周末队”引用了本次恢复将移除或回滚属性的驱动盘。请先调整这些规划的用盘，再尝试恢复；当前资产、规划和恢复副本均保留。'
-    persistence.restore.mockRejectedValueOnce(new Error(reason))
+    persistence.restore.mockRejectedValueOnce(
+      new AssetQuickReadImportError('import_restore_conflict', reason),
+    )
     fireEvent.click(screen.getByRole('button', { name: '撤销本次导入' }))
     await act(async () => fireEvent.click(screen.getByRole('button', { name: '确认撤销导入' })))
     const confirmation = screen
@@ -43,6 +47,12 @@ export function registerAssetQuickReadControllerIdentityCases() {
       .closest('div')!.parentElement!
     expect(confirmation).toBe(screen.getByRole('dialog', { name: '撤销这次资产快读导入？' }))
     expect(within(confirmation).getByRole('alert')).toHaveTextContent(reason)
+    expect(readAssetDiagnostic()).toMatchObject({
+      stage: 'import',
+      code: 'import_restore_conflict',
+      evidence: { lastAction: 'restore' },
+    })
+    expect(JSON.stringify(readAssetDiagnostic())).not.toContain('合成周末队')
     expect(screen.getAllByText(reason)).toHaveLength(1)
     expect(screen.getByTestId('task')).toContainElement(confirmation)
     expect(screen.getByTestId('recovery')).toBeEmptyDOMElement()

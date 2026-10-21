@@ -73,10 +73,43 @@ it.each([
   'public_metadata_ec2b_missing',
   'public_configuration_request_failed',
   'protocol_file_missing',
+  'client_dispatch_version_rejected',
+  'client_dispatch_seed_shape_rejected',
+  'client_dispatch_version_and_seed_shape_rejected',
 ])('does not replace reviewed native reason %s with capture_failed', (code) => {
   const report = assetFailureDiagnostic('startup', undefined, { ...failedNativeJob, code })
   expect(report.code).toBe(code)
   expect(sanitizeScanFeedbackPayload(report)).toEqual({ ok: true, record: report })
+})
+
+it.each([
+  'import_snapshot_invalid',
+  'import_snapshot_update_required',
+  'import_data_unavailable',
+  'import_preflight_failed',
+  'import_identity_conflict',
+  'import_snapshot_stale',
+  'import_scope_changed',
+  'import_account_changed',
+  'import_conservation_failed',
+  'import_restore_unavailable',
+  'import_restore_conflict',
+  'import_restore_conservation_failed',
+] as const)('retains finite import cause %s without importing captured task facts', (code) => {
+  const report = assetFailureDiagnostic(
+    'import',
+    new AssetQuickReadImportError(code, 'private detail'),
+    failedNativeJob,
+  )
+  expect(report).toMatchObject({
+    code,
+    stage: 'import',
+    evidence: {},
+    counts: { processed: null, total: null },
+    durationMs: null,
+  })
+  expect(sanitizeScanFeedbackPayload(report)).toEqual({ ok: true, record: report })
+  expect(JSON.stringify(report)).not.toMatch(/private|jobId|targetAccountId/)
 })
 
 it('rejects malformed native evidence and raw or filename-suffixed failure strings', () => {

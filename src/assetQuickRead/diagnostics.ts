@@ -91,6 +91,7 @@ export type AssetDiagnosticAction =
   | 'start'
   | 'inspect_file'
   | 'import'
+  | 'restore'
   | 'status_feedback'
 export type AssetDiagnosticUiState =
   | 'idle'

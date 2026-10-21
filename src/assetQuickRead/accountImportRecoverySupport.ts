@@ -6,6 +6,7 @@ import { assertActiveAccountScope } from '../db/accountScanImportScope'
 import { database, type SodaDatabase } from '../db/databaseCore'
 import { driveDiscFactIdentity } from '../db/discReplacementFacts'
 import { driveDiscSchema } from '../domain/schemas'
+import { AssetQuickReadImportError } from './importErrors'
 
 export type AccountFacts = { discs: AccountDriveDisc[]; roster: AccountRosterRecord | null }
 export type Recovery = {
@@ -117,7 +118,11 @@ export async function readFacts(accountId: string, db: SodaDatabase): Promise<Ac
 export async function assertScope(accountId: string, db: SodaDatabase) {
   accountIdSchema.parse(accountId)
   const account = await db.accounts.get(accountId)
-  if (!account || account.status !== 'active') throw new Error('资产快读目标账户已不存在或已归档。')
+  if (!account || account.status !== 'active')
+    throw new AssetQuickReadImportError(
+      'import_scope_changed',
+      '资产快读目标账户已不存在或已归档。',
+    )
   await assertActiveAccountScope(accountId, db)
 }
 

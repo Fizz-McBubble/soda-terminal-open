@@ -112,7 +112,10 @@ export function registerAccountImportTransactionsCases3(fixture: AccountImportTr
         { ...confirmation, snapshotSha256: 'b'.repeat(64) },
         db,
       ),
-    ).rejects.toThrow('快照已变化')
+    ).rejects.toMatchObject({
+      diagnosticCode: 'import_scope_changed',
+      message: expect.stringContaining('快照已变化'),
+    })
     await expect(
       confirmAssetQuickReadImport(
         { ...input, capturedAt: '2026-10-11T00:00:00.000Z' },
@@ -120,13 +123,17 @@ export function registerAccountImportTransactionsCases3(fixture: AccountImportTr
         confirmation,
         db,
       ),
-    ).rejects.toThrow('快照已变化')
+    ).rejects.toMatchObject({
+      diagnosticCode: 'import_scope_changed',
+      message: expect.stringContaining('快照已变化'),
+    })
     expect(await facts()).toEqual(before)
     await patchAgent({ priority: 1 })
     before = await facts()
-    await expect(confirmAssetQuickReadImport(input, plan, confirmation, db)).rejects.toThrow(
-      '检查后发生了变化',
-    )
+    await expect(confirmAssetQuickReadImport(input, plan, confirmation, db)).rejects.toMatchObject({
+      diagnosticCode: 'import_account_changed',
+      message: expect.stringContaining('检查后发生了变化'),
+    })
     expect(await facts()).toEqual(before)
   })
   it('rolls back discs, roster and recovery together when the commit boundary fails', async () => {

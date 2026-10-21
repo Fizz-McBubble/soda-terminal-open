@@ -253,6 +253,16 @@ export function scannerDiagnosticGuidance(report: ScanDiagnosticReport): Guidanc
       const detail = report.evidence[key]
       if (typeof detail === 'string' && detailGuidance[detail]) {
         if (
+          detail === 'waiting_for_target_selection_stability' &&
+          report.evidence.selectionChanged === true &&
+          typeof report.evidence.selectionStableFrames === 'number'
+        ) {
+          return {
+            problem: '已检测到选中区域变化，但未能确认目标盘稳定选中。',
+            nextAction: '请保持游戏窗口在前台，扫描时不要操作鼠标；持续发生时请发送诊断。',
+          }
+        }
+        if (
           detail === 'waiting_for_panel_change' &&
           report.evidence.diagnosticSource === 'terminal_details'
         ) {

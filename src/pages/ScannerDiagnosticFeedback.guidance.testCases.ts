@@ -4,6 +4,22 @@ import contract from '../scanner/scanFeedback.contract.json'
 import { scannerDiagnosticGuidance } from './scannerDiagnosticGuidance'
 
 export function registerScannerDiagnosticGuidanceCases(makeReport: () => ScanDiagnosticReport) {
+  it('uses selection evidence instead of treating stable panel frames as a stable target', () => {
+    const report = makeReport()
+    report.code = 'panel_capture_timeout'
+    report.evidence = {
+      diagnosticSource: 'terminal_details',
+      acceptGateReason: 'waiting_for_target_selection_stability',
+      stableFrames: 22,
+      requiredStableFrames: 2,
+      selectionChanged: true,
+      selectionStableFrames: 1,
+      requiredSelectionStableFrames: 2,
+    }
+    expect(scannerDiagnosticGuidance(report).problem).toBe(
+      '已检测到选中区域变化，但未能确认目标盘稳定选中。',
+    )
+  })
   it.each([
     ['capture_unavailable', '未取得可用于检查的游戏画面', '恢复游戏窗口'],
     ['inventory_screen_unreadable', '联合确认条件', '标题和完整列表'],

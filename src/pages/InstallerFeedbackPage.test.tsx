@@ -34,6 +34,26 @@ const mockReport: InstallerFeedbackReport = {
 }
 
 describe('InstallerFeedbackPage component', () => {
+  it('uses actual repair operation and native code without diagnosing an ACL fault', () => {
+    render(
+      <InstallerFeedbackPage
+        initialReport={{
+          ...mockReport,
+          stage: 'verify',
+          code: 'installed_repair_switch_unavailable',
+          failure: { operation: 'repair_switch', kind: 'access_denied', nativeErrorCode: 5 },
+        }}
+      />,
+    )
+    expect(
+      screen.getByText('Windows 拒绝了切换现有版本目录；文件占用也可能导致此错误。'),
+    ).toBeVisible()
+    expect(screen.getByText('失败操作：切换现有版本目录')).toBeVisible()
+    expect(screen.getByText('系统返回码：5')).toBeVisible()
+    expect(
+      screen.queryByText('请检查当前账户目录权限或安全软件拦截提示后重试。'),
+    ).not.toBeInTheDocument()
+  })
   const originalFetch = global.fetch
 
   beforeEach(() => {
