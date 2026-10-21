@@ -47,6 +47,7 @@ import type {
 } from './teamStrengthSourceCapacityPolicy'
 import { bindPlanningAnomalyLifecycleReferences32 } from '../calculation/currentPlanningAnomalyLifecycle32'
 import { planningAnomalyLifecycleEffectInactive32 } from '../calculation/currentPlanningAnomalyLifecycleIdentity32'
+import { bindReviewedPotentialApplications } from '../calculation/potentialApplicationBinding'
 const conditionCache = new Map<
   string,
   ReturnType<typeof projectCurrentPlanningConditionCatalog32>
@@ -107,7 +108,40 @@ export function projectTeamStrengthSourceEffects(
   }[] = []
   for (const provider of members) {
     // Single-actor recipes make both panels stable under a third-member swap.
-    const actor = contactRuntime.get(provider.agentId)!
+    const equippedActor = contactRuntime.get(provider.agentId)!
+    // The reference declares supported P6. Rina's unconditional combat PEN
+    // feeds her core conversion before it reaches a teammate, just as it does
+    // in the event calculator. Initial PEN remains unchanged for conversions
+    // explicitly defined on the initial panel.
+    const providerEvent = context.contactUsages(provider.agentId)[0]
+    const penetration = providerEvent
+      ? bindReviewedPotentialApplications({
+          member: {
+            agentId: provider.agentId,
+            potential: equippedActor.potential,
+            initialStats: equippedActor.initialStats,
+            provenance: 'calculation_context',
+          },
+          event: {
+            eventId: providerEvent.eventId,
+            actionFamilies: [],
+            providerStateKeys: [],
+            targetStateKeys: [],
+            sourceRefs: providerEvent.evidenceRefs,
+          },
+        }).find(
+          (effect) => effect.effectId === 'potential_penetration' && effect.status === 'applied',
+        )
+      : undefined
+    const actor = penetration
+      ? {
+          ...equippedActor,
+          finalStats: {
+            ...equippedActor.finalStats,
+            pen_: equippedActor.finalStats.pen_ + penetration.value,
+          },
+        }
+      : equippedActor
     const contract = getCurrentAgentDecisionMechanicContract(provider.agentId)!
     const projection = domains(provider.agentId)
     const boundLifecycle = bindPlanningAnomalyLifecycleReferences32({
@@ -126,7 +160,12 @@ export function projectTeamStrengthSourceEffects(
       continue
     }
     for (const entry of entriesById.get(provider.agentId) ?? []) {
-      if (/^(?:m[1-6](?:_|$)|potential)/i.test(entry.effectId)) continue
+      // Named potential effects belong to their prepared-event consumer.
+      // Mindscapes instead follow this actor's declared reference investment;
+      // excluding every M1..M6 effect silently erased the A6 team grants.
+      if (/^potential/i.test(entry.effectId)) continue
+      const minimumMindscape = /^m([1-6])(?:_|$)/i.exec(entry.effectId)
+      if (minimumMindscape && actor.mindscape < Number(minimumMindscape[1])) continue
       if (
         (entry.numericExpression.sourceStatus !== 'upstream_expression_available' &&
           !isReviewedTemplateMechanicEffect32(entry)) ||
@@ -214,14 +253,26 @@ export function projectTeamStrengthSourceEffects(
         )
           continue
         const declared: Record<string, unknown> = {}
-        const conditionRefs: string[] = [...conversion.sourceRefs, ...boundLifecycle.sourceRefs]
+        const conditionRefs: string[] = [
+          ...conversion.sourceRefs,
+          ...boundLifecycle.sourceRefs,
+          ...(requiredReferences(extracted.value as UpstreamExpressionIR).includes('own.final.pen_')
+            ? (penetration?.sourceRefs ?? [])
+            : []),
+        ]
         const missing: string[] = []
         const explicit = boundLifecycle.references
         for (const ref of requiredReferences(expression)) {
           if (/^(?:dm\.|char\.|own\.|target\.|team\.)/.test(ref)) continue
+          const sourceDomain = teamStrengthSourceConditionDomain(provider.agentId, ref)
+          const catalogDomain = projection.defs.find((def) => def.referenceKey === ref)
+          // The expanded display catalog also contains the common anomaly
+          // clock. Its range does not override the event-observation policy:
+          // elapsed time cannot be replaced by the catalog maximum.
           const domain =
-            projection.defs.find((def) => def.referenceKey === ref) ??
-            teamStrengthSourceConditionDomain(provider.agentId, ref)
+            sourceDomain && 'explicitOnly' in sourceDomain && sourceDomain.explicitOnly
+              ? sourceDomain
+              : (catalogDomain ?? sourceDomain)
           if (domain) conditionRefs.push(...domain.sourceRefs)
           if (Object.hasOwn(explicit, ref)) {
             const chosen = explicit[ref]
@@ -397,6 +448,8 @@ export function projectTeamStrengthSourceEffects(
           recipientAgentId: target.agentId,
           effectKey: entry.effectKey,
           application: bucket.application,
+          receiverPath: metadata.receiverPath,
+          damageType: metadata.damageType,
           value: result.value,
           relativeGain,
           sourceRefs: bucket.sourceRefs,
@@ -496,6 +549,8 @@ export function projectTeamStrengthSourceEffects(
           recipientAgentId: target.agentId,
           effectKey: row.entry.effectKey,
           application: applicationForReceiver(metadata.receiverPath),
+          receiverPath: metadata.receiverPath,
+          damageType: metadata.damageType,
           value: 0,
           relativeGain: 0,
           sourceRefs: row.sourceRefs,
@@ -514,6 +569,8 @@ export function projectTeamStrengthSourceEffects(
         recipientAgentId: target.agentId,
         effectKey: row.entry.effectKey,
         application: bucket.application,
+        receiverPath: metadata.receiverPath,
+        damageType: metadata.damageType,
         value: bucket.value,
         relativeGain:
           before !== null && before > 0 && after !== null ? Math.max(0, after / before - 1) : null,

@@ -12,6 +12,8 @@ import { saveAccountPreference, getAccountPreference } from './accountPreference
 import { getScopedId } from './types'
 import { normalizeWEngineInstances } from './publicWEngineInstances'
 import { applyAgentWEngineAssignment } from './wEngineAssignment'
+import { portfolioConstraintSchema } from './backupFrozenConstraintSchemas'
+import { getCandidateWarehouseConstraint } from '../gameDataPacks/candidateWarehouseConstraints'
 
 const names: string[] = []
 const now = '2026-09-30T00:00:00.000Z'
@@ -91,6 +93,20 @@ function facts(r: AccountRoster) {
 }
 
 describe('3.2 synthetic backup recovery compatibility', () => {
+  it('preserves the new wearer-action condition in a serialized frozen build constraint', () => {
+    const constraint = getCandidateWarehouseConstraint('agent-sigrid')!
+    const restored = portfolioConstraintSchema.parse(JSON.parse(JSON.stringify(constraint)))
+    expect(restored.agentId).toBe('agent-sigrid')
+    expect(restored.setPlans).toEqual(constraint.setPlans)
+    expect(restored.targetPanel?.targetSemantics).toEqual(constraint.targetPanel?.targetSemantics)
+    expect(
+      restored.setPlans?.find((plan) => plan.primarySetIds.includes('set-dawns-bloom'))?.condition
+        ?.rule,
+    ).toEqual({
+      kind: 'wearer_action',
+      action: 'wearer_ex_special',
+    })
+  })
   it('an older equipment form preserves same-engine phase and explicit phase edits do not transfer to another engine', () => {
     const roster = fixture(),
       agentId = actors[0]!

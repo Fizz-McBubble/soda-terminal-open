@@ -9,6 +9,7 @@ import {
   currentFormulaWEngineContractIds,
   resolveCurrentFormulaWEngineContract,
 } from './currentFormulaMechanicContracts'
+import { FIRST_PLUMAGE_STABLE_ID, resolveFirstPlumagePassive } from './reviewedWEngine33'
 
 const refinementSchema = z.number().int().min(1).max(5)
 const specialtySchema = z.object({
@@ -19,6 +20,7 @@ const specialtySchema = z.object({
 export type CurrentWEnginePassiveEffect = {
   target: 'own' | 'team'
   stat:
+    | 'anomaly_proficiency'
     | 'attack_percent'
     | 'crit_rate'
     | 'damage_bonus'
@@ -370,8 +372,15 @@ export const currentWEnginePassiveAdapterIds = Object.freeze(
 )
 
 export function resolveCurrentWEnginePassive(stableId: string, input: unknown) {
+  if (stableId === FIRST_PLUMAGE_STABLE_ID) {
+    return resolveFirstPlumagePassive(
+      typeof input === 'object' && input !== null ? { ...input, stableId } : input,
+    )
+  }
   const entry = currentWEnginePassiveAdapterRegistry[stableId]
   return entry
     ? entry.resolver(typeof input === 'object' && input !== null ? { ...input, stableId } : input)
     : unsupported([`音擎 ${stableId} 尚未进入本地被动适配注册表。`])
 }
+
+export { resolveFirstPlumagePassive }

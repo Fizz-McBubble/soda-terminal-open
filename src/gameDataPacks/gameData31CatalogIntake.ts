@@ -5,6 +5,7 @@ import {
 } from './gameData31RemielleEquipmentIntake'
 import { stableContentHash } from './types'
 import { sigridReviewedMainStats, sigridReviewedMainStatSources } from './sigridReviewedMainStats'
+import { gameData32BuildSources } from './gameData32BuildGuidance'
 import {
   type GameData31FieldConflict,
   type GameData31CombatFieldEvidence,
@@ -219,6 +220,7 @@ export const candidateWarehouseConstraints31: CandidateWarehouseConstraint[] = [
       sigridMiyousheAsgaterSource,
       sigridMiyousheYanyuSource,
       ...sigridReviewedMainStatSources,
+      { ...gameData32BuildSources.sigridLiveBuild32!, verified: true },
     ],
     setIds: [
       'set-hormone-punk',
@@ -239,6 +241,55 @@ export const candidateWarehouseConstraints31: CandidateWarehouseConstraint[] = [
         'set-astral-voice',
       ],
     },
+    setPlans: [
+      {
+        pattern: '4+2',
+        primarySetIds: ['set-hormone-punk'],
+        secondarySetIds: [
+          'set-puffer-electro',
+          'set-branch-blade-song',
+          'set-polar-metal',
+          'set-astral-voice',
+        ],
+        purpose: 'recommended',
+        sourceText: '激素朋克4件；保留已采用3.1两件套候选，当前来源另明确河豚2件方向。',
+      },
+      {
+        pattern: '4+2',
+        primarySetIds: ['set-puffer-electro'],
+        secondarySetIds: ['set-branch-blade-song', 'set-polar-metal', 'set-astral-voice'],
+        purpose: 'conditional',
+        sourceText: '河豚电音4件：当前来源在琉音队列为终结技方向；两件套保留已采用候选。',
+        condition: {
+          sourceId: gameData32BuildSources.sigridLiveBuild32!.id,
+          sourceUrl: gameData32BuildSources.sigridLiveBuild32!.url,
+          sourceVersion: '3.2',
+          sourceTextVerified: true,
+          contentHash: gameData32BuildSources.sigridLiveBuild32!.contentHash,
+          rule: { kind: 'teammate', agentId: 'agent-dialyn' },
+        },
+      },
+      {
+        pattern: '4+2',
+        primarySetIds: ['set-dawns-bloom'],
+        secondarySetIds: [
+          'set-puffer-electro',
+          'set-branch-blade-song',
+          'set-polar-metal',
+          'set-astral-voice',
+        ],
+        purpose: 'conditional',
+        sourceText: '拂晓生花4件：来源强化普攻连段前施放EX；两件套保留已采用候选。',
+        condition: {
+          sourceId: gameData32BuildSources.sigridLiveBuild32!.id,
+          sourceUrl: gameData32BuildSources.sigridLiveBuild32!.url,
+          sourceVersion: '3.2',
+          sourceTextVerified: true,
+          contentHash: gameData32BuildSources.sigridLiveBuild32!.contentHash,
+          rule: { kind: 'wearer_action', action: 'wearer_ex_special' },
+        },
+      },
+    ],
     mainStats: sigridReviewedMainStats,
     subStatWeights: {
       crit_dmg: 1,

@@ -20,6 +20,7 @@ import {
   type StandardTeamReferenceEvidence,
 } from './teamStrengthSupportContribution'
 import {
+  createTeamStrengthEquippedReferenceMember,
   teamStrengthEquippedReferenceBuildPolicy,
   localStandardReferenceBuildPolicy,
 } from './teamStrengthReferenceBuild'
@@ -45,7 +46,7 @@ const providers = new Set([
 /** A declared support-active contact, not observed uptime or an account build.
  * Unspecified self/party mechanics remain unknown in the shared event runtime. */
 export const teamStrengthSupportContactPolicy = {
-  id: 'six-provider-static-equipped-single-source-contact/v1',
+  id: 'six-provider-static-equipped-effective-skill-contact/v2',
   eventSelection: 'largest-coefficient-use-in-selected-source-action',
   occurrences: 1,
   enemy: 'current-normalized-target-not-stunned',
@@ -253,15 +254,25 @@ export function projectTeamStrengthSupportContactEvidence(
         return emptyRow(agentId, 'unsupported', standard.reason)
       if (input.standardTeamReferenceSelection && input.standardSupportEquipmentGoal)
         return emptyRow(agentId, 'unsupported', '整队标准配装与单支援装备目标冲突。')
+      const recipientBuild =
+        standard?.status === 'ready'
+          ? standard.builds.find((row) => row.runtimeMember.agentId === agentId)
+          : createTeamStrengthEquippedReferenceMember({
+              agentId,
+              memberIds,
+              referenceConditions: input.referenceConditions,
+            })
+      if (!recipientBuild || recipientBuild.status !== 'ready')
+        return emptyRow(
+          agentId,
+          'unsupported',
+          recipientBuild?.reason ?? '固定接触缺少接受者的完整标准培养与装备。',
+        )
       const skillLevelFor = (eventId: string) => {
-        if (standard?.status !== 'ready') return 11
         const event = getCurrentAgentEventContract(agentId)?.eventContract.events.find(
           (row) => row.eventId === eventId,
         )
-        return event
-          ? standard.builds.find((row) => row.runtimeMember.agentId === agentId)?.runtimeMember
-              .skillLevels[event.skill]
-          : undefined
+        return event ? recipientBuild.runtimeMember.skillLevels[event.skill] : undefined
       }
       if (!activeProviders.some((id) => id !== agentId))
         return emptyRow(agentId, 'not_applicable', '本局部协议没有已接通的其他提供者。')

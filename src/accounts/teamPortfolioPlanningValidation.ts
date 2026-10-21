@@ -89,7 +89,9 @@ export function frozenPortfolioBuildIntentValid(
   if (
     !potential ||
     !sameSet(Object.keys(potential), unique(agents)) ||
-    Object.values(potential).some((value) => !Number.isInteger(value) || value < 0)
+    Object.values(potential).some(
+      (value) => value !== null && (!Number.isInteger(value) || value < 0),
+    )
   )
     errors.push('多队草稿冻结的 Build Intent 缺少已解析的潜能条件。')
   const mindscapes = intent.agentMindscapeById

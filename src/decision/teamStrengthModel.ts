@@ -77,7 +77,7 @@ function isolatedDiagnosticReferenceConditions(
     sourceAuthority: 'none' as const,
     normalizedMemberIds,
     calculationAssumption:
-      'level60-base-skill11-core7-s0-a6-supported-p6-explicit-override' as const,
+      'level60-base-skill11-core7-formed-key-mindscapes-supported-p6-explicit-override' as const,
     teamStrengthReferenceStateIdentity,
     agentConditions: normalizedMemberIds.map((agentId) => ({
       agentId,

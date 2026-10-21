@@ -73,6 +73,7 @@ export type PlanningSolutionContext = {
   scenarioIdentity?: string
   /** Independently issued standard reference; absent on historical plans and account-only runs. */
   standardReference32?: import('../application/targetTeamStandardReference32').TargetTeamStandardReferenceResult32
+  formedTeamReference?: import('../application/publicFormedTeamReference').FormedTeamReference
   /** Exact source/declaration request that can be reissued against the current run. */
   standardReferenceRequest32?: import('../application/targetTeamStandardReference32').TargetTeamStandardReferenceRequest32
   eventConditionDeclarationsByAgentId?: import('../calculation/reviewedEventConditionDeclarations32').ReviewedEventConditionDeclarations32

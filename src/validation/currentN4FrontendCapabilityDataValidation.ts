@@ -259,7 +259,7 @@ export const currentN4FrontendCapabilityDataValidationRows = Object.freeze([
       'src/gameDataPacks/currentBuildAuthority.ts',
       'src/gameDataPacks/panel/currentPanelData.ts',
     ],
-    primaryGap: `当前${currentBuildAuthority.gameVersion}养成目录覆盖${currentBuildAuthority.coverage.unique}名代理人，指导字段完整${currentBuildAuthority.coverage.guidanceReady}名、部分可用${currentBuildAuthority.coverage.guidancePartial}名；字段可用数${currentBuildAuthority.coverage.guidanceFieldsReady}/${currentBuildAuthority.coverage.guidanceFieldsTotal}，来源明确不适用${currentBuildAuthority.coverage.guidanceFieldsNotApplicable}项。有限成员/潜能/邦布星级条件复核及柚叶3000攻击后AP的单人、团队、替代搜索和保存重放证据保留；完整独立质量/留出验证仍缺，不外推统一毕业最优。`,
+    primaryGap: `当前${currentBuildAuthority.gameVersion}养成目录覆盖${currentBuildAuthority.coverage.unique}名代理人，指导字段完整${currentBuildAuthority.coverage.guidanceReady}名、部分可用${currentBuildAuthority.coverage.guidancePartial}名；字段可用数${currentBuildAuthority.coverage.guidanceFieldsReady}/${currentBuildAuthority.coverage.guidanceFieldsTotal}（直接3.2来源${currentBuildAuthority.coverage.guidanceFieldsDirectCurrent}项、锁定连续性复审${currentBuildAuthority.coverage.guidanceFieldsContinuityReviewed}项、未完成${currentBuildAuthority.coverage.guidanceFieldsIncomplete}项），来源明确不适用${currentBuildAuthority.coverage.guidanceFieldsNotApplicable}项。有限成员/潜能/邦布星级条件复核及柚叶3000攻击后AP的单人、团队、替代搜索和保存重放证据保留；完整独立质量/留出验证仍缺，不外推统一毕业最优。`,
   }),
   capability({
     capabilityId: 'single_agent_warehouse_compare_save',

@@ -15,6 +15,13 @@ export const current31MainstreamAuthorityEvaluationTargets = Object.freeze({
   mainstreamUnknownRatioMaximum: 0.05,
 } as const)
 
+const current32SourceSnapshot = Object.freeze({
+  checkedAt: '2026-10-20' as const,
+  snapshotFormat: 'web_text_extraction' as const,
+  snapshotContentHash: 'cd7f3fba72f23d772d4a9210452e52e5f4ffe9250e581c1a7c6f6fc3249590d6',
+  independentStrengthLabelCount: 0,
+})
+
 const sourceAdoptionAudit = Object.freeze([
   Object.freeze({
     sourceId: 'icy-veins-deadly-assault-2026-08-28',
@@ -65,31 +72,42 @@ const sourceAdoptionAudit = Object.freeze([
     sourceId: 'hostedgg-3.2-team-tier-list',
     url: 'https://hostedgg.com/blog/zenless-zone-zero-3-2-best-teams-tier-list',
     sourceVersion: '3.2' as const,
-    currentForTarget: true as const,
-    captureStatus: 'metadata_only' as const,
-    checkedAt: '2026-10-19' as const,
-    observedGrain: 'exact_team_or_named_core_plus_coarse_team_tier',
-    disposition: 'unfrozen_team_tier_candidate' as const,
+    currentForTarget: false as const,
+    captureStatus: 'reviewed_pre_release_projection' as const,
+    ...current32SourceSnapshot,
+    publisherUpdatedAt: '2026-09-06',
+    observedGrain: 'named_core_plus_unspecified_third_or_agent_role_tier',
+    disposition: 'pre_release_core_reference_only' as const,
+    applicabilityReason:
+      '文章明确在3.2上线前按前瞻技能预测；克拉蕾/洛克茜仅核心加未具名第三人，不能当发布后精确三人强度。',
   }),
   Object.freeze({
     sourceId: 'zzz-build-3.2-most-used-teams',
     url: 'https://www.zzz-build.com/fr/best-teams',
     sourceVersion: '3.2' as const,
-    currentForTarget: true as const,
-    captureStatus: 'metadata_only' as const,
-    checkedAt: '2026-10-19' as const,
+    currentForTarget: currentVersionProjection.gameVersion === '3.2',
+    captureStatus: 'reviewed_secondary_scenario_summary' as const,
+    ...current32SourceSnapshot,
+    sourceObservedAt: '2026-09-28',
+    derivedFromPublisher: 'Prydwen',
     observedGrain: 'exact_3_agent_plus_usage_rank_and_average_score',
-    disposition: 'unfrozen_scenario_performance_candidate' as const,
+    disposition: 'source_dependent_scenario_observation_only' as const,
+    applicabilityReason:
+      '页面明示转载Prydwen社区统计，按使用率排列；场景/平均分可保留观测身份，不能当独立来源、标准投入偏序或通用三人档位。',
   }),
   Object.freeze({
     sourceId: 'zzz-build-remielle-3.2-teams',
     url: 'https://www.zzz-build.com/agents/remielle/teams',
     sourceVersion: '3.2' as const,
-    currentForTarget: true as const,
-    captureStatus: 'metadata_only' as const,
-    checkedAt: '2026-10-19' as const,
-    observedGrain: 'exact_3_agent_plus_publisher_team_rank',
-    disposition: 'unfrozen_exact_team_rank_candidate' as const,
+    currentForTarget: false as const,
+    captureStatus: 'reviewed_mixed_guide_and_aggregate' as const,
+    ...current32SourceSnapshot,
+    publisherUpdatedAt: '2026-08-21',
+    derivedFromPublisher: 'Prydwen',
+    observedGrain: 'exact_3_agent_guide_number_plus_usage_or_score_rows',
+    disposition: 'unverified_guide_version_and_source_dependent_aggregation' as const,
+    applicabilityReason:
+      '页头3.2与正文更新日期分开；前几项是Prydwen攻略模板编号，后续混有统计记录，同队重复。编号不能变成队间偏序，角色T0不能变成整队T0。',
   }),
 ])
 
@@ -164,6 +182,8 @@ const gateChecks = Object.freeze([
 
 export const current31MainstreamAuthorityEvaluationGate = Object.freeze({
   contract: current31MainstreamAuthorityEvaluationGateContractId,
+  evaluationUse: 'independent_quality_research' as const,
+  blocksGenericReferenceRelease: false as const,
   gameVersion: '3.1',
   targetGameVersion: currentVersionProjection.gameVersion,
   intendedGrain: 'claim_specific_versioned_evidence' as const,
@@ -286,5 +306,5 @@ export const current31MainstreamAuthorityEvaluationGate = Object.freeze({
   blindMetaHoldout: current31BlindMetaHoldout,
   sourceAdoptionAudit,
   boundary:
-    '当前版本不等于只接受当前版本新证据。历史机制与 Formation claim 按字段检查后保留，不由此证明当前标准条件的 Meta 正确。现有 Band 与 mainstream membership 标签源均为 3.1，而产品目标为 3.2，不能直接继承为当前独立质量分母。30 条 membership 与旧四条 Band、五条派生 Pairwise 都已暴露于当前 authority 或训练标签路径，只保留 known-set/diagnostic regression；URL 未引用不能证明整链独立。独立执行隔离 prior 标签，但旧标签不能当作新冻结预测解盲证据；新分母还必须证明案例/结果先冻结、预测随后冻结、最后解盲。Top-K、Band、Pairwise 与 mainstream Unknown 当前均为 not_evaluated。外部榜单不进入公式、隐藏角色分或生产全序。',
+    `当前版本不等于只接受当前版本新证据。历史机制与 Formation claim 按字段检查后保留，不由此证明当前标准条件的 Meta 正确。现有 Band 与 mainstream membership 标签源均为 3.1，而产品目标为 ${currentVersionProjection.gameVersion}，不能直接继承为当前独立质量分母。30 条 membership 与旧四条 Band、五条派生 Pairwise 都已暴露于当前 authority 或训练标签路径，只保留 known-set/diagnostic regression；URL 未引用不能证明整链独立。独立执行隔离 prior 标签，但旧标签不能当作新冻结预测解盲证据；新分母还必须证明案例/结果先冻结、预测随后冻结、最后解盲。Top-K、Band、Pairwise 与 mainstream Unknown 当前均为 not_evaluated。外部榜单不进入公式、隐藏角色分或生产全序。`,
 })

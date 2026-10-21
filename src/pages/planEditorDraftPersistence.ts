@@ -200,6 +200,9 @@ export async function persistPlanEditorDraft({
             ...(savedStandardReference32
               ? { standardReference32: structuredClone(savedStandardReference32) }
               : {}),
+            ...(targetTeamFit.formedTeamReference
+              ? { formedTeamReference: structuredClone(targetTeamFit.formedTeamReference) }
+              : {}),
             ...(savedStandardReferenceRequest32
               ? { standardReferenceRequest32: structuredClone(savedStandardReferenceRequest32) }
               : {}),

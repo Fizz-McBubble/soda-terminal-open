@@ -20,6 +20,8 @@ import { PublicTeamAttributeInspector } from './PublicTeamAttributeInspector'
 import type { TeamExecutionWorkspaceAlternate } from './TeamExecutionWorkspaceSurface'
 import { substitutesForMember } from './teamExecutionWorkspaceSubstitutes'
 import { PlayerSelect } from '../components/PlayerSelect'
+import { FormedTeamReference } from './FormedTeamReference'
+import { formedCultivationGaps } from '../application/formedCultivationGaps'
 import './team-equipment-parameters.css'
 
 function PublicDiscCard({
@@ -160,6 +162,14 @@ export function PublicTeamExecutionPanel({
   const memberDiscCount = selectedMember.discFacts.length
   return (
     <section className={`team-execution is-${view.status}`} aria-label="队伍配装">
+      <FormedTeamReference
+        reference={targetTeamFit?.formedTeamReference}
+        gaps={
+          targetTeamFit?.formedTeamReference
+            ? formedCultivationGaps(targetTeamFit.formedTeamReference, warehouse.roster)
+            : []
+        }
+      />
       <section className="team-execution__loadout">
         <div className="team-execution__top-rail">
           <div className="team-execution__formation">

@@ -1,6 +1,7 @@
 import type { StatKey } from '../domain/schemas'
 import type { AgentProfileField, AgentProfileSourceRef } from './agentProfileFieldProjection'
 import type { CandidateSetPlan } from './candidateSetPlans'
+import type { CandidateWarehouseConstraint } from './candidateWarehouseConstraints'
 import type { TargetPanelMetricSemantic } from './targetPanelSemantics'
 
 const checkedAt = '2026-09-30T12:29:09.2100756Z'
@@ -34,6 +35,7 @@ export const gameData32BuildSources: Readonly<Record<string, VerifiedBuildSource
       id: 'prydwen-original-claret32',
       url: 'https://www.prydwen.gg/zenless/characters/claret',
       sourceVersion: '3.2',
+      authorReviewedVersion: '3.2',
       checkedAt,
       contentHash: '028F278DA96D0EB8073767A8790FAF55F8D64F018B91296E3CC098876ECF069A',
       licenseBoundary: provenanceBoundary,
@@ -42,14 +44,36 @@ export const gameData32BuildSources: Readonly<Record<string, VerifiedBuildSource
       id: 'prydwen-original-koleda32',
       url: 'https://www.prydwen.gg/zenless/characters/koleda',
       sourceVersion: '3.2',
+      authorReviewedVersion: '3.2',
       checkedAt,
       contentHash: 'F40C8569D4AC9586A7AD4826ED3D64715C09FFDECA32043258C28CF4C742975C',
       licenseBoundary: provenanceBoundary,
+    },
+    koledaLiveBuild32: {
+      id: 'hoyobuild-koleda-current-build-20261020',
+      url: 'https://hoyobuild.com/en/zzz/characters/koleda',
+      sourceVersion: '3.2',
+      authorReviewedVersion: null,
+      checkedAt: '2026-10-20T07:02:17.826Z',
+      contentHash: 'ADB655BE1C8766DD98C63A2B0DB65797217472EFF605B070FD060A30970CE75B',
+      licenseBoundary:
+        '当次HTTP 200正文UTF-8字节SHA256；采用明确套装、词条和技能方向。页面3.2标签与作者复审版本分开；页面引用Game8/IcyVeins不另计独立来源，不复制正文或媒体。',
+    },
+    sigridLiveBuild32: {
+      id: 'hoyobuild-sigrid-current-conditions-20261020',
+      url: 'https://hoyobuild.com/en/zzz/characters/sigrid',
+      sourceVersion: '3.2',
+      authorReviewedVersion: null,
+      checkedAt: '2026-10-20T07:02:19.116Z',
+      contentHash: '2EE31BE1F976A554FFE26BB33C68705066D33BEB1579802349B4070C2A28F14D',
+      licenseBoundary:
+        '当次HTTP 200正文UTF-8字节SHA256；只补充河豚四件的琉音推荐场景及拂晓连段前EX条件，页面引用Prydwen/Game8不另计独立来源，不采用其33.8%为数学满暴上限。',
     },
     roxyGuide: {
       id: 'prydwen-original-roxy32',
       url: 'https://www.prydwen.gg/zenless/characters/roxy',
       sourceVersion: '3.2',
+      authorReviewedVersion: '3.2',
       checkedAt: '2026-09-30',
       contentHash: '4781646B6DEB1A7148619A41846AA5AE7B908B5CBC222C279651F638C2596D0D',
       licenseBoundary: provenanceBoundary,
@@ -110,6 +134,113 @@ const fixedCycleMissingFields = [
 /** Sourced candidate guidance. No fabricated graduation panel or action duration. */
 export const gameData32BuildGuidance: Readonly<Record<string, GameData32BuildGuidance>> =
   Object.freeze({
+    'agent-koleda': {
+      agentId: 'agent-koleda',
+      agentName: '珂蕾妲',
+      gameVersion: '3.2',
+      sourceKeys: ['koledaGuide', 'koledaLiveBuild32'],
+      wEngineIds: [
+        'wengine-14110',
+        'wengine-14116',
+        'wengine-14157',
+        'wengine-13006',
+        'wengine-13005',
+      ],
+      wEngineDirections: [
+        '燃狱齿轮（wengine-14110）：来源明确的冲击与强化特殊技方向。',
+        '焰心桂冠（wengine-14116）：非锋御队的来源备选；首席跟班（wengine-14157）：锋御队的来源备选，需满足实际失衡需求。',
+        '贵重骨核（wengine-13006）与人为刀俎（wengine-13005）：短战与回能条件不同，按实际精炼和队伍比较。',
+      ],
+      setDirections: [
+        '山大王 4 件 + 震星迪斯科 2 件：强攻／命破队，需强化特殊技；连携技也可触发套装，效果窗口须另核。',
+        '静听嘉音 4 件 + 山大王／月光骑士颂／震星迪斯科 2 件：锋御队，需团队快速支援。',
+        '震星迪斯科 4 件 + 摇摆爵士 2 件：失衡与回能过渡方向。',
+      ],
+      setPlans: [
+        {
+          pattern: '4+2',
+          primarySetIds: ['set-king-of-the-summit'],
+          secondarySetIds: ['set-shockstar-disco'],
+          purpose: 'conditional',
+          sourceText:
+            '强攻／命破队山大王4+震星2；来源强化特殊技场景，连携也可触发，覆盖未知不默认常驻。',
+          condition: {
+            sourceId: 'hoyobuild-koleda-current-build-20261020',
+            sourceUrl: 'https://hoyobuild.com/en/zzz/characters/koleda',
+            sourceVersion: '3.2',
+            contentHash: 'ADB655BE1C8766DD98C63A2B0DB65797217472EFF605B070FD060A30970CE75B',
+            sourceTextVerified: true,
+            rule: {
+              kind: 'teammate_specialty_and_action',
+              specialties: ['attack', 'rupture'],
+              action: 'wearer_ex_special',
+            },
+          },
+        },
+        {
+          pattern: '4+2',
+          primarySetIds: ['set-astral-voice'],
+          secondarySetIds: [
+            'set-king-of-the-summit',
+            'set-moonlight-lullaby',
+            'set-shockstar-disco',
+          ],
+          purpose: 'conditional',
+          sourceText:
+            '锋御队静听嘉音4件；团队快速支援与实际接受者必须另核，不自动获得三层常驻增伤。',
+          condition: {
+            sourceId: 'hoyobuild-koleda-current-build-20261020',
+            sourceUrl: 'https://hoyobuild.com/en/zzz/characters/koleda',
+            sourceVersion: '3.2',
+            contentHash: 'ADB655BE1C8766DD98C63A2B0DB65797217472EFF605B070FD060A30970CE75B',
+            sourceTextVerified: true,
+            rule: {
+              kind: 'teammate_specialty_and_action',
+              specialties: ['armorer'],
+              action: 'team_quick_assist',
+            },
+          },
+        },
+        {
+          pattern: '4+2',
+          primarySetIds: ['set-shockstar-disco'],
+          secondarySetIds: ['set-swing-jazz'],
+          purpose: 'transition',
+          sourceText: '震星迪斯科4+摇摆爵士2，失衡与回能过渡。',
+        },
+      ],
+      unresolvedSetDirections: [],
+      mainStats: {
+        '4': ['crit_rate', 'crit_dmg'],
+        '5': ['fire_dmg', 'atk_percent'],
+        '6': ['impact'],
+      },
+      mainStatLines: [
+        '4号位：暴击率／暴击伤害',
+        '5号位：火属性伤害／攻击力百分比',
+        '6号位：冲击力',
+      ],
+      subStatPriorities: ['crit_rate', 'crit_dmg', 'atk_percent', 'pen', 'atk_flat'],
+      subStatPriorityKind: 'ordered',
+      subStatLines: [
+        '副词条：暴击率、暴击伤害、攻击力百分比、穿透值、固定攻击力；来源次序不转为伤害权重。',
+      ],
+      teamAndBangbooPreconditions: [
+        '当前来源方向：克拉蕾／珂蕾妲／丽娜；仪玄／珂蕾妲／卢西娅；「11号」／珂蕾妲／露西。',
+        '邦布随精确队伍核对额外能力；来源列举不成为自动默认。',
+        '潜能对锋御与非锋御的增益接受者不同；使用实际潜能等级，不把满潜能增益自动给未解锁账户。',
+      ],
+      progressionDirections: [
+        '核心技 > 特殊技 > 连携技 > 普通攻击 > 支援 > 闪避；来源优先级不替代账号实际技能等级。',
+      ],
+      conditions: [
+        '山大王提供普通暴击伤害，不能当成锋御锐暴增益；静听嘉音按快速支援入场者及实际层数生效。',
+        '达到50%暴击率只改变山大王追加团队暴伤档位；并非通用毕业门槛。',
+        '3.2页面的明确构筑与已锁定机制交叉核对；不据此声明全队强度、全局最优或完整循环。',
+      ],
+      fixedCycleStatus: 'qualitative_only',
+      fixedCycleMissingFields,
+    },
     'agent-claret': {
       agentId: 'agent-claret',
       agentName: '克拉蕾',
@@ -386,20 +517,44 @@ function reviewedEndgamePanel32(agentId: string): AgentProfileField[] {
   ]
 }
 
+/** The guide and inventory solver share the same typed set roles. */
+export function getGameData32SetPlanReadiness(
+  guidance: GameData32BuildGuidance,
+): CandidateWarehouseConstraint['setPlanReadiness'] {
+  const first = guidance.setPlans[0]
+  return first
+    ? {
+        status: 'executable',
+        pattern: first.pattern,
+        primarySetIds: [...first.primarySetIds],
+        secondarySetIds: [...first.secondarySetIds],
+      }
+    : {
+        status: 'non_executable',
+        reason: 'unresolved_set_roles',
+        missingEvidence: '来源未给出可验证的主副套角色。',
+      }
+}
+
 /** Adapter seam for the existing profile owner; these fields remain candidate. */
 export function getGameData32BuildGuidanceFields(agentId: string): AgentProfileField[] {
   const guidance = getGameData32BuildGuidance(agentId)
   if (!guidance) return []
   const sourceRefs = guidance.sourceKeys.map((key) => gameData32BuildSources[key]!)
+  const sourceVersions = [...new Set(sourceRefs.map((source) => source.sourceVersion))]
   const common = {
     group: 'build_guidance' as const,
     status: 'candidate' as const,
     gameVersion: '3.2',
-    originalSourceVersion: '3.2',
+    originalSourceVersion: sourceVersions.length === 1 ? sourceVersions[0]! : null,
     lastChangeVersion: '3.2',
     currentApplicability: 'continuous' as const,
     sourceRefs,
-    verifiedAt: checkedAt,
+    verifiedAt:
+      sourceRefs
+        .map((source) => source.checkedAt)
+        .sort()
+        .at(-1) ?? checkedAt,
     conflict: null,
     conditions: guidance.conditions,
   }
@@ -414,7 +569,9 @@ export function getGameData32BuildGuidanceFields(agentId: string): AgentProfileF
     {
       ...common,
       path: 'build.drive_disc_sets',
-      value: [...guidance.setDirections],
+      value: getGameData32SetPlanReadiness(guidance),
+      displayValue: [...guidance.setDirections],
+      conditions: [...guidance.conditions, ...guidance.setDirections],
       reason: guidance.unresolvedSetDirections.join('；') || '来源明确套装件数；保留队伍条件。',
     },
     {

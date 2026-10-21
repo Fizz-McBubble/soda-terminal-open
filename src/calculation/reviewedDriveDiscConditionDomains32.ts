@@ -17,6 +17,8 @@ export type DriveDiscEventRuntimeBinding32 = {
   runtime: DriveDiscFormulaRuntime32
 }
 const labels: Record<string, string> = {
+  'YunkuiTales:uponLaunchExSpecialChainOrUlt':
+    '云岿如我：穿戴者施放强化特殊技、连携技或终结技后当前有效的层数（0至3）',
   'FangedMetal:inflict_assault':
     '獠牙重金属：任意队员对该目标触发强击后的12秒内，穿戴者对该目标的增伤仍有效',
   'WoodpeckerElectro:crit_basic_dodge_ex':
@@ -71,7 +73,10 @@ export function appendReviewedDriveDiscConditions32(
         result.blockers.push(`四件套条件尚未审核：${equipped.setId}/${ref}`)
         continue
       }
-      const stack = ref === 'AstralVoice:astral' || ref === 'WoodpeckerElectro:crit_basic_dodge_ex'
+      const stack =
+        ref === 'AstralVoice:astral' ||
+        ref === 'WoodpeckerElectro:crit_basic_dodge_ex' ||
+        ref === 'YunkuiTales:uponLaunchExSpecialChainOrUlt'
       const referenceKey = `disc:${equipped.setId}:${ref}`
       if (
         result.defs.some(

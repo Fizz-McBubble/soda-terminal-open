@@ -1,3 +1,8 @@
+import { resolveReviewedPhoenixTeam33 } from './reviewedPhoenixTeams33'
+import {
+  lookupCurrent31TeamIntrinsicDetails,
+  current31TeamIntrinsicIndexStatus,
+} from './current31TeamIntrinsicIndex'
 import type { AccountDecisionAuthorityInput } from './accountDecisionAuthorityInput'
 import { projectAccountDecisionRecommendation } from './accountDecisionRecommendationProjection'
 import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
@@ -7,6 +12,9 @@ import { currentVersionProjection } from '../gameDataPacks/currentVersionProject
 import { stableContentHash } from '../gameDataPacks/types'
 import { type CultivationPriorityInput } from './teamDecisionAuthority'
 import { isReviewedFallbackTeam } from './reviewedTeamRecommendationDisposition'
+import { resolveCurrent31MainstreamRecognition } from './current31TeamMainstreamRecognition'
+import { currentReviewedTeamSourceDirections } from '../gameDataPacks/reviewedTeamSourceDirections'
+import { createTeamRecommendationPrerequisiteResolver } from './teamRecommendationPrerequisites'
 import { extractTeamStrengthMechanicFeatures } from './teamStrengthMechanicFeatures'
 import { reviewedTeamAnalysis } from './reviewedTeamAnalysis'
 import {
@@ -55,6 +63,11 @@ function hardConstraintBlockers(preference: TeamPortfolioPreference) {
 
 function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthorityInput) {
   const blockers = hardConstraintBlockers(input.preference)
+  if (
+    input.validationIntrinsicProjectionMode !== 'direct' &&
+    current31TeamIntrinsicIndexStatus.status !== 'ready'
+  )
+    blockers.push('通用队伍榜单尚未就绪，请更新资料后重试。')
   if (input.rankedFormations.length === 0) {
     const empty = {
       contract: accountDecisionAuthorityContractId,
@@ -130,7 +143,17 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
       )
         return []
       const membership = reviewedAuthorComparisonMembership32(item.memberIds, ownedAgentIds)
-      return membership ? [[item.candidate.candidateId, membership] as const] : []
+      if (!membership) return []
+      // Indexed summaries omit source scope. Resolve the live source only for
+      // experiment matches, so a separate current recommendation is preserved.
+      const recognition = resolveCurrent31MainstreamRecognition(item.memberIds)
+      if (
+        recognition.status === 'confirmed' &&
+        recognition.historicalReferenceOnly === false &&
+        !isReviewedFallbackTeam(item.memberIds)
+      )
+        return []
+      return [[item.candidate.candidateId, membership] as const]
     }),
   )
   // Availability of a named local finite model permits deliberate selection;
@@ -177,6 +200,24 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
       left.candidate.candidateId.localeCompare(right.candidate.candidateId)
     )
   }
+  const offlineCache = new Map<string, ReturnType<typeof lookupCurrent31TeamIntrinsicDetails>>()
+  const offlineDetails = (ids: readonly string[]) => {
+    const key = [...ids].sort().join('|')
+    if (!offlineCache.has(key))
+      offlineCache.set(key, lookupCurrent31TeamIntrinsicDetails(ids, 'offline-match'))
+    return offlineCache.get(key)
+  }
+  const recommendationPrerequisites =
+    input.validationIntrinsicProjectionMode === 'direct'
+      ? createTeamRecommendationPrerequisiteResolver({
+          basis: 'formed_reference',
+          directions: currentReviewedTeamSourceDirections(),
+          roster: input.roster,
+          reviewVersion: currentVersionProjection.gameVersion,
+        })
+      : (ids: readonly string[]) => ({
+          status: offlineDetails(ids)?.prerequisiteStatus ?? 'condition-unknown',
+        })
   const sourceRecommendation = (item: (typeof projected)[number]) => {
     if (
       explicitMembershipById.has(item.candidate.candidateId) ||
@@ -189,8 +230,10 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
       item.rating.ratingBand !== 'Experimental' &&
       item.rating.confidence !== 'experimental'
     return (
-      independentRating ||
-      (item.mainstreamRecognition.status === 'confirmed' && !isReviewedFallbackTeam(item.memberIds))
+      (independentRating ||
+        (item.mainstreamRecognition.status === 'confirmed' &&
+          !isReviewedFallbackTeam(item.memberIds))) &&
+      recommendationPrerequisites(item.memberIds).status === 'eligible'
     )
   }
   // Players choose an intrinsically strong team before requesting its gear fit.
@@ -256,6 +299,10 @@ function projectAccountDecisionAuthorityInternal(input: AccountDecisionAuthority
       sourceExcluded: isReviewedFallbackTeam(item.memberIds),
     })),
     (candidate) => {
+      if (input.validationIntrinsicProjectionMode !== 'direct')
+        return offlineDetails(candidate.memberIds)?.primaryOutputAgentId ?? null
+      const phoenixReference = resolveReviewedPhoenixTeam33(candidate.memberIds)
+      if (phoenixReference) return phoenixReference.primaryOutputAgentId
       const key = [...candidate.memberIds].sort().join('|')
       const features =
         featureCache.get(key) ?? extractTeamStrengthMechanicFeatures(candidate.memberIds)
@@ -561,10 +608,26 @@ export function projectAccountDecisionAuthority(input: AccountDecisionAuthorityI
         (error instanceof Error && error.name === 'Current31TeamIntrinsicIndexMismatchError')) &&
       input.validationIntrinsicProjectionMode !== 'direct'
     )
-      return projectAccountDecisionAuthorityInternal({
-        ...input,
-        validationIntrinsicProjectionMode: 'direct',
-      })
+      return {
+        contract: accountDecisionAuthorityContractId,
+        status: 'blocked' as const,
+        blockers: ['通用队伍榜单尚未就绪，请更新资料后重试。'],
+        outputPotentialCohort: null,
+        recommendations: [],
+        consumerRecommendations: [],
+        agentRecommendations: [],
+        coverage: {
+          inputFormationCount: input.rankedFormations.length,
+          ratedFormationCount: 0,
+          hardInvalidFormationCount: 0,
+          requiredPortfolioTeamCount: input.preference.teamCount,
+          requiredPortfolioCandidateCount: 0,
+        },
+        fingerprint: stableContentHash({
+          unavailable: true,
+          index: current31TeamIntrinsicIndexStatus,
+        }),
+      }
     throw error
   }
 }

@@ -1,16 +1,13 @@
 import { lazy, Suspense } from 'react'
-import { DataCenterPage } from '../components/DataCenterPage'
 import { AdvancedDataManagement } from './dataManagement/AdvancedDataManagement'
 
 const DevPlayerAccountAuditState = import.meta.env.DEV
   ? lazy(() => import('../testing/PlayerAccountAuditState'))
   : null
 
-export function DataManagementPage() {
-  return <DataCenterPage />
-}
-
+// Only development tools use this module. The player data route redirects to /assets/account.
 export function DevDataManagementPage() {
+  if (!import.meta.env.DEV) return null
   return <AdvancedDataManagement />
 }
 

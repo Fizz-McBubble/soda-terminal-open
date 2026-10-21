@@ -17,7 +17,9 @@ export function candidateSetPlanIdentity(plan: CandidateSetPlan): string {
         ? `${rule.kind}:${rule.setId}`
         : rule.kind === 'teammate_specialty_and_action'
           ? `${rule.kind}:${[...rule.specialties].sort().join(',')}:${rule.action}`
-          : rule.kind
+          : rule.kind === 'wearer_action'
+            ? `${rule.kind}:${rule.action}`
+            : rule.kind
   return [
     plan.pattern,
     [...plan.primarySetIds].sort().join(','),

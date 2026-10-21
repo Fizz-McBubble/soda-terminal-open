@@ -1,3 +1,4 @@
+import { lookupCurrent31TeamIntrinsicSummary } from '../decision/current31TeamIntrinsicIndex'
 import { stableContentHash } from '../gameDataPacks/types'
 import { inspectCurrent31FormationMechanicState } from './current31FormationMechanicAudit'
 import { current31LegalAgentFormations } from './current31LegalCandidateUniverse'
@@ -15,13 +16,26 @@ export type ExhaustiveAccountFormationCandidate = {
  * hard-invalid prune. This keeps the exhaustive denominator independent from
  * the curated community kernel catalogue.
  */
-export function projectCurrent31ExhaustiveAccountCandidates(ownedAgentIds: readonly string[]) {
+export function projectCurrent31ExhaustiveAccountCandidates(
+  ownedAgentIds: readonly string[],
+  mode: 'direct' | 'indexed' = 'direct',
+) {
   const owned = new Set(ownedAgentIds)
   const formations = current31LegalAgentFormations.filter((memberIds) =>
     memberIds.every((agentId) => owned.has(agentId)),
   )
   const candidates: ExhaustiveAccountFormationCandidate[] = formations.map((memberIds) => {
-    const state = inspectCurrent31FormationMechanicState(memberIds)
+    const flags =
+      mode === 'indexed' ? (lookupCurrent31TeamIntrinsicSummary(memberIds)?.formationFlags ?? 0) : 0
+    const state =
+      mode === 'indexed'
+        ? {
+            fieldTimeWithinBudget: Boolean(flags & 1),
+            resourceLoopClosed: Boolean(flags & 2),
+            activationAtBase: Boolean(flags & 4),
+            observedPartnerRelationForEveryMember: Boolean(flags & 8),
+          }
+        : inspectCurrent31FormationMechanicState(memberIds)
     const limitations = [
       ...(state.fieldTimeWithinBudget ? [] : ['field_time_budget_open']),
       ...(state.resourceLoopClosed ? [] : ['resource_loop_open']),

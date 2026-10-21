@@ -1,6 +1,6 @@
 import wEngineData from './data/wEngineCatalog.3.0.json'
 import { isOfficialWEngineAvailable } from '../assets/officialVisualAssets'
-import { agentCatalog } from './catalog'
+import { agentCatalog, currentAgentDirectory } from './catalog'
 import { currentAssetCatalog } from '../gameDataPacks/currentAssetCatalog'
 import { sortCatalogByRarityAndRelease } from './catalogSorting'
 import { supportsPotentialImage } from './agentCapabilities'
@@ -65,7 +65,8 @@ export function getWEnginesForSpecialty(specialty: AgentSpecialty) {
 }
 
 export function getAgentSpecialty(agentId: string): AgentSpecialty | null {
-  return agentCatalog.find(([id]) => id === agentId)?.[2] ?? null
+  const specialty = currentAgentDirectory.find((entry) => entry.id === agentId)?.specialty
+  return agentCatalog.some((entry) => entry[2] === specialty) ? (specialty as AgentSpecialty) : null
 }
 
 export function isPotentialImageAgent(agentId: string) {
@@ -73,7 +74,7 @@ export function isPotentialImageAgent(agentId: string) {
 }
 
 export function withPlanningDefaults(agent: RosterAgent): RosterAgent {
-  const rarity = agentCatalog.find(([id]) => id === agent.agentId)?.[4]
+  const rarity = currentAgentDirectory.find((entry) => entry.id === agent.agentId)?.rarity
   const progressionIsManual =
     agent.progressionManuallySet === true || agent.manualSource === 'manual_override'
   const normalSkill = rarity === 'A' ? 15 : PLANNING_NORMAL_SKILL_LEVEL

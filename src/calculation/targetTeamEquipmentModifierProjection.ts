@@ -1,6 +1,9 @@
 import { currentAgentDirectory } from '../assault/catalog'
 import type { PlanningBaseline } from './planningDpsContract'
-import { getCurrentWEngineStaticData } from '../gameDataPacks/currentWEngineStaticCatalog'
+import {
+  currentWEngineSourceRefs,
+  getCurrentWEngineStaticData,
+} from '../gameDataPacks/currentWEngineStaticCatalog'
 import { stableContentHash } from '../gameDataPacks/types'
 import { applyReviewedWEngineReceiverSemantics32 } from './reviewedWEngineReceiverSemantics32'
 import { applyReviewedSpringEmbraceReceivers32 } from './reviewedSpringEmbraceReceivers32'
@@ -318,12 +321,7 @@ export function projectTargetTeamWEngineModifiers(input: {
       effects,
       exclusions,
       blockers: unique(blockers),
-      sourceRefs: staticData
-        ? [
-            `${staticData.source.dataPath}#${staticData.source.dataSha256}`,
-            `${staticData.source.formulaPath}#${staticData.source.formulaSha256}`,
-          ]
-        : [],
+      sourceRefs: staticData ? currentWEngineSourceRefs(staticData.source) : [],
     }
     return { ...core, fingerprint: stableContentHash(core) }
   })

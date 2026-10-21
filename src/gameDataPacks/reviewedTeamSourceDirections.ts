@@ -15,14 +15,20 @@ import { current31ReviewedBangbooSourceAtoms } from './generated/current31-revie
 import { isReviewedSourceAtomContractValid } from './reviewedBangbooSourceContract'
 import { reviewedSourceTeamDirectionProjection32 } from './reviewedSourceTeamDirectionProjection32'
 import { reviewedCurrentTeamGuidance32 } from './reviewedCurrentTeamGuidance32'
+import { reviewedHoyoBuildCurrentTeams32 } from './reviewedHoyoBuildCurrentTeams32'
 import type { TeamOutputModuleResolution } from './teamOutputModuleContract'
 import { resolveReviewedTeamOutputModule } from './reviewedTeamOutputModuleEvidence'
+import { reviewedPhoenixSourceDirections33 } from '../decision/reviewedPhoenixTeams33'
 
 type NestedDirectionRecord = (typeof nestedTeamDirections.records)[number] & {
   additionalConditionSources?: NonNullable<
     (typeof nestedTeamDirections.records)[number]['additionalConditionSource']
   >[]
 }
+
+export type TeamRecommendationPrerequisite =
+  | { kind: 'potential_minimum'; agentId: string; minimum: number }
+  | { kind: 'wengine'; agentId: string; engineId: string }
 
 export type ReviewedTeamSourceDirection = {
   memberIds: readonly [string, string, string]
@@ -37,6 +43,8 @@ export type ReviewedTeamSourceDirection = {
     locator?: string
     hashDefinition?: string
     equipmentConditions?: readonly { agentId: string; sourceEquipmentName: string }[]
+    /** Explicit recommendation gates only; effect windows are not team eligibility gates. */
+    recommendationPrerequisites?: readonly TeamRecommendationPrerequisite[]
     scenario?: string
     /** Exact-team page replay, separate from the adopted coarse rating. */
     verificationStatus?: string
@@ -60,6 +68,8 @@ export type ReviewedTeamSourceDirection = {
     legacyBodyHash?: string
   }[]
   conditions: string[]
+  /** Keep observation conditions attached to their source when exact trios merge. */
+  conditionsBySourceId?: Record<string, readonly string[]>
   /** Author-listed alternatives; never an activation or default recommendation. */
   sourceBangbooOptionIds?: string[]
 }
@@ -268,10 +278,11 @@ export function currentReviewedTeamSourceDirections(
       .map((entry) => entry.stableId),
   )
   const observations: ReviewedTeamSourceDirection[] = [
-    ...(reviewVersion === reviewedCurrentTeamGuidance32.gameVersion
-      ? reviewedCurrentTeamGuidance32.entries
+    ...(reviewVersion === reviewedCurrentTeamGuidance32.gameVersion || reviewVersion === '3.3'
+      ? [...reviewedCurrentTeamGuidance32.entries, ...reviewedHoyoBuildCurrentTeams32.entries]
       : []),
-    ...reviewedSourceTeamDirectionProjection32(reviewVersion),
+    ...reviewedSourceTeamDirectionProjection32(reviewVersion === '3.3' ? '3.2' : reviewVersion),
+    ...reviewedPhoenixSourceDirections33(reviewVersion),
     ...reviewedTeamPublishedStrength.facts
       .filter((fact) => !fact.withdrawn && fact.sourceVersion === reviewVersion)
       .map((fact) => ({
@@ -484,16 +495,33 @@ export function currentReviewedTeamSourceDirections(
           : { ...ref, verificationStatus: 'historical_membership_reference' },
       )
     const existing = byMembers.get(key)
+    const conditionsBySourceId = Object.fromEntries(
+      observation.sourceRefs.map((ref) => [
+        ref.id,
+        [...(observation.conditionsBySourceId?.[ref.id] ?? observation.conditions)],
+      ]),
+    )
     if (existing) {
       existing.sourceRefs.push(...observation.sourceRefs)
       existing.conditions = [...new Set([...existing.conditions, ...observation.conditions])]
+      for (const [id, conditions] of Object.entries(conditionsBySourceId)) {
+        existing.conditionsBySourceId ??= {}
+        existing.conditionsBySourceId[id] = [
+          ...new Set([...(existing.conditionsBySourceId[id] ?? []), ...conditions]),
+        ]
+      }
       existing.sourceBangbooOptionIds = [
         ...new Set([
           ...(existing.sourceBangbooOptionIds ?? []),
           ...(observation.sourceBangbooOptionIds ?? []),
         ]),
       ]
-    } else byMembers.set(key, { ...observation, sourceRefs: [...observation.sourceRefs] })
+    } else
+      byMembers.set(key, {
+        ...observation,
+        sourceRefs: [...observation.sourceRefs],
+        conditionsBySourceId,
+      })
   }
   return [...byMembers.values()]
 }

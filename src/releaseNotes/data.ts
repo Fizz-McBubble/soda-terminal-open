@@ -10,6 +10,19 @@ export interface ReleaseNote {
 // A local fix or commit is not a published release; add it when that release ships.
 export const releases = [
   {
+    id: '20261021-version33-and-formed-teams',
+    date: '2026-10-21',
+    scope: '3.3上半资料与通用配队',
+    title: '采用3.3上半资料，贯通成型队伍与库存配装',
+    changes: [
+      '加入菲欧妮与涅槃初翎，目录、培养材料、面板和构筑参考同步更新到3.3上半。',
+      'BOX按已有角色匹配通用成型队伍参考，选队后再生成三人十八盘；影画、潜能和装备参考随方案保存。',
+      '队伍强度统一显示参考评级，同档保留已有攻略替换建议；配装适配与毕业完成度分别计算。',
+      '修复版本更新后部分攻略顺序丢失和构筑用途绑定过期，保留已有账户、实体盘与历史方案。',
+      '保留已发布的资产快读1.2.0与画面扫描1.2.3。资产快读尚未支持国服3.3读取，旧读取结果仍可查看与恢复。',
+    ],
+  },
+  {
     id: '20261020-skill-targets-and-loading',
     date: '2026-10-20',
     scope: '技能目标与加载体验',

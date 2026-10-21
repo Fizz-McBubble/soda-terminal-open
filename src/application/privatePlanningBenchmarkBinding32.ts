@@ -1,4 +1,8 @@
 import type { CoreWarehouse } from '../accounts/coreFlow'
+import {
+  planningEquipmentConditionVocabulary32,
+  type PlanningEquipmentConditionAlternatives32,
+} from './planningEquipmentConditionVocabulary32'
 import { supportsPotentialImage } from '../assault/agentCapabilities'
 import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
 import {
@@ -45,6 +49,8 @@ export type PlanningBenchmarkBinding32 = {
         source?: 'source_defaults' | 'player_confirmed'
       })
     | null
+  /** Canonical alternatives from the standard-reference producer, never account facts. */
+  equipmentConditionAlternatives32?: PlanningEquipmentConditionAlternatives32
 }
 
 /** Reuse the accepted 30-second declared benchmark environment. Event times
@@ -60,6 +66,7 @@ export const planningBenchmarkContextPolicy32 = Object.freeze({
   enemyLevel: 70,
   rounding: { stage: 'display', precision: 2, mode: 'half_away_from_zero', preserveRawSum: true },
 })
+const comparisonVocabularyFingerprints = new Map<string, string>()
 
 export function preparePlanningBenchmark32(input: PlanningBenchmarkBinding32) {
   const gaps: string[] = []
@@ -234,6 +241,15 @@ export function preparePlanningBenchmark32(input: PlanningBenchmarkBinding32) {
       )
     })
     .map((row) => ({ providerAgentId: row.agentId, engineId: row.engineId }))
+  const equippedDriveDiscs = loadouts.flatMap((loadout) => {
+    const counts = new Map<string, number>()
+    for (const disc of loadout.discs) counts.set(disc.setId, (counts.get(disc.setId) ?? 0) + 1)
+    return [...counts].map(([setId, pieces]) => ({
+      providerAgentId: loadout.agentId,
+      setId,
+      pieces,
+    }))
+  })
   const projections = new Map(
     memberIds.map((subjectAgentId) => [
       subjectAgentId,
@@ -241,20 +257,19 @@ export function preparePlanningBenchmark32(input: PlanningBenchmarkBinding32) {
         subjectAgentId,
         memberIds,
         equippedWEngines,
-        equippedDriveDiscs: loadouts.flatMap((loadout) => {
-          const counts = new Map<string, number>()
-          for (const disc of loadout.discs)
-            counts.set(disc.setId, (counts.get(disc.setId) ?? 0) + 1)
-          return [...counts].map(([setId, pieces]) => ({
-            providerAgentId: loadout.agentId,
-            setId,
-            pieces,
-          }))
-        }),
+        equippedDriveDiscs,
       }),
     ]),
   )
   gaps.push(...[...projections.values()].flatMap((row) => row.blockers))
+  const vocabulary = planningEquipmentConditionVocabulary32({
+    memberIds,
+    equippedWEngines,
+    equippedDriveDiscs,
+    projections,
+    alternatives: input.equipmentConditionAlternatives32,
+  })
+  gaps.push(...vocabulary.gaps)
   const events: PlanningEventDeclarationsMetadata32['events'] = []
   const hasWind = memberIds.some(
     (id) => getCurrentAgentEventContract(id)?.identity.attribute === 'wind',
@@ -283,11 +298,13 @@ export function preparePlanningBenchmark32(input: PlanningBenchmarkBinding32) {
           `${contract.source.formulaPath}#sha256=${contract.source.formulaSha256}`,
           `${contract.source.statsPath}#sha256=${contract.source.statsSha256}`,
         ],
-        conditions: projection.defs.filter((def) => def.referenceKey !== 'windswept'),
+        conditions: (vocabulary.definitions.get(member.agentId) ?? projection.defs).filter(
+          (def) => def.referenceKey !== 'windswept',
+        ),
       })
     }
   }
-  const vocabulary = {
+  const eventVocabulary = {
     contract: planningEventDeclarations32Contract,
     gameVersion: '3.2' as const,
     phaseId: 'phase_ii' as const,
@@ -298,18 +315,37 @@ export function preparePlanningBenchmark32(input: PlanningBenchmarkBinding32) {
       : {}),
     events,
   }
+  const vocabularyCacheKey = vocabulary.identity
+    ? stableContentHash({
+        ...eventVocabulary,
+        events: events.map((event) => ({ ...event, conditions: undefined })),
+        conditionVocabulary: vocabulary.identity,
+      })
+    : null
+  const cachedVocabularyFingerprint = vocabularyCacheKey
+    ? comparisonVocabularyFingerprints.get(vocabularyCacheKey)
+    : undefined
   const metadata: PlanningEventDeclarationsMetadata32 | null =
     gaps.length || !events.length
       ? null
       : {
-          ...vocabulary,
-          sourceFingerprint: planningEventDeclarationsMetadataFingerprint32(vocabulary),
+          ...eventVocabulary,
+          sourceFingerprint:
+            cachedVocabularyFingerprint ??
+            planningEventDeclarationsMetadataFingerprint32(eventVocabulary),
         }
+  if (vocabularyCacheKey && metadata && !cachedVocabularyFingerprint) {
+    comparisonVocabularyFingerprints.set(vocabularyCacheKey, metadata.sourceFingerprint)
+    if (comparisonVocabularyFingerprints.size > 16)
+      comparisonVocabularyFingerprints.delete(comparisonVocabularyFingerprints.keys().next().value!)
+  }
   const sourceBindingFingerprint = stableContentHash({
     accountFingerprint: input.accountFingerprint,
     fitFingerprint: input.fit.fingerprint,
     actorBindings,
-    metadata,
+    metadata: input.equipmentConditionAlternatives32
+      ? (metadata?.sourceFingerprint ?? null)
+      : metadata,
     conditionSource: currentPlanningConditionCatalogIdentity32,
     formulaSource: planningEffectResolutionIdentity32,
     selection: selection ?? null,
@@ -317,6 +353,9 @@ export function preparePlanningBenchmark32(input: PlanningBenchmarkBinding32) {
     baseline: planningBenchmarkBaseline32,
     contextPolicy: planningBenchmarkContextPolicy32,
     modelQualification: reviewedPlanningEventSetIdentity32,
+    ...(input.equipmentConditionAlternatives32
+      ? { equipmentConditionAlternatives32: input.equipmentConditionAlternatives32 }
+      : {}),
   })
   return {
     gaps: [...new Set(gaps)],

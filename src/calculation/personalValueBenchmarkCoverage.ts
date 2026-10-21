@@ -1,5 +1,8 @@
 import { stableContentHash } from '../gameDataPacks/types'
-import type { CurrentWEngineStaticCatalogItem } from '../gameDataPacks/currentWEngineStaticCatalog'
+import {
+  currentWEngineSourceRefs,
+  type CurrentWEngineStaticCatalogItem,
+} from '../gameDataPacks/currentWEngineStaticCatalog'
 import {
   evaluateCurrentPlanningInitialCritConversion32,
   type PlanningEffectRuntimeMember,
@@ -28,12 +31,7 @@ export function completePersonalValueBenchmarkCoverage(input: {
     effectKey: `wengine:${input.engine.engineId}:passive`,
     reason: '本个人固定事件切片仅采用音擎静态属性，未计算被动及触发条件。',
     fields: ['w_engine', 'refinement', 'initialStats', 'finalStats', 'combat_conditions'],
-    sourceRefs: source
-      ? [
-          `${source.formulaPath}#sha256=${source.formulaSha256}`,
-          `${source.dataPath}#sha256=${source.dataSha256}`,
-        ]
-      : [],
+    sourceRefs: source ? currentWEngineSourceRefs(source) : [],
   }
   const potentialExclusions = input.potentialApplications
     .filter((effect) => effect.status === 'excluded')

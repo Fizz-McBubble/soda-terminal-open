@@ -1,3 +1,5 @@
+import extractedSources from '../gameDataPacks/data/planning-condition-sources32.v1.json'
+
 type Conditional = {
   sheet: string
   name: string
@@ -24,7 +26,7 @@ export type SourceSeed = {
   localizationHash?: string
   conditionals: Record<string, Conditional>
 }
-export const sourceSeeds: readonly SourceSeed[] = [
+const reviewedSourceSeeds: readonly SourceSeed[] = [
   {
     kind: 'wengine',
     key: 'SteelCushion',
@@ -400,4 +402,47 @@ export const sourceSeeds: readonly SourceSeed[] = [
       },
     },
   },
+]
+
+const extracted: SourceSeed[] = extractedSources.sources.map((seed) => ({
+  kind: seed.kind,
+  key: seed.key,
+  ...(seed.externalId ? { externalId: seed.externalId } : {}),
+  ...(seed.engineId ? { engineId: seed.engineId } : {}),
+  ...(seed.specialty ? { specialty: seed.specialty } : {}),
+  formulaPath: seed.formulaPath,
+  formulaHash: seed.formulaHash,
+  dataPath: seed.dataPath,
+  dataHash: seed.dataHash,
+  ...(seed.mappedHash ? { mappedHash: seed.mappedHash } : {}),
+  metaPath: seed.metaPath,
+  metaHash: seed.metaHash,
+  localizationPath: seed.localizationPath,
+  localizationHash: seed.localizationHash,
+  conditionals: Object.fromEntries(
+    seed.conditionals.map((row) => [
+      row.name,
+      {
+        sheet: row.sheet,
+        name: row.name,
+        type: row.type,
+        ...(row.type === 'num'
+          ? { int_only: row.integerOnly, min: row.minimum!, max: row.maximum! }
+          : {}),
+        ...(row.type === 'list' ? { list: row.options } : {}),
+      },
+    ]),
+  ),
+}))
+
+/** Reviewed semantic overlays win. Registration only supplies source domains;
+ * every request still proves identity, actual equipment, recipients and values. */
+export const sourceSeeds: readonly SourceSeed[] = [
+  ...reviewedSourceSeeds,
+  ...extracted.filter(
+    (seed) =>
+      !reviewedSourceSeeds.some(
+        (reviewed) => reviewed.kind === seed.kind && reviewed.key === seed.key,
+      ),
+  ),
 ]

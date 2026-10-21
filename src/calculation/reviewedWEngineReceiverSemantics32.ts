@@ -1,6 +1,6 @@
 import type { SourceBackedEquipmentModifierBucket } from './currentPlanningDamageModifiers'
 import {
-  currentWEngineStaticCatalog,
+  baseWEngineStaticCatalog,
   getCurrentWEngineStaticData,
 } from '../gameDataPacks/currentWEngineStaticCatalog'
 import { reviewedWEngineReceiverSemantics32Identity } from './reviewedWEngineReceiverSemanticsIdentity32'
@@ -24,13 +24,24 @@ function isMoonTeamDamage(bucket: SourceBackedEquipmentModifierBucket) {
 export function applyReviewedWEngineReceiverSemantics32(
   input: readonly SourceBackedEquipmentModifierBucket[],
 ) {
+  const current = getCurrentWEngineStaticData('wengine-14162')
+  // Bind the retained GO subset and the selected item, not the mixed catalogue's
+  // installed version. New providers need their own receiver review.
   const sourceBound =
     reviewedWEngineReceiverSemantics32Identity.sourceVersions.includes(
-      currentWEngineStaticCatalog.gameVersion,
+      baseWEngineStaticCatalog.gameVersion,
     ) &&
-    currentWEngineStaticCatalog.generatedFrom.commit ===
+    baseWEngineStaticCatalog.generatedFrom.commit ===
       reviewedWEngineReceiverSemantics32Identity.sourceCommit &&
-    getCurrentWEngineStaticData('wengine-14162')?.source.formulaSha256.toLowerCase() ===
+    baseWEngineStaticCatalog.items.some(
+      (item) =>
+        item.stableId === 'wengine-14162' &&
+        item.source.formulaSha256.toLowerCase() ===
+          reviewedWEngineReceiverSemantics32Identity.formulaSha256,
+    ) &&
+    current !== null &&
+    !('provider' in current.source) &&
+    current.source.formulaSha256?.toLowerCase() ===
       reviewedWEngineReceiverSemantics32Identity.formulaSha256
   const activeProviders = new Set(
     input

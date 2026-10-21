@@ -20,7 +20,7 @@ export type AgentReferenceCondition = {
   status: ReferenceConditionStatus
   numericLevel: number | null
   numericLevelBasis: 'source_reference_configuration' | 'local_adjudicated_reference' | null
-  /** S0/A6 is a calculation assumption, not an observed source build. */
+  /** Formed-team reference, not an observed source build. */
   mindscapeLevel: number
   minimumDemonstratedLevel: number | null
   demonstrationEvidence: string | null
@@ -29,6 +29,7 @@ export type AgentReferenceCondition = {
 }
 /** Numeric consumer input remains compatible with pre-metadata callers. */
 export type TeamStrengthReferenceConditions = {
+  mindscapeByAgentId?: Readonly<Record<string, number>>
   potentialByAgentId: Readonly<Record<string, number>>
   evidenceRefs: readonly string[]
   /** Declared comparison states, never inferred account/combat observations. */
@@ -57,7 +58,7 @@ export type ResolvedTeamStrengthReferenceConditions = TeamStrengthReferenceCondi
   editorialRecordId?: string
   normalizedMemberIds: readonly string[]
   identity: string
-  calculationAssumption: 'level60-base-skill11-core7-s0-a6-supported-p6-explicit-override'
+  calculationAssumption: 'level60-base-skill11-core7-formed-key-mindscapes-supported-p6-explicit-override'
   agentConditions: readonly AgentReferenceCondition[]
   unhandledConditions: readonly UnhandledCondition[]
   diagnostics: readonly string[]

@@ -1,3 +1,5 @@
+import { projectBangbooUtility } from '../calculation/currentBangbooUtilityProjection'
+import { getCurrentBangbooContractRequirements } from '../calculation/currentBangbooMechanicContracts'
 import { describe, expect, it } from 'vitest'
 import { currentBangbooDirectory } from '../assault/catalog'
 import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
@@ -10,6 +12,48 @@ import {
 } from './targetTeamSourceBangbooOptions'
 
 describe('targetTeamSourceBangbooOptions recommendation shortlist and policies', () => {
+  it('smoke: supports Phoenix composition without inventing events or restricting unranked exploration', () => {
+    const memberIds = ['agent-phoenix', 'agent-velina', 'agent-remielle']
+    const options = targetTeamBangbooOptions({ memberIds })
+    expect(options.length).toBeGreaterThan(0)
+    expect(options.every((row) => row.activationStatus === 'active')).toBe(true)
+    expect(getCurrentAgentEventContract('agent-phoenix')).toBeNull()
+    expect(options.every((option) => option.recipientFit !== 'unknown')).toBe(true)
+    const recoveryOption = resolveTargetTeamBangbooOption({ memberIds }, 'bangboo-exploreboo')!
+    const recovery = projectBangbooUtility({
+      memberIds,
+      bangbooId: recoveryOption.bangbooId,
+      stars: recoveryOption.defaultStars,
+      activationStatus: recoveryOption.activationStatus,
+    })
+    expect(recovery.baseUtilities.length).toBeGreaterThan(0)
+    expect(recovery.recipientFit).not.toBe('unknown')
+    expect(
+      resolveTargetTeamBangbooOption({ memberIds }, 'bangboo-rocketboo')?.activationStatus,
+    ).toBe('inactive')
+    const invalidStars = { 'bangboo-rocketboo': 1 as const }
+    Reflect.set(invalidStars, 'bangboo-rocketboo', 6)
+    expect(
+      resolveTargetTeamBangbooOption(
+        { memberIds, bangbooStarsById: invalidStars },
+        'bangboo-rocketboo',
+      ),
+    ).toBeNull()
+    const attackTypeBoo = currentBangbooDirectory.find((row) =>
+      getCurrentBangbooContractRequirements(row.id)?.compositionKeys.some((key) =>
+        key.startsWith('attack_type:'),
+      ),
+    )
+    expect(attackTypeBoo).toBeDefined()
+    expect(
+      resolveTargetTeamBangbooOption({ memberIds }, attackTypeBoo!.id)?.activationStatus,
+    ).not.toBe('unknown')
+    expect(
+      targetTeamBangbooOptions({ memberIds: ['agent-phoenix', 'agent-jane', 'agent-yuzuha'] })
+        .length,
+    ).toBeGreaterThan(0)
+  })
+
   it('does not promote Brawler above a sourced Amillion using a fabricated whole-active bonus', () => {
     const memberIds = ['agent-anby', 'agent-billy', 'agent-nicole'] as const
     const brawler = resolveTargetTeamBangbooOption({ memberIds }, 'bangboo-brawlerboo')!
@@ -25,7 +69,8 @@ describe('targetTeamSourceBangbooOptions recommendation shortlist and policies',
     const options = targetTeamBangbooOptions({ memberIds })
     expect(options.length).toBeLessThanOrEqual(maxTargetTeamBangbooRecommendations)
     expect(options.length).toBeGreaterThan(0)
-    expect(options[0]!.bangbooId).toBe('bangboo-plugboo')
+    // afa03138 source replay already selected Electroboo before the 3.3 adoption.
+    expect(options[0]!.bangbooId).toBe('bangboo-electroboo')
     expect(options[0]!.bangbooId).toBe(reviewed[0]!.bangbooId)
     expect(options[0]!.activationStatus).toBe('active')
     expect(options[0]!.recommendationReason).toContain('资料推荐')

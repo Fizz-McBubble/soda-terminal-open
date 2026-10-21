@@ -1,3 +1,4 @@
+import * as offlineIndex from '../decision/current31TeamIntrinsicIndex'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import * as reviewedDirections from '../gameDataPacks/reviewedTeamSourceDirections'
 import * as teamRating from '../decision/current31TeamRating'
@@ -147,7 +148,7 @@ describe('team loadout completion candidates', () => {
     const evaluate = vi.spyOn(teamRating, 'evaluateCurrent31TeamRating')
     const candidates = completionCandidates(['agent-billy', 'agent-remielle'])
     expect(candidates.some((candidate) => candidate.memberIds.includes('agent-anby'))).toBe(false)
-    expect(evaluate.mock.calls.every(([input]) => input.reviewedOnly === true)).toBe(true)
+    expect(evaluate).not.toHaveBeenCalled()
   })
 
   it('honors exact-team withdrawal even when another source still supplies a strong band', () => {
@@ -178,33 +179,25 @@ describe('team loadout completion candidates', () => {
     const missingDialyn = sourceDirections.find((item) =>
       ['agent-pyrois', 'agent-sunna', 'agent-dialyn'].every((id) => item.memberIds.includes(id)),
     )!
-    const base = teamRating.evaluateCurrent31TeamRating({
-      candidateId: 's-plus-fixture',
-      memberIds: missingNorma.memberIds,
-      bangbooId: null,
-      outputPotentialBand: 'unknown',
-      reviewedOnly: true,
-      benchmark: {
-        status: 'unavailable',
-        baselineId: null,
-        outputIndex: null,
-        unsupportedIssueIds: [],
-        explanation: 'fixture',
-      },
-    })
+    const base = offlineIndex.lookupCurrent31TeamIntrinsicDetails(
+      missingNorma.memberIds,
+      's-plus-fixture',
+    )!
     expect(base.rating.status).toBe('rated')
     vi.spyOn(reviewedDirections, 'currentReviewedTeamSourceDirections').mockReturnValue([
       missingDialyn,
       missingNorma,
     ])
-    vi.spyOn(teamRating, 'evaluateCurrent31TeamRating').mockImplementation((input) => {
-      const result = structuredClone(base)
-      if (result.rating.status !== 'rated') throw new Error('Expected rated fixture')
-      const band = input.memberIds.includes('agent-norma') ? 'S+' : 'S'
-      result.rating.ratingBand = band
-      result.metaCalibration.projectedStrengthBand = band
-      return result
-    })
+    vi.spyOn(offlineIndex, 'lookupCurrent31TeamIntrinsicDetails').mockImplementation(
+      (memberIds) => {
+        const result = structuredClone(base)
+        if (result.rating.status !== 'rated') throw new Error('Expected rated fixture')
+        const band = memberIds.includes('agent-norma') ? 'S+' : 'S'
+        result.rating.ratingBand = band
+        result.metaCalibration.projectedStrengthBand = band
+        return result
+      },
+    )
     const candidates = completionCandidates(['agent-pyrois', 'agent-sunna'])
     expect(candidates.map((candidate) => candidate.missingAgentIds)).toEqual([
       ['agent-norma'],
@@ -219,20 +212,10 @@ describe('team loadout completion candidates', () => {
       const direction = reviewedDirections
         .currentReviewedTeamSourceDirections()
         .find((item) => memberIds.every((id) => item.memberIds.includes(id)))!
-      const real = teamRating.evaluateCurrent31TeamRating({
-        candidateId: 'qualification-fixture',
+      const real = offlineIndex.lookupCurrent31TeamIntrinsicDetails(
         memberIds,
-        bangbooId: null,
-        outputPotentialBand: 'unknown',
-        reviewedOnly: true,
-        benchmark: {
-          status: 'unavailable',
-          baselineId: null,
-          outputIndex: null,
-          unsupportedIssueIds: [],
-          explanation: 'fixture',
-        },
-      })
+        'qualification-fixture',
+      )!
       expect(real.rating).toMatchObject({ status: 'rated', ratingBand: 'A+' })
       const result = structuredClone(real)
       if (gate === 'conflict') result.metaCalibration.evidenceStatus = 'conflict'
@@ -245,7 +228,7 @@ describe('team loadout completion candidates', () => {
       vi.spyOn(reviewedDirections, 'currentReviewedTeamSourceDirections').mockReturnValue([
         direction,
       ])
-      vi.spyOn(teamRating, 'evaluateCurrent31TeamRating').mockReturnValue(result)
+      vi.spyOn(offlineIndex, 'lookupCurrent31TeamIntrinsicDetails').mockReturnValue(result)
       expect(completionCandidates(['agent-pyrois', 'agent-sunna'])).toEqual([])
     },
   )

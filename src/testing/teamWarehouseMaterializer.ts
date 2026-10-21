@@ -24,6 +24,8 @@ import { sampleDiscs } from '../evaluation/fixtures'
 import type { DriveDisc } from '../domain/schemas'
 
 export type TeamWarehouseMaterializerOptions = {
+  /** A named current trio for an isolated real-browser journey. */
+  memberIds?: readonly [string, string, string]
   sameCoreAlternatives?: boolean
   remainingBoxTeams?: boolean
   unsupportedLegacyTeam?: boolean
@@ -44,15 +46,24 @@ export type TeamWarehouseMaterializerResult = {
 export function teamWarehouseMaterializerMemberIds(
   options: TeamWarehouseMaterializerOptions = {},
 ): string[] {
-  return options.unsupportedLegacyTeam
-    ? ['agent-billy', 'agent-qingyi', 'agent-nicole']
-    : options.remainingBoxTeams
-      ? ['agent-yixuan', 'agent-dialyn', 'agent-lucia', 'agent-billy', 'agent-nicole', 'agent-anby']
-      : options.noDefaultBangbooTeam
-        ? ['agent-burnice', 'agent-grace', 'agent-rina']
-        : options.sameCoreAlternatives
-          ? ['agent-remielle', 'agent-velina', 'agent-aria', 'agent-promeia']
-          : ['agent-yixuan', 'agent-dialyn', 'agent-lucia']
+  return options.memberIds
+    ? [...options.memberIds]
+    : options.unsupportedLegacyTeam
+      ? ['agent-billy', 'agent-qingyi', 'agent-nicole']
+      : options.remainingBoxTeams
+        ? [
+            'agent-yixuan',
+            'agent-dialyn',
+            'agent-lucia',
+            'agent-billy',
+            'agent-nicole',
+            'agent-anby',
+          ]
+        : options.noDefaultBangbooTeam
+          ? ['agent-burnice', 'agent-grace', 'agent-rina']
+          : options.sameCoreAlternatives
+            ? ['agent-remielle', 'agent-velina', 'agent-aria', 'agent-promeia']
+            : ['agent-yixuan', 'agent-dialyn', 'agent-lucia']
 }
 
 export async function materializeTeamWarehouse(

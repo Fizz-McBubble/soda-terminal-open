@@ -1,0 +1,110 @@
+{
+  "schema": "soda-reviewed-phoenix-numeric/v1",
+  "gameVersion": "3.3",
+  "stableId": "agent-phoenix",
+  "externalId": "1641",
+  "attackType": {
+    "gameEnum": 101,
+    "key": "slash",
+    "locator": "hit_type.101"
+  },
+  "identity": {
+    "rarity": "S",
+    "attribute": "fire",
+    "specialty": "anomaly",
+    "faction": "nanoka:camp:12"
+  },
+  "baseStats": {
+    "atk_base": 126,
+    "atk_growth": 7.586,
+    "def_base": 49,
+    "def_growth": 6.6882,
+    "hp_base": 617,
+    "hp_growth": 83.7238,
+    "anomMas": 116,
+    "anomProf": 118,
+    "impact": 86,
+    "enerRegen": 1.2
+  },
+  "promotionStats": [
+    {
+      "hp": 0,
+      "atk": 0,
+      "def": 0
+    },
+    {
+      "hp": 423,
+      "atk": 45,
+      "def": 34
+    },
+    {
+      "hp": 847,
+      "atk": 90,
+      "def": 68
+    },
+    {
+      "hp": 1270,
+      "atk": 134,
+      "def": 101
+    },
+    {
+      "hp": 1694,
+      "atk": 179,
+      "def": 135
+    },
+    {
+      "hp": 2117,
+      "atk": 224,
+      "def": 169
+    }
+  ],
+  "coreStats": [
+    {
+      "atk": 0,
+      "anomMas": 12
+    },
+    {
+      "atk": 25,
+      "anomMas": 12
+    },
+    {
+      "atk": 25,
+      "anomMas": 24
+    },
+    {
+      "atk": 50,
+      "anomMas": 24
+    },
+    {
+      "atk": 50,
+      "anomMas": 36
+    },
+    {
+      "atk": 75,
+      "anomMas": 36
+    }
+  ],
+  "source": {
+    "provider": "nanoka",
+    "url": "https://static.nanoka.cc/zzz/3.3/zh/character/1641.json",
+    "rawSha256": "237c5b060657db1fd8ababe6cd26fb275c325d74a67eda481bde6732c7d93dfe",
+    "providerManifestSha256": "4d30f529d6e0568a130ebe4d79557b30d9c65d2219e77461763df1c4b42cb029",
+    "locators": {
+      "baseStats": "stats",
+      "promotionStats": "level.1..6",
+      "coreStats": "extra_level.1..6.extra (12101=atk;31401=anomMas)",
+      "corePassive": "passive.level.1641501..1641507.desc[0]:first-clause",
+      "potential": "potential;potential_detail"
+    }
+  },
+  "initialPassive": {
+    "stat": "anomProf",
+    "condition": "unconditional",
+    "valuesByCoreLevel": [43, 50, 57, 64, 71, 78, 85]
+  },
+  "potentialAbsence": {
+    "potentialEmpty": true,
+    "potentialDetailEmpty": true
+  },
+  "boundary": "Transformed numeric facts only; no copied source prose, media or executable skill events. Nanoka redistribution license is not asserted."
+}

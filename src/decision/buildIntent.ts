@@ -55,8 +55,8 @@ export type TeamJointBuildIntent = {
     bangbooId: string | null
     authorComparisonMembership?: AuthorComparisonMembership32
     scenarioTags: string[]
-    /** Normalized condition input: missing potential uses the product default; explicit 0 is retained. */
-    agentPotentialById: Record<string, number>
+    /** Observed or explicitly selected potential; unknown never unlocks a source prerequisite. */
+    agentPotentialById: Record<string, number | null>
     /** Optional only for historical snapshots; new intents always preserve unknown as null. */
     agentMindscapeById?: Record<string, number | null>
     selectedDirectionIdByAgentId?: Record<string, string>
@@ -78,7 +78,7 @@ export type PortfolioJointBuildIntent = {
   /** Present only when every resolved agent has an exact team boundary. */
   resolvedTeams?: [string, string, string][]
   /** Condition inputs retained with exact teams so the solve fingerprint cannot hide a potential change. */
-  agentPotentialById?: Record<string, number>
+  agentPotentialById?: Record<string, number | null>
   agentMindscapeById?: Record<string, number | null>
   selectedDirectionIdByAgentId?: Record<string, string>
   fingerprint: string
@@ -173,7 +173,7 @@ export function compileTeamBuildIntent(input: {
   memberIds: readonly [string, string, string]
   bangbooId: string
   scenarioTags?: readonly string[]
-  /** Optional account state; omitted potential resolves through the existing planning default. */
+  /** Optional account state; omitted potential remains unknown for source matching. */
   agentStateById?: Readonly<Record<string, ReviewedTeamAgentState>>
   selectedDirectionIdByAgentId?: Readonly<Record<string, string>>
   optimizerOptions?: AccountOptimizerOptions

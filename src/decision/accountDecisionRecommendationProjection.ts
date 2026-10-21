@@ -8,11 +8,11 @@ import { reviewedTeamCombatEvidence } from './reviewedTeamCombatEvidence'
 import { teamBangbooActivationAlternatives } from './teamBangbooActivationAlternatives'
 import type { reviewedAuthorComparisonMembership32 } from './reviewedAuthorComparisonMembership32'
 import {
-  assertIntrinsicSummaryMatchesCurrentRating,
   intrinsicRatingBenchmark,
   type projectAccountIntrinsicCandidates,
 } from './accountDecisionIntrinsicProjection'
 import { createPriorityResult, marginalGain } from './accountCultivationPriority'
+import { lookupCurrent31TeamIntrinsicDetails } from './current31TeamIntrinsicIndex'
 
 export function projectAccountDecisionRecommendation(
   item: ReturnType<typeof projectAccountIntrinsicCandidates>[number] & {
@@ -39,18 +39,19 @@ export function projectAccountDecisionRecommendation(
   const authorComparisonMembership = explicitMembershipById.get(item.candidate.candidateId)
   const hasPreparedBenchmark32 = preparedBenchmarkIds.has(item.candidate.candidateId)
   const explicitSelectionOnly = Boolean(authorComparisonMembership || hasPreparedBenchmark32)
-  const current = evaluateCurrent31TeamRating({
-    candidateId: item.candidate.candidateId,
-    memberIds: item.memberIds,
-    bangbooId: item.candidate.bestBangbooId,
-    outputPotentialBand: 'unknown',
-    benchmark: intrinsicRatingBenchmark,
-    reviewedOnly: context.deferDiagnosticInference,
-  })
-  if (current.rating.status !== 'rated')
+  const current =
+    context.validationIntrinsicProjectionMode === 'direct'
+      ? evaluateCurrent31TeamRating({
+          candidateId: item.candidate.candidateId,
+          memberIds: item.memberIds,
+          bangbooId: item.candidate.bestBangbooId,
+          outputPotentialBand: 'unknown',
+          benchmark: intrinsicRatingBenchmark,
+          reviewedOnly: context.deferDiagnosticInference,
+        })
+      : lookupCurrent31TeamIntrinsicDetails(item.memberIds, item.candidate.candidateId)
+  if (!current || current.rating.status !== 'rated')
     throw new Error(`短名单 Team Rating 与全域投影不一致：${item.candidate.candidateId}。`)
-  if (context.validationIntrinsicProjectionMode !== 'direct')
-    assertIntrinsicSummaryMatchesCurrentRating(item.memberIds, current)
   const priorityInput = createCultivationPriorityInput({
     contract: teamDecisionAuthorityContractId,
     candidateId: item.candidate.candidateId,
@@ -78,6 +79,7 @@ export function projectAccountDecisionRecommendation(
           bangbooAlternativeIds: teamBangbooActivationAlternatives(item.memberIds),
         }),
     outputPotential: item.output,
+    formedTeamReference: 'formedTeamReference' in current ? current.formedTeamReference : undefined,
     featureVector: current.featureVector,
     teamRating: current.rating,
     mechanicValidity: current.mechanicValidity,

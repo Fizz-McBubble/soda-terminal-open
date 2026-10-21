@@ -1,6 +1,7 @@
 import {
   prepareTargetTeamStandardReferenceEquipment,
   selectTargetTeamStandardReferenceEquipment,
+  standardTeamReferenceConditionAlternatives32,
   targetTeamStandardReferenceEquipmentPolicy,
   type StandardTeamReferencePreparationInput,
 } from '../decision/standardTeamReferenceEquipment'
@@ -37,22 +38,49 @@ export type TargetTeamStandardReferenceRequest32 = {
 
 /** Separate standard reference, never an observed account or an account fit. */
 export type TargetTeamStandardReferenceResult32 = {
-  protocol: 'local-standard-s0-a6-3x48-native-objective32'
+  protocol:
+    | 'local-standard-s0-a6-3x48-native-objective32'
+    | 'local-formed-key-mindscapes-3x48-native-objective32'
   status: 'metadata' | 'selected' | 'unsupported'
   preparedIdentity: string | null
   referenceFingerprint: string | null
   sourceBindingFingerprint: string | null
   metadata: PlanningEventDeclarationsMetadata32 | null
+  potentialByAgentId?: Readonly<Record<string, number>>
+  /** Snapshot of this synthetic reference, independent of account progression. */
+  referenceCultivation?: Array<{
+    agentId: string
+    level: number
+    mindscape: number
+    potential: number | null
+    baseSkillLevel: number
+    effectiveSkillLevel: number
+    coreLevel: number
+    substatRollBudget: number
+  }>
   selectionIdentity: string | null
   objectiveIdentity: string | null
   coverageIdentity: string | null
   searchCompleteness: 'bounded' | null
+  searchDiagnostics?: {
+    evaluations: number
+    unknownEvaluations: number
+    differentCoverageEvaluations: number
+    allDiscreteCombinationsVisited: boolean
+  }
   equipment: Array<{
     agentId: string
     engineId: string
     refinement: number
     branchIdentity: string
     discCount: number
+    /** Synthetic standard recipe, never account inventory or private damage. */
+    discs?: Array<
+      Pick<
+        import('../domain/schemas').DriveDisc,
+        'slot' | 'setId' | 'level' | 'mainStat' | 'subStats'
+      >
+    >
   }>
   consumerBindings?: {
     status: 'bound' | 'unsupported'
@@ -136,7 +164,7 @@ export function prepareTargetTeamStandardReference32(
   bundle?: StandardTeamReferenceSelectionBundle
 } {
   const base: TargetTeamStandardReferenceResult32 = {
-    protocol: 'local-standard-s0-a6-3x48-native-objective32',
+    protocol: 'local-formed-key-mindscapes-3x48-native-objective32',
     status: 'unsupported',
     preparedIdentity: null,
     referenceFingerprint: null,
@@ -194,6 +222,7 @@ export function prepareTargetTeamStandardReference32(
     warehouse: reference.warehouse,
     fit: reference.fit,
     selectedEquipment: { ...reference.parameters, source: 'source_defaults' as const },
+    equipmentConditionAlternatives32: standardTeamReferenceConditionAlternatives32(prepared),
   }
   const issued = preparePlanningBenchmark32(binding)
   const result = {
@@ -202,6 +231,24 @@ export function prepareTargetTeamStandardReference32(
     referenceFingerprint,
     sourceBindingFingerprint: issued.sourceBindingFingerprint,
     metadata: issued.metadata,
+    potentialByAgentId: { ...reference.parameters.potentialByAgentId },
+    referenceCultivation: reference.candidate.memberIds.map((agentId) => {
+      const member = reference.warehouse.roster.agents.find((row) => row.agentId === agentId)!
+      const effectiveSkillLevel = member.skillLevels.basic
+      const coreLevel = member.skillLevels.core
+      if (typeof effectiveSkillLevel !== 'number' || typeof coreLevel !== 'number')
+        throw new Error('标准培养基线缺少已声明的有效技能或核心等级。')
+      return {
+        agentId,
+        level: member.level,
+        mindscape: member.mindscape,
+        potential: supportsPotentialImage(agentId) ? (member.potentialImage ?? null) : null,
+        baseSkillLevel: targetTeamStandardReferenceEquipmentPolicy.cultivation.baseSkillLevel,
+        effectiveSkillLevel,
+        coreLevel,
+        substatRollBudget: targetTeamStandardReferenceEquipmentPolicy.search.allocation.totalRolls,
+      }
+    }),
     gaps: [...issued.gaps],
   }
   // A named, finite static goal already has its own producer. Other teams need
@@ -238,6 +285,7 @@ export function prepareTargetTeamStandardReference32(
           })),
         },
         referenceSelectedEquipment: binding.selectedEquipment,
+        equipmentConditionAlternatives32: binding.equipmentConditionAlternatives32,
       }
   } else if (!frozenMiyabiLuminizeDirection32(reference)) {
     return {
@@ -263,12 +311,25 @@ export function prepareTargetTeamStandardReference32(
       objectiveIdentity: selection.objectiveIdentity,
       coverageIdentity: selection.coverageIdentity,
       searchCompleteness: selection.diagnostics.searchCompleteness,
+      searchDiagnostics: {
+        evaluations: selection.diagnostics.evaluations,
+        unknownEvaluations: selection.diagnostics.unknownEvaluations,
+        differentCoverageEvaluations: selection.diagnostics.differentCoverageEvaluations,
+        allDiscreteCombinationsVisited: selection.diagnostics.allDiscreteCombinationsVisited,
+      },
       equipment: selection.selections.map((row) => ({
         agentId: row.agentId,
         engineId: row.engineId,
         refinement: row.refinement,
         branchIdentity: row.branchIdentity,
         discCount: row.discs.length,
+        discs: row.discs.map(({ slot, setId, level, mainStat, subStats }) => ({
+          slot,
+          setId,
+          level,
+          mainStat,
+          subStats: structuredClone(subStats),
+        })),
       })),
       consumerBindings: bindStandardConsumers(bundle),
       gaps: [],

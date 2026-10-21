@@ -1,5 +1,6 @@
 import type { ReviewedTeamSourceDirection } from './reviewedTeamSourceDirections'
 import { stableContentHash } from './types'
+import { gameData32BuildSources } from './gameData32BuildGuidance'
 
 const checkedAt = '2026-10-19'
 const aggregateCheckedAt = '2026-10-14'
@@ -33,6 +34,19 @@ function aggregateTrioSource(trioId: string) {
   }
 }
 
+function currentBuildTeamSource(key: 'koledaLiveBuild32' | 'sigridLiveBuild32', trioId: string) {
+  const source = gameData32BuildSources[key]!
+  return {
+    id: `${source.id}:${trioId}`,
+    url: source.url,
+    sourceVersion: source.sourceVersion,
+    checkedAt: source.checkedAt,
+    contentHash: source.contentHash,
+    locator: `Teams > Recommended teams > ${trioId}`,
+    verificationStatus: 'reviewed_exact_team_current_32',
+  }
+}
+
 /**
  * Exact 3.2 team identities admitted after local source review.
  *
@@ -41,8 +55,53 @@ function aggregateTrioSource(trioId: string) {
  */
 export const reviewedCurrentTeamGuidance32 = {
   gameVersion: '3.2',
-  reviewedAt: checkedAt,
+  reviewedAt: '2026-10-20',
   entries: [
+    {
+      memberIds: ['agent-koleda', 'agent-yixuan', 'agent-lucia'],
+      sourceRefs: [currentBuildTeamSource('koledaLiveBuild32', 'Rupture: Yixuan & Lucia')],
+      conditions: [
+        '当前攻略明确列出仪玄／珂蕾妲／卢西娅；既有独立米游社队伍记录继续保留原2.3来源身份。',
+        '命破队的普通暴伤与失衡增益按实际接受者和潜能等级核对；山大王或震星分支不等于常驻增益。',
+        '该三人方向不提供独立强度档位、最优音擎或完整循环结论。',
+      ],
+    },
+    {
+      memberIds: ['agent-koleda', 'agent-soldier-11', 'agent-lucy'],
+      sourceRefs: [currentBuildTeamSource('koledaLiveBuild32', 'F2P Fire: Soldier 11 & Lucy')],
+      conditions: [
+        '当前攻略明确列出「11号」／珂蕾妲／露西，历史独立攻略仍保留原始版本。',
+        '珂蕾妲负责失衡窗口，露西提供攻击方向；炉火、山大王与潜能增益须按真实等级和动作触发。',
+        '不由来源中的使用率或个人评级推导三人强度；邦布需按实际额外能力选择。',
+      ],
+    },
+    {
+      memberIds: ['agent-sigrid', 'agent-norma', 'agent-astra'],
+      sourceRefs: [currentBuildTeamSource('sigridLiveBuild32', 'Premium: Norma & Astra Yao')],
+      conditions: [
+        '当前攻略直接列出希格莉德／诺姆／耀嘉音；旧IcyVeins与Prydwen成员记录保留历史版本，不冒充重新测算。',
+        '激素朋克与拂晓为不同触发方向；拂晓连段前EX须明确，不能凭成员职业自动开启四件效果。',
+        '33.8%为来源暴击率参考；满核心与巡空枪势有效时的数学满暴点34%及状态条件继续沿既有规则。',
+      ],
+    },
+    {
+      memberIds: ['agent-sigrid', 'agent-dialyn', 'agent-rina'],
+      sourceRefs: [currentBuildTeamSource('sigridLiveBuild32', 'Ultimate spam: Dialyn & Rina')],
+      conditions: [
+        '当前攻略直接列出希格莉德／琉音／丽娜，琉音的终结技转换是河豚四件来源分支的条件。',
+        '丽娜的穿透收益与希格莉德影画、实际装备有关；不把角色个人评级或终结技频率描述换算成全队分数。',
+        '套装触发与覆盖单独核对；完整循环和独立档位未由本条来源证明。',
+      ],
+    },
+    {
+      memberIds: ['agent-sigrid', 'agent-lycaon', 'agent-rina'],
+      sourceRefs: [currentBuildTeamSource('sigridLiveBuild32', 'Standard banner: Lycaon & Rina')],
+      conditions: [
+        '当前攻略直接列出希格莉德／莱卡恩／丽娜，莱卡恩负责失衡与冰属性适配。',
+        '未包含琉音，不沿用河豚四件的终结技转换分支；拂晓强化普攻方向仍需佩戴者EX条件。',
+        '来源只支持当前可用方向，不给出与诺姆队同条件的强弱结论。',
+      ],
+    },
     {
       memberIds: ['agent-miyabi', 'agent-remielle', 'agent-velina'],
       sourceRefs: [
@@ -111,6 +170,9 @@ export const reviewedCurrentTeamGuidance32 = {
       sourceRefs: [
         {
           id: 'miyoushe-76994144-nekomata-dialyn-sunna-current',
+          recommendationPrerequisites: [
+            { kind: 'potential_minimum', agentId: 'agent-nekomata', minimum: 1 },
+          ],
           url: 'https://www.miyoushe.com/zzz/article/76994144',
           sourceVersion: '3.1',
           checkedAt,
@@ -129,6 +191,9 @@ export const reviewedCurrentTeamGuidance32 = {
       sourceRefs: [
         {
           id: 'miyoushe-76994144-nekomata-dialyn-astra-current',
+          recommendationPrerequisites: [
+            { kind: 'potential_minimum', agentId: 'agent-nekomata', minimum: 1 },
+          ],
           url: 'https://www.miyoushe.com/zzz/article/76994144',
           sourceVersion: '3.1',
           checkedAt,
@@ -190,6 +255,54 @@ export const reviewedCurrentTeamGuidance32 = {
       conditions: [
         '3.2.3聚合记录只证明该M0三人曾经出场；装备、流程、强度和场景条件不从出场率外推。',
         '追加攻击语义由三名成员的当前锁定公式及既有队伍模块复核支持。',
+      ],
+    },
+    {
+      memberIds: ['agent-claret', 'agent-lycaon', 'agent-rina'],
+      sourceRefs: [
+        {
+          id: 'prydwen-claret-3.2-lycaon-rina',
+          recommendationPrerequisites: [
+            { kind: 'potential_minimum', agentId: 'agent-lycaon', minimum: 1 },
+          ],
+          url: 'https://www.prydwen.gg/zenless/characters/claret',
+          sourceVersion: '3.2',
+          sourceUpdatedAt: '2026-09-30',
+          checkedAt: '2026-10-20',
+          contentHash: '7D89817F698377C78EE82FF059DF11CAD469553E755AF3CE78A877F92ACF9CF3',
+          hashDefinition: 'Web text projection extraction sha256; not raw HTML',
+          locator: 'Teams & Synergy > Synergy > Lycaon; rendered lines 696–697',
+          verificationStatus: 'reviewed_exact_team_current_32',
+        },
+      ],
+      conditions: [
+        '来源Teams & Synergy明确列出克拉蕾／莱卡恩／丽娜三人可用方向；丽娜同阵营满足莱卡恩额外能力条件。',
+        '莱卡恩潜能解锁（Potential Unlock）为搭配克拉蕾的前提，使其增益与锋御特性兼容；莱卡恩前台与后台均可积攒失衡，并可提供快速支援触发星声。',
+        '该精确三人仅支持克拉蕾锋御／毁伤主输出与失衡机制，不代表三人强度档位、使用率分数或固定逐帧循环。',
+      ],
+    },
+    {
+      memberIds: ['agent-claret', 'agent-trigger', 'agent-nicole'],
+      sourceRefs: [
+        {
+          id: 'prydwen-claret-3.2-trigger-nicole',
+          recommendationPrerequisites: [
+            { kind: 'wengine', agentId: 'agent-trigger', engineId: 'wengine-14136' },
+          ],
+          url: 'https://www.prydwen.gg/zenless/characters/claret',
+          sourceVersion: '3.2',
+          sourceUpdatedAt: '2026-09-30',
+          checkedAt: '2026-10-20',
+          contentHash: '7D89817F698377C78EE82FF059DF11CAD469553E755AF3CE78A877F92ACF9CF3',
+          hashDefinition: 'Web text projection extraction sha256; not raw HTML',
+          locator: 'Teams & Synergy > Synergy > Trigger & Nicole; rendered lines 698–699',
+          verificationStatus: 'reviewed_exact_team_current_32',
+        },
+      ],
+      conditions: [
+        '来源Teams & Synergy明确列出克拉蕾搭配扳机与妮可组合；妮可提供兼容锋御特性的增益并可使用「聚宝箱」（The Vault，wengine-13103）等非纯攻击辅助音擎。',
+        '核心协同依赖扳机装备专武提供减防（DEF Shred），且依赖站场时间与增减益覆盖管理；该前提默认不自动开启，不能由扳机改为追加攻击主输出，克拉蕾仍为主输出。',
+        '该精确三人仅支持克拉蕾锋御／毁伤主输出与失衡协同，不包含三人强度分数、场景排名推断或完整逐帧循环。',
       ],
     },
   ] satisfies readonly ReviewedTeamSourceDirection[],

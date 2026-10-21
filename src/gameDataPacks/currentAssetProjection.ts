@@ -289,8 +289,8 @@ function byDomain(domain: CurrentAssetDomain) {
  * with the installed 3.1 intake while keeping candidate and media boundaries explicit.
  */
 export const currentAssetProjection = {
-  id: 'current-asset-projection-3.2-r1',
-  gameVersion: '3.2',
+  id: `current-asset-projection-${currentScopeManifest.gameVersion}-r1`,
+  gameVersion: currentScopeManifest.gameVersion,
   scopeManifestId: currentScopeManifest.id,
   effectiveAsOf: currentScopeManifest.effectiveAsOf,
   entries,

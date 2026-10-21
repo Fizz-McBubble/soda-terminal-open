@@ -1,0 +1,717 @@
+{
+  "schema": "soda-team-relative-preference-development/v2",
+  "adoptionStatus": "development_candidate",
+  "targetGameVersion": "3.2",
+  "evidenceVersion": "3.2.3",
+  "sourceSha256": "abea635055a595e1f3082c96aa02712e4561940f4446e75d61c4d7b4f0f6c935",
+  "sourceContentHash": "fnv1a-bcb43a1c",
+  "sourceContexts": [
+    {
+      "schema": "source-native-mode-period/v1",
+      "collectionSnapshotVersion": "3.2.3",
+      "nativeModeVersion": "3.2.2",
+      "phase": "shiyu_defense",
+      "partition": "5-1",
+      "collectedOn": "12/10/2026",
+      "periodStartsOn": "02/10/2026",
+      "periodEndsOn": "16/10/2026",
+      "dateConvention": "DD/MM/YYYY; source has no timezone or end-inclusivity declaration",
+      "modeBossRoster": [],
+      "bossBinding": "source-node-only; enemy-roster-not-declared",
+      "sourceStage": {
+        "kind": "shiyu_defense_node",
+        "rawFloor": { "relation": "equal", "value": 5 },
+        "rawNode": 1,
+        "bossSourceSlot": null,
+        "bossName": null
+      },
+      "observationPopulation": {
+        "schema": "source-limited-s-m0-aggregate/v1",
+        "performanceField": "avg_round",
+        "mindscapeFilter": "no Limited S agent above M0; Standard S and A agents are unrestricted",
+        "uncontrolled": [
+          "Standard S/A mindscapes",
+          "W-Engines",
+          "potential",
+          "builds",
+          "player execution"
+        ],
+        "sampleSize": "unpublished; app_rate times demographic total is not the M0 mean sample size",
+        "aggregation": "When total composition uses > 10 and abs(skewness) > 0.8: scipy trim_mean(0.25); otherwise arithmetic mean. Single-partition JSON requires total uses >= 2; scores >= 35000 with total uses <= 10 are suppressed."
+      },
+      "combatContext": "unbound; no enemy stats, buff, stun or resource window inferred",
+      "identity": "864b6ba1444417543a3002847b61855030bd8bf309de6ffdc1b58ac90d3eadea"
+    },
+    {
+      "schema": "source-native-mode-period/v1",
+      "collectionSnapshotVersion": "3.2.3",
+      "nativeModeVersion": "3.2.2",
+      "phase": "shiyu_defense",
+      "partition": "5-2",
+      "collectedOn": "12/10/2026",
+      "periodStartsOn": "02/10/2026",
+      "periodEndsOn": "16/10/2026",
+      "dateConvention": "DD/MM/YYYY; source has no timezone or end-inclusivity declaration",
+      "modeBossRoster": [],
+      "bossBinding": "source-node-only; enemy-roster-not-declared",
+      "sourceStage": {
+        "kind": "shiyu_defense_node",
+        "rawFloor": { "relation": "equal", "value": 5 },
+        "rawNode": 2,
+        "bossSourceSlot": null,
+        "bossName": null
+      },
+      "observationPopulation": {
+        "schema": "source-limited-s-m0-aggregate/v1",
+        "performanceField": "avg_round",
+        "mindscapeFilter": "no Limited S agent above M0; Standard S and A agents are unrestricted",
+        "uncontrolled": [
+          "Standard S/A mindscapes",
+          "W-Engines",
+          "potential",
+          "builds",
+          "player execution"
+        ],
+        "sampleSize": "unpublished; app_rate times demographic total is not the M0 mean sample size",
+        "aggregation": "When total composition uses > 10 and abs(skewness) > 0.8: scipy trim_mean(0.25); otherwise arithmetic mean. Single-partition JSON requires total uses >= 2; scores >= 35000 with total uses <= 10 are suppressed."
+      },
+      "combatContext": "unbound; no enemy stats, buff, stun or resource window inferred",
+      "identity": "9e243c7d682b8330e37616b520be5e9ce09304f7143b44473bb9411ee4a58d8d"
+    },
+    {
+      "schema": "source-native-mode-period/v1",
+      "collectionSnapshotVersion": "3.2.3",
+      "nativeModeVersion": "3.2.2",
+      "phase": "shiyu_defense",
+      "partition": "5-3",
+      "collectedOn": "12/10/2026",
+      "periodStartsOn": "02/10/2026",
+      "periodEndsOn": "16/10/2026",
+      "dateConvention": "DD/MM/YYYY; source has no timezone or end-inclusivity declaration",
+      "modeBossRoster": [],
+      "bossBinding": "source-node-only; enemy-roster-not-declared",
+      "sourceStage": {
+        "kind": "shiyu_defense_node",
+        "rawFloor": { "relation": "equal", "value": 5 },
+        "rawNode": 3,
+        "bossSourceSlot": null,
+        "bossName": null
+      },
+      "observationPopulation": {
+        "schema": "source-limited-s-m0-aggregate/v1",
+        "performanceField": "avg_round",
+        "mindscapeFilter": "no Limited S agent above M0; Standard S and A agents are unrestricted",
+        "uncontrolled": [
+          "Standard S/A mindscapes",
+          "W-Engines",
+          "potential",
+          "builds",
+          "player execution"
+        ],
+        "sampleSize": "unpublished; app_rate times demographic total is not the M0 mean sample size",
+        "aggregation": "When total composition uses > 10 and abs(skewness) > 0.8: scipy trim_mean(0.25); otherwise arithmetic mean. Single-partition JSON requires total uses >= 2; scores >= 35000 with total uses <= 10 are suppressed."
+      },
+      "combatContext": "unbound; no enemy stats, buff, stun or resource window inferred",
+      "identity": "a41e1c5075b50867fbe3c854f00806f907007a5d201b751e8316b4d039045825"
+    },
+    {
+      "schema": "source-native-mode-period/v1",
+      "collectionSnapshotVersion": "3.2.3",
+      "nativeModeVersion": "3.2.3",
+      "phase": "deadly_assault",
+      "partition": "1-1",
+      "collectedOn": "12/10/2026",
+      "periodStartsOn": "09/10/2026",
+      "periodEndsOn": "23/10/2026",
+      "dateConvention": "DD/MM/YYYY; source has no timezone or end-inclusivity declaration",
+      "modeBossRoster": [
+        { "sourceSlot": "boss_1", "name": "Phaethon of the Scorched Horizon" },
+        { "sourceSlot": "boss_2", "name": "Infernal Revenant" },
+        { "sourceSlot": "boss_3", "name": "Kusarikku" },
+        { "sourceSlot": "boss_4", "name": "Integrated: Girtablullu" }
+      ],
+      "bossBinding": "source-floor-decoder-to-configured-boss-slot; combat-stats-unbound",
+      "sourceStage": {
+        "kind": "deadly_assault_regular",
+        "rawFloor": { "relation": "equal", "value": 1 },
+        "rawNode": null,
+        "bossSourceSlot": "boss_1",
+        "bossName": "Phaethon of the Scorched Horizon"
+      },
+      "observationPopulation": {
+        "schema": "source-limited-s-m0-aggregate/v1",
+        "performanceField": "avg_round",
+        "mindscapeFilter": "no Limited S agent above M0; Standard S and A agents are unrestricted",
+        "uncontrolled": [
+          "Standard S/A mindscapes",
+          "W-Engines",
+          "potential",
+          "builds",
+          "player execution"
+        ],
+        "sampleSize": "unpublished; app_rate times demographic total is not the M0 mean sample size",
+        "aggregation": "When total composition uses > 10 and abs(skewness) > 0.8: scipy trim_mean(0.25); otherwise arithmetic mean. Single-partition JSON requires total uses >= 2; scores >= 35000 with total uses <= 10 are suppressed."
+      },
+      "combatContext": "unbound; no enemy stats, buff, stun or resource window inferred",
+      "identity": "23ba4e5dad68da76eee939c4d266ce040fdcd95667c57394128b8d83ee955093"
+    },
+    {
+      "schema": "source-native-mode-period/v1",
+      "collectionSnapshotVersion": "3.2.3",
+      "nativeModeVersion": "3.2.3",
+      "phase": "deadly_assault",
+      "partition": "1-2",
+      "collectedOn": "12/10/2026",
+      "periodStartsOn": "09/10/2026",
+      "periodEndsOn": "23/10/2026",
+      "dateConvention": "DD/MM/YYYY; source has no timezone or end-inclusivity declaration",
+      "modeBossRoster": [
+        { "sourceSlot": "boss_1", "name": "Phaethon of the Scorched Horizon" },
+        { "sourceSlot": "boss_2", "name": "Infernal Revenant" },
+        { "sourceSlot": "boss_3", "name": "Kusarikku" },
+        { "sourceSlot": "boss_4", "name": "Integrated: Girtablullu" }
+      ],
+      "bossBinding": "source-floor-decoder-to-configured-boss-slot; combat-stats-unbound",
+      "sourceStage": {
+        "kind": "deadly_assault_regular",
+        "rawFloor": { "relation": "equal", "value": 2 },
+        "rawNode": null,
+        "bossSourceSlot": "boss_2",
+        "bossName": "Infernal Revenant"
+      },
+      "observationPopulation": {
+        "schema": "source-limited-s-m0-aggregate/v1",
+        "performanceField": "avg_round",
+        "mindscapeFilter": "no Limited S agent above M0; Standard S and A agents are unrestricted",
+        "uncontrolled": [
+          "Standard S/A mindscapes",
+          "W-Engines",
+          "potential",
+          "builds",
+          "player execution"
+        ],
+        "sampleSize": "unpublished; app_rate times demographic total is not the M0 mean sample size",
+        "aggregation": "When total composition uses > 10 and abs(skewness) > 0.8: scipy trim_mean(0.25); otherwise arithmetic mean. Single-partition JSON requires total uses >= 2; scores >= 35000 with total uses <= 10 are suppressed."
+      },
+      "combatContext": "unbound; no enemy stats, buff, stun or resource window inferred",
+      "identity": "2be50b0181e070a1a7f710b3d3696729c2a3c75d9c7a7eb96f0d1f0a04df62bb"
+    },
+    {
+      "schema": "source-native-mode-period/v1",
+      "collectionSnapshotVersion": "3.2.3",
+      "nativeModeVersion": "3.2.3",
+      "phase": "deadly_assault",
+      "partition": "1-3",
+      "collectedOn": "12/10/2026",
+      "periodStartsOn": "09/10/2026",
+      "periodEndsOn": "23/10/2026",
+      "dateConvention": "DD/MM/YYYY; source has no timezone or end-inclusivity declaration",
+      "modeBossRoster": [
+        { "sourceSlot": "boss_1", "name": "Phaethon of the Scorched Horizon" },
+        { "sourceSlot": "boss_2", "name": "Infernal Revenant" },
+        { "sourceSlot": "boss_3", "name": "Kusarikku" },
+        { "sourceSlot": "boss_4", "name": "Integrated: Girtablullu" }
+      ],
+      "bossBinding": "source-floor-decoder-to-configured-boss-slot; combat-stats-unbound",
+      "sourceStage": {
+        "kind": "deadly_assault_regular",
+        "rawFloor": { "relation": "equal", "value": 3 },
+        "rawNode": null,
+        "bossSourceSlot": "boss_3",
+        "bossName": "Kusarikku"
+      },
+      "observationPopulation": {
+        "schema": "source-limited-s-m0-aggregate/v1",
+        "performanceField": "avg_round",
+        "mindscapeFilter": "no Limited S agent above M0; Standard S and A agents are unrestricted",
+        "uncontrolled": [
+          "Standard S/A mindscapes",
+          "W-Engines",
+          "potential",
+          "builds",
+          "player execution"
+        ],
+        "sampleSize": "unpublished; app_rate times demographic total is not the M0 mean sample size",
+        "aggregation": "When total composition uses > 10 and abs(skewness) > 0.8: scipy trim_mean(0.25); otherwise arithmetic mean. Single-partition JSON requires total uses >= 2; scores >= 35000 with total uses <= 10 are suppressed."
+      },
+      "combatContext": "unbound; no enemy stats, buff, stun or resource window inferred",
+      "identity": "f4279e4018f579e65aedab7e7185750722c00e90d7fd2f57978b49d76b30acb2"
+    },
+    {
+      "schema": "source-native-mode-period/v1",
+      "collectionSnapshotVersion": "3.2.3",
+      "nativeModeVersion": "3.2.3",
+      "phase": "deadly_assault",
+      "partition": "2-1",
+      "collectedOn": "12/10/2026",
+      "periodStartsOn": "09/10/2026",
+      "periodEndsOn": "23/10/2026",
+      "dateConvention": "DD/MM/YYYY; source has no timezone or end-inclusivity declaration",
+      "modeBossRoster": [
+        { "sourceSlot": "boss_1", "name": "Phaethon of the Scorched Horizon" },
+        { "sourceSlot": "boss_2", "name": "Infernal Revenant" },
+        { "sourceSlot": "boss_3", "name": "Kusarikku" },
+        { "sourceSlot": "boss_4", "name": "Integrated: Girtablullu" }
+      ],
+      "bossBinding": "source-floor-decoder-to-configured-boss-slot; combat-stats-unbound",
+      "sourceStage": {
+        "kind": "deadly_assault_adversity",
+        "rawFloor": { "relation": "greater_than", "value": 3 },
+        "rawNode": null,
+        "bossSourceSlot": "boss_4",
+        "bossName": "Integrated: Girtablullu"
+      },
+      "observationPopulation": {
+        "schema": "source-limited-s-m0-aggregate/v1",
+        "performanceField": "avg_round",
+        "mindscapeFilter": "no Limited S agent above M0; Standard S and A agents are unrestricted",
+        "uncontrolled": [
+          "Standard S/A mindscapes",
+          "W-Engines",
+          "potential",
+          "builds",
+          "player execution"
+        ],
+        "sampleSize": "unpublished; app_rate times demographic total is not the M0 mean sample size",
+        "aggregation": "When total composition uses > 10 and abs(skewness) > 0.8: scipy trim_mean(0.25); otherwise arithmetic mean. Single-partition JSON requires total uses >= 2; scores >= 35000 with total uses <= 10 are suppressed."
+      },
+      "combatContext": "unbound; no enemy stats, buff, stun or resource window inferred",
+      "identity": "2c3c7a4d4734f2f9908aa2b172b00fec760671538d790f36b654b55a419435a4"
+    }
+  ],
+  "optimizerSourceSha256": "d5f54389a3b972dccb4d2d57134a42e1675ae1839fe2a3482c2dd4b1c60d8748",
+  "producerSourceSha256": "a9e1a9ab568058f33fd20a80e9e720138567a90214262341d4520c184daf73ad",
+  "evidenceSourceSha256": "0d9e6d09bb0a544ba325b33389701d474181810acd6b80708c6244b229f568e5",
+  "evidencePolicy": {
+    "version": "all-shared-two-observed-pairs-primary-embargo/v2",
+    "selection": "same-source-partition-positive-limited-S-M0-means-exactly-two-shared-members",
+    "primaryUse": "validation-only-never-pair-inclusion-or-predictor",
+    "holdout": "exclude-every-training-pair-touching-either-held-primary-group",
+    "bangboo": "source-string-equality-stratum-only-not-a-controlled-build-claim"
+  },
+  "pairMembershipSha256": "5f696aac7934607a4be8a8f69ff0fbf7e9235a17761d485dfce6c5235e303c7f",
+  "mechanicDataFingerprint": "fnv1a-589b4ebf",
+  "referenceConditionsIdentity": "fnv1a-af6c787e",
+  "featureNames": [
+    "direct_action_scale",
+    "anomaly_action_buildup",
+    "rupture_action_multiplier",
+    "stun_action_scale",
+    "background_action_scale",
+    "field_time_demand",
+    "field_time_excess",
+    "output_role_count",
+    "background_output_count",
+    "inactive_additional_ability_fraction",
+    "unmet_resource_fraction",
+    "different_attribute_anomaly_pair",
+    "compatible_damage_capability",
+    "compatible_attack_capability",
+    "compatible_critical_capability",
+    "compatible_defense_reduction_capability",
+    "compatible_resistance_reduction_capability",
+    "compatible_anomaly_capability",
+    "compatible_sheer_force_capability",
+    "compatible_stun_capability",
+    "second_direct_action_scale",
+    "second_stun_action_scale",
+    "second_background_action_scale",
+    "second_anomaly_action_buildup",
+    "compatible_multi_provider_capacity",
+    "sharp_action_scale",
+    "laceration_action_multiplier",
+    "compatible_sharp_capability",
+    "compatible_laceration_capability",
+    "reference_potential_damage_bonus",
+    "reference_potential_attack_percent",
+    "reference_potential_crit_damage",
+    "reference_potential_penetration_ratio",
+    "reference_potential_resistance_ignore",
+    "source_self_damage_capacity",
+    "source_self_attack_capacity",
+    "source_self_critical_capacity",
+    "source_self_anomaly_critical_capacity",
+    "source_self_sheer_capacity",
+    "source_self_sharp_capacity",
+    "source_self_laceration_capacity",
+    "compatible_anomaly_critical_capability",
+    "source_self_anomaly_proficiency_capacity",
+    "source_self_anomaly_mastery_capacity",
+    "source_self_anomaly_accumulation_capacity",
+    "compatible_aftershock_damage_capability",
+    "compatible_aftershock_critical_capability",
+    "compatible_aftershock_defense_reduction_capability",
+    "source_self_aftershock_damage_capacity",
+    "source_self_aftershock_daze_capacity",
+    "compatible_anomaly_proficiency_capability",
+    "compatible_anomaly_mastery_capability",
+    "source_primary_action_capacity",
+    "source_secondary_action_capacity",
+    "source_support_primary_recipient_first_provider_gain",
+    "source_support_primary_recipient_second_provider_gain",
+    "source_support_anomaly_proficiency_gain",
+    "source_support_anomaly_mastery_gain",
+    "source_support_stun_capacity",
+    "source_support_anomaly_damage_bonus",
+    "source_support_anomaly_buff_bonus",
+    "source_support_anomaly_defense_ignore",
+    "source_support_anomaly_resistance_ignore",
+    "source_support_disorder_additive_bonus",
+    "source_support_disorder_buff_bonus",
+    "source_support_anomaly_motion_value_fraction",
+    "source_support_abloom_original_anomaly_fraction",
+    "source_support_anomaly_buildup_bonus",
+    "source_support_anomaly_buildup_resistance_reduction",
+    "source_support_secondary_recipient_first_provider_gain"
+  ],
+  "diagnosticBaseline": {
+    "kind": "historical-label-directional-ridge",
+    "contentHash": "fnv1a-f22e11fd",
+    "trainingCount": 105
+  },
+  "target": "all-same-partition-limited-S-M0-aggregate-shared-two-member-replacements-observed-direction/v3",
+  "policy": {
+    "input": "mechanic-feature-difference; no agent identity, source tier, usage or outcome in predictors",
+    "loss": "equal total loss per training partition; fixed lambda 10/105; antisymmetric without intercept",
+    "inference": "local relative log-odds only; no coarse band conversion",
+    "observationConditions": "S-rank M0 aggregate; A-rank Mindscapes, equipment, potential and player operation are not controlled",
+    "holdout": "entire source partition, or every training pair touching either involved primary group excluded; each pair tested once; preprocessing fitted on training only",
+    "legacyComparison": "same current features/optimizer/lambda and full held-partition test set; original same-primary training universe only"
+  },
+  "counts": {
+    "sourceTeams": 548,
+    "eligibleTeams": 548,
+    "pairs": 5584,
+    "partitions": 7,
+    "primaryGroups": 32,
+    "primaryGroupHoldouts": 209,
+    "samePrimaryPairs": 3408,
+    "changedPrimaryPairs": 2176,
+    "unassignedPrimaryPairs": 0
+  },
+  "validation": {
+    "leavePartitionOut": {
+      "folds": 7,
+      "pairs": 5584,
+      "decisivePairs": 5583,
+      "correct": 3309,
+      "accuracy": 0.5926921010209565,
+      "baselineCorrect": 3094,
+      "baselineAccuracy": 0.554182339244134,
+      "modelTies": 24,
+      "byPartition": [
+        {
+          "partition": "3.2.3:shiyu_defense:5-1",
+          "pairs": 1167,
+          "correct": 668,
+          "baselineCorrect": 662
+        },
+        {
+          "partition": "3.2.3:shiyu_defense:5-2",
+          "pairs": 617,
+          "correct": 363,
+          "baselineCorrect": 330
+        },
+        {
+          "partition": "3.2.3:shiyu_defense:5-3",
+          "pairs": 1164,
+          "correct": 677,
+          "baselineCorrect": 633
+        },
+        {
+          "partition": "3.2.3:deadly_assault:1-1",
+          "pairs": 564,
+          "correct": 333,
+          "baselineCorrect": 296
+        },
+        {
+          "partition": "3.2.3:deadly_assault:1-2",
+          "pairs": 1049,
+          "correct": 608,
+          "baselineCorrect": 573
+        },
+        {
+          "partition": "3.2.3:deadly_assault:1-3",
+          "pairs": 853,
+          "correct": 544,
+          "baselineCorrect": 501
+        },
+        {
+          "partition": "3.2.3:deadly_assault:2-1",
+          "pairs": 169,
+          "correct": 116,
+          "baselineCorrect": 99
+        }
+      ],
+      "byReplacement": [
+        {
+          "stratum": "changed_primary",
+          "decisivePairs": 2176,
+          "correct": 1281,
+          "accuracy": 0.5886948529411765,
+          "baselineCorrect": 1202,
+          "baselineAccuracy": 0.5523897058823529
+        },
+        {
+          "stratum": "same_primary",
+          "decisivePairs": 3407,
+          "correct": 2028,
+          "accuracy": 0.5952450836513061,
+          "baselineCorrect": 1892,
+          "baselineAccuracy": 0.5553272673906663
+        }
+      ],
+      "byBangboo": [
+        {
+          "stratum": "different_source_bangboo",
+          "decisivePairs": 2959,
+          "correct": 1694,
+          "accuracy": 0.5724907063197026,
+          "baselineCorrect": 1631,
+          "baselineAccuracy": 0.5511997296383914
+        },
+        {
+          "stratum": "same_source_bangboo",
+          "decisivePairs": 2624,
+          "correct": 1615,
+          "accuracy": 0.6154725609756098,
+          "baselineCorrect": 1463,
+          "baselineAccuracy": 0.557545731707317
+        }
+      ]
+    },
+    "leaveCoreOut": {
+      "folds": 209,
+      "pairs": 5584,
+      "decisivePairs": 5583,
+      "correct": 3254,
+      "accuracy": 0.5828407666129322,
+      "baselineCorrect": 3094,
+      "baselineAccuracy": 0.554182339244134,
+      "modelTies": 55,
+      "byPartition": [
+        {
+          "partition": "3.2.3:shiyu_defense:5-1",
+          "pairs": 1167,
+          "correct": 663,
+          "baselineCorrect": 662
+        },
+        {
+          "partition": "3.2.3:shiyu_defense:5-2",
+          "pairs": 617,
+          "correct": 343,
+          "baselineCorrect": 330
+        },
+        {
+          "partition": "3.2.3:shiyu_defense:5-3",
+          "pairs": 1164,
+          "correct": 683,
+          "baselineCorrect": 633
+        },
+        {
+          "partition": "3.2.3:deadly_assault:1-1",
+          "pairs": 564,
+          "correct": 344,
+          "baselineCorrect": 296
+        },
+        {
+          "partition": "3.2.3:deadly_assault:1-2",
+          "pairs": 1049,
+          "correct": 584,
+          "baselineCorrect": 573
+        },
+        {
+          "partition": "3.2.3:deadly_assault:1-3",
+          "pairs": 853,
+          "correct": 523,
+          "baselineCorrect": 501
+        },
+        {
+          "partition": "3.2.3:deadly_assault:2-1",
+          "pairs": 169,
+          "correct": 114,
+          "baselineCorrect": 99
+        }
+      ],
+      "byReplacement": [
+        {
+          "stratum": "changed_primary",
+          "decisivePairs": 2176,
+          "correct": 1233,
+          "accuracy": 0.5666360294117647,
+          "baselineCorrect": 1202,
+          "baselineAccuracy": 0.5523897058823529
+        },
+        {
+          "stratum": "same_primary",
+          "decisivePairs": 3407,
+          "correct": 2021,
+          "accuracy": 0.5931904901673026,
+          "baselineCorrect": 1892,
+          "baselineAccuracy": 0.5553272673906663
+        }
+      ],
+      "byBangboo": [
+        {
+          "stratum": "different_source_bangboo",
+          "decisivePairs": 2959,
+          "correct": 1676,
+          "accuracy": 0.5664075701250423,
+          "baselineCorrect": 1631,
+          "baselineAccuracy": 0.5511997296383914
+        },
+        {
+          "stratum": "same_source_bangboo",
+          "decisivePairs": 2624,
+          "correct": 1578,
+          "accuracy": 0.6013719512195121,
+          "baselineCorrect": 1463,
+          "baselineAccuracy": 0.557545731707317
+        }
+      ]
+    },
+    "legacyTrainingLeavePartitionOut": {
+      "folds": 7,
+      "pairs": 5584,
+      "decisivePairs": 5583,
+      "correct": 3244,
+      "accuracy": 0.5810496149023823,
+      "baselineCorrect": 3094,
+      "baselineAccuracy": 0.554182339244134,
+      "modelTies": 65,
+      "byPartition": [
+        {
+          "partition": "3.2.3:shiyu_defense:5-1",
+          "pairs": 1167,
+          "correct": 689,
+          "baselineCorrect": 662
+        },
+        {
+          "partition": "3.2.3:shiyu_defense:5-2",
+          "pairs": 617,
+          "correct": 374,
+          "baselineCorrect": 330
+        },
+        {
+          "partition": "3.2.3:shiyu_defense:5-3",
+          "pairs": 1164,
+          "correct": 649,
+          "baselineCorrect": 633
+        },
+        {
+          "partition": "3.2.3:deadly_assault:1-1",
+          "pairs": 564,
+          "correct": 329,
+          "baselineCorrect": 296
+        },
+        {
+          "partition": "3.2.3:deadly_assault:1-2",
+          "pairs": 1049,
+          "correct": 615,
+          "baselineCorrect": 573
+        },
+        {
+          "partition": "3.2.3:deadly_assault:1-3",
+          "pairs": 853,
+          "correct": 488,
+          "baselineCorrect": 501
+        },
+        {
+          "partition": "3.2.3:deadly_assault:2-1",
+          "pairs": 169,
+          "correct": 100,
+          "baselineCorrect": 99
+        }
+      ],
+      "byReplacement": [
+        {
+          "stratum": "changed_primary",
+          "decisivePairs": 2176,
+          "correct": 1145,
+          "accuracy": 0.5261948529411765,
+          "baselineCorrect": 1202,
+          "baselineAccuracy": 0.5523897058823529
+        },
+        {
+          "stratum": "same_primary",
+          "decisivePairs": 3407,
+          "correct": 2099,
+          "accuracy": 0.616084531846199,
+          "baselineCorrect": 1892,
+          "baselineAccuracy": 0.5553272673906663
+        }
+      ],
+      "byBangboo": [
+        {
+          "stratum": "different_source_bangboo",
+          "decisivePairs": 2959,
+          "correct": 1641,
+          "accuracy": 0.5545792497465359,
+          "baselineCorrect": 1631,
+          "baselineAccuracy": 0.5511997296383914
+        },
+        {
+          "stratum": "same_source_bangboo",
+          "decisivePairs": 2624,
+          "correct": 1603,
+          "accuracy": 0.6108993902439024,
+          "baselineCorrect": 1463,
+          "baselineAccuracy": 0.557545731707317
+        }
+      ]
+    }
+  },
+  "model": {
+    "method": "partition-balanced-monotone-pairwise-logistic/v1",
+    "scales": [
+      1.6969610548262006, 0.7382456714338377, 0.17115838040717807,
+      0.9698689422540049, 2.9602775483131385, 0.24426980665944023,
+      0.07132299249079747, 0.4412412383965808, 0.3865741415829107,
+      0.12332463735337426, 0.040651337842920444, 0.354431155542232,
+      0.306442376202826, 0.33501525463706744, 0.37417474784551735,
+      0.39282753160859324, 0.43047498483955526, 0.30204521576821497,
+      0.031528219900562315, 0.39236395748033315, 3.1790910369759944,
+      0.5370256743879308, 1, 2.130596639501326, 0.7553307435742879,
+      1.3386362150760647, 1, 1, 0.15695708788753143, 0.047955030792963475,
+      0.013777088790264718, 0.09597482990476364, 0.0038760646213895932,
+      0.009039384523234956, 0.5603902892397205, 0.38490255159861075,
+      0.4567984938852736, 0.07561125105101302, 0.055594332783902474, 1,
+      0.14190337977636808, 0.031373566293326154, 0.2022654536894077, 1,
+      0.21551869878042554, 0.07887757611611154, 0.07887757611611154,
+      0.06953459287226292, 0.18495218364509616, 0.23378485473923055, 1, 1,
+      0.4862879013201413, 2.2692463040508213, 0.18104970771989112,
+      0.15615463765034174, 0.3987823046909668, 0.22925239666486452,
+      0.16158830649133796, 1, 0.05920997654978432, 0.014118104831996764,
+      0.04329077818815494, 0.5820583191350513, 0.05920997654978432,
+      0.3749706117088245, 0.4583651538143512, 0.05912120307286448, 1,
+      0.30651054304116115
+    ],
+    "coefficients": [
+      0, 0.008085480797735514, 0.005353040119035062, 0.051981182400793885, 0,
+      -0.11847851423253428, -0.1442444832006648, 0.04595599323243327,
+      -0.1025955318682114, -0.047156409790853934, 0, -0.03852629782504039, 0,
+      0.020174041998726456, 0, 0.04491956653644066, 0, 0, 0,
+      0.13825536927181487, 0, 0, 0, 0, 0, 0.012830453454980323, 0, 0,
+      0.03543366975275803, 0.04384354383512073, 0, 0.1324213960038438,
+      0.15572253762268806, 0, 0, 0.17654085112349813, 0, 0,
+      0.021540622357248487, 0, 0.07810038635620535, 0.002231051272439177, 0, 0,
+      0, 0, 0, 0.08694693375826841, 0, 0, 0, 0, 0, 0.06487744040753403, 0,
+      0.028398230930159092, 0.17094512212511545, 0.326435276410139, 0, 0, 0,
+      0.002227569406263884, 0, 0, 0, 0, 0, 0, 0, 0
+    ],
+    "directions": [
+      1, 1, 1, 1, 1, 0, -1, 0, 0, -1, -1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+      1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+    ],
+    "lambda": 0.09523809523809523,
+    "samplePairs": 5584,
+    "partitions": 7,
+    "iterations": 12,
+    "objective": 0.649853465869231
+  },
+  "runtimeStrengthAuthority": false,
+  "currentIndependentAccuracy": false,
+  "boundary": "Observed Limited-S-M0 aggregate preference only; Standard-S and A-rank Mindscapes are unrestricted. Player/build/potential differences remain uncontrolled; correlated pairs are not independent samples. No generic S/A/B tier, DPS, pull value or default ranking authority.",
+  "contentHash": "fnv1a-bb757322"
+}

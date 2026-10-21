@@ -1,5 +1,6 @@
 import {
   analyzePlanningBenchmark32Candidate,
+  createPlanningBenchmark32ObjectiveAnalyzer,
   type PlanningBenchmarkBinding32,
 } from '../application/privatePlanningBenchmark32'
 import { preparePlanningBenchmark32 } from '../application/privatePlanningBenchmarkBinding32'
@@ -39,6 +40,7 @@ export type DeclaredEventGoal32 = {
   }
   /** Preserve the original issued selection, including its provenance marker. */
   referenceSelectedEquipment?: PlanningBenchmarkBinding32['selectedEquipment']
+  equipmentConditionAlternatives32?: PlanningBenchmarkBinding32['equipmentConditionAlternatives32']
 }
 
 export type DeclaredEventObjective32 = TeamAssignmentObjective & {
@@ -239,7 +241,7 @@ function runtimeDeclarationsMatch(
 }
 
 function completeDeclaredResult(
-  result: PlanningBenchmarkResult32,
+  result: Omit<PlanningBenchmarkResult32, 'resultFingerprint'>,
   declarations: PlanningEventDeclarationsInput32,
 ) {
   return (
@@ -258,10 +260,16 @@ function completeDeclaredResult(
   )
 }
 
-function coverageIdentity(result: PlanningBenchmarkResult32, snapshot: FunctionalSnapshot) {
+function coverageIdentity(
+  result: Omit<PlanningBenchmarkResult32, 'resultFingerprint'>,
+  snapshot: FunctionalSnapshot,
+  equipmentComparison = false,
+) {
   return stableContentHash({
     declarations: result.inputFingerprint,
-    vocabulary: result.metadata,
+    vocabulary: equipmentComparison
+      ? (result.metadata?.sourceFingerprint ?? null)
+      : result.metadata,
     duration: result.declaredDurationSeconds,
     events: result.eventResults.map((row) => ({
       occurrenceId: row.occurrenceId,
@@ -272,7 +280,9 @@ function coverageIdentity(result: PlanningBenchmarkResult32, snapshot: Functiona
       snapshotAtSeconds: row.snapshotAtSeconds,
       sourceRefs: row.sourceRefs,
     })),
-    exclusions: result.excludedEffects,
+    // completeDeclaredResult already rejects every unknown/excluded dependency.
+    // Known inactive effects of different equipment need not have identical IDs.
+    exclusions: equipmentComparison ? [] : result.excludedEffects,
     functions: snapshot.capacities.map(({ key, kind, contextKey }) => ({ key, kind, contextKey })),
   })
 }
@@ -303,6 +313,9 @@ export function createTargetTeamDeclaredEventObjective32(
       reference && goal!.referenceSelectedEquipment !== undefined
         ? goal!.referenceSelectedEquipment
         : context.parameters,
+    ...(goal!.equipmentConditionAlternatives32
+      ? { equipmentConditionAlternatives32: goal!.equipmentConditionAlternatives32 }
+      : {}),
   })
   const referenceAnalysis =
     referenceFit &&
@@ -328,8 +341,18 @@ export function createTargetTeamDeclaredEventObjective32(
       ? functionalSnapshot(referenceAnalysis.runtimeInput32)
       : null
   const baselineDuration = referenceAnalysis?.result.declaredDurationSeconds
+  const analyzeObjective =
+    declarations && referenceAnalysis?.result.metadata
+      ? createPlanningBenchmark32ObjectiveAnalyzer(declarations, referenceAnalysis.result.metadata)
+      : null
   const baselineCoverage =
-    baseline && referenceAnalysis ? coverageIdentity(referenceAnalysis.result, baseline) : null
+    baseline && referenceAnalysis
+      ? coverageIdentity(
+          referenceAnalysis.result,
+          baseline,
+          Boolean(goal?.equipmentConditionAlternatives32),
+        )
+      : null
   let lastCoverage: string | null = null
   return {
     lastEvaluationCoverageIdentity: () => lastCoverage,
@@ -389,15 +412,11 @@ export function createTargetTeamDeclaredEventObjective32(
       )
         return null
       const binding = makeBinding(context, fit)
-      const prepared = preparePlanningBenchmark32(binding)
-      if (!runtimeDeclarationsMatch(context, prepared, declarations)) return null
+      if (!analyzeObjective) return null
       // Only the internal asset binding changes. The confirmed vocabulary and
       // declaration fingerprint are never rewritten to make another set fit.
-      const analysis = analyzePlanningBenchmark32Candidate(
-        binding,
-        declarations,
-        prepared.sourceBindingFingerprint,
-      )
+      const analysis = analyzeObjective(binding)
+      if (!runtimeDeclarationsMatch(context, analysis.prepared, declarations)) return null
       if (
         !completeDeclaredResult(analysis.result, declarations) ||
         analysis.result.declaredDurationSeconds !== baselineDuration ||
@@ -407,7 +426,11 @@ export function createTargetTeamDeclaredEventObjective32(
       const candidate = functionalSnapshot(analysis.runtimeInput32)
       if (
         !candidate ||
-        coverageIdentity(analysis.result, candidate) !== baselineCoverage ||
+        coverageIdentity(
+          analysis.result,
+          candidate,
+          Boolean(goal.equipmentConditionAlternatives32),
+        ) !== baselineCoverage ||
         !preservesTeamFunctionalConstraints32({
           baselineCapacities: baseline.capacities,
           candidateCapacities: candidate.capacities,

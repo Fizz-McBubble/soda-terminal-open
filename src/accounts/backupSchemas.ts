@@ -1,4 +1,5 @@
 import { portfolioConstraintSchema } from './backupFrozenConstraintSchemas'
+import { formedTeamReferenceSchema } from '../application/publicFormedTeamReference'
 import { koledaFixedEventConditionsInputSchema32 } from '../application/publicKoledaFixedEventConditions32'
 import { savedPlanningBenchmark32Schema } from '../application/publicSavedPlanningBenchmark32'
 import {
@@ -48,13 +49,45 @@ const historicalEventConditionDeclarationsSchema32 = z
       raw as import('../calculation/reviewedEventConditionDeclarations32').ReviewedEventConditionDeclarations32,
   )
 
-const targetTeamStandardReferenceResultSchema32 = z
+export const targetTeamStandardReferenceResultSchema32 = z
   .object({
-    protocol: z.literal('local-standard-s0-a6-3x48-native-objective32'),
+    protocol: z.enum([
+      'local-standard-s0-a6-3x48-native-objective32',
+      'local-formed-key-mindscapes-3x48-native-objective32',
+    ]),
     status: z.enum(['metadata', 'selected', 'unsupported']),
     preparedIdentity: z.string().min(1).nullable(),
     referenceFingerprint: z.string().min(1).nullable(),
     sourceBindingFingerprint: z.string().min(1).nullable(),
+    potentialByAgentId: z.record(z.string(), z.number().int().min(0).max(6)).optional(),
+    referenceCultivation: z
+      .array(
+        z
+          .object({
+            agentId: z.string().min(1),
+            level: z.number().int().min(1).max(60),
+            mindscape: z.number().int().min(0).max(6),
+            potential: z.number().int().min(0).max(6).nullable(),
+            baseSkillLevel: z.number().int().min(1).max(16),
+            effectiveSkillLevel: z.number().int().min(1).max(16),
+            coreLevel: z.number().int().min(1).max(7),
+            substatRollBudget: z.literal(48),
+          })
+          .strict(),
+      )
+      .length(3)
+      .refine((rows) => new Set(rows.map((row) => row.agentId)).size === 3)
+      .optional(),
+    searchDiagnostics: z
+      .object({
+        evaluations: z.number().int().nonnegative(),
+        unknownEvaluations: z.number().int().nonnegative(),
+        differentCoverageEvaluations: z.number().int().nonnegative(),
+        allDiscreteCombinationsVisited: z.boolean(),
+      })
+      .strict()
+      .refine((row) => row.unknownEvaluations + row.differentCoverageEvaluations <= row.evaluations)
+      .optional(),
     metadata: z
       .custom<
         NonNullable<
@@ -76,8 +109,27 @@ const targetTeamStandardReferenceResultSchema32 = z
           refinement: z.number().int().min(1).max(5),
           branchIdentity: z.string().min(1),
           discCount: z.number().int().positive(),
+          discs: z
+            .array(
+              driveDiscSchema.pick({
+                slot: true,
+                setId: true,
+                level: true,
+                mainStat: true,
+                subStats: true,
+              }),
+            )
+            .length(6)
+            .optional(),
         })
-        .strict(),
+        .strict()
+        .refine(
+          (row) =>
+            !row.discs ||
+            (row.discCount === row.discs.length &&
+              new Set(row.discs.map((disc) => disc.slot)).size === 6),
+          { message: 'standard_reference_disc_slots_invalid', path: ['discs'] },
+        ),
     ),
     consumerBindings: z
       .object({
@@ -93,6 +145,18 @@ const targetTeamStandardReferenceResultSchema32 = z
   })
   .strict()
   .superRefine((value, context) => {
+    const referenceMemberIds =
+      value.metadata?.memberIds ?? value.equipment.map((row) => row.agentId)
+    if (
+      value.referenceCultivation &&
+      referenceMemberIds.length > 0 &&
+      (referenceMemberIds.length !== value.referenceCultivation.length ||
+        value.referenceCultivation.some((row) => !referenceMemberIds.includes(row.agentId)))
+    )
+      context.addIssue({
+        code: 'custom',
+        message: 'standard_reference_cultivation_members_mismatch',
+      })
     if (
       value.status === 'selected' &&
       (value.equipment.length !== 3 ||
@@ -168,6 +232,7 @@ const planningSolutionContextSchema = z.object({
     .optional(),
   scenarioIdentity: z.string().optional(),
   standardReference32: targetTeamStandardReferenceResultSchema32.optional(),
+  formedTeamReference: formedTeamReferenceSchema.optional(),
   standardReferenceRequest32: targetTeamStandardReferenceRequestSchema32.optional(),
   eventConditionDeclarationsByAgentId: historicalEventConditionDeclarationsSchema32.optional(),
   eventConditionDeclarationsIdentity: z.string().optional(),
@@ -418,7 +483,7 @@ export const teamPortfolioBuildIntentSchema = z
     resolvedTeams: z
       .array(z.tuple([z.string().min(1), z.string().min(1), z.string().min(1)]))
       .optional(),
-    agentPotentialById: z.record(z.string().min(1), z.number().int().min(0)).optional(),
+    agentPotentialById: z.record(z.string().min(1), z.number().int().min(0).nullable()).optional(),
     agentMindscapeById: z
       .record(z.string().min(1), z.number().int().min(0).max(6).nullable())
       .optional(),
@@ -498,6 +563,24 @@ const planningDraftSchema = z
     revision: z.number().int().nonnegative(),
   })
   .superRefine(refinePlanningResourceTimeline32)
+  .superRefine((plan, context) => {
+    const reference = plan.solutionContext?.formedTeamReference
+    if (
+      reference &&
+      (plan.kind !== 'team' ||
+        [...plan.selection.agentIds].sort().join('|') !==
+          reference.members
+            .map((row) => row.agentId)
+            .sort()
+            .join('|'))
+    ) {
+      context.addIssue({
+        code: 'custom',
+        path: ['solutionContext', 'formedTeamReference'],
+        message: '成型参考必须属于当前方案的同一组三人。',
+      })
+    }
+  })
 
 const accountBackupDataSchema = z.object({
   driveDiscs: z.array(driveDiscSchema.extend(accountScopeShape)),

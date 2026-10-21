@@ -1,0 +1,127 @@
+{
+  "schema": "soda-reviewed-agent-build-guidance/v1",
+  "id": "reviewed-phoenix-build-guidance-3.3-r1",
+  "gameVersion": "3.3",
+  "agentId": "agent-phoenix",
+  "gameId": "1641",
+  "playerName": "菲欧妮",
+  "source": {
+    "url": "https://static.nanoka.cc/zzz/3.3/zh/character/1641.json",
+    "sha256": "237C5B060657DB1FD8ABABE6CD26FB275C325D74A67EDA481BDE6732C7D93DFE",
+    "providerManifestSha256": "4D30F529D6E0568A130EBE4D79557B30D9C65D2219E77461763DF1C4B42CB029",
+    "providerLiveVersion": "3.3",
+    "checkedAt": "2026-10-21",
+    "locators": [
+      "fairy_recommend",
+      "skill_priority",
+      "stats.element_abnormal_power",
+      "extra_level.6.extra.31401",
+      "passive.level.7",
+      "talent.1",
+      "talent.2",
+      "potential",
+      "potential_detail"
+    ]
+  },
+  "rawRecommendation": {
+    "fourPieceGameId": 31300,
+    "twoPieceGameId": 33000,
+    "alternativeFourPieceGameId": 31800,
+    "priorityProps": [31402, 31203, 31603],
+    "alternativeProp": 12102,
+    "subStatProps": [31203, 12102],
+    "skillPriorityGroups": [
+      [5, 0],
+      [1, 3],
+      [6, 2]
+    ]
+  },
+  "skillEnumBinding": {
+    "locator": "app/src/assetQuickRead/snapshotAgentSkills.ts#skillsByType",
+    "kind": "game_protocol_enum_not_export_position"
+  },
+  "potential": {
+    "applicable": false,
+    "sourceEntryCount": 0,
+    "observedAccountValue": false
+  },
+  "formedReference": {
+    "reviewKind": "owner_reviewed_formed_generic",
+    "mindscape": 1,
+    "level": 60,
+    "baseSkillLevel": 11,
+    "coreLevel": 7,
+    "potential": null,
+    "signatureWEngineId": "wengine-14164",
+    "signatureRefinement": 1,
+    "aRankTeammateMindscape": 6
+  },
+  "mindscapeBranches": [
+    {
+      "level": 1,
+      "selectedForGenericReference": true,
+      "sourceLocator": "talent.1.desc",
+      "effects": [
+        {
+          "kind": "anomaly_crit_damage_bonus",
+          "value": 0.25,
+          "recipient": "all_team_anomaly_damage",
+          "condition": "target_has_scorch_state"
+        },
+        {
+          "kind": "fanflame_gain_efficiency",
+          "value": 0.15,
+          "recipient": "wearer",
+          "condition": "burning_attack_deals_damage"
+        }
+      ]
+    },
+    {
+      "level": 2,
+      "selectedForGenericReference": false,
+      "sourceLocator": "talent.2.desc",
+      "effects": [
+        {
+          "kind": "damage_bonus",
+          "value": 0.3,
+          "recipient": "wearer",
+          "condition": "target_has_scorch_state"
+        },
+        {
+          "kind": "burn_duration_extension_seconds",
+          "value": 2,
+          "recipient": "wearer_applied_burn",
+          "condition": "wearer_applies_burn"
+        }
+      ]
+    }
+  ],
+  "initialMasteryReference": {
+    "baseMastery": 116,
+    "coreFMastery": 36,
+    "minimumForScorchCritCap": 255,
+    "twoPieceMasteryPercent": 0.08,
+    "twoPieceGameId": 33000,
+    "sixSlotSLevel15MasteryPercent": 0.3,
+    "engine": {
+      "id": "wengine-14164",
+      "level": 60,
+      "ascension": 5,
+      "refinement": 1,
+      "url": "https://static.nanoka.cc/zzz/3.3/zh/weapon/14164.json",
+      "sha256": "006B40349CCE50CFF242630EDEC086520FF6F3F196DA86E92D935C20794C77FF",
+      "secondaryBaseGameValue": 1200,
+      "ascensionRandRate": 15000
+    },
+    "excludesTransientBuffs": true
+  },
+  "boundary": {
+    "candidateOnly": true,
+    "accountWrites": false,
+    "formalPromotion": false,
+    "importPromotion": false,
+    "exactPullGain": false,
+    "teamDps": false,
+    "sourceTextRedistributed": false
+  }
+}

@@ -18,6 +18,7 @@ function recommendationConditionHint(plan: CandidateSetPlan): string | undefined
   if (!rule) return undefined
   if (rule.kind === 'electric_team') return '电队适用'
   if (rule.kind === 'teammate') return `与${getAgentName(rule.agentId)}同队时`
+  if (rule.kind === 'wearer_action') return '自身连段前强化特殊技；效果窗口另行核验'
   if (rule.kind === 'teammate_specialty_and_action') {
     const roles = rule.specialties
       .map((specialty) => getAgentSpecialtyLabel(specialty === 'attack' ? 'damage' : specialty))

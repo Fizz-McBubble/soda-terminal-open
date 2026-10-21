@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { statKeySchema } from '../domain/schemas'
+import { targetPanelMetricKeys } from '../gameDataPacks/targetPanelSemantics'
 
 const portfolioBuildSourceSchema = z
   .object({
@@ -39,6 +40,9 @@ const portfolioSetPlanSchema = z
             .object({ kind: z.literal('teammate_not_four_piece'), setId: z.string().min(1) })
             .strict(),
           z.object({ kind: z.literal('electric_team') }).strict(),
+          z
+            .object({ kind: z.literal('wearer_action'), action: z.literal('wearer_ex_special') })
+            .strict(),
           z
             .object({
               kind: z.literal('teammate_specialty_and_action'),
@@ -205,6 +209,18 @@ export const portfolioConstraintSchema = z
           ]),
         ),
         conditions: z.array(z.string()),
+        targetSemantics: z
+          .partialRecord(
+            z.enum(targetPanelMetricKeys),
+            z
+              .object({
+                requirement: z.enum(['required', 'optional']),
+                boundary: z.enum(['minimum', 'cap']),
+                observation: z.enum(['out_of_combat', 'in_combat', 'reference']),
+              })
+              .strict(),
+          )
+          .optional(),
         sourceIds: z.array(z.string().min(1)),
         label: z.literal('guide_reference_range'),
       })

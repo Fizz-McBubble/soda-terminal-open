@@ -499,6 +499,11 @@
       "gameId": "14162",
       "name": "绯月银棺",
       "id": "wengine-14162"
+    },
+    {
+      "gameId": "14164",
+      "name": "涅槃初翎",
+      "id": "wengine-14164"
     }
   ],
   "discs": [
@@ -923,6 +928,11 @@
       "gameId": "1591",
       "id": "agent-sigrid",
       "name": "希格莉德·德拉叙尔"
+    },
+    {
+      "gameId": "1641",
+      "id": "agent-phoenix",
+      "name": "菲欧妮"
     }
   ]
 }

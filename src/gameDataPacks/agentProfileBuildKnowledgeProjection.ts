@@ -56,7 +56,8 @@ export function projectBuildKnowledgeProfile(
   const readable = required.every((field) => field && field.status !== 'missing')
   const missing = required.filter((field) => !field || field.status === 'missing')
   const wEngines = strings(buildField(unified, 'build.wengines')?.value)
-  const sets = strings(buildField(unified, 'build.drive_disc_sets')?.value)
+  const setField = buildField(unified, 'build.drive_disc_sets')
+  const sets = strings(setField?.displayValue ?? setField?.value)
   const mainSub = buildField(unified, 'build.main_sub_stats')?.value
   const progression = strings(buildField(unified, 'build.progression')?.value)
   const team = strings(buildField(unified, 'build.team_bangboo_scenario')?.value)

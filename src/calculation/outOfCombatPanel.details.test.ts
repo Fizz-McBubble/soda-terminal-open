@@ -84,16 +84,27 @@ describe('shared out-of-combat detail attributes', () => {
       result.trace.some((row) => row.key === 'sheerForce' && row.source.includes('3456cd0')),
     ).toBe(true)
   })
-  it('keeps unregistered resource efficiency and capacity unknown', () => {
+  it('keeps ordinary energy distinct from unregistered special resources', () => {
     const result = projectOutOfCombatPanel(input)
-    expect(result.values.energyGenerationRate).toBeUndefined()
-    expect(result.values.maxEnergy).toBeUndefined()
+    expect(result.values.energyGenerationRate).toBe(100)
+    expect(result.values.maxEnergy).toBe(120)
     expect(result.values.namedResourceRegen).toBeUndefined()
     expect(result.values.adrenalineRegen).toBeUndefined()
     expect(result.values.lumifluxDamageBonus).toBeUndefined()
-    expect(
-      result.trace.filter((row) => ['energyGenerationRate', 'maxEnergy'].includes(row.key)),
-    ).toEqual([])
+    expect(result.trace.filter((row) => row.key === 'energyGenerationRate')).toEqual([
+      expect.objectContaining({
+        operation: 'base',
+        value: 100,
+        source: expect.stringContaining('zzz-data-mechanics-energy-baseline-2025-07-11'),
+      }),
+    ])
+    expect(result.trace.filter((row) => row.key === 'maxEnergy')).toEqual([
+      expect.objectContaining({
+        operation: 'base',
+        value: 120,
+        source: expect.stringContaining('zzz-data-mechanics-energy-baseline-2025-07-11'),
+      }),
+    ])
     const rupture = projectOutOfCombatPanel({
       ...input,
       agentId: 'agent-yixuan',
@@ -107,15 +118,26 @@ describe('shared out-of-combat detail attributes', () => {
       ...input,
       agentId: 'agent-claret',
     })
-    expect(armorer.values.sharpEnergyRegen).toBeUndefined()
+    expect(armorer.values.sharpEnergyRegen).toBe(1.5)
     expect(armorer.values.sharpEnergyGenerationRate).toBeUndefined()
-    expect(armorer.values.maxSharpEnergy).toBeUndefined()
+    expect(armorer.values.maxSharpEnergy).toBe(120)
+    expect(armorer.values.energyGenerationRate).toBeUndefined()
+    expect(armorer.values.maxEnergy).toBeUndefined()
+    expect(armorer.trace).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          key: 'maxSharpEnergy',
+          value: 120,
+          source: expect.stringContaining('AvatarBattleTemplateTb.json@462563ec'),
+        }),
+      ]),
+    )
     const roxy = projectOutOfCombatPanel({
       ...input,
       agentId: 'agent-roxy',
     })
-    expect(roxy.values.energyGenerationRate).toBeUndefined()
-    expect(roxy.values.maxEnergy).toBeUndefined()
+    expect(roxy.values.energyGenerationRate).toBe(100)
+    expect(roxy.values.maxEnergy).toBe(120)
     expect(roxy.values.sharpEnergyRegen).toBeUndefined()
     expect(
       projectOutOfCombatPanel({ ...input, wEngine: { ...input.wEngine, id: 'unknown' } }).status,

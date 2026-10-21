@@ -216,7 +216,7 @@ export function resolveWarehouseDemandContexts(input: Input) {
           })
           if (
             Object.entries(direction.potentialMinimumByAgentId).some(
-              ([id, minimum]) => owned.has(id) && potential[id]! < minimum,
+              ([id, minimum]) => owned.has(id) && potential[id] != null && potential[id]! < minimum,
             )
           )
             continue

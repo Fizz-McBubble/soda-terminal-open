@@ -1,7 +1,7 @@
 import Dexie from 'dexie'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { SodaDatabase } from '../db/database'
-import { gameBase30Formal, gameBase32Current } from './baseline'
+import { gameBase30Formal, gameBase32Current, gameBase33Current } from './baseline'
 import { createManifest, gameDataPackageManifestSchema } from './types'
 import { isCompatibleManifestContent } from './manifestContentCompatibility'
 import releasedManifest from './releasedGameBase32Manifest.test.json'
@@ -29,7 +29,22 @@ function createDatabase() {
 
 afterEach(async () => {
   for (const name of names.splice(0)) await Dexie.delete(name)
+  vi.doUnmock('./currentVersionProjection')
+  vi.resetModules()
 })
+
+async function historical32RuntimeReader() {
+  vi.resetModules()
+  vi.doMock('./currentVersionProjection', () => ({
+    compiledCurrentGameBase: gameBase32Current,
+    currentVersionProjection: {
+      packageId: gameBase32Current.id,
+      packageVersion: gameBase32Current.packageVersion,
+      gameVersion: '3.2',
+    },
+  }))
+  return (await import('./runtimeSelection')).readCurrentGameDataRuntimeSelection
+}
 
 describe('current game-data runtime selection', () => {
   it('the historical manifest differs only by the reviewed name and propagated metadata digests', () => {
@@ -54,6 +69,7 @@ describe('current game-data runtime selection', () => {
     'opens the released %s 3.2 manifest without rewriting stored data',
     async (release) => {
       const db = createDatabase()
+      const readHistoricalSelection = await historical32RuntimeReader()
       expect(gameBase32Current.contentHash).toBe('fnv1a-d6b17ea2')
       const released = createManifest(gameDataPackageManifestSchema.parse(releasedManifest))
       expect(released.contentHash).toBe('fnv1a-55673acf')
@@ -97,19 +113,19 @@ describe('current game-data runtime selection', () => {
         updatedAt: '2026-10-03T00:00:00.000Z',
       })
       const before = await Promise.all(db.tables.map((table) => table.toArray()))
-      await expect(readCurrentGameDataRuntimeSelection(db)).resolves.toMatchObject({
+      await expect(readHistoricalSelection(db)).resolves.toMatchObject({
         status: 'compiled_current',
         source: 'active_formal_package',
       })
       expect(await Promise.all(db.tables.map((table) => table.toArray()))).toEqual(before)
 
       await db.gameDataPacks.put({ ...previous, changesFromPreviousFormal: ['tampered'] })
-      await expect(readCurrentGameDataRuntimeSelection(db)).resolves.toMatchObject({
+      await expect(readHistoricalSelection(db)).resolves.toMatchObject({
         status: 'unbound',
         reason: 'active_manifest_invalid',
       })
       await db.gameDataPacks.put(createManifest({ ...previous, migrationNotes: ['other content'] }))
-      await expect(readCurrentGameDataRuntimeSelection(db)).resolves.toMatchObject({
+      await expect(readHistoricalSelection(db)).resolves.toMatchObject({
         status: 'unbound',
         reason: 'active_package_not_compiled_artifact',
       })
@@ -117,7 +133,7 @@ describe('current game-data runtime selection', () => {
       await db.gameDataPackState.update('active-game-data-packs', {
         expiredCalculationPackageIds: [previous.id],
       })
-      await expect(readCurrentGameDataRuntimeSelection(db)).resolves.toMatchObject({
+      await expect(readHistoricalSelection(db)).resolves.toMatchObject({
         status: 'unbound',
         reason: 'active_package_expired',
       })
@@ -138,8 +154,8 @@ describe('current game-data runtime selection', () => {
       contract: currentGameDataRuntimeSelectionContract,
       status: 'compiled_current',
       source: 'implicit_compiled_baseline',
-      packageId: gameBase32Current.id,
-      packageVersion: gameBase32Current.packageVersion,
+      packageId: gameBase33Current.id,
+      packageVersion: gameBase33Current.packageVersion,
     })
 
     await expect(
@@ -155,10 +171,10 @@ describe('current game-data runtime selection', () => {
   it('accepts only the selected, valid compiled formal package and fails closed for all other states', async () => {
     const db = createDatabase()
     await db.open()
-    await db.gameDataPacks.put(gameBase32Current)
+    await db.gameDataPacks.put(gameBase33Current)
     await db.gameDataPackState.put({
       id: 'active-game-data-packs',
-      activeFormalByKind: { 'game-base': gameBase32Current.id },
+      activeFormalByKind: { 'game-base': gameBase33Current.id },
       expiredCalculationPackageIds: [],
       updatedAt: '2026-09-06T00:00:00.000Z',
     })
@@ -177,9 +193,19 @@ describe('current game-data runtime selection', () => {
       packageId: gameBase30Formal.id,
     })
 
-    await db.gameDataPacks.put({ ...gameBase32Current, contentHash: 'damaged' })
+    await db.gameDataPacks.put(gameBase32Current)
     await db.gameDataPackState.update('active-game-data-packs', {
       activeFormalByKind: { 'game-base': gameBase32Current.id },
+    })
+    await expect(readCurrentGameDataRuntimeSelection(db)).resolves.toMatchObject({
+      status: 'unbound',
+      reason: 'active_package_not_compiled_artifact',
+      packageId: gameBase32Current.id,
+    })
+
+    await db.gameDataPacks.put({ ...gameBase33Current, contentHash: 'damaged' })
+    await db.gameDataPackState.update('active-game-data-packs', {
+      activeFormalByKind: { 'game-base': gameBase33Current.id },
     })
     await expect(readCurrentGameDataRuntimeSelection(db)).resolves.toMatchObject({
       status: 'unbound',
@@ -187,19 +213,19 @@ describe('current game-data runtime selection', () => {
     })
 
     const sameVersionDifferentContent = createManifest({
-      ...gameBase32Current,
-      changesFromPreviousFormal: [...gameBase32Current.changesFromPreviousFormal, '隔离内容变化。'],
+      ...gameBase33Current,
+      changesFromPreviousFormal: [...gameBase33Current.changesFromPreviousFormal, '隔离内容变化。'],
     })
     await db.gameDataPacks.put(sameVersionDifferentContent)
     await expect(readCurrentGameDataRuntimeSelection(db)).resolves.toMatchObject({
       status: 'unbound',
       reason: 'active_package_not_compiled_artifact',
-      packageId: gameBase32Current.id,
+      packageId: gameBase33Current.id,
     })
 
-    await db.gameDataPacks.put(gameBase32Current)
+    await db.gameDataPacks.put(gameBase33Current)
     await db.gameDataPackState.update('active-game-data-packs', {
-      expiredCalculationPackageIds: [gameBase32Current.id],
+      expiredCalculationPackageIds: [gameBase33Current.id],
     })
     await expect(readCurrentGameDataRuntimeSelection(db)).resolves.toMatchObject({
       status: 'unbound',

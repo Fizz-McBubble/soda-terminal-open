@@ -3,6 +3,7 @@ import dataset from '../gameDataPacks/data/reviewed-team-preferences.v1.json'
 import { currentScopeManifest } from '../gameDataPacks/currentScopeManifest'
 import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
 import { currentVersionAdoption32 } from '../gameDataPacks/currentVersionAdoption32'
+import { currentVersionAdoption33 } from '../gameDataPacks/currentVersionAdoption33'
 import { createTeamPreferenceIndex } from './teamPreferenceEvidence'
 import { reviewCurrent31ProductionPairwiseEvidence } from './current31ProductionPairwiseEvidence'
 
@@ -46,19 +47,18 @@ export function createReviewedTeamPreferenceCatalog(input: unknown, currentVersi
     if ([...fact.preferredMemberIds, ...fact.alternativeMemberIds].some((id) => !known.has(id)))
       throw new Error(`Unknown preference member: ${fact.claimId}`)
   }
-  const withheldByPerformance = parsed.records.filter(
+  const performanceCautions = parsed.records.filter(
     (fact) =>
       !fact.withdrawn &&
       fact.sourceVersion === currentVersion &&
       !reviewCurrent31ProductionPairwiseEvidence(fact.preferredMemberIds, fact.alternativeMemberIds)
         .defaultSameBandOrderingEligible,
   )
-  const withheld = new Set(withheldByPerformance)
-  const index = createTeamPreferenceIndex(
-    parsed.records.filter((fact) => !withheld.has(fact)),
-    currentVersion,
-  )
-  const withheldSnapshot = withheldByPerformance.map((fact) => ({
+  // Uncontrolled population aggregates describe a mode/cycle, not the formed
+  // generic baseline. Keep their reversals visible as cautions; a reversal alone
+  // cannot erase an explicitly reviewed fixed-core substitution preference.
+  const index = createTeamPreferenceIndex(parsed.records, currentVersion)
+  const cautionSnapshot = performanceCautions.map((fact) => ({
     ...fact,
     preferredMemberIds: [...fact.preferredMemberIds],
     alternativeMemberIds: [...fact.alternativeMemberIds],
@@ -74,8 +74,8 @@ export function createReviewedTeamPreferenceCatalog(input: unknown, currentVersi
     },
     forTeam: index.forTeam,
     order: index.order,
-    get withheldByPerformance() {
-      return withheldSnapshot.map((fact) => ({
+    get performanceCautions() {
+      return cautionSnapshot.map((fact) => ({
         ...fact,
         preferredMemberIds: [...fact.preferredMemberIds],
         alternativeMemberIds: [...fact.alternativeMemberIds],
@@ -84,12 +84,15 @@ export function createReviewedTeamPreferenceCatalog(input: unknown, currentVersi
   }
 }
 
-/** The adopted 3.2 read view preserves its explicitly pinned 3.1 review basis.
+/** The adopted 3.2 and 3.3 read views retain the existing fixed-core guide
+ * substitutions and their original 3.1 sources. This is reference continuity,
+ * not a new guide review, strength band, or combat-performance claim.
  * An unknown/future read view cannot borrow that authority. */
 export function reviewedTeamPreferenceVersion(currentVersion: string) {
-  return currentVersion === currentVersionAdoption32.gameVersion
-    ? currentVersionAdoption32.legacyFieldAuthority.gameVersion
-    : currentVersion
+  const adoption = [currentVersionAdoption32, currentVersionAdoption33].find(
+    (entry) => entry.gameVersion === currentVersion,
+  )
+  return adoption?.legacyFieldAuthority.gameVersion ?? currentVersion
 }
 
 export const reviewedTeamPreferences = createReviewedTeamPreferenceCatalog(

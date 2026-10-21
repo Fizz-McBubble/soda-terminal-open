@@ -11,7 +11,7 @@ import {
   getCurrentBangbooContractRequirements,
   prepareCurrentBangbooAdditionalActivation,
 } from '../calculation/currentBangbooMechanicContracts'
-import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
+import { getCurrentAgentNumericContract } from '../calculation/currentAgentNumericContracts'
 import { createBangbooUtilityProjector } from '../calculation/currentBangbooUtilityProjection'
 import { projectCurrentBangbooComposition } from './exhaustiveBangbooScoring'
 
@@ -78,7 +78,7 @@ export function targetTeamBangbooOptions(
     }))
 
   const hasOrdinaryEnergyRecipient = input.memberIds.some((id) => {
-    const identity = getCurrentAgentEventContract(id)?.identity
+    const identity = getCurrentAgentNumericContract(id)?.identity
     return identity !== undefined && identity.specialty !== 'rupture'
   })
   return selectTargetTeamBangbooShortlist({

@@ -254,6 +254,7 @@ export function resolveRetentionUseFacts(
   constraint: CandidateWarehouseConstraint,
   agentId: string,
   functionalContext: FunctionalStatContext = normalRetentionFunctionalContext,
+  selectedSetPlan?: import('../gameDataPacks/candidateSetPlans').CandidateSetPlan,
 ): RetentionUseFacts {
   const releasedId = resolveCurrentReleasedIdentity(agentId)
   const catalogEntry = catalogMap.get(releasedId)
@@ -335,7 +336,7 @@ export function resolveRetentionUseFacts(
         constraint,
         eventContract,
         sourceIds,
-        getReviewedNormalM0UseScope(constraint, releasedId, goal, eventContract),
+        getReviewedNormalM0UseScope(constraint, releasedId, goal, eventContract, selectedSetPlan),
       ),
     ]),
   )

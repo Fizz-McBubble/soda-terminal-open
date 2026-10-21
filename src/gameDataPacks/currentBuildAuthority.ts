@@ -1,3 +1,13 @@
+import {
+  currentAgentNumericContracts,
+  getCurrentAgentNumericContract,
+  isReviewedPhoenixNumericContract,
+  sourceBoundPotentialAbsence,
+} from '../calculation/currentAgentNumericContracts'
+import {
+  resolveReviewedBuildFieldContinuity33,
+  resolveReviewedContextualTargetPanelContinuity33,
+} from './reviewedBuildFieldContinuity33'
 import { getAgentProfile, type AgentProfileField } from './agentProfile'
 import {
   currentAgentEventContracts,
@@ -8,6 +18,7 @@ import { currentPanelData } from './panel/currentPanelData'
 import {
   remielleCurrentProgressionEvidence32,
   remielleCurrentTeamBangbooGuidance32,
+  remielleHoyoBuild32Source,
 } from './currentCommunityBuildGuidance32'
 import { currentAssetProjection } from './currentAssetProjection'
 import { currentVersionProjection } from './currentVersionProjection'
@@ -30,12 +41,24 @@ import {
 import { projectedReviewedBuild32Fields } from './agentProfileFieldProjection'
 import { reviewedBuildFieldReferenceContinuity32 } from './reviewedReferenceSupportContinuity32'
 import { getRemielleSkillGuidanceCandidate } from './remielleGuidanceCandidate'
+import { getReviewedSkillCoreCinemaContinuityField32 } from './reviewedSkillCoreCinemaContinuity32'
 import { getCandidateWarehouseConstraintForTeam } from './candidateWarehouseConstraints'
 import { currentTeamGuidanceField } from './currentTeamGuidanceField'
+import { getAgentAscensionMaterialFacts } from '../calculation/agentAscensionMaterials32'
+import { reviewedBuildApplicabilityExpansion32 } from './reviewedBuildApplicabilityExpansion32'
 import {
   reviewedTeamDiscDirections,
   type ReviewedTeamDiscConditionContext,
 } from './reviewedTeamDiscConditions'
+import type { CandidateSetPlanEligibilityContext } from './candidateSetPlanEligibility'
+import { getReviewedHoyoBuildDriveDiscSets32 } from './reviewedHoyoBuildDriveDiscSets32'
+import {
+  getReviewedHoyoBuildMiyabiMainSubStats32,
+  getReviewedHoyoBuildMiyabiTargetPanel32,
+} from './reviewedHoyoBuildMiyabiPanels32'
+import { getReviewedHoyoBuildCurrentSkillGuidance32 } from './reviewedHoyoBuildCurrentSkillGuidance32'
+import { getReviewedPotentialOverlayGuidance32 } from './reviewedPotentialOverlayGuidance32'
+import { getGameData33BuildGuidanceFields } from './gameData33BuildGuidance'
 
 export const currentBuildFieldIds = [
   'progression.lv60_and_ascension',
@@ -62,10 +85,24 @@ export const currentCalculationAccountFieldIds = [
 
 export type CurrentBuildFieldState = 'ready' | 'missing' | 'stale' | 'conflict' | 'not_applicable'
 
+export type CurrentBuildAuthoritySourceTier =
+  | 'direct_current_3_2'
+  | 'direct_current_3_3'
+  | 'continuity_reviewed'
+  | 'not_applicable'
+  | 'incomplete'
+
 export type CurrentBuildAuthorityField = {
   fieldId: CurrentBuildFieldId
   lane: 'guidance'
   state: CurrentBuildFieldState
+  /**
+   * Provenance tier, not a strength or accuracy claim.
+   * Ready fields are split between a direct current-version source and the
+   * explicitly bounded 3.1 -> 3.2 continuity review.
+   */
+  sourceTier: CurrentBuildAuthoritySourceTier
+  derivation?: 'rederived_current'
   sourceStatus: AgentProfileField['status'] | 'missing'
   value: unknown | null
   sourceRefs: ReadonlyArray<{
@@ -79,7 +116,11 @@ export type CurrentBuildAuthorityField = {
   }>
   blockers: readonly string[]
   conditions: readonly string[]
-  referenceContinuity?: NonNullable<ReturnType<typeof reviewedBuildFieldReferenceContinuity32>>
+  referenceContinuity?:
+    | NonNullable<ReturnType<typeof reviewedBuildFieldReferenceContinuity32>>
+    | NonNullable<ReturnType<typeof resolveReviewedBuildFieldContinuity33>>
+  /** A selected, already reviewed branch; never part of context-free coverage. */
+  contextualApplicability?: { directionId: string; constraintContentHash: string }
   nextEvidence: readonly string[]
 }
 
@@ -136,6 +177,81 @@ const remielleWEngineGuidanceField: AgentProfileField = {
   conflict: null,
   reason:
     '3.1 候选来源已具名蕾米埃尔关联的 stable W-Engine identity；仅提供攻略方向，不推断账户副本或数值面板。',
+}
+
+function remielleCurrentSkillCoreCinemaGuidance32(): AgentProfileField {
+  const candidate = getRemielleSkillGuidanceCandidate('agent-remielle')
+  if (!candidate) throw new Error('Remielle skill guidance candidate is missing.')
+  const explicitMaximumSource = candidate.explicitTargets.source
+  return {
+    group: 'build_guidance',
+    path: 'progression.skill_core_cinema',
+    value: {
+      kind: 'current_skill_core_cinema',
+      skillTargets: {
+        basic: { value: 12, targetType: 'paid_base_maximum' },
+        dodge: {
+          value: 7,
+          targetType: 'low_investment_budget',
+          basis: 'user budget default; source says the skill may be left low',
+        },
+        assist: { value: 12, targetType: 'paid_base_maximum' },
+        special: { value: 12, targetType: 'paid_base_maximum' },
+        chain: { value: 12, targetType: 'paid_base_maximum' },
+        core: { value: 7, display: 'F', targetType: 'exact_integer' },
+      },
+      skillPriorityBySource: {
+        'miyoushe-77017654': candidate.primaryPriority,
+        [remielleHoyoBuild32Source.id]: remielleCurrentProgressionEvidence32.skillPriorityCandidate,
+        status: 'source_order_conflict_preserved',
+      },
+      cinema: {
+        recommendedLevels: remielleCurrentProgressionEvidence32.mindscapePriorityCandidate.map(
+          (item) => item.level,
+        ),
+        pullOrder: ['0+0', '0+1', '1+1', '2+1', '6+1'],
+        status: 'author_stated',
+      },
+    },
+    status: 'verified_candidate',
+    gameVersion: '3.2',
+    originalSourceVersion: '3.1',
+    lastChangeVersion: '3.2',
+    currentApplicability: 'continuous',
+    sourceRefs: [
+      {
+        id: explicitMaximumSource.id,
+        url: explicitMaximumSource.url,
+        sourceVersion: explicitMaximumSource.sourceVersion,
+        originalSourceVersion: explicitMaximumSource.sourceVersion,
+        checkedAt: explicitMaximumSource.checkedAt,
+        contentHash: explicitMaximumSource.contentHash,
+        licenseBoundary: '只采用作者原文明确的战斗技升满、核心F目标与定位，不复制正文或媒体。',
+      },
+      {
+        id: 'miyoushe-77017654-gold-cinema-pull-order',
+        url: 'https://www.miyoushe.com/zzz/article/77017654',
+        sourceVersion: '3.1',
+        originalSourceVersion: '3.1',
+        checkedAt: '2026-10-19',
+        contentHash: 'A1D88414AE02CB2F67A1B8CB1D11E8F56ADFE017EDA44C138D31ACB4FA23A43B',
+        licenseBoundary:
+          '只保留作者明确的影画关键等级与抽取顺序，不复制正文或媒体，不扩张到未来版本。',
+      },
+      { ...remielleHoyoBuild32Source },
+    ],
+    verifiedAt: '2026-10-20',
+    conflict: null,
+    reason:
+      '复用已接受的3.1技能上限、核心、影画与抽取顺序，并以当前3.2来源补齐技能顺序；两种来源顺序并存，不选伪造的全局排序。',
+    conditions: [
+      '付费基础上限12级；实际有效等级仍须按账号影画换算，不由攻略目标替代。',
+      '闪避7级是既有用户预算默认，并非作者给出的精确目标。',
+      '3.1 Miyoushe与3.2 HoyoBuild技能顺序不同，两者均保留且不宣称单一全局顺序。',
+      '影画等级与抽取顺序仅作指导，不推断账号持有、抽卡预算或未来版本不变。',
+      '本字段不创建账号技能、影画、库存或计划DPS事实。',
+    ],
+  }
 }
 
 function remielleIntakeGuidanceField(
@@ -216,16 +332,49 @@ for (const contract of currentAgentEventContracts) {
 }
 if (potentialApplicabilityByExternalId.size !== currentAgentEventContracts.length)
   throw new Error('Current potential projection contains unknown or duplicate source identities.')
-if (
-  currentAssetProjection.agents.length !== currentAgentEventContracts.length ||
-  currentAssetProjection.agents.some(
-    (agent) => !currentAgentEventContracts.some((contract) => contract.stableId === agent.stableId),
-  )
+// The old 60-row GO proof remains complete; Nanoka has its own negative source fact.
+const nanokaPotentialAbsence = new Map(
+  sourceBoundPotentialAbsence.map((entry) => {
+    const numeric = getCurrentAgentNumericContract(entry.stableId)
+    if (
+      !numeric ||
+      !isReviewedPhoenixNumericContract(numeric) ||
+      entry.externalId !== numeric.externalId ||
+      !entry.potentialEmpty ||
+      !entry.potentialDetailEmpty ||
+      stableContentHash(entry.source) !== stableContentHash(numeric.source)
+    )
+      throw new Error(`Nanoka potential source binding mismatch: ${entry.stableId}`)
+    return [entry.stableId, entry] as const
+  }),
 )
-  throw new Error('Current potential source population differs from released agent identities.')
+const allPotentialIdentities = new Set([
+  ...currentAgentEventContracts.map((contract) => contract.stableId),
+  ...nanokaPotentialAbsence.keys(),
+])
+if (
+  allPotentialIdentities.size !== currentAgentNumericContracts.length ||
+  currentAgentNumericContracts.some((contract) => !allPotentialIdentities.has(contract.stableId)) ||
+  currentAssetProjection.agents.length !== allPotentialIdentities.size ||
+  currentAssetProjection.agents.some((agent) => !allPotentialIdentities.has(agent.stableId))
+)
+  throw new Error('Current potential source population differs from released numeric identities.')
 
 function currentVersionPotentialAbsence(agentId: string) {
-  return currentVersionPotentialNotApplicableIds.get(agentId)
+  const nanoka = nanokaPotentialAbsence.get(agentId)
+  if (nanoka)
+    return {
+      externalId: nanoka.externalId,
+      sourceVersion: '3.3',
+      evaluatedForVersion: '3.3',
+      upstreamPath: nanoka.source.url,
+      sourceStatsSha256: nanoka.source.rawSha256,
+      provider: 'nanoka' as const,
+      locator: nanoka.source.locators.potential,
+      providerManifestSha256: nanoka.source.providerManifestSha256,
+    }
+  const go = currentVersionPotentialNotApplicableIds.get(agentId)
+  return go ? { ...go, provider: 'genshin_optimizer' as const } : undefined
 }
 
 const sigridMechanicSource = currentDecisionMechanicSupplements.resourceContracts.find(
@@ -279,6 +428,8 @@ function adoptedCurrentField(
   agentId: string,
   fieldId: CurrentBuildFieldId,
 ): AgentProfileField | undefined {
+  if (fieldId === 'progression.potential_overlay')
+    return getReviewedPotentialOverlayGuidance32(agentId)
   if (fieldId === 'build.version_change_impact')
     return getReviewedBuildVersionImpact32(
       agentId,
@@ -298,6 +449,18 @@ function adoptedCurrentField(
     return remielleTargetPanelGuidanceField
   if (fieldId === 'build.team_bangboo_scenario' && agentId === 'agent-remielle')
     return remielleCurrentTeamBangbooGuidance32
+  if (fieldId === 'build.drive_disc_sets') return getReviewedHoyoBuildDriveDiscSets32(agentId)
+  if (fieldId === 'build.main_sub_stats' && agentId === 'agent-miyabi')
+    return getReviewedHoyoBuildMiyabiMainSubStats32()
+  if (fieldId === 'build.target_panel' && agentId === 'agent-miyabi')
+    return getReviewedHoyoBuildMiyabiTargetPanel32()
+  if (fieldId === 'progression.skill_core_cinema' && agentId === 'agent-remielle')
+    return remielleCurrentSkillCoreCinemaGuidance32()
+  if (fieldId === 'progression.skill_core_cinema')
+    return (
+      getReviewedHoyoBuildCurrentSkillGuidance32(agentId) ??
+      getReviewedSkillCoreCinemaContinuityField32(agentId)
+    )
   return undefined
 }
 
@@ -412,19 +575,73 @@ function partialFactSourceRefs(value: unknown): CurrentBuildAuthorityField['sour
   return []
 }
 
-function selectedGuidanceField(
+export function selectedGuidanceField(
   fieldId: CurrentBuildFieldId,
   fields: readonly AgentProfileField[],
   agentId: string,
 ): AgentProfileField | undefined {
+  if (currentVersionProjection.gameVersion === '3.3' && agentId === 'agent-phoenix')
+    return getGameData33BuildGuidanceFields(agentId).find((field) => field.path === fieldId)
+  if (fieldId === 'progression.lv60_and_ascension') {
+    const materials = getAgentAscensionMaterialFacts(agentId)
+    const panel = partialCurrentFieldFacts(fieldId, fields, agentId, '3.2')
+    const contract = currentAgentEventContracts.find((row) => row.stableId === agentId)
+    if (materials?.status === 'supported' && panel && 'source' in panel && contract)
+      return {
+        group: 'build_guidance',
+        path: fieldId,
+        value: {
+          ...panel,
+          kind: 'current_level60_and_ascension_facts',
+          completion: 'static_panel_and_ascension_material_facts_known',
+          ascensionMaterials: materials,
+        },
+        status: 'verified_candidate',
+        gameVersion: '3.2',
+        originalSourceVersion: materials.source.sourceVersion,
+        lastChangeVersion: '3.2',
+        currentApplicability: 'continuous',
+        sourceRefs: [
+          {
+            id: panel.source.id,
+            url: `https://github.com/frzyc/genshin-optimizer/blob/${contract.source.commit}/${contract.source.statsPath}`,
+            sourceVersion: panel.source.sourceVersion,
+            checkedAt: null,
+            contentHash: panel.source.contentHash,
+            licenseBoundary: '既有锁定静态成长数据；不投影账户已达成。',
+          },
+          {
+            id: `nanoka-3.2-ascension-materials:${materials.gameId}`,
+            url: materials.source.url,
+            sourceVersion: materials.source.sourceVersion,
+            checkedAt: null,
+            contentHash: materials.source.sha256,
+            licenseBoundary:
+              '逐角色已锁定原始 JSON SHA 与身份核验，采用 level[1..5].materials 最小事实。',
+          },
+        ],
+        verifiedAt: null,
+        conflict: null,
+        conditions: [
+          'LV60/A5静态成长及逐次突破材料；当前等级、突破与材料持有量仍来自账户。',
+          '突破成本保留真实材料ID和丁尼，不包含角色等级经验材料或完整培养总成本。',
+        ],
+        reason: '复用已锁定的逐角色突破成本，与当前成长数据及正式身份共同采用。',
+      }
+    // Static growth without the exact source-bound ascension transitions does
+    // not close the field by itself.
+    return undefined
+  }
   const currentTeamScenario =
     fieldId === 'build.team_bangboo_scenario' ? currentTeamGuidanceField(agentId) : undefined
+  const adopted = adoptedCurrentField(agentId, fieldId)
   const field =
+    (adopted?.gameVersion === '3.2' ? adopted : undefined) ??
     (currentTeamScenario?.currentApplicability === 'continuous'
       ? currentTeamScenario
       : undefined) ??
     projectedReviewedBuild32Fields(agentId).find((field) => field.path === fieldId) ??
-    adoptedCurrentField(agentId, fieldId) ??
+    adopted ??
     fields.find((candidate) => candidate.path === fieldId && candidate.status !== 'missing') ??
     (fieldId === 'build.target_panel' ? frozenTargetPanelGuidance(agentId) : undefined) ??
     fields.find((candidate) => candidate.path === fieldId)
@@ -461,21 +678,72 @@ function authorityField(
       ? currentVersionPotentialAbsence(agentId)
       : undefined
   const potentialApplicable = fieldId !== 'progression.potential_overlay' || !potentialAbsence
-  const targetVersion =
-    projectedReviewedBuild32Fields(agentId)[0]?.gameVersion ?? currentVersionProjection.gameVersion
-  const continuity = reviewedBuildFieldReferenceContinuity32({ agentId, targetVersion, field })
+  const targetVersion = currentVersionProjection.gameVersion
+  const continuity =
+    targetVersion === '3.3'
+      ? resolveReviewedBuildFieldContinuity33({
+          agentId,
+          targetVersion,
+          field,
+          formulaSha256: currentAgentEventContracts.find((row) => row.stableId === agentId)?.source
+            .formulaSha256,
+        })
+      : reviewedBuildFieldReferenceContinuity32({ agentId, targetVersion, field })
   const state: CurrentBuildFieldState = !potentialApplicable
     ? 'not_applicable'
     : continuity
       ? 'ready'
       : fieldState(field, targetVersion)
+  const rederivedVersionImpact =
+    fieldId === 'build.version_change_impact' &&
+    targetVersion === '3.3' &&
+    continuity &&
+    field?.value &&
+    typeof field.value === 'object'
+      ? {
+          ...(field.value as Record<string, unknown>),
+          targetVersion: '3.3',
+          disposition: 'rederived_current_reference_continuity',
+          historicalVersionImpact: {
+            sourceReviewVersion: field.gameVersion,
+            targetVersion: (field.value as Record<string, unknown>).targetVersion,
+            disposition: (field.value as Record<string, unknown>).disposition,
+            contentHash: stableContentHash(field.value),
+          },
+          currentEvaluation: {
+            kind: 'rederived_current',
+            scope: 'formed_generic_guidance_reference',
+            sourceDeltaHash: 'DD6B87A5CBFBB965726D2C79297F630EBCA85187AF09F7802A6F4D0D5B3A0AE0',
+            fieldBindingHash: continuity.referenceContentHash,
+            runtimePromotion: false,
+            formalPromotion: false,
+            importPromotion: false,
+            strengthPromotion: false,
+            boundary:
+              '原3.2字段值、来源及角色公式逐字段绑定后派生3.3一般参考延续；不证明热修复运行时或meta优劣。',
+          },
+        }
+      : null
+  const sourceTier: CurrentBuildAuthoritySourceTier =
+    state === 'not_applicable'
+      ? 'not_applicable'
+      : state !== 'ready'
+        ? 'incomplete'
+        : currentVersionProjection.gameVersion === '3.3' && agentId === 'agent-phoenix'
+          ? 'direct_current_3_3'
+          : continuity
+            ? 'continuity_reviewed'
+            : (field?.reviewedSourceTier ?? 'direct_current_3_2')
   const reason = field?.reason ?? `${fieldId} 缺少可追溯的当前版本构筑字段。`
   const partialKnownFacts =
     state === 'missing' ? partialCurrentFieldFacts(fieldId, fields, agentId, targetVersion) : null
   const sourceRefs = potentialAbsence
     ? [
         {
-          id: `current-raw-potential-empty:${potentialAbsence.externalId}:${potentialAbsence.upstreamPath}@${potentialSourceCommit}`,
+          id:
+            potentialAbsence.provider === 'nanoka'
+              ? `nanoka-potential-empty:${potentialAbsence.externalId}:${potentialAbsence.locator}:provider-${potentialAbsence.providerManifestSha256}`
+              : `current-raw-potential-empty:${potentialAbsence.externalId}:${potentialAbsence.upstreamPath}@${potentialSourceCommit}`,
           sourceVersion: potentialAbsence.sourceVersion,
           evaluatedForVersion: potentialAbsence.evaluatedForVersion,
           checkedAt: null,
@@ -506,10 +774,12 @@ function authorityField(
   return {
     fieldId,
     lane: 'guidance',
+    sourceTier,
+    ...(rederivedVersionImpact ? { derivation: 'rederived_current' as const } : {}),
     ...(continuity ? { referenceContinuity: continuity } : {}),
     state,
     sourceStatus: field?.status ?? 'missing',
-    value: state === 'ready' ? (field?.value ?? null) : partialKnownFacts,
+    value: state === 'ready' ? (rederivedVersionImpact ?? field?.value ?? null) : partialKnownFacts,
     sourceRefs,
     blockers:
       state === 'ready' || state === 'not_applicable'
@@ -523,10 +793,13 @@ function authorityField(
     conditions:
       state === 'not_applicable'
         ? [
-            `当前锁定上游快照 ${potentialAbsence?.upstreamPath}（${potentialAbsence?.sourceVersion}，按 ${potentialAbsence?.evaluatedForVersion} 评估）与机制目录 SHA 一致，且原始 potentialParams 明确为空；该字段不适用，不推断账号激活状态。`,
+            potentialAbsence?.provider === 'nanoka'
+              ? `Nanoka 3.3 身份/raw/provider SHA已绑定，${potentialAbsence.locator}均为空；潜能不适用，不推断账户状态。`
+              : `当前锁定上游快照 ${potentialAbsence?.upstreamPath}（${potentialAbsence?.sourceVersion}，按 ${potentialAbsence?.evaluatedForVersion} 评估）与机制目录 SHA 一致，且原始 potentialParams 明确为空；该字段不适用，不推断账号激活状态。`,
           ]
         : [
             ...(field?.conditions ?? []),
+            ...(continuity && 'boundary' in continuity ? [continuity.boundary] : []),
             ...(partialKnownFacts
               ? [
                   fieldId === 'progression.lv60_and_ascension'
@@ -574,9 +847,7 @@ function buildProfile(asset: (typeof currentAssetProjection.agents)[number]) {
   const core = {
     stableId: asset.stableId,
     displayName: asset.playerName,
-    gameVersion:
-      projectedReviewedBuild32Fields(asset.stableId)[0]?.gameVersion ??
-      currentVersionProjection.gameVersion,
+    gameVersion: currentVersionProjection.gameVersion,
     releaseState: asset.releaseState,
     accountOwnable: asset.accountOwnable,
     guidance: {
@@ -613,9 +884,26 @@ const authorityCore = {
     unique: new Set(profiles.map((profile) => profile.stableId)).size,
     guidanceReady: profiles.filter((profile) => profile.guidance.state === 'ready').length,
     guidancePartial: profiles.filter((profile) => profile.guidance.state === 'partial').length,
+    /** Compatibility count only; provenance must be read from the tier fields below. */
     guidanceFieldsReady: profiles.reduce(
       (count, profile) =>
         count + profile.guidance.fields.filter((field) => field.state === 'ready').length,
+      0,
+    ),
+    guidanceFieldsDirectCurrent: profiles.reduce(
+      (count, profile) =>
+        count +
+        profile.guidance.fields.filter(
+          (field) =>
+            field.sourceTier === 'direct_current_3_2' || field.sourceTier === 'direct_current_3_3',
+        ).length,
+      0,
+    ),
+    guidanceFieldsContinuityReviewed: profiles.reduce(
+      (count, profile) =>
+        count +
+        profile.guidance.fields.filter((field) => field.sourceTier === 'continuity_reviewed')
+          .length,
       0,
     ),
     guidanceFieldsNotApplicable: profiles.reduce(
@@ -623,6 +911,13 @@ const authorityCore = {
         count + profile.guidance.fields.filter((field) => field.state === 'not_applicable').length,
       0,
     ),
+    guidanceFieldsIncomplete: profiles.reduce(
+      (count, profile) =>
+        count + profile.guidance.fields.filter((field) => field.sourceTier === 'incomplete').length,
+      0,
+    ),
+    guidanceFieldsAll: profiles.length * currentBuildFieldIds.length,
+    /** Applicable denominator: all fields minus source-proven not-applicable fields. */
     guidanceFieldsTotal:
       profiles.length * currentBuildFieldIds.length -
       profiles.reduce(
@@ -642,32 +937,110 @@ export const currentBuildAuthority = {
   contentHash: stableContentHash(authorityCore),
 }
 
-export function getCurrentBuildAuthorityProfile(stableId: string) {
-  return currentBuildAuthority.profiles.find((profile) => profile.stableId === stableId) ?? null
+export type CurrentBuildAuthorityProfile = (typeof profiles)[number]
+
+export function getCurrentBuildAuthorityProfile(
+  stableId: string,
+  context?: CurrentBuildTargetPanelContext,
+): CurrentBuildAuthorityProfile | null {
+  const profile =
+    currentBuildAuthority.profiles.find((profile) => profile.stableId === stableId) ?? null
+  if (!profile || !context) return profile
+  const observedMindscape = context.agentStateById?.[stableId]?.mindscape
+  if (
+    context.mindscape !== undefined &&
+    context.agentStateById?.[stableId] &&
+    Object.hasOwn(context.agentStateById[stableId], 'mindscape') &&
+    context.mindscape !== observedMindscape
+  )
+    return profile
+  const expansion = reviewedBuildApplicabilityExpansion32(
+    stableId,
+    context,
+    profile.guidance.fields,
+  )
+  const replacements = expansion?.fields ? [...expansion.fields] : []
+  const target = getCurrentBuildTargetPanel(stableId, context)
+  const baseTarget = profile.guidance.fields.find(
+    (field) => field.fieldId === 'build.target_panel',
+  )!
+  if (stableId === 'agent-miyabi') {
+    const targetChangesField =
+      target &&
+      (target.value !== baseTarget.value ||
+        target.status !== baseTarget.sourceStatus ||
+        target.sourceRefs !== baseTarget.sourceRefs ||
+        target.conditions !== baseTarget.conditions)
+    if (targetChangesField)
+      replacements.push({
+        ...baseTarget,
+        state: 'ready',
+        sourceTier: target.sourceRefs.some((source) =>
+          source.id.startsWith('miyabi-traditional-panel-local-review32-'),
+        )
+          ? 'continuity_reviewed'
+          : 'direct_current_3_2',
+        sourceStatus: target.status,
+        value: target.value,
+        sourceRefs: target.sourceRefs,
+        conditions: target.conditions,
+        blockers: [],
+        nextEvidence: [],
+      })
+    else if (expansion?.constraint.targetPanelApplicability)
+      replacements.push({
+        ...baseTarget,
+        state: 'missing',
+        sourceTier: 'incomplete',
+        sourceStatus: 'missing',
+        value: null,
+        sourceRefs: [...baseTarget.sourceRefs, expansion.sourceRef],
+        conditions: [expansion.constraint.targetPanelApplicability.reason],
+        blockers: ['该精通分支没有已采用的目标面板；传统双暴参考不适用于此玩法。'],
+        nextEvidence: ['仅在取得该精通分支的独立目标面板来源后补充，不沿用传统毕业数值。'],
+        contextualApplicability: expansion.contextualApplicability,
+      })
+  }
+  if (!replacements.length) return profile
+  const fields = profile.guidance.fields.map(
+    (field) => replacements.find((replacement) => replacement.fieldId === field.fieldId) ?? field,
+  )
+  const core = {
+    ...profile,
+    guidance: {
+      state: fields.every((field) => field.state === 'ready' || field.state === 'not_applicable')
+        ? ('ready' as const)
+        : ('partial' as const),
+      fields,
+    },
+  }
+  return { ...core, contentHash: stableContentHash({ ...core, contentHash: undefined }) }
 }
 
 /** Historical, conditional reading only. Does not open the calculation/solver gate. */
 export function getCurrentPotentialSkillReference(stableId: string) {
-  if (!getCurrentBuildAuthorityProfile(stableId)) return null
-  const field = getAgentProfile(stableId).fields.find(
-    (item) => item.path === 'progression.potential_overlay',
+  const profile = getCurrentBuildAuthorityProfile(stableId)
+  if (!profile) return null
+  const field = profile.guidance.fields.find(
+    (item) => item.fieldId === 'progression.potential_overlay',
   )
   if (
     !field ||
-    field.conflict ||
-    field.status !== 'verified_candidate' ||
+    field.state !== 'ready' ||
+    field.sourceStatus !== 'verified_candidate' ||
     !field.sourceRefs.length ||
     !isPotentialGuideReference(field.value)
   )
     return null
   return {
-    conditionLabel: '潜能6/6历史参考（未用于当前方案）',
+    conditionLabel: '潜能6/6参考（未用于当前方案）',
     skillDirections: field.value.skillDirections,
   }
 }
 
 export type CurrentBuildTargetPanelContext = Omit<ReviewedTargetContext, 'agentId'> &
-  ReviewedTeamDiscConditionContext
+  ReviewedTeamDiscConditionContext &
+  CandidateSetPlanEligibilityContext
 
 /** Local 3.2 review retains the author's traditional numerical references. It
  * does not turn an older build calculation into a current graduation threshold. */
@@ -678,7 +1051,7 @@ function reviewedMiyabiTraditionalPanel32(context: CurrentBuildTargetPanelContex
     ['agent-miyabi', 'agent-lycaon', 'agent-soukaku'],
     ['agent-miyabi', 'agent-remielle', 'agent-burnice'],
   ].find((team) => team.every((id) => members.includes(id)))
-  if (!sourceTeam || currentVersionProjection.gameVersion !== '3.2') return null
+  if (!sourceTeam || !['3.2', '3.3'].includes(currentVersionProjection.gameVersion)) return null
   const state = context.agentStateById?.['agent-miyabi']
   const mindscape = state && Object.hasOwn(state, 'mindscape') ? state.mindscape : context.mindscape
   if (
@@ -739,7 +1112,7 @@ function reviewedMiyabiTraditionalPanel32(context: CurrentBuildTargetPanelContex
     ? reviewedTeamDiscDirections.find((row) => row.agentId === 'agent-miyabi')?.source
     : undefined
   if (members.includes('agent-remielle') && teamSource?.localReviewVersion !== '3.2') return null
-  return {
+  const panel = {
     value: {
       ...originalValue,
       targetSemantics: Object.fromEntries(
@@ -789,6 +1162,25 @@ function reviewedMiyabiTraditionalPanel32(context: CurrentBuildTargetPanelContex
     ],
     conditions,
   }
+  if (currentVersionProjection.gameVersion === '3.2') return panel
+  const referenceContinuity = resolveReviewedContextualTargetPanelContinuity33({
+    targetVersion: currentVersionProjection.gameVersion,
+    memberIds: members,
+    ...panel,
+    formulaBindings: members.flatMap((agentId) => {
+      const actor = currentAgentEventContracts.find((row) => row.stableId === agentId)
+      return actor ? [{ agentId, formulaSha256: actor.source.formulaSha256 }] : []
+    }),
+  })
+  return referenceContinuity
+    ? {
+        ...panel,
+        gameVersion: '3.3',
+        referenceContinuity,
+        evaluatedForVersion: '3.3',
+        sourceReviewVersion: '3.2',
+      }
+    : null
 }
 
 /** Both player workbenches consume the adopted guidance, never a page-local fallback. */
@@ -803,8 +1195,11 @@ export function getCurrentBuildTargetPanel(
     return null
   const profile = getCurrentBuildAuthorityProfile(stableId)
   const field = profile?.guidance.fields.find((item) => item.fieldId === 'build.target_panel')
-  if (stableId === 'agent-miyabi' && field?.state === 'stale')
-    return reviewedMiyabiTraditionalPanel32(context)
+  if (stableId === 'agent-miyabi') {
+    const traditional = reviewedMiyabiTraditionalPanel32(context)
+    if (traditional) return traditional
+    if (context?.memberIds) return null
+  }
   if (!profile || !field || field.state !== 'ready') return null
   const panel = {
     value: field.value,

@@ -1,0 +1,4667 @@
+{
+  "schema": "soda-reviewed-build-field-continuity/v1",
+  "id": "reviewed-build-field-continuity-3.2-to-3.3-r1",
+  "targetVersion": "3.3",
+  "sourceReviewVersion": "3.2",
+  "scope": "formed_generic_guidance_reference",
+  "sourceDeltaHash": "DD6B87A5CBFBB965726D2C79297F630EBCA85187AF09F7802A6F4D0D5B3A0AE0",
+  "boundary": {
+    "strengthPromotion": false,
+    "runtimePromotion": false,
+    "formalPromotion": false,
+    "importPromotion": false,
+    "exactDps": false
+  },
+  "formulaBindings": [
+    {
+      "agentId": "agent-alice",
+      "formulaSha256": "8387F008FE972025AC5FAE619EBD40F8971119568C4DEA0048D798E0241F82E5"
+    },
+    {
+      "agentId": "agent-anby",
+      "formulaSha256": "881DD011DD730A4383421A8E754C0F7479A4ACE549F214BC025DF416CC8F6CE8"
+    },
+    {
+      "agentId": "agent-anton",
+      "formulaSha256": "B121F7C2FE9C3CB57C4008FFC64C7070EC208E2614CD6A1998D0F455E8BB6221"
+    },
+    {
+      "agentId": "agent-aria",
+      "formulaSha256": "3164FA902E16366CCDBBBF2F41660D77DA72168F95E618157B51CE2A28E3A7F3"
+    },
+    {
+      "agentId": "agent-astra",
+      "formulaSha256": "C56619ADA67799562AB8E48CB15419421B1C15DB7AE49E04C9E6D302802C5846"
+    },
+    {
+      "agentId": "agent-banyue",
+      "formulaSha256": "F559CE817A8CC1B3A7448AF42C9DBCFF17DABBBA96C6B410CFC9FA72858E92F8"
+    },
+    {
+      "agentId": "agent-ben",
+      "formulaSha256": "395B208714B28F4B9FCDDCC6FD328424443E8AC42147D1E4DD68569E0E3A7FDF"
+    },
+    {
+      "agentId": "agent-billy",
+      "formulaSha256": "91202DCC7AAE626B739B6657EA903BF83C9C9FFBE353F0442C2D01B3F1FF240E"
+    },
+    {
+      "agentId": "agent-burnice",
+      "formulaSha256": "8A46BA0B3E268C6C2E67C2029E0FA293D3C7C97718BC2063D43FB29EB81D2B3C"
+    },
+    {
+      "agentId": "agent-caesar",
+      "formulaSha256": "3F8882797C2D056CB9548B431209D6535C1B4BB3E3435D305C3C970EAF241125"
+    },
+    {
+      "agentId": "agent-cissia",
+      "formulaSha256": "A6D650C19881D1FEDC2FC0DCD028420E438603A437A32E04F7E5E9109FA56597"
+    },
+    {
+      "agentId": "agent-claret",
+      "formulaSha256": "BDF57EEC001BFA499D2C08BDB8E5004469EAE22E411D9EAFE4F614E3C55F5AF3"
+    },
+    {
+      "agentId": "agent-corin",
+      "formulaSha256": "92F8EB727836FD7769F645BEBC1F52A71D11753F955770C5B40A06A7E96D51AD"
+    },
+    {
+      "agentId": "agent-dialyn",
+      "formulaSha256": "AA6BA963833BFFC7B82C29A6EF227209E80FCD57E7FF98F6AAD2055ACA68982C"
+    },
+    {
+      "agentId": "agent-ellen",
+      "formulaSha256": "7A1328E91BA4A4A28C23EF3994FEAB43B171D4E2A66CF550A5929CF2ACAE93DC"
+    },
+    {
+      "agentId": "agent-evelyn",
+      "formulaSha256": "7D2BD8C861236682C919DC504875A1B7A72AD035F71BC85A5E3BCD9E396C89BB"
+    },
+    {
+      "agentId": "agent-grace",
+      "formulaSha256": "2B4F04621AD8FDCAB017BF64CC071EDCCFADEDC56F10E0DB358664A909B14461"
+    },
+    {
+      "agentId": "agent-harumasa",
+      "formulaSha256": "4C8F30B7DF979ED13A05CE49D74C896B14C90BAEA13CCC392142903318ADD616"
+    },
+    {
+      "agentId": "agent-hugo",
+      "formulaSha256": "492F1CB66EFC2725530C6DF376068D19449EFC6835DEC894865BABA5835B5EB5"
+    },
+    {
+      "agentId": "agent-jane",
+      "formulaSha256": "95F6A36CB88F44EA406EF193DE3D0CF295498F693561D717A3B270D34D5F55E8"
+    },
+    {
+      "agentId": "agent-ju-fufu",
+      "formulaSha256": "AD33CBC292233EA3D57921C0667CC327F368876133A7C29D76D8917E8D6C3B51"
+    },
+    {
+      "agentId": "agent-koleda",
+      "formulaSha256": "632180C58A583A7024641799AF82A21906D78973C2046A48C2DFB88E21E59C8C"
+    },
+    {
+      "agentId": "agent-lighter",
+      "formulaSha256": "4AE8698C1FF65B9A4B56CF89024DF3CA9D3D9061912455A4FDBB6F977938182A"
+    },
+    {
+      "agentId": "agent-lucia",
+      "formulaSha256": "BB1DEBD0A64DF8367D347CE0511907891B08A0E98FA025726C5D6D28BE94B555"
+    },
+    {
+      "agentId": "agent-lucy",
+      "formulaSha256": "7B7964B69D7D18A4EAD0914B2DA83915EC4DE5BB795098F078EA9A381DE5B903"
+    },
+    {
+      "agentId": "agent-lycaon",
+      "formulaSha256": "693E61F9CF5C463C1BDAE3F655052691275C8CB60AD50D5F7EB43EF09E4300D9"
+    },
+    {
+      "agentId": "agent-manato",
+      "formulaSha256": "173273745E9E88E9261C54634A71652BC760573A64F99AE0BCEFEFAF0814A3F0"
+    },
+    {
+      "agentId": "agent-miyabi",
+      "formulaSha256": "7C7E1F1AEDA1D38976D4C0B47C111EB0B4FC76DFE0E6554B567D8260DF8127F3"
+    },
+    {
+      "agentId": "agent-nangong",
+      "formulaSha256": "A3B2721A8FB50EE083A94163616803D09C7E6BAA6968E620F05F886715176A54"
+    },
+    {
+      "agentId": "agent-nekomata",
+      "formulaSha256": "61BEB4900086F3790A6D79FE3BE8248883697E86C8CC512DF9B544EB82C465B0"
+    },
+    {
+      "agentId": "agent-nicole",
+      "formulaSha256": "0BEDD990502F54EAA094997FE1998A0B50C7B9C5924D0F4A18C433FCC93A880C"
+    },
+    {
+      "agentId": "agent-norma",
+      "formulaSha256": "604F9C881524A683CFDCF824573F5333A8A144DC103C8CBC7B2C7628B0BD6F46"
+    },
+    {
+      "agentId": "agent-orphie-magus",
+      "formulaSha256": "A1F61932E1812E23C8E22490CFA3EEF69AEA01B6FD0136A54EA334FB57D0C1C0"
+    },
+    {
+      "agentId": "agent-pan-yinhu",
+      "formulaSha256": "CF1E27AAA6504E5C4150961E397FE93DB293FCEA2D6AE2470A600217F00228B5"
+    },
+    {
+      "agentId": "agent-piper",
+      "formulaSha256": "71601E28CB2202D7B95B9486C79B761AC0EA299605598896645B595FF50AFAC2"
+    },
+    {
+      "agentId": "agent-promeia",
+      "formulaSha256": "4BAA6F6B37A325AD72CBD628805F8BA55BB7AC3589E78BE8E28244826320FD66"
+    },
+    {
+      "agentId": "agent-pulchra",
+      "formulaSha256": "136C36B91C1E06975759E9C89F7A2D8B4B994588FF2AD607514F56A4F6B8027A"
+    },
+    {
+      "agentId": "agent-pyrois",
+      "formulaSha256": "036B15556906AE41DD9997381F931EB7B356C54F2A55885143C38D61C1EF4FBE"
+    },
+    {
+      "agentId": "agent-qingyi",
+      "formulaSha256": "C0BD406F2AE6972D70B4D2695CEBC7CAA16F7032AE0CBD86E8447C312EEF926D"
+    },
+    {
+      "agentId": "agent-remielle",
+      "formulaSha256": "75AF20EB1BA2266489D8901F948DB4AE51C73D5DE73C172F09B2349CFD503225"
+    },
+    {
+      "agentId": "agent-rina",
+      "formulaSha256": "25E6A6BCB84531FF113484E1C16C2262B60D05A49D97FC51A6AA5158D98A4225"
+    },
+    {
+      "agentId": "agent-roxy",
+      "formulaSha256": "DFB173A363EFD3D9384AB3D53C543824B2B420ED14C67FD3039DC5F3C022D27D"
+    },
+    {
+      "agentId": "agent-seed",
+      "formulaSha256": "C3D0F2FDB79246956BCFED93B6B57AFA570D081B519EFBB8CAD2451A85656708"
+    },
+    {
+      "agentId": "agent-seth",
+      "formulaSha256": "499F9B3BE93358AE03618096258CC6FCB1E95E3AEEAE4052F27C3DEF436FDCD6"
+    },
+    {
+      "agentId": "agent-sigrid",
+      "formulaSha256": "F3DA778C5C0ECE30F1924AE4B1C752CB87DBD2AABEF64ABDBAB4648A5D8AF313"
+    },
+    {
+      "agentId": "agent-soldier-0-anby",
+      "formulaSha256": "15E220B7933E2A50257119248DCC3F0A7F8564A708AEFB1AD826763A04979D6E"
+    },
+    {
+      "agentId": "agent-soldier-11",
+      "formulaSha256": "9A8250B8F3803FF3E2BE223353663A5FD0FC8A2E1022EEFD09D49A8966509313"
+    },
+    {
+      "agentId": "agent-soukaku",
+      "formulaSha256": "2BC7C02BCB4AA77F80E173A3D11B8371198E73D8024D3D98C8A31F5814D5D2CB"
+    },
+    {
+      "agentId": "agent-starlight-billy",
+      "formulaSha256": "3CDF6903E1C5ADE4B8694208644E8EAAB1BA9BF1A675EF4DAB40E88EA0CBBD26"
+    },
+    {
+      "agentId": "agent-sunna",
+      "formulaSha256": "90EFAD8D4E9D765E16739629DA3B8FAEC1964C20D0EBAA15F7A9292F520A414B"
+    },
+    {
+      "agentId": "agent-trigger",
+      "formulaSha256": "C24093AAEF041B0CA582F19729665387060E64C6CDDC9DAF7B338DA37075B0A6"
+    },
+    {
+      "agentId": "agent-velina",
+      "formulaSha256": "159122E6D3D10D58E3311F1FD44E193A430343BF58986BD725A3006BBACA20EA"
+    },
+    {
+      "agentId": "agent-vivian",
+      "formulaSha256": "89933DF78C2479BAEAD0CF1EC9100332815D549C7DBAB5DFC911EA896392500E"
+    },
+    {
+      "agentId": "agent-yanagi",
+      "formulaSha256": "5FFF32C390B426C1CAFF95FDD0EE6C744EF8D2FDCBD3A7F24D378C2EDEB921A2"
+    },
+    {
+      "agentId": "agent-ye-shunguang",
+      "formulaSha256": "C9B8003134CB45D551D4F4583B1D468FEB0BB4F2C3FAF708EFE06F9966B222FD"
+    },
+    {
+      "agentId": "agent-yidhari",
+      "formulaSha256": "B5DD737E76A5D0363C89206EF32CF138AE1371451E82625F218909A563EBE301"
+    },
+    {
+      "agentId": "agent-yixuan",
+      "formulaSha256": "43F11850985726682A1076704F9B0E9ACF3172F18AE4B76DE2AF4B16E3F28E80"
+    },
+    {
+      "agentId": "agent-yuzuha",
+      "formulaSha256": "61F637F03E82BCE0B22F1FE85D3EEB4BD9ACA00B0787C74137F3ED94737CA8F6"
+    },
+    {
+      "agentId": "agent-zhao",
+      "formulaSha256": "D371D769E3EFA7F079DE26EE86762F7001B1025655CAF767D596F79FEF434B15"
+    },
+    {
+      "agentId": "agent-zhu-yuan",
+      "formulaSha256": "A85922CD98A29243BE040AC16D0F359A6D24147968BF9BAD8EF5391FE74DB640"
+    }
+  ],
+  "entries": [
+    {
+      "agentId": "agent-roxy",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-f832e192",
+      "sourceRefsHash": "fnv1a-bebaf927",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-roxy",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-65b668aa",
+      "sourceRefsHash": "fnv1a-60772136",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-roxy",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-27c1f1cd",
+      "sourceRefsHash": "fnv1a-c0504e99",
+      "conditionsHash": "fnv1a-66f7229",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-roxy",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-dc59cb31",
+      "sourceRefsHash": "fnv1a-c0504e99",
+      "conditionsHash": "fnv1a-8b257a56",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-roxy",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-69a87646",
+      "sourceRefsHash": "fnv1a-c0504e99",
+      "conditionsHash": "fnv1a-542ae8e",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-roxy",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-c96bf6dd",
+      "sourceRefsHash": "fnv1a-c0504e99",
+      "conditionsHash": "fnv1a-542ae8e",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-roxy",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-6add33e5",
+      "sourceRefsHash": "fnv1a-1936dc6d",
+      "conditionsHash": "fnv1a-e5d8a2ab",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-roxy",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-46036bc3",
+      "sourceRefsHash": "fnv1a-17a047ec",
+      "conditionsHash": "fnv1a-7f24298c",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-roxy",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-472e8107",
+      "sourceRefsHash": "fnv1a-1f7238bc",
+      "conditionsHash": "fnv1a-1dfe17d8",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-claret",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-f20a2f85",
+      "sourceRefsHash": "fnv1a-78cbb9e8",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-claret",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-edaeaf98",
+      "sourceRefsHash": "fnv1a-7f2d8ddd",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-claret",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-cd0c32db",
+      "sourceRefsHash": "fnv1a-d52e926c",
+      "conditionsHash": "fnv1a-6344e6c4",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-claret",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-d0735b20",
+      "sourceRefsHash": "fnv1a-d52e926c",
+      "conditionsHash": "fnv1a-e2256aaf",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-claret",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-2380bcc2",
+      "sourceRefsHash": "fnv1a-d52e926c",
+      "conditionsHash": "fnv1a-bbd0856e",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-claret",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-e22d9656",
+      "sourceRefsHash": "fnv1a-d52e926c",
+      "conditionsHash": "fnv1a-bbd0856e",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-claret",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-40aa6ee",
+      "sourceRefsHash": "fnv1a-efadf217",
+      "conditionsHash": "fnv1a-a0641e71",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-claret",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-8ca40f1",
+      "sourceRefsHash": "fnv1a-dcef0bff",
+      "conditionsHash": "fnv1a-810cdfe1",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-claret",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-e5490445",
+      "sourceRefsHash": "fnv1a-b25a2e25",
+      "conditionsHash": "fnv1a-fb7808fb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-sigrid",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-78a6f2f4",
+      "sourceRefsHash": "fnv1a-703298ce",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-sigrid",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-16c493ae",
+      "sourceRefsHash": "fnv1a-77564f8e",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-sigrid",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-e2ed9005",
+      "sourceRefsHash": "fnv1a-dcfcb6a8",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-sigrid",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-97fe230c",
+      "sourceRefsHash": "fnv1a-1bb39c6d",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-sigrid",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-ca13666",
+      "sourceRefsHash": "fnv1a-1bb39c6d",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-sigrid",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-1e029944",
+      "sourceRefsHash": "fnv1a-1bb39c6d",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-sigrid",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-c816b472",
+      "sourceRefsHash": "fnv1a-ac3f0ff9",
+      "conditionsHash": "fnv1a-938f081d",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-sigrid",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-2d0ce5ed",
+      "sourceRefsHash": "fnv1a-86dc6858",
+      "conditionsHash": "fnv1a-2d9707b4",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-sigrid",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-d6d062a7",
+      "sourceRefsHash": "fnv1a-2a98a3cd",
+      "conditionsHash": "fnv1a-6ddb97a6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-remielle",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-3bfee39a",
+      "sourceRefsHash": "fnv1a-4e70a72e",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-remielle",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-fbf6d5f9",
+      "sourceRefsHash": "fnv1a-59199bfd",
+      "conditionsHash": "fnv1a-9b108fb6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-remielle",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-8f2c925e",
+      "sourceRefsHash": "fnv1a-18cc590c",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-remielle",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-f77e913e",
+      "sourceRefsHash": "fnv1a-4bdf83bb",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-remielle",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-bd80fb85",
+      "sourceRefsHash": "fnv1a-4bdf83bb",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-remielle",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-7b84e583",
+      "sourceRefsHash": "fnv1a-4bdf83bb",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-remielle",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-b74e41e5",
+      "sourceRefsHash": "fnv1a-eeba49c8",
+      "conditionsHash": "fnv1a-f0345d15",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-remielle",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-7853f418",
+      "sourceRefsHash": "fnv1a-17f830fc",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-remielle",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-92f6b56b",
+      "sourceRefsHash": "fnv1a-5072ee42",
+      "conditionsHash": "fnv1a-6ddb97a6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-norma",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-1d640036",
+      "sourceRefsHash": "fnv1a-69eeb4d0",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-norma",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-7f59cf92",
+      "sourceRefsHash": "fnv1a-af458272",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-norma",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-b6ea2be5",
+      "sourceRefsHash": "fnv1a-9f5e1a9c",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-norma",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-639e853a",
+      "sourceRefsHash": "fnv1a-9f5e1a9c",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-norma",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-e5936ee8",
+      "sourceRefsHash": "fnv1a-9f5e1a9c",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-norma",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-4c9785d6",
+      "sourceRefsHash": "fnv1a-a59244f1",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-norma",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-f53c420a",
+      "sourceRefsHash": "fnv1a-7a158efe",
+      "conditionsHash": "fnv1a-94ecfd08",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-norma",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-7ca3779",
+      "sourceRefsHash": "fnv1a-b0b96512",
+      "conditionsHash": "fnv1a-7787466a",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-norma",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-38aa0aa2",
+      "sourceRefsHash": "fnv1a-517133ce",
+      "conditionsHash": "fnv1a-c5262831",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-pyrois",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-4c1c8955",
+      "sourceRefsHash": "fnv1a-c032263c",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-pyrois",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-7117f536",
+      "sourceRefsHash": "fnv1a-d5c5c01a",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-pyrois",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-336f9ee1",
+      "sourceRefsHash": "fnv1a-d73aa663",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-pyrois",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-a92556c5",
+      "sourceRefsHash": "fnv1a-d73aa663",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-pyrois",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-3c5a8a24",
+      "sourceRefsHash": "fnv1a-d73aa663",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-pyrois",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-fac143d0",
+      "sourceRefsHash": "fnv1a-d73aa663",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-pyrois",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-57f2f858",
+      "sourceRefsHash": "fnv1a-d73aa663",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-pyrois",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-b7e69a73",
+      "sourceRefsHash": "fnv1a-f504acd7",
+      "conditionsHash": "fnv1a-aef5bcee",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-pyrois",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-f89e913f",
+      "sourceRefsHash": "fnv1a-9bf6d0f7",
+      "conditionsHash": "fnv1a-6ddb97a6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-velina",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-a80e942d",
+      "sourceRefsHash": "fnv1a-a74ce285",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-velina",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-7f59cf92",
+      "sourceRefsHash": "fnv1a-b08351e1",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-velina",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-47ef7f35",
+      "sourceRefsHash": "fnv1a-609cd2d7",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-velina",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-69385e32",
+      "sourceRefsHash": "fnv1a-609cd2d7",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-velina",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-e6514893",
+      "sourceRefsHash": "fnv1a-609cd2d7",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-velina",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-f5a4cae0",
+      "sourceRefsHash": "fnv1a-609cd2d7",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-velina",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-7e3f6d0f",
+      "sourceRefsHash": "fnv1a-f58bf",
+      "conditionsHash": "fnv1a-aa50b13d",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-velina",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-e5c7b5aa",
+      "sourceRefsHash": "fnv1a-99a73e27",
+      "conditionsHash": "fnv1a-7787466a",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-velina",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-894dc797",
+      "sourceRefsHash": "fnv1a-cb93e93a",
+      "conditionsHash": "fnv1a-7cde6d56",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-starlight-billy",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-44b3dc14",
+      "sourceRefsHash": "fnv1a-85f8c53",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-starlight-billy",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-41640131",
+      "sourceRefsHash": "fnv1a-4020e222",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-starlight-billy",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-c70c179d",
+      "sourceRefsHash": "fnv1a-f8f75ba5",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-starlight-billy",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-ce4391a9",
+      "sourceRefsHash": "fnv1a-a3b00b0a",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-starlight-billy",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-4c9b3c74",
+      "sourceRefsHash": "fnv1a-f8f75ba5",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-starlight-billy",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-8301319e",
+      "sourceRefsHash": "fnv1a-1c3f21c8",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-starlight-billy",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-3a59212c",
+      "sourceRefsHash": "fnv1a-f8f75ba5",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-starlight-billy",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-45014059",
+      "sourceRefsHash": "fnv1a-aa13909a",
+      "conditionsHash": "fnv1a-167368f3",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-starlight-billy",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-c28ece18",
+      "sourceRefsHash": "fnv1a-1e3ead43",
+      "conditionsHash": "fnv1a-6ddb97a6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-promeia",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-b85c03c5",
+      "sourceRefsHash": "fnv1a-844bcb1b",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-promeia",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-6a374ad9",
+      "sourceRefsHash": "fnv1a-763cce4b",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-promeia",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-a3aebd6f",
+      "sourceRefsHash": "fnv1a-7e3c85ca",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-promeia",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-daa1e3a7",
+      "sourceRefsHash": "fnv1a-7e3c85ca",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-promeia",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-85fb85f7",
+      "sourceRefsHash": "fnv1a-9ef1bfd6",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-promeia",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-f5a4cae0",
+      "sourceRefsHash": "fnv1a-7e3c85ca",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-promeia",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-6f6cc268",
+      "sourceRefsHash": "fnv1a-352c356",
+      "conditionsHash": "fnv1a-6d58fa70",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-promeia",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-eaab9a2c",
+      "sourceRefsHash": "fnv1a-a7ed9d23",
+      "conditionsHash": "fnv1a-b9b4760c",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-promeia",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-53b2f1bc",
+      "sourceRefsHash": "fnv1a-e999e66c",
+      "conditionsHash": "fnv1a-7cde6d56",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-cissia",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-dc0d7d9d",
+      "sourceRefsHash": "fnv1a-625d79de",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-cissia",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-bedd3a2b",
+      "sourceRefsHash": "fnv1a-f0802ff2",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-cissia",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-9496ee92",
+      "sourceRefsHash": "fnv1a-87453208",
+      "conditionsHash": "fnv1a-a9f6b1cd",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-cissia",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-687ae185",
+      "sourceRefsHash": "fnv1a-2534d148",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-cissia",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-b5e6d63f",
+      "sourceRefsHash": "fnv1a-3f6dc0e7",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-cissia",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-dfe0bd0",
+      "sourceRefsHash": "fnv1a-ea9a3b1a",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-cissia",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-7fc17db8",
+      "sourceRefsHash": "fnv1a-3f6dc0e7",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-cissia",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-9139cd62",
+      "sourceRefsHash": "fnv1a-b36e7af9",
+      "conditionsHash": "fnv1a-22f6cada",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-cissia",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-caf44216",
+      "sourceRefsHash": "fnv1a-feebd39f",
+      "conditionsHash": "fnv1a-6ddb97a6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-nangong",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-fa8051ed",
+      "sourceRefsHash": "fnv1a-c089d6",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-nangong",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-d4b352fd",
+      "sourceRefsHash": "fnv1a-e1652041",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-nangong",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-6380a1db",
+      "sourceRefsHash": "fnv1a-1fa0aa1f",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-nangong",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-5b2b881",
+      "sourceRefsHash": "fnv1a-f6892c2f",
+      "conditionsHash": "fnv1a-ff326b13",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-nangong",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-e7d2570d",
+      "sourceRefsHash": "fnv1a-1fa0aa1f",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-nangong",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-620c5024",
+      "sourceRefsHash": "fnv1a-1fa0aa1f",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-nangong",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-1d9c7228",
+      "sourceRefsHash": "fnv1a-d00da2ea",
+      "conditionsHash": "fnv1a-34153e24",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-nangong",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-fe35fb63",
+      "sourceRefsHash": "fnv1a-269ff50",
+      "conditionsHash": "fnv1a-7787466a",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-nangong",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-aabae151",
+      "sourceRefsHash": "fnv1a-7b780196",
+      "conditionsHash": "fnv1a-6ddb97a6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-aria",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-d63d739",
+      "sourceRefsHash": "fnv1a-a1e5b358",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-aria",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-c087d38f",
+      "sourceRefsHash": "fnv1a-dbbb8702",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-aria",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-5c8b59cd",
+      "sourceRefsHash": "fnv1a-fc7e6d3e",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-aria",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-183013ab",
+      "sourceRefsHash": "fnv1a-fc7e6d3e",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-aria",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-549fc52f",
+      "sourceRefsHash": "fnv1a-fc7e6d3e",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-aria",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-2ecbb255",
+      "sourceRefsHash": "fnv1a-4c33b814",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-aria",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-45af3183",
+      "sourceRefsHash": "fnv1a-53bd341e",
+      "conditionsHash": "fnv1a-6dd67b1e",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-aria",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-748bdc89",
+      "sourceRefsHash": "fnv1a-8b4b500e",
+      "conditionsHash": "fnv1a-7787466a",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-aria",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-c3695e21",
+      "sourceRefsHash": "fnv1a-956c1c0d",
+      "conditionsHash": "fnv1a-7cde6d56",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-sunna",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-8f36bdd1",
+      "sourceRefsHash": "fnv1a-147ac8a7",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-sunna",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-7f59cf92",
+      "sourceRefsHash": "fnv1a-cb217f59",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-sunna",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-1151b9b1",
+      "sourceRefsHash": "fnv1a-1078c70d",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-sunna",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-ba67fb2a",
+      "sourceRefsHash": "fnv1a-1078c70d",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-sunna",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-68d96429",
+      "sourceRefsHash": "fnv1a-1078c70d",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-sunna",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-59467453",
+      "sourceRefsHash": "fnv1a-f1a43b1c",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-sunna",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-4a8e7eaa",
+      "sourceRefsHash": "fnv1a-e30038a6",
+      "conditionsHash": "fnv1a-3859ea4",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-sunna",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-ef13de96",
+      "sourceRefsHash": "fnv1a-ce623a0d",
+      "conditionsHash": "fnv1a-cf8e11ce",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-sunna",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-e36daa0d",
+      "sourceRefsHash": "fnv1a-c75ecb9b",
+      "conditionsHash": "fnv1a-66fbeaeb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-zhao",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-cf678211",
+      "sourceRefsHash": "fnv1a-122ff68e",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-zhao",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-b85e2670",
+      "sourceRefsHash": "fnv1a-adebeb9e",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-zhao",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-ea4272e4",
+      "sourceRefsHash": "fnv1a-d3d0c5da",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-zhao",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-85f6eb04",
+      "sourceRefsHash": "fnv1a-2f3e36ff",
+      "conditionsHash": "fnv1a-99ee26c7",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-zhao",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-b324ee40",
+      "sourceRefsHash": "fnv1a-a0c8c4f8",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-zhao",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-9fd417f4",
+      "sourceRefsHash": "fnv1a-d3d0c5da",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-zhao",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-6ba58d76",
+      "sourceRefsHash": "fnv1a-d3d0c5da",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-zhao",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-7c0d8cd6",
+      "sourceRefsHash": "fnv1a-b8b0fbb",
+      "conditionsHash": "fnv1a-99bef750",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-zhao",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-f3d2f14c",
+      "sourceRefsHash": "fnv1a-8876e535",
+      "conditionsHash": "fnv1a-ac05a0c7",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-ye-shunguang",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-6cfdc1ea",
+      "sourceRefsHash": "fnv1a-200b6829",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-ye-shunguang",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-65a0ced3",
+      "sourceRefsHash": "fnv1a-1e3ed88d",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-ye-shunguang",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-c767d694",
+      "sourceRefsHash": "fnv1a-dd308210",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-ye-shunguang",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-ade25201",
+      "sourceRefsHash": "fnv1a-dd308210",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-ye-shunguang",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-1c937454",
+      "sourceRefsHash": "fnv1a-7596a5b7",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-ye-shunguang",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-aaebcf04",
+      "sourceRefsHash": "fnv1a-12d6bc2d",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-ye-shunguang",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-4943583e",
+      "sourceRefsHash": "fnv1a-dd308210",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-ye-shunguang",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-25add4ef",
+      "sourceRefsHash": "fnv1a-107da225",
+      "conditionsHash": "fnv1a-239e5aa8",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-ye-shunguang",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-aaaf75b1",
+      "sourceRefsHash": "fnv1a-40bf21d3",
+      "conditionsHash": "fnv1a-6ddb97a6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-banyue",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-ea642bdf",
+      "sourceRefsHash": "fnv1a-c515cafb",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-banyue",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-edaeaf98",
+      "sourceRefsHash": "fnv1a-5cc5a4d",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-banyue",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-384775ee",
+      "sourceRefsHash": "fnv1a-3865808a",
+      "conditionsHash": "fnv1a-482c72d9",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-banyue",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-53594cf6",
+      "sourceRefsHash": "fnv1a-c7b3dd79",
+      "conditionsHash": "fnv1a-aacbb392",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-banyue",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-9006ac2f",
+      "sourceRefsHash": "fnv1a-8cfc7c42",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-banyue",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-78fd1722",
+      "sourceRefsHash": "fnv1a-99ca6dcd",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-banyue",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-628bd87c",
+      "sourceRefsHash": "fnv1a-8cfc7c42",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-banyue",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-1d1f1875",
+      "sourceRefsHash": "fnv1a-a777ee99",
+      "conditionsHash": "fnv1a-167368f3",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-banyue",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-c424683",
+      "sourceRefsHash": "fnv1a-16b24883",
+      "conditionsHash": "fnv1a-6ddb97a6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-dialyn",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-2c163dd",
+      "sourceRefsHash": "fnv1a-b1772193",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-dialyn",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-d4b352fd",
+      "sourceRefsHash": "fnv1a-c22741ad",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-dialyn",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-8b14b464",
+      "sourceRefsHash": "fnv1a-9c84a979",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-dialyn",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-82d2139c",
+      "sourceRefsHash": "fnv1a-3b31eed5",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-dialyn",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-a39ab6cd",
+      "sourceRefsHash": "fnv1a-9c84a979",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-dialyn",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-9aa1267c",
+      "sourceRefsHash": "fnv1a-9c84a979",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-dialyn",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-e20c82b7",
+      "sourceRefsHash": "fnv1a-fc9f5a81",
+      "conditionsHash": "fnv1a-4cd4aa62",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-dialyn",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-445047c3",
+      "sourceRefsHash": "fnv1a-4090c1cc",
+      "conditionsHash": "fnv1a-7787466a",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-dialyn",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-70015b8b",
+      "sourceRefsHash": "fnv1a-50fb9a21",
+      "conditionsHash": "fnv1a-6ddb97a6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-yidhari",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-c7ab86db",
+      "sourceRefsHash": "fnv1a-79c99e0c",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-yidhari",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-f0d4a7c5",
+      "sourceRefsHash": "fnv1a-71865d9b",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-yidhari",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-b379427a",
+      "sourceRefsHash": "fnv1a-c9d51972",
+      "conditionsHash": "fnv1a-af99968c",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-yidhari",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-8b2a77d5",
+      "sourceRefsHash": "fnv1a-4c6bfd1d",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-yidhari",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-9e4b2eda",
+      "sourceRefsHash": "fnv1a-4c6bfd1d",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-yidhari",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-81ee9a2c",
+      "sourceRefsHash": "fnv1a-4c6bfd1d",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-yidhari",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-1de70525",
+      "sourceRefsHash": "fnv1a-4c6bfd1d",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-yidhari",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-be98e627",
+      "sourceRefsHash": "fnv1a-2a4dd8a1",
+      "conditionsHash": "fnv1a-b724b7c",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-yidhari",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-7225f9db",
+      "sourceRefsHash": "fnv1a-ae077f37",
+      "conditionsHash": "fnv1a-6ddb97a6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-lucia",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-16046824",
+      "sourceRefsHash": "fnv1a-80e1805d",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-lucia",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-d4b352fd",
+      "sourceRefsHash": "fnv1a-ccac9f58",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-lucia",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-dfcc792b",
+      "sourceRefsHash": "fnv1a-afa6ee57",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-lucia",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-4e84e6fe",
+      "sourceRefsHash": "fnv1a-5ec2109d",
+      "conditionsHash": "fnv1a-f417fd8b",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-lucia",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-b9176494",
+      "sourceRefsHash": "fnv1a-afa6ee57",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-lucia",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-ca411d56",
+      "sourceRefsHash": "fnv1a-afa6ee57",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-lucia",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-7fcda794",
+      "sourceRefsHash": "fnv1a-e475bf3e",
+      "conditionsHash": "fnv1a-c1295f1d",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-lucia",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-4aaa3b32",
+      "sourceRefsHash": "fnv1a-524288a",
+      "conditionsHash": "fnv1a-8e809da8",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-lucia",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-e318ffbc",
+      "sourceRefsHash": "fnv1a-e4d4d2e2",
+      "conditionsHash": "fnv1a-66fbeaeb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-orphie-magus",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-1cd1153",
+      "sourceRefsHash": "fnv1a-23323a7a",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-orphie-magus",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-ae15d2fd",
+      "sourceRefsHash": "fnv1a-e6f3a307",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-orphie-magus",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-24381095",
+      "sourceRefsHash": "fnv1a-ac74fa81",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-orphie-magus",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-5b8ce2e2",
+      "sourceRefsHash": "fnv1a-ac74fa81",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-orphie-magus",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-a98a0295",
+      "sourceRefsHash": "fnv1a-cf03d725",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-orphie-magus",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-aaff0a8f",
+      "sourceRefsHash": "fnv1a-ac74fa81",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-orphie-magus",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-f1dba928",
+      "sourceRefsHash": "fnv1a-1050f979",
+      "conditionsHash": "fnv1a-bd8ba083",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-orphie-magus",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-935dc5d0",
+      "sourceRefsHash": "fnv1a-8abd405b",
+      "conditionsHash": "fnv1a-518f9d5b",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-orphie-magus",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-a0c11379",
+      "sourceRefsHash": "fnv1a-b8b19c37",
+      "conditionsHash": "fnv1a-6ddb97a6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-seed",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-3beae6b5",
+      "sourceRefsHash": "fnv1a-96e1a84c",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-seed",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-f93397d5",
+      "sourceRefsHash": "fnv1a-724eb562",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-seed",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-c2ba47af",
+      "sourceRefsHash": "fnv1a-3ac51e60",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-seed",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-c37c2d5",
+      "sourceRefsHash": "fnv1a-3ac51e60",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-seed",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-146087f5",
+      "sourceRefsHash": "fnv1a-3ac51e60",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-seed",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-e3c4c44e",
+      "sourceRefsHash": "fnv1a-33897c26",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-seed",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-cfad616f",
+      "sourceRefsHash": "fnv1a-3ac51e60",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-seed",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-ec169d80",
+      "sourceRefsHash": "fnv1a-15374fa0",
+      "conditionsHash": "fnv1a-7787466a",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-seed",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-5fc3151e",
+      "sourceRefsHash": "fnv1a-ac368b5",
+      "conditionsHash": "fnv1a-6ddb97a6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-alice",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-54d481d9",
+      "sourceRefsHash": "fnv1a-2d61d4a9",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-alice",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-74435017",
+      "sourceRefsHash": "fnv1a-e33f303b",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-alice",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-33a620c",
+      "sourceRefsHash": "fnv1a-4e0fca62",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-alice",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-c3fa59d",
+      "sourceRefsHash": "fnv1a-4e0fca62",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-alice",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-5ae5dddb",
+      "sourceRefsHash": "fnv1a-4e0fca62",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-alice",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-2b5bcd89",
+      "sourceRefsHash": "fnv1a-d6c3df42",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-alice",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-74b24360",
+      "sourceRefsHash": "fnv1a-30082e51",
+      "conditionsHash": "fnv1a-619aafb5",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-alice",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-7ffa9f88",
+      "sourceRefsHash": "fnv1a-7a4baf8",
+      "conditionsHash": "fnv1a-4773e6dc",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-alice",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-e232beff",
+      "sourceRefsHash": "fnv1a-151d512b",
+      "conditionsHash": "fnv1a-7cde6d56",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-yuzuha",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-d7540ab2",
+      "sourceRefsHash": "fnv1a-8af148bd",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-yuzuha",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-4a575cee",
+      "sourceRefsHash": "fnv1a-9b319be1",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-yuzuha",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-18092dc6",
+      "sourceRefsHash": "fnv1a-31a40574",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-yuzuha",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-5b93baf2",
+      "sourceRefsHash": "fnv1a-6c590449",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-yuzuha",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-2c0cd6be",
+      "sourceRefsHash": "fnv1a-31a40574",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-yuzuha",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-ddbe28c6",
+      "sourceRefsHash": "fnv1a-52c77210",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-yuzuha",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-1eccb78e",
+      "sourceRefsHash": "fnv1a-eb682efb",
+      "conditionsHash": "fnv1a-d3601e6c",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-yuzuha",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-e8b62db8",
+      "sourceRefsHash": "fnv1a-c5c3a8d7",
+      "conditionsHash": "fnv1a-90d0514e",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-yuzuha",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-de6f4bce",
+      "sourceRefsHash": "fnv1a-726ed849",
+      "conditionsHash": "fnv1a-66fbeaeb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-ju-fufu",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-8478edc2",
+      "sourceRefsHash": "fnv1a-d8038e53",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-ju-fufu",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-7718962f",
+      "sourceRefsHash": "fnv1a-60a1cbe",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-ju-fufu",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-5f9511d7",
+      "sourceRefsHash": "fnv1a-a49c3245",
+      "conditionsHash": "fnv1a-99e5d137",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-ju-fufu",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-251a0d76",
+      "sourceRefsHash": "fnv1a-d0ac5723",
+      "conditionsHash": "fnv1a-81d252b",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-ju-fufu",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-f843c2d6",
+      "sourceRefsHash": "fnv1a-c210b092",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-ju-fufu",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-2040faca",
+      "sourceRefsHash": "fnv1a-31651f79",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-ju-fufu",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-e20d8915",
+      "sourceRefsHash": "fnv1a-c210b092",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-ju-fufu",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-e6cb5ff0",
+      "sourceRefsHash": "fnv1a-8324da19",
+      "conditionsHash": "fnv1a-d840d6d",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-ju-fufu",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-48c18350",
+      "sourceRefsHash": "fnv1a-6c12bbd",
+      "conditionsHash": "fnv1a-6ddb97a6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-yixuan",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-1df948cf",
+      "sourceRefsHash": "fnv1a-66dd29c1",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-yixuan",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-ef02de06",
+      "sourceRefsHash": "fnv1a-732df484",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-yixuan",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-4bda2d6",
+      "sourceRefsHash": "fnv1a-c37882a9",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-yixuan",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-8b2a77d5",
+      "sourceRefsHash": "fnv1a-c37882a9",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-yixuan",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-5a2c765c",
+      "sourceRefsHash": "fnv1a-c37882a9",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-yixuan",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-e023f5a0",
+      "sourceRefsHash": "fnv1a-413c9869",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-yixuan",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-7fcda794",
+      "sourceRefsHash": "fnv1a-e475bf3e",
+      "conditionsHash": "fnv1a-c1295f1d",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-yixuan",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-1481071a",
+      "sourceRefsHash": "fnv1a-ff20c3ab",
+      "conditionsHash": "fnv1a-85295f42",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-yixuan",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-b61fa5c3",
+      "sourceRefsHash": "fnv1a-3b3f3c91",
+      "conditionsHash": "fnv1a-6ddb97a6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-hugo",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-ad5a5c0a",
+      "sourceRefsHash": "fnv1a-72fc194b",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-hugo",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-ef02de06",
+      "sourceRefsHash": "fnv1a-2f2b827f",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-hugo",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-e3d134c7",
+      "sourceRefsHash": "fnv1a-bd491247",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-hugo",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-cd42f2df",
+      "sourceRefsHash": "fnv1a-bd491247",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-hugo",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-92c91a6d",
+      "sourceRefsHash": "fnv1a-bd491247",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-hugo",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-9d92361d",
+      "sourceRefsHash": "fnv1a-bd491247",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-hugo",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-48fd5784",
+      "sourceRefsHash": "fnv1a-bd491247",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-hugo",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-8994592c",
+      "sourceRefsHash": "fnv1a-717bcd2f",
+      "conditionsHash": "fnv1a-7787466a",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-hugo",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-777f3a56",
+      "sourceRefsHash": "fnv1a-3cc32355",
+      "conditionsHash": "fnv1a-6ddb97a6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-vivian",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-1d52cf8a",
+      "sourceRefsHash": "fnv1a-b1895740",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-vivian",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-4975d5f3",
+      "sourceRefsHash": "fnv1a-80f6a473",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-vivian",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-c245469c",
+      "sourceRefsHash": "fnv1a-2ffa44d5",
+      "conditionsHash": "fnv1a-63783db4",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-vivian",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-a2bc27dd",
+      "sourceRefsHash": "fnv1a-f5f083e7",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-vivian",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-1cc56d01",
+      "sourceRefsHash": "fnv1a-f5f083e7",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-vivian",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-92e510a3",
+      "sourceRefsHash": "fnv1a-284b570",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-vivian",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-e0f5f86c",
+      "sourceRefsHash": "fnv1a-b64fe873",
+      "conditionsHash": "fnv1a-2d915d0d",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-vivian",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-a0a7df91",
+      "sourceRefsHash": "fnv1a-d89c7368",
+      "conditionsHash": "fnv1a-fa4f74d9",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-vivian",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-17132714",
+      "sourceRefsHash": "fnv1a-d6bcd7b8",
+      "conditionsHash": "fnv1a-7cde6d56",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-trigger",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-62df0477",
+      "sourceRefsHash": "fnv1a-d721c2d0",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-trigger",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-36cf70c3",
+      "sourceRefsHash": "fnv1a-c52014fe",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-trigger",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-1bc903f0",
+      "sourceRefsHash": "fnv1a-35e5c46f",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-trigger",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-af621d43",
+      "sourceRefsHash": "fnv1a-cd55e02",
+      "conditionsHash": "fnv1a-9a603adc",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-trigger",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-d1cb8679",
+      "sourceRefsHash": "fnv1a-35e5c46f",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-trigger",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-ebf82d91",
+      "sourceRefsHash": "fnv1a-35e5c46f",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-trigger",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-6245ba24",
+      "sourceRefsHash": "fnv1a-67ceeae4",
+      "conditionsHash": "fnv1a-cce71ba3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-trigger",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-32bd0257",
+      "sourceRefsHash": "fnv1a-9c681bab",
+      "conditionsHash": "fnv1a-2716a5d8",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-trigger",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-f113be84",
+      "sourceRefsHash": "fnv1a-ed825e38",
+      "conditionsHash": "fnv1a-6ddb97a6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-soldier-0-anby",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-81ca38a4",
+      "sourceRefsHash": "fnv1a-f1727477",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-soldier-0-anby",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-f5ea632b",
+      "sourceRefsHash": "fnv1a-72134a59",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-soldier-0-anby",
+      "fieldId": "progression.potential_overlay",
+      "valueHash": "fnv1a-8ad9eba5",
+      "sourceRefsHash": "fnv1a-f0723ef3",
+      "conditionsHash": "fnv1a-de3a946d",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-soldier-0-anby",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-f87934f0",
+      "sourceRefsHash": "fnv1a-4b431003",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-soldier-0-anby",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-cd55bea9",
+      "sourceRefsHash": "fnv1a-4b431003",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-soldier-0-anby",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-12aff4cf",
+      "sourceRefsHash": "fnv1a-4b431003",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-soldier-0-anby",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-da9ecb6f",
+      "sourceRefsHash": "fnv1a-d0ed4807",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-soldier-0-anby",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-a225319",
+      "sourceRefsHash": "fnv1a-4b431003",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-soldier-0-anby",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-24a6af66",
+      "sourceRefsHash": "fnv1a-d0097ff",
+      "conditionsHash": "fnv1a-2365655f",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-soldier-0-anby",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-14218393",
+      "sourceRefsHash": "fnv1a-f0fa1a89",
+      "conditionsHash": "fnv1a-6ddb97a6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-evelyn",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-c4103ab8",
+      "sourceRefsHash": "fnv1a-a6ed577f",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-evelyn",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-a100bf12",
+      "sourceRefsHash": "fnv1a-87d7cb77",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-evelyn",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-75c38e7f",
+      "sourceRefsHash": "fnv1a-d7a9f380",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-evelyn",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-82f72b4d",
+      "sourceRefsHash": "fnv1a-ef41e473",
+      "conditionsHash": "fnv1a-b1f1f85f",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-evelyn",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-32a82c55",
+      "sourceRefsHash": "fnv1a-d7a9f380",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-evelyn",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-25ed43a",
+      "sourceRefsHash": "fnv1a-d7a9f380",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-evelyn",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-75753e9f",
+      "sourceRefsHash": "fnv1a-d7a9f380",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-evelyn",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-e937b840",
+      "sourceRefsHash": "fnv1a-9a2ec428",
+      "conditionsHash": "fnv1a-95d5ae62",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-evelyn",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-3a89b3be",
+      "sourceRefsHash": "fnv1a-d2d0d9f0",
+      "conditionsHash": "fnv1a-6ddb97a6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-astra",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-6b67e67f",
+      "sourceRefsHash": "fnv1a-c70c1d80",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-astra",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-464f0502",
+      "sourceRefsHash": "fnv1a-c885649b",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-astra",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-fead1678",
+      "sourceRefsHash": "fnv1a-8a413ed6",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-astra",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-cf509754",
+      "sourceRefsHash": "fnv1a-7bd9e539",
+      "conditionsHash": "fnv1a-d7427a9e",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-astra",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-7d4706d5",
+      "sourceRefsHash": "fnv1a-3d68798e",
+      "conditionsHash": "fnv1a-fa7e0612",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-astra",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-fc541c46",
+      "sourceRefsHash": "fnv1a-8a413ed6",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-astra",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-285c1f66",
+      "sourceRefsHash": "fnv1a-ae5beced",
+      "conditionsHash": "fnv1a-e33f5cdd",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-astra",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-f30cc574",
+      "sourceRefsHash": "fnv1a-4c403ce3",
+      "conditionsHash": "fnv1a-2cb0ba11",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-astra",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-32ca5657",
+      "sourceRefsHash": "fnv1a-c6051ffd",
+      "conditionsHash": "fnv1a-66fbeaeb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-miyabi",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-741f794",
+      "sourceRefsHash": "fnv1a-c4682f11",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-miyabi",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-6954bf3c",
+      "sourceRefsHash": "fnv1a-e8262927",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-miyabi",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-7b789768",
+      "sourceRefsHash": "fnv1a-cf493fd3",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-miyabi",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-5ddd4c87",
+      "sourceRefsHash": "fnv1a-46ed89b",
+      "conditionsHash": "fnv1a-f8abbb29",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-miyabi",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-3c6068cf",
+      "sourceRefsHash": "fnv1a-83a04835",
+      "conditionsHash": "fnv1a-d291a48",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-miyabi",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-47e3063b",
+      "sourceRefsHash": "fnv1a-ae3c9a07",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-miyabi",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-b07ac323",
+      "sourceRefsHash": "fnv1a-8113bf84",
+      "conditionsHash": "fnv1a-7e6928b3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-miyabi",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-ffbc9722",
+      "sourceRefsHash": "fnv1a-83a04835",
+      "conditionsHash": "fnv1a-d291a48",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-miyabi",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-9ec107c7",
+      "sourceRefsHash": "fnv1a-5e122384",
+      "conditionsHash": "fnv1a-7507fbc8",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-harumasa",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-6ff211a6",
+      "sourceRefsHash": "fnv1a-9885402b",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-harumasa",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-778061ed",
+      "sourceRefsHash": "fnv1a-4e0f5544",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-harumasa",
+      "fieldId": "progression.potential_overlay",
+      "valueHash": "fnv1a-ef910d6f",
+      "sourceRefsHash": "fnv1a-32cf6274",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-harumasa",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-a4ed4823",
+      "sourceRefsHash": "fnv1a-7f118706",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-harumasa",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-4f42c7a7",
+      "sourceRefsHash": "fnv1a-7f118706",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-harumasa",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-2c1df74b",
+      "sourceRefsHash": "fnv1a-7f118706",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-harumasa",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-e58cf198",
+      "sourceRefsHash": "fnv1a-6a9460e9",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-harumasa",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-4faf3fc5",
+      "sourceRefsHash": "fnv1a-7f118706",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-harumasa",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-9073854b",
+      "sourceRefsHash": "fnv1a-94eb3727",
+      "conditionsHash": "fnv1a-7a897107",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-harumasa",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-56eda079",
+      "sourceRefsHash": "fnv1a-da08a8b7",
+      "conditionsHash": "fnv1a-6ddb97a6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-lighter",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-8f29d746",
+      "sourceRefsHash": "fnv1a-8e1d503e",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-lighter",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-2ad6ee49",
+      "sourceRefsHash": "fnv1a-a5b53c2e",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-lighter",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-70d7074",
+      "sourceRefsHash": "fnv1a-9904c254",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-lighter",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-9c44839b",
+      "sourceRefsHash": "fnv1a-9904c254",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-lighter",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-d8fae030",
+      "sourceRefsHash": "fnv1a-9904c254",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-lighter",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-293c83ac",
+      "sourceRefsHash": "fnv1a-c03d6d9e",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-lighter",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-7bb760cb",
+      "sourceRefsHash": "fnv1a-d1023d6a",
+      "conditionsHash": "fnv1a-bd8ba083",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-lighter",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-5f497a1a",
+      "sourceRefsHash": "fnv1a-fa9ca905",
+      "conditionsHash": "fnv1a-524219f3",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-lighter",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-5beb36ca",
+      "sourceRefsHash": "fnv1a-e1419570",
+      "conditionsHash": "fnv1a-6ddb97a6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-yanagi",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-23a0f1f5",
+      "sourceRefsHash": "fnv1a-b53a023d",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-yanagi",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-aea60a53",
+      "sourceRefsHash": "fnv1a-1d2646a2",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-yanagi",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-d1e3ad92",
+      "sourceRefsHash": "fnv1a-a8071b36",
+      "conditionsHash": "fnv1a-69f26715",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-yanagi",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-d6723a31",
+      "sourceRefsHash": "fnv1a-dd48b2f9",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-yanagi",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-1646f8e4",
+      "sourceRefsHash": "fnv1a-7f227f86",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-yanagi",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-6d94be9d",
+      "sourceRefsHash": "fnv1a-9d314b33",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-yanagi",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-8d8b510e",
+      "sourceRefsHash": "fnv1a-e231d6be",
+      "conditionsHash": "fnv1a-b027dcf7",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-yanagi",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-8ca165b7",
+      "sourceRefsHash": "fnv1a-5bcaa943",
+      "conditionsHash": "fnv1a-d420b9ca",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-yanagi",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-36740566",
+      "sourceRefsHash": "fnv1a-7111fdda",
+      "conditionsHash": "fnv1a-7cde6d56",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-burnice",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-9a641573",
+      "sourceRefsHash": "fnv1a-6c31f6b2",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-burnice",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-f29089ea",
+      "sourceRefsHash": "fnv1a-896a2acf",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-burnice",
+      "fieldId": "progression.potential_overlay",
+      "valueHash": "fnv1a-b560cd40",
+      "sourceRefsHash": "fnv1a-3f6aceb6",
+      "conditionsHash": "fnv1a-99062443",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-burnice",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-88762ee6",
+      "sourceRefsHash": "fnv1a-37b54f2",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-burnice",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-87d6384c",
+      "sourceRefsHash": "fnv1a-a39a853c",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-burnice",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-69cb385d",
+      "sourceRefsHash": "fnv1a-7fe11361",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-burnice",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-5f16897e",
+      "sourceRefsHash": "fnv1a-ab545278",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-burnice",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-64650e2a",
+      "sourceRefsHash": "fnv1a-202b8911",
+      "conditionsHash": "fnv1a-2e9c9977",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-burnice",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-72d8aad3",
+      "sourceRefsHash": "fnv1a-5756c9fb",
+      "conditionsHash": "fnv1a-4cb00a28",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-burnice",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-664dcff2",
+      "sourceRefsHash": "fnv1a-79fd257b",
+      "conditionsHash": "fnv1a-7cde6d56",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-caesar",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-746341cd",
+      "sourceRefsHash": "fnv1a-392007cb",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-caesar",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-74170b6b",
+      "sourceRefsHash": "fnv1a-1bfe9864",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-caesar",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-10f3861e",
+      "sourceRefsHash": "fnv1a-3bb38e21",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-caesar",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-5219ccbd",
+      "sourceRefsHash": "fnv1a-9ada10f0",
+      "conditionsHash": "fnv1a-a4aa5641",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-caesar",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-1b7ad923",
+      "sourceRefsHash": "fnv1a-2821cd2e",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-caesar",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-5cbc1fd1",
+      "sourceRefsHash": "fnv1a-872c7f5d",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-caesar",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-98c6564",
+      "sourceRefsHash": "fnv1a-3bb38e21",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-caesar",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-3440cd27",
+      "sourceRefsHash": "fnv1a-84cf4274",
+      "conditionsHash": "fnv1a-53bfa180",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-caesar",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-7a6f0872",
+      "sourceRefsHash": "fnv1a-9c2d3698",
+      "conditionsHash": "fnv1a-ac05a0c7",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-jane",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-18a92453",
+      "sourceRefsHash": "fnv1a-d3056ec",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-jane",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-9f76437",
+      "sourceRefsHash": "fnv1a-7a42cfe5",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-jane",
+      "fieldId": "progression.potential_overlay",
+      "valueHash": "fnv1a-9d977414",
+      "sourceRefsHash": "fnv1a-73732d15",
+      "conditionsHash": "fnv1a-8c86d0de",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-jane",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-be4cca40",
+      "sourceRefsHash": "fnv1a-25f86fd6",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-jane",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-f5ef7235",
+      "sourceRefsHash": "fnv1a-25f86fd6",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-jane",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-9c82a7a9",
+      "sourceRefsHash": "fnv1a-25f86fd6",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-jane",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-8a227184",
+      "sourceRefsHash": "fnv1a-38f2e4d0",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-jane",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-3f6596a",
+      "sourceRefsHash": "fnv1a-1c75abd5",
+      "conditionsHash": "fnv1a-7f091ea4",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-jane",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-d240a799",
+      "sourceRefsHash": "fnv1a-5381f009",
+      "conditionsHash": "fnv1a-98b020c0",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-jane",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-6a5c9dc0",
+      "sourceRefsHash": "fnv1a-7a8242fb",
+      "conditionsHash": "fnv1a-7cde6d56",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-qingyi",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-9d607089",
+      "sourceRefsHash": "fnv1a-f7388547",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-qingyi",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-3463c499",
+      "sourceRefsHash": "fnv1a-8611a83c",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-qingyi",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-72ace04d",
+      "sourceRefsHash": "fnv1a-c5711e36",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-qingyi",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-8ed5897d",
+      "sourceRefsHash": "fnv1a-e6c4a499",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-qingyi",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-3262e295",
+      "sourceRefsHash": "fnv1a-c5711e36",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-qingyi",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-f020bd8c",
+      "sourceRefsHash": "fnv1a-c5711e36",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-qingyi",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-f3fa0cbd",
+      "sourceRefsHash": "fnv1a-b7cf6c66",
+      "conditionsHash": "fnv1a-bd8ba083",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-qingyi",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-f235c81d",
+      "sourceRefsHash": "fnv1a-b22dcd28",
+      "conditionsHash": "fnv1a-c803794d",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-qingyi",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-1e0f4bb4",
+      "sourceRefsHash": "fnv1a-4861e778",
+      "conditionsHash": "fnv1a-6ddb97a6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-zhu-yuan",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-a8e4bdcb",
+      "sourceRefsHash": "fnv1a-4a5e069",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-zhu-yuan",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-1cbf743b",
+      "sourceRefsHash": "fnv1a-e2df90f2",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-zhu-yuan",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-d8e74075",
+      "sourceRefsHash": "fnv1a-f3c26f0d",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-zhu-yuan",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-57cfdc92",
+      "sourceRefsHash": "fnv1a-bf36a9d5",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-zhu-yuan",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-4aec15c2",
+      "sourceRefsHash": "fnv1a-f3c26f0d",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-zhu-yuan",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-98ada80",
+      "sourceRefsHash": "fnv1a-8a1bfa52",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-zhu-yuan",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-61832bbc",
+      "sourceRefsHash": "fnv1a-f3c26f0d",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-zhu-yuan",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-6f990fb3",
+      "sourceRefsHash": "fnv1a-d531b222",
+      "conditionsHash": "fnv1a-ecfe08d7",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-zhu-yuan",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-1cd0e194",
+      "sourceRefsHash": "fnv1a-92e42c0",
+      "conditionsHash": "fnv1a-6ddb97a6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-nekomata",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-261a2570",
+      "sourceRefsHash": "fnv1a-f8b17432",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-nekomata",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-778061ed",
+      "sourceRefsHash": "fnv1a-97dfbbdd",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-nekomata",
+      "fieldId": "progression.potential_overlay",
+      "valueHash": "fnv1a-598b37ed",
+      "sourceRefsHash": "fnv1a-7ca72205",
+      "conditionsHash": "fnv1a-8c86d0de",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-nekomata",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-5f56b8bd",
+      "sourceRefsHash": "fnv1a-90e8bfc1",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-nekomata",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-a0bd4473",
+      "sourceRefsHash": "fnv1a-90e8bfc1",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-nekomata",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-342c2094",
+      "sourceRefsHash": "fnv1a-90e8bfc1",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-nekomata",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-26c1f86",
+      "sourceRefsHash": "fnv1a-90e8bfc1",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-nekomata",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-7ce3d26f",
+      "sourceRefsHash": "fnv1a-a694db96",
+      "conditionsHash": "fnv1a-d715738e",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-nekomata",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-ed116f12",
+      "sourceRefsHash": "fnv1a-ff5c377d",
+      "conditionsHash": "fnv1a-27512061",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-nekomata",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-55ca7e17",
+      "sourceRefsHash": "fnv1a-90db475d",
+      "conditionsHash": "fnv1a-462a0ab3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-soldier-11",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-b06cba6",
+      "sourceRefsHash": "fnv1a-d09b9cf9",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-soldier-11",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-2f6983b2",
+      "sourceRefsHash": "fnv1a-19d5480c",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-soldier-11",
+      "fieldId": "progression.potential_overlay",
+      "valueHash": "fnv1a-556bf509",
+      "sourceRefsHash": "fnv1a-f947e202",
+      "conditionsHash": "fnv1a-99062443",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-soldier-11",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-792076b8",
+      "sourceRefsHash": "fnv1a-dbdbc0a7",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-soldier-11",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-aaac644b",
+      "sourceRefsHash": "fnv1a-dbdbc0a7",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-soldier-11",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-3daa66b2",
+      "sourceRefsHash": "fnv1a-4eaa7a22",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-soldier-11",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-26c1f86",
+      "sourceRefsHash": "fnv1a-dbdbc0a7",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-soldier-11",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-3ef37851",
+      "sourceRefsHash": "fnv1a-d265f68f",
+      "conditionsHash": "fnv1a-b3462cdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-soldier-11",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-5d329f45",
+      "sourceRefsHash": "fnv1a-24b14784",
+      "conditionsHash": "fnv1a-7787466a",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-soldier-11",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-66b265ac",
+      "sourceRefsHash": "fnv1a-770d8a2",
+      "conditionsHash": "fnv1a-bfffd27f",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-koleda",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-c759f9a1",
+      "sourceRefsHash": "fnv1a-4ef14c0b",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-koleda",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-d4b352fd",
+      "sourceRefsHash": "fnv1a-3bad1818",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-koleda",
+      "fieldId": "progression.potential_overlay",
+      "valueHash": "fnv1a-8a1e50ed",
+      "sourceRefsHash": "fnv1a-a6308878",
+      "conditionsHash": "fnv1a-381960a4",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-koleda",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-ee53a048",
+      "sourceRefsHash": "fnv1a-7bce6e28",
+      "conditionsHash": "fnv1a-d47f93c9",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-koleda",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-9d0459d8",
+      "sourceRefsHash": "fnv1a-7bce6e28",
+      "conditionsHash": "fnv1a-c17b3e32",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-koleda",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-7c60a964",
+      "sourceRefsHash": "fnv1a-7bce6e28",
+      "conditionsHash": "fnv1a-93084390",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-koleda",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-bafa168e",
+      "sourceRefsHash": "fnv1a-7bce6e28",
+      "conditionsHash": "fnv1a-93084390",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-koleda",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-e1f55b62",
+      "sourceRefsHash": "fnv1a-dc069902",
+      "conditionsHash": "fnv1a-4b19df0f",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-koleda",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-ba6b8cb2",
+      "sourceRefsHash": "fnv1a-f00c9a16",
+      "conditionsHash": "fnv1a-524219f3",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-koleda",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-6f7abc1f",
+      "sourceRefsHash": "fnv1a-ee3c07f9",
+      "conditionsHash": "fnv1a-bd6eb50f",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-lycaon",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-7c5625c0",
+      "sourceRefsHash": "fnv1a-b60c9800",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-lycaon",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-e3d56889",
+      "sourceRefsHash": "fnv1a-ecddf3df",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-lycaon",
+      "fieldId": "progression.potential_overlay",
+      "valueHash": "fnv1a-b2458591",
+      "sourceRefsHash": "fnv1a-36dabee2",
+      "conditionsHash": "fnv1a-394ca734",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-lycaon",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-5344731b",
+      "sourceRefsHash": "fnv1a-5e97ac8",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-lycaon",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-19f7db8d",
+      "sourceRefsHash": "fnv1a-5e97ac8",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-lycaon",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-3d4685c0",
+      "sourceRefsHash": "fnv1a-5e97ac8",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-lycaon",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-fd90707d",
+      "sourceRefsHash": "fnv1a-5e97ac8",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-lycaon",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-c6807ace",
+      "sourceRefsHash": "fnv1a-c79b3d6a",
+      "conditionsHash": "fnv1a-e7cfcba",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-lycaon",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-ae8e8ddf",
+      "sourceRefsHash": "fnv1a-78cc6f1e",
+      "conditionsHash": "fnv1a-524219f3",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-lycaon",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-94bae570",
+      "sourceRefsHash": "fnv1a-47c430a7",
+      "conditionsHash": "fnv1a-6ddb97a6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-grace",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-47d374f0",
+      "sourceRefsHash": "fnv1a-4d94def4",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-grace",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-74aff623",
+      "sourceRefsHash": "fnv1a-e3e255e9",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-grace",
+      "fieldId": "progression.potential_overlay",
+      "valueHash": "fnv1a-e6dbe691",
+      "sourceRefsHash": "fnv1a-edba937",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-grace",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-5c64edd3",
+      "sourceRefsHash": "fnv1a-cd3f98d9",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-grace",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-2c6c21b1",
+      "sourceRefsHash": "fnv1a-ad0bddb9",
+      "conditionsHash": "fnv1a-eae97cc4",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-grace",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-9efb5ba5",
+      "sourceRefsHash": "fnv1a-6271d3c5",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-grace",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-8503445",
+      "sourceRefsHash": "fnv1a-3fe33c3c",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-grace",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-53694c58",
+      "sourceRefsHash": "fnv1a-90de331c",
+      "conditionsHash": "fnv1a-c8baee67",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-grace",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-d5446d0d",
+      "sourceRefsHash": "fnv1a-61077df4",
+      "conditionsHash": "fnv1a-7787466a",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-grace",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-5aebf8fe",
+      "sourceRefsHash": "fnv1a-75e452",
+      "conditionsHash": "fnv1a-7cde6d56",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-ellen",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-56310586",
+      "sourceRefsHash": "fnv1a-c7704063",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-ellen",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-5cb85e5e",
+      "sourceRefsHash": "fnv1a-b9b2424e",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-ellen",
+      "fieldId": "progression.potential_overlay",
+      "valueHash": "fnv1a-35b7724e",
+      "sourceRefsHash": "fnv1a-f6df0d83",
+      "conditionsHash": "fnv1a-9c5c6a2a",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-ellen",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-e0b49a1",
+      "sourceRefsHash": "fnv1a-af6b2279",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-ellen",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-93263902",
+      "sourceRefsHash": "fnv1a-70ef5b97",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-ellen",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-2c30f393",
+      "sourceRefsHash": "fnv1a-6b6706d6",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-ellen",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-26c1f86",
+      "sourceRefsHash": "fnv1a-af6b2279",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-ellen",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-fb530f20",
+      "sourceRefsHash": "fnv1a-af6b2279",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-ellen",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-90e83232",
+      "sourceRefsHash": "fnv1a-4fe2bb4",
+      "conditionsHash": "fnv1a-7787466a",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-ellen",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-4e12606f",
+      "sourceRefsHash": "fnv1a-6a485d7d",
+      "conditionsHash": "fnv1a-6ddb97a6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-rina",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-c9547550",
+      "sourceRefsHash": "fnv1a-da5bda0e",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-rina",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-f5c5ab69",
+      "sourceRefsHash": "fnv1a-82dfc86c",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-rina",
+      "fieldId": "progression.potential_overlay",
+      "valueHash": "fnv1a-b6e6662d",
+      "sourceRefsHash": "fnv1a-d73c3e96",
+      "conditionsHash": "fnv1a-8c86d0de",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-rina",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-7b93a29a",
+      "sourceRefsHash": "fnv1a-90c2ad4d",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-rina",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-39562c7e",
+      "sourceRefsHash": "fnv1a-e64350bd",
+      "conditionsHash": "fnv1a-2540ceaa",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-rina",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-8e60fb5b",
+      "sourceRefsHash": "fnv1a-dce954e0",
+      "conditionsHash": "fnv1a-ea30a30c",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-rina",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-1fa037a7",
+      "sourceRefsHash": "fnv1a-90c2ad4d",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-rina",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-e7540521",
+      "sourceRefsHash": "fnv1a-3a2d3192",
+      "conditionsHash": "fnv1a-34ac596b",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-rina",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-77f0e0da",
+      "sourceRefsHash": "fnv1a-ad0ac528",
+      "conditionsHash": "fnv1a-2df52e28",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-rina",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-56818b6b",
+      "sourceRefsHash": "fnv1a-a6ae8d55",
+      "conditionsHash": "fnv1a-c088974f",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-manato",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-72430bc8",
+      "sourceRefsHash": "fnv1a-139d6119",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-manato",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-54f75188",
+      "sourceRefsHash": "fnv1a-b3bccba1",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-manato",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-6a039a9",
+      "sourceRefsHash": "fnv1a-d6678955",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-manato",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-4b5aa5a5",
+      "sourceRefsHash": "fnv1a-d6678955",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-manato",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-eb2eeb9b",
+      "sourceRefsHash": "fnv1a-d6678955",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-manato",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-dc4975f0",
+      "sourceRefsHash": "fnv1a-1e8417ef",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-manato",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-2f1a3be9",
+      "sourceRefsHash": "fnv1a-d6678955",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-manato",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-4daecdfb",
+      "sourceRefsHash": "fnv1a-a9426aad",
+      "conditionsHash": "fnv1a-4c875976",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-manato",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-e3f587cc",
+      "sourceRefsHash": "fnv1a-8f464e41",
+      "conditionsHash": "fnv1a-6ddb97a6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-pan-yinhu",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-5f74291d",
+      "sourceRefsHash": "fnv1a-dcdf9bc6",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-pan-yinhu",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-4412fa30",
+      "sourceRefsHash": "fnv1a-121d7231",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-pan-yinhu",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-dd236cd6",
+      "sourceRefsHash": "fnv1a-4a2dc04a",
+      "conditionsHash": "fnv1a-f2ce692d",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-pan-yinhu",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-fb1aebf3",
+      "sourceRefsHash": "fnv1a-a1bb72b3",
+      "conditionsHash": "fnv1a-40188624",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-pan-yinhu",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-257ca02",
+      "sourceRefsHash": "fnv1a-f10bde48",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-pan-yinhu",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-f7f06af4",
+      "sourceRefsHash": "fnv1a-f10bde48",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-pan-yinhu",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-9505f800",
+      "sourceRefsHash": "fnv1a-f10bde48",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-pan-yinhu",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-2813c967",
+      "sourceRefsHash": "fnv1a-a2e4f68f",
+      "conditionsHash": "fnv1a-e9d4f0cf",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-pan-yinhu",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-2bd2474a",
+      "sourceRefsHash": "fnv1a-67fa76c6",
+      "conditionsHash": "fnv1a-ac05a0c7",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-pulchra",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-5727bc02",
+      "sourceRefsHash": "fnv1a-9329cb95",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-pulchra",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-a7fa8905",
+      "sourceRefsHash": "fnv1a-1b3c28d5",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-pulchra",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-e23b2bef",
+      "sourceRefsHash": "fnv1a-6494d656",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-pulchra",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-ff706475",
+      "sourceRefsHash": "fnv1a-6494d656",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-pulchra",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-bf0614e7",
+      "sourceRefsHash": "fnv1a-6494d656",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-pulchra",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-c6753776",
+      "sourceRefsHash": "fnv1a-6494d656",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-pulchra",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-e0af4f7f",
+      "sourceRefsHash": "fnv1a-6494d656",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-pulchra",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-51ca5de2",
+      "sourceRefsHash": "fnv1a-3345c627",
+      "conditionsHash": "fnv1a-1f9d055e",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-pulchra",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-3d8c2502",
+      "sourceRefsHash": "fnv1a-4874afe1",
+      "conditionsHash": "fnv1a-6ddb97a6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-seth",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-7a955901",
+      "sourceRefsHash": "fnv1a-d21c212f",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-seth",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-68917cae",
+      "sourceRefsHash": "fnv1a-441a5872",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-seth",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-4639f7b6",
+      "sourceRefsHash": "fnv1a-4c9e0d14",
+      "conditionsHash": "fnv1a-32f3e64e",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-seth",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-78125876",
+      "sourceRefsHash": "fnv1a-c723da45",
+      "conditionsHash": "fnv1a-ebba9e7c",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-seth",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-e9ade3df",
+      "sourceRefsHash": "fnv1a-ecf6c466",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-seth",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-fc558f63",
+      "sourceRefsHash": "fnv1a-3fdaf03c",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-seth",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-ac6738b7",
+      "sourceRefsHash": "fnv1a-ae874f4f",
+      "conditionsHash": "fnv1a-bd8ba083",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-seth",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-353fd229",
+      "sourceRefsHash": "fnv1a-f0a2c2f4",
+      "conditionsHash": "fnv1a-f48b9cab",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-seth",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-dd386380",
+      "sourceRefsHash": "fnv1a-85d5a3c2",
+      "conditionsHash": "fnv1a-ac05a0c7",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-anby",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-702fc2ac",
+      "sourceRefsHash": "fnv1a-e4f5dbba",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-anby",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-c3962f20",
+      "sourceRefsHash": "fnv1a-3bda77c",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-anby",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-1d755542",
+      "sourceRefsHash": "fnv1a-8e4fc906",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-anby",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-c0fd6f51",
+      "sourceRefsHash": "fnv1a-8e4fc906",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-anby",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-c0719374",
+      "sourceRefsHash": "fnv1a-3def2617",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-anby",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-f020bd8c",
+      "sourceRefsHash": "fnv1a-8e4fc906",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-anby",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-b2f8881b",
+      "sourceRefsHash": "fnv1a-b2ecd60f",
+      "conditionsHash": "fnv1a-eff39e7e",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-anby",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-1014254a",
+      "sourceRefsHash": "fnv1a-31e77b07",
+      "conditionsHash": "fnv1a-524219f3",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-anby",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-2b8f9432",
+      "sourceRefsHash": "fnv1a-1ecb7166",
+      "conditionsHash": "fnv1a-6ddb97a6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-nicole",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-ef287d8d",
+      "sourceRefsHash": "fnv1a-a7896c87",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-nicole",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-a055b7a2",
+      "sourceRefsHash": "fnv1a-1db68261",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-nicole",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-f69727a0",
+      "sourceRefsHash": "fnv1a-7bd9892b",
+      "conditionsHash": "fnv1a-c5168041",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-nicole",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-c9ded1bf",
+      "sourceRefsHash": "fnv1a-54614fe6",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-nicole",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-57007917",
+      "sourceRefsHash": "fnv1a-3c12805f",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-nicole",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-f7f06af4",
+      "sourceRefsHash": "fnv1a-3c12805f",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-nicole",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-1c77ebc9",
+      "sourceRefsHash": "fnv1a-7725f9f4",
+      "conditionsHash": "fnv1a-23cdd7a8",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-nicole",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-6aa95c5b",
+      "sourceRefsHash": "fnv1a-6b2ed473",
+      "conditionsHash": "fnv1a-499d4cd4",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-nicole",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-98030360",
+      "sourceRefsHash": "fnv1a-6d727e65",
+      "conditionsHash": "fnv1a-66fbeaeb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-corin",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-38bbd2f9",
+      "sourceRefsHash": "fnv1a-663f4e96",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-corin",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-51857570",
+      "sourceRefsHash": "fnv1a-d9aa72de",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-corin",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-5089533d",
+      "sourceRefsHash": "fnv1a-be4b5e18",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-corin",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-a0bd4473",
+      "sourceRefsHash": "fnv1a-be4b5e18",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-corin",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-b0bd73d3",
+      "sourceRefsHash": "fnv1a-457b9df1",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-corin",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-f5a4cae0",
+      "sourceRefsHash": "fnv1a-be4b5e18",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-corin",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-cea77e",
+      "sourceRefsHash": "fnv1a-5f9ef022",
+      "conditionsHash": "fnv1a-bd8ba083",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-corin",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-de0314df",
+      "sourceRefsHash": "fnv1a-7bc14a53",
+      "conditionsHash": "fnv1a-7787466a",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-corin",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-13b03c0f",
+      "sourceRefsHash": "fnv1a-114bf0ff",
+      "conditionsHash": "fnv1a-6ddb97a6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-billy",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-2c1703b4",
+      "sourceRefsHash": "fnv1a-2a7600fc",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-billy",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-3bd720ba",
+      "sourceRefsHash": "fnv1a-21d18cb9",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-billy",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-a5b5c163",
+      "sourceRefsHash": "fnv1a-df6deffa",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-billy",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-b6f8939",
+      "sourceRefsHash": "fnv1a-df6deffa",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-billy",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-342c2094",
+      "sourceRefsHash": "fnv1a-df6deffa",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-billy",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-26c1f86",
+      "sourceRefsHash": "fnv1a-df6deffa",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-billy",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-c903707d",
+      "sourceRefsHash": "fnv1a-df6deffa",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-billy",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-53e7bcc4",
+      "sourceRefsHash": "fnv1a-34a3aabb",
+      "conditionsHash": "fnv1a-7787466a",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-billy",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-a26f1ab1",
+      "sourceRefsHash": "fnv1a-6541a3a",
+      "conditionsHash": "fnv1a-6ddb97a6",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-anton",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-10b2ea0e",
+      "sourceRefsHash": "fnv1a-7e4bc158",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-anton",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-a36e0520",
+      "sourceRefsHash": "fnv1a-2ebc360a",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-anton",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-1d51de59",
+      "sourceRefsHash": "fnv1a-ad228390",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-anton",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-82eaf8dd",
+      "sourceRefsHash": "fnv1a-ad228390",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-anton",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-aa2c14a9",
+      "sourceRefsHash": "fnv1a-cb4ec500",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-anton",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-eb5185ce",
+      "sourceRefsHash": "fnv1a-ad228390",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-anton",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-df0bf955",
+      "sourceRefsHash": "fnv1a-33af012a",
+      "conditionsHash": "fnv1a-6d650203",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-anton",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-95dafafe",
+      "sourceRefsHash": "fnv1a-f13ce8fc",
+      "conditionsHash": "fnv1a-7787466a",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-anton",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-6f3f14ad",
+      "sourceRefsHash": "fnv1a-1c5bb9e4",
+      "conditionsHash": "fnv1a-bfffd27f",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-ben",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-79d3101a",
+      "sourceRefsHash": "fnv1a-8bb0ffd3",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-ben",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-4e895d29",
+      "sourceRefsHash": "fnv1a-bd2484c1",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-ben",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-38d1ab21",
+      "sourceRefsHash": "fnv1a-332f6b7",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-ben",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-4b4df6b1",
+      "sourceRefsHash": "fnv1a-e2cba8d0",
+      "conditionsHash": "fnv1a-a1f8ba81",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-ben",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-81fe30f4",
+      "sourceRefsHash": "fnv1a-332f6b7",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-ben",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-b9ab5d81",
+      "sourceRefsHash": "fnv1a-332f6b7",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-ben",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-d786cb10",
+      "sourceRefsHash": "fnv1a-92813ca6",
+      "conditionsHash": "fnv1a-bd8ba083",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-ben",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-e640175a",
+      "sourceRefsHash": "fnv1a-9b5314f2",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-ben",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-1520873e",
+      "sourceRefsHash": "fnv1a-b420205c",
+      "conditionsHash": "fnv1a-3515468",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-soukaku",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-7d6a8730",
+      "sourceRefsHash": "fnv1a-96f0c90a",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-soukaku",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-4e4e5491",
+      "sourceRefsHash": "fnv1a-fba8f7c",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-soukaku",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-a8e0719d",
+      "sourceRefsHash": "fnv1a-3b84a17b",
+      "conditionsHash": "fnv1a-34adbecb",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-soukaku",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-f000c0fa",
+      "sourceRefsHash": "fnv1a-eefb85b0",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-soukaku",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-ee3bfa4a",
+      "sourceRefsHash": "fnv1a-5c122f5a",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-soukaku",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-f7f06af4",
+      "sourceRefsHash": "fnv1a-5c122f5a",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-soukaku",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-63c03007",
+      "sourceRefsHash": "fnv1a-8942db5e",
+      "conditionsHash": "fnv1a-bd8ba083",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-soukaku",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-ac1c3044",
+      "sourceRefsHash": "fnv1a-8cb1a1ae",
+      "conditionsHash": "fnv1a-34c8700d",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-soukaku",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-c14b3552",
+      "sourceRefsHash": "fnv1a-cb78356f",
+      "conditionsHash": "fnv1a-66fbeaeb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-lucy",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-41bb1a7c",
+      "sourceRefsHash": "fnv1a-78b469fd",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-lucy",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-4cf073b5",
+      "sourceRefsHash": "fnv1a-87e964a3",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-lucy",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-1421dd0f",
+      "sourceRefsHash": "fnv1a-2476cf01",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-lucy",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-18384e1",
+      "sourceRefsHash": "fnv1a-63dd0294",
+      "conditionsHash": "fnv1a-2fad83e0",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-lucy",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-9b86c1b2",
+      "sourceRefsHash": "fnv1a-2476cf01",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-lucy",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-f7f06af4",
+      "sourceRefsHash": "fnv1a-2476cf01",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-lucy",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-58254b7a",
+      "sourceRefsHash": "fnv1a-2e5507dc",
+      "conditionsHash": "fnv1a-f5e9a1bd",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-lucy",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-cdb0fb53",
+      "sourceRefsHash": "fnv1a-aa1010cc",
+      "conditionsHash": "fnv1a-997f2549",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-lucy",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-a7895ec",
+      "sourceRefsHash": "fnv1a-bcc76b8a",
+      "conditionsHash": "fnv1a-66fbeaeb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-piper",
+      "fieldId": "progression.lv60_and_ascension",
+      "valueHash": "fnv1a-58f3729",
+      "sourceRefsHash": "fnv1a-708d19ab",
+      "conditionsHash": "fnv1a-b6f30ac3",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-piper",
+      "fieldId": "progression.skill_core_cinema",
+      "valueHash": "fnv1a-464f0502",
+      "sourceRefsHash": "fnv1a-40ff37ba",
+      "conditionsHash": "fnv1a-57507bdb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-piper",
+      "fieldId": "build.wengines",
+      "valueHash": "fnv1a-23d90c83",
+      "sourceRefsHash": "fnv1a-eaa880eb",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-piper",
+      "fieldId": "build.drive_disc_sets",
+      "valueHash": "fnv1a-57b373aa",
+      "sourceRefsHash": "fnv1a-55e049c7",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-piper",
+      "fieldId": "build.main_sub_stats",
+      "valueHash": "fnv1a-4b8044e4",
+      "sourceRefsHash": "fnv1a-eaa880eb",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-piper",
+      "fieldId": "build.progression",
+      "valueHash": "fnv1a-361ebec2",
+      "sourceRefsHash": "fnv1a-eaa880eb",
+      "conditionsHash": "fnv1a-741638a5",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-piper",
+      "fieldId": "build.team_bangboo_scenario",
+      "valueHash": "fnv1a-347df2ac",
+      "sourceRefsHash": "fnv1a-ec13a430",
+      "conditionsHash": "fnv1a-3f644bb",
+      "sourceReviewVersion": "3.2"
+    },
+    {
+      "agentId": "agent-piper",
+      "fieldId": "build.target_panel",
+      "valueHash": "fnv1a-c2de078c",
+      "sourceRefsHash": "fnv1a-d37d7d1b",
+      "conditionsHash": "fnv1a-7787466a",
+      "sourceReviewVersion": "3.1"
+    },
+    {
+      "agentId": "agent-piper",
+      "fieldId": "build.version_change_impact",
+      "valueHash": "fnv1a-dd0ad41c",
+      "sourceRefsHash": "fnv1a-d7b0763",
+      "conditionsHash": "fnv1a-82acf999",
+      "sourceReviewVersion": "3.2"
+    }
+  ]
+}

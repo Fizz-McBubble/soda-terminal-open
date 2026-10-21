@@ -34,6 +34,7 @@ export function TeamRecommendationConditions({ item }: { item: TeamLoadoutOvervi
 
   return (
     <ExplanationPopover label="适用条件" title="适用条件">
+      {analysis ? <p>{playerDecisionText(analysis.rationale)}</p> : null}
       {conditions.length ? (
         <>
           <ul>

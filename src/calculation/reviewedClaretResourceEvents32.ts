@@ -12,6 +12,28 @@ export const reviewedClaretResourceIdentity32 = Object.freeze({
   boundary: data.boundary,
 })
 
+/** Static menu facts share the release source used by action accounting.
+ * Capacity and automatic accumulation do not establish a generation multiplier
+ * or a complete cycle, and ordinary Energy equipment is not Sharpness. */
+export function projectReviewedClaretResourcePanel32(agentId: string) {
+  if (agentId !== 'agent-claret') return null
+  const current = getCurrentAgentEventContract(agentId)
+  if (
+    current?.source.commit !== data.source.pairedUpstreamCommit ||
+    current.source.statsSha256 !== data.source.pairedUpstreamStatsSha256 ||
+    data.resourceRules.sharpness.capacityStatus !== 'current_client_row_with_ex_cost_corroboration'
+  )
+    return null
+  return {
+    sharpEnergyRegen: data.resourceRules.sharpness.automaticGainPerSecond,
+    maxSharpEnergy: data.resourceRules.sharpness.capacity,
+    sources: {
+      sharpEnergyRegen: `${data.contract}@${reviewedClaretResourceIdentity32.contentHash}#/resourceRules/sharpness/automaticGainPerSecond`,
+      maxSharpEnergy: `${data.source.rawSource.path}@${data.source.rawSource.commit}#${data.source.rawSource.row}/${data.source.rawSource.capacityField.name}`,
+    },
+  }
+}
+
 /** Gachabase raw Gash and Sharpness are different units. The rendered release
  * table was independently checked: 3151 -> 31.51 Gash; 9460 -> 0.946 Sharpness.
  * A source-row occurrence is not a physical-hit or time-series inference. */

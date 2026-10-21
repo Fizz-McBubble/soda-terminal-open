@@ -8,6 +8,7 @@ import { stableContentHash } from './types'
 import { currentAgentEventContracts } from '../calculation/currentAgentMechanicContracts'
 import { currentAgentDecisionMechanicContracts } from '../calculation/currentAgentDecisionMechanicContracts'
 import { resolveSourceBoundAdditionalAbility } from './reviewedSourceBoundAdditionalAbility'
+import round5Audit from './data/reviewed-team-output-modules.round5-audit.3.2.json'
 
 type CoverageDirection = ReturnType<typeof currentReviewedTeamSourceDirections>[number]
 
@@ -31,6 +32,7 @@ function classificationLedger(directions: readonly CoverageDirection[]) {
           ? {
               status: direction.outputModule.status,
               classification: direction.outputModule.classification,
+              sourceEvidence: direction.outputModule.sourceEvidence ?? [],
               module: {
                 id: direction.outputModule.module.id,
                 primaryOutputKind: direction.outputModule.module.primaryOutputKind,
@@ -47,6 +49,7 @@ function classificationLedger(directions: readonly CoverageDirection[]) {
           verificationStatus: source.verificationStatus ?? null,
           observationRole: source.observationRole ?? null,
           contentHash: source.contentHash,
+          recommendationPrerequisites: source.recommendationPrerequisites ?? [],
         }))
         .sort((left, right) => left.id.localeCompare(right.id)),
       conditions: [...direction.conditions].sort(),
@@ -129,6 +132,21 @@ export function buildCurrentTeamOutputModuleCoverage(
   )
   const classifiedPrimaryOutputKindCounts = primaryKindCounts(directions)
   const currentPrimaryOutputKindCounts = primaryKindCounts(current)
+  const releasedAgentIds = currentAgentEventContracts.map((agent) => agent.stableId).sort()
+  const classifiedMemberIds = new Set(classified.flatMap((direction) => direction.memberIds))
+  const round5UnresolvedKeys = new Set(round5Audit.unresolved.map((entry) => entry.memberKey))
+  const auditedUnknown = directions.filter(
+    (direction) =>
+      direction.outputModule?.status !== 'classified' &&
+      round5UnresolvedKeys.has([...direction.memberIds].sort().join('|')),
+  )
+  const unaudited = directions.filter(
+    (direction) =>
+      direction.outputModule?.status !== 'classified' &&
+      !round5UnresolvedKeys.has([...direction.memberIds].sort().join('|')),
+  )
+  const classifiedAgentIds = releasedAgentIds.filter((id) => classifiedMemberIds.has(id))
+  const missingAgentIds = releasedAgentIds.filter((id) => !classifiedMemberIds.has(id))
   const coordinationContracts = coordinationContractCoverage()
   const classificationEvidenceHash = stableContentHash(classificationLedger(directions))
   const missingPrimaryOutputKinds = teamOutputModuleTaxonomy.requiredPrimaryOutputKinds.filter(
@@ -143,10 +161,21 @@ export function buildCurrentTeamOutputModuleCoverage(
     sourceObservationCount: directions.length,
     classifiedExactTeamCount: classified.length,
     unclassifiedExactTeamCount: directions.length - classified.length,
+    sourceAuditedUnknownExactTeamCount: auditedUnknown.length,
+    unauditedExactTeamCount: unaudited.length,
+    sourceAuditComplete: unaudited.length === 0 && directions.length === classified.length + auditedUnknown.length,
     currentExactTeamCount: current.length,
     currentClassifiedTeamCount: currentClassified.length,
     currentUnknownTeamCount: currentUnknown.length,
     currentConflictTeamCount: currentConflicts.length,
+    agentSampleCoverage: {
+      totalAgentCount: releasedAgentIds.length,
+      coveredAgentCount: classifiedAgentIds.length,
+      coveredAgentIds: classifiedAgentIds,
+      missingAgentIds,
+      boundary:
+        'A classified source-backed trio supplies a member sample, not every role, build branch, current tier or independent quality case.',
+    },
     coordinationContracts,
     primaryOutputKindCounts: classifiedPrimaryOutputKindCounts,
     currentPrimaryOutputKindCounts,

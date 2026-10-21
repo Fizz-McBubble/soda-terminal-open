@@ -1,0 +1,585 @@
+{
+  "schema": "soda-reviewed-team-output-modules-strict-batch/v1",
+  "sourceSchema": "soda-strict-team-output-candidates/v1",
+  "sourceCount": 24,
+  "sourceSha256": "693554b4ef781cd6d15b4ef98e0377a9c1e1a6cf0673b668f912e5e30f2f2a14",
+  "boundary": "Historical exact-team review only. Every row has one manually adjudicated primary driver quote whose exact UTF-16 span and nested unit hash are verified. Specialty alone and template/substitution-only rows are excluded. Current strength is not inherited.",
+  "entries": [
+    {
+      "claimId": "reviewed-nested-5b61091a658789970d1f877c",
+      "memberIds": ["agent-alice", "agent-nangong", "agent-yuzuha"],
+      "sourceVersion": "2.7",
+      "url": "https://www.miyoushe.com/zzz/article/74134359",
+      "title": "【2.7攻略征集】「南宫羽」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-alice",
+      "evidence": {
+        "op": 56,
+        "start": 257,
+        "end": 310,
+        "text": "④ 多结算伤害：敌人物理积蓄即将满时，爱丽丝发动三蓄快速打出强击、极性强击、物理异放、紊乱等多种结算伤害。",
+        "unitRawSha256": "fe1ac7500db6acd55c76366e286ea02d085e305b215075d2bb451ed32addb4bb",
+        "unitTextSha256": "f60338d20bf82fc72f7b3a4534dddd4444d3a16711f583a8a571854c3fba5e00",
+        "quoteSha256": "f5b78a7ba6af436c068303669b10a8a53366b4412a3b0da670c788dd36e98492"
+      },
+      "module": {
+        "id": "module-strict-5b61091a658789970d1f877c",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": ["disorder", "abloom"],
+        "executionChannels": ["stun_window", "quick_swap"],
+        "teamFunctions": ["support", "anomaly_amplification"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-ef0b02e121ea0dd2bc0479dd",
+      "memberIds": ["agent-pyrois", "agent-anby", "agent-nicole"],
+      "sourceVersion": "3.0",
+      "url": "https://www.miyoushe.com/zzz/article/76055342",
+      "title": "【3.0攻略征集】「佩洛伊斯」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-pyrois",
+      "evidence": {
+        "op": 52,
+        "start": 507,
+        "end": 570,
+        "text": "◆琉音抱拳进失衡→佩洛伊斯上分支大招→取消连携→上分大招→取消连携→强普第3/4段×2→持续输出→失衡即将结束时发动右分支大招",
+        "unitRawSha256": "7d42cd9270632042afd32bd16263defa85776053583886948746c0ca065946ea",
+        "unitTextSha256": "0a43af624f9098a66749635bfb3f96681203c693f65e9b6600d2f17f44894741",
+        "quoteSha256": "16d45808496b1ef492e2b36766f52612853a29bd2163d194718ed89920cd5461"
+      },
+      "module": {
+        "id": "module-strict-ef0b02e121ea0dd2bc0479dd",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": ["stun_window", "chain", "ultimate", "quick_swap"],
+        "teamFunctions": ["stun", "support"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-b30c457474b476761612ffe0",
+      "memberIds": ["agent-aria", "agent-dialyn", "agent-sunna"],
+      "sourceVersion": "2.6",
+      "url": "https://www.miyoushe.com/zzz/article/73717575",
+      "title": "【2.6攻略征集】「爱芮」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-aria",
+      "evidence": {
+        "op": 56,
+        "start": 11,
+        "end": 58,
+        "text": "① 在爱芮的核心技中，失衡期的敌人会受到更高的爱芮的异放伤害，而击破队友则让敌人更快进入失衡。",
+        "unitRawSha256": "dfee9d768eba6264183c96b9d16b176f8b59b99b817c17b706533c3d734f2cb0",
+        "unitTextSha256": "10a597fc7300876baa5a6a793bef771849b644cc6d7b9f9634fb80dc9235efc8",
+        "quoteSha256": "6ee7562d5efe09284377900f52522f26afb7553b0e975656a5f162ec59c576ba"
+      },
+      "module": {
+        "id": "module-strict-b30c457474b476761612ffe0",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": ["abloom"],
+        "executionChannels": ["stun_window", "ultimate", "quick_swap"],
+        "teamFunctions": ["stun", "support"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-f3f638b6b36400020c9468b8",
+      "memberIds": ["agent-aria", "agent-dialyn", "agent-yuzuha"],
+      "sourceVersion": "2.6",
+      "url": "https://www.miyoushe.com/zzz/article/73717575",
+      "title": "【2.6攻略征集】「爱芮」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-aria",
+      "evidence": {
+        "op": 56,
+        "start": 11,
+        "end": 58,
+        "text": "① 在爱芮的核心技中，失衡期的敌人会受到更高的爱芮的异放伤害，而击破队友则让敌人更快进入失衡。",
+        "unitRawSha256": "dfee9d768eba6264183c96b9d16b176f8b59b99b817c17b706533c3d734f2cb0",
+        "unitTextSha256": "10a597fc7300876baa5a6a793bef771849b644cc6d7b9f9634fb80dc9235efc8",
+        "quoteSha256": "6ee7562d5efe09284377900f52522f26afb7553b0e975656a5f162ec59c576ba"
+      },
+      "module": {
+        "id": "module-strict-f3f638b6b36400020c9468b8",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": ["abloom"],
+        "executionChannels": ["stun_window", "ultimate", "quick_swap"],
+        "teamFunctions": ["stun", "support"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-101ddba0ba1d8474bd6ed587",
+      "memberIds": ["agent-aria", "agent-nangong", "agent-yuzuha"],
+      "sourceVersion": "2.7",
+      "url": "https://www.miyoushe.com/zzz/article/74134359",
+      "title": "【2.7攻略征集】「南宫羽」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-aria",
+      "evidence": {
+        "op": 52,
+        "start": 11,
+        "end": 58,
+        "text": "① 在爱芮的核心技中，失衡期的敌人会受到更高的爱芮的异放伤害，而击破队友则让敌人更快进入失衡。",
+        "unitRawSha256": "b032b8136bcffa1bef8c318e28f2a9093afaf70e3b0c82cd23baf8f0ea989b43",
+        "unitTextSha256": "fd1b2a58355dbcc56b91e28bc7e6a984436d5e00392c7ddc42bfe84eb974ef1f",
+        "quoteSha256": "6ee7562d5efe09284377900f52522f26afb7553b0e975656a5f162ec59c576ba"
+      },
+      "module": {
+        "id": "module-strict-101ddba0ba1d8474bd6ed587",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": ["abloom"],
+        "executionChannels": ["stun_window", "ultimate", "quick_swap"],
+        "teamFunctions": ["stun", "support"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-94260810472c48f24bf9eda9",
+      "memberIds": ["agent-cissia", "agent-dialyn", "agent-astra"],
+      "sourceVersion": "2.7",
+      "url": "https://www.miyoushe.com/zzz/article/74635375",
+      "title": "【2.7攻略征集】「希希芙」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-cissia",
+      "evidence": {
+        "op": 52,
+        "start": 632,
+        "end": 678,
+        "text": "③ 通过主动取消连携来让希希芙持续输出，“强E+普攻”期间可预先长按普攻这样能直接衔接蛇吻。",
+        "unitRawSha256": "bb442b3ce6aeddd7b5e3f10f5316ebf542eb46369a53cbae8ad4bed508020628",
+        "unitTextSha256": "9d63675fa5c5b01af461b861d052760cf22a79fbb7a310e0e732748f58321cca",
+        "quoteSha256": "8757c0c5d35e8b80e905380c2fc8199add216113935837dd78e4f407e4389e41"
+      },
+      "module": {
+        "id": "module-strict-94260810472c48f24bf9eda9",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": ["stun_window", "chain", "ultimate", "quick_swap"],
+        "teamFunctions": ["stun", "support"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-cab6ea981e5109e12002eb77",
+      "memberIds": ["agent-grace", "agent-velina", "agent-astra"],
+      "sourceVersion": "3.0",
+      "url": "https://www.miyoushe.com/zzz/article/76055360",
+      "title": "【3.0攻略征集】「维琳娜」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-grace",
+      "evidence": {
+        "op": 65,
+        "start": 7,
+        "end": 35,
+        "text": "① 加强后的格莉丝能消耗脉冲触发异放伤害，整体输出更高。",
+        "unitRawSha256": "8a775ae55bb21d5fa23a233d5b210fb0a48cf528409bd96dd1a3fdd05a9e8c02",
+        "unitTextSha256": "107c2dfc407aae6c573e8e386a4d76d86b41906a6d57bb95bfdf035f8b3cbbb7",
+        "quoteSha256": "3621d644728f11917448e073b1c438f5c56f5705af99f9ad1d6fce5ba0ba5abd"
+      },
+      "module": {
+        "id": "module-strict-cab6ea981e5109e12002eb77",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": ["abloom"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support", "anomaly_amplification"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-bbd24e8eaf7713b594ca740d",
+      "memberIds": ["agent-harumasa", "agent-astra", "agent-qingyi"],
+      "sourceVersion": "1.5",
+      "url": "https://www.miyoushe.com/zzz/article/61285801",
+      "title": "【1.5攻略征集】耀嘉音·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-harumasa",
+      "evidence": {
+        "op": 70,
+        "start": 9,
+        "end": 45,
+        "text": "① 朱鸢、悠真均是主打失衡爆发期输出的强攻角色，由青衣持续站场打失衡值。",
+        "unitRawSha256": "c8064a8318e5e7b1b46219f16f8f23aea05f4c7564b0972024e6bdc1a408513f",
+        "unitTextSha256": "b0dac15b4d99097e0746e593b7841330ed5a2642c75310584ccb6831a4d731ea",
+        "quoteSha256": "75f83ea49f2c5a89ae8aa6571e24f085762ac3ba0f949725c75d334095901536"
+      },
+      "module": {
+        "id": "module-strict-bbd24e8eaf7713b594ca740d",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": ["stun_window"],
+        "teamFunctions": ["stun", "support"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-ea64e1527d9aaea64e295523",
+      "memberIds": ["agent-jane", "agent-seth", "agent-astra"],
+      "sourceVersion": "1.5",
+      "url": "https://www.miyoushe.com/zzz/article/61285801",
+      "title": "【1.5攻略征集】耀嘉音·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-jane",
+      "evidence": {
+        "op": 61,
+        "start": 84,
+        "end": 137,
+        "text": "二是搭配赛斯的强击单核，赛斯、嘉音都不挤占简的输出时间，能更多时间站场积累物理异常，全力提高简的伤害即可。",
+        "unitRawSha256": "91a4f3e180700de97ecd69c690ca05e5ec6be51d72132dacfa71387345737586",
+        "unitTextSha256": "6ae1c92d5e1299f70a47346febdef593235c258fa309410e5ccef3b7fd26a7eb",
+        "quoteSha256": "dda61430c0405d6c7cd43c585beb78147826210d631f0c9f7eee63eaae726033"
+      },
+      "module": {
+        "id": "module-strict-ea64e1527d9aaea64e295523",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-31bcabef22b9f11266cfcceb",
+      "memberIds": ["agent-zhu-yuan", "agent-astra", "agent-qingyi"],
+      "sourceVersion": "1.5",
+      "url": "https://www.miyoushe.com/zzz/article/61285801",
+      "title": "【1.5攻略征集】耀嘉音·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-zhu-yuan",
+      "evidence": {
+        "op": 70,
+        "start": 9,
+        "end": 45,
+        "text": "① 朱鸢、悠真均是主打失衡爆发期输出的强攻角色，由青衣持续站场打失衡值。",
+        "unitRawSha256": "c8064a8318e5e7b1b46219f16f8f23aea05f4c7564b0972024e6bdc1a408513f",
+        "unitTextSha256": "b0dac15b4d99097e0746e593b7841330ed5a2642c75310584ccb6831a4d731ea",
+        "quoteSha256": "75f83ea49f2c5a89ae8aa6571e24f085762ac3ba0f949725c75d334095901536"
+      },
+      "module": {
+        "id": "module-strict-31bcabef22b9f11266cfcceb",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": ["stun_window"],
+        "teamFunctions": ["stun", "support"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-4ba2f5dfaac6e9f3d85a87fd",
+      "memberIds": ["agent-burnice", "agent-yanagi", "agent-lucy"],
+      "sourceVersion": "1.3",
+      "url": "https://www.miyoushe.com/zzz/article/59165099",
+      "title": "【1.3攻略征集】月城柳·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-yanagi",
+      "evidence": {
+        "op": 62,
+        "start": 90,
+        "end": 118,
+        "text": "③ 可考虑柳与柏妮思交替登场施加异常积蓄，增加紊乱次数。",
+        "unitRawSha256": "620316fc7510b2e79cc22eca144c86e8488795ba748fe1422cb3e1157012af3e",
+        "unitTextSha256": "c960ef3f27362b09774ddce15c9b544ff30df91cd2f03c9a147075e13eb907bc",
+        "quoteSha256": "4d53bc4970d2dcfe2c218c5af0243f128199b23debe8b380e9a87d50d75a6428"
+      },
+      "module": {
+        "id": "module-strict-4ba2f5dfaac6e9f3d85a87fd",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": ["disorder"],
+        "executionChannels": ["chain", "quick_swap"],
+        "teamFunctions": ["support", "anomaly_amplification"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-39804102e69ea3b789887625",
+      "memberIds": ["agent-caesar", "agent-lycaon", "agent-ellen"],
+      "sourceVersion": "1.2",
+      "url": "https://www.miyoushe.com/zzz/article/57928556",
+      "title": "【1.2攻略征集】凯撒·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-ellen",
+      "evidence": {
+        "op": 70,
+        "start": 7,
+        "end": 45,
+        "text": "① 艾莲站场输出，凯撒的护盾可让艾莲更稳定地积累【急冻充能】、不被敌人打断。",
+        "unitRawSha256": "e745ff86092ce2dd63e7cb0f4b929922c4421f53b8da91af39f6492156da2485",
+        "unitTextSha256": "24ec86702399ceeb264a4f488b144a5ffbf4b3a798c1ca2fbb2c9fca76e1d824",
+        "quoteSha256": "17ddfcbf916cb1d9feadcecd27939a0dcf97ebf1a179f4be24f671cb88c23d3e"
+      },
+      "module": {
+        "id": "module-strict-39804102e69ea3b789887625",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": ["stun_window", "quick_swap"],
+        "teamFunctions": ["stun", "support", "defense", "resistance_reduction"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-70f70ee14a37dc5a7f90355a",
+      "memberIds": ["agent-hugo", "agent-dialyn", "agent-lighter"],
+      "sourceVersion": "2.4",
+      "url": "https://www.miyoushe.com/zzz/article/70915554",
+      "title": "【2.4攻略征集】「琉音」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-hugo",
+      "evidence": {
+        "op": 61,
+        "start": 71,
+        "end": 137,
+        "text": "② 雨果的核心出伤机制是【决算】，将剩余失衡时间转化为额外伤害来打出超高爆发，双击破让敌人更快失衡，提高决算次数、没有莱特可选莱卡恩",
+        "unitRawSha256": "2063e121a3c11a35cf6caf889858276a66ff3070d17c2546dee0c92692c88fe6",
+        "unitTextSha256": "15857652add4ac4822bbe90a3bacdffbf60d150cfb7258d1fb37efda6ad0cb27",
+        "quoteSha256": "934a66ed75a2589c9c2cfeb80450db4ff835b3c0937ea4cd6785d563adc58159"
+      },
+      "module": {
+        "id": "module-strict-70f70ee14a37dc5a7f90355a",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": ["stun_window", "chain", "ultimate"],
+        "teamFunctions": ["stun", "support"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-c24d9b400def2d2d778c179a",
+      "memberIds": ["agent-soldier-0-anby", "agent-sunna", "agent-dialyn"],
+      "sourceVersion": "2.6",
+      "url": "https://www.miyoushe.com/zzz/article/72984392",
+      "title": "【2.6攻略征集】「千夏」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-soldier-0-anby",
+      "evidence": {
+        "op": 55,
+        "start": 302,
+        "end": 335,
+        "text": "③ 安比的追加攻击占比最高，所以“失衡期多打几次追击”就成了关键。",
+        "unitRawSha256": "4d539fbf4243917caf24372a1a04d4ed8cb75c06666ed2e9010bbce8ed759fb6",
+        "unitTextSha256": "3c79b15a466daa461a223cab46d893bb664b4829432b22736bde3d82ce990dee",
+        "quoteSha256": "8c92abe0cbeaf73eff724e50156eb14f001f62db2d03cf1f676af44a70dff9e6"
+      },
+      "module": {
+        "id": "module-strict-c24d9b400def2d2d778c179a",
+        "primaryOutputKind": "aftershock",
+        "reactionMechanisms": [],
+        "executionChannels": ["stun_window", "chain", "ultimate", "quick_swap"],
+        "teamFunctions": ["stun", "support"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-524490d12ff2039d6f1bb1c8",
+      "memberIds": ["agent-hugo", "agent-ju-fufu", "agent-lighter"],
+      "sourceVersion": "2.0",
+      "url": "https://www.miyoushe.com/zzz/article/65745145",
+      "title": "【2.0攻略征集】「橘福福」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-hugo",
+      "evidence": {
+        "op": 59,
+        "start": 45,
+        "end": 102,
+        "text": "② 雨果的核心出伤机制是【决算】，将剩余失衡时间转化为额外伤害来打出超高爆发，双击破让敌人更快失衡，提高决算次数。",
+        "unitRawSha256": "3211a9274e211c0c44aef217f1a57f65c3b7132d6870264e9712f7d143febb34",
+        "unitTextSha256": "a5f51d31fff601159be0530ef99cd4ad9af07f5868de30edd18b27f33732ae2c",
+        "quoteSha256": "222d3e67824ce70fc68a0096e890ce8fa17abfcfc8739f913e702db4db301779"
+      },
+      "module": {
+        "id": "module-strict-524490d12ff2039d6f1bb1c8",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": ["stun_window", "ultimate"],
+        "teamFunctions": ["stun", "support"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-19c0a1b35e5c9e8753046a4f",
+      "memberIds": ["agent-jane", "agent-seth", "agent-lucy"],
+      "sourceVersion": "1.1",
+      "url": "https://www.miyoushe.com/zzz/article/57323897",
+      "title": "【1.1攻略征集】简·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-jane",
+      "evidence": {
+        "op": 64,
+        "start": 151,
+        "end": 179,
+        "text": "③ 该队主要是简的【强击】伤害，不强求敌人快速进入失衡。",
+        "unitRawSha256": "44800cdae47e084ce31a0f28fb4ddd00f9f6f38fd249bccedf02743471ac6798",
+        "unitTextSha256": "930a3357c3fb264c3a6f1251df23b2ea10f4d7c864fa69291a636b96eeb11d53",
+        "quoteSha256": "46ff083b376e1382105bbb386505a8c1c0e2e96a8dbd7e840d703fb9ac048bc6"
+      },
+      "module": {
+        "id": "module-strict-19c0a1b35e5c9e8753046a4f",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-ed0d942fcd37ac8714b0aff3",
+      "memberIds": ["agent-jane", "agent-seth", "agent-rina"],
+      "sourceVersion": "1.1",
+      "url": "https://www.miyoushe.com/zzz/article/57323897",
+      "title": "【1.1攻略征集】简·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-jane",
+      "evidence": {
+        "op": 64,
+        "start": 151,
+        "end": 179,
+        "text": "③ 该队主要是简的【强击】伤害，不强求敌人快速进入失衡。",
+        "unitRawSha256": "44800cdae47e084ce31a0f28fb4ddd00f9f6f38fd249bccedf02743471ac6798",
+        "unitTextSha256": "930a3357c3fb264c3a6f1251df23b2ea10f4d7c864fa69291a636b96eeb11d53",
+        "quoteSha256": "46ff083b376e1382105bbb386505a8c1c0e2e96a8dbd7e840d703fb9ac048bc6"
+      },
+      "module": {
+        "id": "module-strict-ed0d942fcd37ac8714b0aff3",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-4787d6001b829e73c9d8b70a",
+      "memberIds": ["agent-jane", "agent-seth", "agent-soukaku"],
+      "sourceVersion": "1.1",
+      "url": "https://www.miyoushe.com/zzz/article/57323897",
+      "title": "【1.1攻略征集】简·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-jane",
+      "evidence": {
+        "op": 64,
+        "start": 151,
+        "end": 179,
+        "text": "③ 该队主要是简的【强击】伤害，不强求敌人快速进入失衡。",
+        "unitRawSha256": "44800cdae47e084ce31a0f28fb4ddd00f9f6f38fd249bccedf02743471ac6798",
+        "unitTextSha256": "930a3357c3fb264c3a6f1251df23b2ea10f4d7c864fa69291a636b96eeb11d53",
+        "quoteSha256": "46ff083b376e1382105bbb386505a8c1c0e2e96a8dbd7e840d703fb9ac048bc6"
+      },
+      "module": {
+        "id": "module-strict-4787d6001b829e73c9d8b70a",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-f9b5a787d52484b4433bb331",
+      "memberIds": ["agent-miyabi", "agent-lighter", "agent-lucy"],
+      "sourceVersion": "1.4",
+      "url": "https://www.miyoushe.com/zzz/article/60271416",
+      "title": "【1.4攻略征集】星见雅·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-miyabi",
+      "evidence": {
+        "op": 68,
+        "start": 10,
+        "end": 85,
+        "text": "① “雅+莱特”是雅的“击破体系”组合，围绕雅的直伤输出做文章，可类比常规的“强攻+击破”搭配——击破角色打出失衡，雅在敌人失衡期间打出高额爆发输出。",
+        "unitRawSha256": "fb4577fce86e4bc49159c6196422c4b58827dfb67a1185f40ee2874ba8be49cb",
+        "unitTextSha256": "e94a3eb3d0df16cb9f831a9a9d098383f91a4d440fdb2c813e0174c6ffbd3a6f",
+        "quoteSha256": "4b037b978640095c605d2019da3605d3317b939533501f0889aec35b495cb1b7"
+      },
+      "module": {
+        "id": "module-strict-f9b5a787d52484b4433bb331",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": ["stun_window", "ultimate", "quick_swap"],
+        "teamFunctions": ["stun", "support", "resistance_reduction"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-8201b47ad538eb29742743a5",
+      "memberIds": ["agent-soldier-11", "agent-sunna", "agent-lighter"],
+      "sourceVersion": "2.6",
+      "url": "https://www.miyoushe.com/zzz/article/72984392",
+      "title": "【2.6攻略征集】「千夏」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-soldier-11",
+      "evidence": {
+        "op": 57,
+        "start": 197,
+        "end": 265,
+        "text": "◆11号的站场输出：长按普攻蓄力→格挡敌人攻击→打出普攻3段获得火刀→继续普攻→持续普攻/闪避累积能量→发动强化特殊技/终结技→继续输出",
+        "unitRawSha256": "b8212aee91f9211d01e84c535df612db58c57f556c60d6db7e3ceb13bae3ba3d",
+        "unitTextSha256": "0f42d3c3d3429d6ec81d33ae3399ec6237b4e29f4f8b8e07dd468ec4bdde0a2d",
+        "quoteSha256": "a0c1a1d28dbd2e2bc7b8ce98408e5685f0715f79d1b644cadf494928958a2bb1"
+      },
+      "module": {
+        "id": "module-strict-8201b47ad538eb29742743a5",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": ["stun_window", "quick_swap", "ultimate"],
+        "teamFunctions": ["stun", "support"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-e9c8a2e5c70d065c3d620116",
+      "memberIds": ["agent-miyabi", "agent-piper", "agent-lucy"],
+      "sourceVersion": "1.4",
+      "url": "https://www.miyoushe.com/zzz/article/60271416",
+      "title": "【1.4攻略征集】星见雅·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-miyabi",
+      "evidence": {
+        "op": 72,
+        "start": 46,
+        "end": 114,
+        "text": "思路与常规异常队伍类似，都是交替站场积蓄异常打出紊乱，第3位队友为露西，可同时触发派派、雅的额外能力（派派的额外能力可以提高全队伤害）。",
+        "unitRawSha256": "915c99336c1d0fdc14156a5dac87053e37a1bba36011b88109dcd9397a4c4e22",
+        "unitTextSha256": "294e4c53ec1ff0d010ba4c3da796945ff56f87e7c411e001efde87d7ea1f1ae0",
+        "quoteSha256": "265cc8a24d065f05becfb5831813c25743d65ed59be5dea8b03add5ab65c963c"
+      },
+      "module": {
+        "id": "module-strict-e9c8a2e5c70d065c3d620116",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": ["disorder"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support", "anomaly_amplification"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-a6471d892f4bd65db31b2994",
+      "memberIds": ["agent-velina", "agent-nangong", "agent-yuzuha"],
+      "sourceVersion": "3.0",
+      "url": "https://www.miyoushe.com/zzz/article/76055360",
+      "title": "【3.0攻略征集】「维琳娜」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-nangong",
+      "evidence": {
+        "op": 62,
+        "start": 109,
+        "end": 164,
+        "text": "③ 加之南宫羽也能通过机制打出异放、极性紊乱，整体表现在三人都有一定配置时是不低的——南宫羽推荐0+1后体验。",
+        "unitRawSha256": "1628d2f52d8e4d415ef79236f60a430ddd4b3503e9153f10520f15aba2b2f532",
+        "unitTextSha256": "d9255e452e6704d4e8e3e7b39996285017be07e7c9bf46facb9effe5e887d1a8",
+        "quoteSha256": "70fe5a9ddfbe8985722a863a06e7fc71c1b19bfba34b87bd44ec28f4b50ce801"
+      },
+      "module": {
+        "id": "module-strict-a6471d892f4bd65db31b2994",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": ["disorder", "abloom", "polarity"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support", "anomaly_amplification"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-d35bc6038bfe3f9cd30dcedb",
+      "memberIds": ["agent-yanagi", "agent-nangong", "agent-yuzuha"],
+      "sourceVersion": "2.7",
+      "url": "https://www.miyoushe.com/zzz/article/74134359",
+      "title": "【2.7攻略征集】「南宫羽」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-yanagi",
+      "evidence": {
+        "op": 57,
+        "start": 60,
+        "end": 96,
+        "text": "② 柚叶置于柳之前染电更快进入属性异常，该队伍依靠柳主打极性紊乱打伤害。",
+        "unitRawSha256": "bf929be180c923add4038cdc6c049e76d62eacd3a1c1a31de17893b00921d266",
+        "unitTextSha256": "3c8030bf94b5b292be05c123d8466497f2f1f5549ab2da9cb1fb7315d16bc16e",
+        "quoteSha256": "97e85f3f4abbf31e59a2bbc00369763d1a1198c77c51bd4e44e6dff15772382b"
+      },
+      "module": {
+        "id": "module-strict-d35bc6038bfe3f9cd30dcedb",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": ["disorder", "polarity"],
+        "executionChannels": ["stun_window", "quick_swap"],
+        "teamFunctions": ["stun", "support"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-b2185e799494bd90363c5268",
+      "memberIds": ["agent-soldier-0-anby", "agent-sunna", "agent-trigger"],
+      "sourceVersion": "2.6",
+      "url": "https://www.miyoushe.com/zzz/article/72984392",
+      "title": "【2.6攻略征集】「千夏」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-soldier-0-anby",
+      "evidence": {
+        "op": 55,
+        "start": 302,
+        "end": 335,
+        "text": "③ 安比的追加攻击占比最高，所以“失衡期多打几次追击”就成了关键。",
+        "unitRawSha256": "4d539fbf4243917caf24372a1a04d4ed8cb75c06666ed2e9010bbce8ed759fb6",
+        "unitTextSha256": "3c79b15a466daa461a223cab46d893bb664b4829432b22736bde3d82ce990dee",
+        "quoteSha256": "8c92abe0cbeaf73eff724e50156eb14f001f62db2d03cf1f676af44a70dff9e6"
+      },
+      "module": {
+        "id": "module-strict-b2185e799494bd90363c5268",
+        "primaryOutputKind": "aftershock",
+        "reactionMechanisms": [],
+        "executionChannels": ["stun_window", "chain", "ultimate", "quick_swap"],
+        "teamFunctions": ["stun", "support"]
+      }
+    }
+  ]
+}

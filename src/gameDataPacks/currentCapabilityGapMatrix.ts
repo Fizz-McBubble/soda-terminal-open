@@ -54,6 +54,7 @@ export type CurrentCapabilityBuildField = CapabilityGapDetail & {
     | 'build.target_panel'
     | 'build.version_change_impact'
   sourceStatus: AgentProfileField['status'] | 'missing'
+  sourceTier: CurrentBuildAuthorityField['sourceTier']
 }
 
 export type CurrentCapabilitySupportDimension = CapabilityGapDetail & {
@@ -121,6 +122,7 @@ function buildFieldDetail(field: CurrentBuildAuthorityField): CurrentCapabilityB
   return {
     fieldId: field.fieldId,
     sourceStatus: field.sourceStatus,
+    sourceTier: field.sourceTier,
     ...detail(field.state, field.blockers, field.nextEvidence),
   }
 }

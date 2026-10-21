@@ -6,6 +6,7 @@ import { getAgentProfile, getProjectedBuildKnowledgeProfile } from '../gameDataP
 import { currentPanelData } from '../gameDataPacks/panel/currentPanelData'
 import { defaultAscensionForLevel } from '../gameDataPacks/panel/wEngineGrowth'
 import {
+  getCurrentBuildAuthorityProfile,
   getCurrentBuildTargetPanel,
   type CurrentBuildTargetPanelContext,
 } from '../gameDataPacks/currentBuildAuthority'
@@ -197,21 +198,27 @@ export function createTeamExecutionAttributePanel(input: {
     legacyWEngines: input.wEngines,
     recommendedWEngineIds: suggested.wEngine ? [suggested.wEngine.engineId] : undefined,
   })
-  const targetField = getCurrentBuildTargetPanel(
-    input.agent.agentId,
-    input.memberIds
-      ? {
-          memberIds: input.memberIds,
-          ...input.buildDirectionConditions,
-          agentStateById: input.buildDirectionConditions?.agentStateById ?? {
-            [input.agent.agentId]: {
-              mindscape: input.agent.mindscape,
-              potentialImage: input.agent.potentialImage,
-            },
+  const buildContext = input.memberIds
+    ? {
+        memberIds: input.memberIds,
+        ...input.buildDirectionConditions,
+        agentStateById: input.buildDirectionConditions?.agentStateById ?? {
+          [input.agent.agentId]: {
+            mindscape: input.agent.mindscape,
+            potentialImage: input.agent.potentialImage,
           },
-        }
-      : undefined,
-  )
+        },
+      }
+    : undefined
+  const mainStatGuidance = getCurrentBuildAuthorityProfile(
+    input.agent.agentId,
+    buildContext,
+  )?.guidance.fields.find((field) => field.fieldId === 'build.main_sub_stats')
+  const branchGuidance =
+    mainStatGuidance?.contextualApplicability && mainStatGuidance.value !== null
+      ? mainStatGuidance
+      : null
+  const targetField = getCurrentBuildTargetPanel(input.agent.agentId, buildContext)
   const targetStatus = sourceStatus(targetField?.status)
   const currentEngine = wEngineResolution.current
   const currentProjectionAgent = agentWithWEngine(input.agent, currentEngine)
@@ -275,7 +282,12 @@ export function createTeamExecutionAttributePanel(input: {
   // Free-text conditions are visible evidence, not proof this account satisfies them.
   const comparable =
     currentStatus === 'exact' && targetField !== null && !targetField.conditions.length
-  const priority = profile.recommendation?.subStats ?? []
+  const branchStats = branchGuidance?.value as { sub?: unknown; subStats?: unknown } | undefined
+  const branchSubStats = branchStats?.sub ?? branchStats?.subStats
+  const priority =
+    Array.isArray(branchSubStats) && branchSubStats.every((stat) => typeof stat === 'string')
+      ? branchSubStats
+      : (profile.recommendation?.subStats ?? [])
   const knownValue = (values: object, key: string): number | undefined => {
     const value = (values as Record<string, unknown>)[key]
     return typeof value === 'number' && Number.isFinite(value) ? value : undefined
@@ -319,9 +331,11 @@ export function createTeamExecutionAttributePanel(input: {
   })
   const recommendationSourceIds = [
     ...new Set(
-      agentProfile.fields
-        .filter((field) => field.path === 'build.main_sub_stats')
-        .flatMap((field) => field.sourceRefs.map((source) => source.id)),
+      branchGuidance
+        ? branchGuidance.sourceRefs.map((source) => source.id)
+        : agentProfile.fields
+            .filter((field) => field.path === 'build.main_sub_stats')
+            .flatMap((field) => field.sourceRefs.map((source) => source.id)),
     ),
   ]
   const availability =

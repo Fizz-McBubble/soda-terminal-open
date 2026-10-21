@@ -4,6 +4,7 @@ import { useStateTransitionMotion } from '../motion/useStateTransitionMotion'
 import { TeamCompletionCandidates, TeamPreview } from './TeamLoadoutOverviewParts'
 import type {
   TeamLoadoutOverviewGroup,
+  TeamLoadoutOverviewFamily,
   TeamLoadoutOverviewItem,
   TeamLoadoutOverviewModel,
   TeamLoadoutVisibleAnswer,
@@ -137,11 +138,14 @@ export function TeamLoadoutOverview({
   }, [previewRequest, selectedId])
   const [recommendedQuery, setRecommendedQuery] = useState(initialUiState?.recommendedQuery ?? '')
   const [onlyFavorites, setOnlyFavorites] = useState(initialUiState?.onlyFavorites ?? false)
+  const [includeReferenceDirections, setIncludeReferenceDirections] = useState(
+    initialUiState?.includeReferenceDirections ?? false,
+  )
   const [activeVariants, setActiveVariants] = useState<Record<string, string>>(
     initialUiState?.activeVariants ?? {},
   )
   const [recommendedPage, setRecommendedPage] = useState(initialUiState?.recommendedPage ?? 1)
-  const families = groups.flatMap((group) => group.items)
+  const families = groups.flatMap((group) => [...group.items, ...(group.referenceItems ?? [])])
   const hasRecommendedTeams = groups.some(
     (group) => group.kind === 'recommended' && group.items.length > 0,
   )
@@ -149,14 +153,26 @@ export function TeamLoadoutOverview({
     (group) => group.items.length === 0 && (group.completionCandidates?.length ?? 0) > 0,
   )
   const recommendedGroup = groups.find((group) => group.kind === 'recommended')
+  const recommendedSourceFamilies = useMemo(() => {
+    // Reference items are filtered views of the same source families. Keep
+    // the complete first view when search makes both scopes visible.
+    const byId = new Map<string, TeamLoadoutOverviewFamily>()
+    for (const family of [
+      ...(recommendedGroup?.items ?? []),
+      ...(recommendedGroup?.referenceItems ?? []),
+    ]) {
+      if (!byId.has(family.id)) byId.set(family.id, family)
+    }
+    return [...byId.values()]
+  }, [recommendedGroup])
   const favoriteFilteredItems = useMemo(
     () =>
-      (recommendedGroup?.items ?? []).flatMap((family) => {
+      recommendedSourceFamilies.flatMap((family) => {
         if (!onlyFavorites) return [family]
         const variants = family.variants.filter((variant) => variant.favoriteMatchCount > 0)
         return variants.length ? [rebuildVisibleFamily(family, variants)] : []
       }),
-    [recommendedGroup, onlyFavorites],
+    [onlyFavorites, recommendedSourceFamilies],
   )
   const recommendedMatchingItems = useMemo(
     () =>
@@ -181,10 +197,10 @@ export function TeamLoadoutOverview({
     () =>
       visibleRecommendationFamilies(
         recommendedMatchingItems,
-        false,
+        includeReferenceDirections,
         Boolean(recommendedQuery.trim()),
       ),
-    [recommendedMatchingItems, recommendedQuery],
+    [includeReferenceDirections, recommendedMatchingItems, recommendedQuery],
   )
   const recommendedPageCount = Math.max(
     1,
@@ -214,6 +230,7 @@ export function TeamLoadoutOverview({
       selectedId: selected?.id ?? null,
       recommendedQuery,
       onlyFavorites,
+      includeReferenceDirections,
       activeVariants,
       recommendedPage: currentRecommendedPage,
     })
@@ -221,6 +238,7 @@ export function TeamLoadoutOverview({
     selected?.id,
     recommendedQuery,
     onlyFavorites,
+    includeReferenceDirections,
     activeVariants,
     currentRecommendedPage,
     onUiStateChange,
@@ -370,6 +388,11 @@ export function TeamLoadoutOverview({
                 onlyFavorites={onlyFavorites}
                 onOnlyFavoritesChange={(checked) => {
                   setOnlyFavorites(checked)
+                  setRecommendedPage(1)
+                }}
+                includeReferenceDirections={includeReferenceDirections}
+                onIncludeReferenceDirectionsChange={(checked) => {
+                  setIncludeReferenceDirections(checked)
                   setRecommendedPage(1)
                 }}
                 recommendedPage={currentRecommendedPage}

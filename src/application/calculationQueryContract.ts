@@ -97,6 +97,8 @@ export type TargetTeamWarehouseFitQuery = {
   }
   /** Standard reference has its own issued cultivation, eighteen facts and vocabulary. */
   standardReference32?: import('./targetTeamStandardReference32').TargetTeamStandardReferenceRequest32
+  /** Update only the independent reference of this exact cached fit; never solve account equipment. */
+  standardReferenceFitFingerprint32?: string
   /** Private producer resolves a player-confirmed Bangboo into the exact equipment parameters. */
   playerBangbooSelection?: {
     teamKey: string
@@ -144,11 +146,14 @@ export type SavedTeamSolutionComponentsQuery = {
 
 export type TargetTeamWarehouseFitQueryResult =
   import('../decision/targetTeamWarehouseFit').TargetTeamWarehouseFit & {
+    formedTeamReference?: import('./publicFormedTeamReference').FormedTeamReference
     /** Finite declared events; never substituted for the legacy normalized benchmark. */
     declaredEventBenchmark32?: import('./publicPlanningBenchmark32').PlanningBenchmarkResult32
     standardReference32?: import('./targetTeamStandardReference32').TargetTeamStandardReferenceResult32
     /** Exact request needed to reissue the independently saved standard goal. */
     standardReferenceRequest32?: import('./targetTeamStandardReference32').TargetTeamStandardReferenceRequest32
+    /** Explicit acknowledgement of a reference-only update, required by the player editor. */
+    standardReferenceUpdate32?: { fitFingerprint: string; accountEquipmentPreserved: true }
     eventConditionDeclarationsByAgentId?: import('../calculation/reviewedEventConditionDeclarations32').ReviewedEventConditionDeclarations32
     eventConditionDeclarationsIdentity?: string
     scenarioSelection?: CurrentPlanningScenarioSelection32

@@ -41,6 +41,8 @@ export type AgentProfileField = {
     | 'player_projection'
   path: string
   value: unknown | null
+  /** Source wording for a typed value; never used as a calculation input. */
+  displayValue?: unknown
   status: AgentProfileFieldStatus
   gameVersion: string
   originalSourceVersion: string | null
@@ -53,6 +55,8 @@ export type AgentProfileField = {
   conditions?: readonly string[]
   authorReviewedVersion?: string | null
   applicabilityReason?: string
+  /** Explicit field-level provenance when a reviewed adapter is current but its original source is older. */
+  reviewedSourceTier?: 'direct_current_3_2' | 'continuity_reviewed'
 }
 
 export type AgentProfileVisualRef = {

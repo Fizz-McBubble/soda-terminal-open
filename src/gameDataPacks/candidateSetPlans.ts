@@ -21,6 +21,7 @@ export type CandidateSetPlan = {
       | { kind: 'teammate_four_piece'; setId: string }
       | { kind: 'teammate_not_four_piece'; setId: string }
       | { kind: 'electric_team' }
+      | { kind: 'wearer_action'; action: 'wearer_ex_special' }
       | {
           kind: 'teammate_specialty_and_action'
           specialties: readonly ('attack' | 'rupture' | 'armorer')[]

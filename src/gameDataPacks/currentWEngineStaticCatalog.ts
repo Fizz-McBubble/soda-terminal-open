@@ -1,5 +1,8 @@
 import { z } from 'zod'
 import rawCatalog from './generated/current-wengine-static-catalog.v1.json'
+import reviewedWEngineData33 from './data/reviewed-wengine.3.3.json' with { type: 'json' }
+import { currentGameDataSelection } from './currentGameDataSelection'
+import { stableContentHash } from './types'
 
 const baseStatSchema = z.object({
   key: z.enum(['atk', 'def']),
@@ -217,14 +220,162 @@ const catalogSchema = z
     }
   })
 
-export type CurrentWEngineStaticCatalogItem = z.infer<typeof itemSchema>
+export const nanokaSourceSchema = z.object({
+  provider: z.literal('nanoka'),
+  url: z.string().url(),
+  rawSha256: z.string().regex(/^[a-f0-9]{64}$/),
+  providerManifestSha256: z.string().regex(/^[a-f0-9]{64}$/),
+  locators: z.object({
+    baseProperty: z.string().min(1),
+    randProperty: z.string().min(1),
+    talents: z.string().min(1),
+  }),
+})
 
-export const currentWEngineStaticCatalog = catalogSchema.parse(rawCatalog)
+export const nanokaItemSchema = z.object({
+  stableId: z.string().regex(/^wengine-\d+$/),
+  gameId: z.string().regex(/^\d+$/),
+  playerName: z.string().min(1),
+  nativeKey: z.string().min(1),
+  rarity: z.enum(['S', 'A', 'B']),
+  specialty: z.enum(['damage', 'anomaly', 'defense', 'rupture', 'stun', 'support', 'armorer']),
+  releaseStatus: z.enum(['released_first_half', 'pending_event', 'pending_second_half']),
+  releaseAt: z.string().min(1),
+  staticStats: staticStatsSchema,
+  passiveParameterTable: z
+    .array(
+      z.object({
+        refinement: z.number().int().min(1).max(5),
+        params: z.array(z.number()),
+      }),
+    )
+    .length(5),
+  source: nanokaSourceSchema,
+  formulaAdoption: z.object({
+    status: z.enum(['wrap_or_adapt', 'static_only']),
+    todoMarkers: z.array(z.string()),
+  }),
+})
 
-const byStableId = new Map(
-  currentWEngineStaticCatalog.items.map((item) => [item.stableId, item] as const),
+export type CurrentWEngineGoItem = z.infer<typeof itemSchema>
+export type CurrentWEngineNanokaItem = z.infer<typeof nanokaItemSchema>
+
+export type CurrentWEngineGoSource = CurrentWEngineGoItem['source']
+export type CurrentWEngineNanokaSource = CurrentWEngineNanokaItem['source']
+
+export type CurrentWEngineStaticCatalogItem =
+  | (CurrentWEngineGoItem & {
+      nativeKey?: undefined
+      releaseStatus?: undefined
+      releaseAt?: undefined
+      source: CurrentWEngineGoSource & {
+        provider?: undefined
+        url?: undefined
+        rawSha256?: undefined
+        providerManifestSha256?: undefined
+        locators?: undefined
+      }
+    })
+  | (CurrentWEngineNanokaItem & {
+      upstreamKey?: undefined
+      source: CurrentWEngineNanokaSource & {
+        dataPath?: undefined
+        dataSha256?: undefined
+        formulaPath?: undefined
+        formulaSha256?: undefined
+      }
+    })
+
+export const baseWEngineStaticCatalog = catalogSchema.parse(rawCatalog)
+
+const rawFirstPlumage = reviewedWEngineData33.items.find(
+  (item) => item.stableId === 'wengine-14164',
 )
 
-export function getCurrentWEngineStaticData(stableId: string) {
-  return byStableId.get(stableId) ?? null
+if (!rawFirstPlumage) {
+  throw new Error('Missing reviewed W-Engine data for wengine-14164 (涅槃初翎)')
+}
+
+export const firstPlumageStaticRecord: CurrentWEngineNanokaItem =
+  nanokaItemSchema.parse(rawFirstPlumage)
+
+const byStableId32 = new Map(
+  baseWEngineStaticCatalog.items.map(
+    (item) => [item.stableId, item as CurrentWEngineStaticCatalogItem] as const,
+  ),
+)
+
+const byStableId33 = new Map<string, CurrentWEngineStaticCatalogItem>([
+  ...baseWEngineStaticCatalog.items.map(
+    (item) => [item.stableId, item as CurrentWEngineStaticCatalogItem] as const,
+  ),
+  ['wengine-14164', firstPlumageStaticRecord as CurrentWEngineStaticCatalogItem],
+])
+
+export const currentWEngineStaticCatalog = {
+  ...baseWEngineStaticCatalog,
+  // generatedFrom describes only the unchanged GO subset. The composition has
+  // its own identity and per-item sources; Nanoka never inherits a GO license.
+  baseCatalogIdentity: baseWEngineStaticCatalog.contentHash,
+  get contentHash() {
+    return currentGameDataSelection.gameVersion === '3.3'
+      ? stableContentHash({
+          baseCatalogHash: baseWEngineStaticCatalog.contentHash,
+          addedRecords: [firstPlumageStaticRecord],
+        })
+      : baseWEngineStaticCatalog.contentHash
+  },
+  get coverage(): typeof baseWEngineStaticCatalog.coverage {
+    const items = this.items
+    return {
+      ...baseWEngineStaticCatalog.coverage,
+      entities: items.length,
+      p1ToP5Tables: items.filter((item) => item.passiveParameterTable.length === 5).length,
+      formulaWrapOrAdapt: items.filter((item) => item.formulaAdoption.status === 'wrap_or_adapt')
+        .length,
+      formulaStaticOnly: items.filter((item) => item.formulaAdoption.status === 'static_only')
+        .length,
+    }
+  },
+  get gameVersion() {
+    return currentGameDataSelection.gameVersion === '3.3'
+      ? '3.3'
+      : baseWEngineStaticCatalog.gameVersion
+  },
+  get items(): readonly CurrentWEngineStaticCatalogItem[] {
+    return currentGameDataSelection.gameVersion === '3.3'
+      ? [...baseWEngineStaticCatalog.items, firstPlumageStaticRecord]
+      : baseWEngineStaticCatalog.items
+  },
+  get additionalSources() {
+    return currentGameDataSelection.gameVersion === '3.3'
+      ? [
+          {
+            provider: 'nanoka' as const,
+            gameVersion: '3.3' as const,
+            itemsCount: 1,
+            manifestPin: '4d30f529d6e0568a130ebe4d79557b30d9c65d2219e77461763df1c4b42cb029',
+          },
+        ]
+      : []
+  },
+}
+
+/** Preserve provider identity when exposing evidence to consumers. */
+export function currentWEngineSourceRefs(source: CurrentWEngineStaticCatalogItem['source']) {
+  return source.url
+    ? [`${source.url}#sha256=${source.rawSha256}`]
+    : [
+        `${source.dataPath}#sha256=${source.dataSha256}`,
+        `${source.formulaPath}#sha256=${source.formulaSha256}`,
+      ]
+}
+
+export function getCurrentWEngineStaticData(
+  stableId: string,
+): CurrentWEngineStaticCatalogItem | null {
+  if (currentGameDataSelection.gameVersion === '3.3') {
+    return byStableId33.get(stableId) ?? null
+  }
+  return byStableId32.get(stableId) ?? null
 }

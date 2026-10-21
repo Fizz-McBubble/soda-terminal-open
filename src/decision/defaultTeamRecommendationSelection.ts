@@ -1,5 +1,6 @@
 /** Recommendation eligibility is independent of the per-carry display cap.
  * Diagnostic scores are retained for identity checks and never grant admission. */
+import { resolveReviewedPhoenixTeam33 } from './reviewedPhoenixTeams33'
 export type DefaultTeamRecommendationCandidate = {
   candidateId: string
   memberIds: readonly string[]
@@ -69,7 +70,7 @@ export function selectDefaultTeamRecommendationPool(
       candidate.withdrawn === true ||
       !['S+', 'S', 'A+', 'A', 'B'].includes(candidate.ratingBand ?? '') ||
       candidate.confidence === 'experimental' ||
-      !candidate.mechanicallyClosed ||
+      (!candidate.mechanicallyClosed && !resolveReviewedPhoenixTeam33(candidate.memberIds)) ||
       candidate.sourceExcluded
     )
       continue

@@ -1,5 +1,10 @@
 import { calculateCurrentPlanningEventDamage32 } from './currentPlanningEventDamage32'
 import {
+  incremental33RecoveryPolicy,
+  incremental33RecoveryReason,
+  usesIncremental33Capabilities,
+} from '../gameDataPacks/incremental33RecoveryPolicy'
+import {
   compileReviewedRoxyTapAction32,
   type ReviewedRoxyTapActionInput32,
 } from './reviewedRoxyTapAction32'
@@ -77,6 +82,14 @@ export function evaluateSourceBackedPersonalPlanningDps(
     commonAnomalyEvents?: Readonly<Record<string, readonly CommonAnomalyEventObservation32[]>>
   } & PersonalPlanningEvents,
 ) {
+  if (
+    incremental33RecoveryPolicy.enabled &&
+    usesIncremental33Capabilities({
+      members: [input.member],
+      equipmentEffects: input.equipmentModifierBuckets,
+    })
+  )
+    return { status: 'unsupported' as const, blockers: [incremental33RecoveryReason] }
   if (
     incremental32RecoveryPolicy.enabled &&
     usesIncremental32Capabilities({
@@ -222,6 +235,14 @@ export function evaluateSourceBackedPersonalPlanningDps(
  * buckets, rather than being silently folded into a made-up direct multiplier.
  */
 function evaluatePlanningTeamDpsSlice(input: SourceBackedPlanningTeamDpsInput) {
+  if (
+    incremental33RecoveryPolicy.enabled &&
+    usesIncremental33Capabilities({
+      members: input.members,
+      equipmentEffects: input.equipmentModifierBuckets,
+    })
+  )
+    return { status: 'unsupported' as const, blockers: [incremental33RecoveryReason] }
   if (
     incremental32RecoveryPolicy.enabled &&
     usesIncremental32Capabilities({

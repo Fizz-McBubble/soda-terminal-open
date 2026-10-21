@@ -1,0 +1,913 @@
+{
+  "schema": "soda-reviewed-team-analysis/v1",
+  "gameVersion": "3.2",
+  "reviewedAt": "2026-10-21",
+  "authority": "local_editorial_estimate",
+  "confidence": "low",
+  "validationStatus": "not_independently_fitted",
+  "methodology": "Soda本地泛用粗档复核：复用已锁定精确三人资料、当前公式和构筑条件，逐条审阅输出、支援、失衡分工与取舍。新增机制复核绑定三名成员的公式SHA；历史队伍或作者比较设置只证明成员和条件，当前泛用档位及同核心替代关系由Soda裁决，不升级来源主流身份。分档不读取使用率、关卡均分或旧回归预测，独立质量分母不增加。",
+  "records": [
+    {
+      "id": "generic-32-koleda-lucia-yixuan",
+      "memberIds": ["agent-koleda", "agent-yixuan", "agent-lucia"],
+      "band": "A",
+      "rationale": "命破输出、失衡与卢西娅的命破支援形成可用分工；珂蕾妲的普通暴伤不计作命破收益，潜能和失衡增益按接受者单独成立。",
+      "conditions": [
+        "当前攻略明确列出仪玄／珂蕾妲／卢西娅；既有独立米游社队伍记录继续保留原2.3来源身份。",
+        "命破队的普通暴伤与失衡增益按实际接受者和潜能等级核对；山大王或震星分支不等于常驻增益。",
+        "该三人方向不提供独立强度档位、最优音擎或完整循环结论。",
+        "没有橘福福或扳机时，也可选珂蕾妲等击破手。"
+      ],
+      "limitations": [
+        "Soda本地泛用粗档，未取得独立统一投入的全队强度验证；参考分是粗档刻度。",
+        "不表示当期Boss排名、完整循环DPS、最优装备或账号实际完成度。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://hoyobuild.com/en/zzz/characters/koleda",
+          "locator": "Teams > Recommended teams > Rupture: Yixuan & Lucia",
+          "sourceVersion": "3.2",
+          "sourceContentHash": "ADB655BE1C8766DD98C63A2B0DB65797217472EFF605B070FD060A30970CE75B"
+        }
+      ]
+    },
+    {
+      "id": "generic-32-koleda-lucy-soldier-11",
+      "memberIds": ["agent-koleda", "agent-soldier-11", "agent-lucy"],
+      "band": "A",
+      "rationale": "火属性直伤、失衡与攻击支援形成完整方向；露西的支援供给与「11号」输出相容，不从低成本或同属性推导顶级强度。",
+      "conditions": [
+        "当前攻略明确列出「11号」／珂蕾妲／露西，历史独立攻略仍保留原始版本。",
+        "珂蕾妲负责失衡窗口，露西提供攻击方向；炉火、山大王与潜能增益须按真实等级和动作触发。",
+        "不由来源中的使用率或个人评级推导三人强度；邦布需按实际额外能力选择。",
+        "珂蕾妲先积累失衡，露西连携及强化特殊技后快速支援11号输出。",
+        "珂蕾妲打失衡，露西全队加攻，11号失衡后输出。",
+        "珂蕾妲加快失衡，露西加攻，11号攻击失衡敌人。",
+        "珂蕾妲加速失衡，露西全队加攻，11号攻击失衡敌人。",
+        "珂蕾妲失衡，露西加攻，11号攻击失衡敌人。",
+        "珂蕾妲打失衡，露西提高全队攻击，11号攻击失衡敌人。",
+        "珂蕾妲积累失衡，露西提供全队攻击力，11号在失衡后输出。"
+      ],
+      "limitations": [
+        "Soda本地泛用粗档，未取得独立统一投入的全队强度验证；参考分是粗档刻度。",
+        "不表示当期Boss排名、完整循环DPS、最优装备或账号实际完成度。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://hoyobuild.com/en/zzz/characters/koleda",
+          "locator": "Teams > Recommended teams > F2P Fire: Soldier 11 & Lucy",
+          "sourceVersion": "3.2",
+          "sourceContentHash": "ADB655BE1C8766DD98C63A2B0DB65797217472EFF605B070FD060A30970CE75B"
+        }
+      ]
+    },
+    {
+      "id": "generic-32-dialyn-rina-sigrid",
+      "memberIds": ["agent-sigrid", "agent-dialyn", "agent-rina"],
+      "band": "A+",
+      "rationale": "失衡、终结技转换与穿透支援对应同一主输出，当前来源支持明确玩法；终结技频率和覆盖未统一，因此保留参考粗档。",
+      "conditions": [
+        "当前攻略直接列出希格莉德／琉音／丽娜，琉音的终结技转换是河豚四件来源分支的条件。",
+        "丽娜的穿透收益与希格莉德影画、实际装备有关；不把角色个人评级或终结技频率描述换算成全队分数。",
+        "套装触发与覆盖单独核对；完整循环和独立档位未由本条来源证明。"
+      ],
+      "limitations": [
+        "Soda本地泛用粗档，未取得独立统一投入的全队强度验证；参考分是粗档刻度。",
+        "不表示当期Boss排名、完整循环DPS、最优装备或账号实际完成度。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://hoyobuild.com/en/zzz/characters/sigrid",
+          "locator": "Teams > Recommended teams > Ultimate spam: Dialyn & Rina",
+          "sourceVersion": "3.2",
+          "sourceContentHash": "2EE31BE1F976A554FFE26BB33C68705066D33BEB1579802349B4070C2A28F14D"
+        }
+      ]
+    },
+    {
+      "id": "generic-32-lycaon-rina-sigrid",
+      "memberIds": ["agent-sigrid", "agent-lycaon", "agent-rina"],
+      "band": "A",
+      "rationale": "冰属性失衡与穿透支援支持希格莉德主输出；不借用琉音的终结技转换或河豚条件。",
+      "conditions": [
+        "当前攻略直接列出希格莉德／莱卡恩／丽娜，莱卡恩负责失衡与冰属性适配。",
+        "未包含琉音，不沿用河豚四件的终结技转换分支；拂晓强化普攻方向仍需佩戴者EX条件。",
+        "来源只支持当前可用方向，不给出与诺姆队同条件的强弱结论。"
+      ],
+      "limitations": [
+        "Soda本地泛用粗档，未取得独立统一投入的全队强度验证；参考分是粗档刻度。",
+        "不表示当期Boss排名、完整循环DPS、最优装备或账号实际完成度。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://hoyobuild.com/en/zzz/characters/sigrid",
+          "locator": "Teams > Recommended teams > Standard banner: Lycaon & Rina",
+          "sourceVersion": "3.2",
+          "sourceContentHash": "2EE31BE1F976A554FFE26BB33C68705066D33BEB1579802349B4070C2A28F14D"
+        }
+      ]
+    },
+    {
+      "id": "generic-32-claret-norma-rina",
+      "memberIds": ["agent-claret", "agent-norma", "agent-rina"],
+      "band": "A+",
+      "rationale": "诺姆的失衡与丽娜的同属性支援服务克拉蕾锋御主输出，队友条件相容，构筑方向完整；不把作者音擎实验的数值当泛用实战。",
+      "conditions": [
+        "诺姆满足击破队友条件，丽娜满足同属性条件；音擎和驱动盘条件随精确三人引用，不从角色个人榜继承强度。",
+        "作者全队计算仅作来源观察；当前仍缺独立三人档位和完整循环证据。",
+        "作者音擎比较场景：克拉蕾 + 诺姆 + 丽娜；诺姆装备 Chief Sidekick，丽娜装备 Weeping Cradle。",
+        "仅支持精确三人成员观察；不证明推荐、强度档位、邦布默认、Formal 伤害或完整固定轴。"
+      ],
+      "limitations": [
+        "Soda本地泛用粗档，未取得独立统一投入的全队强度验证；参考分是粗档刻度。",
+        "不表示当期Boss排名、完整循环DPS、最优装备或账号实际完成度。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://www.prydwen.gg/zenless/characters/claret",
+          "locator": "Full Team calculations; teammate conditions",
+          "sourceVersion": "3.2",
+          "sourceContentHash": "028F278DA96D0EB8073767A8790FAF55F8D64F018B91296E3CC098876ECF069A"
+        }
+      ]
+    },
+    {
+      "id": "generic-32-claret-koleda-rina",
+      "memberIds": ["agent-claret", "agent-koleda", "agent-rina"],
+      "band": "A",
+      "rationale": "珂蕾妲负责失衡、丽娜提供相容支援，克拉蕾承担锋御输出；普通暴伤与潜能效果不无条件外推到锋御。",
+      "conditions": [
+        "珂蕾妲满足击破队友条件，丽娜满足同属性条件；珂蕾妲潜能收益必须归属其真实接受者。",
+        "该精确三人只确认当前来源收录与条件，不据此输出强度档位。"
+      ],
+      "limitations": [
+        "Soda本地泛用粗档，未取得独立统一投入的全队强度验证；参考分是粗档刻度。",
+        "不表示当期Boss排名、完整循环DPS、最优装备或账号实际完成度。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://www.prydwen.gg/zenless/characters/claret",
+          "locator": "Best teammates; stun alternatives",
+          "sourceVersion": "3.2",
+          "sourceContentHash": "F40C8569D4AC9586A7AD4826ED3D64715C09FFDECA32043258C28CF4C742975C"
+        }
+      ]
+    },
+    {
+      "id": "generic-32-claret-lycaon-rina",
+      "memberIds": ["agent-claret", "agent-lycaon", "agent-rina"],
+      "band": "A",
+      "rationale": "莱卡恩解锁相容潜能后可提供失衡与支援衔接，丽娜满足其阵营前提；保留潜能条件，未解锁分支不继承此判断。",
+      "conditions": [
+        "来源Teams & Synergy明确列出克拉蕾／莱卡恩／丽娜三人可用方向；丽娜同阵营满足莱卡恩额外能力条件。",
+        "莱卡恩潜能解锁（Potential Unlock）为搭配克拉蕾的前提，使其增益与锋御特性兼容；莱卡恩前台与后台均可积攒失衡，并可提供快速支援触发星声。",
+        "该精确三人仅支持克拉蕾锋御／毁伤主输出与失衡机制，不代表三人强度档位、使用率分数或固定逐帧循环。"
+      ],
+      "limitations": [
+        "Soda本地泛用粗档，未取得独立统一投入的全队强度验证；参考分是粗档刻度。",
+        "不表示当期Boss排名、完整循环DPS、最优装备或账号实际完成度。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://www.prydwen.gg/zenless/characters/claret",
+          "locator": "Teams & Synergy > Synergy > Lycaon; rendered lines 696–697",
+          "sourceVersion": "3.2",
+          "sourceContentHash": "7D89817F698377C78EE82FF059DF11CAD469553E755AF3CE78A877F92ACF9CF3"
+        }
+      ]
+    },
+    {
+      "id": "generic-32-claret-nicole-trigger",
+      "memberIds": ["agent-claret", "agent-trigger", "agent-nicole"],
+      "band": "A",
+      "rationale": "扳机专武减防与妮可的相容支援可服务克拉蕾；该方向依赖指定音擎及覆盖管理，不能当无条件首选。",
+      "conditions": [
+        "来源Teams & Synergy明确列出克拉蕾搭配扳机与妮可组合；妮可提供兼容锋御特性的增益并可使用「聚宝箱」（The Vault，wengine-13103）等非纯攻击辅助音擎。",
+        "核心协同依赖扳机装备专武提供减防（DEF Shred），且依赖站场时间与增减益覆盖管理；该前提默认不自动开启，不能由扳机改为追加攻击主输出，克拉蕾仍为主输出。",
+        "该精确三人仅支持克拉蕾锋御／毁伤主输出与失衡协同，不包含三人强度分数、场景排名推断或完整逐帧循环。"
+      ],
+      "limitations": [
+        "Soda本地泛用粗档，未取得独立统一投入的全队强度验证；参考分是粗档刻度。",
+        "不表示当期Boss排名、完整循环DPS、最优装备或账号实际完成度。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://www.prydwen.gg/zenless/characters/claret",
+          "locator": "Teams & Synergy > Synergy > Trigger & Nicole; rendered lines 698–699",
+          "sourceVersion": "3.2",
+          "sourceContentHash": "7D89817F698377C78EE82FF059DF11CAD469553E755AF3CE78A877F92ACF9CF3"
+        }
+      ]
+    },
+    {
+      "id": "generic-32-nangong-promeia-yuzuha",
+      "memberIds": ["agent-promeia", "agent-nangong", "agent-yuzuha"],
+      "band": "A+",
+      "rationale": "南宫羽的失衡与异常协同、柚叶的异常支援对应普罗米娅的输出和资源方向；来源明确指出协同，不以出现率或职业数量加分。",
+      "conditions": [
+        "HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。",
+        "不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。",
+        "喧响值、寒蚀值和霜刑点攒到失衡期倾泻。",
+        "柚叶染冰属性。",
+        "南宫羽加快失衡并提供紊乱、异放伤害。",
+        "柚叶染冰加快冰异常积累，并提供攻击力与异常、紊乱增益。",
+        "南宫羽快速积累失衡，柚叶提供染色增益。",
+        "这里南宫带嘉音套"
+      ],
+      "limitations": [
+        "Soda本地泛用粗档，未取得独立统一投入的全队强度验证；参考分是粗档刻度。",
+        "不表示当期Boss排名、完整循环DPS、最优装备或账号实际完成度。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://hoyobuild.com/en/zzz/characters/promeia",
+          "locator": "Teams > Recommended teams > Stun Abloom: Nangong Yu & Yuzuha",
+          "sourceVersion": "3.2",
+          "sourceContentHash": "fnv1a-997dcd47"
+        }
+      ]
+    },
+    {
+      "id": "generic-32-nicole-promeia-soukaku",
+      "memberIds": ["agent-promeia", "agent-nicole", "agent-soukaku"],
+      "band": "A",
+      "rationale": "妮可的减防与苍角的攻击/冰伤支援能服务普罗米娅的异常爆发，构成可用替代；低成本标签不表示伤害高低。",
+      "conditions": [
+        "HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。",
+        "不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。"
+      ],
+      "limitations": [
+        "Soda本地泛用粗档，未取得独立统一投入的全队强度验证；参考分是粗档刻度。",
+        "不表示当期Boss排名、完整循环DPS、最优装备或账号实际完成度。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://hoyobuild.com/en/zzz/characters/promeia",
+          "locator": "Teams > Recommended teams > Budget: Nicole & Soukaku",
+          "sourceVersion": "3.2",
+          "sourceContentHash": "fnv1a-7ba161ff"
+        }
+      ]
+    },
+    {
+      "id": "generic-32-anby-aria-nicole",
+      "memberIds": ["agent-aria", "agent-anby", "agent-nicole"],
+      "band": "A",
+      "rationale": "安比提供失衡，妮可提供以太适配和减防，爱芮主输出分工清楚；不把额外能力激活当完整战斗效率。",
+      "conditions": [
+        "HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。",
+        "不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。"
+      ],
+      "limitations": [
+        "Soda本地泛用粗档，未取得独立统一投入的全队强度验证；参考分是粗档刻度。",
+        "不表示当期Boss排名、完整循环DPS、最优装备或账号实际完成度。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://hoyobuild.com/en/zzz/characters/aria",
+          "locator": "Teams > Recommended teams > F2P: Anby & Nicole",
+          "sourceVersion": "3.2",
+          "sourceContentHash": "fnv1a-7eab698c"
+        }
+      ]
+    },
+    {
+      "id": "generic-32-alice-corin-nicole",
+      "memberIds": ["agent-alice", "agent-corin", "agent-nicole"],
+      "band": "A",
+      "rationale": "可琳补充物理伤害与积蓄，妮可提供减防，爱丽丝保留异常主输出；实际站场与异常归属应按所选分支处理。",
+      "conditions": [
+        "HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。",
+        "不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。"
+      ],
+      "limitations": [
+        "Soda本地泛用粗档，未取得独立统一投入的全队强度验证；参考分是粗档刻度。",
+        "不表示当期Boss排名、完整循环DPS、最优装备或账号实际完成度。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://hoyobuild.com/en/zzz/characters/alice",
+          "locator": "Teams > Recommended teams > F2P: Corin & Nicole",
+          "sourceVersion": "3.2",
+          "sourceContentHash": "fnv1a-ceebd4fc"
+        }
+      ]
+    },
+    {
+      "id": "generic-32-jane-seth-yuzuha",
+      "memberIds": ["agent-jane", "agent-seth", "agent-yuzuha"],
+      "band": "A+",
+      "rationale": "赛斯的异常精通及积蓄抗性支援与柚叶增益服务简的强击，辅助投入方向相容；额外能力和护盾触发条件保留。",
+      "conditions": [
+        "HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。",
+        "不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。"
+      ],
+      "limitations": [
+        "Soda本地泛用粗档，未取得独立统一投入的全队强度验证；参考分是粗档刻度。",
+        "不表示当期Boss排名、完整循环DPS、最优装备或账号实际完成度。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://hoyobuild.com/en/zzz/characters/jane",
+          "locator": "Teams > Recommended teams > Accessible: Seth & Yuzuha",
+          "sourceVersion": "3.2",
+          "sourceContentHash": "fnv1a-55bc0b15"
+        }
+      ]
+    },
+    {
+      "id": "generic-32-piper-vivian-yuzuha",
+      "memberIds": ["agent-piper", "agent-vivian", "agent-yuzuha"],
+      "band": "A",
+      "rationale": "派派的物理异常与薇薇安异放、柚叶异常支援相容；柚叶染色按双方配置决定，不预设固定异放频率。",
+      "conditions": [
+        "HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。",
+        "不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。",
+        "薇薇安配置较低时柚叶可染物理；薇薇安配置较高时可染以太。",
+        "柚叶2影可让关键队友额外连携来获取机制资源，例如简回复狂热、薇薇安获得飞羽；该流程不可当0影基线。"
+      ],
+      "limitations": [
+        "Soda本地泛用粗档，未取得独立统一投入的全队强度验证；参考分是粗档刻度。",
+        "不表示当期Boss排名、完整循环DPS、最优装备或账号实际完成度。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://hoyobuild.com/en/zzz/characters/piper",
+          "locator": "Teams > Recommended teams > Vivian & Yuzuha",
+          "sourceVersion": "3.2",
+          "sourceContentHash": "fnv1a-81778242"
+        }
+      ]
+    },
+    {
+      "id": "generic-32-burnice-lucy-piper",
+      "memberIds": ["agent-burnice", "agent-lucy", "agent-piper"],
+      "band": "A",
+      "rationale": "柏妮思的后台火积蓄与派派物理异常支持紊乱，露西提供攻击支援和满影延长条件；不伪造后台覆盖或完整循环。",
+      "conditions": [
+        "HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。",
+        "不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。",
+        "物理异常角色站场，柏妮思在后台提供火伤和火积蓄，配合结算紊乱。"
+      ],
+      "limitations": [
+        "Soda本地泛用粗档，未取得独立统一投入的全队强度验证；参考分是粗档刻度。",
+        "不表示当期Boss排名、完整循环DPS、最优装备或账号实际完成度。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://hoyobuild.com/en/zzz/characters/piper",
+          "locator": "Teams > Recommended teams > Sons of Calydon",
+          "sourceVersion": "3.2",
+          "sourceContentHash": "fnv1a-6ff683e6"
+        }
+      ]
+    },
+    {
+      "id": "generic-32-miyabi-yanagi-yuzuha",
+      "memberIds": ["agent-miyabi", "agent-yanagi", "agent-yuzuha"],
+      "band": "A+",
+      "rationale": "柳的极性/紊乱与雅落霜获取、柚叶异常支援形成明确相互供给；保留染电顺序及雅构筑分支，不从单次事件推总DPS。",
+      "conditions": [
+        "HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。",
+        "不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。",
+        "柚叶在星见雅之后、月城柳之前，优先染电属性；星见雅三段蓄力时可切人合轴。",
+        "柚叶被雅染色时累积烈霜异常。",
+        "柚叶2影可让关键队友额外连携来获取机制资源，例如简回复狂热、薇薇安获得飞羽；该流程不可当0影基线。",
+        "月城柳采用速切副输出玩法。",
+        "双异常配合支援增益输出。",
+        "柚叶招架支援后可接支援突击、强化特殊技，再让目标队友快速支援入场攻击完成染色。",
+        "柚叶前场闪避反击后接强化特殊技，再让目标队友快速支援入场攻击完成染色。",
+        "柚叶前场强化特殊技或终结技后，让目标队友快速支援入场攻击完成染色。",
+        "通过柚叶切至柳完成染色，提高异常积蓄速度并减少柳的站场时间。",
+        "柚叶染后台角色属性，提高紊乱次数，加快雅的落霜积累。"
+      ],
+      "limitations": [
+        "Soda本地泛用粗档，未取得独立统一投入的全队强度验证；参考分是粗档刻度。",
+        "不表示当期Boss排名、完整循环DPS、最优装备或账号实际完成度。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://hoyobuild.com/en/zzz/characters/yanagi",
+          "locator": "Teams > Recommended teams > Section 6: Miyabi & Yuzuha",
+          "sourceVersion": "3.2",
+          "sourceContentHash": "fnv1a-d8fdaf9d"
+        }
+      ]
+    },
+    {
+      "id": "generic-32-nangong-yanagi-yuzuha",
+      "memberIds": ["agent-nangong", "agent-yanagi", "agent-yuzuha"],
+      "band": "A",
+      "rationale": "南宫羽失衡及异常积蓄、柚叶染电与支援可支持柳的极性输出；柳额外能力未激活是明确取舍，不等于机制无效。",
+      "conditions": [
+        "HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。",
+        "不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。",
+        "不能触发柳额外能力，依靠极性紊乱输出；柚叶在柳前染电。",
+        "南宫羽加快失衡以优化站场异常输出。",
+        "此组合不能触发月城柳额外能力。"
+      ],
+      "limitations": [
+        "Soda本地泛用粗档，未取得独立统一投入的全队强度验证；参考分是粗档刻度。",
+        "不表示当期Boss排名、完整循环DPS、最优装备或账号实际完成度。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://hoyobuild.com/en/zzz/characters/yanagi",
+          "locator": "Teams > Recommended teams > Nangong Yu & Yuzuha",
+          "sourceVersion": "3.2",
+          "sourceContentHash": "fnv1a-e2a805b8"
+        }
+      ]
+    },
+    {
+      "id": "generic-32-grace-velina-yuzuha",
+      "memberIds": ["agent-grace", "agent-velina", "agent-yuzuha"],
+      "band": "A",
+      "rationale": "格莉丝解锁潜能后的异常方向与维琳娜、柚叶支援相容；潜能前提保留，不能将未解锁状态套入该分支。",
+      "conditions": [
+        "HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。",
+        "不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。",
+        "格莉丝必须解锁潜能。",
+        "维琳娜搭配普罗米娅、爱芮这类失衡爆发异常C时，1影改善击破；搭配简、爱丽丝时专武更侧重循环舒适。",
+        "维琳娜1影提高广域气旋失衡值，2影染色不污染异常伤害；相关优势需保留影画条件。",
+        "格莉丝需解锁潜能，通过消耗脉冲打异放。",
+        "采用加强后的格莉丝，消耗脉冲打出异放伤害，配合维琳娜输出。"
+      ],
+      "limitations": [
+        "Soda本地泛用粗档，未取得独立统一投入的全队强度验证；参考分是粗档刻度。",
+        "不表示当期Boss排名、完整循环DPS、最优装备或账号实际完成度。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://hoyobuild.com/en/zzz/characters/grace",
+          "locator": "Teams > Recommended teams > Disorder: Velina & Yuzuha",
+          "sourceVersion": "3.2",
+          "sourceContentHash": "fnv1a-c3e2a559"
+        }
+      ]
+    },
+    {
+      "id": "generic-32-grace-nangong-yuzuha",
+      "memberIds": ["agent-grace", "agent-nangong", "agent-yuzuha"],
+      "band": "A",
+      "rationale": "南宫羽失衡与柚叶异常支援支持格莉丝的爆发/异放方向；格莉丝可选追加能力不激活的取舍保留，不判不可用。",
+      "conditions": [
+        "HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。",
+        "不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。",
+        "Plugboo仅对应将南宫羽替换为安比的替代方向，不附到本条精确三人。"
+      ],
+      "limitations": [
+        "Soda本地泛用粗档，未取得独立统一投入的全队强度验证；参考分是粗档刻度。",
+        "不表示当期Boss排名、完整循环DPS、最优装备或账号实际完成度。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://hoyobuild.com/en/zzz/characters/grace",
+          "locator": "Teams > Recommended teams > Stun burst: Nangong Yu & Yuzuha",
+          "sourceVersion": "3.2",
+          "sourceContentHash": "fnv1a-4547130d"
+        }
+      ]
+    },
+    {
+      "id": "generic-32-anton-grace-qingyi",
+      "memberIds": ["agent-anton", "agent-grace", "agent-qingyi"],
+      "band": "A",
+      "rationale": "格莉丝持续感电与青衣失衡窗口支持安东的感电承接，三人职责相容；不以同属性数量外推强度。",
+      "conditions": [
+        "HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。",
+        "不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。"
+      ],
+      "limitations": [
+        "Soda本地泛用粗档，未取得独立统一投入的全队强度验证；参考分是粗档刻度。",
+        "不表示当期Boss排名、完整循环DPS、最优装备或账号实际完成度。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://hoyobuild.com/en/zzz/characters/anton",
+          "locator": "Teams > Recommended teams > Shock: Grace & Qingyi",
+          "sourceVersion": "3.2",
+          "sourceContentHash": "fnv1a-b6fe4eea"
+        }
+      ]
+    },
+    {
+      "id": "generic-32-anton-grace-rina",
+      "memberIds": ["agent-anton", "agent-grace", "agent-rina"],
+      "band": "A",
+      "rationale": "格莉丝感电与丽娜穿透/感电持续支援同时服务安东输出；缺少专职击破的取舍保留，不伪造失衡占比。",
+      "conditions": [
+        "HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。",
+        "不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。",
+        "格莉丝站场持续施加电异常积蓄，替代安比。"
+      ],
+      "limitations": [
+        "Soda本地泛用粗档，未取得独立统一投入的全队强度验证；参考分是粗档刻度。",
+        "不表示当期Boss排名、完整循环DPS、最优装备或账号实际完成度。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://hoyobuild.com/en/zzz/characters/anton",
+          "locator": "Teams > Recommended teams > Shock: Grace & Rina",
+          "sourceVersion": "3.2",
+          "sourceContentHash": "fnv1a-9102198e"
+        }
+      ]
+    },
+    {
+      "id": "generic-32-anby-anton-nicole",
+      "memberIds": ["agent-anton", "agent-anby", "agent-nicole"],
+      "band": "B",
+      "rationale": "安比提供失衡与部分感电、妮可提供减防，安东具备可执行方向；感电供给和输出窗口较依赖操作，作为有条件替代参考。",
+      "conditions": [
+        "HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。",
+        "不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。",
+        "安比加速失衡，支援增伤，切安东输出。",
+        "安比加速失衡，妮可增伤，安东输出。"
+      ],
+      "limitations": [
+        "Soda本地泛用粗档，未取得独立统一投入的全队强度验证；参考分是粗档刻度。",
+        "不表示当期Boss排名、完整循环DPS、最优装备或账号实际完成度。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://hoyobuild.com/en/zzz/characters/anton",
+          "locator": "Teams > Recommended teams > Budget: Anby & Nicole",
+          "sourceVersion": "3.2",
+          "sourceContentHash": "fnv1a-3801448b"
+        }
+      ]
+    },
+    {
+      "id": "generic-32-ben-dialyn-orphie-magus",
+      "memberIds": ["agent-ben", "agent-orphie-magus", "agent-dialyn"],
+      "band": "B",
+      "rationale": "奥菲丝与琉音为本的终结技输出方向提供支援和衔接；需按本的输出构筑而非普通护盾构筑执行，缺少统一比较证据。",
+      "conditions": [
+        "HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。",
+        "不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。"
+      ],
+      "limitations": [
+        "Soda本地泛用粗档，未取得独立统一投入的全队强度验证；参考分是粗档刻度。",
+        "不表示当期Boss排名、完整循环DPS、最优装备或账号实际完成度。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://hoyobuild.com/en/zzz/characters/ben",
+          "locator": "Teams > Recommended teams > Orphie & Dialyn",
+          "sourceVersion": "3.2",
+          "sourceContentHash": "fnv1a-eeb31688"
+        }
+      ]
+    },
+    {
+      "id": "generic-32-ben-lighter-lucy",
+      "memberIds": ["agent-ben", "agent-lighter", "agent-lucy"],
+      "band": "B",
+      "rationale": "莱特失衡及火属性支援、露西攻击支援服务本的输出构筑；防护玩法与输出玩法分开，保留作为有条件参考。",
+      "conditions": [
+        "HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。",
+        "不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。"
+      ],
+      "limitations": [
+        "Soda本地泛用粗档，未取得独立统一投入的全队强度验证；参考分是粗档刻度。",
+        "不表示当期Boss排名、完整循环DPS、最优装备或账号实际完成度。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://hoyobuild.com/en/zzz/characters/ben",
+          "locator": "Teams > Recommended teams > Fire: Lighter & Lucy",
+          "sourceVersion": "3.2",
+          "sourceContentHash": "fnv1a-d7e2e588"
+        }
+      ]
+    },
+    {
+      "id": "generic-32-manato-lucia-ju-fufu",
+      "memberIds": ["agent-manato", "agent-lucia", "agent-ju-fufu"],
+      "band": "A",
+      "rationale": "真斗以生命转贯穿的命破输出为核心，卢西娅提供对应的生命、贯穿与支援，橘福福承担失衡并提供相容增益；成型后有完整的主输出、支援与失衡分工。",
+      "conditions": [
+        "真斗按A级满影参考；卢西娅与橘福福按榜单的关键影画参考。",
+        "真斗置于卢西娅之后，快支与输出衔接需符合来源顺序。",
+        "橘福福的连携、终结技及喧响相关效果按实际触发使用，不假定双大或全程覆盖。"
+      ],
+      "limitations": [
+        "Soda基于已锁定成员、当前机制与成型配置作出的泛用参考分档，未经过独立统一投入的全队强度验证。",
+        "同档缺少已复核替代关系时并列；具体副本、操作及装备可能改变选择。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://www.miyoushe.com/zzz/article/75380194",
+          "locator": "role252-zeno-32-1",
+          "sourceVersion": "2.8",
+          "sourceContentHash": "A0B3AB5B86E7D3778BC4F0749A7FCE0B45D50F48DD4E58CC9495D8336CE29C14"
+        }
+      ],
+      "mechanicReview": {
+        "basis": "formed_generic",
+        "agents": [
+          {
+            "agentId": "agent-manato",
+            "formulaSha256": "173273745E9E88E9261C54634A71652BC760573A64F99AE0BCEFEFAF0814A3F0"
+          },
+          {
+            "agentId": "agent-lucia",
+            "formulaSha256": "BB1DEBD0A64DF8367D347CE0511907891B08A0E98FA025726C5D6D28BE94B555"
+          },
+          {
+            "agentId": "agent-ju-fufu",
+            "formulaSha256": "AD33CBC292233EA3D57921C0667CC327F368876133A7C29D76D8917E8D6C3B51"
+          }
+        ]
+      },
+      "preferredOver": [
+        {
+          "memberIds": ["agent-manato", "agent-lucia", "agent-koleda"],
+          "rationale": "同为真斗与卢西娅核心时，来源明确将该击破手列作没有橘福福时的替代；保留这一局部推荐顺序。"
+        },
+        {
+          "memberIds": ["agent-manato", "agent-pan-yinhu", "agent-ju-fufu"],
+          "rationale": "同为真斗与橘福福核心时，来源将潘引壶列作缺少卢西娅的替代；保留卢西娅的命破支援主轴。"
+        }
+      ]
+    },
+    {
+      "id": "generic-32-manato-lucia-koleda",
+      "memberIds": ["agent-manato", "agent-lucia", "agent-koleda"],
+      "band": "A",
+      "rationale": "真斗与卢西娅的命破主轴保留，珂蕾妲提供爆发失衡，适合作为缺少橘福福时的可用方案；不计入珂蕾妲对非接受者的普通暴伤。",
+      "conditions": [
+        "真斗置于卢西娅之后；珂蕾妲承担失衡窗口。",
+        "珂蕾妲普通暴伤不计作命破收益，潜能效果按实际接受者核对。"
+      ],
+      "limitations": [
+        "Soda基于已锁定成员、当前机制与成型配置作出的泛用参考分档，未经过独立统一投入的全队强度验证。",
+        "同档缺少已复核替代关系时并列；具体副本、操作及装备可能改变选择。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://www.miyoushe.com/zzz/article/69626974",
+          "locator": "reviewed-nested-9a50d94408f12ab0fbd966db",
+          "sourceVersion": "2.3",
+          "sourceContentHash": "beb35400a5fc952fe846488b51e80cf282f7cb46a0808e21d0ef685d98dcbb9c"
+        }
+      ],
+      "mechanicReview": {
+        "basis": "formed_generic",
+        "agents": [
+          {
+            "agentId": "agent-manato",
+            "formulaSha256": "173273745E9E88E9261C54634A71652BC760573A64F99AE0BCEFEFAF0814A3F0"
+          },
+          {
+            "agentId": "agent-lucia",
+            "formulaSha256": "BB1DEBD0A64DF8367D347CE0511907891B08A0E98FA025726C5D6D28BE94B555"
+          },
+          {
+            "agentId": "agent-koleda",
+            "formulaSha256": "632180C58A583A7024641799AF82A21906D78973C2046A48C2DFB88E21E59C8C"
+          }
+        ]
+      }
+    },
+    {
+      "id": "generic-32-manato-lucia-dialyn",
+      "memberIds": ["agent-manato", "agent-lucia", "agent-dialyn"],
+      "band": "A",
+      "rationale": "真斗命破输出、卢西娅支援与琉音失衡形成可用成型队；琉音的连携转换提供爆发方向，现有资料不足以将其排在同核心其他成熟击破方案之前。",
+      "conditions": [
+        "琉音的客诉、连携升级终结技与失衡延长须满足各自触发条件。",
+        "不把命破职业结构直接换算为顶级强度，也不假定终结技频率。"
+      ],
+      "limitations": [
+        "Soda基于已锁定成员、当前机制与成型配置作出的泛用参考分档，未经过独立统一投入的全队强度验证。",
+        "同档缺少已复核替代关系时并列；具体副本、操作及装备可能改变选择。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://www.miyoushe.com/zzz/article/75217294",
+          "locator": "miyoushe-75217294-manato-dialyn-lucia-text-2553-2751",
+          "sourceVersion": "2.8",
+          "sourceContentHash": "25CB2BF7B10E9C44FBFBEC0AD8C22F777F17A351E73559A22A64720A48337A17"
+        }
+      ],
+      "mechanicReview": {
+        "basis": "formed_generic",
+        "agents": [
+          {
+            "agentId": "agent-manato",
+            "formulaSha256": "173273745E9E88E9261C54634A71652BC760573A64F99AE0BCEFEFAF0814A3F0"
+          },
+          {
+            "agentId": "agent-lucia",
+            "formulaSha256": "BB1DEBD0A64DF8367D347CE0511907891B08A0E98FA025726C5D6D28BE94B555"
+          },
+          {
+            "agentId": "agent-dialyn",
+            "formulaSha256": "AA6BA963833BFFC7B82C29A6EF227209E80FCD57E7FF98F6AAD2055ACA68982C"
+          }
+        ]
+      }
+    },
+    {
+      "id": "generic-32-manato-pan-yinhu-ju-fufu",
+      "memberIds": ["agent-manato", "agent-pan-yinhu", "agent-ju-fufu"],
+      "band": "A",
+      "rationale": "潘引壶的贯穿支援与易伤可服务真斗，橘福福负责失衡；是缺少卢西娅时保留命破输出和失衡分工的实用替代。",
+      "conditions": [
+        "真斗与潘引壶按A级满影参考。",
+        "潘引壶置于真斗之后，通过强化特殊技快速支援切回真斗。",
+        "贯穿增益交给真斗；不从潘引壶的防护职业推导全队输出上限。"
+      ],
+      "limitations": [
+        "Soda基于已锁定成员、当前机制与成型配置作出的泛用参考分档，未经过独立统一投入的全队强度验证。",
+        "同档缺少已复核替代关系时并列；具体副本、操作及装备可能改变选择。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://www.miyoushe.com/zzz/article/75380194",
+          "locator": "role252-zeno-32-2",
+          "sourceVersion": "2.8",
+          "sourceContentHash": "A0B3AB5B86E7D3778BC4F0749A7FCE0B45D50F48DD4E58CC9495D8336CE29C14"
+        }
+      ],
+      "mechanicReview": {
+        "basis": "formed_generic",
+        "agents": [
+          {
+            "agentId": "agent-manato",
+            "formulaSha256": "173273745E9E88E9261C54634A71652BC760573A64F99AE0BCEFEFAF0814A3F0"
+          },
+          {
+            "agentId": "agent-pan-yinhu",
+            "formulaSha256": "CF1E27AAA6504E5C4150961E397FE93DB293FCEA2D6AE2470A600217F00228B5"
+          },
+          {
+            "agentId": "agent-ju-fufu",
+            "formulaSha256": "AD33CBC292233EA3D57921C0667CC327F368876133A7C29D76D8917E8D6C3B51"
+          }
+        ]
+      }
+    },
+    {
+      "id": "generic-32-yixuan-pan-yinhu-ju-fufu",
+      "memberIds": ["agent-yixuan", "agent-pan-yinhu", "agent-ju-fufu"],
+      "band": "A",
+      "rationale": "仪玄承担命破输出，潘引壶提供对应贯穿支援与易伤，橘福福补充失衡和爆发支援；分工完整，可作为缺少卢西娅时的实用方向。",
+      "conditions": [
+        "潘引壶按A级满影参考，仪玄与橘福福采用各自关键影画参考。",
+        "潘引壶置于仪玄之后，强化特殊技后通过快速支援交接贯穿增益。",
+        "橘福福的喧响和连携增益需要实际触发；不强求失衡双大。"
+      ],
+      "limitations": [
+        "Soda基于已锁定成员、当前机制与成型配置作出的泛用参考分档，未经过独立统一投入的全队强度验证。",
+        "同档缺少已复核替代关系时并列；具体副本、操作及装备可能改变选择。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://www.miyoushe.com/zzz/article/75380194",
+          "locator": "role252-zeno-33-1",
+          "sourceVersion": "2.8",
+          "sourceContentHash": "76A0B93B2CD3981AC2DB10536C003D7F0A2CFC0BEC7C183AF40ACAD92014DFA8"
+        }
+      ],
+      "mechanicReview": {
+        "basis": "formed_generic",
+        "agents": [
+          {
+            "agentId": "agent-yixuan",
+            "formulaSha256": "43F11850985726682A1076704F9B0E9ACF3172F18AE4B76DE2AF4B16E3F28E80"
+          },
+          {
+            "agentId": "agent-pan-yinhu",
+            "formulaSha256": "CF1E27AAA6504E5C4150961E397FE93DB293FCEA2D6AE2470A600217F00228B5"
+          },
+          {
+            "agentId": "agent-ju-fufu",
+            "formulaSha256": "AD33CBC292233EA3D57921C0667CC327F368876133A7C29D76D8917E8D6C3B51"
+          }
+        ]
+      }
+    },
+    {
+      "id": "generic-32-yixuan-pan-yinhu-astra",
+      "memberIds": ["agent-yixuan", "agent-pan-yinhu", "agent-astra"],
+      "band": "A",
+      "rationale": "潘引壶的贯穿支援与耀嘉音的攻击转贯穿、快速支援可服务仪玄，提供双支援的可用方向；主动失衡能力与有击破队友的方案存在取舍。",
+      "conditions": [
+        "耀嘉音的攻击收益按仪玄真实攻击转贯穿机制使用，不能把普通攻击收益直接照搬。",
+        "双支援方案不继承橘福福的失衡效率、暴伤及喧响效果。"
+      ],
+      "limitations": [
+        "Soda基于已锁定成员、当前机制与成型配置作出的泛用参考分档，未经过独立统一投入的全队强度验证。",
+        "同档缺少已复核替代关系时并列；具体副本、操作及装备可能改变选择。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://www.miyoushe.com/zzz/article/65136583",
+          "locator": "reviewed-nested-1697a596d40155858b26ec29",
+          "sourceVersion": "2.0",
+          "sourceContentHash": "e48dd43fd1c5cd76e1a27ddd2ce15b526ee80b1cbd69011e151a0ebb70b464f7"
+        }
+      ],
+      "mechanicReview": {
+        "basis": "formed_generic",
+        "agents": [
+          {
+            "agentId": "agent-yixuan",
+            "formulaSha256": "43F11850985726682A1076704F9B0E9ACF3172F18AE4B76DE2AF4B16E3F28E80"
+          },
+          {
+            "agentId": "agent-pan-yinhu",
+            "formulaSha256": "CF1E27AAA6504E5C4150961E397FE93DB293FCEA2D6AE2470A600217F00228B5"
+          },
+          {
+            "agentId": "agent-astra",
+            "formulaSha256": "C56619ADA67799562AB8E48CB15419421B1C15DB7AE49E04C9E6D302802C5846"
+          }
+        ]
+      }
+    },
+    {
+      "id": "generic-32-manato-pan-yinhu-lucia",
+      "memberIds": ["agent-manato", "agent-pan-yinhu", "agent-lucia"],
+      "band": "B",
+      "rationale": "真斗可接受潘引壶与卢西娅的命破支援，缺少击破队友时仍有明确方向；双支援牺牲主动失衡与窗口组织，作为有取舍的替代保留。",
+      "conditions": [
+        "来源明确将双支援列为没有所列击破队友时的替代，并认为效果较一般。",
+        "快支顺序需将主要贯穿与输出支持交给真斗，不能将两人的全部窗口视为同时常驻。"
+      ],
+      "limitations": [
+        "Soda基于已锁定成员、当前机制与成型配置作出的泛用参考分档，未经过独立统一投入的全队强度验证。",
+        "同档缺少已复核替代关系时并列；具体副本、操作及装备可能改变选择。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://www.miyoushe.com/zzz/article/75217294",
+          "locator": "miyoushe-75217294-manato-pan-yinhu-lucia-text-2553-2751",
+          "sourceVersion": "2.8",
+          "sourceContentHash": "25CB2BF7B10E9C44FBFBEC0AD8C22F777F17A351E73559A22A64720A48337A17"
+        }
+      ],
+      "mechanicReview": {
+        "basis": "formed_generic",
+        "agents": [
+          {
+            "agentId": "agent-manato",
+            "formulaSha256": "173273745E9E88E9261C54634A71652BC760573A64F99AE0BCEFEFAF0814A3F0"
+          },
+          {
+            "agentId": "agent-pan-yinhu",
+            "formulaSha256": "CF1E27AAA6504E5C4150961E397FE93DB293FCEA2D6AE2470A600217F00228B5"
+          },
+          {
+            "agentId": "agent-lucia",
+            "formulaSha256": "BB1DEBD0A64DF8367D347CE0511907891B08A0E98FA025726C5D6D28BE94B555"
+          }
+        ]
+      }
+    },
+    {
+      "id": "generic-32-roxy-claret-rina",
+      "memberIds": ["agent-roxy", "agent-claret", "agent-rina"],
+      "band": "A+",
+      "rationale": "洛克茜的失衡与裂伤支援对应克拉蕾锋御输出，丽娜提供已有构筑中的相容支援；当前公式和作者精确三人设置共同支持可用的强势方向，由Soda作本地粗档判断。",
+      "conditions": [
+        "采用克拉蕾主输出、洛克茜失衡及丽娜支援的精确三人分工。",
+        "洛克茜需要蓄力强化特殊技、切人及失衡准备，按共享站场组织，不视作纯后台。",
+        "作者音擎比较只证明该三人成员设置，不提供主流、使用率、发布方整队档位或优于诺姆队的结论。",
+        "裂伤与失衡增益按事件和实际持续时间使用，不将50秒增益持续时间当作站场时间。"
+      ],
+      "limitations": [
+        "Soda基于已锁定成员、当前机制与成型配置作出的泛用参考分档，未经过独立统一投入的全队强度验证。",
+        "同档缺少已复核替代关系时并列；具体副本、操作及装备可能改变选择。"
+      ],
+      "evidenceRefs": [
+        {
+          "url": "https://www.prydwen.gg/zenless/characters/roxy",
+          "locator": "Full Team calculations; rendered lines 415–420; W-Engine comparison teammates",
+          "sourceVersion": "3.2",
+          "sourceContentHash": "fnv1a-a11ea9d2"
+        }
+      ],
+      "mechanicReview": {
+        "basis": "formed_generic",
+        "agents": [
+          {
+            "agentId": "agent-roxy",
+            "formulaSha256": "DFB173A363EFD3D9384AB3D53C543824B2B420ED14C67FD3039DC5F3C022D27D"
+          },
+          {
+            "agentId": "agent-claret",
+            "formulaSha256": "BDF57EEC001BFA499D2C08BDB8E5004469EAE22E411D9EAFE4F614E3C55F5AF3"
+          },
+          {
+            "agentId": "agent-rina",
+            "formulaSha256": "25E6A6BCB84531FF113484E1C16C2262B60D05A49D97FC51A6AA5158D98A4225"
+          }
+        ]
+      }
+    }
+  ]
+}

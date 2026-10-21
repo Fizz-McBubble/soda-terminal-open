@@ -51,12 +51,19 @@ export async function calculateBrowserQueryResponse(
     return { ...response, status: 'failed', error: '游戏资料版本不匹配，请刷新页面后重试。' }
 
   runtime = request.runtime
+  if (
+    request.resultProjection === 'local' &&
+    (import.meta.env.VITE_SODA_PUBLIC_BUILD === 'true' ||
+      import.meta.env.VITE_SODA_COMMUNITY_BUILD === 'true')
+  )
+    return { ...response, status: 'failed', error: '当前构建不支持完整本地结果。' }
   try {
     const result = await dispatchCalculationQuery(client, request.query, {
       transform: (kind, value) =>
-        kind === 'account_decision' ||
-        kind === 'common_anomaly_settlement32' ||
-        kind === 'planning_benchmark32'
+        request.resultProjection !== 'local' &&
+        (kind === 'account_decision' ||
+          kind === 'common_anomaly_settlement32' ||
+          kind === 'planning_benchmark32')
           ? projectPublicCalculationResult(kind, value)
           : value,
     })

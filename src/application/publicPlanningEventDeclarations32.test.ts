@@ -1,4 +1,9 @@
 import { describe, expect, it } from 'vitest'
+import { planningEventDisplayLabel32 } from './planningEventDisplay32'
+import {
+  compileStandardReferenceEventDraft32,
+  restoreStandardReferenceEventDraft32,
+} from '../pages/standardReferenceEventDraft32'
 import {
   planningEventDeclarations32Contract,
   planningEventDeclarationsInputFingerprint32,
@@ -84,6 +89,58 @@ const gaps = (input: unknown, metadata: PlanningEventDeclarationsMetadata32) =>
   validatePlanningEventDeclarations32(input, metadata).gaps
 
 describe('public planning event declarations 3.2', () => {
+  it('keeps enhanced source labels, unlabeled numeric rows and formula terms distinct', () => {
+    expect(
+      planningEventDisplayLabel32('agent-alice', 'basic.BasicAttackCelestialOverture.hit-5'),
+    ).toContain('5th-Hit (Enhanced)')
+    expect(planningEventDisplayLabel32('agent-corin', 'dodge.DodgeCounterNope.hit-1')).toContain(
+      '来源倍率项 2',
+    )
+    expect(
+      planningEventDisplayLabel32(
+        'agent-grace',
+        'special.VortexClusterGrenadeBaseMultiplier.hit-0',
+      ),
+    ).toMatch(/^公式项：/)
+    expect(planningEventDisplayLabel32('agent-corin', 'unknown')).toBeNull()
+  })
+  it('keeps explicit false and zero through the player draft and rejects blank conditions or stale vocabularies', () => {
+    const { metadata, input } = fixture()
+    const rows = restoreStandardReferenceEventDraft32(metadata, input)
+    expect(compileStandardReferenceEventDraft32(metadata, rows, true)).toEqual(input)
+    const missing = structuredClone(rows)
+    missing[0]!.conditions['support:buff'] = ''
+    expect(() => compileStandardReferenceEventDraft32(metadata, missing, true)).toThrow('Buff')
+    missing[0]!.conditions['support:buff'] = 'false'
+    missing[0]!.at = ''
+    expect(() => compileStandardReferenceEventDraft32(metadata, missing, true)).toThrow('发生时间')
+    expect(() => compileStandardReferenceEventDraft32(metadata, rows, false)).toThrow('确认')
+    expect(
+      restoreStandardReferenceEventDraft32({ ...metadata, sourceFingerprint: 'changed' }, input),
+    ).toEqual([])
+  })
+  it('requires an explicit constant rate interval and rejects overlapping intervals in the player draft', () => {
+    const { metadata, input } = fixture()
+    metadata.events[0]!.quantityUnit = 'seconds'
+    metadata.sourceFingerprint = planningEventDeclarationsMetadataFingerprint32(metadata)
+    input.sourceFingerprint = metadata.sourceFingerprint
+    input.occurrences[0]!.durationSeconds = 2.5
+    input.occurrences[0]!.rateState = 'constant_over_interval'
+    const rows = restoreStandardReferenceEventDraft32(metadata, input)
+    expect(
+      compileStandardReferenceEventDraft32(metadata, rows, true).occurrences[0]!.durationSeconds,
+    ).toBe(2.5)
+    expect(() =>
+      compileStandardReferenceEventDraft32(metadata, [{ ...rows[0]!, constant: false }], true),
+    ).toThrow('保持不变')
+    expect(() =>
+      compileStandardReferenceEventDraft32(
+        metadata,
+        [...rows, { ...rows[0]!, id: 'overlap', at: '1' }],
+        true,
+      ),
+    ).toThrow('重复区间')
+  })
   it('binds source rate seconds without converting intervals to hit counts', () => {
     const { metadata, input } = fixture()
     metadata.events[0]!.quantityUnit = 'seconds'
@@ -148,6 +205,14 @@ describe('public planning event declarations 3.2', () => {
       sourceRefs: ['declared-finite-contact-input'],
     }
     expect(gaps(input, metadata)).toEqual([])
+    expect(
+      compileStandardReferenceEventDraft32(
+        metadata,
+        restoreStandardReferenceEventDraft32(metadata, input),
+        true,
+        input,
+      ),
+    ).toEqual(input)
     const before = planningEventDeclarationsInputFingerprint32(input)
     input.triggerAftershockWindow32.initialState = 'inactive'
     expect(planningEventDeclarationsInputFingerprint32(input)).not.toBe(before)

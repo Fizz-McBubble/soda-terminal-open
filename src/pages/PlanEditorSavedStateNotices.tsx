@@ -1,4 +1,6 @@
 import type { SavedLuminizeReplay32 } from '../application/savedLuminizeReplay32'
+import { FormedTeamReference } from './FormedTeamReference'
+import type { FormedTeamReference as Reference } from '../application/publicFormedTeamReference'
 
 export function PlanEditorSavedStateNotices({
   objectiveNote,
@@ -6,15 +8,18 @@ export function PlanEditorSavedStateNotices({
   staleNotice,
   reanalyze,
   luminizeSettlement32,
+  formedTeamReference,
 }: {
   objectiveNote: string | undefined
   needsTeamRecovery: boolean
   staleNotice: string | null | undefined
   reanalyze: () => void
   luminizeSettlement32?: SavedLuminizeReplay32
+  formedTeamReference?: Reference
 }) {
   return (
     <>
+      <FormedTeamReference reference={formedTeamReference} saved />
       {objectiveNote || luminizeSettlement32 ? (
         <p
           className={

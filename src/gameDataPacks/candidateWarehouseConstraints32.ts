@@ -1,12 +1,15 @@
 import type { CandidateWarehouseConstraint } from './candidateWarehouseConstraints'
-import { gameData32BuildGuidance, gameData32BuildSources } from './gameData32BuildGuidance'
+import {
+  gameData32BuildGuidance,
+  gameData32BuildSources,
+  getGameData32SetPlanReadiness,
+} from './gameData32BuildGuidance'
 import { stableContentHash } from './types'
 
 /** Every explicitly useful roll counts once. Source order remains prose, never damage weights. */
 export const candidateWarehouseConstraints32: readonly CandidateWarehouseConstraint[] =
   Object.values(gameData32BuildGuidance).map((guidance) => {
     const setPlans = guidance.setPlans.map((plan) => structuredClone(plan))
-    const first = setPlans[0]
     const input: Omit<CandidateWarehouseConstraint, 'contentHash'> = {
       agentId: guidance.agentId,
       agentName: guidance.agentName,
@@ -20,18 +23,7 @@ export const candidateWarehouseConstraints32: readonly CandidateWarehouseConstra
         ...new Set(setPlans.flatMap((plan) => [...plan.primarySetIds, ...plan.secondarySetIds])),
       ],
       setPlans,
-      setPlanReadiness: first
-        ? {
-            status: 'executable',
-            pattern: first.pattern,
-            primarySetIds: first.primarySetIds,
-            secondarySetIds: first.secondarySetIds,
-          }
-        : {
-            status: 'non_executable',
-            reason: 'unresolved_set_roles',
-            missingEvidence: '来源未给出可验证的主副套角色。',
-          },
+      setPlanReadiness: getGameData32SetPlanReadiness(guidance),
       unresolvedSetDirections: [...guidance.unresolvedSetDirections],
       mainStats: Object.fromEntries(
         Object.entries(guidance.mainStats).map(([slot, stats]) => [slot, [...stats]]),

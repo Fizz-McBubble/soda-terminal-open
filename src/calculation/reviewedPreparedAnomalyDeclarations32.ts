@@ -3,8 +3,13 @@ import { graduationCandidateProfilesPart02 } from '../gameDataPacks/generated/gr
 import { graduationCandidateProfilesPart03 } from '../gameDataPacks/generated/graduationCandidateProfilesPart03'
 import { commonAnomalySettlementHash32 } from './currentCommonAnomalySettlementIdentity32'
 import { getReviewedPotentialDefinition } from '../gameDataPacks/reviewedPotentialDefinitions'
+import {
+  reviewedPreparedPolarityObjectiveIdentity32,
+  type PreparedYanagiPolarity32,
+} from './reviewedPreparedPolarityObjective32'
 
 export type PreparedAnomalyPreparation32 =
+  | PreparedYanagiPolarity32
   | {
       kind: 'jane_single_assault'
       acceptedSingleOwnerSettlement: true
@@ -62,6 +67,7 @@ export const ariaEtherAbloomMultipliers = [0.138, 0.16, 0.183, 0.206, 0.229, 0.2
 export const reviewedPreparedAnomalyObjectiveIdentity32 = Object.freeze({
   version: 'prepared-single-owner-anomaly-objective32-r3',
   arithmetic: commonAnomalySettlementHash32,
+  preparedPolarity: reviewedPreparedPolarityObjectiveIdentity32,
   sourceFormulaHashes,
   janeAssaultPotential: getReviewedPotentialDefinition('agent-jane'),
   promeiaProfileHash: promeiaProfile.profileHash,
@@ -79,7 +85,7 @@ export const reviewedPreparedAnomalyObjectiveHash32 = stableContentHash(
 export function reviewedPreparedAnomalyPreparation32(
   agentId: string,
   options?: { enemyStunned?: boolean; momentOfDelusion?: boolean },
-): PreparedAnomalyPreparation32 | null {
+): Exclude<PreparedAnomalyPreparation32, PreparedYanagiPolarity32> | null {
   if (agentId === 'agent-jane')
     return {
       kind: 'jane_single_assault',

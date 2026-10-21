@@ -1,6 +1,7 @@
 import type { TeamStrengthMechanicFeatures } from './teamStrengthMechanicFeatures'
 import { getCurrentAgentDecisionMechanicContract } from '../calculation/currentAgentDecisionMechanicContracts'
 import { resolveCurrentReleasedIdentity } from '../gameDataPacks/currentReleasedIdentityMap'
+import { resolveReviewedPhoenixTeam33 } from './reviewedPhoenixTeams33'
 
 /** Missing optional effect quantities lower confidence, not the team's legality.
  * Conflicting sources still block; partial resource contracts remain visible in
@@ -15,9 +16,11 @@ export function hasDefaultTeamRecommendationEvidence(
     evidence.sourceConflictProviderIds.length === 0 &&
     memberIds.length === 3 &&
     new Set(memberIds).size === 3 &&
-    memberIds.every(
-      (id) => getCurrentAgentDecisionMechanicContract(resolveCurrentReleasedIdentity(id)) !== null,
-    )
+    (!!resolveReviewedPhoenixTeam33(memberIds) ||
+      memberIds.every(
+        (id) =>
+          getCurrentAgentDecisionMechanicContract(resolveCurrentReleasedIdentity(id)) !== null,
+      ))
   )
 }
 

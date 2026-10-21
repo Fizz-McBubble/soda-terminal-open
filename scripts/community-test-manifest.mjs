@@ -33,12 +33,14 @@ export const incremental32CommunityTests = Object.freeze([
 ])
 
 export const communityTests = Object.freeze([
+  'src/decision/reviewedCurrentTeamAnalysis.test.ts',
   'src/application/browserDecisionSummary.test.ts',
   'src/features/agentDevelopmentGolden/SkillRecommendationTargets.test.tsx',
   'src/application/characterPanelFields.test.ts',
   'src/application/publicDevelopmentComparisonPanels.details.test.ts',
   'src/assetQuickRead/panelDetailsImport.test.ts',
   'src/calculation/outOfCombatPanel.details.test.ts',
+  'src/gameDataPacks/reviewedAgentPanelBaseline32.test.ts',
   'src/features/agentDevelopmentGolden/characterPanelExpansion.test.tsx',
   'src/pages/BangbooConditionDetailsView.test.tsx',
   'src/decision/teamStrengthMechanicFeatures.anomaly-pair.test.ts',

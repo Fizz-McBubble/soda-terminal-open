@@ -82,6 +82,26 @@ function harness(autoReady = true) {
 }
 
 describe('browser Query Worker lifecycle', () => {
+  it('requests a full local projection explicitly and retains its local recommendation fields', async () => {
+    const worker = new FakeQueryWorker()
+    const client = createBrowserCalculationQueryClient({
+      readRuntimeSelection: async () => current,
+      createWorker: () => worker,
+      resultProjection: 'local',
+    })
+    const task = client.calculateAccountDecision(query('local-projection'))
+    await vi.waitFor(() => expect(worker.requests).toHaveLength(1))
+    expect(worker.requests[0]).toMatchObject({ kind: 'query', resultProjection: 'local' })
+    worker.respond(1, {
+      runId: 'local-projection',
+      inputFingerprint: 'local-input',
+      snapshot: { decisionAuthority: { status: 'ready', recommendations: [] } },
+    })
+    expect((await task).snapshot.decisionAuthority).toEqual({
+      status: 'ready',
+      recommendations: [],
+    })
+  })
   it('restores the compact response with its captured input and warehouse evidence', async () => {
     const { client, workers } = harness()
     const request = query('compact-response', ['agent-aria'])
@@ -89,6 +109,7 @@ describe('browser Query Worker lifecycle', () => {
     const task = client.calculateAccountDecision(request)
     request.input.warehouse.roster.agents[0]!.level = 1
     await vi.waitFor(() => expect(workers[0]?.requests).toHaveLength(1))
+    expect(workers[0]!.requests[0]).not.toHaveProperty('resultProjection')
     const warehouseActions = {
       runId: request.runId,
       fingerprint: 'captured',

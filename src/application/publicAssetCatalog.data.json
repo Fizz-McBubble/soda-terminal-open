@@ -1,7 +1,16 @@
 {
   "schemaVersion": 1,
-  "sourceProjectionId": "current-asset-projection-3.2-r1",
+  "sourceProjectionId": "current-asset-projection-3.3-r1",
   "agents": [
+    {
+      "stableId": "agent-phoenix",
+      "entityType": "agent",
+      "playerName": "菲欧妮",
+      "rarity": "S",
+      "specialty": "anomaly",
+      "attribute": "fire",
+      "supportsPotentialImage": false
+    },
     {
       "stableId": "agent-roxy",
       "entityType": "agent",
@@ -544,6 +553,15 @@
     }
   ],
   "wengines": [
+    {
+      "stableId": "wengine-14164",
+      "entityType": "wengine",
+      "playerName": "涅槃初翎",
+      "rarity": "S",
+      "specialty": "anomaly",
+      "attribute": null,
+      "supportsPotentialImage": false
+    },
     {
       "stableId": "wengine-14162",
       "entityType": "wengine",

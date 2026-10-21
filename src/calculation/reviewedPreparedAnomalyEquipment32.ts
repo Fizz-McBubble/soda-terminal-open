@@ -2,7 +2,10 @@ import {
   bindCurrentWEngineFormulaRuntime,
   type CurrentWEngineFormulaRuntime,
 } from './currentWEnginePersonalPlanningEffects'
-import { getCurrentWEngineStaticData } from '../gameDataPacks/currentWEngineStaticCatalog'
+import {
+  currentWEngineSourceRefs,
+  getCurrentWEngineStaticData,
+} from '../gameDataPacks/currentWEngineStaticCatalog'
 import { getCurrentAgentEventContract } from './currentAgentMechanicContracts'
 import {
   getCurrentFormulaContractRequirements,
@@ -47,9 +50,9 @@ export function compileReviewedPreparedAnomalyEquipment32(input: {
       return
     }
     const refs =
-      'formulaPath' in result.source
-        ? [result.source.formulaPath, result.source.formulaSha256]
-        : [result.source.path, result.source.sha256]
+      'path' in result.source
+        ? [result.source.path, result.source.sha256]
+        : currentWEngineSourceRefs(result.source)
     result.exclusions.forEach((row) =>
       exclusions.push({
         effectKey: `${prefix}:formula:${row.effectIndex}`,
@@ -89,7 +92,7 @@ export function compileReviewedPreparedAnomalyEquipment32(input: {
         effectKey: `wengine:${input.wEngine.engineId}:passive`,
         reason: 'static_only_passive',
         fields: ['passive'],
-        sourceRefs: [source.source.dataPath, source.source.dataSha256],
+        sourceRefs: currentWEngineSourceRefs(source.source),
       })
     else {
       const runtime = bindCurrentWEngineFormulaRuntime({
@@ -111,7 +114,7 @@ export function compileReviewedPreparedAnomalyEquipment32(input: {
             effectKey: `wengine:${input.wEngine!.engineId}:formula:${row.effectIndex}`,
             reason: 'anomaly_event_final_dependency_unbound',
             fields: row.finalStatReferences,
-            sourceRefs: [source.source.formulaPath, source.source.formulaSha256],
+            sourceRefs: currentWEngineSourceRefs(source.source),
           }),
         )
       const stackCaps: Record<string, number> =

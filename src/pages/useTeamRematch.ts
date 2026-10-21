@@ -16,6 +16,7 @@ import type { DecisionTeamViewModel } from './teamLoadoutDecisionViewModel'
 import { currentTeamAnalysisSession, setCurrentTeamAnalysisSession } from './teamAnalysisSession'
 import { acceptTeamRoutePresentation } from './publicTeamRoutePresentation'
 import { acceptTeamOverviewPresentation } from './teamLoadoutPresentationDto'
+import { standardReferenceContinuation32 } from './standardReferenceContinuation32'
 
 export function useTeamRematch({
   teamKey,
@@ -111,6 +112,9 @@ export function useTeamRematch({
             : undefined,
         scenarioSelection: previousFit?.scenarioSelection,
         eventConditionDeclarationsByAgentId: previousFit?.eventConditionDeclarationsByAgentId,
+        standardReference32: standardReferenceContinuation32(previousFit, entry.targetCandidateId, {
+          refreshMetadata: Boolean(refreshed),
+        }),
       })
       if (!active()) return
       if (

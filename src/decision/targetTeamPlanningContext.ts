@@ -1,4 +1,9 @@
 import { compileTargetTeamPlanningMembers } from './targetTeamPlanningMembers'
+import {
+  incremental33RecoveryPolicy,
+  incremental33RecoveryReason,
+  usesIncremental33Capabilities,
+} from '../gameDataPacks/incremental33RecoveryPolicy'
 import type { TargetTeamPlanningContextInput } from './targetTeamPlanningContextInput'
 import { resolveTargetTeamWEngineRuntime } from './targetTeamPlanningContextInput'
 import { compileTargetTeamPlanningCoverage } from './targetTeamPlanningCoverage'
@@ -30,6 +35,21 @@ import { resolveTargetTeamResourceTimeline32 } from './targetTeamResourceTimelin
 const unique = (values: readonly string[]) => [...new Set(values)]
 
 export function compileTargetTeamPlanningContext(input: TargetTeamPlanningContextInput) {
+  if (
+    incremental33RecoveryPolicy.enabled &&
+    usesIncremental33Capabilities({
+      members: input.fit.memberIds.map((agentId) => ({ agentId })),
+      equipmentIds: input.parameters.wEngines.map((parameter) => parameter.engineId),
+    })
+  )
+    return {
+      status: 'unsupported' as const,
+      blockers: [incremental33RecoveryReason],
+      fingerprint: stableContentHash({
+        recovery: incremental33RecoveryPolicy.id,
+        candidateId: input.candidate.candidateId,
+      }),
+    }
   const scenario = resolveCurrentPlanningScenario32(input.scenarioSelection)
   const resourceDeclaration = resolveTargetTeamResourceTimeline32({
     memberIds: input.fit.memberIds,

@@ -1,4 +1,4 @@
-import { currentScopeManifest } from './currentScopeManifest'
+import { currentScopeManifest32 as currentScopeManifest } from './currentScopeManifest'
 import {
   gameData32CatalogCheckedAt,
   gameData32CatalogEntities,

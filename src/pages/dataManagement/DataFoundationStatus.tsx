@@ -18,7 +18,7 @@ export function DataFoundationStatus() {
                 {area.state === 'ready'
                   ? '已就绪'
                   : area.state === 'needs_attention'
-                    ? '待补充'
+                    ? '待处理'
                     : '未通过'}
               </span>
             </div>

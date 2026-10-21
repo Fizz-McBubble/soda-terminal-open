@@ -5,7 +5,10 @@ import { evaluateReviewedBenInitialAttackConversion32 } from '../calculation/rev
 import { evaluateReviewedDialynInitialImpact32 } from '../calculation/reviewedFunctionalInitialImpact32'
 import { resolvePotentialImage } from '../assault/agentCapabilities'
 import { resolveCurrentAgentCoreGrowth } from '../gameDataPacks/panel/currentPanelData'
-import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
+import {
+  getCurrentAgentNumericContract,
+  resolveCurrentAgentInitialNumericPassive,
+} from '../calculation/currentAgentNumericContracts'
 import {
   hasLegalSixDriveDiscs,
   resolveDriveDiscMainStatValue,
@@ -17,6 +20,10 @@ import {
 } from '../calculation/standardSubstatProbe'
 import { resolveCurrentDriveDiscTwoPieceModifiers } from '../gameDataPacks/currentDriveDiscFormulaCatalog'
 import { getCurrentWEngineStaticData } from '../gameDataPacks/currentWEngineStaticCatalog'
+import {
+  FIRST_PLUMAGE_STABLE_ID,
+  resolveFirstPlumageInitialStats,
+} from '../calculation/reviewedWEngine33'
 import {
   currentFormulaBaseStats,
   currentFormulaBaseStatsSource,
@@ -143,7 +150,7 @@ export function addStaticTwoPieceModifiers(input: {
 
 export function accountSkillLevel(agent: AccountRoster['agents'][number], skill: string) {
   const recorded = agent.skillLevels[skill as keyof typeof agent.skillLevels]
-  const rarity = getCurrentAgentEventContract(agent.agentId)?.identity.rarity
+  const rarity = getCurrentAgentNumericContract(agent.agentId)?.identity.rarity
   const maximum = skill === 'core' ? 7 : 16
   if (Number.isInteger(recorded) && Number(recorded) >= 1 && Number(recorded) <= maximum)
     return Number(recorded)
@@ -164,7 +171,7 @@ export function projectNormalizedAccountFinalStatsDetailed(input: {
 }) {
   if (input.statProbe && !isStandardSubstatProbe(input.statProbe))
     return { status: 'unsupported' as const, reasons: ['词条试算只允许一档已采用的 S 级副词条。'] }
-  const contract = getCurrentAgentEventContract(input.agent.agentId)
+  const contract = getCurrentAgentNumericContract(input.agent.agentId)
   const engine = getCurrentWEngineStaticData(input.engineId)
   // This path reads the catalog's independent base/promotion source, never the
   // menu-observed panel. That keeps Remielle's observed M2 anchor from adding
@@ -273,6 +280,12 @@ export function projectNormalizedAccountFinalStatsDetailed(input: {
   })
   if (coreGrowth.status === 'unsupported')
     return { status: 'unsupported' as const, reasons: [coreGrowth.reason] }
+  const initialNumericPassive = resolveCurrentAgentInitialNumericPassive(
+    input.agent.agentId,
+    coreLevel,
+  )
+  if (initialNumericPassive.status === 'unsupported')
+    return { status: 'unsupported' as const, reasons: [initialNumericPassive.reason] }
   const core = coreGrowth.values
 
   const percentages = emptyNormalizedPercentages()
@@ -286,7 +299,10 @@ export function projectNormalizedAccountFinalStatsDetailed(input: {
   percentages.enerRegen += (core.energyRegenPercent ?? 0) / 100
   let critRate = currentFormulaBaseStats.critRate + (core.critRate ?? 0) / 100
   let critDamage = currentFormulaBaseStats.critDamage + (core.critDamage ?? 0) / 100
-  let anomalyProficiency = contract.baseStats.anomProf + (core.anomalyProficiency ?? 0)
+  let anomalyProficiency =
+    contract.baseStats.anomProf +
+    (core.anomalyProficiency ?? 0) +
+    initialNumericPassive.anomalyProficiency
   let penetrationRatio = (core.penRatio ?? 0) / 100
   let penetration = 0
   const damageBonus = { value: 0 }
@@ -306,6 +322,15 @@ export function projectNormalizedAccountFinalStatsDetailed(input: {
   if (secondary.secondaryStatKey === 'crit_dmg_') critDamage += engineSecondaryValue
   if (secondary.secondaryStatKey === 'anomProf') anomalyProficiency += engineSecondaryValue
   if (secondary.secondaryStatKey === 'pen_') penetrationRatio += engineSecondaryValue
+  if (input.engineId === FIRST_PLUMAGE_STABLE_ID) {
+    const initial = resolveFirstPlumageInitialStats({
+      refinement: explicitEngineRefinement,
+      specialtyMatches: contract.identity.specialty === engine.specialty,
+    })
+    if (initial.status !== 'supported')
+      return { status: 'unsupported' as const, reasons: initial.blockers }
+    anomalyProficiency += initial.anomalyProficiency
+  }
 
   const damageKey = `${contract.identity.attribute}_dmg` as StatKey
   const discStats = input.discs.flatMap((disc) => {
@@ -473,6 +498,7 @@ export function projectNormalizedAccountFinalStatsDetailed(input: {
     progression: { agentLevel, agentAscension, engineLevel, engineAscension },
     baseStatsSource: currentFormulaBaseStatsSource,
     initialAttackConversion32,
+    initialNumericPassive,
     coreGrowth: {
       ...coreGrowth,
       coreIncluded: true as const,

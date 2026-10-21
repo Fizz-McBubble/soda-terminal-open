@@ -124,25 +124,24 @@ test('uses existing receiver and KV TTL, immutable content addressing and stable
   assert.deepEqual(ownerValidation.record, report)
 
   for (const [index, bridge] of ['1.0.5', '1.0.12', '1.1.0'].entries()) {
-  // Carry Bridge versions while retaining previously published diagnostic identities.
-  const bridgeReport = {
-    ...report,
-    reportId: 'c7b28014-9ff5-4e3a-96e0-' + String(index).padStart(12, '0'),
-    versions: { bridge, protocol: '1' },
-    code: 'capture_failed',
-  }
-  const bridgeRes = await send(bridgeReport)
-  assert.equal(bridgeRes.status, 200)
-  const [bKey, bEntry] = [...records.entries()].find(([k]) =>
-    k.startsWith(bridgeReport.reportId + ':'),
-  )
-  assert.ok(bKey)
-  const { receivedAt: bReceivedAt, ...bRetrieved } = JSON.parse(bEntry.value)
-  assert.ok(Number.isFinite(Date.parse(bReceivedAt)))
-  const bValidation = sanitizeScanFeedbackPayload(bRetrieved)
-  assert.equal(bValidation.ok, true)
-  assert.deepEqual(bValidation.record, bridgeReport)
-
+    // Carry Bridge versions while retaining previously published diagnostic identities.
+    const bridgeReport = {
+      ...report,
+      reportId: 'c7b28014-9ff5-4e3a-96e0-' + String(index).padStart(12, '0'),
+      versions: { bridge, protocol: '1' },
+      code: 'capture_failed',
+    }
+    const bridgeRes = await send(bridgeReport)
+    assert.equal(bridgeRes.status, 200)
+    const [bKey, bEntry] = [...records.entries()].find(([k]) =>
+      k.startsWith(bridgeReport.reportId + ':'),
+    )
+    assert.ok(bKey)
+    const { receivedAt: bReceivedAt, ...bRetrieved } = JSON.parse(bEntry.value)
+    assert.ok(Number.isFinite(Date.parse(bReceivedAt)))
+    const bValidation = sanitizeScanFeedbackPayload(bRetrieved)
+    assert.equal(bValidation.ok, true)
+    assert.deepEqual(bValidation.record, bridgeReport)
   }
   assert.equal(records.size, 4)
 })

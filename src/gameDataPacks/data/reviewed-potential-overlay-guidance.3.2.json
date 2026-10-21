@@ -1,0 +1,555 @@
+{
+  "schema": "soda-reviewed-potential-overlay-guidance/v1",
+  "targetGameVersion": "3.2",
+  "boundary": "Field-level author potential guide facts only. This does not activate potential, infer account state, ordinary skills/cinema, or team strength.",
+  "entries": [
+    {
+      "agentId": "agent-ellen",
+      "sourceVersion": "2.0",
+      "requiredPotentialImage": 6,
+      "potentialEnabled": true,
+      "sixSkillDirections": [
+        "普攻 12+",
+        "闪避 10+",
+        "支援技 07+",
+        "特殊技 11+",
+        "终结技 12+",
+        "核心技 MAX"
+      ],
+      "sixSkillTargets": {
+        "basic": "12+",
+        "dodge": "10+",
+        "assist": "07+",
+        "special": "11+",
+        "chain": "12+",
+        "core": "MAX"
+      },
+      "disposition": "continuity",
+      "conditions": [
+        "图鉴技能区明确显示“激发潜能 ON”和“STR 6/6”",
+        "六项目标只代表作者在潜能 6/6 条件下的技能投入方向",
+        "该证据不证明账号已拥有、已激活潜能，也不推导影画、抽取顺序或队伍强度",
+        "来源标签为 2.0，在 3.2 采用前必须完成字段级连续性复审"
+      ],
+      "visualEvidence": {
+        "checkedAt": "2026-10-20T00:00:00+08:00",
+        "visiblePanelText": [
+          "激发潜能",
+          "ON",
+          "STR 6/6",
+          "技能升级建议"
+        ],
+        "cropSha256": "01E5FDB1E2000677FCCA71AB05F2ECC5E8D127F978F8A14A000836664F07D36D",
+        "cropLocator": "guide image 2; x=120,y=680,width=2000,height=820"
+      },
+      "sourceRefs": [
+        {
+          "id": "miyoushe-post-64923515-potential-guide-image-2",
+          "url": "https://www.miyoushe.com/zzz/article/64923515",
+          "author": "HoYo青枫",
+          "authorUid": "285802042",
+          "sourceVersion": "2.0",
+          "versionLocator": "【2.0攻略征集】「艾莲」潜能激发丨机制解析攻略",
+          "postCreatedAt": "2025-06-02T08:07:20+08:00",
+          "postUpdatedAt": "2026-01-07T10:05:07+08:00",
+          "imageLocator": "images[1] / second image / skill-investment panel",
+          "imageUrl": "https://upload-bbs.miyoushe.com/upload/2026/01/07/285802042/74f4cf62b47c6c55206589adf3dac780_7871901174809810114.png",
+          "structuredContentSha256": "3015073B50E33B19500052375B01DABCFB091E87DD6F1369F20F65B4A02781F7",
+          "contentHtmlSha256": "2BE3A0DC9B0BDA62BFD7C89C1494F770367A74559ED9B8791FB0B642A6B951E4",
+          "discoveryBodySha256": "7016AB677D047E50A12C64B23215BA304DCAC13F5FBCFCC72048957BE1A06DC4",
+          "guideImageSha256": "C4B4FD9B2B0CF158895892101C09CD2B2D37E924467D2573CA08AEB1B0033842",
+          "guideImageDimensions": "2362 x 3146",
+          "checkedAt": "2026-10-20T00:00:00+08:00",
+          "licenseBoundary": "仅保留来源 URL、字段结论与哈希；不复制原文正文或图片到生产数据，再分发许可未在此结论中确认。"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-soldier-0-anby",
+      "sourceVersion": "2.3",
+      "requiredPotentialImage": 6,
+      "potentialEnabled": true,
+      "sixSkillDirections": [
+        "普攻 11+",
+        "闪避 10+",
+        "支援技 10+",
+        "特殊技 12+",
+        "终结技 12+",
+        "核心技 MAX"
+      ],
+      "sixSkillTargets": {
+        "basic": "11+",
+        "dodge": "10+",
+        "assist": "10+",
+        "special": "12+",
+        "chain": "12+",
+        "core": "MAX"
+      },
+      "disposition": "continuity",
+      "conditions": [
+        "图鉴技能区明确显示“激发潜能 ON”和“STR 6/6”",
+        "六项目标只代表作者在潜能 6/6 条件下的技能投入方向",
+        "该证据不证明账号已拥有、已激活潜能，也不推导影画、抽取顺序或队伍强度",
+        "来源标签为 2.3，在 3.2 采用前必须完成字段级连续性复审"
+      ],
+      "visualEvidence": {
+        "checkedAt": "2026-10-20T00:00:00+08:00",
+        "visiblePanelText": [
+          "激发潜能",
+          "ON",
+          "STR 6/6",
+          "技能升级建议"
+        ],
+        "cropSha256": "811095498E5D5ED2C5D8AC40B3AD41881A7C51601FA6A628DC3A7966045DEBDC",
+        "cropLocator": "guide image 2; x=120,y=680,width=2000,height=820"
+      },
+      "sourceRefs": [
+        {
+          "id": "miyoushe-post-69505810-potential-guide-image-2",
+          "url": "https://www.miyoushe.com/zzz/article/69505810",
+          "author": "HoYo青枫",
+          "authorUid": "285802042",
+          "sourceVersion": "2.3",
+          "versionLocator": "【2.3攻略征集】「零号·安比」潜能激发丨机制解析攻略",
+          "postCreatedAt": "2025-10-11T07:18:34+08:00",
+          "postUpdatedAt": "2026-01-21T14:26:18+08:00",
+          "imageLocator": "images[1] / second image / skill-investment panel",
+          "imageUrl": "https://upload-bbs.miyoushe.com/upload/2026/01/07/285802042/4d8a0cbc54508602953634cdc89323bb_3843598188276898116.png",
+          "structuredContentSha256": "DF4743460AAE29BCD8614587FC8A9C051A4A42DF7BDCF38C593D2DE01322AC90",
+          "contentHtmlSha256": "33F478AE706F06EF0406DAA67B111799F41421C589E11CA580488B4453C4702C",
+          "discoveryBodySha256": "857928D6E5863679FD1C576A3E0C7AD05D8E6A32F28692B77E284212145D7DB5",
+          "guideImageSha256": "2930266FD3670F302FDFB298E8B76C0291E6CA9FC147249DAC6ECCC249CD98DA",
+          "guideImageDimensions": "2362 x 3146",
+          "checkedAt": "2026-10-20T00:00:00+08:00",
+          "licenseBoundary": "仅保留来源 URL、字段结论与哈希；不复制原文正文或图片到生产数据，再分发许可未在此结论中确认。"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-burnice",
+      "sourceVersion": "2.5",
+      "requiredPotentialImage": 6,
+      "potentialEnabled": true,
+      "sixSkillDirections": [
+        "普攻 10+",
+        "闪避 07+",
+        "支援技 07+",
+        "特殊技 12+",
+        "终结技 11+",
+        "核心技 MAX"
+      ],
+      "sixSkillTargets": {
+        "basic": "10+",
+        "dodge": "07+",
+        "assist": "07+",
+        "special": "12+",
+        "chain": "11+",
+        "core": "MAX"
+      },
+      "disposition": "continuity",
+      "conditions": [
+        "图鉴技能区明确显示“激发潜能 ON”和“STR 6/6”",
+        "六项目标只代表作者在潜能 6/6 条件下的技能投入方向",
+        "该证据不证明账号已拥有、已激活潜能，也不推导影画、抽取顺序或队伍强度",
+        "来源标签为 2.5，在 3.2 采用前必须完成字段级连续性复审"
+      ],
+      "visualEvidence": {
+        "checkedAt": "2026-10-20T00:00:00+08:00",
+        "visiblePanelText": [
+          "激发潜能",
+          "ON",
+          "STR 6/6",
+          "技能升级建议"
+        ],
+        "cropSha256": "C0899D5780D628A2F63669C388FB433466ACB468C4F19640619CD578B3689DEE",
+        "cropLocator": "guide image 2; x=120,y=680,width=2000,height=820"
+      },
+      "sourceRefs": [
+        {
+          "id": "miyoushe-post-72038077-potential-guide-image-2",
+          "url": "https://www.miyoushe.com/zzz/article/72038077",
+          "author": "HoYo青枫",
+          "authorUid": "285802042",
+          "sourceVersion": "2.5",
+          "versionLocator": "【2.5攻略征集】「柏妮思」潜能激发丨机制解析攻略",
+          "postCreatedAt": "2026-01-03T08:16:54+08:00",
+          "postUpdatedAt": "2026-02-05T20:54:26+08:00",
+          "imageLocator": "images[1] / second image / skill-investment panel",
+          "imageUrl": "https://upload-bbs.miyoushe.com/upload/2026/01/02/285802042/8cf2f3d93315c91ecd663a1d06da289b_7195909150197529346.png",
+          "structuredContentSha256": "F92CE5F5FD6FEF4A8BCD3A498014781696246EC9B15D9956E2DAE9881E0A9F26",
+          "contentHtmlSha256": "289795C8A59667BB07C34FE73006854297E603F3C5081B818116995BB6AF8F8A",
+          "discoveryBodySha256": "D9DB362FA12FED8D7039F1028C8BE769623CC27F3BBADECEF7859E4636E34960",
+          "guideImageSha256": "DAF22926DE6427224FCEF8E48D2B4EF125E2C109B7D0CCA94F41BE4E6D78E80D",
+          "guideImageDimensions": "2363 x 3146",
+          "checkedAt": "2026-10-20T00:00:00+08:00",
+          "licenseBoundary": "仅保留来源 URL、字段结论与哈希；不复制原文正文或图片到生产数据，再分发许可未在此结论中确认。"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-soldier-11",
+      "sourceVersion": "2.5",
+      "requiredPotentialImage": 6,
+      "potentialEnabled": true,
+      "sixSkillDirections": [
+        "普攻 12+",
+        "闪避 09+",
+        "支援技 10+",
+        "特殊技 11+",
+        "终结技 12+",
+        "核心技 MAX"
+      ],
+      "sixSkillTargets": {
+        "basic": "12+",
+        "dodge": "09+",
+        "assist": "10+",
+        "special": "11+",
+        "chain": "12+",
+        "core": "MAX"
+      },
+      "disposition": "continuity",
+      "conditions": [
+        "图鉴技能区明确显示“激发潜能 ON”和“STR 6/6”",
+        "六项目标只代表作者在潜能 6/6 条件下的技能投入方向",
+        "该证据不证明账号已拥有、已激活潜能，也不推导影画、抽取顺序或队伍强度",
+        "来源标签为 2.5，在 3.2 采用前必须完成字段级连续性复审"
+      ],
+      "visualEvidence": {
+        "checkedAt": "2026-10-20T00:00:00+08:00",
+        "visiblePanelText": [
+          "激发潜能",
+          "ON",
+          "STR 6/6",
+          "技能升级建议"
+        ],
+        "cropSha256": "A94157C492C0B5A6E9E0B157A72BFFBE71A06779F48D6F0177F58B9031A19ECF",
+        "cropLocator": "guide image 2; x=120,y=680,width=2000,height=820"
+      },
+      "sourceRefs": [
+        {
+          "id": "miyoushe-post-72067470-potential-guide-image-2",
+          "url": "https://www.miyoushe.com/zzz/article/72067470",
+          "author": "HoYo青枫",
+          "authorUid": "285802042",
+          "sourceVersion": "2.5",
+          "versionLocator": "【2.5攻略征集】「11号」潜能激发丨机制解析攻略",
+          "postCreatedAt": "2026-01-04T07:37:48+08:00",
+          "postUpdatedAt": "2026-03-21T12:39:41+08:00",
+          "imageLocator": "images[1] / second image / skill-investment panel",
+          "imageUrl": "https://upload-bbs.miyoushe.com/upload/2026/01/08/285802042/20738270c479e9da559257b448878862_9036918299567153589.png",
+          "structuredContentSha256": "C36BD1F7F48EA7D61F29B27232A1B3E1E09CC0BF117672B8A33306A14DA15AFF",
+          "contentHtmlSha256": "BA15DFCE12781A33287FA8BA33E37640E321D47E94CB37CAA0CF85CB8E10EAD6",
+          "discoveryBodySha256": "FB41A32C9A835273721099CA2A0C5231A77F834468E7E08A5C9DFCE031D089BC",
+          "guideImageSha256": "1238567E4BBDC29AC72113299476E531ED924F604C94BFE92D2B848DD3C99615",
+          "guideImageDimensions": "2363 x 3146",
+          "checkedAt": "2026-10-20T00:00:00+08:00",
+          "licenseBoundary": "仅保留来源 URL、字段结论与哈希；不复制原文正文或图片到生产数据，再分发许可未在此结论中确认。"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-lycaon",
+      "sourceVersion": "2.6",
+      "requiredPotentialImage": 6,
+      "potentialEnabled": true,
+      "sixSkillDirections": [
+        "普攻 10+",
+        "闪避 07+",
+        "支援技 10+",
+        "特殊技 12+",
+        "终结技 10+",
+        "核心技 MAX"
+      ],
+      "sixSkillTargets": {
+        "basic": "10+",
+        "dodge": "07+",
+        "assist": "10+",
+        "special": "12+",
+        "chain": "10+",
+        "core": "MAX"
+      },
+      "disposition": "continuity",
+      "conditions": [
+        "图鉴技能区明确显示“激发潜能 ON”和“STR 6/6”",
+        "六项目标只代表作者在潜能 6/6 条件下的技能投入方向",
+        "该证据不证明账号已拥有、已激活潜能，也不推导影画、抽取顺序或队伍强度",
+        "来源标签为 2.6，在 3.2 采用前必须完成字段级连续性复审"
+      ],
+      "visualEvidence": {
+        "checkedAt": "2026-10-20T00:00:00+08:00",
+        "visiblePanelText": [
+          "激发潜能",
+          "ON",
+          "STR 6/6",
+          "技能升级建议"
+        ],
+        "cropSha256": "1507B53D728ECA58ECF3837683BEE9B265FFD8E8117C65041B976F4E271E4D34",
+        "cropLocator": "guide image 2; x=120,y=680,width=2000,height=820"
+      },
+      "sourceRefs": [
+        {
+          "id": "miyoushe-post-73045858-potential-guide-image-2",
+          "url": "https://www.miyoushe.com/zzz/article/73045858",
+          "author": "HoYo青枫",
+          "authorUid": "285802042",
+          "sourceVersion": "2.6",
+          "versionLocator": "【2.6攻略征集】「莱卡恩」潜能激发丨机制解析攻略",
+          "postCreatedAt": "2026-02-08T07:38:22+08:00",
+          "postUpdatedAt": "2026-04-05T12:41:37+08:00",
+          "imageLocator": "images[1] / second image / skill-investment panel",
+          "imageUrl": "https://upload-bbs.miyoushe.com/upload/2026/02/08/285802042/43358fdb1e0f220bf6a6a20a406ffb07_2202640319303962030.png",
+          "structuredContentSha256": "ECF9C0C01914D6B7EE6937F2BDC90D83A80D35B4AAEEC1F7BFBD4242CCB41276",
+          "contentHtmlSha256": "49A2F5EC2B82162B4726152BD55C9DAB7BD0BB923685C7739B72132B012CB726",
+          "discoveryBodySha256": "EB25E7DAED959596E8EBB6E1B6867B087FF638BD448C1BB9394CE068F2145898",
+          "guideImageSha256": "DB528DCB0CB0CC49ACA1D2CD76003BB91AFA94E89E427B2009CBBA5810EA5A5E",
+          "guideImageDimensions": "2363 x 3146",
+          "checkedAt": "2026-10-20T00:00:00+08:00",
+          "licenseBoundary": "仅保留来源 URL、字段结论与哈希；不复制原文正文或图片到生产数据，再分发许可未在此结论中确认。"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-jane",
+      "sourceVersion": "3.1",
+      "requiredPotentialImage": 6,
+      "potentialEnabled": true,
+      "sixSkillDirections": [
+        "普攻 12+",
+        "闪避 11+",
+        "支援技 11+",
+        "特殊技 12+",
+        "终结技 12+",
+        "核心技 MAX"
+      ],
+      "sixSkillTargets": {
+        "basic": "12+",
+        "dodge": "11+",
+        "assist": "11+",
+        "special": "12+",
+        "chain": "12+",
+        "core": "MAX"
+      },
+      "disposition": "continuity",
+      "conditions": [
+        "图鉴技能区明确显示“激发潜能 ON”和“STR 6/6”",
+        "六项目标只代表作者在潜能 6/6 条件下的技能投入方向",
+        "该证据不证明账号已拥有、已激活潜能，也不推导影画、抽取顺序或队伍强度",
+        "来源标签为 3.1，在 3.2 采用前必须完成字段级连续性复审"
+      ],
+      "visualEvidence": {
+        "checkedAt": "2026-10-20T00:00:00+08:00",
+        "visiblePanelText": [
+          "激发潜能",
+          "ON",
+          "STR 6/6",
+          "技能升级建议"
+        ],
+        "cropSha256": "0715E6E4DF7B401E8335886848684CC1387347E6E93CB0952DE6076D2E8B2E60",
+        "cropLocator": "guide image 2; x=120,y=680,width=2000,height=820"
+      },
+      "sourceRefs": [
+        {
+          "id": "miyoushe-post-76957755-potential-guide-image-2",
+          "url": "https://www.miyoushe.com/zzz/article/76957755",
+          "author": "HoYo青枫",
+          "authorUid": "285802042",
+          "sourceVersion": "3.1",
+          "versionLocator": "【3.1攻略征集】「简」潜能激发丨机制解析攻略",
+          "postCreatedAt": "2026-07-26T12:20:22+08:00",
+          "postUpdatedAt": "2026-09-06T10:34:18+08:00",
+          "imageLocator": "images[1] / second image / skill-investment panel",
+          "imageUrl": "https://upload-bbs.miyoushe.com/upload/2026/07/31/285802042/306515e39e364145669ac0cce4cf54d8_7283173709119442589.png",
+          "structuredContentSha256": "E320FEB4E3BD99850BD27C17BFA006507C8145200F2EC89532E0F237EA83ED43",
+          "contentHtmlSha256": "3387B9F2D579919245236C6A88054A0B1AE44A1F9C576A03ADC325E32D034079",
+          "discoveryBodySha256": "D69C9366B90C3AB6BBF3095E1C6854FB2EBF139979D9B6AD67F302D29A5AEFDC",
+          "guideImageSha256": "82C40EB31C721142682A09AAE53E943172DD31A0F2F868A47A9A65B9D39CF249",
+          "guideImageDimensions": "2363 x 3146",
+          "checkedAt": "2026-10-20T00:00:00+08:00",
+          "licenseBoundary": "仅保留来源 URL、字段结论与哈希；不复制原文正文或图片到生产数据，再分发许可未在此结论中确认。"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-rina",
+      "sourceVersion": "3.1",
+      "requiredPotentialImage": 6,
+      "potentialEnabled": true,
+      "sixSkillDirections": [
+        "普攻 11+",
+        "闪避 01+",
+        "支援技 01+",
+        "特殊技 11+",
+        "终结技 11+",
+        "核心技 MAX"
+      ],
+      "sixSkillTargets": {
+        "basic": "11+",
+        "dodge": "01+",
+        "assist": "01+",
+        "special": "11+",
+        "chain": "11+",
+        "core": "MAX"
+      },
+      "disposition": "continuity",
+      "conditions": [
+        "图鉴技能区明确显示“激发潜能 ON”和“STR 6/6”",
+        "六项目标只代表作者在潜能 6/6 条件下的技能投入方向",
+        "该证据不证明账号已拥有、已激活潜能，也不推导影画、抽取顺序或队伍强度",
+        "来源标签为 3.1，在 3.2 采用前必须完成字段级连续性复审"
+      ],
+      "visualEvidence": {
+        "checkedAt": "2026-10-20T00:00:00+08:00",
+        "visiblePanelText": [
+          "激发潜能",
+          "ON",
+          "STR 6/6",
+          "技能升级建议"
+        ],
+        "cropSha256": "887B12150779F4CD20EB1DF06ED4DD80F7C34A20EB1844EA7EB40D057475455A",
+        "cropLocator": "guide image 2; x=120,y=680,width=2000,height=820"
+      },
+      "sourceRefs": [
+        {
+          "id": "miyoushe-post-76974843-potential-guide-image-2",
+          "url": "https://www.miyoushe.com/zzz/article/76974843",
+          "author": "HoYo青枫",
+          "authorUid": "285802042",
+          "sourceVersion": "3.1",
+          "versionLocator": "【3.1攻略征集】「丽娜」潜能激发丨机制解析攻略",
+          "postCreatedAt": "2026-07-27T08:00:24+08:00",
+          "postUpdatedAt": "2026-07-31T10:40:39+08:00",
+          "imageLocator": "images[1] / second image / skill-investment panel",
+          "imageUrl": "https://upload-bbs.miyoushe.com/upload/2026/07/27/285802042/bbd9b7059c15ffe847932fbffb6ffcf5_2563028652486516756.png",
+          "structuredContentSha256": "52C26550F7556D966C9B03860E99CB9F35AF7FEB620DE4EE983B887CD80CFACB",
+          "contentHtmlSha256": "E765B4754F89539F7DD1794BDDA6FDBD9C7519685199A5A9BBE2E9B5A5393654",
+          "discoveryBodySha256": "5F5E19DED30AF1D56AE8D6CC5BE3A5D4E88A8D9014EE6E80204FFB487964BE94",
+          "guideImageSha256": "57C31B40434102B93C81E9C807988E94307898D0EFC0197719D613A3666FC261",
+          "guideImageDimensions": "2363 x 3146",
+          "checkedAt": "2026-10-20T00:00:00+08:00",
+          "licenseBoundary": "仅保留来源 URL、字段结论与哈希；不复制原文正文或图片到生产数据，再分发许可未在此结论中确认。"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-nekomata",
+      "sourceVersion": "3.1",
+      "requiredPotentialImage": 6,
+      "potentialEnabled": true,
+      "sixSkillDirections": [
+        "普攻 12+",
+        "闪避 12+",
+        "支援技 10+",
+        "特殊技 12+",
+        "终结技 12+",
+        "核心技 MAX"
+      ],
+      "sixSkillTargets": {
+        "basic": "12+",
+        "dodge": "12+",
+        "assist": "10+",
+        "special": "12+",
+        "chain": "12+",
+        "core": "MAX"
+      },
+      "disposition": "continuity",
+      "conditions": [
+        "图鉴技能区明确显示“激发潜能 ON”和“STR 6/6”",
+        "六项目标只代表作者在潜能 6/6 条件下的技能投入方向",
+        "该证据不证明账号已拥有、已激活潜能，也不推导影画、抽取顺序或队伍强度",
+        "来源标签为 3.1，在 3.2 采用前必须完成字段级连续性复审"
+      ],
+      "visualEvidence": {
+        "checkedAt": "2026-10-20T00:00:00+08:00",
+        "visiblePanelText": [
+          "激发潜能",
+          "ON",
+          "STR 6/6",
+          "技能升级建议"
+        ],
+        "cropSha256": "E3BDE913B0D655D4C4092C3D4419EB8BAC127C8EC071AC249430FA48B96364C8",
+        "cropLocator": "guide image 2; x=120,y=680,width=2000,height=820"
+      },
+      "sourceRefs": [
+        {
+          "id": "miyoushe-post-76994144-potential-guide-image-2",
+          "url": "https://www.miyoushe.com/zzz/article/76994144",
+          "author": "HoYo青枫",
+          "authorUid": "285802042",
+          "sourceVersion": "3.1",
+          "versionLocator": "【3.1攻略征集】「猫又」潜能激发丨机制解析攻略",
+          "postCreatedAt": "2026-07-28T06:04:40+08:00",
+          "postUpdatedAt": "2026-08-02T21:16:10+08:00",
+          "imageLocator": "images[1] / second image / skill-investment panel",
+          "imageUrl": "https://upload-bbs.miyoushe.com/upload/2026/07/27/285802042/3fad201de6b6a31ee98b1d4c10ca8c22_5534004991728825380.png",
+          "structuredContentSha256": "D23DE438DA56C969704ED6B1ED1EA34BEC4DD1CC8BD92A3FC28CE6795CC1A4F9",
+          "contentHtmlSha256": "D78237160D2D9164294A4B86E096D8B4E9F291B01CC9AE51BC9581B0945C53DD",
+          "discoveryBodySha256": "E7A67CA68A012E79937C49F565287C14476570BFD8FB2A15F3FFA855F5A16698",
+          "guideImageSha256": "1E42BDEF351CDCBE704E211CB8AA217A332FE1D89F4EBB12F5DE419EA89DA6F8",
+          "guideImageDimensions": "2362 x 3145",
+          "checkedAt": "2026-10-20T00:00:00+08:00",
+          "licenseBoundary": "仅保留来源 URL、字段结论与哈希；不复制原文正文或图片到生产数据，再分发许可未在此结论中确认。"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-koleda",
+      "sourceVersion": "3.2",
+      "requiredPotentialImage": 6,
+      "potentialEnabled": true,
+      "sixSkillDirections": [
+        "普攻 12+",
+        "闪避 11+",
+        "支援技 11+",
+        "特殊技 12+",
+        "终结技 11+",
+        "核心技 MAX"
+      ],
+      "sixSkillTargets": {
+        "basic": "12+",
+        "dodge": "11+",
+        "assist": "11+",
+        "special": "12+",
+        "chain": "11+",
+        "core": "MAX"
+      },
+      "disposition": "ready",
+      "conditions": [
+        "图鉴技能区明确显示“激发潜能 ON”和“STR 6/6”",
+        "六项目标只代表作者在潜能 6/6 条件下的技能投入方向",
+        "该证据不证明账号已拥有、已激活潜能，也不推导影画、抽取顺序或队伍强度"
+      ],
+      "visualEvidence": {
+        "checkedAt": "2026-10-20T00:00:00+08:00",
+        "visiblePanelText": [
+          "激发潜能",
+          "ON",
+          "STR 6/6",
+          "技能升级建议"
+        ],
+        "cropSha256": "90DD0A9A7571C0AD7CF31F0F458219C7CA9B2E1AC951123A798696CFFEB67BDF",
+        "cropLocator": "guide image 2; x=120,y=680,width=2000,height=820"
+      },
+      "sourceRefs": [
+        {
+          "id": "miyoushe-post-78071412-potential-guide-image-2",
+          "url": "https://www.miyoushe.com/zzz/article/78071412",
+          "author": "HoYo青枫",
+          "authorUid": "285802042",
+          "sourceVersion": "3.2",
+          "versionLocator": "【3.2攻略征集】「珂蕾妲」潜能激发丨机制解析攻略",
+          "postCreatedAt": "2026-09-10T06:31:14+08:00",
+          "postUpdatedAt": "2026-10-08T07:54:41+08:00",
+          "imageLocator": "images[1] / second image / skill-investment panel",
+          "imageUrl": "https://upload-bbs.miyoushe.com/upload/2026/09/07/285802042/77e26f92be54d5c44948a23cb8622abb_4382620842636597332.png",
+          "structuredContentSha256": "8AD2FC8751D642CCF2520AECBD651C461A0DED75818CA90888BA207E99514C68",
+          "contentHtmlSha256": "14B90A02035C43F476EA5DAD50A13F276CEF5F575675796CAAE56B008CDDB96A",
+          "discoveryBodySha256": null,
+          "guideImageSha256": "46804B480ACCF268966AC73F165A8E64B6B676509C25D7A8D64AFD95F58B1A9D",
+          "guideImageDimensions": "2362 x 3145",
+          "checkedAt": "2026-10-20T00:00:00+08:00",
+          "licenseBoundary": "仅保留来源 URL、字段结论与哈希；不复制原文正文或图片到生产数据，再分发许可未在此结论中确认。"
+        }
+      ]
+    }
+  ]
+}

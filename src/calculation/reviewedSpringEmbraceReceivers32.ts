@@ -1,6 +1,6 @@
 import type { SourceBackedEquipmentModifierBucket } from './currentPlanningDamageModifiers'
 import {
-  currentWEngineStaticCatalog,
+  baseWEngineStaticCatalog,
   getCurrentWEngineStaticData,
 } from '../gameDataPacks/currentWEngineStaticCatalog'
 import { functionalEffectMetadata32 } from './reviewedFunctionalEquipmentDependencies32'
@@ -44,11 +44,20 @@ export function applyReviewedSpringEmbraceReceivers32(
       : winners.size === 1 && !winners.has(undefined) && providers.has([...winners][0]!)
         ? [...winners][0]
         : null
+  const current = getCurrentWEngineStaticData('wengine-13011')
+  // The adopted catalogue version may advance while this exact GO source stays
+  // unchanged. A Nanoka record cannot inherit the GO recipient correction.
   const sourceBound =
-    ['3.2', '3.2-phase-ii'].includes(currentWEngineStaticCatalog.gameVersion) &&
-    currentWEngineStaticCatalog.generatedFrom.commit === identity.sourceCommit &&
-    getCurrentWEngineStaticData('wengine-13011')?.source.formulaSha256.toLowerCase() ===
-      identity.formulaSha256
+    ['3.2', '3.2-phase-ii'].includes(baseWEngineStaticCatalog.gameVersion) &&
+    baseWEngineStaticCatalog.generatedFrom.commit === identity.sourceCommit &&
+    baseWEngineStaticCatalog.items.some(
+      (item) =>
+        item.stableId === 'wengine-13011' &&
+        item.source.formulaSha256.toLowerCase() === identity.formulaSha256,
+    ) &&
+    current !== null &&
+    !('provider' in current.source) &&
+    current.source.formulaSha256?.toLowerCase() === identity.formulaSha256
   const exclusions: Array<
     { effectKey: string; reason: string; fields: string[]; sourceRefs: string[] } & ReturnType<
       typeof functionalEffectMetadata32

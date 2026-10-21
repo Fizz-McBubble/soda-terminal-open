@@ -38,11 +38,15 @@ import {
   getBuildApplicabilityIdentity,
   type BuildApplicabilityIdentity,
 } from './buildApplicabilityDependencyAnalysis'
+import { withReviewedHoyoBuildDriveDiscSets32 } from './reviewedHoyoBuildDriveDiscSets32'
+import { withReviewedHoyoBuildMiyabiPanel32 } from './reviewedHoyoBuildMiyabiPanels32'
+import { currentGameDataSelection } from './currentGameDataSelection'
+import { getGameData33CandidateWarehouseConstraint } from './gameData33BuildGuidance'
 
 export type CandidateWarehouseConstraint = {
   agentId: string
   agentName: string
-  gameVersion: '3.0' | '3.1' | '3.2'
+  gameVersion: '3.0' | '3.1' | '3.2' | '3.3'
   status: 'candidate' | 'missing'
   setPlanReadiness:
     | {
@@ -277,6 +281,7 @@ function withGuidanceApplicability(
 ): CandidateWarehouseConstraint {
   const input = {
     ...constraint,
+    agentId: resolveCurrentReleasedIdentity(constraint.agentId) ?? constraint.agentId,
     guidanceApplicability: constraint.sources.map((source) =>
       getBuildApplicabilityIdentity(
         resolveCurrentReleasedIdentity(constraint.agentId) ?? constraint.agentId,
@@ -294,16 +299,20 @@ function withGuidanceApplicability(
 
 export function getCandidateWarehouseConstraint(agentId: string) {
   const releasedAgentId = resolveCurrentReleasedIdentity(agentId)
+  if (releasedAgentId === 'agent-phoenix' && currentGameDataSelection.gameVersion === '3.3')
+    return getGameData33CandidateWarehouseConstraint(releasedAgentId)
   const constraint =
+    candidateWarehouseConstraints32.find((constraint) => constraint.agentId === releasedAgentId) ??
     candidateWarehouseConstraints30.find(
       (constraint) => resolveCurrentReleasedIdentity(constraint.agentId) === releasedAgentId,
     ) ??
     candidateWarehouseConstraints31.find(
       (constraint) => resolveCurrentReleasedIdentity(constraint.agentId) === releasedAgentId,
-    ) ??
-    candidateWarehouseConstraints32.find((constraint) => constraint.agentId === releasedAgentId)
+    )
   if (!constraint) return undefined
-  return withGuidanceApplicability(constraint)
+  return withReviewedHoyoBuildMiyabiPanel32(
+    withReviewedHoyoBuildDriveDiscSets32(withGuidanceApplicability(constraint)),
+  )
 }
 
 function sourceForReviewedTeamDiscDirection(
@@ -360,10 +369,18 @@ export function getCandidateWarehouseConstraintForTeam(
     throw new Error(`代理人 ${base.agentId} 的精确队伍条件匹配到多个冲突盘套分支。`)
   const direction = directions[0]!
   const retainedBasePlans = direction.retainBasePlans ? candidateSetPlansForConstraint(base) : []
-  const setPlans =
+  const mergedPlans =
     direction.retainBasePlans && direction.setPlan.purpose === 'conditional'
       ? [...retainedBasePlans, direction.setPlan]
       : [direction.setPlan, ...retainedBasePlans]
+  // A matched trio adds its source branch; it does not satisfy independent
+  // baseline prerequisites. Keep unknown alternatives, but apply explicit
+  // negative scenario evidence to the entire merged recommendation.
+  const setPlans = mergedPlans.filter(
+    (plan) =>
+      evaluateCandidateSetPlanEligibility(base.agentId, plan, context).status !==
+      'condition-not-met',
+  )
   const input = {
     ...base,
     reviewedTeamDirectionId: direction.id,

@@ -6,19 +6,24 @@ import { current31IndependentConsensusGoldSet } from './current31IndependentCons
 import { current31StrengthGoldSet } from './current31StrengthGoldSet'
 import { current31StrengthGoldSetEvaluation } from './current31StrengthGoldSetEvaluation'
 import { current31ProductionPartialOrder } from './current31ProductionPartialOrder'
-import { current31MainstreamAuthorityEvaluationGate } from './current31MainstreamAuthorityEvaluationGate'
+import {
+  current31MainstreamAuthorityEvaluationGate,
+  current31MainstreamAuthorityEvaluationTargets,
+} from './current31MainstreamAuthorityEvaluationGate'
 import { currentTeamOutputModuleCoverage } from '../gameDataPacks/currentTeamOutputModuleCoverage'
 import { teamPrimaryOutputKindLabels } from '../gameDataPacks/teamOutputModuleContract'
+import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
 
 export const current31BoxReliableGateContractId = 'soda-current-3.1-box-reliable-gate/v1' as const
 
 export const current31BoxReliableTargets = Object.freeze({
   strengthGoldSetMinimum: 30,
   strengthGoldSetMaximum: 50,
-  topKRecall: 0.95,
-  bandAgreement: 0.9,
-  pairwiseConsistency: 0.9,
-  mainstreamUnknownRatioMaximum: 0.05,
+  topKRecall: current31MainstreamAuthorityEvaluationTargets.topKRecall,
+  bandAgreement: current31MainstreamAuthorityEvaluationTargets.bandAgreement,
+  pairwiseConsistency: current31MainstreamAuthorityEvaluationTargets.highConfidencePairwise,
+  mainstreamUnknownRatioMaximum:
+    current31MainstreamAuthorityEvaluationTargets.mainstreamUnknownRatioMaximum,
 } as const)
 
 const strengthBandCaseCount = current31MetaStrengthR1.kernelBands.length
@@ -34,7 +39,7 @@ const missingTeamSynergyAgentIds =
   currentTeamOutputModuleCoverage.coordinationContracts.teamSynergyContracts.missingAgentIds
 const outputModuleCoverageBlocker =
   `输出体系合同已为 ${currentTeamOutputModuleCoverage.currentClassifiedTeamCount}/${currentTeamOutputModuleCoverage.currentExactTeamCount} 个当前精确队归类，` +
-  `另有 ${currentTeamOutputModuleCoverage.unclassifiedExactTeamCount} 个精确成员观察未完成队伍级语义归类；` +
+  `另有 ${currentTeamOutputModuleCoverage.sourceAuditedUnknownExactTeamCount} 个精确成员观察已完成来源证据审计，但没有同unit的核心驱动与主输出/反应证据，保持明确unknown；` +
   (missingCurrentOutputKinds.length
     ? `当前仍缺 ${missingCurrentOutputKinds.map((kind) => teamPrimaryOutputKindLabels[kind]).join('、')} 主输出代表；`
     : '当前主输出类型均有具名代表；') +
@@ -45,7 +50,7 @@ const outputModuleCoverageBlocker =
 
 export const current31BoxReliableGate = Object.freeze({
   contract: current31BoxReliableGateContractId,
-  gameVersion: '3.1',
+  gameVersion: currentVersionProjection.gameVersion,
   status: 'reopened_product_validation' as const,
   engineeringStatus: reliableMetricsEligible
     ? ('reliable_candidate_pass' as const)

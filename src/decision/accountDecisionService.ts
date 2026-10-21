@@ -5,7 +5,7 @@ import { currentBangbooDirectory } from '../assault/catalog'
 import { contentHash } from '../evaluation/contentHash'
 import { currentDataAuthorityProjection } from '../gameDataPacks/currentDataAuthorityProjection'
 import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
-import { optimizeAccountBuilds } from '../optimizer/optimizeAccountBuilds'
+import { type AccountBuildResult, optimizeAccountBuilds } from '../optimizer/optimizeAccountBuilds'
 import { analyzeAccountWarehouse } from '../warehouse/discWarehouseAnalysis'
 import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
 import { solveTeamEngine } from '../teamEngine/solveTeamEngine'
@@ -130,15 +130,32 @@ export function buildAccountDecisionSnapshot({
       (candidate) => candidate.memberIds,
     ),
   )
-  const allocation = optimizeAccountBuilds(warehouse.discs, profiles, {
-    ...optimizerOptions,
-    // This allocation serves downstream execution/readiness. Numeric candidate scoring reads the
-    // independent per-agent projections instead, so Team Engine order cannot feed its own rating.
-    priorityAgentIds: uniqueInOrder([
-      ...candidatePriorityAgentIds,
-      ...(optimizerOptions.priorityAgentIds ?? []),
-    ]),
-  })
+  const allocation: AccountBuildResult = deferDiagnosticInference
+    ? {
+        independent: [],
+        global: [],
+        gaps: {},
+        conflicts: {},
+        independentUnavailableAgentIds: [],
+        globalUnavailableAgentIds: [],
+        unavailableAgentIds: [],
+        diagnostics: [],
+        warehouseHash,
+        inputHash: fingerprint.inputHash,
+        elapsedMs: 0,
+        exactWithinModel: false,
+        deferred: true,
+        boundary: '先从通用榜单选择队伍；选定后按当前仓库计算配装。',
+      }
+    : optimizeAccountBuilds(warehouse.discs, profiles, {
+        ...optimizerOptions,
+        // This allocation serves downstream execution/readiness. Numeric candidate scoring reads the
+        // independent per-agent projections instead, so Team Engine order cannot feed its own rating.
+        priorityAgentIds: uniqueInOrder([
+          ...candidatePriorityAgentIds,
+          ...(optimizerOptions.priorityAgentIds ?? []),
+        ]),
+      })
   const exhaustiveCandidateScoring = projectCurrent31ProductionDecisionUniverse(warehouse.roster)
   // Template ids are exact portfolio selections, but the exhaustive Authority
   // deliberately has no legacy Engine-template crosswalk.  Do not let that

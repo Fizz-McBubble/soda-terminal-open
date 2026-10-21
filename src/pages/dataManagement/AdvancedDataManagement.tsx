@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useAppHealth } from '../../appHealthContext'
 import { AccountMigrationPreflightPanel } from '../../components/AccountMigrationPreflightPanel'
@@ -172,9 +173,10 @@ export function AdvancedDataManagement() {
     <div className="page-stack management-page">
       <header className="workflow-header">
         <div>
-          <span className="eyebrow">账户与资料</span>
-          <h1>数据管理</h1>
-          <p>导入先做纯预检。只有明确确认后，才以备份完整替换本地业务数据。</p>
+          <span className="eyebrow">仅开发环境 · 历史兼容工具</span>
+          <h1>旧版数据调试</h1>
+          <p>此页保留旧数据诊断与恢复工具，不作为当前玩家界面的验收入口。</p>
+          <Link to="/assets/account">打开现行账户与备份</Link>
         </div>
       </header>
       <DataFoundationStatus />

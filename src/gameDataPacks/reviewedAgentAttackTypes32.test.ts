@@ -1,4 +1,12 @@
-import { describe, expect, it } from 'vitest'
+// This suite verifies the frozen 3.2 source/media contract; 3.3 adoption has separate current suites.
+vi.mock('./currentGameDataSelection', () => ({
+  currentGameDataSelection: {
+    gameVersion: '3.2',
+    packageId: 'game-base-3.2.0-current',
+    phase: 'phase_ii',
+  },
+}))
+import { describe, expect, it, vi } from 'vitest'
 import { currentAgentDirectory } from '../assault/catalog'
 import { getReviewedAgentAttackTypes32 } from './reviewedAgentAttackTypes32'
 import { projectCurrentBangbooComposition32 } from '../calculation/currentBangbooCompositionIdentity'

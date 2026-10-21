@@ -152,6 +152,10 @@ export function projectRemoteAccountDecisionInput(
             exactVariantKey: draft.solutionContext.exactVariantKey,
             scenarioSelection: sanitizeScenarioSelection(draft.solutionContext.scenarioSelection),
             scenarioIdentity: draft.solutionContext.scenarioIdentity,
+            formedTeamReference:
+              draft.solutionContext.formedTeamReference === undefined
+                ? undefined
+                : structuredClone(draft.solutionContext.formedTeamReference),
             standardReference32:
               draft.solutionContext.standardReference32 === undefined
                 ? undefined

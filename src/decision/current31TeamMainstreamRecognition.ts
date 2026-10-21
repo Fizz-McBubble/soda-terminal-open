@@ -11,12 +11,18 @@ export function formationKey(memberIds: readonly string[]) {
 function createMainstreamRecognitionIndex(reviewVersion: string) {
   return new Map(
     currentReviewedTeamSourceDirections(reviewVersion)
-      .map((item) => ({
-        ...item,
-        sourceRefs: item.sourceRefs.filter(
+      .map((item) => {
+        const sourceRefs = item.sourceRefs.filter(
           (ref) => ref.observationRole !== 'author_comparison_setup',
-        ),
-      }))
+        )
+        return {
+          ...item,
+          sourceRefs,
+          conditions: item.conditionsBySourceId
+            ? [...new Set(sourceRefs.flatMap((ref) => item.conditionsBySourceId![ref.id] ?? []))]
+            : item.conditions,
+        }
+      })
       .filter((item) => item.sourceRefs.length > 0)
       .map((item) => [
         formationKey(item.memberIds),

@@ -3,6 +3,7 @@ import type { NavigateFunction } from 'react-router-dom'
 import { PlanEditorFooter } from './PlanEditorFooter'
 import { PlanEditorSavedTeamHeader } from './PlanEditorSavedTeamHeader'
 import type { PlanEditorProps } from './PlanEditorProps'
+import { StandardTeamReferenceControl32 } from './StandardTeamReferenceControl32'
 import { TeamPlanHeader } from './TeamPlanHeader'
 import { usesRemainingBoxReservation } from './planEditorSaveProjection'
 
@@ -31,6 +32,15 @@ export function PlanEditorSharedTeamHeader({
       team={props.team}
       deleteAction={props.deleteAction}
       comparisonScenarioControl={props.comparisonScenarioControl}
+      standardReferenceControl={
+        props.restored?.solutionContext?.standardReference32 ? (
+          <StandardTeamReferenceControl32
+            disabled={false}
+            savedReference={props.restored.solutionContext.standardReference32}
+            savedRequest={props.restored.solutionContext.standardReferenceRequest32}
+          />
+        ) : undefined
+      }
       teamRatingLabel={props.teamRatingLabel}
       usingRemainingBox={usesRemainingBoxReservation(Boolean(props.restored), props.analysisRunId)}
     />
@@ -59,6 +69,15 @@ export function PlanEditorSharedSavedTeamHeader({
       name={name}
       teamRatingLabel={props.teamRatingLabel}
       deleteAction={props.deleteAction}
+      standardReferenceControl={
+        props.restored?.solutionContext?.standardReference32 ? (
+          <StandardTeamReferenceControl32
+            disabled={false}
+            savedReference={props.restored.solutionContext.standardReference32}
+            savedRequest={props.restored.solutionContext.standardReferenceRequest32}
+          />
+        ) : undefined
+      }
     />
   )
 }

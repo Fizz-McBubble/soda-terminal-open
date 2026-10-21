@@ -262,7 +262,7 @@ function F5VisualShellContent({
                   ? '读取中'
                   : `${account.agentCount} 代理人 · ${account.discCount} 驱动盘`}
               </span>
-              <b>版本 {currentVersion}</b>
+              <b>资料版本 {currentVersion}</b>
             </div>
           </div>
         </header>

@@ -22,6 +22,9 @@ import { baseReferenceExpression } from './teamStrengthSupportExpression'
 export const teamStrengthTypedAnomalyCapacityPolicy = {
   unit: 'single_declared_abloom_fraction_of_original_attribute_anomaly_damage',
   ordinaryDirectContact: false,
+  recipientEligibility: 'matching-source-attribute-and-positive-buildup-packet; no-specialty-gate',
+  proficiencyOwner:
+    'preserve-source-references: ether-own-final-AP; other-attributes-target-final-AP',
   windRestoration: {
     commit: '3456cd0f6f5bea10e168074502460dac2fcd6df4',
     formulaSha256: '89933DF78C2479BAEAD0CF1EC9100332815D549C7DBAB5DFC911EA896392500E',
@@ -97,9 +100,9 @@ export function projectTeamStrengthTypedAnomalyCapacity(context: TeamStrengthCap
       }
       for (const target of members) {
         if (
-          target.specialty !== 'anomaly' ||
           target.attribute !== attribute ||
-          !target.actionFacts.anomaly
+          !target.actionFacts.anomaly ||
+          target.actionFacts.anomaly.anomalyBuildup <= 0
         )
           continue
         const declared = { abloom: chosen }
@@ -149,6 +152,8 @@ export function projectTeamStrengthTypedAnomalyCapacity(context: TeamStrengthCap
           recipientAgentId: target.agentId,
           effectKey: entry.key,
           application: 'motion_value_multiplier',
+          receiverPath: metadata.receiverPath,
+          damageType: metadata.damageType,
           value: result.value,
           relativeGain: null,
           sourceRefs: entry.sourceRefs,

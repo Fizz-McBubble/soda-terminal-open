@@ -1,7 +1,35 @@
+import {
+  gameData33CatalogCheckedAt,
+  gameData33OfficialPhaseOneUrl,
+  gameData33OfficialUpdateUrl,
+  gameData33SourceIdentities,
+} from './gameData33CatalogEntities.ts'
+
 export const currentReleasedIdentitySourceRegistry = {
   schema: 'soda-released-identity-source-registry/v1',
-  gameVersion: '3.2' as string,
+  gameVersion: '3.3' as string,
   sources: [
+    {
+      id: 'official-3.3-update-2026-10-21',
+      url: gameData33OfficialUpdateUrl,
+      sourceVersion: '3.3',
+      publishedAt: '2026-10-21',
+      checkedAt: gameData33CatalogCheckedAt,
+      contentHash: null,
+      stableIds: gameData33SourceIdentities.map((identity) => identity.stableId),
+      boundary:
+        '官方仅闭合3.3发行身份与具名时间；网页壳或本地摘录哈希不是公告正文哈希，未来对象不进入采用目录。',
+    },
+    {
+      id: 'official-3.3-phase-i-2026-10-21',
+      url: gameData33OfficialPhaseOneUrl,
+      sourceVersion: '3.3',
+      publishedAt: '2026-10-21',
+      checkedAt: gameData33CatalogCheckedAt,
+      contentHash: null,
+      stableIds: ['agent-phoenix', 'wengine-14164'],
+      boundary: '上半菲欧妮与涅槃初翎已开放；不据发行身份推导数值、账户拥有、Formal或媒体许可。',
+    },
     {
       id: 'official-3.2-update-2026-09-09',
       url: 'https://zzz.mihoyo.com/news/166026?nav=news%3Fnav%3Dnews',
@@ -54,9 +82,27 @@ export const currentReleasedIdentitySourceRegistry = {
 
 export const currentReleasedIdentityMap = {
   schema: 'soda-released-identity-map/v1',
-  gameVersion: '3.2' as string,
-  cutoff: '2026-09-30',
+  gameVersion: '3.3' as string,
+  cutoff: '2026-10-21',
   entries: [
+    ...gameData33SourceIdentities.map((identity) => ({
+      stableId: identity.stableId,
+      aliases: [`candidate-3.3-${identity.stableId}`],
+      gameEvidenceId: identity.gameId,
+      playerName: identity.displayName,
+      releaseState:
+        identity.releaseState === 'released' ? ('released' as const) : ('unreleased' as const),
+      releaseAt: identity.releaseAt,
+      sourceRefs: [
+        identity.releaseState === 'released'
+          ? 'official-3.3-phase-i-2026-10-21'
+          : 'official-3.3-update-2026-10-21',
+      ],
+      boundary:
+        identity.releaseState === 'released'
+          ? '已发布身份；Nanoka数值保持独立来源与candidate字段，不推导账户拥有或精算资格。'
+          : '仅保存未来发行身份和完整时间；明确采用前不进入生产目录或账户可拥有集合。',
+    })),
     {
       stableId: 'agent-claret',
       aliases: ['candidate-3.2-agent-claret'],

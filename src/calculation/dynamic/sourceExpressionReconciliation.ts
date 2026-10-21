@@ -112,6 +112,7 @@ interface ReconciliationTargetConfig {
   targetPath: string
   sourceRef: string
   correctedRef?: string
+  correctedTargetKinds?: ('self' | 'active_agent' | 'team' | 'enemy')[]
   replacementIr?: unknown
   replacementRootIr?: unknown
   expectedReplacements?: number
@@ -123,6 +124,24 @@ interface ReconciliationTargetConfig {
 }
 
 const RECONCILIATION_TARGETS: ReconciliationTargetConfig[] = [
+  {
+    agentId: 'agent-yanagi',
+    effectId: 'exSpecial_anom_base_',
+    targetPath: 'libs/zzz/formula/src/data/char/sheets/Yanagi.ts',
+    sourceRef: 'ownBuff.combat.anom_base_',
+    correctedRef: 'teamBuff.combat.anom_base_',
+    correctedTargetKinds: ['team'],
+    evidence: [
+      'https://github.com/frzyc/genshin-optimizer/pull/3274',
+      'upstream-proposal:open-not-merged:observed-2026-10-21:0c471d2688c510cf1ef08237d5ac0a0ae8381f6b',
+      'libs/zzz/formula/src/data/char/sheets/Yanagi.ts@0c471d2688c510cf1ef08237d5ac0a0ae8381f6b#sha256=a41eb1cc80cbc5c5639483c29540b0716cf8dc9ea27fc3e1bb61b3dfc499f093',
+      'reviewed-local-receiver-adaptation:EX-original-anomaly-owner-matches-Ult-team-scope; coefficients-and-provider-AP-unchanged',
+    ],
+    prefix: 'yanagi_ex_polarity_receiver',
+    formulaSha256: '5FFF32C390B426C1CAFF95FDD0EE6C744EF8D2FDCBD3A7F24D378C2EDEB921A2',
+    expressionSha256: '746F28DF9ECC06BAF82906EB33E2CF101F5E1E10279BEACEE67F1D5DA273E72B',
+    originalIrSha256: '9c7e7866eff58007884db2743bc5ea0da4c342722ea0e15fab2117de63b4aa41',
+  },
   {
     agentId: 'agent-trigger',
     effectId: 'm1_stun_',
@@ -393,6 +412,7 @@ const RECONCILIATION_TARGETS: ReconciliationTargetConfig[] = [
 /** Narrow source correction and intermediate expansion, not a general rewrite.
  * - Pan, Ju Fufu, Dialyn core effects require initial stats per source text.
  * - Lighter ability effects expand the intermediate variable ability_ice_fire_dmg_check.
+ * - Yanagi EX polarity corrects both the receiver and compiled target metadata.
  * Callers hash this effective expression separately and keep original provenance.
  * Changed source pins fail closed.
  */
@@ -407,6 +427,7 @@ export function reconcileSourceExpression<T>(input: {
   applied: boolean
   evidence: string[]
   identity: string | null
+  correctedTargetKinds?: ('self' | 'active_agent' | 'team' | 'enemy')[]
 } {
   const config = RECONCILIATION_TARGETS.find(
     (target) => target.agentId === input.agentId && target.effectId === input.effectId,
@@ -465,10 +486,19 @@ export function reconcileSourceExpression<T>(input: {
     source: input.sourceCommit,
     original: input.expression,
     corrected: expression,
+    ...(config.correctedTargetKinds ? { correctedTargetKinds: config.correctedTargetKinds } : {}),
     evidence,
   })
 
-  return { expression, applied: true, evidence, identity }
+  return {
+    expression,
+    applied: true,
+    evidence,
+    identity,
+    ...(config.correctedTargetKinds
+      ? { correctedTargetKinds: [...config.correctedTargetKinds] }
+      : {}),
+  }
 }
 
 /** Production validates both captured source metadata and the original IR

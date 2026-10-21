@@ -156,6 +156,7 @@ export function recommendationItem(
     familyKey: teamRecommendationFamilyKey(recommendation),
     title: recommendation.label,
     agentIds: [...recommendation.memberIds],
+    formedTeamReference: authority?.formedTeamReference,
     coreAgentIds: [...resolveTeamPresentationFamily(recommendation.memberIds).coreAgentIds],
     mechanism: visibleDecisionText(
       recommendation.trace.find((step) => step.stage === 'pair_synergy')?.detail ??

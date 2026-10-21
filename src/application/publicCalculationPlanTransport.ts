@@ -130,6 +130,7 @@ export function projectPublicTargetTeamFit(
   return {
     scenarioSelection: fit.scenarioSelection,
     ...(fit.standardReference32 ? { standardReference32: fit.standardReference32 } : {}),
+    ...(fit.formedTeamReference ? { formedTeamReference: fit.formedTeamReference } : {}),
     ...(fit.standardReferenceRequest32
       ? { standardReferenceRequest32: fit.standardReferenceRequest32 }
       : {}),

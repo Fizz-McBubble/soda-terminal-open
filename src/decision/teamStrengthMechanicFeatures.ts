@@ -9,6 +9,7 @@ import { getCurrentAgentDecisionMechanicContract } from '../calculation/currentA
 import { compileNormalizedAgentEventSchedule } from '../calculation/currentNormalizedPlanningBaseline'
 import { resolveCurrentReleasedIdentity } from '../gameDataPacks/currentReleasedIdentityMap'
 import { stableContentHash } from '../gameDataPacks/types'
+import { teamAnomalyCapacityFeatureNames } from './teamStrengthAnomalyCapacityCoordinates'
 import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
 import { evaluateTeamPredicate, type TeamContext } from '../teamEngine/teamMethodR1'
 import { requiredAgentResources } from '../teamEngine/teamResourceRequirements'
@@ -58,7 +59,8 @@ export {
 const ruleById = new Map(current31TeamEngineD1Pack.agentRules.map((rule) => [rule.agentId, rule]))
 const outputSpecialties = new Set(['attack', 'anomaly', 'rupture', 'armorer'])
 const fieldBudget = 1.35
-export const teamStrengthMechanicFeaturesVersion = 'source-fact-team-features/v16' as const
+export const teamStrengthMechanicFeaturesVersion =
+  'reference-mindscape-and-coactive-source-contact-features/v19' as const
 /** Only inputs actually used here; guide rows, evidence counts and labels are excluded. */
 export const teamStrengthMechanicDataFingerprint = stableContentHash({
   version: teamStrengthMechanicFeaturesVersion,
@@ -320,6 +322,48 @@ export function extractTeamStrengthMechanicFeatures(
   const contactRecipients = [...output]
     .sort((left, right) => right.demand - left.demand || left.agentId.localeCompare(right.agentId))
     .slice(0, 2)
+  // Retain distinct providers for one recipient. A larger gain to a stun or
+  // secondary actor cannot stand in for the primary actor's contact gain.
+  // Different source states remain capacities, never simultaneous uptime.
+  const primarySourceAction = sourceCapacityEvidence.actions.find(
+    (row) => row.agentId === primary?.agentId,
+  )
+  const secondarySourceAction = sourceCapacityEvidence.actions
+    .filter(
+      (row) =>
+        row.agentId !== primary?.agentId &&
+        row.value !== null &&
+        row.value > 0 &&
+        members.some(
+          (member) =>
+            member.agentId === row.agentId &&
+            (outputSpecialties.has(member.specialty) || member.specialty === 'stun'),
+        ),
+    )
+    .sort(
+      (left, right) => right.value! - left.value! || left.agentId.localeCompare(right.agentId),
+    )[0]
+  const recipientProviderGains = (action: typeof primarySourceAction) => {
+    if (!action?.eventPacketIdentity || action.value === null || !Number.isFinite(action.value))
+      return []
+    const byProvider = new Map<string, number>()
+    for (const contact of sourceCapacityEvidence.contacts) {
+      if (
+        contact.recipientAgentId !== action.agentId ||
+        contact.providerAgentId === action.agentId ||
+        contact.eventPacketIdentity !== action.eventPacketIdentity ||
+        contact.relativeGain === null
+      )
+        continue
+      byProvider.set(
+        contact.providerAgentId,
+        Math.max(byProvider.get(contact.providerAgentId) ?? 0, contact.relativeGain),
+      )
+    }
+    return [...byProvider.values()].sort((left, right) => right - left)
+  }
+  const primaryRecipientGains = recipientProviderGains(primarySourceAction)
+  const secondaryRecipientGains = recipientProviderGains(secondarySourceAction)
   // Counterfactual contacts are an explicit diagnostic input. The deployed
   // model must opt in when it actually consumes them; ordinary extraction must
   // not execute unused damage evaluations for every legal trio.
@@ -426,7 +470,7 @@ export function extractTeamStrengthMechanicFeatures(
       Math.max(
         0,
         ...sourceCapacityEvidence.actions
-          .filter((row) => output.some((member) => member.agentId === row.agentId))
+          .filter((row) => row.agentId === primary?.agentId)
           .map((row) => row.value ?? 0),
       ),
     ),
@@ -447,13 +491,15 @@ export function extractTeamStrengthMechanicFeatures(
           .map((row) => row.value ?? 0),
       ),
     ),
-    sourceCapacityEvidence.primarySupportGain,
-    sourceCapacityEvidence.secondarySupportGain,
+    primaryRecipientGains[0] ?? 0,
+    primaryRecipientGains[1] ?? 0,
     sourceCapacityEvidence.anomalyProficiencyGain,
     sourceCapacityEvidence.anomalyMasteryGain,
     sourceCapacityEvidence.stunCapacity,
-    sourceCapacityEvidence.anomalyDamageCapacity,
-    sourceCapacityEvidence.anomalyBuildupCapacity,
+    ...teamAnomalyCapacityFeatureNames.map(
+      (name) => sourceCapacityEvidence.anomalyCoordinates[name],
+    ),
+    secondaryRecipientGains[0] ?? 0,
   ]
   // Additional source capacities are learned jointly; none is a fixed role bonus
   // or a claim that mutually exclusive actions form continuous throughput.

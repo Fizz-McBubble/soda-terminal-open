@@ -3,6 +3,7 @@ import { ExplanationPopover } from '../components/ExplanationPopover'
 import { TeamLoadoutPagination } from './TeamLoadoutPagination'
 import { TeamCompletionCandidates, TeamRow } from './TeamLoadoutOverviewParts'
 import type { TeamLoadoutOverviewGroup, TeamLoadoutOverviewItem } from './teamLoadoutOverviewModel'
+import { genericTeamRatingBands } from './teamRatingText'
 
 export function TeamGroup({
   group,
@@ -17,6 +18,8 @@ export function TeamGroup({
   onRecommendedPageChange,
   onlyFavorites = false,
   onOnlyFavoritesChange,
+  includeReferenceDirections = false,
+  onIncludeReferenceDirectionsChange,
   scopeActions,
   analysisActions,
 }: {
@@ -34,6 +37,8 @@ export function TeamGroup({
   onRecommendedPageChange?: (page: number) => void
   onlyFavorites?: boolean
   onOnlyFavoritesChange?: (checked: boolean) => void
+  includeReferenceDirections?: boolean
+  onIncludeReferenceDirectionsChange?: (checked: boolean) => void
 }) {
   const isRecommended = group.kind === 'recommended'
   if (!group.items.length && group.completionCandidates?.length) {
@@ -51,8 +56,15 @@ export function TeamGroup({
               showIndicator={false}
               className="f5v-box-team-recommendation-explanation"
             >
-              <p>这里展示现有角色下的可用配队方向，靠前不等于所有副本最优。</p>
-              <p>评级是搭配参考，请结合副本敌人、增益与实战调整。</p>
+              <p>先按标准成型配置比较队伍，再匹配你拥有的角色；培养与装备差距在选队后查看。</p>
+              <p>
+                {genericTeamRatingBands.map(([band, meaning]) => `${band}：${meaning}`).join('；')}
+                。
+              </p>
+              <p>
+                同档队伍没有已复核的替代关系时并列；列表位置不代表精确名次。副本敌人与增益可能改变选择。
+              </p>
+              <p>来源收录只说明搭配有据，不作为热度或强度分数。</p>
               <p>补强建议展示补齐一位角色可解锁的方向，不代表抽卡性价比。</p>
             </ExplanationPopover>
           ) : null}
@@ -79,6 +91,19 @@ export function TeamGroup({
               onChange={(event) => onOnlyFavoritesChange?.(event.target.checked)}
             />
             收藏角色
+          </label>
+        ) : null}
+        {isRecommended ? (
+          <label
+            className="f5v-box-team-favorites-filter"
+            title="显示有攻略来源、但属于历史版本或尚未评级的方向；这些方向仍可查看和配装。"
+          >
+            <input
+              type="checkbox"
+              checked={includeReferenceDirections}
+              onChange={(event) => onIncludeReferenceDirectionsChange?.(event.target.checked)}
+            />
+            更多来源方向
           </label>
         ) : null}
         {isRecommended ? scopeActions : null}

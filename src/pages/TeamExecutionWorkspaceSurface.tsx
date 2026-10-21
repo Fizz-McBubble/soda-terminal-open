@@ -11,6 +11,8 @@ import type { TeamDeploymentOrder } from '../decision/teamDeployment'
 import { TeamDeploymentControl } from './TeamDeploymentControl'
 import type { BuildIntentRecommendation } from '../decision/buildIntent'
 import { playerFacingBangbooLabel } from '../application/playerFacingLabels'
+import { FormedTeamReference } from './FormedTeamReference'
+import { formedCultivationGaps } from '../application/formedCultivationGaps'
 import {
   incompleteTeamLoadoutMessage,
   isSpecificTeamDiscReason,
@@ -168,6 +170,14 @@ export function TeamExecutionWorkspaceSurface({
   if (!selectedMember) return null
   return (
     <section className={`team-execution is-${view.status}`} aria-labelledby={headingId}>
+      <FormedTeamReference
+        reference={targetTeamFit?.formedTeamReference}
+        gaps={
+          targetTeamFit?.formedTeamReference
+            ? formedCultivationGaps(targetTeamFit.formedTeamReference, warehouse.roster)
+            : []
+        }
+      />
       <section
         className="team-execution__loadout"
         aria-labelledby={descriptionId}

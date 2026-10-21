@@ -1,5 +1,4 @@
 import rawIndex from '../gameDataPacks/generated/current31-team-intrinsic-index.v1.json'
-import strengthModel from '../gameDataPacks/generated/team-strength-model.3.1.json'
 import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
 import {
   canApplyReviewedReferenceSupport32,
@@ -7,10 +6,9 @@ import {
   reviewedReferenceSupportContinuity32,
 } from '../gameDataPacks/reviewedReferenceSupportContinuity32'
 import { stableContentHash } from '../gameDataPacks/types'
-import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
+import { currentAssetProjection } from '../gameDataPacks/currentAssetProjection'
 import type { Current31MechanicValidity } from './current31TeamStrengthCalibration'
-import { teamStrengthMechanicDataFingerprint } from './teamStrengthMechanicFeatures'
-import { assertValidStrengthRegression } from './teamStrengthRegression'
+import { createTeamIndexPayloadReader, unpackTeamIndexNodes } from './teamIndexPayload'
 import type { DecisionConfidenceBand, TeamRatingBand } from './teamDecisionAuthority'
 
 const bands = ['S+', 'S', 'A+', 'A', 'B', 'Experimental'] as const
@@ -35,17 +33,21 @@ type PreparedIndex = {
   agentIds: readonly string[]
   agentIndex: ReadonlyMap<string, number>
   rows: ReadonlyMap<number, RawRow>
+  formationFlags: ReadonlyMap<number, number>
+  detailRoots: ReadonlyMap<number, number>
+  readDetail: (id: number) => unknown
 }
 
 export type Current31TeamIntrinsicSummary = {
   ratingStatus: 'rated' | 'hard_invalid' | 'blocked'
   ratingBand: TeamRatingBand | null
   confidence: DecisionConfidenceBand | null
-  /** Diagnostic only; never admission or same-band ordering authority. */
+  /** Coarse-tier reference score; never admission or same-band ordering authority. */
   recommendationScore: number | null
   mechanicValidity: Current31MechanicValidity
   mainstreamStatus: 'unknown' | 'confirmed'
   metaAuthority: MetaAuthority
+  formationFlags: number
   mechanicallyClosed: boolean
   hasPreliminaryDirection: boolean
   indexContentHash: string
@@ -61,7 +63,6 @@ function exactArray(actual: unknown, expected: readonly string[]) {
 
 function prepareIndex(): { index: PreparedIndex | null; reason: string | null } {
   try {
-    assertValidStrengthRegression(strengthModel.regression)
     if (!rawIndex || typeof rawIndex !== 'object') throw new Error('artifact is not an object')
     const artifact = rawIndex as unknown as Record<string, unknown>
     if (artifact.contract !== 'soda-current31-team-intrinsic-index/v1')
@@ -104,8 +105,9 @@ function prepareIndex(): { index: PreparedIndex | null; reason: string | null } 
     )
       throw new Error('agent dictionary is invalid')
     const agentIds = artifact.agentIds as string[]
-    const currentAgentIds = current31TeamEngineD1Pack.agentRules
-      .map((rule) => rule.agentId)
+    const currentAgentIds = currentAssetProjection.agents
+      .filter((agent) => agent.releaseState === 'released' && agent.accountOwnable)
+      .map((agent) => agent.stableId)
       .sort((left, right) => left.localeCompare(right))
     if (!exactArray(agentIds, currentAgentIds)) throw new Error('agent dictionary is stale')
     const dictionaries = artifact.dictionaries as Record<string, unknown> | undefined
@@ -119,18 +121,30 @@ function prepareIndex(): { index: PreparedIndex | null; reason: string | null } 
     )
       throw new Error('value dictionaries are invalid')
     const fingerprints = artifact.runtimeFingerprints as Record<string, unknown> | undefined
-    if (
-      !fingerprints ||
-      fingerprints.roster !== stableContentHash(currentAgentIds) ||
-      fingerprints.mechanicData !== teamStrengthMechanicDataFingerprint ||
-      fingerprints.strengthModel !== stableContentHash(strengthModel)
-    )
+    if (!fingerprints || fingerprints.roster !== stableContentHash(currentAgentIds))
       throw new Error('runtime fingerprint mismatch')
     if (!Array.isArray(artifact.rows)) throw new Error('rows are missing')
     const expectedRows = (agentIds.length * (agentIds.length - 1) * (agentIds.length - 2)) / 6
     if (artifact.rows.length !== expectedRows) throw new Error('row coverage mismatch')
+    const details = artifact.details as
+      | { contract?: string; data: string; codec: string; roots: number[] }
+      | undefined
+    if (
+      details?.contract !== 'soda-offline-team-details/v1' ||
+      typeof details.data !== 'string' ||
+      details.codec !== 'lz-string-base64/1.5.0' ||
+      !Array.isArray(details.roots) ||
+      details.roots.length !== expectedRows
+    )
+      throw new Error('offline detail coverage mismatch')
+    const nodes = unpackTeamIndexNodes(details.data)
+    const readDetail = createTeamIndexPayloadReader(nodes)
+    const formationFlags = new Map<number, number>()
+    if (!Array.isArray(artifact.formationFlags) || artifact.formationFlags.length !== expectedRows)
+      throw new Error('formation flags missing')
+    const detailRoots = new Map<number, number>()
     const rows = new Map<number, RawRow>()
-    for (const raw of artifact.rows) {
+    for (const [ordinal, raw] of artifact.rows.entries()) {
       if (!Array.isArray(raw) || raw.length !== 11 || !raw.every(Number.isInteger))
         throw new Error('row shape is invalid')
       const [first, second, third] = raw
@@ -139,6 +153,14 @@ function prepareIndex(): { index: PreparedIndex | null; reason: string | null } 
       const key = first! * agentIds.length * agentIds.length + second! * agentIds.length + third!
       if (rows.has(key)) throw new Error('duplicate row identity')
       rows.set(key, raw)
+      const flag = artifact.formationFlags[ordinal]
+      if (!Number.isInteger(flag) || flag < 0 || flag > 15)
+        throw new Error('formation flags invalid')
+      formationFlags.set(key, flag)
+      const root = details.roots[ordinal]!
+      if (!Number.isInteger(root) || root < 0 || root >= nodes.length)
+        throw new Error('offline detail root invalid')
+      detailRoots.set(key, root)
     }
     return {
       index: {
@@ -147,6 +169,9 @@ function prepareIndex(): { index: PreparedIndex | null; reason: string | null } 
         agentIds,
         agentIndex: new Map(agentIds.map((id, index) => [id, index])),
         rows,
+        formationFlags,
+        detailRoots,
+        readDetail,
       },
       reason: null,
     }
@@ -155,10 +180,44 @@ function prepareIndex(): { index: PreparedIndex | null; reason: string | null } 
   }
 }
 
+export type OfflineTeamDetails = Pick<
+  ReturnType<typeof import('./current31TeamRating').evaluateCurrent31TeamRating>,
+  | 'featureVector'
+  | 'mechanicValidity'
+  | 'mainstreamRecognition'
+  | 'mechanicRating'
+  | 'referencePerformance'
+  | 'metaCalibration'
+  | 'rating'
+> & {
+  formedTeamReference: import('../application/publicFormedTeamReference').FormedTeamReference
+  prerequisiteStatus: 'eligible' | 'condition-not-met' | 'condition-unknown'
+  primaryOutputAgentId: string | null
+}
+
+/** Pure data lookup. Each caller receives its own objects; no rating/solver fallback. */
+export function lookupCurrent31TeamIntrinsicDetails(
+  memberIds: readonly string[],
+  candidateId: string,
+): OfflineTeamDetails | null {
+  const index = prepared.index
+  if (!index || memberIds.length !== 3 || new Set(memberIds).size !== 3) return null
+  const positions = memberIds.map((id) => index.agentIndex.get(id)).sort((a, b) => a! - b!)
+  if (positions.some((n) => n === undefined)) return null
+  const [a, b, c] = positions as [number, number, number]
+  const root = index.detailRoots.get(a * index.agentIds.length ** 2 + b * index.agentIds.length + c)
+  if (root === undefined) return null
+  const result = index.readDetail(root) as OfflineTeamDetails
+  result.featureVector.candidateId = candidateId
+  result.rating.candidateId = candidateId
+  result.mechanicRating.candidateId = candidateId
+  return result
+}
+
 const prepared = prepareIndex()
 
 export const current31TeamIntrinsicIndexStatus = Object.freeze({
-  status: prepared.index ? ('ready' as const) : ('fallback' as const),
+  status: prepared.index ? ('ready' as const) : ('unavailable' as const),
   reason: prepared.reason,
   contentHash: prepared.index?.contentHash ?? null,
   referenceContinuity: prepared.index?.legacyReference
@@ -205,6 +264,9 @@ export function lookupCurrent31TeamIntrinsicSummary(
     mechanicValidity: mechanicValidities[validity!]!,
     mainstreamStatus: mainstreamStatuses[mainstream!]!,
     metaAuthority: metaAuthorities[authority!]!,
+    formationFlags: index.formationFlags.get(
+      first * index.agentIds.length ** 2 + second * index.agentIds.length + third,
+    )!,
     mechanicallyClosed: Boolean(flags! & 1),
     hasPreliminaryDirection: Boolean(flags! & 2),
     indexContentHash: index.contentHash,

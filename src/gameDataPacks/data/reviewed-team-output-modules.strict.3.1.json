@@ -1,0 +1,1573 @@
+{
+  "schema": "soda-reviewed-team-output-modules-strict-batch/v1",
+  "sourceSchema": "soda-strict-team-output-candidates/v1",
+  "sourceCount": 44,
+  "sourceSha256": "2972b7a700953e3607f8c19d7d942d8a7d733c56824786ed5ec015d7da3a152e",
+  "boundary": "Historical exact-team review only. Every row has one manually adjudicated primary driver quote whose exact UTF-16 span and nested unit hash are verified. Specialty alone and template/substitution-only rows are excluded. Current strength is not inherited.",
+  "entries": [
+    {
+      "claimId": "reviewed-nested-8250802fd830d78406537696",
+      "memberIds": [
+        "agent-alice",
+        "agent-burnice",
+        "agent-astra"
+      ],
+      "sourceVersion": "2.1",
+      "url": "https://www.miyoushe.com/zzz/article/67197387",
+      "title": "【2.1攻略征集】「爱丽丝」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-alice",
+      "evidence": {
+        "op": 57,
+        "start": 614,
+        "end": 665,
+        "text": "多结算伤害：敌人物理积蓄即将满时，爱丽丝发动三蓄快速打出强击、极性强击、物理异放、紊乱等多种结算伤害。",
+        "unitRawSha256": "c2e94ba43f5ef6a0d190441299c82ba1724e3a979fd76a97bb46435f40e157c5",
+        "unitTextSha256": "5236dfe5f1aeb457f4c7c798ec536e1ea5ff95ba7a902d646228fb5de93d1c3b",
+        "quoteSha256": "f02e1517435f080ad2ffbc21d047fad5ed956f3e5222d8877b27ab82264b6353"
+      },
+      "module": {
+        "id": "module-strict-8250802fd830d78406537696",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder",
+          "abloom"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support",
+          "anomaly_amplification"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-fe073141b3a9632389323ac5",
+      "memberIds": [
+        "agent-alice",
+        "agent-jane",
+        "agent-astra"
+      ],
+      "sourceVersion": "2.1",
+      "url": "https://www.miyoushe.com/zzz/article/67197387",
+      "title": "【2.1攻略征集】「爱丽丝」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-jane",
+      "evidence": {
+        "op": 63,
+        "start": 12,
+        "end": 42,
+        "text": "多以简站场输出、爱丽丝主打速切爆发，三人可互相触发额外能力。",
+        "unitRawSha256": "ef3a37d69b2498d90fcc3054b7ab6d602e5876a887a8c3f44b57a35cf570436f",
+        "unitTextSha256": "ee64595956f4efc9f1df700c6b9e861675b95572867e1d3029c6ac703eb65b8f",
+        "quoteSha256": "dde7059225934d90f529949436874eb6781bbb2d1c763a42cea7748a358824f4"
+      },
+      "module": {
+        "id": "module-strict-fe073141b3a9632389323ac5",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-16eca9e96c253b723935f2b0",
+      "memberIds": [
+        "agent-alice",
+        "agent-vivian",
+        "agent-astra"
+      ],
+      "sourceVersion": "2.1",
+      "url": "https://www.miyoushe.com/zzz/article/67197387",
+      "title": "【2.1攻略征集】「爱丽丝」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-alice",
+      "evidence": {
+        "op": 57,
+        "start": 614,
+        "end": 665,
+        "text": "多结算伤害：敌人物理积蓄即将满时，爱丽丝发动三蓄快速打出强击、极性强击、物理异放、紊乱等多种结算伤害。",
+        "unitRawSha256": "c2e94ba43f5ef6a0d190441299c82ba1724e3a979fd76a97bb46435f40e157c5",
+        "unitTextSha256": "5236dfe5f1aeb457f4c7c798ec536e1ea5ff95ba7a902d646228fb5de93d1c3b",
+        "quoteSha256": "f02e1517435f080ad2ffbc21d047fad5ed956f3e5222d8877b27ab82264b6353"
+      },
+      "module": {
+        "id": "module-strict-16eca9e96c253b723935f2b0",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder",
+          "abloom"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support",
+          "anomaly_amplification"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-b86cc6e34805f215841593ac",
+      "memberIds": [
+        "agent-alice",
+        "agent-yanagi",
+        "agent-astra"
+      ],
+      "sourceVersion": "2.1",
+      "url": "https://www.miyoushe.com/zzz/article/67197387",
+      "title": "【2.1攻略征集】「爱丽丝」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-yanagi",
+      "evidence": {
+        "op": 59,
+        "start": 126,
+        "end": 156,
+        "text": "爱丽丝的极性强击也能施加物理异常状态，可配合柳触发极性紊乱。",
+        "unitRawSha256": "d69cf54df36f7db5e2f798e3820cb97cc14b14a0674c3cb6ef08861199206f65",
+        "unitTextSha256": "f957427941b98e5aec50e62a9bd3ce3bc5ae40892fa1a63d952852de583e372f",
+        "quoteSha256": "b2cdf5978e38aa716bbfd324ef2d9a7a08cf5a2e7169c66f019d22c17b6224b8"
+      },
+      "module": {
+        "id": "module-strict-b86cc6e34805f215841593ac",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder",
+          "polarity"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-1fd61ef5ad4da344e383aaff",
+      "memberIds": [
+        "agent-alice",
+        "agent-yuzuha",
+        "agent-astra"
+      ],
+      "sourceVersion": "2.1",
+      "url": "https://www.miyoushe.com/zzz/article/67197387",
+      "title": "【2.1攻略征集】「爱丽丝」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-alice",
+      "evidence": {
+        "op": 64,
+        "start": 29,
+        "end": 111,
+        "text": "爱丽丝本身就具有持续站场输出的能力，当自己可选择的辅助角色较多时，完全可考虑引入两名优秀的支援角色来全力提高爱丽丝的输出，进一步提高常规强击、极性强击、紊乱的伤害。",
+        "unitRawSha256": "f11649f7fddd8103578fc09aa22e47d3ea6ff6b4a504f7f551692992082606e7",
+        "unitTextSha256": "a3aafe6958aee786aa97a25e51e5d35f89b870758e0c64b11a95c26840f8fab5",
+        "quoteSha256": "42b161e6ec50d1c775c6f6be2875278acc10369b33e20dbf93e6a64d1f53b0ca"
+      },
+      "module": {
+        "id": "module-strict-1fd61ef5ad4da344e383aaff",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder"
+        ],
+        "executionChannels": [],
+        "teamFunctions": [
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-3956977e898135789bbb54f5",
+      "memberIds": [
+        "agent-alice",
+        "agent-burnice",
+        "agent-lucy"
+      ],
+      "sourceVersion": "2.1",
+      "url": "https://www.miyoushe.com/zzz/article/67197387",
+      "title": "【2.1攻略征集】「爱丽丝」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-alice",
+      "evidence": {
+        "op": 57,
+        "start": 614,
+        "end": 665,
+        "text": "多结算伤害：敌人物理积蓄即将满时，爱丽丝发动三蓄快速打出强击、极性强击、物理异放、紊乱等多种结算伤害。",
+        "unitRawSha256": "c2e94ba43f5ef6a0d190441299c82ba1724e3a979fd76a97bb46435f40e157c5",
+        "unitTextSha256": "5236dfe5f1aeb457f4c7c798ec536e1ea5ff95ba7a902d646228fb5de93d1c3b",
+        "quoteSha256": "f02e1517435f080ad2ffbc21d047fad5ed956f3e5222d8877b27ab82264b6353"
+      },
+      "module": {
+        "id": "module-strict-3956977e898135789bbb54f5",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder",
+          "abloom"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support",
+          "anomaly_amplification"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-2321779856d222a55727b765",
+      "memberIds": [
+        "agent-alice",
+        "agent-burnice",
+        "agent-yuzuha"
+      ],
+      "sourceVersion": "2.1",
+      "url": "https://www.miyoushe.com/zzz/article/67197387",
+      "title": "【2.1攻略征集】「爱丽丝」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-alice",
+      "evidence": {
+        "op": 57,
+        "start": 614,
+        "end": 665,
+        "text": "多结算伤害：敌人物理积蓄即将满时，爱丽丝发动三蓄快速打出强击、极性强击、物理异放、紊乱等多种结算伤害。",
+        "unitRawSha256": "c2e94ba43f5ef6a0d190441299c82ba1724e3a979fd76a97bb46435f40e157c5",
+        "unitTextSha256": "5236dfe5f1aeb457f4c7c798ec536e1ea5ff95ba7a902d646228fb5de93d1c3b",
+        "quoteSha256": "f02e1517435f080ad2ffbc21d047fad5ed956f3e5222d8877b27ab82264b6353"
+      },
+      "module": {
+        "id": "module-strict-2321779856d222a55727b765",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder",
+          "abloom"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support",
+          "anomaly_amplification"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-355385a6092720179f87e9f7",
+      "memberIds": [
+        "agent-alice",
+        "agent-jane",
+        "agent-lucy"
+      ],
+      "sourceVersion": "2.1",
+      "url": "https://www.miyoushe.com/zzz/article/67197387",
+      "title": "【2.1攻略征集】「爱丽丝」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-jane",
+      "evidence": {
+        "op": 63,
+        "start": 12,
+        "end": 42,
+        "text": "多以简站场输出、爱丽丝主打速切爆发，三人可互相触发额外能力。",
+        "unitRawSha256": "ef3a37d69b2498d90fcc3054b7ab6d602e5876a887a8c3f44b57a35cf570436f",
+        "unitTextSha256": "ee64595956f4efc9f1df700c6b9e861675b95572867e1d3029c6ac703eb65b8f",
+        "quoteSha256": "dde7059225934d90f529949436874eb6781bbb2d1c763a42cea7748a358824f4"
+      },
+      "module": {
+        "id": "module-strict-355385a6092720179f87e9f7",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-32c94976c21b889592399f63",
+      "memberIds": [
+        "agent-alice",
+        "agent-jane",
+        "agent-yuzuha"
+      ],
+      "sourceVersion": "2.1",
+      "url": "https://www.miyoushe.com/zzz/article/67197387",
+      "title": "【2.1攻略征集】「爱丽丝」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-jane",
+      "evidence": {
+        "op": 63,
+        "start": 12,
+        "end": 42,
+        "text": "多以简站场输出、爱丽丝主打速切爆发，三人可互相触发额外能力。",
+        "unitRawSha256": "ef3a37d69b2498d90fcc3054b7ab6d602e5876a887a8c3f44b57a35cf570436f",
+        "unitTextSha256": "ee64595956f4efc9f1df700c6b9e861675b95572867e1d3029c6ac703eb65b8f",
+        "quoteSha256": "dde7059225934d90f529949436874eb6781bbb2d1c763a42cea7748a358824f4"
+      },
+      "module": {
+        "id": "module-strict-32c94976c21b889592399f63",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-2330c27c803d014b6576d0ef",
+      "memberIds": [
+        "agent-alice",
+        "agent-vivian",
+        "agent-lucy"
+      ],
+      "sourceVersion": "2.1",
+      "url": "https://www.miyoushe.com/zzz/article/67197387",
+      "title": "【2.1攻略征集】「爱丽丝」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-alice",
+      "evidence": {
+        "op": 57,
+        "start": 614,
+        "end": 665,
+        "text": "多结算伤害：敌人物理积蓄即将满时，爱丽丝发动三蓄快速打出强击、极性强击、物理异放、紊乱等多种结算伤害。",
+        "unitRawSha256": "c2e94ba43f5ef6a0d190441299c82ba1724e3a979fd76a97bb46435f40e157c5",
+        "unitTextSha256": "5236dfe5f1aeb457f4c7c798ec536e1ea5ff95ba7a902d646228fb5de93d1c3b",
+        "quoteSha256": "f02e1517435f080ad2ffbc21d047fad5ed956f3e5222d8877b27ab82264b6353"
+      },
+      "module": {
+        "id": "module-strict-2330c27c803d014b6576d0ef",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder",
+          "abloom"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support",
+          "anomaly_amplification"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-96ea56a090e4e3877ff86776",
+      "memberIds": [
+        "agent-alice",
+        "agent-yanagi",
+        "agent-lucy"
+      ],
+      "sourceVersion": "2.1",
+      "url": "https://www.miyoushe.com/zzz/article/67197387",
+      "title": "【2.1攻略征集】「爱丽丝」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-yanagi",
+      "evidence": {
+        "op": 59,
+        "start": 126,
+        "end": 156,
+        "text": "爱丽丝的极性强击也能施加物理异常状态，可配合柳触发极性紊乱。",
+        "unitRawSha256": "d69cf54df36f7db5e2f798e3820cb97cc14b14a0674c3cb6ef08861199206f65",
+        "unitTextSha256": "f957427941b98e5aec50e62a9bd3ce3bc5ae40892fa1a63d952852de583e372f",
+        "quoteSha256": "b2cdf5978e38aa716bbfd324ef2d9a7a08cf5a2e7169c66f019d22c17b6224b8"
+      },
+      "module": {
+        "id": "module-strict-96ea56a090e4e3877ff86776",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder",
+          "polarity"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-92cf1641435dbee21d4abc57",
+      "memberIds": [
+        "agent-alice",
+        "agent-vivian",
+        "agent-yuzuha"
+      ],
+      "sourceVersion": "2.1",
+      "url": "https://www.miyoushe.com/zzz/article/67197387",
+      "title": "【2.1攻略征集】「爱丽丝」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-alice",
+      "evidence": {
+        "op": 57,
+        "start": 614,
+        "end": 665,
+        "text": "多结算伤害：敌人物理积蓄即将满时，爱丽丝发动三蓄快速打出强击、极性强击、物理异放、紊乱等多种结算伤害。",
+        "unitRawSha256": "c2e94ba43f5ef6a0d190441299c82ba1724e3a979fd76a97bb46435f40e157c5",
+        "unitTextSha256": "5236dfe5f1aeb457f4c7c798ec536e1ea5ff95ba7a902d646228fb5de93d1c3b",
+        "quoteSha256": "f02e1517435f080ad2ffbc21d047fad5ed956f3e5222d8877b27ab82264b6353"
+      },
+      "module": {
+        "id": "module-strict-92cf1641435dbee21d4abc57",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder",
+          "abloom"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support",
+          "anomaly_amplification"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-ade3e599c6eb1ad6a9a7fcc5",
+      "memberIds": [
+        "agent-alice",
+        "agent-yanagi",
+        "agent-yuzuha"
+      ],
+      "sourceVersion": "2.1",
+      "url": "https://www.miyoushe.com/zzz/article/67197387",
+      "title": "【2.1攻略征集】「爱丽丝」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-yanagi",
+      "evidence": {
+        "op": 59,
+        "start": 126,
+        "end": 156,
+        "text": "爱丽丝的极性强击也能施加物理异常状态，可配合柳触发极性紊乱。",
+        "unitRawSha256": "d69cf54df36f7db5e2f798e3820cb97cc14b14a0674c3cb6ef08861199206f65",
+        "unitTextSha256": "f957427941b98e5aec50e62a9bd3ce3bc5ae40892fa1a63d952852de583e372f",
+        "quoteSha256": "b2cdf5978e38aa716bbfd324ef2d9a7a08cf5a2e7169c66f019d22c17b6224b8"
+      },
+      "module": {
+        "id": "module-strict-ade3e599c6eb1ad6a9a7fcc5",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder",
+          "polarity"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-fcfd16452f8f032331136391",
+      "memberIds": [
+        "agent-grace",
+        "agent-vivian",
+        "agent-astra"
+      ],
+      "sourceVersion": "1.7",
+      "url": "https://www.miyoushe.com/zzz/article/63809342",
+      "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-grace",
+      "evidence": {
+        "op": 56,
+        "start": 222,
+        "end": 242,
+        "text": "格莉丝也可考虑体验，持续站场积蓄电异常。",
+        "unitRawSha256": "e8f112bf87cf5bb0f1bf6d3470ae07c510d4cd7d5e024cacefa1b4d65583c008",
+        "unitTextSha256": "88e14d8c29d16606a304e5ce824af74db79825732ce8b029917681f753162219",
+        "quoteSha256": "28e62638dfb11374665e65b59ed94dbd6ca25ed86ca9c4e9903640bc3e29f795"
+      },
+      "module": {
+        "id": "module-strict-fcfd16452f8f032331136391",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder",
+          "abloom"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support",
+          "anomaly_amplification"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-44978d4d419fc72b16d09eae",
+      "memberIds": [
+        "agent-pyrois",
+        "agent-norma",
+        "agent-astra"
+      ],
+      "sourceVersion": "3.0",
+      "url": "https://www.miyoushe.com/zzz/article/76528334",
+      "title": "【3.0攻略征集】「诺姆」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-pyrois",
+      "evidence": {
+        "op": 51,
+        "start": 166,
+        "end": 212,
+        "text": "诺姆的快支升连携让佩洛伊斯发动连携技、衔接第3段普攻，获得更多喧响值，为终结技的施放做铺垫。",
+        "unitRawSha256": "e37cfdf85db3d73b5112767bd74d7cc494fa4ab00a155188c4fac8ac048b9db3",
+        "unitTextSha256": "6f81810462d0b37f17b6322ed86541c1b715525ad7a066d8d421c582d130e122",
+        "quoteSha256": "e367d22fa07b321013d742ecb948ba5383e5e06001ef45b088dab8f414bd12eb"
+      },
+      "module": {
+        "id": "module-strict-44978d4d419fc72b16d09eae",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window",
+          "chain",
+          "ultimate",
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "stun",
+          "support",
+          "resource_supply"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-2f9d6d3006fd127f9962cbf9",
+      "memberIds": [
+        "agent-soldier-0-anby",
+        "agent-pulchra",
+        "agent-astra"
+      ],
+      "sourceVersion": "1.6",
+      "url": "https://www.miyoushe.com/zzz/article/62601775",
+      "title": "【1.6攻略征集】零号·安比 全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-soldier-0-anby",
+      "evidence": {
+        "op": 63,
+        "start": 465,
+        "end": 501,
+        "text": "无论多连携还是提前结束连携，安比失衡期打12次追击的时间还是比较充足的。",
+        "unitRawSha256": "dde2a987a80ad089566c4450f24a6d2371440b7b9ba4cc029a227de3091a23bf",
+        "unitTextSha256": "f088fbeb711bd762295182f200bbc1c391e07b543519005fc638a70502b5b7dd",
+        "quoteSha256": "932571170682c1b2753abb681a7d81d01ff32632d2ce182428057d4775180189"
+      },
+      "module": {
+        "id": "module-strict-2f9d6d3006fd127f9962cbf9",
+        "primaryOutputKind": "aftershock",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window",
+          "chain",
+          "ultimate",
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "stun",
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-20f927440022fb126a2b9272",
+      "memberIds": [
+        "agent-yanagi",
+        "agent-vivian",
+        "agent-astra"
+      ],
+      "sourceVersion": "1.7",
+      "url": "https://www.miyoushe.com/zzz/article/63809342",
+      "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-yanagi",
+      "evidence": {
+        "op": 56,
+        "start": 363,
+        "end": 405,
+        "text": "感电双异放：敌人物理积蓄即将满时，柳施放强化特殊技快速消耗2点护羽打出2次感电异放。",
+        "unitRawSha256": "e8f112bf87cf5bb0f1bf6d3470ae07c510d4cd7d5e024cacefa1b4d65583c008",
+        "unitTextSha256": "88e14d8c29d16606a304e5ce824af74db79825732ce8b029917681f753162219",
+        "quoteSha256": "21e27cb99a211447ee9d4780702b10e6e2b69c7f53057c90c2b1198a3b650b70"
+      },
+      "module": {
+        "id": "module-strict-20f927440022fb126a2b9272",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder",
+          "abloom",
+          "polarity"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support",
+          "anomaly_amplification"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-e2db87c97bde67e4983b8c72",
+      "memberIds": [
+        "agent-grace",
+        "agent-vivian",
+        "agent-caesar"
+      ],
+      "sourceVersion": "1.7",
+      "url": "https://www.miyoushe.com/zzz/article/63809342",
+      "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-grace",
+      "evidence": {
+        "op": 56,
+        "start": 222,
+        "end": 242,
+        "text": "格莉丝也可考虑体验，持续站场积蓄电异常。",
+        "unitRawSha256": "e8f112bf87cf5bb0f1bf6d3470ae07c510d4cd7d5e024cacefa1b4d65583c008",
+        "unitTextSha256": "88e14d8c29d16606a304e5ce824af74db79825732ce8b029917681f753162219",
+        "quoteSha256": "28e62638dfb11374665e65b59ed94dbd6ca25ed86ca9c4e9903640bc3e29f795"
+      },
+      "module": {
+        "id": "module-strict-e2db87c97bde67e4983b8c72",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder",
+          "abloom"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support",
+          "anomaly_amplification"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-8e58cb7dfdd1c176324d080a",
+      "memberIds": [
+        "agent-jane",
+        "agent-vivian",
+        "agent-caesar"
+      ],
+      "sourceVersion": "1.7",
+      "url": "https://www.miyoushe.com/zzz/article/63809342",
+      "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-jane",
+      "evidence": {
+        "op": 58,
+        "start": 24,
+        "end": 42,
+        "text": "简薇队以强击伤害（含强击异放）为主。",
+        "unitRawSha256": "fa904e2ce3b2e3f582991de8bb6eb17f75ba665d5d0923ca3b8f149ebc0dce5e",
+        "unitTextSha256": "882859fb8fe51383a2f6cd14c41cf05b27254ca308edc6750d0a8e7642961795",
+        "quoteSha256": "44181185703d7f40a0e50952cf2c8d1ca025d5f4bf00f380f1b5a3a13d2e8978"
+      },
+      "module": {
+        "id": "module-strict-8e58cb7dfdd1c176324d080a",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder",
+          "abloom"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-1a4614d3b81f4078011f8c76",
+      "memberIds": [
+        "agent-yanagi",
+        "agent-vivian",
+        "agent-caesar"
+      ],
+      "sourceVersion": "1.7",
+      "url": "https://www.miyoushe.com/zzz/article/63809342",
+      "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-yanagi",
+      "evidence": {
+        "op": 56,
+        "start": 363,
+        "end": 405,
+        "text": "感电双异放：敌人物理积蓄即将满时，柳施放强化特殊技快速消耗2点护羽打出2次感电异放。",
+        "unitRawSha256": "e8f112bf87cf5bb0f1bf6d3470ae07c510d4cd7d5e024cacefa1b4d65583c008",
+        "unitTextSha256": "88e14d8c29d16606a304e5ce824af74db79825732ce8b029917681f753162219",
+        "quoteSha256": "21e27cb99a211447ee9d4780702b10e6e2b69c7f53057c90c2b1198a3b650b70"
+      },
+      "module": {
+        "id": "module-strict-1a4614d3b81f4078011f8c76",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder",
+          "abloom",
+          "polarity"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support",
+          "anomaly_amplification"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-116d94200afdc32ab6acd688",
+      "memberIds": [
+        "agent-evelyn",
+        "agent-norma",
+        "agent-ju-fufu"
+      ],
+      "sourceVersion": "3.0",
+      "url": "https://www.miyoushe.com/zzz/article/76528334",
+      "title": "【3.0攻略征集】「诺姆」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-evelyn",
+      "evidence": {
+        "op": 53,
+        "start": 12,
+        "end": 63,
+        "text": "诺姆的快支升连携正中伊芙琳的机制，伊芙琳主打连携技伤害，失衡期恰当利用能让伊芙琳更轻松地打出多连携技。",
+        "unitRawSha256": "79b693cdd3f8ec84f36b1f50b04e9811d41a387891689270ddf23089564b8862",
+        "unitTextSha256": "fa4f12f1a49febb79683d406d0433a7b5c1c8aa723e3c895708860c5fd92df2e",
+        "quoteSha256": "10de2c142d813acbb2cfbd0652afbe6e49c6592d2b1bd1949572c66f83b75136"
+      },
+      "module": {
+        "id": "module-strict-116d94200afdc32ab6acd688",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window",
+          "chain",
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "stun",
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-6c0bda37a88a875f588ff0a8",
+      "memberIds": [
+        "agent-evelyn",
+        "agent-norma",
+        "agent-lighter"
+      ],
+      "sourceVersion": "3.0",
+      "url": "https://www.miyoushe.com/zzz/article/76528334",
+      "title": "【3.0攻略征集】「诺姆」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-evelyn",
+      "evidence": {
+        "op": 53,
+        "start": 12,
+        "end": 63,
+        "text": "诺姆的快支升连携正中伊芙琳的机制，伊芙琳主打连携技伤害，失衡期恰当利用能让伊芙琳更轻松地打出多连携技。",
+        "unitRawSha256": "79b693cdd3f8ec84f36b1f50b04e9811d41a387891689270ddf23089564b8862",
+        "unitTextSha256": "fa4f12f1a49febb79683d406d0433a7b5c1c8aa723e3c895708860c5fd92df2e",
+        "quoteSha256": "10de2c142d813acbb2cfbd0652afbe6e49c6592d2b1bd1949572c66f83b75136"
+      },
+      "module": {
+        "id": "module-strict-6c0bda37a88a875f588ff0a8",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window",
+          "chain",
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "stun",
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-f5a809a2de881b527cfb507e",
+      "memberIds": [
+        "agent-evelyn",
+        "agent-norma",
+        "agent-lucy"
+      ],
+      "sourceVersion": "3.0",
+      "url": "https://www.miyoushe.com/zzz/article/76528334",
+      "title": "【3.0攻略征集】「诺姆」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-evelyn",
+      "evidence": {
+        "op": 53,
+        "start": 12,
+        "end": 63,
+        "text": "诺姆的快支升连携正中伊芙琳的机制，伊芙琳主打连携技伤害，失衡期恰当利用能让伊芙琳更轻松地打出多连携技。",
+        "unitRawSha256": "79b693cdd3f8ec84f36b1f50b04e9811d41a387891689270ddf23089564b8862",
+        "unitTextSha256": "fa4f12f1a49febb79683d406d0433a7b5c1c8aa723e3c895708860c5fd92df2e",
+        "quoteSha256": "10de2c142d813acbb2cfbd0652afbe6e49c6592d2b1bd1949572c66f83b75136"
+      },
+      "module": {
+        "id": "module-strict-f5a809a2de881b527cfb507e",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window",
+          "chain",
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "stun",
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-aed6aba7658a2f6a91f9a09d",
+      "memberIds": [
+        "agent-evelyn",
+        "agent-norma",
+        "agent-nicole"
+      ],
+      "sourceVersion": "3.0",
+      "url": "https://www.miyoushe.com/zzz/article/76528334",
+      "title": "【3.0攻略征集】「诺姆」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-evelyn",
+      "evidence": {
+        "op": 53,
+        "start": 12,
+        "end": 63,
+        "text": "诺姆的快支升连携正中伊芙琳的机制，伊芙琳主打连携技伤害，失衡期恰当利用能让伊芙琳更轻松地打出多连携技。",
+        "unitRawSha256": "79b693cdd3f8ec84f36b1f50b04e9811d41a387891689270ddf23089564b8862",
+        "unitTextSha256": "fa4f12f1a49febb79683d406d0433a7b5c1c8aa723e3c895708860c5fd92df2e",
+        "quoteSha256": "10de2c142d813acbb2cfbd0652afbe6e49c6592d2b1bd1949572c66f83b75136"
+      },
+      "module": {
+        "id": "module-strict-aed6aba7658a2f6a91f9a09d",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window",
+          "chain",
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "stun",
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-1f81d8d7f48991da5936f6af",
+      "memberIds": [
+        "agent-evelyn",
+        "agent-norma",
+        "agent-sunna"
+      ],
+      "sourceVersion": "3.0",
+      "url": "https://www.miyoushe.com/zzz/article/76528334",
+      "title": "【3.0攻略征集】「诺姆」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-evelyn",
+      "evidence": {
+        "op": 53,
+        "start": 12,
+        "end": 63,
+        "text": "诺姆的快支升连携正中伊芙琳的机制，伊芙琳主打连携技伤害，失衡期恰当利用能让伊芙琳更轻松地打出多连携技。",
+        "unitRawSha256": "79b693cdd3f8ec84f36b1f50b04e9811d41a387891689270ddf23089564b8862",
+        "unitTextSha256": "fa4f12f1a49febb79683d406d0433a7b5c1c8aa723e3c895708860c5fd92df2e",
+        "quoteSha256": "10de2c142d813acbb2cfbd0652afbe6e49c6592d2b1bd1949572c66f83b75136"
+      },
+      "module": {
+        "id": "module-strict-1f81d8d7f48991da5936f6af",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window",
+          "chain",
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "stun",
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-1f7baad6299e1eca4bcbe454",
+      "memberIds": [
+        "agent-grace",
+        "agent-vivian",
+        "agent-lucy"
+      ],
+      "sourceVersion": "1.7",
+      "url": "https://www.miyoushe.com/zzz/article/63809342",
+      "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-grace",
+      "evidence": {
+        "op": 56,
+        "start": 222,
+        "end": 242,
+        "text": "格莉丝也可考虑体验，持续站场积蓄电异常。",
+        "unitRawSha256": "e8f112bf87cf5bb0f1bf6d3470ae07c510d4cd7d5e024cacefa1b4d65583c008",
+        "unitTextSha256": "88e14d8c29d16606a304e5ce824af74db79825732ce8b029917681f753162219",
+        "quoteSha256": "28e62638dfb11374665e65b59ed94dbd6ca25ed86ca9c4e9903640bc3e29f795"
+      },
+      "module": {
+        "id": "module-strict-1f7baad6299e1eca4bcbe454",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder",
+          "abloom"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support",
+          "anomaly_amplification"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-a6b9d5c059c53ba55ddedd4d",
+      "memberIds": [
+        "agent-grace",
+        "agent-vivian",
+        "agent-nicole"
+      ],
+      "sourceVersion": "1.7",
+      "url": "https://www.miyoushe.com/zzz/article/63809342",
+      "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-grace",
+      "evidence": {
+        "op": 56,
+        "start": 222,
+        "end": 242,
+        "text": "格莉丝也可考虑体验，持续站场积蓄电异常。",
+        "unitRawSha256": "e8f112bf87cf5bb0f1bf6d3470ae07c510d4cd7d5e024cacefa1b4d65583c008",
+        "unitTextSha256": "88e14d8c29d16606a304e5ce824af74db79825732ce8b029917681f753162219",
+        "quoteSha256": "28e62638dfb11374665e65b59ed94dbd6ca25ed86ca9c4e9903640bc3e29f795"
+      },
+      "module": {
+        "id": "module-strict-a6b9d5c059c53ba55ddedd4d",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder",
+          "abloom"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support",
+          "anomaly_amplification"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-a0c2f4b77f9eefb085b139a7",
+      "memberIds": [
+        "agent-jane",
+        "agent-vivian",
+        "agent-lucy"
+      ],
+      "sourceVersion": "1.7",
+      "url": "https://www.miyoushe.com/zzz/article/63809342",
+      "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-jane",
+      "evidence": {
+        "op": 58,
+        "start": 24,
+        "end": 42,
+        "text": "简薇队以强击伤害（含强击异放）为主。",
+        "unitRawSha256": "fa904e2ce3b2e3f582991de8bb6eb17f75ba665d5d0923ca3b8f149ebc0dce5e",
+        "unitTextSha256": "882859fb8fe51383a2f6cd14c41cf05b27254ca308edc6750d0a8e7642961795",
+        "quoteSha256": "44181185703d7f40a0e50952cf2c8d1ca025d5f4bf00f380f1b5a3a13d2e8978"
+      },
+      "module": {
+        "id": "module-strict-a0c2f4b77f9eefb085b139a7",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder",
+          "abloom"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-3e01f9319fb9e00d6063f7be",
+      "memberIds": [
+        "agent-jane",
+        "agent-vivian",
+        "agent-nicole"
+      ],
+      "sourceVersion": "1.7",
+      "url": "https://www.miyoushe.com/zzz/article/63809342",
+      "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-jane",
+      "evidence": {
+        "op": 58,
+        "start": 24,
+        "end": 42,
+        "text": "简薇队以强击伤害（含强击异放）为主。",
+        "unitRawSha256": "fa904e2ce3b2e3f582991de8bb6eb17f75ba665d5d0923ca3b8f149ebc0dce5e",
+        "unitTextSha256": "882859fb8fe51383a2f6cd14c41cf05b27254ca308edc6750d0a8e7642961795",
+        "quoteSha256": "44181185703d7f40a0e50952cf2c8d1ca025d5f4bf00f380f1b5a3a13d2e8978"
+      },
+      "module": {
+        "id": "module-strict-3e01f9319fb9e00d6063f7be",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder",
+          "abloom"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-b199dac3a4faec0cab3b51b1",
+      "memberIds": [
+        "agent-jane",
+        "agent-vivian",
+        "agent-seth"
+      ],
+      "sourceVersion": "1.7",
+      "url": "https://www.miyoushe.com/zzz/article/63809342",
+      "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-jane",
+      "evidence": {
+        "op": 58,
+        "start": 24,
+        "end": 42,
+        "text": "简薇队以强击伤害（含强击异放）为主。",
+        "unitRawSha256": "fa904e2ce3b2e3f582991de8bb6eb17f75ba665d5d0923ca3b8f149ebc0dce5e",
+        "unitTextSha256": "882859fb8fe51383a2f6cd14c41cf05b27254ca308edc6750d0a8e7642961795",
+        "quoteSha256": "44181185703d7f40a0e50952cf2c8d1ca025d5f4bf00f380f1b5a3a13d2e8978"
+      },
+      "module": {
+        "id": "module-strict-b199dac3a4faec0cab3b51b1",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder",
+          "abloom"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-5ff284263a9c72cfcf731e85",
+      "memberIds": [
+        "agent-soldier-0-anby",
+        "agent-koleda",
+        "agent-rina"
+      ],
+      "sourceVersion": "1.6",
+      "url": "https://www.miyoushe.com/zzz/article/62601775",
+      "title": "【1.6攻略征集】零号·安比 全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-soldier-0-anby",
+      "evidence": {
+        "op": 67,
+        "start": 103,
+        "end": 190,
+        "text": "③ 失衡思路基本一致，队友进失衡再由安比失衡连携，面对BOSS就取消继续连携，由队友再次进失衡。\n④ 敌人进入失衡前多地攒能量、保留终结技，这样在失衡期可打出12次白雷追击。",
+        "unitRawSha256": "dae25e65d231020684e6aca54a243f4c8d1e2b5ef7ab8b1671fc329eb6e01d6f",
+        "unitTextSha256": "6e18d5eeef4e5e4d85341bb4a746e37464dcda5d6dad114ed18434140d3b82d5",
+        "quoteSha256": "e2b6635f28b86315ce93e05a703cb723758f6a28a482520d8ee8d2473815bd8c"
+      },
+      "module": {
+        "id": "module-strict-5ff284263a9c72cfcf731e85",
+        "primaryOutputKind": "aftershock",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window",
+          "chain",
+          "ultimate",
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "stun",
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-ebf017cd85337edd80432514",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-vivian",
+        "agent-lucy"
+      ],
+      "sourceVersion": "1.7",
+      "url": "https://www.miyoushe.com/zzz/article/63809342",
+      "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-miyabi",
+      "evidence": {
+        "op": 60,
+        "start": 56,
+        "end": 90,
+        "text": "与其他异常角色不同，雅以直伤为主，虽然也能触发异放，但多为补充伤害。",
+        "unitRawSha256": "3c4154af79f2f6fafeadcfd436545f29187588e119c4eb1c4256575d4f8b9991",
+        "unitTextSha256": "e779e7a6b2b1d8dc61f3b0310c4f52f9f5338c33c7932a1c368c6c48c9533e4b",
+        "quoteSha256": "3d022bc4c18eb238e2dd98c77fd10c9de3602d2ca3d0bc4b9b4ee262f61d593d"
+      },
+      "module": {
+        "id": "module-strict-ebf017cd85337edd80432514",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [
+          "disorder",
+          "abloom"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-bec3463ccc1ddfa0f04fe27b",
+      "memberIds": [
+        "agent-starlight-billy",
+        "agent-norma",
+        "agent-lucy"
+      ],
+      "sourceVersion": "3.0",
+      "url": "https://www.miyoushe.com/zzz/article/76528334",
+      "title": "【3.0攻略征集】「诺姆」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-starlight-billy",
+      "evidence": {
+        "op": 55,
+        "start": 12,
+        "end": 72,
+        "text": "与强攻C类似，比利等命破C也是“击破+辅助”的组合，而诺姆的快支升连携能让比利回复更多决意，进而提高长按普攻的施放频率。",
+        "unitRawSha256": "412ed339f6c9522dfa6bf51cae1157fe895e4bb58a50b3ecb64a62e4acf23f65",
+        "unitTextSha256": "63d3947c0b97d3d786e4135d47fa996017ed20a44148bf04b51f648dcad5e5a7",
+        "quoteSha256": "65154dab7ae372ef337b4b5ac8bc5540c26c4de60f6446bcb07c1f4d22188951"
+      },
+      "module": {
+        "id": "module-strict-bec3463ccc1ddfa0f04fe27b",
+        "primaryOutputKind": "rupture",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window",
+          "chain",
+          "ultimate",
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "stun",
+          "support",
+          "resource_supply"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-556ef426dfc61e26d623ea47",
+      "memberIds": [
+        "agent-yanagi",
+        "agent-vivian",
+        "agent-lucy"
+      ],
+      "sourceVersion": "1.7",
+      "url": "https://www.miyoushe.com/zzz/article/63809342",
+      "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-yanagi",
+      "evidence": {
+        "op": 56,
+        "start": 363,
+        "end": 405,
+        "text": "感电双异放：敌人物理积蓄即将满时，柳施放强化特殊技快速消耗2点护羽打出2次感电异放。",
+        "unitRawSha256": "e8f112bf87cf5bb0f1bf6d3470ae07c510d4cd7d5e024cacefa1b4d65583c008",
+        "unitTextSha256": "88e14d8c29d16606a304e5ce824af74db79825732ce8b029917681f753162219",
+        "quoteSha256": "21e27cb99a211447ee9d4780702b10e6e2b69c7f53057c90c2b1198a3b650b70"
+      },
+      "module": {
+        "id": "module-strict-556ef426dfc61e26d623ea47",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder",
+          "abloom",
+          "polarity"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support",
+          "anomaly_amplification"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-35cc992e8f254f14ea8ba3a1",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-vivian",
+        "agent-nicole"
+      ],
+      "sourceVersion": "1.7",
+      "url": "https://www.miyoushe.com/zzz/article/63809342",
+      "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-miyabi",
+      "evidence": {
+        "op": 60,
+        "start": 56,
+        "end": 90,
+        "text": "与其他异常角色不同，雅以直伤为主，虽然也能触发异放，但多为补充伤害。",
+        "unitRawSha256": "3c4154af79f2f6fafeadcfd436545f29187588e119c4eb1c4256575d4f8b9991",
+        "unitTextSha256": "e779e7a6b2b1d8dc61f3b0310c4f52f9f5338c33c7932a1c368c6c48c9533e4b",
+        "quoteSha256": "3d022bc4c18eb238e2dd98c77fd10c9de3602d2ca3d0bc4b9b4ee262f61d593d"
+      },
+      "module": {
+        "id": "module-strict-35cc992e8f254f14ea8ba3a1",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [
+          "disorder",
+          "abloom"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-c3910593f7ccaffcf0fbd1de",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-vivian",
+        "agent-soukaku"
+      ],
+      "sourceVersion": "1.7",
+      "url": "https://www.miyoushe.com/zzz/article/63809342",
+      "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-miyabi",
+      "evidence": {
+        "op": 60,
+        "start": 56,
+        "end": 90,
+        "text": "与其他异常角色不同，雅以直伤为主，虽然也能触发异放，但多为补充伤害。",
+        "unitRawSha256": "3c4154af79f2f6fafeadcfd436545f29187588e119c4eb1c4256575d4f8b9991",
+        "unitTextSha256": "e779e7a6b2b1d8dc61f3b0310c4f52f9f5338c33c7932a1c368c6c48c9533e4b",
+        "quoteSha256": "3d022bc4c18eb238e2dd98c77fd10c9de3602d2ca3d0bc4b9b4ee262f61d593d"
+      },
+      "module": {
+        "id": "module-strict-c3910593f7ccaffcf0fbd1de",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [
+          "disorder",
+          "abloom"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-8538dd16656919030fde9db7",
+      "memberIds": [
+        "agent-pyrois",
+        "agent-norma",
+        "agent-nicole"
+      ],
+      "sourceVersion": "3.0",
+      "url": "https://www.miyoushe.com/zzz/article/76528334",
+      "title": "【3.0攻略征集】「诺姆」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-pyrois",
+      "evidence": {
+        "op": 51,
+        "start": 166,
+        "end": 212,
+        "text": "诺姆的快支升连携让佩洛伊斯发动连携技、衔接第3段普攻，获得更多喧响值，为终结技的施放做铺垫。",
+        "unitRawSha256": "e37cfdf85db3d73b5112767bd74d7cc494fa4ab00a155188c4fac8ac048b9db3",
+        "unitTextSha256": "6f81810462d0b37f17b6322ed86541c1b715525ad7a066d8d421c582d130e122",
+        "quoteSha256": "e367d22fa07b321013d742ecb948ba5383e5e06001ef45b088dab8f414bd12eb"
+      },
+      "module": {
+        "id": "module-strict-8538dd16656919030fde9db7",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window",
+          "chain",
+          "ultimate",
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "stun",
+          "support",
+          "resource_supply"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-7d7b6bca14eeeee1e92d3645",
+      "memberIds": [
+        "agent-yanagi",
+        "agent-vivian",
+        "agent-nicole"
+      ],
+      "sourceVersion": "1.7",
+      "url": "https://www.miyoushe.com/zzz/article/63809342",
+      "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-yanagi",
+      "evidence": {
+        "op": 56,
+        "start": 363,
+        "end": 405,
+        "text": "感电双异放：敌人物理积蓄即将满时，柳施放强化特殊技快速消耗2点护羽打出2次感电异放。",
+        "unitRawSha256": "e8f112bf87cf5bb0f1bf6d3470ae07c510d4cd7d5e024cacefa1b4d65583c008",
+        "unitTextSha256": "88e14d8c29d16606a304e5ce824af74db79825732ce8b029917681f753162219",
+        "quoteSha256": "21e27cb99a211447ee9d4780702b10e6e2b69c7f53057c90c2b1198a3b650b70"
+      },
+      "module": {
+        "id": "module-strict-7d7b6bca14eeeee1e92d3645",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder",
+          "abloom",
+          "polarity"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support",
+          "anomaly_amplification"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-5b66eb6a3915ff69b9532a1a",
+      "memberIds": [
+        "agent-starlight-billy",
+        "agent-norma",
+        "agent-pan-yinhu"
+      ],
+      "sourceVersion": "3.0",
+      "url": "https://www.miyoushe.com/zzz/article/76528334",
+      "title": "【3.0攻略征集】「诺姆」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-starlight-billy",
+      "evidence": {
+        "op": 55,
+        "start": 12,
+        "end": 72,
+        "text": "与强攻C类似，比利等命破C也是“击破+辅助”的组合，而诺姆的快支升连携能让比利回复更多决意，进而提高长按普攻的施放频率。",
+        "unitRawSha256": "412ed339f6c9522dfa6bf51cae1157fe895e4bb58a50b3ecb64a62e4acf23f65",
+        "unitTextSha256": "63d3947c0b97d3d786e4135d47fa996017ed20a44148bf04b51f648dcad5e5a7",
+        "quoteSha256": "65154dab7ae372ef337b4b5ac8bc5540c26c4de60f6446bcb07c1f4d22188951"
+      },
+      "module": {
+        "id": "module-strict-5b66eb6a3915ff69b9532a1a",
+        "primaryOutputKind": "rupture",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window",
+          "chain",
+          "ultimate",
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "stun",
+          "support",
+          "resource_supply"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-5401673dc6fc4f31ee53b4a3",
+      "memberIds": [
+        "agent-pyrois",
+        "agent-norma",
+        "agent-sunna"
+      ],
+      "sourceVersion": "3.0",
+      "url": "https://www.miyoushe.com/zzz/article/76528334",
+      "title": "【3.0攻略征集】「诺姆」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-pyrois",
+      "evidence": {
+        "op": 51,
+        "start": 166,
+        "end": 212,
+        "text": "诺姆的快支升连携让佩洛伊斯发动连携技、衔接第3段普攻，获得更多喧响值，为终结技的施放做铺垫。",
+        "unitRawSha256": "e37cfdf85db3d73b5112767bd74d7cc494fa4ab00a155188c4fac8ac048b9db3",
+        "unitTextSha256": "6f81810462d0b37f17b6322ed86541c1b715525ad7a066d8d421c582d130e122",
+        "quoteSha256": "e367d22fa07b321013d742ecb948ba5383e5e06001ef45b088dab8f414bd12eb"
+      },
+      "module": {
+        "id": "module-strict-5401673dc6fc4f31ee53b4a3",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window",
+          "chain",
+          "ultimate",
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "stun",
+          "support",
+          "resource_supply"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-a6115ac0b6cea7f62b075981",
+      "memberIds": [
+        "agent-starlight-billy",
+        "agent-norma",
+        "agent-soukaku"
+      ],
+      "sourceVersion": "3.0",
+      "url": "https://www.miyoushe.com/zzz/article/76528334",
+      "title": "【3.0攻略征集】「诺姆」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-starlight-billy",
+      "evidence": {
+        "op": 55,
+        "start": 12,
+        "end": 72,
+        "text": "与强攻C类似，比利等命破C也是“击破+辅助”的组合，而诺姆的快支升连携能让比利回复更多决意，进而提高长按普攻的施放频率。",
+        "unitRawSha256": "412ed339f6c9522dfa6bf51cae1157fe895e4bb58a50b3ecb64a62e4acf23f65",
+        "unitTextSha256": "63d3947c0b97d3d786e4135d47fa996017ed20a44148bf04b51f648dcad5e5a7",
+        "quoteSha256": "65154dab7ae372ef337b4b5ac8bc5540c26c4de60f6446bcb07c1f4d22188951"
+      },
+      "module": {
+        "id": "module-strict-a6115ac0b6cea7f62b075981",
+        "primaryOutputKind": "rupture",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window",
+          "chain",
+          "ultimate",
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "stun",
+          "support",
+          "resource_supply"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-be74282eceffd835fca8f0e2",
+      "memberIds": [
+        "agent-soldier-0-anby",
+        "agent-pulchra",
+        "agent-rina"
+      ],
+      "sourceVersion": "1.6",
+      "url": "https://www.miyoushe.com/zzz/article/62601775",
+      "title": "【1.6攻略征集】零号·安比 全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-soldier-0-anby",
+      "evidence": {
+        "op": 67,
+        "start": 103,
+        "end": 190,
+        "text": "③ 失衡思路基本一致，队友进失衡再由安比失衡连携，面对BOSS就取消继续连携，由队友再次进失衡。\n④ 敌人进入失衡前多地攒能量、保留终结技，这样在失衡期可打出12次白雷追击。",
+        "unitRawSha256": "dae25e65d231020684e6aca54a243f4c8d1e2b5ef7ab8b1671fc329eb6e01d6f",
+        "unitTextSha256": "6e18d5eeef4e5e4d85341bb4a746e37464dcda5d6dad114ed18434140d3b82d5",
+        "quoteSha256": "e2b6635f28b86315ce93e05a703cb723758f6a28a482520d8ee8d2473815bd8c"
+      },
+      "module": {
+        "id": "module-strict-be74282eceffd835fca8f0e2",
+        "primaryOutputKind": "aftershock",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window",
+          "chain",
+          "ultimate",
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "stun",
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-9b4cf960ab97f7785a15a8ab",
+      "memberIds": [
+        "agent-soldier-0-anby",
+        "agent-trigger",
+        "agent-rina"
+      ],
+      "sourceVersion": "1.6",
+      "url": "https://www.miyoushe.com/zzz/article/62601775",
+      "title": "【1.6攻略征集】零号·安比 全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-soldier-0-anby",
+      "evidence": {
+        "op": 67,
+        "start": 103,
+        "end": 190,
+        "text": "③ 失衡思路基本一致，队友进失衡再由安比失衡连携，面对BOSS就取消继续连携，由队友再次进失衡。\n④ 敌人进入失衡前多地攒能量、保留终结技，这样在失衡期可打出12次白雷追击。",
+        "unitRawSha256": "dae25e65d231020684e6aca54a243f4c8d1e2b5ef7ab8b1671fc329eb6e01d6f",
+        "unitTextSha256": "6e18d5eeef4e5e4d85341bb4a746e37464dcda5d6dad114ed18434140d3b82d5",
+        "quoteSha256": "e2b6635f28b86315ce93e05a703cb723758f6a28a482520d8ee8d2473815bd8c"
+      },
+      "module": {
+        "id": "module-strict-9b4cf960ab97f7785a15a8ab",
+        "primaryOutputKind": "aftershock",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window",
+          "chain",
+          "ultimate",
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "stun",
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-79ce36caa363159ea63d8eac",
+      "memberIds": [
+        "agent-yanagi",
+        "agent-vivian",
+        "agent-seth"
+      ],
+      "sourceVersion": "1.7",
+      "url": "https://www.miyoushe.com/zzz/article/63809342",
+      "title": "【1.7攻略征集】薇薇安·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-yanagi",
+      "evidence": {
+        "op": 56,
+        "start": 363,
+        "end": 405,
+        "text": "感电双异放：敌人物理积蓄即将满时，柳施放强化特殊技快速消耗2点护羽打出2次感电异放。",
+        "unitRawSha256": "e8f112bf87cf5bb0f1bf6d3470ae07c510d4cd7d5e024cacefa1b4d65583c008",
+        "unitTextSha256": "88e14d8c29d16606a304e5ce824af74db79825732ce8b029917681f753162219",
+        "quoteSha256": "21e27cb99a211447ee9d4780702b10e6e2b69c7f53057c90c2b1198a3b650b70"
+      },
+      "module": {
+        "id": "module-strict-79ce36caa363159ea63d8eac",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder",
+          "abloom",
+          "polarity"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support",
+          "anomaly_amplification"
+        ]
+      }
+    }
+  ]
+}

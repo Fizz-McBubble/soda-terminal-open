@@ -43,7 +43,7 @@ export function createAppCapabilityHealth(input: RuntimeHealthInput) {
       ? layer('ready', '全部当前代理人的构筑指导字段完整。')
       : layer(
           'partial',
-          `${currentBuildAuthority.coverage.guidancePartial} 个当前代理人仍有字段级构筑缺口。`,
+          `${currentBuildAuthority.coverage.guidancePartial} 个当前代理人仍有字段级构筑缺口；${currentBuildAuthority.coverage.guidanceFieldsReady} 项可用字段中 ${currentBuildAuthority.coverage.guidanceFieldsDirectCurrent} 项直接来自 3.2，${currentBuildAuthority.coverage.guidanceFieldsContinuityReviewed} 项为锁定 3.1→3.2 连续性复审，${currentBuildAuthority.coverage.guidanceFieldsIncomplete} 项未完成。`,
           ['build_guidance_partial'],
         )
 

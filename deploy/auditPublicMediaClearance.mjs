@@ -17,7 +17,10 @@ function filesUnder(root) {
 export function auditPublicMediaClearance(
   dist,
   clearancePath = join(appRoot, 'deploy', 'public-media-clearance.v1.json'),
+  { inventoryMode = 'exact' } = {},
 ) {
+  if (!['exact', 'bundled_subset'].includes(inventoryMode))
+    throw new Error('public_media_inventory_mode_invalid')
   const root = resolve(dist)
   const media = filesUnder(root)
     .filter((path) => mediaExtensions.has(extname(path).toLowerCase()))
@@ -59,6 +62,10 @@ export function auditPublicMediaClearance(
     if (!record || record.sha256 !== asset.sha256)
       throw new Error(`public_media_rights_unverified:${asset.path}`)
   }
-  if (entries.size !== media.length) throw new Error('public_media_clearance_stale')
+  // The retained artifact uses the full registry. Community builds can omit an
+  // approved image after unused UI is removed; every emitted byte still needs
+  // its own matching rights record above.
+  if (inventoryMode === 'exact' && entries.size !== media.length)
+    throw new Error('public_media_clearance_stale')
   return media
 }

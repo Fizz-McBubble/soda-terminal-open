@@ -1,0 +1,192 @@
+{
+  "schema": "soda-reviewed-wengine/v1",
+  "gameVersion": "3.3",
+  "generatedAt": "2026-10-21",
+  "boundary": "Transformed 3.3 W-Engine facts. Only released_first_half (14164) is enabled in 3.3 Phase 1 selectable catalog; pending_event (13022) and pending_second_half (14163) are not eligible before their scheduled release timestamps.",
+  "items": [
+    {
+      "stableId": "wengine-14164",
+      "gameId": "14164",
+      "playerName": "涅槃初翎",
+      "nativeKey": "FirstPlumageOfNirvana",
+      "rarity": "S",
+      "specialty": "anomaly",
+      "releaseStatus": "released_first_half",
+      "releaseAt": "2026-10-21T11:00:00+08:00",
+      "staticStats": {
+        "baseStat": {
+          "key": "atk",
+          "value": 48
+        },
+        "level60BaseStat": {
+          "key": "atk",
+          "value": 713
+        },
+        "secondaryStatKey": "anomMas_",
+        "secondaryStatBaseValue": 0.12,
+        "level60SecondaryValue": 0.3,
+        "atkBase": 48,
+        "level60BaseAttack": 713
+      },
+      "passiveParameterTable": [
+        {
+          "refinement": 1,
+          "params": [90, 0.4]
+        },
+        {
+          "refinement": 2,
+          "params": [99, 0.44]
+        },
+        {
+          "refinement": 3,
+          "params": [108, 0.48]
+        },
+        {
+          "refinement": 4,
+          "params": [117, 0.52]
+        },
+        {
+          "refinement": 5,
+          "params": [126, 0.56]
+        }
+      ],
+      "source": {
+        "provider": "nanoka",
+        "url": "https://static.nanoka.cc/zzz/3.3/zh/weapon/14164.json",
+        "rawSha256": "006b40349cce50cff242630edec086520ff6f3f196da86e92d935c20794c77ff",
+        "providerManifestSha256": "4d30f529d6e0568a130ebe4d79557b30d9c65d2219e77461763df1c4b42cb029",
+        "locators": {
+          "baseProperty": "base_property",
+          "randProperty": "rand_property",
+          "talents": "talents.1..5"
+        }
+      },
+      "formulaAdoption": {
+        "status": "wrap_or_adapt",
+        "todoMarkers": []
+      }
+    },
+    {
+      "stableId": "wengine-13022",
+      "gameId": "13022",
+      "playerName": "烛光诡计",
+      "nativeKey": "TrickOfCandleglow",
+      "rarity": "A",
+      "specialty": "armorer",
+      "releaseStatus": "pending_event",
+      "releaseAt": "2026-10-22T10:00:00+08:00",
+      "staticStats": {
+        "baseStat": {
+          "key": "def",
+          "value": 24
+        },
+        "level60BaseStat": {
+          "key": "def",
+          "value": 356
+        },
+        "secondaryStatKey": "def_",
+        "secondaryStatBaseValue": 0.16,
+        "level60SecondaryValue": 0.4
+      },
+      "passiveParameterTable": [
+        {
+          "refinement": 1,
+          "params": [0.08, 0.15]
+        },
+        {
+          "refinement": 2,
+          "params": [0.092, 0.17300000000000001]
+        },
+        {
+          "refinement": 3,
+          "params": [0.10400000000000001, 0.195]
+        },
+        {
+          "refinement": 4,
+          "params": [0.11599999999999999, 0.218]
+        },
+        {
+          "refinement": 5,
+          "params": [0.128, 0.24]
+        }
+      ],
+      "source": {
+        "provider": "nanoka",
+        "url": "https://static.nanoka.cc/zzz/3.3/zh/weapon/13022.json",
+        "rawSha256": "ef41d4335e37e6319cf53f146d1fdc5c11f46e079b93793c964692c303b1ca76",
+        "providerManifestSha256": "4d30f529d6e0568a130ebe4d79557b30d9c65d2219e77461763df1c4b42cb029",
+        "locators": {
+          "baseProperty": "base_property",
+          "randProperty": "rand_property",
+          "talents": "talents.1..5"
+        }
+      },
+      "formulaAdoption": {
+        "status": "wrap_or_adapt",
+        "todoMarkers": []
+      }
+    },
+    {
+      "stableId": "wengine-14163",
+      "gameId": "14163",
+      "playerName": "禁罪囚笼",
+      "nativeKey": "CageOfConfinedSin",
+      "rarity": "S",
+      "specialty": "damage",
+      "releaseStatus": "pending_second_half",
+      "releaseAt": "2026-11-11T12:00:00+08:00",
+      "staticStats": {
+        "baseStat": {
+          "key": "atk",
+          "value": 48
+        },
+        "level60BaseStat": {
+          "key": "atk",
+          "value": 713
+        },
+        "secondaryStatKey": "crit_",
+        "secondaryStatBaseValue": 0.096,
+        "level60SecondaryValue": 0.24,
+        "atkBase": 48,
+        "level60BaseAttack": 713
+      },
+      "passiveParameterTable": [
+        {
+          "refinement": 1,
+          "params": [0.2, 0.1, 0.15]
+        },
+        {
+          "refinement": 2,
+          "params": [0.23, 0.115, 0.17300000000000001]
+        },
+        {
+          "refinement": 3,
+          "params": [0.26, 0.13, 0.195]
+        },
+        {
+          "refinement": 4,
+          "params": [0.29, 0.145, 0.218]
+        },
+        {
+          "refinement": 5,
+          "params": [0.32, 0.16, 0.24]
+        }
+      ],
+      "source": {
+        "provider": "nanoka",
+        "url": "https://static.nanoka.cc/zzz/3.3/zh/weapon/14163.json",
+        "rawSha256": "d87697490b2748eca391d718e9937c7b44c8dc41960dff4b03af4e9041daebc4",
+        "providerManifestSha256": "4d30f529d6e0568a130ebe4d79557b30d9c65d2219e77461763df1c4b42cb029",
+        "locators": {
+          "baseProperty": "base_property",
+          "randProperty": "rand_property",
+          "talents": "talents.1..5"
+        }
+      },
+      "formulaAdoption": {
+        "status": "wrap_or_adapt",
+        "todoMarkers": []
+      }
+    }
+  ]
+}

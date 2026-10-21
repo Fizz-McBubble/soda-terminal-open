@@ -1,6 +1,5 @@
 import { database, type SodaDatabase } from '../db/database'
-import { gameBase32Current } from './currentVersionAdoption32'
-import { currentVersionProjection } from './currentVersionProjection'
+import { compiledCurrentGameBase, currentVersionProjection } from './currentVersionProjection'
 import { validateManifest } from './types'
 import { isCompatibleManifestContent } from './manifestContentCompatibility'
 
@@ -72,11 +71,11 @@ export async function readCurrentGameDataRuntimeSelection(
   if (state.expiredCalculationPackageIds.includes(active.id))
     return unbound('active_package_expired', active.id, active.packageVersion, active.gameVersion)
   if (
-    active.kind !== gameBase32Current.kind ||
-    active.id !== gameBase32Current.id ||
-    active.packageVersion !== gameBase32Current.packageVersion ||
-    active.gameVersion !== gameBase32Current.gameVersion ||
-    !isCompatibleManifestContent(active.contentHash, gameBase32Current.contentHash)
+    active.kind !== compiledCurrentGameBase.kind ||
+    active.id !== compiledCurrentGameBase.id ||
+    active.packageVersion !== compiledCurrentGameBase.packageVersion ||
+    active.gameVersion !== compiledCurrentGameBase.gameVersion ||
+    !isCompatibleManifestContent(active.contentHash, compiledCurrentGameBase.contentHash)
   )
     return unbound(
       'active_package_not_compiled_artifact',

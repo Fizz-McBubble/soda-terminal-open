@@ -15,7 +15,7 @@ import { parseBangbooParameterToken as parseSourceParameter } from './currentBan
 export const parseBangbooParameterToken = (token: string, level = 60) =>
   parseSourceParameter(token, level)
 export type * from './currentBangbooUtilityProjectionTypes'
-import { getCurrentAgentEventContract } from './currentAgentMechanicContracts'
+import { getCurrentAgentNumericContract } from './currentAgentNumericContracts'
 import {
   definitionsByGameId,
   type AdditionalContractDefinition,
@@ -38,7 +38,7 @@ function snapshotUtilityMembers(memberIds: readonly string[]) {
   return {
     memberIds: [...memberIds],
     identities: memberIds.map((id) => {
-      const identity = getCurrentAgentEventContract(id)?.identity
+      const identity = getCurrentAgentNumericContract(id)?.identity
       return identity ? { ...identity } : undefined
     }),
     names: new Map(memberIds.map((id) => [id, getAgentName(id)])),
@@ -60,7 +60,7 @@ function projectWithMembers(
     ? definitionsByGameId[numeric.gameId]
     : undefined
   const identities =
-    members?.identities ?? input.memberIds.map((id) => getCurrentAgentEventContract(id)?.identity)
+    members?.identities ?? input.memberIds.map((id) => getCurrentAgentNumericContract(id)?.identity)
 
   if (
     !numeric ||

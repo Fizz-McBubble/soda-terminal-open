@@ -1,3 +1,4 @@
+import { formedTeamCultivation } from '../decision/formedTeamCultivation'
 import {
   normalizeReviewedEventConditionDeclarations32,
   reviewedEventConditionDeclarationsIdentity32,
@@ -79,6 +80,10 @@ export function createLocalTargetTeamFitQuery({
   >
   requireCompiledRuntime: () => Promise<unknown>
 }): CalculationQueryClient['calculateTargetTeamWarehouseFit'] {
+  const standardInputs = new WeakMap<
+    object,
+    Parameters<typeof prepareTargetTeamStandardReference32>[0]
+  >()
   const calculateTargetTeamWarehouseFitQuery: CalculationQueryClient['calculateTargetTeamWarehouseFit'] =
     async (query) => {
       if (query.contractVersion !== calculationQueryContractVersion)
@@ -86,6 +91,36 @@ export function createLocalTargetTeamFitQuery({
       await requireCompiledRuntime()
       const run = runs.get(query.runId)
       if (!run) throw new Error(`Account Decision run is unavailable: ${query.runId}.`)
+      if (query.standardReferenceFitFingerprint32 !== undefined) {
+        const cached = teamFits.get(run.runId)?.get(query.candidateId)
+        const input = cached && standardInputs.get(cached)
+        if (
+          !cached ||
+          !input ||
+          cached.fingerprint !== query.standardReferenceFitFingerprint32 ||
+          !query.standardReference32 ||
+          query.equipmentParameters ||
+          query.scenarioSelection ||
+          query.eventConditionDeclarationsByAgentId ||
+          query.declaredEventComparison32 ||
+          query.playerBangbooSelection
+        )
+          throw new Error('当前配装或比较条件已变化，请重新打开标准培养参考。')
+        const standard = prepareTargetTeamStandardReference32(input, query.standardReference32)
+        const result = {
+          ...cached,
+          standardReference32: standard.result,
+          standardReferenceRequest32: structuredClone(query.standardReference32),
+          standardReferenceUpdate32: {
+            fitFingerprint: cached.fingerprint,
+            accountEquipmentPreserved: true as const,
+          },
+        }
+        standardInputs.set(result, input)
+        if (standard.result.status !== 'unsupported')
+          teamFits.get(run.runId)!.set(query.candidateId, result)
+        return result
+      }
       let declaredEventGoal32: DeclaredEventGoal32 | undefined
       let declaredEventReferenceAssignments: readonly AccountLoadout[] | undefined
       if (query.declaredEventComparison32) {
@@ -446,22 +481,22 @@ export function createLocalTargetTeamFitQuery({
       // Team selection is the boundary where the independent standard may be
       // prepared. Exact finite source goals can select immediately; every other
       // team receives its issued metadata without guessed event counts.
-      const standardReference = schemeParameters
-        ? prepareTargetTeamStandardReference32(
-            {
-              input: {
-                warehouse: run.input.warehouse,
-                candidate: executionIdentity,
-                parameters: schemeParameters,
-                rosterHash: run.snapshot.fingerprint.components.rosterHash,
-                warehouseHash: run.snapshot.fingerprint.components.warehouseHash,
-                planningHash: run.snapshot.fingerprint.components.planningHash,
-                capturedAt: run.capturedAt,
-                scenarioSelection: query.scenarioSelection,
-              },
+      const standardInput = schemeParameters
+        ? {
+            input: {
+              warehouse: run.input.warehouse,
+              candidate: executionIdentity,
+              parameters: schemeParameters,
+              rosterHash: run.snapshot.fingerprint.components.rosterHash,
+              warehouseHash: run.snapshot.fingerprint.components.warehouseHash,
+              planningHash: run.snapshot.fingerprint.components.planningHash,
+              capturedAt: run.capturedAt,
+              scenarioSelection: query.scenarioSelection,
             },
-            query.standardReference32,
-          )
+          }
+        : undefined
+      const standardReference = standardInput
+        ? prepareTargetTeamStandardReference32(standardInput, query.standardReference32)
         : undefined
       const teamAssignmentObjective = schemeParameters
         ? createTargetTeamAssignmentObjective({
@@ -627,9 +662,11 @@ export function createLocalTargetTeamFitQuery({
           eventConditionDeclarationsByAgentId,
         ),
       })
+      result.formedTeamReference = formedTeamCultivation(result.memberIds)
       result.teamExecutionPresentation = projectPrivateTeamExecution(run, result)
       const cachedTeamFits = teamFits.get(run.runId) ?? new Map()
       cachedTeamFits.set(result.candidateId, result)
+      if (standardInput) standardInputs.set(result, standardInput)
       teamFits.set(run.runId, cachedTeamFits)
       return result
     }

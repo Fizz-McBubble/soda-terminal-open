@@ -30,14 +30,15 @@ const equippedCache = new Map<
 >()
 function sourceUsages(
   member: Member,
-  standardMember?: PlanningEffectRuntimeMember,
+  standardMember: PlanningEffectRuntimeMember,
 ): PlanningEventUsage[] {
-  const skillLevel = standardMember?.skillLevels.special ?? 11
   // The ordinary catalog packet combines alternative special branches for
   // Claret. Select a reviewed complete held branch, preserving its three
   // legal Maim coefficient uses. Do not infer until-Gash Basic3 or six-Maim
   // resource legality from the authored benchmark.
   if (member.agentId === 'agent-claret') {
+    const skillLevel = standardMember.skillLevels.special
+    if (typeof skillLevel !== 'number' || !Number.isInteger(skillLevel)) return []
     const held = compileReviewedClaretHeldAction32({
       skillLevel,
       preparedState: { crimsonInscription: true, targetGash: 3 },
@@ -70,11 +71,11 @@ function sourceUsages(
     ownerAgentId: member.agentId,
     eventId,
     skillLevel:
-      standardMember?.skillLevels[
+      standardMember.skillLevels[
         getCurrentAgentEventContract(member.agentId)!.eventContract.events.find(
           (row) => row.eventId === eventId,
         )!.skill
-      ] ?? 11,
+      ]!,
     occurrenceCount: 1,
     evidenceRefs: [teamStrengthSourceCapacityPolicy.id],
   }))
@@ -209,7 +210,7 @@ export function createTeamStrengthCapacityContext(
                   : { durationSeconds: row.durationSeconds, quantityUnit: 'seconds' as const }),
               }),
             )
-        : sourceUsages(member, standard ? runtime.get(member.agentId) : undefined),
+        : sourceUsages(member, runtime.get(member.agentId)!),
     ]),
   )
   const value = (id: string, buckets: SourceBackedPlanningEffectBucket[]) => {
@@ -223,6 +224,18 @@ export function createTeamStrengthCapacityContext(
       eventUsages: events,
       baseline,
     })
+  }
+  // Contact and unequipped action coordinates each use their own actor's
+  // effective skills, including the common A6 cultivation projection.
+  const equippedContactUsages = (id: string, events: PlanningEventUsage[]) => {
+    const levels = events.map((usage) => {
+      const event = getCurrentAgentEventContract(id)!.eventContract.events.find(
+        (row) => row.eventId === usage.eventId,
+      )
+      return event ? contactRuntime.get(id)!.skillLevels[event.skill] : undefined
+    })
+    if (levels.some((level) => level === undefined || !Number.isInteger(level))) return []
+    return events.map((usage, index) => ({ ...usage, skillLevel: levels[index]! }))
   }
   const contactUsages = (id: string, damageType?: string): PlanningEventUsage[] => {
     if (damageType === 'aftershock') {
@@ -242,27 +255,24 @@ export function createTeamStrengthCapacityContext(
             }) === true,
         )
       )
-        return action.eventIds.map((eventId) => ({
-          ownerAgentId: id,
-          eventId,
-          skillLevel: standard
-            ? runtime.get(id)!.skillLevels[
-                getCurrentAgentEventContract(id)!.eventContract.events.find(
-                  (row) => row.eventId === eventId,
-                )!.skill
-              ]!
-            : 11,
-          occurrenceCount: action.quantities.find((quantity) => quantity.eventId === eventId)!
-            .value,
-          evidenceRefs: background.sourceRefs,
-        }))
+        return equippedContactUsages(
+          id,
+          action.eventIds.map((eventId) => ({
+            ownerAgentId: id,
+            eventId,
+            skillLevel: 11,
+            occurrenceCount: action.quantities.find((quantity) => quantity.eventId === eventId)!
+              .value,
+            evidenceRefs: background.sourceRefs,
+          })),
+        )
     }
-    return usages.get(id)!
+    return equippedContactUsages(id, usages.get(id)!)
   }
   const contactValue = (
     id: string,
     buckets: SourceBackedPlanningEffectBucket[],
-    events = usages.get(id)!,
+    events = contactUsages(id),
     sourceReferencesByAgentId?: Readonly<Record<string, Readonly<Record<string, unknown>>>>,
   ) => {
     if (

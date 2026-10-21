@@ -1,5 +1,10 @@
 import { validateReviewedPreparedAnomalyPreparation32 } from './reviewedPreparedAnomalyValidation32'
 import { collectReviewedPreparedAnomalyModifiers32 } from './reviewedPreparedAnomalyModifiers32'
+import {
+  evaluateReviewedPreparedPolarityObjective32,
+  reviewedPreparedPolarityObjectiveHash32,
+  type ReviewedPreparedPolarityInput32,
+} from './reviewedPreparedPolarityObjective32'
 import { stableContentHash } from '../gameDataPacks/types'
 import { getCurrentAgentEventContract } from './currentAgentMechanicContracts'
 import { getCurrentAgentDecisionMechanicContract } from './currentAgentDecisionMechanicContracts'
@@ -55,6 +60,8 @@ export type ReviewedPreparedAnomalyObjectiveInput32 = {
   wEngine?: { engineId: string; refinement: number; runtime?: CurrentWEngineFormulaRuntime }
   discs?: readonly { setId: string }[]
   sourceIdentityHash?: string
+  originalEquipment?: ReviewedPreparedPolarityInput32['originalEquipment']
+  baselineReferencesByAgentId?: ReviewedPreparedPolarityInput32['baselineReferencesByAgentId']
 }
 
 const baseBoundary =
@@ -72,6 +79,16 @@ const ownEffects: Record<string, string[]> = {
 export function evaluateReviewedPreparedAnomalyObjective32(
   input: ReviewedPreparedAnomalyObjectiveInput32,
 ) {
+  if (input.preparation?.kind === 'yanagi_ex_single_polarity')
+    return evaluateReviewedPreparedPolarityObjective32({
+      ...input,
+      preparation: input.preparation,
+      sourceIdentityHash:
+        input.sourceIdentityHash === undefined ||
+        input.sourceIdentityHash === reviewedPreparedAnomalyObjectiveHash32
+          ? reviewedPreparedPolarityObjectiveHash32
+          : 'prepared-parent-source-mismatch',
+    })
   const { member } = input
   const preparation =
     input.preparation ??

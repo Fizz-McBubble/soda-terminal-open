@@ -60,6 +60,10 @@ export function resolveActionUtility(
       !eventContract ||
       reviewedScope.context.actorAgentId !== fact.actorAgentId ||
       reviewedScope.context.profileFingerprint !== reviewedNormalM0ProfileFingerprint(constraint) ||
+      (reviewedScope.context.selectedSetPlanHash !== undefined &&
+        !constraint.setPlans?.some(
+          (plan) => stableContentHash(plan) === reviewedScope.context.selectedSetPlanHash,
+        )) ||
       reviewedScope.context.externalId !== eventContract.externalId ||
       reviewedScope.context.sourceCommit !== eventContract.source.commit ||
       reviewedScope.context.formulaSha256.toUpperCase() !==

@@ -6,6 +6,7 @@ import {
   resolveCurrentDriveDiscTwoPieceModifiers,
 } from '../gameDataPacks/currentDriveDiscFormulaCatalog'
 import { getCurrentWEngineStaticData } from '../gameDataPacks/currentWEngineStaticCatalog'
+import { FIRST_PLUMAGE_STABLE_ID, resolveFirstPlumageInitialStats } from './reviewedWEngine33'
 import {
   currentPanelData,
   resolveCurrentAgentCoreGrowth,
@@ -18,7 +19,10 @@ import {
   calculateWEngineBaseStatExact,
   calculateWEngineSecondaryStat,
 } from '../gameDataPacks/panel/wEngineGrowth'
-import { getCurrentAgentEventContract } from './currentAgentMechanicContracts'
+import {
+  getCurrentAgentNumericContract,
+  resolveCurrentAgentInitialNumericPassive,
+} from './currentAgentNumericContracts'
 import { projectOutOfCombatInitialModifiers } from './outOfCombatInitialModifiers'
 import { evaluateSourceBoundSheerForce32 } from './currentSourceBoundSheerForce32'
 import { attributePanelKeys, type ExtendedPanelKey } from '../domain/characterPanelStats'
@@ -33,6 +37,8 @@ import {
   type PanelResult,
   type PanelTrace,
 } from './outOfCombatPanelSupport'
+import { reviewedAgentPanelBaseline32 } from '../gameDataPacks/reviewedAgentPanelBaseline32'
+import { projectReviewedClaretResourcePanel32 } from './reviewedClaretResourceEvents32'
 export { outOfCombatKeys, projectPanelEngineSupport } from './outOfCombatPanelSupport'
 export type {
   OutOfCombatKey,
@@ -183,7 +189,7 @@ export function projectOutOfCombatPanel(
     Object.values(attributePanelKeys).map((key) => [key, 0]),
   ) as Record<(typeof attributePanelKeys)[keyof typeof attributePanelKeys], number>
 
-  const contract = agent.kind === 'growth' ? getCurrentAgentEventContract(input.agentId) : null
+  const contract = agent.kind === 'growth' ? getCurrentAgentNumericContract(input.agentId) : null
   const promotion = contract?.promotionStats[input.ascension] ?? { hp: 0, atk: 0, def: 0 }
 
   if (agent.kind === 'growth') {
@@ -228,6 +234,17 @@ export function projectOutOfCombatPanel(
       basis: 'source_growth',
     })
     if (coreGrowth.status === 'unsupported') return unsupported(coreGrowth.reason)
+    const initialPassive = resolveCurrentAgentInitialNumericPassive(input.agentId, input.core + 2)
+    if (initialPassive.status === 'unsupported') return unsupported(initialPassive.reason)
+    if (initialPassive.anomalyProficiency)
+      add(
+        postFlat,
+        trace,
+        'anomalyProficiency',
+        initialPassive.anomalyProficiency,
+        initialPassive.sourceRefs.join('|'),
+        'post_flat',
+      )
     const core = coreGrowth.values
     if (coreGrowth.kind === 'source_proven_zero_growth')
       trace.push({
@@ -305,6 +322,23 @@ export function projectOutOfCombatPanel(
   }
 
   const engineStatic = getCurrentWEngineStaticData(input.wEngine.id)
+  if (input.wEngine.id === FIRST_PLUMAGE_STABLE_ID) {
+    const initial = resolveFirstPlumageInitialStats({
+      refinement: input.wEngine.refinement,
+      specialtyMatches:
+        getCurrentAgentNumericContract(input.agentId)?.identity.specialty ===
+        engineStatic?.specialty,
+    })
+    if (initial.status !== 'supported') return unsupported(initial.blockers.join('；'))
+    add(
+      postFlat,
+      trace,
+      'anomalyProficiency',
+      initial.anomalyProficiency,
+      `wengine:${FIRST_PLUMAGE_STABLE_ID}:unconditional-ap`,
+      'post_flat',
+    )
+  }
   const isLv60Engine = input.wEngine.level === 60 && input.wEngine.ascension === 5
   const baseKey = engine.baseStat?.key ?? 'atk'
   const publishedEngineBase = getReviewedWEngineMenuBaseStat(
@@ -470,7 +504,38 @@ export function projectOutOfCombatPanel(
   })
 
   const extended: Partial<Record<ExtendedPanelKey, number>> = { ...damageBonuses }
-  if (getCurrentAgentEventContract(input.agentId)?.identity.specialty === 'rupture') {
+  const sharpnessPanel = projectReviewedClaretResourcePanel32(input.agentId)
+  if (sharpnessPanel)
+    for (const key of ['sharpEnergyRegen', 'maxSharpEnergy'] as const) {
+      extended[key] = sharpnessPanel[key]
+      trace.push({
+        key,
+        source: sharpnessPanel.sources[key],
+        operation: 'base',
+        value: sharpnessPanel[key],
+      })
+    }
+  const automaticEnergyRecovery =
+    agent.kind === 'growth' ? agent.stats.energyRegen : agent.values.energyRegen
+  if (automaticEnergyRecovery > 0) {
+    extended.energyGenerationRate = reviewedAgentPanelBaseline32.normalEnergy.generationRate
+    extended.maxEnergy = reviewedAgentPanelBaseline32.normalEnergy.maxEnergy
+    trace.push(
+      {
+        key: 'energyGenerationRate',
+        source: `${reviewedAgentPanelBaseline32.source.id}#${reviewedAgentPanelBaseline32.source.locator}`,
+        operation: 'base',
+        value: reviewedAgentPanelBaseline32.normalEnergy.generationRate,
+      },
+      {
+        key: 'maxEnergy',
+        source: `${reviewedAgentPanelBaseline32.source.id}#${reviewedAgentPanelBaseline32.source.locator}`,
+        operation: 'base',
+        value: reviewedAgentPanelBaseline32.normalEnergy.maxEnergy,
+      },
+    )
+  }
+  if (getCurrentAgentNumericContract(input.agentId)?.identity.specialty === 'rupture') {
     const initialStats = { atk: values.atk, hp: values.hp }
     const sheer = evaluateSourceBoundSheerForce32({
       agentId: input.agentId,

@@ -24,6 +24,7 @@ import { currentAgentPlanningEffectBlueprints } from '../calculation/currentAgen
 import { currentPlanningBaselineAgentObservations } from '../calculation/currentPlanningBaselineObservations'
 import { currentAgentDecisionMechanicContracts } from '../calculation/currentAgentDecisionMechanicContracts'
 import { currentAgentEventContracts } from '../calculation/currentAgentMechanicContracts'
+import { currentAgentNumericContracts } from '../calculation/currentAgentNumericContracts'
 import { currentWEngineStaticCatalog } from './currentWEngineStaticCatalog'
 import { currentBangbooNumericCatalog } from './currentBangbooNumericCatalog'
 import { currentDriveDiscFormulaCatalog } from './currentDriveDiscFormulaCatalog'
@@ -151,7 +152,8 @@ export const currentDataAuthorityProjection = {
       // invalidate results even if an upstream manifest's identity has not been refreshed.
       numericInputs: {
         contentHash: stableContentHash({
-          agents: currentAgentEventContracts,
+          agents: currentAgentNumericContracts,
+          executableAgentEvents: currentAgentEventContracts,
           wEngines: currentWEngineStaticCatalog.items,
           bangboos: currentBangbooNumericCatalog.items,
           driveDiscSets: currentDriveDiscFormulaCatalog.items,

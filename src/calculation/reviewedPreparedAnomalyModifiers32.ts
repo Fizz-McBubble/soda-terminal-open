@@ -15,8 +15,11 @@ export function collectReviewedPreparedAnomalyModifiers32(input: {
   included: string[]
   refs: string[]
   sums: Record<string, number>
+  /** Disorder modifiers occupy their own source domain, never an ordinary proc. */
+  settlementType?: 'anomaly' | 'disorder'
 }): string[] | null {
   const { agentId, attribute, bucketRows, modifiers, exclusions, included, refs, sums } = input
+  const disorder = input.settlementType === 'disorder'
   const seenBuckets = new Map<string, SourceBackedPlanningEffectBucket>()
   const applicationStat: Partial<Record<SourceBackedPlanningEffectBucket['application'], string>> =
     {
@@ -48,7 +51,10 @@ export function collectReviewedPreparedAnomalyModifiers32(input: {
     if (
       row.action !== null ||
       row.applicationScope === 'event_only' ||
-      (row.damageType !== null && row.damageType !== 'anomaly' && row.damageType !== 'abloom')
+      (row.damageType !== null &&
+        (disorder
+          ? row.damageType !== 'disorder'
+          : !['anomaly', 'abloom'].includes(row.damageType)))
     ) {
       exclusions.push({
         effectKey: row.effectKey,
@@ -97,7 +103,15 @@ export function collectReviewedPreparedAnomalyModifiers32(input: {
         'enemyDebuff.common.resRed_',
         'enemyDebuff.common.dmgInc_',
         'enemyDebuff.common.stun_',
-      ].includes(stat)
+      ].includes(stat) ||
+      (disorder &&
+        [
+          'combat.addl_disorder_',
+          'combat.anom_base_',
+          'combat.anom_flat_dmg',
+          'combat.anom_crit_',
+          'combat.anom_crit_dmg_',
+        ].includes(stat))
     ) {
       sums[stat] = (sums[stat] ?? 0) + row.value
       included.push(row.effectKey)

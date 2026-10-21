@@ -17,14 +17,15 @@ import {
 import { stableContentHash } from '../gameDataPacks/types'
 import type { TeamStrengthReferenceConditions } from './teamStrengthReferenceConditionsTypes'
 import { resolveSkillInvestmentMindscapeBonus } from './skillInvestmentProjection'
+import { formedAgentCultivation, formedTeamCultivationPolicy } from './formedTeamCultivation'
 
 /** Local comparison protocol, never an author build or account observation. */
 export const teamStrengthReferenceStatePolicy = Object.freeze({
-  id: 'team-strength-reference-level60-base-skill11-core7-s0-a6-supported-p6/v2',
+  id: 'team-strength-reference-formed-key-mindscapes-supported-p6/v3',
   level: 60,
   baseSkillLevel: 11,
   coreLevel: 7,
-  mindscapeByRarity: { S: 0, A: 6 },
+  mindscapePolicy: formedTeamCultivationPolicy,
   supportedPotential: 6,
   unsupportedPotential: 0,
   explicitNumericPotentialWins: true,
@@ -32,12 +33,19 @@ export const teamStrengthReferenceStatePolicy = Object.freeze({
   equipment: 'none',
 })
 
-/** The common comparison uses S0/A6, independently of the player's account. */
-export function resolveTeamStrengthReferenceMindscape(agentId: string) {
-  const rarity = currentAgentDirectory.find((row) => row.id === agentId)?.rarity
-  if (rarity === 'S') return teamStrengthReferenceStatePolicy.mindscapeByRarity.S
-  if (rarity === 'A') return teamStrengthReferenceStatePolicy.mindscapeByRarity.A
-  throw new Error(`评级标准缺少明确S/A身份：${agentId}`)
+/** Formed reference, independently of the player's account. Explicit overrides
+ * belong to same-team comparison requests, never to source observations. */
+export function resolveTeamStrengthReferenceMindscape(
+  agentId: string,
+  referenceConditions?: Pick<TeamStrengthReferenceConditions, 'mindscapeByAgentId'>,
+) {
+  const explicit = referenceConditions?.mindscapeByAgentId?.[agentId]
+  if (explicit !== undefined) {
+    if (!Number.isInteger(explicit) || explicit < 0 || explicit > 6)
+      throw new Error(`非法参考影画：${agentId}:${explicit}`)
+    return explicit
+  }
+  return formedAgentCultivation(agentId).mindscape
 }
 
 export function resolveTeamStrengthReferencePotential(
@@ -63,6 +71,9 @@ export function resolveTeamStrengthReferencePotential(
 export function computeTeamStrengthReferenceStateIdentity() {
   return stableContentHash({
     policy: teamStrengthReferenceStatePolicy,
+    formedMembers: currentAgentDirectory
+      .filter((row) => row.releaseState === 'released' && row.accountOwnable)
+      .map((row) => formedAgentCultivation(row.id)),
     coreGrowth: currentCoreGrowthHash32,
     formulaBaseStats: currentFormulaBaseStats,
     sourceGrowthAndEligibility: currentAgentEventContracts.map((agent) => ({
@@ -90,7 +101,7 @@ export function createTeamStrengthReferenceRuntimeMember(
     throw new Error(`缺少评级参考养成来源：${agentId}`)
   const core = growth.values
   const base = contract.baseStats
-  const mindscape = resolveTeamStrengthReferenceMindscape(agentId)
+  const mindscape = resolveTeamStrengthReferenceMindscape(agentId, referenceConditions)
   const effectiveSkill = 11 + (resolveSkillInvestmentMindscapeBonus(mindscape) ?? 0)
   const potential = resolveTeamStrengthReferencePotential(agentId, referenceConditions)
   const baseAttack = base.atk_base + base.atk_growth * 59 + promotion.atk + (core.atk ?? 0)

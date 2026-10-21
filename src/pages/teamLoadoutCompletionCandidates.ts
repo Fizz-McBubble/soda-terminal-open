@@ -1,6 +1,6 @@
 import type { TeamEngineCandidate, TeamEnginePack } from '../teamEngine/contracts'
 import { currentReviewedTeamSourceDirections } from '../gameDataPacks/reviewedTeamSourceDirections'
-import { evaluateCurrent31TeamRating } from '../decision/current31TeamRating'
+import { lookupCurrent31TeamIntrinsicDetails } from '../decision/current31TeamIntrinsicIndex'
 import { reviewedTeamAnalysis } from '../decision/reviewedTeamAnalysis'
 import { reviewedTeamPublishedStrength } from '../decision/reviewedTeamPublishedStrength'
 import { getAgentName } from '../application/publicRosterNames'
@@ -64,21 +64,12 @@ export function projectTeamLoadoutCompletionCandidates(input: {
     // A member-gap card is an actionable one-member completion, not a long
     // acquisition list or a workaround for members reserved by another team.
     if (missingAgentIds.length !== 1 || unavailableOwnedAgentIds.length) continue
-    const rating = evaluateCurrent31TeamRating({
-      candidateId: `completion:${key(memberIds)}`,
-      memberIds: direction.memberIds,
-      bangbooId: null,
-      outputPotentialBand: 'unknown',
-      benchmark: {
-        status: 'unavailable',
-        baselineId: null,
-        outputIndex: null,
-        unsupportedIssueIds: [],
-        explanation: '补强建议只使用已审阅的精确三人来源评级。',
-      },
-      reviewedOnly: true,
-    })
+    const rating = lookupCurrent31TeamIntrinsicDetails(
+      direction.memberIds,
+      `completion:${key(memberIds)}`,
+    )
     if (
+      !rating ||
       rating.mechanicValidity === 'invalid' ||
       rating.rating.status !== 'rated' ||
       (rating.rating.ratingBand !== 'S+' &&

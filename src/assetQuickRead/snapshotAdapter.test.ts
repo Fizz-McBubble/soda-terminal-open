@@ -5,7 +5,8 @@ import { join } from 'node:path'
 import { convertAssetSnapshot } from './snapshotAdapter'
 import identities from './catalogIdentityProjection.json'
 import discCatalog from '../gameDataPacks/generated/current-drive-disc-formula-catalog.v1.json'
-import engineCatalog from '../gameDataPacks/generated/current-wengine-static-catalog.v1.json'
+import { currentWEngineStaticCatalog as engineCatalog } from '../gameDataPacks/currentWEngineStaticCatalog'
+import { currentScopeManifest } from '../gameDataPacks/currentScopeManifest'
 import rawDiscData from '../data/drive-disc-data.v1.json'
 import { agentCatalog } from '../assault/catalogData'
 import { currentReleasedIdentityMap } from '../gameDataPacks/currentReleasedIdentityMap'
@@ -150,12 +151,20 @@ describe('asset snapshot local candidate adapter', () => {
     },
   )
   it('keeps lightweight identities exactly aligned with canonical catalogs', () => {
-    expect(identities.agents).toEqual([
+    const adoptedAgents = new Set(
+      currentScopeManifest.entries
+        .filter((row) => row.domain === 'agent')
+        .map((row) => row.stableId),
+    )
+    const expectedAgents = [
       ...agentCatalog.map((row) => ({ gameId: row[3], id: row[0], name: row[1] })),
       ...currentReleasedIdentityMap.entries
-        .filter((row) => row.stableId.startsWith('agent-'))
+        .filter((row) => row.stableId.startsWith('agent-') && adoptedAgents.has(row.stableId))
         .map((row) => ({ gameId: row.gameEvidenceId, id: row.stableId, name: row.playerName })),
-    ])
+    ]
+    const byGameId = (a: { gameId: string }, b: { gameId: string }) =>
+      a.gameId.localeCompare(b.gameId)
+    expect([...identities.agents].sort(byGameId)).toEqual(expectedAgents.sort(byGameId))
     expect(identities.discs).toEqual(
       discCatalog.items.map((row) => ({ gameId: row.gameId, id: row.stableId })),
     )
@@ -166,6 +175,26 @@ describe('asset snapshot local candidate adapter', () => {
         name: row.playerName,
       })),
     )
+  })
+  it('maps released 3.3 identities in the retained synthetic CN3.2 envelope without claiming native verification', () => {
+    expect(identities.agents).toHaveLength(61)
+    expect(identities.engines).toHaveLength(101)
+    expect(identities.agents.some((row) => row.gameId === '1631')).toBe(false)
+    expect(identities.engines.some((row) => ['14163', '13022'].includes(row.gameId))).toBe(false)
+    const input = fixture()
+    input.assets.agents[0].catalog_id = present(1641)
+    input.assets.engines[0].catalog_id = present(14164)
+    const before = structuredClone(input)
+    const candidate = convertAssetSnapshot(input, context)
+    expect(candidate.issues).toEqual([])
+    expect(candidate.importable).toBe(true)
+    expect(candidate.protocolVersion).toBe('3.2')
+    expect(candidate.agents[0]).toMatchObject({
+      agentId: 'agent-phoenix',
+      fields: { wEngineDetails: { id: 'wengine-14164', name: '涅槃初翎' } },
+    })
+    expect(candidate.fullInventoryVerified).toBe(false)
+    expect(input).toEqual(before)
   })
   it('converts percent rolls and equipped details without exporting inventory or completeness authority', () => {
     const candidate = convertAssetSnapshot(fixture(), context)

@@ -9,6 +9,7 @@ import {
 } from '../calculation/reviewedPreparedAnomalyObjective32'
 import type { ValueBenchmarkSide } from '../calculation/valueBenchmarkComparison'
 import { stableContentHash } from '../gameDataPacks/types'
+import type { ReviewedPreparedPolarityInput32 } from '../calculation/reviewedPreparedPolarityObjective32'
 
 /** Existing candidate-comparison adapter. Damage is one prepared settlement;
  * no fake duration or DPS, no account writes, and no whole-build promotion. */
@@ -25,6 +26,8 @@ export function evaluateDevelopmentPreparedAnomalyBenchmarkSide32(input: {
   preparation?: PreparedAnomalyPreparation32
   effectBuckets?: readonly SourceBackedPlanningEffectBucket[]
   sourceIdentityHash?: string
+  originalEquipment?: ReviewedPreparedPolarityInput32['originalEquipment']
+  baselineReferencesByAgentId?: ReviewedPreparedPolarityInput32['baselineReferencesByAgentId']
 }): ValueBenchmarkSide {
   const result = evaluateReviewedPreparedAnomalyObjective32(input)
   const dimensions = {
@@ -69,6 +72,8 @@ export function evaluateDevelopmentPreparedAnomalyBenchmarkSide32(input: {
         contextHash: result.contextHash,
         initialStats: input.member.initialStats,
         finalStats: input.member.finalStats,
+        originalEquipment: input.originalEquipment ?? null,
+        otherMembers: input.members?.filter((row) => row.agentId !== input.member.agentId) ?? [],
         exclusions: result.excluded,
         discs: input.discs,
         engine: input.wEngine,

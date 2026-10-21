@@ -4,12 +4,12 @@ import { stableContentHash } from '../domain/stableContentHash'
 import { deriveSubStatHistory } from '../evaluation/subStatHistory'
 
 export const standardReferenceDiscAllocationPolicy = Object.freeze({
-  id: 'standard-reference-48-rolls-balanced20-objective28-bounded/v1',
+  id: 'standard-reference-48-rolls-balanced20-objective28-bounded/v2',
   balancedRollsPerStat: 2,
   targetRolls: 28,
   totalRolls: 48,
   rollsPerDisc: 8,
-  maximumRollsPerStat: 12,
+  maximumRollsPerStat: 14,
   maximumRollsPerLine: 5,
   defaultMaxEvaluations: 256,
   frontierSize: 12,
@@ -93,7 +93,9 @@ export function validateStandardReferenceDiscs(discs: readonly DriveDisc[]): {
     totals.reduce((sum, count) => sum + count, 0) !== policy.totalRolls ||
     totals.some((count) => count < 2 || count > policy.maximumRollsPerStat)
   )
-    return invalid('标准六盘必须满足20次均衡基础、28次目标分配及单属性12次上限。')
+    return invalid(
+      '标准六盘必须满足20次均衡基础、28次目标分配及单属性14次上限（基础2次加定向12次）。',
+    )
   return { valid: true, counts: countProof(totals) }
 }
 
@@ -173,7 +175,8 @@ function* legalNeighbors(allocation: Allocation, templates: readonly DriveDisc[]
     for (let from = 0; from < rules.length; from++) {
       if (row[from]! <= 1 || totals[from]! <= 2) continue
       for (let to = 0; to < rules.length; to++) {
-        if (to === from || !row[to] || row[to]! >= 5 || totals[to]! >= 12) continue
+        if (to === from || !row[to] || row[to]! >= 5 || totals[to]! >= policy.maximumRollsPerStat)
+          continue
         const next = cloneAllocation(allocation)
         next[slot]![from]!--
         next[slot]![to]!++
@@ -208,7 +211,7 @@ function* legalNeighbors(allocation: Allocation, templates: readonly DriveDisc[]
         if (
           allocation[slot]![to] ||
           templates[slot]!.mainStat === rules[to]!.stat ||
-          totals[to]! + amount > 12
+          totals[to]! + amount > policy.maximumRollsPerStat
         )
           continue
         const next = cloneAllocation(allocation)

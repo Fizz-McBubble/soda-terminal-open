@@ -71,10 +71,11 @@ function profile(
   availability: Applicability,
   condition?: string | CandidateSetPlan['condition'],
   mainAvailability: Applicability = 'valid',
+  selectedSetPlan?: CandidateSetPlan,
 ): Profile {
   const agentId = resolveCurrentReleasedIdentity(constraint.agentId)
   const sources = sourceIds(constraint)
-  const facts = resolveRetentionUseFacts(constraint, agentId)
+  const facts = resolveRetentionUseFacts(constraint, agentId, undefined, selectedSetPlan)
   const quality = resolveRetentionQualityWeights(constraint, agentId, facts)
   const mainStatsBySlot = Object.fromEntries(
     (['4', '5', '6'] as const).map((slot) => [
@@ -184,6 +185,8 @@ function buildProfiles() {
               (plan.purpose && plan.purpose !== 'recommended'
                 ? `来源构筑用途：${plan.purpose}`
                 : undefined),
+            'valid',
+            plan,
           ),
         ),
       )
@@ -332,6 +335,7 @@ const catalog: Catalog = {
       contentHash: currentVersionProjection.adoptionContentHash,
       targetVersion: currentVersionProjection.gameVersion,
       sourceCommit: currentVersionProjection.sourceCommit,
+      sourceIdentity: currentVersionProjection.adoptionSourceIdentity,
       scopeContentHash: currentVersionProjection.scopeContentHash,
       referenceContinuityId: reviewedReferenceSupportContinuity32.id,
       referenceReviewVersion: reviewedReferenceSupportContinuity32.sourceReviewVersion,

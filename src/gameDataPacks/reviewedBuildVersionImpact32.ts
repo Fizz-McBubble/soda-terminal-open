@@ -214,6 +214,14 @@ export function getReviewedBuildVersionImpact32(
       },
       adoptedBuildFields: adopted.map((field) => {
         const fieldAffected = isBuildFieldAffectedByVersion32(agentId, field.path).affected
+        const currentAuthorReview =
+          field.gameVersion === review.targetVersion &&
+          field.currentApplicability === 'continuous' &&
+          field.sourceRefs.some(
+            (source) =>
+              source.authorReviewedVersion === review.targetVersion &&
+              Boolean(source.checkedAt && source.contentHash),
+          )
         return {
           fieldPath: field.path,
           value: field.value,
@@ -225,7 +233,9 @@ export function getReviewedBuildVersionImpact32(
           adoption: introduced
             ? 'current_source32'
             : fieldAffected
-              ? 'affected_pending_review'
+              ? currentAuthorReview
+                ? 'reviewed_current_source32'
+                : 'affected_pending_review'
               : 'retained_reviewed_reference_not_reranked',
         }
       }),

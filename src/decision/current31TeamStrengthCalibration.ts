@@ -29,6 +29,7 @@ import {
   canApplyReviewedReferenceSupport32,
   isExistingReviewed31Formation,
   reviewedReferenceSupportContinuity32,
+  reviewedGenericReferenceContinuity33,
 } from '../gameDataPacks/reviewedReferenceSupportContinuity32'
 import { current31VariantRealityProfileSet } from './current31VariantRealityProfile'
 import {
@@ -46,7 +47,10 @@ import {
 } from './reviewedTeamPublishedStrength'
 import {
   reviewedTeamAnalysis,
+  reviewedCurrentTeamAnalysis32,
+  resolveReviewedCurrentTeamAnalysis,
   resolveReviewedTeamAnalysis,
+  hasReviewedCurrentTeamSourceBinding,
   type ReviewedTeamAnalysis,
 } from './reviewedTeamAnalysis'
 import { teamRecommendationScore, teamRecommendationScorePolicy } from './teamRecommendationScore'
@@ -94,7 +98,9 @@ export function resolveCurrent31LegacyCalibrationDiagnostic(
 }
 
 export type Current31MetaCalibration = {
-  referenceContinuity?: typeof reviewedReferenceSupportContinuity32
+  referenceContinuity?:
+    | typeof reviewedReferenceSupportContinuity32
+    | typeof reviewedGenericReferenceContinuity33
   contract: typeof current31TeamStrengthCalibrationContractId
   status: 'aligned' | 'calibration_violation' | 'insufficient'
   authority:
@@ -109,7 +115,7 @@ export type Current31MetaCalibration = {
   analysis?: ReviewedTeamAnalysis
   /** Candidate discovery diagnostics; never tier or recommendation authority. */
   inference?: TeamStrengthInference
-  /** Mechanism-weighted diagnostic only; never default admission or ordering. */
+  /** Shared coarse-tier reference score; confidence never changes its value. */
   recommendationScore?: number
   evidenceStatus?: 'supported' | 'unknown' | 'conflict'
   kernelId: string | null
@@ -200,11 +206,18 @@ export function resolveCurrent31MetaCalibration(input: {
         sourceContentHash,
       }),
     )
-  const sourceProjection = (sourceStrengthBand: TeamRatingBand) => {
+  const sourceProjection = (sourceStrengthBand: TeamRatingBand, useContinuity = continued) => {
     const mechanicBand =
       input.predictedRating.status === 'rated' ? input.predictedRating.ratingBand : null
     return {
-      ...(continued ? { referenceContinuity: reviewedReferenceSupportContinuity32 } : {}),
+      ...(useContinuity
+        ? {
+            referenceContinuity:
+              targetVersion === '3.3'
+                ? reviewedGenericReferenceContinuity33
+                : reviewedReferenceSupportContinuity32,
+          }
+        : {}),
       // The mechanism gate must be usable; equality with its legacy categorical
       // grade is not a strength-calibration gate (SPEC 4.12.2).
       status: mechanicBand === null ? ('calibration_violation' as const) : ('aligned' as const),
@@ -304,17 +317,30 @@ export function resolveCurrent31MetaCalibration(input: {
       explanation: published.explanation,
     }
   }
-  const analysis = resolveReviewedTeamAnalysis(input.memberIds, reviewVersion)
-  const recognized = recognitionIndex(reviewVersion).get(formationKey(input.memberIds))
+  const currentAnalysis = input.sourceReviewVersion
+    ? null
+    : resolveReviewedCurrentTeamAnalysis(input.memberIds, targetVersion)
+  const analysis = currentAnalysis ?? resolveReviewedTeamAnalysis(input.memberIds, reviewVersion)
+  const analysisVersion = currentAnalysis ? targetVersion : reviewVersion
+  const recognized = recognitionIndex(analysisVersion).get(formationKey(input.memberIds))
+  const currentAnalysisSources = currentAnalysis
+    ? currentReviewedTeamSourceDirections(analysisVersion).find(
+        (row) => formationKey(row.memberIds) === formationKey(input.memberIds),
+      )?.sourceRefs
+    : undefined
+  const sourceBindingCurrent =
+    !currentAnalysis || hasReviewedCurrentTeamSourceBinding(currentAnalysis, currentAnalysisSources)
   if (
     analysis &&
-    recognized &&
-    !recognized.historicalReferenceOnly &&
-    analysis.evidenceRefs.some((ref) => recognized.evidenceRefs.includes(ref.url))
+    sourceBindingCurrent &&
+    (currentAnalysis?.mechanicReview ||
+      (recognized &&
+        !recognized.historicalReferenceOnly &&
+        analysis.evidenceRefs.some((ref) => recognized.evidenceRefs.includes(ref.url))))
   ) {
     return {
       contract: current31TeamStrengthCalibrationContractId,
-      ...sourceProjection(analysis.band),
+      ...sourceProjection(analysis.band, !currentAnalysis && continued),
       authority: 'local_editorial_estimate',
       confidenceCeiling: 'low',
       analysis,
@@ -441,8 +467,8 @@ export function projectCurrent31TeamStrength(input: {
     bangbooId: input.bangbooId,
     evidenceMode: input.evidenceMode,
   })
-  // Diagnostic inference scores cannot become a ranking signal, including
-  // through a calibration object created before the authority boundary.
+  // Only the resolved product tier supplies the shared reference score.
+  // Diagnostic inference and mechanism weights cannot create within-tier rank.
   const score = teamRecommendationScore(realityCheck.strengthBand, input.featureVector)
   metaCalibration.recommendationScore = score ?? undefined
   if (input.mechanicRating.status !== 'rated')
@@ -499,6 +525,7 @@ export const current31TeamStrengthCalibrationBoundary = Object.freeze({
   mechanicBandComparisonPolicy: 'exact-three-strength-bangboo-independent-v3',
   publishedStrengthFingerprint: stableContentHash(reviewedTeamPublishedStrength),
   localAnalysisFingerprint: reviewedTeamAnalysis.contentHash,
+  currentLocalAnalysisFingerprint: reviewedCurrentTeamAnalysis32.contentHash,
   recommendationScorePolicy: teamRecommendationScorePolicy,
   inferencePolicy: teamStrengthModelPolicy,
   referencePerformanceStrengthPolicy: 'diagnostic-only-v1',
@@ -516,5 +543,5 @@ export const current31TeamStrengthCalibrationBoundary = Object.freeze({
   recoveredCalibrationLineage: current31MetaStrengthR1Lineage,
   versionPositions: ['apex', 'meta', 'viable'] as const,
   boundary:
-    '105条历史档位是社区或本地编辑判断，只作低置信先验；公开来源、自建模型和本地分析都不能互相升级为绝对队伍强度。该评级只回答泛用框架与配队闭环，不吸收式舆、危局、当期Buff或特定Boss排序；精确关卡结论必须在独立场景比较中冻结。同档没有已发布偏序时保持并列，百分制指数只作诊断。',
+    '105条历史档位保留原来源身份，当前本地粗档另绑定版本及精确来源内容；二者均不冒充独立真值。评级回答泛用组队价值，不吸收式舆、危局、当期Buff或特定Boss排序。同档缺少有据偏序时同分，统一参考分不读取机制权重、置信度或场景拟合结果；独立质量指标保留研究身份。',
 })

@@ -1,7 +1,10 @@
 import formulaCatalog from '../gameDataPacks/generated/current-formula-mechanic-contract-catalog.v1.json'
 import { stableContentHash } from '../gameDataPacks/types'
 import { getCurrentWEngineStaticData } from '../gameDataPacks/currentWEngineStaticCatalog'
-import { getCurrentAgentEventContract } from './currentAgentMechanicContracts'
+import {
+  getCurrentAgentEventContract,
+  currentAgentEventContracts,
+} from './currentAgentMechanicContracts'
 import { getCurrentAgentDecisionMechanicContract } from './currentAgentDecisionMechanicContracts'
 import { currentAgentPlanningEffectBlueprints } from './currentAgentPlanningEffectBlueprint'
 import { effectReceiverMetadata, requiredReferences } from './currentPlanningEffectExpressions'
@@ -84,6 +87,7 @@ export type PlanningConditionProjection32 = {
     referenceKey: string
     reason: string
     sourceRefs: string[]
+    eventScopes?: PlanningConditionEvidence32['eventScopes']
   }>
   derivedReferences: Array<{
     providerAgentId: string
@@ -98,14 +102,16 @@ const projectionInputs = new WeakMap<
   PlanningConditionProjection32,
   PlanningConditionCatalogInput32
 >()
-const actorIds: Record<string, string> = {
-  Claret: 'agent-claret',
-  Roxy: 'agent-roxy',
-  Koleda: 'agent-koleda',
-  Norma: 'agent-norma',
-  Rina: 'agent-rina',
-}
+const actorIds: Readonly<Record<string, string>> = Object.fromEntries(
+  currentAgentEventContracts.map((row) => [row.upstreamKey, row.stableId]),
+)
 const labels: Record<string, string> = {
+  'Lucia:darkbreaker': '本次动作处于暗破状态',
+  'Lucia:etherVeil': '以太帷幕当前有效',
+  'YesterdayCalls:offField': '昨夜来电：穿戴者当前处于场外',
+  'YesterdayCalls:physExSpecialUsed': '昨夜来电：物理强化特殊技触发后当前仍有效的叠层（0至3）',
+  'DreamlitHearth:etherVeilActive': '铸梦炉歌：穿戴者激活或延长以太帷幕后，全队增益当前仍有效',
+  'QingmingBirdcage:qingmingCompanionStacks': '青溟笼舍：当前有效层数（0至2）',
   hit_behind: '钢铁肉垫：本次命中从敌人背后发生（被动物伤来源冲突仍需单独处理）',
   hit_away: '仿制星徽引擎：普攻或冲刺攻击命中至少6米外目标后的8秒物伤增益仍有效',
   offField: '家政员：穿戴者当前处于场外，固定能量回复按每秒单位消费',
@@ -221,7 +227,8 @@ export function projectCurrentPlanningConditionCatalog32(
     result.defs.push({
       providerAgentId,
       referenceKey: runtimeReference,
-      label: labels[ref] ?? ref,
+      label:
+        labels[`${seed.key}:${ref}`] ?? labels[ref] ?? ref.replace(/([a-z0-9])([A-Z])/gu, '$1 $2'),
       valueKind,
       ...(valueKind === 'number' ? { minimum: cond.min, maximum: cond.max } : {}),
       ...(valueKind === 'enum'
@@ -239,7 +246,7 @@ export function projectCurrentPlanningConditionCatalog32(
           : valueKind === 'number'
             ? 'integer_stack'
             : 'source_enum',
-      meaning: `${labels[ref] ?? `上游 ${seed.key}.${ref} 条件`}；激活持续时间和事件状态必须由具名声明提供。`,
+      meaning: `${labels[`${seed.key}:${ref}`] ?? labels[ref] ?? `上游 ${seed.key}.${ref} 条件`}；激活持续时间和事件状态必须由具名声明提供。`,
       integerOnly: cond.int_only === true,
       runtimeReference,
       effectKeys: effects.map((x) => x.effectKey),
@@ -323,6 +330,7 @@ export function projectCurrentPlanningConditionCatalog32(
         result.blockedReferences.push({
           providerAgentId,
           referenceKey: ref,
+          eventScopes: scopes,
           reason: 'requiredReferences 尚无锁定条件定义或可信生产者。',
           sourceRefs: seedRefs(seed),
         })

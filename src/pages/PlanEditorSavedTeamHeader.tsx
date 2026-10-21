@@ -10,6 +10,7 @@ export function PlanEditorSavedTeamHeader({
   name,
   teamRatingLabel,
   deleteAction,
+  standardReferenceControl,
 }: {
   backButton: RefObject<HTMLButtonElement | null>
   heading: RefObject<HTMLHeadingElement | null>
@@ -18,6 +19,7 @@ export function PlanEditorSavedTeamHeader({
   name: string
   teamRatingLabel: string | undefined
   deleteAction: ReactNode
+  standardReferenceControl?: ReactNode
 }) {
   return (
     <header className="optimizer-plan__team-heading">
@@ -29,6 +31,7 @@ export function PlanEditorSavedTeamHeader({
         onBack={() => navigate(back)}
       />
       <div className="optimizer-plan__team-actions">
+        {standardReferenceControl}
         <span className="optimizer-plan__stale-state">已保存配装</span>
         {deleteAction}
       </div>

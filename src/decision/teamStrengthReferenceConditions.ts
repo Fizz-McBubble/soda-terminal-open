@@ -1,5 +1,6 @@
 import { stableContentHash } from '../gameDataPacks/types'
 import { supportsPotentialImage } from '../assault/agentCapabilities'
+import { formedTeamCultivation } from './formedTeamCultivation'
 import { resolveCurrentReleasedIdentity } from '../gameDataPacks/currentReleasedIdentityMap'
 import { currentReviewedTeamSourceDirections } from '../gameDataPacks/reviewedTeamSourceDirections'
 import {
@@ -28,8 +29,8 @@ import type {
 export type * from './teamStrengthReferenceConditionsTypes'
 
 const calculationAssumption =
-  'level60-base-skill11-core7-s0-a6-supported-p6-explicit-override' as const
-const contract = 'soda-team-strength-reference-conditions/v6'
+  'level60-base-skill11-core7-formed-key-mindscapes-supported-p6-explicit-override' as const
+const contract = 'soda-team-strength-reference-conditions/v7'
 // Build once: the intrinsic index asks for every legal trio. Source membership
 // supplies provenance and raw conditions, never an inherited rating or level.
 const sourceDirectionsByKey = new Map(
@@ -66,7 +67,8 @@ export function computeTeamStrengthReferenceConditionsIdentity() {
       ({ memberIds, conditions, sourceRefs }) => ({ memberIds, conditions, sourceRefs }),
     ),
     unresolvedMeaning: 'retained-source-text-not-numericalized',
-    defaultMeaning: 'local-standard-reference-s0-a6-supported-p6-not-source-or-account-observation',
+    defaultMeaning:
+      'local-formed-reference-key-mindscapes-supported-p6-not-source-or-account-observation',
   })
 }
 export const teamStrengthReferenceConditionsIdentity =
@@ -76,6 +78,10 @@ export function currentTeamStrengthReferenceConditions(
   memberIds: readonly string[],
 ): ResolvedTeamStrengthReferenceConditions {
   const normalizedMemberIds = memberIds.map(resolveCurrentReleasedIdentity).sort()
+  const formed = formedTeamCultivation(normalizedMemberIds)
+  const mindscapeByAgentId = Object.fromEntries(
+    formed.members.map((row) => [row.agentId, row.mindscape]),
+  )
   const key = normalizedMemberIds.join('|')
   const sourceTeam = nonEditorialTrainingTeamsByKey.get(key)
   const direction = sourceDirectionsByKey.get(key)
@@ -104,7 +110,7 @@ export function currentTeamStrengthReferenceConditions(
       numericLevel: guide?.level ?? (catReference ? 6 : null),
       numericLevelBasis:
         guide?.numericLevelBasis ?? (catReference ? 'local_adjudicated_reference' : null),
-      mindscapeLevel: resolveTeamStrengthReferenceMindscape(agentId),
+      mindscapeLevel: resolveTeamStrengthReferenceMindscape(agentId, { mindscapeByAgentId }),
       minimumDemonstratedLevel: cfg?.minimumDemonstratedLevel ?? null,
       demonstrationEvidence: guide
         ? `${guide.sourceUrl}#image=${guide.imageName};sha256=${guide.imageSha256};locator=${guide.locator}`
@@ -149,7 +155,7 @@ export function currentTeamStrengthReferenceConditions(
     requiredFutureFields: ['same-condition-source-review'],
   }))
   const diagnostics = [
-    '本地标准比较协议为60级、基础技能11（按S0/A6计算有效等级）、核心7；当前支持潜能者P6，其余P0，显式数值优先。这不是作者构筑或账户观测。',
+    '成型比较采用60级、基础技能11、核心满级；A级满影、S级采用已复核关键影画，支持潜能者P6。显式比较覆盖优先，不代表作者构筑或账户观测。',
     ...(agentConditions.some((agent) => agent.status === 'activated_unknown_level')
       ? ['部分激发主体的来源参考等级仍未核实；标准P6不证明来源等级。']
       : []),
@@ -163,6 +169,7 @@ export function currentTeamStrengthReferenceConditions(
       : []),
   ]
   const result = {
+    mindscapeByAgentId,
     potentialByAgentId,
     evidenceRefs,
     status,

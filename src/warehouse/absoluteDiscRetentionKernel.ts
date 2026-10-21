@@ -1,3 +1,4 @@
+import { matchesCurrentVersionAdoptionSourceIdentity } from '../gameDataPacks/currentVersionProjection'
 import type {
   Disc,
   Catalog,
@@ -60,7 +61,13 @@ function coverageBlockers(
       identity.adoption.targetVersion !== identity.analysisTargetVersion ||
       !identity.adoption.id ||
       !identity.adoption.contentHash ||
-      !identity.adoption.sourceCommit ||
+      !matchesCurrentVersionAdoptionSourceIdentity(
+        identity.adoption.sourceIdentity,
+        identity.adoption.targetVersion,
+      ) ||
+      (identity.adoption.sourceIdentity?.provider === 'genshin_optimizer'
+        ? identity.adoption.sourceCommit !== identity.adoption.sourceIdentity.commit
+        : identity.adoption.sourceCommit !== null) ||
       !identity.adoption.scopeContentHash)
   )
     add('versionIdentity', '分析目标与具名版本采用不一致。')

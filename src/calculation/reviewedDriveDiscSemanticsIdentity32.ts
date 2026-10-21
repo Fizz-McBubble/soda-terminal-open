@@ -10,6 +10,12 @@ export const reviewedDriveDiscSemanticsIdentity32 = Object.freeze({
     stacking: 'single-active-provider-or-identical-value-once-otherwise-unresolved',
   },
   sources: {
+    'set-yunkui-tales': {
+      key: 'YunkuiTales',
+      sha256: '9ADC8AB6C1A0B892650DBE19A2FBA39A2051BFEF66E0366FB01539AE320DA5AC',
+      conditionalsSha256: 'B59E5C8BE75411F71451DD567510F66F789B059337C2828597592560F10FA41C',
+      localizationSha256: 'EB9C1971497D93F463CF808958351EE0B4B64A4C13EF583BD508A370FF21C4A9',
+    },
     'set-fanged-metal': {
       key: 'FangedMetal',
       sha256: 'B44962F0D42F16CAAF59807C0F141FD79402B4722B13F95542A334D007116B1C',

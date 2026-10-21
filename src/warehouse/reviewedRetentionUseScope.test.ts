@@ -11,6 +11,7 @@ import {
 import { resolveActionUtility } from './absoluteDiscRetentionActionUtility'
 import { resolveRetentionUseFacts } from './absoluteDiscRetentionUseFacts'
 import adoptions from './reviewed-normal-use-adoptions.v1.json'
+import { absoluteDiscRetentionCatalog } from './absoluteDiscRetentionCatalog'
 
 // Direct production imports bind current contracts and full constraint digests.
 const unresolved: ExistingFact = {
@@ -23,13 +24,67 @@ function inputs(actor: string) {
   const binding = adoptions.rows.find((row) => row.actorAgentId === actor)!
   const constraint = getCandidateWarehouseConstraint(actor)!
   const contract = getCurrentAgentEventContract(actor)!
-  const scope = getReviewedNormalM0UseScope(constraint, actor, binding.goals[0]!, contract)!
-  return { binding, constraint, contract, scope }
+  const selectedSetPlan = binding.reviewedSetPlanHashes
+    ? constraint.setPlans?.find((plan) =>
+        binding.reviewedSetPlanHashes?.includes(stableContentHash(plan)),
+      )
+    : undefined
+  const scope = getReviewedNormalM0UseScope(
+    constraint,
+    actor,
+    binding.goals[0]!,
+    contract,
+    selectedSetPlan,
+  )!
+  return { binding, constraint, contract, scope, selectedSetPlan }
 }
 describe('source-bound ordinary M0 reserve policy', () => {
+  for (const actor of ['agent-zhao', 'agent-remielle']) {
+    it(`${actor}: reviewed constraint changes preserve the exact ordinary scope`, () => {
+      const { binding, constraint, contract, scope } = inputs(actor)
+      expect(scope).toBeDefined()
+      expect(binding.constraintReadoption?.comparisonBaselineCommit).toBe('1fc905f1')
+      expect(binding.constraintReadoption?.currentFingerprint).toBe(binding.profileFingerprint)
+      expect(binding.constraintReadoption?.preservedSourceBindings).toEqual({
+        sourceCommit: binding.sourceCommit,
+        formulaSha256: binding.formulaSha256,
+        statsSha256: binding.statsSha256,
+        reviewedSourceArtifactSha256: binding.reviewedSourceArtifactSha256,
+      })
+      expect(scope.review.primaryAction).toBeNull()
+      expect(scope.review.decision).toBe('aftershock_not_adopted_for_this_build')
+      // A reviewed identity migration or source addition is not a wildcard for later drift.
+      for (const changed of [
+        { ...constraint, agentId: `candidate-3.1-${actor}` },
+        {
+          ...constraint,
+          sources: constraint.sources.map((source, index) =>
+            index === 0 ? { ...source, contentHash: 'unreviewed-source' } : source,
+          ),
+        },
+        { ...constraint, setIds: [...constraint.setIds, 'set-unreviewed'] },
+      ]) {
+        expect(
+          getReviewedNormalM0UseScope(changed, actor, binding.goals[0]!, contract),
+        ).toBeUndefined()
+      }
+      if (actor === 'agent-zhao') {
+        expect(constraint.setPlans).toHaveLength(3)
+        const changed = {
+          ...constraint,
+          setPlans: constraint.setPlans!.map((plan, index) =>
+            index === 2 ? { ...plan, purpose: 'recommended' as const } : plan,
+          ),
+        }
+        expect(
+          getReviewedNormalM0UseScope(changed, actor, binding.goals[0]!, contract),
+        ).toBeUndefined()
+      }
+    })
+  }
   for (const binding of adoptions.rows) {
     it(`${binding.actorAgentId}: exact adopted goal preserves unresolved physical tag`, () => {
-      const { scope, constraint, contract } = inputs(binding.actorAgentId)
+      const { scope, constraint, contract, selectedSetPlan } = inputs(binding.actorAgentId)
       expect(scope).toBeDefined()
       const result = resolveReviewedUseScope(
         unresolved,
@@ -65,7 +120,8 @@ describe('source-bound ordinary M0 reserve policy', () => {
         `reviewed-source-sha256:${binding.reviewedSourceArtifactSha256}`,
       )
       expect(
-        resolveRetentionUseFacts(constraint, binding.actorAgentId).actions.aftershock!.state,
+        resolveRetentionUseFacts(constraint, binding.actorAgentId, undefined, selectedSetPlan)
+          .actions.aftershock!.state,
       ).toBe('incidental')
     })
     it(`${binding.actorAgentId}: boundaries preserve existing utilities`, () => {
@@ -154,6 +210,77 @@ describe('source-bound ordinary M0 reserve policy', () => {
         ).toBeUndefined()
     })
   }
+  it('Sigrid adopts only complete reviewed Basic branches and preserves unknown Ultimate scope', () => {
+    const { constraint, contract, binding, scope } = inputs('agent-sigrid')
+    expect(
+      getReviewedNormalM0UseScope(constraint, 'agent-sigrid', 'crit_damage', contract),
+    ).toBeUndefined()
+    for (const plan of constraint.setPlans!) {
+      const adopted = binding.reviewedSetPlanHashes!.includes(stableContentHash(plan))
+      const actual = getReviewedNormalM0UseScope(
+        constraint,
+        'agent-sigrid',
+        'crit_damage',
+        contract,
+        plan,
+      )
+      expect(Boolean(actual)).toBe(adopted)
+      const facts = resolveRetentionUseFacts(constraint, 'agent-sigrid', undefined, plan)
+      expect(facts.actions.aftershock!.state).toBe(adopted ? 'incidental' : 'missing_fact')
+      if (adopted) expect(facts.actions.basic!.state).toBe('valid')
+      expect(
+        getReviewedNormalM0UseScope(constraint, 'agent-sigrid', 'crit_damage', contract, {
+          ...plan,
+          sourceText: 'unreviewed rotation',
+        }),
+      ).toBeUndefined()
+    }
+    for (const selectedSetPlanHash of [
+      undefined,
+      'unknown',
+      stableContentHash(constraint.setPlans![1]),
+    ]) {
+      expect(
+        resolveReviewedUseScope(
+          unresolved,
+          { ...scope.context, selectedSetPlanHash },
+          scope.review,
+          { ...scope.adoption, selectedSetPlanHash },
+        ).applied,
+      ).toBe(false)
+    }
+    const altered = { ...constraint, setPlans: [] }
+    expect(
+      getReviewedNormalM0UseScope(
+        altered,
+        'agent-sigrid',
+        'crit_damage',
+        contract,
+        constraint.setPlans![0],
+      ),
+    ).toBeUndefined()
+  })
+  it('catalog passes exact Sigrid base plans without adopting Ultimate or main alternatives', () => {
+    const profiles = absoluteDiscRetentionCatalog.profiles.filter(
+      (p) => p.agentId === 'agent-sigrid',
+    )
+    const base = profiles.filter((p) => p.id.includes(':base-'))
+    expect(base).toHaveLength(3)
+    for (const profile of base) {
+      const isUltimate = Object.hasOwn(profile.fourPieceUses ?? {}, 'set-puffer-electro')
+      expect(profile.utilityEvidence?.['action:aftershock']?.state).toBe(
+        isUltimate ? 'missing_fact' : 'incidental',
+      )
+      if (!isUltimate) expect(profile.actionUtility?.basic).toBe('valid')
+    }
+    for (const profile of profiles.filter((p) => !p.id.includes(':base-'))) {
+      expect(
+        profile.utilityEvidence?.['action:aftershock']?.evidenceIds.some((id) =>
+          id.startsWith('reviewed-use:normal32-continuity:1591'),
+        ),
+      ).not.toBe(true)
+    }
+  })
   it('three reviewed basic goals gain utility only for present actions', () => {
     for (const actor of ['agent-ye-shunguang', 'agent-pyrois', 'agent-sigrid']) {
       const { scope } = inputs(actor)

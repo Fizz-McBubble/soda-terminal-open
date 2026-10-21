@@ -1,4 +1,8 @@
-import { expect, it } from 'vitest'
+import * as offlineIndex from '../decision/current31TeamIntrinsicIndex'
+import * as ratingEngine from '../decision/current31TeamRating'
+import * as mechanicFeatures from '../decision/teamStrengthMechanicFeatures'
+import * as gearOptimizer from '../optimizer/optimizeAccountBuilds'
+import { afterEach, expect, it, vi } from 'vitest'
 import { buildAccountDecisionSnapshot } from '../decision/accountDecisionService'
 import { createLocalCalculationQueryClientCore } from './localCalculationQueryClientCore'
 import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
@@ -6,11 +10,16 @@ import type { CurrentGameDataRuntimeSelection } from '../gameDataPacks/runtimeSe
 import { query } from './localCalculationQueryClient.testFixture'
 import { projectPublicCalculationResult } from './publicCalculationTransport'
 
-it('keeps source decisions and resolves only the selected team diagnostic after the summary', async () => {
+afterEach(() => vi.restoreAllMocks())
+
+it('matches offline teams and opens details without rating or gear recalculation', async () => {
   const request = query('deferred-diagnostics', ['agent-alice', 'agent-astra', 'agent-burnice'])
   const input = { ...request.input, capturedAt: request.capturedAt }
   const before = JSON.stringify(input)
   const eager = buildAccountDecisionSnapshot(input)
+  const ratingSpy = vi.spyOn(ratingEngine, 'evaluateCurrent31TeamRating')
+  const featureSpy = vi.spyOn(mechanicFeatures, 'extractTeamStrengthMechanicFeatures')
+  const gearSpy = vi.spyOn(gearOptimizer, 'optimizeAccountBuilds')
   const summary = buildAccountDecisionSnapshot({ ...input, deferDiagnosticInference: true })
   const visible = (snapshot: typeof eager) => {
     const authority = snapshot.decisionAuthority
@@ -21,20 +30,16 @@ it('keeps source decisions and resolves only the selected team diagnostic after 
         memberIds: row.memberIds,
         teamRating: row.teamRating,
         teamStrengthOrder: row.teamStrengthOrder,
-        cultivationPriority: row.cultivationPriority,
         authority: row.metaCalibration.authority,
         sourceBand: row.metaCalibration.projectedStrengthBand,
       })),
     }
   }
   expect(visible(summary)).toEqual(visible(eager))
-  const prior = eager.decisionAuthority.consumerRecommendations.find(
-    (row) => row.metaCalibration.inference,
-  )
+  const prior = summary.decisionAuthority.consumerRecommendations[0]
   expect(prior).toBeDefined()
-  expect(summary.decisionAuthority.consumerRecommendations).toContainEqual(
-    expect.objectContaining({ candidateId: prior!.candidateId, mechanicDiagnosticDeferred: true }),
-  )
+  expect(prior!.formedTeamReference?.members).toHaveLength(3)
+  expect(summary.allocation.deferred).toBe(true)
   expect(
     summary.decisionAuthority.consumerRecommendations.every(
       (row) => !row.metaCalibration.inference,
@@ -65,7 +70,11 @@ it('keeps source decisions and resolves only the selected team diagnostic after 
     candidateId: prior!.candidateId,
   })
   expect(route.team).not.toBeNull()
-  expect(route.mechanicDiagnostic).toEqual(prior!.metaCalibration.inference)
+  expect(route.mechanicDiagnostic).toBeNull()
+  expect(ratingSpy).not.toHaveBeenCalled()
+  expect(featureSpy).not.toHaveBeenCalled()
+  expect(gearSpy).not.toHaveBeenCalled()
+  vi.restoreAllMocks()
   expect(projectPublicCalculationResult('team_route_presentation', route)).toHaveProperty(
     'mechanicDiagnostic',
     route.mechanicDiagnostic,
@@ -82,3 +91,25 @@ it('keeps source decisions and resolves only the selected team diagnostic after 
     }),
   ).rejects.toThrow('unavailable')
 }, 30_000)
+
+it('reports an unavailable table without falling back to a rating solver', () => {
+  const request = query('missing-offline-table', ['agent-alice', 'agent-astra', 'agent-burnice'])
+  const ratingSpy = vi.spyOn(ratingEngine, 'evaluateCurrent31TeamRating')
+  const lookup = vi.spyOn(offlineIndex, 'lookupCurrent31TeamIntrinsicSummary').mockReturnValue(null)
+  try {
+    const snapshot = buildAccountDecisionSnapshot({
+      ...request.input,
+      capturedAt: request.capturedAt,
+      deferDiagnosticInference: true,
+    })
+    expect(snapshot.decisionAuthority.status).toBe('blocked')
+    expect(snapshot.decisionAuthority.recommendations).toEqual([])
+    expect(snapshot.decisionAuthority).toHaveProperty('blockers', [
+      '通用队伍榜单尚未就绪，请更新资料后重试。',
+    ])
+    expect(ratingSpy).not.toHaveBeenCalled()
+  } finally {
+    lookup.mockRestore()
+    ratingSpy.mockRestore()
+  }
+})

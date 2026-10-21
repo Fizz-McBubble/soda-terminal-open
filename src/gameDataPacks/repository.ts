@@ -12,11 +12,13 @@ import {
   validateGameData31CurrentCanonical,
 } from './gameData31CurrentCanonical'
 import { type GameDataPackageManifest, type GameDataPackState, validateManifest } from './types'
+import { compiledCurrentGameBase } from './currentVersionProjection'
 
 const stateId = 'active-game-data-packs' as const
 const noticeKey = 'game-data-pack-last-notice'
 const current31MigrationKey = 'game-data-pack-current-3.1-migrated'
 const current32MigrationKey = 'game-data-pack-current-3.2-migrated'
+const current33MigrationKey = 'game-data-pack-current-3.3-migrated'
 
 export type GameDataPackNotice = {
   tone: 'status' | 'alert'
@@ -38,7 +40,7 @@ function initialState(now = new Date().toISOString()): GameDataPackState {
   return {
     id: stateId,
     activeFormalByKind: {
-      'game-base': gameBase32Current.id,
+      'game-base': compiledCurrentGameBase.id,
       'build-knowledge': buildKnowledge30Formal.id,
       rotation: rotation30Formal.id,
       'visual-catalog': visualCatalog30Formal.id,
@@ -58,6 +60,8 @@ export async function ensureBundledGameDataPacks(db: SodaDatabase = database) {
     if (!state) {
       await db.gameDataPackState.add(initialState())
       await db.settings.put({ key: current32MigrationKey, value: true })
+      if (compiledCurrentGameBase.gameVersion === '3.3')
+        await db.settings.put({ key: current33MigrationKey, value: true })
       return
     }
     // One-time migration to the installed current-version view. The marker prevents a deliberate
@@ -88,6 +92,29 @@ export async function ensureBundledGameDataPacks(db: SodaDatabase = database) {
         updatedAt: new Date().toISOString(),
       })
       await db.settings.put({ key: current32MigrationKey, value: true })
+    }
+    if (
+      compiledCurrentGameBase.gameVersion === '3.3' &&
+      !(await db.settings.get(current33MigrationKey))?.value
+    ) {
+      const selected = await db.gameDataPackState.get(stateId)
+      const previousId = selected?.activeFormalByKind['game-base']
+      // Only the known previous current package advances automatically. A
+      // deliberate older rollback or external selection remains untouched.
+      if (selected && previousId === gameBase32Current.id) {
+        await db.gameDataPackState.put({
+          ...selected,
+          activeFormalByKind: {
+            ...selected.activeFormalByKind,
+            'game-base': compiledCurrentGameBase.id,
+          },
+          expiredCalculationPackageIds: [
+            ...new Set([...selected.expiredCalculationPackageIds, previousId]),
+          ],
+          updatedAt: new Date().toISOString(),
+        })
+      }
+      await db.settings.put({ key: current33MigrationKey, value: true })
     }
   })
 }
@@ -228,7 +255,7 @@ export async function repairBundledCurrentGameData(
   db: SodaDatabase = database,
   beforeCommit?: () => void,
 ) {
-  return repairBundledMetadata(gameBase32Current, db, beforeCommit)
+  return repairBundledMetadata(compiledCurrentGameBase, db, beforeCommit)
 }
 
 async function repairBundledMetadata(

@@ -92,6 +92,7 @@ export function compileAgentPlanningEffectBlueprints(
       ]
       let todoBoundary = effect.numericExpression.todoBoundary
       let reconciledMetadata: ReturnType<typeof effectiveExpressionMetadata> | null = null
+      let reconciledTargetKinds: PlanningEffectTargetKind[] | undefined
       const originalSource = {
         formulaSha256: contract.effectContract.source.formulaSha256,
         expressionSha256: effect.numericExpression.expressionSha256,
@@ -114,6 +115,7 @@ export function compileAgentPlanningEffectBlueprints(
           expressionSha256 = sha256(canonicalJson(expressionIr))
           sourceRefs = [...sourceRefs, ...reconciled.evidence]
           reconciledMetadata = effectiveExpressionMetadata(expressionIr)
+          reconciledTargetKinds = reconciled.correctedTargetKinds
         }
       } catch (err: unknown) {
         // 来源漂移拒绝而非悄悄兜底；避免因为全模块初始化抛错让无关角色无法使用
@@ -126,7 +128,8 @@ export function compileAgentPlanningEffectBlueprints(
         providerAgentId: agentId,
         effectId: effect.effectId,
         applicationScope: effect.applicationScope as 'generic' | 'event_only',
-        targetKinds: [...new Set(effect.recipients)] as PlanningEffectTargetKind[],
+        targetKinds:
+          reconciledTargetKinds ?? ([...new Set(effect.recipients)] as PlanningEffectTargetKind[]),
         // R1 never assumes that a buff persists or snapshots. Every included effect
         // is recomputed against the named event unless a later version adds a
         // source-backed window operator.

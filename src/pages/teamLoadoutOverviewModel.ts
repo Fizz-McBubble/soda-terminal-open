@@ -29,6 +29,8 @@ import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
 import { orderRecommendationFamilies, orderTeamRecommendations } from './teamRecommendationOrdering'
 import { projectTeamLoadoutCompletionCandidates } from './teamLoadoutCompletionCandidates'
 import { genericTeamRatingScopeCopy } from './teamRatingText'
+import { referenceRecommendationFamilies } from './teamRecommendationVisibility'
+import { formedCultivationGaps } from '../application/formedCultivationGaps'
 import type {
   TeamLoadoutOverviewFamily,
   TeamLoadoutOverviewGroup,
@@ -258,7 +260,12 @@ export function buildTeamLoadoutOverviewModel({
     })
     return authorityItems
   })()
+  for (const item of recommendations) {
+    if (warehouse && item.formedTeamReference)
+      item.formedCultivationGaps = formedCultivationGaps(item.formedTeamReference, warehouse.roster)
+  }
   const families = recommendationFamilies(recommendations)
+  const referenceFamilies = referenceRecommendationFamilies(families)
   const hardPreference = decision.portfolioInput.preference
   const satisfiesHardPreference = (family: TeamLoadoutOverviewFamily) =>
     family.variants.some(
@@ -340,6 +347,7 @@ export function buildTeamLoadoutOverviewModel({
         label: '当前推荐',
         description: `${genericTeamRatingScopeCopy.listDescription}同档无已发布关系时保持并列。`,
         items: visibleRecommendationFamilies,
+        referenceItems: referenceFamilies,
       },
       {
         kind: 'saved',
@@ -361,7 +369,12 @@ export function buildTeamLoadoutOverviewModel({
         completionCandidates,
       },
     ] satisfies TeamLoadoutOverviewGroup[]
-  ).filter((group) => group.items.length || (group.completionCandidates?.length ?? 0) > 0)
+  ).filter(
+    (group) =>
+      group.items.length ||
+      (group.referenceItems?.length ?? 0) > 0 ||
+      (group.completionCandidates?.length ?? 0) > 0,
+  )
   return {
     answer,
     coverage: decision.teamEngineCoverage

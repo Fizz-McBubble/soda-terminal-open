@@ -4,7 +4,7 @@
   "gameVersion": "3.2",
   "upstreamCommit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
   "ready": true,
-  "semanticIdentityHash": "fnv1a-8fb9e8b0",
+  "semanticIdentityHash": "fnv1a-f070a664",
   "scope": {
     "memberIds": ["agent-claret", "agent-roxy", "agent-rina"],
     "eventTuples": [
@@ -844,7 +844,7 @@
                             "statsHash": "fnv1a-97cfea4"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-cfef1d00"
+                        "finalStatsHash": "fnv1a-209f6101"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -904,7 +904,7 @@
                             "statsHash": "fnv1a-da2d933"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-adf5faa"
+                        "finalStatsHash": "fnv1a-862b52e9"
                       },
                       {
                         "agentId": "agent-rina",
@@ -964,7 +964,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-92278d9e"
+                        "finalStatsHash": "fnv1a-ccde8ffd"
                       }
                     ],
                     "scope": {
@@ -1879,7 +1879,7 @@
                             "statsHash": "fnv1a-30f4a703"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-e75e3c40"
+                        "finalStatsHash": "fnv1a-7beb1deb"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -1939,7 +1939,7 @@
                             "statsHash": "fnv1a-dea8db0f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-295e9301"
+                        "finalStatsHash": "fnv1a-c7f5db40"
                       },
                       {
                         "agentId": "agent-rina",
@@ -1999,7 +1999,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-ed85d5ce"
+                        "finalStatsHash": "fnv1a-c7b82611"
                       }
                     ],
                     "scope": {
@@ -2997,7 +2997,7 @@
                             "statsHash": "fnv1a-30f4a703"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-e75e3c40"
+                        "finalStatsHash": "fnv1a-7beb1deb"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -3057,7 +3057,7 @@
                             "statsHash": "fnv1a-dea8db0f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-295e9301"
+                        "finalStatsHash": "fnv1a-c7f5db40"
                       },
                       {
                         "agentId": "agent-rina",
@@ -3117,7 +3117,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-3a8bbb3e"
+                        "finalStatsHash": "fnv1a-e600f3c5"
                       }
                     ],
                     "scope": {
@@ -4115,7 +4115,7 @@
                             "statsHash": "fnv1a-97cfea4"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-cfef1d00"
+                        "finalStatsHash": "fnv1a-209f6101"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -4175,7 +4175,7 @@
                             "statsHash": "fnv1a-da2d933"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-adf5faa"
+                        "finalStatsHash": "fnv1a-862b52e9"
                       },
                       {
                         "agentId": "agent-rina",
@@ -4235,7 +4235,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-c571f91e"
+                        "finalStatsHash": "fnv1a-d304c995"
                       }
                     ],
                     "scope": {
@@ -5300,7 +5300,7 @@
                     "valueKind": "boolean"
                   }
                 ],
-                "independentFixtureInputDigest": "365c16f8b7eae92fea366bf86c4f0c6cf8fa80b2eb89f0f60eeb4d6ce4b0a5d6",
+                "independentFixtureInputDigest": "7dc413b7b91c3f346adaa14404545f79278c3134fa1c013a3127cc3455b4ee2e",
                 "independentFixtureCount": 617,
                 "eventTuple": {
                   "ownerAgentId": "agent-claret",
@@ -5308,12 +5308,12 @@
                   "formulaFamily": "sharp_direct"
                 }
               },
-              "context_sha256": "b591767f84474bc02be8e2ae5b88ba5f2b7f8eb82cccec2e1abbf6bd319d54a1"
+              "context_sha256": "c445840280a764ae6b5ddd43e68fd1c115334100aece5d0c609b39d24c8957f4"
             },
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "929ba6d6db4142a567ca5bbabf79bd64076ebe00764317fc83c324704f17ef12",
+              "implementation_sha256": "cfe2324471241241a439e6fa89f37605a9bd3e97cc06da8ab30235f0fb34da16",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -5323,7 +5323,7 @@
             },
             "deterministic_regression": {
               "fixture_id": "claret-roxy-rina-m0-three-events-reviewed-loadout-domains32-r2:independent-raw-table-regression",
-              "input_sha256": "365c16f8b7eae92fea366bf86c4f0c6cf8fa80b2eb89f0f60eeb4d6ce4b0a5d6",
+              "input_sha256": "7dc413b7b91c3f346adaa14404545f79278c3134fa1c013a3127cc3455b4ee2e",
               "expected_output_sha256": "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
               "output_sha256_runs": [
                 "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
@@ -5602,7 +5602,7 @@
                             "statsHash": "fnv1a-97cfea4"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-cfef1d00"
+                        "finalStatsHash": "fnv1a-209f6101"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -5662,7 +5662,7 @@
                             "statsHash": "fnv1a-da2d933"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-adf5faa"
+                        "finalStatsHash": "fnv1a-862b52e9"
                       },
                       {
                         "agentId": "agent-rina",
@@ -5722,7 +5722,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-92278d9e"
+                        "finalStatsHash": "fnv1a-ccde8ffd"
                       }
                     ],
                     "scope": {
@@ -6637,7 +6637,7 @@
                             "statsHash": "fnv1a-30f4a703"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-e75e3c40"
+                        "finalStatsHash": "fnv1a-7beb1deb"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -6697,7 +6697,7 @@
                             "statsHash": "fnv1a-dea8db0f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-295e9301"
+                        "finalStatsHash": "fnv1a-c7f5db40"
                       },
                       {
                         "agentId": "agent-rina",
@@ -6757,7 +6757,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-ed85d5ce"
+                        "finalStatsHash": "fnv1a-c7b82611"
                       }
                     ],
                     "scope": {
@@ -7755,7 +7755,7 @@
                             "statsHash": "fnv1a-30f4a703"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-e75e3c40"
+                        "finalStatsHash": "fnv1a-7beb1deb"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -7815,7 +7815,7 @@
                             "statsHash": "fnv1a-dea8db0f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-295e9301"
+                        "finalStatsHash": "fnv1a-c7f5db40"
                       },
                       {
                         "agentId": "agent-rina",
@@ -7875,7 +7875,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-3a8bbb3e"
+                        "finalStatsHash": "fnv1a-e600f3c5"
                       }
                     ],
                     "scope": {
@@ -8873,7 +8873,7 @@
                             "statsHash": "fnv1a-97cfea4"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-cfef1d00"
+                        "finalStatsHash": "fnv1a-209f6101"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -8933,7 +8933,7 @@
                             "statsHash": "fnv1a-da2d933"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-adf5faa"
+                        "finalStatsHash": "fnv1a-862b52e9"
                       },
                       {
                         "agentId": "agent-rina",
@@ -8993,7 +8993,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-c571f91e"
+                        "finalStatsHash": "fnv1a-d304c995"
                       }
                     ],
                     "scope": {
@@ -10058,7 +10058,7 @@
                     "valueKind": "boolean"
                   }
                 ],
-                "independentFixtureInputDigest": "365c16f8b7eae92fea366bf86c4f0c6cf8fa80b2eb89f0f60eeb4d6ce4b0a5d6",
+                "independentFixtureInputDigest": "7dc413b7b91c3f346adaa14404545f79278c3134fa1c013a3127cc3455b4ee2e",
                 "independentFixtureCount": 617,
                 "eventTuple": {
                   "ownerAgentId": "agent-claret",
@@ -10066,12 +10066,12 @@
                   "formulaFamily": "sharp_direct"
                 }
               },
-              "context_sha256": "b591767f84474bc02be8e2ae5b88ba5f2b7f8eb82cccec2e1abbf6bd319d54a1"
+              "context_sha256": "c445840280a764ae6b5ddd43e68fd1c115334100aece5d0c609b39d24c8957f4"
             },
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "929ba6d6db4142a567ca5bbabf79bd64076ebe00764317fc83c324704f17ef12",
+              "implementation_sha256": "cfe2324471241241a439e6fa89f37605a9bd3e97cc06da8ab30235f0fb34da16",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -10081,7 +10081,7 @@
             },
             "deterministic_regression": {
               "fixture_id": "claret-roxy-rina-m0-three-events-reviewed-loadout-domains32-r2:independent-raw-table-regression",
-              "input_sha256": "365c16f8b7eae92fea366bf86c4f0c6cf8fa80b2eb89f0f60eeb4d6ce4b0a5d6",
+              "input_sha256": "7dc413b7b91c3f346adaa14404545f79278c3134fa1c013a3127cc3455b4ee2e",
               "expected_output_sha256": "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
               "output_sha256_runs": [
                 "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
@@ -10360,7 +10360,7 @@
                             "statsHash": "fnv1a-97cfea4"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-cfef1d00"
+                        "finalStatsHash": "fnv1a-209f6101"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -10420,7 +10420,7 @@
                             "statsHash": "fnv1a-da2d933"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-adf5faa"
+                        "finalStatsHash": "fnv1a-862b52e9"
                       },
                       {
                         "agentId": "agent-rina",
@@ -10480,7 +10480,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-92278d9e"
+                        "finalStatsHash": "fnv1a-ccde8ffd"
                       }
                     ],
                     "scope": {
@@ -11395,7 +11395,7 @@
                             "statsHash": "fnv1a-30f4a703"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-e75e3c40"
+                        "finalStatsHash": "fnv1a-7beb1deb"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -11455,7 +11455,7 @@
                             "statsHash": "fnv1a-dea8db0f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-295e9301"
+                        "finalStatsHash": "fnv1a-c7f5db40"
                       },
                       {
                         "agentId": "agent-rina",
@@ -11515,7 +11515,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-ed85d5ce"
+                        "finalStatsHash": "fnv1a-c7b82611"
                       }
                     ],
                     "scope": {
@@ -12513,7 +12513,7 @@
                             "statsHash": "fnv1a-30f4a703"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-e75e3c40"
+                        "finalStatsHash": "fnv1a-7beb1deb"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -12573,7 +12573,7 @@
                             "statsHash": "fnv1a-dea8db0f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-295e9301"
+                        "finalStatsHash": "fnv1a-c7f5db40"
                       },
                       {
                         "agentId": "agent-rina",
@@ -12633,7 +12633,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-3a8bbb3e"
+                        "finalStatsHash": "fnv1a-e600f3c5"
                       }
                     ],
                     "scope": {
@@ -13631,7 +13631,7 @@
                             "statsHash": "fnv1a-97cfea4"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-cfef1d00"
+                        "finalStatsHash": "fnv1a-209f6101"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -13691,7 +13691,7 @@
                             "statsHash": "fnv1a-da2d933"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-adf5faa"
+                        "finalStatsHash": "fnv1a-862b52e9"
                       },
                       {
                         "agentId": "agent-rina",
@@ -13751,7 +13751,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-c571f91e"
+                        "finalStatsHash": "fnv1a-d304c995"
                       }
                     ],
                     "scope": {
@@ -14816,7 +14816,7 @@
                     "valueKind": "boolean"
                   }
                 ],
-                "independentFixtureInputDigest": "365c16f8b7eae92fea366bf86c4f0c6cf8fa80b2eb89f0f60eeb4d6ce4b0a5d6",
+                "independentFixtureInputDigest": "7dc413b7b91c3f346adaa14404545f79278c3134fa1c013a3127cc3455b4ee2e",
                 "independentFixtureCount": 617,
                 "eventTuple": {
                   "ownerAgentId": "agent-claret",
@@ -14824,12 +14824,12 @@
                   "formulaFamily": "sharp_direct"
                 }
               },
-              "context_sha256": "b591767f84474bc02be8e2ae5b88ba5f2b7f8eb82cccec2e1abbf6bd319d54a1"
+              "context_sha256": "c445840280a764ae6b5ddd43e68fd1c115334100aece5d0c609b39d24c8957f4"
             },
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "929ba6d6db4142a567ca5bbabf79bd64076ebe00764317fc83c324704f17ef12",
+              "implementation_sha256": "cfe2324471241241a439e6fa89f37605a9bd3e97cc06da8ab30235f0fb34da16",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -14839,7 +14839,7 @@
             },
             "deterministic_regression": {
               "fixture_id": "claret-roxy-rina-m0-three-events-reviewed-loadout-domains32-r2:independent-raw-table-regression",
-              "input_sha256": "365c16f8b7eae92fea366bf86c4f0c6cf8fa80b2eb89f0f60eeb4d6ce4b0a5d6",
+              "input_sha256": "7dc413b7b91c3f346adaa14404545f79278c3134fa1c013a3127cc3455b4ee2e",
               "expected_output_sha256": "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
               "output_sha256_runs": [
                 "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
@@ -15118,7 +15118,7 @@
                             "statsHash": "fnv1a-97cfea4"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-cfef1d00"
+                        "finalStatsHash": "fnv1a-209f6101"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -15178,7 +15178,7 @@
                             "statsHash": "fnv1a-da2d933"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-adf5faa"
+                        "finalStatsHash": "fnv1a-862b52e9"
                       },
                       {
                         "agentId": "agent-rina",
@@ -15238,7 +15238,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-92278d9e"
+                        "finalStatsHash": "fnv1a-ccde8ffd"
                       }
                     ],
                     "scope": {
@@ -16153,7 +16153,7 @@
                             "statsHash": "fnv1a-30f4a703"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-e75e3c40"
+                        "finalStatsHash": "fnv1a-7beb1deb"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -16213,7 +16213,7 @@
                             "statsHash": "fnv1a-dea8db0f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-295e9301"
+                        "finalStatsHash": "fnv1a-c7f5db40"
                       },
                       {
                         "agentId": "agent-rina",
@@ -16273,7 +16273,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-ed85d5ce"
+                        "finalStatsHash": "fnv1a-c7b82611"
                       }
                     ],
                     "scope": {
@@ -17271,7 +17271,7 @@
                             "statsHash": "fnv1a-30f4a703"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-e75e3c40"
+                        "finalStatsHash": "fnv1a-7beb1deb"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -17331,7 +17331,7 @@
                             "statsHash": "fnv1a-dea8db0f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-295e9301"
+                        "finalStatsHash": "fnv1a-c7f5db40"
                       },
                       {
                         "agentId": "agent-rina",
@@ -17391,7 +17391,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-3a8bbb3e"
+                        "finalStatsHash": "fnv1a-e600f3c5"
                       }
                     ],
                     "scope": {
@@ -18389,7 +18389,7 @@
                             "statsHash": "fnv1a-97cfea4"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-cfef1d00"
+                        "finalStatsHash": "fnv1a-209f6101"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -18449,7 +18449,7 @@
                             "statsHash": "fnv1a-da2d933"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-adf5faa"
+                        "finalStatsHash": "fnv1a-862b52e9"
                       },
                       {
                         "agentId": "agent-rina",
@@ -18509,7 +18509,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-c571f91e"
+                        "finalStatsHash": "fnv1a-d304c995"
                       }
                     ],
                     "scope": {
@@ -19574,7 +19574,7 @@
                     "valueKind": "boolean"
                   }
                 ],
-                "independentFixtureInputDigest": "365c16f8b7eae92fea366bf86c4f0c6cf8fa80b2eb89f0f60eeb4d6ce4b0a5d6",
+                "independentFixtureInputDigest": "7dc413b7b91c3f346adaa14404545f79278c3134fa1c013a3127cc3455b4ee2e",
                 "independentFixtureCount": 617,
                 "eventTuple": {
                   "ownerAgentId": "agent-claret",
@@ -19582,12 +19582,12 @@
                   "formulaFamily": "sharp_direct"
                 }
               },
-              "context_sha256": "125a723da7e2f88f2a5d249dd2175136d746ace1a3389946407670a355b2bbb3"
+              "context_sha256": "958434b26c351f928857f35c644ef0f15e20c6c3bd4ab9347d242a80bf2e1485"
             },
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "929ba6d6db4142a567ca5bbabf79bd64076ebe00764317fc83c324704f17ef12",
+              "implementation_sha256": "cfe2324471241241a439e6fa89f37605a9bd3e97cc06da8ab30235f0fb34da16",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -19597,7 +19597,7 @@
             },
             "deterministic_regression": {
               "fixture_id": "claret-roxy-rina-m0-three-events-reviewed-loadout-domains32-r2:independent-raw-table-regression",
-              "input_sha256": "365c16f8b7eae92fea366bf86c4f0c6cf8fa80b2eb89f0f60eeb4d6ce4b0a5d6",
+              "input_sha256": "7dc413b7b91c3f346adaa14404545f79278c3134fa1c013a3127cc3455b4ee2e",
               "expected_output_sha256": "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
               "output_sha256_runs": [
                 "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
@@ -19876,7 +19876,7 @@
                             "statsHash": "fnv1a-97cfea4"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-cfef1d00"
+                        "finalStatsHash": "fnv1a-209f6101"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -19936,7 +19936,7 @@
                             "statsHash": "fnv1a-da2d933"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-adf5faa"
+                        "finalStatsHash": "fnv1a-862b52e9"
                       },
                       {
                         "agentId": "agent-rina",
@@ -19996,7 +19996,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-92278d9e"
+                        "finalStatsHash": "fnv1a-ccde8ffd"
                       }
                     ],
                     "scope": {
@@ -20911,7 +20911,7 @@
                             "statsHash": "fnv1a-30f4a703"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-e75e3c40"
+                        "finalStatsHash": "fnv1a-7beb1deb"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -20971,7 +20971,7 @@
                             "statsHash": "fnv1a-dea8db0f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-295e9301"
+                        "finalStatsHash": "fnv1a-c7f5db40"
                       },
                       {
                         "agentId": "agent-rina",
@@ -21031,7 +21031,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-ed85d5ce"
+                        "finalStatsHash": "fnv1a-c7b82611"
                       }
                     ],
                     "scope": {
@@ -22029,7 +22029,7 @@
                             "statsHash": "fnv1a-30f4a703"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-e75e3c40"
+                        "finalStatsHash": "fnv1a-7beb1deb"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -22089,7 +22089,7 @@
                             "statsHash": "fnv1a-dea8db0f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-295e9301"
+                        "finalStatsHash": "fnv1a-c7f5db40"
                       },
                       {
                         "agentId": "agent-rina",
@@ -22149,7 +22149,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-3a8bbb3e"
+                        "finalStatsHash": "fnv1a-e600f3c5"
                       }
                     ],
                     "scope": {
@@ -23147,7 +23147,7 @@
                             "statsHash": "fnv1a-97cfea4"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-cfef1d00"
+                        "finalStatsHash": "fnv1a-209f6101"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -23207,7 +23207,7 @@
                             "statsHash": "fnv1a-da2d933"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-adf5faa"
+                        "finalStatsHash": "fnv1a-862b52e9"
                       },
                       {
                         "agentId": "agent-rina",
@@ -23267,7 +23267,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-c571f91e"
+                        "finalStatsHash": "fnv1a-d304c995"
                       }
                     ],
                     "scope": {
@@ -24332,7 +24332,7 @@
                     "valueKind": "boolean"
                   }
                 ],
-                "independentFixtureInputDigest": "365c16f8b7eae92fea366bf86c4f0c6cf8fa80b2eb89f0f60eeb4d6ce4b0a5d6",
+                "independentFixtureInputDigest": "7dc413b7b91c3f346adaa14404545f79278c3134fa1c013a3127cc3455b4ee2e",
                 "independentFixtureCount": 617,
                 "eventTuple": {
                   "ownerAgentId": "agent-claret",
@@ -24340,12 +24340,12 @@
                   "formulaFamily": "sharp_direct"
                 }
               },
-              "context_sha256": "125a723da7e2f88f2a5d249dd2175136d746ace1a3389946407670a355b2bbb3"
+              "context_sha256": "958434b26c351f928857f35c644ef0f15e20c6c3bd4ab9347d242a80bf2e1485"
             },
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "929ba6d6db4142a567ca5bbabf79bd64076ebe00764317fc83c324704f17ef12",
+              "implementation_sha256": "cfe2324471241241a439e6fa89f37605a9bd3e97cc06da8ab30235f0fb34da16",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -24355,7 +24355,7 @@
             },
             "deterministic_regression": {
               "fixture_id": "claret-roxy-rina-m0-three-events-reviewed-loadout-domains32-r2:independent-raw-table-regression",
-              "input_sha256": "365c16f8b7eae92fea366bf86c4f0c6cf8fa80b2eb89f0f60eeb4d6ce4b0a5d6",
+              "input_sha256": "7dc413b7b91c3f346adaa14404545f79278c3134fa1c013a3127cc3455b4ee2e",
               "expected_output_sha256": "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
               "output_sha256_runs": [
                 "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
@@ -24634,7 +24634,7 @@
                             "statsHash": "fnv1a-97cfea4"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-cfef1d00"
+                        "finalStatsHash": "fnv1a-209f6101"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -24694,7 +24694,7 @@
                             "statsHash": "fnv1a-da2d933"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-adf5faa"
+                        "finalStatsHash": "fnv1a-862b52e9"
                       },
                       {
                         "agentId": "agent-rina",
@@ -24754,7 +24754,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-92278d9e"
+                        "finalStatsHash": "fnv1a-ccde8ffd"
                       }
                     ],
                     "scope": {
@@ -25669,7 +25669,7 @@
                             "statsHash": "fnv1a-30f4a703"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-e75e3c40"
+                        "finalStatsHash": "fnv1a-7beb1deb"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -25729,7 +25729,7 @@
                             "statsHash": "fnv1a-dea8db0f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-295e9301"
+                        "finalStatsHash": "fnv1a-c7f5db40"
                       },
                       {
                         "agentId": "agent-rina",
@@ -25789,7 +25789,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-ed85d5ce"
+                        "finalStatsHash": "fnv1a-c7b82611"
                       }
                     ],
                     "scope": {
@@ -26787,7 +26787,7 @@
                             "statsHash": "fnv1a-30f4a703"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-e75e3c40"
+                        "finalStatsHash": "fnv1a-7beb1deb"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -26847,7 +26847,7 @@
                             "statsHash": "fnv1a-dea8db0f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-295e9301"
+                        "finalStatsHash": "fnv1a-c7f5db40"
                       },
                       {
                         "agentId": "agent-rina",
@@ -26907,7 +26907,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-3a8bbb3e"
+                        "finalStatsHash": "fnv1a-e600f3c5"
                       }
                     ],
                     "scope": {
@@ -27905,7 +27905,7 @@
                             "statsHash": "fnv1a-97cfea4"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-cfef1d00"
+                        "finalStatsHash": "fnv1a-209f6101"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -27965,7 +27965,7 @@
                             "statsHash": "fnv1a-da2d933"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-adf5faa"
+                        "finalStatsHash": "fnv1a-862b52e9"
                       },
                       {
                         "agentId": "agent-rina",
@@ -28025,7 +28025,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-c571f91e"
+                        "finalStatsHash": "fnv1a-d304c995"
                       }
                     ],
                     "scope": {
@@ -29090,7 +29090,7 @@
                     "valueKind": "boolean"
                   }
                 ],
-                "independentFixtureInputDigest": "365c16f8b7eae92fea366bf86c4f0c6cf8fa80b2eb89f0f60eeb4d6ce4b0a5d6",
+                "independentFixtureInputDigest": "7dc413b7b91c3f346adaa14404545f79278c3134fa1c013a3127cc3455b4ee2e",
                 "independentFixtureCount": 617,
                 "eventTuple": {
                   "ownerAgentId": "agent-claret",
@@ -29098,12 +29098,12 @@
                   "formulaFamily": "sharp_direct"
                 }
               },
-              "context_sha256": "125a723da7e2f88f2a5d249dd2175136d746ace1a3389946407670a355b2bbb3"
+              "context_sha256": "958434b26c351f928857f35c644ef0f15e20c6c3bd4ab9347d242a80bf2e1485"
             },
             "whitebox_formula": {
               "formula_family": "sharp_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "929ba6d6db4142a567ca5bbabf79bd64076ebe00764317fc83c324704f17ef12",
+              "implementation_sha256": "cfe2324471241241a439e6fa89f37605a9bd3e97cc06da8ab30235f0fb34da16",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -29113,7 +29113,7 @@
             },
             "deterministic_regression": {
               "fixture_id": "claret-roxy-rina-m0-three-events-reviewed-loadout-domains32-r2:independent-raw-table-regression",
-              "input_sha256": "365c16f8b7eae92fea366bf86c4f0c6cf8fa80b2eb89f0f60eeb4d6ce4b0a5d6",
+              "input_sha256": "7dc413b7b91c3f346adaa14404545f79278c3134fa1c013a3127cc3455b4ee2e",
               "expected_output_sha256": "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
               "output_sha256_runs": [
                 "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
@@ -29392,7 +29392,7 @@
                             "statsHash": "fnv1a-97cfea4"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-cfef1d00"
+                        "finalStatsHash": "fnv1a-209f6101"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -29452,7 +29452,7 @@
                             "statsHash": "fnv1a-da2d933"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-adf5faa"
+                        "finalStatsHash": "fnv1a-862b52e9"
                       },
                       {
                         "agentId": "agent-rina",
@@ -29512,7 +29512,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-92278d9e"
+                        "finalStatsHash": "fnv1a-ccde8ffd"
                       }
                     ],
                     "scope": {
@@ -30427,7 +30427,7 @@
                             "statsHash": "fnv1a-30f4a703"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-e75e3c40"
+                        "finalStatsHash": "fnv1a-7beb1deb"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -30487,7 +30487,7 @@
                             "statsHash": "fnv1a-dea8db0f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-295e9301"
+                        "finalStatsHash": "fnv1a-c7f5db40"
                       },
                       {
                         "agentId": "agent-rina",
@@ -30547,7 +30547,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-ed85d5ce"
+                        "finalStatsHash": "fnv1a-c7b82611"
                       }
                     ],
                     "scope": {
@@ -31545,7 +31545,7 @@
                             "statsHash": "fnv1a-30f4a703"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-e75e3c40"
+                        "finalStatsHash": "fnv1a-7beb1deb"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -31605,7 +31605,7 @@
                             "statsHash": "fnv1a-dea8db0f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-295e9301"
+                        "finalStatsHash": "fnv1a-c7f5db40"
                       },
                       {
                         "agentId": "agent-rina",
@@ -31665,7 +31665,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-3a8bbb3e"
+                        "finalStatsHash": "fnv1a-e600f3c5"
                       }
                     ],
                     "scope": {
@@ -32663,7 +32663,7 @@
                             "statsHash": "fnv1a-97cfea4"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-cfef1d00"
+                        "finalStatsHash": "fnv1a-209f6101"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -32723,7 +32723,7 @@
                             "statsHash": "fnv1a-da2d933"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-adf5faa"
+                        "finalStatsHash": "fnv1a-862b52e9"
                       },
                       {
                         "agentId": "agent-rina",
@@ -32783,7 +32783,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-c571f91e"
+                        "finalStatsHash": "fnv1a-d304c995"
                       }
                     ],
                     "scope": {
@@ -33848,7 +33848,7 @@
                     "valueKind": "boolean"
                   }
                 ],
-                "independentFixtureInputDigest": "365c16f8b7eae92fea366bf86c4f0c6cf8fa80b2eb89f0f60eeb4d6ce4b0a5d6",
+                "independentFixtureInputDigest": "7dc413b7b91c3f346adaa14404545f79278c3134fa1c013a3127cc3455b4ee2e",
                 "independentFixtureCount": 617,
                 "eventTuple": {
                   "ownerAgentId": "agent-roxy",
@@ -33856,12 +33856,12 @@
                   "formulaFamily": "typed_direct"
                 }
               },
-              "context_sha256": "f77192874e95c1b45aad93f8b6599ed289e9cb19070b1dca536b1b8c3ea9acbb"
+              "context_sha256": "609a53cd691588dbf574d3f33ce4acc3a52b13e162a12a4672e04c9b6c29aac8"
             },
             "whitebox_formula": {
               "formula_family": "typed_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "929ba6d6db4142a567ca5bbabf79bd64076ebe00764317fc83c324704f17ef12",
+              "implementation_sha256": "cfe2324471241241a439e6fa89f37605a9bd3e97cc06da8ab30235f0fb34da16",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -33871,7 +33871,7 @@
             },
             "deterministic_regression": {
               "fixture_id": "claret-roxy-rina-m0-three-events-reviewed-loadout-domains32-r2:independent-raw-table-regression",
-              "input_sha256": "365c16f8b7eae92fea366bf86c4f0c6cf8fa80b2eb89f0f60eeb4d6ce4b0a5d6",
+              "input_sha256": "7dc413b7b91c3f346adaa14404545f79278c3134fa1c013a3127cc3455b4ee2e",
               "expected_output_sha256": "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
               "output_sha256_runs": [
                 "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
@@ -34150,7 +34150,7 @@
                             "statsHash": "fnv1a-97cfea4"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-cfef1d00"
+                        "finalStatsHash": "fnv1a-209f6101"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -34210,7 +34210,7 @@
                             "statsHash": "fnv1a-da2d933"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-adf5faa"
+                        "finalStatsHash": "fnv1a-862b52e9"
                       },
                       {
                         "agentId": "agent-rina",
@@ -34270,7 +34270,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-92278d9e"
+                        "finalStatsHash": "fnv1a-ccde8ffd"
                       }
                     ],
                     "scope": {
@@ -35185,7 +35185,7 @@
                             "statsHash": "fnv1a-30f4a703"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-e75e3c40"
+                        "finalStatsHash": "fnv1a-7beb1deb"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -35245,7 +35245,7 @@
                             "statsHash": "fnv1a-dea8db0f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-295e9301"
+                        "finalStatsHash": "fnv1a-c7f5db40"
                       },
                       {
                         "agentId": "agent-rina",
@@ -35305,7 +35305,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-ed85d5ce"
+                        "finalStatsHash": "fnv1a-c7b82611"
                       }
                     ],
                     "scope": {
@@ -36303,7 +36303,7 @@
                             "statsHash": "fnv1a-30f4a703"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-e75e3c40"
+                        "finalStatsHash": "fnv1a-7beb1deb"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -36363,7 +36363,7 @@
                             "statsHash": "fnv1a-dea8db0f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-295e9301"
+                        "finalStatsHash": "fnv1a-c7f5db40"
                       },
                       {
                         "agentId": "agent-rina",
@@ -36423,7 +36423,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-3a8bbb3e"
+                        "finalStatsHash": "fnv1a-e600f3c5"
                       }
                     ],
                     "scope": {
@@ -37421,7 +37421,7 @@
                             "statsHash": "fnv1a-97cfea4"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-cfef1d00"
+                        "finalStatsHash": "fnv1a-209f6101"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -37481,7 +37481,7 @@
                             "statsHash": "fnv1a-da2d933"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-adf5faa"
+                        "finalStatsHash": "fnv1a-862b52e9"
                       },
                       {
                         "agentId": "agent-rina",
@@ -37541,7 +37541,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-c571f91e"
+                        "finalStatsHash": "fnv1a-d304c995"
                       }
                     ],
                     "scope": {
@@ -38606,7 +38606,7 @@
                     "valueKind": "boolean"
                   }
                 ],
-                "independentFixtureInputDigest": "365c16f8b7eae92fea366bf86c4f0c6cf8fa80b2eb89f0f60eeb4d6ce4b0a5d6",
+                "independentFixtureInputDigest": "7dc413b7b91c3f346adaa14404545f79278c3134fa1c013a3127cc3455b4ee2e",
                 "independentFixtureCount": 617,
                 "eventTuple": {
                   "ownerAgentId": "agent-roxy",
@@ -38614,12 +38614,12 @@
                   "formulaFamily": "typed_direct"
                 }
               },
-              "context_sha256": "f77192874e95c1b45aad93f8b6599ed289e9cb19070b1dca536b1b8c3ea9acbb"
+              "context_sha256": "609a53cd691588dbf574d3f33ce4acc3a52b13e162a12a4672e04c9b6c29aac8"
             },
             "whitebox_formula": {
               "formula_family": "typed_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "929ba6d6db4142a567ca5bbabf79bd64076ebe00764317fc83c324704f17ef12",
+              "implementation_sha256": "cfe2324471241241a439e6fa89f37605a9bd3e97cc06da8ab30235f0fb34da16",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -38629,7 +38629,7 @@
             },
             "deterministic_regression": {
               "fixture_id": "claret-roxy-rina-m0-three-events-reviewed-loadout-domains32-r2:independent-raw-table-regression",
-              "input_sha256": "365c16f8b7eae92fea366bf86c4f0c6cf8fa80b2eb89f0f60eeb4d6ce4b0a5d6",
+              "input_sha256": "7dc413b7b91c3f346adaa14404545f79278c3134fa1c013a3127cc3455b4ee2e",
               "expected_output_sha256": "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
               "output_sha256_runs": [
                 "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
@@ -38908,7 +38908,7 @@
                             "statsHash": "fnv1a-97cfea4"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-cfef1d00"
+                        "finalStatsHash": "fnv1a-209f6101"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -38968,7 +38968,7 @@
                             "statsHash": "fnv1a-da2d933"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-adf5faa"
+                        "finalStatsHash": "fnv1a-862b52e9"
                       },
                       {
                         "agentId": "agent-rina",
@@ -39028,7 +39028,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-92278d9e"
+                        "finalStatsHash": "fnv1a-ccde8ffd"
                       }
                     ],
                     "scope": {
@@ -39943,7 +39943,7 @@
                             "statsHash": "fnv1a-30f4a703"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-e75e3c40"
+                        "finalStatsHash": "fnv1a-7beb1deb"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -40003,7 +40003,7 @@
                             "statsHash": "fnv1a-dea8db0f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-295e9301"
+                        "finalStatsHash": "fnv1a-c7f5db40"
                       },
                       {
                         "agentId": "agent-rina",
@@ -40063,7 +40063,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-ed85d5ce"
+                        "finalStatsHash": "fnv1a-c7b82611"
                       }
                     ],
                     "scope": {
@@ -41061,7 +41061,7 @@
                             "statsHash": "fnv1a-30f4a703"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-e75e3c40"
+                        "finalStatsHash": "fnv1a-7beb1deb"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -41121,7 +41121,7 @@
                             "statsHash": "fnv1a-dea8db0f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-295e9301"
+                        "finalStatsHash": "fnv1a-c7f5db40"
                       },
                       {
                         "agentId": "agent-rina",
@@ -41181,7 +41181,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-3a8bbb3e"
+                        "finalStatsHash": "fnv1a-e600f3c5"
                       }
                     ],
                     "scope": {
@@ -42179,7 +42179,7 @@
                             "statsHash": "fnv1a-97cfea4"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-cfef1d00"
+                        "finalStatsHash": "fnv1a-209f6101"
                       },
                       {
                         "agentId": "agent-roxy",
@@ -42239,7 +42239,7 @@
                             "statsHash": "fnv1a-da2d933"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-adf5faa"
+                        "finalStatsHash": "fnv1a-862b52e9"
                       },
                       {
                         "agentId": "agent-rina",
@@ -42299,7 +42299,7 @@
                             "statsHash": "fnv1a-cbda709f"
                           }
                         ],
-                        "finalStatsHash": "fnv1a-c571f91e"
+                        "finalStatsHash": "fnv1a-d304c995"
                       }
                     ],
                     "scope": {
@@ -43364,7 +43364,7 @@
                     "valueKind": "boolean"
                   }
                 ],
-                "independentFixtureInputDigest": "365c16f8b7eae92fea366bf86c4f0c6cf8fa80b2eb89f0f60eeb4d6ce4b0a5d6",
+                "independentFixtureInputDigest": "7dc413b7b91c3f346adaa14404545f79278c3134fa1c013a3127cc3455b4ee2e",
                 "independentFixtureCount": 617,
                 "eventTuple": {
                   "ownerAgentId": "agent-roxy",
@@ -43372,12 +43372,12 @@
                   "formulaFamily": "typed_direct"
                 }
               },
-              "context_sha256": "f77192874e95c1b45aad93f8b6599ed289e9cb19070b1dca536b1b8c3ea9acbb"
+              "context_sha256": "609a53cd691588dbf574d3f33ce4acc3a52b13e162a12a4672e04c9b6c29aac8"
             },
             "whitebox_formula": {
               "formula_family": "typed_direct",
               "implementation_id": "planning32-private-numeric-runtime+independent-raw-tables-v1",
-              "implementation_sha256": "929ba6d6db4142a567ca5bbabf79bd64076ebe00764317fc83c324704f17ef12",
+              "implementation_sha256": "cfe2324471241241a439e6fa89f37605a9bd3e97cc06da8ab30235f0fb34da16",
               "equation_sha256": "d128941cec39dfe621a469cc676af33ecafcd99d421821861cd871c4935bb34c"
             },
             "rounding": {
@@ -43387,7 +43387,7 @@
             },
             "deterministic_regression": {
               "fixture_id": "claret-roxy-rina-m0-three-events-reviewed-loadout-domains32-r2:independent-raw-table-regression",
-              "input_sha256": "365c16f8b7eae92fea366bf86c4f0c6cf8fa80b2eb89f0f60eeb4d6ce4b0a5d6",
+              "input_sha256": "7dc413b7b91c3f346adaa14404545f79278c3134fa1c013a3127cc3455b4ee2e",
               "expected_output_sha256": "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
               "output_sha256_runs": [
                 "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
@@ -43437,7 +43437,7 @@
   ],
   "regression": {
     "fixture_id": "claret-roxy-rina-m0-three-events-reviewed-loadout-domains32-r2:independent-raw-table-regression",
-    "input_sha256": "365c16f8b7eae92fea366bf86c4f0c6cf8fa80b2eb89f0f60eeb4d6ce4b0a5d6",
+    "input_sha256": "7dc413b7b91c3f346adaa14404545f79278c3134fa1c013a3127cc3455b4ee2e",
     "expected_output_sha256": "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
     "output_sha256_runs": [
       "19ccc22e909c43b92a7fcae52b9c18013acf1eef6177dab0a9cde99b064aa0c9",
@@ -43471,38 +43471,42 @@
     "src/accounts/wEngineInstanceRules.ts": "f217323ae0c4336a9582a25af8c86662dbe7b05ca0588c8f94e5602f3e1dc494",
     "src/application/accountDecisionWorldHooks.ts": "42c6d1244e3eba4907fd78b838f870c1882b1e51d772eadc73bd92f6cc86516d",
     "src/application/buildTargetPresentation.ts": "3010d9b01a378afccbdc3870fa77945411c0764304dcef9b585d245658f19f2e",
-    "src/application/calculationQueryContract.ts": "8c7757104171d49546aaff9f86eb752751f6c20f6c4e51003fd60308cff2319a",
+    "src/application/calculationQueryContract.ts": "d9517756110cd726ee3b15af3c6c058738e6f0ac070f72e80bb525583e2b9cc6",
     "src/application/characterPanelFields.ts": "40451f125f845e926c99add6d827cafd025135c6bc1392f54f84701a9f099703",
     "src/application/contentHash.ts": "4f118d1838c9ae18df976ba70d8d7aafc096158bb41aeccef647a7c2988d1e55",
     "src/application/developmentCandidateLoadoutCache.ts": "43680ec0ffa4d3c3ad40291c68f21c5abde4412f31a9877c0c1a5ce04274f4e0",
     "src/application/developmentComparisonPanelProjection.ts": "8f8a3a347eb9663701aa7c581aed79cf4623963e25f80f3daf388dce803b4755",
     "src/application/developmentDirectoryQueryProjection.ts": "64bcc50c2a6f6614ed40465b585ef8ba57478a1edf1ce314c609e89ba7786c65",
     "src/application/developmentWEngineComparisonProjection.ts": "75948fbe2b79bc90def5da05b5a1dbe3d52ac090201024e8d437689ef7d6cf7f",
-    "src/application/developmentWorkbenchPresentationProjection.ts": "8f497ee49330dad2342c3a2120e9f96c8a7069cdae357d0c5211fa888ca4b5c9",
+    "src/application/developmentWorkbenchPresentationProjection.ts": "a51bbd563a1ef0402a971492a9e1d65ff9e410c7f5006aaa8c350cfa31f6ff85",
+    "src/application/formedCultivationGaps.ts": "6c71abde7b82d0cbd51a54218835522d4960764883f9d6d202545bfa605c95a8",
     "src/application/localCalculationQueryClientCore.ts": "0d87fd677e14883ff52729e293b6da936fd61ad3ab7cd3b2be4e13cac555cade",
-    "src/application/localTargetTeamFitQuery.ts": "71b3a42a3c7e2af4250abc3f67604fbae4b8f97addcaebc10a7077d416482b78",
+    "src/application/localTargetTeamFitQuery.ts": "11268a90d2680f47d974117362590bad9088e90e20240d322665b8f6805dc619",
     "src/application/localTargetTeamPlayerSelection.ts": "4f85c64c9667dba1bcccf89755e0da72bf65e09614fde62ad9644886f8644b39",
     "src/application/planningBenchmark32.independent.test.ts": "a79baed910f1803ca8621cd35a527dee8aed488250dc0cbde4c08fdd73616eb0",
-    "src/application/privatePlanningBenchmark32.ts": "4f0ea1ffe4f0ed7ab1c939657a74dadbfd026bb822bc14303dd3ef97c9c91567",
-    "src/application/privatePlanningBenchmarkBinding32.ts": "d2c46c551d524339574d5bfc15e4708ed94ae42120f398dfe06030b08fe9f446",
+    "src/application/planningEquipmentConditionVocabulary32.ts": "0431fadedaa77842ca2c5623aa359618aaeb3cc1b5448a7c0077b84128070ba5",
+    "src/application/privatePlanningBenchmark32.ts": "3f7abdd9741e175951fc77c28ffb903be5e266f88be73fb6110eafe159b36f58",
+    "src/application/privatePlanningBenchmarkBinding32.ts": "20aae4fb58402468facda78160ea8e0fc1a7ea9d68430b8154b6ea284796d981",
     "src/application/publicAnomalySnapshotStats32.ts": "8597de297ad1fff29279f0b9d72209021e07906c701361ca81e1f8c60ff380f0",
-    "src/application/publicAssetCatalog.data.json": "eb21847aa5cd324d2e1dda24862b6b6863e36f9dcb4e320563b80ef7f1857e19",
+    "src/application/publicAssetCatalog.data.json": "14e18dd33834a29cb98e4748e18f8316cd4bd85f4c9cc91350d87d76d2d3a6f9",
     "src/application/publicAssetCatalog.ts": "b3b53923db9719325435abb6874e9e596aed06f78e8eff1ae58b3ec3d6965174",
-    "src/application/publicCalculationPlanTransport.ts": "b3facf26940417fe63ccba4b0c0034ccba9094b7687c8875a03b91b1a4475a07",
+    "src/application/publicCalculationPlanTransport.ts": "caf2f84c06a4943cace5d674250fdc49ae82d645e2041f017561a1c13e39014e",
     "src/application/publicCalculationTransport.ts": "876a5d43b424853cf343a15b0fc2e5dffa0c478622b38f8819b922dbeda0eee5",
     "src/application/publicCandidateLabels.data.json": "3bfe468bc896d1cbcb08c0824af631dcaec98a81f9f8a893942a5c0f73757e1f",
     "src/application/publicCommonAnomalySettlement32.ts": "3e2cd24ac8576e6ef241154ea9ba8ae692312e8d2c8e2e3caa867a245edaee6c",
     "src/application/publicDevelopmentWEngineComparison.ts": "75b1c1125c45862698d20baa5cf28032e6a67cedb0cc8797c05bbe0d0b22a090",
+    "src/application/publicFormedTeamReference.ts": "c07d688b92dc45fbfc99c13c83906a0b6e05486655cc9cbe1ce6869ed34c1b6e",
     "src/application/publicLuminizeComparison32.ts": "52bb91b9507a0efafaa6d10ed796cdf98fce53df364a42fcd07b72e6a63dd998",
     "src/application/publicPlanningAnomalyLifecycle32.ts": "4c519920568ce6a480923c94947b73edd7a7383e78626d79c4cf3e3204e7ffe0",
     "src/application/publicPlanningBenchmark32.ts": "35765fc93aa1b92cceb98c9ab8d0c055b6c467de92b700e366d3fdeb446a3aca",
     "src/application/publicPlanningEventDeclarations32.ts": "93bfee85a6e4f80e92cb6dede7ad69abcf9bcc19a241093df19c1bbf2bf31534",
     "src/application/publicRosterNames.ts": "90efe8bcf38e5b2f8c6a34059718294575485e4d186a13d492d7fd64c0ccb4ad",
-    "src/application/publicSavedTeamReplay.ts": "6951295d386740dc0caebae165990abb7a71b57630a189200dd6c8258fe4afa3",
+    "src/application/publicSavedTeamReplay.ts": "2a8b384e31f2b68874a4368c2e46be198a19588485fa3cacaa6ba1a87c236cc6",
+    "src/application/publicTeamReferenceScore.ts": "46656606554719ba226cffd845223114b08d3ce12e924a2f52e8bf9a33e4d057",
     "src/application/publicTriggerAftershockWindow32.ts": "74c325ac824dd10af6aeec4a78333b87c0f532fd0a9e793c58dffa7cccc4e6ca",
-    "src/application/remoteCalculationInput.ts": "a5cd96b8bd3e4e448007f0b6773ac940dfd34164ec3c6f7c9f05c26506ea4ded",
+    "src/application/remoteCalculationInput.ts": "383aaefc88e0776d206a1198cfe8467aaca88547d8058d20b596cf52588c357d",
     "src/application/remoteCalculationProtocol.ts": "ff8f7495f1a9b2a664903f60c20d937170704653bb2ec631fda24cf5d5be12e1",
-    "src/application/targetTeamStandardReference32.ts": "d29646795f8d839d36a650167c52090ead5af6052b184156788a5bf819184ead",
+    "src/application/targetTeamStandardReference32.ts": "befa6cc2dbb1c6f1616553a9e0c7e620e19f0758d41c83e726ec036fdecb7c53",
     "src/assault/agentCapabilities.ts": "2ef3c00eb8e565d11ab5d2110a7a80b49666a58ba7a5563063f4dcba701eb838",
     "src/assault/catalog.ts": "408b2c9a33d3eed19c4ecca2e20b6dcad13af698103b475eb80bffe6484c7f52",
     "src/assault/catalogData.ts": "b41cb5efacff7c90938bdb2c238b6849755fcc6fc56a974cfa327fd4cf103b1a",
@@ -43530,7 +43534,8 @@
     "src/calculation/current31ReferenceCombatBuilds.ts": "c019749cd507898d36807f988046aeb87139215a16649a9ce5068a75770a432c",
     "src/calculation/currentAgentDecisionMechanicContracts.ts": "003eab642234b5b0cc701e50444bdd185cc89dacb8090fdeea16669dd9e2915a",
     "src/calculation/currentAgentMechanicContracts.ts": "8ac3c27fd8c8c583de919db7de2a89243844e4601361e4845c7ed6a572deac81",
-    "src/calculation/currentAgentPlanningEffectBlueprint.ts": "1cbfaa83e91c932dd32508dd74eb857b073bd5841ac95677b3fd081b1641bd2d",
+    "src/calculation/currentAgentNumericContracts.ts": "88a9edb57a78f0ed416cef9c05f40ce9b7e824eb0ac510e846f6e827eec553a2",
+    "src/calculation/currentAgentPlanningEffectBlueprint.ts": "ee62d1e491622faaa7b15ed3fad8d00756e0b60b177ff562b95108f228a1a65d",
     "src/calculation/currentAgentResourceEvents32.ts": "a388687bebd9bfbfc9adda6ae1c67e75595cdf22056d7b179c647a436f95670f",
     "src/calculation/currentAgentResourceFlow32.ts": "8d99dec02f12f432c9efeaf51a07c441dc727bb4cffaee773496e2c119608039",
     "src/calculation/currentBangbooAdditionalUtilityCapacity.ts": "822a4ad03b1f78f7cd94aaec99d38a80b0b1d8ed2c69c56ad90e535dbdc7aa8f",
@@ -43538,13 +43543,13 @@
     "src/calculation/currentBangbooBaseUtilityContracts.ts": "709349b9ad86938b30ae972d202efc2e3f68589be4e9fc4e4eb8a117c1d9fbdf",
     "src/calculation/currentBangbooBaseUtilityPresentation.ts": "472a6a6fcecd0aab31b7099052e149d13560df5f306cb543f306b57ffac5072c",
     "src/calculation/currentBangbooBaseUtilityTypes.ts": "528a74deedab06f3ab529360a8b76b887af6700ac6621c6fa851b21c9610ec6e",
-    "src/calculation/currentBangbooCompositionIdentity.ts": "e242392da20ab82f9cd7b9307ce485a205e1a5396fdd19af68989e9d86dfae19",
+    "src/calculation/currentBangbooCompositionIdentity.ts": "f3c5bdf7223c652263a3d70563d493c59e7a8f242143881797d57447426c0b7f",
     "src/calculation/currentBangbooFixedUtilityCapacity.ts": "a7dad62f79c0f77ca475bfb7b27a46f40e6993c7effe43b5bdc2b87bf5bafa4a",
     "src/calculation/currentBangbooMechanicContracts.ts": "4bf3e7970b7e3cd3d0d926e115266c30931340cafc910ff680126ab9fe589f80",
     "src/calculation/currentBangbooMechanicDefinitions.ts": "c6368555f4df7d4e9b10e27575b371db979aaaa908e122220370b50d01805de2",
     "src/calculation/currentBangbooPlanningAdapter.ts": "1bfc5863bdf8a78335e73df6e1f165cf80d6c232d585011d840ccaf90289343c",
     "src/calculation/currentBangbooSourceFormula.ts": "a6c5c05b04107349d5e39bff5ddfa4696793e45ffb1a5d8e8b38220013e8e7da",
-    "src/calculation/currentBangbooUtilityProjection.ts": "2d1ff81bf8e79d88882804f256b31b0c0b44c708f15eeed58ed0ac30fea9a614",
+    "src/calculation/currentBangbooUtilityProjection.ts": "7e5086d670d2cfd080d158e12db1710f604134fe79ded113f4a8377c14ebab18",
     "src/calculation/currentBangbooUtilityProjectionTypes.ts": "316f6ceb03217353306c2bc0b4fb6f4da2ae69c01ea0477a4783a8b601faf360",
     "src/calculation/currentCombatPlanningModifierTargets.ts": "4b6192801db43940456bf48012707e5c438f4b5832121ac223a88af5830dced0",
     "src/calculation/currentCommonAnomalyEffects32.ts": "294ffcab104eb04f63d2cb52a8b49ee18d7cdd1a806fae5a5f6e3578084b6326",
@@ -43557,9 +43562,9 @@
     "src/calculation/currentPlanningAnomalyLifecycle32.ts": "3f8cb2ca5bba1fe545abd2a342ffb98995bb3174b2b2218d37bdb82fd5b5b054",
     "src/calculation/currentPlanningAnomalyLifecycleIdentity32.ts": "8d41b30b222c59ab639512800f9b21cf13cf423bef9d609f8ccafcf9415acc0c",
     "src/calculation/currentPlanningBaselineObservations.ts": "0733a8c23068b55ec7c3420fedbabe8a402e8efa1aca6ac4c3b317acf40cd724",
-    "src/calculation/currentPlanningConditionCatalog32.ts": "b638eb03e459b371718122171bd089703a423ef5db6f856f1e4390a31a093aa5",
-    "src/calculation/currentPlanningConditionSourceSeeds32.ts": "2f4b3732a3d4d725b453a5c30155e68a1a7f6ad2e4a9c93ce13ec4ae3053a97e",
-    "src/calculation/currentPlanningConsumerPolicyIdentity32.ts": "4943fc6a2ddcbeda00167fd4f046a7ba86c7f21749cab12d407d00ab58ec051b",
+    "src/calculation/currentPlanningConditionCatalog32.ts": "c810b0bff8ead5cb4d8028a119c80cf029479620f481b0e61fc3d40675be991f",
+    "src/calculation/currentPlanningConditionSourceSeeds32.ts": "fbeafcf6c3a620251a16b2f8b96723353af1fe310268bc411fda979be8a71d72",
+    "src/calculation/currentPlanningConsumerPolicyIdentity32.ts": "4f7e4801ec4a350cf59887d793b5e3893938c0f55332fa78e9e4e2af41677501",
     "src/calculation/currentPlanningDamageModifiers.ts": "e5a14a4c579f81ed83630af88eea9e82d72af260ab3b25139480f5b142dd11fe",
     "src/calculation/currentPlanningEffectDomain.ts": "51f3ac14d2101e800bf7700f6040415f3c210db03f2897e81566ecba96b28b60",
     "src/calculation/currentPlanningEffectExpressions.ts": "30ed84177295bbf4147c991fede131409727720c6e5a55315074612204e52465",
@@ -43568,13 +43573,13 @@
     "src/calculation/currentPlanningEffectResolutionIdentity32.ts": "9201e99d8d72d0af64c3f6b233eb3f5eb36d743ea24f3c134ff3476d1c6acca9",
     "src/calculation/currentPlanningEffectRuntime.ts": "0fb53589b352d7c86d0d1ba58099c6021b2ae6309c6fa61aa21877987b24fa4a",
     "src/calculation/currentPlanningEventDamage32.ts": "21c741317959833a7761b6f5c59c3b15720f293efe982d7925f142d6bfdc0e3f",
-    "src/calculation/currentPlanningEventEffectResolution32.ts": "f3aee3b7e2dacf2546e2618bfed662276bb2d8a80be2043e3af2791da3b7f231",
+    "src/calculation/currentPlanningEventEffectResolution32.ts": "bd86f25c828e86eca668e37ff642cf491615ffbf08fbf0db27823646a10b4323",
     "src/calculation/currentPlanningFormationEffectEvaluation.ts": "11b5e53783e96c4fe7f95f03d50dc57eab6378110fbfd67d7a78843dbb45d051",
     "src/calculation/currentPlanningHarumasaEventWindow32.ts": "576c7c358f05de6e482bf183a79a20a6f1f884ff6fe102138e284e44692a2749",
     "src/calculation/currentPlanningInteractionMechanicIR.ts": "8285d77048944d8f4c6535270f66aadde8bd0abe85f7440c915e6c2e4e65b491",
     "src/calculation/currentPlanningScenario32.ts": "7b5e6e220031fcb364230f12547ce1b6cd5d1b7213ce00d8d93e5c5bc695021f",
     "src/calculation/currentPlanningSelfEffects32.ts": "665a0e773e75c6b505b197df951b8251939edd4ea58dabbdda7c501517347c27",
-    "src/calculation/currentPlanningTeamDpsRuntime.ts": "98fc977c9320f7029355deaf24a7fc87378d6b6db70d7cc7a21fb3ab69a965db",
+    "src/calculation/currentPlanningTeamDpsRuntime.ts": "cfb056754424829d197812d765fc6d3fde2ab50dfff00147f10d7d0866dc7d62",
     "src/calculation/currentPlanningTeamDpsSchedule32.ts": "65e03e2bf081192a844128ca5a231ed5ff9f10c6a0ec1e090749a45e6a159c14",
     "src/calculation/currentPlanningWEngineDependencies32.ts": "258effd98415e7978af97931f1eaa37de0adfeaeaf0d374fcd4d4f1dfcf9d33f",
     "src/calculation/currentPotentialEventActions32.ts": "f120ad82966885e919e13aa04cff8086109400ffc500511763c9bfd0d23e122b",
@@ -43583,7 +43588,7 @@
     "src/calculation/currentUpstreamExpressionIR.ts": "57b4eea597058535d933e96fae93e5af98e128ff88adf1714261510d40e51d82",
     "src/calculation/currentWEngineMechanicContracts.ts": "24fc58daf8cc51c06adaa072f2c38d54a2873c580e2b5b016e268ff9c1b6acf1",
     "src/calculation/currentWEngineMechanicDefinitions.ts": "5424d9ccabd4e721189c01ee4a8b8eb9c98cfc4e563558448d940997f11e1ab0",
-    "src/calculation/currentWEnginePassiveAdapters.ts": "43b7c2b540b2690e3f05373dd3dc477bc81d69c01a8fc103b7122d199ff73502",
+    "src/calculation/currentWEnginePassiveAdapters.ts": "200a402e01fb576d7b6e64f4d461d13d62426eeb5a6d9b25147e0d3629001c2f",
     "src/calculation/currentWEnginePersonalPlanningEffects.ts": "a23d2ac1c445a0f4f6c991d5a182e043e3941e09cc0b735e5cf5c9ab62759ac0",
     "src/calculation/damageFormulaDispatch.ts": "faeb890a0ba6dc4c756235ff5e230fc62d01ac5cbcb0b4fba1cd0337b9744ac8",
     "src/calculation/damageGate.ts": "73756d5bbdcad2843135c9d12461732f6ce98d411911a93b583223cf19cea3af",
@@ -43592,7 +43597,7 @@
     "src/calculation/directDamageCore.ts": "768c3bbaec7a122f8215e93ed377a380578fe22529091630b1f7bf103bdd3b97",
     "src/calculation/dynamic/lacerationProbability.ts": "eac5a08c758c49645a0496491d8bfd1941d97b4894fd3f7362bea5fd14dabb24",
     "src/calculation/dynamic/numeric.ts": "1fe2f683666ca73eb95361cac138393e95075fdda6a1a91f0737eda5b85df212",
-    "src/calculation/dynamic/sourceExpressionReconciliation.ts": "54efef0336889203472fb1f0bf63f2cff59d8d489b77dcbbb8ca81e2ad9c32e2",
+    "src/calculation/dynamic/sourceExpressionReconciliation.ts": "cb0811d54b7dfd7a355a9341800cf2b55bd931494e49da3f2072c2b7b22ae175",
     "src/calculation/fixedEventSupportContribution32.ts": "61c549df7f66d2e92cbd0e16a88a00c5f75db1fffbbb67193a07242abe7447c0",
     "src/calculation/formalDamageUnsupportedContext.ts": "81874427369655215c6103a9e6b9079e18c64bb308d3743770c90d9ccc4c08a9",
     "src/calculation/functionalPlanningEffectScope32.ts": "baa62ac63e11cc4fa6f09b73cfb19375c0ea16f79e562d73ddae35554c8687f4",
@@ -43600,8 +43605,10 @@
     "src/calculation/mechanicIr.ts": "3ef570f01f651cd00852c4ba1e72b46fe8780989403ffbed120dd708cdee7912",
     "src/calculation/outOfCombatDiscStats.ts": "37ad3894ac0273d5d7890a776e6e9ad01ea76048676fafaabb03ef89c9fd4751",
     "src/calculation/outOfCombatInitialModifiers.ts": "9df7b11f5c434549bebc6d1684fc0a98ebc2e05bb2ef254cbba067112db7b77d",
-    "src/calculation/outOfCombatPanel.ts": "529016541d58c79dc5562aa200ca2f002618511060a38dc450d09b0167d8a338",
+    "src/calculation/outOfCombatPanel.ts": "739612a7efa1e3a3b722b07ed5022b94538ab68a008ba27c43e57a0f2e6985da",
     "src/calculation/outOfCombatPanelSupport.ts": "39b00bcf44981bbc05b05dd0193dbc5d1213ffbf98a587ea201edda3bdb0931a",
+    "src/calculation/phoenixAscensionMaterials33.data.json": "7767f113dd3a22bbc858bbb16ae8e6bbe419328af4aae189803cb53a08ea1721",
+    "src/calculation/phoenixAscensionMaterials33.ts": "bdb562b3a74390e802e39910607b5edd2f00d43c6cd65926d554f23a6b08218f",
     "src/calculation/planningCalculationContextCompiler.ts": "a6e7704e8987dab257f4a4acad260711a2c9ec3e7944c81ee4a80a22ceb7efa7",
     "src/calculation/planningDpsContract.ts": "556ceaaa3ed2bddb94316c03f50bf34198c5f532d23dd5bfa6e52588aa81e6c1",
     "src/calculation/planningDpsExecution.ts": "89ad4b8916badac3ec1fd12b258d4222fb80a3ad7873ab02d242670eff90966e",
@@ -43619,12 +43626,12 @@
     "src/calculation/reviewedClaretFixedBenchmark32.ts": "7a3270e8c4f00cfd87e8a11b244b39efae7cca627eaa4b913aaddc45b9ce2d22",
     "src/calculation/reviewedClaretHeldAction32.ts": "6683a2d18788bb2603ad6dfb2da9d3c50a439c8501928cd4c60be90cbfa28fc9",
     "src/calculation/reviewedClaretIntrinsicAction32.ts": "9a838821c7d4f8e4c9d07e467551b71712f2ab9f10b7dbdc4e300e2ad0803d75",
-    "src/calculation/reviewedClaretResourceEvents32.ts": "f894942ed9cc3ae3ef840c5554ec52ce6d1401bb8697677573d38e3643a16e82",
+    "src/calculation/reviewedClaretResourceEvents32.ts": "528f406649d4090e6d4ba5a17270c5d49b003c49635db9d505b9a80df9924ea8",
     "src/calculation/reviewedClaretTapAction32.ts": "488acf98eef62619714c0f6371571a8a705c6f75b16ec563975737b401558834",
     "src/calculation/reviewedCommonAnomalySettlement32.ts": "daa80af5cf7878d2bcef9c9ae041e16787c229d9028350e4140f69d4e746b483",
-    "src/calculation/reviewedDriveDiscConditionDomains32.ts": "ad1bc53a1bfc0130a6af5b913e88fdb39709d7a028d61cabc677c93d6af509cd",
+    "src/calculation/reviewedDriveDiscConditionDomains32.ts": "c2d1138fc65a69eefd488cb3c0f1c091f5039ae212c8f5e83e251f53238c1f5f",
     "src/calculation/reviewedDriveDiscEventEffects32.ts": "4baa5bd8e0505b6686a70be402d80b3ff68c512e71311d9c7a332eb6be0f6596",
-    "src/calculation/reviewedDriveDiscSemanticsIdentity32.ts": "27437923bf50c965becaad952664ae6cd3cbbf04252c103297a5dcd3130f42b7",
+    "src/calculation/reviewedDriveDiscSemanticsIdentity32.ts": "34e5fe4bb053f587b56e787c50c1488fc897b74777142423e1f8465ef25b5a86",
     "src/calculation/reviewedEventConditionDeclarations32.ts": "a2d44462440f4d485611a1104c8f0905683b383d7f1f750dd0f8f14b1b9ed7a6",
     "src/calculation/reviewedFunctionalCapacity32.ts": "00e316d25ee4bc4b31b689b207dbe0b340e9c69e0ffb048741f8ffc56cae966e",
     "src/calculation/reviewedFunctionalEquipmentDependencies32.ts": "973bc5d5d91e5a90baf87401e86e46c56390a7d300f2d3ab05671c5ff16b70d8",
@@ -43641,12 +43648,13 @@
     "src/calculation/reviewedPotentialPreparedEvents32.ts": "0d5883e37ad560511c99d876f17cce637fc69636005cb17bb6e5983b617ac8e9",
     "src/calculation/reviewedPotentialSourceClosure32.ts": "f2f34688d1a03e396af8b93a12c24de4edfe45259b6bc2983839e4c7019e490e",
     "src/calculation/reviewedPotentialTeamAction32.ts": "b6cde4d6847e4abd7115203f90b60ca52ac772597f5429eb6a70e4d7fc9696db",
-    "src/calculation/reviewedPreparedAnomalyDeclarations32.ts": "0286e2b6160a4369371a065686d8c24b87195fb8ef30ee2ccba3a8e32202dd5d",
-    "src/calculation/reviewedPreparedAnomalyEquipment32.ts": "34c3b81c84aa1e1ce3d21192a00da63e0a7e352a6b10aa6b08b8f50b7cef4d8e",
-    "src/calculation/reviewedPreparedAnomalyModifiers32.ts": "5b8329fc9e763ddc9291de750444ca1535956086b8bd83075704c3429bba501e",
-    "src/calculation/reviewedPreparedAnomalyObjective32.ts": "5251c1930450994ec4da04c3c458c6174d19cfdb51b53215431a770993fd3489",
+    "src/calculation/reviewedPreparedAnomalyDeclarations32.ts": "ee3dcf550374258c0ee3e9624e81434d9157c9a0ec9f39e22b515f5cf6b31e96",
+    "src/calculation/reviewedPreparedAnomalyEquipment32.ts": "3b70c585d72bd41ad44b38637e9dba2100ebc15ac76fb2d2b0c7092528a745f7",
+    "src/calculation/reviewedPreparedAnomalyModifiers32.ts": "dc76f5349880c5b388a0f488ba0b38835d3176b8ab072a8deccdfbf26e634df6",
+    "src/calculation/reviewedPreparedAnomalyObjective32.ts": "48e7c6188cf1d0298ac4d756e359160f9ab80f7964e33b162c99805294c67561",
     "src/calculation/reviewedPreparedAnomalyValidation32.ts": "15fa67f88789181be8f0db0bb89900ea2fe4c091b50b214424ef706c8b31b574",
     "src/calculation/reviewedPreparedBenchmark32.ts": "c689f7de02099fc3db10ea72ea25d59930be274389450c2039747ff740852b85",
+    "src/calculation/reviewedPreparedPolarityObjective32.ts": "90e804a08dd7a9146e706b35bce39c5673ef78a31319e84e25d39d9bfd3590fb",
     "src/calculation/reviewedPreparedTeamBenchmark32.ts": "2af6cfdca3cdbbe57efbe4a0655e1962ed0b707e0dcbbbeaff9d41bc29e3334a",
     "src/calculation/reviewedRinaCleanupDispatch32.ts": "04c7be7610ba8a8fe15119ad77abbee9e419f50eff55773c743d0e380d466e19",
     "src/calculation/reviewedRinaPotentialTeamStats32.ts": "a0f83728fcaa730fd49c6afedf51070d645a05b111d61ab4ae9b5ac37a19cf68",
@@ -43658,13 +43666,14 @@
     "src/calculation/reviewedRoxyPreparedTriggersIdentity32.ts": "5a365e5d6d836625db1c38ee41e9abab2a5dd06b264dde3fe3d4983970229e32",
     "src/calculation/reviewedRoxyResourceSettlement32.ts": "a95fd889bc4f2ccce0c5beb4e25dd0cb984f44553dc26ca8639c1b30f85ece57",
     "src/calculation/reviewedRoxyTapAction32.ts": "f82581b644c33cc789b525bb1d4995230db4e51d98db99af285df5f8f873e11c",
-    "src/calculation/reviewedSpringEmbraceReceivers32.ts": "3ec154e75c1a9fc653ed0398235ba3a4e992ef0a3debda20f487a784f6462d09",
+    "src/calculation/reviewedSpringEmbraceReceivers32.ts": "ebfd4050d9e6f496c52700b0b128d04c22b1690b836352103c9966ab4612b485",
     "src/calculation/reviewedSupportEventDamage32.ts": "16deb21eed694ffbf5729987b12bdd120463283e9bafc2cb021228ae758283c6",
     "src/calculation/reviewedSupportTargetCapacity32.ts": "06fdd47731d1e3ae856b2637d5870435cde0b5e9fa2f3415e2505bc57bebcc7d",
     "src/calculation/reviewedTemplateEventConditions32.ts": "ee7466612024186f5d02bd4ffe1cee02a9a9cc3ed5cd4e42a144d300542ed978",
     "src/calculation/reviewedTemplateMechanicEffects32.ts": "0f0861fb6d5c578cabd74fc8dcc765abe6eedccd9cc8f7d333fe5b9277987221",
     "src/calculation/reviewedTemplatePreparedEvents32.ts": "365e9dfeb3d5904f623c625b22f4270e9bab43a9ce21d08d63cdb8c9e9e3c721",
-    "src/calculation/reviewedWEngineReceiverSemantics32.ts": "19808847699519c9f74ac972e3252750d51639d3c82a5b242d4e12ecd1208cb3",
+    "src/calculation/reviewedWEngine33.ts": "7a763ca237db0fd0a8b61adcfac3846ebbc0856a1d4910d32dd465aa781a6e5d",
+    "src/calculation/reviewedWEngineReceiverSemantics32.ts": "dbcaa4e9b60f0410683fc91d4ce2e59ac22df0e42cadcbc83860eaee3505fcd5",
     "src/calculation/reviewedWEngineReceiverSemanticsIdentity32.ts": "6c2e5f4a2197d4472d9bdc52feaaa638268ee395200b1cac05416363fb5112c8",
     "src/calculation/sharpDamageCore.ts": "f518eba4c3c846fc84f5b556a69f24c1751545fc883259c1f70fb24f321213b6",
     "src/calculation/sheerDamageCore.ts": "af459f8dec6b17b95122fd3a10aa3fd264a266195b6c6e9d2465641210bb451d",
@@ -43679,11 +43688,11 @@
     "src/calculation/sourceJaneResourceProduction32.ts": "184b53a0027e2d3bd89b8e0b121db1a48c5f656a24050357e7b183d635842191",
     "src/calculation/sourceNamedResourceActionProduction32.ts": "282073aa6deac846c08ee54de93170b66dd7f06a517e8ac5279a0645036696b2",
     "src/calculation/sourceStarlightBillyResourceProduction32.ts": "8f9d823e746594ad29bb4b311195cc5b053edc79a08daf4cc84b98929b6f7ae6",
-    "src/calculation/standardReferenceDiscAllocation.ts": "e10ff6a3418291679a471acd38384e2226b34befeee00fcae6d43d1c1c4f358a",
+    "src/calculation/standardReferenceDiscAllocation.ts": "9de99b08ca610bd5acbcef2fdcee928fe893b94ca9f90c602087755c53b8a9be",
     "src/calculation/standardSubstatProbe.ts": "8548347551a92b3a0e477519e5cfc1e4d3d1c49f670f947483f9f0a961c1f0a4",
     "src/calculation/standardTeamReferenceEquipment.ts": "280ed3ef4877bca49e6a741d849b0d2380f74c0f385c30f26b86647156a9854c",
     "src/calculation/staticReferenceBuild.ts": "01cc2f16ba058180ca50617bf6238b85a91a80d6294eee1cc3468b1e9505166a",
-    "src/calculation/targetTeamEquipmentModifierProjection.ts": "d93acbf884633df235a2386544ca519dbf1600e545f61381af01c57a845aad28",
+    "src/calculation/targetTeamEquipmentModifierProjection.ts": "3af1692b00a3eaf5d015a5fac534060ab28b083ff8fb99b708ad2c629dfb1c31",
     "src/calculation/triggerAftershockWindow32.ts": "ead5cbc9dc0acfc5f30f650c42f2230d2597eabc36520563d2765061a6400504",
     "src/calculation/verifiedPlanningFormationTimeline.ts": "a39fd2d6b32956ad6519a776b6f9c0558e3750bacbb75209e843e6ea95291678",
     "src/data/drive-disc-data.v1.json": "b6223ee0ebfa1aebc517194b54c1c695e463098165ed72cedbc0ba4557953d59",
@@ -43693,19 +43702,19 @@
     "src/decision/accountCultivationMarginalYield.ts": "6cff71dc9cbf15e6d66b0943e6afeaf95023bc0554f1edcc014c545e9d899df7",
     "src/decision/accountCultivationPriority.ts": "1be8986f495c2c93449f100bb00a6fdac18ac3f60a97a5610701abefa34a4659",
     "src/decision/accountCultivationRealInvestment.ts": "94c6ed9fd2abcc33a5c34650d881fcf02b431e917285d2063adb91dad27357a0",
-    "src/decision/accountDecisionAuthority.ts": "e084ec7c2a1ef6d18bbc2065df1e0b9b40aac1692da0754ab5177df477c08dde",
-    "src/decision/accountDecisionOrdering.ts": "be37b326f326830ee10ba6184f862025cd4039a7c4800e90aa980f45a2f4e3e4",
-    "src/decision/accountDecisionRecommendationProjection.ts": "6f9ff9c4cc129c3ca078abd2ee91c836db1ce4c959cc1992fb2c551bfad3f885",
+    "src/decision/accountDecisionAuthority.ts": "270a52b3b04a7f12d8f9968b87edb816cf0a8ce62c27c5d7d1dd0fce143045a5",
+    "src/decision/accountDecisionOrdering.ts": "d150ea746319e749b62264c921981f588b715ce5043477b56b4e76c6ea737bbc",
+    "src/decision/accountDecisionRecommendationProjection.ts": "fe97a323340c91eb7ba70d18628ae8b064fc841fe103cd7e04b974ede6cb7e96",
     "src/decision/accountLuminizeEquipmentSnapshot32.ts": "c3d86f5454328d6c6f03dad4947002ce0196cd9a3baddb236761ddc6a8575919",
     "src/decision/bangbooCompositionIdentity.ts": "c1465248bc647f1df91f708f1125aece15c6821169d32e0af15efa0f7ac674d0",
     "src/decision/bangbooTeamFit.ts": "79a651944f5b3535d4fe583dfe9a941acb2642437ec78599eaf5d29ff7984296",
-    "src/decision/buildIntent.ts": "1f6ec2c63b940f41b7208dd5c748007172387019d748d6d7e7806a96aa7e77b4",
-    "src/decision/current31ProductionPairwiseEvidence.ts": "4437edb771109324a723a38d49a9c35b0eba98e0a6c5c51f96154b41fec7f386",
+    "src/decision/buildIntent.ts": "0691bcf2203c89803aee19bd9005bdd1d44f729fbcfb750d665ce409d4b97075",
+    "src/decision/current31ProductionPairwiseEvidence.ts": "b9b7429e1096048f74ae7ab9285fffb96936e3f72d72ec4e73c9a3160642dbd9",
     "src/decision/current31ProductionPartialOrder.ts": "4dca40af1261726ed75672a18127dbc22f16aa04321cf8396bc7b2b1cd460e26",
-    "src/decision/current31TeamIntrinsicIndex.ts": "3f31b9fd4fe5de518dbd065a87b102f88c42dbde8213a90744e706ec0d0806ae",
-    "src/decision/current31TeamStrengthCalibration.ts": "865341e87ee3a9bd6adc83c773c0990363e0f11e96ab6c09c814590323fccd7d",
-    "src/decision/defaultTeamRecommendationPolicy.ts": "5dcf09eeb153ad7eb4e580b17e3885cd85f2348132b0660a8c2afe7b066e1d8c",
-    "src/decision/defaultTeamRecommendationSelection.ts": "b56c942cb5f3dc8da2c2bde8d1bdf106d19fb0a0c4ad81320105739cf27b749a",
+    "src/decision/current31TeamIntrinsicIndex.ts": "3905b83513943ff90ec47442047b65ff66966798647458fe286fa1e8eb4612b7",
+    "src/decision/current31TeamStrengthCalibration.ts": "fe922035c499d6b55e385301e9c70da621122ae28dcbfeb341076d52aaff2c86",
+    "src/decision/defaultTeamRecommendationPolicy.ts": "c93f28dae1096b05e4b6c439f3929e5c142f22d45b603f868cadafbccba48b62",
+    "src/decision/defaultTeamRecommendationSelection.ts": "403f9c7140ca7b47ddc9e32664708d0014a4702b8be4f887926ae92519f676dc",
     "src/decision/developmentCandidateAlternatives.ts": "a8a2ad62c48e4672491b61e97ac47c2e06e2f445b557fd432eea60e005de25f1",
     "src/decision/developmentCandidateEventObjective32.ts": "18fad17433e35e0c3e59e34490c3a0eabf4658bbcaba091fa9dd408356e5ccda",
     "src/decision/developmentCandidateRanking.ts": "7746976b6e3ba50e4360fbef462f2da4a99344370977210d8d8afc8e89974c32",
@@ -43719,60 +43728,64 @@
     "src/decision/developmentValueBenchmarkRuntime.ts": "d4a1597ffa51f5078b58addb77dd2f834b92486300412c08d7b14c9f86d3a963",
     "src/decision/developmentValueBenchmarkWEngine.ts": "9f2804146981d8e0e8fbfe5d72ef3e82ad29ea224467d9d81b8c22d1173e040b",
     "src/decision/exhaustiveAgentScoring.ts": "13b1ddf8c9e2b1376f4866943e9c0b313933adab26de9c87b0974da19fa684b1",
+    "src/decision/formedTeamCultivation.ts": "6b5eee132f89f710058418bda247db873da80c4832985f795d36f14992f6c9db",
     "src/decision/incremental32PlanningSourceSelection.ts": "7e0b9d1e28e68318e0bfbbc6bfe491c2e9d8a29178eda31475f513fba3814a73",
     "src/decision/memberDisjointPortfolio.ts": "737f16f5dfb5838639497347f0425f53076e6b9d153c65d80f6b227443cd871a",
-    "src/decision/normalizedAccountFinalStats.ts": "c911b8b02ee83a27fcb54e34ee0650416ff4eec6a2e66dbde71c7562d49a5e03",
+    "src/decision/normalizedAccountFinalStats.ts": "4a54ed76046f5737f3edf699279651856c11048a87441a38a301763797983a5e",
     "src/decision/normalizedPlanningCandidateEvaluator.ts": "cd1ebb0536d3d0b1e48aef95b68aa43f941efd7d97b62779c57e197ce2ed397c",
+    "src/decision/reviewedPhoenixTeams33.ts": "1cc9ba8aacd36ea26f8147394c04361cc4278093bdd408a13ede6be1a6d69ae9",
     "src/decision/reviewedTeamCombatEvidence.ts": "412c3e06b8f1c99dbcb19cf19038eb7ff9f0c96876a530c0cd5a77ba725dba5b",
-    "src/decision/reviewedTeamPreferences.ts": "f7827ac86db8ffeccda37a76ac19fe68433e612427a466d0f92c5211fef1bbd5",
+    "src/decision/reviewedTeamPreferences.ts": "bf1aeec5266e3d16d75dd6f8b35d22eaddb5179dc84b75df4171180617b5edaf",
     "src/decision/savedGraduationBuildObjective.ts": "8cae221cb90c3a76866bece39fd0b5371f0a644b4c8a535c6fc6df301eab26c3",
     "src/decision/savedGraduationTargetContext.ts": "2fffee061de6ec207aca07fb147651f1ee5bafddb7a23ba088bf2dd907515b35",
     "src/decision/savedTeamBuildIntent.ts": "98add711edf15764a97250f0da7cdf82e5e3b40e3b2726a8fa88e58d615ce4d1",
     "src/decision/savedTeamGraduationCompletion.ts": "2163627eaaf6e9c2d92c6dcb513c7d43a361d3bef9995f819c1b3fc09143d8f9",
     "src/decision/skillInvestmentProjection.ts": "912f295df5d5a66e89da6b493a172bd45b49593a16effc7451a57dc1c5570b6c",
     "src/decision/sourcePreferenceOrder.ts": "670d81b2cc9c53f74f3dcb8391e38cc5609014cbd944a6cd74c0025bed0a5eab",
-    "src/decision/standardTeamReferenceEquipment.ts": "42cfb878c13edb15f6f94c45ebaaa6107d8fdfca482fd3241cd49c5e7708521e",
-    "src/decision/standardTeamReferenceSelection.ts": "658768afeefb1233ee0beed7fc05bd3b13abd6b1bf6776a8050f18598eb0adf4",
+    "src/decision/standardTeamReferenceEquipment.ts": "fec16eb6c6f4a10b09a1cfa18a4fda1e3d0f57cec7675082202f966dbce24bc1",
+    "src/decision/standardTeamReferenceSelection.ts": "02663ac1bc89a5e01a8368df8d286ffd28c69173af1a0e336323b12944436d34",
     "src/decision/targetTeamAccountBoundBenchmark.ts": "355ec7d504fe1d8d62a707d171925856238b412a0390963a9d7c490fd790451c",
     "src/decision/targetTeamAssignmentObjective.ts": "5592992edb7ffcb1f439789823c48bc022caba7cfa503ca0a25f3aa6df30e15e",
     "src/decision/targetTeamBangbooShortlist.ts": "8e2556098170f550da3d4a984c884431191e1859037fb42e11c5416e59ac8907",
-    "src/decision/targetTeamDeclaredEventObjective32.ts": "a6f24cf9c537a35532931e1f1badb13659091cedcb3341f6b4056f31bbd01f89",
+    "src/decision/targetTeamDeclaredEventObjective32.ts": "0ad01721eece1cb6ec7ce796525c12a6de977637af6801bb6cf2d842f9a6e76d",
     "src/decision/targetTeamLuminizeAssignmentObjective32.ts": "1d5c6248eb12fa8b469790448322b0c447f1c9058d225b9ff00d08747f7f1cb5",
-    "src/decision/targetTeamPlanningContext.ts": "53a15dbf52d3a1a23acf9513000b134960c498054f0fbfab1730fb0aea5b9af9",
+    "src/decision/targetTeamPlanningContext.ts": "46366e26c99950c790bcc60e8269b58eb3e1bb086ad2a650ee3e07c0dcea30ae",
     "src/decision/targetTeamPlanningContextInput.ts": "5766e981e1616487998809e5eb5e5ff3fcadcce8746b04f2fab397fa7cd053c3",
     "src/decision/targetTeamPlanningMembers.ts": "0265cb3e41d2387fce7d25b926c51e825b7206cdd34f8341037c43091c901bcf",
     "src/decision/targetTeamResourceTimeline32.ts": "7f03f7283e2eae778d93babd2bd14943f33c32e7136354b59d620b6a2b8bd51b",
-    "src/decision/targetTeamSourceBangbooOptions.ts": "f6b77fec8e46540404a7df267d80aeafdc80265fb09b2f47092cada79054f348",
+    "src/decision/targetTeamSourceBangbooOptions.ts": "e6a744729d036547e1430cfbc5720537563acb7a674112c9cb0a6f944924eff9",
     "src/decision/targetTeamSourceResourceProduction32.ts": "2e4dd8dc9e898bc3aee6831102f6a17e31054e79eaae008f0bcef6581c86fad0",
     "src/decision/targetTeamValueBenchmark.ts": "57ff25230a885e5449d25dec7b639a99351af8352aa0604837fcac0527dea56e",
     "src/decision/targetTeamWarehouseFit.testFixture.ts": "e87abe10feb078d9bf99029328bdb55b52db8f3e0df36ebd83ec3ea2d2c41252",
     "src/decision/teamPerformancePartitionEvidence.ts": "1846a1bedca8edde6b6c08534564ae56890c99b2d1d207ad457bde1fec33d21f",
     "src/decision/teamPreferenceEvidence.ts": "b7675913468c8cc32bb589a4f50aee94fe31bf7f8c51a252db58e1f337b6e04f",
-    "src/decision/teamRecommendationScore.ts": "106b5a514294d8998dbc796c827b9cfad848961d74eb445c32d531d1044e4096",
+    "src/decision/teamRecommendationPrerequisites.ts": "970570defb84a4a9604419409506b2f1852547b7cf2b5935dce292c205a6381b",
+    "src/decision/teamRecommendationScore.ts": "aa20d5a6d03686edc86bdd75988f21d8776f2aaae522fafc8729a5390e5fd757",
     "src/decision/teamStrengthActionFacts.ts": "8b59d44dad26eda672cfa2ff0d9e2115a7c8bfb5007e30853375efc9dcbfdd3c",
+    "src/decision/teamStrengthAnomalyCapacityCoordinates.ts": "1b3d855485a6eb7170249149e334aa980bd3d9884032b10716fffc45d5960dff",
     "src/decision/teamStrengthBackgroundActions.ts": "0df06fb3ea02eb8c642ca9788126093bf7d22165708f6173d84b007dd38d82a9",
     "src/decision/teamStrengthGuidePotentialReferences.ts": "9ef03e90c31c0f1693577dfc00ff2142e8de1e91d8b08d8e197f3f7c8247dc87",
-    "src/decision/teamStrengthMemberFacts.ts": "e2f7fcd31c68299e6e1382ec2b91fc677d67fe42baebe745baa86c2c1b9a4c50",
-    "src/decision/teamStrengthModel.ts": "fbed30a06f61e39a015d9ea927ec38aa1bb215ab135140bf3a85105adfc35ee9",
+    "src/decision/teamStrengthMemberFacts.ts": "1544b08a185c03e796d99cdaa97111c2cfb0150146529da34a9d237cbae196d1",
+    "src/decision/teamStrengthModel.ts": "167546c7bf8c57f24ea1e00e056dfed5c15d67cca1460490534e5365d2fde419",
     "src/decision/teamStrengthModelScore.ts": "e7f18024ca8174d24715727f4a2db1818f0d7f927281410221caffe25043107b",
     "src/decision/teamStrengthNumericError.ts": "2593270404e5c8c49dd8973d42429ec2279a9acef467d477c296adb11ec34f75",
-    "src/decision/teamStrengthReferenceBuild.ts": "973cf84553af90aaf4dca56fc829532eff9521c5f6ccdaeaf7e5c7d172445821",
-    "src/decision/teamStrengthReferenceConditions.ts": "5f181bbcf3190111b047056cb5e44844360ec1c219a1668d1b81fbfa1b1387ef",
+    "src/decision/teamStrengthReferenceBuild.ts": "0526bda85df8f8f9336ff87cc837d6af183e87e868f1f8b0e7ed7ac3060ec432",
+    "src/decision/teamStrengthReferenceConditions.ts": "f9961e051b98907023471b62a0a71a95b0a94bf17bf5e872d77f05e7206df335",
     "src/decision/teamStrengthReferenceConditionsData.ts": "1e19d3ec42e9df0a36bcdad2330560303ea3588d6c12ccb59199976254e2fdae",
-    "src/decision/teamStrengthReferenceConditionsTypes.ts": "4ba2a207e17b4acf6859497a766433d1c5fe6a5f5eb457b9af802d7306bc6f41",
-    "src/decision/teamStrengthReferenceState.ts": "3df525d57ed9588e0ddba9d28f70ad6153610220c2dc9855d2367c5508f4b7c1",
+    "src/decision/teamStrengthReferenceConditionsTypes.ts": "426c33cabcfa5e7ed941c235ad25137bfd0e784d03427f9389adda33159cc206",
+    "src/decision/teamStrengthReferenceState.ts": "372f52c87c2088b7d4b2b55914a554747afc55cc2821134877f3b645abd3e5a9",
     "src/decision/teamStrengthRegression.ts": "31a7d07e190aa1f737105e8b616dec3866474d934fa735693cf7df568baa7510",
-    "src/decision/teamStrengthSourceCapacity.ts": "4d3d11e1252113a6e35c234c85e13b848fea51add0457b6d464568189eed4d61",
-    "src/decision/teamStrengthSourceCapacityActions.ts": "5f231cfb4b63411067365d53d6fc2977344c19d0aa57bd1b09396c459ae48b47",
-    "src/decision/teamStrengthSourceCapacityEffects.ts": "eaa2a33608bf7ed9fbcf5895876c88f3d5cf4a3a40ff72927904cfad35da312a",
-    "src/decision/teamStrengthSourceCapacityPolicy.ts": "885deeb4484014f08c854afdc4e2628bd114da1224952e2574c35ce2a75fc0cf",
+    "src/decision/teamStrengthSourceCapacity.ts": "142a2e23c272a1589df5ef8619f883faa2aa78efd8d50ac02f97bf0b6cad7625",
+    "src/decision/teamStrengthSourceCapacityActions.ts": "230b2dc740a32982c501d2fcdfe78b52c5d9f7fbce613b0626dd7526090392f1",
+    "src/decision/teamStrengthSourceCapacityEffects.ts": "70d53313c927b18eba328c3f6a2190b9fffbe671a768dcbcfc8df34474d61ebd",
+    "src/decision/teamStrengthSourceCapacityPolicy.ts": "105eeef3a3c74ad86a9bc20f8c9728db43edfb044269278e9d37455e2cfd3b54",
     "src/decision/teamStrengthSourceConditionDomains.data.ts": "affffb3bf4af816f7bb8e3de249979023a1f8201be8464104bc1d100a709dd8d",
     "src/decision/teamStrengthSourceConditionDomains.ts": "7e98730014aaf4aa414e205bf04f06d7d897b1cec3e25353fa56db43c417d60d",
     "src/decision/teamStrengthStandardSupportEquipment.ts": "28c98473c6bc1566aa114803187624502576a1c9ecd7c538f2a57cddb3a18119",
     "src/decision/teamStrengthSupportContribution.ts": "46379d8a7b52206b391e66059d41ecda3146b06698fee788c5436cfe695df9b8",
-    "src/decision/teamStrengthSupportContributionFeatures.ts": "1d398f85d4c33e263c6c938defcb5a6ec1ef1a182d407351546a1759bb6be586",
+    "src/decision/teamStrengthSupportContributionFeatures.ts": "c63e3e940a88639a210f1d803a947b58d64f794baf681fcf0e3665f3ec7030d8",
     "src/decision/teamStrengthSupportExpression.ts": "ae517b8d5d3fecce1ebf7176f53dea8515e9c3a547bbe2ebfb9baab1b91c35ab",
-    "src/decision/teamStrengthTypedAnomalyCapacity.ts": "3ff03b9cebd5d82d4797c34178d3f1a226fd58a0f4c6b8d073de80bf4ee7548f",
+    "src/decision/teamStrengthTypedAnomalyCapacity.ts": "d50bbe40f6ff6948a5013c30ac3dddfc6bf276267f4e6c88f718ebdc44449963",
     "src/decision/wEngineResolver.ts": "08bdd92815c899d8aafdbee1aba9e94f6b627e0c7b7139a53a30e3bb3a0231c9",
     "src/domain/characterPanelStats.ts": "ea9714fd3ffd2bbe0d147b71f61c49a8a49779824db332253bb05e2bcb5b4db0",
     "src/domain/discStatValidity.ts": "fd065690469931838654f9fa2577fb6b67847d18dc57035143ddda3b08898d93",
@@ -43787,45 +43800,56 @@
     "src/gameDataPacks/buildApplicabilityDependencyAnalysis.ts": "bb8ee6c30a8e1d78d58f944434a59d17cd16af98ef2a0beb22f3c883e79551e0",
     "src/gameDataPacks/buildKnowledge.ts": "589cff94289a3c6ec2d9d563b2dcdfbd462c3cbc1d30bb9356ae2a8e5e77695d",
     "src/gameDataPacks/candidatePanelPolicy.ts": "53a6582e5f62f75c4611801429657905d1e8f7678384ec660dd40f99b1810873",
-    "src/gameDataPacks/candidateSetPlanEligibility.ts": "b37c2461221bfb08ef1efd7c1bdf6a7e17a14f2fadae90a836b27ac9e59854ae",
-    "src/gameDataPacks/candidateSetPlanPolicy.ts": "9e52ba44a6e1487061360eb490ac6b9fb2f626534868746cb78f923d1abe107a",
-    "src/gameDataPacks/candidateSetPlans.ts": "275817c25e523f03c27169d063a2929b7a8bde09a128e9dab0a3f59b48f987d3",
+    "src/gameDataPacks/candidateSetPlanEligibility.ts": "bfe4a8f57eb21ac7c1e5906c7ed3b6d8fc0713b8684815cd5d7f8dcf054f944c",
+    "src/gameDataPacks/candidateSetPlanPolicy.ts": "c95e7b3477c28a67956210ff00cf009c3a98a7c23994e3a161c9717fe7a0f2d8",
+    "src/gameDataPacks/candidateSetPlans.ts": "85e25ee3b17314c23dbed3e3cd2e6c61b8e3ade9cff7b600d529e83901313abb",
     "src/gameDataPacks/candidateStatParsing.ts": "23c12f7e260f8ed9dd222fae1ab742a677a9101e794901344fc061ef85e7b486",
-    "src/gameDataPacks/candidateWarehouseConstraints.ts": "9ed894e9f2809b900dea3f5927be9939018b789b204fc3c34f5fc024c5ae0398",
-    "src/gameDataPacks/candidateWarehouseConstraints32.ts": "af3f88031938b226d81b13db04d3d0f3b9cc2d9d8a4944867b91091e277ffe78",
+    "src/gameDataPacks/candidateWarehouseConstraints.ts": "8c90a90e871ec72bed04af36f5e093cc7fe3ad275f66367beed2d0f53fdb6473",
+    "src/gameDataPacks/candidateWarehouseConstraints32.ts": "e8ba0aec15bd141b1863c0f26da07c29a786a99fc2f7cc624805cb5dbfdde0d1",
     "src/gameDataPacks/canonicalBaseline.ts": "f0cccab3486b63f0fb37e1bf382470abbecfdd7eceddf3cc4374ca418ebfc03b",
     "src/gameDataPacks/canonicalPack.ts": "6118650314cf2f6a38387fab55e7da364c0fa73a310954162789601c76b18eb3",
     "src/gameDataPacks/catalogLedger.ts": "57f00010fd929ba7c428a89852ee247c11eaba77e393707421790ee2b66e052d",
     "src/gameDataPacks/combatFieldIntake.ts": "d2b0ef0f984d79c18f30906dc56039e3a879f348e097a188b4d0d5ce0e6fde92",
-    "src/gameDataPacks/currentAssetCatalog.ts": "848e6ecffe598166dbc58a2c1a95b4a8084c64600acaaa208b374f8400189e23",
-    "src/gameDataPacks/currentAssetProjection.ts": "7f0d57e2ff0b995a78d9f34e52372a8bc0ea1e46bf22645b6e7fc87aa6b6208d",
+    "src/gameDataPacks/currentAssetCatalog.ts": "8d2bf25676610ec357962e6b661ce62475adbb89e82004ce25ec511489392318",
+    "src/gameDataPacks/currentAssetProjection.ts": "85ba59484e6ebdfe1700b35c8e449c5f85c0fb8008a51deb6f6574f0a87a3d12",
     "src/gameDataPacks/currentBangbooNumericCatalog.ts": "4f6639020583c682f5803b83ce77ce36360b65a05628accd4408a3097e2e37da",
     "src/gameDataPacks/currentCalculationCandidate.ts": "e4c3cc35307313fa96a0ad76423ed04f38ee322f97b532504bba5b2d959c40e9",
-    "src/gameDataPacks/currentCatalogIntake.ts": "bf990b87b91a19c2f6df8ac11686f4b9201242f46c076fbe1f74e26c9f3866c3",
+    "src/gameDataPacks/currentCatalogIntake.ts": "c4f558c2c34be926f4e0117505d8fac5277f62a97893e618d7294fce3badf50c",
     "src/gameDataPacks/currentDriveDiscFormulaCatalog.ts": "410da9ab2da6aa0416188e4e96bcb420c28dd94b7f2387bc81b925edf3800972",
     "src/gameDataPacks/currentDriveDiscRecommendationCatalog.ts": "136ec576e0a15075fcc24b36fa66e441a947df30fc52e31896402bcd28624d0b",
     "src/gameDataPacks/currentFormulaBaseStats.ts": "a9f39c34cc62bf7c097440a5b3f42cc71252bf0bb7bcac571d9440fa8f637ca4",
-    "src/gameDataPacks/currentReleasedIdentityMap.ts": "9589039b5e2c77501f56d91a06e238a388de0d0b23c7895572d30fc19db15b9a",
-    "src/gameDataPacks/currentScopeManifest.ts": "3a64be0e9c25f0df5f03e61c4dfc5f02fd7a423e5cd13e3550768b86b29b4211",
-    "src/gameDataPacks/currentVersionAdoption32.ts": "6198943257b6307c3eb3cb10a45170d7f5cfeaaf5f054cafdf448c28f2c64b3b",
-    "src/gameDataPacks/currentVersionProjection.ts": "313a58bc3ef10e1dd5c6c717a9595367f2876ed78c7c803f26dd28c0fef404d2",
-    "src/gameDataPacks/currentWEngineStaticCatalog.ts": "e4e2a31343864679e32082e0db660016cf0420159ace7d6cc4d778a457d60007",
+    "src/gameDataPacks/currentGameDataSelection.ts": "82d3f36cd8ec813fa8ee895a9a0128123e6dfce9e89ea09473b61bbbbb36bdbd",
+    "src/gameDataPacks/currentReleasedIdentityMap.ts": "ee01d7ad9dbc90f35c8801fc9ad366102f006a01127e607ccd8cac3f285da707",
+    "src/gameDataPacks/currentScopeManifest.ts": "ec061e62a266fcb43ac632c7ede4fc12106f3763f85451ee54253072693c8693",
+    "src/gameDataPacks/currentVersionAdoption32.ts": "74e7c16e98646a365e317cd62acd9ef963cb390376596bf5413bec117a722e32",
+    "src/gameDataPacks/currentVersionAdoption33.ts": "772da8ac2f3f024746194fca8c4eef62386757b1199b65799e0315e217e5c49e",
+    "src/gameDataPacks/currentVersionProjection.ts": "b1cc92aa3abfd2aa17a98cf7c6778992add256b8b5826ae77ab0bf3802ae2bc1",
+    "src/gameDataPacks/currentWEngineStaticCatalog.ts": "3b0f4316bee0e63ff0fba54cfbe86e440f79a6a231e4264ac4227d26ef64bd56",
+    "src/gameDataPacks/data/hoyobuild-current-skill-guidance.3.2.json": "94c56c046a3e622b1046f02846846af42827d38de0cf975f4b77f23e85c5ce58",
+    "src/gameDataPacks/data/planning-condition-sources32.v1.json": "f29d3df0d8f6a377eb3b42ab7c575d2993ed106d939c050d10c824d0e7858a45",
     "src/gameDataPacks/data/reviewed-agent-attack-types32.v1.json": "fc7beab2ca630e09ff85124d3c865a65bf3516cbbdc35d60df15b1448c80c275",
+    "src/gameDataPacks/data/reviewed-build-field-continuity.3.3.json": "356c78b2ea750176a2644ff3117ee957a64991e5c5b3eaebab95553a216c77b6",
     "src/gameDataPacks/data/reviewed-claret-action-resources32.json": "e9c36cdfc5867998da0f8dedeca53f6b5ca589000235bb9c28b65b99ca777d77",
+    "src/gameDataPacks/data/reviewed-contextual-target-panel-continuity.3.3.json": "dab0bb99acb25faafa649d3615991b6ba74b63a3c0b58ca53714960610079576",
     "src/gameDataPacks/data/reviewed-external-support-target31.3.1.json": "305bdb450b3b9a2b2ae1d243f3349d6446eb9d9c243402cea0ad08f5ee03cbea",
+    "src/gameDataPacks/data/reviewed-phoenix-build-guidance.3.3.json": "7c8e8edde5d612b3fdba9598655a89ac64819f173a9f57054c28b4ab54f48cc0",
+    "src/gameDataPacks/data/reviewed-phoenix-numeric.3.3.json": "06e0a9b54764c31fae26f1f5cccdc5b3c2b0936f90bec3ca5b31b644f01b963d",
     "src/gameDataPacks/data/reviewed-team-performance.3.1.json": "13dc8397a3405391e2d0ec9f6ca34bb5cb9a236bcac07a12ff5ad5c2467efcfb",
-    "src/gameDataPacks/data/reviewed-team-performance.3.2.3.json": "17f78d6c7528258188be5ee1197f83a72b54dfdbbb7f26330f54a306a192efaa",
+    "src/gameDataPacks/data/reviewed-team-performance.3.2.3.json": "abea635055a595e1f3082c96aa02712e4561940f4446e75d61c4d7b4f0f6c935",
     "src/gameDataPacks/data/reviewed-team-preferences.v1.json": "e38dba20baa850060fb6f70674569e6f53e751616e1cdde11ae1b4492809b1f0",
+    "src/gameDataPacks/data/reviewed-wengine.3.3.json": "d81db2e41e28c3b2c0c104a1c2415e91b50e13a9ca3b185a79976c99867d4c98",
     "src/gameDataPacks/fieldContinuity.ts": "1d34408ec75856963bb9e4fa99942bb95f6e28446f872df41041519615118541",
     "src/gameDataPacks/gameData31CatalogEntities.ts": "1b7dfeece2ce8844c664ae3de3ce763e8fe200d25ab256475f5f1ccaa146aa85",
-    "src/gameDataPacks/gameData31CatalogIntake.ts": "25b3c2f6489373416e4febaca5a2afc9f01fe3f5319afce442a92aba9b0c4cb5",
-    "src/gameDataPacks/gameData31CatalogSources.ts": "ebe61189f517c5fecb4dcf86d7d042739643d2f23fc7bacff817b1b34fe97a4e",
+    "src/gameDataPacks/gameData31CatalogIntake.ts": "b799b68b578ca2f1c3aa68d4e582459753bcdaa2d2183a044a9724d43e0185e3",
+    "src/gameDataPacks/gameData31CatalogSources.ts": "7ed94d6be1f86d625562c449b09c6808873f640da6b6c76ae7edbccca1fbffb8",
     "src/gameDataPacks/gameData31CurrentCanonical.ts": "b0bc820f6b47a3f947dab454933efd7875b9baf8859221e8767036f07d925f32",
     "src/gameDataPacks/gameData31CurrentCanonicalValidation.ts": "10b649ec99a147f35bc2c0072c1fd809199ac522458614a2b1f7d33407a69d18",
     "src/gameDataPacks/gameData31RemielleEquipmentFacts.ts": "1ff7bd2e7ab9402086a28c7f22bec8aa300a9c74f77781d2aed325a6dfa7a363",
     "src/gameDataPacks/gameData31RemielleEquipmentIntake.ts": "965aebb88ce79816bf12abf182c0fbf0199e6ebf00df1319fa2935a84afba73b",
-    "src/gameDataPacks/gameData32BuildGuidance.ts": "dee3f42e40f896d730333fed0628507472267a176aba946d864599bb0937a694",
+    "src/gameDataPacks/gameData32BuildGuidance.ts": "6fbd5abeb83729db901d815d00348bfd748e5e434baee7744b22f88d4c5809bc",
     "src/gameDataPacks/gameData32CatalogEntities.ts": "edcea478bc49511e90896c6d8bc7d9fd1e7ceb74a4c804f6517c46a51016f7fd",
+    "src/gameDataPacks/gameData33BuildGuidance.ts": "63bca95fe01aa4e31f71fc755f0b87b68147c5caac9dc3526c26d3a2daf9b755",
+    "src/gameDataPacks/gameData33CatalogEntities.ts": "1e51fa4dde6a766999ad7d6e018247cb88f7acf28d53a15550d036327ff770df",
     "src/gameDataPacks/generated/current-agent-decision-mechanic-catalog.v1.json": "eba6fc7f9f89f0868775917810670a4358e2a3c6260af92a69844930a6bce371",
     "src/gameDataPacks/generated/current-agent-mechanic-catalog.v1.json": "848a798c78f1f64754ad40295b08c6a7bff7843cd4710baf1d719a546fc28b3b",
     "src/gameDataPacks/generated/current-agent-resource-events32.v1.json": "1a3b69b2dc8b1a3050a8638766ac5a990cdf6b09d918a8fd94c9bc35ff887261",
@@ -43838,6 +43862,7 @@
     "src/gameDataPacks/generated/l3-b04c7cc7ac8ad6279074/noncharacterMiyousheSidecar.ts": "4262f265b1a1d6f04532eb9a7b013533ae86172bdf628fc6c0e4f01a8505cc97",
     "src/gameDataPacks/incremental32AffectedCapabilities.ts": "a5529991289cedad4b76190d8b371b0e3eaa107173dc944300e86102033a038a",
     "src/gameDataPacks/incremental32RecoveryPolicy.ts": "c143d7a1b49636e567d04e5c7609b076a31f23664ddc949dfc00e199d004654c",
+    "src/gameDataPacks/incremental33RecoveryPolicy.ts": "d03f1916b10ee9c7da70592c520fdf605522970d0584bcf507c7f442f2e5fbac",
     "src/gameDataPacks/l3ProductionProjection.ts": "fe5da9413a4b67c666595aaad7f909e7208bbf4e889a461f4fe7d14dcfeda8a8",
     "src/gameDataPacks/pageCandidateDirections.ts": "6fd936fdaf7607072e7ba0c2d0b3b73a026e240af843792e084326fde7dfc202",
     "src/gameDataPacks/pageCandidateDirectionsPart01.ts": "a41b85f85693e65ef4e4aa0661f26fa7fb4d3c75a8e4bf58b12105f739f7523d",
@@ -43854,7 +43879,7 @@
     "src/gameDataPacks/pageCandidateDirectionsPart12.ts": "9ca8f5dfb31ae9d0b5e109128c7e69b3be95b4a630125135d3f6712fe03a1cd6",
     "src/gameDataPacks/pageCandidateDirectionsPart13.ts": "243ed5862f5db421b4b61226d6e2810842a6cd9c11c9b33bcbedb6608e0dca7b",
     "src/gameDataPacks/panel/currentCoreGrowthIdentity32.ts": "3d4a7da809b41d68ba67de28b60c7f9dc67ff5514389ab8ea1503e76600ff3a7",
-    "src/gameDataPacks/panel/currentPanelData.ts": "aa46e2dcaf59222ec7eacefef095c46ebbc60f17d671722c72447f0b4fa210e8",
+    "src/gameDataPacks/panel/currentPanelData.ts": "b48d74fc658faef25183994983a2f7f2e98b32bbd71eba78c6715af2705f35de",
     "src/gameDataPacks/panel/reviewedMenuBaseStats.ts": "0c68ba29dd07e68834e1c28fb115be18ab84f5f2499d4dc585e212576814b9a4",
     "src/gameDataPacks/panel/wEngineGrowth.ts": "48facdb55f8de463430ea2841ff67125ac1bf7eeec2c4af82da6b16cb60ffa88",
     "src/gameDataPacks/playerBuildProfiles.ts": "63a68ed107ec98395e73d6ba172b5f6e43d49f44c9135e75349a50bcc0d4794d",
@@ -43863,9 +43888,11 @@
     "src/gameDataPacks/r5WarehouseCandidateOverrides.ts": "e4a8bfc8a204711a756380b218fe1b479dd15fdda731efa91360c0c49b8e47fc",
     "src/gameDataPacks/remielleEquipmentIntakeSchema.ts": "52b8e8488ed5f3c17460395a262789fbf697164929206f8fa748c0d3ba084daf",
     "src/gameDataPacks/reviewedAdditionalDiscDirections.ts": "872ef0f47752ae3cc710be7bdb4e400b8f9a6449a14e2401f83111594f68d504",
-    "src/gameDataPacks/reviewedAgentAttackTypes32.ts": "b9fadb6a57d19cc36f8c1e5c6651ed1778a6e5e3991e158dc5abf546bf43c8cc",
+    "src/gameDataPacks/reviewedAgentAttackTypes32.ts": "dc9ba55e9fbbea91c8a6106ff824bc78e346e4b9af06079fdeb5ebc37a0ec4b6",
+    "src/gameDataPacks/reviewedAgentPanelBaseline32.ts": "080f4a0680d392c341f9f6272e7d71f8f5f43324ecaf8858a2ee39e327e4b754",
     "src/gameDataPacks/reviewedBangbooContinuity32.json": "580110770352861120112f72ab96a94a08fa57c8691270a71857c67d26a90da5",
     "src/gameDataPacks/reviewedBangbooRecoverySemantics.ts": "247b38015c5460bcfdb87cf6db7d5157cd39ae2435c893cea452731ca1586b6a",
+    "src/gameDataPacks/reviewedBuildFieldContinuity33.ts": "7d44c0f5954a900cf2595c280e06e48b508716520116f82fbd3368388601b6fa",
     "src/gameDataPacks/reviewedContextualTargetPanel.ts": "e2d84cfbeafdc6f486a3481bbc553c6f55bbd3593718f749550620a6bbb6e1eb",
     "src/gameDataPacks/reviewedDecision32Contexts.json": "47384a98b9191835a99fc046d45295eb34aebd15140b5659da366183cdd6fe86",
     "src/gameDataPacks/reviewedDiscFieldCorrections.ts": "c280a194de2cc49b9f21d51d2139d7e3d2b2ba8024312b4708ab9b98f3b7ba72",
@@ -43877,6 +43904,9 @@
     "src/gameDataPacks/reviewedGuideSkillTargets20261014.ts": "78998358b01e2709cc6830094e80f91bc3d56dde88718bb3dc22988837e8a798",
     "src/gameDataPacks/reviewedGuideWEngineDirections20261014.ts": "234477a4b6d84a8aa655a3ac228a3ce6e4e721896021d0408c2d0e9971efaa0a",
     "src/gameDataPacks/reviewedHistoricalWEngineReferences.ts": "55e1e68f37cacba24117f95fcb201f0b47feb362c1ade1cc0b4933b1640e40cb",
+    "src/gameDataPacks/reviewedHoyoBuildCurrentSkillGuidance32.ts": "9ecfb239b08f0404012d2ef93e78ae2ee6599fe3877028f6cfc3cfce77f6373f",
+    "src/gameDataPacks/reviewedHoyoBuildDriveDiscSets32.ts": "79f94d4d599f27a0a4c5aeb22d9c3f9175cc2202a8174edafce3b722469f1ce5",
+    "src/gameDataPacks/reviewedHoyoBuildMiyabiPanels32.ts": "c3955072f6aa99882d35e1456dfe7b93f4077a440e148358165437333b8f779c",
     "src/gameDataPacks/reviewedImageDiscDirections.ts": "aaa32f7188d70bbfac98ef50703e764a31eab69d17b66234f0d64f5c06910bd4",
     "src/gameDataPacks/reviewedMainStatAdditions.ts": "2dd73b79c3bd11dc1a910ed3031413bb90ecb5398002102b50b98f09502f08e5",
     "src/gameDataPacks/reviewedMainStatAlternatives.ts": "a69548eedaaae636391d582e85f365ab804fa406eaa82afb308082aea2ecc1c1",
@@ -43888,7 +43918,7 @@
     "src/gameDataPacks/reviewedPotentialTeamActivation.ts": "1ade1109f47679478c973d6c06ef92782c8da0b72beaed78ac836f5f0b4b6aea",
     "src/gameDataPacks/reviewedSourceBoundAdditionalAbility.ts": "f46aa64cb723a70fbdbb03fb3ca0ae65ee99249c8e1c1f32c9fadc2087170a07",
     "src/gameDataPacks/reviewedTargetPanelGuidance.ts": "2f26d8dcaae595026bc5e77f63626295fba6c871af4f75020111fd6563a9c834",
-    "src/gameDataPacks/reviewedTeamDiscConditions.ts": "6d753f29d9ddb2e1ea18ca66fbf87cfd41213ee5f850245c1d714153918ab45e",
+    "src/gameDataPacks/reviewedTeamDiscConditions.ts": "527ac9587daafff8c4903c4a29f3a5cc3159dd17ed291ce468146e60bf15bbf1",
     "src/gameDataPacks/reviewedTeammateActivationMinimum.ts": "3d3d659f0b16774f56bf1aa894ee57def0bff20aba1c111726c1d447be113ed8",
     "src/gameDataPacks/reviewedZhaoSupportTarget.ts": "d037ff124c049acdba66ed755c01e6670625620e085b7f4018ba4c7bef37d066",
     "src/gameDataPacks/sigridReviewedMainStats.ts": "46f18dadee2b752ed0b9b94936a0a12369ee19e45f6be89eec90f02cec346d21",
@@ -43914,14 +43944,16 @@
     "src/pages/createComparisonSavedBuild.ts": "cb18a1caac5d9d4004278e3896bffdc989cb8b6fd3f54839752d0319b1418b89",
     "src/pages/developmentWEngineSelection.ts": "986581b85b3be23a4097b19b04daf4caf8751a7bc671835cc44674cd02da96f3",
     "src/pages/optimizer/useSavedPlanReplay.ts": "23acd25081c4832d0e3bc339aafcfa16b37c96665dad146c737ed08c3e52b816",
-    "src/pages/planEditorDraftPersistence.ts": "53b3f61ba664ca963a67f9c48457f2f4ba476615f64bd149e2303f5193b743fc",
+    "src/pages/planEditorDraftPersistence.ts": "8f7188b7e411f3de0ae4319919c42b8bbb4e7d49625a70318ceef8684856d50a",
     "src/pages/savedPlanGraduationCompletion.ts": "8647ed8da96b6c83e0a9b16762496da2fc14aeedbd05569f5c09384476b1b84b",
     "src/pages/savedPlanIdentity.ts": "aa08dff6692a3e88b207ebb3f675168e6eeb200406d556e891562ed88275e857",
-    "src/pages/teamLoadoutCompletionCandidates.ts": "5cf0ee7692e8c3e4866d2e431135a9efe7ad2541461c14e3803c70e59b4763ae",
-    "src/pages/teamLoadoutOverviewModel.ts": "9662a5b95175cec3a00c3c852e147aafd93cae3e06c6355118f1862e223960c9",
+    "src/pages/standardReferenceContinuation32.ts": "4fd973fe816359e58c1712e8e81822f58207dbee208e9b5f2a7b5fed3b0764f6",
+    "src/pages/standardReferenceEventDraft32.ts": "7b6c341355b15b31298797de9801330c6729083660a8ad879b3cefe8aef55388",
+    "src/pages/teamLoadoutCompletionCandidates.ts": "4d3becdf026f02337f871dfc37f7c8dabbb4dfb089b0ea3f67e0e5012888cbd7",
+    "src/pages/teamLoadoutOverviewModel.ts": "638a0d26a3700db3f1b6e8822e20e05a6dc78b0f439f83efa1383ffa998dbefb",
     "src/pages/teamRecommendationOrdering.ts": "0ce7b93df26bd617f4c85adec5976efb5401ecd0d19cda22eedb53e1bec86137",
     "src/pages/teamRecommendationRank.ts": "c2ddf22ee06099d45ea2417aeb44e91ba23da005952875dfcab14d50d8a6c4eb",
-    "src/pages/useTeamRematch.ts": "cbc264bcbe051b32592e29b4686ebec666289ddc716aefcd0d0c271100b9a185",
+    "src/pages/useTeamRematch.ts": "1190399ba93efaad443464b1de6409638c6424aa62f03551e36b5dae9618cbdd",
     "src/teamEngine/current31LegalCandidateUniverse.ts": "a4b6710f5c8afd0684bcd1d8e82a9c8b07c6f5ab0da4e603142b669e2b69a428",
     "src/testing/planningBenchmark32FormalProof.ts": "b681a70bb97f92dab1be3c4d8c1be32254f95e995152d82d0199a6f20cca04cd",
     "src/testing/planningBenchmark32FormalProofFixtures.ts": "05f0ea29c92b865b475496b420faa81b79de05d677d9eb0bc7ca76d730c525b6",
@@ -44162,7 +44194,7 @@
         "gaps": ["Independent required occurrence state rejected"]
       }
     ],
-    "regressionEvidenceDigest": "6153b30ee098ef8f0d0d7e3f915bd9d5b993b8c94d710d31299f92e506939a7e",
+    "regressionEvidenceDigest": "3aa08b16d4ed2cd28bcd3030c6b1af2b7df2e2e072aba9a442b5caa0db0b31ce",
     "arithmeticBasis": "independent retained raw tables and literal arithmetic; shared verified static panel",
     "domainBasis": "source-reviewed operators/tables plus full one-axis table sweep and equipment/refinement/state branches",
     "runtimeInputExclusions": [
@@ -44180,5 +44212,5 @@
       "synthetic_DEF_threshold_operands_do_not_assert_in_game_roll_legality"
     ]
   },
-  "contentSha256": "3256d3231ce4c186993cfc839c098753ca0f52489f59e04d119078727e662336"
+  "contentSha256": "13e0e5797a431c6ed4722f08d186f3dc8927296a08de45de34819596e85596ac"
 }

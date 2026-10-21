@@ -11,6 +11,7 @@ const reactionLabels: Record<TeamReactionMechanism, string> = {
   polarity: '极性',
   penetration: '贯穿',
   laceration: '毁伤',
+  luminize: '耀变',
 }
 
 const executionLabels: Record<TeamExecutionChannel, string> = {

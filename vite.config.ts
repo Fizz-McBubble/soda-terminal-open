@@ -215,7 +215,7 @@ export default defineConfig({
   worker: {
     // The full local Query graph contains module-level async imports. Browser compute uses a
     // module Worker, while the existing remote/public artifact keeps its frozen IIFE behavior.
-    format: process.env.VITE_SODA_COMMUNITY_BUILD === 'true' ? 'es' : 'iife',
+    format: process.env.VITE_SODA_PUBLIC_BUILD === 'true' ? 'iife' : 'es',
     // Vite builds worker modules with a separate plugin container. Apply the same source
     // projection there or large guide catalogs can bypass the public locator scrub.
     plugins: () =>

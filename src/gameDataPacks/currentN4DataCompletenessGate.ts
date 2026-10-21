@@ -20,6 +20,8 @@ export const currentN4DataCompletenessGate = {
   contract: 'soda-n4-current-data-completeness/v1',
   gameVersion: currentAssetProjection.gameVersion,
   completionScope: 'all_current_released_account_ownable_entities',
+  qualificationScope: 'full_team_calculation_context',
+  blocksGenericReferenceRelease: false,
   population: {
     agents: currentAssetProjection.agents.length,
     wEngines: currentAssetProjection.wEngines.length,

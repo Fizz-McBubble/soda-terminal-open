@@ -8,6 +8,7 @@ import { compileReviewedDriveDiscEventEffects32 } from '../calculation/reviewedD
 import { reviewedDriveDiscSemanticsIdentity32 } from '../calculation/reviewedDriveDiscSemanticsIdentity32'
 import type { DriveDiscEventRuntimeBinding32 } from '../calculation/reviewedDriveDiscConditionDomains32'
 import { resolveCurrentPlanningConditionDeclarations32 } from '../calculation/currentPlanningConditionCatalog32'
+import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
 import {
   evaluateSourceBackedPlanningTeamDps,
   type SourceBackedPlanningTeamDpsInput,
@@ -23,6 +24,8 @@ import {
   planningEventDeclarationsInputFingerprint32,
   validatePlanningEventDeclarations32,
   type PlanningEventDeclarationsInput32,
+  type PlanningEventDeclarationsMetadata32,
+  type PlanningEventDeclarationsValidation32,
 } from './publicPlanningEventDeclarations32'
 import {
   planningBenchmark32Contract,
@@ -42,19 +45,20 @@ const eventKey = (row: { ownerAgentId: string; eventId: string }) =>
 
 /** Trusted private producer. Only the public vocabulary is transported; all
  * source IR, account facts and equipment operands are rebuilt from the run. */
-export function analyzePlanningBenchmark32Candidate(
+function analyzePreparedPlanningBenchmark32Candidate(
   input: PlanningBenchmarkBinding32,
+  prepared: ReturnType<typeof preparePlanningBenchmark32>,
   declarations?: PlanningEventDeclarationsInput32,
   expectedSourceBindingFingerprint?: string,
+  trustedValidation?: PlanningEventDeclarationsValidation32,
 ): {
-  result: PlanningBenchmarkResult32
+  result: Omit<PlanningBenchmarkResult32, 'resultFingerprint'>
   context: CalculationContext | null
   /** Private shared operands for function-aware equipment comparisons. */
   runtimeInput32: SourceBackedPlanningTeamDpsInput | null
 } {
   let context: CalculationContext | null = null
   let runtimeInput32: SourceBackedPlanningTeamDpsInput | null = null
-  const prepared = preparePlanningBenchmark32(input)
   const payload: Omit<PlanningBenchmarkResult32, 'resultFingerprint'> = {
     contract: planningBenchmark32Contract,
     runId: input.runId,
@@ -95,7 +99,7 @@ export function analyzePlanningBenchmark32Candidate(
     payload.excludedEffects = [...excluded.values()]
     payload.gaps = [...new Set(payload.gaps)]
     return {
-      result: { ...payload, resultFingerprint: planningBenchmarkResultFingerprint32(payload) },
+      result: { ...payload },
       context,
       runtimeInput32,
     }
@@ -106,7 +110,8 @@ export function analyzePlanningBenchmark32Candidate(
     payload.gaps.push('来源、账户或配装绑定已变化，请重新读取条件定义。')
     return finish()
   }
-  const validated = validatePlanningEventDeclarations32(declarations, prepared.metadata)
+  const validated =
+    trustedValidation ?? validatePlanningEventDeclarations32(declarations, prepared.metadata)
   if (validated.gaps.length) {
     payload.status = 'unsupported'
     payload.gaps.push(...validated.gaps)
@@ -138,7 +143,17 @@ export function analyzePlanningBenchmark32Candidate(
     const projection = prepared.projections.get(occurrence.ownerAgentId)!
     const resolved = resolveCurrentPlanningConditionDeclarations32({
       projection,
-      declarations: occurrence.conditions,
+      // The signed comparison vocabulary may include inactive alternatives.
+      // It was fully validated above; apply only this candidate's actual equipment.
+      declarations: input.equipmentConditionAlternatives32
+        ? occurrence.conditions.filter((condition) =>
+            projection.defs.some(
+              (def) =>
+                def.providerAgentId === condition.providerAgentId &&
+                def.referenceKey === condition.referenceKey,
+            ),
+          )
+        : occurrence.conditions,
     })
     if (resolved.status !== 'supported') {
       payload.gaps.push(...resolved.blockers)
@@ -424,16 +439,87 @@ export function analyzePlanningBenchmark32Candidate(
       fields: row.fields,
       sourceRefs: row.sourceRefs,
     })),
-    ...[...prepared.projections.values()].flatMap((row) =>
-      row.blockedReferences.map((ref) => ({
-        effectKey: `${ref.providerAgentId}:${ref.referenceKey}`,
-        reason: ref.reason,
-        fields: [ref.referenceKey],
-        sourceRefs: ref.sourceRefs,
-      })),
+    ...[...prepared.projections.entries()].flatMap(([ownerAgentId, row]) =>
+      row.blockedReferences
+        .filter((ref) => {
+          const events = validated.occurrences.filter(
+            (occurrence) => occurrence.ownerAgentId === ownerAgentId,
+          )
+          if (!events.length) return false
+          // A source failure in an EX-only modifier does not invalidate an explicitly
+          // declared basic attack. Unknown/unscoped dependencies remain blocking.
+          if (!ref.eventScopes?.length) return true
+          return events.some((occurrence) => {
+            const event = getCurrentAgentEventContract(ownerAgentId)?.eventContract.events.find(
+              (event) => event.eventId === occurrence.eventId,
+            )
+            return (
+              !event?.damageType ||
+              ref.eventScopes!.some(
+                (scope) => !scope.damageType || scope.damageType === event.damageType,
+              )
+            )
+          })
+        })
+        .map((ref) => ({
+          effectKey: `${ref.providerAgentId}:${ref.referenceKey}`,
+          reason: ref.reason,
+          fields: [ref.referenceKey],
+          sourceRefs: ref.sourceRefs,
+        })),
     ),
   )
   return finish()
+}
+
+/** The public/private result projection always retains its full response hash. */
+export function analyzePlanningBenchmark32Candidate(
+  input: PlanningBenchmarkBinding32,
+  declarations?: PlanningEventDeclarationsInput32,
+  expectedSourceBindingFingerprint?: string,
+) {
+  const analyzed = analyzePreparedPlanningBenchmark32Candidate(
+    input,
+    preparePlanningBenchmark32(input),
+    declarations,
+    expectedSourceBindingFingerprint,
+  )
+  return {
+    ...analyzed,
+    result: {
+      ...analyzed.result,
+      resultFingerprint: planningBenchmarkResultFingerprint32(analyzed.result),
+    },
+  }
+}
+
+/** A private optimizer captures validated declarations once. Every candidate
+ * still rebuilds actual stats, sources, equipment, effects and functional operands.
+ * Unsigned numerical analysis is never returned by the public Query producer. */
+export function createPlanningBenchmark32ObjectiveAnalyzer(
+  declarations: PlanningEventDeclarationsInput32,
+  metadata: PlanningEventDeclarationsMetadata32,
+) {
+  const captured = structuredClone(declarations)
+  const validation = validatePlanningEventDeclarations32(captured, metadata)
+  const vocabularyFingerprint = metadata.sourceFingerprint
+  return (input: PlanningBenchmarkBinding32) => {
+    const prepared = preparePlanningBenchmark32(input)
+    const currentValidation =
+      prepared.metadata?.sourceFingerprint === vocabularyFingerprint
+        ? structuredClone(validation)
+        : { occurrences: [], gaps: ['比较条件定义已变化，不能复用已确认的动作声明。'] }
+    return {
+      ...analyzePreparedPlanningBenchmark32Candidate(
+        input,
+        prepared,
+        captured,
+        prepared.sourceBindingFingerprint,
+        currentValidation,
+      ),
+      prepared,
+    }
+  }
 }
 
 /** Public numbers require the same Formal gates as every production damage

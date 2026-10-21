@@ -6,6 +6,7 @@ import { TeamPlanHeaderIdentity } from './TeamPlanHeaderIdentity'
 type TeamPlanHeaderProps = {
   deleteAction?: import('react').ReactNode
   comparisonScenarioControl?: import('react').ReactNode
+  standardReferenceControl?: import('react').ReactNode
   team: DecisionTeamViewModel
   executionPresentation: TeamExecutionPresentation | null
   headingRef: RefObject<HTMLHeadingElement | null>
@@ -26,6 +27,7 @@ type TeamPlanHeaderProps = {
 export function TeamPlanHeader({
   deleteAction,
   comparisonScenarioControl,
+  standardReferenceControl,
   team,
   executionPresentation,
   headingRef,
@@ -49,6 +51,7 @@ export function TeamPlanHeader({
       />
       <div className="optimizer-plan__team-actions">
         {comparisonScenarioControl}
+        {standardReferenceControl}
         {usingRemainingBox ? <span className="f5v-remaining-box-badge">另一支队伍</span> : null}
         {savedPlanState && savedPlanState !== 'stale' ? (
           <span className="optimizer-plan__stale-state">

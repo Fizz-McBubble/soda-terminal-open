@@ -26,6 +26,7 @@ import {
   validateStandardReferenceDiscs,
 } from '../calculation/standardReferenceDiscAllocation'
 import { currentAgentDirectory } from '../assault/catalog'
+import { formedAgentCultivation } from './formedTeamCultivation'
 import {
   resolveSkillInvestmentMindscapeBonus,
   skillInvestmentMindscapeSource,
@@ -40,8 +41,8 @@ export type StandardReferenceEquipmentSelection = {
 }
 
 export const localStandardReferenceBuildPolicy = {
-  id: 'local-standard-level60-base-skill11-core7-s0-a6-legal48/v1',
-  mindscape: { S: 0, A: 6 },
+  id: 'local-standard-formed-key-mindscapes-legal48/v2',
+  mindscape: 'reviewed-formed-team-key-mindscapes',
   baseSkillLevel: 11,
   coreLevel: 7,
   effectiveSkillSource: skillInvestmentMindscapeSource,
@@ -50,7 +51,7 @@ export const localStandardReferenceBuildPolicy = {
 /** Declared equipped comparison protocol, independent of the frozen skill12 reference. */
 export const teamStrengthEquippedReferenceBuildPolicy = Object.freeze({
   ...teamStrengthReferenceStatePolicy,
-  id: 'team-strength-equipped-level60-base-skill11-core7-s0-a6-supported-p6-legal48-seed/v5',
+  id: 'team-strength-equipped-formed-key-mindscapes-supported-p6-legal48-seed/v6',
   engineDirectionBinding: 'leading-source-named-current-stable-id-before-legacy-alias',
   equipment: 'source_qualified_4_plus_2_template_with_legal_48_seed',
   mainStatChoice: 'first_explicit_recommendation',
@@ -69,7 +70,7 @@ export function createTeamStrengthEquippedReferenceMember(input: {
   /** An explicitly solved local-standard slice; absence retains the historical protocol. */
   standardEquipmentSelection?: StandardReferenceEquipmentSelection
 }) {
-  const { agentId, memberIds, referenceConditions, standardEquipmentSelection } = input
+  const { agentId, memberIds, standardEquipmentSelection } = input
   const requestIdentity = stableContentHash({
     policy: standardEquipmentSelection
       ? localStandardReferenceBuildPolicy
@@ -77,15 +78,29 @@ export function createTeamStrengthEquippedReferenceMember(input: {
     sourceState: teamStrengthReferenceStateIdentity,
     agentId,
     memberIds: memberIds && [...memberIds].sort(),
-    referenceConditions,
+    referenceConditions: input.referenceConditions,
     ...(standardEquipmentSelection ? { standardEquipmentSelection } : {}),
   })
   try {
+    const referenceConditions: TeamStrengthReferenceConditions = {
+      potentialByAgentId: {},
+      evidenceRefs: [],
+      ...input.referenceConditions,
+      mindscapeByAgentId: {
+        ...Object.fromEntries(
+          (memberIds ?? [agentId]).map((id) => [
+            id,
+            formedAgentCultivation(id, memberIds).mindscape,
+          ]),
+        ),
+        ...input.referenceConditions?.mindscapeByAgentId,
+      },
+    }
     const contract = getCurrentAgentEventContract(agentId)
     if (!contract) throw new Error(`缺少角色事件合同：${agentId}`)
     const rarity = currentAgentDirectory.find((row) => row.id === agentId)?.rarity
     if (rarity !== 'S' && rarity !== 'A') throw new Error('标准培养条件缺少明确S/A身份。')
-    const mindscape = resolveTeamStrengthReferenceMindscape(agentId)
+    const mindscape = resolveTeamStrengthReferenceMindscape(agentId, referenceConditions)
     const skillLevel = 11 + (resolveSkillInvestmentMindscapeBonus(mindscape) ?? 0)
     const potential = resolveTeamStrengthReferencePotential(agentId, referenceConditions)
     const agentStateById = Object.fromEntries(
@@ -93,7 +108,7 @@ export function createTeamStrengthEquippedReferenceMember(input: {
         id,
         {
           potentialImage: resolveTeamStrengthReferencePotential(id, referenceConditions),
-          mindscape: resolveTeamStrengthReferenceMindscape(id),
+          mindscape: resolveTeamStrengthReferenceMindscape(id, referenceConditions),
         },
       ]),
     )

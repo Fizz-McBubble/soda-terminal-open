@@ -45,6 +45,7 @@ function defaultModuleWorker(): WorkerPort {
 export function createBrowserCalculationQueryClient(options: {
   readRuntimeSelection: () => Promise<CurrentGameDataRuntimeSelection>
   createWorker?: () => WorkerPort
+  resultProjection?: 'local'
 }): CalculationQueryClient {
   const pending = new Map<number, PendingRequest>()
   const queue: number[] = []
@@ -221,6 +222,7 @@ export function createBrowserCalculationQueryClient(options: {
           requestId,
           runtime,
           query: request.query,
+          ...(options.resultProjection ? { resultProjection: options.resultProjection } : {}),
         } satisfies BrowserCalculationQueryRequest)
       } catch (error) {
         if (dispatchGeneration !== generation) return

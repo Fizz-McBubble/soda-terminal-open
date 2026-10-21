@@ -1,0 +1,249 @@
+{
+  "schema": "soda-reviewed-team-output-modules-strict-batch/v1",
+  "sourceSchema": "soda-strict-team-output-candidates/v1",
+  "sourceCount": 10,
+  "sourceSha256": "1471ec01f993bde616a3296d6e639ac5f62882713f9ddcd531026fac0323c2fb",
+  "boundary": "Historical exact-team review only. Round 4 retains the same one-unit core-driver and primary output/reaction gate as round 3; template, substitution-only, mixed-core and unresolved rows are excluded. Current strength is not inherited.",
+  "entries": [
+    {
+      "claimId": "reviewed-nested-17583f3cd26ea77328b03995",
+      "memberIds": ["agent-harumasa", "agent-ju-fufu", "agent-qingyi"],
+      "sourceVersion": "2.0",
+      "url": "https://www.miyoushe.com/zzz/article/65745145",
+      "title": "【2.0攻略征集】「橘福福」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-harumasa",
+      "evidence": {
+        "op": 72,
+        "start": 0,
+        "end": 132,
+        "text": "【5.4】朱鸢/悠真\n① 朱鸢、悠真这类爆发主C，主要在失衡爆发期输出，橘福福入队需再搭配青衣组成双击破，进而在非失衡期快速累积失衡值。\n② 喧响值优化可加快朱鸢、悠真的终结技施放频率，并且这两位的终结技均具有高爆发、累积机制点的特点，使得在爆发期打出更高伤害。\n",
+        "unitRawSha256": "4f8fbcee59c5bab04bf6ea222d138306bfcda62f68e35da04f1e44abb6375afc",
+        "unitTextSha256": "4f5317bb99740948c44297d2ca3f0e23dc1deb122acd4aee3ce391728d0fa3bb",
+        "quoteSha256": "4f5317bb99740948c44297d2ca3f0e23dc1deb122acd4aee3ce391728d0fa3bb"
+      },
+      "module": {
+        "id": "module-strict-round4-17583f3cd26ea77328b03995",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": ["stun_window", "ultimate"],
+        "teamFunctions": ["stun", "resource_supply"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-4ca020f99c6a5954dc1029ef",
+      "memberIds": ["agent-zhu-yuan", "agent-ju-fufu", "agent-qingyi"],
+      "sourceVersion": "2.0",
+      "url": "https://www.miyoushe.com/zzz/article/65745145",
+      "title": "【2.0攻略征集】「橘福福」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-zhu-yuan",
+      "evidence": {
+        "op": 72,
+        "start": 0,
+        "end": 132,
+        "text": "【5.4】朱鸢/悠真\n① 朱鸢、悠真这类爆发主C，主要在失衡爆发期输出，橘福福入队需再搭配青衣组成双击破，进而在非失衡期快速累积失衡值。\n② 喧响值优化可加快朱鸢、悠真的终结技施放频率，并且这两位的终结技均具有高爆发、累积机制点的特点，使得在爆发期打出更高伤害。\n",
+        "unitRawSha256": "4f8fbcee59c5bab04bf6ea222d138306bfcda62f68e35da04f1e44abb6375afc",
+        "unitTextSha256": "4f5317bb99740948c44297d2ca3f0e23dc1deb122acd4aee3ce391728d0fa3bb",
+        "quoteSha256": "4f5317bb99740948c44297d2ca3f0e23dc1deb122acd4aee3ce391728d0fa3bb"
+      },
+      "module": {
+        "id": "module-strict-round4-4ca020f99c6a5954dc1029ef",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": ["stun_window", "ultimate"],
+        "teamFunctions": ["stun", "resource_supply"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-2d2a432d5f95815bf289f3cb",
+      "memberIds": ["agent-miyabi", "agent-soukaku", "agent-yuzuha"],
+      "sourceVersion": "2.1",
+      "url": "https://www.miyoushe.com/zzz/article/66558093",
+      "title": "【2.1攻略征集】浮波柚叶 角色玩法介绍",
+      "coreAgentId": "agent-miyabi",
+      "evidence": {
+        "op": 69,
+        "start": 0,
+        "end": 203,
+        "text": "配队思路：双异常代理人+浮波柚叶\n作为异常体系的强力通用支援辅助，柚叶的配队可以说是非常的多，这边就简单推荐几个现版本好用的配队：\n①星见雅+苍角/月城柳/薇薇安+浮波柚叶\n②月城柳+薇薇安/柏妮思+浮波柚叶\n④简+薇薇安/柏妮思+浮波柚叶\n（下半的爱丽丝也能搭配浮波柚叶）\n\n注：雅苍算是比较特殊的一个配队，因为雅虽然为烈霜属性，但攻击染色依旧为冰，因此该配队可以快速累积冰属性异常积蓄，与烈霜触发紊乱\n",
+        "unitRawSha256": "a31be7e0863f3d280c48b37db5d1742db6fa2acbc4d005289fc0f7cff1613f8e",
+        "unitTextSha256": "8f74713ed00ddaed4fe231c0e9bb2b076aa621b3749688379e8115d50664903d",
+        "quoteSha256": "8f74713ed00ddaed4fe231c0e9bb2b076aa621b3749688379e8115d50664903d"
+      },
+      "module": {
+        "id": "module-strict-round4-2d2a432d5f95815bf289f3cb",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": ["disorder"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-8ebb825aba1219abc095ae61",
+      "memberIds": ["agent-caesar", "agent-jane", "agent-seth"],
+      "sourceVersion": "1.2",
+      "url": "https://www.miyoushe.com/zzz/article/57928556",
+      "title": "【1.2攻略征集】凯撒·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-jane",
+      "evidence": {
+        "op": 68,
+        "start": 0,
+        "end": 228,
+        "text": "【更多讲解】\n① 简需要置于赛斯前一位，如简1号/赛斯2号、简2号/赛斯3号、简3号/赛斯1号。\n② 推荐站位：凯撒1号位、简2号位、赛斯3号位。\n——赛斯具有“上切”机制，会切至上一号位置的角色；凯撒1号位入场之后可先蓄力普攻挂debuff，然后攒20能量切简输出。\n③ 该队主要是简的【强击】伤害，不强求敌人快速进入失衡。\n④ 简的【狂热】状态输出推荐在获得赛斯、凯撒的全部增益后再进行。\n⑤ 推荐简、赛斯在站场时通过支援键切至凯撒打出【荣光之盾】。\n",
+        "unitRawSha256": "c086d31c482eb4ea2bf11d34dd00f68679c92ab19765626e6f4d0d4ae5b635b2",
+        "unitTextSha256": "2c46a1a70155e86b5f8cd11d936edc0f4c25be66febe5a9869286eec4ded72b4",
+        "quoteSha256": "2c46a1a70155e86b5f8cd11d936edc0f4c25be66febe5a9869286eec4ded72b4"
+      },
+      "module": {
+        "id": "module-strict-round4-8ebb825aba1219abc095ae61",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [],
+        "executionChannels": ["stun_window"],
+        "teamFunctions": ["stun", "support", "resource_supply"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-52bbc62d0d9129a8439a71d8",
+      "memberIds": ["agent-billy", "agent-qingyi", "agent-nicole"],
+      "sourceVersion": "1.1",
+      "url": "https://www.miyoushe.com/zzz/article/56560091",
+      "title": "【1.1攻略征集】青衣·详细解析︱养成/配队/机制",
+      "coreAgentId": "agent-billy",
+      "evidence": {
+        "op": 127,
+        "start": 0,
+        "end": 161,
+        "text": "【3.3】与比利/猫又的搭配\n\n\n\n\n① 猫又/比利与青衣组队可以通过搭配【妮可】触发其核心技的额外能力，妮可打出能量场后还能降低敌人防御，青衣配合提高敌人的失衡易伤倍率，猫又/比利将输出集中在敌人进入失衡后。\n② 比利或猫又要在妮可之后，如妮可1号/比利或猫又2号、妮可2号/比利或猫又3号、妮可3号/比利或猫又1号。\n",
+        "unitRawSha256": "10546850e29b48cba8b66945ebe92ef89137c5788cf6dcdf088916b4199694a6",
+        "unitTextSha256": "779df6d405c7dcb66774b3ad453096c7a35470ba88c497958c2ee96b1e03fdea",
+        "quoteSha256": "779df6d405c7dcb66774b3ad453096c7a35470ba88c497958c2ee96b1e03fdea"
+      },
+      "module": {
+        "id": "module-strict-round4-52bbc62d0d9129a8439a71d8",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": ["stun_window"],
+        "teamFunctions": ["stun", "defense_reduction", "resource_supply"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-df0ebc578d050a80b8147fc6",
+      "memberIds": ["agent-nekomata", "agent-qingyi", "agent-nicole"],
+      "sourceVersion": "1.1",
+      "url": "https://www.miyoushe.com/zzz/article/56560091",
+      "title": "【1.1攻略征集】青衣·详细解析︱养成/配队/机制",
+      "coreAgentId": "agent-nekomata",
+      "evidence": {
+        "op": 127,
+        "start": 0,
+        "end": 161,
+        "text": "【3.3】与比利/猫又的搭配\n\n\n\n\n① 猫又/比利与青衣组队可以通过搭配【妮可】触发其核心技的额外能力，妮可打出能量场后还能降低敌人防御，青衣配合提高敌人的失衡易伤倍率，猫又/比利将输出集中在敌人进入失衡后。\n② 比利或猫又要在妮可之后，如妮可1号/比利或猫又2号、妮可2号/比利或猫又3号、妮可3号/比利或猫又1号。\n",
+        "unitRawSha256": "10546850e29b48cba8b66945ebe92ef89137c5788cf6dcdf088916b4199694a6",
+        "unitTextSha256": "779df6d405c7dcb66774b3ad453096c7a35470ba88c497958c2ee96b1e03fdea",
+        "quoteSha256": "779df6d405c7dcb66774b3ad453096c7a35470ba88c497958c2ee96b1e03fdea"
+      },
+      "module": {
+        "id": "module-strict-round4-df0ebc578d050a80b8147fc6",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": ["stun_window"],
+        "teamFunctions": ["stun", "defense_reduction", "resource_supply"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-6895aa0bf055d9967d5171f3",
+      "memberIds": ["agent-corin", "agent-qingyi", "agent-rina"],
+      "sourceVersion": "1.1",
+      "url": "https://www.miyoushe.com/zzz/article/56560091",
+      "title": "【1.1攻略征集】青衣·详细解析︱养成/配队/机制",
+      "coreAgentId": "agent-corin",
+      "evidence": {
+        "op": 128,
+        "start": 0,
+        "end": 209,
+        "text": "【3.4】与可琳的搭配\n\n\n\n① 可琳与青衣搭配时，可以选择【丽娜】触发其核心技的额外能力，该队伍的感电异常积蓄速度也不低，可琳技能的持续物伤也能快速累积物理积蓄值，从而“蹭到”一些紊乱伤害。不过该队伍还是以可琳的物理直伤为主，紊乱/异常积蓄等额外伤害更多算是“添头”。\n② 可琳搭配青衣后，其主要输出伤害将转变为集中到敌人失衡后。\n③ 可琳要在丽娜之后，如丽娜1号/可琳2号、丽娜2号/可琳3号、丽娜3号/可琳1号\n",
+        "unitRawSha256": "046ead8a26bfcc4f7bbb0cab71d245de43baebad6240761a7ec246d4bb37f058",
+        "unitTextSha256": "36ab2da0d02417c5d569d155fe1546364141fdedeaee468f86e7a5b6439bfa9d",
+        "quoteSha256": "36ab2da0d02417c5d569d155fe1546364141fdedeaee468f86e7a5b6439bfa9d"
+      },
+      "module": {
+        "id": "module-strict-round4-6895aa0bf055d9967d5171f3",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": ["stun_window"],
+        "teamFunctions": ["stun"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-61fbb786b414a2da2615f4c3",
+      "memberIds": ["agent-evelyn", "agent-dialyn", "agent-lighter"],
+      "sourceVersion": "2.4",
+      "url": "https://www.miyoushe.com/zzz/article/70915554",
+      "title": "【2.4攻略征集】「琉音」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-evelyn",
+      "evidence": {
+        "op": 57,
+        "start": 0,
+        "end": 854,
+        "text": "【更多伊芙队讲解】\n① 除了单击破玩法，还可组成“莱特+琉音”的双击破队伍，累积失衡的速度更快——伊芙琳主打连携技，能更快累积失衡意味着更早打出多连携操作。\n② 不过，“莱特+琉音”的组合需要注意失衡延长不能叠加，同时施加将按照最大值计入（按莱特延长3秒计入），可先等琉音的延长结束后再由莱特施加失衡期延长。\n*失衡延长的本质是使失衡倒计时暂停（失衡条周围微闪黄色），当此次暂停结束可再次施加其他角色的失衡延长。\n \n【参考输出思路】（多连携手法）\n【开局】失衡前的输出\n*以伊芙琳+琉音+耀嘉音为例。\n◆嘉音特殊技→伊芙琳输出累积燎火值→敌人黄光则切琉音→再回切伊芙琳\n① 用于敌人失衡前攒出【3层缭索点+100%的缭火值】，为失衡期多打连携技做准备。\n② 期间可让伊芙琳闪避反击（或特殊技闪避）、琉音招架支援等，积累失衡值。\n③ 敌人进失衡前琉音一定要打完一整套石头剪刀布攻击，使敌人延长失衡时间、提高失衡以上。\n \n【进失衡】伊芙琳的失衡双连携\n◆琉音进失衡→伊芙琳失衡连携1升大招→主动取消连携→切琉音再进失衡→伊芙琳失衡连携2\n① 面向BOSS等能被打出多次失衡的敌人（众多周本BOSS）。\n② 无论单、双击破，都要让击破手打入失衡，否则将伊芙琳少打1次连携。\n③ 本质是通过主动取消继续连携，将一轮失衡入战拆成两轮，使伊芙琳二次入战多打1次失衡连携。\n④ 连携升大招能让伊芙琳更快启动获得燎火点循环优化。\n \n【4连携】通用连携手法\n◆琉音进失衡→伊芙琳失衡连携1升大招→取消连携→切琉音再进失衡→伊芙琳失衡连携2→伊芙琳主动连携3→强化普攻1+强化普攻2+终结技→伊芙琳主动连携4\n① 失衡前一定要攒出【100%缭火值+3点缭索点】。\n② 如果已经施放过终结技（脱掉外套），可不强求开大。\n③ “脱掉外套”会使每次主动连携都保留1点缭索点（仍是3点启动、只消耗2点），而提前攒的100%缭火值可转化为2点缭索点，配合保留的1点可正好再次施放连携技4。\n*想打出更多连携技，要配合嘉音的终结技。\n",
+        "unitRawSha256": "bbe4631ab1ff677a68abf944bdefc0fbad62c7cbbc920ea6f6829cc0aab2c7e3",
+        "unitTextSha256": "4d81c3ceadcdb06bfcedff569ab03b6b25bd05afb85883724bf9a3108eca7ad3",
+        "quoteSha256": "4d81c3ceadcdb06bfcedff569ab03b6b25bd05afb85883724bf9a3108eca7ad3"
+      },
+      "module": {
+        "id": "module-strict-round4-61fbb786b414a2da2615f4c3",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": ["stun_window", "chain", "ultimate"],
+        "teamFunctions": ["stun", "support"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-81a27a801de1370a4c62166a",
+      "memberIds": ["agent-evelyn", "agent-dialyn", "agent-astra"],
+      "sourceVersion": "2.4",
+      "url": "https://www.miyoushe.com/zzz/article/70915554",
+      "title": "【2.4攻略征集】「琉音」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-evelyn",
+      "evidence": {
+        "op": 57,
+        "start": 0,
+        "end": 854,
+        "text": "【更多伊芙队讲解】\n① 除了单击破玩法，还可组成“莱特+琉音”的双击破队伍，累积失衡的速度更快——伊芙琳主打连携技，能更快累积失衡意味着更早打出多连携操作。\n② 不过，“莱特+琉音”的组合需要注意失衡延长不能叠加，同时施加将按照最大值计入（按莱特延长3秒计入），可先等琉音的延长结束后再由莱特施加失衡期延长。\n*失衡延长的本质是使失衡倒计时暂停（失衡条周围微闪黄色），当此次暂停结束可再次施加其他角色的失衡延长。\n \n【参考输出思路】（多连携手法）\n【开局】失衡前的输出\n*以伊芙琳+琉音+耀嘉音为例。\n◆嘉音特殊技→伊芙琳输出累积燎火值→敌人黄光则切琉音→再回切伊芙琳\n① 用于敌人失衡前攒出【3层缭索点+100%的缭火值】，为失衡期多打连携技做准备。\n② 期间可让伊芙琳闪避反击（或特殊技闪避）、琉音招架支援等，积累失衡值。\n③ 敌人进失衡前琉音一定要打完一整套石头剪刀布攻击，使敌人延长失衡时间、提高失衡以上。\n \n【进失衡】伊芙琳的失衡双连携\n◆琉音进失衡→伊芙琳失衡连携1升大招→主动取消连携→切琉音再进失衡→伊芙琳失衡连携2\n① 面向BOSS等能被打出多次失衡的敌人（众多周本BOSS）。\n② 无论单、双击破，都要让击破手打入失衡，否则将伊芙琳少打1次连携。\n③ 本质是通过主动取消继续连携，将一轮失衡入战拆成两轮，使伊芙琳二次入战多打1次失衡连携。\n④ 连携升大招能让伊芙琳更快启动获得燎火点循环优化。\n \n【4连携】通用连携手法\n◆琉音进失衡→伊芙琳失衡连携1升大招→取消连携→切琉音再进失衡→伊芙琳失衡连携2→伊芙琳主动连携3→强化普攻1+强化普攻2+终结技→伊芙琳主动连携4\n① 失衡前一定要攒出【100%缭火值+3点缭索点】。\n② 如果已经施放过终结技（脱掉外套），可不强求开大。\n③ “脱掉外套”会使每次主动连携都保留1点缭索点（仍是3点启动、只消耗2点），而提前攒的100%缭火值可转化为2点缭索点，配合保留的1点可正好再次施放连携技4。\n*想打出更多连携技，要配合嘉音的终结技。\n",
+        "unitRawSha256": "bbe4631ab1ff677a68abf944bdefc0fbad62c7cbbc920ea6f6829cc0aab2c7e3",
+        "unitTextSha256": "4d81c3ceadcdb06bfcedff569ab03b6b25bd05afb85883724bf9a3108eca7ad3",
+        "quoteSha256": "4d81c3ceadcdb06bfcedff569ab03b6b25bd05afb85883724bf9a3108eca7ad3"
+      },
+      "module": {
+        "id": "module-strict-round4-81a27a801de1370a4c62166a",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": ["stun_window", "chain", "ultimate"],
+        "teamFunctions": ["stun", "support"]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-f5d4c5909ca8f85fd64c9f4c",
+      "memberIds": ["agent-jane", "agent-seth", "agent-qingyi"],
+      "sourceVersion": "1.1",
+      "url": "https://www.miyoushe.com/zzz/article/57323897",
+      "title": "【1.1攻略征集】简·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-jane",
+      "evidence": {
+        "op": 67,
+        "start": 0,
+        "end": 670,
+        "text": "【参考连携顺序】(刑侦队）\n*更多是参考思路，实战可以灵活考虑。\n【1次连携】\n① 青衣→简：场上无精英怪、清小怪使用。\n② 青衣→赛斯→简（支援）：赛斯连携入战获得75%意气，之后赛斯长按普攻触发“上切”至简获得buff开始输出。\n \n【2次连携】\n① 青衣→简→赛斯→简（上切）\n◆由赛斯之后连携入战并不能直接给简上buff，可以采用先简打积蓄再赛斯连携入战之后长按普攻、上切回简的顺序。\n② 青衣→赛斯→简\n◆如果此前简已经获得了赛斯提供的buff，可以直接采用该顺序缩短连携时间。\n③ 青衣→简→（取消连携）\n◆如果此前简已经拥有赛斯的buff，可以通过主动取消连携的方式缩短时间，该顺序与②的区别是要不要赛斯登场积攒电属性异常、触发紊乱伤害（灵活选择）。\n④ 青衣→赛斯→（取消连携）→赛斯长按普攻→简（上切）\n◆如果简此时没有赛斯buff，但恰巧又在青衣后切出了赛斯，可以主动取消连携再通过长按普攻获得buff后上切简进行输出。\n——通过双击屏幕空白处（移动端）或点按鼠标滚轮（PC端）主动取消连携。\n \n【3次连携】\n① 青衣→简→赛斯→简\n◆简有赛斯buff时可选，多累积异常积蓄、角色回能\n② 青衣→赛斯→简→取消连携\n◆简有赛斯buff且已点赛斯入战，想缩短连携时间可选\n③ 青衣→简→（取消连携）\n◆简有赛斯buff、缩短连携时间可选\n④ 青衣→简→赛斯→（取消连携）→赛斯长普→简（上切）\n◆简无赛斯buff并切出简连携时可选\n⑤ 青衣→赛斯→（取消连携）→赛斯长普→简（上切）\n◆简无赛斯buff，已切赛斯时可选\n",
+        "unitRawSha256": "f06e2a5a5dfc49229fa1fc421d00650d78adad90fc7e79fb560bd374c5102179",
+        "unitTextSha256": "d4a2353993629e9e3d2a0946575c499a2316e27e43a3b29e5882783bd37fe73e",
+        "quoteSha256": "d4a2353993629e9e3d2a0946575c499a2316e27e43a3b29e5882783bd37fe73e"
+      },
+      "module": {
+        "id": "module-strict-round4-f5d4c5909ca8f85fd64c9f4c",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": ["disorder"],
+        "executionChannels": ["chain", "quick_swap"],
+        "teamFunctions": ["support", "resource_supply"]
+      }
+    }
+  ]
+}

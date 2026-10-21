@@ -1,0 +1,1154 @@
+{
+  "schema": "soda-reviewed-team-output-modules-strict-batch/v1",
+  "sourceSchema": "soda-strict-team-output-candidates/v1",
+  "sourceCount": 34,
+  "sourceSha256": "796efb3e7fa362aaf18677d52909855f26ba03c5fa1d49df97ef8abf3191d7b1",
+  "boundary": "Historical exact-team round 5 review. Same source-unit, exact-trio, explicit core-driver and primary output/reaction gate as round 4; all other rows remain explicitly unresolved.",
+  "entries": [
+    {
+      "claimId": "reviewed-nested-053c82f1143d1491d4be7aee",
+      "memberIds": [
+        "agent-ellen",
+        "agent-trigger",
+        "agent-lycaon"
+      ],
+      "sourceVersion": "1.6",
+      "url": "https://www.miyoushe.com/zzz/article/63149676",
+      "title": "【1.6攻略征集】扳机·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-ellen",
+      "evidence": {
+        "op": 73,
+        "start": 0,
+        "end": 191,
+        "text": "【更多艾莲队讲解】\n① 如果为触发艾莲的额外能力，第三位队友需要在【维多利亚家政】或【冰属性角色】中考虑，如莱卡恩、丽娜、苍角等。\n② 双击破（莱卡恩+扳机）打失衡的速度更快，并且这两位击破手不过多抢占艾莲的输出时间，所以有不错体验。\n③ 另外，由于艾莲的额外能力只提供30%增伤，当第三位队友选择莱特、耀嘉音这类高额辅助增益的角色时，即便不触发艾莲的额外能力，也能有不错的体验。\n",
+        "unitRawSha256": "084ed762a03915f3a845a721ac97fb7683512f3c3a7d29adc4cb40b76823b154",
+        "unitTextSha256": "48d27d2d3a39b18710b4a2bb307a22ab1e6fe968b5218370eaee0fe23269192d",
+        "quoteSha256": "48d27d2d3a39b18710b4a2bb307a22ab1e6fe968b5218370eaee0fe23269192d"
+      },
+      "module": {
+        "id": "module-strict-round5-55713158261ddd32bdafa78b",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window"
+        ],
+        "teamFunctions": [
+          "stun"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-1b6d29bf762996072e3fdf9b",
+      "memberIds": [
+        "agent-evelyn",
+        "agent-astra",
+        "agent-ju-fufu"
+      ],
+      "sourceVersion": "2.0",
+      "url": "https://www.miyoushe.com/zzz/article/65843423",
+      "title": "【2.0攻略征集】橘福福 角色玩法介绍",
+      "coreAgentId": "agent-evelyn",
+      "evidence": {
+        "op": 65,
+        "start": 0,
+        "end": 89,
+        "text": "配队2：击破队\n标准的强攻队，强攻+击破+支援\n\n配队推荐：\n1.伊芙琳+耀嘉音+橘福福（咔嚓仔）\n2.雨果+莱特/莱卡恩+橘福福（怪盗布）\n3.艾莲+耀嘉音+橘福福（鲨牙布）\n",
+        "unitRawSha256": "7cc3adce0c56bb329f914ee0df913f40f88f31ceb72ca813066c2775e249fa96",
+        "unitTextSha256": "685d330c60ed95005c5b9bbb62cdc0250c69bbedd0701ec46262ac0d1593d8dd",
+        "quoteSha256": "685d330c60ed95005c5b9bbb62cdc0250c69bbedd0701ec46262ac0d1593d8dd"
+      },
+      "module": {
+        "id": "module-strict-round5-74cb711c2f5eaeaa85df6480",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window"
+        ],
+        "teamFunctions": [
+          "stun",
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-2e04d03c20c3153632c93209",
+      "memberIds": [
+        "agent-evelyn",
+        "agent-trigger",
+        "agent-astra"
+      ],
+      "sourceVersion": "2.2",
+      "url": "https://www.miyoushe.com/zzz/article/68301592",
+      "title": "【2.2攻略征集】扳机 角色玩法介绍",
+      "coreAgentId": "agent-evelyn",
+      "evidence": {
+        "op": 67,
+        "start": 0,
+        "end": 93,
+        "text": "1.强攻队\n常用配队：\n1.大安比+扳机+耀嘉音\n2.悠真+席德+扳机\n3.伊芙琳+扳机+耀嘉音\n当然了，其余代理人同样都可以带扳机，例如：雨果双击破队只有一个莱时，就可以先用扳机替代\n",
+        "unitRawSha256": "41beb84b5e0d0dc64e1356115bfca871dddd8e2ec47e304f406dad9d9bd5d489",
+        "unitTextSha256": "04ba264a210197a5f740745f19175082c02084c3eb8c3b73a761b3418bac51c9",
+        "quoteSha256": "04ba264a210197a5f740745f19175082c02084c3eb8c3b73a761b3418bac51c9"
+      },
+      "module": {
+        "id": "module-strict-round5-aaf61fa786666b0fe1dd606a",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window"
+        ],
+        "teamFunctions": [
+          "stun",
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-4947c7b8481e00fbd6fe0d9e",
+      "memberIds": [
+        "agent-harumasa",
+        "agent-seed",
+        "agent-trigger"
+      ],
+      "sourceVersion": "2.2",
+      "url": "https://www.miyoushe.com/zzz/article/68301592",
+      "title": "【2.2攻略征集】扳机 角色玩法介绍",
+      "coreAgentId": "agent-harumasa",
+      "evidence": {
+        "op": 67,
+        "start": 0,
+        "end": 93,
+        "text": "1.强攻队\n常用配队：\n1.大安比+扳机+耀嘉音\n2.悠真+席德+扳机\n3.伊芙琳+扳机+耀嘉音\n当然了，其余代理人同样都可以带扳机，例如：雨果双击破队只有一个莱时，就可以先用扳机替代\n",
+        "unitRawSha256": "41beb84b5e0d0dc64e1356115bfca871dddd8e2ec47e304f406dad9d9bd5d489",
+        "unitTextSha256": "04ba264a210197a5f740745f19175082c02084c3eb8c3b73a761b3418bac51c9",
+        "quoteSha256": "04ba264a210197a5f740745f19175082c02084c3eb8c3b73a761b3418bac51c9"
+      },
+      "module": {
+        "id": "module-strict-round5-9175fcd1a077aaff95933c43",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window"
+        ],
+        "teamFunctions": [
+          "stun",
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-ae5151411095bc4dec1b55f2",
+      "memberIds": [
+        "agent-ellen",
+        "agent-lycaon",
+        "agent-rina"
+      ],
+      "sourceVersion": "1.0",
+      "url": "https://www.miyoushe.com/zzz/article/54694453",
+      "title": "【1.0攻略征集】丽娜·一图流攻略︱养成+讲解",
+      "coreAgentId": "agent-ellen",
+      "evidence": {
+        "op": 130,
+        "start": 0,
+        "end": 288,
+        "text": "【家政队的玩法】\n\n\n\n\n①  “艾莲+莱卡恩+丽娜”的家政队可以说是当前输出最为强势的配队之一了，由3名S级家政角色组成的阵容上下限都很高（当前版本的最强强攻、最强击破、最强支援全在一个队伍，输出强力！）。\n② 这一队伍的邦布可优选【巴特勒】，稳定加成。\n③ 艾莲置于1号位、丽娜置于3号位，可让丽娜触发支援时每次都是切至艾莲登场。\n④ 【参考输出思路】开局艾莲长按冲刺后接长按普攻件触发剪击获得【急冻充能】→→→根据敌人攻击选择“艾莲触发极限闪避还是切至莱卡恩振刀”→→→莱卡恩持续攻击使敌人进入失衡并触发连携→→→丽娜登场触发联系技能→→→艾莲由丽娜的支援登场开始输出\n",
+        "unitRawSha256": "9c9da75ebde9d8605cee336f80048dbac1d33271d7f8208ef50fcc204e728d6d",
+        "unitTextSha256": "35fbd6d3a7ca7d4c802f0e23e3922e2c421b7847daa11c32ff7997d78a12250c",
+        "quoteSha256": "35fbd6d3a7ca7d4c802f0e23e3922e2c421b7847daa11c32ff7997d78a12250c"
+      },
+      "module": {
+        "id": "module-strict-round5-8d60bb009b0aade9ff8a438c",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window",
+          "chain",
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "stun",
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-f46f29e91a546b2da12b3c52",
+      "memberIds": [
+        "agent-evelyn",
+        "agent-lighter",
+        "agent-astra"
+      ],
+      "sourceVersion": "2.0",
+      "url": "https://www.miyoushe.com/zzz/article/65063323",
+      "title": "【2.0攻略征集】耀嘉音 角色玩法介绍",
+      "coreAgentId": "agent-evelyn",
+      "evidence": {
+        "op": 61,
+        "start": 0,
+        "end": 77,
+        "text": "配队思路2：强攻队\n配队模板：强攻+击破+耀嘉音\n推荐配队：\n1.安比+扳机（青衣）+耀嘉音\n2.伊芙琳+莱特+耀嘉音\n3.悠真+青衣（扳机）+耀嘉音\n\n",
+        "unitRawSha256": "13ca968462e5cc2ee0be7cd35734d089b70ea1b7b5f7609828e8c285e68e41b6",
+        "unitTextSha256": "70abfa9304bd9df70e2e3fbb328d116edad2bad7a2506a6861f6cd22ef211017",
+        "quoteSha256": "70abfa9304bd9df70e2e3fbb328d116edad2bad7a2506a6861f6cd22ef211017"
+      },
+      "module": {
+        "id": "module-strict-round5-22491c07bcdab7633f513f99",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window"
+        ],
+        "teamFunctions": [
+          "stun",
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-878735516bdc10cf857bd65b",
+      "memberIds": [
+        "agent-evelyn",
+        "agent-lighter",
+        "agent-ju-fufu"
+      ],
+      "sourceVersion": "2.0",
+      "url": "https://www.miyoushe.com/zzz/article/65745145",
+      "title": "【2.0攻略征集】「橘福福」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-evelyn",
+      "evidence": {
+        "op": 62,
+        "start": 0,
+        "end": 145,
+        "text": "【更多伊芙队讲解】\n① 伊芙琳的最佳击破手仍是莱特，此外还有“妮耀”双支援——但没有莱特、妮可又不想练（还是推荐练一下妮可），也是可以搭配橘福福的。\n② 除了单击破玩法，还可组成“莱特+橘福福”的双击破队伍，累积失衡的速度更快——伊芙琳主打连携技，能更快累积失衡意味着更早打出多连携操作。\n",
+        "unitRawSha256": "210344f150eccf51fd7478bdeaa65981913769ae6446ac51432bcaffa5911cb2",
+        "unitTextSha256": "e3e1f5ee11b4b67b8b3e6842a29aa10c9ae8b32f5d0a36bfe001ea7a097a14f6",
+        "quoteSha256": "e3e1f5ee11b4b67b8b3e6842a29aa10c9ae8b32f5d0a36bfe001ea7a097a14f6"
+      },
+      "module": {
+        "id": "module-strict-round5-b7e251ed3b3080cd8c1cf2dc",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window",
+          "chain"
+        ],
+        "teamFunctions": [
+          "stun"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-72c990ab9176ffe1b3351dd1",
+      "memberIds": [
+        "agent-anton",
+        "agent-anby",
+        "agent-rina"
+      ],
+      "sourceVersion": "1.0",
+      "url": "https://www.miyoushe.com/zzz/article/54694453",
+      "title": "【1.0攻略征集】丽娜·一图流攻略︱养成+讲解",
+      "coreAgentId": "agent-anton",
+      "evidence": {
+        "op": 131,
+        "start": 0,
+        "end": 100,
+        "text": "【感电队】\n\n\n\n\n◆ 安比负责打失衡，触发连携丽娜登场，安东由连的支援技登场。\n\n\n如果有格莉丝，也可以考虑把安比替换下来，由格莉丝站场持续施加异常积蓄，安东也可以考虑替换为其他支援、异常类角色。\n",
+        "unitRawSha256": "08b20a81fca626816a5900072afe43e8feea151fefe8d17bbe034bb128da3b55",
+        "unitTextSha256": "a3eac70f076385a4c7396200d6681ae2ada51dfd66dcf9d5a0bf9b3144bdd529",
+        "quoteSha256": "a3eac70f076385a4c7396200d6681ae2ada51dfd66dcf9d5a0bf9b3144bdd529"
+      },
+      "module": {
+        "id": "module-strict-round5-cd906c6aee6bff40c2386f0c",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window",
+          "chain",
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "stun",
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-773b6309b3379e619c655d66",
+      "memberIds": [
+        "agent-qingyi",
+        "agent-soldier-11",
+        "agent-lucy"
+      ],
+      "sourceVersion": "1.1",
+      "url": "https://www.miyoushe.com/zzz/article/56560091",
+      "title": "【1.1攻略征集】青衣·详细解析︱养成/配队/机制",
+      "coreAgentId": "agent-soldier-11",
+      "evidence": {
+        "op": 115,
+        "start": 0,
+        "end": 658,
+        "text": "【2次连携】\n◆比较常见，很多血量较多的精英怪都能让队伍打出2次连携技。\n◆参考“进失衡-连携”顺序\n*2次连携具有很多选择性，下方展示多为参考思路，可根据自身需求灵活变通。\n① 青衣（进失衡）、11号（连携1）、露西（连携2）\n露西未解锁2影画、且打入失衡前露西未施放【强化特殊技】时考虑：\n◆确保青衣打出【长按蓄力普攻】，敌人被施加额外失衡易伤倍率；\n◆其次11号连携入战获得【火力镇压】（持续15秒或打出8次）；\n◆露西入战普攻攒能量打出【强化特殊技】之后，11号快速支援开始输出。\n——11号打出8次火刀的速度很快，15秒的持续时间较宽裕，足以让露西攒能量。\n \n② 露西（进失衡）、11号（连携1）、露西（连携2）、（11号快速入战）\n露西利用【强化特殊技】打入失衡、且此前青衣已打完长按蓄力普攻：\n◆露西提高全队攻击力，11号获得“火刀”效果，再切出露西连携后11号快速支援入战。\n◆11号连携入战结束，也可考虑“中断连携”不再选择露西打出连携2，让11号直接开始输出。\n \n③ 11号（进失衡）、露西（连携1）、11号（连携2）\n◆比较推荐露西解锁2影画后考虑，11号打入连携前就需要青衣打出【长按蓄力普攻】，如果是0影露西，就需要前置施放【强化特殊技】，会使循环较为拖沓，所以推荐2影露西连携入战直接提高全队攻击、节省时间。\n \n④ 青衣（进失衡）、露西（连携1）、11号（连携2）\n◆露西解锁2影画后可考虑（或0影露西已前置施放强化特殊技），露西只需连携入战即可，再由11号连携入战开始持续输出。\n",
+        "unitRawSha256": "b50dbbc295f5b920cee4296410b39664a4fc90e0b3fad58b024e4b302c6d6478",
+        "unitTextSha256": "980296d8c335908fb97411796c9e80addb18e958e8ff14a7868a38e0f1e70367",
+        "quoteSha256": "980296d8c335908fb97411796c9e80addb18e958e8ff14a7868a38e0f1e70367"
+      },
+      "module": {
+        "id": "module-strict-round5-ab369a796d8f0e9eaef79815",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window",
+          "chain",
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "stun",
+          "support",
+          "resource_supply"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-dc8eb91f27ddf8e90ea98ddb",
+      "memberIds": [
+        "agent-ellen",
+        "agent-qingyi",
+        "agent-soukaku"
+      ],
+      "sourceVersion": "1.1",
+      "url": "https://www.miyoushe.com/zzz/article/56560091",
+      "title": "【1.1攻略征集】青衣·详细解析︱养成/配队/机制",
+      "coreAgentId": "agent-ellen",
+      "evidence": {
+        "op": 125,
+        "start": 0,
+        "end": 325,
+        "text": "【3.1】与艾莲的搭配\n\n\n\n① 搭配艾莲时，更多是作为没有莱卡恩时考虑的选择。\n——因为青衣需要站场打失衡值，此时艾莲将转变为【失衡前积攒急冻值、失衡后连携入战打普攻】的输出方式，将主要输出时间集中在敌人失衡后。\n② 但不容忽视的是，因为需要青衣持续打失衡，并且辅助效果是敌人失衡后才能利用起来的失衡易伤，这将降低非失衡时艾莲队伍的输出。（即失衡前输出下降、失衡后输出升高）\n③ 参考流程：艾莲攒出6层【急冻充能】→苍角穿插施放技能积攒【涡流】→青衣打入失衡（且一定要打出长安蓄力普攻）→苍角连携入战消耗【涡流】提高下一名角色的攻击力→艾莲连携入战持续普攻输出\n④ 艾莲要在苍角之后，如苍角1号/艾莲2号、苍角2号/艾莲3号、苍角3号/艾莲1号。\n",
+        "unitRawSha256": "dce8a30a4e78cf8d1424df03c6bd8fe4064eb6c80541119c08616102ba17d77a",
+        "unitTextSha256": "c5070b90ec873e4820940e40e6670ca633c8162e0c2245f38cdf2c4a1beb2a35",
+        "quoteSha256": "c5070b90ec873e4820940e40e6670ca633c8162e0c2245f38cdf2c4a1beb2a35"
+      },
+      "module": {
+        "id": "module-strict-round5-7fffe1eaa7392fcdaedd573d",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window",
+          "chain",
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "stun",
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-b2b8e891617d9cb94bcb8078",
+      "memberIds": [
+        "agent-ellen",
+        "agent-ju-fufu",
+        "agent-astra"
+      ],
+      "sourceVersion": "2.0",
+      "url": "https://www.miyoushe.com/zzz/article/65843423",
+      "title": "【2.0攻略征集】橘福福 角色玩法介绍",
+      "coreAgentId": "agent-ellen",
+      "evidence": {
+        "op": 65,
+        "start": 0,
+        "end": 89,
+        "text": "配队2：击破队\n标准的强攻队，强攻+击破+支援\n\n配队推荐：\n1.伊芙琳+耀嘉音+橘福福（咔嚓仔）\n2.雨果+莱特/莱卡恩+橘福福（怪盗布）\n3.艾莲+耀嘉音+橘福福（鲨牙布）\n",
+        "unitRawSha256": "7cc3adce0c56bb329f914ee0df913f40f88f31ceb72ca813066c2775e249fa96",
+        "unitTextSha256": "685d330c60ed95005c5b9bbb62cdc0250c69bbedd0701ec46262ac0d1593d8dd",
+        "quoteSha256": "685d330c60ed95005c5b9bbb62cdc0250c69bbedd0701ec46262ac0d1593d8dd"
+      },
+      "module": {
+        "id": "module-strict-round5-b3491529248967b43cbacb2f",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window"
+        ],
+        "teamFunctions": [
+          "stun",
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-b64cde0c85489e1607e390b1",
+      "memberIds": [
+        "agent-evelyn",
+        "agent-trigger",
+        "agent-lighter"
+      ],
+      "sourceVersion": "1.6",
+      "url": "https://www.miyoushe.com/zzz/article/63149676",
+      "title": "【1.6攻略征集】扳机·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-evelyn",
+      "evidence": {
+        "op": 63,
+        "start": 0,
+        "end": 777,
+        "text": "【2.1】伊芙琳队\n① 伊芙琳的最佳击破手仍是莱特，此外还有“妮耀”双支援——但没有莱特、妮可又不想练（还是推荐练一下妮可），也是可以搭配扳机的。\n② 除了单击破玩法，还可组成“莱特+扳机”的双击破队伍，累积失衡的速度更快——伊芙琳主打连携技，能更快累积失衡意味着更早打出多连携操作。\n \n【参考输出思路】（多连携手法）\n【开局】失衡前的输出\n◆嘉音特殊技→扳机狙击打满战意→伊芙琳普攻\n① 用于敌人失衡前攒出【3层缭索点+100%的缭火值】，为失衡期多打连携技做准备。\n② 期间可让伊芙琳闪避反击（或特殊技闪避）、扳机招架支援等，积累失衡值。\n \n【进失衡】伊芙琳的失衡双连携\n◆击破手进失衡→伊芙琳失衡连携1→主动取消连携→切击破手再进失衡→伊芙琳失衡连携2\n① 面向BOSS等能被打出多次失衡的敌人（众多周本BOSS）。\n② 无论单、双击破，都要让击破手打入失衡，否则将伊芙琳少打1次连携。\n③ 本质是通过主动取消继续连携，将一轮失衡入战拆成两轮，使伊芙琳二次入战多打1次失衡连携。\n \n【4连携】通用连携手法\n◆击破手进失衡→伊芙琳失衡连携1→取消连携→切击破手再进失衡→伊芙琳失衡连携2→伊芙琳主动连携3→强化普攻1+强化普攻2+终结技→伊芙琳主动连携4\n① 失衡前一定要攒出【100%缭火值+3点缭索点】。\n② 如果已经释放过终结技（脱掉风衣），可不强求开大。\n③ “脱掉风衣”会使每次主动连携都保留1点缭索点（仍是3点启动、只消耗2点），而提前攒的100%缭火值可转化为2点缭索点，配合保留的1点可正好再次施放连携技4。\n*想打出更多连携技，要配合嘉音的终结技。\n \n◆嘉音的终结技可使之后队内两次快速支援变为连携技入场，恰好契合伊芙琳的连携技输出机制，而将两次连携转变都让伊芙琳使用则是最关键的。\n*队内无莱特通常只能使用1次连携转变。\n",
+        "unitRawSha256": "06e12cb39eb2cee3ee2318a82bbf39018c66dc6b9bfb9aeaeb1f9847ac2bb97a",
+        "unitTextSha256": "c235ae3b65cb2e6ba6c47bc7da15d7fe0e6ac98576dadbc84df834f0c1af972e",
+        "quoteSha256": "c235ae3b65cb2e6ba6c47bc7da15d7fe0e6ac98576dadbc84df834f0c1af972e"
+      },
+      "module": {
+        "id": "module-strict-round5-acd6516d77483ebb50394f1a",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window",
+          "chain"
+        ],
+        "teamFunctions": [
+          "stun"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-e56d4fad89cfa0d94964941f",
+      "memberIds": [
+        "agent-soldier-0-anby",
+        "agent-trigger",
+        "agent-pulchra"
+      ],
+      "sourceVersion": "1.6",
+      "url": "https://www.miyoushe.com/zzz/article/62601775",
+      "title": "【1.6攻略征集】零号·安比 全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-soldier-0-anby",
+      "evidence": {
+        "op": 65,
+        "start": 0,
+        "end": 117,
+        "text": "【关于扳机】（常规搭配与双击破）\n① 在前瞻直播中便透露了扳机也具有后台追击机制，加之作为电击破，也非常适合零号安比。\n② 后续卡池开启后抽到扳机与安比搭配时，既可考虑常规的“击破+支援”组合，也可直接搭配波可娜体验“双击破”玩法。\n",
+        "unitRawSha256": "84cae27937d86b5f771175596a1435bd6c7bbbf1c377a26166d7a76240d819fd",
+        "unitTextSha256": "fa916b4065c22f0aea6f88ab566a166c0c434c3e54192f77d567487fb19dea97",
+        "quoteSha256": "fa916b4065c22f0aea6f88ab566a166c0c434c3e54192f77d567487fb19dea97"
+      },
+      "module": {
+        "id": "module-strict-round5-eb897bb2fe79017de74731a9",
+        "primaryOutputKind": "aftershock",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window",
+          "off_field"
+        ],
+        "teamFunctions": [
+          "stun",
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-2ee8113aae13f4b816b122c5",
+      "memberIds": [
+        "agent-soldier-11",
+        "agent-burnice",
+        "agent-lucy"
+      ],
+      "sourceVersion": "1.2",
+      "url": "https://www.miyoushe.com/zzz/article/58606692",
+      "title": "【1.2攻略征集】柏妮思·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-soldier-11",
+      "evidence": {
+        "op": 64,
+        "start": 0,
+        "end": 166,
+        "text": "【3】11号火伤队（选看）\n\n\n①这一玩法更多作为11号火伤队的扩展玩法考虑，露西也可用凯撒替换。\n②主要是11号站场输出，柏妮思处于后台触发余烬伤害，终结技优先由11号施放。\n③该玩法可以考虑作为一种拓展玩法，柏妮思推荐优先与其他异常角色搭配。\n——已有11号且没有培养其他异常角色时可考虑组队游玩，但不推荐为了11号专门抽取。\n",
+        "unitRawSha256": "9e8e2e637afc63cbbcc406dc961d3c8b4823ff10cf214e99751931b11ebf4547",
+        "unitTextSha256": "320b3f7a3726124d2773f9229a7dcd399b8fd06228992b89e41e333b756b7b15",
+        "quoteSha256": "320b3f7a3726124d2773f9229a7dcd399b8fd06228992b89e41e333b756b7b15"
+      },
+      "module": {
+        "id": "module-strict-round5-6d99ba2d7e1593da5b58eafb",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "off_field",
+          "ultimate"
+        ],
+        "teamFunctions": [
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-3fedc46633ff5dc57339c7be",
+      "memberIds": [
+        "agent-piper",
+        "agent-caesar",
+        "agent-astra"
+      ],
+      "sourceVersion": "1.5",
+      "url": "https://www.miyoushe.com/zzz/article/61285801",
+      "title": "【1.5攻略征集】耀嘉音·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-piper",
+      "evidence": {
+        "op": 62,
+        "start": 0,
+        "end": 139,
+        "text": "【2.2】派音队（与派派搭配）\n◆参考配队：派派+露西/柏妮思/凯撒+耀嘉音\n① 作为物理异常，派派自然也可搭配嘉音！\n② 搭配露西获得更多攻击力，提高伤害；搭配柏妮思组紊乱，双输出也表现尚可；搭配凯撒获得护盾和攻击加成，效果出群！\n*优先凯撒，其次露西，体验紊乱可选柏妮思。\n",
+        "unitRawSha256": "832f790580e971afadf8266261ca694d9ad61ffd9a9bc598ab025cb69494aa5d",
+        "unitTextSha256": "cbfa997169d9e99f77db58ba6146963531822fe003a896f234f7cd9e3aded9c1",
+        "quoteSha256": "cbfa997169d9e99f77db58ba6146963531822fe003a896f234f7cd9e3aded9c1"
+      },
+      "module": {
+        "id": "module-strict-round5-c24b54c9a7cfa9430e692ea2",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [],
+        "executionChannels": [],
+        "teamFunctions": [
+          "defense",
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-ab4688888e2890230667941d",
+      "memberIds": [
+        "agent-piper",
+        "agent-burnice",
+        "agent-astra"
+      ],
+      "sourceVersion": "1.5",
+      "url": "https://www.miyoushe.com/zzz/article/61285801",
+      "title": "【1.5攻略征集】耀嘉音·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-piper",
+      "evidence": {
+        "op": 62,
+        "start": 0,
+        "end": 139,
+        "text": "【2.2】派音队（与派派搭配）\n◆参考配队：派派+露西/柏妮思/凯撒+耀嘉音\n① 作为物理异常，派派自然也可搭配嘉音！\n② 搭配露西获得更多攻击力，提高伤害；搭配柏妮思组紊乱，双输出也表现尚可；搭配凯撒获得护盾和攻击加成，效果出群！\n*优先凯撒，其次露西，体验紊乱可选柏妮思。\n",
+        "unitRawSha256": "832f790580e971afadf8266261ca694d9ad61ffd9a9bc598ab025cb69494aa5d",
+        "unitTextSha256": "cbfa997169d9e99f77db58ba6146963531822fe003a896f234f7cd9e3aded9c1",
+        "quoteSha256": "cbfa997169d9e99f77db58ba6146963531822fe003a896f234f7cd9e3aded9c1"
+      },
+      "module": {
+        "id": "module-strict-round5-cc312d6558e707ae67957a55",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-f47f0ca94d6c417d5f7ebba7",
+      "memberIds": [
+        "agent-piper",
+        "agent-lucy",
+        "agent-astra"
+      ],
+      "sourceVersion": "1.5",
+      "url": "https://www.miyoushe.com/zzz/article/61285801",
+      "title": "【1.5攻略征集】耀嘉音·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-piper",
+      "evidence": {
+        "op": 62,
+        "start": 0,
+        "end": 139,
+        "text": "【2.2】派音队（与派派搭配）\n◆参考配队：派派+露西/柏妮思/凯撒+耀嘉音\n① 作为物理异常，派派自然也可搭配嘉音！\n② 搭配露西获得更多攻击力，提高伤害；搭配柏妮思组紊乱，双输出也表现尚可；搭配凯撒获得护盾和攻击加成，效果出群！\n*优先凯撒，其次露西，体验紊乱可选柏妮思。\n",
+        "unitRawSha256": "832f790580e971afadf8266261ca694d9ad61ffd9a9bc598ab025cb69494aa5d",
+        "unitTextSha256": "cbfa997169d9e99f77db58ba6146963531822fe003a896f234f7cd9e3aded9c1",
+        "quoteSha256": "cbfa997169d9e99f77db58ba6146963531822fe003a896f234f7cd9e3aded9c1"
+      },
+      "module": {
+        "id": "module-strict-round5-cdb60fbab6ec1a16d0522476",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [],
+        "executionChannels": [],
+        "teamFunctions": [
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-1f1fd15673267696556abfa0",
+      "memberIds": [
+        "agent-yanagi",
+        "agent-vivian",
+        "agent-yuzuha"
+      ],
+      "sourceVersion": "2.1",
+      "url": "https://www.miyoushe.com/zzz/article/66558093",
+      "title": "【2.1攻略征集】浮波柚叶 角色玩法介绍",
+      "coreAgentId": "agent-yanagi",
+      "evidence": {
+        "op": 69,
+        "start": 0,
+        "end": 203,
+        "text": "配队思路：双异常代理人+浮波柚叶\n作为异常体系的强力通用支援辅助，柚叶的配队可以说是非常的多，这边就简单推荐几个现版本好用的配队：\n①星见雅+苍角/月城柳/薇薇安+浮波柚叶\n②月城柳+薇薇安/柏妮思+浮波柚叶\n④简+薇薇安/柏妮思+浮波柚叶\n（下半的爱丽丝也能搭配浮波柚叶）\n\n注：雅苍算是比较特殊的一个配队，因为雅虽然为烈霜属性，但攻击染色依旧为冰，因此该配队可以快速累积冰属性异常积蓄，与烈霜触发紊乱\n",
+        "unitRawSha256": "a31be7e0863f3d280c48b37db5d1742db6fa2acbc4d005289fc0f7cff1613f8e",
+        "unitTextSha256": "8f74713ed00ddaed4fe231c0e9bb2b076aa621b3749688379e8115d50664903d",
+        "quoteSha256": "8f74713ed00ddaed4fe231c0e9bb2b076aa621b3749688379e8115d50664903d"
+      },
+      "module": {
+        "id": "module-strict-round5-0b72cdf0078219f2b41e9a5f",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support",
+          "anomaly_amplification"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-400310f9a6d86d815d66b60b",
+      "memberIds": [
+        "agent-yanagi",
+        "agent-burnice",
+        "agent-yuzuha"
+      ],
+      "sourceVersion": "2.1",
+      "url": "https://www.miyoushe.com/zzz/article/66558093",
+      "title": "【2.1攻略征集】浮波柚叶 角色玩法介绍",
+      "coreAgentId": "agent-yanagi",
+      "evidence": {
+        "op": 69,
+        "start": 0,
+        "end": 203,
+        "text": "配队思路：双异常代理人+浮波柚叶\n作为异常体系的强力通用支援辅助，柚叶的配队可以说是非常的多，这边就简单推荐几个现版本好用的配队：\n①星见雅+苍角/月城柳/薇薇安+浮波柚叶\n②月城柳+薇薇安/柏妮思+浮波柚叶\n④简+薇薇安/柏妮思+浮波柚叶\n（下半的爱丽丝也能搭配浮波柚叶）\n\n注：雅苍算是比较特殊的一个配队，因为雅虽然为烈霜属性，但攻击染色依旧为冰，因此该配队可以快速累积冰属性异常积蓄，与烈霜触发紊乱\n",
+        "unitRawSha256": "a31be7e0863f3d280c48b37db5d1742db6fa2acbc4d005289fc0f7cff1613f8e",
+        "unitTextSha256": "8f74713ed00ddaed4fe231c0e9bb2b076aa621b3749688379e8115d50664903d",
+        "quoteSha256": "8f74713ed00ddaed4fe231c0e9bb2b076aa621b3749688379e8115d50664903d"
+      },
+      "module": {
+        "id": "module-strict-round5-6445fc420ea66d9775126bf9",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support",
+          "anomaly_amplification"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-d518419e7993288a506ce734",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-vivian",
+        "agent-yuzuha"
+      ],
+      "sourceVersion": "2.1",
+      "url": "https://www.miyoushe.com/zzz/article/66558093",
+      "title": "【2.1攻略征集】浮波柚叶 角色玩法介绍",
+      "coreAgentId": "agent-miyabi",
+      "evidence": {
+        "op": 69,
+        "start": 0,
+        "end": 203,
+        "text": "配队思路：双异常代理人+浮波柚叶\n作为异常体系的强力通用支援辅助，柚叶的配队可以说是非常的多，这边就简单推荐几个现版本好用的配队：\n①星见雅+苍角/月城柳/薇薇安+浮波柚叶\n②月城柳+薇薇安/柏妮思+浮波柚叶\n④简+薇薇安/柏妮思+浮波柚叶\n（下半的爱丽丝也能搭配浮波柚叶）\n\n注：雅苍算是比较特殊的一个配队，因为雅虽然为烈霜属性，但攻击染色依旧为冰，因此该配队可以快速累积冰属性异常积蓄，与烈霜触发紊乱\n",
+        "unitRawSha256": "a31be7e0863f3d280c48b37db5d1742db6fa2acbc4d005289fc0f7cff1613f8e",
+        "unitTextSha256": "8f74713ed00ddaed4fe231c0e9bb2b076aa621b3749688379e8115d50664903d",
+        "quoteSha256": "8f74713ed00ddaed4fe231c0e9bb2b076aa621b3749688379e8115d50664903d"
+      },
+      "module": {
+        "id": "module-strict-round5-88ef1eaf0500047f860088f4",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support",
+          "anomaly_amplification"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-e6634593c02285fc4350690c",
+      "memberIds": [
+        "agent-jane",
+        "agent-burnice",
+        "agent-yuzuha"
+      ],
+      "sourceVersion": "2.1",
+      "url": "https://www.miyoushe.com/zzz/article/66558093",
+      "title": "【2.1攻略征集】浮波柚叶 角色玩法介绍",
+      "coreAgentId": "agent-jane",
+      "evidence": {
+        "op": 69,
+        "start": 0,
+        "end": 203,
+        "text": "配队思路：双异常代理人+浮波柚叶\n作为异常体系的强力通用支援辅助，柚叶的配队可以说是非常的多，这边就简单推荐几个现版本好用的配队：\n①星见雅+苍角/月城柳/薇薇安+浮波柚叶\n②月城柳+薇薇安/柏妮思+浮波柚叶\n④简+薇薇安/柏妮思+浮波柚叶\n（下半的爱丽丝也能搭配浮波柚叶）\n\n注：雅苍算是比较特殊的一个配队，因为雅虽然为烈霜属性，但攻击染色依旧为冰，因此该配队可以快速累积冰属性异常积蓄，与烈霜触发紊乱\n",
+        "unitRawSha256": "a31be7e0863f3d280c48b37db5d1742db6fa2acbc4d005289fc0f7cff1613f8e",
+        "unitTextSha256": "8f74713ed00ddaed4fe231c0e9bb2b076aa621b3749688379e8115d50664903d",
+        "quoteSha256": "8f74713ed00ddaed4fe231c0e9bb2b076aa621b3749688379e8115d50664903d"
+      },
+      "module": {
+        "id": "module-strict-round5-9ae0b52e620fb799896e8161",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support",
+          "anomaly_amplification"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-329018f389fd6faf52234db7",
+      "memberIds": [
+        "agent-ye-shunguang",
+        "agent-seed",
+        "agent-zhao"
+      ],
+      "sourceVersion": "2.5",
+      "url": "https://www.miyoushe.com/zzz/article/71890615",
+      "title": "【2.5攻略征集】「叶瞬光」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-ye-shunguang",
+      "evidence": {
+        "op": 65,
+        "start": 0,
+        "end": 195,
+        "text": "【3.2】与席德组队\n◆参考搭配：叶瞬光+席德+照/琉音\n① 席德能为强攻队友提供攻击力、暴伤、增伤等增益，都是叶瞬光需要的。\n② 额外能力也能为小光回复能量，提高常规状态下施放强化特殊技的频率，变相加快进入白发形态的速度。\n③ 但该队对排轴较为严苛，叶瞬光长期处于白发状态反而会导致席德增益消示，也不能为席德回复【钢能】。\n④ 选取优先级低于琉音、嘉音等辅助角色，但如果有也能尝试体验。\n",
+        "unitRawSha256": "22274e676644f0da30a35a4f958205625b4f77056c9f50216bcf7e5f06630203",
+        "unitTextSha256": "703f8161b8430ef5606a9e074c8dc963bd7b4cbdf52b0fde24c93bcdad353acf",
+        "quoteSha256": "703f8161b8430ef5606a9e074c8dc963bd7b4cbdf52b0fde24c93bcdad353acf"
+      },
+      "module": {
+        "id": "module-strict-round5-4ca678985842a9df22c682c9",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": [],
+        "teamFunctions": [
+          "support",
+          "resource_supply"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-6a787abdf38ec7dd4776a92b",
+      "memberIds": [
+        "agent-ye-shunguang",
+        "agent-seed",
+        "agent-dialyn"
+      ],
+      "sourceVersion": "2.5",
+      "url": "https://www.miyoushe.com/zzz/article/71890615",
+      "title": "【2.5攻略征集】「叶瞬光」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-ye-shunguang",
+      "evidence": {
+        "op": 65,
+        "start": 0,
+        "end": 195,
+        "text": "【3.2】与席德组队\n◆参考搭配：叶瞬光+席德+照/琉音\n① 席德能为强攻队友提供攻击力、暴伤、增伤等增益，都是叶瞬光需要的。\n② 额外能力也能为小光回复能量，提高常规状态下施放强化特殊技的频率，变相加快进入白发形态的速度。\n③ 但该队对排轴较为严苛，叶瞬光长期处于白发状态反而会导致席德增益消示，也不能为席德回复【钢能】。\n④ 选取优先级低于琉音、嘉音等辅助角色，但如果有也能尝试体验。\n",
+        "unitRawSha256": "22274e676644f0da30a35a4f958205625b4f77056c9f50216bcf7e5f06630203",
+        "unitTextSha256": "703f8161b8430ef5606a9e074c8dc963bd7b4cbdf52b0fde24c93bcdad353acf",
+        "quoteSha256": "703f8161b8430ef5606a9e074c8dc963bd7b4cbdf52b0fde24c93bcdad353acf"
+      },
+      "module": {
+        "id": "module-strict-round5-95f6c0913b39cced9ad5fed4",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": [],
+        "teamFunctions": [
+          "support",
+          "resource_supply"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-14c870eaaa179a8de21ecdf4",
+      "memberIds": [
+        "agent-yanagi",
+        "agent-jane",
+        "agent-caesar"
+      ],
+      "sourceVersion": "1.3",
+      "url": "https://www.miyoushe.com/zzz/article/59165099",
+      "title": "【1.3攻略征集】月城柳·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-yanagi",
+      "evidence": {
+        "op": 67,
+        "start": 0,
+        "end": 136,
+        "text": "【3.2】电-物理紊乱队（拓展）\n◆参考配队：柳+简/派派+凯撒\n① 柳更多是站场打电异常积蓄，与当前主要的物理异常角色简、派派存在冲突，更多作为拓展玩法体验。\n② 不过，柳也可以利用上下弦普攻、强化特殊技快速打出感电异常然后切至简/派派等角色，作为紊乱速切的作用入队。\n",
+        "unitRawSha256": "c0d19ab33e4406431d5bb7e183e583b5046f7adb695d8acac5023f9d8113fb51",
+        "unitTextSha256": "aa0ac49f1afcde87edc51c8f73ea07605b9db9b3ca6f38a9dcbae66b0f0bd3e3",
+        "quoteSha256": "aa0ac49f1afcde87edc51c8f73ea07605b9db9b3ca6f38a9dcbae66b0f0bd3e3"
+      },
+      "module": {
+        "id": "module-strict-round5-fa808a965ade475e91cde9f2",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "defense"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-89600eccb6d2321fd685bc74",
+      "memberIds": [
+        "agent-yanagi",
+        "agent-piper",
+        "agent-caesar"
+      ],
+      "sourceVersion": "1.3",
+      "url": "https://www.miyoushe.com/zzz/article/59165099",
+      "title": "【1.3攻略征集】月城柳·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-yanagi",
+      "evidence": {
+        "op": 67,
+        "start": 0,
+        "end": 136,
+        "text": "【3.2】电-物理紊乱队（拓展）\n◆参考配队：柳+简/派派+凯撒\n① 柳更多是站场打电异常积蓄，与当前主要的物理异常角色简、派派存在冲突，更多作为拓展玩法体验。\n② 不过，柳也可以利用上下弦普攻、强化特殊技快速打出感电异常然后切至简/派派等角色，作为紊乱速切的作用入队。\n",
+        "unitRawSha256": "c0d19ab33e4406431d5bb7e183e583b5046f7adb695d8acac5023f9d8113fb51",
+        "unitTextSha256": "aa0ac49f1afcde87edc51c8f73ea07605b9db9b3ca6f38a9dcbae66b0f0bd3e3",
+        "quoteSha256": "aa0ac49f1afcde87edc51c8f73ea07605b9db9b3ca6f38a9dcbae66b0f0bd3e3"
+      },
+      "module": {
+        "id": "module-strict-round5-2d54be2250d0eed4812e20c1",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "defense"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-4a128468c0a4008ed3c743fc",
+      "memberIds": [
+        "agent-jane",
+        "agent-burnice",
+        "agent-lucy"
+      ],
+      "sourceVersion": "1.7",
+      "url": "https://www.miyoushe.com/zzz/article/63855075",
+      "title": "【1.7攻略征集】简·杜 角色玩法介绍",
+      "coreAgentId": "agent-jane",
+      "evidence": {
+        "op": 74,
+        "start": 0,
+        "end": 242,
+        "text": "配队2：简+异常+支援拐\n搭配推荐：\n1.柏妮思+露西               2.派派+露西\n3.薇薇安+妮可              4.格莉丝+丽娜\n通用支援拐：耀嘉音\n\n输出流程：\n简打出物理异常→异常2号位上场打出对应属性异常，触发紊乱→支援拐触发快速支援→简上场打出属性异常\n（简单点来说就是互切上异常，触发紊乱就行了）\n\n注意事项：\n①由于异常积蓄的机制，当前场上角色需完成当前招式才可触发异常，所以我们可以在快打满积蓄条时直接切人，借由招式后续直接完成异常积蓄\n",
+        "unitRawSha256": "94c5768966af12345cb7a90b07af8ac8000a6df95a7ab916d9acb28274f7b0db",
+        "unitTextSha256": "38f3b6545051f180e3838022a559d123494e5320d88af6c90536847a9bd36c2f",
+        "quoteSha256": "38f3b6545051f180e3838022a559d123494e5320d88af6c90536847a9bd36c2f"
+      },
+      "module": {
+        "id": "module-strict-round5-f0dcc4544090aca9786d7ca8",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-768f8ed01504b89139d94d2d",
+      "memberIds": [
+        "agent-jane",
+        "agent-grace",
+        "agent-rina"
+      ],
+      "sourceVersion": "1.7",
+      "url": "https://www.miyoushe.com/zzz/article/63855075",
+      "title": "【1.7攻略征集】简·杜 角色玩法介绍",
+      "coreAgentId": "agent-jane",
+      "evidence": {
+        "op": 74,
+        "start": 0,
+        "end": 242,
+        "text": "配队2：简+异常+支援拐\n搭配推荐：\n1.柏妮思+露西               2.派派+露西\n3.薇薇安+妮可              4.格莉丝+丽娜\n通用支援拐：耀嘉音\n\n输出流程：\n简打出物理异常→异常2号位上场打出对应属性异常，触发紊乱→支援拐触发快速支援→简上场打出属性异常\n（简单点来说就是互切上异常，触发紊乱就行了）\n\n注意事项：\n①由于异常积蓄的机制，当前场上角色需完成当前招式才可触发异常，所以我们可以在快打满积蓄条时直接切人，借由招式后续直接完成异常积蓄\n",
+        "unitRawSha256": "94c5768966af12345cb7a90b07af8ac8000a6df95a7ab916d9acb28274f7b0db",
+        "unitTextSha256": "38f3b6545051f180e3838022a559d123494e5320d88af6c90536847a9bd36c2f",
+        "quoteSha256": "38f3b6545051f180e3838022a559d123494e5320d88af6c90536847a9bd36c2f"
+      },
+      "module": {
+        "id": "module-strict-round5-02f4e50c156a20b425d3f3b8",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support",
+          "anomaly_amplification"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-7ade57fc4cfaf4226aa472cd",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-nicole",
+        "agent-astra"
+      ],
+      "sourceVersion": "1.5",
+      "url": "https://www.miyoushe.com/zzz/article/61285801",
+      "title": "【1.5攻略征集】耀嘉音·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-miyabi",
+      "evidence": {
+        "op": 58,
+        "start": 0,
+        "end": 167,
+        "text": "【1.2】双支援（妮可/露西/苍角等）\n① 双支援可选“异常流妮可”，搭配嘉音可考虑“自由蓝调4+6号掌控盘”，利用长按强化特殊技等方式快速累积以太异常。\n② 露西、苍角是次选，二者均提供攻击力与嘉音稀释较大，不过也能搭配。\n③ 双支援是雅的单核玩法，除异常流妮可，露西、苍角配合打紊乱较慢，导致雅的回点速度慢，0影更多优先双异常。\n",
+        "unitRawSha256": "f38fd8b3b6810c745efdcdf1c3035ba890e77966e4297f928295d097e913a0cd",
+        "unitTextSha256": "a31671a11e7fcaa8eab901c8a27f061b2e92fbc58cdc68e0782253d055dd9242",
+        "quoteSha256": "a31671a11e7fcaa8eab901c8a27f061b2e92fbc58cdc68e0782253d055dd9242"
+      },
+      "module": {
+        "id": "module-strict-round5-406af0e6dc5ec230d8a1387e",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder"
+        ],
+        "executionChannels": [
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support",
+          "anomaly_amplification"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-e3b021dff8bcc54092c55798",
+      "memberIds": [
+        "agent-evelyn",
+        "agent-nicole",
+        "agent-astra"
+      ],
+      "sourceVersion": "1.5",
+      "url": "https://www.miyoushe.com/zzz/article/61946271",
+      "title": "【1.5攻略征集】伊芙琳·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-evelyn",
+      "evidence": {
+        "op": 63,
+        "start": 0,
+        "end": 293,
+        "text": "【更多队伍讲解】\n① 击破可换为妮可等支援，妮可的减防很简单——有强化子弹时普攻一次就能减防。\n② 其他支援还可选露西，虽与嘉音存在稀释，但仍有不错表现。\n③ 因为没有击破，会有更多伤害在敌人失衡前打出，加之妮可减防方便，即使不能快速将敌人打入失衡，该玩法也有不错表现。\n*在长轴环境中，嘉妮双支援表现更为亮眼。\n \n【失衡4连携】\n◆妮可进→伊芙琳失衡连携1→取消连携→妮可再进失衡→伊芙琳失衡连携2→伊芙琳主动连携3→强化普攻1+强化普攻2+终结技→伊芙琳失衡连携4\n① 妮可首次进连携前，需要打出强化普攻或能量场。\n② 如果是露西则需要提高攻击力覆盖，推荐使用强化特殊技进失衡。\n",
+        "unitRawSha256": "d2c8701d42932f2cd190609e124ec8b76ea0befff9549ec5b3ff43c6528b074c",
+        "unitTextSha256": "3e1b7bb812f01b608a9b0de7f5d606d38536fb44d395d9689db850c2be89d4a2",
+        "quoteSha256": "3e1b7bb812f01b608a9b0de7f5d606d38536fb44d395d9689db850c2be89d4a2"
+      },
+      "module": {
+        "id": "module-strict-round5-e7dc747d1ba0c9cefcc6eb48",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "chain",
+          "ultimate"
+        ],
+        "teamFunctions": [
+          "support",
+          "defense_reduction",
+          "resource_supply"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-f11fb89d519a3e826b9f61fe",
+      "memberIds": [
+        "agent-hugo",
+        "agent-lycaon",
+        "agent-lighter"
+      ],
+      "sourceVersion": "1.7",
+      "url": "https://www.miyoushe.com/zzz/article/64545634",
+      "title": "【1.7攻略征集】莱特 角色玩法介绍",
+      "coreAgentId": "agent-hugo",
+      "evidence": {
+        "op": 66,
+        "start": 0,
+        "end": 80,
+        "text": "配队2：冰强攻+莱特+狼叔（双击破）\n冰强攻推荐：雨果，艾莲\n\n注意事项：\n1.双击破队，莱特也可以带4摇摆，然后打一个连携技，可以为全队增伤，收益还是不错的\n",
+        "unitRawSha256": "1a39df75bcdef4afc954f7f31210f8f0f93ef3980d9e68b5f5ba091f772b96d5",
+        "unitTextSha256": "a7f595b1748f2c3f26f91938430f975ae8954a316185f992b799507f31c82dc2",
+        "quoteSha256": "a7f595b1748f2c3f26f91938430f975ae8954a316185f992b799507f31c82dc2"
+      },
+      "module": {
+        "id": "module-strict-round5-a7e7452585c490423550e62a",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window",
+          "chain"
+        ],
+        "teamFunctions": [
+          "stun",
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-2bef5a590da9500ca38ef2ef",
+      "memberIds": [
+        "agent-ellen",
+        "agent-lighter",
+        "agent-lycaon"
+      ],
+      "sourceVersion": "1.7",
+      "url": "https://www.miyoushe.com/zzz/article/64545634",
+      "title": "【1.7攻略征集】莱特 角色玩法介绍",
+      "coreAgentId": "agent-ellen",
+      "evidence": {
+        "op": 66,
+        "start": 0,
+        "end": 80,
+        "text": "配队2：冰强攻+莱特+狼叔（双击破）\n冰强攻推荐：雨果，艾莲\n\n注意事项：\n1.双击破队，莱特也可以带4摇摆，然后打一个连携技，可以为全队增伤，收益还是不错的\n",
+        "unitRawSha256": "1a39df75bcdef4afc954f7f31210f8f0f93ef3980d9e68b5f5ba091f772b96d5",
+        "unitTextSha256": "a7f595b1748f2c3f26f91938430f975ae8954a316185f992b799507f31c82dc2",
+        "quoteSha256": "a7f595b1748f2c3f26f91938430f975ae8954a316185f992b799507f31c82dc2"
+      },
+      "module": {
+        "id": "module-strict-round5-54a0d2f5f43512e112881211",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window",
+          "chain"
+        ],
+        "teamFunctions": [
+          "stun",
+          "support"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-47328a7487ce8d5e9462f65f",
+      "memberIds": [
+        "agent-burnice",
+        "agent-grace",
+        "agent-rina"
+      ],
+      "sourceVersion": "1.2",
+      "url": "https://www.miyoushe.com/zzz/article/58606692",
+      "title": "【1.2攻略征集】柏妮思·全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-grace",
+      "evidence": {
+        "op": 63,
+        "start": 0,
+        "end": 381,
+        "text": "【更多讲解·火电队】\n① 柏妮思的加入使电属性的紊乱队有了很不错的提升，火电构成的紊乱也更加稳定（每次紊乱出伤波动幅度相对小）。\n② 目前火电队可考虑柏妮思与格莉丝、丽娜等交替登场施加异常积蓄，以增加紊乱次数。\n——这就需要把控能量消耗力度，双喷在战斗前段可以更快积蓄火异常、但后段可能有能量缺口，可采用单喷省能量。\n③ 敌人触发感电则柏妮思登场积蓄火异常，反之触发灼烧则格莉丝登场积蓄电异常。\n③ 失衡前敌人处于电异常，则柏妮思先连携；反之已处于火异常，则格莉丝、丽娜先登场连携。\n④ 终结技可留给柏妮思施放，然后格莉丝快速支援登场输出。\n\n【更多展望】\n◆格莉丝是持续站场积蓄电异常的角色，自身超快积蓄电异常的手段不多，这就使得队伍整体表现力仍存在不小的上升空间，这也是作为常驻角色后劲略有不足的缺憾。\n——或许将来会登场一位电积蓄速度更快的电异常角色……\n",
+        "unitRawSha256": "b64b974db65eb94d7677cf9fb7d493eebdc928d3778be74b6f6711b3bcc63cc2",
+        "unitTextSha256": "6589ab293e3ef6040650087cd00e4d7ecb754147dcf4bd170bb03c929f7ea320",
+        "quoteSha256": "6589ab293e3ef6040650087cd00e4d7ecb754147dcf4bd170bb03c929f7ea320"
+      },
+      "module": {
+        "id": "module-strict-round5-f915af8539d3700726a73d2d",
+        "primaryOutputKind": "attribute_anomaly",
+        "reactionMechanisms": [
+          "disorder"
+        ],
+        "executionChannels": [
+          "chain",
+          "quick_swap"
+        ],
+        "teamFunctions": [
+          "support",
+          "anomaly_amplification"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-6d4ce03592a732384bce0529",
+      "memberIds": [
+        "agent-soldier-11",
+        "agent-ju-fufu",
+        "agent-lighter"
+      ],
+      "sourceVersion": "2.0",
+      "url": "https://www.miyoushe.com/zzz/article/65745145",
+      "title": "【2.0攻略征集】「橘福福」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-soldier-11",
+      "evidence": {
+        "op": 71,
+        "start": 0,
+        "end": 106,
+        "text": "【5.3】11号\n◆通过有节奏地施放普攻可持续打出火刀，11号便可持续站场输出。橘福福的增益能提高11号的输出能力，同时也能触发11号的额外能力（火属性队友），进而可考虑耀嘉音、莱特（双击破）这类高增益辅助。\n\n",
+        "unitRawSha256": "735ff0333a6fa795ec06288f1be3e81c9da21a459370bc98fa1574687ad94a59",
+        "unitTextSha256": "cdc0f4f9b8e51c3bd5d14886cba2d4467adb44404359e6d8dc4eaa6c7ae3b95e",
+        "quoteSha256": "cdc0f4f9b8e51c3bd5d14886cba2d4467adb44404359e6d8dc4eaa6c7ae3b95e"
+      },
+      "module": {
+        "id": "module-strict-round5-9d0dd1e20a1b46738d78b89d",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window",
+          "chain"
+        ],
+        "teamFunctions": [
+          "stun"
+        ]
+      }
+    },
+    {
+      "claimId": "reviewed-nested-7367eb4ae7338c7d4ac14b37",
+      "memberIds": [
+        "agent-soldier-11",
+        "agent-ju-fufu",
+        "agent-astra"
+      ],
+      "sourceVersion": "2.0",
+      "url": "https://www.miyoushe.com/zzz/article/65745145",
+      "title": "【2.0攻略征集】「橘福福」全面解析︱养成/配队/机制",
+      "coreAgentId": "agent-soldier-11",
+      "evidence": {
+        "op": 71,
+        "start": 0,
+        "end": 106,
+        "text": "【5.3】11号\n◆通过有节奏地施放普攻可持续打出火刀，11号便可持续站场输出。橘福福的增益能提高11号的输出能力，同时也能触发11号的额外能力（火属性队友），进而可考虑耀嘉音、莱特（双击破）这类高增益辅助。\n\n",
+        "unitRawSha256": "735ff0333a6fa795ec06288f1be3e81c9da21a459370bc98fa1574687ad94a59",
+        "unitTextSha256": "cdc0f4f9b8e51c3bd5d14886cba2d4467adb44404359e6d8dc4eaa6c7ae3b95e",
+        "quoteSha256": "cdc0f4f9b8e51c3bd5d14886cba2d4467adb44404359e6d8dc4eaa6c7ae3b95e"
+      },
+      "module": {
+        "id": "module-strict-round5-9a40b4c534962d5f9fad0296",
+        "primaryOutputKind": "direct_damage",
+        "reactionMechanisms": [],
+        "executionChannels": [
+          "stun_window"
+        ],
+        "teamFunctions": [
+          "stun",
+          "support"
+        ]
+      }
+    }
+  ]
+}

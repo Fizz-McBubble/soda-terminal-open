@@ -15,6 +15,10 @@ import {
 } from './current31TeamStrengthCalibration'
 import { resolveCurrent31BangbooVariant } from './current31TeamCoreAggregation'
 import { stableContentHash } from '../gameDataPacks/types'
+import { resolveReviewedPhoenixTeam33 } from './reviewedPhoenixTeams33'
+import { teamDecisionAuthorityContractId } from './teamDecisionAuthority'
+import { teamRecommendationScore } from './teamRecommendationScore'
+import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
 
 export const current31TeamRatingContractId = 'soda-current-3.1-team-rating/v3' as const
 
@@ -54,10 +58,18 @@ export function evaluateCurrent31TeamRating(input: {
   const memberIds = [...input.memberIds].sort() as [string, string, string]
   const teamIdentity = resolveCurrent31BangbooVariant(memberIds, input.bangbooId)
   const mechanicState = inspectCurrent31FormationMechanicState(memberIds)
-  const interaction = compileCurrentPlanningInteractionBundle({
-    memberIds,
-    members: memberIds.map(createLevel60NeutralEffectRuntimeMember),
-  })
+  const missingEventIds = memberIds.filter((id) => !getCurrentAgentEventContract(id))
+  const interaction = missingEventIds.length
+    ? {
+        status: 'unsupported' as const,
+        blockers: missingEventIds.map(
+          (id) => `缺少可执行角色事件合同：${id}；数值面板与本地队伍参考不代替事件。`,
+        ),
+      }
+    : compileCurrentPlanningInteractionBundle({
+        memberIds,
+        members: memberIds.map(createLevel60NeutralEffectRuntimeMember),
+      })
   const interactionHash =
     interaction.status === 'supported'
       ? interaction.bundleHash
@@ -106,10 +118,50 @@ export function evaluateCurrent31TeamRating(input: {
     mechanicRating,
     featureVector,
     benchmark,
-    reviewedOnly: input.reviewedOnly,
+    reviewedOnly: input.reviewedOnly || missingEventIds.length > 0,
     sourceReviewVersion: input.reviewedOnly ? input.sourceReviewVersion : undefined,
     evidenceMode: input.evidenceMode,
   })
+  const limited =
+    !input.sourceReviewVersion &&
+    input.evidenceMode !== 'independent_evaluation' &&
+    mechanicRating.status !== 'hard_invalid'
+      ? resolveReviewedPhoenixTeam33(memberIds)
+      : null
+  if (limited) {
+    const analysis = limited.analysis
+    const explanation = `分析评级 ${analysis.band} · 低置信度。${analysis.rationale} 适用条件：${analysis.conditions.join('；')}`
+    strength.mechanicValidity = 'partial'
+    strength.metaCalibration = {
+      ...strength.metaCalibration,
+      status: 'aligned',
+      authority: 'local_editorial_estimate',
+      confidenceCeiling: 'low',
+      analysis,
+      projectedStrengthBand: analysis.band,
+      versionPosition: null,
+      evidenceRefs: analysis.evidenceRefs.map((ref) => ref.url),
+      recommendationScore: teamRecommendationScore(analysis.band, featureVector) ?? undefined,
+      explanation,
+    }
+    strength.realityCheck = {
+      status: 'calibrated_band_supported',
+      strengthBand: analysis.band,
+      confidenceCeiling: 'low',
+      referencePerformanceRequiredForCurrentGate: false,
+      explanation,
+    }
+    strength.teamStrength = {
+      contract: teamDecisionAuthorityContractId,
+      status: 'rated',
+      candidateId: input.candidateId,
+      featureFingerprint: featureVector.fingerprint,
+      ratingBand: analysis.band,
+      confidence: 'low',
+      explanation,
+      tradeoffs: [...analysis.limitations],
+    }
+  }
   return {
     contract: current31TeamRatingContractId,
     teamIdentity,

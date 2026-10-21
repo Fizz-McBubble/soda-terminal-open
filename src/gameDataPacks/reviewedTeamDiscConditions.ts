@@ -1,4 +1,4 @@
-import { resolvePotentialImage } from '../assault/agentCapabilities'
+import { supportsPotentialImage } from '../assault/agentCapabilities'
 import { agentCatalog } from '../assault/catalogData'
 import type { StatKey } from '../domain/schemas'
 import type { PlayerBuildSource } from './playerBuildSources'
@@ -359,6 +359,12 @@ export const reviewedTeamDiscDirections: readonly ReviewedTeamDiscDirection[] = 
         teamCondition === 'direct-damage'
           ? { crit_rate: 1, crit_dmg: 1, atk_percent: 1 }
           : { anomaly_proficiency: 1, atk_percent: 1 },
+      // The archived paragraph explicitly names these candidates by team type.
+      // Their order is not an authored ranking or a numerical weight.
+      subStatCandidates:
+        teamCondition === 'direct-damage'
+          ? ['crit_rate', 'crit_dmg', 'atk_percent']
+          : ['anomaly_proficiency', 'atk_percent'],
       setPlan: {
         pattern: '4+2',
         primarySetIds: ['set-moonlight-lullaby'],
@@ -468,21 +474,25 @@ function sameMembers(left: readonly string[], right: readonly string[]) {
   return sortedLeft.every((member, index) => member === sortedRight[index])
 }
 
-function effectivePotential(agentId: string, context: ReviewedTeamDiscConditionContext) {
-  return resolvePotentialImage(agentId, context.agentStateById?.[agentId]?.potentialImage) ?? 0
+function observedPotential(agentId: string, context: ReviewedTeamDiscConditionContext) {
+  if (!supportsPotentialImage(agentId)) return 0
+  const value = context.agentStateById?.[agentId]?.potentialImage
+  return typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 6
+    ? value
+    : null
 }
 
 /**
- * Normalize the explicit condition input before it is placed in a Build Intent
- * fingerprint.  Missing potential uses the existing product default; explicit
- * zero remains zero.
+ * Source prerequisites use observed or explicitly selected potential, never
+ * the numeric planner's default. Freeze unknown as null; agents without the
+ * capability retain a neutral zero identity.
  */
 export function reviewedTeamPotentialByAgentId(context: ReviewedTeamDiscConditionContext) {
   return Object.fromEntries(
     [...new Set(context.memberIds ?? [])]
       .sort()
-      .map((agentId) => [agentId, effectivePotential(agentId, context)]),
-  )
+      .map((agentId) => [agentId, observedPotential(agentId, context)]),
+  ) as Record<string, number | null>
 }
 
 /** Observed identity used by direction matching and Build Intent fingerprints. */
@@ -548,17 +558,12 @@ export function resolveReviewedTeamDiscDirections(
       if (matches) exactMemberIds = [...members] as [string, string, string]
     }
     if (!exactMemberIds) return []
-    const effectivePotentialByAgentId = Object.fromEntries(
-      Object.keys(direction.potentialMinimumByAgentId)
-        .sort()
-        .map((id) => [id, effectivePotential(id, context)]),
-    )
-    if (
-      Object.entries(direction.potentialMinimumByAgentId).some(
-        ([id, minimum]) => effectivePotentialByAgentId[id]! < minimum,
-      )
-    )
-      return []
+    const effectivePotentialByAgentId: Record<string, number> = {}
+    for (const [id, minimum] of Object.entries(direction.potentialMinimumByAgentId).sort()) {
+      const potential = observedPotential(id, context)
+      if (potential === null || potential < minimum) return []
+      effectivePotentialByAgentId[id] = potential
+    }
     return [
       {
         id: direction.id,

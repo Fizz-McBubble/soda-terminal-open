@@ -52,3 +52,21 @@ export function visibleRecommendationFamilies(
   })
   return orderVisibleFamilies(visible)
 }
+
+/** Historical source directions remain selectable, but need an explicit player action. */
+export function referenceRecommendationFamilies(families: readonly TeamLoadoutOverviewFamily[]) {
+  const visible = families.flatMap((family) => {
+    const variants = family.variants.filter(
+      (item) =>
+        item.mechanicValidity !== 'invalid' &&
+        !item.authorComparisonMembership?.explicitSelectionOnly &&
+        !item.hasPreparedBenchmark32 &&
+        isHistoricalReferenceDirection(item),
+    )
+    if (!variants.length) return []
+    return variants.length === family.variants.length
+      ? [family]
+      : [rebuildVisibleFamily(family, variants)]
+  })
+  return orderVisibleFamilies(visible)
+}

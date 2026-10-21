@@ -2,7 +2,7 @@ import { TeamPlanRecoveryStatus } from './TeamPlanRecoveryStatus'
 import { setCurrentTeamAnalysisSession } from './teamAnalysisSession'
 import { useContext, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { getAgentName } from '../application/publicRosterNames'
+import { getAgentName, formatDevelopmentEntityText } from '../application/publicRosterNames'
 import { TeamDecisionAuthorityDetail } from './TeamDecisionAuthorityDetail'
 import { InvalidPlan } from './InvalidPlan'
 import { playerFacingBangbooLabel } from '../application/playerFacingLabels'
@@ -29,6 +29,8 @@ import {
 } from '../application/publicPlanningScenarioContract'
 import type { TeamPlanProps } from './teamPlanProps'
 import { teamRatingLabelTitle } from './teamRatingPresentation'
+import { standardReferenceContinuation32 } from './standardReferenceContinuation32'
+import { StandardTeamReferenceControl32 } from './StandardTeamReferenceControl32'
 
 export function TeamPlan({
   warehouse,
@@ -194,6 +196,8 @@ export function TeamPlan({
         undefined,
         retainedTargetTeamFit?.scenarioSelection,
         retainedTargetTeamFit?.eventConditionDeclarationsByAgentId,
+        undefined,
+        standardReferenceContinuation32(retainedTargetTeamFit, targetCandidateId),
       )
         .then((fit) => {
           if (!active || generation !== targetFitRequestGeneration.current) return
@@ -231,8 +235,7 @@ export function TeamPlan({
     recoveryInputHash,
     recoveryTeamId,
     targetCandidateId,
-    retainedTargetTeamFit?.scenarioSelection,
-    retainedTargetTeamFit?.eventConditionDeclarationsByAgentId,
+    retainedTargetTeamFit,
   ])
   const selectAlternative = useTeamAlternativeSelection({
     accountId: warehouse.accountId,
@@ -296,6 +299,13 @@ export function TeamPlan({
         eventConditionDeclarationsByAgentId:
           currentTargetTeamFit?.eventConditionDeclarationsByAgentId,
         playerBangbooSelection: { teamKey, ...selection },
+        standardReference32: standardReferenceContinuation32(
+          currentTargetTeamFit,
+          targetCandidateId,
+          {
+            refreshMetadata: true,
+          },
+        ),
       })
       if (!isCurrentPage() || requestGeneration !== targetFitRequestGeneration.current) {
         finishUsage('cancelled')
@@ -389,45 +399,116 @@ export function TeamPlan({
       decision={decision}
       targetTeamFit={currentTargetTeamFit}
       comparisonScenarioControl={
-        <PlanningScenarioControl
-          value={scenarioSelection}
-          disabled={
-            readOnly || rematching || fitStatus === 'running' || Boolean(switchingAlternativeId)
-          }
-          onChange={async (selection: CurrentPlanningScenarioSelection32) => {
-            if (!analysisRunId || !targetCandidateId || explicitFitPending.current) return
-            const isCurrentPage = capturePageScope()
-            const generation = ++targetFitRequestGeneration.current
-            explicitFitPending.current = true
-            setFitStatus('running')
-            setEquipmentParametersRequireRefresh(true)
-            try {
-              const fit = await calculateTargetTeamWarehouseFit(
-                analysisRunId,
-                targetCandidateId,
-                currentTargetTeamFit?.effectiveEquipmentParameters?.source === 'player_confirmed'
-                  ? currentTargetTeamFit.effectiveEquipmentParameters
-                  : undefined,
-                selection,
-                currentTargetTeamFit?.eventConditionDeclarationsByAgentId,
-              )
-              if (!isCurrentPage() || generation !== targetFitRequestGeneration.current) return
-              if (fit.scenarioSelection?.id !== selection.id || !fit.scenarioIdentity)
-                throw new Error('比较场景未进入计算结果，请重试。')
-              setTargetTeamFit(fit)
-              setAlternativeError(null)
-              setFitStatus('idle')
-            } catch (error) {
-              if (!isCurrentPage() || generation !== targetFitRequestGeneration.current) return
-              setAlternativeError(error instanceof Error ? error.message : '场景计算失败，请重试。')
-              setFitStatus('error')
-            } finally {
-              explicitFitPending.current = false
-              if (isCurrentPage() && generation === targetFitRequestGeneration.current)
-                setEquipmentParametersRequireRefresh(false)
+        <>
+          <PlanningScenarioControl
+            value={scenarioSelection}
+            disabled={
+              readOnly || rematching || fitStatus === 'running' || Boolean(switchingAlternativeId)
             }
-          }}
-        />
+            onChange={async (selection: CurrentPlanningScenarioSelection32) => {
+              if (!analysisRunId || !targetCandidateId || explicitFitPending.current) return
+              const isCurrentPage = capturePageScope()
+              const generation = ++targetFitRequestGeneration.current
+              explicitFitPending.current = true
+              setFitStatus('running')
+              setEquipmentParametersRequireRefresh(true)
+              try {
+                const fit = await calculateTargetTeamWarehouseFit(
+                  analysisRunId,
+                  targetCandidateId,
+                  currentTargetTeamFit?.effectiveEquipmentParameters?.source === 'player_confirmed'
+                    ? currentTargetTeamFit.effectiveEquipmentParameters
+                    : undefined,
+                  selection,
+                  currentTargetTeamFit?.eventConditionDeclarationsByAgentId,
+                  undefined,
+                  standardReferenceContinuation32(currentTargetTeamFit, targetCandidateId, {
+                    scenarioSelection: selection,
+                  }),
+                )
+                if (!isCurrentPage() || generation !== targetFitRequestGeneration.current) return
+                if (fit.scenarioSelection?.id !== selection.id || !fit.scenarioIdentity)
+                  throw new Error('比较场景未进入计算结果，请重试。')
+                setTargetTeamFit(fit)
+                setAlternativeError(null)
+                setFitStatus('idle')
+              } catch (error) {
+                if (!isCurrentPage() || generation !== targetFitRequestGeneration.current) return
+                setAlternativeError(
+                  error instanceof Error ? error.message : '场景计算失败，请重试。',
+                )
+                setFitStatus('error')
+              } finally {
+                explicitFitPending.current = false
+                if (isCurrentPage() && generation === targetFitRequestGeneration.current)
+                  setEquipmentParametersRequireRefresh(false)
+              }
+            }}
+          />
+          <StandardTeamReferenceControl32
+            key={`${analysisRunId}:${targetCandidateId}`}
+            fit={currentTargetTeamFit}
+            disabled={
+              readOnly || rematching || fitStatus === 'running' || Boolean(switchingAlternativeId)
+            }
+            onChange={async (request) => {
+              if (
+                !analysisRunId ||
+                !targetCandidateId ||
+                !calculationClient ||
+                !currentTargetTeamFit ||
+                readOnly
+              )
+                throw new Error('队伍资料已变化，请重新分析。')
+              if (explicitFitPending.current) throw new Error('正在计算，请稍后重试。')
+              const isCurrentPage = capturePageScope()
+              const generation = ++targetFitRequestGeneration.current
+              explicitFitPending.current = true
+              setFitStatus('running')
+              setEquipmentParametersRequireRefresh(true)
+              try {
+                const fit = await calculationClient.calculateTargetTeamWarehouseFit({
+                  contractVersion: calculationQueryContractVersion,
+                  kind: 'target_team_warehouse_fit',
+                  runId: analysisRunId,
+                  candidateId: targetCandidateId,
+                  standardReference32: request,
+                  standardReferenceFitFingerprint32: currentTargetTeamFit.fingerprint,
+                })
+                if (!isCurrentPage() || generation !== targetFitRequestGeneration.current) return
+                if (
+                  fit.standardReferenceUpdate32?.fitFingerprint !==
+                    currentTargetTeamFit.fingerprint ||
+                  fit.standardReferenceUpdate32.accountEquipmentPreserved !== true
+                )
+                  throw new Error('当前计算服务尚未确认独立标准参考，请更新配套服务后重试。')
+                if (
+                  fit.fingerprint !== currentTargetTeamFit.fingerprint ||
+                  fit.candidateId !== targetCandidateId
+                )
+                  throw new Error('参考计算改变了账户配装身份，请重新分析。')
+                if (request.stage === 'select' && fit.standardReference32?.status !== 'selected')
+                  throw new Error(
+                    formatDevelopmentEntityText(
+                      fit.standardReference32?.gaps.join('；') ||
+                        '当前动作条件暂不能生成参考，请调整后重试。',
+                    ),
+                  )
+                setTargetTeamFit(fit)
+                setAlternativeError(null)
+                setFitStatus('idle')
+              } catch (error) {
+                if (isCurrentPage() && generation === targetFitRequestGeneration.current)
+                  setFitStatus('error')
+                throw error
+              } finally {
+                explicitFitPending.current = false
+                if (isCurrentPage() && generation === targetFitRequestGeneration.current)
+                  setEquipmentParametersRequireRefresh(false)
+              }
+            }}
+          />
+        </>
       }
       onDeploymentOrderChange={(order) => {
         if (readOnly || equipmentParametersRequireRefresh || !currentTargetTeamFit) return
@@ -468,6 +549,10 @@ export function TeamPlan({
             selection,
             scenarioSelection,
             currentTargetTeamFit?.eventConditionDeclarationsByAgentId,
+            undefined,
+            standardReferenceContinuation32(currentTargetTeamFit, targetCandidateId, {
+              equipmentParameters: selection,
+            }),
           )
           if (!isCurrentPage() || requestGeneration !== targetFitRequestGeneration.current) {
             finishUsage('cancelled')

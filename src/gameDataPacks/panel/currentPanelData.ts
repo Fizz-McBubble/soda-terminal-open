@@ -1,7 +1,8 @@
 import {
-  currentAgentEventContracts,
-  getCurrentAgentEventContract,
-} from '../../calculation/currentAgentMechanicContracts'
+  currentAgentNumericContracts,
+  isReviewedPhoenixNumericContract,
+  getCurrentAgentNumericContract,
+} from '../../calculation/currentAgentNumericContracts'
 import { currentWEngineStaticCatalog } from '../currentWEngineStaticCatalog'
 import { stableContentHash } from '../types'
 import { currentCoreGrowthSource } from './currentCoreGrowthIdentity32'
@@ -11,7 +12,7 @@ export {
   currentCoreGrowthHash32,
 } from './currentCoreGrowthIdentity32'
 
-/** MIT-derived current panel projection; see upstream/genshinOptimizer/NOTICE.md. */
+/** Source-discriminated numeric panel; GO attribution remains in upstream/genshinOptimizer/NOTICE.md. */
 export type CurrentPanelGrowthAgent = {
   kind: 'growth'
   level: number
@@ -117,7 +118,7 @@ function projectCoreStat(row: RawCoreStat): CurrentPanelGrowthAgent['core'][numb
 }
 
 const projectedAgents = Object.fromEntries(
-  currentAgentEventContracts.map((agent) => {
+  currentAgentNumericContracts.map((agent) => {
     const promotion = agent.promotionStats[5]
     if (!promotion || agent.coreStats.length !== 6)
       throw new Error(`角色面板来源不完整：${agent.stableId}`)
@@ -143,7 +144,7 @@ const projectedAgents = Object.fromEntries(
 ) satisfies Record<string, CurrentPanelGrowthAgent>
 
 const coreSourceBindings = new Map(
-  currentAgentEventContracts.map((actor) => [
+  currentAgentNumericContracts.map((actor) => [
     actor.stableId,
     {
       source: stableContentHash(actor.source),
@@ -153,7 +154,7 @@ const coreSourceBindings = new Map(
 )
 const checkedCoreSources = new WeakMap<object, boolean>()
 
-function matchesCoreSource(contract: (typeof currentAgentEventContracts)[number]) {
+function matchesCoreSource(contract: (typeof currentAgentNumericContracts)[number]) {
   const checked = checkedCoreSources.get(contract)
   if (checked !== undefined) return checked
   const binding = coreSourceBindings.get(contract.stableId)
@@ -198,7 +199,7 @@ export function resolveCurrentAgentCoreGrowth(input: {
       sourceRefs: [panel.evidence],
     }
   }
-  const contract = getCurrentAgentEventContract(input.agentId)
+  const contract = getCurrentAgentNumericContract(input.agentId)
   const growth = projectedAgents[input.agentId]
   const raw = contract?.coreStats[input.coreLevel - 2]
   if (
@@ -206,11 +207,22 @@ export function resolveCurrentAgentCoreGrowth(input: {
     !growth ||
     (input.coreLevel !== 1 && !raw) ||
     !matchesCoreSource(contract) ||
-    contract.source.commit !== currentCoreGrowthSource.commit ||
+    (contract.source.provider === 'genshin_optimizer'
+      ? contract.source.commit !== currentCoreGrowthSource.commit
+      : !isReviewedPhoenixNumericContract(contract)) ||
     contract.coreStats.length !== 6 ||
     contract.coreStats.some((row) => Object.values(row).some((value) => !Number.isFinite(value)))
   )
     return unsupported('未建立该主体的来源核心成长记录。')
+  const sourceRefs =
+    contract.source.provider === 'genshin_optimizer'
+      ? [
+          `${currentCoreGrowthSource.path}#${currentCoreGrowthSource.sha256}`,
+          `${contract.source.statsPath}#${contract.source.statsSha256}`,
+        ]
+      : [
+          `${contract.source.url}#${contract.source.rawSha256}:${contract.source.locators.coreStats}`,
+        ]
   if (input.coreLevel === 1) {
     if (input.basis !== 'source_growth')
       return unsupported('当前菜单成长输入使用已学习行；来源零行须显式选择source_growth。')
@@ -221,10 +233,13 @@ export function resolveCurrentAgentCoreGrowth(input: {
       values: {} as CurrentPanelGrowthAgent['core'][number],
       learnedCoreLevel: null,
       sourceRow: 0,
-      sourceRefs: [
-        `${currentCoreGrowthSource.path}#${currentCoreGrowthSource.sha256}:402-409`,
-        `${contract.source.statsPath}#${contract.source.statsSha256}`,
-      ],
+      sourceRefs:
+        contract.source.provider === 'genshin_optimizer'
+          ? [
+              `${currentCoreGrowthSource.path}#${currentCoreGrowthSource.sha256}:402-409`,
+              sourceRefs[1]!,
+            ]
+          : sourceRefs,
     }
   }
   return {
@@ -234,10 +249,7 @@ export function resolveCurrentAgentCoreGrowth(input: {
     values: growth.core[input.coreLevel - 2]!,
     learnedCoreLevel: input.coreLevel,
     sourceRow: input.coreLevel - 1,
-    sourceRefs: [
-      `${currentCoreGrowthSource.path}#${currentCoreGrowthSource.sha256}`,
-      `${contract.source.statsPath}#${contract.source.statsSha256}`,
-    ],
+    sourceRefs,
   }
 }
 

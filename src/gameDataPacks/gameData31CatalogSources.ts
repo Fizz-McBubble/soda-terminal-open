@@ -15,7 +15,7 @@ export type GameData31CatalogEntity = {
   source: {
     id: string
     url: string
-    sourceVersion: '3.1' | '3.2'
+    sourceVersion: '3.1' | '3.2' | '3.3'
     checkedAt: string
     contentHash: string
     licenseBoundary: string

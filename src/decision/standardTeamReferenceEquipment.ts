@@ -1,4 +1,6 @@
-import { createEmptyRoster, currentAgentDirectory } from '../assault/catalog'
+import { createEmptyRoster, currentAgentDirectory, getAgentName } from '../assault/catalog'
+import { getCurrentAgentNumericContract } from '../calculation/currentAgentNumericContracts'
+import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
 import { supportsPotentialImage } from '../assault/agentCapabilities'
 import type { DriveDisc, StatKey } from '../domain/schemas'
 import {
@@ -31,6 +33,7 @@ import {
 } from './teamStrengthReferenceState'
 import type { TeamStrengthReferenceConditions } from './teamStrengthReferenceConditionsTypes'
 import { resolveSkillInvestmentMindscapeBonus } from './skillInvestmentProjection'
+import { formedTeamCultivation } from './formedTeamCultivation'
 import {
   createTargetTeamAssignmentObjective,
   type TargetTeamObjectiveContextInput,
@@ -44,6 +47,7 @@ import {
 } from './targetTeamPlanningContextInput'
 import type { AccountLoadout } from '../optimizer/optimizeAccountBuilds'
 import type { DeclaredEventGoal32 } from './targetTeamDeclaredEventObjective32'
+import type { PlanningEquipmentConditionAlternatives32 } from '../application/planningEquipmentConditionVocabulary32'
 
 type ObjectiveInput = Omit<TargetTeamObjectiveContextInput, 'fit' | 'modifierProjection'>
 export type StandardTeamReferencePreparationInput = {
@@ -72,6 +76,29 @@ export type PreparedTargetTeamStandardReferenceEquipment = {
   branchPlans: Record<string, CandidateSetPlan>
   referenceConditions?: TeamStrengthReferenceConditions
   runtimeDeclarationsByAgentId: StandardTeamReferencePreparationInput['wEngineRuntimeDeclarationsByAgentId']
+}
+
+/** One source-qualified vocabulary for all equipment options. No triggering
+ * state is inferred, and the actual runtime still wears exactly one option. */
+export function standardTeamReferenceConditionAlternatives32(
+  prepared: PreparedTargetTeamStandardReferenceEquipment,
+): PlanningEquipmentConditionAlternatives32 {
+  return prepared.members.map((member) => {
+    const profiles = new Map<string, Array<{ setId: string; pieces: number }>>()
+    for (const branch of member.branches) {
+      const counts = new Map<string, number>()
+      for (const disc of branch.discs) counts.set(disc.setId, (counts.get(disc.setId) ?? 0) + 1)
+      const profile = [...counts]
+        .map(([setId, pieces]) => ({ setId, pieces }))
+        .sort((a, b) => a.setId.localeCompare(b.setId))
+      profiles.set(stableContentHash(profile), profile)
+    }
+    return {
+      providerAgentId: member.agentId,
+      engineIds: member.engines.map((engine) => engine.engineId).sort(),
+      discProfiles: [...profiles].sort(([a], [b]) => a.localeCompare(b)).map(([, row]) => row),
+    }
+  })
 }
 
 function setChoices(plan: CandidateSetPlan): string[][] {
@@ -223,6 +250,27 @@ export function prepareTargetTeamStandardReferenceEquipment(
     const original = request.input
     const ids = original.candidate.memberIds
     if (ids.length !== 3 || new Set(ids).size !== 3) throw new Error('标准团队需要三名不同成员。')
+    const unsupportedMembers = ids.filter(
+      (id) => getCurrentAgentNumericContract(id) && !getCurrentAgentEventContract(id),
+    )
+    if (unsupportedMembers.length)
+      return {
+        status: 'unsupported',
+        reason: `${unsupportedMembers.map(getAgentName).join('、')}暂未支持标准伤害比较；成型参考和仓库配装可用。`,
+      }
+    const formed = formedTeamCultivation(ids)
+    request = {
+      ...request,
+      referenceConditions: {
+        potentialByAgentId: {},
+        evidenceRefs: [],
+        ...request.referenceConditions,
+        mindscapeByAgentId: {
+          ...Object.fromEntries(formed.members.map((row) => [row.agentId, row.mindscape])),
+          ...request.referenceConditions?.mindscapeByAgentId,
+        },
+      },
+    }
     const selectedDirections = targetTeamSelectedDirectionConditions({
       memberIds: ids,
       roster: original.warehouse.roster,
@@ -244,7 +292,7 @@ export function prepareTargetTeamStandardReferenceEquipment(
         agent.releaseState !== 'released'
       )
         throw new Error(`缺少已发布标准成员身份：${id}`)
-      const mindscape = resolveTeamStrengthReferenceMindscape(id)
+      const mindscape = resolveTeamStrengthReferenceMindscape(id, request.referenceConditions)
       const skill = 11 + (resolveSkillInvestmentMindscapeBonus(mindscape) ?? 0)
       Object.assign(row, {
         owned: true,
@@ -439,6 +487,12 @@ export function createStandardTeamReferenceEvaluator(request: {
   maxEvaluations?: number
 }) {
   const prepared = structuredClone(request.prepared)
+  if (
+    request.declaredEventGoal32?.equipmentConditionAlternatives32 &&
+    stableContentHash(request.declaredEventGoal32.equipmentConditionAlternatives32) !==
+      stableContentHash(standardTeamReferenceConditionAlternatives32(prepared))
+  )
+    return { status: 'unsupported' as const, reason: '标准候选条件域不是当前来源允许的装备全集。' }
   if (request.declaredEventGoal32)
     prepared.referenceInput.declaredEventGoal32 = structuredClone(request.declaredEventGoal32)
   const input = prepared.referenceInput

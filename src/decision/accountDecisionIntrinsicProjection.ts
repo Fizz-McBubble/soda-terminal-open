@@ -1,3 +1,4 @@
+import { resolveReviewedPhoenixTeam33 } from './reviewedPhoenixTeams33'
 import type { AccountRoster } from '../assault/types'
 import type { TeamPortfolioPreference } from '../accounts/teamPortfolioPreference'
 import type { AccountBuildResult } from '../optimizer/optimizeAccountBuilds'
@@ -55,8 +56,20 @@ function indexedRating(
         explanation: '候选未满足玩家当前固定成员或邦布约束。',
       } satisfies TeamRatingResult,
     }
-  if (!summary || summary.ratingStatus !== 'rated' || !summary.ratingBand || !summary.confidence)
-    return null
+  if (!summary) return null
+  if (summary.ratingStatus !== 'rated')
+    return {
+      summary,
+      rating: {
+        contract: teamDecisionAuthorityContractId,
+        status: summary.ratingStatus,
+        candidateId,
+        featureFingerprint: `intrinsic-index:${summary.indexContentHash}`,
+        blockerIds: ['offline-formation-ineligible'],
+        explanation: '该组合尚未满足榜单的有效队伍条件。',
+      } satisfies TeamRatingResult,
+    }
+  if (!summary.ratingBand || !summary.confidence) return null
   return {
     summary,
     rating: {
@@ -66,7 +79,7 @@ function indexedRating(
       featureFingerprint: `intrinsic-index:${summary.indexContentHash}:${memberIds.join('|')}`,
       ratingBand: summary.ratingBand,
       confidence: summary.confidence,
-      explanation: '由当前版本构建期精确三人内在评级索引投影；完整依据在消费短名单按原算法恢复。',
+      explanation: '由当前版本构建期精确三人内在评级索引投影；完整依据从同版本离线榜单读取。',
       tradeoffs: [],
     } satisfies TeamRatingResult,
   }
@@ -187,6 +200,34 @@ export function projectAccountIntrinsicCandidates(input: {
         recommendationScore: summary?.recommendationScore ?? null,
         mechanicallyClosed: summary?.mechanicallyClosed ?? false,
         hasPreliminaryDirection: summary?.hasPreliminaryDirection ?? false,
+        account: deriveAccountBands(candidate, accountContext),
+      }
+    }
+    if (input.mode === 'indexed')
+      throw new Current31TeamIntrinsicIndexMismatchError('通用队伍榜单尚未就绪，请更新资料后重试。')
+    if (hardPrunes.length === 0 && resolveReviewedPhoenixTeam33(memberIds)) {
+      // The direct oracle must use the same bounded local reference as the serialized index.
+      // Keep player hard prunes and absent executable mechanics independent of that reference.
+      const direct = evaluateCurrent31TeamRating({
+        candidateId: candidate.candidateId,
+        memberIds,
+        bangbooId: candidate.bestBangbooId,
+        outputPotentialBand: 'unknown',
+        benchmark: intrinsicRatingBenchmark,
+        hardPrunes,
+        reviewedOnly: true,
+      })
+      return {
+        candidate,
+        memberIds,
+        output: output ?? null,
+        benchmark: accountBoundBenchmark,
+        rating: direct.rating,
+        mainstreamRecognition: direct.mainstreamRecognition,
+        inferredStrength: direct.metaCalibration.authority === 'model_inference',
+        recommendationScore: direct.metaCalibration.recommendationScore ?? null,
+        mechanicallyClosed: false,
+        hasPreliminaryDirection: direct.metaCalibration.authority === 'recovered_preliminary',
         account: deriveAccountBands(candidate, accountContext),
       }
     }

@@ -55,9 +55,9 @@ describe('retention analysis and historical source identities', () => {
   it('adopts the current analysis scope while retaining original policy and source versions', () => {
     const source = structuredClone(getCandidateWarehouseConstraint('agent-billy')!)
     expect(catalog.factsGameVersion).toBe(currentVersionProjection.gameVersion)
-    expect(catalog.assessmentGameVersion).toBe('3.2')
+    expect(catalog.assessmentGameVersion).toBe(currentVersionProjection.gameVersion)
     expect(catalog.versionIdentity).toMatchObject({
-      analysisTargetVersion: '3.2',
+      analysisTargetVersion: currentVersionProjection.gameVersion,
       policyCalibrationVersion: '3.1',
       adoption: {
         id: currentVersionProjection.adoptionId,
@@ -68,7 +68,7 @@ describe('retention analysis and historical source identities', () => {
     })
     expect(catalog.versionIdentity!.sourceOriginalVersions).toContain('3.0')
     expect(catalog.versionIdentity!.sourceOriginalVersions).toContain('3.2')
-    expect(catalog.reviewedUseScope).toContain(`3.2:`)
+    expect(catalog.reviewedUseScope).toContain(`${currentVersionProjection.gameVersion}:`)
     expect(catalog.releasedAgentIds).toEqual(expect.arrayContaining(['agent-claret', 'agent-roxy']))
     expect(getCandidateWarehouseConstraint('agent-billy')).toEqual(source)
     expect(policy.id).toContain(
@@ -77,6 +77,39 @@ describe('retention analysis and historical source identities', () => {
     for (const slots of Object.values(policy.byProfile))
       for (const cutoffs of Object.values(slots))
         expect(cutoffs).toEqual({ cleanupBelow: 48, keepFrom: 60, premiumFrom: 67 })
+  })
+
+  it('binds the adopted provider independently of historical GO source commits', () => {
+    const source = catalog.versionIdentity!.adoption.sourceIdentity
+    expect(source).toEqual(currentVersionProjection.adoptionSourceIdentity)
+    const good = assessDisc(lowDisc('good-provider'), isolatedCatalog(), policy)
+    expect(good.blockedBy.some((row) => row.field === 'versionIdentity')).toBe(false)
+    const mutations =
+      source.provider === 'nanoka'
+        ? [
+            { ...source, providerManifestSha256: '0'.repeat(64) },
+            { ...source, deltaSha256: '0'.repeat(64) },
+          ]
+        : [
+            { ...source, commit: '0'.repeat(40) },
+            { ...source, deltaSha256: '0'.repeat(64) },
+          ]
+    for (const sourceIdentity of mutations) {
+      const bad: Catalog = {
+        ...isolatedCatalog(),
+        versionIdentity: {
+          ...catalog.versionIdentity!,
+          adoption: { ...catalog.versionIdentity!.adoption, sourceIdentity },
+        },
+      }
+      expect(
+        assessDisc(lowDisc('bad-provider'), bad, policy).blockedBy.some(
+          (row) => row.field === 'versionIdentity',
+        ),
+      ).toBe(true)
+    }
+    if (source.provider === 'nanoka')
+      expect(catalog.versionIdentity!.adoption.sourceCommit).toBeNull()
   })
 
   it('rejects an adoption mismatch even when both legacy version strings match', () => {

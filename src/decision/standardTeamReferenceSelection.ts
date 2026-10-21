@@ -185,6 +185,12 @@ function bindUncached(
         warehouse: context.warehouse,
         fit: context.fit,
         selectedEquipment: context.parameters,
+        ...(bundle.declaredEventGoal32.equipmentConditionAlternatives32
+          ? {
+              equipmentConditionAlternatives32:
+                bundle.declaredEventGoal32.equipmentConditionAlternatives32,
+            }
+          : {}),
       }
       const issued = preparePlanningBenchmark32(binding)
       const analysis = analyzePlanningBenchmark32Candidate(

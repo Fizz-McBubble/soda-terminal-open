@@ -21,6 +21,7 @@ export type TeamReactionMechanism =
   | 'polarity'
   | 'penetration'
   | 'laceration'
+  | 'luminize'
 
 export type TeamExecutionChannel = 'stun_window' | 'chain' | 'ultimate' | 'off_field' | 'quick_swap'
 
@@ -38,9 +39,18 @@ export type TeamOutputModule = {
   contract: typeof teamOutputModuleContractId
   id: string
   primaryOutputKind: TeamPrimaryOutputKind
+  /** Positive source-backed tags; an omitted tag is not evidence of absence. */
   reactionMechanisms: readonly TeamReactionMechanism[]
   executionChannels: readonly TeamExecutionChannel[]
   teamFunctions: readonly TeamFunction[]
+}
+
+export type TeamOutputModuleSourceEvidence = {
+  sourceId: string
+  sourceVersion: string
+  contentHash: string
+  locator: string
+  text: string
 }
 
 export type TeamOutputModuleResolution =
@@ -52,6 +62,7 @@ export type TeamOutputModuleResolution =
         | 'historical_exact_team_review'
         | 'author_comparison_only'
       module: TeamOutputModule
+      sourceEvidence?: readonly TeamOutputModuleSourceEvidence[]
     }
   | {
       status: 'conflict'
@@ -86,6 +97,13 @@ export const teamOutputModules = Object.freeze({
     reactionMechanisms: ['abloom', 'disorder'],
     executionChannels: ['off_field', 'quick_swap'],
     teamFunctions: ['anomaly_amplification', 'ether_veil'],
+  }),
+  anomalyLuminize: module({
+    id: 'module-anomaly-luminize',
+    primaryOutputKind: 'attribute_anomaly',
+    reactionMechanisms: ['luminize', 'disorder'],
+    executionChannels: ['quick_swap'],
+    teamFunctions: ['anomaly_amplification'],
   }),
   anomalyPolarity: module({
     id: 'module-anomaly-polarity',
@@ -138,6 +156,7 @@ export const teamOutputModuleTaxonomy = Object.freeze({
     'polarity',
     'penetration',
     'laceration',
+    'luminize',
   ] as const satisfies readonly TeamReactionMechanism[],
   executionChannels: [
     'stun_window',

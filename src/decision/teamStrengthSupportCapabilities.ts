@@ -263,7 +263,8 @@ export function compatibleCapabilities(
     // entries are generic slots; only their pinned original IR proves capacity.
     for (const effect of selfBlueprintsByAgent.get(provider.agentId) ?? []) {
       if (
-        /^(?:m[1-6](?:_|$)|potential)/i.test(effect.effectId) ||
+        /^potential/i.test(effect.effectId) ||
+        Number(/^m([1-6])(?:_|$)/i.exec(effect.effectId)?.[1] ?? 0) > runtime.mindscape ||
         !effect.targetKinds.some(
           (kind) => kind === 'self' || kind === 'team' || kind === 'enemy',
         ) ||
@@ -310,7 +311,7 @@ export function compatibleCapabilities(
     const reviewed = getReviewedExternalSupportFact(provider.agentId)
     for (const effect of reviewed?.effects ?? []) {
       const gate = effect.eligibility
-      if (gate.minimumMindscape > 0) continue
+      if (gate.minimumMindscape > runtime.mindscape) continue
       if (gate.teamPredicate && !evaluateTeamPredicate(gate.teamPredicate, context)) continue
       if (
         gate.additionalAbilityRequired &&
@@ -340,10 +341,10 @@ export function compatibleCapabilities(
     const effects = getCurrentAgentDecisionMechanicContract(provider.agentId)?.effectContract
       .effects
     for (const effect of effects ?? []) {
-      // These are source effect identities, not agent identities. M1..M6 and
-      // Named potential effects are consumed by the separate prepared-event
-      // path. Embedded potential branches still use this reference's level.
-      if (/^(?:m[1-6](?:_|$)|potential)/i.test(effect.effectId)) continue
+      // S0 excludes unavailable mindscapes; A6 must retain its sourced grants.
+      // Named potential effects still belong to the prepared-event path.
+      if (/^potential/i.test(effect.effectId)) continue
+      if (Number(/^m([1-6])(?:_|$)/i.exec(effect.effectId)?.[1] ?? 0) > runtime.mindscape) continue
       if (effect.effectId.startsWith('ability_') && !abilityById.get(provider.agentId)) continue
       if (!effect.recipients.some((recipient) => recipient !== 'self')) continue
       if (currentEffectFactAdmission(effect) !== 'source_expression') {

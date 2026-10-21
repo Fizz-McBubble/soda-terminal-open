@@ -41,7 +41,7 @@ export function projectCurrent31ProductionDecisionUniverse(roster: AccountRoster
   const ownedBangbooCount = currentBangbooDirectory.filter(
     (bangboo) => bangboo.releaseState === 'released',
   ).length
-  const formationProjection = projectCurrent31ExhaustiveAccountCandidates(ownedAgentIds)
+  const formationProjection = projectCurrent31ExhaustiveAccountCandidates(ownedAgentIds, 'indexed')
   const authorityFormations = formationProjection.candidates.map((candidate) => {
     const bestBangbooId = resolveCurrent31VariantBangbooRecommendation(candidate.memberIds)
     return {

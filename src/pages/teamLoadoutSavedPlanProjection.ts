@@ -2,7 +2,7 @@ import type { AccountPlanningDraft } from '../accounts/types'
 import type { AccountDecisionSnapshot } from '../application/calculationQueryContract'
 import { authorityConsumerRecommendations } from '../application/authorityConsumerRecommendations'
 import { resolveCurrent31TeamFamily } from '../decision/current31TeamCoreAggregation'
-import { evaluateCurrent31TeamRating } from '../decision/current31TeamRating'
+import { lookupCurrent31TeamIntrinsicDetails } from '../decision/current31TeamIntrinsicIndex'
 import { playerFacingAgentLabel, playerFacingBangbooLabel } from '../application/playerFacingLabels'
 import { savedPlanDisplayName } from '../application/savedPlanDisplayName'
 import type { TeamLoadoutOverviewItem } from './teamLoadoutOverviewModel'
@@ -77,25 +77,12 @@ export function currentTeamRatingForSavedPlan(
   const memberIds = plan.selection.agentIds
   if (memberIds.length !== 3 || new Set(memberIds).size !== 3) return null
   const sortedMemberIds = [...memberIds].sort() as [string, string, string]
-  let current: ReturnType<typeof evaluateCurrent31TeamRating>
-  try {
-    current = evaluateCurrent31TeamRating({
-      candidateId: `saved-team-rating:${sortedMemberIds.join('+')}`,
-      memberIds: sortedMemberIds,
-      bangbooId: null,
-      outputPotentialBand: 'unknown',
-      benchmark: {
-        status: 'unavailable',
-        baselineId: null,
-        outputIndex: null,
-        unsupportedIssueIds: [],
-        explanation: '保存方案仅复算当前三人参考评级，不借用历史配装 Benchmark。',
-      },
-    })
-  } catch {
-    return null
-  }
+  const current = lookupCurrent31TeamIntrinsicDetails(
+    sortedMemberIds,
+    `saved-team-rating:${sortedMemberIds.join('+')}`,
+  )
   if (
+    !current ||
     current.rating.status !== 'rated' ||
     current.mechanicValidity === 'invalid' ||
     current.rating.ratingBand === 'Experimental' ||
@@ -283,6 +270,7 @@ export function savedPlanItem(
     familyKey: `saved:${plan.id}`,
     title: savedPlanDisplayName(plan),
     agentIds: savedMemberIds,
+    formedTeamReference: plan.solutionContext?.formedTeamReference,
     deploymentOrder: plan.teamExecutionSnapshot?.deploymentOrder,
     coreAgentIds: savedMemberIds.slice(0, 2),
     mechanism: '已保存的队伍配装',

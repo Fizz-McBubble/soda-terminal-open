@@ -6,6 +6,7 @@
  * always wins; this helper NEVER changes an unresolved tag to a proven absence.
  */
 import type { CandidateWarehouseConstraint } from '../gameDataPacks/candidateWarehouseConstraints'
+import type { CandidateSetPlan } from '../gameDataPacks/candidateSetPlans'
 import type { CurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
 import { stableContentHash } from '../gameDataPacks/types'
 import originalReviews from './reviewed-normal-use-scopes.json'
@@ -31,10 +32,12 @@ export interface Review {
   sourceArtifactSha256?: string
 }
 export interface Adoption {
+  selectedSetPlanHash?: string
   reviewId: string
   profileId: string
   /** A digest of the actual adopted constraint/rotation, not a display string. */
   profileFingerprint: string
+  /** GO field/formula provenance; never the installed package adoption provider. */
   sourceCommit: string
   formulaSha256: string
   statsSha256: string
@@ -43,6 +46,7 @@ export interface Adoption {
   approved: boolean
 }
 export interface Context {
+  selectedSetPlanHash?: string
   profileId: string
   profileFingerprint: string
   actorAgentId: string
@@ -52,6 +56,7 @@ export interface Context {
   goal: string
   /** Property of this reviewed build, NOT ownership used to change disc quality. */
   mindscape: number
+  /** GO field/formula provenance; never the installed package adoption provider. */
   sourceCommit: string
   formulaSha256: string
   statsSha256: string
@@ -93,6 +98,7 @@ export function getReviewedNormalM0UseScope(
   actorAgentId: string,
   goal: string,
   contract: CurrentAgentEventContract | null,
+  selectedSetPlan?: CandidateSetPlan,
 ): { context: Context; review: Review; adoption: Adoption } | undefined {
   const actualFingerprint = reviewedNormalM0ProfileFingerprint(constraint)
   const binding = normalAdoptions.rows.find(
@@ -106,10 +112,17 @@ export function getReviewedNormalM0UseScope(
       row.modifiers.length === 0,
   )
   const sourceReview = originalReviews.records.find((row) => row.reviewId === binding?.reviewId)
+  const branchHashes = binding?.reviewedSetPlanHashes
+  const selectedSetPlanHash =
+    branchHashes && selectedSetPlan ? stableContentHash(selectedSetPlan) : undefined
   if (
     !binding ||
     !sourceReview ||
     !contract ||
+    (branchHashes &&
+      (!selectedSetPlanHash ||
+        !branchHashes.includes(selectedSetPlanHash) ||
+        !constraint.setPlans?.some((plan) => stableContentHash(plan) === selectedSetPlanHash))) ||
     binding.externalId !== contract.externalId ||
     contract.source.repository !== 'https://github.com/frzyc/genshin-optimizer' ||
     contract.source.formulaPath !== binding.continuityCheck?.[1]?.path ||
@@ -129,6 +142,7 @@ export function getReviewedNormalM0UseScope(
     summary: `${sourceReview.summary} [普通 M0 储备用途政策；非账户影画事实；${sourceReview.gameVersion} 来源经独立连续性采用到 ${binding.targetVersion}。]`,
   }
   const context: Context = {
+    ...(selectedSetPlanHash ? { selectedSetPlanHash } : {}),
     profileId: binding.profileId,
     profileFingerprint: actualFingerprint,
     actorAgentId,
@@ -143,6 +157,7 @@ export function getReviewedNormalM0UseScope(
     modifiers: [],
   }
   const adoption: Adoption = {
+    ...(selectedSetPlanHash ? { selectedSetPlanHash } : {}),
     reviewId: review.reviewId,
     profileId: binding.profileId,
     profileFingerprint: actualFingerprint,
@@ -168,8 +183,14 @@ export function resolveReviewedUseScope(
     evidenceUrls: [],
   })
   if (!adoption?.approved) return unchanged('该用途尚未与生产构筑显式绑定。')
+  const branchHashes = normalAdoptions.rows.find(
+    (row) => row.adoptionId === review.reviewId,
+  )?.reviewedSetPlanHashes
   if (
     adoption.reviewId !== review.reviewId ||
+    adoption.selectedSetPlanHash !== context.selectedSetPlanHash ||
+    (branchHashes &&
+      (!context.selectedSetPlanHash || !branchHashes.includes(context.selectedSetPlanHash))) ||
     adoption.profileId !== context.profileId ||
     adoption.profileFingerprint !== context.profileFingerprint ||
     !context.profileFingerprint ||

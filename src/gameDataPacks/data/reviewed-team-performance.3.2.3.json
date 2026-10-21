@@ -15,12 +15,27 @@
     "datasetRepository": "LvlUrArti/ShiyuDataProcessed",
     "datasetRepositoryUrl": "https://huggingface.co/datasets/LvlUrArti/ShiyuDataProcessed/tree/219a1881324ab76887e0245062f2635900a9d6d2",
     "revision": "219a1881324ab76887e0245062f2635900a9d6d2",
-    "licenseStatus": "verified_mit"
+    "licenseStatus": "verified_mit",
+    "contextDefinitions": {
+      "schema": "source-native-mode-period/v1",
+      "commit": "bd0fbe7426f80528a7eca49128f165479d37b65b",
+      "configurationPath": "data/versions/config.json",
+      "configurationSha256": "94e93a5b1c8b2ad2b293dc4b2691a23637acfaba963e43c905a7fd04239805e3",
+      "partitionRulesPath": "scripts/comp_rates_config.py",
+      "partitionRulesSha256": "415965cd5f559ebb5c628867b46d6599cf912c4ef0dca3599393e66f8838e497",
+      "partitionRulesLocator": "ModeConfig thresholds, lines 162-206",
+      "stageDecoderPath": "scripts/csv_to_pickle.py",
+      "stageDecoderSha256": "c8b834e14068113b31be9e8922be0dae276e12c57749a9bd3344bbc883fb8339",
+      "stageDecoderLocator": "DA floor to stage/node, lines 113-119; source boss slots in copy_common.py",
+      "populationPath": "scripts/comp_rates.py",
+      "populationSha256": "2c147cfc1ec4ff9e98bfac3c19748f9ddc75787da742a5305571975dea2c6cdb",
+      "license": "MIT; scripts/fixtures/LICENSE.ShiyuStats.txt"
+    }
   },
   "checkedAt": "2026-10-14",
   "scope": {
     "kind": "aggregate_composition_observations_only",
-    "methodology": "Publisher-described M0 / all-W-Engine aggregate fields. Trimmed mean (0.25) when skewness > 0.8, else arithmetic mean; minimum 20 uses per stage or 3 uses per room. Per-team variance and controlled builds are unavailable.",
+    "methodology": "Limited-S-M0 / all-W-Engine aggregate fields; Standard S/A mindscapes and potential are uncontrolled. With total composition uses > 10, trim_mean(0.25) is used when abs(skewness) > 0.8, else the arithmetic mean. These seven single-partition JSON exports require total uses >= 2 and suppress scores >= 35000 when total uses <= 10. The exact M0 mean sample size and per-team variance are unpublished.",
     "targetUniverse": 548,
     "fullBoxCounts": {
       "totalObservedTrios": 548,
@@ -4981,10 +4996,7 @@
         "kind": "score",
         "unit": "points",
         "direction": "higher_is_better",
-        "sourceFields": {
-          "m0": "avg_round",
-          "m1": "avg_round_m1"
-        },
+        "sourceFields": { "m0": "avg_round", "m1": "avg_round_m1" },
         "mode": "score_mode"
       },
       "demographic": {
@@ -8520,7 +8532,43 @@
           "rank": 206,
           "derivedTeamUsesEstimate": 2
         }
-      ]
+      ],
+      "sourceContext": {
+        "schema": "source-native-mode-period/v1",
+        "collectionSnapshotVersion": "3.2.3",
+        "nativeModeVersion": "3.2.2",
+        "phase": "shiyu_defense",
+        "partition": "5-1",
+        "collectedOn": "12/10/2026",
+        "periodStartsOn": "02/10/2026",
+        "periodEndsOn": "16/10/2026",
+        "dateConvention": "DD/MM/YYYY; source has no timezone or end-inclusivity declaration",
+        "modeBossRoster": [],
+        "bossBinding": "source-node-only; enemy-roster-not-declared",
+        "sourceStage": {
+          "kind": "shiyu_defense_node",
+          "rawFloor": { "relation": "equal", "value": 5 },
+          "rawNode": 1,
+          "bossSourceSlot": null,
+          "bossName": null
+        },
+        "observationPopulation": {
+          "schema": "source-limited-s-m0-aggregate/v1",
+          "performanceField": "avg_round",
+          "mindscapeFilter": "no Limited S agent above M0; Standard S and A agents are unrestricted",
+          "uncontrolled": [
+            "Standard S/A mindscapes",
+            "W-Engines",
+            "potential",
+            "builds",
+            "player execution"
+          ],
+          "sampleSize": "unpublished; app_rate times demographic total is not the M0 mean sample size",
+          "aggregation": "When total composition uses > 10 and abs(skewness) > 0.8: scipy trim_mean(0.25); otherwise arithmetic mean. Single-partition JSON requires total uses >= 2; scores >= 35000 with total uses <= 10 are suppressed."
+        },
+        "combatContext": "unbound; no enemy stats, buff, stun or resource window inferred",
+        "identity": "864b6ba1444417543a3002847b61855030bd8bf309de6ffdc1b58ac90d3eadea"
+      }
     },
     {
       "url": "https://huggingface.co/datasets/LvlUrArti/ShiyuDataProcessed/raw/219a1881324ab76887e0245062f2635900a9d6d2/3.2.3/sd/comps/5-2_combined.json",
@@ -8531,10 +8579,7 @@
         "kind": "score",
         "unit": "points",
         "direction": "higher_is_better",
-        "sourceFields": {
-          "m0": "avg_round",
-          "m1": "avg_round_m1"
-        },
+        "sourceFields": { "m0": "avg_round", "m1": "avg_round_m1" },
         "mode": "score_mode"
       },
       "demographic": {
@@ -10744,7 +10789,43 @@
           "rank": 137,
           "derivedTeamUsesEstimate": 2
         }
-      ]
+      ],
+      "sourceContext": {
+        "schema": "source-native-mode-period/v1",
+        "collectionSnapshotVersion": "3.2.3",
+        "nativeModeVersion": "3.2.2",
+        "phase": "shiyu_defense",
+        "partition": "5-2",
+        "collectedOn": "12/10/2026",
+        "periodStartsOn": "02/10/2026",
+        "periodEndsOn": "16/10/2026",
+        "dateConvention": "DD/MM/YYYY; source has no timezone or end-inclusivity declaration",
+        "modeBossRoster": [],
+        "bossBinding": "source-node-only; enemy-roster-not-declared",
+        "sourceStage": {
+          "kind": "shiyu_defense_node",
+          "rawFloor": { "relation": "equal", "value": 5 },
+          "rawNode": 2,
+          "bossSourceSlot": null,
+          "bossName": null
+        },
+        "observationPopulation": {
+          "schema": "source-limited-s-m0-aggregate/v1",
+          "performanceField": "avg_round",
+          "mindscapeFilter": "no Limited S agent above M0; Standard S and A agents are unrestricted",
+          "uncontrolled": [
+            "Standard S/A mindscapes",
+            "W-Engines",
+            "potential",
+            "builds",
+            "player execution"
+          ],
+          "sampleSize": "unpublished; app_rate times demographic total is not the M0 mean sample size",
+          "aggregation": "When total composition uses > 10 and abs(skewness) > 0.8: scipy trim_mean(0.25); otherwise arithmetic mean. Single-partition JSON requires total uses >= 2; scores >= 35000 with total uses <= 10 are suppressed."
+        },
+        "combatContext": "unbound; no enemy stats, buff, stun or resource window inferred",
+        "identity": "9e243c7d682b8330e37616b520be5e9ce09304f7143b44473bb9411ee4a58d8d"
+      }
     },
     {
       "url": "https://huggingface.co/datasets/LvlUrArti/ShiyuDataProcessed/raw/219a1881324ab76887e0245062f2635900a9d6d2/3.2.3/sd/comps/5-3_combined.json",
@@ -10755,10 +10836,7 @@
         "kind": "score",
         "unit": "points",
         "direction": "higher_is_better",
-        "sourceFields": {
-          "m0": "avg_round",
-          "m1": "avg_round_m1"
-        },
+        "sourceFields": { "m0": "avg_round", "m1": "avg_round_m1" },
         "mode": "score_mode"
       },
       "demographic": {
@@ -14242,7 +14320,43 @@
           "rank": 209,
           "derivedTeamUsesEstimate": 2
         }
-      ]
+      ],
+      "sourceContext": {
+        "schema": "source-native-mode-period/v1",
+        "collectionSnapshotVersion": "3.2.3",
+        "nativeModeVersion": "3.2.2",
+        "phase": "shiyu_defense",
+        "partition": "5-3",
+        "collectedOn": "12/10/2026",
+        "periodStartsOn": "02/10/2026",
+        "periodEndsOn": "16/10/2026",
+        "dateConvention": "DD/MM/YYYY; source has no timezone or end-inclusivity declaration",
+        "modeBossRoster": [],
+        "bossBinding": "source-node-only; enemy-roster-not-declared",
+        "sourceStage": {
+          "kind": "shiyu_defense_node",
+          "rawFloor": { "relation": "equal", "value": 5 },
+          "rawNode": 3,
+          "bossSourceSlot": null,
+          "bossName": null
+        },
+        "observationPopulation": {
+          "schema": "source-limited-s-m0-aggregate/v1",
+          "performanceField": "avg_round",
+          "mindscapeFilter": "no Limited S agent above M0; Standard S and A agents are unrestricted",
+          "uncontrolled": [
+            "Standard S/A mindscapes",
+            "W-Engines",
+            "potential",
+            "builds",
+            "player execution"
+          ],
+          "sampleSize": "unpublished; app_rate times demographic total is not the M0 mean sample size",
+          "aggregation": "When total composition uses > 10 and abs(skewness) > 0.8: scipy trim_mean(0.25); otherwise arithmetic mean. Single-partition JSON requires total uses >= 2; scores >= 35000 with total uses <= 10 are suppressed."
+        },
+        "combatContext": "unbound; no enemy stats, buff, stun or resource window inferred",
+        "identity": "a41e1c5075b50867fbe3c854f00806f907007a5d201b751e8316b4d039045825"
+      }
     },
     {
       "url": "https://huggingface.co/datasets/LvlUrArti/ShiyuDataProcessed/raw/219a1881324ab76887e0245062f2635900a9d6d2/3.2.3/da/comps/1-1_combined.json",
@@ -14253,10 +14367,7 @@
         "kind": "score",
         "unit": "points",
         "direction": "higher_is_better",
-        "sourceFields": {
-          "m0": "avg_round",
-          "m1": "avg_round_m1"
-        },
+        "sourceFields": { "m0": "avg_round", "m1": "avg_round_m1" },
         "mode": "score_mode"
       },
       "demographic": {
@@ -16011,7 +16122,48 @@
           "rank": 101,
           "derivedTeamUsesEstimate": 1
         }
-      ]
+      ],
+      "sourceContext": {
+        "schema": "source-native-mode-period/v1",
+        "collectionSnapshotVersion": "3.2.3",
+        "nativeModeVersion": "3.2.3",
+        "phase": "deadly_assault",
+        "partition": "1-1",
+        "collectedOn": "12/10/2026",
+        "periodStartsOn": "09/10/2026",
+        "periodEndsOn": "23/10/2026",
+        "dateConvention": "DD/MM/YYYY; source has no timezone or end-inclusivity declaration",
+        "modeBossRoster": [
+          { "sourceSlot": "boss_1", "name": "Phaethon of the Scorched Horizon" },
+          { "sourceSlot": "boss_2", "name": "Infernal Revenant" },
+          { "sourceSlot": "boss_3", "name": "Kusarikku" },
+          { "sourceSlot": "boss_4", "name": "Integrated: Girtablullu" }
+        ],
+        "bossBinding": "source-floor-decoder-to-configured-boss-slot; combat-stats-unbound",
+        "sourceStage": {
+          "kind": "deadly_assault_regular",
+          "rawFloor": { "relation": "equal", "value": 1 },
+          "rawNode": null,
+          "bossSourceSlot": "boss_1",
+          "bossName": "Phaethon of the Scorched Horizon"
+        },
+        "observationPopulation": {
+          "schema": "source-limited-s-m0-aggregate/v1",
+          "performanceField": "avg_round",
+          "mindscapeFilter": "no Limited S agent above M0; Standard S and A agents are unrestricted",
+          "uncontrolled": [
+            "Standard S/A mindscapes",
+            "W-Engines",
+            "potential",
+            "builds",
+            "player execution"
+          ],
+          "sampleSize": "unpublished; app_rate times demographic total is not the M0 mean sample size",
+          "aggregation": "When total composition uses > 10 and abs(skewness) > 0.8: scipy trim_mean(0.25); otherwise arithmetic mean. Single-partition JSON requires total uses >= 2; scores >= 35000 with total uses <= 10 are suppressed."
+        },
+        "combatContext": "unbound; no enemy stats, buff, stun or resource window inferred",
+        "identity": "23ba4e5dad68da76eee939c4d266ce040fdcd95667c57394128b8d83ee955093"
+      }
     },
     {
       "url": "https://huggingface.co/datasets/LvlUrArti/ShiyuDataProcessed/raw/219a1881324ab76887e0245062f2635900a9d6d2/3.2.3/da/comps/1-2_combined.json",
@@ -16022,10 +16174,7 @@
         "kind": "score",
         "unit": "points",
         "direction": "higher_is_better",
-        "sourceFields": {
-          "m0": "avg_round",
-          "m1": "avg_round_m1"
-        },
+        "sourceFields": { "m0": "avg_round", "m1": "avg_round_m1" },
         "mode": "score_mode"
       },
       "demographic": {
@@ -19275,7 +19424,48 @@
           "rank": 202,
           "derivedTeamUsesEstimate": 1
         }
-      ]
+      ],
+      "sourceContext": {
+        "schema": "source-native-mode-period/v1",
+        "collectionSnapshotVersion": "3.2.3",
+        "nativeModeVersion": "3.2.3",
+        "phase": "deadly_assault",
+        "partition": "1-2",
+        "collectedOn": "12/10/2026",
+        "periodStartsOn": "09/10/2026",
+        "periodEndsOn": "23/10/2026",
+        "dateConvention": "DD/MM/YYYY; source has no timezone or end-inclusivity declaration",
+        "modeBossRoster": [
+          { "sourceSlot": "boss_1", "name": "Phaethon of the Scorched Horizon" },
+          { "sourceSlot": "boss_2", "name": "Infernal Revenant" },
+          { "sourceSlot": "boss_3", "name": "Kusarikku" },
+          { "sourceSlot": "boss_4", "name": "Integrated: Girtablullu" }
+        ],
+        "bossBinding": "source-floor-decoder-to-configured-boss-slot; combat-stats-unbound",
+        "sourceStage": {
+          "kind": "deadly_assault_regular",
+          "rawFloor": { "relation": "equal", "value": 2 },
+          "rawNode": null,
+          "bossSourceSlot": "boss_2",
+          "bossName": "Infernal Revenant"
+        },
+        "observationPopulation": {
+          "schema": "source-limited-s-m0-aggregate/v1",
+          "performanceField": "avg_round",
+          "mindscapeFilter": "no Limited S agent above M0; Standard S and A agents are unrestricted",
+          "uncontrolled": [
+            "Standard S/A mindscapes",
+            "W-Engines",
+            "potential",
+            "builds",
+            "player execution"
+          ],
+          "sampleSize": "unpublished; app_rate times demographic total is not the M0 mean sample size",
+          "aggregation": "When total composition uses > 10 and abs(skewness) > 0.8: scipy trim_mean(0.25); otherwise arithmetic mean. Single-partition JSON requires total uses >= 2; scores >= 35000 with total uses <= 10 are suppressed."
+        },
+        "combatContext": "unbound; no enemy stats, buff, stun or resource window inferred",
+        "identity": "2be50b0181e070a1a7f710b3d3696729c2a3c75d9c7a7eb96f0d1f0a04df62bb"
+      }
     },
     {
       "url": "https://huggingface.co/datasets/LvlUrArti/ShiyuDataProcessed/raw/219a1881324ab76887e0245062f2635900a9d6d2/3.2.3/da/comps/1-3_combined.json",
@@ -19286,10 +19476,7 @@
         "kind": "score",
         "unit": "points",
         "direction": "higher_is_better",
-        "sourceFields": {
-          "m0": "avg_round",
-          "m1": "avg_round_m1"
-        },
+        "sourceFields": { "m0": "avg_round", "m1": "avg_round_m1" },
         "mode": "score_mode"
       },
       "demographic": {
@@ -22227,7 +22414,48 @@
           "rank": 171,
           "derivedTeamUsesEstimate": 1
         }
-      ]
+      ],
+      "sourceContext": {
+        "schema": "source-native-mode-period/v1",
+        "collectionSnapshotVersion": "3.2.3",
+        "nativeModeVersion": "3.2.3",
+        "phase": "deadly_assault",
+        "partition": "1-3",
+        "collectedOn": "12/10/2026",
+        "periodStartsOn": "09/10/2026",
+        "periodEndsOn": "23/10/2026",
+        "dateConvention": "DD/MM/YYYY; source has no timezone or end-inclusivity declaration",
+        "modeBossRoster": [
+          { "sourceSlot": "boss_1", "name": "Phaethon of the Scorched Horizon" },
+          { "sourceSlot": "boss_2", "name": "Infernal Revenant" },
+          { "sourceSlot": "boss_3", "name": "Kusarikku" },
+          { "sourceSlot": "boss_4", "name": "Integrated: Girtablullu" }
+        ],
+        "bossBinding": "source-floor-decoder-to-configured-boss-slot; combat-stats-unbound",
+        "sourceStage": {
+          "kind": "deadly_assault_regular",
+          "rawFloor": { "relation": "equal", "value": 3 },
+          "rawNode": null,
+          "bossSourceSlot": "boss_3",
+          "bossName": "Kusarikku"
+        },
+        "observationPopulation": {
+          "schema": "source-limited-s-m0-aggregate/v1",
+          "performanceField": "avg_round",
+          "mindscapeFilter": "no Limited S agent above M0; Standard S and A agents are unrestricted",
+          "uncontrolled": [
+            "Standard S/A mindscapes",
+            "W-Engines",
+            "potential",
+            "builds",
+            "player execution"
+          ],
+          "sampleSize": "unpublished; app_rate times demographic total is not the M0 mean sample size",
+          "aggregation": "When total composition uses > 10 and abs(skewness) > 0.8: scipy trim_mean(0.25); otherwise arithmetic mean. Single-partition JSON requires total uses >= 2; scores >= 35000 with total uses <= 10 are suppressed."
+        },
+        "combatContext": "unbound; no enemy stats, buff, stun or resource window inferred",
+        "identity": "f4279e4018f579e65aedab7e7185750722c00e90d7fd2f57978b49d76b30acb2"
+      }
     },
     {
       "url": "https://huggingface.co/datasets/LvlUrArti/ShiyuDataProcessed/raw/219a1881324ab76887e0245062f2635900a9d6d2/3.2.3/da/comps/2-1_combined.json",
@@ -22238,10 +22466,7 @@
         "kind": "score",
         "unit": "points",
         "direction": "higher_is_better",
-        "sourceFields": {
-          "m0": "avg_round",
-          "m1": "avg_round_m1"
-        },
+        "sourceFields": { "m0": "avg_round", "m1": "avg_round_m1" },
         "mode": "score_mode"
       },
       "demographic": {
@@ -23242,7 +23467,48 @@
           "rank": 55,
           "derivedTeamUsesEstimate": 2
         }
-      ]
+      ],
+      "sourceContext": {
+        "schema": "source-native-mode-period/v1",
+        "collectionSnapshotVersion": "3.2.3",
+        "nativeModeVersion": "3.2.3",
+        "phase": "deadly_assault",
+        "partition": "2-1",
+        "collectedOn": "12/10/2026",
+        "periodStartsOn": "09/10/2026",
+        "periodEndsOn": "23/10/2026",
+        "dateConvention": "DD/MM/YYYY; source has no timezone or end-inclusivity declaration",
+        "modeBossRoster": [
+          { "sourceSlot": "boss_1", "name": "Phaethon of the Scorched Horizon" },
+          { "sourceSlot": "boss_2", "name": "Infernal Revenant" },
+          { "sourceSlot": "boss_3", "name": "Kusarikku" },
+          { "sourceSlot": "boss_4", "name": "Integrated: Girtablullu" }
+        ],
+        "bossBinding": "source-floor-decoder-to-configured-boss-slot; combat-stats-unbound",
+        "sourceStage": {
+          "kind": "deadly_assault_adversity",
+          "rawFloor": { "relation": "greater_than", "value": 3 },
+          "rawNode": null,
+          "bossSourceSlot": "boss_4",
+          "bossName": "Integrated: Girtablullu"
+        },
+        "observationPopulation": {
+          "schema": "source-limited-s-m0-aggregate/v1",
+          "performanceField": "avg_round",
+          "mindscapeFilter": "no Limited S agent above M0; Standard S and A agents are unrestricted",
+          "uncontrolled": [
+            "Standard S/A mindscapes",
+            "W-Engines",
+            "potential",
+            "builds",
+            "player execution"
+          ],
+          "sampleSize": "unpublished; app_rate times demographic total is not the M0 mean sample size",
+          "aggregation": "When total composition uses > 10 and abs(skewness) > 0.8: scipy trim_mean(0.25); otherwise arithmetic mean. Single-partition JSON requires total uses >= 2; scores >= 35000 with total uses <= 10 are suppressed."
+        },
+        "combatContext": "unbound; no enemy stats, buff, stun or resource window inferred",
+        "identity": "2c3c7a4d4734f2f9908aa2b172b00fec760671538d790f36b654b55a419435a4"
+      }
     }
   ]
 }

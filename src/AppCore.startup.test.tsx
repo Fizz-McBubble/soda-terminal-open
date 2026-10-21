@@ -49,8 +49,11 @@ it('shows the existing shell and current version while storage waits, then opens
     />,
   )
   expect(screen.getByRole('navigation', { name: '主导航' })).toBeInTheDocument()
-  expect(screen.getByText(`版本 ${currentVersionProjection.gameVersion}`)).toHaveTextContent('3.2')
-  expect(screen.queryByText('版本 3.1')).not.toBeInTheDocument()
+  expect(screen.getByText(`资料版本 ${currentVersionProjection.gameVersion}`)).toHaveTextContent(
+    '3.3',
+  )
+  expect(screen.queryByText('资料版本 3.1')).not.toBeInTheDocument()
+  expect(screen.queryByText('资料版本 3.2')).not.toBeInTheDocument()
   expect(screen.queryByRole('link', { name: /^前往扫描与导入/ })).not.toBeInTheDocument()
   expect(database.isOpen()).toBe(false)
   expect(environment.readRuntimeSelection).not.toHaveBeenCalled()
@@ -58,8 +61,8 @@ it('shows the existing shell and current version while storage waits, then opens
 
   await act(async () => continueStartup())
   expect(await screen.findByRole('link', { name: /^前往扫描与导入/ })).toBeInTheDocument()
-  expect(screen.getByText('版本 3.2')).toBeInTheDocument()
-  expect(initializer).toHaveBeenCalledWith(expect.objectContaining({ gameVersion: '3.2' }))
+  expect(screen.getByText(`资料版本 ${currentVersionProjection.gameVersion}`)).toBeInTheDocument()
+  expect(initializer).toHaveBeenCalledWith(expect.objectContaining({ gameVersion: '3.3' }))
   expect(environment.createWorker).not.toHaveBeenCalled()
 })
 

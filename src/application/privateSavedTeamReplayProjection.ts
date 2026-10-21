@@ -106,6 +106,9 @@ export function projectPrivateSavedTeamReplay(
     planHash,
     status: match ? 'ready' : 'unavailable',
     match,
+    ...(plan.solutionContext?.formedTeamReference
+      ? { formedTeamReference: structuredClone(plan.solutionContext.formedTeamReference) }
+      : {}),
     ...(plan.solutionContext?.standardReference32
       ? { standardReference32: structuredClone(plan.solutionContext.standardReference32) }
       : {}),

@@ -1,4 +1,3 @@
-import legacyStylesheetHref from '../styles.css?url'
 import f5StylesheetHref from './f5-golden.css?url'
 
 export type RouteStyleScope = 'f5' | 'legacy'
@@ -12,7 +11,6 @@ const routeStyles = {
   },
   legacy: {
     id: 'soda-route-styles-legacy',
-    href: legacyStylesheetHref,
   },
 } as const
 
@@ -33,7 +31,17 @@ function ensureStylesheet(documentRoot: Document, scope: RouteStyleScope) {
   const link = documentRoot.createElement('link')
   link.id = config.id
   link.rel = 'stylesheet'
-  link.href = config.href
+  if (scope === 'legacy') {
+    if (!import.meta.env.DEV) throw new Error('legacy_stylesheet_development_only')
+    // Keep the legacy asset outside the production graph as well as the DOM.
+    // The import is erased in production; development tools load it on demand.
+    void import('../styles.css?url').then(
+      ({ default: href }) => {
+        link.href = href
+      },
+      () => link.dispatchEvent(new Event('error')),
+    )
+  } else link.href = routeStyles.f5.href
   link.dataset.sodaRouteStyles = scope
   documentRoot.head.append(link)
   return link

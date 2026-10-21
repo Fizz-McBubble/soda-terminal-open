@@ -1,9 +1,14 @@
 import type { TeamFeatureBand, TeamFeatureVector, TeamRatingBand } from './teamDecisionAuthority'
+import { teamRecommendationScorePolicy } from '../application/publicTeamReferenceScore'
 
-/** A bounded recommendation index, not measured damage or a percent improvement.
- * Source or inferred tiers use the same scale; mechanism fit only refines that tier.
- * Missing evidence is neutral, not a claim that the team is weak. */
-export const teamRecommendationScorePolicy = Object.freeze({
+/** Shared ordinal reference scale. A tier without a reviewed within-tier
+ * preference deliberately receives the same score as its peers. Confidence,
+ * role counts and unclosed cycle assumptions cannot manufacture extra points. */
+export { teamRecommendationScorePolicy } from '../application/publicTeamReferenceScore'
+
+/** Retained for existing mechanism diagnostics; never used by the reference
+ * score, admission, or ordering. */
+export const teamMechanismDiagnosticScorePolicy = Object.freeze({
   version: 'diagnostic-reviewed-tier-and-mechanism-fit/v2',
   use: 'diagnostic_only' as const,
   bases: { 'S+': 90, S: 90, 'A+': 80, A: 70, B: 60 },
@@ -31,7 +36,15 @@ export function teamRecommendationScore(
   vector: Pick<TeamFeatureVector, 'dimensions' | 'hardPrunes'>,
 ): number | null {
   if (!band || band === 'Experimental' || vector.hardPrunes.length) return null
-  const factors = Object.entries(teamRecommendationScorePolicy.factors)
+  return teamRecommendationScorePolicy.anchors[band]
+}
+
+export function teamMechanismDiagnosticScore(
+  band: TeamRatingBand | null,
+  vector: Pick<TeamFeatureVector, 'dimensions' | 'hardPrunes'>,
+): number | null {
+  if (!band || band === 'Experimental' || vector.hardPrunes.length) return null
+  const factors = Object.entries(teamMechanismDiagnosticScorePolicy.factors)
   let weightedFit = 0
   for (const [name, weight] of factors) {
     const dimension = vector.dimensions.find((item) => item.dimension === name)
@@ -39,5 +52,5 @@ export function teamRecommendationScore(
   }
   // Eight points leave space between adjacent coarse tiers. Two-point resolution
   // avoids pretending the input categories distinguish one-point differences.
-  return teamRecommendationScorePolicy.bases[band] + 2 * Math.round((weightedFit / 10) * 4)
+  return teamMechanismDiagnosticScorePolicy.bases[band] + 2 * Math.round((weightedFit / 10) * 4)
 }

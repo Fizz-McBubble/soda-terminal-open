@@ -346,7 +346,7 @@ export function AppShell({
             <progress aria-label="本地范围就绪度" max="100" value={localScopeProgress} />
           </div>
           <small>
-            当前版本 {currentVersion.gameVersion} ·{' '}
+            资料版本 {currentVersion.gameVersion} ·{' '}
             {systemFailed ? '环境异常' : systemReady ? '环境正常' : statusLabel}
           </small>
         </div>
@@ -380,7 +380,7 @@ export function AppShell({
               <Archive size={15} />{' '}
               {accountHydrating ? '仓库读取中' : `${accountSummary?.discCount ?? 0} 驱动盘`}
             </span>
-            <span>当前版本 {currentVersion.gameVersion}</span>
+            <span>资料版本 {currentVersion.gameVersion}</span>
             <span className={systemFailed ? 'is-error' : ''}>
               <ShieldCheck size={15} /> {systemFailed ? '环境异常' : '环境正常'}
             </span>

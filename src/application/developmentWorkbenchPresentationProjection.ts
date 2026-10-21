@@ -56,9 +56,29 @@ export function projectDevelopmentWorkbenchPresentation(
             )
           : null
         const constraint = getCandidateWarehouseConstraint(agentId)
+        const guidanceFields = getCurrentBuildAuthorityProfile(agentId)?.guidance.fields ?? []
+        const currentSkillGuidance = guidanceFields.find(
+          (field) => field.fieldId === 'progression.skill_core_cinema',
+        )
+        const currentSkillDirections =
+          currentSkillGuidance?.state === 'ready' &&
+          currentSkillGuidance.value &&
+          typeof currentSkillGuidance.value === 'object' &&
+          Array.isArray(
+            (currentSkillGuidance.value as { sourceDirections?: unknown }).sourceDirections,
+          )
+            ? (
+                currentSkillGuidance.value as { sourceDirections: unknown[] }
+              ).sourceDirections.filter(
+                (direction): direction is string => typeof direction === 'string',
+              )
+            : []
         const skillRecommendation = agentDevelopmentSkillRecommendations(
           agentId,
-          profile.recommendation?.skillPriority ?? constraint?.progressionDirection ?? [],
+          [
+            ...currentSkillDirections,
+            ...(profile.recommendation?.skillPriority ?? constraint?.progressionDirection ?? []),
+          ],
           recommendation?.skillPriority ?? [],
           {
             skillLevels: agent.skillLevels,
@@ -91,7 +111,6 @@ export function projectDevelopmentWorkbenchPresentation(
               `已知套装：${constraint.setIds.map((id) => setNames[id] ?? id).join('、')}。${constraint.setPlanReadiness.reason === 'unresolved_set_roles' ? '主套与副套的完整搭配尚待确认。' : '副套装尚待确认。'}`)
             : '完整套装搭配资料待补齐。'
         const targetPanel = getCurrentBuildTargetPanel(agentId)
-        const guidanceFields = getCurrentBuildAuthorityProfile(agentId)?.guidance.fields ?? []
         const readyConditions = (fieldId: string) => {
           const field = guidanceFields.find((item) => item.fieldId === fieldId)
           return field?.state === 'ready' ? [...field.conditions] : []

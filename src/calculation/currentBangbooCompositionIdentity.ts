@@ -1,4 +1,7 @@
-import { getCurrentAgentEventContract } from './currentAgentMechanicContracts'
+import {
+  getCurrentAgentNumericContract,
+  isReviewedPhoenixNumericContract,
+} from './currentAgentNumericContracts'
 import { getReviewedAgentAttackTypes32 } from '../gameDataPacks/reviewedAgentAttackTypes32'
 import { bangbooFactionCompositionKey } from '../decision/bangbooCompositionIdentity'
 
@@ -28,9 +31,12 @@ export function projectCurrentBangbooComposition32(memberIds: readonly string[])
     'attack_type:pierce': 0,
   }
   for (const agentId of memberIds) {
-    const identity = getCurrentAgentEventContract(agentId)?.identity
+    const contract = getCurrentAgentNumericContract(agentId)
+    if (contract?.source.provider === 'nanoka' && !isReviewedPhoenixNumericContract(contract))
+      return null
+    const identity = contract?.identity
     const attackTypes = getReviewedAgentAttackTypes32(agentId)
-    if (!identity || !attackTypes) return null
+    if (!identity || !attackTypes?.length) return null
     for (const key of [
       currentBangbooAgentCompositionKey(agentId),
       `attribute:${identity.attribute}`,

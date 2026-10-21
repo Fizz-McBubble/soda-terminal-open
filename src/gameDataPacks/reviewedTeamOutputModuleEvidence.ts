@@ -1,13 +1,19 @@
 import { teamOutputModules, type TeamOutputModuleResolution } from './teamOutputModuleContract'
+import { reviewedTeamOutputModuleBatch32 } from './reviewedTeamOutputModuleBatch32'
+import { reviewedTeamOutputModuleCoverageExpansion32 } from './reviewedTeamOutputModuleCoverageExpansion32'
+import { reviewedTeamOutputModuleCurrentSemanticBatch32 } from './reviewedTeamOutputModuleCurrentSemanticBatch32'
+import { reviewedTeamOutputModuleStrictBatch32 } from './reviewedTeamOutputModuleStrictBatch32'
+import { reviewedHoyoBuildCurrentOutputModules32 } from './reviewedHoyoBuildCurrentOutputModules32'
 
-type ReviewedTeamOutputModuleEvidence = {
+export type ReviewedTeamOutputModuleEvidence = {
   memberIds: readonly [string, string, string]
   classification:
     | 'current_exact_team_review'
     | 'current_aggregate_exact_team_observation'
     | 'historical_exact_team_review'
     | 'author_comparison_only'
-  module: (typeof teamOutputModules)[keyof typeof teamOutputModules]
+  module: import('./teamOutputModuleContract').TeamOutputModule
+  sourceEvidence?: readonly import('./teamOutputModuleContract').TeamOutputModuleSourceEvidence[]
 }
 
 function memberKey(memberIds: readonly string[]) {
@@ -20,20 +26,58 @@ function memberKey(memberIds: readonly string[]) {
  * its own membership, role and execution evidence has been reviewed.
  */
 export const reviewedTeamOutputModuleEvidence = [
+  ...reviewedTeamOutputModuleBatch32,
+  ...reviewedTeamOutputModuleCoverageExpansion32,
+  ...reviewedTeamOutputModuleCurrentSemanticBatch32,
+  ...reviewedTeamOutputModuleStrictBatch32,
+  ...reviewedHoyoBuildCurrentOutputModules32,
+  {
+    memberIds: ['agent-koleda', 'agent-yixuan', 'agent-lucia'],
+    classification: 'current_exact_team_review',
+    module: teamOutputModules.ruptureStun,
+  },
+  {
+    memberIds: ['agent-koleda', 'agent-soldier-11', 'agent-lucy'],
+    classification: 'current_exact_team_review',
+    module: teamOutputModules.directStun,
+  },
+  {
+    memberIds: ['agent-sigrid', 'agent-norma', 'agent-astra'],
+    classification: 'current_exact_team_review',
+    module: teamOutputModules.directStun,
+  },
+  {
+    memberIds: ['agent-sigrid', 'agent-dialyn', 'agent-rina'],
+    classification: 'current_exact_team_review',
+    module: teamOutputModules.directStun,
+  },
+  {
+    memberIds: ['agent-sigrid', 'agent-lycaon', 'agent-rina'],
+    classification: 'current_exact_team_review',
+    module: teamOutputModules.directStun,
+  },
   {
     memberIds: ['agent-miyabi', 'agent-remielle', 'agent-velina'],
     classification: 'current_exact_team_review',
-    module: teamOutputModules.anomalyDisorder,
+    module: teamOutputModules.anomalyLuminize,
   },
   {
     memberIds: ['agent-claret', 'agent-norma', 'agent-rina'],
     classification: 'current_exact_team_review',
-    module: teamOutputModules.sharpStun,
+    module: {
+      ...teamOutputModules.sharpStun,
+      id: 'module-claret-norma-rina-sharp-stun',
+      teamFunctions: ['stun', 'support'],
+    },
   },
   {
     memberIds: ['agent-claret', 'agent-koleda', 'agent-rina'],
     classification: 'current_exact_team_review',
-    module: teamOutputModules.sharpStun,
+    module: {
+      ...teamOutputModules.sharpStun,
+      id: 'module-claret-koleda-rina-sharp-stun',
+      teamFunctions: ['stun', 'support'],
+    },
   },
   {
     memberIds: ['agent-claret', 'agent-roxy', 'agent-rina'],
@@ -90,9 +134,45 @@ export const reviewedTeamOutputModuleEvidence = [
     classification: 'historical_exact_team_review',
     module: teamOutputModules.anomalyPolarity,
   },
+  {
+    memberIds: ['agent-claret', 'agent-lycaon', 'agent-rina'],
+    classification: 'current_exact_team_review',
+    module: {
+      ...teamOutputModules.sharpStun,
+      id: 'module-claret-lycaon-rina-sharp-stun',
+      teamFunctions: ['stun', 'support'],
+    },
+    sourceEvidence: [
+      {
+        sourceId: 'prydwen-claret-3.2-lycaon-rina',
+        sourceVersion: '3.2',
+        contentHash: '7D89817F698377C78EE82FF059DF11CAD469553E755AF3CE78A877F92ACF9CF3',
+        locator: 'https://www.prydwen.gg/zenless/characters/claret#teams-synergy;lineno=696',
+        text: "Lycaon's Potential Unlock makes him a decent pick for Claret too.",
+      },
+    ],
+  },
+  {
+    memberIds: ['agent-claret', 'agent-trigger', 'agent-nicole'],
+    classification: 'current_exact_team_review',
+    module: {
+      ...teamOutputModules.sharpStun,
+      id: 'module-claret-trigger-nicole-sharp-stun',
+      teamFunctions: ['stun', 'support'],
+    },
+    sourceEvidence: [
+      {
+        sourceId: 'prydwen-claret-3.2-trigger-nicole',
+        sourceVersion: '3.2',
+        contentHash: '7D89817F698377C78EE82FF059DF11CAD469553E755AF3CE78A877F92ACF9CF3',
+        locator: 'https://www.prydwen.gg/zenless/characters/claret#teams-synergy;lineno=699',
+        text: 'The synergy here does ride on Trigger having her Signature for DEF Shred, but if field-time and buff/debuff upkeep is well managed, they make for good picks.',
+      },
+    ],
+  },
 ] as const satisfies readonly ReviewedTeamOutputModuleEvidence[]
 
-const evidenceByMemberKey = new Map(
+const evidenceByMemberKey = new Map<string, ReviewedTeamOutputModuleEvidence>(
   reviewedTeamOutputModuleEvidence.map((entry) => [memberKey(entry.memberIds), entry]),
 )
 
@@ -108,5 +188,6 @@ export function resolveReviewedTeamOutputModule(
     status: 'classified',
     classification: evidence.classification,
     module: evidence.module,
+    ...(evidence.sourceEvidence ? { sourceEvidence: evidence.sourceEvidence } : {}),
   }
 }

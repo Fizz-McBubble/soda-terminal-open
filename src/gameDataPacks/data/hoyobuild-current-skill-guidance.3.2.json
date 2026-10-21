@@ -1,0 +1,3308 @@
+{
+  "schema": "soda-hoyobuild-current-skill-guidance/v1",
+  "source": "https://hoyobuild.com/en/zzz/characters/{slug}",
+  "checkedAt": "2026-10-20T15:47:15.495Z",
+  "boundary": "Minimal public-page projection: six-entry talent priority and notable Mindscape level/tag only. No effect prose, tier, DPS, usage or best-team claim is retained.",
+  "entries": [
+    {
+      "agentId": "agent-roxy",
+      "url": "https://hoyobuild.com/en/zzz/characters/roxy",
+      "pageVersion": "3.2",
+      "updatedAt": "October 2, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 5,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 4,
+          "tag": "Optional"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "CC60249BB0637F8ABCD256BD987CEC0833CE8B8510AB4E212C1A166D4EB8FC45"
+    },
+    {
+      "agentId": "agent-claret",
+      "url": "https://hoyobuild.com/en/zzz/characters/claret",
+      "pageVersion": "3.2",
+      "updatedAt": "September 24, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "4262DD801E076030FCC87570214FAB229433E2457F5CC88A3E5354F86B9B4549"
+    },
+    {
+      "agentId": "agent-sigrid",
+      "url": "https://hoyobuild.com/en/zzz/characters/sigrid",
+      "pageVersion": "3.2",
+      "updatedAt": "September 24, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "8D56BFBD7B4C5036DD17C99E27A21829CCED8C3D230498B2C672AE49B828A79B"
+    },
+    {
+      "agentId": "agent-remielle",
+      "url": "https://hoyobuild.com/en/zzz/characters/remielle",
+      "pageVersion": "3.2",
+      "updatedAt": "September 24, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 3,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 4,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 5,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "390C5F4E747FBCAD8416EB6A1C115BE10A37893469FA80B4E3D6A410B9C3AB4C"
+    },
+    {
+      "agentId": "agent-norma",
+      "url": "https://hoyobuild.com/en/zzz/characters/norma",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 5,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "70841F7E34B209E478116C12FFE84E695109A317F9F329B22A2DD482ED717D60"
+    },
+    {
+      "agentId": "agent-pyrois",
+      "url": "https://hoyobuild.com/en/zzz/characters/pyrois",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 3,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 4,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 4,
+          "tag": "Optional"
+        }
+      ],
+      "extractionSha256": "3A564C86020BD886BCD3FA4752F88374FFE2372E7C40699F355172C463595D91"
+    },
+    {
+      "agentId": "agent-velina",
+      "url": "https://hoyobuild.com/en/zzz/characters/velina",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 5,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "C25012D154C43F2281D00D635B03ABF6C3FC893F2468DD653F9568E604CC6939"
+    },
+    {
+      "agentId": "agent-starlight-billy",
+      "url": "https://hoyobuild.com/en/zzz/characters/starlight-billy",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 3,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 4,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "F1F9D727588B760F966285F787416B6CC4703EE1232F0CAC6CA782D8BC7B247A"
+    },
+    {
+      "agentId": "agent-promeia",
+      "url": "https://hoyobuild.com/en/zzz/characters/promeia",
+      "pageVersion": "3.2",
+      "updatedAt": "September 24, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Optional"
+        }
+      ],
+      "extractionSha256": "33A34EF9D48B793295739C33040A3D72608397437726F5785F52BFA372C69503"
+    },
+    {
+      "agentId": "agent-cissia",
+      "url": "https://hoyobuild.com/en/zzz/characters/cissia",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 3,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 4,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "162BA461F99AEEBAC94BF04CA0ECBFEFF114E68A6C8B7C716E15F4D74212EE2E"
+    },
+    {
+      "agentId": "agent-nangong",
+      "url": "https://hoyobuild.com/en/zzz/characters/nangong-yu",
+      "pageVersion": "3.2",
+      "updatedAt": "September 24, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "D2309630443592F61671301DE5F87C8EA93EFF753D7E06BAE353563C2F916315"
+    },
+    {
+      "agentId": "agent-aria",
+      "url": "https://hoyobuild.com/en/zzz/characters/aria",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 3,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 4,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Big upgrade"
+        }
+      ],
+      "extractionSha256": "59FC43281335C91F1F271BA705ADF7B05096770B678F0D80411BB46EEFAF1A01"
+    },
+    {
+      "agentId": "agent-sunna",
+      "url": "https://hoyobuild.com/en/zzz/characters/sunna",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 5,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "6FF9A1F8E35135486A9635FBD516795B16237AC4C6FE0B6549CFDA7ADBFC41F5"
+    },
+    {
+      "agentId": "agent-zhao",
+      "url": "https://hoyobuild.com/en/zzz/characters/zhao",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 4,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "4665CC4AF82074E5E5DC245C9C09CEA496432468D591A338ED76DF18FDACDFD9"
+    },
+    {
+      "agentId": "agent-ye-shunguang",
+      "url": "https://hoyobuild.com/en/zzz/characters/ye-shunguang",
+      "pageVersion": "3.2",
+      "updatedAt": "September 24, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 5,
+          "label": "Dodge",
+          "key": "dodge"
+        },
+        {
+          "order": 6,
+          "label": "Assist",
+          "key": "assist"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "D6C5F452B8D13EC7974155EC49613D671A3AEB6162173A0100C42B64DA25B7B8"
+    },
+    {
+      "agentId": "agent-banyue",
+      "url": "https://hoyobuild.com/en/zzz/characters/banyue",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "B0A79B40F6FE2E1DC31B7FD553E1D9675A1F445C039011E28D8E4072E3AA1D9F"
+    },
+    {
+      "agentId": "agent-dialyn",
+      "url": "https://hoyobuild.com/en/zzz/characters/dialyn",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "298BFA511D1430704C5C33429A1C0D6D034CEBF3A2278D3B21BDC6D630826486"
+    },
+    {
+      "agentId": "agent-yidhari",
+      "url": "https://hoyobuild.com/en/zzz/characters/yidhari",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 4,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "5403E7F9D4E7183C5403367E13E38EFAB171F66274D32DD3F8FFFD942104AD3A"
+    },
+    {
+      "agentId": "agent-lucia",
+      "url": "https://hoyobuild.com/en/zzz/characters/lucia",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "56D8FF90FAAC96ECDF568246BF8BB4782CAB186817C9A8B2C95A461BF185287D"
+    },
+    {
+      "agentId": "agent-orphie-magus",
+      "url": "https://hoyobuild.com/en/zzz/characters/orphie-magus",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 5,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 4,
+          "tag": "Optional"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "B0898462257192AF7FBF621680AFF993D7A16CC5E63C88589555E686A5D35274"
+    },
+    {
+      "agentId": "agent-seed",
+      "url": "https://hoyobuild.com/en/zzz/characters/seed",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "20DA7FD547492A2EFAD122E7904633D35B36276A1B5C6F67D5B45851D6076E58"
+    },
+    {
+      "agentId": "agent-alice",
+      "url": "https://hoyobuild.com/en/zzz/characters/alice",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 5,
+          "label": "Dodge",
+          "key": "dodge"
+        },
+        {
+          "order": 6,
+          "label": "Assist",
+          "key": "assist"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Big upgrade"
+        }
+      ],
+      "extractionSha256": "ECD5D38F24FE82D2A94D7AD7570529BB492FCC870B5C86077799AE8EA961356C"
+    },
+    {
+      "agentId": "agent-yuzuha",
+      "url": "https://hoyobuild.com/en/zzz/characters/yuzuha",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 4,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Big upgrade"
+        }
+      ],
+      "extractionSha256": "122F058359E040845118DEF50DA71DDDDFD7BC9A6B4DC1A8FFD883E208870E10"
+    },
+    {
+      "agentId": "agent-ju-fufu",
+      "url": "https://hoyobuild.com/en/zzz/characters/ju-fufu",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 3,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 4,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "2ABA6C410479E63CA553EAEF665871F93B03ED8B47BE282EBC3344F3CE3D1E03"
+    },
+    {
+      "agentId": "agent-yixuan",
+      "url": "https://hoyobuild.com/en/zzz/characters/yixuan",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Big upgrade"
+        }
+      ],
+      "extractionSha256": "E099293C5DAA862FF2209425F3FE7F9B8A0B33CE9D801AE29F251960B9330657"
+    },
+    {
+      "agentId": "agent-hugo",
+      "url": "https://hoyobuild.com/en/zzz/characters/hugo",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Big upgrade"
+        }
+      ],
+      "extractionSha256": "1FBDEFF61264354F51DD9054D5D1F72BEE1E96B73977DC457A8FD3C04DCEA0A4"
+    },
+    {
+      "agentId": "agent-vivian",
+      "url": "https://hoyobuild.com/en/zzz/characters/vivian",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 3,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 4,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 4,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Big upgrade"
+        }
+      ],
+      "extractionSha256": "7889923B8C61FDD9700DDD4C36692EEABEF9843EEFB39CD9DB0DB21371E755D2"
+    },
+    {
+      "agentId": "agent-trigger",
+      "url": "https://hoyobuild.com/en/zzz/characters/trigger",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 3,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 4,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 4,
+          "tag": "Optional"
+        },
+        {
+          "level": 6,
+          "tag": "Big upgrade"
+        }
+      ],
+      "extractionSha256": "1A1F533AEAA868F0AF9A7E044CE93D185AA888E8959C519AFCDDECE6D557FDE6"
+    },
+    {
+      "agentId": "agent-soldier-0-anby",
+      "url": "https://hoyobuild.com/en/zzz/characters/soldier-0-anby",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 5,
+          "label": "Dodge",
+          "key": "dodge"
+        },
+        {
+          "order": 6,
+          "label": "Assist",
+          "key": "assist"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 4,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Big upgrade"
+        }
+      ],
+      "extractionSha256": "395AA7D22D60370C8481AECF8EBBE62A8B3897866DC9B1750A2484FC68E9B50E"
+    },
+    {
+      "agentId": "agent-evelyn",
+      "url": "https://hoyobuild.com/en/zzz/characters/evelyn",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 3,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 4,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 4,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Big upgrade"
+        }
+      ],
+      "extractionSha256": "D794FE0FB94E1244C042D4F72AA892D3447AAE806D72DAA79A913D0E90C520E9"
+    },
+    {
+      "agentId": "agent-astra",
+      "url": "https://hoyobuild.com/en/zzz/characters/astra-yao",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 5,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 4,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Big upgrade"
+        }
+      ],
+      "extractionSha256": "CD0C78E3B966D3622BA16508834E979EC3FBA4DCF879C2C681533263586D6CF2"
+    },
+    {
+      "agentId": "agent-miyabi",
+      "url": "https://hoyobuild.com/en/zzz/characters/miyabi",
+      "pageVersion": "3.2",
+      "updatedAt": "September 24, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Big upgrade"
+        }
+      ],
+      "extractionSha256": "5321E96749CC50DCEAE90B92CBED93D531EA3C8E12215054A929688C300E7BCD"
+    },
+    {
+      "agentId": "agent-harumasa",
+      "url": "https://hoyobuild.com/en/zzz/characters/harumasa",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Dodge",
+          "key": "dodge"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 5,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 6,
+          "label": "Assist",
+          "key": "assist"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Optional"
+        },
+        {
+          "level": 4,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Big upgrade"
+        }
+      ],
+      "extractionSha256": "B87D940825B58E0061B074B421E6C68362C4D8817E03B91528B2EBE90F94C463"
+    },
+    {
+      "agentId": "agent-lighter",
+      "url": "https://hoyobuild.com/en/zzz/characters/lighter",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 3,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 4,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 5,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 4,
+          "tag": "Optional"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "1ABE52AF8A0DE7D461B67537F15F5155FEEBF44BF2B557C42474E608D57CDAA4"
+    },
+    {
+      "agentId": "agent-yanagi",
+      "url": "https://hoyobuild.com/en/zzz/characters/yanagi",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 4,
+          "tag": "Optional"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "7D84FA4200ED3913D0071AD3BADE5669045B90AF8DA11794D6E4A0E9A03A408F"
+    },
+    {
+      "agentId": "agent-burnice",
+      "url": "https://hoyobuild.com/en/zzz/characters/burnice",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 4,
+          "tag": "Optional"
+        },
+        {
+          "level": 6,
+          "tag": "Big upgrade"
+        }
+      ],
+      "extractionSha256": "B8A7B52B8BE76A7FF9EBB40CA08FA39A641E833C0A09C07ED073FFA854BFF652"
+    },
+    {
+      "agentId": "agent-caesar",
+      "url": "https://hoyobuild.com/en/zzz/characters/caesar",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 3,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 4,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 5,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 4,
+          "tag": "Optional"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "8A459F95585219AAA9E1B9719BCF46A220922CD95E476E012F269608CE6381E9"
+    },
+    {
+      "agentId": "agent-jane",
+      "url": "https://hoyobuild.com/en/zzz/characters/jane",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 3,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 4,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 5,
+          "label": "Dodge",
+          "key": "dodge"
+        },
+        {
+          "order": 6,
+          "label": "Assist",
+          "key": "assist"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 4,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Big upgrade"
+        }
+      ],
+      "extractionSha256": "4F64BBD6A198BFC27CF29208C7CEB55AE5A34869AFF8E82B2AC2B1B639FE3816"
+    },
+    {
+      "agentId": "agent-qingyi",
+      "url": "https://hoyobuild.com/en/zzz/characters/qingyi",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 3,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 4,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 5,
+          "label": "Dodge",
+          "key": "dodge"
+        },
+        {
+          "order": 6,
+          "label": "Assist",
+          "key": "assist"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 4,
+          "tag": "Optional"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "78246AAEA3A8D1ADDFE17AB6D6921606BC9E88B61A13C5A88A3723760E225BAD"
+    },
+    {
+      "agentId": "agent-zhu-yuan",
+      "url": "https://hoyobuild.com/en/zzz/characters/zhu-yuan",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 5,
+          "label": "Dodge",
+          "key": "dodge"
+        },
+        {
+          "order": 6,
+          "label": "Assist",
+          "key": "assist"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 4,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "E12CA3C612CE02D15D64C3B30C2F9DB0BDD3D577D2DF4E55CB863EE1150A2568"
+    },
+    {
+      "agentId": "agent-nekomata",
+      "url": "https://hoyobuild.com/en/zzz/characters/nekomata",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Dodge",
+          "key": "dodge"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 5,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 6,
+          "label": "Assist",
+          "key": "assist"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Optional"
+        },
+        {
+          "level": 4,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Big upgrade"
+        }
+      ],
+      "extractionSha256": "64131F107C2809E878B1BEA9B15B2DE8D2728F15640AB67AA1F2475D7308DE48"
+    },
+    {
+      "agentId": "agent-soldier-11",
+      "url": "https://hoyobuild.com/en/zzz/characters/soldier-11",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 5,
+          "label": "Dodge",
+          "key": "dodge"
+        },
+        {
+          "order": 6,
+          "label": "Assist",
+          "key": "assist"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 4,
+          "tag": "Optional"
+        },
+        {
+          "level": 6,
+          "tag": "Big upgrade"
+        }
+      ],
+      "extractionSha256": "B378A79A848933C64B32A283194F668F22CA98C9D0680F9C1BDD31D8E4D8C322"
+    },
+    {
+      "agentId": "agent-koleda",
+      "url": "https://hoyobuild.com/en/zzz/characters/koleda",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "D9B2D4F72342192FC083FD2DC097DCAE4AAD6211B4B0A682F4E055D2D6A30FC7"
+    },
+    {
+      "agentId": "agent-lycaon",
+      "url": "https://hoyobuild.com/en/zzz/characters/lycaon",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 4,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 5,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Optional"
+        }
+      ],
+      "extractionSha256": "6E24BA07016C9E8D79F7AA68A8CF5CB9E6DDC5E99BAC19B491A8304D3D439FF9"
+    },
+    {
+      "agentId": "agent-grace",
+      "url": "https://hoyobuild.com/en/zzz/characters/grace",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 4,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Optional"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 4,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "1A633E297435FC3740A7B4A689029F7866307CA719B2EA7A3917D67DB421E1F4"
+    },
+    {
+      "agentId": "agent-ellen",
+      "url": "https://hoyobuild.com/en/zzz/characters/ellen",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 3,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 4,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 5,
+          "label": "Dodge",
+          "key": "dodge"
+        },
+        {
+          "order": 6,
+          "label": "Assist",
+          "key": "assist"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 4,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Big upgrade"
+        }
+      ],
+      "extractionSha256": "0969C9B86220268E0BE0168ACFF8BCA6643156016F4F1610F0274F581A0CFB2A"
+    },
+    {
+      "agentId": "agent-rina",
+      "url": "https://hoyobuild.com/en/zzz/characters/rina",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Optional"
+        },
+        {
+          "level": 4,
+          "tag": "Optional"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "B5A7C522294DA9ED9B723DC4A0CD985013B283FC76B8E16453F063DAFAD3C967"
+    },
+    {
+      "agentId": "agent-manato",
+      "url": "https://hoyobuild.com/en/zzz/characters/manato",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 3,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 4,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 5,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 4,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Big upgrade"
+        }
+      ],
+      "extractionSha256": "540FDB442EAA26D8B750B57278AA9A9D9075FBB17C633B9A0097EB9A40E76E98"
+    },
+    {
+      "agentId": "agent-pan-yinhu",
+      "url": "https://hoyobuild.com/en/zzz/characters/pan-yinhu",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 5,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Big upgrade"
+        }
+      ],
+      "extractionSha256": "2DB0AE3497401F79F5F3830C8CCBFA0022FD0BCF6E28299EBB4EB4132D540830"
+    },
+    {
+      "agentId": "agent-pulchra",
+      "url": "https://hoyobuild.com/en/zzz/characters/pulchra",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 5,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Optional"
+        },
+        {
+          "level": 2,
+          "tag": "Optional"
+        },
+        {
+          "level": 4,
+          "tag": "Optional"
+        },
+        {
+          "level": 6,
+          "tag": "Big upgrade"
+        }
+      ],
+      "extractionSha256": "66142FA707110D93B70305023A23DB5F9D6529D68662D1D7D5DFEAF7A8C02FDB"
+    },
+    {
+      "agentId": "agent-seth",
+      "url": "https://hoyobuild.com/en/zzz/characters/seth",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 5,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 4,
+          "tag": "Optional"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "B5A069CDB936E958885727467B1391CA0009A9718620DCFBD5686FD52921465C"
+    },
+    {
+      "agentId": "agent-anby",
+      "url": "https://hoyobuild.com/en/zzz/characters/anby",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 4,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 5,
+          "label": "Dodge",
+          "key": "dodge"
+        },
+        {
+          "order": 6,
+          "label": "Assist",
+          "key": "assist"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 2,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 4,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Big upgrade"
+        }
+      ],
+      "extractionSha256": "9FBE62FFD32F991C994879E9C5FD426AB5C7547BFF3452F735D730928C06E8C0"
+    },
+    {
+      "agentId": "agent-nicole",
+      "url": "https://hoyobuild.com/en/zzz/characters/nicole",
+      "pageVersion": "3.2",
+      "updatedAt": "September 24, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 3,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 4,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 4,
+          "tag": "Optional"
+        },
+        {
+          "level": 6,
+          "tag": "Big upgrade"
+        }
+      ],
+      "extractionSha256": "5F7894DC0BEFFBCB1A93E2C69CE9AB9FB16C013381CA78E4F03621A895A6556A"
+    },
+    {
+      "agentId": "agent-corin",
+      "url": "https://hoyobuild.com/en/zzz/characters/corin",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 3,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 4,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 5,
+          "label": "Dodge",
+          "key": "dodge"
+        },
+        {
+          "order": 6,
+          "label": "Basic Attack",
+          "key": "basic"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 4,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Big upgrade"
+        }
+      ],
+      "extractionSha256": "C966B50A83B64959665641BB28890F6949E41EC87135B849443AE2E8831B55AC"
+    },
+    {
+      "agentId": "agent-billy",
+      "url": "https://hoyobuild.com/en/zzz/characters/billy",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 3,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 4,
+          "label": "Dodge",
+          "key": "dodge"
+        },
+        {
+          "order": 5,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 6,
+          "label": "Assist",
+          "key": "assist"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Optional"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 4,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Big upgrade"
+        }
+      ],
+      "extractionSha256": "4718F08B74DEC7F2A24B45B5B3AFE6EE60447B775E1F8A0CA77B3D2E1A771FB5"
+    },
+    {
+      "agentId": "agent-anton",
+      "url": "https://hoyobuild.com/en/zzz/characters/anton",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 3,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 4,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Optional"
+        },
+        {
+          "level": 4,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "A8F5A329EDF230A4CA073B0DD0C1A25F7E03B497D3E05BF6F33176CC14F5A481"
+    },
+    {
+      "agentId": "agent-ben",
+      "url": "https://hoyobuild.com/en/zzz/characters/ben",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 5,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 4,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Optional"
+        }
+      ],
+      "extractionSha256": "4298DE76AAB110C1405C7269422596078CCA80648BF12ABED58881C441744D0A"
+    },
+    {
+      "agentId": "agent-soukaku",
+      "url": "https://hoyobuild.com/en/zzz/characters/soukaku",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Optional"
+        },
+        {
+          "level": 4,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Solid upgrade"
+        }
+      ],
+      "extractionSha256": "BAC7F09D806B31EA8FFC8A3386ECBDF22F95CBD138D8E559688E19CDECDCD9DF"
+    },
+    {
+      "agentId": "agent-lucy",
+      "url": "https://hoyobuild.com/en/zzz/characters/lucy",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 2,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 5,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 4,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Big upgrade"
+        }
+      ],
+      "extractionSha256": "E7B19D8DF31A7EA615B535CA77B20B2C26E5FA1E45B8686EA8B82549D113ABD2"
+    },
+    {
+      "agentId": "agent-piper",
+      "url": "https://hoyobuild.com/en/zzz/characters/piper",
+      "pageVersion": "3.2",
+      "updatedAt": "September 26, 2026",
+      "talentPriority": [
+        {
+          "order": 1,
+          "label": "Core Skill",
+          "key": "core"
+        },
+        {
+          "order": 2,
+          "label": "Special Attack",
+          "key": "special"
+        },
+        {
+          "order": 3,
+          "label": "Chain Attack",
+          "key": "chain"
+        },
+        {
+          "order": 4,
+          "label": "Assist",
+          "key": "assist"
+        },
+        {
+          "order": 5,
+          "label": "Basic Attack",
+          "key": "basic"
+        },
+        {
+          "order": 6,
+          "label": "Dodge",
+          "key": "dodge"
+        }
+      ],
+      "cinemaLevels": [
+        {
+          "level": 1,
+          "tag": "Big upgrade"
+        },
+        {
+          "level": 2,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 4,
+          "tag": "Solid upgrade"
+        },
+        {
+          "level": 6,
+          "tag": "Big upgrade"
+        }
+      ],
+      "extractionSha256": "A7DBA17D9504B701AA6FB9EB182FB9E14C70EE1B2EFAA88D07FE64C29769A1A2"
+    }
+  ]
+}

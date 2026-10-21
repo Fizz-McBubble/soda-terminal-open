@@ -23,6 +23,8 @@ export type TeamLoadoutOverviewItem = {
   familyKey: string
   title: string
   agentIds: string[]
+  formedTeamReference?: import('../application/publicFormedTeamReference').FormedTeamReference
+  formedCultivationGaps?: string[]
   deploymentOrder?: import('../decision/teamDeployment').TeamDeploymentOrder
   coreAgentIds: string[]
   mechanism: string
@@ -125,6 +127,8 @@ export type TeamLoadoutOverviewGroup = {
   label: string
   description: string
   items: TeamLoadoutOverviewFamily[]
+  /** Source-backed directions revealed only through the reference filter. */
+  referenceItems?: TeamLoadoutOverviewFamily[]
   completionCandidates?: TeamLoadoutCompletionCandidate[]
 }
 

@@ -17,7 +17,7 @@
       "buildKey": "charged-final-verdict-support",
       "goals": ["functional"],
       "profileId": "retention-normal-m0:agent-zhao:charged-final-verdict-support",
-      "profileFingerprint": "fnv1a-72a94474",
+      "profileFingerprint": "fnv1a-c98a716a",
       "sourceCommit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
       "formulaSha256": "D371D769E3EFA7F079DE26EE86762F7001B1025655CAF767D596F79FEF434B15",
       "statsSha256": "64CF480CCEE2AD0C6752E5938D49AE1B9658358E202AB0C0852559649826657E",
@@ -41,7 +41,40 @@
           "previousSha256": "D371D769E3EFA7F079DE26EE86762F7001B1025655CAF767D596F79FEF434B15",
           "currentSha256": "D371D769E3EFA7F079DE26EE86762F7001B1025655CAF767D596F79FEF434B15"
         }
-      ]
+      ],
+      "constraintReadoption": {
+        "reviewedAt": "2026-10-21",
+        "comparisonBaselineCommit": "1fc905f1",
+        "reviewedProductionCommit": "3fa9e5cc",
+        "previousFingerprint": "fnv1a-72a94474",
+        "currentFingerprint": "fnv1a-c98a716a",
+        "changedFields": [
+          "/sources/5",
+          "/setIds/2",
+          "/setIds/3",
+          "/setPlans/0/sourceText",
+          "/setPlans/0/purpose",
+          "/setPlans/1/primarySetIds/0",
+          "/setPlans/1/sourceText",
+          "/setPlans/1/purpose",
+          "/setPlans/2"
+        ],
+        "basis": "HoyoBuild source hoyobuild-agent-zhao-drive-discs-32-20261020 adds Bunny 4 + Swing Jazz 2 for Veil energy and qualifies existing Astral Voice 4 + Swing Jazz 2 for an Attack DPS teammate. Bunny 4 + Yunkui 2 remains recommended. All branches retain HP support/functional ordinary M0 purpose; none adopts M6 direct damage or aftershock damage as a target. Main stats, weights and target panel are unchanged from the adoption baseline.",
+        "preservedScope": [
+          "standard_combat",
+          "mindscape_0",
+          "no_modifiers",
+          "charged-final-verdict-support",
+          "functional"
+        ],
+        "preservedSourceBindings": {
+          "sourceCommit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+          "formulaSha256": "D371D769E3EFA7F079DE26EE86762F7001B1025655CAF767D596F79FEF434B15",
+          "statsSha256": "64CF480CCEE2AD0C6752E5938D49AE1B9658358E202AB0C0852559649826657E",
+          "reviewedSourceArtifactSha256": "C093695970D1399E6B169AC0B0859B7AAC4640E83F6C1F161A4B30409E614373"
+        },
+        "boundary": "Exact full constraint binding remains mandatory. This re-adoption does not authorize any other profile, branch drift, runtime tag absence, strength, formal calculation or account mindscape."
+      }
     },
     {
       "reviewId": "normal31:enlightened-mind-basic-rotation:r1",
@@ -407,7 +440,7 @@
       "buildKey": "lumiflux-luminize-cycle",
       "goals": ["anomaly_damage"],
       "profileId": "retention-normal-m0:agent-remielle:lumiflux-luminize-cycle",
-      "profileFingerprint": "fnv1a-16ad39bb",
+      "profileFingerprint": "fnv1a-a9e61790",
       "sourceCommit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
       "formulaSha256": "75AF20EB1BA2266489D8901F948DB4AE51C73D5DE73C172F09B2349CFD503225",
       "statsSha256": "E09C72F57CDB21349A8C43EDBF3BB944F1CAB475544F8CECC6921537A0474EB3",
@@ -431,7 +464,30 @@
           "previousSha256": "75AF20EB1BA2266489D8901F948DB4AE51C73D5DE73C172F09B2349CFD503225",
           "currentSha256": "75AF20EB1BA2266489D8901F948DB4AE51C73D5DE73C172F09B2349CFD503225"
         }
-      ]
+      ],
+      "constraintReadoption": {
+        "reviewedAt": "2026-10-21",
+        "comparisonBaselineCommit": "1fc905f1",
+        "reviewedProductionCommit": "3fa9e5cc",
+        "previousFingerprint": "fnv1a-16ad39bb",
+        "currentFingerprint": "fnv1a-a9e61790",
+        "changedFields": ["/agentId"],
+        "basis": "Only candidate-3.1-agent-remielle -> agent-remielle identity normalization; currentReleasedIdentityMap retains the exact alias. Sources, set plans, main stats, weights, target panel and ordinary anomaly-cycle purpose are unchanged. Original review remains limited to separate Lumiflux/Luminize events; no new aftershock absence claim.",
+        "preservedScope": [
+          "standard_combat",
+          "mindscape_0",
+          "no_modifiers",
+          "lumiflux-luminize-cycle",
+          "anomaly_damage"
+        ],
+        "preservedSourceBindings": {
+          "sourceCommit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+          "formulaSha256": "75AF20EB1BA2266489D8901F948DB4AE51C73D5DE73C172F09B2349CFD503225",
+          "statsSha256": "E09C72F57CDB21349A8C43EDBF3BB944F1CAB475544F8CECC6921537A0474EB3",
+          "reviewedSourceArtifactSha256": "C093695970D1399E6B169AC0B0859B7AAC4640E83F6C1F161A4B30409E614373"
+        },
+        "boundary": "Exact full constraint binding remains mandatory. This re-adoption does not authorize any other profile, branch drift, runtime tag absence, strength, formal calculation or account mindscape."
+      }
     },
     {
       "reviewId": "normal31:converging-spear-basic-rotation:r1",
@@ -446,7 +502,7 @@
       "buildKey": "converging-spear-basic-rotation",
       "goals": ["crit_damage"],
       "profileId": "retention-normal-m0:agent-sigrid:converging-spear-basic-rotation",
-      "profileFingerprint": "fnv1a-c62da535",
+      "profileFingerprint": "fnv1a-9ce1bd8a",
       "sourceCommit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
       "formulaSha256": "F3DA778C5C0ECE30F1924AE4B1C752CB87DBD2AABEF64ABDBAB4648A5D8AF313",
       "statsSha256": "594656D6F41E3211203ACCCFC9B995A8F07BB69660AA72FBF8587F78F98D35F6",
@@ -470,7 +526,23 @@
           "previousSha256": "F3DA778C5C0ECE30F1924AE4B1C752CB87DBD2AABEF64ABDBAB4648A5D8AF313",
           "currentSha256": "F3DA778C5C0ECE30F1924AE4B1C752CB87DBD2AABEF64ABDBAB4648A5D8AF313"
         }
-      ]
+      ],
+      "reviewedSetPlanHashes": ["fnv1a-e9aba542", "fnv1a-6a75f25e"],
+      "constraintReadoption": {
+        "reviewedAt": "2026-10-21",
+        "comparisonBaselineCommit": "1fc905f1",
+        "reviewedProductionCommit": "3fa9e5cc",
+        "previousFingerprint": "fnv1a-c62da535",
+        "currentFingerprint": "fnv1a-9ce1bd8a",
+        "changedFields": ["/agentId", "/sources/9", "/setPlans"],
+        "basis": "Exact identity alias normalization and HoyoBuild explicit set branches reviewed. Hormone Punk recommended branch retains the original enhanced Basic rotation. Dawns Bloom branch explicitly requires EX before that enhanced Basic sequence; this prerequisite does not replace its primary action. The Puffer Electro / Dialyn Ultimate direction is excluded from this original Basic review. Both whole constraint and complete selected plan hashes must match; no selected branch means no adoption.",
+        "preservedSourceBindings": {
+          "sourceCommit": "3456cd0f6f5bea10e168074502460dac2fcd6df4",
+          "formulaSha256": "F3DA778C5C0ECE30F1924AE4B1C752CB87DBD2AABEF64ABDBAB4648A5D8AF313",
+          "statsSha256": "594656D6F41E3211203ACCCFC9B995A8F07BB69660AA72FBF8587F78F98D35F6",
+          "reviewedSourceArtifactSha256": "C093695970D1399E6B169AC0B0859B7AAC4640E83F6C1F161A4B30409E614373"
+        }
+      }
     }
   ],
   "constraintReview": {

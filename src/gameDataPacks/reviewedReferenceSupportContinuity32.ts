@@ -4,6 +4,19 @@ import { gameData31CurrentCanonical } from './gameData31CurrentCanonical'
 import { gameData32CatalogEntities } from './gameData32CatalogEntities'
 import { stableContentHash } from './types'
 import { currentReleasedIdentitySourceRegistry } from './currentReleasedIdentityMap'
+import { reviewedVersionApplicability33 } from './reviewedVersionApplicability33'
+
+/** Explicit retention of the existing generic reference bands only. This does
+ * not extend canonical fields, executable mechanics, or old index artifacts. */
+export const reviewedGenericReferenceContinuity33 = Object.freeze({
+  id: 'reviewed-generic-reference-3.1-via-3.2-to-3.3-r1',
+  sourceReviewVersion: '3.1',
+  adoptedForVersion: '3.3',
+  sourceDeltaHash: reviewedVersionApplicability33.sourceDeltaHash,
+  scope: 'formed_generic_reference',
+  boundary:
+    '保留原105条主观参考及原来源版本；不是3.3作者重评、客观准确率、运行时修复或Formal认可。',
+})
 
 /** User-adopted continuity of existing reference support, not a new publisher
  * review or Formal combat promotion. Restricted to this locked 3.1 -> 3.2 delta. */
@@ -53,7 +66,13 @@ export function canApplyReviewedReferenceSupport32(input: {
   const identity = reviewedReferenceSupportContinuity32
   const delta = currentVersionAdoption32.sourceIdentity.deltaIdentity
   return (
-    input.targetVersion === identity.adoptedForVersion &&
+    (input.targetVersion === identity.adoptedForVersion ||
+      (input.targetVersion === '3.3' &&
+        ['strengthGold', 'realityProfiles', 'publishedStrength', 'editorialAnalysis'].includes(
+          input.sourceKind,
+        ) &&
+        reviewedVersionApplicability33.sourceDeltaHash ===
+          'DD6B87A5CBFBB965726D2C79297F630EBCA85187AF09F7802A6F4D0D5B3A0AE0')) &&
     input.sourceReviewVersion === identity.sourceReviewVersion &&
     input.sourceContentHash === identity.sourceHashes[input.sourceKind] &&
     delta.previousCommit === identity.previousCommit &&

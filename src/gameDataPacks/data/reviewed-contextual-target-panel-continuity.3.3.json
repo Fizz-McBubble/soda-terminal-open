@@ -1,0 +1,49 @@
+{
+  "schema": "soda-reviewed-contextual-target-panel-continuity/v1",
+  "scope": "generic_target_panel_reference33",
+  "targetVersion": "3.3",
+  "sourceReviewVersion": "3.2",
+  "sourceDeltaHash": "DD6B87A5CBFBB965726D2C79297F630EBCA85187AF09F7802A6F4D0D5B3A0AE0",
+  "entries": [
+    {
+      "memberIds": ["agent-lycaon", "agent-miyabi", "agent-soukaku"],
+      "valueHash": "fnv1a-c7181bd7",
+      "sourceRefsHash": "fnv1a-8decdc04",
+      "conditionsHash": "fnv1a-dd2c0d5f",
+      "formulaBindings": [
+        {
+          "agentId": "agent-miyabi",
+          "formulaSha256": "7C7E1F1AEDA1D38976D4C0B47C111EB0B4FC76DFE0E6554B567D8260DF8127F3"
+        },
+        {
+          "agentId": "agent-lycaon",
+          "formulaSha256": "693E61F9CF5C463C1BDAE3F655052691275C8CB60AD50D5F7EB43EF09E4300D9"
+        },
+        {
+          "agentId": "agent-soukaku",
+          "formulaSha256": "2BC7C02BCB4AA77F80E173A3D11B8371198E73D8024D3D98C8A31F5814D5D2CB"
+        }
+      ]
+    },
+    {
+      "memberIds": ["agent-burnice", "agent-miyabi", "agent-remielle"],
+      "valueHash": "fnv1a-c7181bd7",
+      "sourceRefsHash": "fnv1a-aa49cadf",
+      "conditionsHash": "fnv1a-dd2c0d5f",
+      "formulaBindings": [
+        {
+          "agentId": "agent-miyabi",
+          "formulaSha256": "7C7E1F1AEDA1D38976D4C0B47C111EB0B4FC76DFE0E6554B567D8260DF8127F3"
+        },
+        {
+          "agentId": "agent-remielle",
+          "formulaSha256": "75AF20EB1BA2266489D8901F948DB4AE51C73D5DE73C172F09B2349CFD503225"
+        },
+        {
+          "agentId": "agent-burnice",
+          "formulaSha256": "8A46BA0B3E268C6C2E67C2029E0FA293D3C7C97718BC2063D43FB29EB81D2B3C"
+        }
+      ]
+    }
+  ]
+}

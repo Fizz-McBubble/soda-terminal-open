@@ -409,6 +409,7 @@ export function PlanEditor(props: PlanEditorProps) {
         </section>
       ) : null}
       <PlanEditorSavedStateNotices
+        formedTeamReference={restored?.solutionContext?.formedTeamReference}
         luminizeSettlement32={props.luminizeSettlement32}
         objectiveNote={restored?.candidateWarehouse?.panelObjectiveNote}
         needsTeamRecovery={kind === 'team' && !team && readOnly}

@@ -36,6 +36,7 @@ export type UnavailableDiagnosis = {
 }
 
 export type AccountBuildResult = {
+  deferred?: boolean
   independent: AccountLoadout[]
   global: AccountLoadout[]
   gaps: Record<string, number>

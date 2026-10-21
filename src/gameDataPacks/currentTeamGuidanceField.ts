@@ -1,3 +1,4 @@
+import buildContinuity33 from './data/reviewed-build-field-continuity.3.3.json'
 import { currentScopeManifest } from './currentScopeManifest'
 import type { AgentProfileField } from './agentProfile'
 import { currentTeamArchetypeProjection } from './currentTeamArchetypeProjection'
@@ -8,6 +9,12 @@ import { currentReviewedTeamSourceDirections } from './reviewedTeamSourceDirecti
 
 /** Reuse the adopted team source, not account-dependent rankings or a page-local fallback. */
 export function currentTeamGuidanceField(agentId: string): AgentProfileField | undefined {
+  // Source review remains 3.2 for the exact frozen actors; authority owns the separate 3.3 target review.
+  const sourceReviewVersion =
+    currentVersionProjection.gameVersion === '3.3' &&
+    buildContinuity33.formulaBindings.some((row) => row.agentId === agentId)
+      ? '3.2'
+      : currentVersionProjection.gameVersion
   const released = currentScopeManifest.entries.filter(
     (entry) => entry.releaseState === 'released' && entry.accountOwnable,
   )
@@ -24,10 +31,10 @@ export function currentTeamGuidanceField(agentId: string): AgentProfileField | u
       .filter((entry) => entry.domain === 'agent')
       .map((entry) => [entry.stableId, entry.displayName]),
   )
-  const teams = currentTeamArchetypeProjection.archetypes.filter(
+  const retainedTeams = currentTeamArchetypeProjection.archetypes.filter(
     (team) =>
-      (team.gameVersion === currentVersionProjection.gameVersion ||
-        (currentVersionProjection.gameVersion === currentVersionAdoption32.gameVersion &&
+      (team.gameVersion === sourceReviewVersion ||
+        (sourceReviewVersion === currentVersionAdoption32.gameVersion &&
           team.gameVersion === currentVersionAdoption32.legacyFieldAuthority.gameVersion)) &&
       team.releaseState === 'released' &&
       team.members.some((member) => member.agentId === agentId) &&
@@ -35,6 +42,23 @@ export function currentTeamGuidanceField(agentId: string): AgentProfileField | u
       bangboos.has(team.bangbooId) &&
       team.sources.some((source) => source.layer === 'guide' && source.status === 'candidate'),
   )
+  const allDirections = currentReviewedTeamSourceDirections(sourceReviewVersion).filter(
+    (direction) => direction.memberIds.includes(agentId),
+  )
+  const currentDirections = allDirections.filter((direction) =>
+    direction.sourceRefs.some(
+      (source) =>
+        source.verificationStatus === 'reviewed_exact_team_current_32' ||
+        (source.sourceVersion === sourceReviewVersion &&
+          source.observationRole !== 'author_comparison_setup' &&
+          source.verificationStatus !== 'historical_membership_reference'),
+    ),
+  )
+  const currentTeams = retainedTeams.filter((team) => team.gameVersion === sourceReviewVersion)
+  // A historical archetype must not shadow a separately reviewed current trio.
+  // The complete historical catalogue remains in BOX's source-direction reader.
+  const hasCurrentGuidance = currentDirections.length > 0 || currentTeams.length > 0
+  const teams = hasCurrentGuidance ? currentTeams : retainedTeams
   const existingKeys = new Set(
     teams.map((team) =>
       team.members
@@ -43,23 +67,33 @@ export function currentTeamGuidanceField(agentId: string): AgentProfileField | u
         .join('|'),
     ),
   )
-  const allDirections = currentReviewedTeamSourceDirections().filter(
-    (direction) =>
-      direction.memberIds.includes(agentId) &&
-      !existingKeys.has([...direction.memberIds].sort().join('|')),
-  )
   const isHistoricalReference = (direction: (typeof allDirections)[number]) =>
     direction.sourceRefs.length > 0 &&
     direction.sourceRefs.every(
       (ref) => ref.verificationStatus === 'historical_membership_reference',
     )
-  const currentDirections = allDirections.filter((direction) => !isHistoricalReference(direction))
-  const hasRetainedTeams = teams.some(
-    (team) => team.gameVersion !== currentVersionProjection.gameVersion,
-  )
+  const hasRetainedTeams = teams.some((team) => team.gameVersion !== sourceReviewVersion)
   // Preserve current profile guidance. Historical fallback is used only when
   // current guidance is absent; BOX retains the complete source catalogue.
-  const directions = teams.length || currentDirections.length ? currentDirections : allDirections
+  const directions = (hasCurrentGuidance ? currentDirections : allDirections)
+    .filter((direction) => !existingKeys.has([...direction.memberIds].sort().join('|')))
+    .map((direction) => {
+      if (!hasCurrentGuidance) return direction
+      const sourceRefs = direction.sourceRefs.filter(
+        (source) => source.observationRole !== 'author_comparison_setup',
+      )
+      return {
+        ...direction,
+        sourceRefs,
+        conditions: direction.conditionsBySourceId
+          ? [
+              ...new Set(
+                sourceRefs.flatMap((source) => direction.conditionsBySourceId![source.id] ?? []),
+              ),
+            ]
+          : direction.conditions,
+      }
+    })
   if (!teams.length && !directions.length) return undefined
   const sources = new Map(
     teams.flatMap((team) => team.sources.map((source) => [source.id, source] as const)),
@@ -83,8 +117,7 @@ export function currentTeamGuidanceField(agentId: string): AgentProfileField | u
       ...teams.map((team) => {
         const members = team.members.map((member) => agentNames.get(member.agentId)).join('、')
         const bangboo = bangboos.get(team.bangbooId)!
-        const prefix =
-          team.gameVersion !== currentVersionProjection.gameVersion ? '历史攻略参考：' : ''
+        const prefix = team.gameVersion !== sourceReviewVersion ? '历史攻略参考：' : ''
         return `${prefix}${members}；邦布：${bangboo}。${team.prerequisites.join('；')}。适用：${team.scenarios.join('、')}。`
       }),
       ...directions.map((direction) => {
@@ -101,11 +134,11 @@ export function currentTeamGuidanceField(agentId: string): AgentProfileField | u
     status: 'candidate',
     gameVersion: hasRetainedTeams
       ? currentVersionAdoption32.legacyFieldAuthority.gameVersion
-      : currentVersionProjection.gameVersion,
+      : sourceReviewVersion,
     originalSourceVersion: sourceVersions.size === 1 ? [...sourceVersions][0]! : null,
     lastChangeVersion: teams.length
       ? currentTeamArchetypeProjection.gameVersion
-      : currentVersionProjection.gameVersion,
+      : sourceReviewVersion,
     currentApplicability:
       hasRetainedTeams || directions.some(isHistoricalReference) ? 'unknown' : 'continuous',
     sourceRefs: [

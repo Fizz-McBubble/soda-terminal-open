@@ -25,10 +25,15 @@ export function reviewCurrent31ProductionPairwiseEvidence(
   const version = currentVersionProjection.gameVersion
   let index = compiledIndexes.get(version)
   if (!index) {
-    // Current evidence augments, not erases, retained counterevidence. Unknown
-    // future read views cannot borrow a reviewed observation from either version.
+    // The adopted 3.3 reference view retains the original dated observations as
+    // counterevidence only. Their evidenceVersion stays 3.2.3 / 3.1; they do not
+    // become current 3.3 measurements. Unknown future views cannot borrow them.
     const datasets: readonly PerformanceInput[] =
-      version === '3.2' ? [performance323, performance31] : version === '3.1' ? [performance31] : []
+      version === '3.2' || version === '3.3'
+        ? [performance323, performance31]
+        : version === '3.1'
+          ? [performance31]
+          : []
     index = createPerformancePartitionEvidenceIndex(datasets)
     compiledIndexes.set(version, index)
   }

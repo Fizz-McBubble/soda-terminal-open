@@ -16,6 +16,7 @@ import {
   referenceSummary,
 } from './teamRatingPresentation'
 import { teamOutputModuleLabel } from './teamOutputModulePresentation'
+import { FormedTeamReference } from './FormedTeamReference'
 export {
   TeamSavedPlanList,
   TeamCompletionCandidates,
@@ -354,6 +355,10 @@ export function TeamPreview({
           ) : null}
         </div>
 
+        <FormedTeamReference
+          reference={item.formedTeamReference}
+          gaps={item.formedCultivationGaps}
+        />
         {<TeamBangbooSuggestions options={item.bangbooSuggestions ?? []} />}
         {gaps.length ? (
           <section className="f5v-box-team-preview__gaps">

@@ -32,7 +32,9 @@ export function retentionCondition(
           ? `需要确认队友没有装备 ${setName} 四件套，避免重复效果。`
           : rule.kind === 'teammate_specialty_and_action'
             ? `需要${rule.specialties.map(getAgentSpecialtyLabel).join(' / ')}队友，以及${rule.action === 'wearer_ex_special' ? '自身强化特殊技' : '队伍快速支援'}覆盖；效果窗口和叠层需另行核验。`
-            : '需要满足来源指定的电属性队伍条件。'
+            : rule.kind === 'wearer_action'
+              ? '需要确认佩戴者连段前的强化特殊技；队友动作不能替代，效果窗口另行核验。'
+              : '需要满足来源指定的电属性队伍条件。'
   return [
     {
       state: condition.sourceTextVerified ? 'conditional' : 'missing_fact',

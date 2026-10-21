@@ -543,6 +543,7 @@ export function resolveCurrentPlanningEventEffects32(input: {
       (row) => row.effectIndex === source.effectIndex,
     )
     const staticSource = getCurrentWEngineStaticData(source.engineId)
+    const formulaSha256 = staticSource?.source.formulaSha256
     const specialty = getCurrentAgentEventContract(provider.agentId)?.identity.specialty
     const scope = reviewed
       ? planningWEngineEffectScope(reviewed.path.split('.').slice(1).join('.'), reviewed.action)
@@ -550,6 +551,8 @@ export function resolveCurrentPlanningEventEffects32(input: {
     if (
       !reviewed ||
       !staticSource ||
+      staticSource.source.provider === 'nanoka' ||
+      !formulaSha256 ||
       staticSource.specialty !== (specialty === 'attack' ? 'damage' : specialty) ||
       !scope ||
       scope.application !== bucket.application ||
@@ -557,7 +560,7 @@ export function resolveCurrentPlanningEventEffects32(input: {
       scope.attribute !== bucket.attribute ||
       stableContentHash(reviewed.finalStatReferences) !==
         stableContentHash(source.finalStatReferences) ||
-      !bucket.sourceRefs.some((ref) => ref.endsWith(staticSource.source.formulaSha256))
+      !bucket.sourceRefs.some((ref) => ref.endsWith(formulaSha256))
     )
       return {
         status: 'unsupported' as const,

@@ -40,7 +40,7 @@ export function prepareCommunityShell({ dist, releaseId }) {
     )
   )
     throw new Error('private_locator_in_community_artifact')
-  auditPublicMediaClearance(root)
+  auditPublicMediaClearance(root, undefined, { inventoryMode: 'bundled_subset' })
   const assetPaths = files
     .filter((path) => relative(root, path).replaceAll('\\', '/').startsWith('assets/'))
     .map((path) => `/${relative(root, path).replaceAll('\\', '/')}`)

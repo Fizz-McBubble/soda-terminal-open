@@ -149,7 +149,8 @@ export function evaluateCandidateSetPlanEligibility(
     boundary,
     ...(condition.rule.kind === 'electric_team'
       ? { effectCoverage: context.shockCoverage ?? 'unknown' }
-      : condition.rule.kind === 'teammate_specialty_and_action'
+      : condition.rule.kind === 'teammate_specialty_and_action' ||
+          condition.rule.kind === 'wearer_action'
         ? {
             effectCoverage:
               context.operationCoverage?.effectWindowsBySetId?.[plan.primarySetIds[0]!] ??
@@ -173,6 +174,20 @@ export function evaluateCandidateSetPlanEligibility(
     return members.filter((id) => id !== agentId).includes(condition.rule.agentId)
       ? result('eligible', '当前三人队包含这条推荐所需的队友；推荐场景成立不表示触发效果常驻。')
       : result('condition-not-met', '当前三人队缺少这条推荐所需的队友；盘套本身仍可装备。')
+  }
+  if (condition.rule.kind === 'wearer_action') {
+    const operations = context.operationCoverage
+    if (
+      !operations ||
+      !['final-candidate', 'confirmed-assumption', 'source-confirmed'].includes(operations.basis)
+    )
+      return result('condition-unknown', '尚无佩戴者强化特殊技的实际或来源确认；保留条件候选。')
+    const coverage = operations.exSpecialByAgentId?.[agentId]
+    if (!coverage || coverage === 'unknown')
+      return result('condition-unknown', '佩戴者强化特殊技覆盖未知，不能借队友动作证明触发。')
+    return coverage === 'verified'
+      ? result('eligible', '佩戴者强化特殊技场景已确认；效果窗口仍须独立核验，不代表常驻。')
+      : result('condition-not-met', '当前明确未覆盖来源要求的佩戴者强化特殊技场景；盘套仍可装备。')
   }
   if (condition.rule.kind === 'teammate_specialty_and_action') {
     const peers = members

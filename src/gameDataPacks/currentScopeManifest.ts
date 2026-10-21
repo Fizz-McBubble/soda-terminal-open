@@ -9,7 +9,9 @@ import {
   resolveCurrentReleasedIdentity,
 } from './currentReleasedIdentityMap'
 import { type GameData31CatalogEntity } from './gameData31CatalogIntake'
-import { currentCatalogEntities } from './currentCatalogIntake'
+import { catalogEntities32, catalogEntities33 } from './currentCatalogIntake'
+import { currentGameDataSelection } from './currentGameDataSelection'
+import { gameData33CatalogCheckedAt } from './gameData33CatalogEntities'
 import { stableContentHash } from './types'
 
 export type CurrentScopeDomain = 'agent' | 'wengine' | 'bangboo' | 'drive_disc_set'
@@ -35,7 +37,7 @@ export type CurrentScopeManifest = {
   schema: 'soda-current-scope-manifest/v1'
   id: string
   gameVersion: string
-  phase: 'phase_ii'
+  phase: 'phase_i' | 'phase_ii'
   effectiveAsOf: string
   productionCatalog: {
     sourceVersion: string
@@ -53,7 +55,6 @@ export type CurrentScopeManifest = {
   contentHash: string
 }
 
-const effectiveAsOf = '2026-09-30'
 const registryMismatches = findReleasedIdentityRegistryMismatches(
   currentReleasedIdentityMap.entries,
   currentReleasedIdentitySourceRegistry.sources,
@@ -81,8 +82,23 @@ function dateOnly(value: string | null | undefined) {
 }
 
 /** A missing release date remains readable, but cannot move a dated asset past the manifest. */
-export function isCurrentScopeReleased(releaseAt: string | null) {
-  return releaseAt !== null && releaseAt <= effectiveAsOf
+function scopeTimestamp(value: string | null) {
+  if (value === null) return NaN
+  // Historical day-only evidence uses the server timezone; timed evidence must
+  // retain its offset and hour. Ambiguous local datetimes fail closed.
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return Date.parse(`${value}T00:00:00+08:00`)
+  if (!/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(value))
+    return NaN
+  return Date.parse(value)
+}
+
+export function isCurrentScopeReleased(
+  releaseAt: string | null,
+  asOf: string = currentScopeManifest.effectiveAsOf,
+) {
+  const release = scopeTimestamp(releaseAt)
+  const cutoff = scopeTimestamp(asOf)
+  return Number.isFinite(release) && Number.isFinite(cutoff) && release <= cutoff
 }
 
 const formalEntries: CurrentScopeManifestEntry[] = gameCurrent31CatalogLedger.entries.map(
@@ -107,49 +123,6 @@ const formalEntries: CurrentScopeManifestEntry[] = gameCurrent31CatalogLedger.en
   },
 )
 
-const candidateEntries: CurrentScopeManifestEntry[] = currentCatalogEntities
-  .filter((entity): entity is GameData31CatalogEntity & { domain: CurrentScopeDomain } =>
-    isCurrentScopeDomain(entity.domain),
-  )
-  .map((entity) => {
-    const sourceIdentity = entity.identity.projectStableId ?? entity.id
-    const releasedIdentity = getCurrentReleasedIdentity(sourceIdentity)
-    const stableId = releasedIdentity?.stableId ?? resolveCurrentReleasedIdentity(sourceIdentity)
-    const officialReleaseAt = dateOnly(releasedIdentity?.releaseAt)
-    const releaseAt =
-      officialReleaseAt ??
-      dateOnly(typeof entity.fields.releaseAt === 'string' ? entity.fields.releaseAt : null)
-    const releaseState = isCurrentScopeReleased(releaseAt) ? 'released' : 'unreleased'
-    return {
-      stableId,
-      aliases: stableId === entity.id ? [] : [entity.id],
-      domain: entity.domain,
-      displayName: entity.displayName,
-      identityEvidence:
-        releasedIdentity && isCurrentScopeReleased(officialReleaseAt) ? 'formal' : 'candidate',
-      evidence: 'candidate',
-      releaseAt,
-      releaseState,
-      accountOwnable: releasedIdentity?.releaseState === 'released' && releaseState === 'released',
-      sourceVersion: entity.source.sourceVersion,
-      sourceId: releasedIdentity?.sourceRefs[0] ?? entity.source.id,
-    }
-  })
-
-const entriesById = new Map<string, CurrentScopeManifestEntry>()
-for (const entry of [...formalEntries, ...candidateEntries]) {
-  const existing = entriesById.get(entry.stableId)
-  if (existing) {
-    if (existing.domain !== entry.domain || existing.displayName !== entry.displayName) {
-      throw new Error(`current scope identity conflict: ${entry.stableId}`)
-    }
-    continue
-  }
-  entriesById.set(entry.stableId, entry)
-}
-
-const entries = [...entriesById.values()]
-
 export type ReleasedIdentityScopeCheckEntry = {
   stableId: string
   releaseState: string
@@ -172,7 +145,7 @@ export function findMissingReleasedIdentityScopeEntries(
       (identity) =>
         identity.releaseState === 'released' &&
         identity.releaseAt !== null &&
-        identity.releaseAt <= asOf,
+        isCurrentScopeReleased(identity.releaseAt, asOf),
     )
     .filter(
       (identity) =>
@@ -186,46 +159,110 @@ export function findMissingReleasedIdentityScopeEntries(
     .map((identity) => identity.stableId)
 }
 
-const missingReleasedIdentityIds = findMissingReleasedIdentityScopeEntries(
-  currentReleasedIdentityMap.entries,
-  entries,
-  effectiveAsOf,
-)
-if (missingReleasedIdentityIds.length > 0) {
-  throw new Error(
-    `current scope missing released identities: ${missingReleasedIdentityIds.join(', ')}`,
+function buildScope(
+  catalogEntities: readonly GameData31CatalogEntity[],
+  gameVersion: string,
+  phase: CurrentScopeManifest['phase'],
+  effectiveAsOf: string,
+) {
+  const candidateEntries: CurrentScopeManifestEntry[] = catalogEntities
+    .filter((entity): entity is GameData31CatalogEntity & { domain: CurrentScopeDomain } =>
+      isCurrentScopeDomain(entity.domain),
+    )
+    .map((entity) => {
+      const sourceIdentity = entity.identity.projectStableId ?? entity.id
+      const releasedIdentity = getCurrentReleasedIdentity(sourceIdentity)
+      const stableId = releasedIdentity?.stableId ?? resolveCurrentReleasedIdentity(sourceIdentity)
+      const officialReleaseAt = releasedIdentity?.releaseAt ?? null
+      const releaseAt =
+        officialReleaseAt ??
+        (typeof entity.fields.releaseAt === 'string' ? entity.fields.releaseAt : null)
+      const releaseState = isCurrentScopeReleased(releaseAt, effectiveAsOf)
+        ? 'released'
+        : 'unreleased'
+      return {
+        stableId,
+        aliases: stableId === entity.id ? [] : [entity.id],
+        domain: entity.domain,
+        displayName: entity.displayName,
+        identityEvidence:
+          releasedIdentity && isCurrentScopeReleased(officialReleaseAt, effectiveAsOf)
+            ? 'formal'
+            : 'candidate',
+        evidence: 'candidate',
+        releaseAt,
+        releaseState,
+        accountOwnable:
+          releasedIdentity?.releaseState === 'released' && releaseState === 'released',
+        sourceVersion: entity.source.sourceVersion,
+        sourceId: releasedIdentity?.sourceRefs[0] ?? entity.source.id,
+      }
+    })
+
+  const entriesById = new Map<string, CurrentScopeManifestEntry>()
+  for (const entry of [...formalEntries, ...candidateEntries]) {
+    const existing = entriesById.get(entry.stableId)
+    if (existing) {
+      if (existing.domain !== entry.domain || existing.displayName !== entry.displayName) {
+        throw new Error(`current scope identity conflict: ${entry.stableId}`)
+      }
+      continue
+    }
+    entriesById.set(entry.stableId, entry)
+  }
+
+  const entries = [...entriesById.values()]
+
+  const missingReleasedIdentityIds = findMissingReleasedIdentityScopeEntries(
+    currentReleasedIdentityMap.entries,
+    entries,
+    effectiveAsOf,
   )
-}
-const domains: CurrentScopeDomain[] = ['agent', 'wengine', 'bangboo', 'drive_disc_set']
-const coverage = {
-  directoryTotal: entries.length,
-  releasedScope: entries.filter((entry) => entry.releaseState === 'released').length,
-  accountOwnable: entries.filter((entry) => entry.accountOwnable).length,
-  byDomain: Object.fromEntries(
-    domains.map((domain) => [domain, entries.filter((entry) => entry.domain === domain).length]),
-  ) as Record<CurrentScopeDomain, number>,
+  if (missingReleasedIdentityIds.length > 0) {
+    throw new Error(
+      `current scope missing released identities: ${missingReleasedIdentityIds.join(', ')}`,
+    )
+  }
+  const domains: CurrentScopeDomain[] = ['agent', 'wengine', 'bangboo', 'drive_disc_set']
+  const coverage = {
+    directoryTotal: entries.length,
+    releasedScope: entries.filter((entry) => entry.releaseState === 'released').length,
+    accountOwnable: entries.filter((entry) => entry.accountOwnable).length,
+    byDomain: Object.fromEntries(
+      domains.map((domain) => [domain, entries.filter((entry) => entry.domain === domain).length]),
+    ) as Record<CurrentScopeDomain, number>,
+  }
+
+  const manifestCore = {
+    schema: 'soda-current-scope-manifest/v1' as const,
+    id: `current-scope-manifest-${gameVersion}-r1`,
+    gameVersion,
+    phase,
+    effectiveAsOf,
+    productionCatalog: {
+      sourceVersion: gameCurrent31CatalogLedger.sourceVersion,
+      contentHash: gameCurrent31CatalogLedger.contentHash,
+      recordCount: gameCurrent31CatalogLedger.entries.length,
+      stableEntityCount: new Set(formalEntries.map((entry) => entry.stableId)).size,
+    },
+    entries,
+    coverage,
+  }
+
+  const manifest: CurrentScopeManifest = {
+    ...manifestCore,
+    contentHash: stableContentHash(manifestCore),
+  }
+  return { manifest, candidateEntries }
 }
 
-const manifestCore = {
-  schema: 'soda-current-scope-manifest/v1' as const,
-  id: 'current-scope-manifest-3.2-r1' as const,
-  gameVersion: '3.2' as const,
-  phase: 'phase_ii' as const,
-  effectiveAsOf,
-  productionCatalog: {
-    sourceVersion: gameCurrent31CatalogLedger.sourceVersion,
-    contentHash: gameCurrent31CatalogLedger.contentHash,
-    recordCount: gameCurrent31CatalogLedger.entries.length,
-    stableEntityCount: new Set(formalEntries.map((entry) => entry.stableId)).size,
-  },
-  entries,
-  coverage,
-}
-
-export const currentScopeManifest: CurrentScopeManifest = {
-  ...manifestCore,
-  contentHash: stableContentHash(manifestCore),
-}
+const scope32 = buildScope(catalogEntities32, '3.2', 'phase_ii', '2026-09-30')
+const scope33 = buildScope(catalogEntities33, '3.3', 'phase_i', gameData33CatalogCheckedAt)
+/** Historical package identity never depends on the installed selection. */
+export const currentScopeManifest32 = scope32.manifest
+export const currentScopeManifest33 = scope33.manifest
+const installedScope = currentGameDataSelection.gameVersion === '3.3' ? scope33 : scope32
+export const currentScopeManifest = installedScope.manifest
 
 export function getCurrentScopeEntry(identity: string) {
   const stableId = resolveCurrentReleasedIdentity(identity)
@@ -236,7 +273,7 @@ export function getCurrentScopeEntry(identity: string) {
 export function getCurrentScopeCandidateEntry(identity: string) {
   const stableId = resolveCurrentReleasedIdentity(identity)
   return (
-    candidateEntries.find(
+    installedScope.candidateEntries.find(
       (entry) => entry.stableId === stableId || entry.aliases.includes(identity),
     ) ?? null
   )

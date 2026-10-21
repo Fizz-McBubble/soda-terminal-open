@@ -6,6 +6,11 @@ import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
 import { effectReceivers, expressionReferences } from './teamStrengthSupportCapabilities'
 import { isSourceRateEvent32 } from '../calculation/sourceEventQuantity32'
 import { teamStrengthActionFacts } from './teamStrengthActionFacts'
+import {
+  resolveTeamStrengthReferenceMindscape,
+  teamStrengthReferenceStatePolicy,
+} from './teamStrengthReferenceState'
+import { resolveSkillInvestmentMindscapeBonus } from './skillInvestmentProjection'
 
 const ruleById = new Map(current31TeamEngineD1Pack.agentRules.map((rule) => [rule.agentId, rule]))
 
@@ -49,7 +54,10 @@ export function memberFacts(agentId: string): Member | null {
         )
       : [],
   )
-  const actions = teamStrengthActionFacts({ agentId, declaredRateSecondsByEventId })
+  const skillLevel =
+    teamStrengthReferenceStatePolicy.baseSkillLevel +
+    (resolveSkillInvestmentMindscapeBonus(resolveTeamStrengthReferenceMindscape(agentId)) ?? 0)
+  const actions = teamStrengthActionFacts({ agentId, skillLevel, declaredRateSecondsByEventId })
   if (!actions) return null
   // Separate source packets preserve the metric being described. None of the
   // baseline's 2..6 policy repetitions becomes observed action frequency.

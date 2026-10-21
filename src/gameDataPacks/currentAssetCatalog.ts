@@ -66,9 +66,9 @@ function byDomain(domain: CurrentAssetDomain) {
  * provenance; these entries preserve their candidate/missing and release boundary.
  */
 export const currentAssetCatalog = {
-  id: 'current-asset-catalog-3.2',
-  gameVersion: '3.2',
-  projectionId: 'current-version-projection-3.2',
+  id: `current-asset-catalog-${currentScopeManifest.gameVersion}`,
+  gameVersion: currentScopeManifest.gameVersion,
+  projectionId: `current-version-projection-${currentScopeManifest.gameVersion}`,
   scopeManifestId: currentScopeManifest.id,
   effectiveAsOf: currentScopeManifest.effectiveAsOf,
   agents: byDomain('agent'),

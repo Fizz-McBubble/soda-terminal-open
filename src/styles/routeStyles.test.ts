@@ -1,5 +1,8 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { applyRouteStyleScope, getRouteStyleScope, waitForRouteStyleScope } from './routeStyles'
+
+// Vitest disables CSS asset handling; retain the URL-module contract here.
+vi.mock('../styles.css?url', () => ({ default: '/src/styles.css' }))
 
 function stylesheet(scope: 'f5' | 'legacy') {
   return document.querySelector<HTMLLinkElement>(`link[data-soda-route-styles='${scope}']`)
@@ -34,7 +37,7 @@ describe('route style isolation', () => {
     expect(document.documentElement).toHaveAttribute('data-soda-style-scope', 'f5')
   })
 
-  it('only enables the legacy stylesheet for development tools', () => {
+  it('only enables the legacy stylesheet for development tools', async () => {
     applyRouteStyleScope('/system/scanner')
     expect(applyRouteStyleScope('/system/data/review-dev')).toBe('legacy')
 
@@ -42,6 +45,9 @@ describe('route style isolation', () => {
     expect(stylesheet('legacy')).toMatchObject({ disabled: false, media: 'all' })
     expect(document.documentElement).toHaveAttribute('data-soda-style-scope', 'legacy')
     expect(document.querySelectorAll('link[data-soda-route-styles]')).toHaveLength(2)
+    await vi.waitFor(() =>
+      expect(stylesheet('legacy')?.getAttribute('href')).toContain('styles.css'),
+    )
   })
 
   it('leaves the active stylesheet untouched while navigating within the same shell', () => {

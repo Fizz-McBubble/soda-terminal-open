@@ -1,3 +1,4 @@
+import type { CurrentVersionAdoptionSourceIdentity } from '../gameDataPacks/currentVersionProjection'
 /**
  * Soda Terminal: absolute-quality retention reference kernel.
  * Reference implementation adapted for the production warehouse read model.
@@ -163,7 +164,8 @@ export interface Catalog {
       readonly id: string
       readonly contentHash: string
       readonly targetVersion: string
-      readonly sourceCommit: string
+      readonly sourceCommit: string | null
+      readonly sourceIdentity: CurrentVersionAdoptionSourceIdentity
       readonly scopeContentHash: string
       readonly referenceContinuityId: string
       readonly referenceReviewVersion: string

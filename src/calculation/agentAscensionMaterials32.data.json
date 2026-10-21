@@ -1,0 +1,3908 @@
+{
+  "contract": "soda-agent-ascension-materials32/v1",
+  "sourceVersion": "3.2",
+  "grain": "exact_agent_ascension_transition",
+  "boundary": "突破材料与丁尼成本；不含角色等级经验材料，不表示完整培养或账户状态。",
+  "records": [
+    {
+      "agentId": "agent-alice",
+      "gameId": "1401",
+      "sourceName": "Alice",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1401.json",
+        "sourceVersion": "3.2",
+        "sha256": "58F7FB0AC6B28AB6E46388EC376A3E67ED8921725EB6F8BFF5CDC98F8FCB4869"
+      },
+      "attribute": "physical",
+      "specialty": "anomaly",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100213": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100223": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100223": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100233": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100233": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-anby",
+      "gameId": "1011",
+      "sourceName": "Anby",
+      "status": "supported",
+      "attribute": "electric",
+      "specialty": "stun",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1011.json",
+        "sourceVersion": "3.2",
+        "sha256": "C3C2B449710F3685769B4B115C7236A0E4D60C101687AC012AC57F8F5C1CD2D8"
+      },
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100212": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100222": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100222": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100232": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100232": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-anton",
+      "gameId": "1111",
+      "sourceName": "Anton",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1111.json",
+        "sourceVersion": "3.2",
+        "sha256": "B9D088CB35866F48006A0B9AD2EC1503EFC1570C853BD74B019D85A1797E7D64"
+      },
+      "attribute": "electric",
+      "specialty": "attack",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100211": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100221": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100221": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100231": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100231": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-aria",
+      "gameId": "1501",
+      "sourceName": "Aria",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1501.json",
+        "sourceVersion": "3.2",
+        "sha256": "7A14E1682D52CAD1C6B89F64DC0ECA69373E123068202157DCBA1AEA3FD37A56"
+      },
+      "attribute": "ether",
+      "specialty": "anomaly",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100213": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100223": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100223": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100233": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100233": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-astra",
+      "gameId": "1311",
+      "sourceName": "Astra Yao",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1311.json",
+        "sourceVersion": "3.2",
+        "sha256": "CC1CF28EE7DC2F244F2E723F94DFA58C8841C67E22AD25F680092492ED432FD7"
+      },
+      "attribute": "ether",
+      "specialty": "support",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100214": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100224": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100224": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100234": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100234": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-banyue",
+      "gameId": "1471",
+      "sourceName": "Banyue",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1471.json",
+        "sourceVersion": "3.2",
+        "sha256": "452CAE9E9AF4350A7123CEF723CEAAA749B2FE5B1B9FE4D8AC6BBD70855EC88F"
+      },
+      "attribute": "fire",
+      "specialty": "rupture",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100216": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100226": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100226": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100236": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100236": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-ben",
+      "gameId": "1121",
+      "sourceName": "Ben",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1121.json",
+        "sourceVersion": "3.2",
+        "sha256": "442F0C074DAF09769A317D73459F916C26718A103163AD39EB4B27B715D8E182"
+      },
+      "attribute": "fire",
+      "specialty": "defense",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100215": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100225": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100225": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100235": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100235": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-billy",
+      "gameId": "1081",
+      "sourceName": "Billy",
+      "status": "supported",
+      "attribute": "physical",
+      "specialty": "attack",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1081.json",
+        "sourceVersion": "3.2",
+        "sha256": "1EF725E586F39A200DBAD48C2F6022E8552CE62110CA42976AA340B334C483B0"
+      },
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100211": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100221": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100221": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100231": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100231": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-burnice",
+      "gameId": "1171",
+      "sourceName": "Burnice",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1171.json",
+        "sourceVersion": "3.2",
+        "sha256": "CE0E7761ADA8B5A7C3D5ACE857F95BC30443310DB203DD20DE687B12B66E52CB"
+      },
+      "attribute": "fire",
+      "specialty": "anomaly",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100213": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100223": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100223": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100233": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100233": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-caesar",
+      "gameId": "1071",
+      "sourceName": "Caesar",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1071.json",
+        "sourceVersion": "3.2",
+        "sha256": "9E42B178F837E8C051D1AA241BDA3B725FD8618D95A4C79B8C5F072D64FD4036"
+      },
+      "attribute": "physical",
+      "specialty": "defense",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100215": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100225": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100225": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100235": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100235": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-cissia",
+      "gameId": "1521",
+      "sourceName": "Cissia",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1521.json",
+        "sourceVersion": "3.2",
+        "sha256": "3B788C83EFC76E7E4ACAB724F88442DE8C0A90EC6DCE10200C70E33CB2825B7F"
+      },
+      "attribute": "electric",
+      "specialty": "attack",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100211": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100221": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100221": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100231": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100231": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-claret",
+      "gameId": "1611",
+      "sourceName": "Claret",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1611.json",
+        "sourceVersion": "3.2",
+        "sha256": "1A8E4E27848D56DA0D565600B8EEDE17947B2EBD8A504C0CC8E5A379F282ED0F"
+      },
+      "attribute": "electric",
+      "specialty": "armorer",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100217": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100227": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100227": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100237": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100237": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-corin",
+      "gameId": "1061",
+      "sourceName": "Corin",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1061.json",
+        "sourceVersion": "3.2",
+        "sha256": "591111C414DDAAE16916546E95407B2568472E9968452161E7AAC535076F583E"
+      },
+      "attribute": "physical",
+      "specialty": "attack",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100211": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100221": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100221": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100231": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100231": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-dialyn",
+      "gameId": "1481",
+      "sourceName": "Dialyn",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1481.json",
+        "sourceVersion": "3.2",
+        "sha256": "B88D82251E577FF5DF5BABE91EFDB3CA7B6B631CF99C504D4031398A6F1517A4"
+      },
+      "attribute": "physical",
+      "specialty": "stun",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100212": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100222": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100222": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100232": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100232": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-ellen",
+      "gameId": "1191",
+      "sourceName": "Ellen",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1191.json",
+        "sourceVersion": "3.2",
+        "sha256": "7A96C95A2D7516F20896A75E978F5105E7FFC1976340238327CF0A1611F75A13"
+      },
+      "attribute": "ice",
+      "specialty": "attack",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100211": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100221": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100221": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100231": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100231": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-evelyn",
+      "gameId": "1321",
+      "sourceName": "Evelyn",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1321.json",
+        "sourceVersion": "3.2",
+        "sha256": "74B2C43F1EA0A4E492A1A944FBAF8EEA6C90854577069717D7688D7BDA994103"
+      },
+      "attribute": "fire",
+      "specialty": "attack",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100211": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100221": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100221": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100231": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100231": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-grace",
+      "gameId": "1181",
+      "sourceName": "Grace",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1181.json",
+        "sourceVersion": "3.2",
+        "sha256": "0285025890B628C3EA6DFBEC36D5E3944ACE8261E4F7142863E6B4A53497130C"
+      },
+      "attribute": "electric",
+      "specialty": "anomaly",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100213": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100223": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100223": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100233": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100233": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-harumasa",
+      "gameId": "1201",
+      "sourceName": "Harumasa",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1201.json",
+        "sourceVersion": "3.2",
+        "sha256": "A5E4CC4C0AD1E0481C847B97047DDB72FAA4A71BC97C014FF5D04333D3FD9F22"
+      },
+      "attribute": "electric",
+      "specialty": "attack",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100211": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100221": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100221": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100231": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100231": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-hugo",
+      "gameId": "1291",
+      "sourceName": "Hugo",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1291.json",
+        "sourceVersion": "3.2",
+        "sha256": "499531A5F8BFD79D99F5E3A06AB280C74D06E90DB52B0415D8614046DBC8D0F1"
+      },
+      "attribute": "ice",
+      "specialty": "attack",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100211": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100221": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100221": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100231": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100231": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-jane",
+      "gameId": "1261",
+      "sourceName": "Jane",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1261.json",
+        "sourceVersion": "3.2",
+        "sha256": "065F447861B22D04C57DDE9F5CDB92FE1A0C884392F26F346AE840CDAC25AA5D"
+      },
+      "attribute": "physical",
+      "specialty": "anomaly",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100213": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100223": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100223": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100233": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100233": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-ju-fufu",
+      "gameId": "1391",
+      "sourceName": "Ju Fufu",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1391.json",
+        "sourceVersion": "3.2",
+        "sha256": "9AFC876FD848076670671958ABF44C94A86D45D17A696AA8229ABC5CEB1A984F"
+      },
+      "attribute": "fire",
+      "specialty": "stun",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100212": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100222": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100222": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100232": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100232": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-koleda",
+      "gameId": "1101",
+      "sourceName": "Koleda",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1101.json",
+        "sourceVersion": "3.2",
+        "sha256": "7DECC64840670BF238008DBEA7A889C5E6FDA4D53FDA18BEC014FD642D4F23D7"
+      },
+      "attribute": "fire",
+      "specialty": "stun",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100212": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100222": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100222": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100232": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100232": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-lighter",
+      "gameId": "1161",
+      "sourceName": "Lighter",
+      "status": "supported",
+      "attribute": "fire",
+      "specialty": "stun",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1161.json",
+        "sourceVersion": "3.2",
+        "sha256": "18EF6D01D2423F780A7DCFBA634EAFB4FC64271F8DF5CED8E36A85A95F244A21"
+      },
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100212": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100222": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100222": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100232": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100232": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-lucia",
+      "gameId": "1451",
+      "sourceName": "Lucia",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1451.json",
+        "sourceVersion": "3.2",
+        "sha256": "2E61A65F4C25C0FFAAA0D28C42219EA491529ADDB567B67487F3B6878F81D614"
+      },
+      "attribute": "ether",
+      "specialty": "support",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100214": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100224": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100224": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100234": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100234": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-lucy",
+      "gameId": "1151",
+      "sourceName": "Lucy",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1151.json",
+        "sourceVersion": "3.2",
+        "sha256": "DFEB7F2B1BF88A585146BA70540F6F42CB230AA5FE643DD00D6C993C73F7380A"
+      },
+      "attribute": "fire",
+      "specialty": "support",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100214": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100224": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100224": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100234": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100234": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-lycaon",
+      "gameId": "1141",
+      "sourceName": "Lycaon",
+      "status": "supported",
+      "attribute": "ice",
+      "specialty": "stun",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1141.json",
+        "sourceVersion": "3.2",
+        "sha256": "65B5EAE831A29C9557ECAACC9D096A507D442E118AC092546F67212B0A2E5CBB"
+      },
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100212": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100222": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100222": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100232": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100232": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-manato",
+      "gameId": "1441",
+      "sourceName": "Manato",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1441.json",
+        "sourceVersion": "3.2",
+        "sha256": "6151C325AD8845578D6ABC4F6F9C173E16671EC31BC1C8011D6E7C8BD853CE82"
+      },
+      "attribute": "fire",
+      "specialty": "rupture",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100216": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100226": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100226": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100236": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100236": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-miyabi",
+      "gameId": "1091",
+      "sourceName": "Miyabi",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1091.json",
+        "sourceVersion": "3.2",
+        "sha256": "AE8881B8C31FD5260E573454ADCE67D46077ECA69CAA5BF24FD14F770A17A922"
+      },
+      "attribute": "ice",
+      "specialty": "anomaly",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100213": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100223": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100223": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100233": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100233": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-nangong",
+      "gameId": "1511",
+      "sourceName": "Nangong Yu",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1511.json",
+        "sourceVersion": "3.2",
+        "sha256": "4315B3AFCB93653EED6EF872F3230E0232A94D37BD40B3357EF68E80DDF68117"
+      },
+      "attribute": "ether",
+      "specialty": "stun",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100212": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100222": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100222": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100232": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100232": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-nekomata",
+      "gameId": "1021",
+      "sourceName": "Nekomata",
+      "status": "supported",
+      "attribute": "physical",
+      "specialty": "attack",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1021.json",
+        "sourceVersion": "3.2",
+        "sha256": "D366CC217A947F7E1DB407850C67FD92976301F88FF420F05236428F057CCD0B"
+      },
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100211": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100221": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100221": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100231": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100231": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-nicole",
+      "gameId": "1031",
+      "sourceName": "Nicole",
+      "status": "supported",
+      "attribute": "ether",
+      "specialty": "support",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1031.json",
+        "sourceVersion": "3.2",
+        "sha256": "C679F2EB81A837D6436B25707537CF7CA565CE9CCF76135D22080D6770031A92"
+      },
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100214": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100224": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100224": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100234": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100234": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-norma",
+      "gameId": "1571",
+      "sourceName": "Norma",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1571.json",
+        "sourceVersion": "3.2",
+        "sha256": "01E7763336B742CC2807BA9C6C034A908543644BE6BCEC7F089589EA7B58EC88"
+      },
+      "attribute": "fire",
+      "specialty": "stun",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100212": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100222": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100222": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100232": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100232": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-orphie-magus",
+      "gameId": "1301",
+      "sourceName": "Orphie & Magus",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1301.json",
+        "sourceVersion": "3.2",
+        "sha256": "1F1FC114191575098BAC443B0CCC980485E1EF9C4BAC2A0504EBCDB4AEEE9E4A"
+      },
+      "attribute": "fire",
+      "specialty": "attack",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100211": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100221": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100221": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100231": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100231": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-pan-yinhu",
+      "gameId": "1421",
+      "sourceName": "Pan Yinhu",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1421.json",
+        "sourceVersion": "3.2",
+        "sha256": "A92EF3935133FD552F4D82120DD77389432ED2E30E7218A2D2832D024903735D"
+      },
+      "attribute": "physical",
+      "specialty": "defense",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100215": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100225": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100225": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100235": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100235": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-piper",
+      "gameId": "1281",
+      "sourceName": "Piper",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1281.json",
+        "sourceVersion": "3.2",
+        "sha256": "FEB9CFE1F1D64FE0060763F1525A10196A24977F7989B9E1EBEA7EDB47DCA9D6"
+      },
+      "attribute": "physical",
+      "specialty": "anomaly",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100213": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100223": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100223": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100233": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100233": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-promeia",
+      "gameId": "1541",
+      "sourceName": "Promeia",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1541.json",
+        "sourceVersion": "3.2",
+        "sha256": "0B07B810CAF97D9F410DB089BAECD1EF7926FCDE72EB9B355532B6605595DFA2"
+      },
+      "attribute": "ice",
+      "specialty": "anomaly",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100213": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100223": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100223": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100233": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100233": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-pulchra",
+      "gameId": "1351",
+      "sourceName": "Pulchra",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1351.json",
+        "sourceVersion": "3.2",
+        "sha256": "CE7F80EE5DB0BD388072D705095E8C82D2865F74C5DEF87383CB62F8869C1493"
+      },
+      "attribute": "physical",
+      "specialty": "stun",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100212": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100222": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100222": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100232": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100232": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-pyrois",
+      "gameId": "1551",
+      "sourceName": "Pyrois",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1551.json",
+        "sourceVersion": "3.2",
+        "sha256": "CB1FB2A727C46F0ADAB978C64A078CC68DE53A3F35DF78083A36466B273702FB"
+      },
+      "attribute": "ether",
+      "specialty": "attack",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100211": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100221": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100221": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100231": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100231": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-qingyi",
+      "gameId": "1251",
+      "sourceName": "Qingyi",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1251.json",
+        "sourceVersion": "3.2",
+        "sha256": "F45AE54EF16CA4B61662FB3EABA9E0EC1DF65E662473FB23451272736F947FE9"
+      },
+      "attribute": "electric",
+      "specialty": "stun",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100212": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100222": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100222": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100232": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100232": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-remielle",
+      "gameId": "1581",
+      "sourceName": "Remielle",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1581.json",
+        "sourceVersion": "3.2",
+        "sha256": "082C4991A60D863EC0C6E0688531A6B73670124115254100F46640DD41555CC8"
+      },
+      "attribute": "lumiflux",
+      "specialty": "anomaly",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100213": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100223": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100223": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100233": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100233": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-rina",
+      "gameId": "1211",
+      "sourceName": "Rina",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1211.json",
+        "sourceVersion": "3.2",
+        "sha256": "34F64A22BD68F54F68579BAEA0952AA5EFE442E57684FE6D4E531494FE5F0936"
+      },
+      "attribute": "electric",
+      "specialty": "support",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100214": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100224": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100224": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100234": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100234": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-roxy",
+      "gameId": "1621",
+      "sourceName": "Roxy",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1621.json",
+        "sourceVersion": "3.2",
+        "sha256": "0692D88153C3CAD37FB4E34C5446820763B8628490ABA54294DC031B3DDF1334"
+      },
+      "attribute": "wind",
+      "specialty": "stun",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100212": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100222": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100222": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100232": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100232": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-seed",
+      "gameId": "1461",
+      "sourceName": "Seed",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1461.json",
+        "sourceVersion": "3.2",
+        "sha256": "3642E8E2AC21BF025E7E0D8A59A1DBDCFC92F4ED0DC457011145DC267B56E5F3"
+      },
+      "attribute": "electric",
+      "specialty": "attack",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100211": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100221": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100221": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100231": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100231": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-seth",
+      "gameId": "1271",
+      "sourceName": "Seth",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1271.json",
+        "sourceVersion": "3.2",
+        "sha256": "33E9D8C4ACFB84025CCA52CC16BAC61F56CC7917F6046E40DA2411B7BDCBC451"
+      },
+      "attribute": "electric",
+      "specialty": "defense",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100215": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100225": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100225": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100235": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100235": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-sigrid",
+      "gameId": "1591",
+      "sourceName": "Sigrid",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1591.json",
+        "sourceVersion": "3.2",
+        "sha256": "96A6033F777FF58A34EF2FF05FDA136A24B314F5505871DF2FEAEDE106D6FC4E"
+      },
+      "attribute": "ice",
+      "specialty": "attack",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100211": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100221": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100221": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100231": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100231": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-soldier-0-anby",
+      "gameId": "1381",
+      "sourceName": "Soldier 0 - Anby",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1381.json",
+        "sourceVersion": "3.2",
+        "sha256": "14618A3A2360BF8FA690775C1D4E551E315D3BC00DF3B4DCBE5414CF6D42A55E"
+      },
+      "attribute": "electric",
+      "specialty": "attack",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100211": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100221": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100221": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100231": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100231": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-soldier-11",
+      "gameId": "1041",
+      "sourceName": "Soldier 11",
+      "status": "supported",
+      "attribute": "fire",
+      "specialty": "attack",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1041.json",
+        "sourceVersion": "3.2",
+        "sha256": "99E47ED3019461B9453D48381C844017C2ED506E5E189460ED29A6B73262226C"
+      },
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100211": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100221": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100221": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100231": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100231": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-soukaku",
+      "gameId": "1131",
+      "sourceName": "Soukaku",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1131.json",
+        "sourceVersion": "3.2",
+        "sha256": "7A7DCB208599205BD67E1E87490927ABBF7F8314291BB56DFE5A8F08D1BCC687"
+      },
+      "attribute": "ice",
+      "specialty": "support",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100214": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100224": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100224": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100234": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100234": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-starlight-billy",
+      "gameId": "1531",
+      "sourceName": "Starlight - Billy",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1531.json",
+        "sourceVersion": "3.2",
+        "sha256": "8FB0BD120DC16E7D28CEC6334324640EF9EE1C5A830F8C2F1E8A7140382F1DC2"
+      },
+      "attribute": "physical",
+      "specialty": "rupture",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100216": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100226": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100226": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100236": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100236": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-sunna",
+      "gameId": "1491",
+      "sourceName": "Sunna",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1491.json",
+        "sourceVersion": "3.2",
+        "sha256": "A0961D6A02EBD446B4C2420AF7E4189596AD466FC6AF78FFEEB38E563427301A"
+      },
+      "attribute": "physical",
+      "specialty": "support",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100214": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100224": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100224": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100234": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100234": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-trigger",
+      "gameId": "1361",
+      "sourceName": "Trigger",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1361.json",
+        "sourceVersion": "3.2",
+        "sha256": "C392C8EB034530B06B928C430E02C45D1781CD4C7ED3D0E30B2209D8FAFE8CCA"
+      },
+      "attribute": "electric",
+      "specialty": "stun",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100212": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100222": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100222": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100232": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100232": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-velina",
+      "gameId": "1561",
+      "sourceName": "Velina",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1561.json",
+        "sourceVersion": "3.2",
+        "sha256": "01CC7EFD30E461B56EF1CACDCA876FB57143207323736B8286B2497E267FACA4"
+      },
+      "attribute": "wind",
+      "specialty": "anomaly",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100213": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100223": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100223": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100233": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100233": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-vivian",
+      "gameId": "1331",
+      "sourceName": "Vivian",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1331.json",
+        "sourceVersion": "3.2",
+        "sha256": "73C879F670FA13085401E34285E19A6FEA6A1DAA0C80E45BAA8B58A602508592"
+      },
+      "attribute": "ether",
+      "specialty": "anomaly",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100213": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100223": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100223": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100233": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100233": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-yanagi",
+      "gameId": "1221",
+      "sourceName": "Yanagi",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1221.json",
+        "sourceVersion": "3.2",
+        "sha256": "15AA55C673D20D401A51AA5D5EBFDC1FCE7E16E0856263AE0D9FA658F0920330"
+      },
+      "attribute": "electric",
+      "specialty": "anomaly",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100213": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100223": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100223": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100233": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100233": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-ye-shunguang",
+      "gameId": "1431",
+      "sourceName": "Ye Shunguang",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1431.json",
+        "sourceVersion": "3.2",
+        "sha256": "C45D2BB29437BB6BA64A27432E9D04047EE00037B41BC8F1B21E81F517B7CD8D"
+      },
+      "attribute": "physical",
+      "specialty": "attack",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100211": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100221": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100221": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100231": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100231": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-yidhari",
+      "gameId": "1051",
+      "sourceName": "Yidhari",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1051.json",
+        "sourceVersion": "3.2",
+        "sha256": "1966CCD3FB14C2626E579C28D970FE5D9878BA9785EE4998FF28DAB0A5CCA4B7"
+      },
+      "attribute": "ice",
+      "specialty": "rupture",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100216": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100226": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100226": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100236": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100236": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-yixuan",
+      "gameId": "1371",
+      "sourceName": "Yixuan",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1371.json",
+        "sourceVersion": "3.2",
+        "sha256": "E369824D8A3FE2968FEE2CC238B7DC17907497A3646A3F2C51C2B619685D5B04"
+      },
+      "attribute": "ether",
+      "specialty": "rupture",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100216": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100226": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100226": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100236": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100236": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-yuzuha",
+      "gameId": "1411",
+      "sourceName": "Yuzuha",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1411.json",
+        "sourceVersion": "3.2",
+        "sha256": "AD9140288DB8EF6B8F6166459294DAE9BCB8AD5004AFAC418A04BE51BA244856"
+      },
+      "attribute": "physical",
+      "specialty": "support",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100214": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100224": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100224": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100234": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100234": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-zhao",
+      "gameId": "1341",
+      "sourceName": "Zhao",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1341.json",
+        "sourceVersion": "3.2",
+        "sha256": "99756F86486BDD0D6CA0C9DE5ECB6EBCF794CF930809BA8FE10E39062C1A1657"
+      },
+      "attribute": "ice",
+      "specialty": "defense",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100215": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100225": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100225": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100235": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100235": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    },
+    {
+      "agentId": "agent-zhu-yuan",
+      "gameId": "1241",
+      "sourceName": "Zhu Yuan",
+      "status": "supported",
+      "source": {
+        "url": "https://static.nanoka.cc/zzz/3.2/en/character/1241.json",
+        "sourceVersion": "3.2",
+        "sha256": "DCE154F83BB71BC64D7E177AB04EF62E14E7672F96142E6E97B32698AF2B73B5"
+      },
+      "attribute": "ether",
+      "specialty": "attack",
+      "steps": [
+        {
+          "ascension": 1,
+          "levelCapBefore": 10,
+          "levelCapAfter": 20,
+          "materials": {
+            "10": 24000,
+            "100211": 4
+          },
+          "sourceLocator": "level[1].materials"
+        },
+        {
+          "ascension": 2,
+          "levelCapBefore": 20,
+          "levelCapAfter": 30,
+          "materials": {
+            "10": 56000,
+            "100221": 12
+          },
+          "sourceLocator": "level[2].materials"
+        },
+        {
+          "ascension": 3,
+          "levelCapBefore": 30,
+          "levelCapAfter": 40,
+          "materials": {
+            "10": 120000,
+            "100221": 20
+          },
+          "sourceLocator": "level[3].materials"
+        },
+        {
+          "ascension": 4,
+          "levelCapBefore": 40,
+          "levelCapAfter": 50,
+          "materials": {
+            "10": 200000,
+            "100231": 10
+          },
+          "sourceLocator": "level[4].materials"
+        },
+        {
+          "ascension": 5,
+          "levelCapBefore": 50,
+          "levelCapAfter": 60,
+          "materials": {
+            "10": 400000,
+            "100231": 20
+          },
+          "sourceLocator": "level[5].materials"
+        }
+      ]
+    }
+  ]
+}

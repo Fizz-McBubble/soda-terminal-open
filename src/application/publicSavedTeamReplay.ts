@@ -46,6 +46,7 @@ export function savedTeamReplayPlanHash(plan: AccountPlanningDraft) {
           scenarioSelection: plan.solutionContext.scenarioSelection,
           scenarioIdentity: plan.solutionContext.scenarioIdentity,
           standardReference32: plan.solutionContext.standardReference32,
+          formedTeamReference: plan.solutionContext.formedTeamReference,
           standardReferenceRequest32: plan.solutionContext.standardReferenceRequest32,
           resourceTimelineDeclaration32: plan.solutionContext.resourceTimelineDeclaration32,
           resourceTimelineDeclarationIdentity32:
@@ -71,6 +72,7 @@ export type SavedTeamReplayPresentation = {
   planId: string
   planHash: string
   status: 'ready' | 'unavailable'
+  formedTeamReference?: import('./publicFormedTeamReference').FormedTeamReference
   /** Sanitized independent volley result; never a team DPS or Formal result. */
   luminizeSettlement32?: SavedLuminizeReplay32
   /** Exact saved standard-reference provenance; current use must reissue its source gate. */

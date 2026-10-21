@@ -1,6 +1,7 @@
 import { type SourceBackedPlanningEffectBucket } from '../calculation/currentPlanningDamageModifiers'
 import type { StandardTeamReferenceSelectionBundle } from './standardTeamReferenceSelection'
 import { stableContentHash } from '../gameDataPacks/types'
+import { projectTeamAnomalyCapacityCoordinates } from './teamStrengthAnomalyCapacityCoordinates'
 import {
   recipientCompatible,
   type SupportRecipientContext,
@@ -14,6 +15,7 @@ import { projectTeamStrengthSourceEffects } from './teamStrengthSourceCapacityEf
 import { projectTeamStrengthTypedAnomalyCapacity } from './teamStrengthTypedAnomalyCapacity'
 import {
   teamStrengthSourceCapacityIdentity,
+  sourceCapacityEventPacketIdentity,
   type TeamStrengthSourceCapacity,
 } from './teamStrengthSourceCapacityPolicy'
 export {
@@ -51,16 +53,14 @@ export function projectTeamStrengthSourceCapacity(
         value: null,
         eventIds: [],
         family: null,
+        eventPacketIdentity: null,
       })),
       effects: [],
       contacts: [],
       gaps: context.gaps,
-      primarySupportGain: 0,
-      secondarySupportGain: 0,
       anomalyProficiencyGain: 0,
       anomalyMasteryGain: 0,
-      anomalyDamageCapacity: 0,
-      anomalyBuildupCapacity: 0,
+      anomalyCoordinates: projectTeamAnomalyCapacityCoordinates([]).coordinates,
       stunCapacity: 0,
     }
   const { ids, runtime, contactRuntime, usages, value, contactValue, gaps } = context
@@ -69,6 +69,7 @@ export function projectTeamStrengthSourceCapacity(
     value: value(member.agentId, []),
     eventIds: usages.get(member.agentId)!.map((u) => u.eventId),
     family: member.actionFacts.damage?.formulaFamily ?? null,
+    eventPacketIdentity: sourceCapacityEventPacketIdentity(usages.get(member.agentId)!),
   }))
   const { effects, bucketRows } = projectTeamStrengthSourceEffects(
     context,
@@ -192,30 +193,64 @@ export function projectTeamStrengthSourceCapacity(
         sourceRefs: [...capacity.sourceRefs],
       })
   }
-  const outputIds = new Set(
-    members
-      .filter(
-        (m) =>
-          ['attack', 'anomaly', 'rupture', 'armorer', 'stun'].includes(m.specialty) &&
-          actions.some(
-            (action) =>
-              action.agentId === m.agentId &&
-              action.value !== null &&
-              Number.isFinite(action.value) &&
-              action.value > 0,
-          ),
-      )
-      .map((m) => m.agentId),
-  )
-  // Effects under the same explicit state are settled together by the shared
-  // event calculator (e.g. Astra ATK+DMG+CD). Different state inventories are
-  // separate contacts, so incompatible branches never become free uptime.
+  // An effect whose requirements are a subset of another state's requirements
+  // is co-active in that state (e.g. Soukaku's ice grant under vortexConsumed).
+  // Distinct, undeclared states stay separate. Explicitly validated observations
+  // may join them; an independently maximized condition may not.
   const groups = new Map<string, typeof bucketRows>()
   for (const row of bucketRows.filter((row) => row.providerAgentId !== row.recipientAgentId)) {
-    const key = stableContentHash([row.providerAgentId, row.recipientAgentId, row.conditions])
+    const packet = context.contactUsages(
+      row.recipientAgentId,
+      row.bucket.damageType === 'aftershock' ? 'aftershock' : undefined,
+    )
+    const key = stableContentHash([
+      row.providerAgentId,
+      row.recipientAgentId,
+      sourceCapacityEventPacketIdentity(packet),
+    ])
     groups.set(key, [...(groups.get(key) ?? []), row])
   }
-  const contacts = [...groups.values()].map((rows) => {
+  const containsState = (
+    state: Readonly<Record<string, unknown>>,
+    subset: Readonly<Record<string, unknown>>,
+  ) =>
+    Object.entries(subset).every(
+      ([key, value]) =>
+        Object.hasOwn(state, key) && stableContentHash(state[key]) === stableContentHash(value),
+    )
+  const contactStates = [...groups.values()].flatMap((rows) => {
+    const explicit = conditions.supportReferencesByAgentId?.[rows[0]!.providerAgentId] ?? {}
+    // Only states actually validated by a source effect can enter the union.
+    const observed = Object.fromEntries(
+      rows.flatMap((row) =>
+        Object.entries(row.conditions).filter(
+          ([key, value]) =>
+            Object.hasOwn(explicit, key) &&
+            stableContentHash(explicit[key]) === stableContentHash(value),
+        ),
+      ),
+    )
+    const states = [
+      ...new Map(
+        rows.map((row) => {
+          const state = { ...observed, ...row.conditions }
+          return [stableContentHash(state), state] as const
+        }),
+      ).values(),
+    ]
+    return states
+      .filter(
+        (state) =>
+          !states.some(
+            (other) =>
+              other !== state &&
+              Object.keys(other).length > Object.keys(state).length &&
+              containsState(other, state),
+          ),
+      )
+      .map((state) => ({ state, rows: rows.filter((row) => containsState(state, row.conditions)) }))
+  })
+  const contacts = contactStates.map(({ rows, state }) => {
     const first = rows[0]!
     const packet = context.contactUsages(
       first.recipientAgentId,
@@ -230,34 +265,20 @@ export function projectTeamStrengthSourceCapacity(
         ...conditions.supportReferencesByAgentId,
         [first.providerAgentId]: {
           ...conditions.supportReferencesByAgentId?.[first.providerAgentId],
-          ...first.conditions,
+          ...state,
         },
       },
     )
     return {
       providerAgentId: first.providerAgentId,
       recipientAgentId: first.recipientAgentId,
+      eventPacketIdentity: sourceCapacityEventPacketIdentity(packet),
       effectKeys: rows.map((row) => row.bucket.effectKey),
       relativeGain:
         before !== null && before > 0 && after !== null ? Math.max(0, after / before - 1) : null,
-      conditions: first.conditions,
+      conditions: state,
     }
   })
-  const gains = [...new Set(contacts.map((effect) => effect.providerAgentId))]
-    .map((id) =>
-      Math.max(
-        0,
-        ...contacts
-          .filter(
-            (e) =>
-              e.providerAgentId === id &&
-              e.recipientAgentId !== id &&
-              outputIds.has(e.recipientAgentId),
-          )
-          .map((e) => e.relativeGain ?? 0),
-      ),
-    )
-    .sort((a, b) => b - a)
   const anomalyGain = (
     application: 'anomaly_proficiency_flat' | 'anomaly_mastery_flat',
     stat: 'anomProf' | 'anomMas',
@@ -268,8 +289,14 @@ export function projectTeamStrengthSourceCapacity(
         .filter((e) => e.application === application)
         .map((e) => e.value / runtime.get(e.recipientAgentId)!.initialStats[stat]),
     )
-  const externalAnomaly = effects.filter(
-    (e) => e.providerAgentId !== e.recipientAgentId && ['anomaly', 'abloom'].includes(e.channel),
+  const anomaly = projectTeamAnomalyCapacityCoordinates(effects)
+  gaps.push(
+    ...anomaly.gaps.map(({ effect, reason }) => ({
+      providerAgentId: effect.providerAgentId,
+      effectKey: effect.effectKey,
+      fields: [reason],
+      sourceRefs: effect.sourceRefs,
+    })),
   )
   return {
     identity: standardTeamReferenceSelection
@@ -288,22 +315,9 @@ export function projectTeamStrengthSourceCapacity(
     effects,
     contacts,
     gaps,
-    primarySupportGain: gains[0] ?? 0,
-    secondarySupportGain: gains[1] ?? 0,
     anomalyProficiencyGain: anomalyGain('anomaly_proficiency_flat', 'anomProf'),
     anomalyMasteryGain: anomalyGain('anomaly_mastery_flat', 'anomMas'),
-    anomalyDamageCapacity: Math.max(
-      0,
-      ...externalAnomaly
-        .filter((e) => !/Buildup|accum/i.test(e.effectKey))
-        .map((e) => Math.abs(e.value)),
-    ),
-    anomalyBuildupCapacity: Math.max(
-      0,
-      ...externalAnomaly
-        .filter((e) => /Buildup|accum/i.test(e.effectKey))
-        .map((e) => Math.abs(e.value)),
-    ),
+    anomalyCoordinates: anomaly.coordinates,
     stunCapacity: Math.max(
       0,
       ...effects.filter((e) => e.application === 'stun_damage_bonus').map((e) => e.value),

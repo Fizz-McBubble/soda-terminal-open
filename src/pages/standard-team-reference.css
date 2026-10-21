@@ -1,0 +1,52 @@
+.standard-reference-form {
+  display: grid;
+  gap: 16px;
+  margin-top: 20px;
+}
+.standard-reference-form label {
+  display: grid;
+  gap: 6px;
+  margin-block: 12px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.standard-reference-form input[type='number'] {
+  width: 100%;
+  min-height: 40px;
+  padding: 8px 12px;
+  box-sizing: border-box;
+  border: 1px solid var(--soda-line, #ded7e9);
+  border-radius: var(--soda-radius-control, 8px);
+  background: #fff;
+  color: var(--soda-text, #241c31);
+  font: inherit;
+}
+.standard-reference-form input:focus-visible {
+  outline: 2px solid var(--soda-accent, #705a9e);
+  outline-offset: 2px;
+}
+.standard-reference-form .standard-reference-check {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.standard-reference-event {
+  min-width: 0;
+  border: 0;
+  border-bottom: 1px solid var(--soda-line, #ded7e9);
+  padding: 0 0 16px;
+}
+.standard-reference-form summary {
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+.standard-reference-form .button-row {
+  margin-top: 0;
+}
+.standard-reference-form li {
+  margin-block: 10px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}

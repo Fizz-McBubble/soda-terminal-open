@@ -1,0 +1,82 @@
+{
+  "contract": "soda-phoenix-ascension-materials/v1",
+  "agentId": "agent-phoenix",
+  "gameId": "1641",
+  "sourceVersion": "3.3",
+  "attribute": "fire",
+  "specialty": "anomaly",
+  "source": {
+    "provider": "nanoka",
+    "url": "https://static.nanoka.cc/zzz/3.3/zh/character/1641.json",
+    "sourceVersion": "3.3",
+    "sha256": "237c5b060657db1fd8ababe6cd26fb275c325d74a67eda481bde6732c7d93dfe",
+    "providerManifestSha256": "4d30f529d6e0568a130ebe4d79557b30d9c65d2219e77461763df1c4b42cb029"
+  },
+  "steps": [
+    {
+      "ascension": 1,
+      "levelCapBefore": 10,
+      "levelCapAfter": 20,
+      "materials": {
+        "10": 24000,
+        "100213": 4
+      },
+      "sourceLocator": "level[1].materials"
+    },
+    {
+      "ascension": 2,
+      "levelCapBefore": 20,
+      "levelCapAfter": 30,
+      "materials": {
+        "10": 56000,
+        "100223": 12
+      },
+      "sourceLocator": "level[2].materials"
+    },
+    {
+      "ascension": 3,
+      "levelCapBefore": 30,
+      "levelCapAfter": 40,
+      "materials": {
+        "10": 120000,
+        "100223": 20
+      },
+      "sourceLocator": "level[3].materials"
+    },
+    {
+      "ascension": 4,
+      "levelCapBefore": 40,
+      "levelCapAfter": 50,
+      "materials": {
+        "10": 200000,
+        "100233": 10
+      },
+      "sourceLocator": "level[4].materials"
+    },
+    {
+      "ascension": 5,
+      "levelCapBefore": 50,
+      "levelCapAfter": 60,
+      "materials": {
+        "10": 400000,
+        "100233": 20
+      },
+      "sourceLocator": "level[5].materials"
+    }
+  ],
+  "levelExperience": {
+    "sourceLocator": "level_exp[0..59]",
+    "minimumLevel": 1,
+    "maximumLevel": 60,
+    "experienceToNextLevel": [
+      50, 150, 250, 400, 600, 800, 1000, 1250, 1500, 1800, 1935, 2065, 2200, 2335, 2465, 2600, 2735,
+      2865, 3000, 4680, 4975, 5265, 5560, 5855, 6145, 6440, 6735, 7025, 7320, 10800, 11400, 12000,
+      12600, 13200, 13800, 14400, 15000, 15600, 16200, 17100, 18300, 19500, 20700, 21900, 23100,
+      24300, 25500, 26700, 27900, 34200, 36600, 39000, 41400, 43800, 46200, 48600, 51000, 53400,
+      55800, 0
+    ],
+    "totalExperience1To60": 900000,
+    "itemConversion": "not_provided_by_this_source"
+  },
+  "boundary": "Exact source item IDs and quantities for level-cap transitions; level EXP demand is separate. No XP-item conversion, skill/core costs, account holdings or completed progression is inferred."
+}

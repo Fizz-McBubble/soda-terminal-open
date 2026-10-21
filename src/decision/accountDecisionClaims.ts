@@ -10,6 +10,14 @@ export function allocationClaim(
   ownedAgentIds: string[],
   profileAgentIds: string[],
 ): DecisionClaim {
+  if (result.deferred)
+    return {
+      status: 'candidate',
+      summary: result.boundary,
+      allows: ['选择队伍后计算配装'],
+      forbids: commonForbiddenClaims,
+      blockers: [],
+    }
   const uncoveredAgentIds = ownedAgentIds.filter((agentId) => !profileAgentIds.includes(agentId))
   const blockers = [
     ...result.diagnostics.flatMap((item) => item.reasons),
