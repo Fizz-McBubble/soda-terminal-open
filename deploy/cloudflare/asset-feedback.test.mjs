@@ -123,24 +123,26 @@ test('uses existing receiver and KV TTL, immutable content addressing and stable
   assert.equal(ownerValidation.ok, true)
   assert.deepEqual(ownerValidation.record, report)
 
-  // Locked production bridge version 1.0.5 roundtrip and Owner retrieval readback
-  const bridge105Report = {
+  for (const [index, bridge] of ['1.0.5', '1.0.12', '1.1.0'].entries()) {
+  // Carry Bridge versions while retaining previously published diagnostic identities.
+  const bridgeReport = {
     ...report,
-    reportId: 'c7b28014-9ff5-4e3a-96e0-20f781df03bb',
-    versions: { bridge: '1.0.5', protocol: '1' },
+    reportId: 'c7b28014-9ff5-4e3a-96e0-' + String(index).padStart(12, '0'),
+    versions: { bridge, protocol: '1' },
     code: 'capture_failed',
   }
-  const bridgeRes = await send(bridge105Report)
+  const bridgeRes = await send(bridgeReport)
   assert.equal(bridgeRes.status, 200)
   const [bKey, bEntry] = [...records.entries()].find(([k]) =>
-    k.startsWith(bridge105Report.reportId + ':'),
+    k.startsWith(bridgeReport.reportId + ':'),
   )
   assert.ok(bKey)
   const { receivedAt: bReceivedAt, ...bRetrieved } = JSON.parse(bEntry.value)
   assert.ok(Number.isFinite(Date.parse(bReceivedAt)))
   const bValidation = sanitizeScanFeedbackPayload(bRetrieved)
   assert.equal(bValidation.ok, true)
-  assert.deepEqual(bValidation.record, bridge105Report)
+  assert.deepEqual(bValidation.record, bridgeReport)
 
-  assert.equal(records.size, 2)
+  }
+  assert.equal(records.size, 4)
 })

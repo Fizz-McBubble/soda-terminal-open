@@ -355,7 +355,7 @@ test('installer receiver rejects query parameters, cross-origin, and non-POST', 
   assert.equal(crossRes.status, 403)
 })
 
-test('installer receiver accepts next release 1.1.0 asset_quick_read_installer diagnostics and proves owner retrieval readback', async () => {
+test('installer receiver accepts carried release 1.2.0 asset_quick_read_installer diagnostics and proves owner retrieval readback', async () => {
   const records = new Map()
   const receiver = createScanFeedbackReceiver({
     now: () => Date.parse('2026-10-14T10:00:00Z'),
@@ -379,11 +379,11 @@ test('installer receiver accepts next release 1.1.0 asset_quick_read_installer d
       env,
     )
 
-  // 1. Next release 1.1.0 asset_quick_read_installer is accepted and stored
+  // 1. Carried release 1.2.0 asset_quick_read_installer is accepted and stored
   const nextReleaseReport = {
     ...validReport,
     reportId: '11000000-0000-4000-8000-000000000001',
-    installerVersion: '1.1.0',
+    installerVersion: '1.2.0',
     code: 'offline_payload_unavailable',
   }
   const nextRes = await send(nextReleaseReport)
@@ -393,7 +393,7 @@ test('installer receiver accepts next release 1.1.0 asset_quick_read_installer d
   assert.equal(nextReceipt.reportId, nextReleaseReport.reportId)
   assert.equal(nextReceipt.receivedAt, '2026-10-14T10:00:00.000Z')
 
-  // Owner retrieval readback verification for 1.1.0
+  // Owner retrieval readback verification for 1.2.0
   const nextMatch = [...records.entries()].find(([k]) =>
     k.startsWith(nextReleaseReport.reportId + ':'),
   )
@@ -407,13 +407,13 @@ test('installer receiver accepts next release 1.1.0 asset_quick_read_installer d
   assert.equal(nextValidation.ok, true)
   assert.deepEqual(nextValidation.record, nextReleaseReport)
 
-  // Out-of-range versions (e.g. 1.2.0, 2.0.0) remain rejected
+  // Unpublished future versions (e.g. 1.2.1, 2.0.0) remain rejected
   assert.equal(
     (
       await send({
         ...validReport,
         reportId: '12000000-0000-4000-8000-000000000001',
-        installerVersion: '1.2.0',
+        installerVersion: '1.2.1',
       })
     ).status,
     400,

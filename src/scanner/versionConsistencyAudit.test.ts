@@ -22,6 +22,7 @@ describe("versionConsistencyAudit (real consumer imports)", () => {
     // New product releases carry after 9; historical compatibility identities stay unchanged.
     for (const version of [
       assetQuickReadManifest.version,
+    assetQuickReadManifest.bridgeVersion,
       scannerInstallerManifest.version,
     ]) {
       expect(version).toMatch(/^(?:0|[1-9]\d*)\.[0-9]\.[0-9]$/u);
@@ -75,6 +76,7 @@ describe("versionConsistencyAudit (real consumer imports)", () => {
 
   it("evaluates upgrade notices using real upgrade notice functions and release versions", () => {
     // Asset Quick Read upgrade notice compares the connected Bridge with the pinned target.
+    expect(assetQuickReadUpgradeNotice('1.0.12')).toBe('资产快读有新版本，请更新资产快读。');
     expect(assetQuickReadUpgradeNotice("1.0.4")).toBe(
       "资产快读有新版本，请更新资产快读。",
     );
@@ -167,7 +169,7 @@ describe("versionConsistencyAudit (real consumer imports)", () => {
     expect("1.0.8").toMatch(assetInstallerPattern);
     expect("1.0.10").toMatch(assetInstallerPattern);
     expect("1.1.0").toMatch(assetInstallerPattern);
-    expect("1.2.0").not.toMatch(assetInstallerPattern);
+    expect("1.2.0").toMatch(assetInstallerPattern);
     expect("2.0.0").not.toMatch(assetInstallerPattern);
 
     // Screen scanner installer accepts the current decimal release.

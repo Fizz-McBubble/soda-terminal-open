@@ -92,13 +92,13 @@ describe('installerFeedback sanitization and fragment consumption', () => {
     expect(safe?.tool).toBe('asset_quick_read_installer')
   })
 
-  it('accepts next release 1.1.0 installer diagnostics while rejecting future out-of-range versions', () => {
-    const nextReleaseReport = { ...sampleReport, installerVersion: '1.1.0' }
+  it('accepts carried product 1.2.0 diagnostics and preserves historical versions', () => {
+    const nextReleaseReport = { ...sampleReport, installerVersion: '1.2.0' }
     const safe = sanitizeInstallerFeedback(nextReleaseReport)
     expect(safe).not.toBeNull()
-    expect(safe?.installerVersion).toBe('1.1.0')
+    expect(safe?.installerVersion).toBe('1.2.0')
 
-    for (const invalidVersion of ['1.2.0', '2.0.0', '0.9.0', '1.0.0.0']) {
+    for (const invalidVersion of ['1.2.1', '2.0.0', '0.9.0', '1.0.0.0']) {
       expect(
         sanitizeInstallerFeedback({ ...sampleReport, installerVersion: invalidVersion }),
       ).toBeNull()
