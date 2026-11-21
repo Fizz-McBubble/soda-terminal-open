@@ -20,6 +20,7 @@ const applications = {
   'combat.common_dmg_': 'damage_bonus',
   'combat.crit_': 'crit_rate',
   'combat.crit_dmg_': 'crit_damage',
+  'combat.sheer_dmg_': 'sheer_damage_bonus',
 } as const
 const unsupported = (...blockers: string[]) => ({ status: 'unsupported' as const, blockers })
 
@@ -51,6 +52,7 @@ export function compileReviewedDriveDiscEventEffects32(input: {
           ...runtime?.flags,
           'eq:own.char.specialty:stun': specialty === 'stun',
           'eq:own.char.specialty:support': specialty === 'support',
+          'eq:own.char.specialty:defense': specialty === 'defense',
         },
         numbers: {
           ...runtime?.numbers,
@@ -73,6 +75,11 @@ export function compileReviewedDriveDiscEventEffects32(input: {
         if (!Number.isInteger(stack) || stack! < 0 || stack! > 3)
           return unsupported('啄木鸟电音必须声明当前各技能独立6秒增益的种类数，且为0至3整数。')
       }
+      if (setId === 'set-bunny-in-wonderland' && specialty === 'defense') {
+        const stack = runtime?.accumulators?.['BunnyInWonderland:exSpecial_assist']
+        if (!Number.isInteger(stack) || stack! < 0 || stack! > 3)
+          return unsupported('雪兔梦游仙境必须声明当前有效的0至3层，未知不按0层处理。')
+      }
       const result = resolveCurrentDriveDiscFourPieceContract({
         stableId: setId,
         equippedPieces: count,
@@ -85,13 +92,6 @@ export function compileReviewedDriveDiscEventEffects32(input: {
         `libs/zzz/dm-localization/assets/locales/en/disc_${source.pin.key}_gen.json#sha256=${source.pin.localizationSha256}`,
         identity.revision,
       ]
-      const recipients = ['set-34200', 'set-fanged-metal', 'set-woodpecker-electro'].includes(setId)
-        ? [member.agentId]
-        : setId === 'set-astral-voice'
-          ? runtime!.flags!['AstralVoice:eligible_event_owner']
-            ? [input.ownerAgentId]
-            : []
-          : input.members.map((row) => row.agentId)
       const effects: readonly Record<string, unknown>[] =
         setId === 'set-king-of-the-summit'
           ? [{ kind: 'modifier', target: 'team', stat: 'combat.crit_dmg_', value: 0 }]
@@ -103,15 +103,27 @@ export function compileReviewedDriveDiscEventEffects32(input: {
           effect.kind !== 'modifier' ||
           typeof effect.value !== 'number' ||
           !Number.isFinite(effect.value) ||
-          effect.action
+          effect.action ||
+          !['own', 'team'].includes(String(effect.target))
         )
           return unsupported(`四件套效果超出已审直接事件域：${setId}`)
+        // One set can mix a wearer-only buff with a squad buff (Yunkui).
+        // Proto's reviewed description correction and Astral's actual quick-
+        // assist recipient remain explicit exceptions to the upstream target.
+        const recipients =
+          setId === 'set-astral-voice'
+            ? runtime!.flags!['AstralVoice:eligible_event_owner']
+              ? [input.ownerAgentId]
+              : []
+            : effect.target === 'own' && setId !== 'set-proto-punk'
+              ? [member.agentId]
+              : input.members.map((row) => row.agentId)
         buckets.push({
           bucketId: `disc:${member.agentId}:${setId}:${index}`,
           effectKey: `disc:${setId}:four-piece:${index}`,
           providerAgentId: member.agentId,
           recipientAgentIds: recipients,
-          receiverPath: null,
+          receiverPath: `${effect.target}.${effect.stat}`,
           damageType: null,
           action: null,
           attribute: null,

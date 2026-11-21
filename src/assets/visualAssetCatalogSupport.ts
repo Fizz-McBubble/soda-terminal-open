@@ -23,7 +23,7 @@ export const officialCatalogEntityTypes = [
 
 export function isCatalogVisualAsset(asset: VisualAsset) {
   if (asset.entityType === 'agent')
-    return ['square_avatar', 'full_body', 'interknot'].includes(asset.variant)
+    return ['square_avatar', 'full_body', 'interknot', 'social_avatar'].includes(asset.variant)
   if (asset.entityType === 'illustration')
     return /^(attribute|specialty)-/.test(asset.entityId) && asset.variant === 'icon'
   return (

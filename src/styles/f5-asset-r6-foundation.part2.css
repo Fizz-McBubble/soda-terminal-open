@@ -47,33 +47,56 @@
 .r6-golden .object-card.disc::after {
   display: none;
 }
-.r6-golden .disc-facts {
+.r6-golden .disc-fact {
   position: absolute;
   z-index: 3;
-  right: 5px;
-  top: 5px;
-  display: grid;
-  gap: 3px;
-}
-.r6-golden .disc-facts i {
-  min-width: 24px;
+  max-width: calc(50% - 8px);
   height: 18px;
+  overflow: hidden;
   padding: 0 5px;
   border-radius: var(--soda-radius-tag);
   background: rgba(250, 249, 253, 0.66);
   color: #534969;
-  font-style: normal;
   font-size: var(--soda-font-caption);
   font-weight: 800;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   display: grid;
   place-items: center;
   backdrop-filter: blur(4px);
+}
+.r6-golden .disc-rarity {
+  left: 5px;
+  top: 5px;
+}
+.r6-golden .disc-slot {
+  right: 5px;
+  top: 5px;
+}
+.r6-golden .disc-level {
+  right: 5px;
+  bottom: 5px;
+}
+.r6-golden .disc-protection {
+  position: absolute;
+  z-index: 3;
+  left: 5px;
+  bottom: 5px;
+  max-width: calc(50% - 8px);
+  overflow: hidden;
+  color: #51436f;
+  font-size: var(--soda-font-caption);
+  font-weight: 800;
+  line-height: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .r6-golden .disc-select {
   position: absolute;
   z-index: 4;
   left: 5px;
-  top: 5px;
+  bottom: 5px;
   width: 19px;
   height: 19px;
   border-radius: var(--soda-radius-control);
@@ -83,6 +106,9 @@
   color: #7561ab;
   font-size: var(--soda-font-body);
   backdrop-filter: blur(4px);
+}
+.r6-golden .disc.is-bulk .disc-protection {
+  display: none;
 }
 .r6-golden .missing-image {
   width: 100%;
@@ -153,6 +179,14 @@
   margin-top: 2px;
   border-top: 0;
 }
+.r6-golden .editor-section + .editor-section {
+  margin-top: 12px;
+  border-top: 1px solid var(--soda-line);
+}
+.r6-golden .editor-section.agent-editor-skills,
+.r6-golden .agent-editor-skills + .editor-section {
+  border-top: 0;
+}
 .r6-golden .editor-section h3 {
   font-size: var(--soda-font-body);
   margin: 0 0 9px;
@@ -188,6 +222,13 @@
 }
 .r6-golden .field > .filter-select {
   width: 100%;
+}
+.r6-golden :is(.agent-editor-progress, .agent-editor-skills) .field > input,
+.r6-golden .agent-editor-progress .field > .filter-select > .filter-select__trigger {
+  box-sizing: border-box;
+  width: 100%;
+  height: var(--soda-control-height);
+  min-height: var(--soda-control-height);
 }
 .r6-golden .relation,
 .r6-golden .copy-list {

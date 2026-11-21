@@ -2,27 +2,35 @@ import type { VisualAsset, VisualAssetManifest } from './visualAssetSchemas'
 import type { VisualAssetCacheRuntime, VisualAssetPackState } from './visualAssets'
 import { getOfficialVisualAssetDownloadUrl } from './visualAssetDownloadSupport'
 import { isCatalogVisualAsset } from './visualAssetCatalogSupport'
-import { fetchWithTimeout } from './visualAssetCacheRuntimeSupport'
+import { fetchWithTimeout, waitForAbortable } from './visualAssetCacheRuntimeSupport'
 
 const visualAssetFetchTimeoutMs = 15_000
 
 export async function fetchOfficialVisualAsset(
   asset: VisualAsset & { remoteUrl: string },
   runtime: VisualAssetCacheRuntime,
+  options?: { signal?: AbortSignal },
 ) {
   let lastError: unknown
   for (let attempt = 1; attempt <= 5; attempt += 1) {
+    if (options?.signal?.aborted) {
+      throw options.signal.reason ?? new DOMException('The operation was aborted', 'AbortError')
+    }
     let response: Response
     try {
       response = await fetchWithTimeout(
         runtime.fetcher,
         getOfficialVisualAssetDownloadUrl(asset),
-        { credentials: 'omit' },
+        { credentials: 'omit', signal: options?.signal },
         visualAssetFetchTimeoutMs,
       )
     } catch (error) {
+      if (options?.signal?.aborted) {
+        throw options.signal.reason ?? new DOMException('The operation was aborted', 'AbortError')
+      }
       lastError =
-        error instanceof DOMException && error.name === 'AbortError'
+        error instanceof DOMException &&
+        (error.name === 'AbortError' || error.name === 'TimeoutError')
           ? new Error(`${asset.name} 下载失败（请求超时）`)
           : error
       if (attempt === 5) throw lastError
@@ -38,13 +46,17 @@ export async function fetchOfficialVisualAsset(
     if (response.ok) return response
     lastError = new Error(`${asset.name} 下载失败（HTTP ${response.status}）`)
     if (response.status === 429 && attempt < 5) {
+      if (options?.signal?.aborted) {
+        throw options.signal.reason ?? new DOMException('The operation was aborted', 'AbortError')
+      }
       const retryAfter = Number(response.headers.get('retry-after'))
-      await new Promise((resolve) =>
+      const backoff = new Promise<void>((resolve) =>
         setTimeout(
           resolve,
           Number.isFinite(retryAfter) && retryAfter > 0 ? retryAfter * 1000 : 500 * attempt,
         ),
       )
+      await (options?.signal ? waitForAbortable(backoff, options.signal) : backoff)
       continue
     }
     if (response.status < 500 || attempt === 5) throw lastError

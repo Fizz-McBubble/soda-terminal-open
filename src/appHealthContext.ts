@@ -20,10 +20,13 @@ export type AppHealth = {
   >
   currentDataAuthority?: typeof currentDataAuthorityProjection
   capabilities?: ReturnType<typeof createAppCapabilityHealth>
+  /** Explicit diagnostic request; failures are reported to the caller. */
+  loadDetailedHealth?: () => Promise<void>
   dataStatus: Exclude<HealthStatus, 'loading'>
   dataError: string | null
   canRepairApplicationData?: boolean
   repairApplicationData?: () => Promise<unknown>
+  retryDatabaseInitialization?: () => void
   databaseStatus: HealthStatus
   databaseError: string | null
 }

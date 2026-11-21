@@ -4,7 +4,7 @@ import { discSlotSchema } from './schemas'
 export const driveDiscImportFormat = 'soda-terminal-drive-disc-import'
 export const driveDiscImportFormatVersion = 1
 
-const raritySchema = z.enum(['B', 'A', 'S']).default('S')
+const raritySchema = z.enum(['B', 'A', 'S'])
 const importSubStatSchema = z.object({
   stat: z.string().min(1),
   value: z.number().nonnegative(),

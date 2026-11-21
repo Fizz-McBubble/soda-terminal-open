@@ -36,6 +36,15 @@
       ],
       "@soda/legacy-recovery-fixture": [
         "./src/testing/emptyLegacyRecoveryFixture.ts"
+      ],
+      "@soda/team-execution-blocker-presentation": [
+        "./src/pages/teamExecutionPortfolioPresentation.ts"
+      ],
+      "@soda/team-guide-preference": [
+        "./src/pages/TeamGuidePreferencePublic.tsx"
+      ],
+      "vitest": [
+        "./node_modules/vitest"
       ]
     }
   },

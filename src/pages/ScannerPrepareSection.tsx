@@ -157,6 +157,16 @@ export function ScannerPrepareSection({
             {presentedStateCopy.title}
           </h2>
           <p>{presentedStateCopy.body}</p>
+          {taskOnly && snapshot.state === 'connection_failed' ? (
+            <button
+              className="button button--primary scanner-web__primary-action"
+              type="button"
+              disabled={actionPending}
+              onClick={onReturnToTargetSelection}
+            >
+              返回准备步骤
+            </button>
+          ) : null}
         </div>
       ) : null}
 

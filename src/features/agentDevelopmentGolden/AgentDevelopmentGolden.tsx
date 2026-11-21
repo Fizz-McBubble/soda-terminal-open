@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
+import { useStateTransitionMotion } from '../../motion/useStateTransitionMotion'
 import { Top10 } from './AgentDevelopmentTop10'
 import { AgentDevelopmentOverview } from './AgentDevelopmentOverview'
 import { Workbench } from './AgentDevelopmentWorkbench'
@@ -19,14 +20,30 @@ export function AgentDevelopmentGolden({
   onSavePlan,
   onEditCurrent,
   currentUpdate,
+  workbenchComparisonConditions,
   onSelectCandidatePlan,
   onAnalyzeWarehouse,
+  onCancelWarehouseAnalysis,
   onReanalyzeWarehouse,
   comparisonScenarioControl,
   comparisonEquipmentControl,
   onComparisonDetailsOpen,
 }: AgentDevelopmentGoldenProps) {
   const [view, setView] = useState<JourneyView>(initialView)
+  const routeRef = useRef<HTMLDivElement>(null)
+  const routeIdentity =
+    view === 'overview'
+      ? `overview:${directoryAgents.length}`
+      : view === 'workbench'
+        ? `workbench:${workbench?.agentId ?? 'missing'}`
+        : `comparison:${top10Data?.agentName ?? 'missing'}`
+  useStateTransitionMotion({
+    scope: routeRef,
+    stateKey: routeIdentity,
+    includeScope: true,
+    animateOnMount: true,
+    transition: 'route',
+  })
   const missingData = (view === 'workbench' && !workbench) || (view === 'top10' && !top10Data)
   const content = missingData ? (
     <section className="production-data-missing" role="alert">
@@ -51,8 +68,10 @@ export function AgentDevelopmentGolden({
       data={workbench!}
       onEditCurrent={onEditCurrent}
       currentUpdate={currentUpdate}
+      workbenchComparisonConditions={workbenchComparisonConditions}
       onSavePlan={onSavePlan}
       onAnalyzeWarehouse={onAnalyzeWarehouse}
+      onCancelWarehouseAnalysis={onCancelWarehouseAnalysis}
     />
   ) : (
     <Top10
@@ -67,5 +86,9 @@ export function AgentDevelopmentGolden({
       onComparisonDetailsOpen={onComparisonDetailsOpen}
     />
   )
-  return <div className="ad-golden">{content}</div>
+  return (
+    <div ref={routeRef} className="ad-golden" data-development-view={view}>
+      {content}
+    </div>
+  )
 }

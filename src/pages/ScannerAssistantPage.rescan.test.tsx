@@ -9,6 +9,7 @@ import { warehouseTestDisc } from '../warehouse/discWarehouseAnalysis.testFixtur
 import { createScannerRuntimeSnapshot } from './scannerAssistantTestFixture'
 import { ScannerAssistantPage } from './ScannerAssistantPage'
 import { readScannerTargetAccountBinding } from '../scanner/targetAccountBinding'
+import { readLastScanDiagnostic } from '../scanner/scanFeedback'
 
 const runtime = vi.hoisted(() => ({
   snapshot: {} as Record<string, unknown>,
@@ -141,7 +142,7 @@ describe('preparing another scan', () => {
     }
     rendered.rerender(page())
     expect(await screen.findByRole('region', { name: '已完成扫描结果' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '确认账户并继续' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: '用此账户检查结果' })).toBeEnabled()
     expect(runtime.commands.startScan).not.toHaveBeenCalled()
     expect(await database.accountDriveDiscs.count()).toBe(0)
   })
@@ -186,19 +187,30 @@ describe('preparing another scan', () => {
       id: 'account-failed-start',
     })
     await setActiveAccount(account.id, database)
+    const accountsBefore = await database.accounts.toArray()
     runtime.snapshot = {
       ...createScannerRuntimeSnapshot('ready'),
       diagnostics: { reportId: '00000000-0000-4000-8000-000000000003' },
     }
     runtime.commands.startScan.mockRejectedValueOnce(new Error('扫描启动失败，请重试。'))
     const rendered = render(page())
+    expect(runtime.commands.startScan).not.toHaveBeenCalled()
     await userEvent.setup().click(await screen.findByRole('button', { name: '开始扫描' }))
-    expect(
-      within(await screen.findByRole('region', { name: '扫描诊断' })).getByRole('button', {
-        name: '查看诊断',
-      }),
-    ).toBeEnabled()
-    expect(readScannerTargetAccountBinding()).toMatchObject({ valid: true })
+    // Binding refresh temporarily disables the account fieldset. Observe the
+    // rejected command and settled account read before asserting recovery.
+    await waitFor(() => {
+      expect(runtime.commands.startScan).toHaveBeenCalledOnce()
+      expect(readLastScanDiagnostic()).toMatchObject({ code: 'scanner_failure', outcome: 'failed' })
+      expect(
+        within(screen.getByRole('region', { name: '扫描诊断' })).getByRole('button', {
+          name: '查看诊断',
+        }),
+      ).toBeEnabled()
+    })
+    expect(readScannerTargetAccountBinding()).toMatchObject({
+      valid: true,
+      binding: { accountId: account.id },
+    })
     runtime.snapshot = {
       ...createScannerRuntimeSnapshot('scanning'),
       diagnostics: { reportId: '00000000-0000-4000-8000-000000000004' },
@@ -208,6 +220,9 @@ describe('preparing another scan', () => {
       await screen.findByRole('progressbar', { name: '已处理 128，共 384' }),
     ).toBeInTheDocument()
     expect(readScannerTargetAccountBinding()).toMatchObject({ valid: false })
+    expect(runtime.commands.startScan).toHaveBeenCalledOnce()
+    expect(await database.accounts.toArray()).toEqual(accountsBefore)
+    expect(await database.accountScanImportBatches.count()).toBe(0)
     expect(await database.accountDriveDiscs.count()).toBe(0)
   })
 

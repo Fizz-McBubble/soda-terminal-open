@@ -55,6 +55,7 @@ export function reconcileAccountReplacementDiscs(
     if (
       incomingSourceCounts.get(disc.importSource?.sourceId ?? '') !== 1 ||
       matches.length !== 1 ||
+      matches[0]!.rarity !== disc.rarity ||
       !availableExisting.has(matches[0]!.id)
     )
       continue

@@ -59,3 +59,15 @@
     flex-basis: 100%;
   }
 }
+
+.restore-recovery__confirm-dialog {
+  width: min(480px, calc(100vw - 40px));
+}
+
+.restore-recovery__confirm-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 16px;
+}

@@ -6,6 +6,23 @@ import { reviewedLumifluxMechanicsHash32 as sourceHash } from '../calculation/re
 
 afterEach(cleanup)
 
+it('describes the current-source saved-disc score without requesting replacement discs or updating history', () => {
+  render(
+    <PlanEditorSavedStateNotices
+      objectiveNote={undefined}
+      needsTeamRecovery
+      staleNotice="历史依据已变化"
+      currentSavedDiscScore
+      reanalyze={() => {}}
+    />,
+  )
+  expect(screen.getByRole('status', { name: '原盘当前评分说明' })).toHaveTextContent(
+    '最新资料重算原18张驱动盘',
+  )
+  expect(screen.getByRole('status')).toHaveTextContent('历史记录保持原样')
+  expect(screen.queryByRole('button', { name: '重新匹配当前队伍' })).toBeNull()
+})
+
 const props = {
   objectiveNote: undefined,
   needsTeamRecovery: false,

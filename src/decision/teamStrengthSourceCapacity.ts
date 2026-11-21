@@ -320,7 +320,11 @@ export function projectTeamStrengthSourceCapacity(
     anomalyCoordinates: anomaly.coordinates,
     stunCapacity: Math.max(
       0,
-      ...effects.filter((e) => e.application === 'stun_damage_bonus').map((e) => e.value),
+      ...effects
+        .filter(
+          (e) => e.application === 'stun_damage_bonus' && e.providerAgentId !== e.recipientAgentId,
+        )
+        .map((e) => e.value),
     ),
   }
 }

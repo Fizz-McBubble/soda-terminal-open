@@ -1,7 +1,10 @@
 import { lookupCurrent31TeamIntrinsicSummary } from '../decision/current31TeamIntrinsicIndex'
 import { stableContentHash } from '../gameDataPacks/types'
 import { inspectCurrent31FormationMechanicState } from './current31FormationMechanicAudit'
-import { current31LegalAgentFormations } from './current31LegalCandidateUniverse'
+import {
+  enumerateOwnedLegalAgentFormations,
+  type LegalAgentFormation,
+} from './current31LegalCandidateUniverse'
 
 export type ExhaustiveAccountFormationCandidate = {
   candidateId: string
@@ -19,11 +22,10 @@ export type ExhaustiveAccountFormationCandidate = {
 export function projectCurrent31ExhaustiveAccountCandidates(
   ownedAgentIds: readonly string[],
   mode: 'direct' | 'indexed' = 'direct',
+  exactFormations?: readonly LegalAgentFormation[],
 ) {
   const owned = new Set(ownedAgentIds)
-  const formations = current31LegalAgentFormations.filter((memberIds) =>
-    memberIds.every((agentId) => owned.has(agentId)),
-  )
+  const formations = exactFormations ?? enumerateOwnedLegalAgentFormations(owned)
   const candidates: ExhaustiveAccountFormationCandidate[] = formations.map((memberIds) => {
     const flags =
       mode === 'indexed' ? (lookupCurrent31TeamIntrinsicSummary(memberIds)?.formationFlags ?? 0) : 0

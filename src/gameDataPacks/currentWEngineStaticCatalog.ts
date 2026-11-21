@@ -239,7 +239,13 @@ export const nanokaItemSchema = z.object({
   nativeKey: z.string().min(1),
   rarity: z.enum(['S', 'A', 'B']),
   specialty: z.enum(['damage', 'anomaly', 'defense', 'rupture', 'stun', 'support', 'armorer']),
-  releaseStatus: z.enum(['released_first_half', 'pending_event', 'pending_second_half']),
+  releaseStatus: z.enum([
+    'released_first_half',
+    'released_second_half',
+    'released_event',
+    'pending_event',
+    'pending_second_half',
+  ]),
   releaseAt: z.string().min(1),
   staticStats: staticStatsSchema,
   passiveParameterTable: z
@@ -291,13 +297,28 @@ export const baseWEngineStaticCatalog = catalogSchema.parse(rawCatalog)
 const rawFirstPlumage = reviewedWEngineData33.items.find(
   (item) => item.stableId === 'wengine-14164',
 )
+const rawTrickOfCandleglow = reviewedWEngineData33.items.find(
+  (item) => item.stableId === 'wengine-13022',
+)
+const rawCageOfConfinedSin = reviewedWEngineData33.items.find(
+  (item) => item.stableId === 'wengine-14163',
+)
 
-if (!rawFirstPlumage) {
-  throw new Error('Missing reviewed W-Engine data for wengine-14164 (涅槃初翎)')
+if (!rawFirstPlumage || !rawTrickOfCandleglow || !rawCageOfConfinedSin) {
+  throw new Error('Missing reviewed 3.3 released W-Engine records')
 }
 
 export const firstPlumageStaticRecord: CurrentWEngineNanokaItem =
   nanokaItemSchema.parse(rawFirstPlumage)
+export const trickOfCandleglowStaticRecord: CurrentWEngineNanokaItem =
+  nanokaItemSchema.parse(rawTrickOfCandleglow)
+export const cageOfConfinedSinStaticRecord: CurrentWEngineNanokaItem =
+  nanokaItemSchema.parse(rawCageOfConfinedSin)
+export const reviewedWEngine33StaticRecords = [
+  firstPlumageStaticRecord,
+  trickOfCandleglowStaticRecord,
+  cageOfConfinedSinStaticRecord,
+] as const
 
 const byStableId32 = new Map(
   baseWEngineStaticCatalog.items.map(
@@ -309,7 +330,9 @@ const byStableId33 = new Map<string, CurrentWEngineStaticCatalogItem>([
   ...baseWEngineStaticCatalog.items.map(
     (item) => [item.stableId, item as CurrentWEngineStaticCatalogItem] as const,
   ),
-  ['wengine-14164', firstPlumageStaticRecord as CurrentWEngineStaticCatalogItem],
+  ...reviewedWEngine33StaticRecords.map(
+    (item) => [item.stableId, item as CurrentWEngineStaticCatalogItem] as const,
+  ),
 ])
 
 export const currentWEngineStaticCatalog = {
@@ -321,7 +344,7 @@ export const currentWEngineStaticCatalog = {
     return currentGameDataSelection.gameVersion === '3.3'
       ? stableContentHash({
           baseCatalogHash: baseWEngineStaticCatalog.contentHash,
-          addedRecords: [firstPlumageStaticRecord],
+          addedRecords: reviewedWEngine33StaticRecords,
         })
       : baseWEngineStaticCatalog.contentHash
   },
@@ -344,7 +367,7 @@ export const currentWEngineStaticCatalog = {
   },
   get items(): readonly CurrentWEngineStaticCatalogItem[] {
     return currentGameDataSelection.gameVersion === '3.3'
-      ? [...baseWEngineStaticCatalog.items, firstPlumageStaticRecord]
+      ? [...baseWEngineStaticCatalog.items, ...reviewedWEngine33StaticRecords]
       : baseWEngineStaticCatalog.items
   },
   get additionalSources() {
@@ -353,7 +376,7 @@ export const currentWEngineStaticCatalog = {
           {
             provider: 'nanoka' as const,
             gameVersion: '3.3' as const,
-            itemsCount: 1,
+            itemsCount: reviewedWEngine33StaticRecords.length,
             manifestPin: '4d30f529d6e0568a130ebe4d79557b30d9c65d2219e77461763df1c4b42cb029',
           },
         ]

@@ -16,108 +16,19 @@ import { isReviewedSourceAtomContractValid } from './reviewedBangbooSourceContra
 import { reviewedSourceTeamDirectionProjection32 } from './reviewedSourceTeamDirectionProjection32'
 import { reviewedCurrentTeamGuidance32 } from './reviewedCurrentTeamGuidance32'
 import { reviewedHoyoBuildCurrentTeams32 } from './reviewedHoyoBuildCurrentTeams32'
-import type { TeamOutputModuleResolution } from './teamOutputModuleContract'
 import { resolveReviewedTeamOutputModule } from './reviewedTeamOutputModuleEvidence'
 import { reviewedPhoenixSourceDirections33 } from '../decision/reviewedPhoenixTeams33'
 
-type NestedDirectionRecord = (typeof nestedTeamDirections.records)[number] & {
-  additionalConditionSources?: NonNullable<
-    (typeof nestedTeamDirections.records)[number]['additionalConditionSource']
-  >[]
-}
-
-export type TeamRecommendationPrerequisite =
-  | { kind: 'potential_minimum'; agentId: string; minimum: number }
-  | { kind: 'wengine'; agentId: string; engineId: string }
-
-export type ReviewedTeamSourceDirection = {
-  memberIds: readonly [string, string, string]
-  outputModule?: TeamOutputModuleResolution
-  sourceRefs: {
-    id: string
-    url: string
-    sourceVersion: string
-    checkedAt: string
-    contentHash: string
-    observationRole?: 'author_comparison_setup'
-    locator?: string
-    hashDefinition?: string
-    equipmentConditions?: readonly { agentId: string; sourceEquipmentName: string }[]
-    /** Explicit recommendation gates only; effect windows are not team eligibility gates. */
-    recommendationPrerequisites?: readonly TeamRecommendationPrerequisite[]
-    scenario?: string
-    /** Exact-team page replay, separate from the adopted coarse rating. */
-    verificationStatus?: string
-    sourceUpdatedAt?: string | null
-    nestedEvidence?: NestedDirectionRecord['nested']
-    imageEvidence?: { imageSha256: string; region: string; sourceLocator?: ImageSourceLocator }
-    unresolvedAuthorBangbooOptions?: UnresolvedAuthorBangbooOption[]
-    visualIdentityCorroboration?: ImageDirectionRecord['visualIdentityCorroboration']
-    conditionReview?: { originalConditions: string[]; disposition: string }
-    additionalConditionEvidence?: NestedDirectionRecord['additionalConditionSource']
-    additionalConditionEvidences?: NestedDirectionRecord['additionalConditionSources']
-    additionalMembershipEvidence?: NestedDirectionRecord['additionalMembershipSources']
-    additionalImageMembershipEvidence?: ImageDirectionRecord['additionalMembershipSources']
-    sourceConflictReview?: Record<string, unknown>
-    imageLabelConflict?: unknown
-    bangbooIdentityCrosschecks?: unknown
-    imageIdentityReview?: unknown
-    additionalBangbooEvidence?: NestedDirectionRecord['additionalBangbooSources']
-    bangbooEffectExclusions?: NestedDirectionRecord['bangbooEffectExclusions']
-    sourceLocalSlotId?: string
-    legacyBodyHash?: string
-  }[]
-  conditions: string[]
-  /** Keep observation conditions attached to their source when exact trios merge. */
-  conditionsBySourceId?: Record<string, readonly string[]>
-  /** Author-listed alternatives; never an activation or default recommendation. */
-  sourceBangbooOptionIds?: string[]
-}
-
-type ReusedDirectionRecord = (typeof reusedTeamDirections.records)[number] & {
-  sourceBangbooOptionIds?: string[]
-  sourceLocalSlotId?: string
-  source?: {
-    url: string
-    sourceVersion: string
-    checkedAt: string
-    normalizedBodySha256: string
-    sourceUpdatedAt?: string
-  }
-}
-
-type ImageSourceLocator = {
-  opIndex: number
-  fieldPath: (string | number)[]
-  unitRawSha256: string
-  imageId: string
-  url: string
-}
-type UnresolvedAuthorBangbooOption = {
-  visibleLabel: string
-  labelMappedStableId: string
-  reason: string
-}
-type ImageDirectionRecord = (typeof imageTeamDirections.records)[number] & {
-  sourceLocalSlotId?: string
-  sourceVersion?: string
-  checkedAt?: string
-  sourceUpdatedAt?: string
-  conditionReview?: { originalConditions: string[]; disposition: string }
-  imageSourceLocator?: ImageSourceLocator
-  unresolvedAuthorBangbooOptions?: UnresolvedAuthorBangbooOption[]
-  additionalConditionSources?: NestedDirectionRecord['additionalConditionSources']
-  additionalMembershipSources?: {
-    locator: { kind: string; opIndex: number; fieldPath: (string | number)[] }
-    unitRawSha256: string
-    textSha256: string
-    text: string
-  }[]
-  sourceConflictReview?: Record<string, unknown>
-  imageLabelConflict?: unknown
-  bangbooIdentityCrosschecks?: unknown
-  imageIdentityReview?: unknown
-}
+import type {
+  NestedDirectionRecord,
+  ReusedDirectionRecord,
+  ImageDirectionRecord,
+  ReviewedTeamSourceDirection,
+} from './reviewedTeamSourceDirectionTypes'
+export type {
+  TeamRecommendationPrerequisite,
+  ReviewedTeamSourceDirection,
+} from './reviewedTeamSourceDirectionTypes'
 
 /** Separate negative/conditional notes; this function never contributes candidates. */
 export function currentReviewedTeamCompatibilityNotes(): ReviewedTeamSourceDirection[] {

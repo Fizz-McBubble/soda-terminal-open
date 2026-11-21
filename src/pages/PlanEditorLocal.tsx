@@ -1,11 +1,10 @@
 import { claimPlanEditorSaveFromProps } from './planEditorBenchmark32Save'
-import { PlanEditorSavedStateNotices } from './PlanEditorSavedStateNotices'
 import { finishPlanEditorSave } from './planEditorSessionRefresh'
-import { usePageOperationScope } from '../components/usePageOperationScope'
 import { useF5AccountSummary } from '../components/f5AccountSummaryContext'
 import { beginUsageOperation } from '../usageStatistics/client'
 import { useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { usePlanEditorSaveScope } from './usePlanEditorSaveScope'
 import { buildSavedTeamPlanSolutionFingerprint } from '../accounts/planningSnapshotFreshness'
 import { buildExactTeamVariantKey } from '../accounts/planningSolutionContext'
 import { getActiveAccount } from '../accounts/repository'
@@ -14,6 +13,7 @@ import {
   useReleaseAccountDecisionRun,
 } from '../application/accountDecisionWorld'
 import { contentHash } from '../application/contentHash'
+import { playerErrorMessage } from '../application/playerErrorMessage'
 import { TeamExecutionPanel } from './TeamExecutionPanel'
 import { TeamDecisionAuthorityDetail } from './TeamDecisionAuthorityDetail'
 import { presentTeamExecution } from './teamExecutionPresentation'
@@ -23,14 +23,14 @@ import { PlanningProfileContext } from './planningProfile'
 import { decisionTeamWarehousePlan } from './planningDraftProjection'
 import { AgentPlanDetails } from './AgentPlanDetails'
 import type { PlanEditorProps } from './PlanEditorProps'
+import { savedTeamRatedPlayId } from '../accounts/savedTeamRatingPlayIdentity'
 import { useTeamSaveConfirmation } from './useTeamSaveConfirmation'
-import { projectPlanEditorCandidateWarehouse } from './planEditorSaveProjection'
-import { assertCurrentPlanEditorReservation, usePlanEditorDraft } from './planEditorSharedState'
 import {
-  PlanEditorSharedFooter,
-  PlanEditorSharedSavedTeamHeader,
-  PlanEditorSharedTeamHeader,
-} from './planEditorSharedPage'
+  projectPlanEditorCandidateWarehouse,
+  projectPlanEditorTeamFitForSave,
+} from './planEditorSaveProjection'
+import { assertCurrentPlanEditorReservation, usePlanEditorDraft } from './planEditorSharedState'
+import * as EditorPage from './planEditorSharedPage'
 import { persistPlanEditorDraft } from './planEditorDraftPersistence'
 import { recommendTeamDeployment } from '../decision/teamDeployment'
 import { SavedPlanExecutionRefreshStatus } from './teamExecutionWorkspaceParts'
@@ -48,37 +48,31 @@ export function PlanEditor(props: PlanEditorProps) {
     decision,
     targetTeamFit,
     readOnly = false,
-    alternativeTeams = [],
-    onSelectAlternative,
-    transitionNotice,
-    onReanalyze,
     onDeploymentOrderChange,
-    onConfirmEquipmentParameters,
-    staleNotice,
     equipmentParametersRequireRefresh = false,
     restoredExecutionIsFresh = false,
     restoredTargetFitState,
-    onRetryRestoredTargetFit,
   } = props
   const decisionWorld = useAccountDecisionWorld()
   const accountSummary = useF5AccountSummary()
-  const captureSaveScope = usePageOperationScope(
-    `${accountSummary?.appSessionId}:${warehouse.accountId}:${analysisRunId}:${restored?.id}`,
+  const { scopeIdentity, captureSaveScope } = usePlanEditorSaveScope(
+    props,
+    accountSummary?.appSessionId,
   )
   const releaseRun = useReleaseAccountDecisionRun()
   const navigate = useNavigate()
   const resolveProfile = useContext(PlanningProfileContext)
   const heading = useRef<HTMLHeadingElement>(null)
   const backButton = useRef<HTMLButtonElement>(null)
-  const [draft, setDraft] = usePlanEditorDraft(props)
-  const [saved, setSaved] = useState(restored?.state === 'saved')
-  const [dirty, setDirty] = useState(false)
+  const { draft, setDraft, saved, setSaved, dirty, setDirty, discard, commit } =
+    usePlanEditorDraft(props)
   const generated = kind !== 'team' || Boolean(restored) || Boolean(analysisRunId)
   const [confirmLeave, setConfirmLeave] = useState(false)
   const [message, setMessage] = useState('')
   const teamSaveConfirmation = useTeamSaveConfirmation()
   const saving = useRef(false)
-  const reanalyze = onReanalyze ?? (() => navigate('/loadouts/team?reanalyze=1'))
+  const [savePending, setSavePending] = useState(false)
+  const reanalyze = props.onReanalyze ?? (() => navigate('/loadouts/team?reanalyze=1'))
   const activeProfiles = kind === 'team' ? draft.selection.agentIds.map(resolveProfile) : profiles
   const duplicateMemberId =
     kind === 'team'
@@ -119,7 +113,7 @@ export function PlanEditor(props: PlanEditorProps) {
   const savedPlanState = restored
     ? equipmentParametersRequireRefresh
       ? 'refreshing'
-      : staleNotice
+      : props.staleNotice
         ? 'stale'
         : 'saved'
     : undefined
@@ -140,12 +134,18 @@ export function PlanEditor(props: PlanEditorProps) {
   }
   const teamSubstitutes =
     kind === 'team' && team
-      ? withTeamExecutionSubstituteActions(team, alternativeTeams, onSelectAlternative)
+      ? withTeamExecutionSubstituteActions(
+          team,
+          props.alternativeTeams ?? [],
+          props.onSelectAlternative,
+        )
       : undefined
   const save = async () => {
     if (!claimPlanEditorSaveFromProps(props, saving, duplicateMemberId, setMessage)) return false
+    setSavePending(true)
     const isCurrentSave = captureSaveScope()
     const originatingPathname = window.location.pathname
+    const originatingSearch = window.location.search
     let finishUsage: ReturnType<typeof beginUsageOperation> | undefined
     try {
       const remainingSession = assertCurrentPlanEditorReservation(
@@ -161,7 +161,12 @@ export function PlanEditor(props: PlanEditorProps) {
         throw new Error('当前方案缺少已验证的装备参数，请重新匹配后再保存。')
       const approved =
         kind === 'team'
-          ? await teamSaveConfirmation.request(warehouse.accountId!, team!.agentIds, draft.id)
+          ? await teamSaveConfirmation.request(
+              warehouse.accountId!,
+              team!.agentIds,
+              draft.id,
+              props.ratedTeamPlayId ?? savedTeamRatedPlayId(draft),
+            )
           : undefined
       if (approved === null) return false
       finishUsage = beginUsageOperation('plan_save')
@@ -214,24 +219,40 @@ export function PlanEditor(props: PlanEditorProps) {
         candidateWarehouse,
         teamExecutionSnapshot,
         teamEquipmentParameters: effectiveTeamParameters ?? undefined,
-        targetTeamFit,
+        targetTeamFit: projectPlanEditorTeamFitForSave({
+          fit: targetTeamFit,
+          deploymentOrder: teamExecutionSnapshot?.deploymentOrder,
+          equipment: effectiveTeamParameters ?? undefined,
+          capturedInputFingerprint: decisionWorld.run?.inputFingerprint,
+        }),
         inputFingerprint,
+        capturedInputFingerprint: decisionWorld.run?.inputFingerprint,
         exactVariantKey,
+        ratedTeamPlayId: props.ratedTeamPlayId,
         profiles: activeProfiles,
         remainingSession,
       })
       finishUsage('success')
-      if (!isCurrentSave()) {
-        const activeAccount = await getActiveAccount()
-        if (
-          activeAccount?.id !== warehouse.accountId ||
-          window.location.pathname !== originatingPathname
-        )
-          return true
+      const activeAccount = await getActiveAccount().catch(() => null)
+      const committed = commit(draft, next)
+      if (
+        !activeAccount &&
+        isCurrentSave() &&
+        window.location.pathname === originatingPathname &&
+        window.location.search === originatingSearch
+      )
+        setMessage('方案已保存，当前账户暂时无法确认。')
+      if (
+        !isCurrentSave() ||
+        activeAccount?.id !== warehouse.accountId ||
+        window.location.pathname !== originatingPathname ||
+        window.location.search !== originatingSearch
+      )
+        return false
+      if (!committed) {
+        setMessage('已保存提交时的方案，后续修改仍未保存。')
+        return false
       }
-      setDraft(next)
-      setSaved(true)
-      setDirty(false)
       return finishPlanEditorSave({
         kind,
         team,
@@ -240,15 +261,17 @@ export function PlanEditor(props: PlanEditorProps) {
         navigate,
         setMessage,
         savedName: next.name,
-        isCurrentSave: () => true,
+        savedPlan: { id: next.id, accountId: next.accountId },
+        isCurrentSave,
         appSessionId: accountSummary?.appSessionId,
       })
     } catch (error) {
       finishUsage?.('failure')
-      setMessage(error instanceof Error ? error.message : '保存失败，原方案未改变。')
+      if (isCurrentSave()) setMessage(playerErrorMessage(error, '保存失败，原方案未改变。'))
       return false
     } finally {
       saving.current = false
+      setSavePending(false)
     }
   }
   return (
@@ -256,7 +279,7 @@ export function PlanEditor(props: PlanEditorProps) {
       {teamSaveConfirmation.dialog}
       {kind === 'team' ? (
         team ? (
-          <PlanEditorSharedTeamHeader
+          <EditorPage.PlanEditorSharedTeamHeader
             props={{ ...props, team }}
             state={{
               backButtonRef: backButton,
@@ -270,7 +293,7 @@ export function PlanEditor(props: PlanEditorProps) {
             }}
           />
         ) : (
-          <PlanEditorSharedSavedTeamHeader
+          <EditorPage.PlanEditorSharedSavedTeamHeader
             props={props}
             backButton={backButton}
             heading={heading}
@@ -279,45 +302,38 @@ export function PlanEditor(props: PlanEditorProps) {
           />
         )
       ) : (
-        <>
-          <button
-            ref={backButton}
-            className="link-button optimizer-plan__back-link"
-            type="button"
-            style={{ alignItems: 'center', display: 'inline-flex', minHeight: 24 }}
-            onClick={() => (dirty ? setConfirmLeave(true) : navigate(back))}
-          >
-            返回选择角色
-          </button>
-          <h1 ref={heading} tabIndex={-1}>
-            角色方案
-          </h1>
-        </>
+        <EditorPage.PlanEditorRoleHeader
+          backButton={backButton}
+          heading={heading}
+          inlineMinHeight
+          onBack={() => (dirty ? setConfirmLeave(true) : navigate(back))}
+        />
       )}
-      {transitionNotice ? (
-        <p className="optimizer-plan__transition-notice" role="status">
-          {transitionNotice}
-        </p>
-      ) : null}
+      <EditorPage.PlanEditorTransitionNotice
+        notice={props.transitionNotice}
+        onCancel={props.onCancelTransition}
+        cancelLabel={props.cancelTransitionLabel}
+      />
       {kind === 'team' && teamExecution ? (
         <>
           {restored &&
-          restoredExecutionIsFresh &&
           !targetTeamFit &&
           restoredTargetFitState &&
           restoredTargetFitState !== 'ready' ? (
             <SavedPlanExecutionRefreshStatus
               state={restoredTargetFitState}
-              onRetry={onRetryRestoredTargetFit}
+              onRetry={props.onRetryRestoredTargetFit}
             />
           ) : null}
           <TeamExecutionPanel
+            key={restored?.id ?? props.ratedTeamPlayId ?? team?.agentIds.join(':')}
             execution={teamExecution}
             warehouse={warehouse}
             allocation={targetTeamFit ? decision?.allocation.global : []}
+            savedPotentialByAgentId={restored?.teamEquipmentParameters?.potentialByAgentId}
             targetTeamFit={historicalExecution ? undefined : targetTeamFit}
             onConfirmEquipmentParameters={
-              executionReadOnly ? undefined : onConfirmEquipmentParameters
+              executionReadOnly ? undefined : props.onConfirmEquipmentParameters
             }
             onDeploymentOrderChange={
               executionReadOnly || !onDeploymentOrderChange
@@ -345,14 +361,7 @@ export function PlanEditor(props: PlanEditorProps) {
       {kind === 'team' && !teamExecution && restored ? (
         <SavedTeamHistory plan={restored} warehouse={warehouse} />
       ) : null}
-      <PlanEditorSavedStateNotices
-        formedTeamReference={restored?.solutionContext?.formedTeamReference}
-        luminizeSettlement32={props.luminizeSettlement32}
-        objectiveNote={restored?.candidateWarehouse?.panelObjectiveNote}
-        needsTeamRecovery={kind === 'team' && !team && readOnly}
-        staleNotice={staleNotice}
-        reanalyze={reanalyze}
-      />
+      <EditorPage.PlanEditorSharedNotices props={props} reanalyze={reanalyze} />
       <AgentPlanDetails
         generated={generated}
         kind={kind}
@@ -370,15 +379,19 @@ export function PlanEditor(props: PlanEditorProps) {
           setSaved(false)
         }}
       />
-      <PlanEditorSharedFooter
+      <EditorPage.PlanEditorSharedFooter
         props={props}
         state={{
           generated,
           saved,
           save,
+          saving: savePending,
+          savingRef: saving,
+          scopeIdentity,
           message,
           confirmLeave,
           setConfirmLeave,
+          discard,
           backButton,
           navigate,
         }}

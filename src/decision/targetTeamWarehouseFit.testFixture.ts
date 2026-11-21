@@ -164,6 +164,7 @@ export function isolatedPlanDiscs(input: {
       id: `${input.prefix}-${input.branch}-${slot}`,
       setId,
       slot,
+      rarity: 'S',
       mainStat:
         slot === 1 ? 'hp_flat' : slot === 2 ? 'atk_flat' : slot === 3 ? 'def_flat' : 'atk_percent',
       subStats: input.branch === 'alternative' ? sampleDiscs.treasureCandidate.subStats : [],

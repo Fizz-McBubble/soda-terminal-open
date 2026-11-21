@@ -99,29 +99,35 @@ export function getScannerStateCopy(
           ? '等待选择账户'
           : prepareGateReady
             ? '准备检查已通过'
-            : '等待本机核验',
+            : '等待画面检查',
         title: targetReady ? '切换到游戏，开始本地扫描' : '选择账户，再检查游戏',
         body: targetReady
-          ? '已选择接收结果的本地账户。扫描只在本机读取，正式导入前仍会让你检查。'
-          : '画面扫描已连接。选择接收结果的账户后，再检查游戏并开始扫描。',
+          ? '已选择要导入的本机账户。扫描只读取当前游戏画面，确认导入前仍会先让你检查结果。'
+          : '画面扫描已连接。选择要导入的本机账户后，再检查游戏并开始扫描。',
       }
     case 'checking':
       return {
         eyebrow: '正在核验',
         title: '画面扫描正在检查游戏与权限',
-        body: '请求处理中不会重复创建扫描会话；检查通过后会自动进入扫描。',
+        body: '正在检查游戏画面和所需权限；检查通过后会自动开始扫描。',
       }
     case 'awaiting_elevation':
       return {
         eyebrow: '等待 Windows 权限',
         title: '请确认管理员权限提示',
-        body: '画面扫描保持普通权限；只会为本次扫描启动一次受控的管理员子进程。',
+        body: 'Windows 可能要求管理员权限。请按系统提示确认；本次只会为扫描请求一次权限。',
       }
     case 'scanning':
       return {
         eyebrow: '正在本机处理',
-        title: '正在读取游戏中的资产',
+        title: '正在读取游戏中的驱动盘',
         body: '保持游戏窗口可见。扫描结果会先保存在本机，确认导入前不会改动账户。',
+      }
+    case 'paused':
+      return {
+        eyebrow: '扫描已暂停',
+        title: '本次扫描已暂停',
+        body: snapshot.progress?.stageLabel || '扫描已暂停，可停止本次扫描后重新开始。',
       }
     case 'completed':
       return {
@@ -131,9 +137,9 @@ export function getScannerStateCopy(
       }
     default:
       return {
-        eyebrow: '正在接管并核验',
+        eyebrow: '正在检查游戏画面',
         title: '画面扫描正在检查游戏画面',
-        body: '画面扫描会在全部准备门通过后立即开始；未通过时保持零输入并给出原因。',
+        body: '画面扫描会先检查游戏窗口、可见区域和所需权限；全部通过后才会开始。',
       }
   }
 }
@@ -165,7 +171,7 @@ export function getScannerPresentedStateCopy({
       title: selectedAccount ? '确认账户，然后开始本地扫描' : '创建账户，然后开始本地扫描',
       body: selectedAccount
         ? '已导入的驱动盘会保留；新扫描结果需检查并确认后才会更新账户。'
-        : '已有账户中的驱动盘会保留。先创建接收账户；新扫描结果需检查并确认后才会更新账户。',
+        : '已有账户中的驱动盘会保留。先创建要导入的本机账户；新扫描结果需检查并确认后才会更新账户。',
     }
   }
   if (completedImportCount !== null) {
@@ -177,23 +183,23 @@ export function getScannerPresentedStateCopy({
   }
   if (snapshotState === 'completed' && !selectedAccount) {
     return {
-      eyebrow: '先确定接收账户',
+      eyebrow: '先确定导入账户',
       title: '创建账户后检查本次结果',
-      body: '扫描结果已保存在本机。先创建接收账户，再检查结果；创建账户不会自动导入。',
+      body: '扫描结果已保存在本机。先创建要导入的本机账户，再检查结果；创建账户不会自动导入。',
     }
   }
   if (visualState === 'review_required') {
     return {
-      eyebrow: '账户需要复核',
-      title: '先确认这是你的本地账户',
-      body: `扫描识别为${scanIdentityEvidenceValue}，当前接收账户是${currentReceivingAccountName}。确认归属前，不开放正式导入。`,
+      eyebrow: '请确认导入账户',
+      title: '确认这份结果要导入哪个本机账户',
+      body: `本次扫描关联的账户是“${scanIdentityEvidenceValue}”，当前选择的是“${currentReceivingAccountName}”。请核对名称后继续；确认前不会导入。`,
     }
   }
   if (visualState === 'import_ready') {
     return {
-      eyebrow: '归属检查已通过',
+      eyebrow: '账户已确认',
       title: '结果已就绪，请检查导入条件',
-      body: '接收账户已确认，下一步检查识别结果是否完整。',
+      body: '导入账户已确认，下一步检查扫描结果是否完整。',
     }
   }
   return stateCopy

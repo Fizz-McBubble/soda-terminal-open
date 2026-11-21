@@ -5,11 +5,10 @@ import { currentWEngineDirectory } from '../assault/planningCatalog'
 import { playerFacingBangbooLabel } from '../application/playerFacingLabels'
 import { VisualEntityImage } from '../components/VisualEntityImage'
 import { displayDriveDiscSet, presentDiscFactFromChoice } from './discFactPresentation'
-import { savedPlanHistoricalDiscRefs } from './teamLoadoutSavedPlanProjection'
+import { savedPlanHistoricalDiscRefs } from './savedTeamHistoricalDiscRefs'
 import { TeamExecutionDiscCard } from './teamExecutionWorkspaceParts'
 import {
   displayDiscMainValue,
-  formatDiscStatValue,
   type TeamExecutionDiscPresentation,
 } from './teamExecutionPresentation'
 
@@ -21,7 +20,6 @@ function historicalDiscCard(disc: CoreWarehouse['discs'][number]): TeamExecution
       disc,
       set: displayDriveDiscSet(disc.setId),
       mainValue: displayDiscMainValue(disc),
-      formatSubStatValue: (stat, value) => formatDiscStatValue(stat, value, '+'),
     }),
     effective: '保存记录',
     state: 'recorded',
@@ -54,7 +52,7 @@ function HistoricalDiscList({
       ) : null}
       {missingCount ? (
         <p className="team-execution__disc-missing" role="status">
-          有 {missingCount} 张已保存的驱动盘当前不在仓库；原记录已保留，未自动缩减或替换。
+          有 {missingCount} 张已保存的驱动盘当前不在仓库。
         </p>
       ) : null}
     </>
@@ -118,9 +116,7 @@ export function SavedTeamHistory({
                 warehouse={warehouse}
               />
             ) : (
-              <p className="team-execution__disc-missing">
-                这份方案未记录该成员使用哪些驱动盘，其他已保存内容仍保留。
-              </p>
+              <p className="team-execution__disc-missing">这份方案未记录该成员的驱动盘。</p>
             )}
           </article>
         )
@@ -143,8 +139,8 @@ export function SavedTeamHistory({
               <li key={engine.agentId}>
                 {getAgentName(engine.agentId)} ·{' '}
                 {currentWEngineDirectory.find((item) => item.id === engine.engineId)?.name ??
-                  '音擎资料待补'}{' '}
-                · P{engine.refinement}
+                  '音擎名称未知'}{' '}
+                {typeof engine.refinement === 'number' ? ` · P${engine.refinement}` : ''}
               </li>
             ))}
           </ul>

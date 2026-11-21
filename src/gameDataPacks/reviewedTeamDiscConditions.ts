@@ -1,95 +1,24 @@
 import { supportsPotentialImage } from '../assault/agentCapabilities'
 import { agentCatalog } from '../assault/catalogData'
-import type { StatKey } from '../domain/schemas'
 import type { PlayerBuildSource } from './playerBuildSources'
 import {
   reviewedEvelynDialynDiscDirection,
   reviewedCissiaSeedDiscDirection,
   getReviewedAdditionalDiscSources,
 } from './reviewedAdditionalDiscDirections'
-import type { CandidateSetPlan } from './candidateSetPlans'
 import { reviewedImageDiscDirections } from './reviewedImageDiscDirections'
 
-export type ReviewedTeamAgentState = {
-  potentialImage?: number | null
-  /** Observed account state. Unknown is never projected to M0. */
-  mindscape?: number | null
-}
-
-/**
- * Context deliberately contains only the facts needed to evaluate a source
- * condition.  It is not an account import and does not infer an unknown team.
- */
-export type ReviewedTeamDiscConditionContext = {
-  memberIds?: readonly string[]
-  agentStateById?: Readonly<Record<string, ReviewedTeamAgentState>>
-  selectedDirectionIdByAgentId?: Readonly<Record<string, string>>
-}
-
-export type ReviewedTeamDiscDirection = {
-  id: string
-  agentId: string
-  /** Every member set is an exact, order-independent reviewed trio. */
-  exactMemberSets: readonly (readonly [string, string, string])[]
-  requiredMemberIds?: readonly string[]
-  retainBasePlans?: boolean
-  additionalSources?: PlayerBuildSource[]
-  teamCondition?: 'aria' | 'other-anomaly-support' | 'direct-damage' | 'anomaly-damage'
-  mainStats?: Partial<Record<'4' | '5' | '6', StatKey[]>>
-  subStatWeights?: Partial<Record<StatKey, number>>
-  subStatCandidates?: readonly StatKey[]
-  targetPanelPolicy?: 'omit_base_reference'
-  mindscapeRangeByAgentId?: Readonly<Record<string, { minimum: number; maximum: number }>>
-  requiresExplicitSelection?: boolean
-  /** A named, limited numerical goal for this exact source branch. */
-  objective?: 'declared_luminize_static_volley32'
-  potentialMinimumByAgentId: Readonly<Record<string, number>>
-  setPlan: CandidateSetPlan
-  source: {
-    postId: string
-    url: string
-    contentHash: string
-    bodyHash: string
-    sourceVersion: string | null
-    targetVersion: '3.1' | '3.2'
-    authorVersion?: string
-    localReviewVersion?: '3.2'
-    localReviewedAt?: string
-    localReviewScope?: string
-    secondaryEvidence?: readonly {
-      url: string
-      contentHash: string
-      sourceVersion: string
-      locator: string
-    }[]
-    locator: {
-      kind: 'structured_text_span' | 'archived_image_region'
-      text: string
-    }
-  }
-  boundary: string
-}
-
-export type AppliedReviewedTeamDiscDirection = Pick<
+import type {
+  ReviewedTeamDiscConditionContext,
   ReviewedTeamDiscDirection,
-  | 'id'
-  | 'agentId'
-  | 'setPlan'
-  | 'source'
-  | 'boundary'
-  | 'mainStats'
-  | 'subStatWeights'
-  | 'subStatCandidates'
-  | 'targetPanelPolicy'
-  | 'objective'
-  | 'additionalSources'
-  | 'retainBasePlans'
-> & {
-  exactMemberIds: [string, string, string]
-  potentialMinimumByAgentId: Record<string, number>
-  effectivePotentialByAgentId: Record<string, number>
-  effectiveMindscapeByAgentId: Record<string, number | null>
-}
+  AppliedReviewedTeamDiscDirection,
+} from './reviewedTeamDiscConditionTypes'
+export type {
+  ReviewedTeamAgentState,
+  ReviewedTeamDiscConditionContext,
+  ReviewedTeamDiscDirection,
+  AppliedReviewedTeamDiscDirection,
+} from './reviewedTeamDiscConditionTypes'
 
 const miyabiDanSource: ReviewedTeamDiscDirection['source'] = {
   postId: '77017654',
@@ -421,6 +350,19 @@ export const reviewedTeamDiscDirections: readonly ReviewedTeamDiscDirection[] = 
       secondarySetIds: ['set-phaethons-melody'],
       sourceText:
         '静听嘉音 4 件 + 法厄同之歌 2 件（原2.7攻略：其余异常队伍需搭配支援位，通过快速支援叠加增伤；按异常输出与支援在队条件选择）',
+      purpose: 'conditional',
+      condition: {
+        sourceId: 'miyoushe-74153268-nangong-anomaly-support-astral-voice',
+        sourceUrl: nangongSource.url,
+        sourceTextVerified: true,
+        sourceVersion: nangongSource.sourceVersion ?? undefined,
+        contentHash: nangongSource.contentHash,
+        rule: {
+          kind: 'teammate_specialty_and_action',
+          specialties: ['anomaly'],
+          action: 'team_quick_assist',
+        },
+      },
     },
     source: nangongSource,
     boundary: nangongBoundary,
@@ -520,11 +462,10 @@ export function resolveReviewedTeamDiscDirections(
   const observedMindscapes = reviewedTeamMindscapeByAgentId(context)
   return reviewedTeamDiscDirections.flatMap((direction) => {
     if (direction.agentId !== agentId) return []
-    if (
-      direction.requiresExplicitSelection &&
-      context.selectedDirectionIdByAgentId?.[agentId] !== direction.id
-    )
-      return []
+    const selectedDirectionId = context.selectedDirectionIdByAgentId?.[agentId]
+    // An explicit choice is exclusive even for branches that ordinarily need no choice.
+    if (selectedDirectionId && selectedDirectionId !== direction.id) return []
+    if (direction.requiresExplicitSelection && selectedDirectionId !== direction.id) return []
     if (
       Object.entries(direction.mindscapeRangeByAgentId ?? {}).some(([id, range]) => {
         const value = observedMindscapes[id]

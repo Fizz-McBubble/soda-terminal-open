@@ -1,4 +1,5 @@
 import { stableContentHash } from './types'
+import ruptureResourceFacts from './data/reviewed-rupture-resource-panel.3.3.json'
 
 const reviewedAgentPanelBaselineSource = Object.freeze({
   id: 'zzz-data-mechanics-energy-baseline-2025-07-11',
@@ -16,6 +17,27 @@ const normalEnergyBaseline = Object.freeze({
   applicability:
     '仅适用于使用普通能量且来源基础数据存在正数能量自动回复的代理人；不适用于闪能、锐能或其他具名资源。',
 })
+
+// These are character-specific out-of-combat base values, not the named
+// combat resources (e.g. determination or blazing heart), or combat effects.
+// Gachabase release data and the 3.2 optimizer panel list these separately;
+// BWiki entries and Yixuan's archived game screenshot provide additional
+// checks. The 3.2 -> 3.3 source delta records no numeric changes to the five
+// existing identities. Manato's zero is an observed value, not a missing one.
+const ruptureAdrenalineRegen: Readonly<Record<string, number>> = Object.freeze({
+  'agent-yixuan': 2,
+  'agent-banyue': 2,
+  'agent-yidhari': 2,
+  'agent-starlight-billy': 2,
+  'agent-manato': 0,
+})
+
+export function getReviewedRuptureAdrenalineRegen(agentId: string): number | undefined {
+  return ruptureAdrenalineRegen[agentId]
+}
+export function getReviewedRuptureResourceBaseline(agentId: string) {
+  return ruptureResourceFacts.records.find((record) => record.stableId === agentId)
+}
 
 export const reviewedAgentPanelBaseline32 = Object.freeze({
   contract: 'soda-reviewed-agent-panel-baseline/1',

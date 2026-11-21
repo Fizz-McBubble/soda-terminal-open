@@ -7,11 +7,7 @@
   "entries": [
     {
       "claimId": "reviewed-nested-053c82f1143d1491d4be7aee",
-      "memberIds": [
-        "agent-ellen",
-        "agent-trigger",
-        "agent-lycaon"
-      ],
+      "memberIds": ["agent-ellen", "agent-trigger", "agent-lycaon"],
       "sourceVersion": "1.6",
       "url": "https://www.miyoushe.com/zzz/article/63149676",
       "title": "【1.6攻略征集】扳机·全面解析︱养成/配队/机制",
@@ -29,21 +25,13 @@
         "id": "module-strict-round5-55713158261ddd32bdafa78b",
         "primaryOutputKind": "direct_damage",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window"
-        ],
-        "teamFunctions": [
-          "stun"
-        ]
+        "executionChannels": ["stun_window"],
+        "teamFunctions": ["stun"]
       }
     },
     {
       "claimId": "reviewed-nested-1b6d29bf762996072e3fdf9b",
-      "memberIds": [
-        "agent-evelyn",
-        "agent-astra",
-        "agent-ju-fufu"
-      ],
+      "memberIds": ["agent-evelyn", "agent-astra", "agent-ju-fufu"],
       "sourceVersion": "2.0",
       "url": "https://www.miyoushe.com/zzz/article/65843423",
       "title": "【2.0攻略征集】橘福福 角色玩法介绍",
@@ -61,22 +49,13 @@
         "id": "module-strict-round5-74cb711c2f5eaeaa85df6480",
         "primaryOutputKind": "direct_damage",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window"
-        ],
-        "teamFunctions": [
-          "stun",
-          "support"
-        ]
+        "executionChannels": ["stun_window"],
+        "teamFunctions": ["stun", "support"]
       }
     },
     {
       "claimId": "reviewed-nested-2e04d03c20c3153632c93209",
-      "memberIds": [
-        "agent-evelyn",
-        "agent-trigger",
-        "agent-astra"
-      ],
+      "memberIds": ["agent-evelyn", "agent-trigger", "agent-astra"],
       "sourceVersion": "2.2",
       "url": "https://www.miyoushe.com/zzz/article/68301592",
       "title": "【2.2攻略征集】扳机 角色玩法介绍",
@@ -94,22 +73,13 @@
         "id": "module-strict-round5-aaf61fa786666b0fe1dd606a",
         "primaryOutputKind": "direct_damage",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window"
-        ],
-        "teamFunctions": [
-          "stun",
-          "support"
-        ]
+        "executionChannels": ["stun_window"],
+        "teamFunctions": ["stun", "support"]
       }
     },
     {
       "claimId": "reviewed-nested-4947c7b8481e00fbd6fe0d9e",
-      "memberIds": [
-        "agent-harumasa",
-        "agent-seed",
-        "agent-trigger"
-      ],
+      "memberIds": ["agent-harumasa", "agent-seed", "agent-trigger"],
       "sourceVersion": "2.2",
       "url": "https://www.miyoushe.com/zzz/article/68301592",
       "title": "【2.2攻略征集】扳机 角色玩法介绍",
@@ -127,22 +97,13 @@
         "id": "module-strict-round5-9175fcd1a077aaff95933c43",
         "primaryOutputKind": "direct_damage",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window"
-        ],
-        "teamFunctions": [
-          "stun",
-          "support"
-        ]
+        "executionChannels": ["stun_window"],
+        "teamFunctions": ["stun", "support"]
       }
     },
     {
       "claimId": "reviewed-nested-ae5151411095bc4dec1b55f2",
-      "memberIds": [
-        "agent-ellen",
-        "agent-lycaon",
-        "agent-rina"
-      ],
+      "memberIds": ["agent-ellen", "agent-lycaon", "agent-rina"],
       "sourceVersion": "1.0",
       "url": "https://www.miyoushe.com/zzz/article/54694453",
       "title": "【1.0攻略征集】丽娜·一图流攻略︱养成+讲解",
@@ -160,24 +121,13 @@
         "id": "module-strict-round5-8d60bb009b0aade9ff8a438c",
         "primaryOutputKind": "direct_damage",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window",
-          "chain",
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "stun",
-          "support"
-        ]
+        "executionChannels": ["stun_window", "chain", "quick_swap"],
+        "teamFunctions": ["stun", "support"]
       }
     },
     {
       "claimId": "reviewed-nested-f46f29e91a546b2da12b3c52",
-      "memberIds": [
-        "agent-evelyn",
-        "agent-lighter",
-        "agent-astra"
-      ],
+      "memberIds": ["agent-evelyn", "agent-lighter", "agent-astra"],
       "sourceVersion": "2.0",
       "url": "https://www.miyoushe.com/zzz/article/65063323",
       "title": "【2.0攻略征集】耀嘉音 角色玩法介绍",
@@ -195,22 +145,13 @@
         "id": "module-strict-round5-22491c07bcdab7633f513f99",
         "primaryOutputKind": "direct_damage",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window"
-        ],
-        "teamFunctions": [
-          "stun",
-          "support"
-        ]
+        "executionChannels": ["stun_window"],
+        "teamFunctions": ["stun", "support"]
       }
     },
     {
       "claimId": "reviewed-nested-878735516bdc10cf857bd65b",
-      "memberIds": [
-        "agent-evelyn",
-        "agent-lighter",
-        "agent-ju-fufu"
-      ],
+      "memberIds": ["agent-evelyn", "agent-lighter", "agent-ju-fufu"],
       "sourceVersion": "2.0",
       "url": "https://www.miyoushe.com/zzz/article/65745145",
       "title": "【2.0攻略征集】「橘福福」全面解析︱养成/配队/机制",
@@ -228,22 +169,13 @@
         "id": "module-strict-round5-b7e251ed3b3080cd8c1cf2dc",
         "primaryOutputKind": "direct_damage",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window",
-          "chain"
-        ],
-        "teamFunctions": [
-          "stun"
-        ]
+        "executionChannels": ["stun_window", "chain"],
+        "teamFunctions": ["stun"]
       }
     },
     {
       "claimId": "reviewed-nested-72c990ab9176ffe1b3351dd1",
-      "memberIds": [
-        "agent-anton",
-        "agent-anby",
-        "agent-rina"
-      ],
+      "memberIds": ["agent-anton", "agent-anby", "agent-rina"],
       "sourceVersion": "1.0",
       "url": "https://www.miyoushe.com/zzz/article/54694453",
       "title": "【1.0攻略征集】丽娜·一图流攻略︱养成+讲解",
@@ -261,24 +193,13 @@
         "id": "module-strict-round5-cd906c6aee6bff40c2386f0c",
         "primaryOutputKind": "attribute_anomaly",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window",
-          "chain",
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "stun",
-          "support"
-        ]
+        "executionChannels": ["stun_window", "chain", "quick_swap"],
+        "teamFunctions": ["stun", "support"]
       }
     },
     {
       "claimId": "reviewed-nested-773b6309b3379e619c655d66",
-      "memberIds": [
-        "agent-qingyi",
-        "agent-soldier-11",
-        "agent-lucy"
-      ],
+      "memberIds": ["agent-qingyi", "agent-soldier-11", "agent-lucy"],
       "sourceVersion": "1.1",
       "url": "https://www.miyoushe.com/zzz/article/56560091",
       "title": "【1.1攻略征集】青衣·详细解析︱养成/配队/机制",
@@ -296,25 +217,13 @@
         "id": "module-strict-round5-ab369a796d8f0e9eaef79815",
         "primaryOutputKind": "direct_damage",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window",
-          "chain",
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "stun",
-          "support",
-          "resource_supply"
-        ]
+        "executionChannels": ["stun_window", "chain", "quick_swap"],
+        "teamFunctions": ["stun", "support", "resource_supply"]
       }
     },
     {
       "claimId": "reviewed-nested-dc8eb91f27ddf8e90ea98ddb",
-      "memberIds": [
-        "agent-ellen",
-        "agent-qingyi",
-        "agent-soukaku"
-      ],
+      "memberIds": ["agent-ellen", "agent-qingyi", "agent-soukaku"],
       "sourceVersion": "1.1",
       "url": "https://www.miyoushe.com/zzz/article/56560091",
       "title": "【1.1攻略征集】青衣·详细解析︱养成/配队/机制",
@@ -332,24 +241,13 @@
         "id": "module-strict-round5-7fffe1eaa7392fcdaedd573d",
         "primaryOutputKind": "direct_damage",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window",
-          "chain",
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "stun",
-          "support"
-        ]
+        "executionChannels": ["stun_window", "chain", "quick_swap"],
+        "teamFunctions": ["stun", "support"]
       }
     },
     {
       "claimId": "reviewed-nested-b2b8e891617d9cb94bcb8078",
-      "memberIds": [
-        "agent-ellen",
-        "agent-ju-fufu",
-        "agent-astra"
-      ],
+      "memberIds": ["agent-ellen", "agent-ju-fufu", "agent-astra"],
       "sourceVersion": "2.0",
       "url": "https://www.miyoushe.com/zzz/article/65843423",
       "title": "【2.0攻略征集】橘福福 角色玩法介绍",
@@ -367,22 +265,13 @@
         "id": "module-strict-round5-b3491529248967b43cbacb2f",
         "primaryOutputKind": "direct_damage",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window"
-        ],
-        "teamFunctions": [
-          "stun",
-          "support"
-        ]
+        "executionChannels": ["stun_window"],
+        "teamFunctions": ["stun", "support"]
       }
     },
     {
       "claimId": "reviewed-nested-b64cde0c85489e1607e390b1",
-      "memberIds": [
-        "agent-evelyn",
-        "agent-trigger",
-        "agent-lighter"
-      ],
+      "memberIds": ["agent-evelyn", "agent-trigger", "agent-lighter"],
       "sourceVersion": "1.6",
       "url": "https://www.miyoushe.com/zzz/article/63149676",
       "title": "【1.6攻略征集】扳机·全面解析︱养成/配队/机制",
@@ -400,22 +289,13 @@
         "id": "module-strict-round5-acd6516d77483ebb50394f1a",
         "primaryOutputKind": "direct_damage",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window",
-          "chain"
-        ],
-        "teamFunctions": [
-          "stun"
-        ]
+        "executionChannels": ["stun_window", "chain"],
+        "teamFunctions": ["stun"]
       }
     },
     {
       "claimId": "reviewed-nested-e56d4fad89cfa0d94964941f",
-      "memberIds": [
-        "agent-soldier-0-anby",
-        "agent-trigger",
-        "agent-pulchra"
-      ],
+      "memberIds": ["agent-soldier-0-anby", "agent-trigger", "agent-pulchra"],
       "sourceVersion": "1.6",
       "url": "https://www.miyoushe.com/zzz/article/62601775",
       "title": "【1.6攻略征集】零号·安比 全面解析︱养成/配队/机制",
@@ -433,23 +313,13 @@
         "id": "module-strict-round5-eb897bb2fe79017de74731a9",
         "primaryOutputKind": "aftershock",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window",
-          "off_field"
-        ],
-        "teamFunctions": [
-          "stun",
-          "support"
-        ]
+        "executionChannels": ["stun_window", "off_field"],
+        "teamFunctions": ["stun", "support"]
       }
     },
     {
       "claimId": "reviewed-nested-2ee8113aae13f4b816b122c5",
-      "memberIds": [
-        "agent-soldier-11",
-        "agent-burnice",
-        "agent-lucy"
-      ],
+      "memberIds": ["agent-soldier-11", "agent-burnice", "agent-lucy"],
       "sourceVersion": "1.2",
       "url": "https://www.miyoushe.com/zzz/article/58606692",
       "title": "【1.2攻略征集】柏妮思·全面解析︱养成/配队/机制",
@@ -467,22 +337,13 @@
         "id": "module-strict-round5-6d99ba2d7e1593da5b58eafb",
         "primaryOutputKind": "direct_damage",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "off_field",
-          "ultimate"
-        ],
-        "teamFunctions": [
-          "support"
-        ]
+        "executionChannels": ["off_field", "ultimate"],
+        "teamFunctions": ["support"]
       }
     },
     {
       "claimId": "reviewed-nested-3fedc46633ff5dc57339c7be",
-      "memberIds": [
-        "agent-piper",
-        "agent-caesar",
-        "agent-astra"
-      ],
+      "memberIds": ["agent-piper", "agent-caesar", "agent-astra"],
       "sourceVersion": "1.5",
       "url": "https://www.miyoushe.com/zzz/article/61285801",
       "title": "【1.5攻略征集】耀嘉音·全面解析︱养成/配队/机制",
@@ -501,19 +362,12 @@
         "primaryOutputKind": "attribute_anomaly",
         "reactionMechanisms": [],
         "executionChannels": [],
-        "teamFunctions": [
-          "defense",
-          "support"
-        ]
+        "teamFunctions": ["defense", "support"]
       }
     },
     {
       "claimId": "reviewed-nested-ab4688888e2890230667941d",
-      "memberIds": [
-        "agent-piper",
-        "agent-burnice",
-        "agent-astra"
-      ],
+      "memberIds": ["agent-piper", "agent-burnice", "agent-astra"],
       "sourceVersion": "1.5",
       "url": "https://www.miyoushe.com/zzz/article/61285801",
       "title": "【1.5攻略征集】耀嘉音·全面解析︱养成/配队/机制",
@@ -530,24 +384,14 @@
       "module": {
         "id": "module-strict-round5-cc312d6558e707ae67957a55",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support"
-        ]
+        "reactionMechanisms": ["disorder"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support"]
       }
     },
     {
       "claimId": "reviewed-nested-f47f0ca94d6c417d5f7ebba7",
-      "memberIds": [
-        "agent-piper",
-        "agent-lucy",
-        "agent-astra"
-      ],
+      "memberIds": ["agent-piper", "agent-lucy", "agent-astra"],
       "sourceVersion": "1.5",
       "url": "https://www.miyoushe.com/zzz/article/61285801",
       "title": "【1.5攻略征集】耀嘉音·全面解析︱养成/配队/机制",
@@ -566,18 +410,12 @@
         "primaryOutputKind": "attribute_anomaly",
         "reactionMechanisms": [],
         "executionChannels": [],
-        "teamFunctions": [
-          "support"
-        ]
+        "teamFunctions": ["support"]
       }
     },
     {
       "claimId": "reviewed-nested-1f1fd15673267696556abfa0",
-      "memberIds": [
-        "agent-yanagi",
-        "agent-vivian",
-        "agent-yuzuha"
-      ],
+      "memberIds": ["agent-yanagi", "agent-vivian", "agent-yuzuha"],
       "sourceVersion": "2.1",
       "url": "https://www.miyoushe.com/zzz/article/66558093",
       "title": "【2.1攻略征集】浮波柚叶 角色玩法介绍",
@@ -594,25 +432,14 @@
       "module": {
         "id": "module-strict-round5-0b72cdf0078219f2b41e9a5f",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support",
-          "anomaly_amplification"
-        ]
+        "reactionMechanisms": ["disorder"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support", "anomaly_amplification"]
       }
     },
     {
       "claimId": "reviewed-nested-400310f9a6d86d815d66b60b",
-      "memberIds": [
-        "agent-yanagi",
-        "agent-burnice",
-        "agent-yuzuha"
-      ],
+      "memberIds": ["agent-yanagi", "agent-burnice", "agent-yuzuha"],
       "sourceVersion": "2.1",
       "url": "https://www.miyoushe.com/zzz/article/66558093",
       "title": "【2.1攻略征集】浮波柚叶 角色玩法介绍",
@@ -629,25 +456,14 @@
       "module": {
         "id": "module-strict-round5-6445fc420ea66d9775126bf9",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support",
-          "anomaly_amplification"
-        ]
+        "reactionMechanisms": ["disorder"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support", "anomaly_amplification"]
       }
     },
     {
       "claimId": "reviewed-nested-d518419e7993288a506ce734",
-      "memberIds": [
-        "agent-miyabi",
-        "agent-vivian",
-        "agent-yuzuha"
-      ],
+      "memberIds": ["agent-miyabi", "agent-vivian", "agent-yuzuha"],
       "sourceVersion": "2.1",
       "url": "https://www.miyoushe.com/zzz/article/66558093",
       "title": "【2.1攻略征集】浮波柚叶 角色玩法介绍",
@@ -664,25 +480,14 @@
       "module": {
         "id": "module-strict-round5-88ef1eaf0500047f860088f4",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support",
-          "anomaly_amplification"
-        ]
+        "reactionMechanisms": ["disorder"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support", "anomaly_amplification"]
       }
     },
     {
       "claimId": "reviewed-nested-e6634593c02285fc4350690c",
-      "memberIds": [
-        "agent-jane",
-        "agent-burnice",
-        "agent-yuzuha"
-      ],
+      "memberIds": ["agent-jane", "agent-burnice", "agent-yuzuha"],
       "sourceVersion": "2.1",
       "url": "https://www.miyoushe.com/zzz/article/66558093",
       "title": "【2.1攻略征集】浮波柚叶 角色玩法介绍",
@@ -699,25 +504,14 @@
       "module": {
         "id": "module-strict-round5-9ae0b52e620fb799896e8161",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support",
-          "anomaly_amplification"
-        ]
+        "reactionMechanisms": ["disorder"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support", "anomaly_amplification"]
       }
     },
     {
       "claimId": "reviewed-nested-329018f389fd6faf52234db7",
-      "memberIds": [
-        "agent-ye-shunguang",
-        "agent-seed",
-        "agent-zhao"
-      ],
+      "memberIds": ["agent-ye-shunguang", "agent-seed", "agent-zhao"],
       "sourceVersion": "2.5",
       "url": "https://www.miyoushe.com/zzz/article/71890615",
       "title": "【2.5攻略征集】「叶瞬光」全面解析︱养成/配队/机制",
@@ -736,19 +530,12 @@
         "primaryOutputKind": "direct_damage",
         "reactionMechanisms": [],
         "executionChannels": [],
-        "teamFunctions": [
-          "support",
-          "resource_supply"
-        ]
+        "teamFunctions": ["support", "resource_supply"]
       }
     },
     {
       "claimId": "reviewed-nested-6a787abdf38ec7dd4776a92b",
-      "memberIds": [
-        "agent-ye-shunguang",
-        "agent-seed",
-        "agent-dialyn"
-      ],
+      "memberIds": ["agent-ye-shunguang", "agent-seed", "agent-dialyn"],
       "sourceVersion": "2.5",
       "url": "https://www.miyoushe.com/zzz/article/71890615",
       "title": "【2.5攻略征集】「叶瞬光」全面解析︱养成/配队/机制",
@@ -767,19 +554,12 @@
         "primaryOutputKind": "direct_damage",
         "reactionMechanisms": [],
         "executionChannels": [],
-        "teamFunctions": [
-          "support",
-          "resource_supply"
-        ]
+        "teamFunctions": ["support", "resource_supply"]
       }
     },
     {
       "claimId": "reviewed-nested-14c870eaaa179a8de21ecdf4",
-      "memberIds": [
-        "agent-yanagi",
-        "agent-jane",
-        "agent-caesar"
-      ],
+      "memberIds": ["agent-yanagi", "agent-jane", "agent-caesar"],
       "sourceVersion": "1.3",
       "url": "https://www.miyoushe.com/zzz/article/59165099",
       "title": "【1.3攻略征集】月城柳·全面解析︱养成/配队/机制",
@@ -796,24 +576,14 @@
       "module": {
         "id": "module-strict-round5-fa808a965ade475e91cde9f2",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "defense"
-        ]
+        "reactionMechanisms": ["disorder"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["defense"]
       }
     },
     {
       "claimId": "reviewed-nested-89600eccb6d2321fd685bc74",
-      "memberIds": [
-        "agent-yanagi",
-        "agent-piper",
-        "agent-caesar"
-      ],
+      "memberIds": ["agent-yanagi", "agent-piper", "agent-caesar"],
       "sourceVersion": "1.3",
       "url": "https://www.miyoushe.com/zzz/article/59165099",
       "title": "【1.3攻略征集】月城柳·全面解析︱养成/配队/机制",
@@ -830,24 +600,14 @@
       "module": {
         "id": "module-strict-round5-2d54be2250d0eed4812e20c1",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "defense"
-        ]
+        "reactionMechanisms": ["disorder"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["defense"]
       }
     },
     {
       "claimId": "reviewed-nested-4a128468c0a4008ed3c743fc",
-      "memberIds": [
-        "agent-jane",
-        "agent-burnice",
-        "agent-lucy"
-      ],
+      "memberIds": ["agent-jane", "agent-burnice", "agent-lucy"],
       "sourceVersion": "1.7",
       "url": "https://www.miyoushe.com/zzz/article/63855075",
       "title": "【1.7攻略征集】简·杜 角色玩法介绍",
@@ -864,24 +624,14 @@
       "module": {
         "id": "module-strict-round5-f0dcc4544090aca9786d7ca8",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support"
-        ]
+        "reactionMechanisms": ["disorder"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support"]
       }
     },
     {
       "claimId": "reviewed-nested-768f8ed01504b89139d94d2d",
-      "memberIds": [
-        "agent-jane",
-        "agent-grace",
-        "agent-rina"
-      ],
+      "memberIds": ["agent-jane", "agent-grace", "agent-rina"],
       "sourceVersion": "1.7",
       "url": "https://www.miyoushe.com/zzz/article/63855075",
       "title": "【1.7攻略征集】简·杜 角色玩法介绍",
@@ -898,25 +648,14 @@
       "module": {
         "id": "module-strict-round5-02f4e50c156a20b425d3f3b8",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support",
-          "anomaly_amplification"
-        ]
+        "reactionMechanisms": ["disorder"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support", "anomaly_amplification"]
       }
     },
     {
       "claimId": "reviewed-nested-7ade57fc4cfaf4226aa472cd",
-      "memberIds": [
-        "agent-miyabi",
-        "agent-nicole",
-        "agent-astra"
-      ],
+      "memberIds": ["agent-miyabi", "agent-nicole", "agent-astra"],
       "sourceVersion": "1.5",
       "url": "https://www.miyoushe.com/zzz/article/61285801",
       "title": "【1.5攻略征集】耀嘉音·全面解析︱养成/配队/机制",
@@ -933,25 +672,14 @@
       "module": {
         "id": "module-strict-round5-406af0e6dc5ec230d8a1387e",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder"
-        ],
-        "executionChannels": [
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support",
-          "anomaly_amplification"
-        ]
+        "reactionMechanisms": ["disorder"],
+        "executionChannels": ["quick_swap"],
+        "teamFunctions": ["support", "anomaly_amplification"]
       }
     },
     {
       "claimId": "reviewed-nested-e3b021dff8bcc54092c55798",
-      "memberIds": [
-        "agent-evelyn",
-        "agent-nicole",
-        "agent-astra"
-      ],
+      "memberIds": ["agent-evelyn", "agent-nicole", "agent-astra"],
       "sourceVersion": "1.5",
       "url": "https://www.miyoushe.com/zzz/article/61946271",
       "title": "【1.5攻略征集】伊芙琳·全面解析︱养成/配队/机制",
@@ -969,24 +697,13 @@
         "id": "module-strict-round5-e7dc747d1ba0c9cefcc6eb48",
         "primaryOutputKind": "direct_damage",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "chain",
-          "ultimate"
-        ],
-        "teamFunctions": [
-          "support",
-          "defense_reduction",
-          "resource_supply"
-        ]
+        "executionChannels": ["chain", "ultimate"],
+        "teamFunctions": ["support", "defense_reduction", "resource_supply"]
       }
     },
     {
       "claimId": "reviewed-nested-f11fb89d519a3e826b9f61fe",
-      "memberIds": [
-        "agent-hugo",
-        "agent-lycaon",
-        "agent-lighter"
-      ],
+      "memberIds": ["agent-hugo", "agent-lycaon", "agent-lighter"],
       "sourceVersion": "1.7",
       "url": "https://www.miyoushe.com/zzz/article/64545634",
       "title": "【1.7攻略征集】莱特 角色玩法介绍",
@@ -1004,23 +721,13 @@
         "id": "module-strict-round5-a7e7452585c490423550e62a",
         "primaryOutputKind": "direct_damage",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window",
-          "chain"
-        ],
-        "teamFunctions": [
-          "stun",
-          "support"
-        ]
+        "executionChannels": ["stun_window", "chain"],
+        "teamFunctions": ["stun", "support"]
       }
     },
     {
       "claimId": "reviewed-nested-2bef5a590da9500ca38ef2ef",
-      "memberIds": [
-        "agent-ellen",
-        "agent-lighter",
-        "agent-lycaon"
-      ],
+      "memberIds": ["agent-ellen", "agent-lighter", "agent-lycaon"],
       "sourceVersion": "1.7",
       "url": "https://www.miyoushe.com/zzz/article/64545634",
       "title": "【1.7攻略征集】莱特 角色玩法介绍",
@@ -1038,23 +745,13 @@
         "id": "module-strict-round5-54a0d2f5f43512e112881211",
         "primaryOutputKind": "direct_damage",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window",
-          "chain"
-        ],
-        "teamFunctions": [
-          "stun",
-          "support"
-        ]
+        "executionChannels": ["stun_window", "chain"],
+        "teamFunctions": ["stun", "support"]
       }
     },
     {
       "claimId": "reviewed-nested-47328a7487ce8d5e9462f65f",
-      "memberIds": [
-        "agent-burnice",
-        "agent-grace",
-        "agent-rina"
-      ],
+      "memberIds": ["agent-burnice", "agent-grace", "agent-rina"],
       "sourceVersion": "1.2",
       "url": "https://www.miyoushe.com/zzz/article/58606692",
       "title": "【1.2攻略征集】柏妮思·全面解析︱养成/配队/机制",
@@ -1071,26 +768,14 @@
       "module": {
         "id": "module-strict-round5-f915af8539d3700726a73d2d",
         "primaryOutputKind": "attribute_anomaly",
-        "reactionMechanisms": [
-          "disorder"
-        ],
-        "executionChannels": [
-          "chain",
-          "quick_swap"
-        ],
-        "teamFunctions": [
-          "support",
-          "anomaly_amplification"
-        ]
+        "reactionMechanisms": ["disorder"],
+        "executionChannels": ["chain", "quick_swap"],
+        "teamFunctions": ["support", "anomaly_amplification"]
       }
     },
     {
       "claimId": "reviewed-nested-6d4ce03592a732384bce0529",
-      "memberIds": [
-        "agent-soldier-11",
-        "agent-ju-fufu",
-        "agent-lighter"
-      ],
+      "memberIds": ["agent-soldier-11", "agent-ju-fufu", "agent-lighter"],
       "sourceVersion": "2.0",
       "url": "https://www.miyoushe.com/zzz/article/65745145",
       "title": "【2.0攻略征集】「橘福福」全面解析︱养成/配队/机制",
@@ -1108,22 +793,13 @@
         "id": "module-strict-round5-9d0dd1e20a1b46738d78b89d",
         "primaryOutputKind": "direct_damage",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window",
-          "chain"
-        ],
-        "teamFunctions": [
-          "stun"
-        ]
+        "executionChannels": ["stun_window", "chain"],
+        "teamFunctions": ["stun"]
       }
     },
     {
       "claimId": "reviewed-nested-7367eb4ae7338c7d4ac14b37",
-      "memberIds": [
-        "agent-soldier-11",
-        "agent-ju-fufu",
-        "agent-astra"
-      ],
+      "memberIds": ["agent-soldier-11", "agent-ju-fufu", "agent-astra"],
       "sourceVersion": "2.0",
       "url": "https://www.miyoushe.com/zzz/article/65745145",
       "title": "【2.0攻略征集】「橘福福」全面解析︱养成/配队/机制",
@@ -1141,13 +817,8 @@
         "id": "module-strict-round5-9a40b4c534962d5f9fad0296",
         "primaryOutputKind": "direct_damage",
         "reactionMechanisms": [],
-        "executionChannels": [
-          "stun_window"
-        ],
-        "teamFunctions": [
-          "stun",
-          "support"
-        ]
+        "executionChannels": ["stun_window"],
+        "teamFunctions": ["stun", "support"]
       }
     }
   ]

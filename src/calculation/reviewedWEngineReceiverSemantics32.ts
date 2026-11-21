@@ -3,10 +3,28 @@ import {
   baseWEngineStaticCatalog,
   getCurrentWEngineStaticData,
 } from '../gameDataPacks/currentWEngineStaticCatalog'
-import { reviewedWEngineReceiverSemantics32Identity } from './reviewedWEngineReceiverSemanticsIdentity32'
-export { reviewedWEngineReceiverSemantics32Identity } from './reviewedWEngineReceiverSemanticsIdentity32'
+import { getReviewedWEngineDisplay } from '../gameDataPacks/reviewedWEngineDisplay32'
+import {
+  reviewedWEngineReceiverSemantics32Identity,
+  reviewedRoaringFurnaceReceiverSemantics32Identity as furnaceIdentity,
+} from './reviewedWEngineReceiverSemanticsIdentity32'
+export {
+  reviewedWEngineReceiverSemantics32Identity,
+  reviewedRoaringFurnaceReceiverSemantics32Identity,
+} from './reviewedWEngineReceiverSemanticsIdentity32'
 
 const sourceRef = `upstream:${reviewedWEngineReceiverSemantics32Identity.sourceCommit}:${reviewedWEngineReceiverSemantics32Identity.sourcePath}`
+const furnaceSourceRef = `reviewed:${furnaceIdentity.id}:${furnaceIdentity.descriptionUrl}#sha256=${furnaceIdentity.descriptionSha256}`
+
+function isFurnaceTeamDamage(bucket: SourceBackedEquipmentModifierBucket) {
+  return (
+    bucket.application === 'damage_bonus' &&
+    (bucket.sourceFormula?.engineId === 'wengine-14139' ||
+      /^wengine:wengine-14139:(P:[0-9]+|source-effect:3)$/.test(bucket.effectKey)) &&
+    bucket.action === null &&
+    (bucket.attribute === 'fire' || bucket.attribute === null)
+  )
+}
 
 function isMoonTeamDamage(bucket: SourceBackedEquipmentModifierBucket) {
   return (
@@ -48,6 +66,25 @@ export function applyReviewedWEngineReceiverSemantics32(
       .filter((bucket) => isMoonTeamDamage(bucket) && bucket.value !== 0)
       .map((bucket) => bucket.providerAgentId),
   )
+  const furnaceBuckets = input.filter(isFurnaceTeamDamage)
+  const furnaceCurrent = furnaceBuckets.length ? getCurrentWEngineStaticData('wengine-14139') : null
+  const furnaceSourceBound =
+    furnaceIdentity.sourceVersions.includes(baseWEngineStaticCatalog.gameVersion) &&
+    baseWEngineStaticCatalog.generatedFrom.commit === furnaceIdentity.sourceCommit &&
+    baseWEngineStaticCatalog.items.some(
+      (item) =>
+        item.stableId === 'wengine-14139' &&
+        item.source.formulaSha256.toLowerCase() === furnaceIdentity.formulaSha256 &&
+        item.source.dataSha256.toLowerCase() === furnaceIdentity.dataSha256,
+    ) &&
+    furnaceCurrent !== null &&
+    !('provider' in furnaceCurrent.source) &&
+    furnaceCurrent.source.formulaSha256?.toLowerCase() === furnaceIdentity.formulaSha256 &&
+    furnaceCurrent.source.dataSha256?.toLowerCase() === furnaceIdentity.dataSha256 &&
+    getReviewedWEngineDisplay('wengine-14139')?.source.sha256 === furnaceIdentity.descriptionSha256
+  const furnaceProviders = new Set(
+    furnaceBuckets.filter((bucket) => bucket.value !== 0).map((bucket) => bucket.providerAgentId),
+  )
   const exclusions: Array<{
     effectKey: string
     reason: string
@@ -55,6 +92,27 @@ export function applyReviewedWEngineReceiverSemantics32(
     sourceRefs: string[]
   }> = []
   const buckets = input.flatMap((bucket): SourceBackedEquipmentModifierBucket[] => {
+    if (isFurnaceTeamDamage(bucket)) {
+      if (!furnaceSourceBound || furnaceProviders.size > 1) {
+        exclusions.push({
+          effectKey: bucket.effectKey,
+          reason: !furnaceSourceBound
+            ? '福虓炉炉来源身份已变，全属性增伤修正不能自动沿用。'
+            : '福虓炉炉全队增伤只允许一个实例；缺少当前生效提供者。',
+          fields: [!furnaceSourceBound ? 'reviewed_formula_identity' : 'unique_active_provider'],
+          sourceRefs: [...bucket.sourceRefs, furnaceSourceRef],
+        })
+        return []
+      }
+      return [
+        {
+          ...bucket,
+          attribute: null,
+          receiverPath: bucket.receiverPath?.replace(/\.dmg_\.fire$/, '.common_dmg_') ?? null,
+          sourceRefs: [...new Set([...bucket.sourceRefs, furnaceSourceRef])],
+        },
+      ]
+    }
     if (!isMoonTeamDamage(bucket)) return [bucket]
     if (!sourceBound) {
       exclusions.push({

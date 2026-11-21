@@ -22,6 +22,7 @@ import {
   planningRuntimeEffectBuckets32,
 } from './currentPlanningSelfEffects32'
 import { currentAgentPlanningEffectBlueprints } from './currentAgentPlanningEffectBlueprint'
+import { createStatIndependentSelfCompiler32 } from './currentPlanningStatIndependentSelf32'
 import type { CommonAnomalyEventObservation32 } from './currentCommonAnomalyEffects32'
 import { planningEffectResolutionIdentity32 } from './currentPlanningEffectResolutionIdentity32'
 import { stableContentHash } from '../gameDataPacks/types'
@@ -72,15 +73,24 @@ type PersonalPlanningEvents =
       }
     }
 
-export function evaluateSourceBackedPersonalPlanningDps(
-  input: {
-    member: PlanningEffectRuntimeMember
-    baseline: PlanningBaseline
-    equipmentModifierBuckets?: readonly SourceBackedEquipmentModifierBucket[]
-    potentialEvents?: Readonly<Record<string, PotentialApplicationEvent>>
-    baselineReferences?: Readonly<Record<string, unknown>>
-    commonAnomalyEvents?: Readonly<Record<string, readonly CommonAnomalyEventObservation32[]>>
-  } & PersonalPlanningEvents,
+type PersonalPlanningInput = {
+  member: PlanningEffectRuntimeMember
+  settlementAtSeconds?: number
+  baseline: PlanningBaseline
+  equipmentModifierBuckets?: readonly SourceBackedEquipmentModifierBucket[]
+  potentialEvents?: Readonly<Record<string, PotentialApplicationEvent>>
+  baselineReferences?: Readonly<Record<string, unknown>>
+  commonAnomalyEvents?: Readonly<Record<string, readonly CommonAnomalyEventObservation32[]>>
+} & PersonalPlanningEvents
+
+type PersonalSelfCompiler = (input: {
+  member: PlanningEffectRuntimeMember
+  references?: Readonly<Record<string, unknown>>
+}) => ReturnType<typeof compileCurrentPlanningSelfEffects32>
+
+function evaluatePersonalPlanningCore(
+  input: PersonalPlanningInput,
+  compileSelf: PersonalSelfCompiler,
 ) {
   if (
     incremental33RecoveryPolicy.enabled &&
@@ -133,7 +143,7 @@ export function evaluateSourceBackedPersonalPlanningDps(
   const eventUsages = sourceAction?.eventUsages ?? input.eventUsages
   if (!eventUsages) return { status: 'unsupported' as const, blockers: ['missing_planning_events'] }
   const self = source32
-    ? compileCurrentPlanningSelfEffects32({
+    ? compileSelf({
         member: input.member,
         references: input.baselineReferences,
       })
@@ -144,6 +154,7 @@ export function evaluateSourceBackedPersonalPlanningDps(
   const potentialApplications: PotentialApplicationBinding[] = []
   const diagnosticBlockers: string[] = []
   const totalDamage = calculateCurrentPlanningEventDamage32({
+    settlementAtSeconds: input.settlementAtSeconds,
     member: input.member,
     buckets: [
       ...(input.equipmentModifierBuckets ?? []),
@@ -215,13 +226,68 @@ export function evaluateSourceBackedPersonalPlanningDps(
     boundary:
       '单代理人固定事件只比较同一已确认音擎下的六盘变化，并消费已来源化且进入直接伤害公式的装备 bucket；静态盘面不重复叠加，队伍效果和未观测条件效果保持排除。',
   }
+  return core
+}
+
+export function evaluateSourceBackedPersonalPlanningDpsCore(input: PersonalPlanningInput) {
+  return evaluatePersonalPlanningCore(input, compileCurrentPlanningSelfEffects32)
+}
+
+/** One synchronous six-disc projection only; never shared between candidates.
+ * The projection's member, stat objects and reference values must remain immutable. */
+export function createPersonalPlanningProjectionEvaluator() {
+  return createPersonalPlanningProjectionEvaluatorWith(compileCurrentPlanningSelfEffects32)
+}
+
+/** One synchronous solve only; each returned evaluator serves one immutable six-disc projection. */
+export function createPersonalPlanningSolveEvaluator() {
+  const compileSelf = createStatIndependentSelfCompiler32()
+  return () => createPersonalPlanningProjectionEvaluatorWith(compileSelf)
+}
+
+function createPersonalPlanningProjectionEvaluatorWith(compileSelf: PersonalSelfCompiler) {
+  const cached: Array<{
+    member: PlanningEffectRuntimeMember
+    references: Readonly<Record<string, unknown>> | undefined
+    referenceKeys: string[]
+    result: ReturnType<typeof compileCurrentPlanningSelfEffects32>
+  }> = []
+  return (input: PersonalPlanningInput) =>
+    evaluatePersonalPlanningCore(input, ({ member, references }) => {
+      const keys = references ? Object.keys(references) : []
+      const previous = cached.find(
+        (item) =>
+          item.member === member &&
+          (item.references === undefined) === (references === undefined) &&
+          item.referenceKeys.length === keys.length &&
+          keys.every(
+            (key, index) =>
+              item.referenceKeys[index] === key &&
+              Object.is(item.references?.[key], references?.[key]),
+          ),
+      )
+      if (previous) return previous.result
+      const result = compileSelf({ member, references })
+      cached.push({ member, references, referenceKeys: keys, result })
+      return result
+    })
+}
+
+/** Public result retains its complete, eager runtime identity. */
+export function evaluateSourceBackedPersonalPlanningDps(
+  input: Parameters<typeof evaluateSourceBackedPersonalPlanningDpsCore>[0],
+) {
+  const core = evaluateSourceBackedPersonalPlanningDpsCore(input)
+  if (core.status !== 'supported') return core
   return {
     ...core,
     runtimeHash: stableContentHash({
       ...core,
       member: input.member,
       baseline: input.baseline,
-      effectResolutionIdentity: source32 ? planningEffectResolutionIdentity32 : null,
+      effectResolutionIdentity: isDamageFormula32Version(input.baseline.gameVersion)
+        ? planningEffectResolutionIdentity32
+        : null,
       potentialEvents: input.potentialEvents ?? null,
       baselineReferences: input.baselineReferences ?? null,
       commonAnomalyEvents: input.commonAnomalyEvents ?? null,
@@ -276,6 +342,7 @@ function evaluatePlanningTeamDpsSlice(input: SourceBackedPlanningTeamDpsInput) {
   for (const member of input.members) {
     const diagnosticBlockers: string[] = []
     const totalDamage = calculateCurrentPlanningEventDamage32({
+      settlementAtSeconds: input.settlementAtSeconds,
       member,
       buckets: allBuckets,
       eventUsages: input.eventUsages.filter((usage) => usage.ownerAgentId === member.agentId),

@@ -1,5 +1,7 @@
 import { refineDevelopmentCandidates } from './developmentCandidateRefinement'
 import { developmentCandidateEventObjective32 } from './developmentCandidateEventObjective32'
+import type { DevelopmentSearchDiagnostics } from './developmentSearchDiagnostics'
+import type { DynamicObjectiveSearchStatus } from '../optimizer/dynamicObjectiveSearch'
 import {
   createDevelopmentValueBenchmarkEvaluator,
   type DevelopmentValueBenchmarkEvaluator,
@@ -8,17 +10,18 @@ import type { CurrentPlanningScenarioSelection32 } from '../application/publicPl
 import { searchDevelopmentDynamicCandidates } from './developmentDynamicSearch'
 import {
   rankDevelopmentCandidates,
+  type DevelopmentCandidateRanking,
   type DevelopmentCandidateRankingScope,
 } from './developmentCandidateRanking'
 import type { CoreWarehouse } from '../accounts/coreFlow'
 import type { DriveDisc } from '../domain/schemas'
 import type { DevelopmentComparisonParameters } from './developmentValueBenchmark'
-import { candidatePanelInputForAgent } from '../optimizer/optimizeAccountBuilds'
+import { candidatePanelInputForAgent } from '../optimizer/optimizeAccountBuildsPanelInput'
 import {
   solveCandidateAgentAlternatives,
   solveCandidateWarehouse,
   type CandidateWarehousePlan,
-} from '../optimizer/candidateWarehouseSolver'
+} from '../optimizer/independentCandidateWarehouseSolver'
 import {
   compileAgentBuildIntent,
   optimizerOptionsFromBuildIntent,
@@ -31,10 +34,14 @@ export type DevelopmentCandidateSearch = {
     | 'source_and_local_refinement'
     | 'prepared_anomaly_settlement'
     | 'comparison_groups'
+    | 'parameter_bound_unranked'
   rankingScopes?: DevelopmentCandidateRankingScope[]
-  status:
-    | 'not_run'
-    | NonNullable<ReturnType<typeof searchDevelopmentDynamicCandidates>['search']>['status']
+  /** Per-candidate comparison group and actual sort basis; absent on older snapshots.
+   * In candidateSearchByRank, candidateRank is rebound to the selected outer rank. */
+  candidateRanking?: DevelopmentCandidateRanking
+  /** Evidence from this search only; does not promote an incomplete objective. */
+  diagnostics?: DevelopmentSearchDiagnostics
+  status: 'not_run' | DynamicObjectiveSearchStatus
   nodes: number
   evaluations: number
   exactWithinDeclaredModel: boolean
@@ -99,13 +106,16 @@ export function projectDevelopmentCandidateAlternatives(
   })
   const buildIntent = compileAgentBuildIntent({
     agentId,
+    independentDirection: parameters?.independentDirection,
     developmentPriorityAgentIds: input.developmentPriorityAgentIds,
     ...(panelInput
       ? {
           optimizerOptions: {
             panelInputsByAgent: { [agentId]: panelInput },
             ...(eventObjective
-              ? { effectiveCritObjectivesByAgent: { [agentId]: eventObjective } }
+              ? {
+                  effectiveCritObjectivesByAgent: { [agentId]: eventObjective },
+                }
               : {}),
           },
         }
@@ -152,6 +162,15 @@ export function projectDevelopmentCandidateAlternatives(
     parameters,
   })
   candidates = dynamic.candidates
+  const preparedSearch =
+    'preparedAnomalySearch' in dynamic ? dynamic.preparedAnomalySearch : undefined
+  const preparedCandidateRanking =
+    'preparedCandidateRanking' in dynamic ? dynamic.preparedCandidateRanking : undefined
+  const rankingSource = preparedSearch
+    ? ('prepared_anomaly_settlement' as const)
+    : dynamic.rankingApplied
+      ? ('dynamic_objective' as const)
+      : ('source_and_local_refinement' as const)
   const ranked = rankDevelopmentCandidates({
     ...input,
     evaluator,
@@ -161,20 +180,27 @@ export function projectDevelopmentCandidateAlternatives(
     parameters,
     scenarioSelection,
     eventConditionDeclaration,
+    rankingSource,
+    preparedCandidateRanking,
   })
   candidates = ranked.candidates
-  const preparedSearch =
-    'preparedAnomalySearch' in dynamic ? dynamic.preparedAnomalySearch : undefined
   const trace = preparedSearch ?? dynamic.search
   const candidateSearch: DevelopmentCandidateSearch = {
-    rankingMethod: ranked.rankingScopes.length
-      ? 'comparison_groups'
-      : dynamic.rankingApplied
-        ? preparedSearch
+    rankingMethod:
+      rankingSource === 'prepared_anomaly_settlement'
+        ? ranked.candidateRanking.entries.some((entry) => entry.comparable)
           ? 'prepared_anomaly_settlement'
-          : 'dynamic_objective'
-        : 'source_and_local_refinement',
-    ...(ranked.rankingScopes.length ? { rankingScopes: ranked.rankingScopes } : {}),
+          : 'parameter_bound_unranked'
+        : ranked.rankingScopes.length
+          ? 'comparison_groups'
+          : dynamic.rankingApplied
+            ? 'dynamic_objective'
+            : 'source_and_local_refinement',
+    ...(rankingSource !== 'prepared_anomaly_settlement' && ranked.rankingScopes.length
+      ? { rankingScopes: ranked.rankingScopes }
+      : {}),
+    candidateRanking: ranked.candidateRanking,
+    diagnostics: dynamic.diagnostics,
     status: trace?.status ?? 'not_run',
     nodes: trace?.nodes ?? 0,
     evaluations: trace?.evaluations ?? 0,

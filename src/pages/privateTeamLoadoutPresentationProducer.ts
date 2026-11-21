@@ -15,6 +15,15 @@ import { presentTeamExecution } from './teamExecutionPresentation'
 import { createTeamExecutionAttributePanel } from './teamExecutionAttributePanel'
 import { targetTeamBuildDirectionConditions } from '../application/targetTeamEffectivePotentialConditions'
 
+type OverviewSource = Pick<AccountDecisionRun, 'runId' | 'input' | 'snapshot'>
+// Each immutable analysis run keeps only its latest filter context. Solving another
+// variant changes its 18 discs, while the community order and roster stay the same.
+const baseOverviews = new WeakMap<AccountDecisionRun, {
+  source: OverviewSource | undefined
+  contextKey: string
+  model: ReturnType<typeof buildTeamLoadoutOverviewModel>
+}>()
+
 /** Private Query producer. The browser consumes only its serialized result. */
 export function projectPrivateTeamOverview(
   run: AccountDecisionRun,
@@ -23,21 +32,20 @@ export function projectPrivateTeamOverview(
     planId: null,
     discId: null,
   },
-  source?: Pick<AccountDecisionRun, 'runId' | 'input' | 'snapshot'>,
+  source?: OverviewSource,
   fits: readonly TargetTeamWarehouseFitQueryResult[] = [],
 ): TeamOverviewPresentationDto {
   const warehouse = source?.input.warehouse ?? run.input.warehouse
   if (source && source.input.warehouse.accountId !== run.input.warehouse.accountId)
     throw new Error('Remaining BOX source account does not match the detached run.')
   if (!warehouse.accountId) throw new Error('Team presentation requires an account.')
-  return {
-    contract: teamLoadoutPresentationContract,
-    runId: run.runId,
-    accountId: warehouse.accountId,
-    inputFingerprint: run.snapshot.fingerprint.inputHash,
-    context,
-    overviewModel: projectTargetTeamFitsIntoOverviewModel(
-      buildTeamLoadoutOverviewModel({
+  const contextKey = JSON.stringify([context.agentId, context.planId, context.discId])
+  let base = baseOverviews.get(run)
+  if (!base || base.source !== source || base.contextKey !== contextKey) {
+    base = {
+      source,
+      contextKey,
+      model: buildTeamLoadoutOverviewModel({
         decision: run.snapshot,
         savedPlanDecision: source?.snapshot,
         savedPlans: source?.input.drafts ?? run.input.drafts,
@@ -55,6 +63,17 @@ export function projectPrivateTeamOverview(
         contextPlanId: context.planId,
         contextDiscId: context.discId,
       }),
+    }
+    baseOverviews.set(run, base)
+  }
+  return {
+    contract: teamLoadoutPresentationContract,
+    runId: run.runId,
+    accountId: warehouse.accountId,
+    inputFingerprint: run.snapshot.fingerprint.inputHash,
+    context,
+    overviewModel: projectTargetTeamFitsIntoOverviewModel(
+      structuredClone(base.model),
       Object.fromEntries(fits.map((fit, index) => [String(index), fit])),
       warehouse,
     ),

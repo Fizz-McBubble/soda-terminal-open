@@ -28,7 +28,7 @@ export function evidence(
   }
 }
 
-export function use(
+export function retentionUse(
   profileId: string,
   upper: number,
   current = 42,
@@ -38,6 +38,12 @@ export function use(
     agentId: 'agent-anby',
     mainFit: 'valid',
     setFit: 'valid',
+    branchSetPlan: {
+      pattern: '2+2+2',
+      primarySetIds: ['set-test'],
+      secondarySetIds: [],
+    },
+    recommendationSetFit: 'valid',
     twoPieceFit: 'valid',
     fourPieceFit: 'incompatible',
     currentScore: current,
@@ -46,6 +52,13 @@ export function use(
     cutoffs: { cleanupBelow: 40, keepFrom: 60, premiumFrom: 85 },
     sourceIds: ['synthetic-source'],
     guidance: {
+      currentSet: { id: 'set-test', name: '测试套' },
+      branchSetPlan: {
+        pattern: '2+2+2',
+        primarySets: [{ id: 'set-test', name: '测试套' }],
+        secondarySets: [],
+        conditionDetails: [],
+      },
       mainStats: ['def_flat'],
       subStats: ['crit_rate', 'crit_dmg', 'def_percent'],
       matchedStats: ['crit_rate'],
@@ -69,6 +82,36 @@ export function use(
       nextLevel: 9,
       progressFloor: 50,
       potentialTarget: 60,
+    },
+  }
+}
+
+export function matchingRetentionUse(
+  setId: string,
+  profileId: string,
+  upper: number,
+  current = 42,
+  agentId = 'agent-anby',
+) {
+  const row = retentionUse(profileId, upper, current)
+  return {
+    ...row,
+    agentId,
+    branchSetPlan: {
+      pattern: '2+2+2' as const,
+      primarySetIds: [setId],
+      secondarySetIds: [],
+    },
+    recommendationSetFit: 'valid' as const,
+    guidance: {
+      ...row.guidance!,
+      currentSet: { id: setId, name: '啄木鸟电音' },
+      branchSetPlan: {
+        pattern: '2+2+2' as const,
+        primarySets: [{ id: setId, name: '啄木鸟电音' }],
+        secondarySets: [],
+        conditionDetails: [],
+      },
     },
   }
 }

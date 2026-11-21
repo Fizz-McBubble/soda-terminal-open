@@ -7,6 +7,9 @@ import type {
   TargetTeamWarehouseFitQueryResult,
 } from '../application/calculationQueryContract'
 import { calculationQueryContractVersion } from '../application/calculationQueryContract'
+import { playerErrorMessage } from '../application/playerErrorMessage'
+import { browserCalculationInputFingerprint } from '../application/browserCalculationInputFingerprint'
+import { useF5AccountSummary } from '../components/f5AccountSummaryContext'
 import {
   CalculationQueryClientContext,
   useAccountDecisionWorld,
@@ -17,6 +20,11 @@ import { currentTeamAnalysisSession, setCurrentTeamAnalysisSession } from './tea
 import { acceptTeamRoutePresentation } from './publicTeamRoutePresentation'
 import { acceptTeamOverviewPresentation } from './teamLoadoutPresentationDto'
 import { standardReferenceContinuation32 } from './standardReferenceContinuation32'
+import {
+  currentDecisionWorldForRecovery,
+  loadCurrentTeamOverviewFromQuery,
+  restoreCurrentTeamAnalysisSession,
+} from './teamAnalysisRecovery'
 
 export function useTeamRematch({
   teamKey,
@@ -46,6 +54,7 @@ export function useTeamRematch({
   const { pathname } = useLocation()
   const calculationClient = useContext(CalculationQueryClientContext)
   const decisionWorld = useAccountDecisionWorld()
+  const accountSummary = useF5AccountSummary()
   const [rematching, setRematching] = useState(false)
   const rematchGeneration = useRef(0)
   const rematchPending = useRef(false)
@@ -57,12 +66,11 @@ export function useTeamRematch({
     () => () => {
       rematchGeneration.current += 1
     },
-    [teamKey, warehouse.accountId],
+    [teamKey, warehouse.accountId, accountSummary?.appSessionId],
   )
   const rematchTeam = async () => {
     if (!team || !calculationClient || !analysisRunId || !decision || rematchPending.current) return
-    const previousSession = currentTeamAnalysisSession
-    if (!previousSession) return
+    let previousSession = currentTeamAnalysisSession
     const previousFit = currentTargetTeamFit
     const generation = ++rematchGeneration.current
     const active = () =>
@@ -72,7 +80,14 @@ export function useTeamRematch({
     setAlternativeError(null)
     const finishUsage = beginUsageOperation('team_loadout')
     try {
-      const refreshed = readOnly ? await decisionWorld.refresh() : null
+      const world = liveWorld.current
+      const sourceId = previousSession?.result.sourceRunId ?? analysisRunId
+      const needsRefresh = readOnly || world.status !== 'current' || world.run.runId !== sourceId
+      const refreshed = needsRefresh
+        ? world.status === 'current'
+          ? world.run
+          : await decisionWorld.refresh()
+        : null
       if (!active()) return
       if (readOnly && !refreshed) throw new Error('当前账户资料暂时无法用于分析。')
       const runId = refreshed?.runId ?? analysisRunId
@@ -80,6 +95,36 @@ export function useTeamRematch({
         refreshed?.snapshot.fingerprint.inputHash ?? decision.fingerprint.inputHash
       const accountId = refreshed?.input.warehouse.accountId ?? warehouse.accountId ?? ''
       if (accountId !== warehouse.accountId) throw new Error('当前账户已变化，请重新选择队伍。')
+      if (!previousSession) {
+        const currentWorld = refreshed
+          ? { status: 'current' as const, run: refreshed, liveFingerprint: inputFingerprint }
+          : currentDecisionWorldForRecovery(liveWorld.current)
+        if (
+          !accountSummary ||
+          accountSummary.hydrating ||
+          !currentWorld ||
+          currentWorld.run.runId !== runId
+        )
+          throw new Error('当前队伍分析暂时无法恢复，请返回队伍配装后重试。')
+        const overview = await loadCurrentTeamOverviewFromQuery(currentWorld.run, calculationClient)
+        if (!active()) return
+        previousSession = restoreCurrentTeamAnalysisSession(
+          accountSummary,
+          currentWorld,
+          teamKey,
+          overview,
+        )
+        if (!previousSession) throw new Error('当前队伍已不在本次建议中，请重新选择队伍。')
+        const existing = currentTeamAnalysisSession
+        if (
+          existing &&
+          (existing.result.appSessionId !== previousSession.result.appSessionId ||
+            existing.result.warehouse.accountId !== accountId ||
+            existing.result.inputFingerprint !== inputFingerprint)
+        )
+          throw new Error('当前账户资料已变化，请重新选择队伍。')
+        setCurrentTeamAnalysisSession(previousSession)
+      }
       const projected = await calculationClient.queryTeamRoutePresentation({
         contractVersion: calculationQueryContractVersion,
         kind: 'team_route_presentation',
@@ -137,16 +182,42 @@ export function useTeamRematch({
           }
         : fit
       const overview = refreshed
-        ? acceptTeamOverviewPresentation(refreshed.teamPresentation, {
+        ? (acceptTeamOverviewPresentation(refreshed.teamPresentation, {
             runId,
             accountId,
             inputFingerprint,
             agentId: null,
             planId: null,
             discId: null,
-          })?.overviewModel
+          })?.overviewModel ??
+          acceptTeamOverviewPresentation(
+            await calculationClient.queryTeamOverviewPresentation({
+              contractVersion: calculationQueryContractVersion,
+              kind: 'team_overview_presentation',
+              runId,
+              context: { agentId: null, planId: null, discId: null },
+            }),
+            {
+              runId,
+              accountId,
+              inputFingerprint,
+              agentId: null,
+              planId: null,
+              discId: null,
+            },
+          )?.overviewModel)
         : previousSession.result.overviewModel
       if (!overview) throw new Error('队伍展示结果缺失或已过期，请重新搭配。')
+      if (!active()) return
+      const latest = liveWorld.current
+      if (
+        latest.status !== 'current' ||
+        latest.liveFingerprint !== inputFingerprint ||
+        latest.run.runId !== (refreshed?.runId ?? previousSession.result.sourceRunId ?? runId) ||
+        currentTeamAnalysisSession?.result.appSessionId !== previousSession.result.appSessionId ||
+        currentTeamAnalysisSession.result.warehouse.accountId !== accountId
+      )
+        throw new Error('账户资料已更新，请重新搭配后再使用方案。')
       finishUsage(fit.status === 'ready' ? 'success' : 'incomplete')
       setCurrentTeamAnalysisSession({
         kind: 'complete',
@@ -159,6 +230,7 @@ export function useTeamRematch({
                 warehouse: refreshed.input.warehouse,
                 decisionSnapshot: refreshed.snapshot,
                 capturedAt: new Date(refreshed.capturedAt),
+                inputReadFingerprint: browserCalculationInputFingerprint(refreshed.input),
                 overviewModel: overview,
                 targetTeamFits: {},
                 teamRoutePresentations: {},
@@ -180,10 +252,11 @@ export function useTeamRematch({
       setTargetFitState({ runId, fit: nextFit })
       navigate(`/loadouts/team/${encodeURIComponent(teamKey)}`, { replace: true })
     } catch (error) {
-      finishUsage(active() ? 'failure' : 'cancelled')
+      const cancelled = error instanceof Error && error.name === 'AbortError'
+      finishUsage(active() && !cancelled ? 'failure' : 'cancelled')
       if (active())
         setAlternativeError(
-          error instanceof Error ? error.message : '重新搭配失败；账户资产没有改变。',
+          cancelled ? '本次搭配已取消。' : playerErrorMessage(error, '重新搭配失败，请重试。'),
         )
     } finally {
       if (!active()) finishUsage('cancelled')

@@ -130,3 +130,71 @@
     transition: none;
   }
 }
+
+/* Entry and progress share one quiet surface, without a second nested panel. */
+.f5v-box-analysis-entry--ready .f5v-box-analysis-entry__lead-copy {
+  margin-top: 0;
+}
+
+.f5v-box-analysis-entry--ready .f5v-box-analysis-entry__action-block {
+  margin-top: 20px;
+}
+
+.f5v-box-analysis-entry__status {
+  margin: 0;
+  color: var(--soda-text);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.f5v-box-analysis-entry__snapshot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 32px;
+  margin: 24px 0 0;
+}
+
+.f5v-box-analysis-entry__snapshot div {
+  min-width: 0;
+}
+
+.f5v-box-analysis-entry__snapshot dt,
+.f5v-box-analysis-entry__snapshot dd {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.f5v-box-analysis-entry__snapshot dt {
+  color: var(--soda-text-2);
+}
+
+.f5v-box-analysis-entry__snapshot dd {
+  margin-top: 4px;
+  color: var(--soda-text);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.f5v-box-analysis-entry--error {
+  max-width: none;
+  margin: 0;
+  padding: 22px 26px 28px;
+  border: 0;
+  background: transparent;
+}
+
+.f5v-box-analysis-entry--error h1 {
+  font-size: 32px;
+}
+
+.f5v-box-analysis-entry--error .f5v-box-analysis-entry__button-row {
+  margin-top: 20px;
+}
+
+@container soda-viewport (max-width: 760px) {
+  .f5v-box-analysis-entry--error {
+    padding: 28px 18px;
+  }
+}

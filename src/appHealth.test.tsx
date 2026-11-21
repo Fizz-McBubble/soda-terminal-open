@@ -1,5 +1,5 @@
 import Dexie from 'dexie'
-import { render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { AppHealthProvider } from './appHealth'
 import { useAppHealth } from './appHealthContext'
@@ -27,7 +27,7 @@ vi.mock('./appCapabilityHealth', () => {
 function Probe() {
   const health = useAppHealth()
   return (
-    <output data-testid="health">
+    <output data-testid="health" onClick={() => void health.loadDetailedHealth?.()}>
       {JSON.stringify({
         databaseStatus: health.databaseStatus,
         dataStatus: health.dataStatus,
@@ -62,24 +62,33 @@ it('browser composition keeps current data/runtime health without loading option
     expect(readHealth()).toMatchObject({
       databaseStatus: 'ready',
       dataStatus: 'ready',
-      gameVersion: '3.2',
+      gameVersion: '3.3',
       authority: null,
       capabilities: null,
     }),
   )
-  expect(initializer).toHaveBeenCalledWith(expect.objectContaining({ gameVersion: '3.2' }))
+  expect(initializer).toHaveBeenCalledWith(expect.objectContaining({ gameVersion: '3.3' }))
   expect(diagnostics.authorityLoad).not.toHaveBeenCalled()
   expect(diagnostics.capabilitiesLoad).not.toHaveBeenCalled()
   expect(diagnostics.create).not.toHaveBeenCalled()
 })
 
-it('internal composition retains optional diagnostics after their module loads', async () => {
+it('internal composition loads optional diagnostics only on explicit request', async () => {
   vi.stubEnv('VITE_SODA_COMMUNITY_BUILD', 'false')
   render(
-    <AppHealthProvider databaseInitializer={async () => {}}>
+    <AppHealthProvider
+      databaseInitializer={async () => {
+        await database.open()
+      }}
+    >
       <Probe />
     </AppHealthProvider>,
   )
+  await waitFor(() => expect(readHealth().databaseStatus).toBe('ready'))
+  expect(readHealth().authority).toBeNull()
+  expect(diagnostics.authorityLoad).not.toHaveBeenCalled()
+  fireEvent.click(screen.getByTestId('health'))
+  fireEvent.click(screen.getByTestId('health'))
   await waitFor(() =>
     expect(readHealth()).toMatchObject({
       databaseStatus: 'ready',

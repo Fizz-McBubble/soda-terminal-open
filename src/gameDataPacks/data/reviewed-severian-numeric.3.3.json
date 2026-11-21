@@ -1,0 +1,118 @@
+{
+  "schema": "soda-reviewed-severian-numeric/v1",
+  "gameVersion": "3.3",
+  "stableId": "agent-severian",
+  "externalId": "1631",
+  "attackType": {
+    "gameEnum": 101,
+    "key": "slash",
+    "locator": "hit_type.101"
+  },
+  "identity": {
+    "rarity": "S",
+    "attribute": "wind",
+    "specialty": "attack",
+    "faction": "nanoka:camp:7"
+  },
+  "baseStats": {
+    "atk_base": 134,
+    "atk_growth": 8.2119,
+    "def_base": 49,
+    "def_growth": 6.6203,
+    "hp_base": 629,
+    "hp_growth": 85.3932,
+    "anomMas": 91,
+    "anomProf": 90,
+    "impact": 94,
+    "enerRegen": 1.2
+  },
+  "promotionStats": [
+    {
+      "hp": 0,
+      "atk": 0,
+      "def": 0
+    },
+    {
+      "hp": 432,
+      "atk": 48,
+      "def": 33
+    },
+    {
+      "hp": 864,
+      "atk": 96,
+      "def": 67
+    },
+    {
+      "hp": 1296,
+      "atk": 144,
+      "def": 100
+    },
+    {
+      "hp": 1727,
+      "atk": 192,
+      "def": 134
+    },
+    {
+      "hp": 2159,
+      "atk": 240,
+      "def": 167
+    }
+  ],
+  "coreStats": [
+    {
+      "atk": 0,
+      "crit_dmg_": 0.096
+    },
+    {
+      "atk": 25,
+      "crit_dmg_": 0.096
+    },
+    {
+      "atk": 25,
+      "crit_dmg_": 0.192
+    },
+    {
+      "atk": 50,
+      "crit_dmg_": 0.192
+    },
+    {
+      "atk": 50,
+      "crit_dmg_": 0.288
+    },
+    {
+      "atk": 75,
+      "crit_dmg_": 0.288
+    }
+  ],
+  "source": {
+    "provider": "nanoka",
+    "url": "https://static.nanoka.cc/zzz/3.3/zh/character/1631.json",
+    "rawSha256": "89f3a03b90fca880851352d6d686e6bbe658411d7b4cdf6b78d2a14a97ff5974",
+    "providerManifestSha256": "4d30f529d6e0568a130ebe4d79557b30d9c65d2219e77461763df1c4b42cb029",
+    "locators": {
+      "baseStats": "stats",
+      "promotionStats": "level.1..6",
+      "coreStats": "extra_level.1..6.extra (12101=atk;21101=crit_dmg_)",
+      "corePassive": "passive.level.1631501..1631507.desc[0]:first-clause",
+      "additionalAbility": "passive.level.1631501..1631507.desc[1]",
+      "potential": "potential;potential_detail"
+    }
+  },
+  "combatPassives": {
+    "coreCritDamageBonusByLevel": [0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6],
+    "coreDamageBonusByLevel": [
+      0.125, 0.146, 0.16699999999999998, 0.188, 0.20800000000000002, 0.22899999999999998, 0.25
+    ],
+    "coreWindTeammateExtraDamageBonusByLevel": [0.15, 0.175, 0.2, 0.225, 0.25, 0.275, 0.3],
+    "additionalAbilityCritRateToAtk": {
+      "atkPerCritRatePercent": 8.5,
+      "maxCritRatePercent": 100,
+      "maxAtkBonus": 850
+    }
+  },
+  "potentialAbsence": {
+    "potentialEmpty": true,
+    "potentialDetailEmpty": true
+  },
+  "boundary": "Transformed numeric facts only; no copied source prose, media or executable skill events. Nanoka redistribution license is not asserted."
+}

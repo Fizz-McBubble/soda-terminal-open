@@ -1,11 +1,29 @@
 import { publicDevelopmentDirectoryCatalog } from './publicDevelopmentDirectoryCatalog'
 import { attributePanelKeys } from '../domain/characterPanelStats'
 import { getCurrentAgentDecisionMechanicContract } from '../calculation/currentAgentDecisionMechanicContracts'
+import {
+  type CharacterPanelFieldBasis,
+  type CharacterPanelDisplayContract,
+  type FormatCharacterPanelValueOptions,
+  characterPanelFieldContracts,
+  getCharacterPanelDisplayContract,
+  formatCharacterPanelValue,
+} from './characterPanelMenuPresentation'
+
 export {
   attributePanelKeys,
   extendedPanelKeys,
   type ExtendedPanelKey,
 } from '../domain/characterPanelStats'
+
+export {
+  type CharacterPanelFieldBasis,
+  type CharacterPanelDisplayContract,
+  type FormatCharacterPanelValueOptions,
+  characterPanelFieldContracts,
+  getCharacterPanelDisplayContract,
+  formatCharacterPanelValue,
+}
 
 export type CharacterPanelField = {
   key: string
@@ -15,6 +33,7 @@ export type CharacterPanelField = {
   detail?: boolean
   group?: 'primary' | 'supplementary' | 'resource'
   presentationPriority?: boolean
+  basis?: CharacterPanelFieldBasis
 }
 
 const attributeLabels = {
@@ -26,63 +45,82 @@ const attributeLabels = {
   wind: '风属性伤害加成',
 } as const
 
-const namedResourceLabels: Readonly<Record<string, string>> = {
-  technique_points: '术法点',
-  determination: '决意',
-  wrathful_fires: '忿火',
-  decibels: '喧响值',
-  blazing_heart: '炽心',
-}
-
-function resolveNamedRuptureResource(agentId: string, specialty: string | undefined) {
-  if (specialty !== 'rupture') return null
-  const resources =
-    getCurrentAgentDecisionMechanicContract(agentId)?.resourceContract?.resourceFlow.resources ?? []
-  if (resources.length !== 1) return null
-  const resourceId = resources[0]!.resource
-  return {
-    resourceId,
-    label: namedResourceLabels[resourceId] ?? `具名资源（${resourceId}）`,
-  }
-}
-
 /** Presentation only. Display eligibility never creates a stat, target, or scoring weight. */
 export function getCharacterPanelFields(agentId: string): CharacterPanelField[] {
   const identity = publicDevelopmentDirectoryCatalog.find((row) => row.stableId === agentId)
   const specialty = identity?.specialty
   const attribute = identity?.attribute as keyof typeof attributePanelKeys | 'lumiflux' | undefined
-  const namedRuptureResource = resolveNamedRuptureResource(agentId, specialty)
+  const usesAdrenaline = specialty === 'rupture'
   const usesSharpEnergy = Boolean(
     getCurrentAgentDecisionMechanicContract(agentId)?.resourceContract?.resourceFlow.resources.some(
       (resource) => resource.resource === 'sharpness',
     ),
   )
   const fields: CharacterPanelField[] = [
-    { key: 'hp', label: '生命值', unit: '', weightKey: 'hp_percent' },
+    { key: 'hp', label: '生命值', unit: '', weightKey: 'hp_percent', basis: 'flat' },
     usesSharpEnergy
-      ? { key: 'lacerationDamage', label: '锐暴伤害', unit: '%', presentationPriority: true }
-      : { key: 'atk', label: '攻击力', unit: '', weightKey: 'atk_percent' },
-    { key: 'def', label: '防御力', unit: '', weightKey: 'def_percent' },
-    { key: 'impact', label: '冲击力', unit: '', weightKey: 'impact' },
-    { key: 'critRate', label: '暴击率', unit: '%', weightKey: 'crit_rate' },
-    { key: 'critDamage', label: '暴击伤害', unit: '%', weightKey: 'crit_dmg' },
-    { key: 'anomalyMastery', label: '异常掌控', unit: '', weightKey: 'anomaly_mastery' },
-    { key: 'anomalyProficiency', label: '异常精通', unit: '', weightKey: 'anomaly_proficiency' },
-    specialty === 'rupture'
-      ? { key: 'sheerForce', label: '贯穿力', unit: '', presentationPriority: true }
-      : { key: 'penRatio', label: '穿透率', unit: '%', weightKey: 'pen_ratio' },
-    namedRuptureResource
       ? {
-          key: 'namedResourceRegen',
-          label: `${namedRuptureResource.label}自动累积`,
-          unit: '',
+          key: 'lacerationDamage',
+          label: '锐暴伤害',
+          unit: '%',
+          presentationPriority: true,
+          basis: 'bonus_percent',
         }
+      : { key: 'atk', label: '攻击力', unit: '', weightKey: 'atk_percent', basis: 'flat' },
+    { key: 'def', label: '防御力', unit: '', weightKey: 'def_percent', basis: 'flat' },
+    { key: 'impact', label: '冲击力', unit: '', weightKey: 'impact', basis: 'flat' },
+    { key: 'critRate', label: '暴击率', unit: '%', weightKey: 'crit_rate', basis: 'bonus_percent' },
+    {
+      key: 'critDamage',
+      label: '暴击伤害',
+      unit: '%',
+      weightKey: 'crit_dmg',
+      basis: 'bonus_percent',
+    },
+    {
+      key: 'anomalyMastery',
+      label: '异常掌控',
+      unit: '',
+      weightKey: 'anomaly_mastery',
+      basis: 'flat',
+    },
+    {
+      key: 'anomalyProficiency',
+      label: '异常精通',
+      unit: '',
+      weightKey: 'anomaly_proficiency',
+      basis: 'flat',
+    },
+    specialty === 'rupture'
+      ? { key: 'sheerForce', label: '贯穿力', unit: '', presentationPriority: true, basis: 'flat' }
+      : {
+          key: 'penRatio',
+          label: '穿透率',
+          unit: '%',
+          weightKey: 'pen_ratio',
+          basis: 'bonus_percent',
+        },
+    usesAdrenaline
+      ? { key: 'adrenalineRegen', label: '闪能自动累积', unit: '', basis: 'flat' }
       : usesSharpEnergy
-        ? { key: 'sharpEnergyRegen', label: '锐能自动累积', unit: '' }
-        : { key: 'energyRegen', label: '能量自动回复', unit: '', weightKey: 'energy_regen' },
+        ? { key: 'sharpEnergyRegen', label: '锐能自动累积', unit: '', basis: 'flat' }
+        : {
+            key: 'energyRegen',
+            label: '能量自动回复',
+            unit: '',
+            weightKey: 'energy_regen',
+            basis: 'flat',
+          },
   ]
   for (const field of fields) field.group = 'primary'
-  fields.push({ key: 'pen', label: '穿透值', unit: '', weightKey: 'pen', group: 'supplementary' })
+  fields.push({
+    key: 'pen',
+    label: '穿透值',
+    unit: '',
+    weightKey: 'pen',
+    group: 'supplementary',
+    basis: 'flat',
+  })
   if (attribute && attribute !== 'lumiflux' && attributePanelKeys[attribute])
     fields.push({
       key: attributePanelKeys[attribute],
@@ -90,13 +128,7 @@ export function getCharacterPanelFields(agentId: string): CharacterPanelField[] 
       unit: '%',
       weightKey: `${attribute}_dmg`,
       group: 'supplementary',
-    })
-  if (attribute === 'lumiflux')
-    fields.push({
-      key: 'lumifluxDamageBonus',
-      label: '辉光伤害加成',
-      unit: '%',
-      group: 'supplementary',
+      basis: 'bonus_percent',
     })
   if (specialty === 'rupture')
     fields.push({
@@ -104,8 +136,8 @@ export function getCharacterPanelFields(agentId: string): CharacterPanelField[] 
       label: '穿透率',
       unit: '%',
       weightKey: 'pen_ratio',
-      detail: true,
       group: 'supplementary',
+      basis: 'bonus_percent',
     })
   if (usesSharpEnergy)
     fields.push({
@@ -113,8 +145,8 @@ export function getCharacterPanelFields(agentId: string): CharacterPanelField[] 
       label: '攻击力',
       unit: '',
       weightKey: 'atk_percent',
-      detail: true,
       group: 'supplementary',
+      basis: 'flat',
     })
   for (const [element, key] of Object.entries(attributePanelKeys)) {
     if (element !== attribute)
@@ -124,23 +156,26 @@ export function getCharacterPanelFields(agentId: string): CharacterPanelField[] 
         unit: '%',
         detail: true,
         group: 'supplementary',
+        basis: 'bonus_percent',
       })
   }
-  if (namedRuptureResource)
+  if (usesAdrenaline)
     fields.push(
       {
-        key: 'namedResourceGenerationRate',
-        label: `${namedRuptureResource.label}获得效率`,
+        key: 'adrenalineGenerationRate',
+        label: '闪能获得效率',
         unit: '%',
         detail: true,
         group: 'resource',
+        basis: 'bonus_percent',
       },
       {
-        key: 'maxNamedResource',
-        label: `${namedRuptureResource.label}上限`,
+        key: 'maxAdrenaline',
+        label: '闪能最大值',
         unit: '',
         detail: true,
         group: 'resource',
+        basis: 'flat',
       },
     )
   else if (usesSharpEnergy)
@@ -151,8 +186,16 @@ export function getCharacterPanelFields(agentId: string): CharacterPanelField[] 
         unit: '%',
         detail: true,
         group: 'resource',
+        basis: 'bonus_percent',
       },
-      { key: 'maxSharpEnergy', label: '锐能上限', unit: '', detail: true, group: 'resource' },
+      {
+        key: 'maxSharpEnergy',
+        label: '锐能上限',
+        unit: '',
+        detail: true,
+        group: 'resource',
+        basis: 'flat',
+      },
     )
   else
     fields.push(
@@ -162,8 +205,16 @@ export function getCharacterPanelFields(agentId: string): CharacterPanelField[] 
         unit: '%',
         detail: true,
         group: 'resource',
+        basis: 'total_percent',
       },
-      { key: 'maxEnergy', label: '能量上限', unit: '', detail: true, group: 'resource' },
+      {
+        key: 'maxEnergy',
+        label: '能量上限',
+        unit: '',
+        detail: true,
+        group: 'resource',
+        basis: 'flat',
+      },
     )
   return fields
 }
@@ -189,19 +240,4 @@ export function isCharacterPanelDetailRelevant(
     (baselineKnown && baselineValue !== 0) ||
     (currentKnown && baselineKnown && currentValue !== baselineValue)
   )
-}
-
-export function formatCharacterPanelValue(
-  field: Pick<CharacterPanelField, 'key' | 'unit'>,
-  value: number | undefined,
-) {
-  if (value === undefined || !Number.isFinite(value)) return '—'
-  const scale =
-    field.unit === '%' ||
-    ['energyRegen', 'namedResourceRegen', 'adrenalineRegen', 'sharpEnergyRegen'].includes(field.key)
-      ? 10
-      : 1
-  const rounded =
-    field.key === 'hp' ? Math.ceil(value) : Math.floor((value + 1e-10) * scale) / scale
-  return `${rounded}${field.unit}`
 }

@@ -16,35 +16,35 @@ const localGraduation =
       ? null
       : await import('./savedPlanGraduationCompletion')
 
+function playerTargetConditions(conditions: readonly string[] | undefined) {
+  return (conditions ?? []).flatMap((condition) =>
+    condition
+      .split(/[；;。]/u)
+      .map((part) => part.trim())
+      .filter((part) => part && !/(?:不证明|未计入|尚未计入|未闭合|没有对应)/u.test(part)),
+  )
+}
+
 export function GraduationCompletionLabel({
   completion,
+  currentCultivation = false,
 }: {
   completion?: SavedTeamGraduationCardCompletion | null
+  currentCultivation?: boolean
 }) {
-  const discCompletion = completion?.discCompletion
-  const memberText = completion?.members
-    .map(
-      (member) =>
-        `${getAgentName(member.agentId)} ${member.status === 'scored' ? `${member.score}%${member.appliedConditions?.length ? `（${member.appliedConditions.join('；')}）` : ''}${member.limitations?.length ? `；未计入：${member.limitations.join('；')}` : ''}` : member.reason}`,
-    )
+  if (!completion || completion.status !== 'scored' || !Number.isFinite(completion.score))
+    return null
+  const memberText = completion.members
+    .flatMap((member) => {
+      if (member.status !== 'scored') return []
+      const conditions = playerTargetConditions(member.appliedConditions)
+      return [
+        `${getAgentName(member.agentId)} ${member.score}%${conditions.length ? `（${conditions.join('；')}）` : ''}`,
+      ]
+    })
     .join(' · ')
-  const partial = completion?.members.some(
-    (member) => member.status === 'scored' && member.limitations?.length,
-  )
-  const label =
-    completion?.status === 'reference'
-      ? '培养参考对照'
-      : completion?.score != null
-        ? `毕业完成度 ${completion.score}%${partial ? '（已核验部分）' : ''}`
-        : '毕业完成度 待核对'
-  const title =
-    completion?.status === 'reference'
-      ? `${completion.reason}${memberText ? `\n${memberText}` : ''}${discCompletion ? `\n${discCompletion.reason}` : ''}`
-      : completion?.score != null
-        ? `对照三名成员的毕业推荐计算，成员等权，不含技能养成。${partial ? '仅统计有推荐目标且可核对的属性，不代表全部毕业目标已达成。' : ''}${discCompletion ? `\n${discCompletion.reason}` : ''}${memberText ? `\n${memberText}` : ''}`
-        : discCompletion
-          ? `已保存方案的驱动盘数量。${completion?.reason ? `\n${completion.reason}` : ''}${memberText ? `\n${memberText}` : ''}\n${discCompletion.reason}${discCompletion.members.length ? `\n${discCompletion.members.map((member) => `${getAgentName(member.agentId)} ${member.savedCount}/${member.expectedCount}`).join(' · ')}` : ''}`
-          : `当前方案暂无可用的毕业面板目标。${completion?.reason ? `\n${completion.reason}` : ''}`
+  const label = `${currentCultivation ? '当前培养 · ' : ''}局外属性目标达成度 ${completion.score}%`
+  const title = `成员的局外属性目标，按成员等权计算。${memberText ? `\n${memberText}` : ''}`
   return (
     <span className="team-graduation-completion" title={title} aria-label={`${label}。${title}`}>
       {label}
@@ -63,6 +63,29 @@ export function SavedPlanGraduationLabel({
   publicCompletion?: SavedTeamGraduationCompletion | null
 }) {
   const completion = useMemo(() => {
+    const executions =
+      plan.teamPortfolioSnapshot?.executions ??
+      (plan.teamExecutionSnapshot ? [plan.teamExecutionSnapshot] : [])
+    if (
+      !executions.length ||
+      executions.some(
+        (execution) =>
+          execution.members?.length !== 3 ||
+          execution.members.some(
+            (member) =>
+              member.suggested?.wEngine?.level == null ||
+              member.suggested.wEngine.ascension == null ||
+              member.suggested.wEngine.refinement == null,
+          ) ||
+          (execution.members.some((member) => member.cultivation !== undefined) &&
+            !execution.members.every((member) => member.cultivation !== undefined)),
+      )
+    )
+      return null
+    const hasSavedCultivation = executions.map((execution) =>
+      execution.members.every((member) => member.cultivation !== undefined),
+    )
+    if (hasSavedCultivation.some(Boolean) && !hasSavedCultivation.every(Boolean)) return null
     if (!localGraduation) return publicCompletion ?? null
     try {
       return localGraduation.savedPlanGraduationCompletion(plan, warehouse)
@@ -77,5 +100,20 @@ export function SavedPlanGraduationLabel({
     () => attachSavedTeamDiscCompletion(completion, discCompletion),
     [completion, discCompletion],
   )
-  return <GraduationCompletionLabel completion={cardCompletion} />
+  const executions =
+    plan.teamPortfolioSnapshot?.executions ??
+    (plan.teamExecutionSnapshot ? [plan.teamExecutionSnapshot] : [])
+  const currentCultivation =
+    executions.length > 0 &&
+    executions.every(
+      (execution) =>
+        execution.members?.length === 3 &&
+        execution.members.every((member) => member.cultivation === undefined),
+    )
+  return (
+    <GraduationCompletionLabel
+      completion={cardCompletion}
+      currentCultivation={currentCultivation}
+    />
+  )
 }

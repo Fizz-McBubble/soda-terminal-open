@@ -1,5 +1,5 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
-import { expect, it, vi } from 'vitest'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { beforeEach, expect, it, vi } from 'vitest'
 // Install the fixture's Vitest module mocks before loading the controller.
 import {
   bridge,
@@ -11,95 +11,18 @@ import {
   startAndReceive,
   targetAccountId,
 } from './assetQuickReadControllerTestFixture'
+import { readPendingAssetResult } from '../assetQuickRead/pendingResult'
 import type { AssetBridgeJob } from '../assetQuickRead/bridgeClient'
-import { syntheticAssetSnapshot } from '../assetQuickRead/syntheticAssetSnapshotTestFixture'
 import { AssetQuickReadController } from './AssetQuickReadController'
 import { registerAssetQuickReadControllerIdentityCases } from './AssetQuickReadController.testCases'
 
 import { syntheticFile, workbenchHarness } from './assetQuickReadControllerWorkbenchFixture'
 
+beforeEach(() => {
+  vi.mocked(readPendingAssetResult).mockReset().mockResolvedValue(null)
+})
+
 vi.mock('../components/ExplanationPopover', () => import('../testing/ExplanationPopoverStub'))
-
-it('exports a rejected manual pending snapshot without reparsing the strict import schema', async () => {
-  const client = bridge()
-  const harness = workbenchHarness()
-  const snapshot = syntheticAssetSnapshot()
-  snapshot.source.protocol_version = '3.3'
-  Object.assign(snapshot, { credentials: 'private-secret' })
-  client.result.mockResolvedValue({ jobId, targetAccountId, snapshot, sha256: 'a'.repeat(64) })
-  converted.candidate = {
-    ...converted.candidate,
-    importable: false,
-    issues: [{ code: 'invalid_snapshot', message: '版本不符' }],
-  }
-  const create = vi.fn(() => 'blob:synthetic')
-  const revoke = vi.fn()
-  const originalCreate = URL.createObjectURL
-  const originalRevoke = URL.revokeObjectURL
-  vi.stubGlobal('crypto', {
-    randomUUID: () => '00000000-0000-4000-8000-000000000001',
-    subtle: { digest: vi.fn().mockResolvedValue(new Uint8Array(32).buffer) },
-  })
-  URL.createObjectURL = create
-  URL.revokeObjectURL = revoke
-  const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
-  try {
-    render(
-      <AssetQuickReadController
-        client={client}
-        targetAccountId={targetAccountId}
-        activeAccountId={targetAccountId}
-        workbench={harness.render}
-      />,
-    )
-    const file = new File([JSON.stringify(snapshot)], 'pending.json', { type: 'application/json' })
-    Object.defineProperty(file, 'arrayBuffer', {
-      value: async () => new TextEncoder().encode(JSON.stringify(snapshot)).buffer,
-    })
-    await act(async () => harness.read().inspectFile(file))
-    fireEvent.click(screen.getByText(/暂时不能导入/))
-    expect(screen.getByText(/请等待适配更新后重新检查/)).toBeVisible()
-    expect(screen.getByRole('button', { name: '导入' })).toBeDisabled()
-    await act(async () => fireEvent.click(screen.getByRole('button', { name: '导出' })))
-    expect(create).toHaveBeenCalledOnce()
-    expect((click.mock.instances[0] as HTMLAnchorElement).download).toBe(
-      'soda-asset-quick-read-pending-update.json',
-    )
-    expect(persistence.prepare).not.toHaveBeenCalled()
-    expect(persistence.confirm).not.toHaveBeenCalled()
-    expect(client.start).not.toHaveBeenCalled()
-  } finally {
-    URL.createObjectURL = originalCreate
-    URL.revokeObjectURL = originalRevoke
-    click.mockRestore()
-    vi.unstubAllGlobals()
-  }
-})
-
-it('does not enable export for an unvalidated result structure', async () => {
-  const client = bridge()
-  client.result.mockResolvedValue({
-    jobId,
-    targetAccountId,
-    snapshot: { raw_traffic: 'private' },
-    sha256: 'a'.repeat(64),
-  })
-  converted.candidate = {
-    ...converted.candidate,
-    importable: false,
-    issues: [{ code: 'invalid_snapshot', message: '结构不符' }],
-  }
-  render(
-    <AssetQuickReadController
-      client={client}
-      targetAccountId={targetAccountId}
-      activeAccountId={targetAccountId}
-    />,
-  )
-  await startAndReceive()
-  expect(screen.getByRole('button', { name: '导出' })).toBeDisabled()
-  expect(persistence.confirm).not.toHaveBeenCalled()
-})
 
 it('shows the wait-for-update message for the native client compatibility rejection', async () => {
   const client = bridge()
@@ -229,6 +152,7 @@ it('imports only after the explicit import click and offers guarded recovery', a
     accountId: targetAccountId,
     snapshotSha256: 'a'.repeat(64),
     sameGameAccountAndCounts: true,
+    observedDiscCount: 0,
   })
   expect(screen.getByRole('status')).toHaveTextContent('本机')
   fireEvent.click(screen.getByRole('button', { name: '撤销本次导入' }))
@@ -240,6 +164,25 @@ it('imports only after the explicit import click and offers guarded recovery', a
     'restore_asset_quick_read',
   )
   expect(refresh).toHaveBeenCalledTimes(2)
+})
+
+it('shows mixed rarity counts before confirming their full import', async () => {
+  const client = bridge()
+  converted.candidate.counts.discs = 3
+  converted.candidate.counts.sDiscs = 1
+  render(
+    <AssetQuickReadController
+      client={client}
+      targetAccountId={targetAccountId}
+      activeAccountId={targetAccountId}
+      targetAccountName="合成账户"
+    />,
+  )
+  await startAndReceive()
+  expect(screen.getByText(/S 级 1 张，A\/B 级 2 张/)).toBeVisible()
+  expect(persistence.confirm).not.toHaveBeenCalled()
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '导入' })))
+  expect(persistence.confirm.mock.calls[0][2]).toMatchObject({ observedDiscCount: 3 })
 })
 
 it('cancels a late start response after the selected account changes', async () => {
@@ -272,6 +215,7 @@ it('cancels a late start response after the selected account changes', async () 
     />,
   )
   await act(async () => resolveStart(job))
+  await act(async () => vi.advanceTimersByTimeAsync(0))
   expect(client.cancel).toHaveBeenCalledWith(jobId)
   expect(persistence.prepare).not.toHaveBeenCalled()
   expect(persistence.confirm).not.toHaveBeenCalled()
@@ -331,6 +275,51 @@ it('rejects a different job or account result before any candidate adoption', as
   await startAndReceive()
   expect(screen.getByRole('status')).toHaveTextContent('未采用结果')
   expect(persistence.prepare).not.toHaveBeenCalled()
+  expect(persistence.confirm).not.toHaveBeenCalled()
+})
+
+it('returns to preparation after a finished job has an unreadable result', async () => {
+  const client = bridge()
+  const harness = workbenchHarness()
+  client.result.mockRejectedValueOnce(new Error('结果读取失败'))
+  render(
+    <AssetQuickReadController
+      client={client}
+      targetAccountId={targetAccountId}
+      activeAccountId={targetAccountId}
+      workbench={harness.render}
+    />,
+  )
+  await startAndReceive()
+  expect(harness.read().state).toBe('error')
+  expect(harness.read().busy).toBe(false)
+  expect(client.cancel).not.toHaveBeenCalled()
+  expect(screen.getByRole('button', { name: '返回' })).toBeEnabled()
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '返回' })))
+  expect(harness.read().state).toBe('idle')
+  expect(persistence.prepare).not.toHaveBeenCalled()
+  expect(persistence.confirm).not.toHaveBeenCalled()
+})
+
+it('releases the failed workspace when automatic cancellation confirms the owned job stopped', async () => {
+  const client = bridge()
+  const harness = workbenchHarness()
+  client.status.mockRejectedValueOnce(new Error('连接中断'))
+  render(
+    <AssetQuickReadController
+      client={client}
+      targetAccountId={targetAccountId}
+      activeAccountId={targetAccountId}
+      workbench={harness.render}
+    />,
+  )
+  await startAndReceive()
+  expect(client.cancel).toHaveBeenCalledOnce()
+  expect(client.cancel).toHaveBeenCalledWith(jobId)
+  expect(harness.read().state).toBe('error')
+  expect(harness.read().busy).toBe(false)
+  await act(async () => fireEvent.click(screen.getByRole('button', { name: '返回' })))
+  expect(harness.read().state).toBe('idle')
   expect(persistence.confirm).not.toHaveBeenCalled()
 })
 
@@ -495,6 +484,7 @@ it('renders workbench parts without duplicate steps or file buttons and inspects
     expect(harness.read().hasTask).toBe(false)
     expect(screen.queryByRole('list', { name: '资产快读与导入进度' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '检查资产快读 JSON 候选' })).not.toBeInTheDocument()
+    await act(async () => vi.advanceTimersByTimeAsync(0))
     await act(async () => harness.read().inspectFile(syntheticFile()))
     expect(client.connect).not.toHaveBeenCalled()
     expect(harness.read().state).toBe('received')
@@ -582,6 +572,7 @@ it('imports the observed candidate directly once without a manual synchronizatio
     accountId: targetAccountId,
     snapshotSha256: 'a'.repeat(64),
     sameGameAccountAndCounts: true,
+    observedDiscCount: 0,
   })
   expect(screen.getByRole('button', { name: '导入中…' })).toBeDisabled()
   await act(async () =>
@@ -648,7 +639,7 @@ it('keeps diagnostics in workbench actions and moves undo into import history', 
   expect(dialog).toBeInTheDocument()
   expect(dialog).toHaveTextContent('合成主账户')
 
-  fireEvent.click(screen.getByRole('button', { name: '取消撤销' }))
+  fireEvent.click(within(dialog).getByRole('button', { name: '取消' }))
   expect(screen.queryByRole('dialog', { name: '撤销这次资产快读导入？' })).not.toBeInTheDocument()
 })
 

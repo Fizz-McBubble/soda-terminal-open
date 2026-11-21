@@ -11,13 +11,20 @@ const officialVisualAssetSources = [
 ] as const
 
 export function getOfficialVisualAssetDownloadUrl(
-  asset: Pick<VisualAsset, 'name' | 'remoteUrl' | 'sourceType'>,
+  asset: Pick<VisualAsset, 'name' | 'remoteUrl' | 'sourceType' | 'distribution'>,
 ) {
   if (!asset.remoteUrl) throw new Error(`${asset.name} 缺少图鉴图片地址`)
   const remoteUrl = new URL(asset.remoteUrl)
   if (
     remoteUrl.protocol !== 'https:' ||
-    (!(asset.sourceType === 'community' && Object.values(reviewedUrls).includes(asset.remoteUrl)) &&
+    (asset.distribution !== 'local-only' &&
+      !(
+        asset.sourceType === 'community' && Object.values(reviewedUrls).includes(asset.remoteUrl)
+      ) &&
+      !(
+        asset.sourceType === 'official' &&
+        asset.remoteUrl === reviewedUrls['agent-phoenix-official-avatar']
+      ) &&
       !officialVisualAssetSources.some(
         (source) =>
           remoteUrl.hostname === source.host &&
@@ -31,7 +38,7 @@ export function getOfficialVisualAssetDownloadUrl(
 }
 
 export function getOfficialWEngineDownloadUrl(
-  asset: Pick<VisualAsset, 'entityType' | 'name' | 'remoteUrl' | 'sourceType'>,
+  asset: Pick<VisualAsset, 'entityType' | 'name' | 'remoteUrl' | 'sourceType' | 'distribution'>,
 ) {
   if (asset.entityType !== 'wengine') throw new Error(`${asset.name} 不属于可验证的官方音擎素材`)
   return getOfficialVisualAssetDownloadUrl(asset)

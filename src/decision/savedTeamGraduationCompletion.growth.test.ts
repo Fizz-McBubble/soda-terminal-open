@@ -7,31 +7,41 @@ import {
 import { createSavedTeamGraduationCompletion } from './savedTeamGraduationCompletion'
 
 describe('saved equipment growth in graduation panels', () => {
-  it('uses the saved level-10 unascended engine, including an explicit zero ascension', () => {
-    const ids = ['agent-remielle', 'agent-aria', 'agent-velina'] as const
+  it.each([
+    [0, 123],
+    [1, 166],
+  ])('uses the saved level-10 engine at explicit ascension %s', (ascension, engineAttack) => {
+    const ids = ['agent-aria', 'agent-velina', 'agent-vivian'] as const
     const execution = savedGraduationExecution(ids)
     execution.members[0]!.suggested.wEngine = {
-      engineId: 'wengine-14158',
+      engineId: 'wengine-14150',
       copyId: null,
       refinement: 1,
       level: 10,
-      ascension: 0,
+      ascension,
       fact: 'confirmed',
+    }
+    const roster = savedGraduationRoster(ids)
+    roster.agents.find((agent) => agent.agentId === ids[0])!.wEngineDetails = {
+      id: 'wengine-14150',
+      name: '壳中之灵',
+      level: 60,
+      ascension: 5,
+      refinement: 1,
     }
     const result = createSavedTeamGraduationCompletion({
       execution,
-      roster: savedGraduationRoster(ids, { mindscapeByAgentId: { 'agent-remielle': 2 } }),
+      roster,
       discs: savedGraduationDiscs(ids),
     })
     const member = result.members.find((row) => row.agentId === ids[0])
     expect(member?.status).toBe('scored')
     if (member?.status !== 'scored') throw new Error('Missing saved panel')
-    // Menu white ATK823; Lv10/A0 engine white128 (source128.41).
-    // Slot4 ATK30% + engine ATK14.4%; slot2 flat316.
-    expect(member.metrics.find((metric) => metric.key === 'atk')?.current).toBeCloseTo(
-      (823 + 128) * 1.444 + 316,
-      8,
-    )
-    expect(member.progression.wEngineLevel).toBe(10)
+    const attack = member.metrics.find((metric) => metric.key === 'atk')
+    expect(attack).toMatchObject({ target: 2600, observation: 'out_of_combat' })
+    // Aria's menu base ATK is 788 with 75 from Core, plus the Lv10 engine.
+    // The fixture adds 30% ATK in slot 4 and 316 flat ATK in slot 2.
+    expect(attack?.current).toBeCloseTo((788 + 75 + engineAttack) * 1.3 + 316, 8)
+    expect(member.progression).toMatchObject({ wEngineLevel: 10, savedWEngineRefinement: 1 })
   })
 })

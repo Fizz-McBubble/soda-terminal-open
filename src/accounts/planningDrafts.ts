@@ -1,3 +1,5 @@
+import { sameSavedTeam } from './savedTeamRatingPlayIdentity'
+import { listAccountPlanningDrafts } from './planningDraftReads'
 import { database, type SodaDatabase } from '../db/databaseCore'
 import { getScopedId, type AccountPlanningDraft } from './types'
 import { resolvePlanningDiscReferences } from './planningDiscReferences'
@@ -85,6 +87,7 @@ async function assertPlanningDiscReferences(
   accountId: string,
   input: PlanningDraftInput,
   db: SodaDatabase,
+  existing?: AccountPlanningDraft,
 ) {
   const references = resolvePlanningDiscReferences(input)
   // Protection is a union, not a six/18-disc or simultaneous-allocation contract.
@@ -103,19 +106,35 @@ async function assertPlanningDiscReferences(
     throw new Error(
       `规划“${input.name.trim() || '未命名规划'}”引用的驱动盘在当前账户不存在：${missing.slice(0, 3).join('、')}。请重新匹配或调整用盘后保存，原规划未修改。`,
     )
+  if (referenced.some((disc) => disc?.rarity !== 'S')) {
+    // Historical plans remain editable as records (for example, renaming), but
+    // cannot be promoted to a new or changed S-only equipment result.
+    const historicalFields = (plan: PlanningDraftInput | AccountPlanningDraft) => {
+      const fields = { ...plan } as Record<string, unknown>
+      for (const key of [
+        'id',
+        'scopedId',
+        'accountId',
+        'name',
+        'state',
+        'createdAt',
+        'updatedAt',
+        'revision',
+      ])
+        delete fields[key]
+      return fields
+    }
+    if (
+      !existing ||
+      JSON.stringify(historicalFields(existing)) !== JSON.stringify(historicalFields(input))
+    )
+      throw new Error(
+        '配装方案只支持已确认的 S 级驱动盘；原有方案和驱动盘记录仍会保留。请重新匹配后保存。',
+      )
+  }
 }
 
-export async function listAccountPlanningDrafts(accountId: string, db: SodaDatabase = database) {
-  return db.accountPlanningDrafts.where('accountId').equals(accountId).sortBy('updatedAt')
-}
-
-export async function getAccountPlanningDraft(
-  accountId: string,
-  id: string,
-  db: SodaDatabase = database,
-) {
-  return db.accountPlanningDrafts.get(getScopedId(accountId, id))
-}
+export { listAccountPlanningDrafts, getAccountPlanningDraft } from './planningDraftReads'
 
 export async function saveAccountPlanningDraft(
   accountId: string,
@@ -142,10 +161,20 @@ export async function saveAccountPlanningDraft(
         throw new Error('队伍成员不能重复，请调整后再保存。')
       }
       assertDeploymentOrders(input)
-      await assertPlanningDiscReferences(accountId, input, db)
       const now = new Date().toISOString()
       const id = input.id ?? `plan-${crypto.randomUUID()}`
       const existing = await db.accountPlanningDrafts.get(getScopedId(accountId, id))
+      if (input.kind === 'team' && input.solutionContext?.scope === 'team_joint' && beforeSave) {
+        // The prepared input is available here, inside the write transaction.
+        // Two different plays of the same trio may both be saved.
+        const matches = (row: AccountPlanningDraft) =>
+          sameSavedTeam(row, input.selection.agentIds, input.solutionContext?.ratedTeamPlayId)
+        if (existing && !matches(existing))
+          throw new Error('已保存方案的成员或打法已变化，请重新保存并确认。')
+        if (!existing && (await listAccountPlanningDrafts(accountId, db)).some(matches))
+          throw new Error('这支队伍已有保存方案，请再次保存并确认是否覆盖。')
+      }
+      await assertPlanningDiscReferences(accountId, input, db, existing)
       const next: AccountPlanningDraft = {
         ...input,
         id,
@@ -183,7 +212,6 @@ export async function saveCurrentAgentBuild(
       if (input.selection.agentIds.length !== 1)
         throw new Error('单人养成方案必须且只能包含一名代理人。')
       assertDeploymentOrders({ ...input, kind: 'agent' })
-      await assertPlanningDiscReferences(accountId, { ...input, kind: 'agent' }, db)
       const agentId = input.selection.agentIds[0]
       const agentPlans = await db.accountPlanningDrafts
         .where('[accountId+kind]')
@@ -194,7 +222,13 @@ export async function saveCurrentAgentBuild(
         .toArray()
       const existing = agentPlans
         .filter((plan) => plan.savedRole === 'current_reference')
-        .toSorted((left, right) => right.updatedAt.localeCompare(left.updatedAt))[0]
+        .toSorted(
+          (left, right) =>
+            right.updatedAt.localeCompare(left.updatedAt) ||
+            right.revision - left.revision ||
+            right.id.localeCompare(left.id),
+        )[0]
+      await assertPlanningDiscReferences(accountId, { ...input, kind: 'agent' }, db, existing)
       const now = new Date().toISOString()
       const id = existing?.id ?? `agent-build-${agentId}`
       const next: AccountPlanningDraft = {

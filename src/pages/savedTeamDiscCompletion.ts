@@ -83,7 +83,7 @@ function completionFromIds(input: {
     members: input.members,
     source: input.source,
     reason: conflict
-      ? '保存记录中的驱动盘来源不一致或超过预期数量，需要重新匹配。'
+      ? '保存记录中的驱动盘不一致或超过预期数量，需要重新匹配。'
       : savedCount === 0
         ? '保存方案没有可核对的驱动盘引用。'
         : savedCount === input.expectedCount

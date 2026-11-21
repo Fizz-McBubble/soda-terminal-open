@@ -1,3 +1,4 @@
+import { AppLoadingState } from '../../components/AppEntryState'
 import { type RefObject } from 'react'
 import { Link } from 'react-router-dom'
 import type { CoreWarehouse } from '../../accounts/coreWarehouse'
@@ -31,8 +32,9 @@ export function TeamAnalysisReady({
   savedPlanWarehouse: CoreWarehouse | undefined
   onOpenPlan: (planId: string) => void
 }) {
+  if (accountHydrating) return <AppLoadingState title="正在读取当前账户" />
   const readyDiscCount = accountSummary?.discCount ?? 0
-  if (!accountHydrating && (!accountSummary?.accountId || accountSummary.agentCount === 0))
+  if (!accountSummary?.accountId || accountSummary.agentCount === 0)
     return !accountSummary?.accountId ? (
       <AccountRequiredState title="先创建或选择账户" />
     ) : (
@@ -46,7 +48,7 @@ export function TeamAnalysisReady({
         }
       />
     )
-  if (!accountHydrating && readyDiscCount === 0)
+  if (readyDiscCount === 0)
     return (
       <WorkbenchEmptyState
         title="先导入驱动盘再分析队伍"
@@ -62,37 +64,32 @@ export function TeamAnalysisReady({
   return (
     <>
       {hardConstraintPanel}
-      <section className="f5v-box-analysis-entry">
+      <section className="f5v-box-analysis-entry f5v-box-analysis-entry--ready">
         <div className="f5v-box-analysis-entry__heading">
           <div>
             <h1>分析当前账户的队伍</h1>
           </div>
           {remainingBoxSelector}
         </div>
-        <div className="f5v-box-analysis-entry__workspace">
-          <div className="f5v-box-analysis-entry__primary">
-            <p className="f5v-box-analysis-entry__lead-copy">
-              从已拥有的角色中选择队伍，再搭配驱动盘。
-            </p>
-            <div className="f5v-box-analysis-entry__action-block">
-              <button
-                className="f5v-box-analysis-entry__action"
-                type="button"
-                onClick={onStartAnalysis}
-              >
-                分析当前队伍
-              </button>
-              <p className="f5v-box-analysis-entry__boundary">
-                分析不会修改代理人、邦布、驱动盘或已有方案。
-              </p>
-            </div>
-            <TeamSavedPlanList
-              plans={savedTeamPlans ?? []}
-              publicItems={currentSavedPlanItems}
-              warehouse={savedPlanWarehouse ?? undefined}
-              onOpen={onOpenPlan}
-            />
+        <div className="f5v-box-analysis-entry__content">
+          <p className="f5v-box-analysis-entry__lead-copy">
+            从已拥有的角色中选择队伍，再搭配驱动盘。
+          </p>
+          <div className="f5v-box-analysis-entry__action-block">
+            <button
+              className="f5v-box-analysis-entry__action"
+              type="button"
+              onClick={onStartAnalysis}
+            >
+              分析当前队伍
+            </button>
           </div>
+          <TeamSavedPlanList
+            plans={savedTeamPlans ?? []}
+            publicItems={currentSavedPlanItems}
+            warehouse={savedPlanWarehouse ?? undefined}
+            onOpen={onOpenPlan}
+          />
         </div>
       </section>
     </>
@@ -110,43 +107,31 @@ export function TeamAnalysisRunning({
 }) {
   const stageLabel = teamAnalysisStages[stage - 1]!
   return (
-    <section className="f5v-box-analysis-entry" aria-live="polite">
+    <section className="f5v-box-analysis-entry f5v-box-analysis-entry--running">
       <div className="f5v-box-analysis-entry__heading">
-        <div>
-          <h1>分析当前队伍</h1>
-          <p>先选队伍，再搭配装备。</p>
-        </div>
+        <h1>正在分析当前队伍</h1>
         <button className="button button--quiet" type="button" onClick={onCancel}>
           取消分析
         </button>
       </div>
-      <div className="f5v-box-analysis-entry__workspace">
-        <div className="f5v-box-analysis-entry__primary">
-          <h2>正在分析当前队伍</h2>
-          <p className="f5v-box-analysis-entry__lead-copy">
-            正在按开始分析时的账户资产生成队伍建议。
-          </p>
-          <p role="status">{stageLabel}，请稍候。</p>
-          <p className="f5v-box-analysis-entry__boundary">分析不会更改你的角色或装备。</p>
-        </div>
-        <aside className="f5v-box-analysis-entry__scope">
-          <h2>本次分析</h2>
-          <p>正在使用已拥有的角色和驱动盘仓库。</p>
-          <dl className="f5v-box-analysis-entry__scope-list">
-            <div>
-              <dt>当前账户</dt>
-              <dd>{analysisSnapshot?.accountName ?? '正在读取'}</dd>
-            </div>
-            <div>
-              <dt>已拥有代理人</dt>
-              <dd>{analysisSnapshot ? `${analysisSnapshot.ownedAgentCount} 名` : '正在读取'}</dd>
-            </div>
-            <div>
-              <dt>驱动盘仓库</dt>
-              <dd>{analysisSnapshot ? `${analysisSnapshot.discCount} 张` : '正在读取'}</dd>
-            </div>
-          </dl>
-        </aside>
+      <div className="f5v-box-analysis-entry__content">
+        <p className="f5v-box-analysis-entry__status" role="status">
+          {stageLabel}，请稍候。
+        </p>
+        <dl className="f5v-box-analysis-entry__snapshot">
+          <div>
+            <dt>当前账户</dt>
+            <dd>{analysisSnapshot?.accountName ?? '正在读取'}</dd>
+          </div>
+          <div>
+            <dt>已拥有代理人</dt>
+            <dd>{analysisSnapshot ? `${analysisSnapshot.ownedAgentCount} 名` : '正在读取'}</dd>
+          </div>
+          <div>
+            <dt>驱动盘仓库</dt>
+            <dd>{analysisSnapshot ? `${analysisSnapshot.discCount} 张` : '正在读取'}</dd>
+          </div>
+        </dl>
       </div>
     </section>
   )
@@ -242,7 +227,7 @@ export function TeamAnalysisError({
       <h1 ref={exceptionHeadingRef} tabIndex={-1}>
         本次分析未完成
       </h1>
-      <p>{message ?? '暂时无法完成分析，请重试。你的角色、装备和已保存方案都没有改变。'}</p>
+      <p>{message ?? '暂时无法完成分析，请重试。'}</p>
       <div className="f5v-box-analysis-entry__button-row">
         <button className="f5v-box-analysis-entry__action" type="button" onClick={onStartAnalysis}>
           重新分析当前队伍

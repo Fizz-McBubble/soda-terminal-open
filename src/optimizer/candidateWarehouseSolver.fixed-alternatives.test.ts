@@ -25,6 +25,7 @@ describe('single-agent alternatives with a fixed disc', () => {
   const inventory: DriveDisc[] = [primary, ...secondaries].flatMap((setId) =>
     mainStats.map((mainStat, index) => ({
       ...sampleDiscs.treasureCandidate,
+      rarity: 'S',
       id: `${setId}-${index + 1}`,
       slot: (index + 1) as DriveDisc['slot'],
       setId,

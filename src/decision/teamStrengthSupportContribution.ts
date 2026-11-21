@@ -18,6 +18,7 @@ import {
 } from './teamStrengthStandardSupportEquipment'
 
 export type DeclaredTeamStrengthSupportInput = Omit<FixedEventSupportInput32, 'members'> & {
+  phoenixCanonicalEvent33?: import('./teamPhoenixCanonicalAnomaly33').PhoenixCanonicalEvent33
   referenceConditions?: TeamStrengthReferenceConditions
   standardSupportEquipmentGoal?: StandardSupportEquipmentGoal
   standardTeamReferenceSelection?: StandardTeamReferenceSelectionBundle

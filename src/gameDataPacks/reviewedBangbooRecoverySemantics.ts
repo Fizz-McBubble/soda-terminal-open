@@ -1,4 +1,7 @@
-import { getCurrentBangbooNumericData } from './currentBangbooNumericCatalog'
+import {
+  currentBangbooNumericCatalog,
+  getCurrentBangbooNumericData,
+} from './currentBangbooNumericCatalog'
 import { stableContentHash } from './types'
 
 /** Normalized execution semantics; raw extracted abilities remain private review evidence. */
@@ -50,16 +53,23 @@ export function resolveReviewedBangbooRecoveryBinding(
   item = getCurrentBangbooNumericData(stableId),
 ) {
   const binding = reviewedBangbooRecoveryBindings.find((row) => row.stableId === stableId)
+  const continuity = currentBangbooNumericCatalog.continuityReview.rows.find(
+    (row) => row.stableId === stableId,
+  )
   if (
     !binding ||
+    !continuity ||
     !item ||
     item.stableId !== stableId ||
     item.gameId !== binding.gameId ||
-    stableContentHash(item) !== binding.itemFingerprint
+    continuity.historicalItemFingerprint !== binding.itemFingerprint ||
+    stableContentHash(item) !== continuity.itemFingerprint
   )
     return null
   return {
     ...binding,
+    historicalItemFingerprint: binding.itemFingerprint,
+    itemFingerprint: continuity.itemFingerprint,
     hpBasis: 'bangboo_max_hp' as const,
     expressionOwner: 'bangboo' as const,
     amountUnit: 'hp_point' as const,

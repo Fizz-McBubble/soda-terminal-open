@@ -28,7 +28,7 @@ export function ScannerScanningSection({
         </p>
       ) : (
         <p className="danger-note" role="alert">
-          本次扫描缺少目标账户绑定；结果不会进入正式导入。
+          本次扫描缺少目标账户绑定；结果不会导入到账户。
         </p>
       )}
       {frozenTargetIssue ? (

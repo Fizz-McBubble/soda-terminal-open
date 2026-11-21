@@ -32,8 +32,7 @@ export const initialFilters: FilterState = {
 }
 export const actionKinds: WarehouseActionKind[] = ['keep', 'enhance', 'cleanup']
 export const statusLabels: Partial<Record<WarehouseActionStatus, string>> = {
-  favorite: '已有保留记录',
-  currently_equipped: '当前使用',
+  currently_equipped: '已使用',
   active_plan_reference: '当前方案',
   saved_plan_reference: '方案使用中',
   selected_portfolio_reference: '队伍使用中',
@@ -60,7 +59,6 @@ export function statusText(item: WarehouseActionItem) {
   return item.statuses
     .filter((status) =>
       [
-        'favorite',
         'currently_equipped',
         'active_plan_reference',
         'saved_plan_reference',

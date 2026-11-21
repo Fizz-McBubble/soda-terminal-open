@@ -1,7 +1,13 @@
+import { rinaCleanupStages32 } from './reviewedRinaCleanupDispatch32'
 import agentMechanicCatalog from '../gameDataPacks/generated/current-agent-mechanic-catalog.v1.json' with { type: 'json' }
+import phoenixEventOverlay from '../gameDataPacks/data/phoenix-event-contract.3.3.json' with { type: 'json' }
+import severianEventOverlay from '../gameDataPacks/data/severian-event-contract.3.3.json' with { type: 'json' }
 import { agentCatalog } from '../assault/catalogData'
 import { resolvePotentialImage } from '../assault/agentCapabilities'
 import { currentReleasedIdentityMap } from '../gameDataPacks/currentReleasedIdentityMap'
+import { currentGameDataSelection } from '../gameDataPacks/currentGameDataSelection'
+import { stableContentHash } from '../gameDataPacks/types'
+import { agentMechanicCalculationIdentity } from './agentMechanicCalculationIdentity'
 import { resolveSourceBoundAdditionalAbility } from '../gameDataPacks/reviewedSourceBoundAdditionalAbility'
 import {
   reviewedTeammateActivationMinimum,
@@ -23,17 +29,26 @@ export type AgentEventOperator =
     }
   | { kind: 'constant'; value: number }
 
-export type CurrentAgentEventContract = (typeof agentMechanicCatalog.items)[number] & {
+type CatalogAgentContract = (typeof agentMechanicCatalog.items)[number]
+type CatalogEvent = CatalogAgentContract['eventContract']['events'][number]
+export type CurrentAgentEventContract = Omit<CatalogAgentContract, 'eventContract'> & {
   stableId: string
+  source: CatalogAgentContract['source'] & { provider?: string }
+  eventContract: Omit<CatalogAgentContract['eventContract'], 'events'> & {
+    events: (Omit<CatalogEvent, 'eventModifierRefs'> & {
+      eventModifierRefs: string[]
+      sourceSkillId?: string
+      eventGranularity?: string
+      formulaBinding?: {
+        status: string
+        reason: string
+        requiredState: string | null
+        automaticPlanningEligible: boolean
+        formalEligible: boolean
+      }
+    })[]
+  }
 }
-export const currentAgentMechanicIdentity = Object.freeze({
-  gameVersion: agentMechanicCatalog.gameVersion,
-  contentHash: agentMechanicCatalog.contentHash,
-  upstreamCommit: agentMechanicCatalog.generatedFrom.commit,
-  license: agentMechanicCatalog.generatedFrom.license,
-  agentCount: agentMechanicCatalog.coverage.entities,
-  eventCount: agentMechanicCatalog.coverage.numericSkillEvents,
-})
 
 export type AgentTeamActivationTerm = {
   kind: 'attribute' | 'specialty' | 'faction'
@@ -70,13 +85,87 @@ const stableIdByExternalId = new Map<string, string>([
     .map((entry) => [entry.gameEvidenceId, entry.stableId] as const),
 ])
 
-export const currentAgentEventContracts: readonly CurrentAgentEventContract[] = Object.freeze(
+export const baseCurrentAgentEventContracts: readonly CurrentAgentEventContract[] = Object.freeze(
   agentMechanicCatalog.items.map((item) => {
     const stableId = stableIdByExternalId.get(item.externalId)
     if (!stableId) throw new Error(`角色机制目录无法解析 current stable id：${item.externalId}`)
     return { ...item, stableId }
   }),
 )
+const phoenixCurrentAgentEventContract: CurrentAgentEventContract | null =
+  currentGameDataSelection.gameVersion === '3.3' ? phoenixEventOverlay : null
+const severianCurrentAgentEventContract: CurrentAgentEventContract | null =
+  currentGameDataSelection.gameVersion === '3.3' ? severianEventOverlay : null
+export const currentAgentEventContracts: readonly CurrentAgentEventContract[] = Object.freeze([
+  ...baseCurrentAgentEventContracts.map((contract) => {
+    if (contract.stableId !== 'agent-rina' || currentGameDataSelection.gameVersion !== '3.3')
+      return contract
+    return {
+      ...contract,
+      eventContract: {
+        ...contract.eventContract,
+        events: contract.eventContract.events.map((event) => {
+          const row = rinaCleanupStages32.find((stage) => stage.eventId === event.eventId)
+          return row
+            ? { ...event, attribute: row.attribute, sourceSkillId: String(row.skillId) }
+            : event
+        }),
+      },
+    }
+  }),
+  ...(phoenixCurrentAgentEventContract ? [phoenixCurrentAgentEventContract] : []),
+  ...(severianCurrentAgentEventContract ? [severianCurrentAgentEventContract] : []),
+])
+export const baseCurrentAgentMechanicIdentity = Object.freeze({
+  gameVersion: agentMechanicCatalog.gameVersion,
+  contentHash: agentMechanicCatalog.contentHash,
+  upstreamCommit: agentMechanicCatalog.generatedFrom.commit,
+  license: agentMechanicCatalog.generatedFrom.license,
+  agentCount: agentMechanicCatalog.coverage.entities,
+  eventCount: agentMechanicCatalog.coverage.numericSkillEvents,
+})
+export const currentAgentMechanicIdentity = Object.freeze({
+  gameVersion: phoenixCurrentAgentEventContract ? '3.3' : agentMechanicCatalog.gameVersion,
+  contentHash: phoenixCurrentAgentEventContract
+    ? stableContentHash(currentAgentEventContracts.map(agentMechanicCalculationIdentity))
+    : agentMechanicCatalog.contentHash,
+  upstreamCommit: agentMechanicCatalog.generatedFrom.commit,
+  license: phoenixCurrentAgentEventContract
+    ? 'mixed-MIT-and-Nanoka-redistribution-not-confirmed'
+    : agentMechanicCatalog.generatedFrom.license,
+  agentCount: currentAgentEventContracts.length,
+  eventCount: currentAgentEventContracts.reduce(
+    (sum, contract) => sum + contract.eventContract.events.length,
+    0,
+  ),
+  additionalSources:
+    phoenixCurrentAgentEventContract === null
+      ? []
+      : [
+          {
+            agentId: 'agent-phoenix',
+            provider: 'Nanoka',
+            gameVersion: '3.3',
+            sourceSha256: phoenixEventOverlay.source.rawSha256,
+            formulaSha256: phoenixEventOverlay.source.formulaSha256,
+            licenseStatus: phoenixEventOverlay.source.licenseStatus,
+            binding: 'limited_source_parameter_projection',
+          },
+          ...(severianCurrentAgentEventContract
+            ? [
+                {
+                  agentId: 'agent-severian',
+                  provider: 'Nanoka',
+                  gameVersion: '3.3',
+                  sourceSha256: severianEventOverlay.source.rawSha256,
+                  formulaSha256: severianEventOverlay.source.formulaSha256,
+                  licenseStatus: severianEventOverlay.source.licenseStatus,
+                  binding: 'limited_source_parameter_projection',
+                },
+              ]
+            : []),
+        ],
+})
 
 const contractByStableId = new Map(
   currentAgentEventContracts.map((contract) => [contract.stableId, contract]),
@@ -190,6 +279,8 @@ export function resolveCurrentAgentEvent(input: {
     eventModifierRefs: event.eventModifierRefs,
     attribute: event.attribute,
     formulaProjection: event.formulaProjection,
+    formulaBinding: event.formulaBinding,
+    eventGranularity: event.eventGranularity ?? 'source_catalog_row',
     catalogIdentity: currentAgentMechanicIdentity,
     source: contract.source,
   }

@@ -81,3 +81,16 @@ export function syntheticAssetSnapshot() {
     },
   }
 }
+
+/** 3.3 native report shape; identities are independently specified from the adapter map. */
+export function syntheticAssetSnapshot33() {
+  const snapshot = syntheticAssetSnapshot()
+  snapshot.source.protocol_version = '3.3'
+  snapshot.source.upstream_commit = '444d2ccf3bae448d6a205e5d35107e85d462875a'
+  snapshot.response_observations = snapshot.response_observations.map((response) => ({
+    ...response,
+    command_id: { discs: 1744, engines: 8256, agents: 7398 }[response.kind],
+    status_field: { discs: 6, engines: 3, agents: 2 }[response.kind],
+  }))
+  return snapshot
+}

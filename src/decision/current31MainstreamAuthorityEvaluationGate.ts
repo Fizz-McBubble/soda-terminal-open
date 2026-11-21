@@ -305,6 +305,5 @@ export const current31MainstreamAuthorityEvaluationGate = Object.freeze({
   gateChecks,
   blindMetaHoldout: current31BlindMetaHoldout,
   sourceAdoptionAudit,
-  boundary:
-    `当前版本不等于只接受当前版本新证据。历史机制与 Formation claim 按字段检查后保留，不由此证明当前标准条件的 Meta 正确。现有 Band 与 mainstream membership 标签源均为 3.1，而产品目标为 ${currentVersionProjection.gameVersion}，不能直接继承为当前独立质量分母。30 条 membership 与旧四条 Band、五条派生 Pairwise 都已暴露于当前 authority 或训练标签路径，只保留 known-set/diagnostic regression；URL 未引用不能证明整链独立。独立执行隔离 prior 标签，但旧标签不能当作新冻结预测解盲证据；新分母还必须证明案例/结果先冻结、预测随后冻结、最后解盲。Top-K、Band、Pairwise 与 mainstream Unknown 当前均为 not_evaluated。外部榜单不进入公式、隐藏角色分或生产全序。`,
+  boundary: `当前版本不等于只接受当前版本新证据。历史机制与 Formation claim 按字段检查后保留，不由此证明当前标准条件的 Meta 正确。现有 Band 与 mainstream membership 标签源均为 3.1，而产品目标为 ${currentVersionProjection.gameVersion}，不能直接继承为当前独立质量分母。30 条 membership 与旧四条 Band、五条派生 Pairwise 都已暴露于当前 authority 或训练标签路径，只保留 known-set/diagnostic regression；URL 未引用不能证明整链独立。独立执行隔离 prior 标签，但旧标签不能当作新冻结预测解盲证据；新分母还必须证明案例/结果先冻结、预测随后冻结、最后解盲。Top-K、Band、Pairwise 与 mainstream Unknown 当前均为 not_evaluated。外部榜单不进入公式、隐藏角色分或生产全序。`,
 })

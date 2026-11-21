@@ -29,4 +29,5 @@ it('ships only display and cache facts in the generated public projection', () =
   expect('attribution' in displayProjection).toBe(false)
   // Remote URLs are carried as-is (some bundled-original entries have none).
   expect(displayProjection.assets.some((asset) => Boolean(asset.remoteUrl))).toBe(true)
+  expect(displayProjection.assets.some((asset) => asset.entityId.startsWith('skill-'))).toBe(false)
 })

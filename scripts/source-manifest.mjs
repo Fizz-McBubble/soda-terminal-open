@@ -1,9 +1,13 @@
 #!/usr/bin/env node
 /** Explicit identity maintenance for an already exported, editable public source release. */
-import { createHash } from 'node:crypto'
-import { lstat, readFile, readdir, writeFile } from 'node:fs/promises'
-import { dirname, isAbsolute, join, resolve } from 'node:path'
+import { createHash, randomUUID } from 'node:crypto'
+import { link, lstat, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises'
+import { basename, dirname, isAbsolute, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import {
+  parseSourceMaterializationRecipeDocument,
+  sourceMaterializationRecipeFile,
+} from './source-input-recipes.mjs'
 
 const defaultRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const sha256 = (bytes) => createHash('sha256').update(bytes).digest('hex')
@@ -19,6 +23,7 @@ const rootFiles = new Set([
   '.gitattributes',
   'LICENSE',
   'README.md',
+  sourceMaterializationRecipeFile,
 ])
 const sourceDirectories = new Set([
   'src',
@@ -66,6 +71,100 @@ async function fileBytes(root, path) {
       throw new Error(`source_manifest_non_regular:${path}`)
   }
   return readFile(file)
+}
+
+async function loadMaterializationRecipes(root, manifest) {
+  const recipeFile = join(root, sourceMaterializationRecipeFile)
+  let recipeBytes
+  try {
+    recipeBytes = await fileBytes(root, sourceMaterializationRecipeFile)
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      if (manifest.files[sourceMaterializationRecipeFile])
+        throw new Error('source_manifest_recipe_missing')
+      return { recipes: [], bytes: null }
+    }
+    throw error
+  }
+  const expectedRecipeHash = manifest.files[sourceMaterializationRecipeFile]
+  if (!expectedRecipeHash) throw new Error('source_manifest_recipe_unpinned')
+  if (sha256(recipeBytes) !== expectedRecipeHash) throw new Error('source_manifest_recipe_drift')
+  const recipes = parseSourceMaterializationRecipeDocument(recipeBytes)
+  for (const recipe of recipes) {
+    if (manifest.files[recipe.target] !== recipe.targetSha256)
+      throw new Error(`source_manifest_recipe_target_unpinned:${recipe.target}`)
+    for (const chunk of recipe.chunks)
+      if (manifest.files[chunk.path] !== chunk.sha256)
+        throw new Error(`source_manifest_recipe_chunk_unpinned:${chunk.path}`)
+  }
+  return { recipes, bytes: recipeBytes }
+}
+
+async function materializeRecipe(root, recipe) {
+  const target = join(root, recipe.target)
+  try {
+    const stat = await lstat(target)
+    if (!stat.isFile() || stat.isSymbolicLink())
+      throw new Error(`source_manifest_non_regular:${recipe.target}`)
+    if (sha256(await readFile(target)) !== recipe.targetSha256)
+      throw new Error(
+        `source_manifest_recipe_target_changed:${recipe.target}; rerun prepare-open-source.mjs to regenerate ordered chunks and recipe`,
+      )
+    return false
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error
+  }
+
+  const parts = []
+  for (const chunk of recipe.chunks) {
+    let bytes
+    try {
+      bytes = await fileBytes(root, chunk.path)
+    } catch (error) {
+      if (error.code === 'ENOENT')
+        throw new Error(`source_manifest_recipe_chunk_missing:${chunk.path}`)
+      throw error
+    }
+    if (bytes.length !== chunk.bytes || sha256(bytes) !== chunk.sha256)
+      throw new Error(`source_manifest_recipe_chunk_mismatch:${chunk.path}`)
+    parts.push(bytes)
+  }
+  const restored = Buffer.concat(parts)
+  if (restored.length !== recipe.targetBytes || sha256(restored) !== recipe.targetSha256)
+    throw new Error(`source_manifest_recipe_restore_mismatch:${recipe.target}`)
+
+  await mkdir(dirname(target), { recursive: true })
+  const temporary = join(
+    dirname(target),
+    `.${basename(target)}.materialize-${process.pid}-${randomUUID()}`,
+  )
+  await writeFile(temporary, restored, { flag: 'wx' })
+  try {
+    await link(temporary, target)
+  } catch (error) {
+    if (error.code !== 'EEXIST') throw error
+    if (sha256(await readFile(target)) !== recipe.targetSha256)
+      throw new Error(
+        `source_manifest_recipe_target_changed:${recipe.target}; rerun prepare-open-source.mjs to regenerate ordered chunks and recipe`,
+      )
+    return false
+  } finally {
+    await rm(temporary, { force: true })
+  }
+  return true
+}
+
+function assertRecipesPinned(recipes, recipeBytes, files) {
+  if (!recipes.length) return
+  if (sha256(recipeBytes) !== files[sourceMaterializationRecipeFile])
+    throw new Error('source_manifest_recipe_changed')
+  for (const recipe of recipes) {
+    if (files[recipe.target] !== recipe.targetSha256)
+      throw new Error(`source_manifest_recipe_target_changed:${recipe.target}`)
+    for (const chunk of recipe.chunks)
+      if (files[chunk.path] !== chunk.sha256)
+        throw new Error(`source_manifest_recipe_chunk_changed:${chunk.path}`)
+  }
 }
 
 async function loadManifest(root) {
@@ -122,6 +221,10 @@ async function assertNoUnpinnedSource(root, pinned) {
 export async function verifySourceManifest(root = defaultRoot) {
   root = resolve(root)
   const { bytes, manifest } = await loadManifest(root)
+  const { recipes } = await loadMaterializationRecipes(root, manifest)
+  const materialized = []
+  for (const recipe of recipes)
+    if (await materializeRecipe(root, recipe)) materialized.push(recipe.target)
   const drift = []
   for (const [path, expected] of Object.entries(manifest.files)) {
     try {
@@ -138,7 +241,9 @@ export async function verifySourceManifest(root = defaultRoot) {
   await assertNoUnpinnedSource(root, new Set(Object.keys(manifest.files)))
   return {
     releaseId: `soda-open-${sha256(bytes).slice(0, 16)}`,
+    sourceReleaseId: `soda-open-${sha256(bytes).slice(0, 16)}`,
     count: Object.keys(manifest.files).length,
+    materialized,
   }
 }
 
@@ -149,6 +254,8 @@ export async function refreshSourceManifest({ root = defaultRoot, add = [], remo
   if (packageJson.name !== 'soda-terminal-open' || packageJson.private === true)
     throw new Error('source_manifest_refresh_public_export_only')
   const { manifest } = await loadManifest(root)
+  const { recipes, bytes: recipeBytes } = await loadMaterializationRecipes(root, manifest)
+  for (const recipe of recipes) await materializeRecipe(root, recipe)
   const paths = new Set(Object.keys(manifest.files))
   for (const path of remove) {
     safePath(path)
@@ -156,6 +263,13 @@ export async function refreshSourceManifest({ root = defaultRoot, add = [], remo
   }
   for (const path of add) paths.add(safePath(path))
   if (!paths.size) throw new Error('source_manifest_empty')
+  for (const recipe of recipes)
+    for (const path of [
+      recipe.target,
+      ...recipe.chunks.map((chunk) => chunk.path),
+      sourceMaterializationRecipeFile,
+    ])
+      if (!paths.has(path)) throw new Error(`source_manifest_recipe_pin_removed:${path}`)
   await assertNoUnpinnedSource(root, paths)
   const files = {}
   const changed = []
@@ -171,6 +285,7 @@ export async function refreshSourceManifest({ root = defaultRoot, add = [], remo
     files[path] = sha256(bytes)
     if (files[path] !== manifest.files[path]) changed.push(path)
   }
+  assertRecipesPinned(recipes, recipeBytes, files)
   const next = Buffer.from(`${JSON.stringify({ schemaVersion: 1, files }, null, 2)}\n`)
   await writeFile(join(root, manifestName), next)
   return {

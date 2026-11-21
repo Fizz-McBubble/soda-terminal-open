@@ -88,6 +88,13 @@ const stableAgentSpecialties = new Set([
 
 const releaseLedger = new Map(sourceLedger.records.map((record) => [record.stableId, record]))
 const mediaLedger = new Map(sourceLedger.media.map((entry) => [entry.stableId, entry]))
+// L3 preserves Yixuan's Auric Ink resource key in identity.attribute. The
+// player-facing element and executable formula identity are both Ether.
+const reviewedPlayerFacingAgentAttributes = new Map([['agent-yixuan', 'ether']])
+
+function playerFacingAgentAttribute(stableId: string, raw: string | null) {
+  return reviewedPlayerFacingAgentAttributes.get(stableId) ?? raw
+}
 
 function asRarity(value: unknown): CurrentAssetProjectionEntry['rarity'] {
   return value === 'S' || value === 'A' || value === 'B' ? value : null
@@ -188,7 +195,10 @@ function formalEntry(
     playerName: l3FactString(l3, 'identity.name') ?? entry.displayName,
     rarity,
     specialty,
-    attribute: domain === 'agent' ? l3FactString(l3, 'identity.attribute') : null,
+    attribute:
+      domain === 'agent'
+        ? playerFacingAgentAttribute(entry.stableId, l3FactString(l3, 'identity.attribute'))
+        : null,
     evidence: 'formal',
     identityEvidence: 'formal',
     releaseState: 'released',
@@ -223,7 +233,10 @@ function candidateEntry(entity: GameData31CatalogEntity): CurrentAssetProjection
     playerName: entity.displayName,
     rarity,
     specialty: typeof entity.fields.specialty === 'string' ? entity.fields.specialty : null,
-    attribute: typeof entity.fields.attribute === 'string' ? entity.fields.attribute : null,
+    attribute:
+      entity.domain === 'agent' && typeof entity.fields.attribute === 'string'
+        ? playerFacingAgentAttribute(stableId, entity.fields.attribute)
+        : null,
     evidence: entity.status,
     identityEvidence: currentScope?.identityEvidence ?? 'missing',
     releaseState: currentReleaseState,

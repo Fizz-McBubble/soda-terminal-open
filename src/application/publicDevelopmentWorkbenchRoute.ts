@@ -4,6 +4,7 @@ import type { evaluateDevelopmentRecordedDiscs } from '../pages/developmentRecor
 import type { createAgentDevelopmentPanelProjection } from '../pages/agentDevelopmentPanelProjection'
 import type { createAgentDevelopmentWorkbenchViewModel } from '../pages/agentDevelopmentWorkbenchViewModel'
 import type { RosterAgent } from '../assault/types'
+import type { DevelopmentWorkbenchEquipmentDecision } from './publicDevelopmentWorkbenchPresentation'
 import { contentHash } from './contentHash'
 
 export type DevelopmentCurrentRecord = {
@@ -70,6 +71,20 @@ export type DevelopmentWorkbenchRouteSelection = {
   candidateLoadoutFingerprint: string | null
 }
 
+/** Comparison intent, deliberately separate from current account equipment. */
+export type DevelopmentComparisonTarget = {
+  source: 'saved_plan' | 'candidate'
+  wEngine: {
+    engineId: string
+    name: string
+    level: number
+    ascension?: number
+    refinement: number
+  } | null
+  /** Null means the saved record did not capture this target dimension. */
+  potential: number | null
+}
+
 export type DevelopmentWorkbenchRoutePresentation = {
   contract: 'soda-development-workbench-route/v1'
   runId: string
@@ -85,8 +100,40 @@ export type DevelopmentWorkbenchRoutePresentation = {
   discFacts: GoldenWorkbenchData['discs']
   workbench: ReturnType<typeof createAgentDevelopmentWorkbenchViewModel> | null
   graduationPanel: GoldenWorkbenchData['graduation']['panel']
+  /** Narrow per-agent equipment projection; older in-memory fixtures may omit it. */
+  equipment?: DevelopmentWorkbenchEquipmentDecision | null
   /** A saved-record panel refresh is separate from the captured run's recommendations. */
   currentRecordBinding?: string
+  /** Present for saved plans and parameterized candidates; current-only routes leave it absent. */
+  comparisonTarget?: DevelopmentComparisonTarget
+}
+
+function hasValidComparisonTarget(value: unknown): value is DevelopmentComparisonTarget {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false
+  const target = value as Partial<DevelopmentComparisonTarget>
+  const targetPotential = target.potential
+  const targetEngine = target.wEngine
+  return (
+    (target.source === 'saved_plan' || target.source === 'candidate') &&
+    (targetPotential === null ||
+      (Number.isInteger(targetPotential) && targetPotential! >= 0 && targetPotential! <= 6)) &&
+    (targetEngine === null ||
+      (Boolean(targetEngine) &&
+        typeof targetEngine?.engineId === 'string' &&
+        targetEngine.engineId.length > 0 &&
+        typeof targetEngine.name === 'string' &&
+        targetEngine.name.length > 0 &&
+        Number.isInteger(targetEngine.level) &&
+        targetEngine.level >= 0 &&
+        targetEngine.level <= 60 &&
+        (targetEngine.ascension === undefined ||
+          (Number.isInteger(targetEngine.ascension) &&
+            targetEngine.ascension >= 0 &&
+            targetEngine.ascension <= 5)) &&
+        Number.isInteger(targetEngine.refinement) &&
+        targetEngine.refinement >= 1 &&
+        targetEngine.refinement <= 5))
+  )
 }
 
 export function isCurrentDevelopmentWorkbenchRoute(
@@ -112,6 +159,8 @@ export function isCurrentDevelopmentWorkbenchRoute(
     value.selection.candidateRank === expected.selection.candidateRank &&
     value.selection.candidateLoadoutFingerprint ===
       expected.selection.candidateLoadoutFingerprint &&
+    (value.comparisonTarget === undefined || hasValidComparisonTarget(value.comparisonTarget)) &&
+    (!expected.selection.requestedPlanId || value.comparisonTarget !== undefined) &&
     value.status === 'ready' &&
     value.selectedDiscFingerprint === fingerprint(expected.selectedDiscs) &&
     Array.isArray(value.setRecommendations) &&

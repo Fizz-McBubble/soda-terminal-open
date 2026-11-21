@@ -1,3 +1,4 @@
+import { playerErrorMessage } from '../../application/playerErrorMessage'
 import { useEffect, useRef, useState, type Dispatch, type SetStateAction } from 'react'
 import { usePageOperationScope } from '../usePageOperationScope'
 import {
@@ -97,7 +98,7 @@ export function useDataCenterFileOperations({
       })
     } catch (error) {
       if (!isCurrentInspection()) return
-      const detail = error instanceof Error ? error.message : '文件无法读取。'
+      const detail = playerErrorMessage(error, '文件无法读取。')
       setFileState({
         phase: 'error',
         fileName: file.name,
@@ -198,7 +199,7 @@ export function useDataCenterFileOperations({
       }
       setRevision((current) => current + 1)
     } catch (error) {
-      const detail = error instanceof Error ? error.message : '操作失败。'
+      const detail = playerErrorMessage(error, '操作失败。')
       setFileState((current) => ({
         ...current,
         phase: 'error',
@@ -244,7 +245,7 @@ export function useDataCenterFileOperations({
       setRevision((current) => current + 1)
     } catch (error) {
       setRestoreConfirmation(null)
-      const detail = error instanceof Error ? error.message : '恢复失败。'
+      const detail = playerErrorMessage(error, '恢复失败。')
       setFileState((current) => ({
         ...current,
         phase: 'error',

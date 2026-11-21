@@ -29,7 +29,7 @@ export function TeamPlanRecoveryStatus({
     <section className="panel status-card" aria-label="队伍建议详情">
       <h2>
         {readOnly
-          ? '账户资料已更新'
+          ? '暂不能生成配装'
           : fitStatus === 'error'
             ? '配装生成失败'
             : canRecoverTargetFit
@@ -44,9 +44,9 @@ export function TeamPlanRecoveryStatus({
       </h2>
       <p role={fitStatus === 'error' && !readOnly ? 'alert' : undefined}>
         {readOnly
-          ? '返回队伍建议重新分析后，再为这支队伍配装。'
+          ? '请返回队伍建议，重新选择这支队伍。'
           : fitStatus === 'error'
-            ? '配装生成失败；账户资料没有被修改。'
+            ? '配装生成失败，请重试。'
             : canRecoverTargetFit
               ? '正在恢复这支队伍的配装，请稍候。'
               : !targetCandidateId
@@ -54,7 +54,7 @@ export function TeamPlanRecoveryStatus({
                 : bangbooUnavailable
                   ? '当前没有可确认的邦布搭配，请返回选择其他队伍。'
                   : needsBangbooChoice
-                    ? '选择要搭配的邦布，再匹配驱动盘；不会修改账户资产。'
+                    ? '选择要搭配的邦布，再匹配驱动盘。'
                     : '请返回队伍建议，重新选择这支队伍。'}
       </p>
       {needsBangbooChoice && !readOnly ? (

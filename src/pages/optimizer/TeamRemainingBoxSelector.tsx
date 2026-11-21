@@ -36,7 +36,7 @@ export function TeamRemainingBoxSelector({
     >
       <summary>再组一队</summary>
       <div className="f5v-remaining-box__content">
-        <p>保留勾选队伍的成员与驱动盘，为你推荐另一支队伍。</p>
+        <p>推荐时排除勾选方案中的成员和驱动盘。</p>
         <div className="f5v-remaining-box__plans">
           {savedTeamPlans.map((plan) => {
             let ready = false

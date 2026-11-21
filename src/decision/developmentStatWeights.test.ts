@@ -42,7 +42,7 @@ describe('read-only standard-roll sensitivity boundaries', () => {
     },
   )
 
-  it('keeps unsupported team/functional goals unavailable instead of returning false zero gains', () => {
+  it('keeps the unmodeled anomaly affix unavailable for a supported personal event', () => {
     const f = statWeightCalibrationFixture()
     const agent = f.warehouse.roster.agents.find((row) => row.agentId === 'agent-astra')!
     Object.assign(agent, {
@@ -50,8 +50,27 @@ describe('read-only standard-roll sensitivity boundaries', () => {
       agentId: 'agent-astra',
     })
     const result = evaluateDevelopmentStatWeights({ ...f, agentId: 'agent-astra', stale: false })
-    expect(result.status).toBe('unsupported')
-    expect(result.rows.every((row) => row.damageDelta === null)).toBe(true)
+    expect(result.rows.find((row) => row.stat === 'anomaly_proficiency')).toMatchObject({
+      status: 'unsupported',
+      damageDelta: null,
+    })
+  })
+
+  it('calculates Roxy personal fixed-event attack marginal without inventing anomaly gains', () => {
+    const f = statWeightCalibrationFixture('agent-billy')
+    const actor = f.warehouse.roster.agents.find((row) => row.agentId === 'agent-roxy')!
+    Object.assign(actor, {
+      ...structuredClone(f.warehouse.roster.agents.find((row) => row.agentId === 'agent-billy')!),
+      agentId: 'agent-roxy',
+      wEngineDetails: { id: 'wengine-14162', name: null, level: 60, ascension: 5, refinement: 1 },
+    })
+    const result = evaluateDevelopmentStatWeights({ ...f, agentId: 'agent-roxy', stale: false })
+    expect(result.baseline.state).toBe('supported')
+    expect(result.rows.find((row) => row.stat === 'atk_flat')?.damageDelta).toBeGreaterThan(0)
+    expect(result.rows.find((row) => row.stat === 'anomaly_proficiency')).toMatchObject({
+      status: 'unsupported',
+      damageDelta: null,
+    })
   })
 
   it('locks every dimension except the virtual affix and never qualifies it as a real formal asset', () => {

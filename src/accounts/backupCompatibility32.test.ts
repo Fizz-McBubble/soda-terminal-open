@@ -134,7 +134,7 @@ describe('3.2 synthetic backup recovery compatibility', () => {
     expect(
       applyAgentWEngineAssignment({
         ...params,
-        draft: { ...draft, wEngineAscension: 0 },
+        draft: { ...draft, wEngineLevel: 10, wEngineAscension: 0 },
       }).agents.find((a) => a.agentId === agentId)!.wEngineDetails.ascension,
     ).toBe(0)
     expect(
@@ -149,6 +149,9 @@ describe('3.2 synthetic backup recovery compatibility', () => {
         draft: { ...draft, wEngineCatalogId: engines[2] },
       }).agents.find((a) => a.agentId === agentId)!.wEngineDetails.ascension,
     ).toBeUndefined()
+    expect(() =>
+      applyAgentWEngineAssignment({ ...params, draft: { ...draft, wEngineAscension: 0 } }),
+    ).toThrow('等级与突破阶段不匹配')
     expect(() =>
       applyAgentWEngineAssignment({ ...params, draft: { ...draft, wEngineAscension: 6 } }),
     ).toThrow('0–5')

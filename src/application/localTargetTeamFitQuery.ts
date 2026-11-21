@@ -1,3 +1,10 @@
+import { targetTeamBuildDirectionConditions } from './targetTeamEffectivePotentialConditions'
+import { canonicalTeamPlayIdentity } from '../domain/teamPlayMechanismContract'
+import {
+  prepareLocalTargetTeamSolve,
+  defaultSchemeBangbooId,
+  explicitBangbooStar,
+} from './localTargetTeamSolvePreparation'
 import { formedTeamCultivation } from '../decision/formedTeamCultivation'
 import {
   normalizeReviewedEventConditionDeclarations32,
@@ -12,10 +19,7 @@ import {
 } from '../decision/authorityExecutionVariantResolver'
 import { isAdoptedPortfolioTeam } from '../decision/authorityPortfolioCandidates'
 import { authorityTargetBuildDirection } from '../decision/authorityTargetBuildDirection'
-import {
-  compileAuthorComparisonTeamBuildIntent,
-  compileTeamBuildIntent,
-} from '../decision/buildIntent'
+import { compileAuthorComparisonTeamBuildIntent } from '../decision/buildIntent'
 import { reviewedAuthorComparisonMembership32 } from '../decision/reviewedAuthorComparisonMembership32'
 import { projectTargetTeamAccountBoundBenchmark } from '../decision/targetTeamAccountBoundBenchmark'
 import { createTargetTeamAssignmentObjective } from '../decision/targetTeamAssignmentObjective'
@@ -30,43 +34,27 @@ import {
   withReviewedSourceBangbooAlternatives,
 } from '../decision/targetTeamEquipmentParameters'
 import { projectTargetTeamValueBenchmark } from '../decision/targetTeamValueBenchmark'
-import { calculateTargetTeamWarehouseFit } from '../decision/targetTeamWarehouseFit'
-import { projectTeamEquipmentRecommendations } from '../decision/teamEquipmentRecommendations'
 import { projectTargetTeamExecution } from '../decision/teamExecutionProjection'
-import {
-  candidatePanelInputsForScheme,
-  type AccountLoadout,
-} from '../optimizer/optimizeAccountBuilds'
+import type { AccountLoadout } from '../optimizer/optimizeAccountBuilds'
 import { projectPrivateTeamExecution } from '../pages/privateTeamLoadoutPresentationProducer'
-import type { BangbooStar, TeamEngineCandidate } from '../teamEngine/contracts'
 import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
-import {
-  calculationQueryContractVersion,
-  type AccountDecisionRun,
-  type CalculationQueryClient,
-} from './calculationQueryContract'
+import { type AccountDecisionRun, type CalculationQueryClient } from './calculationQueryContract'
 import { resolvePlayerConfirmedTargetTeamQuery } from './localTargetTeamPlayerSelection'
 import { authorComparisonAccountBinding } from './publicAuthorComparisonAccountBinding'
-import { targetTeamBuildDirectionConditions } from './targetTeamEffectivePotentialConditions'
 import { preparePlanningBenchmark32 } from './privatePlanningBenchmarkBinding32'
 import { projectPlanningBenchmark32 } from './privatePlanningBenchmark32'
 import { validatePlanningEventDeclarations32 } from './publicPlanningEventDeclarations32'
 import type { DeclaredEventGoal32 } from '../decision/targetTeamDeclaredEventObjective32'
 import { contentHash } from './contentHash'
 import { prepareTargetTeamStandardReference32 } from './targetTeamStandardReference32'
-
-function defaultSchemeBangbooId(candidate: TeamEngineCandidate) {
-  if (candidate.bangbooId) return candidate.bangbooId
-  const selection = candidate.bangbooSelection
-  if (selection.status === 'selected' || selection.status === 'compatible_fallback')
-    return selection.bangbooId
-  return null
-}
-
-function explicitBangbooStar(stars: number): BangbooStar {
-  if (!Number.isInteger(stars) || stars < 1 || stars > 5) throw new Error('邦布星级必须在 1–5 星。')
-  return stars as BangbooStar
-}
+import {
+  prepareLocalTargetTeamFitRequest,
+  calculateLocalTargetTeamFit,
+  completeLocalTargetTeamFit,
+} from './localSavedTargetTeamReplay'
+import { requireRunWithSignal } from './localQueryRuntimeGuard'
+import { applyCachedStandardReferenceUpdate32 } from './localTargetTeamStandardReferenceUpdate'
+import { loadBoxCandidate, loadSavedBoxCandidate } from './boxAdmissionQueryProjection'
 
 export function createLocalTargetTeamFitQuery({
   runs,
@@ -85,42 +73,26 @@ export function createLocalTargetTeamFitQuery({
     Parameters<typeof prepareTargetTeamStandardReference32>[0]
   >()
   const calculateTargetTeamWarehouseFitQuery: CalculationQueryClient['calculateTargetTeamWarehouseFit'] =
-    async (query) => {
-      if (query.contractVersion !== calculationQueryContractVersion)
-        throw new Error(`Unsupported Calculation/Query contract: ${query.contractVersion}.`)
-      await requireCompiledRuntime()
-      const run = runs.get(query.runId)
-      if (!run) throw new Error(`Account Decision run is unavailable: ${query.runId}.`)
-      if (query.standardReferenceFitFingerprint32 !== undefined) {
-        const cached = teamFits.get(run.runId)?.get(query.candidateId)
-        const input = cached && standardInputs.get(cached)
-        if (
-          !cached ||
-          !input ||
-          cached.fingerprint !== query.standardReferenceFitFingerprint32 ||
-          !query.standardReference32 ||
-          query.equipmentParameters ||
-          query.scenarioSelection ||
-          query.eventConditionDeclarationsByAgentId ||
-          query.declaredEventComparison32 ||
-          query.playerBangbooSelection
-        )
-          throw new Error('当前配装或比较条件已变化，请重新打开标准培养参考。')
-        const standard = prepareTargetTeamStandardReference32(input, query.standardReference32)
-        const result = {
-          ...cached,
-          standardReference32: standard.result,
-          standardReferenceRequest32: structuredClone(query.standardReference32),
-          standardReferenceUpdate32: {
-            fitFingerprint: cached.fingerprint,
-            accountEquipmentPreserved: true as const,
-          },
-        }
-        standardInputs.set(result, input)
-        if (standard.result.status !== 'unsupported')
-          teamFits.get(run.runId)!.set(query.candidateId, result)
-        return result
-      }
+    async (query, requestOptions) => {
+      const capturedRun = await requireRunWithSignal(
+        query,
+        runs,
+        requireCompiledRuntime,
+        requestOptions?.signal,
+      )
+      const run = query.savedPlanReplay
+        ? loadSavedBoxCandidate(
+            capturedRun,
+            query.savedPlanReplay.planId,
+            query.savedPlanReplay.planHash,
+          )
+        : loadBoxCandidate(capturedRun, query.playerBangbooSelection?.teamKey ?? query.candidateId)
+      const preparedRequest = prepareLocalTargetTeamFitRequest(query, run)
+      const savedReplay = preparedRequest.replay
+      const solveWarehouse = savedReplay?.warehouse ?? run.input.warehouse
+      query = preparedRequest.query
+      if (query.standardReferenceFitFingerprint32 !== undefined)
+        return applyCachedStandardReferenceUpdate32({ query, run, teamFits, standardInputs })
       let declaredEventGoal32: DeclaredEventGoal32 | undefined
       let declaredEventReferenceAssignments: readonly AccountLoadout[] | undefined
       if (query.declaredEventComparison32) {
@@ -184,7 +156,10 @@ export function createLocalTargetTeamFitQuery({
         !run.snapshot.decisionAuthority.productionWorkset.candidateIds.includes(query.candidateId)
       )
         throw new Error(`Candidate is outside the production workset: ${query.candidateId}.`)
-      if (authorityCandidate?.authorComparisonMembership) {
+      if (
+        authorityCandidate?.authorComparisonMembership?.explicitSelectionOnly &&
+        !authorityCandidate.authorComparisonMembership.independentDefaultAdmission
+      ) {
         // Revalidate current facts, not a caller-supplied marker or stale presentation.
         const memberIds = [...authorityCandidate.memberIds] as [string, string, string]
         const ownedAgentIds = run.input.warehouse.roster.agents
@@ -202,16 +177,17 @@ export function createLocalTargetTeamFitQuery({
           candidateId: query.candidateId,
           memberIds,
           ownedAgentIds,
-          ...targetTeamBuildDirectionConditions({ memberIds, roster: run.input.warehouse.roster }),
+          ...targetTeamBuildDirectionConditions({ memberIds, roster: solveWarehouse.roster }),
         })
-        const fit = calculateTargetTeamWarehouseFit({
-          warehouse: run.input.warehouse,
+        const fitInput = {
+          warehouse: solveWarehouse,
           buildIntent,
           bangbooSelection: {
-            status: 'not_evaluated',
+            status: 'not_evaluated' as const,
             reason: '本次未纳入邦布。',
           },
-        })
+        }
+        const fit = calculateLocalTargetTeamFit(fitInput, savedReplay)
         const candidate = {
           candidateId: query.candidateId,
           memberIds,
@@ -279,9 +255,7 @@ export function createLocalTargetTeamFitQuery({
           ),
         })
         result.teamExecutionPresentation = projectPrivateTeamExecution(run, result)
-        const cached = teamFits.get(run.runId) ?? new Map()
-        cached.set(result.candidateId, result)
-        teamFits.set(run.runId, cached)
+        completeLocalTargetTeamFit(teamFits, run.runId, result, savedReplay)
         return result
       }
       const directEngineCandidate = run.snapshot.teamEngine.recommendations.find(
@@ -441,43 +415,20 @@ export function createLocalTargetTeamFitQuery({
             bangbooSelection: compatibleBangbooSelection,
           }
         : { ...sourceCandidate, bangbooId: selectedBangbooId }
-      // Resolve the same scheme defaults before solving; these are planning assumptions, not ownership.
-      const schemeParameters =
-        query.equipmentParameters ??
-        defaultTargetTeamEquipmentParameters({
-          memberIds: [...candidate.memberIds],
-          equipmentRecommendations: projectTeamEquipmentRecommendations({
-            includeReviewedSourceOptions: true,
-            memberIds: candidate.memberIds,
-            bangbooSelection: compatibleBangbooSelection,
-            roster: run.input.warehouse.roster,
-          }),
+      const { schemeParameters, eventConditionDeclarationsByAgentId, buildIntent } =
+        prepareLocalTargetTeamSolve({
+          query,
+          ratedPlayId: savedReplay
+            ? savedReplay.plan.solutionContext?.ratedTeamPlayId
+            : authorityCandidate?.playDirection
+              ? canonicalTeamPlayIdentity(authorityCandidate.playDirection)
+              : undefined,
+          run: savedReplay ? { ...run, input: { ...run.input, warehouse: solveWarehouse } } : run,
+          candidate,
+          compatibleBangbooSelection,
+          selectedBangbooId,
+          executionIdentity,
         })
-      const panelInputsByAgent = candidatePanelInputsForScheme(
-        run.input.warehouse.roster.agents,
-        candidate.memberIds,
-        schemeParameters?.wEngines,
-      )
-      // Use the same per-call potential assumptions as the numeric context. Keep
-      // missing observations intact for the capability resolver's unknown policy;
-      // this overlay never changes the account roster.
-      const eventConditionDeclarationsByAgentId = normalizeReviewedEventConditionDeclarations32(
-        query.eventConditionDeclarationsByAgentId,
-        candidate.memberIds,
-      )
-      const directionConditions = targetTeamBuildDirectionConditions({
-        memberIds: candidate.memberIds,
-        roster: run.input.warehouse.roster,
-        potentialByAgentId: schemeParameters?.potentialByAgentId,
-      })
-      const buildIntent = compileTeamBuildIntent({
-        candidateId: candidate.candidateId,
-        memberIds: candidate.memberIds,
-        bangbooId: selectedBangbooId,
-        scenarioTags: executionIdentity.scenarioTags,
-        ...(panelInputsByAgent ? { optimizerOptions: { panelInputsByAgent } } : {}),
-        ...directionConditions,
-      })
       // Team selection is the boundary where the independent standard may be
       // prepared. Exact finite source goals can select immediately; every other
       // team receives its issued metadata without guessed event counts.
@@ -523,12 +474,13 @@ export function createLocalTargetTeamFitQuery({
         )
           throw new Error('逐次目标的装备条件或功能尚未闭合，不能改用旧目标生成配装。')
       }
-      const fit = calculateTargetTeamWarehouseFit({
-        warehouse: run.input.warehouse,
+      const fitInput = {
+        warehouse: solveWarehouse,
         buildIntent,
         bangbooSelection: compatibleBangbooSelection,
         ...(teamAssignmentObjective ? { teamAssignmentObjective } : {}),
-      })
+      }
+      const fit = calculateLocalTargetTeamFit(fitInput, savedReplay)
       const benchmarkCandidate = executionIdentity
       const normalizedBenchmark = projectTargetTeamAccountBoundBenchmark({
         sourceInputFingerprint: run.inputFingerprint,
@@ -664,10 +616,8 @@ export function createLocalTargetTeamFitQuery({
       })
       result.formedTeamReference = formedTeamCultivation(result.memberIds)
       result.teamExecutionPresentation = projectPrivateTeamExecution(run, result)
-      const cachedTeamFits = teamFits.get(run.runId) ?? new Map()
-      cachedTeamFits.set(result.candidateId, result)
-      if (standardInput) standardInputs.set(result, standardInput)
-      teamFits.set(run.runId, cachedTeamFits)
+      if (!savedReplay && standardInput) standardInputs.set(result, standardInput)
+      completeLocalTargetTeamFit(teamFits, run.runId, result, savedReplay)
       return result
     }
   return calculateTargetTeamWarehouseFitQuery

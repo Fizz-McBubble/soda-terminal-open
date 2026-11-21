@@ -12,12 +12,40 @@ import type { CurrentWEngineFormulaRuntime } from '../calculation/currentWEngine
 import { getCurrentWEngineStaticData } from '../gameDataPacks/currentWEngineStaticCatalog'
 import { currentFormulaMechanicContractHash } from '../calculation/currentFormulaMechanicContracts'
 import { stableContentHash } from '../gameDataPacks/types'
+import {
+  CAGE_OF_CONFINED_SIN_RUNTIME_INPUT_KEYS,
+  CAGE_OF_CONFINED_SIN_STABLE_ID,
+  TRICK_OF_CANDLEGLOW_RUNTIME_INPUT_KEYS,
+  TRICK_OF_CANDLEGLOW_STABLE_ID,
+  reviewedWEngine33Hash,
+  reviewedWEngine33Identity,
+} from '../calculation/reviewedWEngine33'
+
+type TargetTeamWEngineRuntimeInputContract = {
+  flags?: readonly {
+    key: string
+    unit: 'boolean'
+    recipient: 'equipped_agent'
+    meaning: string
+  }[]
+  numbers?: readonly {
+    key: string
+    unit: 'fraction_0_to_1'
+    recipient: 'equipped_agent'
+    appliesTo: 'enemy_hp'
+    operator: 'lt'
+    threshold: number
+  }[]
+}
 
 export type TargetTeamWEngineRuntimeDeclaration = {
   agentId: string
   engineId: string
   sourceIdentity: string
   sourceRefs: readonly string[]
+  sourceVersion?: string
+  sourceProvider?: 'nanoka' | 'go'
+  runtimeContract?: TargetTeamWEngineRuntimeInputContract
   runtime: CurrentWEngineFormulaRuntime
 }
 
@@ -57,6 +85,69 @@ export function targetTeamObjectiveConditionsIdentity(
 export function targetTeamWEngineRuntimeSource(engineId: string) {
   const engine = getCurrentWEngineStaticData(engineId)
   if (!engine) return null
+  if (engineId === TRICK_OF_CANDLEGLOW_STABLE_ID || engineId === CAGE_OF_CONFINED_SIN_STABLE_ID) {
+    const reviewed = reviewedWEngine33Identity.sources.find(
+      (source) => source.stableId === engineId,
+    )
+    if (!reviewed) return null
+    const sourceRefs = [
+      `${reviewed.source.url}#sha256=${reviewed.source.rawSha256}`,
+      `nanoka-manifest:#sha256=${reviewed.source.providerManifestSha256}`,
+      `reviewed-wengine-${reviewedWEngine33Identity.gameVersion}:${reviewed.stableId}#hash=${reviewedWEngine33Hash}`,
+    ]
+    const runtimeContract = (
+      engineId === CAGE_OF_CONFINED_SIN_STABLE_ID
+        ? {
+            flags: [
+              {
+                key: CAGE_OF_CONFINED_SIN_RUNTIME_INPUT_KEYS.basicAttackHitWindowActive,
+                unit: 'boolean',
+                recipient: 'equipped_agent',
+                meaning: '普通攻击命中敌人后16秒装备者攻击力与风属性抗性无视窗口。',
+              },
+            ],
+          }
+        : {
+            flags: [
+              {
+                key: TRICK_OF_CANDLEGLOW_RUNTIME_INPUT_KEYS.exSpecialCritWindowActive,
+                unit: 'boolean',
+                recipient: 'equipped_agent',
+                meaning: '强化特殊技触发后40秒装备者暴击率窗口。',
+              },
+            ],
+            numbers: [
+              {
+                key: TRICK_OF_CANDLEGLOW_RUNTIME_INPUT_KEYS.enemyHpPercent,
+                unit: 'fraction_0_to_1',
+                recipient: 'equipped_agent',
+                appliesTo: 'enemy_hp',
+                operator: 'lt',
+                threshold: 0.5,
+              },
+            ],
+          }
+    ) satisfies TargetTeamWEngineRuntimeInputContract
+    const sourceVersion = reviewedWEngine33Identity.gameVersion
+    if (reviewed.source.provider !== 'nanoka') return null
+    const sourceProvider = 'nanoka' as const
+    const sourceIdentity = stableContentHash({
+      engineId,
+      stableId: reviewed.stableId,
+      gameId: reviewed.gameId,
+      sourceVersion,
+      sourceProvider,
+      source: reviewed.source,
+      runtimeContract,
+    })
+    return {
+      sourceIdentity,
+      sourceRefs,
+      sourceVersion,
+      sourceProvider,
+      runtimeContract,
+    }
+  }
   const sourceRefs = [
     `${engine.source.formulaPath}#sha256=${engine.source.formulaSha256}`,
     `${engine.source.dataPath}#sha256=${engine.source.dataSha256}`,
@@ -89,7 +180,12 @@ export function resolveTargetTeamWEngineRuntime(input: {
       !source ||
       source.sourceIdentity !== declaration.sourceIdentity ||
       stableContentHash([...source.sourceRefs].sort()) !==
-        stableContentHash([...declaration.sourceRefs].sort())
+        stableContentHash([...declaration.sourceRefs].sort()) ||
+      source.sourceVersion !== declaration.sourceVersion ||
+      source.sourceProvider !== declaration.sourceProvider ||
+      ('runtimeContract' in source &&
+        stableContentHash(source.runtimeContract) !==
+          stableContentHash(declaration.runtimeContract ?? null))
     ) {
       blockers.push(`音擎有限状态的成员、装备或锁定来源身份不一致：${declaration.agentId}`)
       continue

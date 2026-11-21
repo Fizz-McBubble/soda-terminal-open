@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { declaredAstraCore32 } from './reviewedAstraCoreAttack32.testFixture'
 import * as contracts from './currentAgentDecisionMechanicContracts'
 import {
   compileAgentPlanningEffectBlueprints,
@@ -136,7 +137,10 @@ describe('reviewed adoption and actual planning runtime', () => {
           initialAttack: attack,
           combatAttack: 99000,
           mindscape,
-          references: { idyllic_cadenza: 1 },
+          references: {
+            idyllic_cadenza: 1,
+            astraCoreAttack32: declaredAstraCore32('agent-lucy', true),
+          },
         }),
         expected,
       )
@@ -145,7 +149,10 @@ describe('reviewed adoption and actual planning runtime', () => {
       runEffect('agent-astra:core_atk', {
         initialAttack: 3000,
         mindscape: 2,
-        references: { idyllic_cadenza: 0 },
+        references: {
+          idyllic_cadenza: 0,
+          astraCoreAttack32: declaredAstraCore32('agent-lucy', false),
+        },
       }),
       0,
     )

@@ -4,6 +4,7 @@ import {
 } from '../calculation/reviewedEventConditionDeclarations32'
 import { saveAccountPlanningDraft, type PlanningDraftInput } from '../accounts/planningDrafts'
 import type { AccountPlanningDraft } from '../accounts/types'
+import { ratedTeamPlayIdPattern, savedTeamRatedPlayId } from '../accounts/savedTeamRatingPlayIdentity'
 import { verifyRemainingBoxReservationInTransaction } from '../application/remainingBox'
 import type { TargetTeamWarehouseFitQueryResult } from '../application/calculationQueryContract'
 import { contentHash } from '../application/contentHash'
@@ -32,7 +33,9 @@ type SavePlanEditorDraft = {
   teamEquipmentParameters: AccountPlanningDraft['teamEquipmentParameters']
   targetTeamFit: TargetTeamWarehouseFitQueryResult | undefined
   inputFingerprint: string
+  capturedInputFingerprint: string | undefined
   exactVariantKey: string | undefined
+  ratedTeamPlayId?: string
   profiles: PlanningProfile[]
   remainingSession: TeamAnalysisResult | undefined
 }
@@ -49,7 +52,9 @@ export async function persistPlanEditorDraft({
   teamEquipmentParameters,
   targetTeamFit,
   inputFingerprint,
+  capturedInputFingerprint,
   exactVariantKey,
+  ratedTeamPlayId,
   profiles,
   remainingSession,
 }: SavePlanEditorDraft) {
@@ -95,7 +100,8 @@ export async function persistPlanEditorDraft({
       draft.kind !== 'team' ||
       compileDeclaredResourceTimeline32(resourceTimeline).status !==
         'declared_resource_production' ||
-      benchmark?.sourceInputFingerprint !== inputFingerprint ||
+      !capturedInputFingerprint ||
+      benchmark?.sourceInputFingerprint !== capturedInputFingerprint ||
       benchmark.resourceTimelineDeclarationIdentity32 !== resourceTimelineIdentity ||
       projection?.status !== 'supported' ||
       projection.resourceTimeline32?.inputFingerprint !== resourceTimelineIdentity ||
@@ -133,7 +139,8 @@ export async function persistPlanEditorDraft({
     draft.kind === 'team' && !luminizeRequested && luminizeSnapshot?.status === 'supported'
   if (
     automaticLuminizeSnapshot &&
-    (targetTeamFit?.accountBoundBenchmark.sourceInputFingerprint !== inputFingerprint ||
+    (!capturedInputFingerprint ||
+      targetTeamFit?.accountBoundBenchmark.sourceInputFingerprint !== capturedInputFingerprint ||
       !teamEquipmentParameters ||
       !targetTeamFit.effectiveEquipmentParameters ||
       targetTeamEquipmentParametersFingerprint(teamEquipmentParameters) !==
@@ -151,11 +158,17 @@ export async function persistPlanEditorDraft({
       !savedStandardReference32.objectiveIdentity ||
       !savedStandardReference32.coverageIdentity)
   )
-    throw new Error('标准三人参考尚未完成来源与消费者绑定，不能作为当前方案保存。')
+    throw new Error('标准三人参考缺少完整搭配资料，不能作为当前方案保存。')
   const savedLuminize =
     (luminizeRequested || automaticLuminizeSnapshot) && luminizeSnapshot?.status === 'supported'
       ? luminizeSnapshot.snapshot
       : draft.solutionContext?.declaredLuminizeSettlement32
+  const prior = approved ?? draft
+  const previousPlayId = prior.solutionContext?.sourceCandidateId === targetTeamFit?.candidateId &&
+    prior.solutionContext?.gameVersion === publicVersionIdentity.gameVersion &&
+    [...prior.selection.agentIds].sort().join('|') === [...(team?.agentIds ?? [])].sort().join('|')
+    ? savedTeamRatedPlayId(prior) : null
+  const savedPlayId = ratedTeamPlayId ?? previousPlayId
   const input: PlanningDraftInput = {
     ...draft,
     id: nextPlanId,
@@ -193,6 +206,8 @@ export async function persistPlanEditorDraft({
               profiles.map((profile) => [profile.id, profile.packageVersion]),
             ),
             exactVariantKey: exactVariantKey!,
+            ...(savedPlayId && ratedTeamPlayIdPattern.test(savedPlayId) && !teamExecutionSnapshot?.authorComparisonMembership
+              ? { ratedTeamPlayId: savedPlayId } : {}),
             eventConditionDeclarationsByAgentId: declarations,
             eventConditionDeclarationsIdentity: declarationIdentity,
             ...(savedScenarioSelection ? { scenarioSelection: savedScenarioSelection } : {}),

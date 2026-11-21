@@ -11,6 +11,7 @@ export function PlanEditorSavedTeamHeader({
   teamRatingLabel,
   deleteAction,
   standardReferenceControl,
+  onReviewSavedRating,
 }: {
   backButton: RefObject<HTMLButtonElement | null>
   heading: RefObject<HTMLHeadingElement | null>
@@ -19,6 +20,7 @@ export function PlanEditorSavedTeamHeader({
   name: string
   teamRatingLabel: string | undefined
   deleteAction: ReactNode
+  onReviewSavedRating?: () => void
   standardReferenceControl?: ReactNode
 }) {
   return (
@@ -32,7 +34,11 @@ export function PlanEditorSavedTeamHeader({
       />
       <div className="optimizer-plan__team-actions">
         {standardReferenceControl}
-        <span className="optimizer-plan__stale-state">已保存配装</span>
+        {onReviewSavedRating ? (
+          <button type="button" className="button button--secondary" onClick={onReviewSavedRating}>
+            读取当前评分
+          </button>
+        ) : <span className="optimizer-plan__stale-state">已保存配装</span>}
         {deleteAction}
       </div>
     </header>

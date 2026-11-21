@@ -1,5 +1,6 @@
 import { selectPlayerConfirmableTargetBangbooSelection } from '../decision/targetTeamEquipmentParameters'
 import { projectTeamEquipmentRecommendations } from '../decision/teamEquipmentRecommendations'
+import { isAdmittedBoxTeam } from '../decision/admittedTeamBangbooOptions'
 import { resolveTargetTeamFitEntry } from '../pages/teamTargetFitEntry'
 import type { AccountDecisionRun, CalculationQueryClient } from './calculationQueryContract'
 import { equipmentParameterSelection } from './equipmentParameterSelection'
@@ -21,6 +22,7 @@ export function resolvePlayerConfirmedTargetTeamQuery(
     bangbooStarsById: { [choice.bangbooId]: choice.bangbooStars },
   })
   const recommendations = projectTeamEquipmentRecommendations({
+    includeReviewedSourceOptions: isAdmittedBoxTeam(input.memberIds),
     memberIds: input.memberIds,
     bangbooSelection,
     roster: run.input.warehouse.roster,

@@ -108,6 +108,19 @@ export function VisualEntityImage({
     Boolean(asset) &&
     !source &&
     (cachedSource?.retryKey !== retryKey || cachedSource?.revision !== runtimeRevision)
+  const failedCurrentSource =
+    Boolean(source) &&
+    failedSource?.assetKey === assetKey &&
+    failedSource.source === source &&
+    failedSource.revision === runtimeRevision &&
+    failedSource.cacheVersion === cacheVersion
+  const fallbackState = failedCurrentSource
+    ? 'error'
+    : resolving
+      ? 'loading'
+      : !asset
+        ? 'source-missing'
+        : 'cache-missing'
 
   useEffect(() => {
     const refresh = () => setRuntimeRevision((value) => value + 1)
@@ -150,11 +163,14 @@ export function VisualEntityImage({
   }, [asset?.remoteUrl, shouldResolve, resolving, failed, imageIdentity])
 
   if (!source || failed) {
-    const fallbackLabel = resolving
-      ? '图片加载中'
-      : asset?.remoteUrl || bundledSource
-        ? '图片未加载'
-        : '此图暂缺'
+    const fallbackLabel =
+      fallbackState === 'loading'
+        ? '图片加载中'
+        : fallbackState === 'error'
+          ? '图片加载失败'
+          : fallbackState === 'cache-missing'
+            ? '图片未加载'
+            : '此图暂缺'
     return (
       <span
         ref={setImageElement}
@@ -163,9 +179,11 @@ export function VisualEntityImage({
         data-visual-slot-minimum={
           minimumSize ? `${minimumSize.width}x${minimumSize.height}` : undefined
         }
+        data-visual-state={fallbackState}
         role="img"
-        aria-busy={resolving || undefined}
-        aria-label={`${name}${fallbackLabel}`}
+        aria-busy={fallbackState === 'loading' || undefined}
+        aria-label={`${name}，${fallbackLabel}`}
+        title={`${name} · ${fallbackLabel}`}
         style={
           slot
             ? {
@@ -176,7 +194,12 @@ export function VisualEntityImage({
             : undefined
         }
       >
-        {isCompactFallback ? Array.from(name).slice(0, 1).join('') : asset ? fallbackLabel : name}
+        {!isCompactFallback && (
+          <span className="visual-asset-fallback__copy">
+            <span className="visual-asset-fallback__name">{name}</span>
+            <span className="visual-asset-fallback__status">{fallbackLabel}</span>
+          </span>
+        )}
       </span>
     )
   }
@@ -190,6 +213,7 @@ export function VisualEntityImage({
       className={`visual-entity-image ${className ?? ''}`}
       data-visual-variant={asset?.variant}
       data-visual-slot={slot?.slotId}
+      data-visual-state="available"
       data-visual-slot-minimum={
         minimumSize ? `${minimumSize.width}x${minimumSize.height}` : undefined
       }

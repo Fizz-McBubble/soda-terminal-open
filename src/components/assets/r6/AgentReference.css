@@ -1,0 +1,21 @@
+.r6-golden .agent-reference__identity {
+  display: grid;
+  gap: var(--soda-space-2);
+  margin: 0 0 var(--soda-space-3);
+}
+
+.r6-golden .agent-reference__identity > div {
+  display: flex;
+  align-items: baseline;
+  gap: var(--soda-space-3);
+}
+
+.r6-golden .agent-reference__identity dt {
+  flex-shrink: 0;
+  color: var(--soda-text-3);
+}
+
+.r6-golden .agent-reference__identity dd {
+  margin: 0;
+  color: var(--soda-text);
+}

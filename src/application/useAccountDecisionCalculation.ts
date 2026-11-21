@@ -103,7 +103,9 @@ export function useAccountDecisionCalculation({
           // A save may have committed before liveQuery updates; explicit refresh reads the source.
           const input = capturedInput ?? (await loadWorldInput())
           if (!isCurrent(task) || input?.warehouse.accountId !== accountId || !input) return null
-          task.fingerprint = client.fingerprintAccountDecisionInput(input)
+          // An initial capture was already fingerprinted synchronously when the
+          // request was reserved. A manually refreshed input is read only here.
+          task.fingerprint ??= client.fingerprintAccountDecisionInput(input)
           setCalculation({ phase: 'preparing_rules', startedAt: task.startedAt })
           const runtime = await runtimeSelectionReader()
           if (!isCurrent(task)) return null
@@ -143,11 +145,7 @@ export function useAccountDecisionCalculation({
 
   useEffect(() => {
     if (liveInput === undefined || runtimeObservation === undefined) return
-    if (
-      !liveInput ||
-      runtimeObservation.status === 'error' ||
-      runtimeObservation.selection.status === 'unbound'
-    ) {
+    if (!liveInput) {
       // Explicit retry validates the runtime again; a cached failed observation must not cancel it.
       if (!liveInput || pending.current?.initial !== false) discardPending()
       if (runRef.current) client.releaseAccountDecisionRun?.(runRef.current.runId)
@@ -157,6 +155,19 @@ export function useAccountDecisionCalculation({
         setRun(null)
         if (!pending.current) setCalculation(null)
       })
+      return
+    }
+    if (
+      runtimeObservation.status === 'error' ||
+      runtimeObservation.selection.status === 'unbound'
+    ) {
+      // Failed rule reads do not invalidate the last captured result for this account.
+      // A retry still validates the runtime before creating any replacement result.
+      if (pending.current?.initial !== false) discardPending()
+      if (!pending.current)
+        queueMicrotask(() => {
+          if (active.current) setCalculation(null)
+        })
       return
     }
     const task = pending.current

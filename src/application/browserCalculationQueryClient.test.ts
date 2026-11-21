@@ -234,7 +234,7 @@ describe('browser Query Worker lifecycle', () => {
   )
 
   it.each(['abort', 'release'])(
-    'settles an active selection read and its queue during %s',
+    'discards an unfinished runtime selection read during %s',
     async (interruption) => {
       let finishRead!: (selection: CurrentGameDataRuntimeSelection) => void
       const reading = new Promise<CurrentGameDataRuntimeSelection>((resolve) => {
@@ -267,10 +267,26 @@ describe('browser Query Worker lifecycle', () => {
         runId: 'concurrent',
         candidateId: 'queued',
       })
-      const queuedRejected = expect(queued).rejects.toMatchObject({ name: 'AbortError' })
       await vi.waitFor(() => expect(reads).toBe(1))
-      if (interruption === 'abort') controller.abort()
-      else client.releaseAccountDecisionRun?.('concurrent')
+      if (interruption === 'abort') {
+        controller.abort()
+        await activeRejected
+        await vi.waitFor(() =>
+          expect(workers[0]?.requests.filter((request) => request.kind === 'query')).toHaveLength(
+            1,
+          ),
+        )
+        finishRead(current)
+        workers[0]!.respond(2, { candidateId: 'queued' })
+        await expect(queued).resolves.toMatchObject({ candidateId: 'queued' })
+        expect(workers[0]!.requests.filter((request) => request.kind === 'query')).toMatchObject([
+          { requestId: 2 },
+        ])
+        expect(workers[0]!.terminated).toBe(false)
+        return
+      }
+      const queuedRejected = expect(queued).rejects.toMatchObject({ name: 'AbortError' })
+      client.releaseAccountDecisionRun?.('concurrent')
       finishRead(current)
       await Promise.all([activeRejected, queuedRejected])
       expect(workers[0]?.terminated).toBe(true)
@@ -286,6 +302,56 @@ describe('browser Query Worker lifecycle', () => {
         input: query('after-interruption').input,
       })
       await expect(retry).resolves.toMatchObject({ runId: 'after-interruption' })
+    },
+  )
+
+  it.each(['signal', 'cancelRunQuery', 'releaseRun'] as const)(
+    'keeps other runs and serializes Worker queries after %s',
+    async (interruption) => {
+      const { client, workers } = harness()
+      const first = client.calculateAccountDecision(query('first'))
+      await vi.waitFor(() => expect(workers[0]?.requests).toHaveLength(1))
+      const worker = workers[0]!
+      worker.respond(1, { runId: 'first', inputFingerprint: 'first' })
+      await first
+      const second = client.calculateAccountDecision(query('second'))
+      const queryCount = () => worker.requests.filter((request) => request.kind === 'query').length
+      await vi.waitFor(() => expect(queryCount()).toBe(2))
+      worker.respond(2, { runId: 'second', inputFingerprint: 'second' })
+      await second
+      const runChanged = vi.fn()
+      const unsubscribe = client.subscribeAccountDecisionRuns!(runChanged)
+      const controller = new AbortController()
+      const fit = (runId: string, candidateId: string, signal?: AbortSignal) =>
+        client.calculateTargetTeamWarehouseFit(
+          {
+            contractVersion: query(runId).contractVersion,
+            kind: 'target_team_warehouse_fit',
+            runId,
+            candidateId,
+          },
+          { signal },
+        )
+      const cancelled = fit('first', 'cancelled', controller.signal)
+      const cancelledResult = expect(cancelled).rejects.toMatchObject({ name: 'AbortError' })
+      const following = fit('second', 'next')
+      await vi.waitFor(() => expect(queryCount()).toBe(3))
+      if (interruption === 'signal') controller.abort()
+      else if (interruption === 'cancelRunQuery') client.cancelActiveQuery!('first')
+      else client.releaseAccountDecisionRun!('first')
+      await cancelledResult
+      expect(queryCount()).toBe(3)
+      expect(worker.terminated).toBe(false)
+      expect(client.hasAccountDecisionRun!('first')).toBe(interruption !== 'releaseRun')
+      expect(client.hasAccountDecisionRun!('second')).toBe(true)
+      expect(runChanged).toHaveBeenCalledTimes(interruption === 'releaseRun' ? 1 : 0)
+      worker.respond(3, { candidateId: 'stale' })
+      await vi.waitFor(() => expect(queryCount()).toBe(4))
+      worker.respond(3, { candidateId: 'duplicate stale' })
+      worker.respond(4, { candidateId: 'next' })
+      await expect(following).resolves.toMatchObject({ candidateId: 'next' })
+      expect(workers).toHaveLength(1)
+      unsubscribe()
     },
   )
 

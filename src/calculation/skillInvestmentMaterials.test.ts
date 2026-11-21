@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import data from './skillInvestmentMaterials32.data.json'
+import phoenix from './skillInvestmentMaterials33.phoenix.json'
+import severian from './skillInvestmentMaterials33.severian.json'
 import { currentAgentEventContracts } from './currentAgentMechanicContracts'
 import {
   resolveSkillInvestmentMaterials,
@@ -7,14 +9,26 @@ import {
 } from './skillInvestmentMaterials'
 
 const skills = ['basic', 'dodge', 'assist', 'special', 'chain'] as const
+const additions = [phoenix, severian]
 describe('exact current-agent paid skill materials', () => {
-  it('covers the exact 60 current game identities and independently hashed sources', () => {
+  it('preserves the 60 locked 3.2 identities and adds the two sourced 3.3 identities', () => {
     expect(data.rows).toHaveLength(60)
-    expect(skillInvestmentMaterialsIdentity.supportedAgentCount).toBe(60)
+    expect(skillInvestmentMaterialsIdentity.supportedAgentCount).toBe(62)
     expect(new Set(data.rows.map((row) => row.agentId)).size).toBe(60)
     expect(data.rows.map((row) => row.gameId).sort()).toEqual(
-      currentAgentEventContracts.map((row) => row.externalId).sort(),
+      currentAgentEventContracts
+        .filter((row) => !additions.some((added) => added.agentId === row.stableId))
+        .map((row) => row.externalId)
+        .sort(),
     )
+    expect(currentAgentEventContracts).toHaveLength(62)
+    const sourced = new Set(data.rows.map((row) => row.gameId))
+    expect(
+      currentAgentEventContracts
+        .filter((row) => !sourced.has(row.externalId))
+        .map((row) => row.stableId)
+        .sort(),
+    ).toEqual(additions.map((row) => row.agentId).sort())
     for (const row of data.rows) {
       expect(row.status).toBe('supported')
       expect(row.source.sourceVersion).toBe('3.2')
@@ -24,7 +38,7 @@ describe('exact current-agent paid skill materials', () => {
       )
     }
   })
-  for (const actor of data.rows) {
+  for (const actor of [...data.rows, ...additions]) {
     it(`${actor.agentId}: all six core and 55 combat paid upgrade rows`, () => {
       for (const skill of [...skills, 'core'] as const) {
         const table =

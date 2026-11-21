@@ -37,16 +37,26 @@ export function getCoreScopeLabel(scope: CoreDataScope) {
  */
 export async function loadCoreWarehouse(db: SodaDatabase = database): Promise<CoreWarehouse> {
   const account = await getActiveAccount(db)
-  if (account) {
-    const [discs, roster] = await Promise.all([
-      db.accountDriveDiscs.where('accountId').equals(account.id).toArray(),
-      getAccountRoster(account.id, db),
-    ])
-    return { ...toScope(account), discs, roster }
-  }
+  if (account) return loadCoreWarehouseForAccount(account, db)
 
   const [discs, roster] = await Promise.all([db.driveDiscs.toArray(), getLegacyRoster(db)])
   return { ...toScope(null), discs, roster }
+}
+
+/** Scoped read when the caller already resolved the active account identity. */
+export async function loadCoreWarehouseForAccount(
+  account: AccountProfile | null,
+  db: SodaDatabase = database,
+): Promise<CoreWarehouse> {
+  if (!account) {
+    const [discs, roster] = await Promise.all([db.driveDiscs.toArray(), getLegacyRoster(db)])
+    return { ...toScope(null), discs, roster }
+  }
+  const [discs, roster] = await Promise.all([
+    db.accountDriveDiscs.where('accountId').equals(account.id).toArray(),
+    getAccountRoster(account.id, db),
+  ])
+  return { ...toScope(account), discs, roster }
 }
 
 export async function loadCoreRoster(db: SodaDatabase = database) {

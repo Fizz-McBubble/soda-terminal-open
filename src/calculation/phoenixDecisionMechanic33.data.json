@@ -1,0 +1,14 @@
+{
+  "schema": "soda-reviewed-phoenix-decision-parameters/v1",
+  "gameVersion": "3.3",
+  "sourceVersion": "3.3",
+  "sourceLocator": "passive.level.1641501..1641507.desc[0]:first numeric grant",
+  "sourceSha256": "237c5b060657db1fd8ababe6cd26fb275c325d74a67eda481bde6732c7d93dfe",
+  "englishSourceSha256": "9da0ab27629492a9e5626dcfbfb3620c6adfbe51a3e1af87c58e223b7e6c0e2c",
+  "anomalyProficiencyByCoreLevel": [43, 50, 57, 64, 71, 78, 85],
+  "unit": "flat_anomaly_proficiency_points",
+  "recipient": "self",
+  "coreLevelIndex": "explicit_core_level_minus_one_no_default",
+  "codeOrigin": "local_source_text_projection_no_upstream_formula_code",
+  "gameDataRedistribution": "not_confirmed_no_raw_text_or_media_in_projection"
+}

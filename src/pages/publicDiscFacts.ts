@@ -39,10 +39,10 @@ export function displayDiscMainValueWithRules(
   disc: DriveDisc,
   rules: DiscStatRules | null | undefined,
 ) {
-  if (!rules || !disc.rarity) return '数值资料待补齐'
+  if (!rules || !disc.rarity) return '数值未知'
   const rule = rules.mainStatBaseByRarity[disc.rarity]?.find((item) => item.stat === disc.mainStat)
   const maxLevel = rules.maxLevelByRarity[disc.rarity]
-  if (!rule || !maxLevel) return '数值资料待补齐'
+  if (!rule || !maxLevel) return '数值未知'
   return formatDiscStatValue(
     disc.mainStat,
     rule.baseValue * (1 + (3 * disc.level) / maxLevel),
@@ -67,7 +67,7 @@ export function resolveDriveDiscSetLabel(setId: string, adoptedName?: string | n
   const releasedIdentity = getCurrentReleasedIdentity(setId)
   if (releasedIdentity?.releaseState === 'released' && releasedIdentity.stableId.startsWith('set-'))
     return releasedIdentity.playerName
-  return '套装资料待补齐'
+  return '未知套装'
 }
 
 export function displayDriveDiscSet(setId: string) {
@@ -75,9 +75,9 @@ export function displayDriveDiscSet(setId: string) {
 }
 
 export function discMainStatLabel(disc: DriveDisc) {
-  return getCandidateStatLabels([disc.mainStat], '主词条')[0] ?? '主词条待补'
+  return getCandidateStatLabels([disc.mainStat], '主词条')[0] ?? '未知主词条'
 }
 
 export function discSubStatLabel(stat: StatKey) {
-  return getCandidateStatLabels([stat], '副词条')[0] ?? '副词条待补'
+  return getCandidateStatLabels([stat], '副词条')[0] ?? '未知副词条'
 }

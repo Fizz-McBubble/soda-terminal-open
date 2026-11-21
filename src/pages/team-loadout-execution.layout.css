@@ -31,8 +31,9 @@
 .team-execution__member-strip {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: stretch;
   gap: 0;
-  min-height: 74px;
+  min-height: 84px;
   padding: 4px;
 }
 
@@ -41,6 +42,7 @@
   align-items: center;
   gap: 4px;
   min-width: 0;
+  min-height: 74px;
 }
 
 .team-execution__member-slot > button[role='tab'] {
@@ -49,7 +51,8 @@
   align-items: center;
   gap: 10px;
   min-width: 0;
-  min-height: 64px;
+  min-height: 74px;
+  height: 100%;
   padding: 10px;
   border: 0;
   border-radius: var(--soda-radius-control);
@@ -74,8 +77,9 @@
 
 .team-execution__member-copy {
   display: grid;
+  align-content: center;
   min-width: 0;
-  gap: 1px;
+  gap: 4px;
 }
 
 .team-execution__deployment {
@@ -127,6 +131,54 @@
 .team-execution__member-copy small {
   color: var(--soda-text-3);
   font-size: 0.6875rem;
+}
+
+.team-execution__member-copy .team-execution__member-summary-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 3px 6px;
+  min-width: 0;
+  overflow: visible;
+  white-space: normal;
+}
+
+.team-execution__member-copy .team-execution__member-name {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.team-execution__member-copy .team-execution__member-status {
+  flex: none;
+  color: var(--soda-accent);
+  font-size: 0.75rem;
+  font-weight: 680;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.team-execution__member-copy .team-execution__member-mindscape-suggestion {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  width: max-content;
+  max-width: 100%;
+  min-height: 20px;
+  padding: 1px 6px;
+  border: 1px solid color-mix(in srgb, var(--soda-accent) 20%, var(--soda-line));
+  border-radius: 999px;
+  color: var(--soda-accent);
+  background: color-mix(in srgb, var(--soda-accent) 7%, #fff);
+  font-size: 0.6875rem;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.team-execution__member-mindscape-suggestion b {
+  margin-left: 3px;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .team-execution__bangboo {
@@ -302,16 +354,21 @@
 .team-execution__view-toggle {
   display: flex;
   flex: none;
-  gap: 4px;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--soda-line);
+  border-radius: calc(var(--soda-radius-control) + 2px);
+  background: color-mix(in srgb, var(--soda-accent) 3%, #fff);
 }
 
 .team-execution__view-toggle button {
-  min-height: 30px;
-  padding: 4px 9px;
-  border: 1px solid var(--soda-line);
+  min-width: 78px;
+  min-height: 32px;
+  padding: 4px 10px;
+  border: 1px solid transparent;
   border-radius: var(--soda-radius-control);
   color: var(--soda-text-2);
-  background: var(--soda-surface-raised);
+  background: transparent;
   font: inherit;
   font-size: 0.75rem;
   font-weight: 680;
@@ -320,8 +377,9 @@
 
 .team-execution__view-toggle button[aria-pressed='true'] {
   border-color: color-mix(in srgb, var(--soda-accent) 48%, var(--soda-line));
-  color: var(--soda-accent);
-  background: color-mix(in srgb, var(--soda-accent) 10%, var(--soda-surface-raised));
+  color: var(--soda-surface);
+  background: linear-gradient(116deg, transparent 76%, rgb(255 255 255 / 12%) 76%), var(--soda-accent-ink);
+  box-shadow: 0 1px 2px rgb(54 40 85 / 8%);
 }
 
 .team-execution__disc-missing {
@@ -493,4 +551,11 @@
 
 .team-execution__disc-card.is-borrow > footer em {
   color: var(--soda-accent);
+}
+
+@media (max-width: 860px) {
+  .team-execution__member-strip {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+  }
 }

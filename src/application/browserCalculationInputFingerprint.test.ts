@@ -8,6 +8,17 @@ import { browserCalculationInputFingerprint as fingerprint } from './browserCalc
 import { projectRemoteAccountDecisionInput } from './remoteCalculationInput'
 
 describe('browser calculation fact coverage', () => {
+  it('ignores presentation order and legacy favorite filter without ignoring actual inputs', () => {
+    const value = ascensionInput()
+    const reordered = structuredClone(value)
+    reordered.warehouse.discs.reverse()
+    reordered.warehouse.roster.agents.reverse()
+    reordered.drafts.reverse()
+    reordered.preference.favoriteAgentIds = ['agent-claret']
+    expect(fingerprint(reordered)).toBe(fingerprint(value))
+    reordered.developmentPriorityAgentIds = ['agent-claret']
+    expect(fingerprint(reordered)).not.toBe(fingerprint(value))
+  })
   it('preserves explicit unknown engine breakthrough through JSON transport and repeated projection', () => {
     const value = ascensionInput()
     const agent = ascensionAgent(value)

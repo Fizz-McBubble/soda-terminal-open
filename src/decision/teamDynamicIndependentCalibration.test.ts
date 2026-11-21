@@ -136,10 +136,16 @@ function independentDamage(
   })
   // Nanoka 3.1 frozen Amillion 54005, reviewed for3.2: level60 attack, skill10,
   // stars5, one enemy, one active + one chain. Settle against the same enemy:
-  // level60 coefficient 794, DEF700, RES20%, and source CR5%/CD50%.
+  // Level 60 coefficient 794, DEF700 and RES20%. Nanoka 3.2/3.3 cap 60 adds
+  // 4500/10000 CR and 5000/10000 CD to the original 5% and 50% base stats.
   const bangbooAttack = Math.floor(72 + (360408 / 10000) * 59 + 6665)
+  const criticalMultiplier = 1 + (0.05 + 4500 / 10000) * (0.5 + 5000 / 10000)
   const bangboo =
-    bangbooAttack * (8.1 + 9 * 0.81 + (8.4 + 9 * 0.84) * (1 + 0.9)) * (794 / 1494) * 0.8 * 1.025
+    bangbooAttack *
+    (8.1 + 9 * 0.81 + (8.4 + 9 * 0.84) * (1 + 0.9)) *
+    (794 / 1494) *
+    0.8 *
+    criticalMultiplier
   return { damage, bangboo, total: damage.reduce((sum, row) => sum + row.totalDamage, bangboo) }
 }
 
@@ -243,8 +249,14 @@ describe('independent same-condition three-member fixed-event arithmetic', () =>
     expect(
       bangbooSource.items.find((row) => row.stableId === 'bangboo-amillion')?.source.sha256,
     ).toBe('497F8A47427AD708480C8BADBDF334E4D85EE995709EE8113F38B1CAF115FF93')
+    const supplements = bangbooSource.generatedFrom.ascensionSupplement.sources.filter(
+      (row) => row.gameId === '54005',
+    )
+    expect(supplements.map((row) => row.sourceVersion).sort()).toEqual(['3.2', '3.3'])
+    for (const row of supplements)
+      expect(row.sha256).toBe('56B2FBBC2F230AEC20718F3DC22C01C85C13DDE24FC0B35FC2EE8F9630E24601')
     const { expected } = calibrate(fixture())
-    expect(expected.total).toBeCloseTo(322248.9923371286, 8)
+    expect(expected.total).toBeCloseTo(404073.51393889566, 8)
   })
 
   it('calibrates legal CR upgrade gains and a physical-disc competition counterexample', () => {

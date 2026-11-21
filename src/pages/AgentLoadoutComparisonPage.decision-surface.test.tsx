@@ -1,5 +1,5 @@
 import './AgentLoadoutComparisonPage.testMock'
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { describe, expect, it, vi } from 'vitest'
 import { AgentDevelopmentGolden } from '../features/agentDevelopmentGolden'
@@ -11,6 +11,76 @@ import { Top10 } from '../features/agentDevelopmentGolden/AgentDevelopmentTop10'
 import type { CoreWarehouse } from '../accounts/coreFlow'
 import type { GoldenTop10Data } from '../features/agentDevelopmentGolden/types'
 describe('golden warehouse comparison adapter', () => {
+  it.each(['agent', 'account', 'comparison'] as const)(
+    'isolates an earlier Top10 save across %s changes',
+    async (change) => {
+      let reject!: (error: Error) => void
+      let resolve!: () => void
+      const save = vi.fn(
+        () =>
+          new Promise<void>((done, fail) => {
+            resolve = done
+            reject = fail
+          }),
+      )
+      const ids = discs.map((disc) => disc.id) as [string, string, string, string, string, string]
+      const row = {
+        rank: 1,
+        label: '候选方案',
+        fit: '400',
+        panel: '4+2',
+        sets: '套装',
+        effective: '30',
+        swaps: 0,
+        conflict: '',
+        cost: '—',
+        staticDps: null,
+        statDeltaSummary: '—',
+        finalStats: {},
+        discIds: ids,
+      }
+      const data = {
+        panelScopeKey: 'account-a:agent-billy',
+        agentName: '比利',
+        baseline: { ...row, rank: 0 },
+        baselineKind: 'actual' as const,
+        baselineAvailability: 'available' as const,
+        discs,
+        coreStats: [],
+        allStats: [],
+        statPresentation: 'static_panel' as const,
+        candidates: [row],
+      }
+      const view = render(
+        <Top10 back={vi.fn()} scenario="ordinary" onSavePlan={save} data={data} />,
+      )
+      fireEvent.click(screen.getByRole('button', { name: '保存为养成方案' }))
+      const next =
+        change === 'agent'
+          ? { ...data, agentName: '安比', panelScopeKey: 'account-a:agent-anby' }
+          : change === 'account'
+            ? { ...data, panelScopeKey: 'account-b:agent-billy' }
+            : { ...data, saveScopeKey: 'new-comparison' }
+      view.rerender(
+        <Top10
+          back={vi.fn()}
+          scenario="ordinary"
+          onSavePlan={change === 'comparison' ? () => new Promise<void>(() => {}) : vi.fn()}
+          data={next}
+        />,
+      )
+      expect(screen.getByRole('button', { name: '保存为养成方案' })).toBeEnabled()
+      if (change === 'comparison')
+        fireEvent.click(screen.getByRole('button', { name: '保存为养成方案' }))
+      await act(async () =>
+        change === 'comparison' ? resolve() : reject(new Error('旧比较方案保存失败')),
+      )
+      if (change === 'comparison')
+        expect(screen.getByRole('button', { name: /正在保存/ })).toBeDisabled()
+      expect(screen.queryByText('旧比较方案保存失败')).not.toBeInTheDocument()
+      expect(screen.queryByText('已保存到 Soda；游戏内装备未改动。')).not.toBeInTheDocument()
+    },
+  )
   it('keeps candidates with identical discs but different calculation contexts selectable and saves the selected rank', async () => {
     const ids = discs.map((disc) => disc.id) as [string, string, string, string, string, string]
     const base: GoldenTop10Data['baseline'] = {
@@ -100,12 +170,16 @@ describe('golden warehouse comparison adapter', () => {
     const table = screen.getByRole('table', { name: '属性对比' })
     for (const label of characterPanelLabels)
       expect(screen.getByRole('cell', { name: label })).toBeInTheDocument()
-    expect(table).toHaveTextContent('8,020')
+    expect(table).toHaveTextContent('8020')
     expect(table).toHaveTextContent('630')
-    expect(screen.getByRole('cell', { name: '生命值' })).not.toHaveTextContent('参考')
-    expect(screen.getByRole('cell', { name: '防御力' })).not.toHaveTextContent('参考')
-    expect(table).toHaveTextContent('毕业推荐')
+    expect(screen.getByRole('cell', { name: '生命值' })).not.toHaveTextContent('培养目标')
+    expect(screen.getByRole('cell', { name: '防御力' })).not.toHaveTextContent('培养目标')
+    expect(screen.getByRole('cell', { name: '攻击力' })).toHaveTextContent('培养目标 2200–2500+')
+    expect(screen.getByRole('cell', { name: '暴击率' })).toHaveTextContent('培养目标 74.6%–100%')
+    expect(screen.getByRole('cell', { name: '暴击伤害' })).toHaveTextContent('培养目标 70%–100%+')
+    expect(screen.getByRole('cell', { name: '能量自动回复' })).toHaveTextContent('培养目标 2.88+')
     expect(table).not.toHaveTextContent('攻略参考')
+    expect(table).not.toHaveTextContent('毕业推荐')
     expect(table).not.toHaveTextContent('参考')
   })
   it('keeps a generated six-disc candidate saveable without a recorded game loadout', async () => {
@@ -151,7 +225,7 @@ describe('golden warehouse comparison adapter', () => {
         onSavePlan={save}
       />,
     )
-    expect(screen.getByText('暂无当前实装，可先查看仓库方案。')).toBeInTheDocument()
+    expect(screen.getByText('尚无完整六盘比较基准，可先查看仓库方案。')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: '方案 1 · 六盘明细' })).toBeInTheDocument()
     expect(screen.getByRole('table', { name: '副词条合计' })).toHaveTextContent('14.4%')
     expect(screen.queryByText('当前实装')).not.toBeInTheDocument()
@@ -194,7 +268,7 @@ describe('golden warehouse comparison adapter', () => {
             sets: '当前方案',
             effective: '24',
             swaps: 0,
-            conflict: '无冲突',
+            conflict: '',
             cost: '无新增成本',
             staticDps: null,
             statDeltaSummary: '—',
@@ -210,7 +284,7 @@ describe('golden warehouse comparison adapter', () => {
               sets: '4+2：啄木鸟电音 4件 + 河豚电音 2件',
               effective: '30',
               swaps: 3,
-              conflict: '无冲突',
+              conflict: '',
               cost: '3 张替换',
               staticDps: null,
               statDeltaSummary: '暴击率 +2.4%',
@@ -225,7 +299,7 @@ describe('golden warehouse comparison adapter', () => {
               sets: '4+2：激素朋克 4件 + 河豚电音 2件',
               effective: '28',
               swaps: 4,
-              conflict: '无冲突',
+              conflict: '',
               cost: '4 张替换',
               staticDps: null,
               statDeltaSummary: '攻击力% +6%',
@@ -241,7 +315,7 @@ describe('golden warehouse comparison adapter', () => {
               sets: '4+2：固定事件零基线候选',
               effective: '26',
               swaps: 4,
-              conflict: '无冲突',
+              conflict: '',
               cost: '4 张替换',
               staticDps: null,
               statDeltaSummary: '固定事件 +10',
@@ -267,16 +341,22 @@ describe('golden warehouse comparison adapter', () => {
       />,
     )
     expect(screen.getByRole('heading', { name: '方案比较' })).toBeInTheDocument()
-    expect(screen.getByText('有效副属性 30 次命中')).toBeInTheDocument()
+    expect(screen.getByLabelText('有效副属性 30 次命中')).toHaveTextContent('有效命中 30 次')
+    expect(screen.getByRole('navigation', { name: '仓库方案比较' })).toHaveTextContent(
+      '配装评分 412.56',
+    )
+    expect(
+      screen
+        .getByRole('navigation', { name: '仓库方案比较' })
+        .querySelectorAll('[data-ranking-basis="unranked"]'),
+    ).toHaveLength(3)
     expect(screen.queryByText('有效强化 30 次')).not.toBeInTheDocument()
     expect(screen.getByRole('navigation', { name: '仓库方案比较' })).toBeInTheDocument()
     expect(screen.getByLabelText('当前方案操作')).toHaveTextContent(
       '4+2：啄木鸟电音 4件 + 河豚电音 2件',
     )
     expect(screen.getByLabelText('当前方案操作')).toHaveTextContent('近似输出 +20.00%')
-    expect(screen.getByLabelText('当前方案操作')).toHaveTextContent(
-      '按代表动作近似比较，部分效果可能未计入。',
-    )
+    expect(screen.getByLabelText('当前方案操作')).toHaveTextContent('比较固定动作的近似输出。')
     expect(screen.getByRole('navigation', { name: '仓库方案比较' })).not.toHaveTextContent(
       '预计收益 +20.00%',
     )
@@ -292,9 +372,7 @@ describe('golden warehouse comparison adapter', () => {
       '4+2：激素朋克 4件 + 河豚电音 2件',
     )
     expect(screen.getByLabelText('当前方案操作')).toHaveTextContent('近似输出 -10.00%')
-    expect(screen.getByLabelText('当前方案操作')).toHaveTextContent(
-      '按代表动作近似比较，部分效果可能未计入。',
-    )
+    expect(screen.getByLabelText('当前方案操作')).toHaveTextContent('比较代表动作的近似输出。')
     expect(
       within(screen.getByLabelText('当前方案操作')).queryByText(/^推荐(?:方案)?$/),
     ).not.toBeInTheDocument()
@@ -379,7 +457,7 @@ describe('golden warehouse comparison adapter', () => {
     expect(screen.getByRole('navigation', { name: '仓库方案比较' })).toHaveTextContent(
       '可先查看并保存生成方案。',
     )
-    expect(screen.getByText('暂无当前实装，可先查看仓库方案。')).toBeInTheDocument()
+    expect(screen.getByText('尚无完整六盘比较基准，可先查看仓库方案。')).toBeInTheDocument()
     expect(screen.getByLabelText('当前方案操作')).not.toHaveTextContent('待核对')
     expect(screen.queryByText('预计收益暂不可比较')).not.toBeInTheDocument()
     expect(
@@ -389,8 +467,13 @@ describe('golden warehouse comparison adapter', () => {
     expect(screen.queryByText('需替换')).not.toBeInTheDocument()
     expect(screen.getByText('六张驱动盘的副词条合计，不含主词条和套装效果。')).toBeInTheDocument()
     expect(screen.queryByText(/攻略参考/)).not.toBeInTheDocument()
-    expect(screen.getAllByText('毕业推荐', { exact: true })).toHaveLength(5)
-    expect(screen.getByRole('table', { name: '副词条合计' })).not.toHaveTextContent('3000')
+    const statsTable = screen.getByRole('table', { name: '副词条合计' })
+    expect(statsTable.querySelectorAll('[role="row"].is-priority')).toHaveLength(5)
+    for (const stat of fiveStats) {
+      const cell = within(statsTable).getByRole('cell', { name: stat.label })
+      expect(cell.closest('[role="row"]')).toHaveClass('is-priority')
+    }
+    expect(statsTable).not.toHaveTextContent(/3000|培养目标|毕业推荐/)
     expect(screen.queryByRole('button', { name: '查看全部属性（5）' })).not.toBeInTheDocument()
     expect(screen.getByRole('cell', { name: '穿透值' })).toBeInTheDocument()
     const saveButton = screen.getByRole('button', { name: '保存为养成方案' })

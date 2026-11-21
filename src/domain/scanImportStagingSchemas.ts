@@ -54,7 +54,7 @@ const scanCandidateSchema = z.object({
   setName: z.string().nullable(),
   slot: discSlotSchema.nullable(),
   level: z.number().int().min(0).max(15).nullable(),
-  rarity: z.enum(['A', 'S']).nullable(),
+  rarity: z.enum(['B', 'A', 'S']).nullable(),
   mainStat: statKeySchema.nullable(),
   mainStatValue: z.number().nonnegative().nullable(),
   subStats: z.array(

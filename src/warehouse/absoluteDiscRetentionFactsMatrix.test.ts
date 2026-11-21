@@ -22,11 +22,11 @@ const profiles = (id: string) =>
 
 describe('production adopted-fact matrix', () => {
   it.each([
-    ['set-phaethons-melody', 'impact', 'cleanup_candidate'],
-    ['set-polar-metal', 'energy_regen', 'keep'],
+    ['set-phaethons-melody', 'impact'],
+    ['set-polar-metal', 'energy_regen'],
   ])(
     'resolves independent use conditions before granting %s a ready %s function',
-    (setId, mainStat, expected) => {
+    (setId, mainStat) => {
       const result = assessDisc(
         {
           id: 'synthetic-conditional-function',
@@ -45,42 +45,20 @@ describe('production adopted-fact matrix', () => {
         absoluteDiscRetentionCatalog,
         absoluteDiscRetentionPolicy,
       )
-      expect(result.qualityDisposition).toBe(expected)
-      expect(result.reasonKind).toBe(
-        expected === 'review'
-          ? 'conditional_use'
-          : expected === 'cleanup_candidate'
-            ? 'no_supported_use'
-            : 'functional_ready',
+      expect(result.qualityDisposition).toBe('review')
+      expect(result.reasonKind).toBe('missing_fact')
+      expect(result.nextAction).toMatchObject({ kind: 'complete_data', targetLevel: null })
+      expect(result.blockedBy).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ kind: 'missing_fact', field: `recommendedSet.${setId}` }),
+        ]),
       )
-      expect(result.nextAction).toMatchObject({
-        kind:
-          expected === 'review'
-            ? 'check_condition'
-            : expected === 'cleanup_candidate'
-              ? 'manual_cleanup'
-              : 'keep',
-        targetLevel: null,
-      })
-      expect(result.blockedBy.some((row) => row.kind === 'conditional_use')).toBe(
-        expected === 'review',
-      )
-      if (expected === 'cleanup_candidate') {
-        // AM 2pc is incidental to these impact builds; main-only functionality
-        // cannot make an incompatible set relevant. No source-supported 4pc branch exists.
-        expect(
-          result.evidence
-            .filter((row) => row.functionalState === 'ready')
-            .every((row) => row.setFit === 'incompatible'),
-        ).toBe(true)
-        return
-      }
-      expect(result.witnessProfileIds.length).toBeGreaterThan(0)
-      for (const id of result.witnessProfileIds) {
-        expect(result.evidence.find((row) => row.profileId === id)).toMatchObject({
-          useState: expected === 'review' ? 'conditional' : 'valid',
-          functionalState: 'ready',
-        })
+      expect(result.witnessProfileIds).toEqual([])
+      const ready = result.evidence.filter((row) => row.functionalState === 'ready')
+      expect(ready.length).toBeGreaterThan(0)
+      expect(ready.every((row) => row.useState !== 'valid')).toBe(true)
+      if (setId === 'set-phaethons-melody') {
+        expect(ready.every((row) => row.setFit === 'incompatible')).toBe(true)
       }
     },
   )

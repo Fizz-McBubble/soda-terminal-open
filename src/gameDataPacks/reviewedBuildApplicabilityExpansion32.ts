@@ -149,7 +149,9 @@ export function reviewedBuildApplicabilityExpansion32(
   context: ReviewedTeamDiscConditionContext & CandidateSetPlanEligibilityContext,
   fields: readonly CurrentBuildAuthorityField[],
 ) {
-  if (currentVersionProjection.gameVersion !== '3.2') return null
+  // Project the same adopted conditional constraint that the warehouse uses.
+  // Retain its historical source/review identity; this grants no runtime authority.
+  if (!['3.2', '3.3'].includes(currentVersionProjection.gameVersion)) return null
 
   if (agentId === 'agent-miyabi') {
     const constraint = getCandidateWarehouseConstraintForTeam(agentId, context)

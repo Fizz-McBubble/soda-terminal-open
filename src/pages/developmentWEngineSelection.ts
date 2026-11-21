@@ -1,6 +1,11 @@
 import type { DevelopmentCandidateAlternativesQueryResult } from '../application/calculationQueryContract'
 import type { DevelopmentWEngineComparisonSelection } from '../application/publicDevelopmentWEngineComparison'
 import { contentHash } from '../application/contentHash'
+import {
+  developmentComparisonIdentity,
+  type DevelopmentComparisonData,
+  type DevelopmentComparisonSnapshot,
+} from './developmentComparisonSnapshot'
 
 function wEngineParameterIdentity(
   parameters: NonNullable<
@@ -18,7 +23,7 @@ function wEngineParameterIdentity(
 
 /** Bind an existing comparison selector to the issued physical six-disc plan. */
 export function developmentWEngineComparisonSelection(
-  snapshot: DevelopmentCandidateAlternativesQueryResult,
+  snapshot: DevelopmentComparisonData,
   candidateRank: number,
 ): DevelopmentWEngineComparisonSelection {
   const discs = snapshot.candidates[candidateRank - 1]?.loadouts[0]?.discs.map((row) => row.disc)
@@ -32,7 +37,7 @@ export function developmentWEngineComparisonSelection(
 }
 
 export function selectedDevelopmentWEngineOptionKey(
-  snapshot: DevelopmentCandidateAlternativesQueryResult,
+  snapshot: DevelopmentComparisonData,
   candidateRank: number,
 ) {
   const comparison = snapshot.wEngineComparison
@@ -51,7 +56,7 @@ export function selectedDevelopmentWEngineOptionKey(
 /** A late selector response cannot install parameters into another captured run,
  * re-ranked loadout or scenario. Existing save code already persists this map. */
 export function selectDevelopmentWEngineOption(
-  snapshot: DevelopmentCandidateAlternativesQueryResult,
+  snapshot: DevelopmentComparisonSnapshot,
   issued: {
     runId: string
     comparisonFingerprint: string
@@ -62,7 +67,7 @@ export function selectDevelopmentWEngineOption(
   const binding = developmentWEngineComparisonSelection(snapshot, issued.candidateRank)
   const comparison = snapshot.wEngineComparison
   if (
-    snapshot.runId !== issued.runId ||
+    developmentComparisonIdentity(snapshot) !== issued.runId ||
     snapshot.comparisonFingerprint !== issued.comparisonFingerprint ||
     !comparison ||
     comparison.candidateRank !== binding.candidateRank ||

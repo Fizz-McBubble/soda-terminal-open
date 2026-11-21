@@ -44,7 +44,9 @@ describe('source-bound ordinary M0 reserve policy', () => {
       const { binding, constraint, contract, scope } = inputs(actor)
       expect(scope).toBeDefined()
       expect(binding.constraintReadoption?.comparisonBaselineCommit).toBe('1fc905f1')
-      expect(binding.constraintReadoption?.currentFingerprint).toBe(binding.profileFingerprint)
+      expect(binding.constraintReadoption?.currentFingerprint).toBe(
+        binding.constraintContinuity33?.previousFingerprint ?? binding.profileFingerprint,
+      )
       expect(binding.constraintReadoption?.preservedSourceBindings).toEqual({
         sourceCommit: binding.sourceCommit,
         formulaSha256: binding.formulaSha256,
@@ -82,6 +84,35 @@ describe('source-bound ordinary M0 reserve policy', () => {
       }
     })
   }
+  it.each(['agent-aria', 'agent-pyrois', 'agent-remielle', 'agent-sigrid'])(
+    '%s ordinary adoption excludes the independently sourced new main-stat branch',
+    (actor) => {
+      const { binding, constraint, contract, scope, selectedSetPlan } = inputs(actor)
+      const alternate = constraint.mainStatAlternatives![0]!
+      expect(scope).toBeDefined()
+      expect(binding.constraintContinuity33).toMatchObject({
+        currentFingerprint: reviewedNormalM0ProfileFingerprint(constraint),
+        comparisonBaselineCommit: 'caec6175d',
+        alternativeSourceId: alternate.source.id,
+      })
+      const branch = {
+        ...constraint,
+        mainStats: { ...constraint.mainStats, [alternate.slot]: alternate.stats },
+        sources: [...constraint.sources, alternate.source],
+      }
+      expect(
+        getReviewedNormalM0UseScope(branch, actor, binding.goals[0]!, contract, selectedSetPlan),
+      ).toBeUndefined()
+      const catalogAlternates = absoluteDiscRetentionCatalog.profiles.filter(
+        (p) => p.agentId === actor && p.id.includes(':main-alt-'),
+      )
+      expect(catalogAlternates.length).toBeGreaterThan(0)
+      for (const profile of catalogAlternates) {
+        const evidence = profile.utilityEvidence?.['action:aftershock']?.evidenceIds ?? []
+        expect(evidence.some((id) => id.includes(binding.adoptionId))).toBe(false)
+      }
+    },
+  )
   for (const binding of adoptions.rows) {
     it(`${binding.actorAgentId}: exact adopted goal preserves unresolved physical tag`, () => {
       const { scope, constraint, contract, selectedSetPlan } = inputs(binding.actorAgentId)

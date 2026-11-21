@@ -1,3 +1,4 @@
+import { getGameData33BuildGuidance } from './gameData33BuildGuidance'
 import {
   getGameData32BuildGuidance,
   getGameData32BuildGuidanceFields,
@@ -212,9 +213,9 @@ export function projectedCurrentConstraintFields(
     .map(([stat]) => candidateStatLabels[stat] ?? stat)
   const completeMainStats = statLines.length === 3 && subStats.length > 0
   const executableSets = constraint.setPlanReadiness.status === 'executable'
-  const wEngineIds = constraint.wEngineDirections.flatMap(
-    (direction) => direction.match(/wengine-\d+/g) ?? [],
-  )
+  const wEngineIds =
+    getGameData33BuildGuidance(constraint.agentId)?.wEngineIds ??
+    constraint.wEngineDirections.flatMap((direction) => direction.match(/wengine-\d+/g) ?? [])
   const completeTeamScenario =
     constraint.teamAndBangbooPreconditions.length > 0 &&
     constraint.teamAndBangbooPreconditions.some((direction) => /邦布|Bangboo/i.test(direction))

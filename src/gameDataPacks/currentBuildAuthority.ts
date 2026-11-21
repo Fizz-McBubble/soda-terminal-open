@@ -1,43 +1,25 @@
-import {
-  currentAgentNumericContracts,
-  getCurrentAgentNumericContract,
-  isReviewedPhoenixNumericContract,
-  sourceBoundPotentialAbsence,
-} from '../calculation/currentAgentNumericContracts'
-import {
-  resolveReviewedBuildFieldContinuity33,
-  resolveReviewedContextualTargetPanelContinuity33,
-} from './reviewedBuildFieldContinuity33'
+import { resolveReviewedBuildFieldContinuity33 } from './reviewedBuildFieldContinuity33'
 import { getAgentProfile, type AgentProfileField } from './agentProfile'
 import {
   currentAgentEventContracts,
-  currentAgentMechanicIdentity,
-  evaluateCurrentAgentTeamActivation,
+  baseCurrentAgentMechanicIdentity,
 } from '../calculation/currentAgentMechanicContracts'
 import { currentPanelData } from './panel/currentPanelData'
 import {
   remielleCurrentProgressionEvidence32,
   remielleCurrentTeamBangbooGuidance32,
-  remielleHoyoBuild32Source,
 } from './currentCommunityBuildGuidance32'
 import { currentAssetProjection } from './currentAssetProjection'
 import { currentVersionProjection } from './currentVersionProjection'
-import {
-  gameData31RemielleEquipmentIntake,
-  getRemielleEquipmentField,
-} from './gameData31RemielleEquipmentIntake'
-import { getGameData31CatalogEntity } from './gameData31CatalogIntake'
-import currentDecisionMechanicSupplements from './data/current-agent-decision-mechanic-supplements.3.1.json'
-import potentialApplicability from './generated/current-potential-applicability-32.v1.json'
 import { getReviewedBuildVersionImpact32 } from './reviewedBuildVersionImpact32'
 import { stableContentHash } from './types'
 import { isPotentialGuideReference } from './reviewedPotentialGuideReferences'
-import { reviewedTargetPanelGuidance } from './reviewedTargetPanelGuidance'
-import { resolveReviewedZhaoHpTarget } from './reviewedZhaoSupportTarget'
 import {
-  resolveReviewedContextualTargetPanel,
-  type ReviewedTargetContext,
-} from './reviewedContextualTargetPanel'
+  applyReviewedTargetObservationCorrection,
+  reviewedTargetPanelGuidance,
+} from './reviewedTargetPanelGuidance'
+import { resolveReviewedZhaoHpTarget } from './reviewedZhaoSupportTarget'
+import { resolveReviewedContextualTargetPanel } from './reviewedContextualTargetPanel'
 import { projectedReviewedBuild32Fields } from './agentProfileFieldProjection'
 import { reviewedBuildFieldReferenceContinuity32 } from './reviewedReferenceSupportContinuity32'
 import { getRemielleSkillGuidanceCandidate } from './remielleGuidanceCandidate'
@@ -46,11 +28,6 @@ import { getCandidateWarehouseConstraintForTeam } from './candidateWarehouseCons
 import { currentTeamGuidanceField } from './currentTeamGuidanceField'
 import { getAgentAscensionMaterialFacts } from '../calculation/agentAscensionMaterials32'
 import { reviewedBuildApplicabilityExpansion32 } from './reviewedBuildApplicabilityExpansion32'
-import {
-  reviewedTeamDiscDirections,
-  type ReviewedTeamDiscConditionContext,
-} from './reviewedTeamDiscConditions'
-import type { CandidateSetPlanEligibilityContext } from './candidateSetPlanEligibility'
 import { getReviewedHoyoBuildDriveDiscSets32 } from './reviewedHoyoBuildDriveDiscSets32'
 import {
   getReviewedHoyoBuildMiyabiMainSubStats32,
@@ -59,78 +36,44 @@ import {
 import { getReviewedHoyoBuildCurrentSkillGuidance32 } from './reviewedHoyoBuildCurrentSkillGuidance32'
 import { getReviewedPotentialOverlayGuidance32 } from './reviewedPotentialOverlayGuidance32'
 import { getGameData33BuildGuidanceFields } from './gameData33BuildGuidance'
+import {
+  getReviewedPhoenixTeam33,
+  getReviewedCurrentWEngineRecommendation33,
+} from './reviewedCurrentGuidance33'
 
-export const currentBuildFieldIds = [
-  'progression.lv60_and_ascension',
-  'progression.skill_core_cinema',
-  'progression.potential_overlay',
-  'build.wengines',
-  'build.drive_disc_sets',
-  'build.main_sub_stats',
-  'build.progression',
-  'build.team_bangboo_scenario',
-  'build.target_panel',
-  'build.version_change_impact',
-] as const
-export type CurrentBuildFieldId = (typeof currentBuildFieldIds)[number]
-
-export const currentCalculationAccountFieldIds = [
-  'account.agent.level_ascension',
-  'account.agent.skill_core_cinema',
-  'account.agent.potential_overlay',
-  'account.wengine.instance',
-  'account.drive_disc.instances',
-  'account.final_stats',
-] as const
-
-export type CurrentBuildFieldState = 'ready' | 'missing' | 'stale' | 'conflict' | 'not_applicable'
-
-export type CurrentBuildAuthoritySourceTier =
-  | 'direct_current_3_2'
-  | 'direct_current_3_3'
-  | 'continuity_reviewed'
-  | 'not_applicable'
-  | 'incomplete'
-
-export type CurrentBuildAuthorityField = {
-  fieldId: CurrentBuildFieldId
-  lane: 'guidance'
-  state: CurrentBuildFieldState
-  /**
-   * Provenance tier, not a strength or accuracy claim.
-   * Ready fields are split between a direct current-version source and the
-   * explicitly bounded 3.1 -> 3.2 continuity review.
-   */
-  sourceTier: CurrentBuildAuthoritySourceTier
-  derivation?: 'rederived_current'
-  sourceStatus: AgentProfileField['status'] | 'missing'
-  value: unknown | null
-  sourceRefs: ReadonlyArray<{
-    id: string
-    sourceVersion: string | null
-    evaluatedForVersion: string | null
-    checkedAt: string | null
-    contentHash: string | null
-    supportedValues?: readonly string[]
-    conditionsByValue?: Readonly<Record<string, readonly string[]>>
-  }>
-  blockers: readonly string[]
-  conditions: readonly string[]
-  referenceContinuity?:
-    | NonNullable<ReturnType<typeof reviewedBuildFieldReferenceContinuity32>>
-    | NonNullable<ReturnType<typeof resolveReviewedBuildFieldContinuity33>>
-  /** A selected, already reviewed branch; never part of context-free coverage. */
-  contextualApplicability?: { directionId: string; constraintContentHash: string }
-  nextEvidence: readonly string[]
-}
-
-export type CurrentCalculationAccountField = {
-  fieldId: (typeof currentCalculationAccountFieldIds)[number]
-  lane: 'calculation_account_snapshot'
-  state: 'account_required'
-  value: null
-  reason: string
-}
+import {
+  currentBuildFieldIds,
+  currentCalculationAccountFieldIds,
+} from './currentBuildAuthorityTypes'
+import type {
+  CurrentBuildFieldId,
+  CurrentBuildFieldState,
+  CurrentBuildAuthoritySourceTier,
+  CurrentBuildAuthorityField,
+  CurrentCalculationAccountField,
+  CurrentBuildTargetPanelContext,
+} from './currentBuildAuthorityTypes'
+export {
+  currentBuildFieldIds,
+  currentCalculationAccountFieldIds,
+} from './currentBuildAuthorityTypes'
+export type {
+  CurrentBuildFieldId,
+  CurrentBuildFieldState,
+  CurrentBuildAuthoritySourceTier,
+  CurrentBuildAuthorityField,
+  CurrentCalculationAccountField,
+  CurrentBuildTargetPanelContext,
+} from './currentBuildAuthorityTypes'
+import {
+  remielleWEngineGuidanceField,
+  remielleTargetPanelGuidanceField,
+  sigridWEngineGuidanceField,
+  remielleCurrentSkillCoreCinemaGuidance32,
+  currentVersionPotentialAbsence,
+  potentialSourceCommit,
+} from './currentBuildAuthoritySourceFields'
+import { reviewedMiyabiTraditionalPanel32 } from './currentBuildAuthorityMiyabiPanel32'
 
 function fieldState(
   field: AgentProfileField | undefined,
@@ -141,287 +84,6 @@ function fieldState(
   if (field.currentApplicability !== 'continuous' || field.gameVersion !== targetVersion)
     return 'stale'
   return 'ready'
-}
-
-const remielleWEngineSourceIds = new Set([
-  'gachabase-wengine-14158-3.1.12',
-  'gameland-remielle-build-3.1',
-  'mobalytics-remielle-build-3.1',
-])
-
-/**
- * This is a source-backed identity adoption, not an account equipment default.
- * The existing 3.1 intake names the W-Engine as `wengine-14158`; it remains
- * candidate guidance and never supplies a copyId, level, or refinement.
- */
-const remielleWEngineGuidanceField: AgentProfileField = {
-  group: 'build_guidance',
-  path: 'build.wengines',
-  value: ['wengine-14158'],
-  status: 'verified_candidate',
-  gameVersion: '3.1',
-  originalSourceVersion: '3.1',
-  lastChangeVersion: '3.1',
-  currentApplicability: 'continuous',
-  sourceRefs: gameData31RemielleEquipmentIntake.sources
-    .filter((source) => remielleWEngineSourceIds.has(source.id))
-    .map((source) => ({
-      id: source.id,
-      url: source.url,
-      sourceVersion: source.sourceVersion,
-      checkedAt: source.checkedAt,
-      contentHash: source.contentIdentityHash,
-      licenseBoundary: source.license.boundary,
-    })),
-  verifiedAt: '2026-07-30T00:00:00.000Z',
-  conflict: null,
-  reason:
-    '3.1 候选来源已具名蕾米埃尔关联的 stable W-Engine identity；仅提供攻略方向，不推断账户副本或数值面板。',
-}
-
-function remielleCurrentSkillCoreCinemaGuidance32(): AgentProfileField {
-  const candidate = getRemielleSkillGuidanceCandidate('agent-remielle')
-  if (!candidate) throw new Error('Remielle skill guidance candidate is missing.')
-  const explicitMaximumSource = candidate.explicitTargets.source
-  return {
-    group: 'build_guidance',
-    path: 'progression.skill_core_cinema',
-    value: {
-      kind: 'current_skill_core_cinema',
-      skillTargets: {
-        basic: { value: 12, targetType: 'paid_base_maximum' },
-        dodge: {
-          value: 7,
-          targetType: 'low_investment_budget',
-          basis: 'user budget default; source says the skill may be left low',
-        },
-        assist: { value: 12, targetType: 'paid_base_maximum' },
-        special: { value: 12, targetType: 'paid_base_maximum' },
-        chain: { value: 12, targetType: 'paid_base_maximum' },
-        core: { value: 7, display: 'F', targetType: 'exact_integer' },
-      },
-      skillPriorityBySource: {
-        'miyoushe-77017654': candidate.primaryPriority,
-        [remielleHoyoBuild32Source.id]: remielleCurrentProgressionEvidence32.skillPriorityCandidate,
-        status: 'source_order_conflict_preserved',
-      },
-      cinema: {
-        recommendedLevels: remielleCurrentProgressionEvidence32.mindscapePriorityCandidate.map(
-          (item) => item.level,
-        ),
-        pullOrder: ['0+0', '0+1', '1+1', '2+1', '6+1'],
-        status: 'author_stated',
-      },
-    },
-    status: 'verified_candidate',
-    gameVersion: '3.2',
-    originalSourceVersion: '3.1',
-    lastChangeVersion: '3.2',
-    currentApplicability: 'continuous',
-    sourceRefs: [
-      {
-        id: explicitMaximumSource.id,
-        url: explicitMaximumSource.url,
-        sourceVersion: explicitMaximumSource.sourceVersion,
-        originalSourceVersion: explicitMaximumSource.sourceVersion,
-        checkedAt: explicitMaximumSource.checkedAt,
-        contentHash: explicitMaximumSource.contentHash,
-        licenseBoundary: '只采用作者原文明确的战斗技升满、核心F目标与定位，不复制正文或媒体。',
-      },
-      {
-        id: 'miyoushe-77017654-gold-cinema-pull-order',
-        url: 'https://www.miyoushe.com/zzz/article/77017654',
-        sourceVersion: '3.1',
-        originalSourceVersion: '3.1',
-        checkedAt: '2026-10-19',
-        contentHash: 'A1D88414AE02CB2F67A1B8CB1D11E8F56ADFE017EDA44C138D31ACB4FA23A43B',
-        licenseBoundary:
-          '只保留作者明确的影画关键等级与抽取顺序，不复制正文或媒体，不扩张到未来版本。',
-      },
-      { ...remielleHoyoBuild32Source },
-    ],
-    verifiedAt: '2026-10-20',
-    conflict: null,
-    reason:
-      '复用已接受的3.1技能上限、核心、影画与抽取顺序，并以当前3.2来源补齐技能顺序；两种来源顺序并存，不选伪造的全局排序。',
-    conditions: [
-      '付费基础上限12级；实际有效等级仍须按账号影画换算，不由攻略目标替代。',
-      '闪避7级是既有用户预算默认，并非作者给出的精确目标。',
-      '3.1 Miyoushe与3.2 HoyoBuild技能顺序不同，两者均保留且不宣称单一全局顺序。',
-      '影画等级与抽取顺序仅作指导，不推断账号持有、抽卡预算或未来版本不变。',
-      '本字段不创建账号技能、影画、库存或计划DPS事实。',
-    ],
-  }
-}
-
-function remielleIntakeGuidanceField(
-  authorityPath: 'build.target_panel',
-  intakePath: string,
-): AgentProfileField | undefined {
-  const intakeField = getRemielleEquipmentField(intakePath)
-  if (!intakeField || intakeField.status === 'missing') return undefined
-  const sources = gameData31RemielleEquipmentIntake.sources.filter((source) =>
-    intakeField.sourceRefs.includes(source.id),
-  )
-  return {
-    group: 'build_guidance',
-    path: authorityPath,
-    value: intakeField.value,
-    status: intakeField.status === 'reference' ? 'candidate' : intakeField.status,
-    gameVersion: '3.1',
-    originalSourceVersion: '3.1',
-    lastChangeVersion: '3.1',
-    currentApplicability: 'continuous',
-    sourceRefs: sources.map((source) => ({
-      id: source.id,
-      url: source.url,
-      sourceVersion: source.sourceVersion,
-      checkedAt: source.checkedAt,
-      contentHash: source.contentIdentityHash,
-      licenseBoundary: source.license.boundary,
-    })),
-    verifiedAt: intakeField.verifiedAt,
-    conflict: null,
-    reason: intakeField.note,
-  }
-}
-
-const remielleTargetPanelGuidanceField = remielleIntakeGuidanceField(
-  'build.target_panel',
-  'agent-1581.warehouse.target_panel',
-)
-
-const potentialSourceCommit = currentAgentMechanicIdentity.upstreamCommit
-if (
-  potentialApplicability.schema !== 'soda-current-potential-applicability/v1' ||
-  potentialApplicability.targetVersion !== '3.2' ||
-  potentialApplicability.evaluatedForVersion !== '3.2' ||
-  potentialApplicability.entries.length !== currentAgentEventContracts.length ||
-  potentialApplicability.source.commit !== potentialSourceCommit ||
-  potentialApplicability.summary.total !== currentAgentEventContracts.length ||
-  potentialApplicability.summary.withPotential + potentialApplicability.summary.withoutPotential !==
-    currentAgentEventContracts.length
-)
-  throw new Error(
-    'Current potential applicability projection is not the pinned complete 3.2 snapshot.',
-  )
-
-/** Negative applicability is proved only by a current catalog source row whose
- * raw SHA was checked by the generator against the pinned upstream commit. */
-const potentialApplicabilityByExternalId = new Map(
-  potentialApplicability.entries.map((entry) => [entry.externalId, entry]),
-)
-const currentVersionPotentialNotApplicableIds = new Map<
-  string,
-  (typeof potentialApplicability.entries)[number]
->()
-for (const contract of currentAgentEventContracts) {
-  const entry = potentialApplicabilityByExternalId.get(contract.externalId)
-  if (
-    !entry ||
-    entry.upstreamKey !== contract.upstreamKey ||
-    entry.upstreamPath !== contract.source.statsPath ||
-    entry.sourceStatsSha256 !== contract.source.statsSha256 ||
-    entry.sourceVersion !== currentAgentMechanicIdentity.gameVersion ||
-    entry.evaluatedForVersion !== '3.2' ||
-    entry.hasPotential !== entry.potentialParamRows > 0
-  )
-    throw new Error(`Current potential source identity mismatch for ${contract.stableId}.`)
-  if (!entry.hasPotential && entry.potentialParamRows === 0)
-    currentVersionPotentialNotApplicableIds.set(contract.stableId, entry)
-}
-if (potentialApplicabilityByExternalId.size !== currentAgentEventContracts.length)
-  throw new Error('Current potential projection contains unknown or duplicate source identities.')
-// The old 60-row GO proof remains complete; Nanoka has its own negative source fact.
-const nanokaPotentialAbsence = new Map(
-  sourceBoundPotentialAbsence.map((entry) => {
-    const numeric = getCurrentAgentNumericContract(entry.stableId)
-    if (
-      !numeric ||
-      !isReviewedPhoenixNumericContract(numeric) ||
-      entry.externalId !== numeric.externalId ||
-      !entry.potentialEmpty ||
-      !entry.potentialDetailEmpty ||
-      stableContentHash(entry.source) !== stableContentHash(numeric.source)
-    )
-      throw new Error(`Nanoka potential source binding mismatch: ${entry.stableId}`)
-    return [entry.stableId, entry] as const
-  }),
-)
-const allPotentialIdentities = new Set([
-  ...currentAgentEventContracts.map((contract) => contract.stableId),
-  ...nanokaPotentialAbsence.keys(),
-])
-if (
-  allPotentialIdentities.size !== currentAgentNumericContracts.length ||
-  currentAgentNumericContracts.some((contract) => !allPotentialIdentities.has(contract.stableId)) ||
-  currentAssetProjection.agents.length !== allPotentialIdentities.size ||
-  currentAssetProjection.agents.some((agent) => !allPotentialIdentities.has(agent.stableId))
-)
-  throw new Error('Current potential source population differs from released numeric identities.')
-
-function currentVersionPotentialAbsence(agentId: string) {
-  const nanoka = nanokaPotentialAbsence.get(agentId)
-  if (nanoka)
-    return {
-      externalId: nanoka.externalId,
-      sourceVersion: '3.3',
-      evaluatedForVersion: '3.3',
-      upstreamPath: nanoka.source.url,
-      sourceStatsSha256: nanoka.source.rawSha256,
-      provider: 'nanoka' as const,
-      locator: nanoka.source.locators.potential,
-      providerManifestSha256: nanoka.source.providerManifestSha256,
-    }
-  const go = currentVersionPotentialNotApplicableIds.get(agentId)
-  return go ? { ...go, provider: 'genshin_optimizer' as const } : undefined
-}
-
-const sigridMechanicSource = currentDecisionMechanicSupplements.resourceContracts.find(
-  (contract) => contract.agentId === 'agent-sigrid',
-)?.source
-const sigridWEngineEntity = getGameData31CatalogEntity('candidate-3.1-wengine-knights-extolment')
-
-if (!sigridMechanicSource || !sigridWEngineEntity) {
-  throw new Error('Sigrid current W-Engine guidance sources are incomplete.')
-}
-
-/**
- * Same-version guide evidence names the released 14159 identity as Sigrid's
- * signature direction. This remains candidate guidance: it never claims the
- * account owns a copy or supplies level/refinement facts.
- */
-const sigridWEngineGuidanceField: AgentProfileField = {
-  group: 'build_guidance',
-  path: 'build.wengines',
-  value: ['wengine-14159'],
-  status: 'verified_candidate',
-  gameVersion: '3.1',
-  originalSourceVersion: '3.1',
-  lastChangeVersion: '3.1',
-  currentApplicability: 'continuous',
-  sourceRefs: [
-    {
-      id: sigridMechanicSource.sourceId,
-      url: sigridMechanicSource.url,
-      sourceVersion: '3.1',
-      checkedAt: sigridMechanicSource.retrievedAt,
-      contentHash: stableContentHash(sigridMechanicSource),
-      licenseBoundary: 'Source-backed current guide reference; no copied prose or media.',
-    },
-    {
-      id: sigridWEngineEntity.source.id,
-      url: sigridWEngineEntity.source.url,
-      sourceVersion: sigridWEngineEntity.source.sourceVersion,
-      checkedAt: sigridWEngineEntity.source.checkedAt,
-      contentHash: sigridWEngineEntity.source.contentHash,
-      licenseBoundary: sigridWEngineEntity.source.licenseBoundary,
-    },
-  ],
-  verifiedAt: '2026-08-31T00:00:00.000Z',
-  conflict: null,
-  reason:
-    '3.1 当前攻略方向与已发布 stable W-Engine identity 14159 交叉一致；仅提供音擎方向，不推断账户副本、等级或精炼。',
 }
 
 function adoptedCurrentField(
@@ -439,7 +101,21 @@ function adoptedCurrentField(
         const selected = selectedGuidanceField(path, fields, agentId)
         if (!selected) return []
         const adopted = authorityField(path, fields, agentId)
-        return [{ ...selected, value: adopted.value, authorityState: adopted.state }]
+        // The 3.2 continuity ledger binds the historical selected value. Current
+        // replacements are separately reviewed and must not rewrite that history.
+        return [
+          {
+            ...selected,
+            value:
+              adopted.wEngineReference ||
+              (adopted.value &&
+                typeof adopted.value === 'object' &&
+                'observationCorrection' in adopted.value)
+                ? selected.value
+                : adopted.value,
+            authorityState: adopted.state,
+          },
+        ]
       }),
     )
   if (fieldId === 'build.wengines' && agentId === 'agent-remielle')
@@ -498,7 +174,10 @@ function partialCurrentFieldFacts(
       completion: 'static_panel_known_ascension_material_facts_missing' as const,
       source: {
         id: `current-agent-stats:${contract.source.statsPath}@${contract.source.commit}`,
-        sourceVersion: currentAgentMechanicIdentity.gameVersion,
+        sourceVersion:
+          contract.source.provider === 'nanoka'
+            ? '3.3'
+            : baseCurrentAgentMechanicIdentity.gameVersion,
         evaluatedForVersion: targetVersion,
         contentHash: contract.source.statsSha256.toLowerCase(),
       },
@@ -580,7 +259,10 @@ export function selectedGuidanceField(
   fields: readonly AgentProfileField[],
   agentId: string,
 ): AgentProfileField | undefined {
-  if (currentVersionProjection.gameVersion === '3.3' && agentId === 'agent-phoenix')
+  if (
+    currentVersionProjection.gameVersion === '3.3' &&
+    (agentId === 'agent-phoenix' || agentId === 'agent-severian')
+  )
     return getGameData33BuildGuidanceFields(agentId).find((field) => field.path === fieldId)
   if (fieldId === 'progression.lv60_and_ascension') {
     const materials = getAgentAscensionMaterialFacts(agentId)
@@ -664,7 +346,15 @@ export function selectedGuidanceField(
 
 /** Validation must trace the selected source, including adopted field overrides. */
 export function getCurrentBuildFieldSourceRefs(agentId: string, fieldId: CurrentBuildFieldId) {
-  return selectedGuidanceField(fieldId, getAgentProfile(agentId).fields, agentId)?.sourceRefs ?? []
+  const existing =
+    selectedGuidanceField(fieldId, getAgentProfile(agentId).fields, agentId)?.sourceRefs ?? []
+  const team =
+    currentVersionProjection.gameVersion === '3.3' && fieldId === 'build.team_bangboo_scenario'
+      ? getReviewedPhoenixTeam33(agentId)
+      : undefined
+  const engine =
+    fieldId === 'build.wengines' ? getReviewedCurrentWEngineRecommendation33(agentId) : undefined
+  return [...existing, ...(team?.sources ?? []), ...(engine?.sources ?? [])]
 }
 
 function authorityField(
@@ -673,6 +363,12 @@ function authorityField(
   agentId: string,
 ): CurrentBuildAuthorityField {
   const field = selectedGuidanceField(fieldId, fields, agentId)
+  const teamReference =
+    currentVersionProjection.gameVersion === '3.3' && fieldId === 'build.team_bangboo_scenario'
+      ? getReviewedPhoenixTeam33(agentId)
+      : undefined
+  const wEngineReference =
+    fieldId === 'build.wengines' ? getReviewedCurrentWEngineRecommendation33(agentId) : undefined
   const potentialAbsence =
     fieldId === 'progression.potential_overlay'
       ? currentVersionPotentialAbsence(agentId)
@@ -729,7 +425,8 @@ function authorityField(
       ? 'not_applicable'
       : state !== 'ready'
         ? 'incomplete'
-        : currentVersionProjection.gameVersion === '3.3' && agentId === 'agent-phoenix'
+        : currentVersionProjection.gameVersion === '3.3' &&
+            (agentId === 'agent-phoenix' || agentId === 'agent-severian')
           ? 'direct_current_3_3'
           : continuity
             ? 'continuity_reviewed'
@@ -771,6 +468,14 @@ function authorityField(
           ? '已保留原文明示的战斗技升满与核心F目标；当前来源的技能优先顺序冲突、影画投资建议仍未闭合。'
           : '已保留当前来源的技能方向子项；技能等级目标、核心/影画投资建议或来源优先顺序冲突仍未闭合。'
         : reason
+  const targetCorrection =
+    fieldId === 'build.target_panel' && state === 'ready'
+      ? applyReviewedTargetObservationCorrection(
+          agentId,
+          field?.value,
+          field?.sourceRefs.map((source) => source.id) ?? [],
+        )
+      : null
   return {
     fieldId,
     lane: 'guidance',
@@ -779,7 +484,18 @@ function authorityField(
     ...(continuity ? { referenceContinuity: continuity } : {}),
     state,
     sourceStatus: field?.status ?? 'missing',
-    value: state === 'ready' ? (rederivedVersionImpact ?? field?.value ?? null) : partialKnownFacts,
+    ...(teamReference ? { teamReferences: [teamReference] } : {}),
+    ...(wEngineReference ? { wEngineReference } : {}),
+    ...(wEngineReference ? { currentReviewDisposition: 'replaced' as const } : {}),
+    value:
+      state === 'ready'
+        ? wEngineReference && Array.isArray(field?.value)
+          ? [
+              wEngineReference.engineId,
+              ...field.value.filter((item) => item !== wEngineReference.engineId),
+            ]
+          : (targetCorrection?.value ?? rederivedVersionImpact ?? field?.value ?? null)
+        : partialKnownFacts,
     sourceRefs,
     blockers:
       state === 'ready' || state === 'not_applicable'
@@ -799,6 +515,8 @@ function authorityField(
           ]
         : [
             ...(field?.conditions ?? []),
+            ...(targetCorrection ? [targetCorrection.condition] : []),
+            ...(wEngineReference ? [wEngineReference.note] : []),
             ...(continuity && 'boundary' in continuity ? [continuity.boundary] : []),
             ...(partialKnownFacts
               ? [
@@ -1036,151 +754,6 @@ export function getCurrentPotentialSkillReference(stableId: string) {
     conditionLabel: '潜能6/6参考（未用于当前方案）',
     skillDirections: field.value.skillDirections,
   }
-}
-
-export type CurrentBuildTargetPanelContext = Omit<ReviewedTargetContext, 'agentId'> &
-  ReviewedTeamDiscConditionContext &
-  CandidateSetPlanEligibilityContext
-
-/** Local 3.2 review retains the author's traditional numerical references. It
- * does not turn an older build calculation into a current graduation threshold. */
-function reviewedMiyabiTraditionalPanel32(context: CurrentBuildTargetPanelContext | undefined) {
-  const members = context?.memberIds
-  if (!members || members.length !== 3 || new Set(members).size !== 3) return null
-  const sourceTeam = [
-    ['agent-miyabi', 'agent-lycaon', 'agent-soukaku'],
-    ['agent-miyabi', 'agent-remielle', 'agent-burnice'],
-  ].find((team) => team.every((id) => members.includes(id)))
-  if (!sourceTeam || !['3.2', '3.3'].includes(currentVersionProjection.gameVersion)) return null
-  const state = context.agentStateById?.['agent-miyabi']
-  const mindscape = state && Object.hasOwn(state, 'mindscape') ? state.mindscape : context.mindscape
-  if (
-    typeof mindscape !== 'number' ||
-    !Number.isInteger(mindscape) ||
-    mindscape < 0 ||
-    mindscape > 6 ||
-    (context.mindscape !== undefined && context.mindscape !== mindscape) ||
-    context.selectedDirectionIdByAgentId?.['agent-miyabi']
-  )
-    return null
-  const mechanic = currentAgentEventContracts.find((row) => row.stableId === 'agent-miyabi')
-  if (
-    mechanic?.source.formulaSha256.toLowerCase() !==
-      '7c7e1f1aeda1d38976d4c0b47c111eb0b4fc76dfe0e6554b567d8260df8127f3' ||
-    mechanic.source.statsSha256.toLowerCase() !==
-      '1dbfcdce806774269df8e69837308bdaaf547928339ef8be8425cb34300f4443'
-  )
-    return null
-  const activation = evaluateCurrentAgentTeamActivation({
-    stableId: 'agent-miyabi',
-    memberIds: members,
-    agentState: { mindscape, potentialImage: state?.potentialImage },
-  })
-  if (activation.status !== 'supported' || !activation.active) return null
-  const original = reviewedTargetPanelGuidance('agent-miyabi')
-  const isRecord = (value: unknown): value is Record<string, unknown> =>
-    Boolean(value) && typeof value === 'object' && !Array.isArray(value)
-  if (!original || !isRecord(original.value)) return null
-  const originalValue = original.value
-  const originalSourceMetadata = originalValue.sourceMetadata
-  const targetSemantics = originalValue.targetSemantics
-  if (
-    !isRecord(originalSourceMetadata) ||
-    originalSourceMetadata.sourceId !== 'prydwen-miyabi-current-2026-08-05' ||
-    !isRecord(targetSemantics) ||
-    Object.values(targetSemantics).some((semantic) => !isRecord(semantic))
-  )
-    return null
-  const frozenPrydwenPayload = 'fnv1a-a275dbdf'
-  const originalSource = original.sourceRefs.find(
-    (source) => source.id === 'prydwen-miyabi-current-2026-08-05',
-  )
-  // The traditional numbers were reviewed as one frozen payload. Any source
-  // edit invalidates the 3.2 team review until those numbers are reviewed again.
-  if (
-    originalSource?.contentHash?.toLowerCase() !== frozenPrydwenPayload ||
-    typeof originalSourceMetadata.observedPayloadHash !== 'string' ||
-    originalSourceMetadata.observedPayloadHash.toLowerCase() !== frozenPrydwenPayload
-  )
-    return null
-  const conditions = [
-    ...(original.conditions ?? []),
-    '作者构筑复审为2.1、玩法复审为1.5；2026-09-30仅为页面更新。本地3.2按明确传统队与当前机制复核，数值仅作培养参考，不作为毕业硬门。',
-    '暴击率75–95%、暴伤150–190%、攻击2500–3600及精通240等保留作者配装参考；80%仅为战斗霜染积蓄转换封顶，不假定影画与四件套窗口已激活。',
-  ]
-  const teamSource = members.includes('agent-remielle')
-    ? reviewedTeamDiscDirections.find((row) => row.agentId === 'agent-miyabi')?.source
-    : undefined
-  if (members.includes('agent-remielle') && teamSource?.localReviewVersion !== '3.2') return null
-  const panel = {
-    value: {
-      ...originalValue,
-      targetSemantics: Object.fromEntries(
-        Object.entries(targetSemantics).map(([key, semantic]) => [
-          key,
-          { ...(semantic as Record<string, unknown>), observation: 'reference' as const },
-        ]),
-      ),
-      cultivationReference: {
-        keys: ['atk', 'critRate', 'critDamage', 'anomalyProficiency', 'anomalyMastery'],
-        conditions,
-        sourceVersion: original.gameVersion,
-        level: 60,
-      },
-      sourceMetadata: {
-        ...originalSourceMetadata,
-        authorBuildReviewVersion: '2.1',
-        authorGameplayReviewVersion: '1.5',
-        authorProfileUpdatedAt: '2026-09-30',
-        localReviewVersion: '3.2',
-        localReviewedAt: '2026-10-19',
-        localReviewScope: 'source_named_traditional_team_cultivation_reference_only',
-      },
-    },
-    status: original.status,
-    gameVersion: '3.2',
-    sourceRefs: [
-      ...original.sourceRefs.map((source) => ({ ...source, evaluatedForVersion: '3.1' })),
-      {
-        id: 'miyabi-traditional-panel-local-review32-20261019',
-        sourceVersion: null,
-        evaluatedForVersion: '3.2',
-        checkedAt: '2026-10-19',
-        contentHash: 'CF94D68F5AF17346B8CE30A353955B44E6F0517DA0596FC307A4364010F7F214',
-      },
-      ...(teamSource
-        ? [
-            {
-              id: `miyoushe-${teamSource.postId}:text:0167`,
-              sourceVersion: teamSource.sourceVersion,
-              evaluatedForVersion: teamSource.localReviewVersion ?? null,
-              checkedAt: teamSource.localReviewedAt ?? null,
-              contentHash: teamSource.contentHash,
-            },
-          ]
-        : []),
-    ],
-    conditions,
-  }
-  if (currentVersionProjection.gameVersion === '3.2') return panel
-  const referenceContinuity = resolveReviewedContextualTargetPanelContinuity33({
-    targetVersion: currentVersionProjection.gameVersion,
-    memberIds: members,
-    ...panel,
-    formulaBindings: members.flatMap((agentId) => {
-      const actor = currentAgentEventContracts.find((row) => row.stableId === agentId)
-      return actor ? [{ agentId, formulaSha256: actor.source.formulaSha256 }] : []
-    }),
-  })
-  return referenceContinuity
-    ? {
-        ...panel,
-        gameVersion: '3.3',
-        referenceContinuity,
-        evaluatedForVersion: '3.3',
-        sourceReviewVersion: '3.2',
-      }
-    : null
 }
 
 /** Both player workbenches consume the adopted guidance, never a page-local fallback. */

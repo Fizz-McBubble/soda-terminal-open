@@ -1,4 +1,5 @@
 import { getVisualAsset, resolveCachedVisualAsset, type VisualAsset } from './visualAssets'
+import { prioritizeVisualAsset } from './visualAssetDownloadOrder'
 import { resolveVisualAssetSlot, type VisualAssetSlotSpec } from './visualAssetSlots'
 import {
   createLatestVisualSelection as createLatestSelection,
@@ -61,6 +62,7 @@ export async function resolveSessionVisualSource(asset: VisualAsset) {
   const key = visualSourceKey(asset)
   const existing = sessionVisualSources.get(key)
   if (existing) return existing
+  prioritizeVisualAsset(asset.remoteUrl)
   const pending = pendingVisualSources.get(key)
   if (pending) return pending
 

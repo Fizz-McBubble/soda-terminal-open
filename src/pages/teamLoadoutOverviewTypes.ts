@@ -6,6 +6,17 @@ import type { TeamLoadoutCompletionCandidate } from './teamLoadoutCompletionCand
 export type TeamLoadoutOverviewKind = 'saved' | 'buildable' | 'progress' | 'direction'
 export type TeamLoadoutOverviewGroupKind = 'recommended' | 'development' | 'saved'
 
+/** Only the captured presentation/equipment facts; this does not certify a full numeric Query. */
+export type TeamLoadoutCapturedFit = Pick<
+  import('../application/calculationQueryContract').TargetTeamWarehouseFitQueryResult,
+  | 'candidateId'
+  | 'memberIds'
+  | 'targetExecution'
+  | 'warehousePlan'
+  | 'effectiveEquipmentParameters'
+  | 'equipmentRecommendations'
+>
+
 export type TeamLoadoutVisibleAnswer = {
   status: DecisionClaimStatus
   title: string
@@ -25,6 +36,12 @@ export type TeamLoadoutOverviewItem = {
   agentIds: string[]
   formedTeamReference?: import('../application/publicFormedTeamReference').FormedTeamReference
   formedCultivationGaps?: string[]
+  currentMemberCultivation?: Record<
+    string,
+    import('../application/publicFormedTeamReference').TeamMemberCultivationFacts
+  >
+  /** Captured exact-team fit facts; absent means equipment has not been matched yet. */
+  memberEquipment?: import('./teamExecutionPresentation').TeamExecutionMemberPresentation[]
   deploymentOrder?: import('../decision/teamDeployment').TeamDeploymentOrder
   coreAgentIds: string[]
   mechanism: string
@@ -33,6 +50,8 @@ export type TeamLoadoutOverviewItem = {
     | null
   bangbooId: string | null
   bangbooLabel: string
+  /** Exact selected/saved star. Absence means the overview has no real star fact. */
+  bangbooStars?: 1 | 2 | 3 | 4 | 5
   bangbooReason?: string | null
   bangbooAlternativeIds?: readonly string[]
   bangbooSuggestions?: Array<{
@@ -54,6 +73,10 @@ export type TeamLoadoutOverviewItem = {
   recommendationRank: number
   /** Reviewed source tie preference, calculated privately for this exact trio. */
   preferredOverMemberKeys?: string[]
+  /** Exact-team source prose and historical cautions prepared privately. */
+  guidePreference?:
+    | import('../domain/teamGuidePreferencePresentation').TeamGuidePreferencePresentation
+    | null
   executionStatus: TeamExecutionPlayerStatus | null
   primaryActions: string[]
   impacts: string[]
@@ -65,8 +88,11 @@ export type TeamLoadoutOverviewItem = {
   planningDps: number | null
   planningDpsStatus: 'ready' | 'unsupported'
   cultivationPriority: 'ready_now' | 'short_upgrade' | 'strategic_build' | 'experimental' | null
-  teamRatingBand: 'S+' | 'S' | 'A+' | 'A' | 'B' | 'Experimental' | null
+  teamRatingBand: import('../decision/graduatedTeamRatingBands').GraduatedTeamRatingBand | 'Experimental' | null
   confidence: 'high' | 'medium' | 'low' | 'experimental' | null
+  /** Mechanic-only dense ordinal inside one primary output system.
+   * `unsupported` is an explicit authority result; `null` means unavailable/unknown. */
+  teamSystemRanking?: import('../decision/teamGraduatedRankingProjection').CurrentPlayRanking | null
   /** Exact-team local editorial analysis supplied by Decision Authority. */
   ratingAnalysis?: ReviewedTeamAnalysis | null
   /** Authority-owned recommendation index. It is not damage or a band conversion. */
@@ -96,11 +122,15 @@ export type TeamLoadoutOverviewItem = {
   authorityNextAction: string | null
   /** A reviewed exact-three source confirms this direction, but not its strength band. */
   sourceConfirmed?: boolean
+  /** Exact-team default eligibility from the account authority. */
+  defaultEligible?: boolean
   /** Typed membership observation, exposed only by deliberate member search. */
   authorComparisonMembership?: import('../decision/reviewedAuthorComparisonMembership32').AuthorComparisonMembership32
   /** Named local finite model availability; deliberate search only, no strength claim. */
   hasPreparedBenchmark32?: boolean
   sourceConditions?: string[]
+  /** Current finite play supplied by Authority; never inferred from a score or rank. */
+  playDirection?: import('../decision/teamMechanismDirection').FiniteTeamPlay | null
   sourceBangbooOptionIds?: string[]
   historicalReferenceOnly?: boolean
 }

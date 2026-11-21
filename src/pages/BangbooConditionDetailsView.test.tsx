@@ -18,11 +18,22 @@ it('keeps the entire purpose inside the existing disclosure so selecting a longe
     />,
   )
   const description = screen.getByText(
-    (_, element) => element?.tagName === 'P' && element.textContent === purpose,
+    (_, element) => element?.tagName === 'P' && element.textContent === purpose.replace('能力；', '能力：'),
   )
   expect(description.closest('[popover="auto"]')).not.toBeNull()
   expect(screen.getByRole('button', { name: '技能与触发条件' })).toBeInTheDocument()
   expect(
     description.closest('.team-execution__bangboo-conditions')?.querySelector(':scope > p'),
   ).toBeNull()
+})
+
+it('shows the team purpose without internal comparison caveats', () => {
+  const condition = describeBangbooConditions({
+    memberIds: ['agent-lycaon', 'agent-miyabi', 'agent-soukaku'],
+    bangbooId: 'bangboo-sharkboo',
+    stars: 1,
+  })
+  render(<BangbooConditionDetailsView condition={condition} />)
+  expect(screen.queryByText(/同用途按一次主动|未声明的战斗触发|不代表实战总收益/)).not.toBeInTheDocument()
+  expect(screen.getByText('触发条件', { selector: 'h4' })).toBeInTheDocument()
 })

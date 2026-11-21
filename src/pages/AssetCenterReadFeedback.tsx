@@ -19,6 +19,7 @@ export function AssetCenterReadFeedback({
           请重试读取后继续操作。
         </p>
         <button
+          className="button button--primary"
           type="button"
           onClick={() => {
             if (reads.assets.failed) reads.assets.retry()

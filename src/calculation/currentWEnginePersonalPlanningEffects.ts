@@ -25,102 +25,25 @@ import {
   sourceEquipmentEffectMetadata32,
 } from './reviewedFunctionalEquipmentDependencies32'
 import { applyReviewedSpringEmbraceReceivers32 } from './reviewedSpringEmbraceReceivers32'
-import { resolveSteelCushionPassive } from './currentWEnginePassiveAdapters'
+import {
+  resolveReconciledSteelCushion,
+  steelCushionReconciliation,
+} from './reviewedSteelCushionPlanning'
+import {
+  CAGE_OF_CONFINED_SIN_RUNTIME_INPUT_KEYS,
+  CAGE_OF_CONFINED_SIN_STABLE_ID,
+  FIRST_PLUMAGE_STABLE_ID,
+  resolveCageOfConfinedSinPassive,
+  resolveFirstPlumagePassive,
+  reviewedWEngine33Hash,
+} from './reviewedWEngine33'
 
 export const currentWEnginePersonalPlanningEffectVersion =
-  'wengine-personal-event-final-dependency-r4'
+  'wengine-personal-event-final-dependency-r7-source-identity'
 
-const steelCushionReconciliation = Object.freeze({
-  id: 'steel-cushion-physical-param0-source-reconciliation-r1',
-  repository: 'https://github.com/frzyc/genshin-optimizer',
-  commit: '3456cd0f6f5bea10e168074502460dac2fcd6df4',
-  formulaPath: 'libs/zzz/formula/src/data/wengine/sheets/SteelCushion.ts',
-  formulaSha256: '39360E37B6A70E8422CC1EBF6AFB907F139ADC18DD79944EC757ED0F17E94E0D',
-  dataPath: 'libs/zzz/stats/Data/Wengine/SteelCushion.json',
-  dataSha256: 'BF56ED4B057ED8938A3949F2B2BD70C3D7D76D22F24F01946331F16C1AEFCA97',
-  mappedPath: 'libs/zzz/stats/src/mappedStats/wengine/maps/SteelCushion.ts',
-  mappedSha256: '187156314135C7F34F392354BA47ECF199270DB660B3C85D4A5387DF0E1EBD6C',
-  localizationPath: 'libs/zzz/dm-localization/assets/locales/en/wengine_SteelCushion_gen.json',
-  localizationSha256: 'A2650CD0067A612B7320B398DFCF73F77170CBECA51D2A7EB53E484F644590CF',
-  reason:
-    '锁定原公式被动物伤误读dm.dmg_（param1）；采用同pin映射与本地化的physical_dmg_（param0），背击仍用param1；原IR保留。',
-})
-
-function resolveReconciledSteelCushion(input: {
-  refinement: number
-  runtime: CurrentWEngineFormulaRuntime
-}) {
-  const unsupported = (reason: string) => ({ status: 'unsupported' as const, blockers: [reason] })
-  const source = getCurrentWEngineStaticData('wengine-14102')
-  const pin = steelCushionReconciliation
-  if (
-    !source ||
-    source.upstreamKey !== 'SteelCushion' ||
-    source.source.formulaPath !== pin.formulaPath ||
-    source.source.formulaSha256 !== pin.formulaSha256 ||
-    source.source.dataPath !== pin.dataPath ||
-    source.source.dataSha256 !== pin.dataSha256
-  )
-    return unsupported('钢铁肉垫来源裁决的exact-pin已变化，不能继续覆盖当前公式。')
-  // Reuse the existing semantic adapter, and prove both channels at every
-  // refinement against the pinned native parameter table. No second value table.
-  if (
-    source.passiveParameterTable.length !== 5 ||
-    new Set(source.passiveParameterTable.map((row) => row.refinement)).size !== 5 ||
-    source.passiveParameterTable.some((row) => {
-      const adapted = resolveSteelCushionPassive({
-        refinement: row.refinement,
-        specialtyMatches: true,
-        hitFromBehind: true,
-      })
-      return (
-        adapted.status !== 'supported' ||
-        row.params.length !== 2 ||
-        adapted.effects.find((effect) => effect.attribute === 'physical')?.value !==
-          row.params[0] ||
-        adapted.effects.find((effect) => effect.attribute === undefined)?.value !== row.params[1]
-      )
-    })
-  )
-    return unsupported('钢铁肉垫既有适配器与锁定物伤/背击参数逐改装等级核对不一致。')
-  const hitFromBehind = input.runtime.flags?.['SteelCushion:hit_behind']
-  if (typeof hitFromBehind !== 'boolean')
-    return unsupported('钢铁肉垫来源裁决仍要求显式背后命中状态；未知不能按false处理。')
-  const adapted = resolveSteelCushionPassive({
-    refinement: input.refinement,
-    specialtyMatches: true,
-    hitFromBehind,
-  })
-  if (adapted.status !== 'supported') return adapted
-  const raw = resolveCurrentFormulaWEngineContract({
-    stableId: 'wengine-14102',
-    refinement: input.refinement,
-    specialtyMatches: true,
-    runtimePolicy: 'strict',
-    runtime: input.runtime,
-  })
-  if (raw.status !== 'supported') return raw
-  const physical = adapted.effects.find((effect) => effect.attribute === 'physical')
-  if (
-    !physical ||
-    raw.effects.length !== adapted.effects.length ||
-    raw.exclusions.length ||
-    raw.effects.some(
-      (effect) =>
-        effect.kind !== 'modifier' ||
-        effect.target !== 'own' ||
-        !['combat.dmg_.physical', 'combat.common_dmg_'].includes(String(effect.stat)),
-    ) ||
-    raw.effects.filter((effect) => effect.stat === 'combat.dmg_.physical').length !== 1
-  )
-    return unsupported('钢铁肉垫原IR形状已变化，来源裁决不可继续应用。')
-  return {
-    ...raw,
-    effects: raw.effects.map((effect) =>
-      effect.stat === 'combat.dmg_.physical' ? { ...effect, value: physical.value } : effect,
-    ),
-  }
-}
+export const FIRST_PLUMAGE_WINDOW_FLAG = 'FirstPlumage:teamAnomalyCritWindowActive'
+export const CAGE_OF_CONFINED_SIN_WINDOW_FLAG =
+  CAGE_OF_CONFINED_SIN_RUNTIME_INPUT_KEYS.basicAttackHitWindowActive
 
 const directStats = currentCombatPlanningModifierTargets
 
@@ -158,23 +81,31 @@ export function bindCurrentWEngineFormulaRuntime(input: {
     if (conversion.status === 'supported' && !input.eventFinalStats)
       numbers['own.final.crit_'] = input.member.finalStats.crit_ + conversion.critRate
   }
-  const identity = getCurrentAgentEventContract(input.agentId)?.identity
-  const targetIdentity = getCurrentAgentEventContract(
-    input.targetAgentId ?? input.agentId,
-  )?.identity
-  if (identity) {
+  const actor = getCurrentAgentEventContract(input.agentId)
+  const targetActor = getCurrentAgentEventContract(input.targetAgentId ?? input.agentId)
+  if (actor) {
     for (const key of getCurrentFormulaContractRequirements('wengine', input.engineId)?.flags ??
       []) {
-      const match = /^(eq|ne):(own|target)\.char\.(specialty|attribute):(.+)$/.exec(key)
+      const match = /^(eq|ne):(own|target)\.char\.(specialty|attribute|key):(.+)$/.exec(key)
       if (match) {
-        const recipient = match[2] === 'target' ? targetIdentity : identity
+        const recipient = match[2] === 'target' ? targetActor : actor
         if (!recipient) continue
-        const actual = match[3] === 'specialty' ? recipient.specialty : recipient.attribute
+        const actual =
+          match[3] === 'key'
+            ? recipient.upstreamKey
+            : match[3] === 'specialty'
+              ? recipient.identity.specialty
+              : recipient.identity.attribute
         flags[key] = match[1] === 'eq' ? actual === match[4] : actual !== match[4]
       }
     }
   }
-  return { flags, numbers, blockers, accumulators: input.runtime?.accumulators }
+  return {
+    flags,
+    numbers,
+    blockers,
+    accumulators: input.runtime?.accumulators,
+  }
 }
 
 /** Translate the locked formula contract into the existing fixed-event runtime. */
@@ -193,11 +124,14 @@ export function compileCurrentWEnginePersonalPlanningEffects(input: {
   const buckets: SourceBackedEquipmentModifierBucket[] = []
   const exclusions: ValueBenchmarkEffectExclusion[] = []
   const sourceRefs = source
-    ? [
-        `${source.source.formulaPath}#sha256=${source.source.formulaSha256}`,
-        `${source.source.dataPath}#sha256=${source.source.dataSha256}`,
-        currentFormulaMechanicContractHash,
-      ]
+    ? input.engineId === FIRST_PLUMAGE_STABLE_ID ||
+      input.engineId === CAGE_OF_CONFINED_SIN_STABLE_ID
+      ? [`${source.source.url}#sha256=${source.source.rawSha256}`, reviewedWEngine33Hash]
+      : [
+          `${source.source.formulaPath}#sha256=${source.source.formulaSha256}`,
+          `${source.source.dataPath}#sha256=${source.source.dataSha256}`,
+          currentFormulaMechanicContractHash,
+        ]
     : []
   if (input.engineId === 'wengine-14102') {
     const pin = steelCushionReconciliation
@@ -238,15 +172,82 @@ export function compileCurrentWEnginePersonalPlanningEffects(input: {
     )
   } else {
     const result =
-      input.engineId === 'wengine-14102'
-        ? resolveReconciledSteelCushion({ refinement: input.refinement, runtime: boundRuntime })
-        : resolveCurrentFormulaWEngineContract({
-            stableId: input.engineId,
-            refinement: input.refinement,
-            specialtyMatches: true,
-            runtimePolicy: 'exclude_unobserved',
-            runtime: boundRuntime,
-          })
+      input.engineId === FIRST_PLUMAGE_STABLE_ID
+        ? (() => {
+            if (
+              source.source.provider !== 'nanoka' ||
+              source.source.rawSha256 !==
+                '006b40349cce50cff242630edec086520ff6f3f196da86e92d935c20794c77ff'
+            )
+              return {
+                status: 'unsupported' as const,
+                blockers: ['涅槃初翎来源 pin 已变化，须重新核对个人收益接线。'],
+              }
+            const resolved = resolveFirstPlumagePassive({
+              refinement: input.refinement,
+              specialtyMatches: true,
+              teamAnomalyCritWindowActive: boundRuntime.flags[FIRST_PLUMAGE_WINDOW_FLAG],
+            })
+            if (resolved.status !== 'supported') return resolved
+            return {
+              ...resolved,
+              exclusions: [],
+              // Permanent AP is already included in outOfCombatPanel's initial stats.
+              effects: resolved.effects
+                .filter((effect) => effect.stat === 'damage_bonus')
+                .map((effect) => ({
+                  kind: 'modifier',
+                  target: effect.target,
+                  stat: 'combat.dmg_.fire',
+                  value: effect.value,
+                })),
+            }
+          })()
+        : input.engineId === CAGE_OF_CONFINED_SIN_STABLE_ID
+          ? (() => {
+              if (
+                source.source.provider !== 'nanoka' ||
+                source.source.rawSha256 !==
+                  'd87697490b2748eca391d718e9937c7b44c8dc41960dff4b03af4e9041daebc4'
+              )
+                return {
+                  status: 'unsupported' as const,
+                  blockers: ['禁罪囚笼来源 pin 已变化，须重新核对个人收益接线。'],
+                }
+              const resolved = resolveCageOfConfinedSinPassive({
+                refinement: input.refinement,
+                specialtyMatches: true,
+                runtimePolicy: 'exclude_unobserved',
+                basicAttackHitWindowActive: boundRuntime.flags[CAGE_OF_CONFINED_SIN_WINDOW_FLAG],
+              })
+              if (resolved.status !== 'supported') return resolved
+              return {
+                ...resolved,
+                effects: resolved.effects.map((effect) => ({
+                  kind: 'modifier',
+                  target: effect.target,
+                  stat:
+                    effect.stat === 'crit_rate'
+                      ? 'combat.crit_'
+                      : effect.stat === 'attack_percent'
+                        ? 'combat.atk_'
+                        : 'combat.resIgn_.wind',
+                  value: effect.value,
+                })),
+              }
+            })()
+          : input.engineId === 'wengine-14102'
+            ? resolveReconciledSteelCushion({
+                refinement: input.refinement,
+                runtime: boundRuntime,
+              })
+            : resolveCurrentFormulaWEngineContract({
+                stableId: input.engineId,
+                refinement: input.refinement,
+                specialtyMatches: true,
+                runtimePolicy: 'exclude_unobserved',
+                runtime: boundRuntime,
+              })
     if (result.status === 'unsupported') blockers.push(...result.blockers)
     else if (
       result.source.formulaSha256 !== source.source.formulaSha256 ||
@@ -285,9 +286,17 @@ export function compileCurrentWEnginePersonalPlanningEffects(input: {
             stat,
           )
         const attribute = channel?.[2] ?? null
-        const application = channel ? directStats[`combat.${channel[1]}`] : directStats[stat]
+        const application = channel
+          ? directStats[`combat.${channel[1]}`]
+          : stat === 'combat.anomProf'
+            ? 'anomaly_proficiency_flat'
+            : directStats[stat]
         const effectPath =
-          typeof effect.target === 'string' && stat ? `${effect.target}.${stat}` : null
+          effect.kind === 'damage_event' && effect.owner === 'own'
+            ? 'own.damage_event'
+            : typeof effect.target === 'string' && stat
+              ? `${effect.target}.${stat}`
+              : null
         if (application === 'shield_percent' && !hasReviewedShieldConsumer32(input.agentId)) {
           exclude(key, '已解析护盾增益缺少该角色的有限护盾消费者。', [stat], effectPath)
           return
@@ -296,9 +305,20 @@ export function compileCurrentWEnginePersonalPlanningEffects(input: {
           input.engineId === 'wengine-13011' &&
           effect.target === 'team' &&
           application === 'energy_regen_percent'
+        // Half-Sugar Bunny grants these effects to all squad members including
+        // its wearer; the source resolver handles the conditional veil window.
+        const halfSugarSelfShare =
+          input.engineId === 'wengine-14134' &&
+          effect.target === 'team' &&
+          (stat === 'combat.atk_' || stat === 'combat.hp_' || stat === 'combat.crit_dmg_')
+        const enemyDefenseReduction =
+          effect.target === 'enemy' && application === 'defense_reduction'
         if (
           effect.kind !== 'modifier' ||
-          (effect.target !== 'own' && !transferableEnergy) ||
+          (effect.target !== 'own' &&
+            !transferableEnergy &&
+            !halfSugarSelfShare &&
+            !enemyDefenseReduction) ||
           !application
         ) {
           exclude(
@@ -323,7 +343,9 @@ export function compileCurrentWEnginePersonalPlanningEffects(input: {
           effectKey: key,
           providerAgentId: input.agentId,
           recipientAgentIds: [input.agentId],
-          receiverPath: null,
+          receiverPath: /^(combat|initial|final|common)\./.test(stat)
+            ? `${effect.target}.${stat}`
+            : null,
           damageType: null,
           action: action ?? null,
           attribute,
@@ -357,7 +379,10 @@ export function compileCurrentWEnginePersonalPlanningEffects(input: {
     version: currentWEnginePersonalPlanningEffectVersion,
     formulaContractHash: currentFormulaMechanicContractHash,
     sourceReconciliation: input.engineId === 'wengine-14102' ? steelCushionReconciliation : null,
-    runtimeInput: { member: input.member ?? null, runtime: input.runtime ?? null },
+    runtimeInput: {
+      member: input.member ?? null,
+      runtime: input.runtime ?? null,
+    },
     status: blockers.length ? ('unsupported' as const) : ('supported' as const),
     buckets:
       source &&

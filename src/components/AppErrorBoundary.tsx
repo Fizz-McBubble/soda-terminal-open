@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from 'react'
+import { playerErrorMessage } from '../application/playerErrorMessage'
 import './AppEntryState.css'
 
 type State = { error: Error | null }
@@ -18,8 +19,8 @@ export class AppErrorBoundary extends Component<{ children: ReactNode }, State> 
     if (this.state.error) {
       return (
         <main className="fatal-error" role="alert">
-          <h1>应用未能正常启动</h1>
-          <p>请重新加载页面后再试。此操作不会清除账户资料。</p>
+          <h1>页面暂时无法显示</h1>
+          <p>请重新加载页面。</p>
           <div className="app-entry-state__actions app-recovery-actions">
             <button className="button button--primary" onClick={() => window.location.reload()}>
               重新加载
@@ -27,7 +28,7 @@ export class AppErrorBoundary extends Component<{ children: ReactNode }, State> 
           </div>
           <details>
             <summary>错误详情</summary>
-            <code>{this.state.error.message}</code>
+            <p>{playerErrorMessage(this.state.error, '页面显示发生异常。')}</p>
           </details>
         </main>
       )

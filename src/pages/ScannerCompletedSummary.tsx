@@ -10,19 +10,21 @@ export function ScannerCompletedSummary({
   completedImportCount: number | null
 }) {
   if (snapshot.state !== 'completed') return null
+  if (!snapshot.summary)
+    return <p role="alert">结果摘要缺失，无法确认可导入范围。原结果保留，当前不能导入。</p>
   const averageRate = getAverageScannerRate(snapshot)
   return (
     <div className="scanner-web__summary" aria-label="驱动盘导入摘要">
       <article>
         <AlertTriangle aria-hidden="true" size={20} />
         <span>本次结果{averageRate == null ? '' : ` · 平均 ${averageRate} 张/分钟`}</span>
-        <strong>{snapshot.summary?.uniqueRecords ?? 0} 张</strong>
-        <small>可直接导入 {snapshot.summary?.reliable ?? 0} 张</small>
+        <strong>{snapshot.summary.uniqueRecords} 张</strong>
+        <small>可直接导入 {snapshot.summary.reliable} 张</small>
       </article>
       <article>
         <ShieldCheck aria-hidden="true" size={20} />
         <span>待校准</span>
-        <strong>{snapshot.summary?.needsReview ?? 0} 张</strong>
+        <strong>{snapshot.summary.needsReview} 张</strong>
         <small>确认导入前不会改动账户</small>
       </article>
       {completedImportCount !== null && (

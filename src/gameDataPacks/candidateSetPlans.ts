@@ -5,6 +5,8 @@ export type CandidateSetPlan = {
   pattern: '4+2' | '2+2+2'
   primarySetIds: string[]
   secondarySetIds: string[]
+  /** Source dependencies that must remain applicable before this branch reaches a solver. */
+  dependencyFieldPaths?: readonly ('build.drive_disc_sets' | 'build.team_bangboo_scenario')[]
   /** Keep the branch's prerequisites; compiling a candidate does not prove them satisfied. */
   sourceText?: string
   /** An explicitly adopted preference; missing means equal priority, never array position. */
@@ -24,7 +26,7 @@ export type CandidateSetPlan = {
       | { kind: 'wearer_action'; action: 'wearer_ex_special' }
       | {
           kind: 'teammate_specialty_and_action'
-          specialties: readonly ('attack' | 'rupture' | 'armorer')[]
+          specialties: readonly ('attack' | 'rupture' | 'armorer' | 'anomaly')[]
           action: 'wearer_ex_special' | 'team_quick_assist'
         }
   }

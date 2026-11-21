@@ -5,6 +5,7 @@ import {
   getCandidateWarehouseConstraint,
   getCandidateWarehouseConstraintForTeam,
 } from './candidateWarehouseConstraints'
+import { evaluateCandidateSetPlanEligibility } from './candidateSetPlanEligibility'
 
 describe('Nangong team candidate warehouse constraints', () => {
   it.each([
@@ -27,7 +28,33 @@ describe('Nangong team candidate warehouse constraints', () => {
       }
     },
   )
-  it('keeps both sourced Nangong recipes executable in the Promeia/Yuzuha team', () => {
+  it.each(['agent-astra', 'agent-sunna', 'agent-yuzuha'])(
+    'requires a real Quick Assist for the Astral Voice source branch with %s',
+    (support) => {
+      const memberIds = ['agent-miyabi', 'agent-nangong', support]
+      const constraint = getCandidateWarehouseConstraintForTeam('agent-nangong', { memberIds })!
+      const astral = constraint.setPlans!.find(plan => plan.primarySetIds.includes('set-astral-voice'))!
+      const alternative = constraint.setPlans!.find(plan => plan.primarySetIds.includes('set-phaethons-melody'))!
+      const eligibility = evaluateCandidateSetPlanEligibility
+      expect(astral).toMatchObject({
+        condition: {
+          sourceId: 'miyoushe-74153268-nangong-anomaly-support-astral-voice',
+          rule: { kind: 'teammate_specialty_and_action', specialties: ['anomaly'], action: 'team_quick_assist' },
+        },
+      })
+      expect(eligibility('agent-nangong', astral, { memberIds }).status).toBe('condition-unknown')
+      expect(eligibility('agent-nangong', astral, {
+        memberIds,
+        operationCoverage: { basis: 'final-candidate', teamQuickAssist: 'not-covered' },
+      }).status).toBe('condition-not-met')
+      expect(eligibility('agent-nangong', astral, {
+        memberIds,
+        operationCoverage: { basis: 'final-candidate', teamQuickAssist: 'verified' },
+      })).toMatchObject({ status: 'eligible', effectCoverage: 'unknown' })
+      expect(eligibility('agent-nangong', alternative, { memberIds }).status).toBe('unrestricted')
+    },
+  )
+  it('keeps both six-disc recipes while qualifying the one that needs a recorded Quick Assist', () => {
     const memberIds = ['agent-promeia', 'agent-nangong', 'agent-yuzuha']
     const constraint = getCandidateWarehouseConstraintForTeam('agent-nangong', { memberIds })!
     const recipes = [
@@ -67,7 +94,10 @@ describe('Nangong team candidate warehouse constraints', () => {
       expect(new Set(result.loadouts[0]?.discs.map((item) => item.disc.id)).size).toBe(6)
       expect(result.loadouts[0]?.discs).toHaveLength(6)
       expect(result.loadouts[0]?.setPattern).toBe('4+2')
-      expect(result.loadouts[0]?.degraded).toBe(false)
+      const needsQuickAssist = primary === 'set-astral-voice'
+      expect(result.loadouts[0]?.degraded).toBe(needsQuickAssist)
+      if (needsQuickAssist)
+        expect(result.loadouts[0]?.degradeReasons.join(' ')).toContain('完整、唯一三人队伍')
       expect(result.loadouts[0]?.discs.filter((item) => item.disc.setId === primary)).toHaveLength(
         4,
       )

@@ -4,6 +4,7 @@ import { getCurrentAgentEventContract } from './currentAgentMechanicContracts'
 import { stableContentHash } from '../gameDataPacks/types'
 import { currentGameDataSelection } from '../gameDataPacks/currentGameDataSelection'
 import { getPhoenixAscensionMaterialFacts33 } from './phoenixAscensionMaterials33'
+import { getSeverianAscensionMaterialFacts33 } from './severianAscensionMaterials33'
 
 type MaterialStep = {
   ascension: number
@@ -62,6 +63,10 @@ export function getAgentAscensionMaterialFacts(
   if (agentId === 'agent-phoenix')
     return currentGameDataSelection.gameVersion === '3.3'
       ? getPhoenixAscensionMaterialFacts33()
+      : null
+  if (agentId === 'agent-severian')
+    return currentGameDataSelection.gameVersion === '3.3'
+      ? getSeverianAscensionMaterialFacts33()
       : null
   const record = byAgentId.get(agentId)
   if (!record) return null

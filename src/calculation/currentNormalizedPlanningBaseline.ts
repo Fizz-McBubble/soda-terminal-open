@@ -13,6 +13,7 @@ import { getCurrentAgentDecisionMechanicContract } from './currentAgentDecisionM
 import {
   currentAgentEventContracts,
   currentAgentMechanicIdentity,
+  baseCurrentAgentMechanicIdentity,
   evaluateCurrentAgentTeamActivation,
   getCurrentAgentEventContract,
   resolveCurrentAgentEvent,
@@ -35,7 +36,8 @@ import { currentFormulaMechanicContractHash } from './currentFormulaMechanicCont
 export const currentNormalizedPlanningModelBoundary =
   '同一30秒固定事件比较基线；已审核的3.2来源动作优先，其余沿用具名代表动作。每秒倍率按声明秒数计量；只有明确准备态或事件条件进入效果公式，未观测条件显式排除，不等同实战循环。'
 
-const normalizedBaselineId = `soda-${currentAgentMechanicIdentity.gameVersion}-normalized-fixed-event-r1`
+// This baseline's formula review scope is independent of the current roster version.
+const normalizedBaselineId = `soda-${baseCurrentAgentMechanicIdentity.gameVersion}-normalized-fixed-event-r1`
 
 export const currentBangbooFixedEventObservation = Object.freeze({
   activeUseCount: 1 as const,
@@ -58,7 +60,7 @@ const normalizedSourcePackHash = stableContentHash({
 export const currentNormalizedPlanningBaseline = Object.freeze({
   schemaVersion: 'planning-baseline-v1' as const,
   baselineId: normalizedBaselineId,
-  gameVersion: currentAgentMechanicIdentity.gameVersion,
+  gameVersion: baseCurrentAgentMechanicIdentity.gameVersion,
   phaseId: 'normalized-fixed-event-comparison',
   declaredDurationSeconds: 30,
   bangbooFixedEventObservation: currentBangbooFixedEventObservation,
@@ -136,7 +138,10 @@ function representativeAction(
   for (const skill of preference) {
     const actions = new Map<string, typeof eventContract.eventContract.events>()
     for (const event of eventContract.eventContract.events.filter(
-      (item) => item.skill === skill && item.formulaProjection !== 'raw_only',
+      (item) =>
+        item.skill === skill &&
+        item.formulaProjection !== 'raw_only' &&
+        item.formulaBinding?.automaticPlanningEligible !== false,
     )) {
       const list = actions.get(event.actionId) ?? []
       actions.set(event.actionId, [...list, event])

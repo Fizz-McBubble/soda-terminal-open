@@ -3,6 +3,7 @@ import contract from '../scanner/scanFeedback.contract.json'
 import { withFeedbackTimeout } from '../scanner/feedbackRequest'
 
 const installerRules = contract.assetQuickReadInstaller
+const downloadRules = contract.installerDownload
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
 const attemptSchema = z
@@ -13,6 +14,26 @@ const attemptSchema = z
       .string()
       .refine((val) => (installerRules.attemptCodes as readonly string[]).includes(val)),
     elapsedMs: z.number().int().min(0).max(installerRules.durationMaxMs),
+  })
+  .strict()
+
+const downloadSchema = z
+  .object({
+    phase: z.string().refine((value) => downloadRules.phases.includes(value)),
+    bytesReceived: z.number().int().min(0).max(downloadRules.maxBytes),
+    attemptCount: z.number().int().min(0).max(downloadRules.maxAttempts),
+    waitReason: z.string().refine((value) => downloadRules.waitReasons.includes(value)),
+    httpStatus: z
+      .number()
+      .int()
+      .refine((value) => downloadRules.httpStatuses.includes(value))
+      .optional(),
+    expectedRelease: z
+      .object({
+        size: z.number().int().min(2).max(downloadRules.maxBytes),
+        sha256: z.string().regex(/^[a-f0-9]{64}$/u),
+      })
+      .strict(),
   })
   .strict()
 
@@ -33,12 +54,36 @@ const installerFeedbackSchema = z
       })
       .strict()
       .optional(),
+    download: downloadSchema.optional(),
     attempts: z.array(attemptSchema).max(installerRules.maxAttempts),
   })
   .strict()
   .superRefine((report, context) => {
+    if (report.code.startsWith('installer_download_') && report.download === undefined)
+      context.addIssue({
+        code: 'custom',
+        path: ['download'],
+        message: 'Missing browser download diagnostic context',
+      })
     const rules =
       report.tool === 'screen_scanner_installer' ? contract.screenScannerInstaller : installerRules
+    // Download versions follow the manifest; native installer versions stay explicitly allowlisted.
+    const versionPattern =
+      report.tool === 'asset_quick_read_installer' && report.download !== undefined
+        ? downloadRules.versionPattern
+        : rules.versionPattern
+    if (
+      report.download !== undefined &&
+      (report.stage !== 'prepare' ||
+        !report.code.startsWith('installer_download_') ||
+        report.attempts.length !== 0 ||
+        report.failure !== undefined)
+    )
+      context.addIssue({
+        code: 'custom',
+        path: ['download'],
+        message: 'Invalid browser download diagnostic context',
+      })
     if (report.failure !== undefined && report.tool !== 'asset_quick_read_installer')
       context.addIssue({
         code: 'custom',
@@ -46,7 +91,7 @@ const installerFeedbackSchema = z
         message: 'Unsupported installer failure evidence',
       })
     for (const [field, valid] of [
-      ['installerVersion', new RegExp(rules.versionPattern).test(report.installerVersion)],
+      ['installerVersion', new RegExp(versionPattern).test(report.installerVersion)],
       ['stage', (rules.stages as readonly string[]).includes(report.stage)],
       ['code', (rules.codes as readonly string[]).includes(report.code)],
       ['attempts', report.attempts.length <= rules.maxAttempts],

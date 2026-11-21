@@ -19,7 +19,9 @@ export function SelectedAgentAvatar({
   consumer: SelectedAgentAvatarConsumer
   className?: string
 }) {
-  const preferred = getVisualAsset('agent', agentId, 'interknot')
+  const preferred =
+    getVisualAsset('agent', agentId, 'interknot') ??
+    getVisualAsset('agent', agentId, 'social_avatar')
   const key = preferred ? visualSourceKey(preferred) : ''
   const [resolved, setResolved] = useState<{ key: string; available: boolean } | null>(null)
   const available = sessionVisualSources.has(key) || (resolved?.key === key && resolved.available)

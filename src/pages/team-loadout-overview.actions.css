@@ -200,9 +200,3 @@
     transition: none;
   }
 }
-
-.f5v-shell:where(:root[data-soda-motion='off'] .f5v-shell) .f5v-box-team-primary,
-.f5v-shell:where(:root[data-soda-motion='off'] .f5v-shell) .f5v-box-team-row-delete,
-.f5v-shell:where(:root[data-soda-motion='off'] .f5v-shell) .f5v-box-team-run-state button {
-  transition: none;
-}

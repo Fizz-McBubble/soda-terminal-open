@@ -114,7 +114,7 @@ const areas = Object.freeze([
       currentDataAuthorityProjection.currentBuildKnowledge.coverage.total
         ? 'ready'
         : 'needs_attention',
-    summary: `${currentDataAuthorityProjection.currentBuildKnowledge.coverage.guidanceFieldsTotal} 项建议中已有 ${currentDataAuthorityProjection.currentBuildKnowledge.coverage.guidanceFieldsReady} 项依据，其中 ${currentDataAuthorityProjection.currentBuildKnowledge.coverage.guidanceFieldsDirectCurrent} 项直接来自 3.2、${currentDataAuthorityProjection.currentBuildKnowledge.coverage.guidanceFieldsContinuityReviewed} 项为锁定 3.1→3.2 连续性复审；${currentDataAuthorityProjection.currentBuildKnowledge.coverage.guidanceReady}/${currentDataAuthorityProjection.currentBuildKnowledge.coverage.total} 名代理人的建议全部齐全。`,
+    summary: `${currentDataAuthorityProjection.currentBuildKnowledge.coverage.guidanceFieldsTotal} 项建议中已有 ${currentDataAuthorityProjection.currentBuildKnowledge.coverage.guidanceFieldsReady} 项依据，其中 ${currentDataAuthorityProjection.currentBuildKnowledge.coverage.guidanceFieldsDirectCurrent} 项为直接来源字段、${currentDataAuthorityProjection.currentBuildKnowledge.coverage.guidanceFieldsContinuityReviewed} 项为锁定来源的连续性复审，均按 ${currentDataAuthorityProjection.currentBuildKnowledge.gameVersion} 适用性登记；来源版本不等于适用版本。${currentDataAuthorityProjection.currentBuildKnowledge.coverage.guidanceReady}/${currentDataAuthorityProjection.currentBuildKnowledge.coverage.total} 名代理人的建议全部齐全。`,
     blockers:
       currentDataAuthorityProjection.currentBuildKnowledge.coverage.guidancePartial > 0
         ? [

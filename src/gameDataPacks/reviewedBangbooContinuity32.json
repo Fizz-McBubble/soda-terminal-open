@@ -3,7 +3,7 @@
   "targetVersion": "3.2",
   "baselineVersion": "3.1-phase-ii",
   "baselineCatalogSha256": "D93B9C651A5D58B9176EB3F7EF81A3DAC7463C3C39B3377DF9BE4F200CCD8E2E",
-  "baselineCatalogContentHash": "71ACF4A0754F975D27CAF88B74911F234ADAF93162495BB10BBA78946CED0A85",
+  "baselineCatalogContentHash": "1EDDA83A322195059F2EA3AA7450E3A962A3A066357430B5160F583EDBBC8074",
   "sourceObservationDate": "2026-09-30",
   "sourceKind": "release",
   "reviewedForVersion": "3.2-phase-ii",
@@ -92,7 +92,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-5b839b85",
+      "itemFingerprint": "fnv1a-d67e7f1f",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 2,
@@ -105,7 +105,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-5b839b85"
     },
     {
       "stableId": "bangboo-luckyboo",
@@ -117,7 +118,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-193c4e15",
+      "itemFingerprint": "fnv1a-1e3384bd",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 2,
@@ -130,7 +131,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-193c4e15"
     },
     {
       "stableId": "bangboo-exploreboo",
@@ -142,7 +144,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-cfc4b762",
+      "itemFingerprint": "fnv1a-c2a011d4",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 1,
@@ -155,7 +157,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-cfc4b762"
     },
     {
       "stableId": "bangboo-sumoboo",
@@ -167,7 +170,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-addef2e2",
+      "itemFingerprint": "fnv1a-d930442",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 1,
@@ -180,7 +183,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-addef2e2"
     },
     {
       "stableId": "bangboo-paperboo",
@@ -192,7 +196,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-e8624010",
+      "itemFingerprint": "fnv1a-f58d5bf6",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 2,
@@ -205,7 +209,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-e8624010"
     },
     {
       "stableId": "bangboo-bagboo",
@@ -217,7 +222,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-f39829b3",
+      "itemFingerprint": "fnv1a-f3f7f8b1",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 2,
@@ -230,7 +235,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-f39829b3"
     },
     {
       "stableId": "bangboo-cryboo",
@@ -242,7 +248,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-446efe27",
+      "itemFingerprint": "fnv1a-36735595",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 2,
@@ -255,7 +261,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-446efe27"
     },
     {
       "stableId": "bangboo-avocaboo",
@@ -267,7 +274,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-2c13e18e",
+      "itemFingerprint": "fnv1a-c2869894",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 1,
@@ -280,7 +287,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-2c13e18e"
     },
     {
       "stableId": "bangboo-boollseye",
@@ -292,7 +300,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-121152da",
+      "itemFingerprint": "fnv1a-3d45e2e8",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 2,
@@ -305,7 +313,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-121152da"
     },
     {
       "stableId": "bangboo-electroboo",
@@ -317,7 +326,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-b92aae1d",
+      "itemFingerprint": "fnv1a-81e23383",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 2,
@@ -330,7 +339,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-b92aae1d"
     },
     {
       "stableId": "bangboo-magnetiboo",
@@ -342,7 +352,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-abc0991",
+      "itemFingerprint": "fnv1a-e6d468af",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 1,
@@ -355,7 +365,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-abc0991"
     },
     {
       "stableId": "bangboo-booressure",
@@ -367,7 +378,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-e25b5c88",
+      "itemFingerprint": "fnv1a-635a8386",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 1,
@@ -380,7 +391,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-e25b5c88"
     },
     {
       "stableId": "bangboo-baddieboo",
@@ -392,7 +404,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-2d388589",
+      "itemFingerprint": "fnv1a-feea541f",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 2,
@@ -405,7 +417,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-2d388589"
     },
     {
       "stableId": "bangboo-overtimeboo",
@@ -417,7 +430,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-8e42c0dd",
+      "itemFingerprint": "fnv1a-10a5cb6f",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 1,
@@ -430,7 +443,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-8e42c0dd"
     },
     {
       "stableId": "bangboo-brawlerboo",
@@ -442,7 +456,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-cafb4886",
+      "itemFingerprint": "fnv1a-3e852378",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 3,
@@ -455,7 +469,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-cafb4886"
     },
     {
       "stableId": "bangboo-excaliboo",
@@ -467,7 +482,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-3e2da384",
+      "itemFingerprint": "fnv1a-37b32992",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 3,
@@ -480,7 +495,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-3e2da384"
     },
     {
       "stableId": "bangboo-knightboo",
@@ -492,7 +508,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-1a4aac65",
+      "itemFingerprint": "fnv1a-5cf78cb",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 2,
@@ -505,7 +521,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-1a4aac65"
     },
     {
       "stableId": "bangboo-bild-n-boolok",
@@ -517,7 +534,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-77376155",
+      "itemFingerprint": "fnv1a-91a71a6f",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 2,
@@ -530,7 +547,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-77376155"
     },
     {
       "stableId": "bangboo-booltergeist",
@@ -542,7 +560,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-186c8065",
+      "itemFingerprint": "fnv1a-763932eb",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 2,
@@ -555,7 +573,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-186c8065"
     },
     {
       "stableId": "bangboo-sharkboo",
@@ -567,7 +586,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-b224ed15",
+      "itemFingerprint": "fnv1a-dda6118f",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 3,
@@ -580,7 +599,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-b224ed15"
     },
     {
       "stableId": "bangboo-safety",
@@ -592,7 +612,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-5bab28a5",
+      "itemFingerprint": "fnv1a-d3ce46d7",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 2,
@@ -605,7 +625,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-5bab28a5"
     },
     {
       "stableId": "bangboo-devilboo",
@@ -617,7 +638,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-e390bf64",
+      "itemFingerprint": "fnv1a-96cc8c40",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 3,
@@ -630,7 +651,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-e390bf64"
     },
     {
       "stableId": "bangboo-butler",
@@ -642,7 +664,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-244ee569",
+      "itemFingerprint": "fnv1a-c32f440b",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 2,
@@ -655,7 +677,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-244ee569"
     },
     {
       "stableId": "bangboo-amillion",
@@ -667,7 +690,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-ac80688c",
+      "itemFingerprint": "fnv1a-3a9fc15a",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 2,
@@ -680,7 +703,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-ac80688c"
     },
     {
       "stableId": "bangboo-rocketboo",
@@ -692,7 +716,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-489aae6e",
+      "itemFingerprint": "fnv1a-9d64b166",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 2,
@@ -705,7 +729,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-489aae6e"
     },
     {
       "stableId": "bangboo-plugboo",
@@ -717,7 +742,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-fc110fb1",
+      "itemFingerprint": "fnv1a-bd7ba883",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 4,
@@ -730,7 +755,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-fc110fb1"
     },
     {
       "stableId": "bangboo-resonaboo",
@@ -742,7 +768,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-95ec1a42",
+      "itemFingerprint": "fnv1a-3c6bc04c",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 3,
@@ -755,7 +781,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-95ec1a42"
     },
     {
       "stableId": "bangboo-biggest-fan",
@@ -767,7 +794,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-bd39ae59",
+      "itemFingerprint": "fnv1a-d9fcc37f",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 2,
@@ -780,7 +807,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-bd39ae59"
     },
     {
       "stableId": "bangboo-red-moccus",
@@ -792,7 +820,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-991ddb0b",
+      "itemFingerprint": "fnv1a-88a1f561",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 2,
@@ -805,7 +833,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-991ddb0b"
     },
     {
       "stableId": "bangboo-officer-cui",
@@ -817,7 +846,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-77152e74",
+      "itemFingerprint": "fnv1a-7882d0f6",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 2,
@@ -830,7 +859,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-77152e74"
     },
     {
       "stableId": "bangboo-bangvolver",
@@ -842,7 +872,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-94ba090d",
+      "itemFingerprint": "fnv1a-aad6ff09",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 3,
@@ -855,7 +885,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-94ba090d"
     },
     {
       "stableId": "bangboo-agent-gulliver",
@@ -867,7 +898,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-d0b762be",
+      "itemFingerprint": "fnv1a-263053e6",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 2,
@@ -880,7 +911,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-d0b762be"
     },
     {
       "stableId": "bangboo-snap",
@@ -892,7 +924,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-ed4437b9",
+      "itemFingerprint": "fnv1a-1fd24d73",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 2,
@@ -905,7 +937,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-ed4437b9"
     },
     {
       "stableId": "bangboo-robin",
@@ -917,7 +950,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-d62b8c84",
+      "itemFingerprint": "fnv1a-d78f472a",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 4,
@@ -930,7 +963,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-d62b8c84"
     },
     {
       "stableId": "bangboo-belion",
@@ -942,7 +976,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-565c4c99",
+      "itemFingerprint": "fnv1a-a65c3abb",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 2,
@@ -955,7 +989,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-565c4c99"
     },
     {
       "stableId": "bangboo-miss-esme",
@@ -967,7 +1002,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-66ab6dab",
+      "itemFingerprint": "fnv1a-a455a421",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 2,
@@ -980,7 +1015,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-66ab6dab"
     },
     {
       "stableId": "bangboo-mercury",
@@ -992,7 +1028,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-8c434230",
+      "itemFingerprint": "fnv1a-60dc6036",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 2,
@@ -1005,7 +1041,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-8c434230"
     },
     {
       "stableId": "bangboo-birkblick",
@@ -1017,7 +1054,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-bb208d3c",
+      "itemFingerprint": "fnv1a-add6ca82",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 3,
@@ -1030,7 +1067,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-bb208d3c"
     },
     {
       "stableId": "bangboo-sprout",
@@ -1042,7 +1080,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-ef20568d",
+      "itemFingerprint": "fnv1a-9f14ea43",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 3,
@@ -1055,7 +1093,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-ef20568d"
     },
     {
       "stableId": "bangboo-ultra-jake",
@@ -1067,7 +1106,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_field_continuity",
-      "itemFingerprint": "fnv1a-b0f7dc27",
+      "itemFingerprint": "fnv1a-6d899a09",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 2,
@@ -1080,7 +1119,8 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-b0f7dc27"
     },
     {
       "stableId": "bangboo-ariel",
@@ -1092,7 +1132,7 @@
       },
       "targetVersion": "3.2",
       "status": "reviewed_current_fields_with_text_change",
-      "itemFingerprint": "fnv1a-7be72607",
+      "itemFingerprint": "fnv1a-3a6d7e31",
       "numericFieldsVerified": 11,
       "ascensionCapsVerified": 6,
       "skillPropertyRecordsVerified": 2,
@@ -1128,12 +1168,16 @@
       "consumer": {
         "releaseState": "released",
         "accountOwnable": true
-      }
+      },
+      "historicalItemFingerprint": "fnv1a-7be72607"
     }
   ],
   "extra55098": {
     "status": "excluded_from_existing_scope_ownability_unproven",
     "sourceRecordPresent": true,
     "reason": "Both release extracts carry duplicate Eous naming/model references; record existence and aliasing do not prove ownability. No production identity added/deleted."
-  }
+  },
+  "historicalBaselineCatalogContentHash": "71ACF4A0754F975D27CAF88B74911F234ADAF93162495BB10BBA78946CED0A85",
+  "ascensionSupplementScope": "Breakthrough critical fields are independently bound to archived 3.2 and 3.3 source details; original historical review is unchanged.",
+  "ascensionSupplementFingerprint": "fnv1a-8648cc9a"
 }

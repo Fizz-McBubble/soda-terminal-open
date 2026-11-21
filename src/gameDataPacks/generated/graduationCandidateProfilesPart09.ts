@@ -9,14 +9,14 @@ export const graduationCandidateProfilesPart09 = [
     agentId: 'agent-trigger',
     playerName: '「扳机」',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '1.6',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F3',
     objectiveTopology: 'O4',
     configHash: '32d8f8a5a4d3f81aede5c96a2f04190730be6b0b6c858aa7aa0ac32c6a248352',
-    inputHash: '5664d03834c570ccc19c3bb84a6ca5cddbfdc6c9680526f5d461509a0325712f',
+    inputHash: 'ef5b8e2551cb374f338559cdbc04657ed512a90e16fb1d30cd39bba7991438d0',
     inputReferences: [
       {
         record_id: 'ENTITY_FACTS:fact-trigger-core-levels:core.levels:batch-agents-1.6-r3l',
@@ -117,7 +117,7 @@ export const graduationCandidateProfilesPart09 = [
       deterministic: true,
       configHash: 'd5670b9a57e0513cbfd0ee2aca289df79b6f3c04548ccb129bf03b7dd2c82bc2',
     },
-    profileHash: '7fbdd86d50043e06d73d1b4fd42d7174d936a9fd682e8dfbf5388b8e25a3d764',
+    profileHash: 'b9b46f7e5602d2475ee9e6b212457a4a9adfd885e71bcf8041f91f2f6b5cbb0e',
   },
   {
     schema: 'soda-graduation-profile/v1',
@@ -128,14 +128,14 @@ export const graduationCandidateProfilesPart09 = [
     agentId: 'agent-soldier-0-anby',
     playerName: '零号·安比',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '1.6',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F2',
     objectiveTopology: 'O5',
     configHash: '7f0a6ce389cfdfdafcd9c3be781a7559cbfdcbf2eacaaf6d273d649e1c11200b',
-    inputHash: '75ababfaf4e925e87fd30c42e3ebf8ed8b9769e88a34ab63bdb51e700d7c0735',
+    inputHash: 'e15e814db7ffa41da3c9fa8e5f72bbea51a4663c64a97cd07429007386c6ea01',
     inputReferences: [
       {
         record_id: 'ENTITY_FACTS:fact-soldier-0-anby-atk:stats.lv60.raw.atk:batch-agents-1.6-r3l',
@@ -248,7 +248,7 @@ export const graduationCandidateProfilesPart09 = [
       deterministic: true,
       configHash: 'b5da82ea63c07d3724c1650f1f04a28fe2d395499806a916889d624475c73f83',
     },
-    profileHash: '5d8da81b4c77d1b5325411b550c1c3c031ed90092357613c6cd90235e96dbdc3',
+    profileHash: '362d1e31fca7977b3a424441aed9c4d133a0cf11618dd016f7e77271a531158c',
   },
   {
     schema: 'soda-graduation-profile/v1',
@@ -259,14 +259,14 @@ export const graduationCandidateProfilesPart09 = [
     agentId: 'agent-evelyn',
     playerName: '伊芙琳',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '1.5',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F2',
     objectiveTopology: 'O5',
     configHash: '013fa2e8bf1cdb81d5bbfd2dbae2b9e109dbb4dfd15b59d895bec9524339e765',
-    inputHash: '122b2544e2fd8ca00455e7663e895dd022a00601a02ad1b471f5b7342bcd1e71',
+    inputHash: 'd1f8c70ad244dfd9df98697684ef2e86650f6b8ae18555d354d1ac4c4df30ec3',
     inputReferences: [
       {
         record_id: 'ENTITY_FACTS:fact-evelyn-atk:stats.lv60.raw.atk:batch-agents-1.5-r3m',
@@ -379,6 +379,6 @@ export const graduationCandidateProfilesPart09 = [
       deterministic: true,
       configHash: 'b02d3cd5b1cb7d749c408a21398aebb6246ba0268736ca4f44cf4974b442ff40',
     },
-    profileHash: '7a5615f695e115e44f164b8b2b37997d4d6469d4443edfb3b18ec653070cde00',
+    profileHash: 'f9b214f6234aecd3b44a15e851ad99175dc32dc8f5eb1172461cd727e198ce6c',
   },
 ] as const

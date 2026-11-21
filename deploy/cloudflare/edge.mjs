@@ -4,7 +4,9 @@ import { createScanFeedbackReceiver } from './scan-feedback.mjs'
 import { createInstallerDownload, installerPath } from './scanner-installer.mjs'
 import {
   createAssetQuickReadInstallerDownload,
+  createAssetQuickReadInstallerReleaseDownload,
   assetQuickReadInstallerPath,
+  assetQuickReadInstallerReleasePath,
 } from './asset-quick-read-installer.mjs'
 
 const reviewedImageUrls = new Set(Object.values(reviewed32MediaUrls))
@@ -79,6 +81,10 @@ const usageOperationCategories = new Set([
   'plan_save',
 ])
 const usageOutcomes = new Set(['success', 'failure', 'cancelled', 'incomplete'])
+// The current pair is 37 + 24 = 61 range requests at the 4 MiB client grid.
+// 192 preserves up to three complete retrying cycles inside the same minute,
+// while the download handler separately caps concurrent upstream streams at 32.
+export const downloadRequestBudgetPerMinute = 192
 function usageRecord(payload, release) {
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return null
   if (
@@ -171,7 +177,12 @@ export function createEdge({
   feedbackConcurrency = 4,
   feedbackPerMinute = 60,
   feedbackStore = undefined,
-  sourceLimits = { usage: 60, feedback: 12, image: 600, download: 60 },
+  sourceLimits = {
+    usage: 60,
+    feedback: 12,
+    image: 600,
+    download: downloadRequestBudgetPerMinute,
+  },
   sourceMaxEntries = 4096,
 } = {}) {
   // Small per-isolate abuse brake, not global DDoS protection. Cloudflare overwrites
@@ -215,9 +226,12 @@ export function createEdge({
   })
   const installerDownload = createInstallerDownload({ fetcher })
   const assetQuickReadDownload = createAssetQuickReadInstallerDownload({ fetcher })
+  const assetQuickReadReleaseDownload = createAssetQuickReadInstallerReleaseDownload()
   return {
     async fetch(request, env, ctx) {
       const url = new URL(request.url)
+      if (url.pathname === assetQuickReadInstallerReleasePath)
+        return assetQuickReadReleaseDownload(request)
       if (url.pathname === installerPath || url.pathname === assetQuickReadInstallerPath) {
         if (['GET', 'HEAD'].includes(request.method)) {
           const limited = sourceLimit(request, 'download')

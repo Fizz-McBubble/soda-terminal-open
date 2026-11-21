@@ -280,6 +280,41 @@ export function resolveCurrentFormulaWEngineContract(input: unknown) {
     params,
     parsed.data.runtimePolicy ?? 'strict',
   )
+  // The Chinese passive specifies all units attacking the marked target.
+  // The 3.3.4 Rina log attributes R5 20%..39.8% AddedDamageRatio to Seed's hits.
+  // Keep the source's additive DMG bucket, refinement table and activation clock.
+  if (result.status === 'supported' && item.stableId === 'wengine-14121') {
+    if (
+      item.source.formulaSha256 !== 'DAE634CB32FAD270CE2CB2EF625137A47131B0A95298B1FDE2AEC8C4AE776C20' ||
+      item.effects.length !== 1 || item.effects[0]?.kind !== 'modifier_effect' ||
+      item.effects[0].path !== 'own.combat.common_dmg_'
+    ) return unsupported('啜泣摇篮的目标或倍率来源已变化。')
+    for (const effect of result.outputs) effect.target = 'team'
+  }
+  // The locked source places +100% CR inside customDmg(), not on the
+  // equipper's ordinary attacks. The legacy extractor flattened that nested
+  // modifier. Restore its owner here so every consumer gets the same scope.
+  if (result.status === 'supported' && item.stableId === 'wengine-13112') {
+    if (
+      item.source.formulaSha256 !==
+        '262A80306CCAC4D3BFE672929D83D6D6F9B30392698760CDA4A173CA120AFC2A' ||
+      item.effects[1]?.kind !== 'damage_effect' ||
+      item.effects[2]?.kind !== 'modifier_effect' ||
+      item.effects[2].path !== 'own.combat.crit_' ||
+      item.effects[2].value.kind !== 'constant' ||
+      item.effects[2].value.value !== 1
+    )
+      return unsupported('比格气缸的独立伤害作用域来源已变化。')
+    result.outputs = result.outputs.flatMap((effect) => {
+      if (effect.kind === 'modifier' && effect.stat === 'combat.crit_' && effect.value === 1)
+        return []
+      return [
+        effect.kind === 'damage_event'
+          ? { ...effect, critRate: 1, sourceScope: 'custom_damage_event' }
+          : effect,
+      ]
+    })
+  }
   return result.status === 'unsupported'
     ? result
     : {

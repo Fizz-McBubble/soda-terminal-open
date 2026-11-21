@@ -1,7 +1,6 @@
 import { TeamExecutionGraduationReference } from './TeamExecutionGraduationReference'
-import { ExplanationPopover } from '../components/ExplanationPopover'
 import { TeamExecutionAttributeTable } from './TeamExecutionAttributeTable'
-import { detailedTeamAttributeRows, visibleTeamAttributeRows } from './teamExecutionAttributeRows'
+import { visibleTeamAttributeRows } from './teamExecutionAttributeRows'
 import type { TeamExecutionAttributePanel } from './teamExecutionAttributePanel'
 
 /** Reuses the local field identities while preserving public projection boundaries. */
@@ -10,11 +9,19 @@ export function PublicTeamAttributeInspector({
   agentId,
   accountId,
   panel,
+  matchedAttributeKeys,
+  selectedAttributeKey,
+  onSelectAttribute,
+  onDeselectAttribute,
 }: {
   agentName: string
   agentId?: string
   accountId?: string
   panel: TeamExecutionAttributePanel | null
+  matchedAttributeKeys?: ReadonlySet<string>
+  selectedAttributeKey?: string | null
+  onSelectAttribute?: (keyOrLabel: string) => void
+  onDeselectAttribute?: () => void
 }) {
   if (!panel) {
     return (
@@ -40,23 +47,6 @@ export function PublicTeamAttributeInspector({
           <h3>角色详细属性</h3>
         </div>
         <div className="team-execution__attribute-actions">
-          {panel.rows.length ? (
-            <ExplanationPopover
-              key={`${accountId ?? ''}:${agentId ?? agentName}`}
-              label="查看完整面板"
-              title="角色完整面板"
-              closeLabel="关闭完整面板"
-              className="team-execution__more-attributes"
-            >
-              <TeamExecutionAttributeTable
-                rows={detailedTeamAttributeRows(panel.rows)}
-                label={`${agentName}完整面板`}
-                accountLabel={accountLabel}
-                proposedLabel={proposedLabel}
-                hasFinalPanel={panel.source.current.status === 'exact'}
-              />
-            </ExplanationPopover>
-          ) : null}
           <TeamExecutionGraduationReference
             panel={panel}
             identity={`${accountId ?? ''}:${agentId ?? agentName}`}
@@ -80,6 +70,10 @@ export function PublicTeamAttributeInspector({
         accountLabel={accountLabel}
         proposedLabel={proposedLabel}
         hasFinalPanel={panel.source.current.status === 'exact'}
+        matchedKeys={matchedAttributeKeys}
+        selectedKey={selectedAttributeKey}
+        onSelectRow={onSelectAttribute}
+        onDeselect={onDeselectAttribute}
       />
       {!panel.rows.some((row) => row.targetStatus !== 'missing') ? (
         <p className="team-execution__attribute-notes">暂无可量化的毕业推荐。</p>

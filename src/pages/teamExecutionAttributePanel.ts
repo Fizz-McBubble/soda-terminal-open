@@ -16,6 +16,7 @@ import {
   type SourceBoundAttackSupport,
 } from '../calculation/sourceBoundAgentSupport'
 import { getCharacterPanelFields } from '../application/characterPanelFields'
+import { developmentBuildContext } from '../application/developmentBuildContext'
 import {
   characterPanelLabels,
   createAgentDevelopmentWorkbenchViewModel,
@@ -182,6 +183,7 @@ function hasPriority(direction: readonly string[], label: string) {
 export function createTeamExecutionAttributePanel(input: {
   agent: RosterAgent
   member: TeamExecutionMember
+  equippedDiscIds?: readonly string[]
   discs: readonly DriveDisc[]
   wEngines?: AccountRoster['wEngines']
   memberIds?: readonly string[]
@@ -218,24 +220,23 @@ export function createTeamExecutionAttributePanel(input: {
     mainStatGuidance?.contextualApplicability && mainStatGuidance.value !== null
       ? mainStatGuidance
       : null
-  const targetField = getCurrentBuildTargetPanel(input.agent.agentId, buildContext)
-  const targetStatus = sourceStatus(targetField?.status)
+  const equippedDiscIds = input.equippedDiscIds ?? input.member.current.discIds
   const currentEngine = wEngineResolution.current
   const currentProjectionAgent = agentWithWEngine(input.agent, currentEngine)
   const outOfCombatPanel = createAgentDevelopmentPanelProjection({
     agent: currentProjectionAgent,
     discs: [...input.discs],
-    planDiscIds: input.member.current.discIds,
+    planDiscIds: [...equippedDiscIds],
   }).result
   const outOfCombatWorkbench = createAgentDevelopmentWorkbenchViewModel({
     agent: input.agent,
     profile,
     activePlan: {
       name: 'Team Execution current out-of-combat',
-      warehouseRefs: [...input.member.current.discIds],
+      warehouseRefs: [...equippedDiscIds],
     },
     discs: [...input.discs],
-    targetPanel: targetField ? { value: targetField.value, status: targetField.status } : null,
+    targetPanel: null,
     panel: outOfCombatPanel,
   })
   const engine = resolveSuggestedWEngineParameters(
@@ -257,10 +258,17 @@ export function createTeamExecutionAttributePanel(input: {
           }
         : { id: null, name: null, level: null, refinement: null },
   }
+  const targetContext = { ...developmentBuildContext(projectedAgent), agentId: input.agent.agentId }
+  const targetField = getCurrentBuildTargetPanel(input.agent.agentId, {
+    ...buildContext,
+    ...targetContext,
+  })
+  const targetStatus = sourceStatus(targetField?.status)
   const panel = createAgentDevelopmentPanelProjection({
     agent: projectedAgent,
     discs: [...input.discs],
     planDiscIds: suggested.discIds,
+    planWEngine: hasSupportedEngine && engine ? projectedAgent.wEngineDetails : undefined,
   }).result
   const workbench = createAgentDevelopmentWorkbenchViewModel({
     agent: projectedAgent,
@@ -268,6 +276,7 @@ export function createTeamExecutionAttributePanel(input: {
     activePlan: { name: 'Team Execution suggested', warehouseRefs: [...suggested.discIds] },
     discs: [...input.discs],
     targetPanel: targetField ? { value: targetField.value, status: targetField.status } : null,
+    targetContext,
     panel,
   })
   const currentStatus: TeamExecutionAttributeCurrentStatus =
@@ -356,9 +365,9 @@ export function createTeamExecutionAttributePanel(input: {
       ? '毕业推荐与当前局外面板属于同一版本；仅量化字段会标出低于推荐值。'
       : targetField?.conditions.length
         ? `毕业推荐适用条件：${displayTargetConditions(targetField.conditions)}。条件尚未逐项核对，不标记差距。`
-        : '毕业推荐已来源化，但当前局外面板版本无法证明可比；不标记差距。'
+        : '已有毕业目标参考，但当前局外面板版本无法证明可比；不标记差距。'
     : priority.length
-      ? '暂无同版本量化毕业推荐；保留来源化重点属性方向，不对毕业状态作判断。'
+      ? '暂无同版本量化毕业推荐；保留已录入的重点属性方向，不对毕业状态作判断。'
       : '暂无同版本量化毕业推荐或重点属性方向。'
   return {
     availability,
@@ -390,7 +399,7 @@ export function createTeamExecutionAttributePanel(input: {
         status: outOfCombatStatus,
         panelVersion: currentPanelData.version,
         gameVersion: exactGameVersion,
-        discIds: [...input.member.current.discIds],
+        discIds: [...equippedDiscIds],
         wEngineId: currentEngine?.engineId ?? null,
         reason:
           outOfCombatPanel.status === 'unsupported' ? (outOfCombatPanel.reason ?? null) : null,

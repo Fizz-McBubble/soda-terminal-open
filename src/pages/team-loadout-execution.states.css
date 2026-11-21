@@ -1,7 +1,26 @@
 .team-execution__member-slot > button[role='tab'].is-selected {
   color: var(--soda-text);
-  background: color-mix(in srgb, var(--soda-accent) 8%, #fff);
+  background-color: color-mix(in srgb, var(--soda-accent) 12%, var(--soda-surface));
+  background-image: linear-gradient(115deg, transparent 68%, rgb(112 90 158 / 8%) 68%);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--soda-accent) 60%, var(--soda-line));
+}
+
+.team-execution__member-slot > button[role='tab']:not(.is-selected):is(:hover, :focus-visible) {
+  background-color: var(--soda-surface-raised);
+  color: var(--soda-text);
+}
+
+.team-execution__member-slot > button[role='tab'].is-selected .team-execution__member-name {
+  color: var(--soda-accent-ink);
+}
+
+.team-execution__member-portrait {
+  transition: transform var(--soda-motion-fast) var(--soda-ease-out);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .team-execution__member-slot > button[aria-selected='true'] .team-execution__member-portrait {
+    transform: scale(1.06);
+  }
 }
 
 .team-execution__top-rail {
@@ -28,16 +47,14 @@
   gap: 3px;
 }
 
-.team-execution__shared-disc-action {
-  padding-inline: 9px;
-  color: var(--text-muted, #706582);
-  font-size: 11px;
-  text-align: right;
+.team-execution__shared-disc .development-disc-card__slot-action {
+  margin-inline-start: auto;
+  color: #78501e;
+  font-size: var(--soda-type-meta);
 }
 
-.team-execution__shared-disc.is-change > .team-execution__shared-disc-action,
-.team-execution__shared-disc.is-borrow > .team-execution__shared-disc-action {
-  color: #926132;
+.team-execution__shared-disc.is-borrow .development-disc-card__slot-action {
+  color: var(--soda-accent-ink);
 }
 
 @container soda-viewport (min-width: 1321px) and (min-height: 840px) and (max-height: 940px) {

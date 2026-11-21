@@ -9,14 +9,14 @@ export const graduationCandidateProfilesPart15 = [
     agentId: 'agent-ellen',
     playerName: '艾莲',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '1.0',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F2',
     objectiveTopology: 'O5',
     configHash: '2e46a436876c194a05e0f7bb40cf9da4477fefc240c5e504ce08d9161e64b7cd',
-    inputHash: 'f0ade7881430695e1cd4d736e856638f1eb955e058f2568efe679de1024ed620',
+    inputHash: 'a185b6d40f5dd8ef88ea5e614e7e301dbfc20e31206c8ca0830631189858f01d',
     inputReferences: [
       {
         record_id: 'ENTITY_FACTS:fact-r3r2-ellen-atk:stats.lv60.raw.atk:batch-agents-1.0-b-r3r2',
@@ -130,7 +130,7 @@ export const graduationCandidateProfilesPart15 = [
       deterministic: true,
       configHash: 'b02f05ab318ff8354120eccb2f58eb8e963c104fb2881863f89d92b0a5f9f786',
     },
-    profileHash: 'fe8d3355e02f2c2c1bf9f7ce1cf22777cbbc9218ae024e1d0a1061c2f7683423',
+    profileHash: 'a5f058a3c1e694aeb268ba1cb2fc837252f81980ac480ab6a4179bc484b0cbc0',
   },
   {
     schema: 'soda-graduation-profile/v1',
@@ -141,14 +141,14 @@ export const graduationCandidateProfilesPart15 = [
     agentId: 'agent-rina',
     playerName: '丽娜',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '1.0',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F7',
     objectiveTopology: 'O4',
     configHash: '9a93f91136acc2d99df235319764e3ea25dcb24732d6d76123fccea6450903e4',
-    inputHash: 'dd625772d699cd8b7fda0ecf014c9b9fc7d9e11ad0f19dd9809c65a6918dbeb5',
+    inputHash: '080c2736a8abb46ca737882414de233888af7d6d7925dd33e006daa02ce14f4b',
     inputReferences: [
       {
         record_id:
@@ -256,7 +256,7 @@ export const graduationCandidateProfilesPart15 = [
       deterministic: true,
       configHash: '66fde1f457b2b43f9082a97f9b56ba5446c866e4e47d703640b1a6ec79966c03',
     },
-    profileHash: '3d88fc91012b8a860711cd62fcdb4af5e9eb24cb16184777335cd90217730c09',
+    profileHash: '15b72a44bd7134d9ef53c2ffcb135ffaf0858af84ff62220634ce984c8a41601',
   },
   {
     schema: 'soda-graduation-profile/v1',
@@ -267,14 +267,14 @@ export const graduationCandidateProfilesPart15 = [
     agentId: 'agent-manato',
     playerName: '狛野真斗',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '2.3',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F6',
     objectiveTopology: 'O3',
     configHash: 'ca8bc9d3eab965daabe732c48589753dd4ad4fa2786c9998e3ece03a44f1cab9',
-    inputHash: 'fbd5afce9ccb598827fc5db0322b1391eb5fbee25c2c37aab46500d1253d56a3',
+    inputHash: 'c9dc62ef04d84ed6ceaaa0f8516808273bd27afa17b345bce2520b3d4dfbec6c',
     inputReferences: [
       {
         record_id: 'ENTITY_FACTS:fact-manato-core-levels:core.levels:batch-agents-2.3-r3g',
@@ -375,6 +375,6 @@ export const graduationCandidateProfilesPart15 = [
       deterministic: true,
       configHash: '6ef0ac2d3dca62eae62535f51a77195651a78a742e94dc0adf26668eeaabde6c',
     },
-    profileHash: '930f69e2027fb8def1517141cec406cfa7dc8c2c1c94c535f6af833fd57f7577',
+    profileHash: '1162e91bea14f879364ad8a089ca38bb14000706b4dabde0b68b6fdf1df6bfa2',
   },
 ] as const

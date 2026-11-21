@@ -99,6 +99,24 @@ export function projectCommunitySourceText(source, filename) {
   return result
 }
 
-export function hasPrivateCommunityLocator(text) {
-  return privateLocator.test(text)
+export function hasPrivateCommunityLocator(text, filename = '') {
+  if (!privateLocator.test(text)) return false
+  if (!/\.(?:js|mjs|cjs)$/u.test(filename)) return true
+  // In minified JavaScript a ternary colon can immediately precede a regex literal.
+  // Only exempt a drive-like match crossing that actual regex-token boundary;
+  // paths in strings, comments, regex bodies and malformed input still fail.
+  const syntax = ts.createSourceFile(filename, text, ts.ScriptTarget.Latest, true, ts.ScriptKind.JS)
+  if (syntax.parseDiagnostics.length) return true
+  const regexStarts = new Set()
+  const visit = (node) => {
+    if (ts.isRegularExpressionLiteral(node)) regexStarts.add(node.getStart(syntax))
+    ts.forEachChild(node, visit)
+  }
+  visit(syntax)
+  for (const match of text.matchAll(
+    new RegExp(privateLocator.source, `${privateLocator.flags}g`),
+  )) {
+    if (!/^[A-Za-z]:\/$/u.test(match[0]) || !regexStarts.has(match.index + 2)) return true
+  }
+  return false
 }

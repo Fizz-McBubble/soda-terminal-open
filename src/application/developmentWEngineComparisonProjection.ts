@@ -88,7 +88,14 @@ export function projectDevelopmentWEngineComparison(input: {
   agentId: string
   inputFingerprint: string
   discs: readonly DriveDisc[]
-  query: DevelopmentCandidateAlternativesQuery
+  query: Pick<
+    DevelopmentCandidateAlternativesQuery,
+    | 'wEngineComparison'
+    | 'scenarioSelection'
+    | 'eventConditionDeclarationsByAgentId'
+    | 'resourceGrantDeclaration32'
+    | 'candidateParametersByRank'
+  >
   evaluator: DevelopmentValueBenchmarkEvaluator
 }): DevelopmentWEngineComparisonDto | undefined {
   const selection = input.query.wEngineComparison

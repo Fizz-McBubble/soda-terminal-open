@@ -45,6 +45,7 @@ export function enrichRetentionEvidence(input: {
   rules: GameRules
   policy: QualityPolicy
   mainFit: Applicability
+  recommendationSetFit: Applicability
   twoPieceFit: Applicability
   fourPieceFit: Applicability
   setFit: Applicability
@@ -54,7 +55,18 @@ export function enrichRetentionEvidence(input: {
   remainingUnlocks?: number
   normalizationInputStats?: readonly string[]
 }) {
-  const { disc, profile, set, rules, policy, mainFit, twoPieceFit, fourPieceFit, setFit } = input
+  const {
+    disc,
+    profile,
+    set,
+    rules,
+    policy,
+    mainFit,
+    recommendationSetFit,
+    twoPieceFit,
+    fourPieceFit,
+    setFit,
+  } = input
   const native = rules.rarities[disc.rarity]!
   const blockers: RetentionBlocker[] = []
   const add = (
@@ -74,7 +86,7 @@ export function enrichRetentionEvidence(input: {
       sourceIds,
     })
   }
-  const applicable = mainFit !== 'incompatible' && setFit !== 'incompatible'
+  const applicable = mainFit !== 'incompatible' && recommendationSetFit !== 'incompatible'
   if (applicable) {
     const remainingUnlocks =
       input.remainingUnlocks ??
@@ -180,6 +192,35 @@ export function enrichRetentionEvidence(input: {
             )
       }
     }
+    if (recommendationSetFit === 'conditional') {
+      const conditions = profile.conditionEvidence ?? []
+      if (
+        !profile.branchSetPlan ||
+        (profile.branchSetPlan.pattern === '4+unconfirmed' &&
+          !profile.branchSetPlan.primarySetIds.includes(disc.setId))
+      )
+        add(
+          `recommendedSet.${disc.setId}`,
+          `${profile.id}:recommended-set:${disc.setId}`,
+          '该构筑缺少可核对的推荐套装方案。',
+        )
+      else if (conditions.length)
+        for (const condition of conditions)
+          add(
+            `recommendedSet.${disc.setId}`,
+            condition.predicateId,
+            condition.detail,
+            condition.state === 'conditional',
+            condition.evidenceIds,
+          )
+      else
+        add(
+          `recommendedSet.${disc.setId}`,
+          `${profile.id}:recommended-set:${disc.setId}`,
+          '该推荐套装分支缺少可核对的触发或队伍前提。',
+          true,
+        )
+    }
     if (profile.weightEvidence?.method === 'uncalibrated_direction_only')
       add(
         'numericWeights',
@@ -188,7 +229,8 @@ export function enrichRetentionEvidence(input: {
       )
   }
   const functional =
-    mainFit !== 'incompatible'
+    mainFit !== 'incompatible' &&
+    (recommendationSetFit !== 'incompatible' || twoPieceFit === 'valid')
       ? profile.functionalMains?.find(
           (entry) => entry.slot === disc.slot && entry.stat === disc.mainStat,
         )
@@ -202,6 +244,11 @@ export function enrichRetentionEvidence(input: {
         : ('needs_level' as const)
   const functionDetail =
     functional?.detail ?? (functional ? '需要核对该主词在完整构筑中的功能目标。' : null)
+  // A proven functional main plus a useful two-piece can require protection
+  // even outside the named recommendation. It is not a recommended build or
+  // an independent keep/upgrade witness.
+  const unmatchedFunctionalSafety =
+    !applicable && functionalState === 'needs_build_context' && twoPieceFit === 'valid'
   const investment = policy.investment
   const spentNodes = Math.floor(disc.level / rules.enhancementInterval)
   const meaningfulStats = disc.subStats
@@ -311,13 +358,15 @@ export function enrichRetentionEvidence(input: {
   return {
     functionalState,
     functionDetail,
-    useState: !applicable
-      ? ('incompatible' as const)
-      : blockers.some((row) => row.kind === 'missing_fact')
-        ? ('missing_fact' as const)
-        : blockers.length
-          ? ('conditional' as const)
-          : ('valid' as const),
+    useState: unmatchedFunctionalSafety
+      ? ('conditional' as const)
+      : !applicable
+        ? ('incompatible' as const)
+        : blockers.some((row) => row.kind === 'missing_fact')
+          ? ('missing_fact' as const)
+          : blockers.length
+            ? ('conditional' as const)
+            : ('valid' as const),
     blockers,
     weightEvidence: profile.weightEvidence ?? null,
     investment: {

@@ -21,7 +21,7 @@ export const scannerSteps = [
   { id: 'account', label: '选择账户' },
   { id: 'helper', label: '启动 Helper' },
   { id: 'review', label: '检查结果' },
-  { id: 'import', label: '正式导入' },
+  { id: 'import', label: '确认导入' },
 ] as const
 
 export const scannerStateStep: Record<ScannerAssistantSnapshot['state'], number> = {

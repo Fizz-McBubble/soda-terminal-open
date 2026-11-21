@@ -3,14 +3,7 @@ import { resolveSkillInvestmentMaterials } from '../calculation/skillInvestmentM
 import type { SkillKey } from '../calculation/skillInvestmentPolicy'
 import { projectSkillInvestmentNextLevels } from './skillInvestmentProjection'
 import { resolveWEngine } from './wEngineResolver'
-import { getProjectedBuildKnowledgeProfile } from '../gameDataPacks/agentProfile'
-import {
-  getCurrentBuildProfile,
-  getBuildRecommendation,
-  getSelectedBuildBranchId,
-} from '../assault/currentBuildProfiles'
-import { agentDevelopmentSkillRecommendations } from '../pages/agentDevelopmentSkillRecommendations'
-import { getCandidateWarehouseConstraint } from '../gameDataPacks/candidateWarehouseConstraints'
+import { developmentSkillRecommendations } from '../application/developmentSkillRecommendations'
 import type { CultivationPriorityInput } from './teamDecisionAuthority'
 
 export type AgentRealInvestmentDetail = {
@@ -296,22 +289,7 @@ function projectAgentRealInvestment(
         refinement: null,
         notice: '未记录当前实装音擎；不假定为未装备或0级，推荐音擎按60级基线供玩家确认。',
       }
-  const profile = getProjectedBuildKnowledgeProfile(agent.agentId)
-  const currentProfile = getCurrentBuildProfile(agent.agentId)
-  const recommendation = currentProfile
-    ? getBuildRecommendation(
-        currentProfile,
-        getSelectedBuildBranchId(agent) ?? currentProfile.defaultBranchId,
-      )
-    : null
-  const targetSkills = agentDevelopmentSkillRecommendations(
-    agent.agentId,
-    profile.recommendation?.skillPriority ??
-      getCandidateWarehouseConstraint(agent.agentId)?.progressionDirection ??
-      [],
-    recommendation?.skillPriority ?? [],
-    { skillLevels: agent.skillLevels, mindscape: agent.mindscape },
-  ).skills
+  const targetSkills = developmentSkillRecommendations(agent).skills
   const projectedSkills = projectSkillInvestmentNextLevels({
     agentId,
     skillLevels: agent.skillLevels,

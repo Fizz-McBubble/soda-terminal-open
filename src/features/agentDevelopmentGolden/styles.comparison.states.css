@@ -314,14 +314,18 @@
   display: block;
 }
 
-.comparison-candidate__metrics {
+.f5v-shell .top10 .comparison-candidate > .comparison-candidate__metrics {
   grid-column: 2;
   display: flex;
   align-items: baseline;
+  justify-content: space-between;
   flex-wrap: wrap;
-  gap: 2px 8px;
+  gap: 4px 8px;
   min-width: 0;
-  white-space: normal;
+  white-space: nowrap;
+}
+.comparison-candidate__metrics > :is(small, b) {
+  font-size: 11px;
 }
 
 .comparison-candidate__metrics > b {

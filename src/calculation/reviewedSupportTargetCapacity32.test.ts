@@ -89,6 +89,41 @@ describe('source-bound independent support capacities', () => {
     expect(evaluate(['agent-grace', 'agent-jane'], undefined).capacities[0]!.value).toBeNull()
     expect(JSON.stringify(actor)).toBe(before)
   })
+  it('settles only proven inactive Remielle entry effects as zero without inventing a team or trigger', () => {
+    const actor = createLevel60NeutralEffectRuntimeMember('agent-remielle')
+    actor.initialStats.atk = Number.NaN
+    const billy = createLevel60NeutralEffectRuntimeMember('agent-billy')
+    const grace = createLevel60NeutralEffectRuntimeMember('agent-grace')
+    const resolve = (members: (typeof actor)[] | undefined, entered: unknown) =>
+      evaluateReviewedSupportTargetCapacity32({
+        member: actor,
+        members,
+        baselineReferencesByAgentId: { 'agent-remielle': { battlefield_entered: entered } },
+      })
+    // Single owner and an unrelated teammate do not activate the additional ability.
+    for (const members of [undefined, [actor], [actor, billy]]) {
+      const result = resolve(members, undefined)
+      expect(result.capacities[0]!.value).toBe(0)
+      expect(result.capacities[0]!.excluded).not.toContain('functional_equipment_effect_unresolved')
+      expect(result.blockers).not.toContain(
+        '功能目标缺少已核来源、等级、激活或初始属性/装备上下文：agent-remielle',
+      )
+    }
+    // A closed trigger is zero even with an active ability and an unknown ATK.
+    expect(resolve([actor, grace], false).capacities[0]!.value).toBe(0)
+    expect(resolve([actor, grace], null).capacities[0]!.value).toBeNull()
+    expect(resolve([actor, grace], true).capacities[0]!.value).toBeNull()
+    expect(resolve([actor], 0).capacities[0]!.value).toBeNull()
+    // Malformed formations cannot acquire a known zero through short-circuiting.
+    for (const members of [
+      [],
+      [billy],
+      [actor, actor],
+      [actor, billy, grace, actor],
+      [actor, { ...billy, agentId: 'agent-unknown' }],
+    ])
+      expect(resolve(members, false).capacities[0]!.value).toBeNull()
+  })
   it('keeps missing equipment, invalid HP and absent team activation unresolved', () => {
     const member = createLevel60NeutralEffectRuntimeMember('agent-zhao')
     member.coreLevel = 7

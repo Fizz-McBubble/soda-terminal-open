@@ -26,6 +26,9 @@ const portfolioSetPlanSchema = z
     sourceText: z.string().optional(),
     priority: z.number().optional(),
     purpose: z.enum(['recommended', 'conditional', 'transition', 'historical']).optional(),
+    dependencyFieldPaths: z
+      .array(z.enum(['build.drive_disc_sets', 'build.team_bangboo_scenario']))
+      .optional(),
     condition: z
       .object({
         sourceId: z.string().min(1),
@@ -164,6 +167,7 @@ export const portfolioConstraintSchema = z
         z
           .object({
             agentId: z.string().min(1),
+            fieldPath: z.string().min(1).optional(),
             status: z.enum(['continuous', 'affected_pending', 'unreviewed_reference', 'missing']),
             version: z.string(),
             source: z

@@ -10,12 +10,10 @@ const aftershockFormulaPins: Readonly<Record<string, string>> = {
   'agent-orphie-magus': 'A1F61932E1812E23C8E22490CFA3EEF69AEA01B6FD0136A54EA334FB57D0C1C0',
 }
 
-/** Recover damageType2 omitted by the catalog projection, only against pinned raw sheets. */
-export function sourcePlanningAftershock32(input: {
+/** Intrinsic source tag, before a formation-dependent activation is evaluated. */
+export function sourcePlanningAftershockEligible32(input: {
   agentId: string
   eventId: string
-  memberIds: readonly string[]
-  potential?: number | null
 }): boolean | null {
   const contract = getCurrentAgentEventContract(input.agentId)
   const event = contract?.eventContract.events.find((row) => row.eventId === input.eventId)
@@ -27,12 +25,7 @@ export function sourcePlanningAftershock32(input: {
       event.hitIndex !== 0
     )
       return false
-    const activation = evaluateCurrentAgentTeamActivation({
-      stableId: input.agentId,
-      memberIds: input.memberIds,
-      agentState: { potentialImage: input.potential },
-    })
-    return activation.status === 'supported' ? activation.active : null
+    return true
   }
   if (input.agentId === 'agent-pulchra')
     return (
@@ -57,6 +50,23 @@ export function sourcePlanningAftershock32(input: {
     (event.actionId === 'BasicAttackHarmonizingShot' && event.hitIndex === 0) ||
     (event.actionId === 'BasicAttackHarmonizingShotTartarus' && [0, 1].includes(event.hitIndex))
   )
+}
+
+/** Recover damageType2 omitted by the catalog projection, only against pinned raw sheets. */
+export function sourcePlanningAftershock32(input: {
+  agentId: string
+  eventId: string
+  memberIds: readonly string[]
+  potential?: number | null
+}): boolean | null {
+  const eligible = sourcePlanningAftershockEligible32(input)
+  if (eligible !== true || input.agentId !== 'agent-soldier-0-anby') return eligible
+  const activation = evaluateCurrentAgentTeamActivation({
+    stableId: input.agentId,
+    memberIds: input.memberIds,
+    agentState: { potentialImage: input.potential },
+  })
+  return activation.status === 'supported' ? activation.active : null
 }
 
 /** A source-proven available action, not a declaration that it fired or has uptime. */

@@ -6,12 +6,17 @@ import {
 import type { DiscContribution, OptimizedBuild, OptimizerKnowledge } from './optimizeBuild'
 import {
   compareCandidateEffectiveCritObjective,
-  projectCandidateEffectiveCritObjective,
+  hasEquipmentInvariantEventBlocker32,
+  prepareCandidateEffectiveCritProjector,
   type CandidateEffectiveCritObjective,
   type CandidateEffectiveCritProjection,
 } from './candidateEffectiveCritObjective'
 import { canStillCompleteSetPattern } from './optimizerSetPatterns'
-import { resolveDriveDiscMainStatValue } from '../calculation/outOfCombatPanel'
+import {
+  hasLegalSixDriveDiscs,
+  resolveDriveDiscMainStatValue,
+} from '../calculation/outOfCombatPanel'
+import { contentHash } from '../evaluation/contentHash'
 
 type State = {
   discs: DiscContribution[]
@@ -35,6 +40,30 @@ function statCoordinate(discs: readonly DiscContribution[]) {
     .join('|')
 }
 
+// Projection validity depends on slots, levels and distinct IDs. Invalid input
+// must reach the projector and must never alias a legal projection.
+function exactProjectionCoordinate(discs: readonly DiscContribution[]): string | undefined {
+  if (!hasLegalSixDriveDiscs(discs.map(({ disc }) => disc))) return undefined
+  const rows = []
+  for (const { disc } of discs) {
+    const main = resolveDriveDiscMainStatValue(disc)
+    if (!main || !Number.isFinite(main.value) || Object.is(main.value, -0)) return undefined
+    if (disc.subStats.some(({ value }) => !Number.isFinite(value) || Object.is(value, -0)))
+      return undefined
+    rows.push([
+      disc.slot,
+      disc.level,
+      disc.rarity ?? null,
+      disc.mainStat,
+      disc.setId,
+      main.stat,
+      main.value,
+      disc.subStats.map(({ stat, value }) => [stat, value]),
+    ])
+  }
+  return JSON.stringify(rows)
+}
+
 /** A bounded source-event beam. No static top-K cut is made before the target is
  * consumed. Equal aggregate stats/set counts are equivalent to the event formula,
  * while top-K physical identities remain available for account disc exclusivity. */
@@ -42,6 +71,7 @@ export function optimizeEffectiveCritBuild(input: {
   candidates: Map<number, DiscContribution[]>
   objective: CandidateEffectiveCritObjective
   panelInput?: CandidatePanelInput
+  projectionCache?: Map<string, CandidateEffectiveCritProjection>
   patterns: Record<string, number>[]
   knowledge: OptimizerKnowledge
   topK: number
@@ -52,24 +82,21 @@ export function optimizeEffectiveCritBuild(input: {
   } | null
 }) {
   const anchor = Array.from({ length: 6 }, (_, slot) => input.candidates.get(slot + 1)![0]!)
-  const cache = new Map<string, CandidateEffectiveCritProjection>()
+  const cache = input.projectionCache ?? new Map<string, CandidateEffectiveCritProjection>()
+  const contextKey = contentHash({
+    objective: input.objective,
+    panelInput: input.panelInput ?? null,
+  })
+  const invariantBlocker = hasEquipmentInvariantEventBlocker32(input.objective, input.panelInput)
+  const projectCandidate = prepareCandidateEffectiveCritProjector(input.objective, input.panelInput)
   const project = (discs: DiscContribution[]) => {
-    const sets: Record<string, number> = {}
-    for (const { disc } of discs) sets[disc.setId] = (sets[disc.setId] ?? 0) + 1
-    const key =
-      statCoordinate(discs) +
-      ':' +
-      Object.entries(sets)
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([id, count]) => `${id}:${count}`)
-        .join('|')
+    const coordinate = exactProjectionCoordinate(discs)
+    if (coordinate === undefined) return projectCandidate(discs.map((item) => item.disc))
+    const key = contextKey + ':' + coordinate
     let value = cache.get(key)
     if (!value) {
-      value = projectCandidateEffectiveCritObjective(
-        input.objective,
-        input.panelInput,
-        discs.map((item) => item.disc),
-      )
+      value = projectCandidate(discs.map((item) => item.disc))
+      if (cache.size >= 131072) cache.delete(cache.keys().next().value!)
       cache.set(key, value)
     }
     return value
@@ -101,7 +128,7 @@ export function optimizeEffectiveCritBuild(input: {
             .map((item) => item.disc.id)
             .sort()
             .join('|'),
-          projection: project(filled),
+          projection: invariantBlocker ? undefined : project(filled),
           panelObjective: input.panelObjectiveForSelection?.(filled),
         }
         const key = Object.entries(setCounts)

@@ -1,0 +1,66 @@
+{
+  "schema": "soda-reviewed-phoenix-anomaly-crit/v1",
+  "version": "3.3",
+  "status": "candidate_not_adopted",
+  "providerManifestSha256": "4d30f529d6e0568a130ebe4d79557b30d9c65d2219e77461763df1c4b42cb029",
+  "reviewedDate": "2026-10-21",
+  "boundary": "Isolated 3.3 increment calculation facts. Strictly candidate preview; does not activate 3.3 runtime authority, Formal, Import, or 60-agent release baseline.",
+  "sources": [
+    {
+      "label": "nanoka-3.3-zh-character-1641",
+      "url": "https://static.nanoka.cc/zzz/3.3/zh/character/1641.json",
+      "sha256": "237c5b060657db1fd8ababe6cd26fb275c325d74a67eda481bde6732c7d93dfe",
+      "locators": [
+        "passive.level.1641501-1641507: 核心被动「涅槃」异常精通与异常暴击伤害",
+        "passive.level.1641501: 额外能力「黑枝王牌」",
+        "talent.1: M1 痛觉残留与刺激游行",
+        "skill.basic.description[1]: 普通攻击：焚罪 异放结算与暴伤加成",
+        "skill.chain.description[2]: 烬火追魂 异放结算与暴伤加成"
+      ]
+    },
+    {
+      "label": "nanoka-3.3-en-character-1641",
+      "url": "https://static.nanoka.cc/zzz/3.3/en/character/1641.json",
+      "sha256": "9da0ab27629492a9e5626dcfbfb3620c6adfbe51a3e1af87c58e223b7e6c0e2c",
+      "locators": [
+        "passive.level: Core Passive Nirvana & Additional Ability Ace of Krampus",
+        "talent.1: Mindscape 1",
+        "skill.basic.description[1]: Basic Attack Purifying Flame Abloom",
+        "skill.chain.description[2]: Soul-Searching Blaze Abloom"
+      ]
+    }
+  ],
+  "parameters": {
+    "scorchDurationSeconds": 20,
+    "anomalyCritRate": {
+      "base": 0.3,
+      "anomalyMasteryThreshold": 155,
+      "gainPerMasteryOverThreshold": 0.007,
+      "anomalyMasteryCap": 255,
+      "maxCritRate": 1.0
+    },
+    "anomalyCritDamage": {
+      "coreLevelTable": {
+        "1": 0.125,
+        "2": 0.146,
+        "3": 0.167,
+        "4": 0.188,
+        "5": 0.208,
+        "6": 0.229,
+        "7": 0.25
+      },
+      "additionalAbilityBonus": 0.15,
+      "mindscapeM1Bonus": 0.25,
+      "phoenixAbloomBonus": 0.4
+    }
+  },
+  "localAdoptionNotes": [
+    "底层数学映射至 anomalyDamageCore 的 anomalyCritRate 与 anomalyCritDamage 字段。",
+    "非异常直接伤害完全不受影响。",
+    "目标显式未处于灼蚀状态或灼蚀持续时间已过期时返回 not_applicable（暴击率与暴伤均为 0）。",
+    "Jane强击暴击等既有异常暴击来源与Phoenix叠加上限未有受控实测前，必须返回具名 unsupported，不猜 max/加算/乘算。",
+    "已有异常暴击来源状态为 unknown 时返回 unsupported，禁止默认 0。",
+    "65% 异常暴伤仅为 Core 7 + 额外能力 + M1 在灼蚀状态下的有条件状态上限，非无条件常驻。",
+    "40% 异放暴击伤害加成仅绑定普通攻击：焚罪或终结技：烬火追魂明确声明的该次原始异放，不赋予其他代理人、M4额外600%实例或来源不明的自身异放。"
+  ]
+}

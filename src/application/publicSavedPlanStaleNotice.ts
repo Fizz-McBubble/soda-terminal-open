@@ -4,17 +4,19 @@ import type { SavedTeamPlanSnapshotFreshness } from '../accounts/planningSnapsho
 export function savedPlanStaleNotice(freshness: SavedTeamPlanSnapshotFreshness) {
   if (!freshness.stale) return undefined
   switch (freshness.reason) {
+    case 'disc-rarity-outside-scope':
+      return '方案包含非 S 级或品质未确认的驱动盘，请使用 S 级驱动盘重新匹配。'
     case 'luminize-source-stale':
-      return '辉映计算依据已经更新，已保存快照仍保留。请重新分析当前队伍后再保存。'
+      return '辉映计算依据已更新，重新匹配后可更新结果。'
     case 'luminize-declaration-invalid':
-      return '已保存辉映快照与当前方案不一致，历史配装仍可查看。请重新分析当前队伍后再保存。'
+      return '辉映结果与当前方案不一致，请重新匹配。'
     case 'legacy-unverifiable':
-      return '这份旧方案尚未按当前账户重新匹配，原配装仍可查看。重新匹配后可保存新的配装。'
+      return '这份方案暂不能重新计算；重新匹配后可保存。'
     case 'unmatched':
-      return '账户资料或配装依据已有变化，原方案仍可查看。请重新匹配后再保存当前配装。'
+      return '账户资料或配装依据已有变化，请重新匹配后再保存。'
     case 'current-result-unavailable':
-      return '当前账户分析尚不可用，无法验证此已保存方案。你仍可查看历史方案；重新匹配当前队伍后才能保存为当前方案。'
+      return '当前分析暂不可用。'
     default:
-      return '此已保存方案缺少可验证的求解快照。你仍可查看历史方案；重新匹配当前队伍后才能保存为当前方案。'
+      return '这份方案暂不能重新计算；重新匹配后可保存。'
   }
 }

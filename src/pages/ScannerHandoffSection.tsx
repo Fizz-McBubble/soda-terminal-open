@@ -71,6 +71,33 @@ export function ScannerHandoffSection({
   sharedTargetSelection?: boolean
 }) {
   const discardTriggerRef = useRef<HTMLButtonElement>(null)
+  // A completed transport state alone does not prove a complete, importable result.
+  if (snapshot.state === 'completed' && !snapshot.summary)
+    return (
+      <section className="scanner-completed-review" aria-label="已完成扫描结果">
+        <p role="alert">结果摘要缺失，无法确认可导入范围。原结果保留，当前不能导入。</p>
+        <div className="scanner-result-ready__actions">
+          {onExportResult && (
+            <button
+              type="button"
+              className="button button--quiet"
+              onClick={onExportResult}
+              disabled={handoffState.status === 'working'}
+            >
+              导出
+            </button>
+          )}
+          <button
+            type="button"
+            className="button button--quiet"
+            onClick={onReturnToTargetSelection}
+          >
+            放弃
+          </button>
+          {diagnosticFeedback}
+        </div>
+      </section>
+    )
   const canReloadIncompleteDraft =
     handoffState.status === 'error' && handoffState.message.includes('不完整的同源识别结果')
   const canRepairImportedDraft =
@@ -209,7 +236,7 @@ export function ScannerHandoffSection({
               disabled={!selectedAccount || handoffState.status === 'working'}
               onClick={onBindCompletedResult}
             >
-              {handoffState.status === 'working' ? '正在准备结果' : '确认账户并继续'}
+              {handoffState.status === 'working' ? '正在准备结果' : '用此账户检查结果'}
               <ChevronRight aria-hidden="true" size={18} />
             </button>
             <button
@@ -245,7 +272,7 @@ export function ScannerHandoffSection({
             />
           ) : (
             <div className="scanner-completed-account-setup">
-              <p>本次扫描结果尚未绑定账户。先创建独立本机账户，再继续检查。</p>
+              <p>本次扫描结果尚未绑定账户。请先创建本机 Soda 账户，再继续检查。</p>
               <div className="scanner-target-account__create">
                 <label>
                   <span id="scanner-target-account-heading">新账户名称</span>
@@ -290,7 +317,7 @@ export function ScannerHandoffSection({
                   disabled={!selectedAccount || handoffState.status === 'working'}
                   onClick={onBindCompletedResult}
                 >
-                  确认账户并继续
+                  用此账户检查结果
                   <ChevronRight aria-hidden="true" size={18} />
                 </button>
                 <button

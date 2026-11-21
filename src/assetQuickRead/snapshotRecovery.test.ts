@@ -1,8 +1,20 @@
 import { expect, it } from 'vitest'
 import { prepareAssetSnapshotExport, assetCompatibilityMessage } from './snapshotRecovery'
-import { syntheticAssetSnapshot } from './syntheticAssetSnapshotTestFixture'
+import {
+  syntheticAssetSnapshot,
+  syntheticAssetSnapshot33,
+} from './syntheticAssetSnapshotTestFixture'
 import { assetSnapshotSchema } from './snapshotProtocolSchema'
 import { convertAssetSnapshot } from './snapshotAdapter'
+
+it('exports a supported 3.3 candidate without mislabelling it pending adaptation', () => {
+  const result = prepareAssetSnapshotExport(syntheticAssetSnapshot33())!
+  expect(result.pendingUpdate).toBe(false)
+  expect(result.snapshot.source.protocol_version).toBe('3.3')
+  expect(convertAssetSnapshot(result.snapshot, { snapshotSha256: 'a'.repeat(64) }).importable).toBe(
+    true,
+  )
+})
 
 it('exports current and pending snapshots through the whitelist without relaxing import', () => {
   const input = syntheticAssetSnapshot()

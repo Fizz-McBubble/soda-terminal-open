@@ -11,7 +11,10 @@ import { current31StrengthGoldSet } from '../decision/current31StrengthGoldSet'
 import reviewedTeamGuideVerification from './data/reviewed-team-guide-verification.3.1.json'
 import { reviewedTeamDiscDirections } from './reviewedTeamDiscConditions'
 import { reviewedSourceTeamObservations32Identity } from './reviewedSourceTeamObservations32'
-import { reviewedWEngineReceiverSemantics32Identity } from '../calculation/reviewedWEngineReceiverSemanticsIdentity32'
+import {
+  reviewedWEngineReceiverSemantics32Identity,
+  reviewedRoaringFurnaceReceiverSemantics32Identity,
+} from '../calculation/reviewedWEngineReceiverSemanticsIdentity32'
 import { planningEffectResolutionIdentity32 } from '../calculation/currentPlanningEffectResolutionIdentity32'
 import reviewedTeamPerformance from './data/reviewed-team-performance.3.1.json'
 import reviewedTeamPerformance323 from './data/reviewed-team-performance.3.2.3.json'
@@ -146,6 +149,7 @@ export const currentDataAuthorityProjection = {
         }),
       },
       reviewedEquipmentReceiverSemantics32: reviewedWEngineReceiverSemantics32Identity,
+      reviewedRoaringFurnaceReceivers32: reviewedRoaringFurnaceReceiverSemantics32Identity,
       candidateNonStackingFourPiece: candidateNonStackingFourPieceIdentity,
       eventEffectResolution32: planningEffectResolutionIdentity32,
       // Hash adopted values as well as declared source identities: a changed projection must

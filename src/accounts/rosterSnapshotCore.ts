@@ -35,6 +35,13 @@ export const rosterSnapshotSchema = z.object({
       observedFacts: z.preprocess(normalizeObservedAgentFacts, observedAgentFactsSchema.optional()),
       manualSource: z.enum(['manual_initial_default', 'manual_override']).nullable().optional(),
       potentialImage: z.number().int().min(0).max(6).nullable().optional(),
+      manualProgression: z
+        .object({
+          mindscape: z.number().int().min(0).max(6).optional(),
+          potentialImage: z.number().int().min(0).max(6).optional(),
+        })
+        .strict()
+        .optional(),
       progressionManuallySet: z.boolean().optional(),
       lockedFields: z.array(z.string().min(1)).optional(),
       syncedAt: z.string().datetime(),
@@ -131,6 +138,7 @@ function toSnapshotAgent(agent: AccountRoster['agents'][number]): RosterSnapshot
     observedFacts: normalizeObservedAgentFacts(agent.observedFacts),
     manualSource: agent.manualSource,
     potentialImage: agent.potentialImage,
+    manualProgression: agent.manualProgression,
     progressionManuallySet: agent.progressionManuallySet,
     lockedFields: agent.lockedFields,
     syncedAt: agent.syncedAt,
@@ -216,10 +224,26 @@ export function createRosterSnapshotAdapter({
           source: snapshot.source === 'showcase' ? 'showcase' : 'roster_snapshot',
           lockedFields: existing.lockedFields,
         }
+        const manualProgression = { ...next.manualProgression }
+        for (const field of ['mindscape', 'potentialImage'] as const) {
+          if (
+            existing.lockedFields.includes(field) &&
+            existing.manualProgression?.[field] !== undefined
+          )
+            manualProgression[field] = existing.manualProgression[field]
+        }
+        if (manualProgression.mindscape !== result.mindscape) delete manualProgression.mindscape
+        if (manualProgression.potentialImage !== result.potentialImage)
+          delete manualProgression.potentialImage
+        result.manualProgression = Object.keys(manualProgression).length
+          ? manualProgression
+          : undefined
         // Generic merges retain their source policy. Provenance follows only values actually
         // adopted; excluded equipment or replaced facts cannot inherit a mismatched marker.
         const previousFacts = normalizeObservedAgentFacts(existing.observedFacts)
         const incomingFacts = normalizeObservedAgentFacts(next.observedFacts)
+        const protocolVersion =
+          incomingFacts?.protocolVersion ?? previousFacts?.protocolVersion ?? '3.2'
         const fields: ObservedAgentFacts['fields'] = {}
         for (const field of observedAgentFields) {
           const actual = JSON.stringify(getObservedAgentFieldValue(result, field))
@@ -227,18 +251,32 @@ export function createRosterSnapshotAdapter({
             incomingFacts?.fields[field] &&
             actual === JSON.stringify(getObservedAgentFieldValue(next, field))
           ) {
-            fields[field] = incomingFacts.fields[field]
+            fields[field] =
+              incomingFacts.protocolVersion === protocolVersion
+                ? incomingFacts.fields[field]
+                : {
+                    ...incomingFacts.fields[field]!,
+                    protocolVersion:
+                      incomingFacts.fields[field]!.protocolVersion ?? incomingFacts.protocolVersion,
+                  }
           } else if (
             previousFacts?.fields[field] &&
             actual === JSON.stringify(getObservedAgentFieldValue(existing, field))
           ) {
-            fields[field] = previousFacts.fields[field]
+            fields[field] =
+              previousFacts.protocolVersion === protocolVersion
+                ? previousFacts.fields[field]
+                : {
+                    ...previousFacts.fields[field]!,
+                    protocolVersion:
+                      previousFacts.fields[field]!.protocolVersion ?? previousFacts.protocolVersion,
+                  }
           }
         }
         result.observedFacts = normalizeObservedAgentFacts({
           schemaVersion: 1,
           source: 'asset_quick_read',
-          protocolVersion: '3.2',
+          protocolVersion,
           fields,
         })
         return result

@@ -10,6 +10,10 @@ export type AccountDiscChoice = DiscContribution & {
 }
 
 export type AccountLoadout = {
+  /** Personal score qualification; absent for legacy/team loadouts. */
+  personalDiscScore?: import('../application/publicDevelopmentDiscScore').DevelopmentDiscScore
+  /** The personal source was unavailable; totalScore is not a comparable result. */
+  personalScoreUnavailable?: true
   effectiveCritObjective?: CandidateEffectiveCritProjection
   agentId: string
   discs: AccountDiscChoice[]

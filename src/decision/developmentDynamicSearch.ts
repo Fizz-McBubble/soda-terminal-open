@@ -1,6 +1,11 @@
 import type { CoreWarehouse } from '../accounts/coreFlow'
 import type { CurrentPlanningScenarioSelection32 } from '../application/publicPlanningScenarioContract'
 import type { DriveDisc } from '../domain/schemas'
+import { completeScoringDiscSelection, scoringDiscRecordIssue } from '../domain/discScoringInput'
+import { driveDiscData } from '../data/gameData'
+import { contentHash } from '../application/contentHash'
+import { evaluateDevelopmentRecordedDiscs } from '../pages/developmentRecordedDiscEvaluation'
+import type { CandidateSetPlanEligibilityContext } from '../gameDataPacks/candidateSetPlanEligibility'
 import { stableContentHash } from '../gameDataPacks/types'
 import { candidateConstraintToDiscProfile } from '../gameDataPacks/candidateWarehouseConstraints'
 import { resolveDriveDiscMainStatValue } from '../calculation/outOfCombatPanel'
@@ -15,11 +20,12 @@ import {
 import { searchDynamicAssignments, type RawAssignment } from '../optimizer/dynamicObjectiveSearch'
 import {
   compileDynamicCandidateLoadout,
-  dynamicLegalInventory,
+  dynamicRecommendableInventory,
 } from '../optimizer/teamDynamicDomain'
 import { toBuildProfile } from '../optimizer/accountBuildCandidates'
 import { scoreActualDisc } from '../optimizer/scoreActualDisc'
 import { candidateDiscFactKey } from '../optimizer/candidateSearchFacts'
+import { getCandidatePanelObjectiveTarget } from '../optimizer/candidatePanelObjective'
 import type { CandidateWarehousePlan } from '../optimizer/candidateWarehouseSolver'
 import {
   evaluateDevelopmentValueBenchmarkSide,
@@ -27,16 +33,44 @@ import {
   type DevelopmentComparisonParameters,
 } from './developmentValueBenchmark'
 import { evaluateDevelopmentStatWeights } from './developmentStatWeights'
-import { searchPreparedAnomalyCandidates } from './developmentPreparedAnomalySearch'
+import {
+  searchPreparedAnomalyCandidates,
+  type PreparedAnomalyCandidateRanking,
+} from './developmentPreparedAnomalySearch'
 import { optimizerOptionsFromBuildIntent, type AgentIndependentBuildIntent } from './buildIntent'
 import {
   preservesTeamFunctionalConstraints32,
   sourceReviewedProtectedUtilityIndices32,
 } from './teamFunctionalConstraints32'
+import {
+  summarizeDevelopmentSearchDiagnostics,
+  createDevelopmentSearchDiagnosticsRecorder,
+  type DevelopmentSearchDiagnostics,
+} from './developmentSearchDiagnostics'
+import { developmentPanelFunctionalConstraints } from './developmentPanelFunctionalConstraints'
+import {
+  comparablePersonalFunctionalObjectives32,
+  resolvePersonalDevelopmentObjective32,
+  scopedPersonalFunctionalProtection32,
+} from './personalDevelopmentObjective32'
+export { developmentPanelFunctionalConstraints } from './developmentPanelFunctionalConstraints'
 
-export const developmentDynamicSearchPolicy =
-  'raw-six-disc-full-objective-r2-functional-preservation'
+export const developmentDynamicSearchPolicy = 'raw-six-disc-full-objective-r3-functional-objective'
 type SearchDisc = { id: string; slot: number; factsKey: string }
+type DynamicSearchTrace = ReturnType<typeof searchDynamicAssignments<SearchDisc>>
+export type DevelopmentDynamicCandidatesResult = {
+  candidates: CandidateWarehousePlan[]
+  search: DynamicSearchTrace | null
+  rankingApplied: boolean
+  diagnostics: DevelopmentSearchDiagnostics
+  preparedCandidateRanking?: PreparedAnomalyCandidateRanking
+  preparedAnomalySearch?: {
+    status: 'budget_exhausted' | 'complete' | 'objective_unresolved'
+    nodes: number
+    evaluations: number
+    exactWithinDeclaredModel: boolean
+  }
+}
 const physicalKey = (discs: readonly DriveDisc[]) =>
   JSON.stringify(discs.toSorted((a, b) => a.slot - b.slot).map((disc) => [disc.slot, disc.id]))
 
@@ -52,22 +86,91 @@ export function searchDevelopmentDynamicCandidates(input: {
   scenarioSelection?: CurrentPlanningScenarioSelection32
   candidates: readonly CandidateWarehousePlan[]
   evaluationBudget?: number
-}) {
+  conditionContext?: CandidateSetPlanEligibilityContext
+}): DevelopmentDynamicCandidatesResult {
   const options = optimizerOptionsFromBuildIntent(input.buildIntent)
+  const excluded = new Set(options.excludedDiscIds ?? [])
+  const fixedId = options.fixedDiscByAgent?.[input.agentId]
+  const legal = dynamicRecommendableInventory(input.warehouse.discs).filter(
+    (disc) =>
+      !excluded.has(disc.id) &&
+      (options.allowLocked !== false || !disc.locked) &&
+      scoringDiscRecordIssue(disc, driveDiscData?.rules) === null,
+  )
+  const byId = new Map(legal.map((disc) => [disc.id, disc]))
+  const candidateInputs = input.candidates.filter((plan) => {
+    if (plan.loadouts.length !== 1 || plan.loadouts[0]?.agentId !== input.agentId) return false
+    const discs = plan.loadouts[0].discs.map(({ disc }) => disc)
+    return (
+      completeScoringDiscSelection(discs) &&
+      (!fixedId || discs.some((disc) => disc.id === fixedId)) &&
+      discs.every((disc) => {
+        const actual = byId.get(disc.id)
+        return Boolean(
+          actual &&
+          contentHash(actual) === contentHash(disc) &&
+          (options.allowLocked !== false || !actual.locked),
+        )
+      })
+    )
+  })
   const constraint = input.buildIntent.recommendations.find(
     (row) => row.agentId === input.agentId,
   )?.constraint
+  const evaluationCache = new Map<string, ReturnType<typeof evaluateDevelopmentRecordedDiscs>>()
+  const qualify = (plan: CandidateWarehousePlan): CandidateWarehousePlan => {
+    const loadout = plan.loadouts[0]!
+    const discs = loadout.discs.map((choice) => choice.disc)
+    const key = physicalKey(discs)
+    if (!evaluationCache.has(key))
+      evaluationCache.set(
+        key,
+        evaluateDevelopmentRecordedDiscs(input.agentId, discs, {
+          constraint: constraint ?? null,
+          independentDirection: input.parameters?.independentDirection,
+          conditionContext: input.conditionContext,
+        }),
+      )
+    const evaluated = evaluationCache.get(key)
+    if (!evaluated?.complete) {
+      const { personalDiscScore: _oldScore, ...rest } = loadout
+      void _oldScore
+      const safe = { ...rest, totalScore: 0, personalScoreUnavailable: true as const }
+      return { ...plan, totalScore: 0, loadouts: [safe] }
+    }
+    const { choices, recordIssues: _recordIssues, ...personalDiscScore } = evaluated
+    void _recordIssues
+    // Unknown set eligibility retains disc facts and an explicit unknown DTO;
+    // ranking must never interpret this compatibility subtotal as set score 0.
+    const totalScore =
+      evaluated.totalScore ??
+      Math.round(choices.reduce((sum, choice) => sum + choice.score, 0) * 1000) / 1000
+    const { personalScoreUnavailable: _oldUnavailable, ...rest } = loadout
+    void _oldUnavailable
+    return {
+      ...plan,
+      totalScore,
+      loadouts: [{ ...rest, discs: choices, totalScore, personalDiscScore }],
+    }
+  }
+  const candidates = candidateInputs.map(qualify)
+  const unavailableSearch = () => ({
+    candidates,
+    search: null,
+    rankingApplied: false,
+    diagnostics: summarizeDevelopmentSearchDiagnostics({
+      observations: [],
+      status: 'not_run',
+      nodes: 0,
+      nodeLimit: null,
+      evaluations: 0,
+      evaluationLimit: null,
+    }),
+  })
   const profile = constraint ? candidateConstraintToDiscProfile(constraint) : null
-  if (!profile) return { candidates: [...input.candidates], search: null, rankingApplied: false }
-  const excluded = new Set(options.excludedDiscIds ?? [])
-  const legal = dynamicLegalInventory(input.warehouse.discs).filter(
-    (disc) => !excluded.has(disc.id),
-  )
-  const byId = new Map(legal.map((disc) => [disc.id, disc]))
-  const fixedId = options.fixedDiscByAgent?.[input.agentId]
+  if (!profile) return unavailableSearch()
   const fixed = fixedId ? byId.get(fixedId) : undefined
-  if (fixedId && !fixed)
-    return { candidates: [...input.candidates], search: null, rankingApplied: false }
+  if (fixedId && !fixed) return unavailableSearch()
   const equippedIds =
     input.warehouse.roster.agents.find((row) => row.agentId === input.agentId)?.equippedDiscIds ??
     []
@@ -87,8 +190,7 @@ export function searchDevelopmentDynamicCandidates(input: {
   const pools = Array.from({ length: 6 }, (_, slot) =>
     inventory.filter((disc) => disc.slot === slot + 1),
   )
-  if (pools.some((pool) => !pool.length))
-    return { candidates: [...input.candidates], search: null, rankingApplied: false }
+  if (pools.some((pool) => !pool.length)) return unavailableSearch()
   const lookup = (discs: readonly DriveDisc[]) =>
     discs.map((disc) => equivalents.get(candidateDiscFactKey(disc)) ?? disc)
   const panelInput = options.panelInputsByAgent?.[input.agentId]
@@ -103,6 +205,11 @@ export function searchDevelopmentDynamicCandidates(input: {
       options.effectiveCritObjectivesByAgent?.[input.agentId],
     )
     if (!loadout) return null
+    // Team compilation calculates unconditional set points. The personal
+    // search does not consume that score; hold only disc points until the
+    // published candidate is qualified against its captured source.
+    loadout.totalScore =
+      Math.round(loadout.discs.reduce((sum, choice) => sum + choice.score, 0) * 1000) / 1000
     const plan: CandidateWarehousePlan = {
       scope: 'agent',
       agentIds: [input.agentId],
@@ -122,6 +229,7 @@ export function searchDevelopmentDynamicCandidates(input: {
     return plan
   }
   const sides = new Map<string, ValueBenchmarkSide>()
+  const observedComparisons = new Map<string, boolean>()
   const side = (discs: DriveDisc[]) => {
     const key = physicalKey(discs)
     if (!sides.has(key))
@@ -135,9 +243,7 @@ export function searchDevelopmentDynamicCandidates(input: {
       )
     return sides.get(key)!
   }
-  const originalDiscs = input.candidates.map((plan) =>
-    plan.loadouts[0]!.discs.map((row) => row.disc),
-  )
+  const originalDiscs = candidates.map((plan) => plan.loadouts[0]!.discs.map((row) => row.disc))
   const equipped = equippedIds
     .map((id) => byId.get(id))
     .filter((disc): disc is DriveDisc => Boolean(disc))
@@ -156,20 +262,48 @@ export function searchDevelopmentDynamicCandidates(input: {
               )[0]!,
           )
   const baseline = side(initial)
+  const diagnostics = createDevelopmentSearchDiagnosticsRecorder({
+    baseline,
+    initial,
+    legal,
+    fixed,
+    candidates,
+    sides,
+    observedComparisons,
+  })
   // Rank this declared settlement separately, retaining its limited coverage;
   // never manufacture an elapsed cycle or feed it into the full-event objective.
-  if (baseline.coverage?.domain === 'prepared_anomaly_settlement')
-    return searchPreparedAnomalyCandidates({
-      candidates: input.candidates,
+  if (baseline.coverage?.domain === 'prepared_anomaly_settlement') {
+    const evaluationBudget = input.evaluationBudget ?? 384
+    const prepared = searchPreparedAnomalyCandidates({
+      candidates,
       initial,
       pools,
       compile,
       side,
       fixedDiscId: fixedId,
       equippedIds,
-      evaluationBudget: input.evaluationBudget ?? 384,
+      evaluationBudget,
+      comparisonParametersIdentity: input.parameters ? stableContentHash(input.parameters) : null,
     })
+    return {
+      ...prepared,
+      candidates: prepared.candidates.map(qualify),
+      diagnostics: diagnostics(
+        prepared.preparedAnomalySearch,
+        null,
+        Number.isFinite(evaluationBudget)
+          ? Math.max(1, Math.min(384, Math.floor(evaluationBudget)))
+          : 384,
+      ),
+    }
+  }
+  const baselineObjective = resolvePersonalDevelopmentObjective32(input.agentId, baseline)
+  // A personal damage slice is still available for comparison, but it is not
+  // the primary functional or anomaly objective when that objective is unknown.
+  if (baselineObjective.kind === 'unavailable') return unavailableSearch()
   const baselinePanel = compile(initial)?.loadouts[0]?.panelObjective
+  const panelTarget = getCandidatePanelObjectiveTarget(input.agentId, panelInput)
   const utilityStats = (value: ValueBenchmarkSide) =>
     new Map(
       value.functionalStats32
@@ -253,15 +387,33 @@ export function searchDevelopmentDynamicCandidates(input: {
       changedDimensions: ['disc_loadout'],
       labels: { baseline: '当前六盘', candidate: '仓库方案' },
     })
+    const currentObjective = resolvePersonalDevelopmentObjective32(input.agentId, current)
+    const functionalObjective = baselineObjective.kind === 'functional_capacity'
+    const objectiveComparable = functionalObjective
+      ? comparablePersonalFunctionalObjectives32(
+          baseline,
+          current,
+          baselineObjective,
+          currentObjective,
+        )
+      : comparison.comparable && currentObjective.kind === 'direct_slice'
+    observedComparisons.set(physicalKey(discs), objectiveComparable)
     const context = current.dimensions
     const panel = plan?.loadouts[0]?.panelObjective
+    const baselineProtection = scopedPersonalFunctionalProtection32(baseline, input.agentId)
+    const candidateProtection = scopedPersonalFunctionalProtection32(current, input.agentId)
     const protectedCapacity =
-      baseline.functionalCapacities32?.status === 'supported' &&
-      current.functionalCapacities32?.status === 'supported' &&
+      baselineProtection !== null &&
+      candidateProtection !== null &&
+      baselineProtection.unresolvedIdentity === candidateProtection.unresolvedIdentity &&
+      ((baselineObjective.kind === 'functional_capacity' &&
+        baselineObjective.capacityKey === 'agent-remielle:refringe_coefficient') ||
+        baseline.personalFunctionalEquipmentIdentity32 ===
+          current.personalFunctionalEquipmentIdentity32) &&
       baselineUtility.size === 1 &&
       preservesTeamFunctionalConstraints32({
-        baselineCapacities: baseline.functionalCapacities32.capacities,
-        candidateCapacities: current.functionalCapacities32.capacities,
+        baselineCapacities: baselineProtection.capacities,
+        candidateCapacities: candidateProtection.capacities,
         baselineUtility,
         candidateUtility: utilityStats(current),
         protectedUtilityIndicesByAgentId: new Map([
@@ -277,19 +429,25 @@ export function searchDevelopmentDynamicCandidates(input: {
         objectiveKey: developmentDynamicSearchPolicy,
         mode: 'fixed_events',
         policyKey: context.event_set,
-        horizon: Number(context.duration),
+        horizon:
+          context.duration === 'not_applicable' ? 'not_applicable' : Number(context.duration),
       },
       inputKey: current.calculationFingerprint ?? stableContentHash(discs),
       eventKey: context.event_set,
       status:
-        current.state === 'supported' && comparison.comparable && protectedCapacity
+        current.state === 'supported' && objectiveComparable && protectedCapacity
           ? 'evaluated'
           : 'unavailable',
-      modeledValue: current.totalDamage,
+      modeledValue:
+        functionalObjective && currentObjective.kind === 'functional_capacity'
+          ? currentObjective.value
+          : context.duration === 'not_applicable'
+            ? current.totalDamage
+            : current.planningDps,
       error: 0,
       gaps: [
         ...new Map(
-          (current.coverage?.excludedEffects ?? []).map((effect) => [
+          (functionalObjective ? [] : (current.coverage?.excludedEffects ?? [])).map((effect) => [
             effect.effectKey,
             {
               id: effect.effectKey,
@@ -305,34 +463,7 @@ export function searchDevelopmentDynamicCandidates(input: {
       dependencies: {},
       legality: plan ? 'verified' : 'invalid',
       stale: false,
-      functional: baselinePanel
-        ? baselinePanel.priorityStat === 'source'
-          ? {
-              initialHp: {
-                actual:
-                  panel?.priorityStat === 'source' && Number.isFinite(panel.hpDeficit)
-                    ? -panel.hpDeficit!
-                    : null,
-                minimum: Number.isFinite(baselinePanel.hpDeficit)
-                  ? -baselinePanel.hpDeficit!
-                  : Number.NaN,
-                authorityKey: 'reviewed-initial-hp-target',
-              },
-            }
-          : {
-              attack: {
-                actual: panel ? -panel.attackDeficit : null,
-                minimum: -baselinePanel.attackDeficit,
-                authorityKey: stableContentHash(baselinePanel.priorityStat ?? 'anomalyProficiency'),
-              },
-              priority: {
-                actual: panel?.[baselinePanel.priorityStat ?? 'anomalyProficiency'] ?? null,
-                minimum:
-                  baselinePanel[baselinePanel.priorityStat ?? 'anomalyProficiency'] ?? Number.NaN,
-                authorityKey: baselinePanel.priorityStat ?? 'anomalyProficiency',
-              },
-            }
-        : {},
+      functional: developmentPanelFunctionalConstraints(baselinePanel, panel, panelTarget),
     }
   }
   const result = searchDynamicAssignments({
@@ -372,15 +503,28 @@ export function searchDevelopmentDynamicCandidates(input: {
     })
   const originalIsComplete = originalDiscs.every((discs) => {
     const value = side(discs)
+    if (baselineObjective.kind === 'functional_capacity')
+      return comparablePersonalFunctionalObjectives32(
+        baseline,
+        value,
+        baselineObjective,
+        resolvePersonalDevelopmentObjective32(input.agentId, value),
+      )
     return value.state === 'supported' && value.coverage?.excludedEffects.length === 0
   })
+  const searchDiagnostics = diagnostics(result, 30000, input.evaluationBudget ?? 384)
   if (!qualified.length || !originalIsComplete)
-    return { candidates: [...input.candidates], search: result, rankingApplied: false }
+    return { candidates, search: result, rankingApplied: false, diagnostics: searchDiagnostics }
   const unique = new Map<string, CandidateWarehousePlan>()
   for (const row of qualified) {
     const discs = unwrap(row.loadouts),
       plan = compile(discs)
     if (plan) unique.set(physicalKey(discs), plan)
   }
-  return { candidates: [...unique.values()].slice(0, 10), search: result, rankingApplied: true }
+  return {
+    candidates: [...unique.values()].slice(0, 10).map(qualify),
+    search: result,
+    rankingApplied: true,
+    diagnostics: searchDiagnostics,
+  }
 }

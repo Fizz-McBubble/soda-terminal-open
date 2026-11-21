@@ -1,6 +1,7 @@
 import {
   currentAgentNumericContracts,
   isReviewedPhoenixNumericContract,
+  isReviewedSeverianNumericContract,
   getCurrentAgentNumericContract,
 } from '../../calculation/currentAgentNumericContracts'
 import { currentWEngineStaticCatalog } from '../currentWEngineStaticCatalog'
@@ -143,6 +144,11 @@ const projectedAgents = Object.fromEntries(
   }),
 ) satisfies Record<string, CurrentPanelGrowthAgent>
 
+/** Source growth remains available even when a separately reviewed menu anchor exists. */
+export function getCurrentPanelGrowthAgent(agentId: string): CurrentPanelGrowthAgent | undefined {
+  return projectedAgents[agentId]
+}
+
 const coreSourceBindings = new Map(
   currentAgentNumericContracts.map((actor) => [
     actor.stableId,
@@ -209,7 +215,9 @@ export function resolveCurrentAgentCoreGrowth(input: {
     !matchesCoreSource(contract) ||
     (contract.source.provider === 'genshin_optimizer'
       ? contract.source.commit !== currentCoreGrowthSource.commit
-      : !isReviewedPhoenixNumericContract(contract)) ||
+      : !(
+          isReviewedPhoenixNumericContract(contract) || isReviewedSeverianNumericContract(contract)
+        )) ||
     contract.coreStats.length !== 6 ||
     contract.coreStats.some((row) => Object.values(row).some((value) => !Number.isFinite(value)))
   )

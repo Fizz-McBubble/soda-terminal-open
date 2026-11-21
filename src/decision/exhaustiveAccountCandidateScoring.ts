@@ -9,6 +9,7 @@ import type { DriveDisc } from '../domain/schemas'
 import { stableContentHash } from '../gameDataPacks/types'
 import type { AccountBuildResult } from '../optimizer/optimizeAccountBuilds'
 import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
+import type { LegalAgentFormation } from '../teamEngine/current31LegalCandidateUniverse'
 import { projectCurrent31ExhaustiveAccountCandidates } from '../teamEngine/current31ExhaustiveAccountCandidateProjection'
 import { selectAuthoritativeBangbooRecommendation } from './bangbooRecommendationAuthority'
 import { classifyCurrentBangbooDecisionBlockerCounts } from './teamDecisionIssueClassification'
@@ -36,12 +37,19 @@ export { projectCurrentBangbooComposition } from './exhaustiveBangbooScoring'
  * Production identity/rating input. It preserves the complete legal formation universe without
  * running the exhaustive numeric oracle. Numeric evaluation belongs after the intrinsic shortlist.
  */
-export function projectCurrent31ProductionDecisionUniverse(roster: AccountRoster) {
+export function projectCurrent31ProductionDecisionUniverse(
+  roster: AccountRoster,
+  exactFormations?: readonly LegalAgentFormation[],
+) {
   const ownedAgentIds = roster.agents.filter((agent) => agent.owned).map((agent) => agent.agentId)
   const ownedBangbooCount = currentBangbooDirectory.filter(
     (bangboo) => bangboo.releaseState === 'released',
   ).length
-  const formationProjection = projectCurrent31ExhaustiveAccountCandidates(ownedAgentIds, 'indexed')
+  const formationProjection = projectCurrent31ExhaustiveAccountCandidates(
+    ownedAgentIds,
+    'indexed',
+    exactFormations,
+  )
   const authorityFormations = formationProjection.candidates.map((candidate) => {
     const bestBangbooId = resolveCurrent31VariantBangbooRecommendation(candidate.memberIds)
     return {
@@ -94,8 +102,9 @@ export function projectCurrent31ProductionDecisionUniverse(roster: AccountRoster
       ownedBangbooCount,
       mode: 'identity_and_intrinsic_rating_only',
     }),
-    boundary:
-      '生产 Query 只投影完整合法 formation identity 与账户无关 Team Rating；不在线执行 Exhaustive numeric oracle。Team Warehouse Fit 与 Account-bound Benchmark 必须在 shortlist 后按候选专属三人资产域求解。',
+    boundary: exactFormations
+      ? '按已验证的精确三人组合读取离线榜单，实体装备在打开队伍时按需计算。'
+      : '生产 Query 只投影完整合法 formation identity 与账户无关 Team Rating；不在线执行 Exhaustive numeric oracle。Team Warehouse Fit 与 Account-bound Benchmark 必须在 shortlist 后按候选专属三人资产域求解。',
   }
 }
 

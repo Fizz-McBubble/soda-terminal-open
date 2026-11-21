@@ -16,6 +16,7 @@ export type PlanEditorProps = {
   profiles: PlanningProfile[]
   team?: DecisionTeamViewModel
   teamRatingLabel?: string
+  ratedTeamPlayId?: string
   back: string
   restored?: Awaited<ReturnType<typeof getAccountPlanningDraft>>
   analysisRunId?: string
@@ -25,6 +26,8 @@ export type PlanEditorProps = {
   alternativeTeams?: DecisionTeamViewModel[]
   onSelectAlternative?: (candidateId: string) => void
   transitionNotice?: string | null
+  onCancelTransition?: () => void
+  cancelTransitionLabel?: string
   onReanalyze?: () => void
   onDeploymentOrderChange?: (
     order: import('../decision/teamDeployment').TeamDeploymentOrder | undefined,

@@ -1,0 +1,164 @@
+/* Compositor-only persistent shell rhythm and route entry motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .f5v-navigation a.is-current::before {
+    animation: soda-nav-beat-cadence var(--soda-tempo) ease-in-out infinite;
+    animation-play-state: var(--signal-play-state, running);
+  }
+  .f5v-navigation a.is-current::after {
+    animation: soda-nav-groove-sweep var(--soda-tempo) ease-in-out infinite;
+    animation-play-state: var(--signal-play-state, running);
+  }
+  .f5v-rail::after {
+    animation: soda-rail-seam-glide calc(var(--soda-tempo) * 4) ease-in-out infinite;
+    animation-play-state: var(--signal-play-state, running);
+  }
+  .f5v-topbar::after {
+    animation: soda-topbar-seam-pulse var(--soda-tempo) ease-in-out infinite;
+    animation-play-state: var(--signal-play-state, running);
+  }
+  .f5v-terminal-wave i {
+    animation: soda-terminal-beat 2.16s linear infinite;
+    animation-delay: var(--beat-offset);
+    animation-play-state: var(--signal-play-state, running);
+  }
+  .f5v-location__mark {
+    animation: soda-route-tag-in var(--soda-motion-route) var(--soda-ease-out);
+  }
+  .f5v-page-content::before {
+    animation: soda-content-seam-breath var(--soda-tempo) ease-in-out infinite;
+    animation-play-state: var(--signal-play-state, running);
+  }
+  .f5v-mobile-navigation a.is-current::after {
+    animation: soda-mobile-nav-beat var(--soda-tempo) ease-in-out infinite;
+    animation-play-state: var(--signal-play-state, running);
+  }
+}
+
+@keyframes soda-nav-beat-cadence {
+  0%,
+  100% {
+    transform: scaleY(1);
+    opacity: 0.82;
+  }
+  25% {
+    transform: scaleY(1.28);
+    opacity: 1;
+  }
+  50% {
+    transform: scaleY(0.9);
+    opacity: 0.72;
+  }
+  75% {
+    transform: scaleY(1.16);
+    opacity: 0.94;
+  }
+}
+
+@keyframes soda-nav-groove-sweep {
+  0% {
+    transform: translate3d(-100%, 0, 0);
+    opacity: 0;
+  }
+  20%,
+  60% {
+    opacity: 0.75;
+  }
+  80%,
+  100% {
+    transform: translate3d(100%, 0, 0);
+    opacity: 0;
+  }
+}
+
+@keyframes soda-rail-seam-glide {
+  0%,
+  100% {
+    opacity: 0.22;
+    transform: translate3d(0, -6%, 0) scaleY(0.86);
+  }
+  35% {
+    opacity: 0.62;
+    transform: translate3d(0, 3%, 0) scaleY(1.04);
+  }
+  70% {
+    opacity: 0.42;
+    transform: translate3d(0, 6%, 0) scaleY(0.94);
+  }
+}
+
+@keyframes soda-topbar-seam-pulse {
+  0%,
+  100% {
+    opacity: 0.42;
+    transform: translate3d(-1.5%, 0, 0) scaleX(0.96);
+  }
+  50% {
+    opacity: 0.88;
+    transform: translate3d(1.5%, 0, 0) scaleX(1);
+  }
+}
+
+@keyframes soda-terminal-beat {
+  0%,
+  100% {
+    transform: scaleY(0.54);
+  }
+  8%,
+  56% {
+    transform: scaleY(1);
+  }
+  25%,
+  73% {
+    transform: scaleY(0.36);
+  }
+  37% {
+    transform: scaleY(0.76);
+  }
+  48%,
+  91% {
+    transform: scaleY(0.48);
+  }
+}
+
+@keyframes soda-route-tag-in {
+  from {
+    opacity: 0.65;
+    transform: translateX(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes soda-content-seam-breath {
+  0%,
+  100% {
+    opacity: 0.32;
+    transform: translate3d(1.2%, 0, 0) scaleX(0.95);
+  }
+  50% {
+    opacity: 0.76;
+    transform: translate3d(-1.2%, 0, 0) scaleX(1);
+  }
+}
+
+@keyframes soda-mobile-nav-beat {
+  0%,
+  100% {
+    transform: translateX(-50%) scaleX(1);
+    opacity: 0.82;
+  }
+  25% {
+    transform: translateX(-50%) scaleX(1.24);
+    opacity: 1;
+  }
+  50% {
+    transform: translateX(-50%) scaleX(0.92);
+    opacity: 0.74;
+  }
+  75% {
+    transform: translateX(-50%) scaleX(1.14);
+    opacity: 0.94;
+  }
+}

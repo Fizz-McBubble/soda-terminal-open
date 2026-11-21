@@ -5,11 +5,14 @@ export const currentCombatPlanningModifierTargets: Readonly<
   Record<string, SourceBackedEquipmentModifierBucket['application']>
 > = {
   'combat.atk_': 'attack_percent',
+  'combat.hp_': 'hp_percent',
+  'combat.hp': 'hp_flat',
   'combat.crit_': 'crit_rate',
   'combat.crit_dmg_': 'crit_damage',
   'combat.dmg_': 'damage_bonus',
   'combat.common_dmg_': 'damage_bonus',
   'combat.defIgn_': 'defense_ignore',
+  'common.defRed_': 'defense_reduction',
   'combat.resIgn_': 'resistance_ignore',
   'combat.def_': 'defense_percent',
   'combat.def': 'defense_flat',

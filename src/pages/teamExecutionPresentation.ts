@@ -1,6 +1,7 @@
 import { getAgentName } from '../application/publicRosterNames'
 import { currentWEngineDirectory } from '../assault/planningCatalog'
 import type { CoreWarehouse } from '../accounts/coreFlow'
+import { projectSavedSnapshotExecution } from '../accounts/savedTeamPanelWarehouse'
 import { driveDiscData } from '../data/gameData'
 import type {
   TeamExecution,
@@ -13,12 +14,9 @@ import type { DiscFact } from '../features/agentDevelopmentGolden/types'
 import type { AccountLoadout } from '../optimizer/optimizeAccountBuilds'
 import { readablePhysicalDiscLabel } from './warehouseFactLabels'
 import { orderTeamMembers } from '../decision/teamDeployment'
-import {
-  displayDriveDiscSet,
-  formatDiscStatValue,
-  presentDiscFactFromChoice,
-} from './discFactPresentation'
+import { displayDriveDiscSet, presentDiscFactFromChoice } from './discFactPresentation'
 import type { DriveDisc } from '../domain/schemas'
+import { teamDiscCompletion } from '../domain/teamDiscCompletion'
 import { displayDiscMainValueWithRules } from './publicDiscFacts'
 import {
   incompleteTeamLoadoutMessage,
@@ -60,7 +58,7 @@ export type TeamExecutionMemberPresentation = {
 
 export type TeamExecutionPresentation = {
   status: TeamExecutionPlayerStatus
-  statusLabel: '直接可用' | '需要调整' | '需要确认' | '配装未完成'
+  statusLabel: '保持当前配装' | '需要调整' | '需要确认' | '配装未完成'
   headline: string
   primaryActions: string[]
   allActions: string[]
@@ -97,7 +95,7 @@ const scenarioLabels: Readonly<Record<string, string>> = {
 
 function wEngineName(engineId: string | null | undefined) {
   if (!engineId) return '未录入音擎'
-  return currentWEngineDirectory.find((engine) => engine.id === engineId)?.name ?? '音擎资料待补齐'
+  return currentWEngineDirectory.find((engine) => engine.id === engineId)?.name ?? '音擎名称未知'
 }
 
 /** The desktop build keeps its own W-Engine directory wording in player-facing blocker text. */
@@ -215,17 +213,43 @@ function statusFor(execution: TeamExecution): TeamExecutionPlayerStatus {
     : 'adjust'
 }
 
+export type PresentTeamExecutionOptions = {
+  /** Reopen a saved snapshot against live roster equipment without reusing stale save-time actions. */
+  savedSnapshot?: boolean
+}
+
 export function presentTeamExecutionSummary(
   execution: TeamExecution,
   warehouse?: CoreWarehouse,
+  options?: PresentTeamExecutionOptions,
 ): TeamExecutionSummaryPresentation {
+  const effectiveExecution =
+    options?.savedSnapshot && warehouse
+      ? projectSavedSnapshotExecution(execution, warehouse)
+      : execution
   const currentEquipmentMissing =
     warehouse &&
-    execution.members.some((member) => !hasCompleteCurrentDiscRecord(member, warehouse.discs))
-  const priorStatus = statusFor(execution)
-  const status = currentEquipmentMissing && priorStatus === 'direct' ? 'adjust' : priorStatus
+    effectiveExecution.members.some(
+      (member) => !hasCompleteCurrentDiscRecord(member, warehouse.discs),
+    )
+  const priorStatus = statusFor(effectiveExecution)
+  const missingAssignment =
+    warehouse &&
+    !teamDiscCompletion(
+      effectiveExecution.memberIds,
+      effectiveExecution.members.map((member) => ({
+        agentId: member.agentId,
+        discIds: member.suggested.discIds,
+      })),
+      warehouse.discs,
+    ).complete
+  const status = missingAssignment
+    ? 'build'
+    : currentEquipmentMissing && priorStatus === 'direct'
+      ? 'adjust'
+      : priorStatus
   const copy =
-    currentEquipmentMissing && execution.status === 'ready'
+    !missingAssignment && currentEquipmentMissing && effectiveExecution.status === 'ready'
       ? {
           ...statusCopy(status),
           headline: '方案装备已配齐；当前装备记录待更新，请按方案配置。',
@@ -233,7 +257,7 @@ export function presentTeamExecutionSummary(
       : statusCopy(status)
   const allActions = [
     ...new Set(
-      execution.members.flatMap((member) =>
+      effectiveExecution.members.flatMap((member) =>
         member.actions.map((action) =>
           actionLine(
             action,
@@ -251,7 +275,7 @@ export function presentTeamExecutionSummary(
     headline: copy.headline,
     primaryActions: directActions.slice(0, 3),
     allActions,
-    impacts: uniqueImpactLines(execution.members.flatMap((member) => member.impacts)),
+    impacts: uniqueImpactLines(effectiveExecution.members.flatMap((member) => member.impacts)),
   }
 }
 
@@ -259,7 +283,7 @@ function statusCopy(status: TeamExecutionPlayerStatus) {
   switch (status) {
     case 'direct':
       return {
-        label: '直接可用' as const,
+        label: '保持当前配装' as const,
         headline: '三名成员可以保持当前配装，按这套队伍直接使用。',
       }
     case 'adjust':
@@ -299,22 +323,29 @@ function memberPresentation(
       .find((loadout) => loadout.agentId === member.agentId)
       ?.discs.map((choice) => [choice.disc.id, choice]) ?? [],
   )
-  const referenceOwnersForDisc = (discId: string) => [
-    ...new Map(
-      member.impacts
-        .filter(
-          (impact) =>
-            impact.equipment === 'drive_disc' &&
-            impact.agentId !== null &&
-            impact.agentId !== member.agentId &&
-            impact.assetIds.includes(discId),
-        )
-        .map((impact) => [
-          impact.agentId!,
-          { agentId: impact.agentId!, name: getAgentName(impact.agentId!) },
-        ]),
-    ).values(),
-  ]
+  const referenceOwnersForDisc = (discId: string) => {
+    const owners = new Map<
+      string,
+      NonNullable<TeamExecutionDiscPresentation['conflicts']>[number]
+    >()
+    for (const impact of member.impacts) {
+      if (
+        impact.equipment !== 'drive_disc' ||
+        !impact.agentId ||
+        impact.agentId === member.agentId ||
+        !impact.assetIds.includes(discId)
+      )
+        continue
+      const usage = impact.kind === 'current_equipment' ? 'current_equipment' : 'saved_plan'
+      const previous = owners.get(impact.agentId)
+      owners.set(impact.agentId, {
+        agentId: impact.agentId,
+        name: getAgentName(impact.agentId),
+        usage: previous && previous.usage !== usage ? 'equipment_and_plan' : usage,
+      })
+    }
+    return [...owners.values()]
+  }
   const discFacts = member.suggested.discIds.flatMap((discId) => {
     const disc = warehouse.discs.find((item) => item.id === discId)
     if (!disc) return []
@@ -324,7 +355,6 @@ function memberPresentation(
       disc,
       set: displayDriveDiscSet(disc.setId),
       mainValue: displayDiscMainValue(disc),
-      formatSubStatValue: (stat, value) => formatDiscStatValue(stat, value, '+'),
     })
     return [
       {
@@ -362,7 +392,7 @@ function memberPresentation(
         ? `已选择 · 60 级 / 精炼${suggested.refinement}`
         : suggested
           ? `${suggested.fact === 'player_confirmed_parameter' ? '方案已确认' : '默认推荐'} · 60 级 / 精炼${suggested.refinement}`
-          : '现有攻略暂未提供音擎推荐',
+          : '音擎建议尚待确认',
     currentDiscIds: [...member.current.discIds],
     currentDiscLabels: member.current.discIds.map((discId) => {
       const disc = warehouse.discs.find((item) => item.id === discId)
@@ -382,23 +412,27 @@ export function presentTeamExecution(
   execution: TeamExecution,
   warehouse: CoreWarehouse,
   allocation: readonly AccountLoadout[] = [],
+  options?: PresentTeamExecutionOptions,
 ): TeamExecutionPresentation {
-  const summary = presentTeamExecutionSummary(execution, warehouse)
+  const effectiveExecution = options?.savedSnapshot
+    ? projectSavedSnapshotExecution(execution, warehouse)
+    : execution
+  const summary = presentTeamExecutionSummary(effectiveExecution, warehouse)
   const members = orderTeamMembers(
-    execution.members,
+    effectiveExecution.members,
     (member) => member.agentId,
-    execution.deploymentOrder,
+    effectiveExecution.deploymentOrder,
   ).map((member) => memberPresentation(member, warehouse, allocation))
   return {
     ...summary,
-    scenarioLabel: execution.scenario.tags.length
-      ? execution.scenario.tags.map((tag) => scenarioLabels[tag] ?? '场景资料待补齐').join(' · ')
-      : '场景资料待补齐',
+    scenarioLabel: effectiveExecution.scenario.tags
+      .flatMap((tag) => (scenarioLabels[tag] ? [scenarioLabels[tag]!] : []))
+      .join(' · '),
     reuseLabel:
-      execution.reusePolicy === 'simultaneous_lock'
+      effectiveExecution.reusePolicy === 'simultaneous_lock'
         ? '多队同时出战时，驱动盘不能共用；音擎与邦布请按实际持有情况选择。'
         : '不同时间出战的队伍可以共用装备，请按换装建议切换。',
-    blockers: [...new Set(execution.blockers.map(playerFacingExecutionBlocker))],
+    blockers: [...new Set(effectiveExecution.blockers.map(playerFacingExecutionBlocker))],
     members,
   }
 }

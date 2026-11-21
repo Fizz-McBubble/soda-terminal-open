@@ -22,7 +22,7 @@ export type AssetQuickReadAgentCandidate = {
 export type AssetQuickReadCandidate = {
   capturedAt: string
   snapshotSha256: string
-  protocolVersion: '3.2'
+  protocolVersion: '3.2' | '3.3'
   discs: StandardAssetDiscImport
   agents: AssetQuickReadAgentCandidate[]
   counts: {

@@ -29,6 +29,27 @@ test('asset receiver strictly rejects raw/private facts and cross-tool whitelist
   ])
     assert.equal(sanitizeScanFeedbackPayload({ ...report, ...fields }).status, 400)
 })
+
+test('runtime Bridge candidate is exactly 1.1.1 while unknown versions and game protocol substitutions stay rejected', () => {
+  const candidate = { ...report, versions: { bridge: '1.1.1', protocol: '1' } }
+  assert.deepEqual(sanitizeScanFeedbackPayload(candidate), { ok: true, record: candidate })
+  for (const versions of [
+    { bridge: '1.1.2', protocol: '1' },
+    { bridge: '1.2.0', protocol: '1' },
+    { bridge: '1.2.1', protocol: '1' },
+    { bridge: '1.3.0', protocol: '1' },
+    { bridge: '2.0.0', protocol: '1' },
+    { bridge: '1.1.1-private', protocol: '1' },
+    { bridge: '1.1.1', protocol: '3.3' },
+    { bridge: '1.1.1', protocol: '1', gameProtocol: '3.3' },
+    { bridge: '1.1.1', protocol: '1', token: 'private' },
+  ])
+    assert.equal(sanitizeScanFeedbackPayload({ ...report, versions }).status, 400)
+  assert.deepEqual(sanitizeScanFeedbackPayload({ ...report, versions: {} }), {
+    ok: true,
+    record: { ...report, versions: {} },
+  })
+})
 test('retains reviewed candidate evidence through receiver storage and Owner readback', async () => {
   const candidateReport = {
     ...report,
@@ -123,7 +144,7 @@ test('uses existing receiver and KV TTL, immutable content addressing and stable
   assert.equal(ownerValidation.ok, true)
   assert.deepEqual(ownerValidation.record, report)
 
-  for (const [index, bridge] of ['1.0.5', '1.0.12', '1.1.0'].entries()) {
+  for (const [index, bridge] of ['1.0.5', '1.0.12', '1.1.0', '1.1.1'].entries()) {
     // Carry Bridge versions while retaining previously published diagnostic identities.
     const bridgeReport = {
       ...report,
@@ -143,5 +164,5 @@ test('uses existing receiver and KV TTL, immutable content addressing and stable
     assert.equal(bValidation.ok, true)
     assert.deepEqual(bValidation.record, bridgeReport)
   }
-  assert.equal(records.size, 4)
+  assert.equal(records.size, 5)
 })

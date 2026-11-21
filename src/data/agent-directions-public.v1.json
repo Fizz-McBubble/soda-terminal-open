@@ -1,20 +1,20 @@
 {
   "contract": "soda-public-agent-directions/v1",
-  "gameVersion": "3.2",
-  "packageVersion": "3.2.0-current.1",
+  "gameVersion": "3.3",
+  "packageVersion": "3.3.0-current.2",
   "fallbackProfile": {
     "id": "agent-profile-projection-3.1-__unknown_agent__",
     "agentId": "__unknown_agent__",
     "agentName": "__unknown_agent__",
     "role": "资料待补",
     "gameVersion": "3.1",
-    "packageVersion": "3.2.0-current.1-agent-projected",
+    "packageVersion": "3.3.0-current.2-agent-projected",
     "status": "missing",
     "updatedAt": "2026-07-27T00:00:00.000Z",
     "scenario": "当前版本资料待补",
     "assumptions": [
       "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-      "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+      "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
     ],
     "gaps": [
       "当前角色缺少可追溯构筑方向。",
@@ -24,7 +24,7 @@
       "当前角色缺少可追溯构筑方向。"
     ],
     "recommendation": null,
-    "contentHash": "fnv1a-fd7eab81",
+    "contentHash": "fnv1a-fea7c5cc",
     "sources": []
   },
   "agents": {
@@ -35,20 +35,20 @@
         "agentName": "安比",
         "role": "stun",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-14T00:00:00.000Z",
         "scenario": "通用击破；电队可提高属性协同。；bangboo-amillion；bangboo-plugboo；电属性击破与失衡窗口前提（跨版本候选）",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["wengine-13101", "wengine-13005", "wengine-13006"],
@@ -76,7 +76,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-ff5fdf10",
+        "contentHash": "fnv1a-b2f7da2c",
         "sources": [
           {
             "label": "build-knowledge-v1a-a00b45f7",
@@ -114,20 +114,20 @@
         "agentName": "猫又",
         "role": "damage",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-07-27T00:00:00.000Z",
         "scenario": "需要强击覆盖或物理队友激活獠牙4件。；bangboo-amillion；bangboo-bangvolver；物理强击与失衡窗口前提（跨版本候选）",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["wengine-14102", "wengine-14104", "wengine-13004"],
@@ -155,7 +155,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-5fbdbac2",
+        "contentHash": "fnv1a-df4e281e",
         "sources": [
           {
             "label": "build-knowledge-nv1a-33be289",
@@ -193,20 +193,20 @@
         "agentName": "妮可",
         "role": "support",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-19T00:00:00.000Z",
         "scenario": "适合爆发窗口与以太队；需保证减防覆盖。；bangboo-amillion；bangboo-resonaboo；以太支援与减防覆盖前提（跨版本候选）",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["wengine-13103", "wengine-13002", "wengine-12006"],
@@ -233,7 +233,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-79d03e2f",
+        "contentHash": "fnv1a-ca710393",
         "sources": [
           {
             "label": "build-knowledge-nv1a-d0d31fd",
@@ -281,20 +281,20 @@
         "agentName": "「11号」",
         "role": "damage",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-19T00:00:00.000Z",
         "scenario": "需要稳定触发灼烧或提供火增益的击破/支援队友。；bangboo-rocketboo；火属性直伤与失衡窗口前提（跨版本候选）",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["wengine-14104", "wengine-13004", "wengine-13001"],
@@ -321,7 +321,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-6a4a697e",
+        "contentHash": "fnv1a-e87fb572",
         "sources": [
           {
             "label": "build-knowledge-v1a-995584ec",
@@ -359,20 +359,20 @@
         "agentName": "伊德海莉",
         "role": "rupture",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-07-27T00:00:00.000Z",
         "scenario": "裂隙输出：卢西娅为优先辅助，潘引壶为可获得替代；琉音优先击破、莱卡恩替代。邦布方向未作稳定候选。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": [
@@ -401,7 +401,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-fd171634",
+        "contentHash": "fnv1a-93605d8",
         "sources": [
           {
             "label": "prydwen-yidhari-page-candidate",
@@ -444,20 +444,20 @@
         "agentName": "可琳",
         "role": "damage",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-19T00:00:00.000Z",
         "scenario": "依赖失衡窗口持续输出；优先击破与物理异常协同。；bangboo-butler；bangboo-bangvolver；物理失衡窗口输出前提（跨版本候选）",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["wengine-13106", "wengine-13004", "wengine-13001"],
@@ -485,7 +485,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-518ac45d",
+        "contentHash": "fnv1a-92179ad",
         "sources": [
           {
             "label": "build-knowledge-v1a-6da7c332",
@@ -523,20 +523,20 @@
         "agentName": "凯撒",
         "role": "defense",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-14T00:00:00.000Z",
         "scenario": "通用护盾增益或物理异常支援方向；团队套装需避免与队内同一 4 件效果重复，邦布未作为稳定优先级录入。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": [
@@ -564,7 +564,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-c8219230",
+        "contentHash": "fnv1a-30413758",
         "sources": [
           {
             "label": "prydwen-caesar-page-candidate",
@@ -613,20 +613,20 @@
         "agentName": "比利",
         "role": "damage",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-06-15T00:00:00.000Z",
         "scenario": "持续直伤与普攻强化为不同场景，当前模板按持续直伤。；bangboo-amillion；站场物理直伤与失衡窗口（非精确伤害计算）",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["wengine-13108", "wengine-13004", "wengine-13001"],
@@ -653,7 +653,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-38ab0d6d",
+        "contentHash": "fnv1a-9d174f5",
         "sources": [
           {
             "label": "build-knowledge-v1a-9de0377e",
@@ -691,20 +691,20 @@
         "agentName": "星见雅",
         "role": "anomaly",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-07T00:00:00.000Z",
         "scenario": "需持续属性异常覆盖；不等同唯一队伍或正式最优。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": [
@@ -728,7 +728,7 @@
           "teammates": ["需持续属性异常覆盖；不等同唯一队伍或正式最优。"],
           "bangboos": []
         },
-        "contentHash": "fnv1a-a327b222",
+        "contentHash": "fnv1a-7ac9884a",
         "sources": [
           {
             "label": "prydwen-miyabi-2.1",
@@ -761,82 +761,113 @@
     },
     "agent-koleda": {
       "profile": {
-        "id": "agent-profile-projection-3.1-agent-koleda",
+        "id": "agent-profile-projection-3.2-agent-koleda",
         "agentId": "agent-koleda",
         "agentName": "珂蕾妲",
         "role": "stun",
-        "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "gameVersion": "3.2",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
-        "updatedAt": "2026-06-14T00:00:00.000Z",
-        "scenario": "火属性队或需要快速失衡的队伍。；bangboo-safety；bangboo-rocketboo；火属性速切击破与队伍增益前提（跨版本候选）",
+        "updatedAt": "2026-10-20T07:02:17.826Z",
+        "scenario": "当前来源方向：克拉蕾／珂蕾妲／丽娜；仪玄／珂蕾妲／卢西娅；「11号」／珂蕾妲／露西。；邦布随精确队伍核对额外能力；来源列举不成为自动默认。；潜能对锋御与非锋御的增益接受者不同；使用实际潜能等级，不把满潜能增益自动给未解锁账户。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.2 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.2；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.2；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.2；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.2；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.2；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
-          "wEngines": ["wengine-14110", "wengine-13006", "wengine-13005"],
+          "wEngines": [
+            "wengine-14110",
+            "wengine-14116",
+            "wengine-14157",
+            "wengine-13006",
+            "wengine-13005"
+          ],
           "sets": [
-            "set-shockstar-disco",
-            "set-swing-jazz",
-            "set-inferno-metal",
-            "set-shockstar-disco",
-            "set-swing-jazz",
-            "set-inferno-metal"
+            "山大王 4 件 + 震星迪斯科 2 件：强攻／命破队，需强化特殊技；连携技也可触发套装，效果窗口须另核。",
+            "静听嘉音 4 件 + 山大王／月光骑士颂／震星迪斯科 2 件：锋御队，需团队快速支援。",
+            "震星迪斯科 4 件 + 摇摆爵士 2 件：失衡与回能过渡方向。"
           ],
           "mainStats": {
-            "4": ["crit_rate", "crit_dmg"],
-            "5": ["fire_dmg", "atk_percent"],
-            "6": ["impact"]
+            "4": ["4号位：暴击率／暴击伤害"],
+            "5": ["5号位：火属性伤害／攻击力百分比"],
+            "6": ["6号位：冲击力"]
           },
-          "subStats": ["impact", "crit_rate", "crit_dmg", "atk_percent", "pen"],
-          "skillPriority": ["core", "basic", "special", "chain", "assist", "dodge"],
+          "subStats": [
+            "副词条：暴击率、暴击伤害、攻击力百分比、穿透值、固定攻击力；来源次序不转为伤害权重。"
+          ],
+          "skillPriority": [
+            "核心技 > 特殊技 > 连携技 > 普通攻击 > 支援 > 闪避；来源优先级不替代账号实际技能等级。"
+          ],
           "coreTarget": 1,
           "teammates": [
-            "火属性队或需要快速失衡的队伍。",
-            "bangboo-safety",
-            "bangboo-rocketboo",
-            "火属性速切击破与队伍增益前提（跨版本候选）"
+            "当前来源方向：克拉蕾／珂蕾妲／丽娜；仪玄／珂蕾妲／卢西娅；「11号」／珂蕾妲／露西。",
+            "邦布随精确队伍核对额外能力；来源列举不成为自动默认。",
+            "潜能对锋御与非锋御的增益接受者不同；使用实际潜能等级，不把满潜能增益自动给未解锁账户。"
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-5b7a9079",
+        "contentHash": "fnv1a-d60ce1c6",
         "sources": [
           {
-            "label": "build-knowledge-v1a-2a4f6e6b",
-            "updatedAt": "2026-06-14T00:00:00.000Z",
+            "label": "prydwen-original-koleda32",
+            "updatedAt": "2026-09-30T12:29:09.2100756Z",
             "kind": "community_candidate"
           },
           {
-            "label": "build-knowledge-v1a-2a4f6e6b",
-            "updatedAt": "2026-06-14T00:00:00.000Z",
+            "label": "hoyobuild-koleda-current-build-20261020",
+            "updatedAt": "2026-10-20T07:02:17.826Z",
             "kind": "community_candidate"
           },
           {
-            "label": "build-knowledge-v1a-2a4f6e6b",
-            "updatedAt": "2026-06-14T00:00:00.000Z",
+            "label": "prydwen-original-koleda32",
+            "updatedAt": "2026-09-30T12:29:09.2100756Z",
             "kind": "community_candidate"
           },
           {
-            "label": "build-knowledge-v1a-2a4f6e6b",
-            "updatedAt": "2026-06-14T00:00:00.000Z",
+            "label": "hoyobuild-koleda-current-build-20261020",
+            "updatedAt": "2026-10-20T07:02:17.826Z",
             "kind": "community_candidate"
           },
           {
-            "label": "build-knowledge-v1a-2a4f6e6b",
-            "updatedAt": "2026-06-14T00:00:00.000Z",
+            "label": "prydwen-original-koleda32",
+            "updatedAt": "2026-09-30T12:29:09.2100756Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "hoyobuild-koleda-current-build-20261020",
+            "updatedAt": "2026-10-20T07:02:17.826Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "prydwen-original-koleda32",
+            "updatedAt": "2026-09-30T12:29:09.2100756Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "hoyobuild-koleda-current-build-20261020",
+            "updatedAt": "2026-10-20T07:02:17.826Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "prydwen-original-koleda32",
+            "updatedAt": "2026-09-30T12:29:09.2100756Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "hoyobuild-koleda-current-build-20261020",
+            "updatedAt": "2026-10-20T07:02:17.826Z",
             "kind": "community_candidate"
           }
         ]
       },
-      "preferredStatKeys": ["crit_rate", "crit_dmg", "atk_percent", "pen"]
+      "preferredStatKeys": ["crit_rate", "crit_dmg", "atk_percent", "pen", "atk_flat"]
     },
     "agent-anton": {
       "profile": {
@@ -845,20 +876,20 @@
         "agentName": "安东",
         "role": "damage",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-19T00:00:00.000Z",
         "scenario": "需要电异常覆盖维持雷暴4件效果。；bangboo-safety；bangboo-plugboo；电属性直伤与感电覆盖前提（跨版本候选）",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["wengine-13111", "wengine-13004", "wengine-13001"],
@@ -886,7 +917,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-c73c23f7",
+        "contentHash": "fnv1a-f7bb62bf",
         "sources": [
           {
             "label": "build-knowledge-v1a-54f931f3",
@@ -924,20 +955,20 @@
         "agentName": "本",
         "role": "defense",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-07-27T00:00:00.000Z",
         "scenario": "火队或团队防御辅助方向；来源仅列出「11号」协同，未给出可核验邦布优先级。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["本的专属音擎", "兔能环", "「恒等式」- 本格", "「恒等式」- 变格"],
@@ -957,7 +988,7 @@
           "teammates": ["火队或团队防御辅助方向；来源仅列出「11号」协同，未给出可核验邦布优先级。"],
           "bangboos": []
         },
-        "contentHash": "fnv1a-98763d61",
+        "contentHash": "fnv1a-431c70dd",
         "sources": [
           {
             "label": "bwiki-ben-unversioned",
@@ -995,20 +1026,20 @@
         "agentName": "苍角",
         "role": "support",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-07-27T00:00:00.000Z",
         "scenario": "优先冰属性主C；需满足展旗与攻击增益覆盖。；bangboo-sharkboo；冰属性支援与展旗覆盖前提（跨版本候选）",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["wengine-13113", "wengine-13002", "wengine-12006"],
@@ -1036,7 +1067,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-ca3056fc",
+        "contentHash": "fnv1a-eeaf92cc",
         "sources": [
           {
             "label": "build-knowledge-v1a-8c73e0f4",
@@ -1084,20 +1115,20 @@
         "agentName": "莱卡恩",
         "role": "stun",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-07-27T00:00:00.000Z",
         "scenario": "冰队：雅/艾莲；也可与雨果双击破，通用辅助方向为耀嘉音/柚叶/妮可，冰队可配苍角。邦布方向未作稳定候选。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": [
@@ -1126,7 +1157,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-b966bcf7",
+        "contentHash": "fnv1a-dd3bdd7b",
         "sources": [
           {
             "label": "prydwen-lycaon-page-candidate",
@@ -1164,20 +1195,20 @@
         "agentName": "露西",
         "role": "support",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-06-14T00:00:00.000Z",
         "scenario": "需要快速支援入场的主C；攻击目标随小猪继承需求调整。；bangboo-red-moccus；bangboo-rocketboo；支援增益与快速支援前提（跨版本候选）",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["wengine-13115", "wengine-13002", "wengine-12006"],
@@ -1205,7 +1236,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-eacf7b68",
+        "contentHash": "fnv1a-87161e8",
         "sources": [
           {
             "label": "build-knowledge-v1a-7896c764",
@@ -1248,20 +1279,20 @@
         "agentName": "莱特",
         "role": "stun",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-07T15:40:00.000Z",
         "scenario": "火/冰暴击队的击破与增益方向；套装覆盖依赖队内是否已有 Astral Voice 持有者，邦布未作为稳定优先级录入。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": [
@@ -1298,7 +1329,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-eb7e3880",
+        "contentHash": "fnv1a-240f7f10",
         "sources": [
           {
             "label": "prydwen-lighter-page-candidate",
@@ -1336,20 +1367,20 @@
         "agentName": "柏妮思",
         "role": "anomaly",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-10-11T00:00:00.000Z",
         "scenario": "火异常/紊乱副C方向；页面示例为爱丽丝 + 柚叶，或与其他异常主C协同；邦布未作为稳定优先级录入。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": [
@@ -1383,7 +1414,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-a81b322d",
+        "contentHash": "fnv1a-ddb9861",
         "sources": [
           {
             "label": "prydwen-burnice-page-candidate",
@@ -1421,20 +1452,20 @@
         "agentName": "格莉丝",
         "role": "anomaly",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-19T00:00:00.000Z",
         "scenario": "电异常或紊乱副C方向；来源计算队示例为柏妮思+柚叶，具体邦布和版本化异常顺序仍待核验。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": [
@@ -1468,7 +1499,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-eb8cbc67",
+        "contentHash": "fnv1a-4df7c7c7",
         "sources": [
           {
             "label": "prydwen-grace-page-candidate",
@@ -1506,20 +1537,20 @@
         "agentName": "艾莲",
         "role": "damage",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-14T00:00:00.000Z",
         "scenario": "优先冰属性增益、击破与支援队友。；bangboo-sharkboo；bangboo-butler；通用失衡窗口冰直伤（非危局专项）",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["wengine-14119", "wengine-14104", "wengine-13004"],
@@ -1545,7 +1576,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-542d7deb",
+        "contentHash": "fnv1a-8ca985bb",
         "sources": [
           {
             "label": "build-knowledge-v1a-4da5be63",
@@ -1588,20 +1619,20 @@
         "agentName": "悠真",
         "role": "damage",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-08T00:00:00.000Z",
         "scenario": "击破爆发：琉音/青衣/扳机/安比之一 + 柚叶/妮可/耀嘉音等辅助；电异常对齐会影响 Thunder Metal 覆盖。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": [
@@ -1629,7 +1660,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-33f389d0",
+        "contentHash": "fnv1a-f554d58c",
         "sources": [
           {
             "label": "prydwen-harumasa-page-candidate",
@@ -1667,20 +1698,20 @@
         "agentName": "丽娜",
         "role": "support",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-07-27T00:00:00.000Z",
         "scenario": "电异常：柳/简；电输出：悠真。通过同属性/阵营满足额外能力，并保持 Shock 与人偶部署。邦布方向未作稳定候选。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": [
@@ -1710,7 +1741,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-1b547b55",
+        "contentHash": "fnv1a-2b8e6f29",
         "sources": [
           {
             "label": "prydwen-rina-2.2",
@@ -1753,20 +1784,20 @@
         "agentName": "柳",
         "role": "anomaly",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-14T00:00:00.000Z",
         "scenario": "站场紊乱：耀嘉音 + 扳机/妮可/丽娜/凯撒；页面示例邦布为插头布或恶魔布。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["柳的专属音擎", "嵌合编译器", "wengine-13009", "wengine-13008"],
@@ -1795,7 +1826,7 @@
           "teammates": ["站场紊乱：耀嘉音 + 扳机/妮可/丽娜/凯撒；页面示例邦布为插头布或恶魔布。"],
           "bangboos": []
         },
-        "contentHash": "fnv1a-c0478a9f",
+        "contentHash": "fnv1a-8b746fb",
         "sources": [
           {
             "label": "bwiki-yanagi-2.1",
@@ -1853,20 +1884,20 @@
         "agentName": "朱鸢",
         "role": "damage",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-07T00:00:00.000Z",
         "scenario": "页面计算假设：琉音与妮可；不等同唯一队伍或正式最优。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": [
@@ -1895,7 +1926,7 @@
           "teammates": ["页面计算假设：琉音与妮可；不等同唯一队伍或正式最优。"],
           "bangboos": []
         },
-        "contentHash": "fnv1a-a6217c7d",
+        "contentHash": "fnv1a-653a147d",
         "sources": [
           {
             "label": "prydwen-zhuyuan-2.4",
@@ -1938,20 +1969,20 @@
         "agentName": "青衣",
         "role": "stun",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-14T00:00:00.000Z",
         "scenario": "面向需要长失衡窗口的强攻主C。；bangboo-officer-cui；bangboo-plugboo；击破窗口与队伍增益（跨版本候选，需 3.0 复核）",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["wengine-14125", "wengine-13005", "wengine-13101"],
@@ -1975,7 +2006,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-e4ce45b2",
+        "contentHash": "fnv1a-ce5fe192",
         "sources": [
           {
             "label": "build-knowledge-v1a-f01a0a98",
@@ -2013,20 +2044,20 @@
         "agentName": "简",
         "role": "anomaly",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-07T15:30:00.000Z",
         "scenario": "物理异常主C；页面列出薇薇安/柏妮思/赛斯/柚叶/爱丽丝等协同，依赖持续冲击/异常节奏。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": [
@@ -2052,7 +2083,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-d03dbf5d",
+        "contentHash": "fnv1a-b19d4739",
         "sources": [
           {
             "label": "prydwen-jane-page-candidate",
@@ -2090,20 +2121,20 @@
         "agentName": "赛斯",
         "role": "defense",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-07T15:40:00.000Z",
         "scenario": "面向异常队的护盾与异常效率支援；不等同唯一队伍或正式最优。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": [
@@ -2136,7 +2167,7 @@
           "teammates": ["面向异常队的护盾与异常效率支援；不等同唯一队伍或正式最优。"],
           "bangboos": []
         },
-        "contentHash": "fnv1a-6e15370a",
+        "contentHash": "fnv1a-8ee7025a",
         "sources": [
           {
             "label": "prydwen-seth-1.5",
@@ -2189,20 +2220,20 @@
         "agentName": "派派",
         "role": "anomaly",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-06-14T00:00:00.000Z",
         "scenario": "物理异常或紊乱队；需按队伍确认异常覆盖。；bangboo-bangvolver；bangboo-red-moccus；物理异常与紊乱前提（跨版本候选）",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["wengine-13128", "wengine-13003", "wengine-13008"],
@@ -2231,7 +2262,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-22aa585a",
+        "contentHash": "fnv1a-2e067816",
         "sources": [
           {
             "label": "build-knowledge-nv1a-6947b81",
@@ -2274,20 +2305,20 @@
         "agentName": "雨果",
         "role": "damage",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-07-27T00:00:00.000Z",
         "scenario": "优先与莱特/莱卡恩/扳机等击破协同；可用青衣/普露夏，辅助方向列出苍角/耀嘉音。邦布方向未作稳定候选。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": [
@@ -2318,7 +2349,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-4681f713",
+        "contentHash": "fnv1a-4f5c53d3",
         "sources": [
           {
             "label": "prydwen-hugo-page-candidate",
@@ -2356,20 +2387,20 @@
         "agentName": "奥菲丝&「鬼火」",
         "role": "damage",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-14T00:00:00.000Z",
         "scenario": "副C/Aftershock：优先席德或零号·安比，可与扳机/橘福福协同；邦布方向未作稳定候选。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": [
@@ -2402,7 +2433,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-706b720e",
+        "contentHash": "fnv1a-731325b6",
         "sources": [
           {
             "label": "prydwen-orphie-magus-page-candidate",
@@ -2440,20 +2471,20 @@
         "agentName": "耀嘉音",
         "role": "support",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-07-27T00:00:00.000Z",
         "scenario": "泛用低站场辅助；与伊芙琳及多数攻击特性角色、或雅/柳/简/柏妮思等异常角色协同。邦布方向未作稳定候选。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["Elegant Vanity", "Bashful Demon", "Kaboom the Cannon", "The Vault"],
@@ -2478,7 +2509,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-4f375a1c",
+        "contentHash": "fnv1a-c6fa2b78",
         "sources": [
           {
             "label": "prydwen-astra-page-candidate",
@@ -2531,20 +2562,20 @@
         "agentName": "伊芙琳",
         "role": "damage",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-14T00:00:00.000Z",
         "scenario": "输出+击破+增伤辅助；页面示例为耀嘉音+莱特/珂蕾妲，邦布可用咔嚓仔或飚速布。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": [
@@ -2577,7 +2608,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-eab284a8",
+        "contentHash": "fnv1a-c6b85b68",
         "sources": [
           {
             "label": "bwiki-evelyn-unversioned",
@@ -2630,20 +2661,20 @@
         "agentName": "薇薇安",
         "role": "anomaly",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-10-11T00:00:00.000Z",
         "scenario": "需要另一名异常主C；页面列出雅/柳/爱丽丝/简/派派/格莉丝与耀嘉音/柚叶/妮可/露西等协同。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["Flight of Fancy", "Weeping Gemini", "wengine-13009"],
@@ -2670,7 +2701,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-730a3a20",
+        "contentHash": "fnv1a-bca67b9c",
         "sources": [
           {
             "label": "prydwen-vivian-2.3",
@@ -2713,20 +2744,20 @@
         "agentName": "照",
         "role": "defense",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-14T00:00:00.000Z",
         "scenario": "防护辅助：以叶瞬光等需要以太帷幕增益的队伍为前提；可用招架/回避支援触发套装。邦布不作固定候选。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["Half-Sugar Bunny", "Tusks of Fury", "Original Transmorpher"],
@@ -2749,7 +2780,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-b3596291",
+        "contentHash": "fnv1a-f7c6e421",
         "sources": [
           {
             "label": "prydwen-r5-zhao",
@@ -2787,20 +2818,20 @@
         "agentName": "波可娜",
         "role": "stun",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-07-27T00:00:00.000Z",
         "scenario": "余震队优先；非余震队需要M6后再确认泛用收益。；bangboo-bangvolver；余震或击破协同前提（跨版本候选）",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["wengine-13135", "wengine-14110", "wengine-13006"],
@@ -2827,7 +2858,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-f5e90bf1",
+        "contentHash": "fnv1a-c62c5195",
         "sources": [
           {
             "label": "build-knowledge-v1a-16f7524b",
@@ -2865,20 +2896,20 @@
         "agentName": "「扳机」",
         "role": "stun",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-07-27T00:00:00.000Z",
         "scenario": "后台击破/Aftershock：优先零号·安比，亦可为火/冰队提供击破与团队增益；邦布方向未作稳定候选。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": [
@@ -2910,7 +2941,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-5d52da0f",
+        "contentHash": "fnv1a-2a7e9603",
         "sources": [
           {
             "label": "prydwen-trigger-page-candidate",
@@ -2953,20 +2984,20 @@
         "agentName": "仪玄",
         "role": "rupture",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-07T00:00:00.000Z",
         "scenario": "页面计算假设：橘福福与卢西娅；不等同唯一队伍或正式最优。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": [
@@ -2989,7 +3020,7 @@
           "teammates": ["页面计算假设：橘福福与卢西娅；不等同唯一队伍或正式最优。"],
           "bangboos": []
         },
-        "contentHash": "fnv1a-ac8a1b59",
+        "contentHash": "fnv1a-9becc429",
         "sources": [
           {
             "label": "prydwen-yixuan-2.5",
@@ -3027,20 +3058,20 @@
         "agentName": "零号·安比",
         "role": "damage",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-07T00:00:00.000Z",
         "scenario": "追加攻击队：奥菲丝&「鬼火」与扳机；需击破或支援队友激活额外能力，邦布不作固定候选。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": [
@@ -3063,7 +3094,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-19601b7",
+        "contentHash": "fnv1a-f8a0edb",
         "sources": [
           {
             "label": "prydwen-r5-anby-demara-soldier-0",
@@ -3101,20 +3132,20 @@
         "agentName": "橘福福",
         "role": "stun",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-07-27T00:00:00.000Z",
         "scenario": "仪玄优先协同；亦可为零号·安比、艾莲、11号、伊芙琳、雨果等提供后台击破与连携/终结技增益。邦布方向未作稳定候选。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": [
@@ -3152,7 +3183,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-ced18882",
+        "contentHash": "fnv1a-7f857daa",
         "sources": [
           {
             "label": "prydwen-jufufu-2.0",
@@ -3215,20 +3246,20 @@
         "agentName": "爱丽丝",
         "role": "anomaly",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-10-11T00:00:00.000Z",
         "scenario": "物理异常主C：与薇薇安、柳、柏妮思或格莉丝等可快速施加异常的副C协同；邦布不作固定候选。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": [
@@ -3258,7 +3289,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-2efe60c1",
+        "contentHash": "fnv1a-594015bd",
         "sources": [
           {
             "label": "prydwen-r5-alice",
@@ -3296,20 +3327,20 @@
         "agentName": "柚叶",
         "role": "support",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-10-11T00:00:00.000Z",
         "scenario": "异常队优先柳、简、派派并配薇薇安或柏妮思；物理队也可用，按队伍异常需求调整。邦布不作固定候选。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["Metanukimorphosis", "Weeping Cradle", "Kaboom the Cannon", "Thoughtbop"],
@@ -3339,7 +3370,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-16ea274b",
+        "contentHash": "fnv1a-eaded477",
         "sources": [
           {
             "label": "prydwen-r5-ukinami-yuzuha",
@@ -3382,20 +3413,20 @@
         "agentName": "潘引壶",
         "role": "defense",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-06-14T00:00:00.000Z",
         "scenario": "只在命破主C队中作为优先兼容建议；需满足攻击力Buff阈值。；命破队攻击增益前提（跨版本候选）",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["wengine-13142", "wengine-13007", "wengine-13010"],
@@ -3421,7 +3452,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-a20d7f76",
+        "contentHash": "fnv1a-a55f7e96",
         "sources": [
           {
             "label": "build-knowledge-v1a-a4900cb0",
@@ -3469,20 +3500,20 @@
         "agentName": "叶瞬光",
         "role": "damage",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-10-19T00:00:00.000Z",
         "scenario": "需要能稳定提供以太帷幕或失衡窗口的队友。；物理直伤与队伍协同前提（跨版本候选）",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["wengine-14143", "wengine-14104", "wengine-14102"],
@@ -3515,7 +3546,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-8d5ddde2",
+        "contentHash": "fnv1a-627ba486",
         "sources": [
           {
             "label": "build-knowledge-v1a-1c8e9d8c",
@@ -3553,20 +3584,20 @@
         "agentName": "狛野真斗",
         "role": "rupture",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-07T15:40:00.000Z",
         "scenario": "命破主C：卢西娅或潘引壶辅助，戴音或橘福福击破；以生命值转贯穿与失衡爆发为前提。邦布不作固定候选。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": [
@@ -3600,7 +3631,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-c8f69fdc",
+        "contentHash": "fnv1a-749fde70",
         "sources": [
           {
             "label": "prydwen-r5-manato",
@@ -3645,20 +3676,20 @@
         "agentName": "卢西娅",
         "role": "support",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-07-27T00:00:00.000Z",
         "scenario": "命破辅助：仪玄、狛野真斗、般岳或伊德海莉；以持续以太帷幕覆盖为前提。邦布不作固定候选。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": [
@@ -3686,7 +3717,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-e10bdfee",
+        "contentHash": "fnv1a-4299bbae",
         "sources": [
           {
             "label": "prydwen-r5-lucia",
@@ -3734,20 +3765,20 @@
         "agentName": "「席德」",
         "role": "damage",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-07T00:00:00.000Z",
         "scenario": "可与奥菲丝&「鬼火」组成双强攻协同，也可配零号·安比等强攻；角色与队伍能量循环为前提。邦布不作固定候选。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": [
@@ -3780,7 +3811,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-781934fd",
+        "contentHash": "fnv1a-8c8ec349",
         "sources": [
           {
             "label": "prydwen-r5-seed",
@@ -3818,20 +3849,20 @@
         "agentName": "般岳",
         "role": "rupture",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-07T00:00:00.000Z",
         "scenario": "裂隙主C：琉音优先击破、卢西娅辅助；来源页面强调二者的终结技转换和失衡延长协同。邦布方向未作稳定候选。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["Wrathful Vajra", "Qingming Birdcage", "wengine-13014"],
@@ -3857,7 +3888,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-e1499a30",
+        "contentHash": "fnv1a-e51ae7e8",
         "sources": [
           {
             "label": "prydwen-banyue-page-candidate",
@@ -3910,20 +3941,20 @@
         "agentName": "琉音",
         "role": "stun",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-07-27T00:00:00.000Z",
         "scenario": "击破：叶瞬光、仪玄、伊德海莉或狛野真斗等；以失衡延长与终结技转换为适用前提。邦布不作固定候选。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": [
@@ -3950,7 +3981,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-cfb206f8",
+        "contentHash": "fnv1a-ac8cb0ec",
         "sources": [
           {
             "label": "prydwen-r5-dialyn",
@@ -3993,20 +4024,20 @@
         "agentName": "千夏",
         "role": "support",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-07T00:00:00.000Z",
         "scenario": "叶瞬光+照/琉音，或比利/艾莲/悠真等攻击输出；爱芮队可走异常分支。邦布方向未作稳定候选。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["Thoughtbop", "Weeping Cradle", "Kaboom the Cannon", "Unfettered Game Ball"],
@@ -4027,7 +4058,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-9e47dba4",
+        "contentHash": "fnv1a-bbab7f58",
         "sources": [
           {
             "label": "prydwen-sunna-2.6",
@@ -4065,20 +4096,20 @@
         "agentName": "爱芮",
         "role": "anomaly",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-07T08:54:51.000Z",
         "scenario": "候选计算队为千夏+柚叶；与南宫羽等异常协同需按异常与失衡时机手动对照。邦布方向未作稳定候选。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["wengine-14150", "wengine-14133", "wengine-13008", "wengine-13009"],
@@ -4106,7 +4137,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-f74316",
+        "contentHash": "fnv1a-3210db56",
         "sources": [
           {
             "label": "miyoushe-3.1-post-76995934-author-79695828-build-image-001",
@@ -4144,20 +4175,20 @@
         "agentName": "南宫羽",
         "role": "stun",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-14T00:00:00.000Z",
         "scenario": "异常协同：爱芮/爱丽丝/简/派派/格莉丝/柏妮思/雅/柳等；不同队伍的能量与异常顺序不可混用。邦布方向未作稳定候选。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": [
@@ -4183,7 +4214,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-565546ae",
+        "contentHash": "fnv1a-48d7e0be",
         "sources": [
           {
             "label": "prydwen-nangong-page-candidate",
@@ -4221,20 +4252,20 @@
         "agentName": "希希芙",
         "role": "damage",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-10-14T00:00:00.000Z",
         "scenario": "席德优先，千夏/耀嘉音等攻击辅助可用；电队可配扳机。邦布方向未作稳定候选。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["Serpentine Seeker", "Bellicose Blaze", "wengine-13111"],
@@ -4265,7 +4296,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-38068851",
+        "contentHash": "fnv1a-1af1ea5",
         "sources": [
           {
             "label": "prydwen-cissia-page-candidate",
@@ -4318,20 +4349,20 @@
         "agentName": "星徽·比利",
         "role": "rupture",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-07T00:00:00.000Z",
         "scenario": "裂隙：琉音+卢西娅候选计算队；诺姆可提供额外连携的替代方向。邦布方向未作稳定候选。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": [
@@ -4359,7 +4390,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-9f53c9ab",
+        "contentHash": "fnv1a-772e2503",
         "sources": [
           {
             "label": "prydwen-starlight-billy-2.8",
@@ -4397,20 +4428,20 @@
         "agentName": "普罗米娅",
         "role": "anomaly",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-14T00:00:00.000Z",
         "scenario": "优先异常或支援队友；不同绽放循环不混为同一场景。；bangboo-sharkboo；3.0冰异常站场与绽放循环",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["wengine-14154", "wengine-14118", "wengine-13008"],
@@ -4443,7 +4474,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-26047ef3",
+        "contentHash": "fnv1a-10dd9147",
         "sources": [
           {
             "label": "build-knowledge-v1a-c1b8ecb2",
@@ -4481,20 +4512,20 @@
         "agentName": "佩洛伊斯",
         "role": "damage",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-07-08T00:00:00.000Z",
         "scenario": "围绕多终结技循环；队友需补充增益和失衡窗口。；bangboo-resonaboo；终结技循环与以太直伤前提（3.0 候选）",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["wengine-14155", "wengine-14104", "wengine-13004"],
@@ -4521,7 +4552,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-10906c13",
+        "contentHash": "fnv1a-859227bf",
         "sources": [
           {
             "label": "build-knowledge-v1a-deba39a5",
@@ -4559,20 +4590,20 @@
         "agentName": "维琳娜",
         "role": "anomaly",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-06-17T00:00:00.000Z",
         "scenario": "优先异常或支援队友；以风化/乱流后台循环为当前场景。；bangboo-ultra-jake；3.0后台异常副C与风化/乱流循环",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["wengine-14156", "wengine-14118", "wengine-13008"],
@@ -4592,7 +4623,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-dd06e73c",
+        "contentHash": "fnv1a-82d33974",
         "sources": [
           {
             "label": "build-knowledge-v1a-32a7c315",
@@ -4630,20 +4661,20 @@
         "agentName": "诺姆",
         "role": "stun",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
         "updatedAt": "2026-09-07T00:00:00.000Z",
         "scenario": "千夏泛用辅助组合，佩洛伊斯/11号、希希芙/奥菲丝、雨果或裂隙输出可选；团队按额外连携和失衡窗口调整。邦布方向未作稳定候选。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": [
@@ -4674,7 +4705,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-bf78e611",
+        "contentHash": "fnv1a-d852615",
         "sources": [
           {
             "label": "prydwen-norma-page-candidate",
@@ -4705,6 +4736,54 @@
       },
       "preferredStatKeys": ["crit_rate", "crit_dmg", "atk_percent", "pen", "atk_flat"]
     },
+    "agent-phoenix": {
+      "profile": {
+        "id": "agent-profile-projection-3.1-agent-phoenix",
+        "agentId": "agent-phoenix",
+        "agentName": "菲欧妮",
+        "role": "资料待补",
+        "gameVersion": "3.1",
+        "packageVersion": "3.3.0-current.2-agent-projected",
+        "status": "missing",
+        "updatedAt": "2026-10-21",
+        "scenario": "追加能力要求其他异常或同阵营队友；没有精确来源三人及邦布时不补默认队伍。；游戏内slot4/slot2表示4件/2件套；part4/part5/part6按属性合法性映射，不作物理盘位。；泛用成型采用Owner复核M1、Lv60、基础技能11、核心7及S音擎P1；A级队友按A6，均非账户观测。；初始异常掌控255门槛仅在对应静态装备分支满足；瞬时增益不计入初始掌控。；M1队伍异常暴伤需目标处于灼蚀；自身燔焰效率需燃烧攻击造成伤害，不默认全程覆盖。；M2自身对灼蚀目标增伤及自身灼烧延长单列，不推算精确抽取收益或全队DPS。；追加能力要求其他异常或同阵营队友；没有精确来源三人及邦布时不补默认队伍。",
+        "assumptions": [
+          "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
+        ],
+        "gaps": ["当前版本候选约束缺少可归一化的音擎稳定身份。"],
+        "recommendation": null,
+        "contentHash": "fnv1a-eb81a666",
+        "sources": [
+          {
+            "label": "reviewed-phoenix-build-guidance-3.3-r1",
+            "updatedAt": "2026-10-21",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "reviewed-phoenix-build-guidance-3.3-r1",
+            "updatedAt": "2026-10-21",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "reviewed-phoenix-build-guidance-3.3-r1",
+            "updatedAt": "2026-10-21",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "reviewed-phoenix-build-guidance-3.3-r1",
+            "updatedAt": "2026-10-21",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "reviewed-phoenix-build-guidance-3.3-r1",
+            "updatedAt": "2026-10-21",
+            "kind": "community_candidate"
+          }
+        ]
+      },
+      "preferredStatKeys": ["anomaly_proficiency", "atk_percent"]
+    },
     "agent-roxy": {
       "profile": {
         "id": "agent-profile-projection-3.2-agent-roxy",
@@ -4712,15 +4791,21 @@
         "agentName": "洛克茜",
         "role": "资料待补",
         "gameVersion": "3.2",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
-        "updatedAt": "2026-09-30T12:29:09.2100756Z",
+        "updatedAt": "2026-10-11",
         "scenario": "追加能力需队友为强攻、命破或锋御；与克拉蕾同队可相互满足追加能力。；团队暴伤或锐暴增益需匹配浸染 / 涤净属性及受益角色特性，不能把所有增益同时无条件开启。；邦布来源候选：ZZZ.gg在克拉蕾 + 洛克茜 + 丽娜队列出超极杰克；仅用于该三人场景，需另行核对阵营额外能力，不设自动默认或全局最优。；完整固定轴仍缺逐动作时间与资源记录；来源邦布方向不补足此缺口。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.2 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.2 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
-        "gaps": [],
+        "gaps": [
+          "build.wengines 仅复核至 3.2；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.2；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.2；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.2；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.2；当前 3.3 适用性未闭合。"
+        ],
         "recommendation": {
           "wEngines": ["wengine-14162", "wengine-13005", "wengine-14110"],
           "sets": [
@@ -4747,7 +4832,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-b8ff2f80",
+        "contentHash": "fnv1a-87e8c513",
         "sources": [
           {
             "label": "gachabase-release-roxy",
@@ -4860,15 +4945,21 @@
         "agentName": "克拉蕾",
         "role": "资料待补",
         "gameVersion": "3.2",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
-        "updatedAt": "2026-09-30T12:29:09.2100756Z",
+        "updatedAt": "2026-10-11",
         "scenario": "追加能力需队友为击破、锋御或同属性；诺姆 / 珂蕾妲 + 丽娜是已读取独立攻略讨论的队伍方向。；洛克茜与克拉蕾相互满足追加能力；该机制适配不代表来源已证明全局最优队伍。；珂蕾妲潜能的锋御锐暴增益需采用正确潜能等级映射，不能把暴击伤害增益直接给锋御。；六次毁伤定性顺序：预攒三层残痕及可用终结技，长特殊技 → 连携 → 普攻三段 → 连携 → 普攻三段 → 终结技 → 长特殊技。；来源声称该顺序可置于十二秒基础失衡窗口，未提供完整动作时间与资源表；不得包装成精确固定轴。；邦布来源候选：ZZZ.gg在克拉蕾 + 洛克茜 + 丽娜队列出超极杰克；仅用于该三人场景，需另行核对阵营额外能力，不设自动默认或全局最优。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.2 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.2 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
-        "gaps": [],
+        "gaps": [
+          "build.wengines 仅复核至 3.2；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.2；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.2；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.2；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.2；当前 3.3 适用性未闭合。"
+        ],
         "recommendation": {
           "wEngines": ["wengine-14161", "wengine-13021", "wengine-13017"],
           "sets": [
@@ -4895,7 +4986,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-fc087ada",
+        "contentHash": "fnv1a-c271f6e1",
         "sources": [
           {
             "label": "gachabase-release-claret",
@@ -5008,20 +5099,20 @@
         "agentName": "希格莉德·德拉叙尔",
         "role": "资料待补",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
-        "updatedAt": "2026-09-19T00:00:00.000Z",
+        "updatedAt": "2026-10-20T07:02:19.116Z",
         "scenario": "至少搭配一名击破或支援代理人以满足额外能力；实装后候选以希格莉德 + 击破 + 支援为主。；邦布优先 bangboo-ultra-jake（超极杰克），其次根据队伍选择 bangboo-snap（咔嚓仔）等支援型邦布。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["wengine-14159"],
@@ -5052,7 +5143,7 @@
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-678d0de9",
+        "contentHash": "fnv1a-defa46d6",
         "sources": [
           {
             "label": "prydwen-sigrid-live-build-2026-09-04",
@@ -5100,48 +5191,8 @@
             "kind": "community_candidate"
           },
           {
-            "label": "prydwen-sigrid-live-build-2026-09-04",
-            "updatedAt": "2026-09-04T00:00:00.000Z",
-            "kind": "community_candidate"
-          },
-          {
-            "label": "icy-veins-sigrid-live-build-2026-08-17",
-            "updatedAt": "2026-09-04T00:00:00.000Z",
-            "kind": "community_candidate"
-          },
-          {
-            "label": "icy-veins-sigrid-live-team-2026-08-17",
-            "updatedAt": "2026-09-04T00:00:00.000Z",
-            "kind": "community_candidate"
-          },
-          {
-            "label": "hoyolab-sigrid-live-build-46380450",
-            "updatedAt": "2026-09-04T00:00:00.000Z",
-            "kind": "community_candidate"
-          },
-          {
-            "label": "miyoushe-sigrid-qingfeng-77588722",
-            "updatedAt": "2026-09-04T00:00:00.000Z",
-            "kind": "community_candidate"
-          },
-          {
-            "label": "miyoushe-sigrid-asgater-77595007",
-            "updatedAt": "2026-09-04T00:00:00.000Z",
-            "kind": "community_candidate"
-          },
-          {
-            "label": "miyoushe-sigrid-yanyu-77672965",
-            "updatedAt": "2026-09-04T00:00:00.000Z",
-            "kind": "community_candidate"
-          },
-          {
-            "label": "prydwen-sigrid-main-stats-reviewed-2026-09-19",
-            "updatedAt": "2026-09-19T00:00:00.000Z",
-            "kind": "community_candidate"
-          },
-          {
-            "label": "icy-veins-sigrid-main-stats-reviewed-2026-09-19",
-            "updatedAt": "2026-09-19T00:00:00.000Z",
+            "label": "hoyobuild-sigrid-current-conditions-20261020",
+            "updatedAt": "2026-10-20T07:02:19.116Z",
             "kind": "community_candidate"
           },
           {
@@ -5190,48 +5241,8 @@
             "kind": "community_candidate"
           },
           {
-            "label": "prydwen-sigrid-live-build-2026-09-04",
-            "updatedAt": "2026-09-04T00:00:00.000Z",
-            "kind": "community_candidate"
-          },
-          {
-            "label": "icy-veins-sigrid-live-build-2026-08-17",
-            "updatedAt": "2026-09-04T00:00:00.000Z",
-            "kind": "community_candidate"
-          },
-          {
-            "label": "icy-veins-sigrid-live-team-2026-08-17",
-            "updatedAt": "2026-09-04T00:00:00.000Z",
-            "kind": "community_candidate"
-          },
-          {
-            "label": "hoyolab-sigrid-live-build-46380450",
-            "updatedAt": "2026-09-04T00:00:00.000Z",
-            "kind": "community_candidate"
-          },
-          {
-            "label": "miyoushe-sigrid-qingfeng-77588722",
-            "updatedAt": "2026-09-04T00:00:00.000Z",
-            "kind": "community_candidate"
-          },
-          {
-            "label": "miyoushe-sigrid-asgater-77595007",
-            "updatedAt": "2026-09-04T00:00:00.000Z",
-            "kind": "community_candidate"
-          },
-          {
-            "label": "miyoushe-sigrid-yanyu-77672965",
-            "updatedAt": "2026-09-04T00:00:00.000Z",
-            "kind": "community_candidate"
-          },
-          {
-            "label": "prydwen-sigrid-main-stats-reviewed-2026-09-19",
-            "updatedAt": "2026-09-19T00:00:00.000Z",
-            "kind": "community_candidate"
-          },
-          {
-            "label": "icy-veins-sigrid-main-stats-reviewed-2026-09-19",
-            "updatedAt": "2026-09-19T00:00:00.000Z",
+            "label": "hoyobuild-sigrid-current-conditions-20261020",
+            "updatedAt": "2026-10-20T07:02:19.116Z",
             "kind": "community_candidate"
           },
           {
@@ -5277,6 +5288,111 @@
           {
             "label": "icy-veins-sigrid-main-stats-reviewed-2026-09-19",
             "updatedAt": "2026-09-19T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "hoyobuild-sigrid-current-conditions-20261020",
+            "updatedAt": "2026-10-20T07:02:19.116Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "prydwen-sigrid-live-build-2026-09-04",
+            "updatedAt": "2026-09-04T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "icy-veins-sigrid-live-build-2026-08-17",
+            "updatedAt": "2026-09-04T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "icy-veins-sigrid-live-team-2026-08-17",
+            "updatedAt": "2026-09-04T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "hoyolab-sigrid-live-build-46380450",
+            "updatedAt": "2026-09-04T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "miyoushe-sigrid-qingfeng-77588722",
+            "updatedAt": "2026-09-04T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "miyoushe-sigrid-asgater-77595007",
+            "updatedAt": "2026-09-04T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "miyoushe-sigrid-yanyu-77672965",
+            "updatedAt": "2026-09-04T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "prydwen-sigrid-main-stats-reviewed-2026-09-19",
+            "updatedAt": "2026-09-19T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "icy-veins-sigrid-main-stats-reviewed-2026-09-19",
+            "updatedAt": "2026-09-19T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "hoyobuild-sigrid-current-conditions-20261020",
+            "updatedAt": "2026-10-20T07:02:19.116Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "prydwen-sigrid-live-build-2026-09-04",
+            "updatedAt": "2026-09-04T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "icy-veins-sigrid-live-build-2026-08-17",
+            "updatedAt": "2026-09-04T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "icy-veins-sigrid-live-team-2026-08-17",
+            "updatedAt": "2026-09-04T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "hoyolab-sigrid-live-build-46380450",
+            "updatedAt": "2026-09-04T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "miyoushe-sigrid-qingfeng-77588722",
+            "updatedAt": "2026-09-04T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "miyoushe-sigrid-asgater-77595007",
+            "updatedAt": "2026-09-04T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "miyoushe-sigrid-yanyu-77672965",
+            "updatedAt": "2026-09-04T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "prydwen-sigrid-main-stats-reviewed-2026-09-19",
+            "updatedAt": "2026-09-19T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "icy-veins-sigrid-main-stats-reviewed-2026-09-19",
+            "updatedAt": "2026-09-19T00:00:00.000Z",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "hoyobuild-sigrid-current-conditions-20261020",
+            "updatedAt": "2026-10-20T07:02:19.116Z",
             "kind": "community_candidate"
           }
         ]
@@ -5290,20 +5406,20 @@
         "agentName": "蕾米埃尔·丹",
         "role": "资料待补",
         "gameVersion": "3.1",
-        "packageVersion": "3.2.0-current.1-agent-projected",
+        "packageVersion": "3.3.0-current.2-agent-projected",
         "status": "candidate",
-        "updatedAt": "2026-10-19",
-        "scenario": "历史攻略参考：蕾米埃尔·丹、爱芮、维琳娜；邦布：艾瑞儿。三名异常代理人触发蕾米埃尔额外能力；艾瑞儿额外能力要求队伍中存在蕾米埃尔；蕾米埃尔属性复制受其右侧成员位置影响。适用：多属性异常轮转、持续首领战。；历史攻略参考：蕾米埃尔·丹、柏妮思、维琳娜；邦布：艾瑞儿。三名异常代理人触发蕾米埃尔额外能力；柏妮思以后台火异常积蓄配合多属性异常轮转；艾瑞儿额外能力要求队伍中存在蕾米埃尔。适用：多属性异常轮转、后台异常覆盖。；历史攻略参考：蕾米埃尔·丹、普罗米娅、维琳娜；邦布：艾瑞儿。三名异常代理人触发蕾米埃尔额外能力；普罗米娅承担冰异常爆发；艾瑞儿额外能力要求蕾米埃尔。适用：多属性异常轮转、冰异常爆发。；星见雅、蕾米埃尔·丹、维琳娜；攻略可选邦布：艾瑞儿、比克布利克、超极杰克，额外能力需另行核对。雅按影画使用直伤或精通分支；0影可由直伤转为4自由蓝调+2法厄同之歌，2/6影保留原套装并只替换对应主词。；雅、丹与维丽娜的当前三人身份可由3.2来源复核；完整动作帧、资源循环和强度档位不从成员身份外推。；星见雅在该体系更多需要改为精通配装；0影画可尝试自由4件套、4号精通和6号掌控。；蕾米使用飞鸟星梦仅在下一位队友为以太属性、使其流变以太时考虑；不可当所有蕾米队通用音擎。；耀变只改变伤害属性而不是原异常类型，因此不继承简的强击双暴、简2影强击无视防御、爱丽丝2影强击增伤或维琳娜1影风化穿抗。；雅走精通玩法，作为维蕾驾驶员",
+        "updatedAt": "2026-10-20",
+        "scenario": "星见雅、蕾米埃尔·丹、维琳娜；攻略可选邦布：艾瑞儿、比克布利克、超极杰克，额外能力需另行核对。雅按影画使用直伤或精通分支；0影可由直伤转为4自由蓝调+2法厄同之歌，2/6影保留原套装并只替换对应主词。；雅、丹与维丽娜的当前三人身份可由3.2来源复核；完整动作帧、资源循环和强度档位不从成员身份外推。；星见雅在该体系更多需要改为精通配装；0影画可尝试自由4件套、4号精通和6号掌控。；蕾米使用飞鸟星梦仅在下一位队友为以太属性、使其流变以太时考虑；不可当所有蕾米队通用音擎。；耀变只改变伤害属性而不是原异常类型，因此不继承简的强击双暴、简2影强击无视防御、爱丽丝2影强击增伤或维琳娜1影风化穿抗。；雅走精通玩法，作为维蕾驾驶员；普罗米娅、蕾米埃尔·丹、维琳娜；攻略可选邦布：艾瑞儿、飚速布、超极杰克、鲨牙布，额外能力需另行核对。HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。；不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。；普罗米娅在非失衡期也消耗霜刑点打异放，使异常触发更均匀。；普罗米娅置于蕾米埃尔之后、维琳娜之前，使蕾米埃尔流变冰。；蕾米使用飞鸟星梦仅在下一位队友为以太属性、使其流变以太时考虑；不可当所有蕾米队通用音擎。；耀变只改变伤害属性而不是原异常类型，因此不继承简的强击双暴、简2影强击无视防御、爱丽丝2影强击增伤或维琳娜1影风化穿抗。；普罗米娅主打异放伤害，可选对应属性的邦布加快累积异常。；配合冰乱流打出异放伤害，蕾米埃尔提高爆发输出。；三异常触发蕾米埃尔额外能力；普罗米娅主打异放，维琳娜积蓄风异常。邦布也可选其他冰邦布。；爱芮、蕾米埃尔·丹、维琳娜；攻略可选邦布：阿饭、艾瑞儿、超极杰克、左轮布，额外能力需另行核对。HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。；不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。；爱芮置于蕾米埃尔之后、维琳娜之前，使蕾米埃尔流变以太；蕾米埃尔满三豆登场爆发，终结技通常留给失衡期。；蕾米使用飞鸟星梦仅在下一位队友为以太属性、使其流变以太时考虑；不可当所有蕾米队通用音擎。；耀变只改变伤害属性而不是原异常类型，因此不继承简的强击双暴、简2影强击无视防御、爱丽丝2影强击增伤或维琳娜1影风化穿抗。；三异常角色触发蕾米埃尔额外能力；爱芮承担以太异常爆发，维琳娜补充乱流与风化。；作者另允许其他以太邦布加速以太异常积蓄，未指定额外具名选项。；蕾米埃尔流变以太属性，爱芮配合维琳娜触发乱流，蕾米埃尔提高全队攻击并提供爆发输出。；此来源只讨论三异常基线：三异常才能获得所列初始攻击转全队攻击及额外失衡值增益，不能外推到一或二异常队。；爱芮、维琳娜、蕾米队的虚曜可分别记录侵蚀与风化，耀变属性随各虚曜独立结算，不等同于原异常类型。；三异常提高蕾米埃尔全队加攻与异常积蓄效率，队伍触发以太乱流。；爱丽丝、蕾米埃尔·丹、维琳娜；攻略可选邦布：艾瑞儿、左轮布，额外能力需另行核对。HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。；不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。；爱丽丝置于蕾米埃尔之后、维琳娜之前，使蕾米埃尔流变物理；非失衡期使用南十字、失衡期使用北十字。；爱丽丝1、2影画可优化剑仪与极性强击，但不是入队硬门。；蕾米使用飞鸟星梦仅在下一位队友为以太属性、使其流变以太时考虑；不可当所有蕾米队通用音擎。；耀变只改变伤害属性而不是原异常类型，因此不继承简的强击双暴、简2影强击无视防御、爱丽丝2影强击增伤或维琳娜1影风化穿抗。；物理异常位也可选择爱丽丝。；三异常触发蕾米埃尔额外能力，爱丽丝极性强击为蕾米埃尔积累资源；队伍不触发紊乱，剑仪回复较慢，1或2影提供额外剑仪回复手段。邦布也可选其他物理邦布。；简、蕾米埃尔·丹、维琳娜；攻略可选邦布：艾瑞儿、左轮布、超极杰克，额外能力需另行核对。HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。；不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。；简置于蕾米后一位、维琳娜前一位，使蕾米流变物理；该段采用加强后的简，高分需要手法与排轴；蕾米终结技通常用于失衡期爆发。；简以紊乱队伍为主要方向。；三异常角色触发蕾米埃尔额外能力；耀变不能继承简的强击双暴，维琳娜提供乱流与风化。；作者另允许其他物理邦布，未指定额外具名选项。；三异常角色触发蕾米埃尔全队加攻；简的核心被动可使物理乱流暴击，蕾米埃尔异化队内异常伤害并通过耀变输出。；此来源只讨论三异常基线：三异常才能获得所列初始攻击转全队攻击及额外失衡值增益，不能外推到一或二异常队。；异常角色较少时，可在3.1自选简作为主输出。；采用潜能强化后的简。；派派、蕾米埃尔·丹、维琳娜；攻略可选邦布：磁力布，额外能力需另行核对。HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。；不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。；派派置于蕾米埃尔之后、维琳娜之前，使蕾米埃尔流变物理；新人需练习派派手感，蕾米埃尔终结技通常留在失衡期。；蕾米使用飞鸟星梦仅在下一位队友为以太属性、使其流变以太时考虑；不可当所有蕾米队通用音擎。；耀变只改变伤害属性而不是原异常类型，因此不继承简的强击双暴、简2影强击无视防御、爱丽丝2影强击增伤或维琳娜1影风化穿抗。；派派异常积蓄较快时，蕾米流明点可能吃紧，可开局先打一轮普攻施加流明点。；没有简时可使用派派替代。；物理异常位也可选择派派。；蕾米埃尔·丹、维琳娜、柳；攻略可选邦布：艾瑞儿，额外能力需另行核对。HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。；不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。；月城柳可用自由4件套搭配法厄同2件套。；蕾米使用飞鸟星梦仅在下一位队友为以太属性、使其流变以太时考虑；不可当所有蕾米队通用音擎。；耀变只改变伤害属性而不是原异常类型，因此不继承简的强击双暴、简2影强击无视防御、爱丽丝2影强击增伤或维琳娜1影风化穿抗。；柳的增益偏向紊乱；来源将此队列为可用替代搭配，未提供强度档位。；格莉丝、蕾米埃尔·丹、维琳娜；攻略可选邦布：超极杰克、艾瑞儿，额外能力需另行核对。HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。；不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。；该搭配以格莉丝获得加强后的潜能玩法为语境，快速积攒并施放脉冲。；蕾米使用飞鸟星梦仅在下一位队友为以太属性、使其流变以太时考虑；不可当所有蕾米队通用音擎。；耀变只改变伤害属性而不是原异常类型，因此不继承简的强击双暴、简2影强击无视防御、爱丽丝2影强击增伤或维琳娜1影风化穿抗。",
         "assumptions": [
           "候选方向按字段来源投影；缺少的计算字段只限制精确伤害，不清空已验证的养成与仓库方向。",
-          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.2 自动获得新版本连续性。"
+          "字段保留各自的来源与复核版本；3.1 的攻略不因当前目录标题 3.3 自动获得新版本连续性。"
         ],
         "gaps": [
-          "build.wengines 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.drive_disc_sets 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.main_sub_stats 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.progression 仅复核至 3.1；当前 3.2 适用性未闭合。",
-          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.2 适用性未闭合。"
+          "build.wengines 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.drive_disc_sets 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.main_sub_stats 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.progression 仅复核至 3.1；当前 3.3 适用性未闭合。",
+          "build.team_bangboo_scenario 仅复核至 3.1；当前 3.3 适用性未闭合。"
         ],
         "recommendation": {
           "wEngines": ["wengine-14158"],
@@ -5325,14 +5441,18 @@
           "skillPriority": ["先满足攻击力目标，再比较异常精通；不把候选仓库分解释为伤害。"],
           "coreTarget": 1,
           "teammates": [
-            "历史攻略参考：蕾米埃尔·丹、爱芮、维琳娜；邦布：艾瑞儿。三名异常代理人触发蕾米埃尔额外能力；艾瑞儿额外能力要求队伍中存在蕾米埃尔；蕾米埃尔属性复制受其右侧成员位置影响。适用：多属性异常轮转、持续首领战。",
-            "历史攻略参考：蕾米埃尔·丹、柏妮思、维琳娜；邦布：艾瑞儿。三名异常代理人触发蕾米埃尔额外能力；柏妮思以后台火异常积蓄配合多属性异常轮转；艾瑞儿额外能力要求队伍中存在蕾米埃尔。适用：多属性异常轮转、后台异常覆盖。",
-            "历史攻略参考：蕾米埃尔·丹、普罗米娅、维琳娜；邦布：艾瑞儿。三名异常代理人触发蕾米埃尔额外能力；普罗米娅承担冰异常爆发；艾瑞儿额外能力要求蕾米埃尔。适用：多属性异常轮转、冰异常爆发。",
-            "星见雅、蕾米埃尔·丹、维琳娜；攻略可选邦布：艾瑞儿、比克布利克、超极杰克，额外能力需另行核对。雅按影画使用直伤或精通分支；0影可由直伤转为4自由蓝调+2法厄同之歌，2/6影保留原套装并只替换对应主词。；雅、丹与维丽娜的当前三人身份可由3.2来源复核；完整动作帧、资源循环和强度档位不从成员身份外推。；星见雅在该体系更多需要改为精通配装；0影画可尝试自由4件套、4号精通和6号掌控。；蕾米使用飞鸟星梦仅在下一位队友为以太属性、使其流变以太时考虑；不可当所有蕾米队通用音擎。；耀变只改变伤害属性而不是原异常类型，因此不继承简的强击双暴、简2影强击无视防御、爱丽丝2影强击增伤或维琳娜1影风化穿抗。；雅走精通玩法，作为维蕾驾驶员"
+            "星见雅、蕾米埃尔·丹、维琳娜；攻略可选邦布：艾瑞儿、比克布利克、超极杰克，额外能力需另行核对。雅按影画使用直伤或精通分支；0影可由直伤转为4自由蓝调+2法厄同之歌，2/6影保留原套装并只替换对应主词。；雅、丹与维丽娜的当前三人身份可由3.2来源复核；完整动作帧、资源循环和强度档位不从成员身份外推。；星见雅在该体系更多需要改为精通配装；0影画可尝试自由4件套、4号精通和6号掌控。；蕾米使用飞鸟星梦仅在下一位队友为以太属性、使其流变以太时考虑；不可当所有蕾米队通用音擎。；耀变只改变伤害属性而不是原异常类型，因此不继承简的强击双暴、简2影强击无视防御、爱丽丝2影强击增伤或维琳娜1影风化穿抗。；雅走精通玩法，作为维蕾驾驶员",
+            "普罗米娅、蕾米埃尔·丹、维琳娜；攻略可选邦布：艾瑞儿、飚速布、超极杰克、鲨牙布，额外能力需另行核对。HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。；不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。；普罗米娅在非失衡期也消耗霜刑点打异放，使异常触发更均匀。；普罗米娅置于蕾米埃尔之后、维琳娜之前，使蕾米埃尔流变冰。；蕾米使用飞鸟星梦仅在下一位队友为以太属性、使其流变以太时考虑；不可当所有蕾米队通用音擎。；耀变只改变伤害属性而不是原异常类型，因此不继承简的强击双暴、简2影强击无视防御、爱丽丝2影强击增伤或维琳娜1影风化穿抗。；普罗米娅主打异放伤害，可选对应属性的邦布加快累积异常。；配合冰乱流打出异放伤害，蕾米埃尔提高爆发输出。；三异常触发蕾米埃尔额外能力；普罗米娅主打异放，维琳娜积蓄风异常。邦布也可选其他冰邦布。",
+            "爱芮、蕾米埃尔·丹、维琳娜；攻略可选邦布：阿饭、艾瑞儿、超极杰克、左轮布，额外能力需另行核对。HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。；不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。；爱芮置于蕾米埃尔之后、维琳娜之前，使蕾米埃尔流变以太；蕾米埃尔满三豆登场爆发，终结技通常留给失衡期。；蕾米使用飞鸟星梦仅在下一位队友为以太属性、使其流变以太时考虑；不可当所有蕾米队通用音擎。；耀变只改变伤害属性而不是原异常类型，因此不继承简的强击双暴、简2影强击无视防御、爱丽丝2影强击增伤或维琳娜1影风化穿抗。；三异常角色触发蕾米埃尔额外能力；爱芮承担以太异常爆发，维琳娜补充乱流与风化。；作者另允许其他以太邦布加速以太异常积蓄，未指定额外具名选项。；蕾米埃尔流变以太属性，爱芮配合维琳娜触发乱流，蕾米埃尔提高全队攻击并提供爆发输出。；此来源只讨论三异常基线：三异常才能获得所列初始攻击转全队攻击及额外失衡值增益，不能外推到一或二异常队。；爱芮、维琳娜、蕾米队的虚曜可分别记录侵蚀与风化，耀变属性随各虚曜独立结算，不等同于原异常类型。；三异常提高蕾米埃尔全队加攻与异常积蓄效率，队伍触发以太乱流。",
+            "爱丽丝、蕾米埃尔·丹、维琳娜；攻略可选邦布：艾瑞儿、左轮布，额外能力需另行核对。HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。；不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。；爱丽丝置于蕾米埃尔之后、维琳娜之前，使蕾米埃尔流变物理；非失衡期使用南十字、失衡期使用北十字。；爱丽丝1、2影画可优化剑仪与极性强击，但不是入队硬门。；蕾米使用飞鸟星梦仅在下一位队友为以太属性、使其流变以太时考虑；不可当所有蕾米队通用音擎。；耀变只改变伤害属性而不是原异常类型，因此不继承简的强击双暴、简2影强击无视防御、爱丽丝2影强击增伤或维琳娜1影风化穿抗。；物理异常位也可选择爱丽丝。；三异常触发蕾米埃尔额外能力，爱丽丝极性强击为蕾米埃尔积累资源；队伍不触发紊乱，剑仪回复较慢，1或2影提供额外剑仪回复手段。邦布也可选其他物理邦布。",
+            "简、蕾米埃尔·丹、维琳娜；攻略可选邦布：艾瑞儿、左轮布、超极杰克，额外能力需另行核对。HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。；不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。；简置于蕾米后一位、维琳娜前一位，使蕾米流变物理；该段采用加强后的简，高分需要手法与排轴；蕾米终结技通常用于失衡期爆发。；简以紊乱队伍为主要方向。；三异常角色触发蕾米埃尔额外能力；耀变不能继承简的强击双暴，维琳娜提供乱流与风化。；作者另允许其他物理邦布，未指定额外具名选项。；三异常角色触发蕾米埃尔全队加攻；简的核心被动可使物理乱流暴击，蕾米埃尔异化队内异常伤害并通过耀变输出。；此来源只讨论三异常基线：三异常才能获得所列初始攻击转全队攻击及额外失衡值增益，不能外推到一或二异常队。；异常角色较少时，可在3.1自选简作为主输出。；采用潜能强化后的简。",
+            "派派、蕾米埃尔·丹、维琳娜；攻略可选邦布：磁力布，额外能力需另行核对。HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。；不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。；派派置于蕾米埃尔之后、维琳娜之前，使蕾米埃尔流变物理；新人需练习派派手感，蕾米埃尔终结技通常留在失衡期。；蕾米使用飞鸟星梦仅在下一位队友为以太属性、使其流变以太时考虑；不可当所有蕾米队通用音擎。；耀变只改变伤害属性而不是原异常类型，因此不继承简的强击双暴、简2影强击无视防御、爱丽丝2影强击增伤或维琳娜1影风化穿抗。；派派异常积蓄较快时，蕾米流明点可能吃紧，可开局先打一轮普攻施加流明点。；没有简时可使用派派替代。；物理异常位也可选择派派。",
+            "蕾米埃尔·丹、维琳娜、柳；攻略可选邦布：艾瑞儿，额外能力需另行核对。HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。；不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。；月城柳可用自由4件套搭配法厄同2件套。；蕾米使用飞鸟星梦仅在下一位队友为以太属性、使其流变以太时考虑；不可当所有蕾米队通用音擎。；耀变只改变伤害属性而不是原异常类型，因此不继承简的强击双暴、简2影强击无视防御、爱丽丝2影强击增伤或维琳娜1影风化穿抗。；柳的增益偏向紊乱；来源将此队列为可用替代搭配，未提供强度档位。",
+            "格莉丝、蕾米埃尔·丹、维琳娜；攻略可选邦布：超极杰克、艾瑞儿，额外能力需另行核对。HoyoBuild页面标记Version 3.2；本条只投影页面直接列出的精确三人成员与明确邦布选项。；不继承页面Tier、DPS、使用率或最佳队伍结论，不将社区页面升级为独立强度标签。；该搭配以格莉丝获得加强后的潜能玩法为语境，快速积攒并施放脉冲。；蕾米使用飞鸟星梦仅在下一位队友为以太属性、使其流变以太时考虑；不可当所有蕾米队通用音擎。；耀变只改变伤害属性而不是原异常类型，因此不继承简的强击双暴、简2影强击无视防御、爱丽丝2影强击增伤或维琳娜1影风化穿抗。"
           ],
           "bangboos": []
         },
-        "contentHash": "fnv1a-825c7fe6",
+        "contentHash": "fnv1a-dcf110f8",
         "sources": [
           {
             "label": "gamewith-remielle-build-2026-07-30",
@@ -5415,26 +5535,6 @@
             "kind": "community_candidate"
           },
           {
-            "label": "official-3.1-live-remielle",
-            "updatedAt": "2026-07-29T00:00:00.000Z",
-            "kind": "official_fact"
-          },
-          {
-            "label": "game-evidence-3.1-ariel-54023",
-            "updatedAt": "2026-07-29T00:00:00.000Z",
-            "kind": "community_candidate"
-          },
-          {
-            "label": "ldshop-remielle-team-2026-07-29",
-            "updatedAt": "2026-07-29T00:00:00.000Z",
-            "kind": "community_candidate"
-          },
-          {
-            "label": "lootbar-remielle-position-2026-07-28",
-            "updatedAt": "2026-07-28T00:00:00.000Z",
-            "kind": "community_candidate"
-          },
-          {
             "label": "miyoushe-77017654-miyabi-remielle-velina-3.2-review",
             "updatedAt": "2026-10-19",
             "kind": "community_candidate"
@@ -5452,6 +5552,411 @@
           {
             "label": "miyoushe-77115550-remielle-miyabi-velina",
             "updatedAt": "2026-09-09",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "hoyobuild-promeia-32-lumiflux-remielle-velina",
+            "updatedAt": "2026-10-20",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "reviewed-nested-93473931f5eb97df64ea1325",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "role252-zeno-97-4",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "remaining338-77013702-256704738-row2",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "remaining338-76914003-256817638-row5",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "remaining338-77017654-257130933-row1",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "gold-remielle-promeia-velina-ariel",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "gold-remielle-promeia-velina-ariel",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "gold-remielle-promeia-velina-ariel",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "consensus-remielle-promeia-velina",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "miyoushe-77013702-remielle-velina-promeia",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "hoyobuild-aria-32-lumiflux-remielle-velina",
+            "updatedAt": "2026-10-20",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "reviewed-nested-4d5cb56cb480c553d1fd7142",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "miyoushe-77017654-image-remielle-aria-velina",
+            "updatedAt": "2026-09-09",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "role252-zeno-94-1",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "role252-zeno-96-1",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "role252-zeno-97-1",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "role252-zeno-98-1",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "role252-zeno-99-1",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "remaining338-77013702-256704738-row1",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "remaining338-76914003-256817638-row1",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "gold-aria-remielle-velina-ariel",
+            "updatedAt": "2026-09-08T22:30:57.2466143+08:00",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "gold-aria-remielle-velina-ariel",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "gold-aria-remielle-velina-ariel",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "gold-aria-remielle-velina-ariel",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "consensus-aria-remielle-velina",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "miyoushe-77013702-remielle-velina-aria",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "hoyobuild-alice-32-lumiflux-remielle-velina",
+            "updatedAt": "2026-10-20",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "reviewed-nested-1062d703e89afbcdf5bcf6e3",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "role252-zeno-97-3",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "remaining338-76914003-256817638-row3",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "remaining338-77017654-257130991-row1",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "gold-remielle-alice-velina-ariel",
+            "updatedAt": "2026-09-08T22:30:57.2466143+08:00",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "gold-remielle-alice-velina-ariel",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "gold-remielle-alice-velina-ariel",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "gold-remielle-alice-velina-ariel",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "consensus-remielle-alice-velina",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "hoyobuild-jane-32-meta-remielle-velina",
+            "updatedAt": "2026-10-20",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "reviewed-nested-591392218d7cf35868d86a77",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "miyoushe-76975934-jane-velina-remielle",
+            "updatedAt": "2026-09-09",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "miyoushe-77017654-image-remielle-jane-velina",
+            "updatedAt": "2026-09-09",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "panel252-76913947-256815648-row1",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "role252-zeno-91-1",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "role252-zeno-96-2",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "role252-zeno-97-2",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "role252-zeno-99-2",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "remaining338-77013702-256704738-row3",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "remaining338-76914003-256817638-row2",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "direct5-76957755-257026672-row1",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "gold-remielle-jane-velina-ariel",
+            "updatedAt": "2026-09-08T22:30:57.2466143+08:00",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "gold-remielle-jane-velina-ariel",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "gold-remielle-jane-velina-ariel",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "gold-remielle-jane-velina-ariel",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "reality-remielle-jane-velina-ariel",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "reality-remielle-jane-velina-ariel",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "reality-remielle-jane-velina-ariel",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "consensus-remielle-jane-velina",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "miyoushe-77013702-remielle-velina-jane",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "hoyobuild-piper-32-velina-remielle",
+            "updatedAt": "2026-10-20",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "reviewed-nested-c88c376bc5d057cdf2f2fd16",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "explicit32-77017654-257130919-row2",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "remaining338-76914003-256817638-row4",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "gold-remielle-piper-velina-ariel",
+            "updatedAt": "2026-09-08T22:30:57.2466143+08:00",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "gold-remielle-piper-velina-ariel",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "gold-remielle-piper-velina-ariel",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "gold-remielle-piper-velina-ariel",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "reality-remielle-piper-velina-ariel",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "reality-remielle-piper-velina-ariel",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "reality-remielle-piper-velina-ariel",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "consensus-remielle-piper-velina",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "miyoushe-77013702-remielle-velina-piper",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "hoyobuild-yanagi-32-lumiflux-remielle-velina",
+            "updatedAt": "2026-10-20",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "reviewed-nested-4beefb78a2593af084ae9e41",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "gold-77017654-968bed692e97665d0c",
+            "updatedAt": "2026-09-09",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "hoyobuild-grace-32-disorder-remielle-velina",
+            "updatedAt": "2026-10-20",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "reviewed-nested-d63285af6ce155513275f8b9",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "remaining338-77013702-256704738-row6",
+            "updatedAt": "2026-09-10",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "versioned-strength-remielle-velina-grace",
+            "updatedAt": "2026-09-08T22:30:57.2466143+08:00",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "versioned-strength-remielle-velina-grace",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "versioned-strength-remielle-velina-grace",
+            "updatedAt": "2026-09-08",
+            "kind": "community_candidate"
+          },
+          {
+            "label": "miyoushe-77013702-remielle-velina-grace",
+            "updatedAt": "2026-09-08T22:30:57.2466143+08:00",
             "kind": "community_candidate"
           }
         ]

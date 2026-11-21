@@ -46,7 +46,7 @@ export function registerScannerCompletedResultTests({
     await setActiveAccount(beta.id, database)
     setRuntimeState('completed')
     rendered.rerender(<App />)
-    const handoff = await screen.findByRole('button', { name: '确认账户并继续' })
+    const handoff = await screen.findByRole('button', { name: '用此账户检查结果' })
     expect(handoff).toBeEnabled()
     expect(screen.getByText(/本次结果.*平均 230 张\/分钟/)).toBeInTheDocument()
     const alert = await screen.findByRole('alert')
@@ -73,7 +73,7 @@ export function registerScannerCompletedResultTests({
 
     const targetIssue = await screen.findByText('扫描目标账户已不可用')
     expect(targetIssue.closest('[role="alert"]')).toHaveTextContent('扫描目标账户已不可用')
-    expect(screen.getByRole('button', { name: '确认账户并继续' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: '用此账户检查结果' })).toBeDisabled()
 
     await user.click(screen.getByRole('button', { name: '放弃' }))
 
@@ -106,7 +106,7 @@ export function registerScannerCompletedResultTests({
     const comparison = await screen.findByRole('group', { name: '账户归属比较' })
     expect(comparison).toHaveTextContent('扫描时选择的账户同名接收账户')
     expect(comparison).toHaveTextContent('当前接收账户同名接收账户')
-    expect(screen.getByRole('button', { name: '确认账户并继续' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: '用此账户检查结果' })).toBeEnabled()
     expect((runtimeMock.snapshot as { state?: string }).state).toBe('completed')
     expect(await database.accountDriveDiscs.count()).toBe(0)
     expect(await database.accountScanImportBatches.count()).toBe(0)
@@ -126,7 +126,7 @@ export function registerScannerCompletedResultTests({
     expect(screen.queryByRole('group', { name: '账户归属比较' })).not.toBeInTheDocument()
     const accountPicker = screen.getByRole('combobox', { name: '目标账户' })
     expect(accountPicker).toHaveTextContent('波子汽水')
-    expect(screen.getByRole('button', { name: '确认账户并继续' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: '用此账户检查结果' })).toBeEnabled()
     expect(screen.getByRole('button', { name: '放弃' })).toBeEnabled()
     expect(screen.queryByRole('button', { name: /正式导入/ })).not.toBeInTheDocument()
     expect(await database.accountDriveDiscs.count()).toBe(0)
@@ -159,6 +159,6 @@ export function registerScannerCompletedResultTests({
     )
     expect(document.querySelector('.scanner-task dialog')).toBeNull()
     expect(screen.getByLabelText('选择本机文件（JSON）')).toBeDisabled()
-    expect(screen.getByRole('button', { name: '确认账户并继续' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: '用此账户检查结果' })).toBeEnabled()
   })
 }

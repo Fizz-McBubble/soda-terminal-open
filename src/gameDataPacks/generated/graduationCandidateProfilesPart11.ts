@@ -9,14 +9,14 @@ export const graduationCandidateProfilesPart11 = [
     agentId: 'agent-lighter',
     playerName: '莱特',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '1.3',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F3',
     objectiveTopology: 'O4',
     configHash: '4068ff1e43f52c435dc1df01c30ead1f3ed028bf1c4ee84cca047acbbce254b4',
-    inputHash: '0af784781a45ba42e4f7ad482743368240115d891aaf6f664236df39b90dbcfa',
+    inputHash: 'd4df57f1adfec9bf9bce38bc6a4f89e937a03de1924085f1e006991c524e46b7',
     inputReferences: [
       {
         record_id: 'ENTITY_FACTS:fact-lighter-core-levels:core.levels:batch-agents-1.3-r3o',
@@ -117,7 +117,7 @@ export const graduationCandidateProfilesPart11 = [
       deterministic: true,
       configHash: 'cbb120de52ff173c06eff24cacaa001d6ff2852eecbc99a955e66971c90e1776',
     },
-    profileHash: 'd59bb8b61aab967826db7195f884be489623486b9b0db6c816e829f8948dacbd',
+    profileHash: '876e63367b116ea3fafb64c5ff89438a253dd97f6f3700bf17d60fb2056a2bb1',
   },
   {
     schema: 'soda-graduation-profile/v1',
@@ -128,14 +128,14 @@ export const graduationCandidateProfilesPart11 = [
     agentId: 'agent-yanagi',
     playerName: '柳',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '1.3',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F5',
     objectiveTopology: 'O6',
     configHash: '08ed71eefb77f3dad8b347664a6e24796ec660f7a5337ca7d77fb9f138c58efa',
-    inputHash: 'f64e06f42f93719e7870f15754c839cc34e424390e6a34971848f2eaa593290e',
+    inputHash: 'ef3fc166aabd266cf04d43b39cecb060466dad701ab17db84d079127060d71f3',
     inputReferences: [
       {
         record_id:
@@ -242,7 +242,7 @@ export const graduationCandidateProfilesPart11 = [
       deterministic: true,
       configHash: 'b4cb2672cfbf882b70beeede5f2856db0e6e3179154448a2c48563fa31d3b145',
     },
-    profileHash: 'bc482e0322542692bbfd12e56abf7ce4ebc1939ff6fd4952e12d0ffdbfffdc56',
+    profileHash: '58cb5ac3cb07b26a82a06c3378a6b69d9366f7bebfbc5f587b80b3746176c472',
   },
   {
     schema: 'soda-graduation-profile/v1',
@@ -253,14 +253,14 @@ export const graduationCandidateProfilesPart11 = [
     agentId: 'agent-burnice',
     playerName: '柏妮思',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '1.2',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F4',
     objectiveTopology: 'O5',
     configHash: 'fab778120aeeccd73361b1558d2b9dd977b4442b0ccf5cdeebc9539a606227d2',
-    inputHash: '1c97d4cfd80bee3176fcc0a6f0e9a29b1ad9629d8e4033e8dcb4bc869ea2cfee',
+    inputHash: 'fc33334a5750c0309891404b241a1db6037e79543fb400f897dd421fcf49f0f3',
     inputReferences: [
       {
         record_id:
@@ -367,6 +367,6 @@ export const graduationCandidateProfilesPart11 = [
       deterministic: true,
       configHash: '60a233b87a0ffc3fa8e4cd7369aa38e68a531a307b20f43eadc7c969fc901fce',
     },
-    profileHash: '308612c7aa9171e7f0d32b7142175c97d84fbbf91c1cdf82a5562f7e0565d6cf',
+    profileHash: 'c52a93af2176ccabeb479c90c12be7bbd88eecadecc01d24ca2566b01a97cc6f',
   },
 ] as const

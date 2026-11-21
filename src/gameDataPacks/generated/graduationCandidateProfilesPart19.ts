@@ -9,14 +9,14 @@ export const graduationCandidateProfilesPart19 = [
     agentId: 'agent-soukaku',
     playerName: '苍角',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '1.0',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F7',
     objectiveTopology: 'O4',
     configHash: 'cac6b5f3a496de6a327abc77b03d56674b8f70391e185b6e87d92cb8392ab9ee',
-    inputHash: '762a1560b4b9744692b6f67ec99d7e5a429ebc70a3c873a7eedb5e27145ae108',
+    inputHash: '4f3f2e04dfd185236cebcdf31d1bb6702b6fa05ad86f3c82b884c6d58cac67d0',
     inputReferences: [
       {
         record_id: 'ENTITY_FACTS:fact-r3r4-soukaku-atk:stats.lv60.raw.atk:batch-agents-1.0-d-r3r4',
@@ -117,7 +117,7 @@ export const graduationCandidateProfilesPart19 = [
       deterministic: true,
       configHash: '13c715a7a7fbab856836461a9d2a9e0dc28fc3ae1fac47f10cde0790f27bf9b5',
     },
-    profileHash: 'add8df9a583ac8dd420019f4ebf39a97cc9721f3c109ba83c9748575f10e1270',
+    profileHash: '41a427116fc31b7a1fa3f7a054e30bd91c1578fcf1eaa1a56d9238ac5b0a7ad9',
   },
   {
     schema: 'soda-graduation-profile/v1',
@@ -128,14 +128,14 @@ export const graduationCandidateProfilesPart19 = [
     agentId: 'agent-lucy',
     playerName: '露西',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '1.0',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F7',
     objectiveTopology: 'O4',
     configHash: '0a70b7f0b506d3706253f1906d7fba6302ccc894be0bca0603182d4ec0b96e49',
-    inputHash: '6683d4c3748b3248b342bfb19fee9ebdd89b79757de29e71a1c2bfb3b287ae2d',
+    inputHash: '95994e2579a488038254633aff5b67806cce770a295d2c204dcbc72ceb30cd04',
     inputReferences: [
       {
         record_id: 'ENTITY_FACTS:fact-r3r3-lucy-atk:stats.lv60.raw.atk:batch-agents-1.0-c-r3r3',
@@ -237,7 +237,7 @@ export const graduationCandidateProfilesPart19 = [
       deterministic: true,
       configHash: 'fde422165676cafae565a4d97689032e4b24a6bfc732f92415718eb87ae85d61',
     },
-    profileHash: '2def15fec820abf75f0067fd30b41cf209ce1b3bd22768a69cde71cda6e4c2ba',
+    profileHash: 'd6d238ea663c6ad7bbfdb3f6bce48e2914ffc3cf3898e25e3e3823d6da0d3bca',
   },
   {
     schema: 'soda-graduation-profile/v1',
@@ -248,14 +248,14 @@ export const graduationCandidateProfilesPart19 = [
     agentId: 'agent-piper',
     playerName: '派派',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '1.0',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F4',
     objectiveTopology: 'O5',
     configHash: 'e0f2d8d56eb9464706d64a02e0ab70970bcff44570cd8545107fd401747f9121',
-    inputHash: '99279200dd37967b8fbba5b229ea81a60b074f6e057cbc8df0811030f63284f4',
+    inputHash: 'b0498badc49212fe803cd11b130b40b104e6d51378c7a3df0c9ca6dc551ad602',
     inputReferences: [
       {
         record_id:
@@ -362,6 +362,6 @@ export const graduationCandidateProfilesPart19 = [
       deterministic: true,
       configHash: '42fd2054084813d3189b58d0979116421e3517f285e022618482f41447eaa168',
     },
-    profileHash: '031198f7b7aa5cc0281c43eda0507c855c73c7529a64223ba7298a4b30ac8725',
+    profileHash: '878b48521f497a4b8c3fb063a8cb321ff379254d133ba3872b4b13762d3c7572',
   },
 ] as const

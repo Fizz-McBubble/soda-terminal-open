@@ -1,3 +1,4 @@
+import { playerErrorMessage } from '../application/playerErrorMessage'
 import { createFrozenScannerTargetIssue } from './scannerAssistantTargetIssue'
 import { downloadJson } from '../components/accountRecoveryHelpers'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
@@ -212,7 +213,7 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
       })
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') return
-      setAccountMessage(error instanceof Error ? error.message : '无法锁定扫描目标账户。')
+      setAccountMessage(playerErrorMessage(error, '无法锁定扫描目标账户。'))
     } finally {
       startPendingRef.current = false
       setStartPending(false)
@@ -228,7 +229,7 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
       setNewAccountName('')
       refreshAccounts()
     } catch (error) {
-      setAccountMessage(error instanceof Error ? error.message : '无法创建账户。')
+      setAccountMessage(playerErrorMessage(error, '无法创建账户。'))
     }
   }
 
@@ -402,7 +403,7 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
       await discardInvalidAccountScanStaging(binding.accountId, database)
       await handOffResult(binding)
     } catch (error) {
-      const message = error instanceof Error ? error.message : '无法安全清除不完整扫描草稿。'
+      const message = playerErrorMessage(error, '无法安全清除不完整扫描草稿。')
       setAccountMessage(message)
       setHandoffState({ status: 'error', message })
     }
@@ -416,7 +417,7 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
       await repairCompletedAccountScanStaging(binding.accountId, database)
       await handOffResult(binding)
     } catch (error) {
-      const message = error instanceof Error ? error.message : '无法恢复这次扫描结果，请重新扫描。'
+      const message = playerErrorMessage(error, '无法恢复这次扫描结果，请重新扫描。')
       setAccountMessage(message)
       setHandoffState({ status: 'error', message })
     }
@@ -446,7 +447,7 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
       await handOffResult(binding)
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') return
-      const message = error instanceof Error ? error.message : '无法确认本次扫描结果归属。'
+      const message = playerErrorMessage(error, '无法确认本次扫描结果归属。')
       setAccountMessage(message)
       setHandoffState({ status: 'error', message })
     } finally {
@@ -469,7 +470,7 @@ export function useScannerTargetBinding({ account, runtime, update }: ScannerTar
       await handOffResult(binding, candidate)
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') return
-      const message = error instanceof Error ? error.message : '无法锁定扫描目标账户。'
+      const message = playerErrorMessage(error, '无法锁定扫描目标账户。')
       setAccountMessage(message)
       setHandoffState({ status: 'error', message })
     } finally {

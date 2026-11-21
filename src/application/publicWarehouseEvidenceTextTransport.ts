@@ -24,14 +24,27 @@ export function warehouseEvidenceTextCodec(evidence: readonly unknown[]) {
     if (count > 1 && count * (literalBytes - referenceBytes) > literalBytes + 1) texts.push(value)
   }
   const indexes = new Map(texts.map((value, index) => [value, index]))
-  const encode = (value: unknown): unknown => {
-    if (typeof value === 'string' && indexes.has(value)) return { [marker]: indexes.get(value)! }
-    if (Array.isArray(value)) return value.map(encode)
-    if (value && typeof value === 'object')
-      return Object.fromEntries(Object.entries(value).map(([key, child]) => [key, encode(child)]))
-    return value
+  // Count every occurrence above. Cache only within one complete encode pass;
+  // later calls must observe mutations to the input and get independent output.
+  const createEncoder = () => {
+    const encoded = new WeakMap<object, unknown>()
+    const encode = (value: unknown): unknown => {
+      if (typeof value === 'string' && indexes.has(value)) return { [marker]: indexes.get(value)! }
+      if (!value || typeof value !== 'object') return value
+      if (encoded.has(value)) return encoded.get(value)
+      const result = Array.isArray(value)
+        ? value.map(encode)
+        : Object.fromEntries(Object.entries(value).map(([key, child]) => [key, encode(child)]))
+      encoded.set(value, result)
+      return result
+    }
+    return encode
   }
-  return { texts, encode }
+  return {
+    texts,
+    encode: (value: unknown) => createEncoder()(value),
+    encodeAll: (values: readonly unknown[]) => values.map(createEncoder()),
+  }
 }
 
 export function restoreWarehouseEvidenceText(value: unknown, texts: readonly string[]): unknown {

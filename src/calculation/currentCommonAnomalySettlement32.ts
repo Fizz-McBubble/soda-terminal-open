@@ -85,6 +85,30 @@ export type CommonAnomalySettlement32 = z.infer<typeof commonAnomalySettlementSc
  * product(sum(w_i * f_i)) equal. Different factors remain unresolved by sources.
  */
 export function calculateCommonAnomalySettlement32(raw: CommonAnomalySettlement32) {
+  return calculateHomogeneousAnomalySettlement32(raw, 'wind')
+}
+
+/** A separate declared arithmetic entry point; the historical Wind consumer and
+ * public wire keep their original scope. Preparation is bound by the caller. */
+export function calculatePreparedIcePolaritySettlement32(raw: CommonAnomalySettlement32) {
+  if (
+    raw.attribute !== 'ice' ||
+    raw.contributions.some(
+      (row) =>
+        row.ownerAgentId === 'agent-miyabi' ||
+        row.instance.kind !== 'polarity_disorder' ||
+        row.instance.originalDisorderRatio !== 0.25 ||
+        row.instance.additionalDisorderMultiplier < 0,
+    )
+  )
+    throw new Error('ice_polarity_preparation_or_original_invalid32')
+  return calculateHomogeneousAnomalySettlement32(raw, 'ice')
+}
+
+function calculateHomogeneousAnomalySettlement32(
+  raw: CommonAnomalySettlement32,
+  polarityAttribute: 'wind' | 'ice',
+) {
   const parsed = commonAnomalySettlementSchema32.safeParse(raw)
   if (!parsed.success)
     throw new Error(
@@ -120,7 +144,7 @@ export function calculateCommonAnomalySettlement32(raw: CommonAnomalySettlement3
       throw new Error('anomaly_target_or_state_mismatch')
     if (row.attribute !== input.attribute) throw new Error('anomaly_attribute_mismatch')
     if (row.snapshotAtSeconds > input.atSeconds) throw new Error('future_anomaly_snapshot')
-    if (row.instance.kind === 'polarity_disorder' && row.attribute !== 'wind')
+    if (row.instance.kind === 'polarity_disorder' && row.attribute !== polarityAttribute)
       throw new Error('only_wind_polarity_disorder_reviewed32')
   }
   const first = input.contributions[0]!
@@ -137,7 +161,7 @@ export function calculateCommonAnomalySettlement32(raw: CommonAnomalySettlement3
   const baseMultiplier =
     first.instance.kind === 'polarity_disorder'
       ? disorderBaseMultiplier({
-          attribute: 'wind',
+          attribute: polarityAttribute,
           elapsedSeconds: first.instance.elapsedSeconds,
           additionalDisorderMultiplier: first.instance.additionalDisorderMultiplier,
         })

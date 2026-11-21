@@ -6,7 +6,11 @@ import {
   candidateConstraintToDiscProfile,
   getCandidateWarehouseConstraint,
 } from '../gameDataPacks/candidateWarehouseConstraints'
-import { compileDynamicCandidateLoadout, dynamicLegalInventory } from './teamDynamicDomain'
+import {
+  compileDynamicCandidateLoadout,
+  dynamicLegalInventory,
+  dynamicRecommendableInventory,
+} from './teamDynamicDomain'
 import { createEmptyRoster } from '../assault/catalog'
 import { candidatePanelInputForAgent } from './optimizeAccountBuildsPanelInput'
 import { developmentCandidateEventObjective32 } from '../decision/developmentCandidateEventObjective32'
@@ -14,6 +18,14 @@ import { compileAgentBuildIntent, optimizerOptionsFromBuildIntent } from '../dec
 import { projectCandidateEffectiveCritObjective } from './candidateEffectiveCritObjective'
 
 describe('current adopted drive-disc identities in dynamic inventory', () => {
+  it('fails closed for non-S and unknown rarity while preserving identity and duplicates', () => {
+    const s = legalTeamDisc(0)
+    const a = { ...s, id: 'a', rarity: 'A' as const }
+    const b = { ...s, id: 'b', rarity: 'B' as const }
+    const unknown = { ...s, id: 'unknown', rarity: undefined }
+    expect(dynamicRecommendableInventory([s, a, b, unknown])).toEqual([s])
+    expect(dynamicRecommendableInventory([s, { ...a, id: s.id }])).toEqual([])
+  })
   it('recomputes a raw dynamic replacement against the exact frozen BuildIntent event target', () => {
     const agentId = 'agent-ye-shunguang'
     const agent = createEmptyRoster('2026-10-19T00:00:00Z').agents.find(
@@ -33,6 +45,11 @@ describe('current adopted drive-disc identities in dynamic inventory', () => {
       panelInput,
       eventConditionDeclaration: {
         sourceRefs: ['test:explicit-comparison-window'],
+        ye: {
+          yeShunguangEnlightenedMind32: true,
+          yeShunguangVerdictActive32: true,
+          yeShunguangVerdictTargetInside32: false,
+        },
         whiteWaterBalladCritWindow: true,
         whiteWaterBalladAttackWindow: false,
       },

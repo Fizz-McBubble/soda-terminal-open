@@ -19,6 +19,7 @@ import {
   candidateSetPlanPriority,
 } from '../gameDataPacks/candidateSetPlanPolicy'
 import type { CandidateSetPlan } from '../gameDataPacks/candidateSetPlans'
+import { warehouseInvestmentBranchKey } from './warehouseInvestmentBranch'
 import {
   resolveReviewedTeamDiscDirections,
   reviewedTeamDiscDirections,
@@ -39,6 +40,7 @@ import {
 export type WarehouseDemandContext = {
   id: string
   groupId: string
+  investmentBranchKey: string
   agentId: string
   demand: 'active' | 'reserve'
   constraint: CandidateWarehouseConstraint
@@ -261,6 +263,7 @@ export function resolveWarehouseDemandContexts(input: Input) {
         contexts.push({
           id: `${source.id}:${agentId}:${branch.key}:${candidateSetPlanIdentity(plan)}`,
           groupId: `${source.id}:${agentId}`,
+          investmentBranchKey: warehouseInvestmentBranchKey(agentId, branch.key, plan),
           agentId,
           demand: source.id.startsWith('reserve:') ? 'reserve' : 'active',
           constraint,

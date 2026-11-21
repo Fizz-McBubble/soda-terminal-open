@@ -87,12 +87,7 @@ export function projectBuildKnowledgeProfile(
     gaps: [
       ...missing.map((field) => field?.reason ?? '当前角色缺少可追溯构筑方向。'),
       ...sourceFields
-        .filter(
-          (field) =>
-            field.currentApplicability !== 'continuous' ||
-            Number.parseFloat(field.gameVersion) <
-              Number.parseFloat(currentVersionProjection.gameVersion),
-        )
+        .filter((field) => field.currentApplicability !== 'continuous')
         .map(
           (field) =>
             `${field.path} 仅复核至 ${field.gameVersion}；当前 ${currentVersionProjection.gameVersion} 适用性未闭合。`,

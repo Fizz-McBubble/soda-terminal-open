@@ -1,3 +1,4 @@
+import { playerErrorMessage } from '../../application/playerErrorMessage'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useLiveQuery } from 'dexie-react-hooks'
@@ -55,7 +56,7 @@ export function AdvancedDataManagement() {
       URL.revokeObjectURL(url)
       setMessage('完整备份已通过 schema 自检并导出。')
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '导出失败。')
+      setMessage(playerErrorMessage(error, '导出失败。'))
     }
   }
 

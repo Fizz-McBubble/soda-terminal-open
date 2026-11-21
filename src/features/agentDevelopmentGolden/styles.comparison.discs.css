@@ -191,7 +191,8 @@
   grid-column: 2;
   display: flex;
   align-items: baseline;
-  gap: 6px;
+  justify-content: space-between;
+  gap: 8px;
   min-width: 0;
 }
 
@@ -210,6 +211,15 @@
 
 .comparison-method-popover {
   margin-left: auto;
+}
+
+.f5v-shell .top10 .comparison-method-popover > .explanation__trigger,
+.f5v-shell
+  .top10
+  .explanation.comparison-method-popover
+  > .explanation__trigger:not(.button)
+  > .explanation__label {
+  text-decoration: none;
 }
 
 .f5v-shell .top10 .comparison-candidate {

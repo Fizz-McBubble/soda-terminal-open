@@ -15,6 +15,7 @@ export function AgentIdentityIcons({ agent }: { agent: AgentSummary }) {
           entityId={attribute.id}
           variant="icon"
           name={attribute.label}
+          compactFallback
         />
       ) : null}
       {specialty ? (
@@ -23,6 +24,7 @@ export function AgentIdentityIcons({ agent }: { agent: AgentSummary }) {
           entityId={specialty.id}
           variant="icon"
           name={specialty.label}
+          compactFallback
         />
       ) : null}
     </span>
@@ -33,10 +35,12 @@ export function AgentAvatar({
   agent,
   className = '',
   slot = 'compact-agent',
+  includeIdentityIcons = true,
 }: {
   agent: AgentSummary
   className?: string
   slot?: 'compact-agent' | 'recommendation-identity'
+  includeIdentityIcons?: boolean
 }) {
   return (
     <span
@@ -47,7 +51,7 @@ export function AgentAvatar({
     >
       <span aria-hidden="true">{agent.name.slice(0, 1)}</span>
       <AgentVisualSlot slot={slot} agentId={agent.agentId} name={agent.name} />
-      <AgentIdentityIcons agent={agent} />
+      {includeIdentityIcons ? <AgentIdentityIcons agent={agent} /> : null}
     </span>
   )
 }

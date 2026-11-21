@@ -12,15 +12,18 @@ import {
 } from './developmentWEngineComparisonProjection'
 import { supportsPotentialImage } from '../assault/agentCapabilities'
 import { stableContentHash } from '../gameDataPacks/types'
-import { buildAccountDecisionInputFingerprint } from '../decision/accountDecisionService'
+import { buildAccountDecisionInputFingerprint } from '../decision/accountDecisionFingerprint'
 import { createLocalTargetTeamFitQuery } from './localTargetTeamFitQuery'
+import { requireCompiledRuntimeWithSignal, requireRunWithSignal } from './localQueryRuntimeGuard'
 import type { AccountDecisionSnapshotCalculator } from './browserAccountDecisionWorker'
 import { projectDevelopmentCandidateAlternatives } from '../decision/developmentCandidateAlternatives'
+import { projectDevelopmentParameterizedCandidates } from './developmentParameterizedCandidates'
 import {
   projectDevelopmentValueBenchmarks,
   createDevelopmentValueBenchmarkEvaluator,
 } from '../decision/developmentValueBenchmark'
 import { projectDevelopmentCandidatePresentation } from './developmentCandidatePresentation'
+import { parseDevelopmentParametersByRank } from '../accounts/developmentComparisonParametersSchema'
 import type { CurrentGameDataRuntimeSelection } from '../gameDataPacks/runtimeSelection'
 import {
   calculationQueryContractVersion,
@@ -35,11 +38,10 @@ import {
 import { projectWarehouseActions } from './warehouseActionProjection'
 import { projectDevelopmentDirectoryQuery } from './developmentDirectoryQueryProjection'
 import { projectDevelopmentComparisonPanels } from './developmentComparisonPanelProjection'
-import { projectDevelopmentWorkbenchPresentation } from './developmentWorkbenchPresentationProjection'
 import { projectDevelopmentWorkbenchRoute } from './developmentWorkbenchRouteProjection'
 import { createDevelopmentCandidateLoadoutCache } from './developmentCandidateLoadoutCache'
-import { projectPrivateTeamOverview } from '../pages/privateTeamLoadoutPresentationProducer'
-import { prepareRemainingBox } from './remainingBox'
+import { createDevelopmentCandidateAlternativesCache } from './developmentCandidateAlternativesCache'
+import { createLocalTeamOverviewQuery } from './localTeamOverviewQuery'
 import { projectPrivateTeamRoute } from '../pages/privateTeamRouteProjection'
 import { projectPrivateSavedTeamReplay } from './privateSavedTeamReplayProjection'
 import { projectPrivateSavedTeamSolutionComponents } from './privateSavedTeamSolutionComponentsProjection'
@@ -47,6 +49,8 @@ import { projectPlanningBenchmark32 } from './privatePlanningBenchmark32'
 import { projectCommonAnomalySettlementQuery32 } from './privateCommonAnomalySettlementQuery32'
 import { resolveCurrentPlanningScenario32 } from '../calculation/currentPlanningScenario32'
 import { validateSourceResourceGrantDeclaration32 } from '../calculation/sourceMechanismResourceGrantContract32'
+import { isCurrentDevelopmentDirectoryFacts } from './publicDevelopmentDirectoryFacts'
+import { loadBoxCandidate, loadSavedBoxCandidate } from './boxAdmissionQueryProjection'
 
 export function createLocalCalculationQueryClientCore(options: {
   readRuntimeSelection: () => Promise<CurrentGameDataRuntimeSelection>
@@ -54,6 +58,7 @@ export function createLocalCalculationQueryClientCore(options: {
 }): CalculationQueryClient {
   const runs = new Map<string, AccountDecisionRun>()
   const candidateLoadouts = createDevelopmentCandidateLoadoutCache()
+  const candidateAlternatives = createDevelopmentCandidateAlternativesCache()
   const teamFits = new Map<
     string,
     Map<string, Awaited<ReturnType<CalculationQueryClient['calculateTargetTeamWarehouseFit']>>>
@@ -66,6 +71,7 @@ export function createLocalCalculationQueryClientCore(options: {
     pendingRuns.clear()
     runs.clear()
     candidateLoadouts.clear()
+    candidateAlternatives.clear()
     teamFits.clear()
   }
 
@@ -85,6 +91,31 @@ export function createLocalCalculationQueryClientCore(options: {
   }
 
   const client: CalculationQueryClient = {
+    async queryDevelopmentDirectoryFacts(query, requestOptions) {
+      if (query.contractVersion !== calculationQueryContractVersion || !query.operationId)
+        throw new Error('养成目录事实请求格式无效。')
+      requestOptions?.signal?.throwIfAborted()
+      await requireCompiledRuntime()
+      requestOptions?.signal?.throwIfAborted()
+      const { projectDevelopmentDirectoryFacts } =
+        await import('./developmentDirectoryFactsProjection')
+      requestOptions?.signal?.throwIfAborted()
+      const result = projectDevelopmentDirectoryFacts(query)
+      if (!isCurrentDevelopmentDirectoryFacts(result, query))
+        throw new Error('养成目录事实与当前请求不一致，请重试。')
+      return result
+    },
+    async queryDevelopmentWorkbenchFacts(query, requestOptions) {
+      if (query.contractVersion !== calculationQueryContractVersion || !query.operationId)
+        throw new Error('个人事实请求格式无效。')
+      requestOptions?.signal?.throwIfAborted()
+      await requireCompiledRuntime()
+      requestOptions?.signal?.throwIfAborted()
+      const { projectDevelopmentWorkbenchFacts } =
+        await import('./developmentWorkbenchFactsProjection')
+      requestOptions?.signal?.throwIfAborted()
+      return projectDevelopmentWorkbenchFacts(query)
+    },
     async queryCommonAnomalySettlement32(request) {
       const query = structuredClone(request)
       if (query.contractVersion !== calculationQueryContractVersion)
@@ -128,7 +159,10 @@ export function createLocalCalculationQueryClientCore(options: {
       pendingRuns.get(runId)?.abort()
       pendingRuns.delete(runId)
       const run = runs.get(runId)
-      if (run) candidateLoadouts.forget(run)
+      if (run) {
+        candidateLoadouts.forget(run)
+        candidateAlternatives.forget(run)
+      }
       runs.delete(runId)
       teamFits.delete(runId)
     },
@@ -136,7 +170,8 @@ export function createLocalCalculationQueryClientCore(options: {
       return buildAccountDecisionInputFingerprint(input).inputHash
     },
 
-    async calculateAccountDecision(query) {
+    async calculateAccountDecision(request) {
+      const query = structuredClone(request)
       if (query.contractVersion !== calculationQueryContractVersion)
         throw new Error(`Unsupported Calculation/Query contract: ${query.contractVersion}.`)
       pendingRuns.get(query.runId)?.abort()
@@ -146,7 +181,7 @@ export function createLocalCalculationQueryClientCore(options: {
         await requireCompiledRuntime()
         controller.signal.throwIfAborted()
         const snapshot = await calculateSnapshot(
-          { ...query.input, capturedAt: query.capturedAt },
+          { ...query.input, capturedAt: query.capturedAt, deferWarehouseAnalysis: true },
           { signal: controller.signal },
         )
         await requireCompiledRuntime()
@@ -167,10 +202,9 @@ export function createLocalCalculationQueryClientCore(options: {
           input: query.input,
           snapshot,
         }
-        run.warehouseActions = projectWarehouseActions({ run, status: 'current' })
+        if (snapshot.warehouse)
+          run.warehouseActions = projectWarehouseActions({ run, status: 'current' })
         run.developmentDirectory = projectDevelopmentDirectoryQuery(run)
-        run.developmentWorkbenchPresentation = projectDevelopmentWorkbenchPresentation(run)
-        run.teamPresentation = projectPrivateTeamOverview(run)
         teamFits.delete(run.runId)
         runs.set(run.runId, run)
         return run
@@ -179,42 +213,23 @@ export function createLocalCalculationQueryClientCore(options: {
       }
     },
 
-    async queryTeamOverviewPresentation(query, internal) {
-      if (query.contractVersion !== calculationQueryContractVersion)
-        throw new Error(`Unsupported Calculation/Query contract: ${query.contractVersion}.`)
-      await requireCompiledRuntime()
-      const run = runs.get(query.runId)
-      if (!run) throw new Error(`Account Decision run is unavailable: ${query.runId}.`)
-      const fits = (query.fitCandidateIds ?? []).map((id) => {
-        const fit = teamFits.get(run.runId)?.get(id)
-        if (!fit) throw new Error('队伍配装结果已失效，请重新分析。')
-        return fit
-      })
-      if (!query.sourceRunId) {
-        if (query.reservedPlanIds?.length) throw new Error('队伍展示上下文无效。')
-        return projectPrivateTeamOverview(run, query.context, undefined, fits)
-      }
-      const source = runs.get(query.sourceRunId) ?? internal?.sourceRun
-      if (!source || source.runId !== query.sourceRunId || source.runId === run.runId)
-        throw new Error('原队伍分析已失效，请重新分析剩余队伍。')
-      if (source.input.warehouse.accountId !== run.input.warehouse.accountId)
-        throw new Error('当前账户已切换，请重新分析。')
-      const prepared = prepareRemainingBox(source.input, query.reservedPlanIds ?? [])
-      if (
-        buildAccountDecisionInputFingerprint(prepared.input).inputHash !==
-        buildAccountDecisionInputFingerprint(run.input).inputHash
-      )
-        throw new Error('保留队伍或剩余仓库已变化，请重新分析。')
-      return projectPrivateTeamOverview(run, query.context, source, fits)
-    },
+    queryTeamOverviewPresentation: createLocalTeamOverviewQuery(
+      runs,
+      teamFits,
+      requireCompiledRuntime,
+    ),
 
-    async queryTeamRoutePresentation(query) {
-      if (query.contractVersion !== calculationQueryContractVersion)
-        throw new Error(`Unsupported Calculation/Query contract: ${query.contractVersion}.`)
-      await requireCompiledRuntime()
-      const run = runs.get(query.runId)
-      if (!run) throw new Error(`Account Decision run is unavailable: ${query.runId}.`)
-      return projectPrivateTeamRoute(run, query.candidateId)
+    async queryTeamRoutePresentation(query, requestOptions) {
+      const run = await requireRunWithSignal(
+        query,
+        runs,
+        requireCompiledRuntime,
+        requestOptions?.signal,
+      )
+      return projectPrivateTeamRoute(
+        loadBoxCandidate(run, query.candidateId, true),
+        query.candidateId,
+      )
     },
 
     async querySavedTeamPlanReplay(query) {
@@ -223,7 +238,11 @@ export function createLocalCalculationQueryClientCore(options: {
       await requireCompiledRuntime()
       const run = runs.get(query.runId)
       if (!run) throw new Error(`Account Decision run is unavailable: ${query.runId}.`)
-      return projectPrivateSavedTeamReplay(run, query.planId, query.planHash)
+      return projectPrivateSavedTeamReplay(
+        loadSavedBoxCandidate(run, query.planId, query.planHash),
+        query.planId,
+        query.planHash,
+      )
     },
 
     async querySavedTeamSolutionComponents(query) {
@@ -260,6 +279,22 @@ export function createLocalCalculationQueryClientCore(options: {
       teamFits,
       requireCompiledRuntime,
     }),
+
+    async queryWarehouseActions(query, requestOptions) {
+      if (query.contractVersion !== calculationQueryContractVersion)
+        throw new Error('请更新页面后重试。')
+      await requireCompiledRuntimeWithSignal(requireCompiledRuntime, requestOptions?.signal)
+      const run = runs.get(query.runId)
+      if (!run) throw new Error('本次仓库分析已失效，请重新分析。')
+      const { ensureAccountDecisionWarehouseActions } =
+        await import('../decision/accountDecisionWarehouseLazyProjection')
+      requestOptions?.signal?.throwIfAborted()
+      if (runs.get(query.runId) !== run) throw new Error('本次仓库分析已失效，请重新分析。')
+      const result = ensureAccountDecisionWarehouseActions(run)
+      await requireCompiledRuntimeWithSignal(requireCompiledRuntime, requestOptions?.signal)
+      if (runs.get(query.runId) !== run) throw new Error('本次仓库分析已失效，请重新分析。')
+      return result
+    },
 
     async queryWarehouseDiscTransitionUses(query, options) {
       if (query.contractVersion !== calculationQueryContractVersion)
@@ -333,11 +368,25 @@ export function createLocalCalculationQueryClientCore(options: {
         eventConditionDeclarationsByAgentId,
       )
       const scenario = resolveCurrentPlanningScenario32(query.scenarioSelection)
+      const resultCacheKey = stableContentHash({
+        runId: run.runId,
+        inputFingerprint: run.inputFingerprint,
+        agentId: query.agentId,
+        candidateParametersByRank: query.candidateParametersByRank ?? null,
+        wEngineComparison: query.wEngineComparison ?? null,
+        scenarioIdentity: scenario.identity,
+        eventConditionDeclarationsIdentity,
+        resourceGrantDeclaration32: resourceGrantDeclaration32 ?? null,
+      })
+      const cachedResult = candidateAlternatives.read(run, resultCacheKey)
+      if (cachedResult) return cachedResult
       const evaluator = createDevelopmentValueBenchmarkEvaluator()
+      const explicit = parseDevelopmentParametersByRank(query.candidateParametersByRank)
+      const initialDirectionParameters = explicit[1]?.independentDirection ? explicit[1] : undefined
       const baseProjection = projectDevelopmentCandidateAlternatives(
         run.input,
         query.agentId,
-        undefined,
+        initialDirectionParameters,
         scenario.selection,
         eventConditionDeclarationsByAgentId?.[query.agentId],
         evaluator,
@@ -346,35 +395,16 @@ export function createLocalCalculationQueryClientCore(options: {
       // Other scenarios keep that assertion's original fresh-solve path and cannot borrow this cache.
       if (
         scenario.identity === resolveCurrentPlanningScenario32().identity &&
-        !eventConditionDeclarationsByAgentId?.[query.agentId]
+        !eventConditionDeclarationsByAgentId?.[query.agentId] &&
+        !initialDirectionParameters
       )
         candidateLoadouts.remember(run, query.agentId, baseProjection.candidates)
-      const projection = { ...baseProjection, candidates: [...baseProjection.candidates] }
-      const explicit = query.candidateParametersByRank ?? {}
-      const candidateSearchByRank: Record<
-        number,
-        import('../decision/developmentCandidateAlternatives').DevelopmentCandidateSearch
-      > = {}
-      if (
-        Object.keys(explicit).some(
-          (rank) =>
-            !Number.isInteger(Number(rank)) ||
-            Number(rank) < 1 ||
-            Number(rank) > projection.candidates.length,
-        )
-      )
-        throw new Error('显式比较参数必须绑定本次存在的候选序号。')
-      // A rank is one comparison scenario. Regenerate its legal six-disc search
-      // under the exact chosen engine/potential, preserving the other scenarios.
-      const generated = new Map<
-        string,
-        ReturnType<typeof projectDevelopmentCandidateAlternatives>
-      >()
-      for (const [rank, parameters] of Object.entries(explicit)) {
-        const key = stableContentHash(parameters)
-        if (!generated.has(key))
-          generated.set(
-            key,
+      const { projection, candidateSearchByRank, effectiveParametersByRank } =
+        projectDevelopmentParameterizedCandidates({
+          baseProjection,
+          explicit,
+          initialDirectionParameters,
+          generate: (parameters) =>
             projectDevelopmentCandidateAlternatives(
               run.input,
               query.agentId,
@@ -383,14 +413,7 @@ export function createLocalCalculationQueryClientCore(options: {
               eventConditionDeclarationsByAgentId?.[query.agentId],
               evaluator,
             ),
-          )
-        const candidate = generated.get(key)!.candidates[0]
-        if (candidate) {
-          projection.candidates[Number(rank) - 1] = candidate
-          const search = generated.get(key)!.candidateSearch
-          if (search) candidateSearchByRank[Number(rank)] = search
-        }
-      }
+        })
       const valueBenchmarks = projectDevelopmentValueBenchmarks(
         {
           warehouse: run.input.warehouse,
@@ -398,7 +421,7 @@ export function createLocalCalculationQueryClientCore(options: {
           baseline: projection.baseline,
           candidates: projection.candidates,
           savedPlans: run.input.drafts,
-          candidateParametersByRank: explicit,
+          candidateParametersByRank: effectiveParametersByRank,
           scenarioSelection: scenario.selection,
           eventConditionDeclaration: eventConditionDeclarationsByAgentId?.[query.agentId],
           resourceGrantDeclaration32,
@@ -420,19 +443,22 @@ export function createLocalCalculationQueryClientCore(options: {
         discs: engineDiscs ?? [],
         query: {
           ...query,
+          candidateParametersByRank: effectiveParametersByRank,
           scenarioSelection: scenario.selection,
           eventConditionDeclarationsByAgentId,
           resourceGrantDeclaration32,
         },
         evaluator,
       })
-      return {
+      const result: Awaited<
+        ReturnType<CalculationQueryClient['queryDevelopmentCandidateAlternatives']>
+      > = {
         contract: 'soda-development-candidate-alternatives/v1',
         comparisonContract: 'soda-explicit-development-comparison/v1',
         comparisonFingerprint: stableContentHash({
           inputFingerprint: run.snapshot.fingerprint.inputHash,
           agentId: query.agentId,
-          parameters: explicit,
+          parameters: effectiveParametersByRank,
           scenarioIdentity: scenario.identity,
           eventConditionDeclarationsIdentity,
           ...(resourceGrantDeclaration32
@@ -445,7 +471,7 @@ export function createLocalCalculationQueryClientCore(options: {
           comparisons: valueBenchmarks.map((row) => row.candidate.calculationFingerprint),
           ...(wEngineComparison ? { wEngineComparison: wEngineComparison.fingerprint } : {}),
         }),
-        candidateParametersByRank: explicit,
+        candidateParametersByRank: effectiveParametersByRank,
         ...(wEngineComparison ? { wEngineComparison } : {}),
         scenarioSelection: scenario.selection,
         scenarioIdentity: scenario.identity,
@@ -468,16 +494,22 @@ export function createLocalCalculationQueryClientCore(options: {
         sideEffect: 'read_only',
         ...projection,
         valueBenchmarks,
-        presentation: projectDevelopmentCandidatePresentation(query.agentId),
+        presentation: projectDevelopmentCandidatePresentation(
+          query.agentId,
+          projection.buildIntent.recommendations.find((row) => row.agentId === query.agentId)
+            ?.constraint ?? undefined,
+        ),
         panelPresentation: projectDevelopmentComparisonPanels({
           warehouse: run.input.warehouse,
           drafts: run.input.drafts ?? [],
           agentId: query.agentId,
           baseline: projection.baseline,
           candidates: projection.candidates,
-          candidateParametersByRank: explicit,
+          candidateParametersByRank: effectiveParametersByRank,
         }),
       }
+      candidateAlternatives.remember(run, resultCacheKey, result)
+      return result
     },
   }
   return client

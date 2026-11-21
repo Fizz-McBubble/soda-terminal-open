@@ -12,6 +12,9 @@ export type DevelopmentDirectoryDecision = {
     cultivationPriority: string
     confidence: string
   } | null
+  /** Source-backed key levels, not an account-specific pull order. */
+  cinemaLevels?: number[] | null
+  skillPriorityGroups?: string[][]
   skills: Array<{
     key: 'basic' | 'dodge' | 'assist' | 'special' | 'chain' | 'core'
     label: string

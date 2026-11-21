@@ -5,6 +5,10 @@ import { currentAgentDirectory } from '../assault/catalog'
 import { currentWEngineDirectory } from '../assault/planningCatalog'
 import { createTeamStrengthEquippedReferenceMember } from './teamStrengthReferenceBuild'
 import { currentTeamStrengthReferenceConditions } from './teamStrengthReferenceConditions'
+import {
+  hasRegisteredTeamRecommendationPrerequisites,
+  resolveTeamRecommendationSourceContinuity,
+} from './teamRecommendationSourceContinuity'
 import type {
   ReviewedTeamSourceDirection,
   TeamRecommendationPrerequisite,
@@ -19,16 +23,22 @@ export type TeamRecommendationPrerequisiteAssessment = Assessment & {
 
 const key = (memberIds: readonly string[]) => [...memberIds].sort().join('|')
 
-function isCurrentRecommendationSource(source: RecommendationSource, reviewVersion: string) {
+function isCurrentRecommendationSource(
+  source: RecommendationSource,
+  reviewVersion: string,
+  memberIds: readonly string[],
+) {
   if (
     source.observationRole === 'author_comparison_setup' ||
     source.verificationStatus === 'historical_membership_reference'
   )
     return false
-  return (
-    source.sourceVersion === reviewVersion ||
-    (reviewVersion === '3.2' && source.verificationStatus === 'reviewed_exact_team_current_32')
-  )
+  if (source.verificationStatus === 'reviewed_exact_team_current_32')
+    return (
+      reviewVersion === '3.2' ||
+      resolveTeamRecommendationSourceContinuity({ source, reviewVersion, memberIds }) !== null
+    )
+  return source.sourceVersion === reviewVersion
 }
 
 function assessOne(
@@ -115,7 +125,7 @@ export function assessTeamRecommendationPrerequisites(input: {
     return { status: 'condition-unknown', reasons: ['尚无完整且唯一的三人队伍。'], sources: [] }
   const bySourceId = new Map<string, TeamRecommendationPrerequisite[]>()
   for (const source of input.sourceRefs) {
-    if (!isCurrentRecommendationSource(source, input.reviewVersion)) continue
+    if (!isCurrentRecommendationSource(source, input.reviewVersion, input.memberIds)) continue
     bySourceId.set(source.id, [
       ...(bySourceId.get(source.id) ?? []),
       ...(source.recommendationPrerequisites ?? []),
@@ -166,8 +176,16 @@ export function createTeamRecommendationPrerequisiteResolver(input: {
     allSources.set(teamKey, [...(allSources.get(teamKey) ?? []), ...direction.sourceRefs])
   }
   const gatedSources = new Map(
-    [...allSources].filter(([, sources]) =>
-      sources.some((source) => source.recommendationPrerequisites?.length),
+    [...allSources].filter(([team, sources]) =>
+      sources.some(
+        (source) =>
+          source.recommendationPrerequisites?.length ||
+          (input.reviewVersion === '3.3' &&
+            hasRegisteredTeamRecommendationPrerequisites({
+              memberIds: team.split('|'),
+              sourceId: source.id,
+            })),
+      ),
     ),
   )
   const cached = new Map<string, TeamRecommendationPrerequisiteAssessment>()

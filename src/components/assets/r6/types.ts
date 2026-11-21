@@ -16,6 +16,7 @@ export type CatalogItem = {
 
 export type DiscItem = {
   stableId: string
+  rarity?: 'S' | 'A' | 'B'
   set: CatalogItem
   slot: number
   level: number
@@ -36,8 +37,10 @@ export type AgentDraft = Pick<
   AccountRoster['agents'][number],
   | 'owned'
   | 'level'
+  | 'ascension'
   | 'mindscape'
   | 'potentialImage'
+  | 'manualProgression'
   | 'skillLevels'
   | 'wEngineCopyId'
   | 'progressionManuallySet'
@@ -46,8 +49,19 @@ export type AgentDraft = Pick<
   wEngineLevel?: number | null
   wEngineLevelManuallySet?: boolean
   wEngineAscension?: number | null
+  wEngineAscensionManuallySet?: boolean
   wEngineRefinement?: number | null
   wEngineRefinementManuallySet?: boolean
+}
+/** Read-only catalog context; changing a viewing level never edits this draft. */
+export type AgentReferenceProgress = Pick<AgentDraft, 'skillLevels' | 'potentialImage'> & {
+  mindscape?: number | null
+}
+export type CatalogReferenceProps = {
+  item: CatalogItem
+  additionalAbilityLevel?: number
+  agentView?: 'full' | 'skills'
+  agentProgress?: AgentReferenceProgress
 }
 export type BangbooDraft = Pick<
   AccountRoster['bangboos'][number],
@@ -84,6 +98,7 @@ export type AssetGoldenProps = {
   accountOptions: LocalAccountOption[]
   catalog: Record<'agents' | 'wengines' | 'bangboos', CatalogItem[]>
   discs: DiscItem[]
+  discCount?: number
   roster: AccountRoster
   initialTab?: AssetTab
   initialSelection?: Partial<Record<CatalogKind, string>>

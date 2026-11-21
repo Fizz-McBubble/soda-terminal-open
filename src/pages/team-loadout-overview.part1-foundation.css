@@ -259,6 +259,12 @@
   line-height: 18px;
 }
 
+.f5v-box-team-completion-only__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--soda-space-2);
+}
+
 .f5v-box-team-completion > ul {
   display: grid;
   gap: var(--soda-space-2);

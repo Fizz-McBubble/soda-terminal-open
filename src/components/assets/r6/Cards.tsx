@@ -1,6 +1,7 @@
 import { VisualEntityImage } from '../../VisualEntityImage'
 import { getAgentSpecialtyLabel } from '../../../application/publicRosterNames'
 import { preloadVisualEntityImage } from '../../../assets/visualEntityImageSource'
+import { assetAttributeIcons } from '../../../application/publicAssetIdentityLabels'
 import type { CatalogItem, CatalogKind, DiscItem } from './types'
 
 function OfficialIcon({ id, name }: { id: string; name: string }) {
@@ -38,14 +39,7 @@ export function CatalogCard({
       consumer: 'assets.editor',
     })
   }
-  const attributeIcons: Record<string, { id: string; label: string }> = {
-    electric: { id: 'attribute-electric', label: '电属性' },
-    ether: { id: 'attribute-ether', label: '以太属性' },
-    fire: { id: 'attribute-fire', label: '火属性' },
-    ice: { id: 'attribute-ice', label: '冰属性' },
-    physical: { id: 'attribute-physical', label: '物理属性' },
-    wind: { id: 'attribute-wind', label: '风属性' },
-  }
+  const attribute = item.attribute ? assetAttributeIcons[item.attribute] : undefined
   const specialtyIcons: Record<string, string> = {
     armorer: 'specialty-armorer',
     anomaly: 'specialty-anomaly',
@@ -55,12 +49,22 @@ export function CatalogCard({
     stun: 'specialty-stun',
     support: 'specialty-support',
   }
+  const accessibleName = [
+    item.playerName,
+    facts,
+    kind === 'agents' && attribute ? `${attribute.label}属性` : null,
+    (kind === 'agents' || kind === 'wengines') && item.specialty && specialtyIcons[item.specialty]
+      ? `${getAgentSpecialtyLabel(item.specialty)}特性`
+      : null,
+  ]
+    .filter(Boolean)
+    .join('，')
   return (
     <button
       className={`object-card${kind === 'agents' ? ' agent' : kind === 'wengines' ? ' wengine' : kind === 'bangboos' ? ' bangboo' : ''}`}
       role="option"
       aria-selected={selected}
-      aria-label={facts ? `${item.playerName}，${facts}` : item.playerName}
+      aria-label={accessibleName}
       title={facts ? `${item.playerName} · ${facts}` : item.playerName}
       onPointerEnter={preloadDetailAvatar}
       onFocus={preloadDetailAvatar}
@@ -83,19 +87,24 @@ export function CatalogCard({
         className="object-image"
         compactFallback
       />
-      <span className="badge left">{item.rarity ?? 'S'}</span>
+      {item.rarity ? <span className="badge left">{item.rarity}</span> : null}
       <span className="card-name" style={facts ? undefined : { bottom: 5 }}>
         {item.playerName}
       </span>
       {facts ? <span className="card-state">{facts}</span> : null}
       {kind === 'agents' && (item.attribute || item.specialty) && (
         <span className="icon-stack" aria-label="属性与特性">
-          {item.attribute && attributeIcons[item.attribute] && (
-            <OfficialIcon
-              id={attributeIcons[item.attribute].id}
-              name={attributeIcons[item.attribute].label}
-            />
-          )}
+          {attribute?.id ? (
+            <OfficialIcon id={attribute.id} name={`${attribute.label}属性`} />
+          ) : attribute ? (
+            <span
+              className="official-icon"
+              aria-label={`${attribute.label}属性`}
+              style={{ fontSize: 10, width: 24, lineHeight: '18px', textAlign: 'center' }}
+            >
+              {attribute.label}
+            </span>
+          ) : null}
           {item.specialty && specialtyIcons[item.specialty] && (
             <OfficialIcon
               id={specialtyIcons[item.specialty]}
@@ -137,11 +146,12 @@ export function DiscCard({
     )
   return (
     <button
-      className="object-card disc"
+      className={`object-card disc${bulk ? ' is-bulk' : ''}`}
       role="option"
       aria-selected={bulk ? undefined : selected}
       aria-checked={bulk ? checked : undefined}
-      aria-label={`${item.set.playerName}，${item.slot}号位，强化${item.level}${protectionLabels.length ? `，${protectionLabels.join('，')}` : ''}`}
+      aria-label={`${item.set.playerName}，${item.rarity ? `${item.rarity}级` : '品质未确认'}，${item.slot}号位，强化${item.level}${protectionLabels.length ? `，${protectionLabels.join('，')}` : ''}`}
+      title={`${item.set.playerName} · ${item.rarity ? `${item.rarity}级` : '品质未确认'} · ${item.slot}号位 · 强化${item.level}`}
       onClick={onSelect}
     >
       {bulk && (
@@ -158,14 +168,19 @@ export function DiscCard({
         consumer="assets.catalog"
       />
 
-      <span className="disc-facts" aria-hidden="true">
-        <i>{item.slot}号</i>
-        <i>+{item.level}</i>
+      <span className="disc-fact disc-rarity" aria-hidden="true">
+        {item.rarity ? `${item.rarity}级` : '未知'}
+      </span>
+      <span className="disc-fact disc-slot" aria-hidden="true">
+        {item.slot}号
+      </span>
+      <span className="disc-fact disc-level" aria-hidden="true">
+        +{item.level}
       </span>
       {protectionLabels.length ? (
         <span className="disc-protection" aria-hidden="true" title={protectionLabels.join(' · ')}>
-          {protectionLabels[0]}
-          {protectionLabels.length > 1 ? ` +${protectionLabels.length - 1}` : ''}
+          {protectionLabels.slice(0, 2).join(' · ')}
+          {protectionLabels.length > 2 ? ` +${protectionLabels.length - 2}` : ''}
         </span>
       ) : null}
     </button>

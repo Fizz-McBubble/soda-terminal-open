@@ -102,7 +102,7 @@ export function AssetQuickReadRecovery({
               disabled={restoring}
               onClick={onCancel}
             >
-              取消撤销
+              取消
             </button>
             <button
               type="button"

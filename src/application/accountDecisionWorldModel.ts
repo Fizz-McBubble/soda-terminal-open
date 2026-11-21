@@ -3,9 +3,10 @@ import {
   getDevelopmentPriorityAgentIds,
   getSavedAgentBuildIds,
 } from '../accounts/developmentPlanning'
-import { loadCoreWarehouse } from '../accounts/coreWarehouse'
-import { listAccountPlanningDrafts } from '../accounts/planningDrafts'
+import { loadCoreWarehouse, loadCoreWarehouseForAccount } from '../accounts/coreWarehouse'
+import { listAccountPlanningDrafts } from '../accounts/planningDraftReads'
 import { getTeamPortfolioPreference } from '../accounts/teamPortfolioPreference'
+import type { AccountProfile } from '../accounts/types'
 import {
   type AccountDecisionAuthoritySummary,
   type AccountDecisionQueryInput,
@@ -52,6 +53,11 @@ export type AccountDecisionWorldContextValue = AccountDecisionWorld & {
   repairApplicationData: () => Promise<AccountDecisionRun | null>
   /** Current account records stay available to directory views while a captured calculation is stale. */
   liveInput: AccountDecisionWorldInput | null | undefined
+  /** A calculation failure is not evidence that account inputs changed. */
+  analysisIssue?: {
+    kind: 'runtime_unavailable' | 'calculation_failed' | 'run_lost'
+    message: string
+  } | null
   /** Observable work only; it does not estimate a completion percentage. */
   calculation?: {
     phase: 'reading_account' | 'preparing_rules' | 'analyzing'
@@ -72,7 +78,7 @@ export function readableCalculationError(error: unknown) {
 }
 
 export function readableRuntimeSelectionError() {
-  return '无法读取游戏资料，请恢复与当前应用配套的资料后重新分析。'
+  return '分析资料暂时无法读取，请重试。'
 }
 
 export async function observeRuntimeSelection(
@@ -85,8 +91,13 @@ export async function observeRuntimeSelection(
   }
 }
 
-export async function loadWorldInput(): Promise<AccountDecisionWorldInput | null> {
-  const warehouse = await loadCoreWarehouse()
+export async function loadWorldInput(
+  activeAccount?: AccountProfile | null,
+): Promise<AccountDecisionWorldInput | null> {
+  const warehouse =
+    activeAccount === undefined
+      ? await loadCoreWarehouse()
+      : await loadCoreWarehouseForAccount(activeAccount)
   if (!warehouse.accountId) return null
   const [drafts, activePlanIds, developmentPriorityAgentIds, preference] = await Promise.all([
     listAccountPlanningDrafts(warehouse.accountId),
@@ -104,8 +115,8 @@ export function accountDecisionNextAction(
   if (status === 'stale')
     return {
       label: '重新分析当前账户',
-      title: '账户资料已有变化',
-      description: '旧方案仍可查看；重新分析后，会按最新角色和装备更新建议。',
+      title: '更新配装建议',
+      description: '按最新角色和装备更新配装建议。',
       path: '/loadouts/team',
     }
   if (decisionAuthority.status === 'ready' && decisionAuthority.recommendationCount > 0)
@@ -117,18 +128,15 @@ export function accountDecisionNextAction(
     }
   if (status === 'unsupported')
     return {
-      label: '查看待补资料',
-      title: '当前培养顺序尚未形成',
-      description:
-        decisionAuthority.status === 'blocked'
-          ? decisionAuthority.blockers.join('；')
-          : '现有资料还不足以给出完整队伍建议。',
+      label: '查看队伍配装',
+      title: '选择队伍并配装',
+      description: '选择想使用的代理人，按当前仓库搭配装备。',
       path: '/loadouts/team',
     }
   return {
-    label: '查看待补资料',
-    title: '当前培养顺序尚未形成',
-    description: '当前还没有可执行的完整三人队伍建议。',
+    label: '查看队伍配装',
+    title: '选择队伍并配装',
+    description: '选择想使用的代理人，按当前仓库搭配装备。',
     path: '/loadouts/team',
   }
 }

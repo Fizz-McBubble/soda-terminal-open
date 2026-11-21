@@ -1,7 +1,18 @@
 import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { ScannerGuide, ScannerBlockGuide } from './ScannerGuide'
 import { scannerDistributionManifest } from '../scanner/distribution'
+import { installerReleaseUrl, parseInstallerRelease } from '../scanner/installerRelease'
+import installerManifest from '../../public/downloads/scanner-installer-release.v1.json'
+
+const publication = vi.hoisted(() => ({ state: null as 'published' | 'not_published' | null }))
+vi.mock('../scanner/distribution', async (importOriginal) => {
+  const { scannerDistributionFixture } = await import('../testing/scannerManifestFixture')
+  return scannerDistributionFixture(
+    await importOriginal<typeof import('../scanner/distribution')>(),
+    () => publication.state,
+  )
+})
 
 describe('ScannerGuide component', () => {
   it('provides the supported scanning instructions through the shared popover', () => {
@@ -19,16 +30,6 @@ describe('ScannerGuide component', () => {
     expect(screen.getByText('下载或启动受阻')).toBeInTheDocument()
     expect(screen.getByText('下载、拦截或连接失败怎么处理')).toBeInTheDocument()
 
-    // 1. Distribution constants check
-    expect(
-      screen.getByText(
-        new RegExp(`画面扫描 ${scannerDistributionManifest.helper.installerVersion}`),
-      ),
-    ).toBeInTheDocument()
-    expect(
-      screen.getAllByText(new RegExp(scannerDistributionManifest.helper.entry)).length,
-    ).toBeGreaterThan(0)
-
     // 2. Download reputation check
     expect(screen.getByText(/仅凭提示无法判断文件安全/)).toBeInTheDocument()
 
@@ -44,6 +45,42 @@ describe('ScannerGuide component', () => {
     expect(screen.getByText(/工具已启动但网页连接失败/)).toBeInTheDocument()
     expect(screen.getByText(/本地地址是否被代理/)).toBeInTheDocument()
   })
+
+  it.each(['published', 'not_published'] as const)(
+    'matches installer availability and the shipped package identity (%s)',
+    (state) => {
+      publication.state = state
+      try {
+        render(<ScannerGuide />)
+        const version = scannerDistributionManifest.helper.installerVersion
+        const fileName = 'Soda-Scanner-Setup.exe'
+        expect(version).toBe(installerManifest.version)
+        if (state === 'published') {
+          expect(screen.getByText(fileName, { selector: 'code' }).closest('p')).toHaveTextContent(
+            `当前官方下载：画面扫描 ${version}（${fileName}）。`,
+          )
+        } else {
+          expect(screen.getByText(`画面扫描 ${version} 尚未提供下载。`)).toBeInTheDocument()
+          expect(screen.queryByText(fileName, { selector: 'code' })).not.toBeInTheDocument()
+        }
+        expect(installerReleaseUrl).toBe('/downloads/scanner-installer-release.v1.json')
+        expect(scannerDistributionManifest.helper.downloadUrl).toBe(`/downloads/${fileName}`)
+        expect(
+          parseInstallerRelease({ ...installerManifest, releaseState: 'published' }),
+        ).toMatchObject({
+          version,
+          downloadUrl: `/downloads/${fileName}`,
+          fileName: `SodaTerminal-Scanner-Setup-${version}.exe`,
+        })
+        if (installerManifest.releaseState !== 'published')
+          expect(() => parseInstallerRelease(installerManifest)).toThrow(
+            'invalid_installer_release',
+          )
+      } finally {
+        publication.state = null
+      }
+    },
+  )
 
   it('renders dedicated ScannerBlockGuide popover entry', () => {
     render(<ScannerBlockGuide />)

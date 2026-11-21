@@ -4,6 +4,7 @@ import {
 } from '../gameDataPacks/currentDriveDiscFormulaCatalog'
 import { stableContentHash } from '../gameDataPacks/types'
 import { getCurrentAgentEventContract } from './currentAgentMechanicContracts'
+import { driveDiscData } from '../data/gameData'
 import {
   currentFormulaMechanicContractHash,
   getCurrentFormulaContractRequirements,
@@ -19,7 +20,7 @@ import {
   hasReviewedShieldConsumer32,
 } from './reviewedFunctionalEquipmentDependencies32'
 
-export const currentDriveDiscPlanningEffectVersion = 'disc-fixed-event-and-functional-passives-r2'
+export const currentDriveDiscPlanningEffectVersion = 'disc-fixed-event-and-functional-passives-r3'
 
 const directStats: Record<string, SourceBackedEquipmentModifierBucket['application']> = {
   'combat.atk_': 'attack_percent',
@@ -31,6 +32,7 @@ const directStats: Record<string, SourceBackedEquipmentModifierBucket['applicati
   'combat.dazeRed_': 'daze_reduction',
   'combat.enerRegen_': 'energy_regen_percent',
   'combat.enerRegen': 'energy_regen_flat',
+  'combat.anomProf': 'anomaly_proficiency_flat',
 }
 const actions: Record<string, string> = {
   basic: 'basic_attack',
@@ -84,6 +86,9 @@ export function compileCurrentDriveDiscPlanningEffects(input: {
         sourceRefs: readonly string[]
       }
     >
+  >
+  preparedFunctionalByAgentId?: Readonly<
+    Record<string, { flags: Readonly<Record<string, boolean>>; sourceRefs: readonly string[] }>
   >
 }) {
   const buckets: SourceBackedEquipmentModifierBucket[] = []
@@ -148,7 +153,7 @@ export function compileCurrentDriveDiscPlanningEffects(input: {
           effectKey: `disc:${setId}:two-piece:${modifier.stat}`,
           providerAgentId: member.agentId,
           recipientAgentIds: [member.agentId],
-          receiverPath: null,
+          receiverPath: `own.combat.${modifier.stat}`,
           damageType: null,
           action: null,
           attribute: null,
@@ -186,6 +191,21 @@ export function compileCurrentDriveDiscPlanningEffects(input: {
       for (const flag of requirements.flags) {
         const match = /^eq:own.char.(attribute|specialty):(.+)$/.exec(flag)
         if (match) flags[flag] = identity[match[1] as 'attribute' | 'specialty'] === match[2]
+      }
+      const functional = input.preparedFunctionalByAgentId?.[member.agentId]
+      const permittedFlag =
+        source.upstreamKey === 'FeatheredFate'
+          ? 'FeatheredFate:entersOrActive'
+          : source.upstreamKey === 'PhaethonsMelody'
+            ? 'PhaethonsMelody:squad_use_ex'
+            : null
+      if (functional && permittedFlag && Object.hasOwn(functional.flags, permittedFlag)) {
+        if (!functional.sourceRefs.length || functional.sourceRefs.some((ref) => !ref.trim())) {
+          blockers.push(`驱动盘功能准备态缺少来源：${member.agentId}:${setId}`)
+          continue
+        }
+        flags[permittedFlag] = functional.flags[permittedFlag]!
+        sourceRefs.push(...functional.sourceRefs)
       }
       const whiteWaterPreparation = input.preparedWhiteWaterByAgentId?.[member.agentId]
       if (source.upstreamKey === 'WhiteWaterBallad' && whiteWaterPreparation) {
@@ -300,7 +320,7 @@ export function compileCurrentDriveDiscPlanningEffects(input: {
           effectKey: `disc:${setId}:four-piece:${index}`,
           providerAgentId: member.agentId,
           recipientAgentIds: [member.agentId],
-          receiverPath: null,
+          receiverPath: `${effect.target}.${stat}`,
           damageType: null,
           action: effect.action ? actions[String(effect.action)]! : null,
           attribute,
@@ -309,8 +329,32 @@ export function compileCurrentDriveDiscPlanningEffects(input: {
           sourceRefs,
         })
       }
-      if (source.fourPieceFormula.todoMarkers.length)
+      if (source.fourPieceFormula.todoMarkers.length) {
         exclude('upstream_todo', source.fourPieceFormula.todoMarkers)
+        // The locked TODO remains unresolved. The adopted complete set text
+        // bounds its possible writes to AP and ether damage, never impact/HP.
+        const description = driveDiscData?.driveDiscSets.find(
+          (row) => row.id === setId,
+        )?.fourPieceEffect
+        if (
+          setId === 'set-phaethons-melody' &&
+          source.fourPieceFormula.sha256 ===
+            '0E242F3B3620536FEF6CF8D90B01A084BFA96C74CAB27F3E15BDD173F9C3EA31' &&
+          source.fourPieceFormula.todoMarkers.length === 1 &&
+          source.fourPieceFormula.todoMarkers[0] === 'Add conditionals' &&
+          description ===
+            '队伍中任意角色发动强化特殊技时，装备者的异常精通提升45点，持续8秒；若发动者不是装备者本人，装备者造成的以太伤害提升25%。'
+        ) {
+          Object.assign(exclusions[exclusions.length - 1]!, {
+            recipientAgentIds: [member.agentId],
+            writeFields: ['combat.anomProf', 'combat.dmg_.ether'],
+            sourceRefs: [
+              ...sourceRefs,
+              'app/src/data/drive-disc-data.v1.json#set-phaethons-melody:fourPieceEffect',
+            ],
+          })
+        }
+      }
     }
   }
   const core = {
@@ -320,6 +364,7 @@ export function compileCurrentDriveDiscPlanningEffects(input: {
     exclusions,
     preparedQuickAssist: input.preparedQuickAssist ?? null,
     preparedWhiteWaterByAgentId: input.preparedWhiteWaterByAgentId ?? null,
+    preparedFunctionalByAgentId: input.preparedFunctionalByAgentId ?? null,
     blockers,
     boundary:
       '两件套护盾与失衡加成交给具名功能消费者，其他静态字段由初始面板消费；四件套只采用可证明的效果。未观测触发、叠层、时窗及未适配功能保持缺口。没有模拟全队四件套联动或证明18盘最优。',

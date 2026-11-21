@@ -26,7 +26,18 @@ const workbench: GoldenWorkbenchData = {
   candidatePlanCount: 3,
   selectedCandidateRank: 2,
   graduation: {
-    skills: [{ label: '普攻', recommended: '12级', priority: true }],
+    skills: [
+      {
+        key: 'basic',
+        label: '普攻',
+        recommended: '12级',
+        priority: true,
+        targetLevel: 12,
+        baseTargetLevel: 12,
+        targetType: 'exact_integer',
+        exactTarget: 12,
+      },
+    ],
     skillPriority: ['普攻'],
     panel: [{ name: '攻击力', value: '3000' }],
     teams: [],

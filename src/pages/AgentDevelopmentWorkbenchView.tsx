@@ -1,33 +1,24 @@
-import {
-  normalizeReviewedEventConditionDeclarations32,
-  reviewedEventConditionDeclarationsIdentity32,
-} from '../calculation/reviewedEventConditionDeclarations32'
+import { DevelopmentComparisonConditions } from './DevelopmentComparisonConditions'
+import { hasDevelopmentComparisonConditions } from './developmentComparisonConditionAvailability'
+import { normalizeReviewedEventConditionDeclarations32 } from '../calculation/reviewedEventConditionDeclarations32'
+import type { AgentDevelopmentGoldenProps } from '../features/agentDevelopmentGolden/types'
+import { matchPersonalWorkbench } from './personalWorkbenchMatch'
+import { createPersonalWorkbenchSave } from './personalWorkbenchSave'
+import { createDevelopmentCurrentRecordRefresh } from './developmentCurrentRecordRefresh'
+import { useWorkbenchSaveFeedback } from './useWorkbenchSaveFeedback'
+import { useContext, useEffect, useRef } from 'react'
+import { CalculationQueryClientContext } from '../application/accountDecisionWorldHooks'
+import { readSavedAgentComparisonContext } from '../application/readSavedAgentComparisonContext'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { saveCurrentAgentBuild } from '../accounts/planningDrafts'
 import { contentHash } from '../application/contentHash'
-import type { DevelopmentWorkbenchRouteSelection } from '../application/publicDevelopmentWorkbenchRoute'
-import { isCurrentDevelopmentWorkbenchRoute } from '../application/publicDevelopmentWorkbenchRoute'
-import {
-  developmentCurrentRecordBinding,
-  developmentCurrentRecordAgent,
-} from '../application/publicDevelopmentWorkbenchRoute'
-import {
-  developmentCommittedCurrentDisplay,
-  developmentCommittedCurrentDisplayFailure,
-} from './developmentCommittedCurrentDisplay'
-import { developmentPanelDiscFingerprint } from '../application/publicDevelopmentComparisonPanels'
+import { developmentRefreshNotice } from './agentDevelopmentRefreshPresentation'
 import { AgentDevelopmentGolden } from '../features/agentDevelopmentGolden'
 import { AgentDevelopmentCurrentEditor } from './AgentDevelopmentCurrentEditor'
-import {
-  cacheDevelopmentCandidateSnapshot,
-  readDevelopmentCandidateSnapshot,
-  refreshDevelopmentCandidatesAfterSave,
-} from './agentDevelopmentCandidateSession'
-import { createAgentDevelopmentSavedPlan } from './agentDevelopmentSavedPlan'
-import { rememberDevelopmentWorkbenchRoute } from './developmentWorkbenchRouteCache'
 import { usePageOperationScope } from '../components/usePageOperationScope'
-import { WarehouseMatchError } from '../application/warehouseMatchFeedback'
 import type { Props } from './agentDevelopmentWorkbenchViewState'
+import type { WarehouseAnalysisIntent } from '../features/agentDevelopmentGolden'
+import { developmentWorkbenchFactsFingerprint } from '../application/publicDevelopmentWorkbenchFacts'
+import { runDecisionWorldWorkbenchAnalysis } from './workbenchWarehouseAnalysis'
 export function AgentDevelopmentWorkbenchView({
   agentId,
   accountId,
@@ -38,13 +29,16 @@ export function AgentDevelopmentWorkbenchView({
   editingThisAgent,
   candidateSnapshotStale,
   retainingDuringSave,
+  analysisRefresh,
   saveRefresh,
   editingPresentation,
   decisionWorld,
   queryDevelopmentCandidateAlternatives,
   queryDevelopmentWorkbenchRoute,
+  facts,
   candidates,
   candidateSnapshot,
+  personalCapture,
   equipment,
   requestedPlanId,
   selectedCandidateRank,
@@ -57,7 +51,17 @@ export function AgentDevelopmentWorkbenchView({
   setLastRouteProjection,
 }: Props) {
   const navigate = useNavigate()
+  const personalClient = useContext(CalculationQueryClientContext)
   const location = useLocation()
+  const currentEditReturnFocus = useRef<HTMLElement | null>(null)
+  const candidateQueryAbort = useRef<AbortController | null>(null)
+  useEffect(
+    () => () => {
+      candidateQueryAbort.current?.abort()
+      candidateQueryAbort.current = null
+    },
+    [],
+  )
   const capturePageScope = usePageOperationScope(
     JSON.stringify([accountId, agentId, requestedPlanId]),
   )
@@ -67,7 +71,9 @@ export function AgentDevelopmentWorkbenchView({
       agentId,
       requestedPlanId,
       selectedCandidateRank,
-      decisionWorld.liveFingerprint,
+      facts?.request
+        ? developmentWorkbenchFactsFingerprint(facts.request)
+        : decisionWorld.liveFingerprint,
     ]),
   )
   const currentRecordRefresh =
@@ -75,6 +81,21 @@ export function AgentDevelopmentWorkbenchView({
     saveRefresh.accountId === accountId &&
     saveRefresh.agentId === agentId
       ? saveRefresh
+      : null
+  const saveRefreshNotice = currentRecordRefresh
+    ? developmentRefreshNotice({
+        stage: currentRecordRefresh.stage ?? 'panel',
+        phase: currentRecordRefresh.phase ?? 'updating',
+        error: currentRecordRefresh.error,
+      })
+    : null
+  const analysisRefreshNotice =
+    !currentRecordRefresh && analysisRefresh
+      ? developmentRefreshNotice({
+          stage: 'analysis',
+          phase: analysisRefresh.phase,
+          error: analysisRefresh.error,
+        })
       : null
   const displayedWorkbenchData =
     currentRecordRefresh?.presentation ??
@@ -84,102 +105,189 @@ export function AgentDevelopmentWorkbenchView({
         ? editingPresentation?.presentation
         : null) ??
     workbenchData
-  async function refreshSavedCurrentRecord(savedRoster: Props['roster']) {
-    const isCurrentPage = capturePageScope()
-    // The database save has committed. Release the edit snapshot now so
-    // live account facts can update while the full analysis is pending.
-    setEditingCurrent(false)
-    setEditingPresentation(null)
-    const savedAgent = savedRoster.agents.find((agent) => agent.agentId === agentId)
-    if (!savedAgent) throw new Error('代理人资料保存后未能重新读取。')
-    let committedPresentation = developmentCommittedCurrentDisplay(
-      displayedWorkbenchData,
-      savedAgent,
+  const navigateForView = (view: 'overview' | 'workbench' | 'top10') => {
+    if (view === 'overview') {
+      navigate('/development')
+      return
+    }
+    if (view === 'workbench') {
+      navigate(
+        requestedPlanId
+          ? `/development/${agentId}?plan=${encodeURIComponent(requestedPlanId)}`
+          : `/development/${agentId}?candidate=${workbenchData.selectedCandidateRank}`,
+      )
+      return
+    }
+    navigate(
+      requestedPlanId
+        ? `/development/${agentId}/loadouts`
+        : `/development/${agentId}/loadouts?candidate=${workbenchData.selectedCandidateRank}`,
     )
-    setSaveRefresh({
-      accountId,
-      agentId,
-      kind: 'current_record',
-      phase: 'updating',
-      record: savedAgent,
-      presentation: committedPresentation,
-    })
-    const selection = {
-      agentId,
-      requestedPlanId,
-      candidateRank: null,
-      candidateLoadoutFingerprint: null,
-    }
-    try {
-      const currentAgent = developmentCurrentRecordAgent(savedAgent)
-      const record = {
-        accountId,
-        agent: currentAgent,
-        revision: contentHash(currentAgent),
-        selectedDiscIds: displayedWorkbenchData.discs.map((disc) => disc.id),
-      }
-      // Refresh only this saved record's panel in the existing Worker run,
-      // before queueing the much larger account-wide analysis.
-      const currentPanel = await queryDevelopmentWorkbenchRoute(
-        decisionWorld.run!.runId,
-        selection,
-        record,
-      )
-      if (!isCurrentPage()) return
-      if (
-        currentPanel.currentRecordBinding !== developmentCurrentRecordBinding(record) ||
-        !isCurrentDevelopmentWorkbenchRoute(
-          { ...currentPanel, currentRecordBinding: undefined },
-          {
-            runId: decisionWorld.run!.runId,
-            accountId,
-            inputFingerprint: decisionWorld.run!.inputFingerprint,
-            selection,
-            selectedDiscs: decisionWorld.run!.input.warehouse.discs.filter((disc) =>
-              record.selectedDiscIds.includes(disc.id),
-            ),
-          },
-          developmentPanelDiscFingerprint,
-        )
-      )
-        throw new Error('资料已保存，但当前面板暂未更新，请稍后重试。')
-      committedPresentation = developmentCommittedCurrentDisplay(
-        displayedWorkbenchData,
-        savedAgent,
-        currentPanel,
-      )
-      setSaveRefresh({
-        accountId,
-        agentId,
-        kind: 'current_record',
-        phase: 'updating',
-        record: savedAgent,
-        presentation: committedPresentation,
-      })
-      const refreshed = await decisionWorld.refresh()
-      if (!isCurrentPage()) return
-      if (!refreshed) throw new Error('资料已保存，但养成资料暂未更新，请稍后重试。')
-      const projection = await queryDevelopmentWorkbenchRoute(refreshed.runId, selection)
-      if (!isCurrentPage()) return
-      const key = contentHash([refreshed.runId, refreshed.inputFingerprint, selection])
-      rememberDevelopmentWorkbenchRoute(key, projection)
-      setRouteRead({ key, value: projection })
-      setLastRouteProjection({ accountId, agentId, value: projection })
-      setSaveRefresh(null)
-    } catch (error) {
-      if (isCurrentPage())
-        setSaveRefresh({
-          accountId,
-          agentId,
-          kind: 'current_record',
-          phase: 'failed',
-          record: savedAgent,
-          presentation: developmentCommittedCurrentDisplayFailure(committedPresentation),
-          error: error instanceof Error ? error.message : '资料已保存，更新暂未完成。',
-        })
-    }
   }
+  const refreshSavedCurrentRecord = createDevelopmentCurrentRecordRefresh({
+    accountId,
+    agentId,
+    requestedPlanId,
+    facts,
+    candidates,
+    decisionWorld,
+    queryDevelopmentWorkbenchRoute,
+    setEditingCurrent,
+    setEditingPresentation,
+    setSaveRefresh,
+    setRouteRead,
+    setLastRouteProjection,
+    displayedWorkbenchData,
+    capturePageScope,
+  })
 
+  const { displayedSaveScope, onSavePlan } = useWorkbenchSaveFeedback({
+    requestedPlanId,
+    accountId,
+    agentId,
+    agentName,
+    candidateSnapshotStale,
+    decisionWorld,
+    candidates,
+    candidateSnapshot,
+    equipment,
+    workbenchData,
+    setSaveRefresh,
+    setRouteRead,
+    setLastRouteProjection,
+    setAnalysisVersion,
+    queryDevelopmentCandidateAlternatives,
+    queryDevelopmentWorkbenchRoute,
+    capturePageScope,
+    navigate,
+    savingThisAgent,
+    retainingDuringSave,
+  })
+  const savePersonalPlan = createPersonalWorkbenchSave({
+    personalCapture,
+    personalClient,
+    candidateSnapshotStale,
+    savingThisAgent,
+    retainingDuringSave,
+    accountId,
+    agentId,
+    workbenchData,
+    setSaveRefresh,
+    setAnalysisVersion,
+    capturePageScope,
+    navigate,
+  })
+  const analyzeWarehouse: AgentDevelopmentGoldenProps['onAnalyzeWarehouse'] =
+    savingThisAgent || retainingDuringSave
+      ? undefined
+      : async (
+          intent: WarehouseAnalysisIntent = 'generate',
+          requestedParameters,
+          requestedDeclarations,
+        ) => {
+          const comparisonRouteReady =
+            intent === 'compare'
+              ? import('./AgentLoadoutComparisonPage').catch(() => null)
+              : Promise.resolve(null)
+          const isCurrentPage = capturePageScope()
+          const isCurrentAnalysis = captureAnalysisScope()
+          const canContinue = () => {
+            if (!isCurrentPage()) return false
+            if (!isCurrentAnalysis())
+              throw new Error('仓库或配装选择已变化，请重新搭配；尚未保存。')
+            return true
+          }
+          setWarehouseRefresh({
+            accountId,
+            agentId,
+            inputFingerprint: decisionWorld.liveFingerprint,
+            presentation: workbenchData,
+          })
+          candidateQueryAbort.current?.abort()
+          const candidateController = new AbortController()
+          candidateQueryAbort.current = candidateController
+          let published = false
+          try {
+            const personalStatus = await matchPersonalWorkbench({
+              client: personalClient,
+              accountId,
+              agentId,
+              requestedPlanId,
+              selectedRank: selectedCandidateRank,
+              requestedParameters,
+              requestedDeclarations,
+              mode: intent,
+              signal: candidateController.signal,
+              canContinue,
+              setAnalysisVersion,
+            })
+            if (personalStatus !== 'unsupported') {
+              published = personalStatus === 'published'
+              return
+            }
+            published = await runDecisionWorldWorkbenchAnalysis({
+              intent,
+              requestedParameters,
+              requestedDeclarations,
+              accountId,
+              agentId,
+              requestedPlanId,
+              selectedCandidateRank,
+              candidateSnapshot,
+              workbenchData,
+              decisionWorld,
+              queryDevelopmentCandidateAlternatives,
+              queryDevelopmentWorkbenchRoute,
+              comparisonRouteReady,
+              signal: candidateController.signal,
+              canContinue,
+              setRouteRead,
+              setLastRouteProjection,
+              setAnalysisVersion,
+              locationSearch: location.search,
+              navigate,
+            })
+          } catch (error) {
+            if (isCurrentPage()) throw error
+          } finally {
+            // A refreshed run can still be waiting for its default route. Keep
+            // the same-input view available after failure so the error stays local.
+            if (
+              isCurrentPage() &&
+              (published || candidateController.signal.aborted || !isCurrentAnalysis())
+            )
+              setWarehouseRefresh(null)
+            if (candidateQueryAbort.current === candidateController)
+              candidateQueryAbort.current = null
+          }
+        }
+  const cancelWarehouseAnalysis = () => {
+    candidateQueryAbort.current?.abort()
+    candidateQueryAbort.current = null
+  }
+  const comparisonContext = personalCapture?.result ?? candidateSnapshot
+  const conditionPlan = requestedPlanId
+    ? (personalCapture?.input.drafts ?? decisionWorld.run?.input.drafts ?? []).find(
+        (plan) => plan.id === requestedPlanId && plan.accountId === accountId,
+      )
+    : undefined
+  const savedConditions = conditionPlan
+    ? readSavedAgentComparisonContext(conditionPlan, agentId).eventDeclarations
+    : undefined
+  const declarations = normalizeReviewedEventConditionDeclarations32(
+    conditionPlan && personalCapture?.contextPlanId !== requestedPlanId
+      ? savedConditions?.state === 'recorded'
+        ? savedConditions.value.declarations
+        : undefined
+      : comparisonContext?.eventConditionDeclarationsByAgentId,
+    [agentId],
+  )
+  const currentAgent = roster.agents.find((agent) => agent.agentId === agentId)
+  const engineIds = [
+    currentAgent?.wEngineDetails.id,
+    displayedWorkbenchData.comparisonTarget?.wEngine?.engineId,
+  ]
+  const conditionsAvailable = hasDevelopmentComparisonConditions(agentId, engineIds)
   return (
     <>
       <AgentDevelopmentGolden
@@ -187,12 +295,20 @@ export function AgentDevelopmentWorkbenchView({
           savingThisAgent
             ? undefined
             : () => {
-                setEditingPresentation({ accountId, presentation: displayedWorkbenchData })
+                currentEditReturnFocus.current =
+                  document.activeElement instanceof HTMLElement
+                    ? document.activeElement
+                    : document.querySelector<HTMLElement>('.edit-current')
+                setEditingPresentation({
+                  accountId,
+                  presentation: displayedWorkbenchData,
+                })
                 setEditingCurrent(true)
               }
         }
-        onContinueOptimization={() => navigate(`/development/${agentId}`)}
+        onContinueOptimization={() => navigate(`/development/${agentId}?candidate=0`)}
         initialView="workbench"
+        onNavigate={navigateForView}
         scenario={
           savingThisAgent || editingThisAgent
             ? undefined
@@ -200,13 +316,21 @@ export function AgentDevelopmentWorkbenchView({
               ? 'stale'
               : undefined
         }
-        workbench={displayedWorkbenchData}
+        workbench={{
+          ...displayedWorkbenchData,
+          saveScopeKey: personalCapture
+            ? contentHash([
+                personalCapture.session.sessionId,
+                personalCapture.result.generationIdentity,
+              ])
+            : displayedSaveScope,
+        }}
         currentUpdate={
           currentRecordRefresh
             ? {
-                message:
-                  currentRecordRefresh.phase === 'failed' ? '已保存 · 更新失败' : '建议更新中…',
-                detail: currentRecordRefresh.error,
+                message: saveRefreshNotice!.message,
+                detail: saveRefreshNotice!.detail,
+                tone: currentRecordRefresh.phase === 'failed' ? 'failed' : 'progress',
                 onRetry:
                   currentRecordRefresh.phase === 'failed' && currentRecordRefresh.record
                     ? () =>
@@ -218,227 +342,34 @@ export function AgentDevelopmentWorkbenchView({
                         })
                     : undefined,
               }
-            : undefined
-        }
-        onNavigate={(view) =>
-          navigate(
-            view === 'overview'
-              ? '/development'
-              : requestedPlanId
-                ? `/development/${agentId}/loadouts`
-                : `/development/${agentId}/loadouts?candidate=${workbenchData.selectedCandidateRank}`,
-          )
-        }
-        onAnalyzeWarehouse={
-          savingThisAgent || retainingDuringSave
-            ? undefined
-            : async () => {
-                const isCurrentPage = capturePageScope()
-                const isCurrentAnalysis = captureAnalysisScope()
-                const canContinue = () => {
-                  if (!isCurrentPage()) return false
-                  if (!isCurrentAnalysis())
-                    throw new Error('仓库或配装选择已变化，请重新搭配；尚未保存。')
-                  return true
+            : analysisRefresh
+              ? {
+                  message: analysisRefreshNotice!.message,
+                  detail: analysisRefreshNotice!.detail,
+                  tone: analysisRefresh.phase === 'failed' ? 'failed' : 'progress',
+                  onRetry: analysisRefresh.phase === 'failed' ? analysisRefresh.onRetry : undefined,
                 }
-                setWarehouseRefresh({
-                  accountId,
-                  agentId,
-                  inputFingerprint: decisionWorld.liveFingerprint,
-                  presentation: workbenchData,
-                })
-                let published = false
-                try {
-                  const currentRun =
-                    decisionWorld.status === 'current'
-                      ? decisionWorld.run
-                      : await decisionWorld.refresh()
-                  if (!canContinue()) return
-                  if (!currentRun) throw new Error('当前账户无法重新分析；请稍后重试。')
-                  const savedContext = requestedPlanId
-                    ? currentRun.input.drafts.find(
-                        (plan) =>
-                          plan.id === requestedPlanId &&
-                          plan.selection.agentIds.length === 1 &&
-                          plan.selection.agentIds[0] === agentId,
-                      )?.solutionContext
-                    : undefined
-                  const previousCandidateSnapshot =
-                    candidateSnapshot ?? readDevelopmentCandidateSnapshot(accountId, agentId)
-                  const context = savedContext ?? previousCandidateSnapshot
-                  const declarations = normalizeReviewedEventConditionDeclarations32(
-                    context?.eventConditionDeclarationsByAgentId,
-                    [agentId],
-                  )
-                  const declarationIdentity =
-                    reviewedEventConditionDeclarationsIdentity32(declarations)
-                  const explicitParameters =
-                    savedContext?.comparisonParameters ??
-                    previousCandidateSnapshot?.candidateParametersByRank?.[selectedCandidateRank]
-                  const result =
-                    declarations || context?.scenarioSelection || explicitParameters
-                      ? await queryDevelopmentCandidateAlternatives(
-                          currentRun.runId,
-                          agentId,
-                          explicitParameters ? { 1: explicitParameters } : undefined,
-                          context?.scenarioSelection,
-                          declarations,
-                        )
-                      : await queryDevelopmentCandidateAlternatives(currentRun.runId, agentId)
-                  if (
-                    result.eventConditionDeclarationsIdentity !== declarationIdentity ||
-                    reviewedEventConditionDeclarationsIdentity32(
-                      result.eventConditionDeclarationsByAgentId,
-                    ) !== declarationIdentity
-                  )
-                    throw new Error('技能事件声明未进入本次匹配结果，请重新比较。')
-                  if (!canContinue()) return
-                  if (
-                    result.status !== 'ready' ||
-                    result.accountId !== accountId ||
-                    result.agentId !== agentId ||
-                    result.runId !== currentRun.runId ||
-                    result.inputFingerprint !== currentRun.inputFingerprint
-                  )
-                    throw new WarehouseMatchError(result.gaps)
-                  const index = Math.min(
-                    explicitParameters ? 0 : selectedCandidateRank - 1,
-                    Math.max(result.candidates.length - 1, 0),
-                  )
-                  const loadout = requestedPlanId
-                    ? undefined
-                    : result.candidates[index]?.loadouts[0]
-                  const selection: DevelopmentWorkbenchRouteSelection = {
-                    agentId,
-                    requestedPlanId,
-                    candidateRank: loadout ? index + 1 : null,
-                    candidateLoadoutFingerprint: loadout ? contentHash(loadout) : null,
-                  }
-                  // Prepare the matching panel before publishing its candidate. Publishing
-                  // first changes the route key and replaces the whole workbench with loading.
-                  const projection = await queryDevelopmentWorkbenchRoute(
-                    currentRun.runId,
-                    selection,
-                  )
-                  if (!canContinue()) return
-                  const selectedIds =
-                    loadout?.discs.map((choice) => choice.disc.id) ??
-                    workbenchData.discs.map((disc) => disc.id)
-                  const selectedDiscs = currentRun.input.warehouse.discs.filter((disc) =>
-                    selectedIds.includes(disc.id),
-                  )
-                  if (
-                    !isCurrentDevelopmentWorkbenchRoute(
-                      projection,
-                      {
-                        runId: currentRun.runId,
-                        accountId,
-                        inputFingerprint: currentRun.inputFingerprint,
-                        selection,
-                        selectedDiscs,
-                      },
-                      developmentPanelDiscFingerprint,
-                    )
-                  )
-                    throw new Error('本次配装资料已变化，请重新搭配；尚未保存。')
-                  if (!cacheDevelopmentCandidateSnapshot(result))
-                    throw new WarehouseMatchError(result.gaps)
-                  const key = contentHash([
-                    currentRun.runId,
-                    currentRun.inputFingerprint,
-                    selection,
-                  ])
-                  rememberDevelopmentWorkbenchRoute(key, projection)
-                  setRouteRead({ key, value: projection })
-                  setLastRouteProjection({ accountId, agentId, value: projection })
-                  setAnalysisVersion((version) => version + 1)
-                  published = true
-                  if (new URLSearchParams(location.search).get('candidate') === '0')
-                    navigate(`/development/${agentId}?candidate=${index + 1}`, { replace: true })
-                } catch (error) {
-                  if (isCurrentPage()) throw error
-                } finally {
-                  // A refreshed run can still be waiting for its default route. Keep
-                  // the same-input view available after failure so the error stays local.
-                  if (isCurrentPage() && (published || !isCurrentAnalysis()))
-                    setWarehouseRefresh(null)
-                }
+              : undefined
+        }
+        onAnalyzeWarehouse={analyzeWarehouse}
+        onCancelWarehouseAnalysis={cancelWarehouseAnalysis}
+        workbenchComparisonConditions={
+          conditionsAvailable ? (
+            <DevelopmentComparisonConditions
+              key={JSON.stringify([accountId, agentId, engineIds, declarations, requestedPlanId])}
+              agentId={agentId}
+              engineIds={engineIds}
+              declarations={declarations}
+              pending={
+                savingThisAgent || retainingDuringSave || analysisRefresh?.phase === 'updating'
               }
+              onApply={async (next) => {
+                await analyzeWarehouse?.('compare', undefined, next)
+              }}
+            />
+          ) : undefined
         }
-        onSavePlan={
-          candidateSnapshotStale || savingThisAgent || retainingDuringSave || !equipment
-            ? undefined
-            : async (candidateRank) => {
-                const isCurrentPage = capturePageScope()
-                if (decisionWorld.status === 'stale' || candidateSnapshotStale)
-                  throw new Error('仓库或账户资料已更新，请先重新匹配；尚未保存。')
-                const candidateIndex = candidateRank - 1
-                const candidatePlan = candidates[candidateIndex]
-                const candidate = candidatePlan?.loadouts[0]
-                if (!candidate || candidate.discs.length !== 6)
-                  throw new Error('所选仓库方案不可用，请重新匹配后再保存。')
-                const discIds = candidate.discs.map((item) => item.disc.id)
-                setSaveRefresh({ accountId, agentId, presentation: workbenchData })
-                await saveCurrentAgentBuild(
-                  accountId,
-                  createAgentDevelopmentSavedPlan({
-                    agentId,
-                    agentName,
-                    candidatePlan,
-                    candidateSnapshot,
-                    candidateIndex,
-                    equipment,
-                  }),
-                ).catch((error: unknown) => {
-                  if (isCurrentPage()) setSaveRefresh(null)
-                  throw error
-                })
-                if (!isCurrentPage()) return
-                const refreshedRank = await refreshDevelopmentCandidatesAfterSave({
-                  accountId,
-                  agentId,
-                  discIds,
-                  comparisonParameters:
-                    candidateSnapshot?.candidateParametersByRank?.[candidateRank],
-                  scenarioSelection: candidateSnapshot?.scenarioSelection,
-                  eventConditionDeclarationsByAgentId:
-                    candidateSnapshot?.eventConditionDeclarationsByAgentId,
-                  isCurrent: isCurrentPage,
-                  refresh: decisionWorld.refresh,
-                  query: queryDevelopmentCandidateAlternatives,
-                }).catch((error: unknown) => {
-                  if (isCurrentPage()) setSaveRefresh(null)
-                  throw error
-                })
-                if (refreshedRank === null || !isCurrentPage()) return
-                try {
-                  const snapshot = readDevelopmentCandidateSnapshot(accountId, agentId)
-                  const loadout = snapshot?.candidates[refreshedRank - 1]?.loadouts[0]
-                  if (!snapshot || !loadout) throw new Error('方案已保存，匹配结果暂未更新。')
-                  const selection: DevelopmentWorkbenchRouteSelection = {
-                    agentId,
-                    requestedPlanId: null,
-                    candidateRank: refreshedRank,
-                    candidateLoadoutFingerprint: contentHash(loadout),
-                  }
-                  const projection = await queryDevelopmentWorkbenchRoute(snapshot.runId, selection)
-                  if (!isCurrentPage()) return
-                  const key = contentHash([snapshot.runId, snapshot.inputFingerprint, selection])
-                  rememberDevelopmentWorkbenchRoute(key, projection)
-                  setRouteRead({ key, value: projection })
-                  setLastRouteProjection({ accountId, agentId, value: projection })
-                } catch (error) {
-                  if (isCurrentPage()) setSaveRefresh(null)
-                  throw error
-                }
-                setSaveRefresh(null)
-                setAnalysisVersion((version) => version + 1)
-                navigate(`/development/${agentId}?candidate=${refreshedRank}`, {
-                  replace: true,
-                  state: { preserveWorkbenchPosition: true },
-                })
-              }
-        }
+        onSavePlan={personalCapture ? savePersonalPlan : onSavePlan}
       />
       {editingThisAgent && (
         <AgentDevelopmentCurrentEditor
@@ -446,7 +377,11 @@ export function AgentDevelopmentWorkbenchView({
           accountId={accountId}
           agentId={agentId}
           roster={roster}
-          onCancel={() => setEditingCurrent(false)}
+          onCancel={() => {
+            const returnFocus = currentEditReturnFocus.current
+            setEditingCurrent(false)
+            requestAnimationFrame(() => returnFocus?.focus())
+          }}
           onSaved={refreshSavedCurrentRecord}
         />
       )}

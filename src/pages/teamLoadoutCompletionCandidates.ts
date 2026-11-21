@@ -5,6 +5,7 @@ import { reviewedTeamAnalysis } from '../decision/reviewedTeamAnalysis'
 import { reviewedTeamPublishedStrength } from '../decision/reviewedTeamPublishedStrength'
 import { getAgentName } from '../application/publicRosterNames'
 import { currentTeamStrengthReferenceConditions } from '../decision/teamStrengthReferenceConditions'
+import { isReviewedCompletionEvidence } from '../decision/teamCompletionEvidence'
 import type { RosterAgent } from '../assault/types'
 
 export type TeamLoadoutCompletionCandidate = {
@@ -68,21 +69,7 @@ export function projectTeamLoadoutCompletionCandidates(input: {
       direction.memberIds,
       `completion:${key(memberIds)}`,
     )
-    if (
-      !rating ||
-      rating.mechanicValidity === 'invalid' ||
-      rating.rating.status !== 'rated' ||
-      (rating.rating.ratingBand !== 'S+' &&
-        rating.rating.ratingBand !== 'S' &&
-        rating.rating.ratingBand !== 'A+') ||
-      rating.metaCalibration.status !== 'aligned' ||
-      rating.metaCalibration.evidenceStatus === 'conflict' ||
-      rating.metaCalibration.authority === 'model_inference' ||
-      rating.metaCalibration.evidenceRefs.length === 0 ||
-      rating.mainstreamRecognition.status !== 'confirmed' ||
-      (rating.mainstreamRecognition.historicalReferenceOnly &&
-        !rating.metaCalibration.referenceContinuity)
-    )
+    if (!rating || rating.rating.status !== 'rated' || !isReviewedCompletionEvidence(rating))
       continue
 
     const kernel = input.pack.kernels.find((item) =>
@@ -114,8 +101,8 @@ export function projectTeamLoadoutCompletionCandidates(input: {
       const observed = current === null || current === undefined ? '未记录' : String(current)
       return [
         numeric === null
-          ? `${getAgentName(condition.agentId)}：当前潜能${observed}；来源要求激发，具体参考等级未确认。`
-          : `${getAgentName(condition.agentId)}：当前潜能${observed}，来源参考潜能${numeric}；参考配置不是最低门槛。`,
+          ? `${getAgentName(condition.agentId)}：当前潜能${observed}；这套搭配要求激发，具体参考等级未确认。`
+          : `${getAgentName(condition.agentId)}：当前潜能${observed}，参考搭配使用潜能${numeric}；参考配置不是最低门槛。`,
       ]
     })
     projected.push({

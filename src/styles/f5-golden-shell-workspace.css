@@ -1,0 +1,281 @@
+.f5v-content {
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  display: grid;
+  grid-template-rows: 58px minmax(0, 1fr);
+  border-radius: 0 var(--soda-radius-surface) var(--soda-radius-surface) 0;
+  background: var(--f5-paper);
+  overflow: hidden;
+}
+
+.f5v-topbar {
+  position: relative;
+  min-height: 58px;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--soda-space-5);
+  border-bottom: 1px solid var(--soda-line);
+  color: var(--f5-ink);
+  background:
+    linear-gradient(113deg, var(--soda-surface-raised) 4%, transparent 31%), var(--f5-paper);
+}
+
+.f5v-topbar::after {
+  content: '';
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--soda-accent) 20%, transparent) 15%,
+    color-mix(in srgb, var(--soda-accent) 35%, transparent) 50%,
+    color-mix(in srgb, var(--soda-accent) 20%, transparent) 85%,
+    transparent 100%
+  );
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.f5v-terminal-signal {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 26px;
+  margin-inline: clamp(4px, 2vw, 32px);
+  overflow: hidden;
+  pointer-events: none;
+  color: var(--soda-accent-ink);
+}
+
+.f5v-terminal-signal::before,
+.f5v-terminal-signal::after {
+  content: '';
+  flex: 1;
+  height: 5px;
+  opacity: 0.22;
+  background:
+    linear-gradient(currentColor, currentColor) center / 100% 1px no-repeat,
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 13px,
+      currentColor 13px 14px,
+      transparent 14px 21px
+    );
+}
+.f5v-terminal-signal::before {
+  mask-image: linear-gradient(90deg, transparent, black);
+}
+.f5v-terminal-signal::after {
+  mask-image: linear-gradient(270deg, transparent, black);
+}
+
+.f5v-terminal-wave {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(2px, 0.22vw, 4px);
+  max-width: 62%;
+  height: 68%;
+  padding-inline: 0;
+  transform: skewX(-10deg);
+}
+.f5v-terminal-wave i {
+  width: clamp(2px, 0.27vw, 5px);
+  min-width: 1px;
+  height: var(--peak);
+  background: var(--soda-accent);
+  opacity: 0.6;
+}
+.f5v-terminal-wave i:nth-child(4n) {
+  opacity: 0.78;
+}
+@media (max-width: 600px) {
+  .f5v-terminal-signal {
+    position: absolute;
+    inset: auto 12px 1px;
+    height: 9px;
+    margin: 0;
+  }
+  .f5v-terminal-wave {
+    gap: 2px;
+  }
+}
+
+.f5v-location {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--soda-space-2);
+  isolation: isolate;
+}
+
+.f5v-location__mark {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 26px;
+  flex: none;
+  color: var(--f5-signal);
+  background: var(--soda-accent-ink);
+  clip-path: polygon(0 0, 100% 0, 100% 62%, 78% 100%, 0 100%);
+}
+
+.f5v-location strong {
+  font-size: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  position: relative;
+  padding: 3px 22px 3px 9px;
+  color: var(--soda-surface);
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 5px,
+      rgba(255, 255, 255, 0.03) 5px,
+      transparent 6px
+    ),
+    linear-gradient(112deg, var(--soda-accent-ink) calc(100% - 12px), transparent calc(100% - 11px));
+  letter-spacing: 0.025em;
+}
+
+.f5v-location strong::after {
+  content: '';
+  position: absolute;
+  inset: 4px 0 4px auto;
+  width: 7px;
+  background: linear-gradient(
+    112deg,
+    transparent 34%,
+    var(--soda-accent) 35% 52%,
+    transparent 53% 68%,
+    var(--soda-line) 69% 85%,
+    transparent 86%
+  );
+  pointer-events: none;
+}
+
+.f5v-account-strip {
+  min-width: 0;
+  max-width: min(55vw, 32rem);
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  color: var(--f5-muted);
+  font-size: 0.75rem;
+}
+
+.f5v-account-strip > * {
+  min-width: 0;
+  padding: 0 12px;
+  white-space: nowrap;
+}
+
+.f5v-account-strip > strong {
+  max-width: 18rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.f5v-account-strip > * + * {
+  border: 0;
+}
+
+.f5v-account-strip b {
+  margin-left: 9px;
+  padding-block: 6px;
+  border: 0;
+  border-radius: 999px;
+  color: var(--f5-accent);
+  background: var(--f5-wash);
+}
+
+.f5v-page-content {
+  min-height: 0;
+  position: relative;
+  padding: var(--soda-space-4) var(--soda-space-5);
+  overflow: hidden;
+  color: var(--f5-ink);
+  background:
+    repeating-radial-gradient(
+      circle at 94% 6%,
+      transparent 0,
+      transparent 27px,
+      color-mix(in srgb, var(--soda-accent) 2%, transparent) 27px,
+      color-mix(in srgb, var(--soda-accent) 2%, transparent) 28px
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--soda-accent) 5%, transparent),
+      transparent 230px
+    ),
+    var(--f5-paper);
+}
+
+.f5v-page-content::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--soda-accent) 15%, transparent) 20%,
+    color-mix(in srgb, var(--soda-accent) 28%, transparent) 50%,
+    color-mix(in srgb, var(--soda-accent) 15%, transparent) 80%,
+    transparent 100%
+  );
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+.f5v-page-frame {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  max-width: none;
+  margin-inline: 0;
+  margin-block: 0;
+  padding: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.f5v-backdrop,
+.f5v-mobile-navigation {
+  display: none;
+}
+
+.f5v-mobile-navigation a.is-current {
+  color: var(--f5-signal);
+  position: relative;
+}
+
+.f5v-mobile-navigation a.is-current::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 14px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--f5-signal);
+}
+
+.f5v-shell :is(a, button, summary, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--soda-focus);
+  outline-offset: 3px;
+}
+
+.f5v-shell h1[tabindex='-1']:focus {
+  outline: none;
+}

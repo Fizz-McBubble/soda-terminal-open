@@ -1,3 +1,9 @@
+import type {
+  PlanningConditionCatalogInput32,
+  PlanningConditionEvidence32,
+  PlanningConditionProjection32,
+} from './currentPlanningConditionCatalog32.types'
+export type * from './currentPlanningConditionCatalog32.types'
 import formulaCatalog from '../gameDataPacks/generated/current-formula-mechanic-contract-catalog.v1.json'
 import { stableContentHash } from '../gameDataPacks/types'
 import { getCurrentWEngineStaticData } from '../gameDataPacks/currentWEngineStaticCatalog'
@@ -16,17 +22,9 @@ import { applyReviewedRoxyAttributeWindowDomains32 } from './reviewedRoxyAttribu
 import { reviewedRoxyAttributeWindowsIdentity32 } from './reviewedRoxyAttributeWindowsIdentity32'
 import { appendReviewedDriveDiscConditions32 } from './reviewedDriveDiscConditionDomains32'
 import { reviewedDriveDiscSemanticsIdentity32 } from './reviewedDriveDiscSemanticsIdentity32'
-
-export type PlanningConditionDef32 = {
-  providerAgentId: string
-  referenceKey: string
-  label: string
-  valueKind: 'boolean' | 'number' | 'enum'
-  options?: Array<{ value: string | number | boolean; label: string }>
-  minimum?: number
-  maximum?: number
-  sourceRefs: string[]
-}
+import { getAgentName } from '../application/publicRosterNames'
+import { appendReviewedYeShunguangEventConditions32 } from './reviewedYeShunguangEventConditions32'
+import { reviewedYeShunguangEventIdentity32 } from './reviewedYeShunguangEventIdentity32'
 const repository = 'https://github.com/frzyc/genshin-optimizer'
 const commit = '3456cd0f6f5bea10e168074502460dac2fcd6df4'
 const mappedSourceLocatorPolicy = 'pinned-bytes-with-repository-or-opaque-locator-v1'
@@ -39,7 +37,7 @@ function matchesMappedSourceLocator(path: string, key: string) {
   )
 }
 export const currentPlanningConditionCatalogIdentity32 = Object.freeze({
-  version: 'planning32-source-condition-domains-v7',
+  version: 'planning32-source-condition-domains-v8',
   repository,
   commit,
   sourceHash: stableContentHash({
@@ -48,56 +46,10 @@ export const currentPlanningConditionCatalogIdentity32 = Object.freeze({
     roxyWindows: reviewedRoxyAttributeWindowsIdentity32,
     mappedSourceLocatorPolicy,
     driveDiscs: reviewedDriveDiscSemanticsIdentity32,
+    communityRecipientBinding: 'source-defined-transfer/v1',
+    reviewedYeShunguangEventIdentity32,
   }),
 })
-export type PlanningConditionCatalogInput32 = {
-  subjectAgentId: string
-  memberIds: readonly string[]
-  equippedWEngines?: readonly { providerAgentId: string; engineId: string }[]
-  equippedDriveDiscs?: readonly { providerAgentId: string; setId: string; pieces: number }[]
-  sourceIdentity?: Readonly<{
-    [K in keyof typeof currentPlanningConditionCatalogIdentity32]: string
-  }>
-}
-export type PlanningConditionEvidence32 = {
-  providerAgentId: string
-  referenceKey: string
-  engineId?: string
-  discSetId?: string
-  unit: 'boolean_state' | 'integer_stack' | 'source_enum'
-  meaning: string
-  integerOnly: boolean
-  runtimeReference: string
-  effectKeys: string[]
-  eventScopes: Array<{
-    effectKey: string
-    applicationScope: string
-    damageType: string | null
-    eventIds: string[]
-    sourceRefs?: string[]
-  }>
-  sourceRefs: string[]
-}
-export type PlanningConditionProjection32 = {
-  status: 'supported' | 'unsupported'
-  defs: PlanningConditionDef32[]
-  evidence: PlanningConditionEvidence32[]
-  blockedReferences: Array<{
-    providerAgentId: string
-    referenceKey: string
-    reason: string
-    sourceRefs: string[]
-    eventScopes?: PlanningConditionEvidence32['eventScopes']
-  }>
-  derivedReferences: Array<{
-    providerAgentId: string
-    referenceKey: string
-    engineId?: string
-    producer: string
-  }>
-  blockers: string[]
-  sourceIdentity: typeof currentPlanningConditionCatalogIdentity32
-}
 const projectionInputs = new WeakMap<
   PlanningConditionProjection32,
   PlanningConditionCatalogInput32
@@ -428,6 +380,44 @@ export function projectCurrentPlanningConditionCatalog32(
         })
     }
   }
+  for (const [providerAgentId, effectKey] of [
+    ['agent-soukaku', 'agent-soukaku:core_atk'],
+    ['agent-seth', 'agent-seth:core_anomProf'],
+  ]) {
+    if (!input.memberIds.includes(providerAgentId!)) continue
+    const source = currentAgentPlanningEffectBlueprints.find(
+      (entry) => entry.effectKey === effectKey,
+    )
+    if (!source) continue
+    const referenceKey = 'communityRecipientAgentId32'
+    result.defs.push({
+      providerAgentId: providerAgentId!,
+      referenceKey,
+      label: providerAgentId === 'agent-seth' ? '当前护盾接受者' : '展旗增益接受者',
+      valueKind: 'enum',
+      options: input.memberIds.map((id) => ({ value: id, label: getAgentName(id) })),
+      sourceRefs: source.sourceRefs,
+    })
+    result.evidence.push({
+      providerAgentId: providerAgentId!,
+      referenceKey,
+      unit: 'source_enum',
+      meaning: '显式交接接受者，仅约束本次效果；不推定持续时间或触发频率。',
+      integerOnly: false,
+      runtimeReference: referenceKey,
+      effectKeys: [effectKey!],
+      eventScopes: [
+        {
+          effectKey: effectKey!,
+          applicationScope: 'generic',
+          damageType: null,
+          eventIds: [],
+          sourceRefs: source.sourceRefs,
+        },
+      ],
+      sourceRefs: source.sourceRefs,
+    })
+  }
   if (!result.blockers.length) applyReviewedPlanningConditionDomains32(result)
   if (!result.blockers.length) applyReviewedRoxyAttributeWindowDomains32(result)
   if (!result.blockers.length) appendReviewedDriveDiscConditions32(result, input)
@@ -436,6 +426,7 @@ export function projectCurrentPlanningConditionCatalog32(
     result.defs = []
     result.evidence = []
   }
+  if (!result.blockers.length) appendReviewedYeShunguangEventConditions32(result, input)
   projectionInputs.set(result, structuredClone(input))
   return result
 }

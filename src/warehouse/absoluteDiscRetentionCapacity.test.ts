@@ -42,6 +42,11 @@ const functional: Profile = {
   coreStats: ['atk_percent'],
   mainStatsBySlot: { '4': { hp_percent: 'valid', energy_regen: 'valid' } },
   effectUtility: { atk_: 'valid' },
+  branchSetPlan: {
+    pattern: '4+2',
+    primarySetIds: ['synthetic-primary'],
+    secondarySetIds: ['synthetic-set'],
+  },
   weightEvidence: {
     id: 'synthetic-quality-calibration',
     method: 'goal_bound_standard_roll_quality_proxy',
@@ -205,11 +210,24 @@ describe('investment policy respects legal substat capacity', () => {
     expect(result.blockedBy).toEqual([])
   })
 
-  it('calibrates every current production combination with an impossible nonzero substat policy', () => {
+  it('requires either the exact named calibration or a capacity blocker for every production combination', () => {
     const investment = productionPolicy.investment!
     let affected = 0
     let calibrated = 0
-
+    const unresolved = new Set([
+      'agent-seth:base-0:fnv1a-bfbf/2/atk_flat',
+      'agent-seth:base-1:fnv1a-5f8a/2/atk_flat',
+      'agent-seth:base-2:fnv1a-3f61/2/atk_flat',
+      'agent-seth:base-3:fnv1a-ed3e/2/atk_flat',
+      'agent-seth:main-alt-0:short_fight/2/atk_flat',
+      'agent-pan-yinhu:base-0:fnv1a-12c5/2/atk_flat',
+      'agent-pan-yinhu:base-1:fnv1a-2fd4/2/atk_flat',
+      'agent-pan-yinhu:base-2:fnv1a-631b/2/atk_flat',
+      'agent-pan-yinhu:main-alt-0:secondary/2/atk_flat',
+      'agent-claret:main-alt-0:secondary/3/def_flat',
+    ])
+    const blocked: string[] = []
+    const aliasCombinations: string[] = []
     for (const profile of productionCatalog.profiles) {
       if (
         !profileValid(profile, productionCatalog.rules) ||
@@ -228,11 +246,15 @@ describe('investment policy respects legal substat capacity', () => {
           const minimum =
             +slot <= 3 ? investment.leftSlotMinimumLines : investment.rightSlotMinimumLines
           if (meaningful.length >= minimum && core.length >= investment.minimumCoreLines) continue
-          const set = productionCatalog.sets.find(
-            (row) =>
-              twoPieceApplicability(row, profile) !== 'incompatible' ||
-              (profile.fourPieceUses?.[row.id] ?? 'incompatible') !== 'incompatible',
-          )!
+          const set =
+            productionCatalog.sets.find(
+              (row) =>
+                profile.branchSetPlan?.primarySetIds.includes(row.id) ||
+                profile.branchSetPlan?.secondarySetIds.includes(row.id),
+            ) ??
+            productionCatalog.sets.find(
+              (row) => twoPieceApplicability(row, profile) !== 'incompatible',
+            )!
           const item: Disc = {
             id: 'synthetic-production-capacity',
             setId: set.id,
@@ -252,6 +274,17 @@ describe('investment policy respects legal substat capacity', () => {
             productionCatalog.rules,
             productionPolicy,
           )
+          const combination = `${profile.id}/${slot}/${main}`
+          affected += 1
+          if (unresolved.has(combination)) {
+            expect(evidence.investment.calibrationId, combination).toBeNull()
+            expect(evidence.investment.qualified, combination).toBeNull()
+            expect(evidence.investment.policyBlockers).toMatchObject([
+              { kind: 'policy', field: `investment.capacity.${slot}.${main}` },
+            ])
+            blocked.push(combination)
+            continue
+          }
           expect(evidence.investment.calibrationId, `${profile.id}/${slot}/${main}`).toBeTruthy()
           expect(evidence.investment.qualified, `${profile.id}/${slot}/${main}`).toBe(true)
           expect(evidence.investment.minimumLines).toBe(core.length ? 1 : 0)
@@ -262,12 +295,22 @@ describe('investment policy respects legal substat capacity', () => {
             expect(evidence.investment.coreStats).toEqual([])
           }
           expect(evidence.investment.policyBlockers).toEqual([])
+          if (profile.id === 'agent-zhao:base-2:fnv1a-bb99')
+            aliasCombinations.push(`${slot}/${main}`)
           calibrated += 1
-          affected += 1
         }
       }
     }
-    expect(affected).toBe(33)
+    expect(blocked.sort()).toEqual([...unresolved].sort())
+    expect(aliasCombinations.sort()).toEqual([
+      '1/hp_flat',
+      '2/atk_flat',
+      '3/def_flat',
+      '4/hp_percent',
+      '5/hp_percent',
+      '6/hp_percent',
+    ])
+    expect(affected).toBe(43)
     expect(calibrated).toBe(33)
   })
 })

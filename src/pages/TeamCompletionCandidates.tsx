@@ -4,7 +4,7 @@ import { VisualEntityImage } from '../components/VisualEntityImage'
 import { ExplanationPopover } from '../components/ExplanationPopover'
 import type { TeamLoadoutCompletionCandidate } from './teamLoadoutCompletionCandidates'
 import { TEAM_RECOMMENDATION_PAGE_SIZE, TeamLoadoutPagination } from './TeamLoadoutPagination'
-import { playerDecisionText } from './teamEquipmentParameterPresentation'
+import { normalizeVisibleDecisionLines } from './teamLoadoutVisibleDecisionText'
 
 export function TeamCompletionCandidates({
   candidates,
@@ -45,70 +45,76 @@ function TeamCompletionCandidatesPage({
         <p>补齐一位角色，可解锁以下配队方向</p>
       </header>
       <ul>
-        {visibleCandidates.map((candidate) => (
-          <li
-            key={candidate.id}
-            data-failure-code={candidate.failureCode}
-            data-source-ids={candidate.sourceIds.join(',')}
-          >
-            <div className="f5v-box-team-completion__identities" aria-hidden="true">
-              {[...candidate.ownedAgentIds, ...candidate.missingAgentIds].map((agentId) => (
-                <VisualEntityImage
-                  key={agentId}
-                  className={`f5v-box-team-completion__team-portrait${candidate.missingAgentIds.includes(agentId) ? ' is-missing' : ''}`}
-                  entityType="agent"
-                  entityId={agentId}
-                  name={getAgentName(agentId)}
-                  slotId="agent.square-avatar"
-                  consumer="box.team-overview"
-                />
-              ))}
-            </div>
-            <div className="f5v-box-team-completion__copy">
-              <strong className="f5v-box-team-completion__candidate-label">
-                {candidate.label}
-              </strong>
-              <div className="f5v-box-team-completion__summary">
-                <span
-                  className="f5v-box-team-completion__owned"
-                  title={`已有：${candidate.ownedAgentIds.map(getAgentName).join('、')}`}
-                  aria-label={`已有：${candidate.ownedAgentIds.map(getAgentName).join('、')}`}
-                >
-                  已有 {candidate.ownedAgentIds.length} 位
-                </span>
-                <CompletionMemberRow
-                  label="还缺"
-                  note={
-                    candidate.missingRole !== 'core' && candidate.missingAgentIds.length > 1
-                      ? '任选一位'
-                      : undefined
-                  }
-                  agentIds={candidate.missingAgentIds}
-                  tone="missing"
-                />
-                {candidate.sourceConditions?.length || candidate.accountReferenceNotes?.length ? (
-                  <ExplanationPopover
-                    label="适用条件"
-                    title="补强方向的适用条件与来源说明"
-                    className="f5v-box-completion-condition"
-                  >
-                    {candidate.accountReferenceNotes?.map((note) => (
-                      <p key={note}>{note}</p>
-                    ))}
-                    {candidate.sourceConditions?.length ? (
-                      <ul>
-                        {candidate.sourceConditions.map((condition) => (
-                          <li key={condition}>{playerDecisionText(condition)}</li>
-                        ))}
-                      </ul>
-                    ) : null}
-                    <p>以上是来源方向；补齐角色后，仍需结合这些养成、配装和操作条件复核。</p>
-                  </ExplanationPopover>
-                ) : null}
+        {visibleCandidates.map((candidate) => {
+          const conditions = normalizeVisibleDecisionLines(candidate.sourceConditions, 'condition')
+          const accountReferenceNotes = normalizeVisibleDecisionLines(
+            candidate.accountReferenceNotes,
+            'condition',
+          )
+          return (
+            <li
+              key={candidate.id}
+              data-failure-code={candidate.failureCode}
+              data-source-ids={candidate.sourceIds.join(',')}
+            >
+              <div className="f5v-box-team-completion__identities" aria-hidden="true">
+                {[...candidate.ownedAgentIds, ...candidate.missingAgentIds].map((agentId) => (
+                  <VisualEntityImage
+                    key={agentId}
+                    className={`f5v-box-team-completion__team-portrait${candidate.missingAgentIds.includes(agentId) ? ' is-missing' : ''}`}
+                    entityType="agent"
+                    entityId={agentId}
+                    name={getAgentName(agentId)}
+                    slotId="agent.square-avatar"
+                    consumer="box.team-overview"
+                  />
+                ))}
               </div>
-            </div>
-          </li>
-        ))}
+              <div className="f5v-box-team-completion__copy">
+                <strong className="f5v-box-team-completion__candidate-label">
+                  {candidate.label}
+                </strong>
+                <div className="f5v-box-team-completion__summary">
+                  <span
+                    className="f5v-box-team-completion__owned"
+                    title={`已有：${candidate.ownedAgentIds.map(getAgentName).join('、')}`}
+                    aria-label={`已有：${candidate.ownedAgentIds.map(getAgentName).join('、')}`}
+                  >
+                    已有 {candidate.ownedAgentIds.length} 位
+                  </span>
+                  <CompletionMemberRow
+                    label="还缺"
+                    note={
+                      candidate.missingRole !== 'core' && candidate.missingAgentIds.length > 1
+                        ? '任选一位'
+                        : undefined
+                    }
+                    agentIds={candidate.missingAgentIds}
+                    tone="missing"
+                  />
+                  {conditions.length || accountReferenceNotes.length ? (
+                    <ExplanationPopover
+                      label="适用条件"
+                      title="补强方向的适用条件"
+                      className="f5v-box-completion-condition"
+                    >
+                      {accountReferenceNotes.map((note) => (
+                        <p key={note}>{note}</p>
+                      ))}
+                      {conditions.length ? (
+                        <ul>
+                          {conditions.map((condition) => (
+                            <li key={condition}>{condition}</li>
+                          ))}
+                        </ul>
+                      ) : null}
+                    </ExplanationPopover>
+                  ) : null}
+                </div>
+              </div>
+            </li>
+          )
+        })}
       </ul>
       <TeamLoadoutPagination
         label="补强建议分页（底部）"

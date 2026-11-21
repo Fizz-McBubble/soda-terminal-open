@@ -13,6 +13,7 @@ import {
   assetQuickReadInstallerUrl,
   validAssetQuickReadRelease,
 } from './asset-quick-read-release.mjs'
+import { assetQuickReadInstallerReleasePath } from './asset-quick-read-installer.mjs'
 import { verifyBundledAssetQuickReadInstaller } from './asset-quick-read-distribution.mjs'
 
 export const wranglerVersion = '4.141.0'
@@ -277,8 +278,8 @@ export async function prepare({
   const config = JSON.parse(await readFile(resolve(here, 'wrangler.template.json'), 'utf8'))
   const staticHeaders = await readFile(resolve(here, 'static-headers.txt'), 'utf8')
   config.name = name
-  if (!config.assets.run_worker_first.includes(assetQuickReadInstallerPath))
-    config.assets.run_worker_first.push(assetQuickReadInstallerPath)
+  for (const path of [assetQuickReadInstallerPath, assetQuickReadInstallerReleasePath])
+    if (!config.assets.run_worker_first.includes(path)) config.assets.run_worker_first.push(path)
   if (customDomain) config.routes = [{ pattern: customDomain, custom_domain: true }]
   if (accountId) config.account_id = accountId
   config.vars = { SODA_RELEASE_ID: report.releaseId }
@@ -345,6 +346,7 @@ export async function prepare({
     }
     // Preserve module-relative imports and copy only the edge's reviewed policy and scanner contract dependencies.
     for (const path of [
+      'deploy/cloudflare/worker-entry.mjs',
       'deploy/cloudflare/edge.mjs',
       'deploy/cloudflare/scan-feedback.mjs',
       'deploy/cloudflare/scanner-installer.mjs',

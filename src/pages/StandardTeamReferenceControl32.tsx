@@ -6,10 +6,12 @@ import type {
 } from '../application/targetTeamStandardReference32'
 import { planningEventDisplayLabel32 } from '../application/planningEventDisplay32'
 import { getAgentName, formatDevelopmentEntityText } from '../application/publicRosterNames'
-import { publicAssetStatLabel } from '../application/publicAssetStatLabels'
 import { PlayerSelect } from '../components/PlayerSelect'
 import { PlanningDialog } from './TeamSolverWorkspaceParts'
-import { displayDriveDiscSet, formatDiscStatValue } from './discFactPresentation'
+import {
+  StandardReferenceCultivation32,
+  StandardReferenceRecipe32,
+} from './StandardTeamReferenceReferenceView32'
 import {
   compileStandardReferenceEventDraft32,
   conditionDraftKey32,
@@ -67,7 +69,7 @@ export function StandardTeamReferenceControl32({
                       <p>
                         {getAgentName(row.ownerAgentId)} ·{' '}
                         {planningEventDisplayLabel32(row.ownerAgentId, row.eventId) ??
-                          '保存的来源动作'}{' '}
+                          '保存的动作名称'}{' '}
                         · {row.atSeconds}秒
                         {row.durationSeconds === undefined ? '' : `，持续${row.durationSeconds}秒`}
                       </p>
@@ -87,7 +89,7 @@ export function StandardTeamReferenceControl32({
                           return (
                             <li key={conditionDraftKey32(condition)}>
                               {getAgentName(condition.providerAgentId)} ·{' '}
-                              {def?.label ?? '保存的来源条件'}：
+                              {def?.label ?? '保存的触发条件'}：
                               {typeof condition.value === 'boolean'
                                 ? condition.value
                                   ? '已生效'
@@ -187,10 +189,10 @@ function StandardReferenceForm({
             }
           >
             <option value="0">P0 · 未激活分支</option>
+            {[1, 2, 3, 4, 5].map((level) => (
+              <option key={level} value={level}>{`P${level}`}</option>
+            ))}
             <option value="6">P6 · 标准培养</option>
-            {value !== 0 && value !== 6 ? (
-              <option value={value}>{`P${value} · 已声明分支`}</option>
-            ) : null}
           </PlayerSelect>
         </label>
       ))}
@@ -203,7 +205,7 @@ function StandardReferenceForm({
         <>
           <p>
             选择用于比较的动作，填写0至{metadata.declaredDurationSeconds}
-            秒内的发生时间与当时条件。动作名称沿用锁定英文资料；“来源倍率项”保留数值表行号，不推断命中次数。
+            秒内的发生时间与当时条件。动作名称沿用当前锁定资料；动作倍率对应的数据行号会保留，不推断命中次数。
           </p>
           {rows.map((row, index) => {
             const event = metadata.events.find((event) => eventDraftKey32(event) === row.eventKey)
@@ -452,85 +454,5 @@ function StandardReferenceForm({
       {error ? <p role="alert">{error}</p> : null}
       <StandardReferenceRecipe32 result={result} edited={edited} />
     </div>
-  )
-}
-
-function StandardReferenceCultivation32({
-  result,
-}: {
-  result: TargetTeamStandardReferenceResult32
-}) {
-  if (!result.referenceCultivation?.length)
-    return result.status === 'unsupported' ? null : (
-      <p>此历史参考未保存培养基线；重新生成可查看完整配置。</p>
-    )
-  return (
-    <section aria-label="标准参考培养基线">
-      <h3>培养基线</h3>
-      <ul>
-        {result.referenceCultivation.map((member) => (
-          <li key={member.agentId}>
-            {getAgentName(member.agentId)} · {member.level}级 · {member.mindscape}影
-            {member.potential === null ? ' · 潜能不适用' : ` · 潜能${member.potential}`}
-            {' · '}技能{member.effectiveSkillLevel}（基础{member.baseSkillLevel}） · 核心
-            {member.coreLevel}
-            {' · '}副词条{member.substatRollBudget}次
-          </li>
-        ))}
-      </ul>
-    </section>
-  )
-}
-
-function StandardReferenceRecipe32({
-  result,
-  edited = false,
-}: {
-  result: TargetTeamStandardReferenceResult32
-  edited?: boolean
-}) {
-  if (result.status !== 'selected') return null
-  return (
-    <section aria-label="已生成的标准参考">
-      <h3>{edited ? '上次生成的参考（条件尚未更新）' : '三人标准参考'}</h3>
-      <p>在当前候选范围内按已列动作比较。以下为参考盘，不占用账户库存。</p>
-      {result.searchDiagnostics ? (
-        <p>
-          已求值{result.searchDiagnostics.evaluations}套完整配装，其中
-          {result.searchDiagnostics.unknownEvaluations}套未满足比较条件，
-          {result.searchDiagnostics.differentCoverageEvaluations}套覆盖范围不一致。
-          {result.searchDiagnostics.allDiscreteCombinationsVisited
-            ? '已遍历所列套装与音擎组合，词条分配仍为有限搜索。'
-            : '所列套装与音擎组合尚未全部遍历。'}
-        </p>
-      ) : null}
-      {result.equipment.map((member) => (
-        <details key={member.agentId}>
-          <summary>
-            {getAgentName(member.agentId)} · {formatDevelopmentEntityText(member.engineId)}{' '}
-            {member.refinement}叠 · {member.discCount}张参考盘
-          </summary>
-          {member.discs ? (
-            <ol>
-              {member.discs.map((disc) => (
-                <li key={disc.slot}>
-                  {disc.slot}号位 · {displayDriveDiscSet(disc.setId)} +{disc.level} ·{' '}
-                  {publicAssetStatLabel(disc.mainStat)}
-                  <br />
-                  {disc.subStats
-                    .map(
-                      (stat) =>
-                        `${publicAssetStatLabel(stat.stat)} ${formatDiscStatValue(stat.stat, stat.value)}`,
-                    )
-                    .join('、')}
-                </li>
-              ))}
-            </ol>
-          ) : (
-            <p>此历史记录未保存参考盘明细；原参考身份仍保留。</p>
-          )}
-        </details>
-      ))}
-    </section>
   )
 }

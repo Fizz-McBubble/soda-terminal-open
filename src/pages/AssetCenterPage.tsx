@@ -1,3 +1,4 @@
+import { playerErrorMessage } from '../application/playerErrorMessage'
 import { displayDiscMainValue, formatDiscStatValue } from './publicDiscFacts'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
@@ -40,8 +41,14 @@ import type { DriveDisc } from '../domain/schemas'
 import { normalizeDiscTags } from '../domain/discTags'
 import type { AccountPlanningDraft } from '../accounts/types'
 import { lastSelectedAgentPreference } from './assetCenterData'
+import { usesAssetRosterSummary } from '../application/decisionRoutePolicy'
 import { useAssetCenterData } from './useAssetCenterData'
 import { AssetCenterReadFeedback } from './AssetCenterReadFeedback'
+import {
+  useBackupRestoreRefresh,
+  backupRestoreRefreshFailure,
+  backupRestoreRefreshSuccess,
+} from './useBackupRestoreRefresh'
 
 const lastFullBackupPreference = 'data-center-last-full-backup-v1'
 const loadAcceptanceRecovery =
@@ -64,6 +71,7 @@ const catalog = publicAssetCatalog
 function asDiscItem(disc: DriveDisc, relations: { equipped: boolean; planned: boolean }): DiscItem {
   return {
     stableId: disc.id,
+    rarity: disc.rarity,
     set: publicAssetDiscSetById.get(disc.setId) ?? {
       stableId: disc.setId,
       entityType: 'drive_disc_set',
@@ -134,7 +142,7 @@ export function AssetCenterPage() {
   const [revision, setRevision] = useState(0)
   const [message, setMessageState] = useState({ text: '', transient: false, revision: 0 })
   const [acceptanceRecoveryAvailable, setAcceptanceRecoveryAvailable] = useState(false)
-  const reads = useAssetCenterData(revision)
+  const reads = useAssetCenterData(revision, usesAssetRosterSummary(params.assetType))
   const currentData = reads.assets.data
   const data = currentData ?? reads.assets.retainedData
   const accountOptions = reads.accounts.data
@@ -164,6 +172,7 @@ export function AssetCenterPage() {
   const setMessage = useCallback((text: string, transient = false) => {
     setMessageState((current) => ({ text, transient, revision: current.revision + 1 }))
   }, [])
+  const queueRestoreRefresh = useBackupRestoreRefresh(decisionWorld, setMessage)
 
   useEffect(() => {
     if (!message.transient || !message.text) return
@@ -228,6 +237,7 @@ export function AssetCenterPage() {
             wEngineLevel,
             wEngineLevelManuallySet,
             wEngineAscension,
+            wEngineAscensionManuallySet,
             wEngineRefinement,
             wEngineRefinementManuallySet,
             ...agentDraft
@@ -242,6 +252,7 @@ export function AssetCenterPage() {
               wEngineLevel,
               wEngineLevelManuallySet,
               ...(wEngineAscension !== undefined ? { wEngineAscension } : {}),
+              wEngineAscensionManuallySet,
               wEngineRefinement,
               wEngineRefinementManuallySet,
             },
@@ -275,7 +286,7 @@ export function AssetCenterPage() {
       setRevision((value) => value + 1)
       return undefined
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '保存失败。')
+      setMessage(playerErrorMessage(error, '保存失败。'))
       return null
     }
   }
@@ -283,8 +294,7 @@ export function AssetCenterPage() {
   async function deleteDiscs(ids: string[], baseRevisions: Record<string, string>) {
     const account = propsData.account
     if (!account) {
-      setMessage('请先创建并选择本机账户。')
-      return false
+      throw new Error('请先创建并选择本机账户。')
     }
     try {
       await requireCurrentAccount(account.id)
@@ -300,23 +310,20 @@ export function AssetCenterPage() {
       setRevision((value) => value + 1)
       return true
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '删除驱动盘失败。')
-      return false
+      throw new Error(playerErrorMessage(error, '删除驱动盘失败，请重试。'), { cause: error })
     }
   }
 
   async function createBackup() {
     const account = propsData.account
-    if (!account) return setMessage('请先创建并选择本机账户。')
+    if (!account) throw new Error('请先选择本机账户。')
     await requireCurrentAccount(account.id)
     let backup: AccountBackup
     try {
       backup = await createAccountBackup(account.id)
-    } catch {
-      setMessage(
-        '备份未生成：账户资料未通过完整性检查。原资料未修改，请保留当前账户并检查录入内容。',
-      )
-      return
+    } catch (error) {
+      setMessage(playerErrorMessage(error, '账户备份生成未完成，请重试。'))
+      throw error
     }
     downloadJson(backup, getAccountBackupFilename(account.id))
     await saveAccountPreference(account.id, lastFullBackupPreference, backup.exportedAt)
@@ -343,30 +350,38 @@ export function AssetCenterPage() {
   }
 
   async function restore(preview: BackupPreview, beforeCommit?: () => void) {
+    queueRestoreRefresh(null)
     const fresh = await preflightAccountBackupAgainstDatabase(preview.payload)
     if (!fresh.success || fresh.identity !== preview.identity)
       throw new Error(
         '账户身份已变化，请重新选择备份、核对恢复目标后再次确认。本地账户数据未改动。',
       )
-    if (preview.identity === 'same_name_different_id')
-      await restoreAccountBackupIndependently(
+    let restoredAccountId = fresh.backup!.account.id
+    if (preview.identity === 'same_name_different_id') {
+      const result = await restoreAccountBackupIndependently(
         preview.payload,
         { displayName: preview.restoreDisplayName ?? '' },
         undefined,
         beforeCommit,
       )
-    else await restoreAccountBackup(preview.payload, undefined, beforeCommit, preview.identity)
-    const refreshed = decisionWorld ? await decisionWorld.refresh() : true
-    setMessage(
-      refreshed
-        ? '备份已恢复，当前账户资料已重新读取。'
-        : '备份已恢复。配装建议暂未更新，请返回首页重新分析。',
-    )
+      restoredAccountId = result.account.id
+    } else await restoreAccountBackup(preview.payload, undefined, beforeCommit, preview.identity)
+    setMessage('备份已恢复，正在更新当前账户配装建议。')
+    try {
+      const account = await getActiveAccount()
+      if (account && (preview.archived || account.id === restoredAccountId))
+        queueRestoreRefresh({ accountId: account.id })
+      else if (account) setMessage('备份已恢复。当前账户已切换，请在当前账户重新分析。')
+      else setMessage(backupRestoreRefreshSuccess)
+    } catch {
+      setMessage(backupRestoreRefreshFailure)
+    }
     setRevision((value) => value + 1)
   }
 
   async function selectAccount(accountId: string) {
     if (accountId === propsData.account?.id) return
+    queueRestoreRefresh(null)
     await setActiveAccount(accountId)
     setMessage('已切换账户。')
     setRevision((value) => value + 1)
@@ -385,8 +400,7 @@ export function AssetCenterPage() {
       setRevision((value) => value + 1)
       return true
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '账户删除失败，原数据未变化。')
-      return false
+      throw new Error(playerErrorMessage(error, '账户删除失败，原数据未变化。'), { cause: error })
     }
   }
 
@@ -414,7 +428,7 @@ export function AssetCenterPage() {
       )
       setRevision((value) => value + 1)
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '验收账户恢复失败。')
+      setMessage(playerErrorMessage(error, '验收账户恢复失败。'))
     }
   }
 
@@ -431,6 +445,7 @@ export function AssetCenterPage() {
           accountOptions={accountOptions ?? []}
           catalog={catalog}
           discs={discs}
+          discCount={currentData && 'discCount' in currentData ? currentData.discCount : undefined}
           roster={propsData.roster}
           initialTab={
             propsData.account || activeTab(params.assetType) !== 'discs'

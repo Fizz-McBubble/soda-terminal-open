@@ -7,17 +7,67 @@ import {
   absoluteDiscRetentionCatalog,
   absoluteDiscRetentionPolicy,
 } from './absoluteDiscRetentionCatalog'
+import { namedPolicies } from './absoluteDiscRetentionInvestmentCalibration'
 import { scoreProfile, twoPieceApplicability } from './absoluteDiscRetentionScoring'
-import { retentionUseGuidance } from './warehouseRetentionGuidance'
+import {
+  retentionDiscSetRelationship,
+  retentionProfileSemantics,
+  retentionUseGuidance,
+} from './warehouseRetentionGuidance'
 
 describe('player stat explanations from the actual scored build', () => {
+  it('derives distinct semantic labels without exposing engineering profile IDs', () => {
+    const profilesByAgent = new Map<
+      string,
+      Array<(typeof absoluteDiscRetentionCatalog.profiles)[number]>
+    >()
+    for (const profile of absoluteDiscRetentionCatalog.profiles) {
+      const rows = profilesByAgent.get(profile.agentId) ?? []
+      rows.push(profile)
+      profilesByAgent.set(profile.agentId, rows)
+    }
+    const distinguishable = [...profilesByAgent.values()].find(
+      (profiles) =>
+        new Set(
+          profiles
+            .map((profile) => retentionProfileSemantics(profile).label)
+            .filter((label): label is string => Boolean(label)),
+        ).size > 1,
+    )
+    expect(distinguishable).toBeDefined()
+    for (const profile of distinguishable!) {
+      const semantics = retentionProfileSemantics(profile)
+      expect(semantics.label).not.toContain(':')
+      expect(semantics.label).not.toContain(profile.id)
+      expect(semantics.dimensions.join(' ')).not.toContain(profile.id)
+    }
+
+    const profile = distinguishable![0]!
+    const profileWithoutSetPlan = { ...profile, branchSetPlan: undefined }
+    expect(
+      retentionProfileSemantics({
+        ...profileWithoutSetPlan,
+        conditionEvidence: [],
+        fourPieceUses: {},
+        goal: 'unknown',
+        availability: 'valid',
+        mainAvailability: 'valid',
+        mainStatsBySlot: {},
+        coreStats: [],
+      }),
+    ).toEqual({ label: null, dimensions: [] })
+  })
+
   it('projects the named core or secondary investment minimum without relabeling small HP', () => {
     const catalog = absoluteDiscRetentionCatalog
-    for (const [id, slot, main, minimum] of [
-      ['agent-seth:base-0:fnv1a-f5ec', 2, 'atk_flat', 1],
-      ['agent-zhao:base-0:fnv1a-2a59', 4, 'hp_percent', 0],
+    for (const [agentId, slot, main, minimum] of [
+      ['agent-soukaku', 2, 'atk_flat', 1],
+      ['agent-lucia', 4, 'hp_percent', 0],
     ] as const) {
-      const profile = catalog.profiles.find((row) => row.id === id)!
+      const profile = catalog.profiles.find(
+        (row) => row.agentId === agentId && Boolean(namedPolicies[row.id]),
+      )!
+      expect(profile).toBeDefined()
       const set = catalog.sets.find(
         (row) => twoPieceApplicability(row, profile) !== 'incompatible',
       )!
@@ -45,6 +95,8 @@ describe('player stat explanations from the actual scored build', () => {
       const guide = retentionUseGuidance(disc, use, profile, absoluteDiscRetentionPolicy)!
       expect(guide.minimumLines).toBe(minimum)
       expect(guide.minimumCoreLines).toBe(slot === 2 ? 1 : 0)
+      expect(guide.profileLabel).toBe(retentionProfileSemantics(profile, use).label)
+      expect(guide.profileDimensions).toEqual(retentionProfileSemantics(profile, use).dimensions)
       if (slot === 2) {
         expect(use.investment.calibrationId).toBeTruthy()
         expect(use.investment.qualified).toBe(true)
@@ -59,7 +111,7 @@ describe('player stat explanations from the actual scored build', () => {
       }
     }
   })
-  it('explains the reported Thorned Rose disc without claiming a two-piece user wants four pieces', () => {
+  it('only exposes exact recommended-set branches for the reported Thorned Rose disc', () => {
     const disc = warehouseTestDisc('rose', {
       setId: 'set-34200',
       slot: 3,
@@ -83,7 +135,7 @@ describe('player stat explanations from the actual scored build', () => {
     const ben = result.leadingUses.find((use) => use.agentId === 'agent-ben')!
     const claret = result.leadingUses.find((use) => use.agentId === 'agent-claret')!
     expect(ben.twoPieceFit).toBe('valid')
-    expect(ben.fourPieceFit).toBe('incompatible')
+    expect(ben.recommendationSetFit).not.toBe('incompatible')
     expect(claret.guidance?.fourPieceEffect).toContain('1000/1800')
     for (const use of [ben, claret]) {
       expect(use.guidance).toMatchObject({
@@ -101,6 +153,16 @@ describe('player stat explanations from the actual scored build', () => {
     expect(claret.guidance?.sources.some((source) => source.sourceVersion === '3.2')).toBe(true)
     expect(JSON.parse(JSON.stringify(result))).toEqual(result)
     expect(input).toEqual(before)
+    expect(
+      result.leadingUses.every((use) =>
+        ['primary', 'secondary'].includes(retentionDiscSetRelationship('set-34200', use)),
+      ),
+    ).toBe(true)
+    expect(
+      result.leadingUses.some(
+        (use) => retentionDiscSetRelationship('set-34200', use) === 'potential',
+      ),
+    ).toBe(false)
   })
 
   it('describes Claret crit damage as conversion rather than ordinary critical amplification', () => {

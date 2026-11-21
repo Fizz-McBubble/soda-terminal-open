@@ -124,6 +124,7 @@ const stages: Record<string, string> = {
   inventory_count_ocr_failed: 'preflight',
   scan_no_importable_s_discs: 'result',
   panel_capture_timeout: 'capture',
+  input_position_failed: 'capture',
   duplicate_guard: 'ocr',
   scan_navigation_failed: 'scroll',
   visual_preflight_failed: 'preflight',

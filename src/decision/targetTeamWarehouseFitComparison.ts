@@ -2,6 +2,7 @@ import type { CandidateWarehousePlan } from '../optimizer/candidateWarehouseSolv
 import type { TeamAssignmentObjective } from '../optimizer/selectTeamObjectiveAssignment'
 import { compareCandidatePanelObjective } from '../optimizer/candidatePanelObjective'
 import { candidateTeamSetScore } from '../optimizer/candidateTeamSetScore'
+import { teamDiscCompletion } from '../domain/teamDiscCompletion'
 export function improvesCompletePlan(
   candidate: { plan: CandidateWarehousePlan; combination: Array<{ sourceRank: number }> },
   baseline: { plan: CandidateWarehousePlan; combination: Array<{ sourceRank: number }> },
@@ -44,23 +45,13 @@ export function targetTeamPlanCompletion(
   plan: CandidateWarehousePlan,
   memberIds: readonly string[],
 ) {
-  const discIds = plan.loadouts.flatMap((loadout) => loadout.discs.map((choice) => choice.disc.id))
-  return {
-    completeMemberCount: memberIds.filter(
-      (agentId) =>
-        plan.loadouts.filter((loadout) => loadout.agentId === agentId).length === 1 &&
-        plan.loadouts.find((loadout) => loadout.agentId === agentId)?.discs.length === 6,
-    ).length,
-    uniqueDiscCount: new Set(discIds).size,
-  }
+  return teamDiscCompletion(
+    memberIds,
+    plan.loadouts.map((row) => ({ agentId: row.agentId, discIds: row.discs.map(({ disc }) => disc.id) })),
+    plan.loadouts.flatMap((row) => row.discs.map(({ disc }) => disc)),
+  )
 }
 
 export function completeTargetTeamPlan(plan: CandidateWarehousePlan, memberIds: readonly string[]) {
-  const discIds = plan.loadouts.flatMap((loadout) => loadout.discs.map((choice) => choice.disc.id))
-  const completion = targetTeamPlanCompletion(plan, memberIds)
-  return (
-    completion.completeMemberCount === memberIds.length &&
-    discIds.length === memberIds.length * 6 &&
-    completion.uniqueDiscCount === discIds.length
-  )
+  return targetTeamPlanCompletion(plan, memberIds).complete
 }

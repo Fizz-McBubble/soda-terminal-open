@@ -16,6 +16,8 @@ import {
 } from './publicSavedPlanFreshness'
 import { inspectSavedLuminizeReplay32, savedLuminizeReplaySchema32 } from './savedLuminizeReplay32'
 
+import { savedGraduationExecution } from '../testing/savedTeamGraduationCompletion.testFixture'
+
 afterEach(() => vi.restoreAllMocks())
 
 function planFixture(): AccountPlanningDraft {
@@ -230,11 +232,17 @@ describe('saved Luminize declaration replay and current seal', () => {
         plan.solutionContext!.declaredLuminizeSettlement32!.declaration.remielle.anomalyProficiency += 1
       if (kind === 'scope') plan.solutionContext!.scope = 'portfolio_joint'
       if (kind === 'selection') plan.selection.agentIds[1] = 'agent-billy'
-      if (kind === 'deployment')
-        plan.teamExecutionSnapshot = {
-          memberIds: plan.selection.agentIds,
-          deploymentOrder: [...plan.selection.agentIds].reverse(),
-        } as AccountPlanningDraft['teamExecutionSnapshot']
+      if (kind === 'deployment') {
+        plan.teamExecutionSnapshot = savedGraduationExecution(
+          plan.selection.agentIds as [string, string, string],
+          { candidateId: plan.solutionContext!.sourceCandidateId },
+        )
+        plan.teamExecutionSnapshot.deploymentOrder = [
+          plan.selection.agentIds[2]!,
+          plan.selection.agentIds[1]!,
+          plan.selection.agentIds[0]!,
+        ]
+      }
       if (kind === 'malformed')
         plan.solutionContext!.declaredLuminizeSettlement32 = { snapshotFingerprint: '' } as never
       if (kind === 'malformed-source') {

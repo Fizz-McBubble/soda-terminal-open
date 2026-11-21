@@ -4,7 +4,10 @@ import { getHoyoBuildCurrentSkillDirection32 } from '../gameDataPacks/reviewedHo
 import { stableContentHash } from '../gameDataPacks/types'
 import type { FormedTeamReference } from '../application/publicFormedTeamReference'
 import { currentVersionProjection } from '../gameDataPacks/currentVersionProjection'
-import { getPhoenixFormedReference33 } from '../gameDataPacks/gameData33BuildGuidance'
+import {
+  getPhoenixFormedReference33,
+  getSeverianFormedReference33,
+} from '../gameDataPacks/gameData33BuildGuidance'
 
 /** Local formed-team policy. Guide investment tags select a reference state;
  * they never supply a damage multiplier, a team tier, or an account observation. */
@@ -23,8 +26,12 @@ export function formedAgentCultivation(agentId: string, memberIds: readonly stri
   const agent = currentAgentDirectory.find((row) => row.id === agentId)
   if (!agent || !['S', 'A'].includes(agent.rarity ?? ''))
     throw new Error(`成型参考缺少S/A身份：${agentId}`)
-  if (agentId === 'agent-phoenix' && currentVersionProjection.gameVersion === '3.3') {
-    const reference = getPhoenixFormedReference33()
+  if (
+    (agentId === 'agent-phoenix' || agentId === 'agent-severian') &&
+    currentVersionProjection.gameVersion === '3.3'
+  ) {
+    const reference =
+      agentId === 'agent-severian' ? getSeverianFormedReference33() : getPhoenixFormedReference33()
     if (!reference || agent.rarity !== 'S')
       throw new Error(`成型参考缺少已复核关键影画：${agentId}`)
     return {
@@ -34,7 +41,10 @@ export function formedAgentCultivation(agentId: string, memberIds: readonly stri
       potential: reference.potential,
       baseSkillLevel: reference.baseSkillLevel,
       coreLevel: reference.coreLevel,
-      reason: '已复核1影成型参考；灼蚀目标异常暴伤与燃烧攻击燔焰效率按条件生效。',
+      reason:
+        agentId === 'agent-severian'
+          ? '已复核1影成型参考；普攻/冲刺/闪反/支援无视风抗与招式流息获取按条件生效。'
+          : '已复核1影成型参考；灼蚀目标异常暴伤与燃烧攻击燔焰效率按条件生效。',
       evidenceRefs: [reference.source.url],
       sourceHash: reference.source.contentHash,
       conditions: [...reference.conditions],
@@ -75,16 +85,17 @@ export function formedTeamCultivation(memberIds: readonly string[]): FormedTeamR
   if (memberIds.length !== 3 || new Set(memberIds).size !== 3)
     throw new Error('成型参考需要三个不同成员。')
   const members = [...memberIds].sort().map((id) => formedAgentCultivation(id, memberIds))
-  const phoenixCurrent33 =
-    memberIds.includes('agent-phoenix') && currentVersionProjection.gameVersion === '3.3'
-  const gameVersion = phoenixCurrent33 ? '3.3' : formedTeamCultivationPolicy.gameVersion
+  const current33 =
+    (memberIds.includes('agent-phoenix') || memberIds.includes('agent-severian')) &&
+    currentVersionProjection.gameVersion === '3.3'
+  const gameVersion = current33 ? '3.3' : formedTeamCultivationPolicy.gameVersion
   return {
     policy: formedTeamCultivationPolicy.id,
     gameVersion,
     identity: stableContentHash({
       policy: formedTeamCultivationPolicy,
       members,
-      ...(phoenixCurrent33 ? { gameVersion } : {}),
+      ...(current33 ? { gameVersion } : {}),
     }),
     members: members.map((row) => ({
       agentId: row.agentId,

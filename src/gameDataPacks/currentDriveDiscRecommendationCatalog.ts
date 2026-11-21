@@ -73,6 +73,7 @@ function candidateEffects(id: string) {
       | {
           anomalyProficiency?: unknown
           lumifluxAnomalyDamagePercent?: unknown
+          wearerAttribute?: unknown
           durationSeconds?: unknown
           offFieldRetention?: unknown
           trigger?: unknown
@@ -101,11 +102,14 @@ function candidateEffects(id: string) {
       typeof fourPiece?.anomalyProficiency === 'number'
         ? `异常精通提升${fourPiece.anomalyProficiency}点`
         : null,
-      typeof fourPiece?.lumifluxAnomalyDamagePercent === 'number'
-        ? `辉光属性异常伤害提升${fourPiece.lumifluxAnomalyDamagePercent}%`
+      typeof fourPiece?.lumifluxAnomalyDamagePercent === 'number' &&
+      fourPiece.wearerAttribute === 'lumiflux'
+        ? `若装备者为流明属性，造成的属性异常伤害提升${fourPiece.lumifluxAnomalyDamagePercent}%`
         : null,
       typeof fourPiece?.durationSeconds === 'number' ? `持续${fourPiece.durationSeconds}秒` : null,
-      fourPiece?.offFieldRetention === 'always' ? '后台保留' : null,
+      fourPiece?.offFieldRetention === 'always'
+        ? '当装备者为非操作中角色时则始终持有该增益效果'
+        : null,
     ].filter((part): part is string => Boolean(part))
     return {
       twoPieceEffect: two,

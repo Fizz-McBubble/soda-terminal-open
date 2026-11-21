@@ -1,15 +1,18 @@
+import { admittedTeamBangbooOptions } from '../decision/admittedTeamBangbooOptions'
 import type { AccountDecisionRun } from '../application/calculationQueryContract'
 import { currentBangbooDirectory } from '../assault/catalog'
 import { defaultEquipmentRankForRarity } from '../decision/teamEquipmentRecommendations'
 import { describeBangbooConditions } from '../decision/bangbooConditionPresentation'
 import {
   playerConfirmableTargetBangbooIds,
-  targetTeamBangbooOptions,
 } from '../decision/targetTeamEquipmentParameters'
 import { playerFacingBangbooLabel } from '../application/playerFacingLabels'
 import { displayableLocalAnalysis, localAnalysisRatingLabel } from './teamLocalAnalysisPresentation'
 import { decisionTeamAlternativeVariants, teamRatingSummary } from './teamLoadoutDecisionViewModel'
-import { formatTeamRating } from './teamRatingText'
+import { formatGraduatedTeamScore, formatTeamRating } from './teamRatingText'
+import { lookupGraduatedScoreForSelection } from '../decision/teamGenericRanking'
+import { hasGraduatedTeamScores } from '../decision/graduatedTeamScoreIndex'
+import { canonicalTeamPlayIdentity } from '../domain/teamPlayMechanismContract'
 import { resolveTargetTeamFitEntry } from './teamTargetFitEntry'
 import {
   teamRoutePresentationContract,
@@ -29,43 +32,48 @@ export function projectPrivateTeamRoute(
     ratingCandidate?.mechanicValidity === 'invalid' ||
     ratingCandidate?.teamRating.confidence === 'experimental' ||
     ratingCandidate?.teamRating.ratingBand === 'Experimental'
-  const ratingAnalysis =
-    displayableLocalAnalysis(
-      ratingCandidate?.metaCalibration?.analysis,
-      ratingCandidate?.teamRating.ratingBand,
-      ratingCandidate?.teamRating.confidence,
-      ratingCandidate?.mechanicValidity,
-    ) ?? null
-  const recommendationScore = ratingBlocked
+  const graduated =
+    hasGraduatedTeamScores && team && ratingCandidate?.mechanicValidity !== 'invalid'
+      ? lookupGraduatedScoreForSelection(team.agentIds, entry.authorityCandidate?.playDirection)
+      : null
+  const ratedPlay = graduated ? entry.authorityCandidate?.playDirection : null
+  const ratingAnalysis = graduated
     ? null
-    : (ratingCandidate?.metaCalibration?.recommendationScore ?? null)
-  const teamRatingLabel = ratingAnalysis
-    ? localAnalysisRatingLabel(ratingAnalysis, recommendationScore ?? undefined)
-    : !ratingBlocked && ratingCandidate?.teamRating.ratingBand
-      ? formatTeamRating(ratingCandidate.teamRating.ratingBand, recommendationScore ?? undefined)
-      : teamRatingSummary(undefined)
+    : (displayableLocalAnalysis(
+        ratingCandidate?.metaCalibration?.analysis,
+        ratingCandidate?.teamRating.ratingBand,
+        ratingCandidate?.teamRating.confidence,
+        ratingCandidate?.mechanicValidity,
+      ) ?? null)
+  const recommendationScore =
+    ratingBlocked || graduated
+      ? null
+      : (ratingCandidate?.metaCalibration?.recommendationScore ?? null)
+  const teamRatingLabel = graduated
+    ? formatGraduatedTeamScore(graduated)
+    : ratingAnalysis
+      ? localAnalysisRatingLabel(ratingAnalysis, recommendationScore ?? undefined)
+      : !ratingBlocked && ratingCandidate?.teamRating.ratingBand
+        ? formatTeamRating(ratingCandidate.teamRating.ratingBand, recommendationScore ?? undefined)
+        : teamRatingSummary(undefined)
   const input = entry.playerConfirmableBangbooInput
-  const sourceOptions = input ? targetTeamBangbooOptions(input) : []
+  const sourceOptions = input ? admittedTeamBangbooOptions(input) : []
   const playerConfirmableBangbooOptions = input
     ? [...new Set(playerConfirmableTargetBangbooIds(input))].map((bangbooId) => {
         const directory = currentBangbooDirectory.find((item) => item.id === bangbooId)
         const sourceOption = sourceOptions.find((option) => option.bangbooId === bangbooId)
+        const defaultStars = sourceOption?.defaultStars ?? defaultEquipmentRankForRarity(directory?.rarity)
+        const activationDetailsByStars = Object.fromEntries(
+          ([1, 2, 3, 4, 5] as const).map(stars => [
+            stars, describeBangbooConditions({ memberIds: input.memberIds, bangbooId, stars }),
+          ]),
+        )
         return {
           bangbooId,
           name: directory?.name ?? playerFacingBangbooLabel(bangbooId),
-          defaultStars:
-            sourceOption?.defaultStars ?? defaultEquipmentRankForRarity(directory?.rarity),
-          activationStatus: sourceOption?.activationStatus ?? ('active' as const),
-          activationDetailsByStars: Object.fromEntries(
-            ([1, 2, 3, 4, 5] as const).map((stars) => [
-              stars,
-              describeBangbooConditions({
-                memberIds: input.memberIds,
-                bangbooId,
-                stars,
-              }),
-            ]),
-          ),
+          defaultStars,
+          activationStatus: activationDetailsByStars[defaultStars]!.activationStatus,
+          activationDetailsByStars,
         }
       })
     : []
@@ -77,7 +85,7 @@ export function projectPrivateTeamRoute(
     candidateId,
     team,
     targetCandidateId: entry.targetCandidateId,
-    ...(entry.authorityCandidate?.authorComparisonMembership
+    ...(entry.authorityCandidate?.authorComparisonMembership && !entry.authorityCandidate.authorComparisonMembership.independentDefaultAdmission
       ? { discOnlyCandidate: true as const }
       : {}),
     automaticBangboo: entry.automaticBangboo
@@ -87,6 +95,7 @@ export function projectPrivateTeamRoute(
     ratingAnalysis,
     recommendationScore,
     teamRatingLabel,
+    ...(ratedPlay ? { ratedTeamPlayId: canonicalTeamPlayIdentity(ratedPlay) } : {}),
     alternativeTeams: team ? decisionTeamAlternativeVariants(run.snapshot, team.id) : [],
     mechanicDiagnostic: ratingCandidate?.metaCalibration.inference ?? null,
   }

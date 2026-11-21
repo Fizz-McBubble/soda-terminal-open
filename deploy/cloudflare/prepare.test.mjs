@@ -19,6 +19,7 @@ test('quick-read proxy is packaged and routed before assets without a static exe
     const report = await prepare({ dist, out, origin })
     const config = JSON.parse(await readFile(join(out, 'wrangler.json'), 'utf8'))
     assert(config.assets.run_worker_first.includes('/downloads/Soda-Asset-Quick-Read-Setup.exe'))
+    assert(config.assets.run_worker_first.includes('/downloads/asset-quick-read-release.v1.json'))
     assert(config.assets.run_worker_first.includes('/downloads/Soda-Scanner-Setup.exe'))
     assert.equal(report.assetQuickReadInstallerProxy.size, assetQuickReadInstallerRelease.size)
     for (const path of [
@@ -64,6 +65,56 @@ test('quick-read proxy is packaged and routed before assets without a static exe
       new Uint8Array(await readFile(join(dist, 'downloads/Soda-Asset-Quick-Read-Setup.exe'))),
       bytes,
     )
+  } finally {
+    await rm(root, { recursive: true, force: true })
+  }
+})
+test('prepared Worker entry exposes only the unchanged production handler and preserves its limits', async () => {
+  const root = await mkdtemp(join(tmpdir(), 'soda-worker-entry-'))
+  try {
+    const dist = await fixture(root),
+      out = join(root, 'candidate')
+    await prepare({ dist, out, origin })
+    const config = JSON.parse(await readFile(join(out, 'wrangler.json'), 'utf8'))
+    assert.equal(config.main, './deploy/cloudflare/worker-entry.mjs')
+    const entry = await import(new URL(config.main, pathToFileURL(join(out, 'wrangler.json'))))
+    const edge = await import(pathToFileURL(join(out, 'deploy/cloudflare/edge.mjs')))
+    assert.deepEqual(Object.keys(entry), ['default'])
+    assert.equal(typeof edge.createEdge, 'function')
+    assert.equal(typeof edge.allowedImage, 'function')
+    assert.equal(edge.downloadRequestBudgetPerMinute, 192)
+    assert.equal(entry.default, edge.default)
+    assert.equal(typeof entry.default.fetch, 'function')
+    const env = {
+      SODA_RELEASE_ID: 'statistics-package-test',
+      ASSETS: { fetch: () => new Response('static-asset') },
+    }
+    const request = (path, init) => new Request(`${origin}${path}`, init)
+    const health = await entry.default.fetch(request('/_soda/health'), env)
+    assert.equal((await health.json()).releaseId, env.SODA_RELEASE_ID)
+    assert.equal(
+      (await entry.default.fetch(request('/api/calculation/tasks', { method: 'POST' }), env))
+        .status,
+      410,
+    )
+    for (const path of ['/.env', '/src/main.tsx', '/private/a', '/_soda/usage'])
+      assert.equal((await entry.default.fetch(request(path), env)).status, 404, path)
+    assert.equal(
+      await (await entry.default.fetch(request('/assets/app.js'), env)).text(),
+      'static-asset',
+    )
+    // Invalid queries fail before any upstream request, while still consuming
+    // the real default handler's bounded download budget.
+    const downloadRequest = () =>
+      request('/downloads/Soda-Scanner-Setup.exe?synthetic-entry-check=1', {
+        method: 'HEAD',
+        headers: { 'cf-connecting-ip': '192.0.2.1' },
+      })
+    for (let index = 0; index < 192; index += 1)
+      assert.equal((await entry.default.fetch(downloadRequest(), env)).status, 400)
+    const limited = await entry.default.fetch(downloadRequest(), env)
+    assert.equal(limited.status, 429)
+    assert.match(limited.headers.get('retry-after'), /^[1-9]\d*$/u)
   } finally {
     await rm(root, { recursive: true, force: true })
   }

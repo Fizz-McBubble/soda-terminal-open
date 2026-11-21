@@ -52,6 +52,66 @@
 .f5v-shell .scanner-workbench .asset-quick-read__heading {
   grid-row: 1;
 }
+
+.f5v-shell .scanner-workbench__guide-mark {
+  display: grid;
+  place-items: center;
+  inline-size: 34px;
+  block-size: 34px;
+  flex: none;
+  color: var(--soda-accent-ink);
+  background: var(--soda-surface-raised);
+  border-radius: var(--soda-radius-control);
+}
+.f5v-shell .scanner-workbench__guide-mark > * {
+  grid-area: 1 / 1;
+}
+.f5v-shell .scanner-workbench__guide-mark::after {
+  content: '';
+  grid-area: 1 / 1;
+  place-self: stretch;
+  pointer-events: none;
+  background:
+    linear-gradient(currentColor, currentColor) left top / 8px 2px,
+    linear-gradient(currentColor, currentColor) left top / 2px 8px,
+    linear-gradient(currentColor, currentColor) right bottom / 8px 2px,
+    linear-gradient(currentColor, currentColor) right bottom / 2px 8px;
+  background-repeat: no-repeat;
+}
+.f5v-shell .scanner-workbench__guide-mark > :is(img, .visual-asset-fallback) {
+  inline-size: 100%;
+  block-size: 100%;
+}
+.f5v-shell .scanner-workbench__guide-mark .visual-asset-fallback {
+  visibility: hidden;
+}
+.f5v-shell .scanner-workbench__guide-mark:has(img) > svg {
+  display: none;
+}
+.f5v-shell .scanner-workbench__guide-mark:has(img) {
+  background: color-mix(
+    in srgb,
+    var(--f5-signal, var(--soda-surface-raised)) 32%,
+    var(--soda-surface)
+  );
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .f5v-shell .scanner-workbench__guide-mark img {
+    animation: soda-guide-art-in var(--soda-motion-emphasis) var(--soda-ease-out);
+  }
+}
+
+@keyframes soda-guide-art-in {
+  from {
+    opacity: 0.65;
+    transform: scale(0.86) translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
 .f5v-shell .scanner-workbench__scope {
   grid-row: 2;
 }

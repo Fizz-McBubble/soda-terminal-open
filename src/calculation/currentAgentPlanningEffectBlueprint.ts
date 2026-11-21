@@ -9,6 +9,15 @@ import {
 import type { UpstreamExpressionIR } from './currentUpstreamExpressionIR'
 import { reviewedPotentialEffectBlueprints } from './reviewedPotentialEffectBlueprints'
 import { reviewedTemplateMechanicEffectBlueprints32 } from './reviewedTemplateMechanicEffects32'
+import {
+  reconcileReviewedLycaonDamageTaken32,
+  reviewedLycaonWindDamageTaken32,
+} from './reviewedLycaonDamageTaken32'
+import {
+  calculatePhoenixDecisionOrdinaryAnomaly33,
+  phoenixDecisionSourceRefs33,
+} from './phoenixDecisionMechanic33'
+import { severianDecisionSourceRefs33 } from './severianDecisionMechanic33'
 
 export type PlanningEffectTargetKind = 'self' | 'active_agent' | 'team' | 'enemy'
 
@@ -36,6 +45,13 @@ export type CurrentAgentPlanningEffectBlueprint = {
     }
   }
   sourceRefs: string[]
+  /** Team eligibility does not turn an anomaly snapshot into a team stat buff. */
+  recipientBinding?: {
+    kind: 'self' | 'anomaly_snapshot'
+    gameVersion: '3.3'
+    unit: 'flat_anomaly_proficiency_points' | 'ratio'
+    consumer: string
+  }
 }
 
 function effectiveExpressionMetadata(expression: UpstreamExpressionIR) {
@@ -74,7 +90,7 @@ export function compileAgentPlanningEffectBlueprints(
     classifyAgentEffectSource32(contract.effectContract) === 'generic_template'
       ? []
       : contract.effectContract.effects
-  return [
+  const compiled = [
     ...sourceEffects.map((effect): CurrentAgentPlanningEffectBlueprint => {
       const sourceStatus = effect.numericExpression.classification
       if (
@@ -123,7 +139,7 @@ export function compileAgentPlanningEffectBlueprints(
         todoBoundary = `reconciliation_drift:${msg}`
       }
 
-      return {
+      return reconcileReviewedLycaonDamageTaken32({
         effectKey: `${agentId}:${effect.effectId}`,
         providerAgentId: agentId,
         effectId: effect.effectId,
@@ -153,12 +169,37 @@ export function compileAgentPlanningEffectBlueprints(
             : {}),
         },
         sourceRefs,
-      }
+        ...(agentId === 'agent-phoenix'
+          ? {
+              sourceRefs: [...sourceRefs, ...phoenixDecisionSourceRefs33],
+              recipientBinding: {
+                kind:
+                  effect.applicationScope === 'event_only'
+                    ? ('anomaly_snapshot' as const)
+                    : ('self' as const),
+                gameVersion: '3.3' as const,
+                unit:
+                  effect.applicationScope === 'event_only'
+                    ? ('ratio' as const)
+                    : ('flat_anomaly_proficiency_points' as const),
+                consumer:
+                  effect.applicationScope === 'event_only'
+                    ? 'calculateCurrentPhoenixPlanningAnomalyEvent33'
+                    : 'currentPlanningEffectRuntime:ownBuff.combat.anomProf',
+              },
+            }
+          : agentId === 'agent-severian'
+            ? {
+                sourceRefs: [...sourceRefs, ...severianDecisionSourceRefs33],
+              }
+            : {}),
+      })
     }),
     ...reviewedTemplateMechanicEffectBlueprints32.filter(
       (entry) => entry.providerAgentId === agentId,
     ),
   ]
+  return [...compiled, ...reviewedLycaonWindDamageTaken32(compiled)]
 }
 
 const upstreamAgentPlanningEffectBlueprints = Object.freeze(
@@ -193,6 +234,21 @@ if (blueprintByKey.size !== currentAgentPlanningEffectBlueprints.length)
 
 export function getCurrentAgentPlanningEffectBlueprint(effectKey: string) {
   return blueprintByKey.get(effectKey) ?? null
+}
+
+/** Dedicated event consumer for source-compiled snapshot blueprints. Generic
+ * formation observations remain excluded/blocked by their explicit boundary. */
+export function calculateCurrentPhoenixPlanningAnomalyEvent33(
+  input: Parameters<typeof calculatePhoenixDecisionOrdinaryAnomaly33>[0],
+) {
+  const keys = ['scorch_anomaly_crit_rate', 'scorch_anomaly_crit_damage']
+  const entries = keys.map((key) => getCurrentAgentPlanningEffectBlueprint(`agent-phoenix:${key}`))
+  if (entries.some((entry) => entry?.recipientBinding?.kind !== 'anomaly_snapshot'))
+    return {
+      status: 'unsupported' as const,
+      blockers: ['current_phoenix_snapshot_blueprints_not_registered'],
+    }
+  return calculatePhoenixDecisionOrdinaryAnomaly33(input)
 }
 
 export function compileFormationPlanningEffectBlueprints(memberIds: readonly string[]) {

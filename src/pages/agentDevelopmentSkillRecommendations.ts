@@ -1,6 +1,8 @@
 import type { RosterAgent } from '../assault/types'
+import { skillMaximumTargetsFromDirections } from './agentDevelopmentSkillPriority'
 import { getRemielleSkillGuidanceCandidate } from '../gameDataPacks/remielleGuidanceCandidate'
 import { reviewedGuideSkillDirections } from '../gameDataPacks/reviewedGuideSkillDirections'
+import type { ReviewedDevelopmentSkillTargetSupplement } from '../gameDataPacks/reviewedDevelopmentSkillOrders33'
 import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
 import {
   fieldTimeIndependentSkillInvestment,
@@ -24,6 +26,10 @@ export type SkillTargetType = 'exact_integer' | 'minimum_reference' | 'soda_deri
 export type AgentSkillRecommendationContext = {
   skillLevels?: RosterAgent['skillLevels']
   mindscape?: number | null
+  primaryPriority?: readonly string[]
+  priorityGroups?: readonly (readonly (keyof typeof skillLabels)[])[]
+  reviewedTargetSupplements?: readonly ReviewedDevelopmentSkillTargetSupplement[]
+  utilityOnlyCombat?: boolean
 }
 
 export type AgentSkillRecommendationItem = {
@@ -55,27 +61,90 @@ export function agentDevelopmentSkillRecommendations(
 ) {
   const remielle = getRemielleSkillGuidanceCandidate(agentId)
   const targets = skillTargetsFromDirections(directions)
+  const declaredMaximums = skillMaximumTargetsFromDirections(directions)
+  const appliedSupplements = new Map<
+    keyof typeof skillLabels,
+    ReviewedDevelopmentSkillTargetSupplement
+  >()
+  for (const supplement of context?.reviewedTargetSupplements ?? []) {
+    const existing = targets[supplement.skill]
+    // A supplement is a field selection, not a takeHigher rule. A different
+    // explicit target must survive until it has its own source decision.
+    if (existing && !supplement.replaces?.includes(existing)) continue
+    if (declaredMaximums.has(supplement.skill)) continue
+    appliedSupplements.set(supplement.skill, supplement)
+    if (supplement.kind === 'paid_maximum') {
+      targets[supplement.skill] = supplement.skill === 'core' ? 'F' : '12'
+      declaredMaximums.add(supplement.skill)
+    } else {
+      targets[supplement.skill] = `${supplement.level}+`
+    }
+  }
   const knownMindscapeBonus = resolveSkillInvestmentMindscapeBonus(context?.mindscape ?? null)
   const mindscapeBonus = knownMindscapeBonus ?? 0
   const priority = (
-    remielle?.primaryPriority ?? skillPriorityWithLegacyFallback(directions, legacyPriority)
+    remielle?.primaryPriority ??
+    context?.priorityGroups?.flat() ??
+    skillPriorityWithLegacyFallback(directions, legacyPriority)
   ).filter((key): key is keyof typeof skillLabels => key in skillLabels)
   const primaryPriority =
-    remielle?.primaryPriority ?? skillPrimaryPriorityWithLegacyFallback(directions, legacyPriority)
+    remielle?.primaryPriority ??
+    context?.primaryPriority ??
+    skillPrimaryPriorityWithLegacyFallback(directions, legacyPriority)
   const contract = getCurrentAgentEventContract(agentId)
   const scalable = new Set(contract?.eventContract.events.map((event) => event.skill) ?? [])
+  // Core has its own 1–7 progression. It must not consume a combat-skill
+  // budget slot just because an aggregator prepends it to a five-skill list.
+  const combatPriority = priority.filter((key) => key !== 'core')
   const skills: AgentSkillRecommendationItem[] = Object.entries(skillLabels).map(
     ([rawKey, label]) => {
       const key = rawKey as keyof typeof skillLabels
-      const index = priority.indexOf(key)
+      const index = key === 'core' ? -1 : combatPriority.indexOf(key)
+      // Every member of a declared tier uses the tier's first ordinal slot.
+      // This retains existing budget thresholds while never splitting a tie.
+      const group = context?.priorityGroups?.find((tier) => tier.includes(key))
+      const firstCombatInGroup = group?.find((skill) => skill !== 'core')
+      const groupIndex = firstCombatInGroup ? combatPriority.indexOf(firstCombatInGroup) : -1
+      const primaryIndex = primaryPriority.includes(key)
+        ? Math.min(
+            ...primaryPriority
+              .map((item) => combatPriority.findIndex((skill) => skill === item))
+              .filter((i) => i >= 0),
+          )
+        : -1
+      const budgetIndex =
+        groupIndex >= 0
+          ? groupIndex
+          : primaryIndex >= 0 && Number.isFinite(primaryIndex)
+            ? primaryIndex
+            : index >= 0
+              ? index
+              : null
       const investment = fieldTimeIndependentSkillInvestment({
         skill: key,
-        priorityIndex: index >= 0 ? index : null,
+        // The existing reference bands reserve slot zero for core. Apply a
+        // consistent combat offset even when the source omits/reorders core.
+        priorityIndex:
+          key === 'core'
+            ? priority.length
+              ? 0
+              : null
+            : budgetIndex === null
+              ? null
+              : budgetIndex + 1,
         explicitPrimary: remielle?.primaryPriority.includes(key) ?? false,
-        explicitSupplemental: remielle?.supplementalSkills.includes(key) ?? false,
+        explicitSupplemental:
+          (remielle?.supplementalSkills.includes(key) ?? false) ||
+          // Independent guides identify these ordinary levels as Daze/utility,
+          // not growth of the defining buff or anomaly multiplier. Reuse the
+          // existing supplemental band instead of inferring a paid maximum.
+          (Boolean(context?.utilityOnlyCombat) && key !== 'core' && budgetIndex === 0),
         hasScalableMechanic: key === 'core' ? Boolean(contract) : scalable.has(key),
       })
       const explicit = targets[key]
+      const reviewedExplicit = skillTargetsFromDirections(
+        reviewedGuideSkillDirections[agentId]?.directions ?? [],
+      )[key]
       const lowInvestment = remielle?.lowInvestmentSkills.includes(key) ?? false
 
       let targetLevel: number | null
@@ -128,7 +197,7 @@ export function agentDevelopmentSkillRecommendations(
           targetType = 'exact_integer'
           exactTarget = val
           recommended = explicit
-        } else if (priority.includes('core')) {
+        } else if (priority.length) {
           baseTargetLevel = Math.min(7, investment.targetLevel ?? 7)
           targetLevel = baseTargetLevel
           targetType = 'soda_derived'
@@ -140,12 +209,10 @@ export function agentDevelopmentSkillRecommendations(
           }
           recommended = investment.label
         } else {
-          // Retain the existing baseline policy; this is not a sourced target.
-          baseTargetLevel = 7
-          targetLevel = 7
+          // No source order or numeric target is not permission to invent 7.
+          targetLevel = null
           targetType = 'soda_derived'
-          sodaDerived = { band: 'baseline', targetLevel: 7, baseTargetLevel: 7, label: '7' }
-          recommended = '7'
+          recommended = ''
         }
       } else {
         // 战斗技能：既有用户最低等级合同 Math.max(7, sourcedTargetLevel ?? 7)
@@ -153,11 +220,15 @@ export function agentDevelopmentSkillRecommendations(
           explicit &&
           (explicit.includes('+') || explicit.startsWith('≥') || explicit.startsWith('>=')),
         )
+        const sourceLevelBasis = appliedSupplements.has(key)
+          ? undefined
+          : reviewedGuideSkillDirections[agentId]?.authorTargets?.combatSourceLevelBasis
         const sourceLevelBasisUnknown =
-          isMinimum &&
-          reviewedGuideSkillDirections[agentId]?.authorTargets?.combatSourceLevelBasis ===
-            'image_displayed_unspecified_paid_vs_effective'
-        if (remielle?.explicitTargets.combatMaximumSkills.includes(key)) {
+          isMinimum && sourceLevelBasis !== 'paid_base' && sourceLevelBasis !== 'effective'
+        if (
+          remielle?.explicitTargets.combatMaximumSkills.includes(key) ||
+          declaredMaximums.has(key)
+        ) {
           // "升满" targets the paid cap, not effective Lv.12 at every cinema.
           baseTargetLevel = skillInvestmentPolicy.combatSkillCap
           targetLevel = knownMindscapeBonus === null ? null : baseTargetLevel + knownMindscapeBonus
@@ -181,21 +252,47 @@ export function agentDevelopmentSkillRecommendations(
           const raw = explicit.replace('+', '').replace('≥', '').replace('>=', '').trim()
           const parsed = Number(raw)
           const validNum = Number.isNaN(parsed) ? 7 : parsed
-          targetLevel = Math.max(7, validNum)
-          baseTargetLevel =
-            knownMindscapeBonus === null ? null : Math.max(1, targetLevel - mindscapeBonus)
+          baseTargetLevel = sourceLevelBasis === 'paid_base' ? Math.max(7, validNum) : null
+          targetLevel =
+            sourceLevelBasis === 'paid_base'
+              ? knownMindscapeBonus === null
+                ? null
+                : baseTargetLevel! + knownMindscapeBonus
+              : Math.max(7, validNum)
+          if (sourceLevelBasis === 'effective')
+            baseTargetLevel =
+              knownMindscapeBonus === null ? null : Math.max(1, targetLevel! - mindscapeBonus)
           targetType = 'minimum_reference'
           minimumReference = validNum
+          recommended = explicit
+        } else if (
+          explicit &&
+          explicit === reviewedExplicit &&
+          sourceLevelBasis !== 'paid_base' &&
+          sourceLevelBasis !== 'effective'
+        ) {
+          // A numeric image label can still omit whether cinema is included.
+          targetLevel = null
+          targetType = 'exact_integer'
           recommended = explicit
         } else if (explicit) {
           const raw = explicit.trim()
           const parsed = Number(raw)
           const validNum = Number.isNaN(parsed) ? 7 : parsed
-          targetLevel = Math.max(7, validNum)
-          baseTargetLevel =
-            knownMindscapeBonus === null ? null : Math.max(1, targetLevel - mindscapeBonus)
+          baseTargetLevel = sourceLevelBasis === 'paid_base' ? Math.max(7, validNum) : null
+          targetLevel =
+            sourceLevelBasis === 'paid_base'
+              ? knownMindscapeBonus === null
+                ? null
+                : baseTargetLevel! + knownMindscapeBonus
+              : Math.max(7, validNum)
+          if (sourceLevelBasis !== 'paid_base')
+            baseTargetLevel =
+              knownMindscapeBonus === null || targetLevel === null
+                ? null
+                : Math.max(1, targetLevel - mindscapeBonus)
           targetType = 'exact_integer'
-          exactTarget = validNum
+          exactTarget = targetLevel
           // 低于既有用户最低合同 7 时，等级升至 7
           recommended = validNum < 7 ? '7' : explicit
         } else if (lowInvestment) {
@@ -224,17 +321,16 @@ export function agentDevelopmentSkillRecommendations(
             label: recommended,
           }
         } else {
-          baseTargetLevel = 7
-          targetLevel = 7 + mindscapeBonus
+          targetLevel = null
           targetType = 'soda_derived'
-          sodaDerived = {
-            band: 'baseline',
-            targetLevel,
-            baseTargetLevel,
-            label: String(targetLevel),
-          }
-          recommended = String(targetLevel)
+          recommended = ''
         }
+      }
+
+      // Derived combat budgets are paid levels. Without cinema the displayed
+      // effective target and any comparison against it remain unknown.
+      if (key !== 'core' && targetType === 'soda_derived' && knownMindscapeBonus === null) {
+        targetLevel = null
       }
 
       const nextLevelEvidence =
@@ -265,5 +361,9 @@ export function agentDevelopmentSkillRecommendations(
       }
     },
   )
-  return { targets, priority, skills }
+  // Do not turn a partial prose priority into a complete tier ordering.
+  const priorityGroups = remielle
+    ? [remielle.primaryPriority]
+    : (context?.priorityGroups ?? (primaryPriority.length ? [primaryPriority] : []))
+  return { targets, priority, priorityGroups, skills }
 }

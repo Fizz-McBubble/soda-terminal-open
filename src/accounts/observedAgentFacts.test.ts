@@ -63,6 +63,34 @@ const adapter = createRosterSnapshotAdapter({
 })
 
 describe('confirmed per-field observations', () => {
+  it('round-trips value-bound manual progression and discards it when imported values change', () => {
+    const original = syntheticAgent({
+      mindscape: 1,
+      potentialImage: 3,
+      manualProgression: { mindscape: 1, potentialImage: 3 },
+    })
+    const snapshot = rosterSnapshotSchema.parse(adapter.exportRosterSnapshot(rosterWith(original)))
+    const restored = restoreBackupRoster(snapshot, createEmptyRoster(now)).agents.find(
+      (row) => row.agentId === original.agentId,
+    )!
+    expect(restored.manualProgression).toEqual({ mindscape: 1, potentialImage: 3 })
+    const incoming = syntheticAgent({ mindscape: 2, potentialImage: 4 })
+    const imported = rosterSnapshotSchema.parse(adapter.exportRosterSnapshot(rosterWith(incoming)))
+    const changed = adapter
+      .applyRosterSnapshot(imported, rosterWith(original))
+      .agents.find((row) => row.agentId === original.agentId)!
+    expect(changed.manualProgression).toBeUndefined()
+    const again = adapter
+      .applyRosterSnapshot(snapshot, rosterWith(changed))
+      .agents.find((row) => row.agentId === original.agentId)!
+    expect(again.manualProgression).toEqual({ mindscape: 1, potentialImage: 3 })
+    const legacy = rosterSnapshotSchema.parse(
+      adapter.exportRosterSnapshot(rosterWith(syntheticAgent())),
+    )
+    expect(
+      legacy.agents.find((row) => row.agentId === original.agentId)?.manualProgression,
+    ).toBeUndefined()
+  })
   it.each([1, 6])(
     'retains A-rank M%i with distinct observed skills across save-like refreshes',
     (mindscape) => {
@@ -146,13 +174,13 @@ describe('confirmed per-field observations', () => {
     expect(reload(all).skillLevels).toEqual(all.skillLevels)
   })
 
-  it('preserves manually edited fingerprint-like skills after observations, while retaining the old legacy repair', () => {
+  it('preserves explicitly edited fingerprint-like skills with or without observations', () => {
     const agent = syntheticAgent({
       manualSource: 'manual_override',
       mindscape: 6,
       skillLevels: { basic: 15, dodge: 15, assist: 15, special: 14, chain: 14, core: 7 },
     })
-    expect(reload(agent).skillLevels.special).toBe(15)
+    expect(reload(agent).skillLevels.special).toBe(14)
     expect(reload({ ...agent, observedFacts: observations('level') }).skillLevels).toEqual(
       agent.skillLevels,
     )
@@ -205,50 +233,54 @@ describe('confirmed per-field observations', () => {
     expect(reload(agent).skillLevels.basic).toBe(15)
   })
 
-  it('preserves values, source and markers through export, schema parse, real backup restore and refresh', () => {
-    const agent = syntheticAgent({
-      source: 'asset_quick_read',
-      level: 40,
-      ascension: 3,
-      observedFacts: observations(
-        ...progressionFields,
-        'owned',
-        'level',
-        'ascension',
-        'wEngineDetails.id',
-        'wEngineDetails.name',
-        'wEngineDetails.level',
-        'wEngineDetails.ascension',
-        'wEngineDetails.refinement',
-        'equippedDiscIds',
-      ),
-      wEngineDetails: {
-        id: 'synthetic-engine',
-        name: '合成音擎',
+  it.each(['3.2', '3.3'] as const)(
+    'preserves %s values, source and markers through export, schema parse, backup restore and refresh',
+    (protocolVersion) => {
+      const agent = syntheticAgent({
+        source: 'asset_quick_read',
         level: 40,
         ascension: 3,
-        refinement: 1,
-      },
-      equippedDiscIds: ['synthetic-disc'],
-    })
-    const snapshot = rosterSnapshotSchema.parse(
-      JSON.parse(JSON.stringify(adapter.exportRosterSnapshot(rosterWith(agent)))),
-    )
-    const restored = restoreBackupRoster(snapshot, createEmptyRoster(now))
-    const current = hydrateRosterDefaults(restored, now).agents.find(
-      (entry) => entry.agentId === agent.agentId,
-    )!
-    expect(current.source).toBe('asset_quick_read')
-    expect(current.observedFacts).toEqual(agent.observedFacts)
-    expect(current.mindscape).toBe(agent.mindscape)
-    expect(current.skillLevels).toEqual(agent.skillLevels)
-    expect(current.level).toBe(40)
-    expect(current.ascension).toBe(3)
-    expect(current.wEngineDetails).toEqual(agent.wEngineDetails)
-    expect(current.equippedDiscIds).toEqual(agent.equippedDiscIds)
-    expect(restored.wEngines).toEqual([])
-    expect(restored.bangboos).toEqual(createEmptyRoster(now).bangboos)
-  })
+        observedFacts: observations(
+          ...progressionFields,
+          'owned',
+          'level',
+          'ascension',
+          'wEngineDetails.id',
+          'wEngineDetails.name',
+          'wEngineDetails.level',
+          'wEngineDetails.ascension',
+          'wEngineDetails.refinement',
+          'equippedDiscIds',
+        ),
+        wEngineDetails: {
+          id: 'synthetic-engine',
+          name: '合成音擎',
+          level: 40,
+          ascension: 3,
+          refinement: 1,
+        },
+        equippedDiscIds: ['synthetic-disc'],
+      })
+      agent.observedFacts!.protocolVersion = protocolVersion
+      const snapshot = rosterSnapshotSchema.parse(
+        JSON.parse(JSON.stringify(adapter.exportRosterSnapshot(rosterWith(agent)))),
+      )
+      const restored = restoreBackupRoster(snapshot, createEmptyRoster(now))
+      const current = hydrateRosterDefaults(restored, now).agents.find(
+        (entry) => entry.agentId === agent.agentId,
+      )!
+      expect(current.source).toBe('asset_quick_read')
+      expect(current.observedFacts).toEqual(agent.observedFacts)
+      expect(current.mindscape).toBe(agent.mindscape)
+      expect(current.skillLevels).toEqual(agent.skillLevels)
+      expect(current.level).toBe(40)
+      expect(current.ascension).toBe(3)
+      expect(current.wEngineDetails).toEqual(agent.wEngineDetails)
+      expect(current.equippedDiscIds).toEqual(agent.equippedDiscIds)
+      expect(restored.wEngines).toEqual([])
+      expect(restored.bangboos).toEqual(createEmptyRoster(now).bangboos)
+    },
+  )
 
   it('restores old backups without requiring observations or introducing priority', () => {
     const old = adapter.exportRosterSnapshot(rosterWith(syntheticAgent()))
@@ -262,8 +294,8 @@ describe('confirmed per-field observations', () => {
       (entry) => entry.agentId === old.agents[0].agentId,
     )!
     expect(current.observedFacts).toBeUndefined()
-    expect(current.mindscape).toBe(6)
-    expect(current.skillLevels.basic).toBe(15)
+    expect(current.mindscape).toBe(1)
+    expect(current.skillLevels.basic).toBe(2)
   })
 
   it('snapshot parsing strips invalid markers and unknown fields without rejecting legacy values', () => {

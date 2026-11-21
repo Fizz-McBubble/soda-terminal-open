@@ -24,6 +24,8 @@ export type TeamAnalysisResult = {
   decisionSnapshot: AccountDecisionSnapshot
   capturedAt: Date
   inputFingerprint: string
+  /** Browser-side identity includes facts not represented in the core hash. */
+  inputReadFingerprint?: string
   targetTeamFits: Record<string, TargetTeamWarehouseFitQueryResult>
   teamRoutePresentations?: Record<string, TeamRoutePresentation>
   overviewUiState?: TeamLoadoutOverviewUiState
@@ -33,7 +35,7 @@ export type TeamAnalysisState =
   | { kind: 'ready' }
   | { kind: 'running'; stage: number }
   | { kind: 'complete'; result: TeamAnalysisResult }
-  | { kind: 'stale'; result: TeamAnalysisResult }
+  | { kind: 'stale'; result: TeamAnalysisResult; reason?: 'world_transition' }
   | { kind: 'unable'; reason: 'no_account' | 'empty_warehouse' }
   | { kind: 'error'; stage: number; message?: string }
 
@@ -47,7 +49,19 @@ export type TeamAnalysisSnapshot = {
 export type LastCompleteAnalysis = Extract<TeamAnalysisState, { kind: 'complete' | 'stale' }>
 
 export let currentTeamAnalysisSession: LastCompleteAnalysis | null = null
+const sessionListeners = new Set<() => void>()
+
+export function subscribeTeamAnalysisSession(listener: () => void) {
+  sessionListeners.add(listener)
+  return () => sessionListeners.delete(listener)
+}
+
+export function getTeamAnalysisSession() {
+  return currentTeamAnalysisSession
+}
 
 export function setCurrentTeamAnalysisSession(value: LastCompleteAnalysis | null) {
+  if (currentTeamAnalysisSession === value) return
   currentTeamAnalysisSession = value
+  sessionListeners.forEach((listener) => listener())
 }

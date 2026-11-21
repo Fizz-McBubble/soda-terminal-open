@@ -1,0 +1,150 @@
+/* Shared workbench grammar; modules retain their task layout and density. */
+.f5v-shell {
+  line-break: strict;
+}
+
+.f5v-shell ::selection {
+  color: var(--soda-text);
+  background: #e5ddf3;
+}
+
+.f5v-shell :is(input:not([type='checkbox'], [type='radio'], [type='range']), select, textarea) {
+  border-radius: var(--soda-radius-control);
+}
+
+.f5v-shell :is(input[type='checkbox'], input[type='radio'], input[type='range']) {
+  accent-color: var(--soda-accent);
+}
+
+.f5v-shell :is(input:not([type='checkbox'], [type='radio'], [type='range']), select, textarea) {
+  transition:
+    border-color var(--soda-motion-fast) var(--soda-ease-out),
+    box-shadow var(--soda-motion-fast) var(--soda-ease-out),
+    background-color var(--soda-motion-fast) var(--soda-ease-out);
+}
+
+.f5v-shell :is(input, select, textarea):focus-visible {
+  border-color: var(--soda-accent);
+  background-color: var(--soda-surface);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--soda-accent) 12%, transparent);
+}
+
+.f5v-shell
+  :is(
+    .button,
+    .filter-select__trigger,
+    .scanner-account-picker__trigger,
+    .optimizer-plan__back-link
+  ) {
+  border-radius: var(--soda-radius-control);
+  text-underline-offset: 4px;
+}
+
+.f5v-shell :is(.filter-select__trigger, .scanner-account-picker__trigger) {
+  min-height: var(--soda-control-height);
+  font-size: var(--soda-type-control);
+  line-height: 1.4;
+}
+
+.f5v-shell :is(p, li, dd) {
+  word-break: normal;
+}
+
+.f5v-shell :is(.decision-conditions, .f5v-box-team-preview__gaps) {
+  overflow-wrap: break-word;
+}
+
+.f5v-shell :is(.f5v-box-team-row__identity strong, .f5v-box-team-preview__title-line h2) {
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
+
+.f5v-shell :is(.f5v-box-team-row, .f5v-box-team-decision-card) {
+  border-radius: var(--soda-radius-surface);
+  transition:
+    border-color var(--soda-motion-fast) var(--soda-ease-out),
+    background-color var(--soda-motion-fast) var(--soda-ease-out);
+}
+
+.f5v-shell :is(.f5v-box-team-row, .f5v-box-team-decision-card).is-selected {
+  border-color: var(--soda-accent);
+  background: color-mix(in srgb, var(--soda-accent) 10%, var(--soda-surface));
+  animation: soda-choice-confirm 220ms var(--soda-ease-out);
+}
+
+.f5v-shell .f5v-box-team-row__identity > .f5v-box-team-reference {
+  justify-self: start;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.f5v-shell .f5v-box-team-row__identity strong {
+  line-height: 1.45;
+}
+
+.f5v-shell .f5v-box-team-preview__title-line {
+  gap: var(--soda-space-2);
+}
+
+.f5v-shell .f5v-box-team-member-role {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  line-height: 1.4;
+}
+
+.f5v-shell :is(.f5v-box-team-decision-summary, .decision-conditions) li {
+  padding-inline-start: 2px;
+  line-height: 1.65;
+}
+
+.f5v-shell
+  :is(.f5v-box-team-decision-summary, .warehouse-action-drawer, .team-execution__workspace)
+  :is(h2, h3) {
+  text-wrap: balance;
+}
+
+.f5v-shell details > summary {
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1px;
+}
+
+.f5v-shell details > summary::marker {
+  color: var(--soda-accent);
+}
+
+.f5v-shell details[open] > summary {
+  color: var(--soda-text);
+}
+
+.f5v-shell .f5v-content a:not(.button):hover {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+.f5v-shell [data-f5-scroll-owner] {
+  scrollbar-color: var(--soda-line-strong) transparent;
+}
+
+.f5v-shell .f5v-page-frame:has(.workbench--single-page) {
+  scrollbar-gutter: stable;
+}
+
+.f5v-shell .f5-route-boundary {
+  min-height: 0;
+  gap: var(--soda-space-4);
+  padding: var(--soda-space-6);
+  background: var(--soda-surface);
+}
+
+@keyframes soda-choice-confirm {
+  from {
+    background-color: color-mix(in srgb, var(--soda-accent) 18%, var(--soda-surface));
+    box-shadow: inset 3px 0 0 var(--soda-accent);
+  }
+  to {
+    background-color: color-mix(in srgb, var(--soda-accent) 10%, var(--soda-surface));
+    box-shadow: inset 0 0 0 transparent;
+  }
+}

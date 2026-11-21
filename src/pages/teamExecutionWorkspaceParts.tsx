@@ -1,20 +1,20 @@
 import { TeamExecutionGraduationReference } from './TeamExecutionGraduationReference'
 import { TeamExecutionAttributeTable } from './TeamExecutionAttributeTable'
 import type { ReactNode } from 'react'
-import { detailedTeamAttributeRows, visibleTeamAttributeRows } from './teamExecutionAttributeRows'
+import { visibleTeamAttributeRows } from './teamExecutionAttributeRows'
 import type { CoreWarehouse } from '../accounts/coreFlow'
 import { VisualEntityImage } from '../components/VisualEntityImage'
-import { ExplanationPopover } from '../components/ExplanationPopover'
 import type { CandidateWarehouseConstraint } from '../gameDataPacks/candidateWarehouseConstraints'
 import {
   incompleteTeamLoadoutMessage,
   isIncompleteTeamDiscReason,
   playerFacingExecutionBlocker,
-  type TeamExecutionDiscPresentation,
-} from './teamExecutionPresentation'
+} from '@soda/team-execution-blocker-presentation'
 import type { TeamExecutionAttributePanel } from './teamExecutionAttributePanel'
-import { DevelopmentDiscCard } from '../features/agentDevelopmentGolden/DevelopmentDiscCard'
-import '../features/agentDevelopmentGolden/development-disc-card.css'
+import { playerFacingTeamSchemeNote } from './teamExecutionPlayerText'
+
+export { TeamExecutionDiscCard } from './teamExecutionDiscCard'
+export { SavedPlanExecutionRefreshStatus } from './SavedPlanExecutionRefreshStatus'
 
 export type TeamExecutionSelectedMember = ReturnType<
   typeof import('./teamExecutionPresentation').presentTeamExecution
@@ -23,34 +23,9 @@ export type TeamExecutionSelectedMember = ReturnType<
 export function MissingTeamDiscsNotice({ count }: { count: number }) {
   return count ? (
     <p className="team-execution__disc-missing" role="status">
-      有 {count} 张方案驱动盘当前不在仓库；原记录已保留，未自动缩减或替换。
+      有 {count} 张方案驱动盘当前不在仓库。
     </p>
   ) : null
-}
-
-export function SavedPlanExecutionRefreshStatus({
-  state,
-  onRetry,
-}: {
-  state: 'loading' | 'mismatch' | 'error'
-  onRetry?: () => void
-}) {
-  return (
-    <section className="panel status-card" role="status" aria-label="已保存盘面评分">
-      <p>
-        {state === 'loading'
-          ? '正在更新配装评分…'
-          : state === 'mismatch'
-            ? '已保留原配装，重新匹配后可查看新评分。'
-            : '评分暂时无法加载，已保存的配装仍可查看。'}
-      </p>
-      {state !== 'loading' && onRetry ? (
-        <button className="button button--secondary" type="button" onClick={onRetry}>
-          重试读取当前评分
-        </button>
-      ) : null}
-    </section>
-  )
 }
 
 export function TeamMemberVisual({
@@ -103,98 +78,6 @@ export function WEngineVisual({
   )
 }
 
-function discStateLabel(state: TeamExecutionDiscPresentation['state']) {
-  return state === 'keep'
-    ? '保持'
-    : state === 'borrow'
-      ? '借用'
-      : state === 'recorded'
-        ? '方案用盘'
-        : '替换当前装备'
-}
-
-export function TeamExecutionDiscCard({
-  disc,
-  condensed = false,
-}: {
-  disc: TeamExecutionDiscPresentation
-  condensed?: boolean
-}) {
-  if (!condensed) {
-    return (
-      <li
-        aria-label={`${disc.slot}号位 · ${discStateLabel(disc.state)}`}
-        className={`team-execution__disc-card team-execution__shared-disc is-${disc.state}`}
-      >
-        <DevelopmentDiscCard disc={disc} />
-        {disc.state === 'borrow' || disc.state === 'change' ? (
-          <span className="team-execution__shared-disc-action">{discStateLabel(disc.state)}</span>
-        ) : null}
-      </li>
-    )
-  }
-  return (
-    <li
-      aria-label={`${disc.slot}号位 · ${discStateLabel(disc.state)}`}
-      className={`team-execution__disc-card is-${disc.state}`}
-    >
-      <header>
-        <span>
-          {disc.slot}号位 · +{disc.level}
-        </span>
-        {(disc.grade !== '未评定' || disc.score !== undefined) && (
-          <b>
-            {disc.score === undefined
-              ? disc.grade
-              : disc.grade === '未评定'
-                ? `评分 ${disc.score}`
-                : `${disc.grade} · ${disc.score}`}
-          </b>
-        )}
-      </header>
-      <div className="team-execution__disc-main">
-        {disc.visual ? (
-          <VisualEntityImage
-            className="team-execution__disc-visual"
-            entityId={disc.visual.entityId}
-            entityType={disc.visual.entityType}
-            name={disc.visual.name}
-            slotId="drive-disc-set.icon"
-            consumer="box.team-workspace"
-          />
-        ) : null}
-        <small>{disc.set}</small>
-        <strong>{disc.main}</strong>
-        <b>{disc.mainValue}</b>
-      </div>
-      {condensed ? (
-        <p className="team-execution__disc-substats-summary">
-          {disc.subs[0]?.name} {disc.subs[0]?.value} · 另 {Math.max(0, disc.subs.length - 1)} 条
-        </p>
-      ) : (
-        <ul className="team-execution__disc-substats" aria-label="副词条">
-          {disc.subs.map((sub) => (
-            <li
-              className={sub.effective ? 'is-effective' : undefined}
-              key={`${sub.name}-${sub.value}`}
-            >
-              <span>{sub.name}</span>
-              <em>{sub.hits > 0 ? `+${sub.hits}` : ''}</em>
-              <b>{sub.value}</b>
-            </li>
-          ))}
-        </ul>
-      )}
-      {disc.state === 'borrow' || disc.state === 'change' ? (
-        <footer>
-          {/\d/.test(disc.effective) ? <span>有效副属性 {disc.effective}</span> : null}
-          <em>{discStateLabel(disc.state)}</em>
-        </footer>
-      ) : null}
-    </li>
-  )
-}
-
 export function TeamExecutionLoadoutSummary({
   view,
   selectedMember,
@@ -222,10 +105,16 @@ export function TeamExecutionLoadoutSummary({
     ...new Set(
       schemeDegradeReasons
         .filter((reason) => hasCompleteTeamLoadout || !isIncompleteTeamDiscReason(reason))
-        .map(playerFacingExecutionBlocker),
+        .map((reason) => playerFacingTeamSchemeNote(playerFacingExecutionBlocker(reason))),
     ),
-  ]
-  if (hideEngine && !blockers.length && !degradeReasons.length) return null
+  ].filter(Boolean)
+  const notes = [
+    ...new Set([
+      ...blockers.map((reason) => playerFacingTeamSchemeNote(playerFacingExecutionBlocker(reason))),
+      ...degradeReasons,
+    ]),
+  ].filter(Boolean)
+  if (hideEngine && !notes.length) return null
   return (
     <section
       className="team-execution__loadout-summary"
@@ -250,13 +139,12 @@ export function TeamExecutionLoadoutSummary({
         </>
       ) : null}
       <div className="team-execution__summary-followup">
-        {blockers.length ? (
-          <p className="team-execution__loadout-impact">注意：{blockers.join('；')}</p>
+        {notes.length ? (
+          <p className="team-execution__scheme-note">
+            <span>{notes.join('；')}</span>
+          </p>
         ) : null}
       </div>
-      {degradeReasons.length ? (
-        <p className="team-execution__scheme-degrade">方案注意：{degradeReasons.join('；')}</p>
-      ) : null}
     </section>
   )
 }
@@ -265,10 +153,18 @@ export function TeamExecutionAttributeInspector({
   selectedMember,
   attributePanel,
   accountId,
+  matchedAttributeKeys,
+  selectedAttributeKey,
+  onSelectAttribute,
+  onDeselectAttribute,
 }: {
   selectedMember: TeamExecutionSelectedMember
   attributePanel: TeamExecutionAttributePanel | null
   accountId?: string
+  matchedAttributeKeys?: ReadonlySet<string>
+  selectedAttributeKey?: string | null
+  onSelectAttribute?: (keyOrLabel: string) => void
+  onDeselectAttribute?: () => void
 }) {
   const hasCompleteSuggestedLoadout =
     selectedMember.discFacts.length === 6 && selectedMember.missingDiscIds.length === 0
@@ -292,7 +188,7 @@ export function TeamExecutionAttributeInspector({
       : attributePanel?.source.outOfCombat.status === 'baseline'
         ? '局外面板（基线）'
         : attributePanel?.source.outOfCombat.wEngineId
-          ? '局外面板（缺资料）'
+          ? '局外面板'
           : '局外面板（缺音擎）'
   return (
     <aside className="team-execution__inspector" aria-label="角色详细属性">
@@ -307,24 +203,6 @@ export function TeamExecutionAttributeInspector({
           <h3>角色详细属性</h3>
         </div>
         <div className="team-execution__attribute-actions">
-          {attributePanel?.rows.length ? (
-            <ExplanationPopover
-              key={`${accountId ?? ''}:${selectedMember.agentId}`}
-              label="查看完整面板"
-              title="角色完整面板"
-              closeLabel="关闭完整面板"
-              className="team-execution__more-attributes"
-            >
-              <TeamExecutionAttributeTable
-                rows={detailedTeamAttributeRows(attributePanel?.rows ?? [])}
-                label={`${selectedMember.agentName}完整面板`}
-                accountLabel={outOfCombatColumn}
-                proposedLabel={currentColumn}
-                hasFinalPanel={attributePanel?.source.current.status === 'exact'}
-                showAccount={showAccountColumn}
-              />
-            </ExplanationPopover>
-          ) : null}
           {attributePanel ? (
             <TeamExecutionGraduationReference
               panel={attributePanel}
@@ -345,8 +223,8 @@ export function TeamExecutionAttributeInspector({
               {attributePanel.source.outOfCombat.discIds.length < 6
                 ? `当前配装未记录完整六盘（${attributePanel.source.outOfCombat.discIds.length}/6），暂不能比较。`
                 : !attributePanel.source.outOfCombat.wEngineId
-                  ? '当前音擎资料未补齐，暂不能比较。'
-                  : `当前面板未计算：${attributePanel.source.outOfCombat.reason ?? '资料尚未补齐。'}`}
+                  ? '当前音擎未记录，暂不能比较。'
+                  : '当前面板暂时无法计算。'}
             </p>
           ) : null}
           {!showTargetColumn ? <p>暂无可量化的毕业推荐。</p> : null}
@@ -372,6 +250,10 @@ export function TeamExecutionAttributeInspector({
             proposedLabel={currentColumn}
             hasFinalPanel={attributePanel.source.current.status === 'exact'}
             showAccount={showAccountColumn}
+            matchedKeys={matchedAttributeKeys}
+            selectedKey={selectedAttributeKey}
+            onSelectRow={onSelectAttribute}
+            onDeselect={onDeselectAttribute}
           />
         </>
       ) : !attributePanel ? (

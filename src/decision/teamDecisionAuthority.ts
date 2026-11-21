@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import { stableContentHash } from '../gameDataPacks/types'
+import { teamReferenceIntervalSchema } from './teamReferenceInterval'
 
 const identifierSchema = z.string().min(1)
 const explanationSchema = z.string().min(1)
@@ -47,7 +48,7 @@ export type TeamRatingDimension = (typeof teamRatingDimensions)[number]
 export const teamFeatureBands = ['excellent', 'good', 'mixed', 'weak', 'unknown'] as const
 export type TeamFeatureBand = (typeof teamFeatureBands)[number]
 
-export const teamRatingBands = ['S+', 'S', 'A+', 'A', 'B', 'Experimental'] as const
+export const teamRatingBands = ['S+', 'S', 'A+', 'A', 'B+', 'B', 'C', 'Experimental'] as const
 export type TeamRatingBand = (typeof teamRatingBands)[number]
 
 export const decisionConfidenceBands = ['high', 'medium', 'low', 'experimental'] as const
@@ -280,6 +281,8 @@ export const teamRatingResultSchema = z.discriminatedUnion('status', [
       featureFingerprint: identifierSchema,
       ratingBand: z.enum(teamRatingBands),
       confidence: z.enum(decisionConfidenceBands),
+      referenceInterval: teamReferenceIntervalSchema.optional(),
+      playAdmission: z.literal('complete_conditional_play').optional(),
       explanation: explanationSchema,
       tradeoffs: z.array(explanationSchema),
     })
@@ -389,12 +392,16 @@ export function createCultivationPriorityInput(raw: unknown): CultivationPriorit
 }
 
 export function deriveCultivationPriorityTier(
-  input: CultivationPriorityInput,
+  input: Pick<
+    CultivationPriorityInput,
+    'teamRating' | 'currentReadiness' | 'investmentCost' | 'assetConflict'
+  >,
 ): CultivationPriorityTier {
   if (
     input.teamRating.status !== 'rated' ||
-    input.teamRating.ratingBand === 'Experimental' ||
-    input.teamRating.confidence === 'experimental' ||
+    ((input.teamRating.ratingBand === 'Experimental' ||
+      input.teamRating.confidence === 'experimental') &&
+      input.teamRating.playAdmission !== 'complete_conditional_play') ||
     input.currentReadiness === 'blocked' ||
     input.assetConflict === 'blocking'
   )

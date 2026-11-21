@@ -98,7 +98,9 @@ const ratingRank: Record<TeamRatingBand, number> = {
   S: 1,
   'A+': 2,
   A: 3,
+  'B+': 3.5,
   B: 4,
+  C: 4.5,
   Experimental: 5,
 }
 

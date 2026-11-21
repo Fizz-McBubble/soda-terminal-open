@@ -32,6 +32,7 @@
     "game_window_not_foreground",
     "game_window_not_visible",
     "window_geometry_changed",
+    "input_position_failed",
     "ppocrv6_detail_geometry_incompatible",
     "warehouse_context_lost",
     "panel_capture_timeout",
@@ -156,7 +157,16 @@
     "structureOneRowScore": 100000,
     "structureTwoRowScore": 100000,
     "movementDistance": 100000,
-    "positionMovementDistance": 100000
+    "positionMovementDistance": 100000,
+    "sample": 100000,
+    "noMoveScore": 100000,
+    "oneRowScore": 100000,
+    "twoRowScore": 100000,
+    "bestScore": 100000,
+    "secondScore": 100000,
+    "margin": 100000,
+    "movedDistance": 100000,
+    "frameDistance": 100000
   },
   "evidenceBooleans": [
     "resetThumbReferenceKnown",
@@ -211,6 +221,7 @@
       "scrollbar_grid_movement_conflict",
       "scrollbar_row_structure_conflict",
       "scrollbar_no_move_confirmed",
+      "scrollbar_and_leading_phase_no_move",
       "scrollbar_1_row_position_confirmed",
       "scrollbar_2_row_position_confirmed",
       "scrollbar_1_row_position_confirmed_weak_structure_override",
@@ -219,6 +230,9 @@
       "unknown"
     ],
     "positionDecision": ["NoMove", "OneRow", "TwoRows", "Ambiguous"],
+    "decision": ["NoMove", "OneRow", "TwoRows", "Ambiguous"],
+    "direction": ["up", "down"],
+    "observationPhase": ["FastProbe", "Settle", "PostCursorRelease"],
     "scrollbarDirection": ["up", "down", "stationary", "unavailable"],
     "diagnosticSource": [
       "terminal_details",
@@ -277,6 +291,26 @@
       "unscanned_rows_at_bottom",
       "traversal_iteration_limit",
       "scroll_top_position_unconfirmed",
+      "no_structural_match",
+      "insufficient_margin",
+      "no_move_structurally_confirmed",
+      "positive_shift_without_grid_movement",
+      "one_row_structurally_confirmed",
+      "two_rows_structurally_confirmed",
+      "scrollbar_moved_opposite_direction",
+      "scrollbar_position_between_rows",
+      "scrollbar_advanced_more_than_two_rows",
+      "scrollbar_grid_movement_conflict",
+      "scrollbar_row_structure_conflict",
+      "scrollbar_no_move_confirmed",
+      "scrollbar_1_row_position_confirmed",
+      "scrollbar_2_row_position_confirmed",
+      "scrollbar_1_row_position_confirmed_weak_structure_override",
+      "scrollbar_2_row_position_confirmed_weak_structure_override",
+      "insufficient_stable_confirmation",
+      "scrollbar_overshot_above_single_row_limit",
+      "scroll_no_movement_after_max_ticks",
+      "cursor_release_unconfirmed",
       "unknown",
       "native_progress_unavailable",
       "fork_start_failed",
@@ -422,7 +456,7 @@
       "output_write_failed"
     ],
     "versionPatterns": {
-      "bridge": "^(?:1\\.0\\.\\d{1,3}|1\\.1\\.0)$",
+      "bridge": "^(?:1\\.0\\.\\d{1,3}|1\\.1\\.[01])$",
       "protocol": "^1$"
     },
     "countLimits": {
@@ -557,6 +591,15 @@
       "installer_cancelled",
       "another_installer_is_running",
       "offline_payload_unavailable",
+      "installer_download_unavailable",
+      "installer_download_request_failed",
+      "installer_download_rate_limited",
+      "installer_download_timeout",
+      "installer_download_incomplete",
+      "installer_download_integrity_mismatch",
+      "installer_download_storage_failed",
+      "installer_download_save_failed",
+      "installer_download_release_changed",
       "payload_file_set_mismatch",
       "payload_link_or_duplicate",
       "payload_catalog_mismatch",
@@ -604,7 +647,7 @@
     "maxAttempts": 16,
     "maxItemIndex": 2,
     "durationMaxMs": 3600000,
-    "versionPattern": "^(?:1\\.[01]\\.\\d{1,3}|1\\.2\\.0)$"
+    "versionPattern": "^(?:1\\.[01]\\.\\d{1,3}|1\\.2\\.[01]|1\\.3\\.0)$"
   },
   "screenScannerInstaller": {
     "stages": [
@@ -640,13 +683,30 @@
       "linked_path_rejected",
       "catalog_path_rejected",
       "another_installer_is_running",
-      "scanner_still_running"
+      "scanner_still_running",
+      "installer_download_unavailable",
+      "installer_download_request_failed",
+      "installer_download_rate_limited",
+      "installer_download_timeout",
+      "installer_download_incomplete",
+      "installer_download_integrity_mismatch",
+      "installer_download_storage_failed",
+      "installer_download_save_failed",
+      "installer_download_release_changed"
     ],
     "attemptSources": [],
     "attemptCodes": [],
     "maxAttempts": 0,
     "maxItemIndex": 0,
     "durationMaxMs": 3600000,
-    "versionPattern": "^1\\.[12]\\.\\d{1,3}$"
+    "versionPattern": "^(?:1\\.[12]\\.\\d{1,3}|1\\.3\\.0)$"
+  },
+  "installerDownload": {
+    "versionPattern": "^(?:0|[1-9]\\d{0,2})\\.(?:0|[1-9]\\d{0,2})\\.(?:0|[1-9]\\d{0,2})$",
+    "phases": ["manifest", "range", "verify", "storage", "save"],
+    "waitReasons": ["none", "rate_limit", "server_busy", "network", "timeout"],
+    "httpStatuses": [200, 206, 400, 403, 404, 408, 416, 425, 429, 500, 502, 503, 504],
+    "maxBytes": 1073741824,
+    "maxAttempts": 1024
   }
 }

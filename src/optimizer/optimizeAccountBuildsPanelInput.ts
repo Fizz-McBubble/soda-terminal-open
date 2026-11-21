@@ -3,20 +3,33 @@ import type { CandidatePanelInput } from './optimizeBuild'
 import { hasCandidatePanelObjective } from './candidatePanelObjective'
 import { hasCurrentWEngineProgression } from '../decision/wEngineResolver'
 import { supportsCandidateEffectiveCritObjectiveAgent } from './candidateEffectiveCritObjective'
+
+export type CandidateSchemeAgentPlanningState = {
+  mindscape?: number | null
+  potentialImage?: number | null
+}
+
+type CandidatePanelAgentBase = Pick<
+  RosterAgent,
+  | 'agentId'
+  | 'level'
+  | 'ascension'
+  | 'skillLevels'
+  | 'wEngineDetails'
+  | 'potentialImage'
+  | 'observedFacts'
+>
+
+type CandidatePanelAgentInput = CandidatePanelAgentBase & CandidateSchemeAgentPlanningState
+
 export function candidatePanelInputForAgent(
-  agent:
-    | Pick<
-        RosterAgent,
-        | 'agentId'
-        | 'level'
-        | 'ascension'
-        | 'skillLevels'
-        | 'wEngineDetails'
-        | 'mindscape'
-        | 'potentialImage'
-        | 'observedFacts'
-      >
-    | undefined,
+  agent: CandidatePanelAgentBase & { mindscape: number },
+): (CandidatePanelInput & { mindscape: number }) | undefined
+export function candidatePanelInputForAgent(
+  agent: CandidatePanelAgentInput | undefined,
+): CandidatePanelInput | undefined
+export function candidatePanelInputForAgent(
+  agent: CandidatePanelAgentInput | undefined,
 ): CandidatePanelInput | undefined {
   if (
     !agent ||
@@ -79,7 +92,13 @@ export function candidatePanelInputForAgent(
 export function candidatePanelInputForSchemeAgent(
   agent: RosterAgent,
   engine: { engineId: string; refinement: number; level?: number; ascension?: number | null },
+  planningState?: CandidateSchemeAgentPlanningState,
 ): CandidatePanelInput | undefined {
+  const hasPlannedMindscape =
+    planningState !== undefined && Object.prototype.hasOwnProperty.call(planningState, 'mindscape')
+  const hasPlannedPotential =
+    planningState !== undefined &&
+    Object.prototype.hasOwnProperty.call(planningState, 'potentialImage')
   return candidatePanelInputForAgent({
     ...agent,
     observedFacts: undefined,
@@ -90,5 +109,7 @@ export function candidatePanelInputForSchemeAgent(
       ascension: engine.ascension === undefined ? 5 : engine.ascension,
       refinement: engine.refinement,
     },
+    mindscape: hasPlannedMindscape ? planningState?.mindscape : agent.mindscape,
+    potentialImage: hasPlannedPotential ? planningState.potentialImage : agent.potentialImage,
   })
 }

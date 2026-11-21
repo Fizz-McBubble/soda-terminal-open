@@ -1,15 +1,23 @@
 .f5v-shell .testing-badge > .explanation__trigger {
   min-height: 0;
   padding: 2px 5px;
-  border-radius: 4px;
-  background: #e9e3f5;
-  color: #55427c;
-  font-size: 0.625rem;
-  font-weight: 800;
+  border: 1px solid var(--soda-line);
+  border-radius: var(--soda-radius-tag);
+  background: var(--soda-surface-raised);
+  color: var(--soda-text-2);
+  font-size: var(--soda-type-meta);
+  font-weight: 700;
   line-height: 1.5;
   letter-spacing: 0;
   white-space: nowrap;
   --explanation-underline: none;
+}
+
+.f5v-shell .testing-badge--test > .explanation__trigger {
+  border-color: #e5cf98;
+  background: #fff4d8;
+  color: var(--soda-amber);
+  font-weight: 800;
 }
 
 .f5v-shell .testing-badge {
@@ -24,12 +32,12 @@
 }
 
 .f5v-navigation .f5v-navigation__testing-row > a {
-  padding-right: 52px;
+  padding-right: 42px;
 }
 
 .f5v-navigation__testing-row > .testing-badge {
   position: absolute;
-  right: 12px;
+  right: 8px;
   top: 50%;
   transform: translateY(-50%);
 }

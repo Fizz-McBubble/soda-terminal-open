@@ -4,7 +4,14 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { convertAssetSnapshot } from './snapshotAdapter'
 import { potentialDetailSourceContract, observePotentialDetail } from './potentialDetailObservation'
-import { omitted, present, syntheticAssetSnapshot } from './syntheticAssetSnapshotTestFixture'
+import {
+  omitted,
+  present,
+  syntheticAssetSnapshot,
+  syntheticAssetSnapshot33,
+} from './syntheticAssetSnapshotTestFixture'
+import { createEmptyRoster, hydrateRosterDefaults } from '../accounts/rosterHydration'
+import { mergeAssetQuickReadRoster } from './accountRosterMerge'
 import projection from './potentialDetailProjection.json'
 
 const context = { snapshotSha256: 'a'.repeat(64) }
@@ -19,6 +26,41 @@ function withPotential(
 }
 
 describe('source-bound observed potential detail IDs', () => {
+  it('retains the old observed potential and its 3.2 provenance through a 3.3 import and refresh', () => {
+    const previousTime = '2026-10-01T00:00:00.000Z'
+    const roster = createEmptyRoster(previousTime)
+    const candidate = convertAssetSnapshot(syntheticAssetSnapshot33(), context)
+    const id = candidate.agents[0].agentId
+    const existing = roster.agents.find((agent) => agent.agentId === id)!
+    existing.potentialImage = 5
+    existing.observedFacts = {
+      schemaVersion: 1,
+      source: 'asset_quick_read',
+      protocolVersion: '3.2',
+      fields: { potentialImage: { capturedAt: previousTime, snapshotSha256: 'b'.repeat(64) } },
+    }
+    const merged = mergeAssetQuickReadRoster(
+      roster,
+      candidate,
+      new Map([['asset-quick-read:990001', 'synthetic-disc']]),
+      undefined,
+    )
+    const current = hydrateRosterDefaults(
+      JSON.parse(JSON.stringify(merged.roster)),
+      candidate.capturedAt,
+    ).agents.find((agent) => agent.agentId === id)!
+    expect(current.potentialImage).toBe(5)
+    expect(current.observedFacts?.protocolVersion).toBe('3.3')
+    expect(current.observedFacts?.fields.potentialImage).toEqual({
+      capturedAt: previousTime,
+      snapshotSha256: 'b'.repeat(64),
+      protocolVersion: '3.2',
+    })
+    expect(current.observedFacts?.fields.level).toEqual({
+      capturedAt: candidate.capturedAt,
+      snapshotSha256: candidate.snapshotSha256,
+    })
+  })
   it.each([
     [1191, 119105, 6],
     [1101, 110105, 6],

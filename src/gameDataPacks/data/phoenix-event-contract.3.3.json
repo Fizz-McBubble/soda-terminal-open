@@ -1,0 +1,2454 @@
+{
+  "schema": "soda-current-agent-event-overlay/v1",
+  "gameVersion": "3.3",
+  "agentId": "agent-phoenix",
+  "stableId": "agent-phoenix",
+  "externalId": "1641",
+  "upstreamKey": "Phoenix",
+  "identity": {
+    "rarity": "S",
+    "attribute": "fire",
+    "specialty": "anomaly",
+    "faction": "KrampusComplianceAuthority"
+  },
+  "baseStats": {
+    "atk_base": 126,
+    "atk_growth": 7.586,
+    "def_base": 49,
+    "def_growth": 6.6882,
+    "hp_base": 617,
+    "hp_growth": 83.7238,
+    "anomMas": 116,
+    "anomProf": 118,
+    "impact": 86,
+    "enerRegen": 1.2
+  },
+  "promotionStats": [
+    {
+      "hp": 0,
+      "atk": 0,
+      "def": 0
+    },
+    {
+      "hp": 423,
+      "atk": 45,
+      "def": 34
+    },
+    {
+      "hp": 847,
+      "atk": 90,
+      "def": 68
+    },
+    {
+      "hp": 1270,
+      "atk": 134,
+      "def": 101
+    },
+    {
+      "hp": 1694,
+      "atk": 179,
+      "def": 135
+    },
+    {
+      "hp": 2117,
+      "atk": 224,
+      "def": 169
+    }
+  ],
+  "coreStats": [
+    {
+      "atk": 0,
+      "anomMas": 12
+    },
+    {
+      "atk": 25,
+      "anomMas": 12
+    },
+    {
+      "atk": 25,
+      "anomMas": 24
+    },
+    {
+      "atk": 50,
+      "anomMas": 24
+    },
+    {
+      "atk": 50,
+      "anomMas": 36
+    },
+    {
+      "atk": 75,
+      "anomMas": 36
+    }
+  ],
+  "eventContract": {
+    "schema": "soda-agent-event-contract/v1",
+    "operatorKinds": ["linear_skill_level", "constant"],
+    "eventDimensions": ["direct_damage", "daze_buildup", "anomaly_buildup"],
+    "interpretation": "limited_nanoka_source_parameter_projection_not_exact_hit_sequence_or_formula_authority",
+    "events": [
+      {
+        "eventId": "basic.nanoka-1641001.source-parameter",
+        "skill": "basic",
+        "actionId": "BasicAttackLifeJudgment",
+        "hitIndex": 0,
+        "sourceSkillId": "1641001",
+        "eventGranularity": "source_skill_parameter_aggregate_not_individual_hit",
+        "operators": {
+          "damageMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 0.156,
+            "growthPerLevel": 0.015,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "dazeMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 0.132,
+            "growthPerLevel": 0.006,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "anomalyBuildup": {
+            "kind": "constant",
+            "value": 12
+          }
+        },
+        "sourceParameters": {
+          "damage_percentage": 1560,
+          "damage_percentage_growth": 150,
+          "stun_ratio": 1320,
+          "stun_ratio_growth": 60,
+          "sp_recovery": 3240,
+          "sp_recovery_growth": 0,
+          "fever_recovery": 33000,
+          "fever_recovery_growth": 0,
+          "attribute_infliction": 1200,
+          "sp_consume": 0,
+          "attack_data": [0],
+          "rp_recovery": 0,
+          "rp_recovery_growth": 0,
+          "ether_purify": 1200
+        },
+        "resourceParameters": {
+          "sp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 3240,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_sp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "fever_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 33000,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_fever_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "rp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_rp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "sp_consume": {
+            "operator": {
+              "kind": "constant",
+              "value": 0
+            },
+            "unit": "nanoka_raw_sp_consume",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "ether_purify": {
+            "operator": {
+              "kind": "constant",
+              "value": 1200
+            },
+            "unit": "nanoka_raw_ether_purify",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          }
+        },
+        "sourceLocator": "skill.basic:param.1641001",
+        "scalingAttribute": "atk",
+        "formulaFamily": "standard_direct_damage",
+        "damageType": "basic",
+        "formulaProjection": "reviewed_source_aggregate",
+        "formulaBinding": {
+          "status": "limited",
+          "reason": "Reviewed action aggregate and damage channel; conditional additions, individual hits and resource/timing closure remain unbound.",
+          "sourceName": "普通攻击：裁生",
+          "descriptionLocator": "skill.basic.description:普通攻击：裁生",
+          "requiredState": null,
+          "automaticPlanningEligible": true,
+          "formalEligible": false
+        },
+        "attribute": "fire",
+        "eventModifierRefs": []
+      },
+      {
+        "eventId": "basic.nanoka-1641002.source-parameter",
+        "skill": "basic",
+        "actionId": "BasicAttackLifeJudgment",
+        "hitIndex": 1,
+        "sourceSkillId": "1641002",
+        "eventGranularity": "source_skill_parameter_aggregate_not_individual_hit",
+        "operators": {
+          "damageMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 0.677,
+            "growthPerLevel": 0.062,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "dazeMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 0.455,
+            "growthPerLevel": 0.021,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "anomalyBuildup": {
+            "kind": "constant",
+            "value": 41.33
+          }
+        },
+        "sourceParameters": {
+          "damage_percentage": 6770,
+          "damage_percentage_growth": 620,
+          "stun_ratio": 4550,
+          "stun_ratio_growth": 210,
+          "sp_recovery": 12130,
+          "sp_recovery_growth": 0,
+          "fever_recovery": 113850,
+          "fever_recovery_growth": 0,
+          "attribute_infliction": 4133,
+          "sp_consume": 0,
+          "attack_data": [0],
+          "rp_recovery": 0,
+          "rp_recovery_growth": 0,
+          "ether_purify": 4134
+        },
+        "resourceParameters": {
+          "sp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 12130,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_sp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "fever_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 113850,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_fever_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "rp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_rp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "sp_consume": {
+            "operator": {
+              "kind": "constant",
+              "value": 0
+            },
+            "unit": "nanoka_raw_sp_consume",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "ether_purify": {
+            "operator": {
+              "kind": "constant",
+              "value": 4134
+            },
+            "unit": "nanoka_raw_ether_purify",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          }
+        },
+        "sourceLocator": "skill.basic:param.1641002",
+        "scalingAttribute": "atk",
+        "formulaFamily": "standard_direct_damage",
+        "damageType": "basic",
+        "formulaProjection": "reviewed_source_aggregate",
+        "formulaBinding": {
+          "status": "limited",
+          "reason": "Reviewed action aggregate and damage channel; conditional additions, individual hits and resource/timing closure remain unbound.",
+          "sourceName": "普通攻击：裁生",
+          "descriptionLocator": "skill.basic.description:普通攻击：裁生",
+          "requiredState": null,
+          "automaticPlanningEligible": true,
+          "formalEligible": false
+        },
+        "attribute": "fire",
+        "eventModifierRefs": []
+      },
+      {
+        "eventId": "basic.nanoka-1641003.source-parameter",
+        "skill": "basic",
+        "actionId": "BasicAttackLifeJudgment",
+        "hitIndex": 2,
+        "sourceSkillId": "1641003",
+        "eventGranularity": "source_skill_parameter_aggregate_not_individual_hit",
+        "operators": {
+          "damageMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 1.781,
+            "growthPerLevel": 0.162,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "dazeMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 0.975,
+            "growthPerLevel": 0.045,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "anomalyBuildup": {
+            "kind": "constant",
+            "value": 113.62
+          }
+        },
+        "sourceParameters": {
+          "damage_percentage": 17810,
+          "damage_percentage_growth": 1620,
+          "stun_ratio": 9750,
+          "stun_ratio_growth": 450,
+          "sp_recovery": 30230,
+          "sp_recovery_growth": 0,
+          "fever_recovery": 231000,
+          "fever_recovery_growth": 0,
+          "attribute_infliction": 11362,
+          "sp_consume": 0,
+          "attack_data": [70239],
+          "rp_recovery": 0,
+          "rp_recovery_growth": 0,
+          "ether_purify": 8398
+        },
+        "resourceParameters": {
+          "sp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 30230,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_sp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "fever_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 231000,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_fever_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "rp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_rp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "sp_consume": {
+            "operator": {
+              "kind": "constant",
+              "value": 0
+            },
+            "unit": "nanoka_raw_sp_consume",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "ether_purify": {
+            "operator": {
+              "kind": "constant",
+              "value": 8398
+            },
+            "unit": "nanoka_raw_ether_purify",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          }
+        },
+        "sourceLocator": "skill.basic:param.1641003",
+        "scalingAttribute": "atk",
+        "formulaFamily": "standard_direct_damage",
+        "damageType": "basic",
+        "formulaProjection": "reviewed_source_aggregate",
+        "formulaBinding": {
+          "status": "limited",
+          "reason": "Reviewed action aggregate and damage channel; conditional additions, individual hits and resource/timing closure remain unbound.",
+          "sourceName": "普通攻击：裁生",
+          "descriptionLocator": "skill.basic.description:普通攻击：裁生",
+          "requiredState": null,
+          "automaticPlanningEligible": true,
+          "formalEligible": false
+        },
+        "attribute": "fire",
+        "eventModifierRefs": []
+      },
+      {
+        "eventId": "basic.nanoka-1641004.source-parameter",
+        "skill": "basic",
+        "actionId": "BasicAttackLifeJudgment",
+        "hitIndex": 3,
+        "sourceSkillId": "1641004",
+        "eventGranularity": "source_skill_parameter_aggregate_not_individual_hit",
+        "operators": {
+          "damageMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 3.892,
+            "growthPerLevel": 0.354,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "dazeMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 2.086,
+            "growthPerLevel": 0.095,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "anomalyBuildup": {
+            "kind": "constant",
+            "value": 239.17
+          }
+        },
+        "sourceParameters": {
+          "damage_percentage": 38920,
+          "damage_percentage_growth": 3540,
+          "stun_ratio": 20860,
+          "stun_ratio_growth": 950,
+          "sp_recovery": 69950,
+          "sp_recovery_growth": 0,
+          "fever_recovery": 534325,
+          "fever_recovery_growth": 0,
+          "attribute_infliction": 23917,
+          "sp_consume": 0,
+          "attack_data": [169072],
+          "rp_recovery": 0,
+          "rp_recovery_growth": 0,
+          "ether_purify": 19430
+        },
+        "resourceParameters": {
+          "sp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 69950,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_sp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "fever_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 534325,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_fever_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "rp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_rp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "sp_consume": {
+            "operator": {
+              "kind": "constant",
+              "value": 0
+            },
+            "unit": "nanoka_raw_sp_consume",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "ether_purify": {
+            "operator": {
+              "kind": "constant",
+              "value": 19430
+            },
+            "unit": "nanoka_raw_ether_purify",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          }
+        },
+        "sourceLocator": "skill.basic:param.1641004",
+        "scalingAttribute": "atk",
+        "formulaFamily": "standard_direct_damage",
+        "damageType": "basic",
+        "formulaProjection": "reviewed_source_aggregate",
+        "formulaBinding": {
+          "status": "limited",
+          "reason": "Reviewed action aggregate and damage channel; conditional additions, individual hits and resource/timing closure remain unbound.",
+          "sourceName": "普通攻击：裁生",
+          "descriptionLocator": "skill.basic.description:普通攻击：裁生",
+          "requiredState": null,
+          "automaticPlanningEligible": true,
+          "formalEligible": false
+        },
+        "attribute": "fire",
+        "eventModifierRefs": []
+      },
+      {
+        "eventId": "basic.nanoka-1641005.source-parameter",
+        "skill": "basic",
+        "actionId": "BasicAttackPurifyingFlame",
+        "hitIndex": 0,
+        "sourceSkillId": "1641005",
+        "eventGranularity": "source_skill_parameter_aggregate_not_individual_hit",
+        "operators": {
+          "damageMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 5.473,
+            "growthPerLevel": 0.498,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "dazeMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 2.75,
+            "growthPerLevel": 0.125,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "anomalyBuildup": {
+            "kind": "constant",
+            "value": 361.96
+          }
+        },
+        "sourceParameters": {
+          "damage_percentage": 54730,
+          "damage_percentage_growth": 4980,
+          "stun_ratio": 27500,
+          "stun_ratio_growth": 1250,
+          "sp_recovery": 45000,
+          "sp_recovery_growth": 0,
+          "fever_recovery": 687500,
+          "fever_recovery_growth": 0,
+          "attribute_infliction": 36196,
+          "sp_consume": 0,
+          "attack_data": [0],
+          "rp_recovery": 0,
+          "rp_recovery_growth": 0,
+          "ether_purify": 19998
+        },
+        "resourceParameters": {
+          "sp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 45000,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_sp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "fever_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 687500,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_fever_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "rp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_rp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "sp_consume": {
+            "operator": {
+              "kind": "constant",
+              "value": 0
+            },
+            "unit": "nanoka_raw_sp_consume",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "ether_purify": {
+            "operator": {
+              "kind": "constant",
+              "value": 19998
+            },
+            "unit": "nanoka_raw_ether_purify",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          }
+        },
+        "sourceLocator": "skill.basic:param.1641005",
+        "scalingAttribute": "atk",
+        "formulaFamily": "standard_direct_damage",
+        "damageType": "basic",
+        "formulaProjection": "reviewed_source_aggregate",
+        "formulaBinding": {
+          "status": "limited",
+          "reason": "Reviewed action aggregate and damage channel; conditional additions, individual hits and resource/timing closure remain unbound.",
+          "sourceName": "普通攻击：焚罪",
+          "descriptionLocator": "skill.basic.description:普通攻击：焚罪",
+          "requiredState": "fan_flame_at_least_90",
+          "automaticPlanningEligible": false,
+          "formalEligible": false
+        },
+        "attribute": "fire",
+        "eventModifierRefs": []
+      },
+      {
+        "eventId": "basic.nanoka-1641006.source-parameter",
+        "skill": "basic",
+        "actionId": "BasicAttackMeltdown",
+        "hitIndex": 0,
+        "sourceSkillId": "1641006",
+        "eventGranularity": "source_skill_parameter_aggregate_not_individual_hit",
+        "operators": {
+          "damageMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 1.781,
+            "growthPerLevel": 0.162,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "dazeMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 0.963,
+            "growthPerLevel": 0.044,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "anomalyBuildup": {
+            "kind": "constant",
+            "value": 128.79
+          }
+        },
+        "sourceParameters": {
+          "damage_percentage": 17810,
+          "damage_percentage_growth": 1620,
+          "stun_ratio": 9630,
+          "stun_ratio_growth": 440,
+          "sp_recovery": 35280,
+          "sp_recovery_growth": 0,
+          "fever_recovery": 240625,
+          "fever_recovery_growth": 0,
+          "attribute_infliction": 12879,
+          "sp_consume": 0,
+          "attack_data": [80238],
+          "rp_recovery": 0,
+          "rp_recovery_growth": 0,
+          "ether_purify": 8748
+        },
+        "resourceParameters": {
+          "sp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 35280,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_sp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "fever_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 240625,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_fever_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "rp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_rp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "sp_consume": {
+            "operator": {
+              "kind": "constant",
+              "value": 0
+            },
+            "unit": "nanoka_raw_sp_consume",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "ether_purify": {
+            "operator": {
+              "kind": "constant",
+              "value": 8748
+            },
+            "unit": "nanoka_raw_ether_purify",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          }
+        },
+        "sourceLocator": "skill.basic:param.1641006",
+        "scalingAttribute": "atk",
+        "formulaFamily": "standard_direct_damage",
+        "damageType": "basic",
+        "formulaProjection": "reviewed_source_aggregate",
+        "formulaBinding": {
+          "status": "limited",
+          "reason": "Reviewed action aggregate and damage channel; conditional additions, individual hits and resource/timing closure remain unbound.",
+          "sourceName": "普通攻击：熔毁",
+          "descriptionLocator": "skill.basic.description:普通攻击：熔毁",
+          "requiredState": "special_without_perfect_parry",
+          "automaticPlanningEligible": false,
+          "formalEligible": false
+        },
+        "attribute": "fire",
+        "eventModifierRefs": []
+      },
+      {
+        "eventId": "special.nanoka-1641007.source-parameter",
+        "skill": "special",
+        "actionId": "SpecialAttackFireSnatch",
+        "hitIndex": 0,
+        "sourceSkillId": "1641007",
+        "eventGranularity": "source_skill_parameter_aggregate_not_individual_hit",
+        "operators": {
+          "damageMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 0.456,
+            "growthPerLevel": 0.042,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "dazeMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 0.386,
+            "growthPerLevel": 0.018,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "anomalyBuildup": {
+            "kind": "constant",
+            "value": 35
+          }
+        },
+        "sourceParameters": {
+          "damage_percentage": 4560,
+          "damage_percentage_growth": 420,
+          "stun_ratio": 3860,
+          "stun_ratio_growth": 180,
+          "sp_recovery": 0,
+          "sp_recovery_growth": 0,
+          "fever_recovery": 96525,
+          "fever_recovery_growth": 0,
+          "attribute_infliction": 3500,
+          "sp_consume": 0,
+          "attack_data": [0],
+          "rp_recovery": 0,
+          "rp_recovery_growth": 0,
+          "ether_purify": 3501
+        },
+        "resourceParameters": {
+          "sp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_sp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "fever_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 96525,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_fever_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "rp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_rp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "sp_consume": {
+            "operator": {
+              "kind": "constant",
+              "value": 0
+            },
+            "unit": "nanoka_raw_sp_consume",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "ether_purify": {
+            "operator": {
+              "kind": "constant",
+              "value": 3501
+            },
+            "unit": "nanoka_raw_ether_purify",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          }
+        },
+        "sourceLocator": "skill.special:param.1641007",
+        "scalingAttribute": "atk",
+        "formulaFamily": "standard_direct_damage",
+        "damageType": "special",
+        "formulaProjection": "reviewed_source_aggregate",
+        "formulaBinding": {
+          "status": "limited",
+          "reason": "Reviewed action aggregate and damage channel; conditional additions, individual hits and resource/timing closure remain unbound.",
+          "sourceName": "特殊技：掠火",
+          "descriptionLocator": "skill.special.description:特殊技：掠火",
+          "requiredState": null,
+          "automaticPlanningEligible": true,
+          "formalEligible": false
+        },
+        "attribute": "fire",
+        "eventModifierRefs": []
+      },
+      {
+        "eventId": "special.nanoka-1641008.source-parameter",
+        "skill": "special",
+        "actionId": "EXSpecialAttackDazzlingFlame",
+        "hitIndex": 0,
+        "sourceSkillId": "1641008",
+        "eventGranularity": "source_skill_parameter_aggregate_not_individual_hit",
+        "operators": {
+          "damageMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 4.576,
+            "growthPerLevel": 0.416,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "dazeMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 3.119,
+            "growthPerLevel": 0.142,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "anomalyBuildup": {
+            "kind": "constant",
+            "value": 284.4
+          }
+        },
+        "sourceParameters": {
+          "damage_percentage": 45760,
+          "damage_percentage_growth": 4160,
+          "stun_ratio": 31190,
+          "stun_ratio_growth": 1420,
+          "sp_recovery": 0,
+          "sp_recovery_growth": 0,
+          "fever_recovery": 1293600,
+          "fever_recovery_growth": 0,
+          "attribute_infliction": 28440,
+          "sp_consume": 0,
+          "attack_data": [150189],
+          "rp_recovery": 0,
+          "rp_recovery_growth": 0,
+          "ether_purify": 12837
+        },
+        "resourceParameters": {
+          "sp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_sp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "fever_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 1293600,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_fever_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "rp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_rp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "sp_consume": {
+            "operator": {
+              "kind": "constant",
+              "value": 0
+            },
+            "unit": "nanoka_raw_sp_consume",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "ether_purify": {
+            "operator": {
+              "kind": "constant",
+              "value": 12837
+            },
+            "unit": "nanoka_raw_ether_purify",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          }
+        },
+        "sourceLocator": "skill.special:param.1641008",
+        "scalingAttribute": "atk",
+        "formulaFamily": "standard_direct_damage",
+        "damageType": "exSpecial",
+        "formulaProjection": "reviewed_source_aggregate",
+        "formulaBinding": {
+          "status": "limited",
+          "reason": "Reviewed action aggregate and damage channel; conditional additions, individual hits and resource/timing closure remain unbound.",
+          "sourceName": "强化特殊技：眩焰",
+          "descriptionLocator": "skill.special.description:强化特殊技：眩焰",
+          "requiredState": "energy_at_least_40",
+          "automaticPlanningEligible": false,
+          "formalEligible": false
+        },
+        "attribute": "fire",
+        "eventModifierRefs": []
+      },
+      {
+        "eventId": "special.nanoka-1641009.source-parameter",
+        "skill": "special",
+        "actionId": "EXSpecialAttackFallingSun",
+        "hitIndex": 0,
+        "sourceSkillId": "1641009",
+        "eventGranularity": "source_skill_parameter_aggregate_not_individual_hit",
+        "operators": {
+          "damageMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 6.23,
+            "growthPerLevel": 0.567,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "dazeMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 4.105,
+            "growthPerLevel": 0.187,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "anomalyBuildup": {
+            "kind": "constant",
+            "value": 401.19
+          }
+        },
+        "sourceParameters": {
+          "damage_percentage": 62300,
+          "damage_percentage_growth": 5670,
+          "stun_ratio": 41050,
+          "stun_ratio_growth": 1870,
+          "sp_recovery": 0,
+          "sp_recovery_growth": 0,
+          "fever_recovery": 1472075,
+          "fever_recovery_growth": 0,
+          "attribute_infliction": 40119,
+          "sp_consume": 0,
+          "attack_data": [200851],
+          "rp_recovery": 0,
+          "rp_recovery_growth": 0,
+          "ether_purify": 17167
+        },
+        "resourceParameters": {
+          "sp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_sp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "fever_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 1472075,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_fever_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "rp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_rp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "sp_consume": {
+            "operator": {
+              "kind": "constant",
+              "value": 0
+            },
+            "unit": "nanoka_raw_sp_consume",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "ether_purify": {
+            "operator": {
+              "kind": "constant",
+              "value": 17167
+            },
+            "unit": "nanoka_raw_ether_purify",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          }
+        },
+        "sourceLocator": "skill.special:param.1641009",
+        "scalingAttribute": "atk",
+        "formulaFamily": "standard_direct_damage",
+        "damageType": "exSpecial",
+        "formulaProjection": "reviewed_source_aggregate",
+        "formulaBinding": {
+          "status": "limited",
+          "reason": "Reviewed action aggregate and damage channel; conditional additions, individual hits and resource/timing closure remain unbound.",
+          "sourceName": "强化特殊技：坠阳",
+          "descriptionLocator": "skill.special.description:强化特殊技：坠阳",
+          "requiredState": "dazzling_flame_then_energy_at_least_40",
+          "automaticPlanningEligible": false,
+          "formalEligible": false
+        },
+        "attribute": "fire",
+        "eventModifierRefs": []
+      },
+      {
+        "eventId": "dodge.nanoka-1641010.source-parameter",
+        "skill": "dodge",
+        "actionId": "DashAttackLeaningIn",
+        "hitIndex": 0,
+        "sourceSkillId": "1641010",
+        "eventGranularity": "source_skill_parameter_aggregate_not_individual_hit",
+        "operators": {
+          "damageMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 1.04,
+            "growthPerLevel": 0.095,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "dazeMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 0.44,
+            "growthPerLevel": 0.02,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "anomalyBuildup": {
+            "kind": "constant",
+            "value": 39.98
+          }
+        },
+        "sourceParameters": {
+          "damage_percentage": 10400,
+          "damage_percentage_growth": 950,
+          "stun_ratio": 4400,
+          "stun_ratio_growth": 200,
+          "sp_recovery": 14400,
+          "sp_recovery_growth": 0,
+          "fever_recovery": 110000,
+          "fever_recovery_growth": 0,
+          "attribute_infliction": 3998,
+          "sp_consume": 0,
+          "attack_data": [0],
+          "rp_recovery": 0,
+          "rp_recovery_growth": 0,
+          "ether_purify": 3999
+        },
+        "resourceParameters": {
+          "sp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 14400,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_sp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "fever_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 110000,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_fever_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "rp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_rp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "sp_consume": {
+            "operator": {
+              "kind": "constant",
+              "value": 0
+            },
+            "unit": "nanoka_raw_sp_consume",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "ether_purify": {
+            "operator": {
+              "kind": "constant",
+              "value": 3999
+            },
+            "unit": "nanoka_raw_ether_purify",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          }
+        },
+        "sourceLocator": "skill.dodge:param.1641010",
+        "scalingAttribute": "atk",
+        "formulaFamily": "standard_direct_damage",
+        "damageType": "dash",
+        "formulaProjection": "reviewed_source_aggregate",
+        "formulaBinding": {
+          "status": "limited",
+          "reason": "Reviewed action aggregate and damage channel; conditional additions, individual hits and resource/timing closure remain unbound.",
+          "sourceName": "冲刺攻击：倾身",
+          "descriptionLocator": "skill.dodge.description:冲刺攻击：倾身",
+          "requiredState": "after_dodge",
+          "automaticPlanningEligible": false,
+          "formalEligible": false
+        },
+        "attribute": "fire",
+        "eventModifierRefs": []
+      },
+      {
+        "eventId": "dodge.nanoka-1641011.source-parameter",
+        "skill": "dodge",
+        "actionId": "DodgeCounterTwiceThroughFlame",
+        "hitIndex": 0,
+        "sourceSkillId": "1641011",
+        "eventGranularity": "source_skill_parameter_aggregate_not_individual_hit",
+        "operators": {
+          "damageMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 2.962,
+            "growthPerLevel": 0.27,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "dazeMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 2.182,
+            "growthPerLevel": 0.1,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "anomalyBuildup": {
+            "kind": "constant",
+            "value": 98.3
+          }
+        },
+        "sourceParameters": {
+          "damage_percentage": 29620,
+          "damage_percentage_growth": 2700,
+          "stun_ratio": 21820,
+          "stun_ratio_growth": 1000,
+          "sp_recovery": 35390,
+          "sp_recovery_growth": 0,
+          "fever_recovery": 270600,
+          "fever_recovery_growth": 0,
+          "attribute_infliction": 9830,
+          "sp_consume": 0,
+          "attack_data": [0],
+          "rp_recovery": 0,
+          "rp_recovery_growth": 0,
+          "ether_purify": 24831
+        },
+        "resourceParameters": {
+          "sp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 35390,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_sp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "fever_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 270600,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_fever_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "rp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_rp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "sp_consume": {
+            "operator": {
+              "kind": "constant",
+              "value": 0
+            },
+            "unit": "nanoka_raw_sp_consume",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "ether_purify": {
+            "operator": {
+              "kind": "constant",
+              "value": 24831
+            },
+            "unit": "nanoka_raw_ether_purify",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          }
+        },
+        "sourceLocator": "skill.dodge:param.1641011",
+        "scalingAttribute": "atk",
+        "formulaFamily": "standard_direct_damage",
+        "damageType": "dodgeCounter",
+        "formulaProjection": "reviewed_source_aggregate",
+        "formulaBinding": {
+          "status": "limited",
+          "reason": "Reviewed action aggregate and damage channel; conditional additions, individual hits and resource/timing closure remain unbound.",
+          "sourceName": "闪避反击：业火两渡",
+          "descriptionLocator": "skill.dodge.description:闪避反击：业火两渡",
+          "requiredState": "perfect_dodge_counter_available",
+          "automaticPlanningEligible": false,
+          "formalEligible": false
+        },
+        "attribute": "fire",
+        "eventModifierRefs": []
+      },
+      {
+        "eventId": "chain.nanoka-1641012.source-parameter",
+        "skill": "chain",
+        "actionId": "ChainAttackLifeFromDespair",
+        "hitIndex": 0,
+        "sourceSkillId": "1641012",
+        "eventGranularity": "source_skill_parameter_aggregate_not_individual_hit",
+        "operators": {
+          "damageMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 8.827,
+            "growthPerLevel": 0.803,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "dazeMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 2.641,
+            "growthPerLevel": 0.121,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "anomalyBuildup": {
+            "kind": "constant",
+            "value": 612.43
+          }
+        },
+        "sourceParameters": {
+          "damage_percentage": 88270,
+          "damage_percentage_growth": 8030,
+          "stun_ratio": 26410,
+          "stun_ratio_growth": 1210,
+          "sp_recovery": 0,
+          "sp_recovery_growth": 0,
+          "fever_recovery": 2489025,
+          "fever_recovery_growth": 0,
+          "attribute_infliction": 61243,
+          "sp_consume": 0,
+          "attack_data": [199228],
+          "rp_recovery": 0,
+          "rp_recovery_growth": 0,
+          "ether_purify": 24004
+        },
+        "resourceParameters": {
+          "sp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_sp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "fever_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 2489025,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_fever_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "rp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_rp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "sp_consume": {
+            "operator": {
+              "kind": "constant",
+              "value": 0
+            },
+            "unit": "nanoka_raw_sp_consume",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "ether_purify": {
+            "operator": {
+              "kind": "constant",
+              "value": 24004
+            },
+            "unit": "nanoka_raw_ether_purify",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          }
+        },
+        "sourceLocator": "skill.chain:param.1641012",
+        "scalingAttribute": "atk",
+        "formulaFamily": "standard_direct_damage",
+        "damageType": "chain",
+        "formulaProjection": "reviewed_source_aggregate",
+        "formulaBinding": {
+          "status": "limited",
+          "reason": "Reviewed action aggregate and damage channel; conditional additions, individual hits and resource/timing closure remain unbound.",
+          "sourceName": "连携技：绝处逢生",
+          "descriptionLocator": "skill.chain.description:连携技：绝处逢生",
+          "requiredState": "chain_trigger_available",
+          "automaticPlanningEligible": false,
+          "formalEligible": false
+        },
+        "attribute": "fire",
+        "eventModifierRefs": []
+      },
+      {
+        "eventId": "chain.nanoka-1641013.source-parameter",
+        "skill": "chain",
+        "actionId": "UltimateRebirth",
+        "hitIndex": 0,
+        "sourceSkillId": "1641013",
+        "eventGranularity": "source_skill_parameter_aggregate_not_individual_hit",
+        "operators": {
+          "damageMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 18.139,
+            "growthPerLevel": 1.649,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "dazeMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 1.829,
+            "growthPerLevel": 0.084,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "anomalyBuildup": {
+            "kind": "constant",
+            "value": 903.61
+          }
+        },
+        "sourceParameters": {
+          "damage_percentage": 181390,
+          "damage_percentage_growth": 16490,
+          "stun_ratio": 18290,
+          "stun_ratio_growth": 840,
+          "sp_recovery": 0,
+          "sp_recovery_growth": 0,
+          "fever_recovery": 0,
+          "fever_recovery_growth": 0,
+          "attribute_infliction": 90361,
+          "sp_consume": 0,
+          "attack_data": [185430],
+          "rp_recovery": 0,
+          "rp_recovery_growth": 0,
+          "ether_purify": 64119
+        },
+        "resourceParameters": {
+          "sp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_sp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "fever_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_fever_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "rp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_rp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "sp_consume": {
+            "operator": {
+              "kind": "constant",
+              "value": 0
+            },
+            "unit": "nanoka_raw_sp_consume",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "ether_purify": {
+            "operator": {
+              "kind": "constant",
+              "value": 64119
+            },
+            "unit": "nanoka_raw_ether_purify",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          }
+        },
+        "sourceLocator": "skill.chain:param.1641013",
+        "scalingAttribute": "atk",
+        "formulaFamily": "standard_direct_damage",
+        "damageType": "ultimate",
+        "formulaProjection": "reviewed_source_aggregate",
+        "formulaBinding": {
+          "status": "limited",
+          "reason": "Reviewed action aggregate and damage channel; conditional additions, individual hits and resource/timing closure remain unbound.",
+          "sourceName": "终结技：万死重明",
+          "descriptionLocator": "skill.chain.description:终结技：万死重明",
+          "requiredState": "ultimate_decibels_ready",
+          "automaticPlanningEligible": false,
+          "formalEligible": false
+        },
+        "attribute": "fire",
+        "eventModifierRefs": []
+      },
+      {
+        "eventId": "assist.nanoka-1641014.source-parameter",
+        "skill": "assist",
+        "actionId": "QuickAssistFirstAid",
+        "hitIndex": 0,
+        "sourceSkillId": "1641014",
+        "eventGranularity": "source_skill_parameter_aggregate_not_individual_hit",
+        "operators": {
+          "damageMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 0.954,
+            "growthPerLevel": 0.087,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "dazeMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 0.807,
+            "growthPerLevel": 0.037,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "anomalyBuildup": {
+            "kind": "constant",
+            "value": 73.31
+          }
+        },
+        "sourceParameters": {
+          "damage_percentage": 9540,
+          "damage_percentage_growth": 870,
+          "stun_ratio": 8070,
+          "stun_ratio_growth": 370,
+          "sp_recovery": 26400,
+          "sp_recovery_growth": 0,
+          "fever_recovery": 201850,
+          "fever_recovery_growth": 0,
+          "attribute_infliction": 7331,
+          "sp_consume": 0,
+          "attack_data": [0],
+          "rp_recovery": 0,
+          "rp_recovery_growth": 0,
+          "ether_purify": 7332
+        },
+        "resourceParameters": {
+          "sp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 26400,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_sp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "fever_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 201850,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_fever_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "rp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_rp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "sp_consume": {
+            "operator": {
+              "kind": "constant",
+              "value": 0
+            },
+            "unit": "nanoka_raw_sp_consume",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "ether_purify": {
+            "operator": {
+              "kind": "constant",
+              "value": 7332
+            },
+            "unit": "nanoka_raw_ether_purify",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          }
+        },
+        "sourceLocator": "skill.assist:param.1641014",
+        "scalingAttribute": "atk",
+        "formulaFamily": "standard_direct_damage",
+        "damageType": "quickAssist",
+        "formulaProjection": "reviewed_source_aggregate",
+        "formulaBinding": {
+          "status": "limited",
+          "reason": "Reviewed action aggregate and damage channel; conditional additions, individual hits and resource/timing closure remain unbound.",
+          "sourceName": "快速支援：急救",
+          "descriptionLocator": "skill.assist.description:快速支援：急救",
+          "requiredState": "quick_assist_trigger_available",
+          "automaticPlanningEligible": false,
+          "formalEligible": false
+        },
+        "attribute": "fire",
+        "eventModifierRefs": []
+      },
+      {
+        "eventId": "assist.nanoka-1641015.source-parameter",
+        "skill": "assist",
+        "actionId": "DefensiveAssistSeasonedMedic",
+        "hitIndex": 0,
+        "sourceSkillId": "1641015",
+        "eventGranularity": "source_skill_parameter_aggregate_not_individual_hit",
+        "operators": {
+          "damageMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 0,
+            "growthPerLevel": 0,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "dazeMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 2.713,
+            "growthPerLevel": 0.124,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "anomalyBuildup": {
+            "kind": "constant",
+            "value": 0
+          }
+        },
+        "sourceParameters": {
+          "damage_percentage": 0,
+          "damage_percentage_growth": 0,
+          "stun_ratio": 27130,
+          "stun_ratio_growth": 1240,
+          "sp_recovery": 0,
+          "sp_recovery_growth": 0,
+          "fever_recovery": 0,
+          "fever_recovery_growth": 0,
+          "attribute_infliction": 0,
+          "sp_consume": 0,
+          "attack_data": [0],
+          "rp_recovery": 0,
+          "rp_recovery_growth": 0,
+          "ether_purify": 36664
+        },
+        "resourceParameters": {
+          "sp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_sp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "fever_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_fever_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "rp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_rp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "sp_consume": {
+            "operator": {
+              "kind": "constant",
+              "value": 0
+            },
+            "unit": "nanoka_raw_sp_consume",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "ether_purify": {
+            "operator": {
+              "kind": "constant",
+              "value": 36664
+            },
+            "unit": "nanoka_raw_ether_purify",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          }
+        },
+        "sourceLocator": "skill.assist:param.1641015",
+        "scalingAttribute": "atk",
+        "formulaFamily": "standard_direct_damage",
+        "damageType": "defensiveAssist",
+        "formulaProjection": "reviewed_source_aggregate",
+        "formulaBinding": {
+          "status": "limited",
+          "reason": "Reviewed action aggregate and damage channel; conditional additions, individual hits and resource/timing closure remain unbound.",
+          "sourceName": "招架支援：久病成医",
+          "descriptionLocator": "skill.assist.description:招架支援：久病成医",
+          "requiredState": "incoming_light_parry",
+          "automaticPlanningEligible": false,
+          "formalEligible": false
+        },
+        "attribute": "physical",
+        "eventModifierRefs": []
+      },
+      {
+        "eventId": "assist.nanoka-1641016.source-parameter",
+        "skill": "assist",
+        "actionId": "DefensiveAssistSeasonedMedic",
+        "hitIndex": 1,
+        "sourceSkillId": "1641016",
+        "eventGranularity": "source_skill_parameter_aggregate_not_individual_hit",
+        "operators": {
+          "damageMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 0,
+            "growthPerLevel": 0,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "dazeMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 3.428,
+            "growthPerLevel": 0.156,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "anomalyBuildup": {
+            "kind": "constant",
+            "value": 0
+          }
+        },
+        "sourceParameters": {
+          "damage_percentage": 0,
+          "damage_percentage_growth": 0,
+          "stun_ratio": 34280,
+          "stun_ratio_growth": 1560,
+          "sp_recovery": 0,
+          "sp_recovery_growth": 0,
+          "fever_recovery": 0,
+          "fever_recovery_growth": 0,
+          "attribute_infliction": 0,
+          "sp_consume": 0,
+          "attack_data": [0],
+          "rp_recovery": 0,
+          "rp_recovery_growth": 0,
+          "ether_purify": 41664
+        },
+        "resourceParameters": {
+          "sp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_sp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "fever_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_fever_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "rp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_rp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "sp_consume": {
+            "operator": {
+              "kind": "constant",
+              "value": 0
+            },
+            "unit": "nanoka_raw_sp_consume",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "ether_purify": {
+            "operator": {
+              "kind": "constant",
+              "value": 41664
+            },
+            "unit": "nanoka_raw_ether_purify",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          }
+        },
+        "sourceLocator": "skill.assist:param.1641016",
+        "scalingAttribute": "atk",
+        "formulaFamily": "standard_direct_damage",
+        "damageType": "defensiveAssist",
+        "formulaProjection": "reviewed_source_aggregate",
+        "formulaBinding": {
+          "status": "limited",
+          "reason": "Reviewed action aggregate and damage channel; conditional additions, individual hits and resource/timing closure remain unbound.",
+          "sourceName": "招架支援：久病成医",
+          "descriptionLocator": "skill.assist.description:招架支援：久病成医",
+          "requiredState": "incoming_heavy_parry",
+          "automaticPlanningEligible": false,
+          "formalEligible": false
+        },
+        "attribute": "physical",
+        "eventModifierRefs": []
+      },
+      {
+        "eventId": "assist.nanoka-1641017.source-parameter",
+        "skill": "assist",
+        "actionId": "DefensiveAssistSeasonedMedic",
+        "hitIndex": 2,
+        "sourceSkillId": "1641017",
+        "eventGranularity": "source_skill_parameter_aggregate_not_individual_hit",
+        "operators": {
+          "damageMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 0,
+            "growthPerLevel": 0,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "dazeMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 1.668,
+            "growthPerLevel": 0.076,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "anomalyBuildup": {
+            "kind": "constant",
+            "value": 0
+          }
+        },
+        "sourceParameters": {
+          "damage_percentage": 0,
+          "damage_percentage_growth": 0,
+          "stun_ratio": 16680,
+          "stun_ratio_growth": 760,
+          "sp_recovery": 0,
+          "sp_recovery_growth": 0,
+          "fever_recovery": 0,
+          "fever_recovery_growth": 0,
+          "attribute_infliction": 0,
+          "sp_consume": 0,
+          "attack_data": [0],
+          "rp_recovery": 0,
+          "rp_recovery_growth": 0,
+          "ether_purify": 11664
+        },
+        "resourceParameters": {
+          "sp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_sp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "fever_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_fever_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "rp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_rp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "sp_consume": {
+            "operator": {
+              "kind": "constant",
+              "value": 0
+            },
+            "unit": "nanoka_raw_sp_consume",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "ether_purify": {
+            "operator": {
+              "kind": "constant",
+              "value": 11664
+            },
+            "unit": "nanoka_raw_ether_purify",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          }
+        },
+        "sourceLocator": "skill.assist:param.1641017",
+        "scalingAttribute": "atk",
+        "formulaFamily": "standard_direct_damage",
+        "damageType": "defensiveAssist",
+        "formulaProjection": "reviewed_source_aggregate",
+        "formulaBinding": {
+          "status": "limited",
+          "reason": "Reviewed action aggregate and damage channel; conditional additions, individual hits and resource/timing closure remain unbound.",
+          "sourceName": "招架支援：久病成医",
+          "descriptionLocator": "skill.assist.description:招架支援：久病成医",
+          "requiredState": "incoming_chain_parry",
+          "automaticPlanningEligible": false,
+          "formalEligible": false
+        },
+        "attribute": "physical",
+        "eventModifierRefs": []
+      },
+      {
+        "eventId": "assist.nanoka-1641018.source-parameter",
+        "skill": "assist",
+        "actionId": "AssistFollowUpRegenerativeTherapy",
+        "hitIndex": 0,
+        "sourceSkillId": "1641018",
+        "eventGranularity": "source_skill_parameter_aggregate_not_individual_hit",
+        "operators": {
+          "damageMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 4.265,
+            "growthPerLevel": 0.388,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "dazeMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 3.133,
+            "growthPerLevel": 0.143,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "anomalyBuildup": {
+            "kind": "constant",
+            "value": 306.42
+          }
+        },
+        "sourceParameters": {
+          "damage_percentage": 42650,
+          "damage_percentage_growth": 3880,
+          "stun_ratio": 31330,
+          "stun_ratio_growth": 1430,
+          "sp_recovery": 0,
+          "sp_recovery_growth": 0,
+          "fever_recovery": 1021350,
+          "fever_recovery_growth": 0,
+          "attribute_infliction": 30642,
+          "sp_consume": 0,
+          "attack_data": [0],
+          "rp_recovery": 0,
+          "rp_recovery_growth": 0,
+          "ether_purify": 15497
+        },
+        "resourceParameters": {
+          "sp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_sp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "fever_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 1021350,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_fever_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "rp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_rp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "sp_consume": {
+            "operator": {
+              "kind": "constant",
+              "value": 0
+            },
+            "unit": "nanoka_raw_sp_consume",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "ether_purify": {
+            "operator": {
+              "kind": "constant",
+              "value": 15497
+            },
+            "unit": "nanoka_raw_ether_purify",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          }
+        },
+        "sourceLocator": "skill.assist:param.1641018",
+        "scalingAttribute": "atk",
+        "formulaFamily": "standard_direct_damage",
+        "damageType": "assistFollowUp",
+        "formulaProjection": "reviewed_source_aggregate",
+        "formulaBinding": {
+          "status": "limited",
+          "reason": "Reviewed action aggregate and damage channel; conditional additions, individual hits and resource/timing closure remain unbound.",
+          "sourceName": "支援突击：再生疗法",
+          "descriptionLocator": "skill.assist.description:支援突击：再生疗法",
+          "requiredState": "after_defensive_assist",
+          "automaticPlanningEligible": false,
+          "formalEligible": false
+        },
+        "attribute": "fire",
+        "eventModifierRefs": []
+      },
+      {
+        "eventId": "chain.nanoka-1641019.source-parameter",
+        "skill": "chain",
+        "actionId": "UltimateSoulSearchingBlaze",
+        "hitIndex": 0,
+        "sourceSkillId": "1641019",
+        "eventGranularity": "source_skill_parameter_aggregate_not_individual_hit",
+        "operators": {
+          "damageMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 0.955,
+            "growthPerLevel": 0.087,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "dazeMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 0.096,
+            "growthPerLevel": 0.005,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "anomalyBuildup": {
+            "kind": "constant",
+            "value": 47.56
+          }
+        },
+        "sourceParameters": {
+          "damage_percentage": 9550,
+          "damage_percentage_growth": 870,
+          "stun_ratio": 960,
+          "stun_ratio_growth": 50,
+          "sp_recovery": 0,
+          "sp_recovery_growth": 0,
+          "fever_recovery": 0,
+          "fever_recovery_growth": 0,
+          "attribute_infliction": 4756,
+          "sp_consume": 0,
+          "attack_data": [0],
+          "rp_recovery": 0,
+          "rp_recovery_growth": 0,
+          "ether_purify": 3375
+        },
+        "resourceParameters": {
+          "sp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_sp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "fever_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_fever_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "rp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_rp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "sp_consume": {
+            "operator": {
+              "kind": "constant",
+              "value": 0
+            },
+            "unit": "nanoka_raw_sp_consume",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "ether_purify": {
+            "operator": {
+              "kind": "constant",
+              "value": 3375
+            },
+            "unit": "nanoka_raw_ether_purify",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          }
+        },
+        "sourceLocator": "skill.chain:param.1641019",
+        "scalingAttribute": "atk",
+        "formulaFamily": "standard_direct_damage",
+        "damageType": "ultimate",
+        "formulaProjection": "reviewed_source_aggregate",
+        "formulaBinding": {
+          "status": "limited",
+          "reason": "Reviewed action aggregate and damage channel; conditional additions, individual hits and resource/timing closure remain unbound.",
+          "sourceName": "烬火追魂",
+          "descriptionLocator": "skill.chain.description:烬火追魂",
+          "requiredState": "life_depleted_then_reentry",
+          "automaticPlanningEligible": false,
+          "formalEligible": false
+        },
+        "attribute": "fire",
+        "eventModifierRefs": []
+      },
+      {
+        "eventId": "special.nanoka-1641023.source-parameter",
+        "skill": "special",
+        "actionId": "EXSpecialAttackSearingSlash",
+        "hitIndex": 0,
+        "sourceSkillId": "1641023",
+        "eventGranularity": "source_skill_parameter_aggregate_not_individual_hit",
+        "operators": {
+          "damageMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 3.805,
+            "growthPerLevel": 0.346,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "dazeMultiplier": {
+            "kind": "linear_skill_level",
+            "base": 2.564,
+            "growthPerLevel": 0.117,
+            "minimumLevel": 1,
+            "maximumLevel": 16
+          },
+          "anomalyBuildup": {
+            "kind": "constant",
+            "value": 227.83
+          }
+        },
+        "sourceParameters": {
+          "damage_percentage": 38050,
+          "damage_percentage_growth": 3460,
+          "stun_ratio": 25640,
+          "stun_ratio_growth": 1170,
+          "sp_recovery": 0,
+          "sp_recovery_growth": 0,
+          "fever_recovery": 259875,
+          "fever_recovery_growth": 0,
+          "attribute_infliction": 22783,
+          "sp_consume": 0,
+          "attack_data": [90300],
+          "rp_recovery": 0,
+          "rp_recovery_growth": 0,
+          "ether_purify": 5250
+        },
+        "resourceParameters": {
+          "sp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_sp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "fever_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 259875,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_fever_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "rp_recovery": {
+            "operator": {
+              "kind": "linear_skill_level",
+              "base": 0,
+              "growthPerLevel": 0,
+              "minimumLevel": 1,
+              "maximumLevel": 16
+            },
+            "unit": "nanoka_raw_rp_recovery",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "sp_consume": {
+            "operator": {
+              "kind": "constant",
+              "value": 0
+            },
+            "unit": "nanoka_raw_sp_consume",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          },
+          "ether_purify": {
+            "operator": {
+              "kind": "constant",
+              "value": 5250
+            },
+            "unit": "nanoka_raw_ether_purify",
+            "displayedPointDivisor": null,
+            "status": "raw_only_scale_not_adopted"
+          }
+        },
+        "sourceLocator": "skill.special:param.1641023",
+        "scalingAttribute": "atk",
+        "formulaFamily": "standard_direct_damage",
+        "damageType": "exSpecial",
+        "formulaProjection": "reviewed_source_aggregate",
+        "formulaBinding": {
+          "status": "limited",
+          "reason": "Reviewed action aggregate and damage channel; conditional additions, individual hits and resource/timing closure remain unbound.",
+          "sourceName": "强化特殊技：燎斩",
+          "descriptionLocator": "skill.special.description:强化特殊技：燎斩",
+          "requiredState": "promotion_at_least_1",
+          "automaticPlanningEligible": false,
+          "formalEligible": false
+        },
+        "attribute": "fire",
+        "eventModifierRefs": []
+      }
+    ]
+  },
+  "teamActivationContract": {
+    "status": "compiled",
+    "predicate": {
+      "kind": "category_sum_minimum",
+      "terms": [
+        {
+          "kind": "specialty",
+          "value": "anomaly"
+        },
+        {
+          "kind": "faction",
+          "value": "KrampusComplianceAuthority"
+        }
+      ],
+      "minimum": 3,
+      "dynamicTerms": [],
+      "evaluationBoundary": "base_mindscape_static_team_identity",
+      "locator": "1641.json#passive.level.1641501.desc[1]",
+      "normalizedFrom": "active_at_minimum"
+    }
+  },
+  "source": {
+    "repository": "https://static.nanoka.cc",
+    "commit": "sha256:237c5b060657db1fd8ababe6cd26fb275c325d74a67eda481bde6732c7d93dfe",
+    "license": "redistribution_not_confirmed",
+    "statsPath": "nanoka/3.3/zh/character/1641.json",
+    "statsSha256": "237C5B060657DB1FD8ABABE6CD26FB275C325D74A67EDA481BDE6732C7D93DFE",
+    "formulaPath": "nanoka/3.3/zh/character/1641.json#skill.*.param",
+    "formulaSha256": "D938FDB17DAEB39F37F2939142061F3462D824DC2FEFD4A2A8A2F63127AB6120",
+    "formulaOrigin": "soda_reviewed_source_aggregate_projection",
+    "formulaSha256Definition": "sha256(JSON.stringify(events)); not an upstream formula sheet",
+    "provider": "nanoka",
+    "providerManifestSha256": "4D30F529D6E0568A130EBE4D79557B30D9C65D2219E77461763DF1C4B42CB029",
+    "rawSha256": "237C5B060657DB1FD8ABABE6CD26FB275C325D74A67EDA481BDE6732C7D93DFE",
+    "url": "https://static.nanoka.cc/zzz/3.3/zh/character/1641.json",
+    "licenseStatus": "redistribution_not_confirmed"
+  },
+  "limitations": [
+    "Nanoka parameter rows are source aggregates, not individual combat hits.",
+    "Conditional passives, abloom, resource transitions, complete rotation and exact DPS remain outside this contract.",
+    "The event overlay supports mechanism coverage and limited fixed-event comparison only; it is not formal formula adoption."
+  ]
+}

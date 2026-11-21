@@ -80,10 +80,10 @@ export function TeamSchemeWEngineControl({
               <option key={entry.optionKey} value={entry.optionKey} disabled={!entry.parameters}>
                 {entry.label ?? entry.name}
                 {entry.rankWithinGroup !== null && entry.comparisonGroupId
-                  ? ` · 同条件组${groups.indexOf(entry.comparisonGroupId) + 1} 第${entry.rankWithinGroup}`
-                  : ' · 未排序'}
+                  ? ` · 同条件${groups.indexOf(entry.comparisonGroupId) + 1}第${entry.rankWithinGroup}名`
+                  : ' · 暂无排序'}
                 {entry.value !== null
-                  ? ` · ${Number(entry.value.toFixed(2))}${entry.metric === 'prepared_anomaly_damage' ? ' 单次结算' : ' 固定事件规划DPS'}`
+                  ? ` · ${Number(entry.value.toFixed(2))}${entry.metric === 'prepared_anomaly_damage' ? ' 单次异常伤害' : ' 规划输出/秒'}`
                   : ''}
               </option>
             ))}

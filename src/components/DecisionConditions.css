@@ -1,0 +1,27 @@
+.decision-conditions {
+  min-width: 0;
+  padding-block: var(--soda-space-3);
+  border-block-start: 1px solid var(--soda-line);
+  color: var(--soda-text-2);
+  font-size: var(--soda-font-body);
+  line-height: var(--soda-leading-body);
+  overflow-wrap: anywhere;
+}
+
+.decision-conditions > h3 {
+  margin: 0 0 var(--soda-space-2);
+  color: var(--soda-text);
+  font-size: inherit;
+  font-weight: 700;
+}
+
+.decision-conditions ul {
+  display: grid;
+  gap: var(--soda-space-1);
+  margin: 0;
+  padding-inline-start: 1.25em;
+}
+
+.decision-conditions li::marker {
+  color: var(--soda-accent);
+}

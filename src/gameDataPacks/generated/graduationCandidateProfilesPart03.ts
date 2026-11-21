@@ -9,14 +9,14 @@ export const graduationCandidateProfilesPart03 = [
     agentId: 'agent-cissia',
     playerName: '希希芙',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '2.7',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F2',
     objectiveTopology: 'O5',
     configHash: '9ad39f0c79b6a71429df0162bb4978e4fc943f48704e6e33f81597421bc5a693',
-    inputHash: '8797b4b059a781117aee72e98ce4964f7229b99a0aeb8dc05fc00ffd7b3c96f6',
+    inputHash: 'e8fb59a8077b09087f54ebcbd86e622e81ca5ff31374b42d912d9e97a9a7c306',
     inputReferences: [
       {
         record_id: 'ENTITY_FACTS:fact-cissia-atk:stats.lv60.raw.atk:batch-agents-2.7-r3c',
@@ -129,7 +129,7 @@ export const graduationCandidateProfilesPart03 = [
       deterministic: true,
       configHash: '5de6318521edafb80165c18c900162ce405b2da4fbdf03a742410664be896f38',
     },
-    profileHash: 'ab240048c68498bd2cbeaf686dc646d25f37fc2ab16bed685f6aa2fef0aa0088',
+    profileHash: '5771bf004f41b846fa6ad6f264c37a75e4c1d9ce4cc51fc9831ebbc5e804983a',
   },
   {
     schema: 'soda-graduation-profile/v1',
@@ -140,14 +140,14 @@ export const graduationCandidateProfilesPart03 = [
     agentId: 'agent-nangong',
     playerName: '南宫羽',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '2.7',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F9',
     objectiveTopology: 'O5',
     configHash: 'c7a760079dfb3114617392879892f925a89f26d2154edea321fc8e05a09ac3ca',
-    inputHash: 'cf17a53d56d022475138bc14d569b9a3988d47dd2cc857d719ddb0fef4b3dc7a',
+    inputHash: '5f451759e4379a7680bc85685726887293edf0e0b4a65c239fbb87532964bef7',
     inputReferences: [
       {
         record_id:
@@ -259,7 +259,7 @@ export const graduationCandidateProfilesPart03 = [
       deterministic: true,
       configHash: 'ddab8fc2f05e640e15af80ef57019f271ddce51e1991bf3cbb97f0e9a5ac8a60',
     },
-    profileHash: 'a339ed8f1a8a3bf999821f101558fd3fcd8b35fe26229169b113a9dfaef51427',
+    profileHash: 'f820a2a117fedf10eb2cb79c12632209caf143398f1d18f0902283e8838b9d75',
   },
   {
     schema: 'soda-graduation-profile/v1',
@@ -270,14 +270,14 @@ export const graduationCandidateProfilesPart03 = [
     agentId: 'agent-aria',
     playerName: '爱芮',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '2.6',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F4',
     objectiveTopology: 'O5',
     configHash: '52d6539b994fa28090b858534efaaa2a2d42db205fb421d63a8d716d8e692ca3',
-    inputHash: 'f22ea3a4067a2ef8842ea182045e3b53f6004990be2ad2e6ceaa9f41c81799a5',
+    inputHash: '6770e6d7688a2916d7eb1f2e537ab65c1b28fabc5596dd617c95632d156404dd',
     inputReferences: [
       {
         record_id:
@@ -384,6 +384,6 @@ export const graduationCandidateProfilesPart03 = [
       deterministic: true,
       configHash: 'bcfcf232208a92b3d812b74748de9caeb4c42e2ebbc821848fe5ddaafec51fc3',
     },
-    profileHash: '2d8b7e67d4d2943e0d28f4ea45bd7aaeacc6b800ab5186155f2adde78cde9e3d',
+    profileHash: 'ee52a5191301b71ccd711ce768d7e9b815821f3472da819420c62971716f94f3',
   },
 ] as const

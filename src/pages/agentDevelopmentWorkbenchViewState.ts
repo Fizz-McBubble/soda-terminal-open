@@ -8,7 +8,12 @@ import type { findCurrentDevelopmentWorkbenchEquipment } from '../application/pu
 import type { DevelopmentWorkbenchRoutePresentation } from '../application/publicDevelopmentWorkbenchRoute'
 import type { GoldenWorkbenchData } from '../features/agentDevelopmentGolden'
 import type { AgentDevelopmentCurrentEditor } from './AgentDevelopmentCurrentEditor'
+import type { useDevelopmentWorkbenchFacts } from './useDevelopmentWorkbenchFacts'
 import type { readDevelopmentCandidateSnapshot } from './agentDevelopmentCandidateSession'
+import type {
+  DevelopmentRefreshPhase,
+  DevelopmentRefreshStage,
+} from './agentDevelopmentRefreshPresentation'
 
 type CandidateSnapshot = NonNullable<ReturnType<typeof readDevelopmentCandidateSnapshot>>
 
@@ -17,9 +22,17 @@ type EditingPresentation = { accountId: string; presentation: GoldenWorkbenchDat
 export type SaveRefresh = EditingPresentation & {
   agentId: string
   kind?: 'current_record'
-  phase?: 'updating' | 'failed'
+  phase?: DevelopmentRefreshPhase
+  stage?: Exclude<DevelopmentRefreshStage, 'analysis'>
   record?: ComponentProps<typeof AgentDevelopmentCurrentEditor>['roster']['agents'][number]
   error?: string
+}
+
+export type AnalysisRefresh = {
+  key: string
+  phase: DevelopmentRefreshPhase
+  error?: string
+  onRetry?: () => void
 }
 
 export type WarehouseRefresh = SaveRefresh & { inputFingerprint: string | null }
@@ -42,6 +55,7 @@ export type Props = {
   editingThisAgent: boolean
   candidateSnapshotStale: boolean
   retainingDuringSave: boolean
+  analysisRefresh: AnalysisRefresh | null
   saveRefresh: SaveRefresh | null
   editingPresentation: EditingPresentation | null
   decisionWorld: ReturnType<typeof useAccountDecisionWorld>
@@ -49,8 +63,10 @@ export type Props = {
     typeof useDevelopmentCandidateAlternativesCalculation
   >
   queryDevelopmentWorkbenchRoute: ReturnType<typeof useDevelopmentWorkbenchRouteCalculation>
+  facts?: ReturnType<typeof useDevelopmentWorkbenchFacts>
   candidates: CandidateSnapshot['candidates']
   candidateSnapshot: CandidateSnapshot | null
+  personalCapture?: import('./personalDevelopmentSessionStore').PersonalDevelopmentCapture | null
   equipment: ReturnType<typeof findCurrentDevelopmentWorkbenchEquipment>
   requestedPlanId: string | null
   selectedCandidateRank: number

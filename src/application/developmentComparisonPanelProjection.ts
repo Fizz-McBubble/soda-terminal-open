@@ -1,5 +1,9 @@
 import { contentHash } from './contentHash'
 import type { AccountPlanningDraft } from '../accounts/types'
+import {
+  isPersonalSavedAgentPlan,
+  resolvePersonalReferenceDiscs,
+} from '../accounts/personalCurrentReference'
 import type { CoreWarehouse } from '../accounts/coreFlow'
 import type { DriveDisc } from '../domain/schemas'
 import type { CandidateWarehousePlan } from '../optimizer/candidateWarehouseSolver'
@@ -10,8 +14,10 @@ import {
 } from '../pages/agentDevelopmentWorkbenchViewModel'
 import { getCurrentBuildTargetPanel } from '../gameDataPacks/currentBuildAuthority'
 import { canDisplayStaticPanelTarget } from '../gameDataPacks/targetPanelSemantics'
-import { getProjectedBuildKnowledgeProfile } from '../gameDataPacks/agentProfile'
-import { resolveWEngine } from '../decision/wEngineResolver'
+import { projectDevelopmentSaveKnowledge } from './developmentSaveKnowledge'
+import { readSavedAgentComparisonContext } from './readSavedAgentComparisonContext'
+import { evaluateDevelopmentRecordedDiscs } from '../pages/developmentRecordedDiscEvaluation'
+import { developmentComparisonParametersSchema } from '../accounts/developmentComparisonParametersSchema'
 import {
   developmentComparisonPanelsContract,
   developmentPanelDiscFingerprint,
@@ -30,7 +36,6 @@ export function projectDevelopmentComparisonPanels(input: {
   >
 }): DevelopmentComparisonPanels {
   const agent = input.warehouse.roster.agents.find((item) => item.agentId === input.agentId)
-  const profile = getProjectedBuildKnowledgeProfile(input.agentId)
   const targetPanel = getCurrentBuildTargetPanel(input.agentId, {
     coreLevel: agent?.skillLevels.core,
     specialLevel: agent?.skillLevels.special,
@@ -58,15 +63,25 @@ export function projectDevelopmentComparisonPanels(input: {
     .filter(
       (draft) =>
         draft.accountId === input.warehouse.accountId &&
-        draft.kind === 'agent' &&
-        draft.state === 'saved' &&
-        draft.selection.agentIds.length === 1 &&
-        draft.selection.agentIds[0] === input.agentId,
+        isPersonalSavedAgentPlan(draft, input.agentId),
     )
-    .map((draft) => ({
-      discs: input.warehouse.discs.filter((disc) => draft.warehouseRefs.includes(disc.id)),
-      parameters: draft.solutionContext?.comparisonParameters,
-    }))
+    .flatMap((draft) => {
+      const saved = readSavedAgentComparisonContext(draft, input.agentId)
+      if (
+        saved.parameters.wEngine.state === 'invalid' ||
+        saved.parameters.potential.state === 'invalid' ||
+        saved.parameters.independentDirection.state === 'invalid'
+      )
+        return []
+      const resolved = resolvePersonalReferenceDiscs(draft, input.warehouse.discs)
+      if (!resolved) return []
+      return [
+        {
+          discs: resolved,
+          parameters: saved.comparisonParameters,
+        },
+      ]
+    })
   const discSets = [
     { discs: input.baseline, parameters: undefined },
     ...input.candidates.map((candidate, index) => ({
@@ -101,11 +116,38 @@ export function projectDevelopmentComparisonPanels(input: {
         discs,
         candidateDiscIds: discs.map((disc) => disc.id),
       }).result
+      const direction = parameters?.independentDirection
+      const validDirection =
+        direction === undefined ||
+        developmentComparisonParametersSchema.shape.independentDirection.safeParse(direction)
+          .success
+      const evaluation = validDirection
+        ? evaluateDevelopmentRecordedDiscs(input.agentId, discs, {
+            independentDirection: direction,
+          })
+        : null
+      const discScore = evaluation
+        ? {
+            version: evaluation.version,
+            basisFingerprint: evaluation.basisFingerprint,
+            complete: evaluation.complete,
+            setStatus: evaluation.setStatus,
+            ...(evaluation.totalScore === undefined ? {} : { totalScore: evaluation.totalScore }),
+            ...(evaluation.setScore === undefined ? {} : { setScore: evaluation.setScore }),
+            ...(evaluation.effectiveLines === undefined
+              ? {}
+              : { effectiveLines: evaluation.effectiveLines }),
+            ...(evaluation.effectiveEnhancements === undefined
+              ? {}
+              : { effectiveEnhancements: evaluation.effectiveEnhancements }),
+          }
+        : undefined
       entries.push({
         discFingerprint,
         ...(parameterFingerprint ? { parameterFingerprint } : {}),
         status: result.status,
         values: result.values,
+        ...(discScore ? { discScore } : {}),
         ...(result.reason ? { reason: result.reason } : {}),
       })
     }
@@ -115,18 +157,6 @@ export function projectDevelopmentComparisonPanels(input: {
     entries,
     targetDisplayByLabel,
     targetConditionsByLabel,
-    saveKnowledge: {
-      scenario: profile.scenario,
-      profileId: profile.id,
-      status: profile.status,
-      version: profile.packageVersion,
-      source: profile.sources
-        .map((source) => source.label ?? '')
-        .filter(Boolean)
-        .join('、'),
-      currentEngineRecorded: Boolean(
-        resolveWEngine({ agent, legacyWEngines: input.warehouse.roster.wEngines }).current,
-      ),
-    },
+    saveKnowledge: projectDevelopmentSaveKnowledge(input.warehouse, input.agentId),
   }
 }

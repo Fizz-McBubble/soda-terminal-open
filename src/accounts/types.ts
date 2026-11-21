@@ -69,6 +69,8 @@ export type PlanningSolutionContext = {
   gameVersion: string
   knowledgeVersion: string
   exactVariantKey: string | null
+  /** Canonical rated play selected when the three-member plan was saved. */
+  ratedTeamPlayId?: string
   scenarioSelection?: import('../application/publicPlanningScenarioContract').CurrentPlanningScenarioSelection32
   scenarioIdentity?: string
   /** Independently issued standard reference; absent on historical plans and account-only runs. */
@@ -84,10 +86,7 @@ export type PlanningSolutionContext = {
   /** Exact declared Luminize volley inputs; the reviewed source is rechecked on current replay. */
   declaredLuminizeSettlement32?: import('./luminizePlanPersistence32').SavedDeclaredLuminizeSettlement32
   /** Explicit comparison choices, saved only with the player-owned proposal. */
-  comparisonParameters?: {
-    wEngine?: { engineId: string; level: number; ascension?: number; refinement: number }
-    potential?: number
-  }
+  comparisonParameters?: import('../decision/developmentValueBenchmark').DevelopmentComparisonParameters
 }
 
 /** A player-owned loadout proposal. It deliberately stores directions and references only. */

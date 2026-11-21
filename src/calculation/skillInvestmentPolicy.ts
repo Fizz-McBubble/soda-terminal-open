@@ -56,7 +56,7 @@ function sourcePrioritySkillInvestment(input: {
     targetLevel,
     label:
       band === 'max_priority'
-        ? `优先升至 ${targetLevel}`
+        ? `建议升至 ${targetLevel}`
         : band === 'high_value'
           ? `建议升至 ${targetLevel}`
           : band === 'situational'

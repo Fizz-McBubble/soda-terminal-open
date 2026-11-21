@@ -41,7 +41,12 @@ export function createAccountOptimizerKnowledge(
     mainStats,
     minimumSubstatValues: {},
     setPlans: profile.setPlans?.length
-      ? profile.setPlans
+      ? profile.setPlans.map(({ pattern, primarySets, secondarySets, fitBonusEligible }) => ({
+          pattern,
+          primarySets,
+          secondarySets,
+          ...(fitBonusEligible === undefined ? {} : { fitBonusEligible }),
+        }))
       : [
           {
             pattern: '2+2+2' as const,
@@ -156,6 +161,10 @@ export function generateCandidates(
     topK: number
     panelInput?: CandidatePanelInput
     effectiveCritObjective?: CandidateEffectiveCritObjective
+    effectiveCritProjectionCache?: Map<
+      string,
+      import('./candidateEffectiveCritObjective').CandidateEffectiveCritProjection
+    >
     warehouseSnapshot?: { discs: DriveDisc[]; hash: string }
   },
 ) {
@@ -178,6 +187,7 @@ export function generateCandidates(
       topK: options.topK,
       panelInput: options.panelInput,
       effectiveCritObjective: options.effectiveCritObjective ?? profile.effectiveCritObjective,
+      effectiveCritProjectionCache: options.effectiveCritProjectionCache,
       warehouseSnapshot,
     },
   )
@@ -207,6 +217,7 @@ export function generateCandidates(
       topK: options.topK,
       panelInput: options.panelInput,
       effectiveCritObjective: options.effectiveCritObjective ?? profile.effectiveCritObjective,
+      effectiveCritProjectionCache: options.effectiveCritProjectionCache,
       warehouseSnapshot,
     },
   )

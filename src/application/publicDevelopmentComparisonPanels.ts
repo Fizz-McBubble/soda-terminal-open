@@ -1,6 +1,7 @@
 import type { DriveDisc } from '../domain/schemas'
 import { contentHash } from './contentHash'
 import { extendedPanelKeys, type ExtendedPanelKey } from '../domain/characterPanelStats'
+import type { DevelopmentDiscScore } from './publicDevelopmentDiscScore'
 
 export const developmentComparisonPanelsContract = 'soda-development-comparison-panels/v1' as const
 
@@ -25,6 +26,8 @@ export type DevelopmentComparisonPanel = {
   values: Record<(typeof developmentPanelKeys)[number], number> &
     Partial<Record<ExtendedPanelKey | 'lacerationDamage', number>>
   reason?: string
+  /** Optional in v1 snapshots. Missing or invalid data is never a cached score. */
+  discScore?: DevelopmentDiscScore
 }
 
 export type DevelopmentComparisonPanels = {

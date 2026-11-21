@@ -3,3 +3,40 @@
   outline-offset: 4px;
   background: var(--f5-accent-soft, #f0edf8);
 }
+
+.r6-golden .backup-create .account-action-feedback {
+  max-width: 60ch;
+  margin: 0;
+  padding: 0 0 0 10px;
+  border-left: 2px solid #7a68a8;
+  color: #4e416c;
+  font-weight: 700;
+}
+
+.r6-golden .backup-create .primary[aria-busy='true'] {
+  cursor: progress;
+}
+
+.r6-golden .account-dialog-error {
+  padding: 8px 10px;
+  border-left: 2px solid #a84458;
+  background: rgba(168, 68, 88, 0.06);
+  color: #813446;
+  font-weight: 700;
+}
+
+.r6-golden .soda-asset-dialog .quiet:focus-visible,
+.r6-golden .soda-asset-dialog .primary:focus-visible,
+.r6-golden .soda-asset-dialog .danger:focus-visible,
+.r6-golden .soda-asset-dialog .icon-button:focus-visible {
+  outline: 3px solid rgba(107, 85, 170, 0.5);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .r6-golden .account-action-feedback,
+  .r6-golden .account-dialog-error {
+    animation: none;
+    transition: none;
+  }
+}

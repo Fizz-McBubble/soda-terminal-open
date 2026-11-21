@@ -21,7 +21,15 @@ import {
 } from './accountDecisionBands'
 import { exactMemberIds } from './accountDecisionOrdering'
 import type { projectOutputPotentialBands } from './outputPotentialBand'
-import { lookupCurrent31TeamIntrinsicSummary } from './current31TeamIntrinsicIndex'
+import { lookupCurrent31TeamIntrinsicSummary, lookupCurrent31TeamIntrinsicDetails } from './current31TeamIntrinsicIndex'
+import { selectSavedDefaultTeamAdmissionPlay } from './defaultTeamAdmissionPlay'
+import { preparedBoxFormationRanking } from './preparedBoxFormationRanking'
+import {
+  lookupCurrentGenericTeamRanking as lookupCurrentTeamSystemRanking,
+  currentGenericTeamRankingStatus,
+  lookupCurrentGenericTeamRankingForPlay,
+} from './teamGenericRanking'
+import { projectGenericTeamRating } from './teamGenericRankingMethod'
 
 export const intrinsicRatingBenchmark = {
   status: 'unavailable' as const,
@@ -123,6 +131,8 @@ export function projectAccountIntrinsicCandidates(input: {
   cohort: Cohort
   mode: 'indexed' | 'direct'
 }) {
+  if (currentGenericTeamRankingStatus.status !== 'ready')
+    throw new Current31TeamIntrinsicIndexMismatchError('通用队伍榜单尚未就绪，请更新资料后重试。')
   const outputById = new Map(
     (input.cohort?.candidates ?? []).map((candidate) => [candidate.candidateId, candidate]),
   )
@@ -134,11 +144,40 @@ export function projectAccountIntrinsicCandidates(input: {
     contentHash: stableContentHash(input.preference),
   }
   const accountContext = createAccountBandContext(input.roster, input.allocation)
+  const ownedAgentIds = new Set(
+    input.roster.agents.filter((agent) => agent.owned).map((agent) => agent.agentId),
+  )
+  const ownershipEvidence = {
+    evidenceId: `account-ownership:${stableContentHash([...ownedAgentIds].sort())}`,
+    provenance: 'source_fact' as const,
+    reference: 'account-roster-owned-agents',
+    explanation: '玩家当前档案中明确已拥有的代理人。',
+    contentHash: stableContentHash([...ownedAgentIds].sort()),
+  }
   const ratingByEquivalenceKey = new Map<string, TeamRatingResult>()
   return input.rankedFormations.map((candidate) => {
     const memberIds = exactMemberIds(candidate)
+    // The intrinsic cohort is ranked by the artifact's bound default play.
+    // The selected play is checked again when the recommendation is projected.
+    let systemRanking = input.mode === 'indexed'
+      ? preparedBoxFormationRanking(memberIds, currentGenericTeamRankingStatus.contentHash)
+      : undefined
+    if (systemRanking === undefined) {
+      const direction = lookupCurrent31TeamIntrinsicDetails(memberIds, candidate.candidateId)?.mechanismDirection
+      const defaultPlay = direction && selectSavedDefaultTeamAdmissionPlay(memberIds, direction, currentGenericTeamRankingStatus.contentHash)
+      systemRanking = (defaultPlay && lookupCurrentGenericTeamRankingForPlay(memberIds, defaultPlay)) ||
+        lookupCurrentTeamSystemRanking(memberIds)
+    }
     const output = outputById.get(candidate.candidateId)
     const hardPrunes = [
+      ...memberIds
+        .filter((agentId) => !ownedAgentIds.has(agentId))
+        .map((agentId) => ({
+          reason: 'not_available_in_selected_scope' as const,
+          subjectId: agentId,
+          explanation: '候选包含当前档案未拥有的代理人。',
+          evidenceRefs: [ownershipEvidence.evidenceId],
+        })),
       ...(input.preference.fixedAgentIds.every((agentId) => memberIds.includes(agentId))
         ? []
         : [
@@ -194,17 +233,24 @@ export function projectAccountIntrinsicCandidates(input: {
         memberIds,
         output: output ?? null,
         benchmark: accountBoundBenchmark,
-        rating: indexed.rating,
+        rating: projectGenericTeamRating(indexed.rating, systemRanking),
         mainstreamRecognition: { status: summary?.mainstreamStatus ?? 'unknown' },
         inferredStrength: summary?.metaAuthority === 'model_inference',
         recommendationScore: summary?.recommendationScore ?? null,
         mechanicallyClosed: summary?.mechanicallyClosed ?? false,
         hasPreliminaryDirection: summary?.hasPreliminaryDirection ?? false,
+        systemRanking,
         account: deriveAccountBands(candidate, accountContext),
       }
     }
     if (input.mode === 'indexed')
       throw new Current31TeamIntrinsicIndexMismatchError('通用队伍榜单尚未就绪，请更新资料后重试。')
+    const mechanicState = inspectCurrent31FormationMechanicState(memberIds)
+    const mechanicallyClosed =
+      mechanicState.ruleComplete &&
+      mechanicState.activationAtBase &&
+      mechanicState.resourceLoopClosed &&
+      mechanicState.fieldTimeWithinBudget
     if (hardPrunes.length === 0 && resolveReviewedPhoenixTeam33(memberIds)) {
       // The direct oracle must use the same bounded local reference as the serialized index.
       // Keep player hard prunes and absent executable mechanics independent of that reference.
@@ -222,16 +268,16 @@ export function projectAccountIntrinsicCandidates(input: {
         memberIds,
         output: output ?? null,
         benchmark: accountBoundBenchmark,
-        rating: direct.rating,
+        rating: projectGenericTeamRating(direct.rating, systemRanking),
         mainstreamRecognition: direct.mainstreamRecognition,
         inferredStrength: direct.metaCalibration.authority === 'model_inference',
         recommendationScore: direct.metaCalibration.recommendationScore ?? null,
-        mechanicallyClosed: false,
+        mechanicallyClosed,
         hasPreliminaryDirection: direct.metaCalibration.authority === 'recovered_preliminary',
+        systemRanking,
         account: deriveAccountBands(candidate, accountContext),
       }
     }
-    const mechanicState = inspectCurrent31FormationMechanicState(memberIds)
     const signals = projectAgentRulesToTeamFeatureSignals({
       candidateId: candidate.candidateId,
       memberIds,
@@ -241,7 +287,7 @@ export function projectAccountIntrinsicCandidates(input: {
       outputPotentialBand: 'unknown',
       benchmark: intrinsicRatingBenchmark,
       hardPrunes,
-      additionalEvidence: [preferenceEvidence],
+      additionalEvidence: [preferenceEvidence, ownershipEvidence],
     })
     const equivalenceKey = JSON.stringify([
       signals.rulesComplete,
@@ -273,13 +319,16 @@ export function projectAccountIntrinsicCandidates(input: {
       mechanicRating,
       featureVector,
       benchmark: intrinsicRatingBenchmark,
+      // Match the index producer. Optional diagnostics are exposed later by
+      // the recommendation projection, not consumed by these intrinsic fields.
+      reviewedOnly: true,
     })
     return {
       candidate,
       memberIds,
       output: output ?? null,
       benchmark: accountBoundBenchmark,
-      rating: strengthProjection.teamStrength,
+      rating: projectGenericTeamRating(strengthProjection.teamStrength, systemRanking),
       mainstreamRecognition: strengthProjection.mainstreamRecognition,
       inferredStrength: strengthProjection.metaCalibration.authority === 'model_inference',
       recommendationScore: strengthProjection.metaCalibration.recommendationScore ?? null,
@@ -290,6 +339,7 @@ export function projectAccountIntrinsicCandidates(input: {
         mechanicState.fieldTimeWithinBudget,
       hasPreliminaryDirection:
         strengthProjection.metaCalibration.authority === 'recovered_preliminary',
+      systemRanking,
       account: deriveAccountBands(candidate, accountContext),
     }
   })

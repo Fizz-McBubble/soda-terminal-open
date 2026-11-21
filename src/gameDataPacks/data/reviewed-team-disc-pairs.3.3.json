@@ -1,0 +1,462 @@
+{
+  "gameVersion": "3.3",
+  "entries": [
+    {
+      "playId": "sha256:0386c43939612f693ffe7d5aa0dbbaaeaf16725e73aefa8810546f46ccbad1bf",
+      "members": "agent-miyabi|agent-nangong|agent-sunna",
+      "evidence": "fdcd554361cf46b51f93b4ec4823d04bb977c94d49299d6013fd520edfb5952c",
+      "pairs": [
+        {
+          "agentId": "agent-nangong",
+          "four": "set-phaethons-melody",
+          "two": "set-freedom-blues"
+        }
+      ],
+      "verifiedQuickAssistAgentIds": []
+    },
+    {
+      "playId": "sha256:0688e1c5f6423ddc819bf374a40483ddb550326e5fe5f8b6e4a0dd43f2090c5d",
+      "members": "agent-miyabi|agent-nangong|agent-yuzuha",
+      "evidence": "e21ecbbcc562b8e5ee6d92bb03425fa03ce840bf5676bc51a11b78685d443828",
+      "pairs": [
+        {
+          "agentId": "agent-nangong",
+          "four": "set-phaethons-melody",
+          "two": "set-freedom-blues"
+        }
+      ],
+      "verifiedQuickAssistAgentIds": []
+    },
+    {
+      "playId": "sha256:09a2a167d48f486156c5eae16d0da469afb7bbc8d82d3480703777b8e69a1d75",
+      "members": "agent-miyabi|agent-nangong|agent-yuzuha",
+      "evidence": "6b5f438113f49f2ca0a6dba9a558a8141f3512a133f74d0d15d79b793c15885b",
+      "pairs": [
+        {
+          "agentId": "agent-nangong",
+          "four": "set-phaethons-melody",
+          "two": "set-freedom-blues"
+        }
+      ],
+      "verifiedQuickAssistAgentIds": []
+    },
+    {
+      "playId": "sha256:161f875c5c62e6a2978cd3ed6b9b9ca231e5787f35b689b9fec28108c7b71059",
+      "members": "agent-jane|agent-nangong|agent-yuzuha",
+      "evidence": "8940869d6c19fd7e8ef23d7ce2f57edee2d9eb15c98d4d576908545965d250cf",
+      "pairs": [
+        {
+          "agentId": "agent-nangong",
+          "four": "set-phaethons-melody",
+          "two": "set-freedom-blues"
+        }
+      ],
+      "verifiedQuickAssistAgentIds": []
+    },
+    {
+      "playId": "sha256:340c79fd1ed6f2e9e952cb427a8076a9eded1ee5b0ce70bfcbdc4dd7286bfbe9",
+      "members": "agent-nangong|agent-yanagi|agent-yuzuha",
+      "evidence": "c47450ce0ea0d8a7d6037c43a265734098a464b8b88337ddd86838df0b71fe4d",
+      "pairs": [
+        {
+          "agentId": "agent-nangong",
+          "four": "set-phaethons-melody",
+          "two": "set-freedom-blues"
+        }
+      ],
+      "verifiedQuickAssistAgentIds": []
+    },
+    {
+      "playId": "sha256:3c3551b188d1eb2aab059ad7ba2a8dda7e3ad2d9078fb0b9355b7a901f406000",
+      "members": "agent-astra|agent-nekomata|agent-pulchra",
+      "evidence": "72a5941f005f7d1b2ed85efd368d938a6d1bd044a740c79d04a649f09e00b140",
+      "pairs": [
+        {
+          "agentId": "agent-astra",
+          "four": "set-moonlight-lullaby",
+          "two": "set-swing-jazz"
+        },
+        {
+          "agentId": "agent-pulchra",
+          "four": "set-astral-voice",
+          "two": "set-proto-punk"
+        }
+      ],
+      "verifiedQuickAssistAgentIds": []
+    },
+    {
+      "playId": "sha256:4627a66d4380313ac63f28a83bf224e1130d931b2c1e85498a2dbd4e7b432c61",
+      "members": "agent-astra|agent-jane|agent-nangong",
+      "evidence": "eed35604862b35975d7b738427cb706067729646367e8bbcdaa8eb7e229517bf",
+      "pairs": [
+        {
+          "agentId": "agent-astra",
+          "four": "set-moonlight-lullaby",
+          "two": "set-swing-jazz"
+        },
+        {
+          "agentId": "agent-nangong",
+          "four": "set-astral-voice",
+          "two": "set-phaethons-melody"
+        }
+      ],
+      "verifiedQuickAssistAgentIds": [
+        "agent-nangong"
+      ]
+    },
+    {
+      "playId": "sha256:4e0f0aaed0d97fac66ebfbb45ccd09b82f68fa0a2573a855a5ac494849cab356",
+      "members": "agent-astra|agent-nangong|agent-vivian",
+      "evidence": "b664c1b40ad428b71875f8f34b6bd8b124d4d0fc684e41a1dece3c9e71d61647",
+      "pairs": [
+        {
+          "agentId": "agent-astra",
+          "four": "set-moonlight-lullaby",
+          "two": "set-swing-jazz"
+        },
+        {
+          "agentId": "agent-nangong",
+          "four": "set-astral-voice",
+          "two": "set-phaethons-melody"
+        }
+      ],
+      "verifiedQuickAssistAgentIds": [
+        "agent-nangong"
+      ]
+    },
+    {
+      "playId": "sha256:51891cb577913653a72480e0c8a863e609382097dda39b410a972789ebbeb337",
+      "members": "agent-astra|agent-miyabi|agent-nangong",
+      "evidence": "ca42eccb74956ff5f034cdafca087a64f6103e9e43c7afbac552d1b86477da5e",
+      "pairs": [
+        {
+          "agentId": "agent-astra",
+          "four": "set-moonlight-lullaby",
+          "two": "set-swing-jazz"
+        },
+        {
+          "agentId": "agent-nangong",
+          "four": "set-astral-voice",
+          "two": "set-phaethons-melody"
+        }
+      ],
+      "verifiedQuickAssistAgentIds": [
+        "agent-nangong"
+      ]
+    },
+    {
+      "playId": "sha256:52afcde175c4921f3b727051531068c94e88a35e427239e141ecb51130a45dd0",
+      "members": "agent-astra|agent-lucy|agent-piper",
+      "evidence": "0aa53bc4a210b1f57265d6a25c54260ecc49bba5138746bef541b1a8de6c6541",
+      "pairs": [
+        {
+          "agentId": "agent-astra",
+          "four": "set-moonlight-lullaby",
+          "two": "set-hormone-punk"
+        },
+        {
+          "agentId": "agent-lucy",
+          "four": "set-astral-voice",
+          "two": "set-swing-jazz"
+        }
+      ],
+      "verifiedQuickAssistAgentIds": []
+    },
+    {
+      "playId": "sha256:5963996d01047cd97eaedd16fc9d1945dc3d7df3e25e04f796ed9309bb84cb5e",
+      "members": "agent-nangong|agent-promeia|agent-sunna",
+      "evidence": "3b4780441c3f23a9b2624a2ca1ae419dc9bb50688d824fdecf43d3e716e0f63c",
+      "pairs": [
+        {
+          "agentId": "agent-nangong",
+          "four": "set-phaethons-melody",
+          "two": "set-freedom-blues"
+        }
+      ],
+      "verifiedQuickAssistAgentIds": []
+    },
+    {
+      "playId": "sha256:62bbc8d4373db14757dcedc6d8d2022c0229b7bf3f2aa3b912a537160ce44372",
+      "members": "agent-astra|agent-miyabi|agent-nangong",
+      "evidence": "d718e155d9c439ab07926209c23b533dce37b2f585efe417441ce60fed368084",
+      "pairs": [
+        {
+          "agentId": "agent-astra",
+          "four": "set-moonlight-lullaby",
+          "two": "set-swing-jazz"
+        },
+        {
+          "agentId": "agent-nangong",
+          "four": "set-astral-voice",
+          "two": "set-phaethons-melody"
+        }
+      ],
+      "verifiedQuickAssistAgentIds": [
+        "agent-nangong"
+      ]
+    },
+    {
+      "playId": "sha256:63c2692fa046230cfc69ef64923c0c94b050b59acb2ac6fea84c7dd4cb2bb7f2",
+      "members": "agent-miyabi|agent-nangong|agent-sunna",
+      "evidence": "1788ecacbb8aae5988750a474916430e5773b1df8a23a9fa33d3ecab23039902",
+      "pairs": [
+        {
+          "agentId": "agent-nangong",
+          "four": "set-phaethons-melody",
+          "two": "set-freedom-blues"
+        }
+      ],
+      "verifiedQuickAssistAgentIds": []
+    },
+    {
+      "playId": "sha256:70e5ed8c4f6a6ebee6dab999f112a9898aac42eb348753a4290c436e371a6751",
+      "members": "agent-grace|agent-nangong|agent-yuzuha",
+      "evidence": "6b3f23966286ef33991eafe020b6fe33e9657b04292bb701c7772d5859cb427b",
+      "pairs": [
+        {
+          "agentId": "agent-nangong",
+          "four": "set-phaethons-melody",
+          "two": "set-freedom-blues"
+        }
+      ],
+      "verifiedQuickAssistAgentIds": []
+    },
+    {
+      "playId": "sha256:876b8ef3ad34f7d99e7829a369a48d002fb6e0fc2cfd1686efa837ad1ca4b14d",
+      "members": "agent-nangong|agent-velina|agent-yuzuha",
+      "evidence": "c61ce95a7ce53a098d2a79b933d2e9e15bd889ca7c65690b248b565feef7ece1",
+      "pairs": [
+        {
+          "agentId": "agent-nangong",
+          "four": "set-phaethons-melody",
+          "two": "set-freedom-blues"
+        }
+      ],
+      "verifiedQuickAssistAgentIds": []
+    },
+    {
+      "playId": "sha256:88d4b192e0abac5d14b17f8cff1db5563a419037ef58ad1dcb6238a7578f5cba",
+      "members": "agent-astra|agent-lucy|agent-miyabi",
+      "evidence": "120c225607ac3047d8a11e5c331c9cda1ab5f3cf7123822dcd4d1003dcccd1f7",
+      "pairs": [
+        {
+          "agentId": "agent-astra",
+          "four": "set-moonlight-lullaby",
+          "two": "set-hormone-punk"
+        },
+        {
+          "agentId": "agent-lucy",
+          "four": "set-astral-voice",
+          "two": "set-swing-jazz"
+        }
+      ],
+      "verifiedQuickAssistAgentIds": []
+    },
+    {
+      "playId": "sha256:8c8ba008e8381c2e12f554caebed5f3fdab3cb5ecefb8259e8c5cf053acf7435",
+      "members": "agent-burnice|agent-nangong|agent-yuzuha",
+      "evidence": "6b944a5abeae02b5ad6a34e8a7b9e05ada0be7a836d8b66036ae4e8cf8a0783f",
+      "pairs": [
+        {
+          "agentId": "agent-nangong",
+          "four": "set-phaethons-melody",
+          "two": "set-freedom-blues"
+        }
+      ],
+      "verifiedQuickAssistAgentIds": []
+    },
+    {
+      "playId": "sha256:a5a8286744a9b08435e513e366387315072a9f4e15a530cfa5fdcae562f6c6c6",
+      "members": "agent-astra|agent-pulchra|agent-soldier-0-anby",
+      "evidence": "81dfc3aa3b00013dadcac878921b14f8c8b341aabf51954157e06a8a2310341c",
+      "pairs": [
+        {
+          "agentId": "agent-astra",
+          "four": "set-moonlight-lullaby",
+          "two": "set-swing-jazz"
+        },
+        {
+          "agentId": "agent-pulchra",
+          "four": "set-astral-voice",
+          "two": "set-proto-punk"
+        }
+      ],
+      "verifiedQuickAssistAgentIds": []
+    },
+    {
+      "playId": "sha256:a9f6c5155c307ebe999b1693927a9ab4f57f28e45e6bef674213eec50dc1ec08",
+      "members": "agent-astra|agent-lucy|agent-miyabi",
+      "evidence": "e0b2a23c2e7f3c09a7d0f55ead689c968d54ae25b4b89145263de758c08a2146",
+      "pairs": [
+        {
+          "agentId": "agent-astra",
+          "four": "set-moonlight-lullaby",
+          "two": "set-hormone-punk"
+        },
+        {
+          "agentId": "agent-lucy",
+          "four": "set-astral-voice",
+          "two": "set-swing-jazz"
+        }
+      ],
+      "verifiedQuickAssistAgentIds": []
+    },
+    {
+      "playId": "sha256:ae9fb6a1bb345dd7a318904d613fa1ab8feea6c4d8e1bb58cd9c71049e1df716",
+      "members": "agent-alice|agent-nangong|agent-yuzuha",
+      "evidence": "287fd8a3807eff76f3fc963d6935fb35c9fd318cc6d5034e640e19bb1175764f",
+      "pairs": [
+        {
+          "agentId": "agent-nangong",
+          "four": "set-phaethons-melody",
+          "two": "set-freedom-blues"
+        }
+      ],
+      "verifiedQuickAssistAgentIds": []
+    },
+    {
+      "playId": "sha256:b5d8a4846de0c3c8bab592d51bac87debd678fd925064c9bd045bec1f72d82fc",
+      "members": "agent-nangong|agent-vivian|agent-yuzuha",
+      "evidence": "46ffc35707b69b15ad10cb6cedbcca015170485876f12e2118a91c183bc29770",
+      "pairs": [
+        {
+          "agentId": "agent-nangong",
+          "four": "set-phaethons-melody",
+          "two": "set-freedom-blues"
+        }
+      ],
+      "verifiedQuickAssistAgentIds": []
+    },
+    {
+      "playId": "sha256:b85de16d7d0155027f5f8e583fcc512319504e8395259abdad1e525d3e065f01",
+      "members": "agent-astra|agent-pulchra|agent-soldier-0-anby",
+      "evidence": "3a9b38963bb233ba06ff7433ff9f0be8a9b8e9f6a260432fd85cab04255958a2",
+      "pairs": [
+        {
+          "agentId": "agent-astra",
+          "four": "set-moonlight-lullaby",
+          "two": "set-swing-jazz"
+        },
+        {
+          "agentId": "agent-pulchra",
+          "four": "set-astral-voice",
+          "two": "set-proto-punk"
+        }
+      ],
+      "verifiedQuickAssistAgentIds": []
+    },
+    {
+      "playId": "sha256:c47d11bb784bcb252ec364c27b0e1644bb1dafcbfcd1a16134baeb99c53cb8ef",
+      "members": "agent-astra|agent-evelyn|agent-lucy",
+      "evidence": "391b499f859200647a158cc68cdd50582c297470b31e2b5f5dbedea3077d378e",
+      "pairs": [
+        {
+          "agentId": "agent-astra",
+          "four": "set-moonlight-lullaby",
+          "two": "set-swing-jazz"
+        },
+        {
+          "agentId": "agent-lucy",
+          "four": "set-astral-voice",
+          "two": "set-swing-jazz"
+        }
+      ],
+      "verifiedQuickAssistAgentIds": []
+    },
+    {
+      "playId": "sha256:cd898e8979e7382e73472bc0338c8ca3dcd2cfafe8a3be6e934f6781155ee705",
+      "members": "agent-astra|agent-lucy|agent-soldier-0-anby",
+      "evidence": "d8320f26402406e776bdddd633f77ba763e26468f2a73e5d9f595e5f2216796d",
+      "pairs": [
+        {
+          "agentId": "agent-astra",
+          "four": "set-moonlight-lullaby",
+          "two": "set-hormone-punk"
+        },
+        {
+          "agentId": "agent-lucy",
+          "four": "set-astral-voice",
+          "two": "set-swing-jazz"
+        }
+      ],
+      "verifiedQuickAssistAgentIds": []
+    },
+    {
+      "playId": "sha256:dbdd65985b1691c701e3b9a0da5d08b945df3a3dc60d6d59cb9756798ee18ddf",
+      "members": "agent-miyabi|agent-nangong|agent-nicole",
+      "evidence": "9f9d72abd71c252db93c1cdc0a1c4fb7a1ffee241fd86fa0b623e75e93ad6a7f",
+      "pairs": [
+        {
+          "agentId": "agent-nangong",
+          "four": "set-phaethons-melody",
+          "two": "set-freedom-blues"
+        }
+      ],
+      "verifiedQuickAssistAgentIds": []
+    },
+    {
+      "playId": "sha256:e4d77cb9f690a50b6b8eb6166966308445ab1dc2c54d30dc555e1bfd0daab886",
+      "members": "agent-nangong|agent-promeia|agent-yuzuha",
+      "evidence": "ad0373190f2a1ba8c5b8221f1b2d2e0c4e0e79659f3b275c36e9b8fc38c5260b",
+      "pairs": [
+        {
+          "agentId": "agent-nangong",
+          "four": "set-phaethons-melody",
+          "two": "set-freedom-blues"
+        }
+      ],
+      "verifiedQuickAssistAgentIds": []
+    },
+    {
+      "playId": "sha256:e69b2ef5dab5769ee6ae7d3fd9105d956e9f8f304e1c1d12cc90a9d467767f68",
+      "members": "agent-astra|agent-lucy|agent-soldier-0-anby",
+      "evidence": "08e8a9269830f58e87fc61de41fab804f0da5bc2d17ffcb41b215a3cabaf98c9",
+      "pairs": [
+        {
+          "agentId": "agent-astra",
+          "four": "set-moonlight-lullaby",
+          "two": "set-hormone-punk"
+        },
+        {
+          "agentId": "agent-lucy",
+          "four": "set-astral-voice",
+          "two": "set-swing-jazz"
+        }
+      ],
+      "verifiedQuickAssistAgentIds": []
+    },
+    {
+      "playId": "sha256:ec5372ba00965ccfa140aa85b3123c6b3cdfc98cd949e0fc8409487156887262",
+      "members": "agent-astra|agent-nangong|agent-promeia",
+      "evidence": "1bcdc1faa99d82e1a7344a6ab9b7fe4b58fe06084935837d3a22d97f12aa5d31",
+      "pairs": [
+        {
+          "agentId": "agent-astra",
+          "four": "set-moonlight-lullaby",
+          "two": "set-swing-jazz"
+        },
+        {
+          "agentId": "agent-nangong",
+          "four": "set-astral-voice",
+          "two": "set-phaethons-melody"
+        }
+      ],
+      "verifiedQuickAssistAgentIds": [
+        "agent-nangong"
+      ]
+    },
+    {
+      "playId": "sha256:f83eb29b522371810447401a9ae80943fd4005c3e467e5dc8199914a32939782",
+      "members": "agent-miyabi|agent-nangong|agent-nicole",
+      "evidence": "f66eced4cd6b5afcd16c2a265d576447b3160c0350298a60d9d8bc8bd6066e7e",
+      "pairs": [
+        {
+          "agentId": "agent-nangong",
+          "four": "set-phaethons-melody",
+          "two": "set-freedom-blues"
+        }
+      ],
+      "verifiedQuickAssistAgentIds": []
+    }
+  ]
+}

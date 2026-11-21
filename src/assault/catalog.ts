@@ -13,6 +13,7 @@ export const assaultModelVersion = 'account-optimizer-v1'
 
 /** Player-facing labels for the stable agent-specialty keys in the catalog. */
 export const agentSpecialtyLabels: Record<string, string> = {
+  attack: '强攻',
   damage: '强攻',
   stun: '击破',
   anomaly: '异常',

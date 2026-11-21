@@ -1,3 +1,4 @@
+import { playerErrorMessage } from '../application/playerErrorMessage'
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { useLiveQuery } from 'dexie-react-hooks'
 import {
@@ -57,7 +58,7 @@ export function ScannerImportHistory({
     try {
       return { recovery: await readLatestScannerImportRecovery(accountId) }
     } catch {
-      return { recovery: null, error: '暂时无法读取扫描导入记录；不能据此判断没有记录。' }
+      return { recovery: null, error: '暂时无法读取扫描导入记录，请重试。' }
     }
   }, [accountId, open, retry])
   const recovery = loaded?.recovery
@@ -90,13 +91,13 @@ export function ScannerImportHistory({
       await restoreScannerImport(accountId, recovery.recoveryKey, 'undo_scanner_import')
       if (identity !== request.current.generation) return
       setFailure(false)
-      setMessage('已撤销这次扫描导入，盘库已恢复到导入前。原始结果和恢复副本保留。')
+      setMessage('已撤销这次扫描导入，盘库已恢复到导入前。')
       setConfirming(false)
       onScannerRestored()
     } catch (error) {
       if (identity !== request.current.generation) return
       setFailure(true)
-      setMessage(error instanceof Error ? error.message : '撤销未完成，账户未修改，请重试。')
+      setMessage(playerErrorMessage(error, '撤销未完成，账户未修改，请重试。'))
     } finally {
       if (identity === request.current.generation) setBusy(false)
     }
@@ -160,7 +161,7 @@ export function ScannerImportHistory({
                     disabled={busy}
                     onClick={() => setConfirming(false)}
                   >
-                    取消撤销
+                    取消
                   </button>
                   <button
                     className="button button--primary"
@@ -184,7 +185,7 @@ export function ScannerImportHistory({
             )}
           </>
         ) : (
-          <p>暂无带完整恢复副本的扫描导入记录。旧批次不能据此撤销。</p>
+          <p>暂无带完整恢复副本的扫描导入记录。</p>
         )}
       </section>
       {!confirming && (

@@ -1,6 +1,36 @@
 import { isDamageFormula32Version } from './sharpDamageCore'
 import { executePlanningInteractionContract } from './planningInteractionOperators'
-import type { ReferenceCombatInput, ReferenceCombatResult } from './referenceCombatContract'
+import type {
+  ReferenceCombatEvent,
+  ReferenceCombatInput,
+  ReferenceCombatResult,
+} from './referenceCombatContract'
+
+// Claret's released core text explicitly retains DEF scaling and the two laceration checks.
+// A numeric skill-row pin alone cannot establish continuity of the damage family.
+export const claretSharpSource33 =
+  'https://static.nanoka.cc/zzz/3.3/zh/character/1611.json#sha256=7e4ea618277eb357e961f5ba20807db82dd3382d8c49afe04d85152212bf6ebd'
+
+export function referenceEventUsesTypedFormula(
+  input: ReferenceCombatInput,
+  event: ReferenceCombatEvent,
+) {
+  if (isDamageFormula32Version(input.gameVersion)) return true
+  return (
+    input.gameVersion === '3.3' &&
+    event.kind === 'sharp' &&
+    event.ownerAgentId === 'agent-claret' &&
+    event.scalingAttribute === 'defense' &&
+    input.sources.some(
+      (s) =>
+        event.sourceRefs.includes(s.id) &&
+        s.kind === 'verified_definition' &&
+        s.sourceVersion === '3.3' &&
+        s.targetVersion === '3.3' &&
+        s.ref === claretSharpSource33,
+    )
+  )
+}
 
 const unique = (values: readonly string[]) => new Set(values).size === values.length
 
@@ -68,6 +98,40 @@ export function validateReferenceCombat(input: ReferenceCombatInput) {
     member(event.ownerAgentId)
     sourceRefs(event.sourceRefs)
     numericSource(event.sourceRefs, `event:${event.id}`)
+    if (input.coveredMechanics.includes('full-rotation-state-settlement') && !event.settlement)
+      blockers.push(`missing_full_rotation_settlement:${event.id}`)
+    if (event.settlement) {
+      const settlementKind = event.settlement.family === 'direct' ? 'direct' : 'anomaly'
+      if (settlementKind !== event.kind || event.anomalyContributions || event.anomalyDomain ||
+        input.effects.length || !input.coveredMechanics.includes('full-rotation-state-settlement'))
+        blockers.push(`mixed_settlement_paths:${event.id}`)
+      if (event.multiplier !== (event.settlement.family === 'direct'
+        ? event.settlement.motionValue : event.settlement.family === 'anomaly'
+          ? event.settlement.baseMultiplier : 1) ||
+        event.hitCount !== (event.settlement.family === 'direct' ? event.settlement.hitCount : 1))
+        blockers.push(`settlement_identity_mismatch:${event.id}`)
+    }
+    if (event.anomalyContributions) {
+      if (event.kind !== 'anomaly' || !event.attribute || event.hitCount !== 1 ||
+        (event.attribute === 'wind' && event.anomalyDomain?.kind !== 'wind') ||
+        (event.attribute !== 'wind' && event.anomalyDomain?.kind === 'wind') ||
+        (event.attribute === 'wind' && event.anomalyDomain?.kind === 'vortex'))
+        blockers.push(`unsupported_contribution_anomaly:${event.id}`)
+      if (!unique(event.anomalyContributions.map((row) => row.id)))
+        blockers.push(`duplicate_anomaly_contribution:${event.id}`)
+      for (const contribution of event.anomalyContributions) {
+        member(contribution.ownerAgentId)
+        sourceRefs(contribution.sourceRefs)
+        numericSource(contribution.sourceRefs, `contribution:${contribution.id}`)
+        if (contribution.snapshotAt > event.at)
+          blockers.push(`future_contribution_snapshot:${contribution.id}`)
+        if (input.members.find(row => row.agentId === contribution.ownerAgentId)?.level !== contribution.snapshot.attackerLevel)
+          blockers.push(`contribution_level_mismatch:${contribution.id}`)
+      }
+    }
+    if (event.anomalyDomain && !event.anomalyContributions) blockers.push(`missing_anomaly_contributions:${event.id}`)
+    if (event.anomalyDomain && event.anomalyDomain.kind !== 'ordinary' && event.multiplier !== 1)
+      blockers.push(`ambiguous_anomaly_domain_multiplier:${event.id}`)
     const action = actions.get(event.actionId)
     if (!action) blockers.push(`unknown_event_action:${event.id}`)
     else {
@@ -89,7 +153,7 @@ export function validateReferenceCombat(input: ReferenceCombatInput) {
       !input.members.find((row) => row.agentId === event.ownerAgentId)?.stats.sheerForce
     )
       blockers.push(`missing_sheer_force:${event.ownerAgentId}`)
-    if (event.kind === 'sharp' && !isDamageFormula32Version(input.gameVersion))
+    if (event.kind === 'sharp' && !referenceEventUsesTypedFormula(input, event))
       blockers.push(`sharp_version_not_reviewed:${event.id}`)
     const stats = input.members.find((row) => row.agentId === event.ownerAgentId)?.stats
     if ((event.kind === 'sharp' || event.scalingAttribute === 'defense') && !stats?.defense)
@@ -177,6 +241,18 @@ export function validateReferenceCombat(input: ReferenceCombatInput) {
   stun.forEach((row, index) => {
     sourceRefs(row.sourceRefs)
     const activation = row.activationActionId ? actions.get(row.activationActionId) : null
+    if (row.activationEventId) {
+      const tied = input.events.filter((event) => event.at === row.start)
+      const trigger = tied.find((event) => event.id === row.activationEventId)
+      if (row.initial || !trigger || trigger.actionId !== row.activationActionId)
+        blockers.push('unbound_stun_contact')
+      if (
+        tied.length > 1 &&
+        (tied.some((event) => event.contactOrder === undefined) ||
+          new Set(tied.map((event) => event.contactOrder)).size !== tied.length)
+      )
+        blockers.push('ambiguous_stun_contact_order')
+    }
     if (row.initial) {
       if (row.start !== 0 || activation) blockers.push('invalid_initial_stun')
     } else if (!activation || row.start < activation.start || row.start > activation.end)
@@ -195,13 +271,17 @@ export function validateReferenceCombat(input: ReferenceCombatInput) {
     const resource = resources.get(change.resourceId)
     if (!action || !resource) blockers.push(`unknown_resource_binding:${change.id}`)
     else if (
-      resource.ownerAgentId !== action.ownerAgentId ||
+      (resource.ownerAgentId !== action.ownerAgentId && change.ownership !== 'sourced_off_field') ||
       change.at < action.start ||
       change.at > action.end ||
       (change.at === action.end && change.phase !== 'completion')
     )
       blockers.push(`invalid_resource_binding:${change.id}`)
-    if (change.at >= duration) blockers.push(`resource_outside_horizon:${change.id}`)
+    if (change.ownership === 'sourced_off_field' &&
+      (!change.mechanicId || !input.coveredMechanics.includes(change.mechanicId)))
+      blockers.push(`unbound_resource_mechanic:${change.id}`)
+    if (change.at > duration || (change.at === duration && change.phase !== 'completion'))
+      blockers.push(`resource_outside_horizon:${change.id}`)
     const orderKey = `${change.resourceId}:${change.at}:${change.order}`
     if (changeOrder.has(orderKey)) blockers.push(`ambiguous_resource_order:${change.id}`)
     changeOrder.add(orderKey)

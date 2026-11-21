@@ -37,7 +37,7 @@ export class DiscNotFoundError extends Error {
 export async function initializeDatabase(metadata: Omit<DatabaseMetadata, 'initializedAt'>) {
   await database.open()
   await ensureBuiltInTemplates()
-  const { ensureBundledGameDataPacks } = await import('../gameDataPacks/repository')
+  const { ensureBundledGameDataPacks } = await import('../gameDataPacks/repositoryInitialization')
   await ensureBundledGameDataPacks()
   await database.settings.put({
     key: 'app-metadata',

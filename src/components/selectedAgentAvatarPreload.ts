@@ -15,7 +15,9 @@ export async function preloadSelectedAgentAvatar(
   agentId: string,
   consumer: SelectedAgentAvatarConsumer,
 ) {
-  const preferred = getVisualAsset('agent', agentId, 'interknot')
+  const preferred =
+    getVisualAsset('agent', agentId, 'interknot') ??
+    getVisualAsset('agent', agentId, 'social_avatar')
   const source = preferred ? await resolveSessionVisualSource(preferred) : null
   return (
     source ??

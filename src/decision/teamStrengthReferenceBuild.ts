@@ -1,3 +1,4 @@
+import { evaluateReviewedBenInitialAttackConversion32 } from '../calculation/reviewedBenInitialAttackConversion32'
 import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
 import type {
   PlanningEffectRuntimeMember,
@@ -214,8 +215,14 @@ export function createTeamStrengthEquippedReferenceMember(input: {
         .filter((row) => row.key === key && row.operation === 'base')
         .reduce((sum, row) => sum + (typeof row.value === 'number' ? row.value : 0), 0)
     const p = panel.values
+    // Equipped reference builds share the account calculator's unconditional
+    // initial DEF conversion. Keep white ATK and conditional combat DEF separate.
+    const initialConversion = agentId === 'agent-ben'
+      ? evaluateReviewedBenInitialAttackConversion32({ coreLevel: 7, initialDefense: p.def })
+      : null
+    if (initialConversion?.status === 'unsupported') throw new Error(initialConversion.blockers.join(', '))
     const stats: PlanningEffectRuntimeStats = {
-      atk: p.atk,
+      atk: p.atk + (initialConversion?.attackIncrease ?? 0),
       def: p.def,
       hp: p.hp,
       baseAttack: baseValue('atk'),
@@ -262,6 +269,7 @@ export function createTeamStrengthEquippedReferenceMember(input: {
         `${contract.source.repository}@${contract.source.commit}`,
         `${contract.source.statsPath}#${contract.source.statsSha256}`,
         ...panel.trace.map((row) => row.source),
+        ...(initialConversion?.sourceRefs ?? []),
         ...recommendation.sources.map((source) => source.url),
         ...(standardEquipmentSelection
           ? [`${skillInvestmentMindscapeSource.path}#${skillInvestmentMindscapeSource.sha256}`]

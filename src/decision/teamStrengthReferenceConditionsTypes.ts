@@ -29,14 +29,30 @@ export type AgentReferenceCondition = {
 }
 /** Numeric consumer input remains compatible with pre-metadata callers. */
 export type TeamStrengthReferenceConditions = {
+  /** Explicit actual fixed-packet coordinate, independent of provider state previews. */
+  eventObservation?: import('../calculation/reviewedAnomalyPartyState32').ReviewedTargetEffectSnapshot32
+  /** Opt-in named Phoenix finite anomaly slice; never an observed rotation. */
+  phoenixCanonicalEvent33?:
+    | import('./teamPhoenixCanonicalAnomaly33').PhoenixCanonicalEvent33
+    | {
+        scenario:
+          | typeof import('./teamPhoenixCanonicalAnomaly33').phoenixCanonicalScenario33
+          | typeof import('./teamPhoenixCanonicalAnomaly33').phoenixOrdinaryScenario33
+      }
   mindscapeByAgentId?: Readonly<Record<string, number>>
   potentialByAgentId: Readonly<Record<string, number>>
   evidenceRefs: readonly string[]
   /** Declared comparison states, never inferred account/combat observations. */
   supportReferencesByAgentId?: Readonly<Record<string, Readonly<Record<string, unknown>>>>
+  /** Opt-in finite-event scenario layer; legacy reference conditions leave these absent. */
+  conditionBindingIdentity?: string
+  conditionBindingBoundary?: string
+  conditionBindingScenario?: string
   recipientContext?: TeamStrengthRecipientContext
 }
 export type TeamStrengthRecipientContext = {
+  /** Explicit play choice, not inferred simultaneous field-time or a strength claim. */
+  primaryOutputAgentId?: string
   /** Legacy explicit current attribute declaration; does not certify a historical core window. */
   contaminationAttributes?: readonly string[]
   roxyWindowsByRecipientId?: Readonly<

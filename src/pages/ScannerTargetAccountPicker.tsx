@@ -21,11 +21,7 @@ export function ScannerTargetAccountPicker({
   disabled?: boolean
   showCount?: boolean
 }) {
-  const selectedIndex = Math.max(
-    0,
-    accounts.findIndex((account) => account.id === selectedAccountId),
-  )
-  const selectedAccount = accounts[selectedIndex]
+  const selectedAccount = accounts.find((account) => account.id === selectedAccountId)
 
   return (
     <div className="scanner-account-picker">
@@ -33,11 +29,13 @@ export function ScannerTargetAccountPicker({
       <PlayerSelect
         className="scanner-account-picker__control"
         aria-label={label}
-        disabled={disabled || !selectedAccount}
+        disabled={disabled || accounts.length === 0}
         value={selectedAccount?.id ?? ''}
         onChange={onSelect}
       >
-        {!selectedAccount && <option value="">请先创建账户</option>}
+        {!selectedAccount && (
+          <option value="">{accounts.length ? '请选择账户' : '请先创建账户'}</option>
+        )}
         {accounts.map((account) => (
           <option key={account.id} value={account.id}>
             {account.displayName}

@@ -1,3 +1,4 @@
+import { playerErrorMessage } from '../application/playerErrorMessage'
 import { FormalImportSuccess } from './FormalImportSuccess'
 import {
   FormalImportFileDropzone,
@@ -31,7 +32,11 @@ import { FormalCompactImportResult } from './FormalCompactImportResult'
 import { useCompactImportPreflight } from './useCompactImportPreflight'
 import { containImportDialogFocus } from './formalImportDialogFocus'
 
-type ImportState = { mode: 'idle' | 'success' | 'error'; message: string }
+type ImportState = {
+  mode: 'idle' | 'success' | 'error'
+  message: string
+  committed?: boolean
+}
 
 export function FormalDiscImportPage({
   embedded = false,
@@ -160,10 +165,10 @@ export function FormalDiscImportPage({
     if (
       successSampleMode ||
       completedImportedTotal !== null ||
-      (state.mode === 'success' && /^已更新 \d+/.test(state.message))
+      (state.mode === 'success' && state.committed)
     )
       successHeadingRef.current?.focus()
-  }, [completedImportedTotal, state.message, state.mode, successSampleMode])
+  }, [completedImportedTotal, state.committed, state.message, state.mode, successSampleMode])
 
   useEffect(() => {
     if (
@@ -180,7 +185,8 @@ export function FormalDiscImportPage({
     }
   }, [completedImportedTotal, embedded])
 
-  function closeConfirmation() {
+  function closeConfirmation(force = false) {
+    if (importPendingRef.current && !force) return
     flushSync(() => setDialogOpen(false))
     confirmationTriggerRef.current?.focus()
   }
@@ -188,7 +194,7 @@ export function FormalDiscImportPage({
   async function loadStaging(file: File | undefined) {
     if (!file || !current || 'bindingError' in current) return
     if (!file.name.toLowerCase().endsWith('.json')) {
-      setState({ mode: 'error', message: '请选择 .json 格式的 扫描结果。' })
+      setState({ mode: 'error', message: '请选择 .json 格式的扫描结果。' })
       onError?.('scan_file_invalid', '请选择 .json 格式的扫描结果。')
       return
     }
@@ -210,7 +216,7 @@ export function FormalDiscImportPage({
       onError?.('scan_file_invalid', '无法载入这份扫描结果，请重新选择有效的 JSON 文件。')
       setState({
         mode: 'error',
-        message: error instanceof Error ? error.message : '无法载入识别结果。',
+        message: playerErrorMessage(error, '无法载入识别结果。'),
       })
     } finally {
       setBusy(false)
@@ -260,7 +266,7 @@ export function FormalDiscImportPage({
       onError?.('scan_import_failed', '重新检查失败，请重试；账户仓库尚未更新。')
       setState({
         mode: 'error',
-        message: error instanceof Error ? error.message : '重新检查失败。',
+        message: playerErrorMessage(error, '重新检查失败。'),
       })
     } finally {
       preflightPendingRef.current = false
@@ -308,10 +314,11 @@ export function FormalDiscImportPage({
       } catch {
         // A browser storage failure cannot undo the committed transaction.
       }
-      closeConfirmation()
+      closeConfirmation(true)
       setState({
         mode: 'success',
-        message: `已更新 ${result.imported} 张驱动盘；未影响其他账户、代理人、邦布、音擎或备份。`,
+        message: `已更新“${current.account.displayName}”的 ${result.imported} 张驱动盘`,
+        committed: true,
       })
       reportedImportTotalRef.current = result.imported
       try {
@@ -323,10 +330,9 @@ export function FormalDiscImportPage({
     } catch (error) {
       finishUsage('failure')
       onError?.('scan_import_failed', '更新失败，请重试或返回准备步骤；账户仓库未改动。')
-      closeConfirmation()
       setState({
         mode: 'error',
-        message: error instanceof Error ? error.message : '更新失败，账户仓库未改动，请重试。',
+        message: playerErrorMessage(error, '更新失败，账户仓库未改动，请重试。'),
       })
     } finally {
       importPendingRef.current = false
@@ -342,13 +348,13 @@ export function FormalDiscImportPage({
     return (
       <FormalImportSuccess
         headingRef={successHeadingRef}
-        message="已更新 400 张驱动盘；未影响其他账户、代理人、邦布、音擎或备份。"
+        message="已更新 400 张驱动盘；其他账户、代理人、邦布、音擎和备份未改动。"
       />
     )
 
-  if (state.mode === 'success' && /^已更新 \d+/.test(state.message))
+  if (state.mode === 'success' && state.committed)
     return embedded ? (
-      <FormalDiscImportPageSuccess headingRef={successHeadingRef} message={state.message} />
+      <FormalDiscImportPageSuccess headingRef={successHeadingRef} heading={state.message} />
     ) : (
       <Navigate replace to="/assets/discs" />
     )
@@ -356,7 +362,7 @@ export function FormalDiscImportPage({
   if (current === undefined)
     return (
       <div className={embedded ? 'scanner-inline-import' : 'page-stack'}>
-        <p role="status">正在读取当前玩家账户…</p>
+        <p role="status">正在读取本机 Soda 账户…</p>
       </div>
     )
   if (current === null)
@@ -368,7 +374,7 @@ export function FormalDiscImportPage({
           </header>
         ) : null}
         <p role="alert" className="danger-note">
-          请先选择玩家账户；尚未读取或改动驱动盘资料。
+          请先创建或选择本机 Soda 账户；尚未读取或改动驱动盘资料。
         </p>
       </div>
     )
@@ -397,7 +403,7 @@ export function FormalDiscImportPage({
     return embedded ? (
       <FormalDiscImportPageSuccess
         headingRef={successHeadingRef}
-        message={`已更新 ${completedImportedTotal} 张驱动盘；未影响其他账户、代理人、邦布、音擎或备份。`}
+        heading={`已更新“${current.account.displayName}”的 ${completedImportedTotal} 张驱动盘`}
       />
     ) : (
       <Navigate replace to="/assets/discs" />
@@ -424,19 +430,25 @@ export function FormalDiscImportPage({
 
   if (embedded && compact)
     return (
-      <FormalCompactImportResult
-        accountName={current.account.displayName}
-        baselineCount={current.binding.baselineDiscCount}
-        count={current.items.length}
-        ready={readyForConfirmation}
-        complete={readyForPreflight}
-        busy={busy}
-        error={currentImportError}
-        message={state.message}
-        secondaryAction={secondaryAction}
-        onImport={() => void confirmImport()}
-        onRetry={() => void runPreflight()}
-      />
+      <>
+        <p>
+          导入会替换此账户已确认的 S 级驱动盘；A/B
+          级及品质未确认的记录会保留。需要保留原资料时，请先导出备份。
+        </p>
+        <FormalCompactImportResult
+          accountName={current.account.displayName}
+          baselineCount={current.binding.baselineDiscCount}
+          count={current.items.length}
+          ready={readyForConfirmation}
+          complete={readyForPreflight}
+          busy={busy}
+          error={currentImportError}
+          message={state.message}
+          secondaryAction={secondaryAction}
+          onImport={() => void confirmImport()}
+          onRetry={() => void runPreflight()}
+        />
+      </>
     )
 
   return (
@@ -446,11 +458,11 @@ export function FormalDiscImportPage({
     >
       {!embedded ? (
         <header className="workflow-header">
-          <h1 id="formal-import-heading">{current.batch ? '检查识别结果' : '导入驱动盘'}</h1>
+          <h1 id="formal-import-heading">{current.batch ? '检查扫描结果' : '导入驱动盘'}</h1>
           <p>
             {current.batch
               ? `账户“${current.account.displayName}” · 先确认识别结果与账户影响，再决定是否继续。`
-              : '仅处理当前玩家账户的驱动盘；识别不通过时不会更新仓库。'}
+              : '仅处理所选本机 Soda 账户的驱动盘；检查不通过时不会更新仓库。'}
           </p>
         </header>
       ) : null}
@@ -491,8 +503,16 @@ export function FormalDiscImportPage({
           dialogRef={dialogRef}
           cancelRef={cancelRef}
           busy={busy}
-          onClose={closeConfirmation}
-          onConfirm={() => void confirmImport()}
+          error={currentImportError ? state.message : null}
+          onClose={() => closeConfirmation()}
+          onConfirm={() => {
+            if (currentImportError) {
+              closeConfirmation()
+              void runPreflight()
+            } else {
+              void confirmImport()
+            }
+          }}
           onKeyDown={(event) =>
             containImportDialogFocus(event, dialogRef.current, closeConfirmation)
           }

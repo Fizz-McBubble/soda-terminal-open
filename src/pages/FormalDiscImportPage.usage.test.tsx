@@ -36,6 +36,40 @@ vi.mock('../db/accountScanImport', () => ({
 import { FormalDiscImportPage } from './FormalDiscImportPage'
 import { createSyntheticFormalImportCurrent as currentState } from './formalDiscImportTestFixture'
 describe('FormalDiscImportPage usage', () => {
+  it('preserves semicolons in the account name after import and when replaying completion', async () => {
+    const state = currentState()
+    state.account.displayName = '测试；备用；账户'
+    mocks.current = state
+    const view = render(
+      <BrowserRouter>
+        <FormalDiscImportPage embedded compact />
+      </BrowserRouter>,
+    )
+    fireEvent.click(screen.getByRole('button', { name: '导入' }))
+    expect(
+      await screen.findByRole('heading', { name: '已更新“测试；备用；账户”的 343 张驱动盘' }),
+    ).toBeVisible()
+    expect(screen.getByText('其他账户、代理人、邦布、音擎和备份未改动。')).toBeVisible()
+    view.unmount()
+    mocks.current = {
+      ...state,
+      discs: 343,
+      summary: { ...state.summary, imported: 343 },
+      batch: {
+        ...state.batch,
+        importHistory: [{ action: 'imported', importedCount: 343, skippedCount: 0 }],
+      },
+    }
+    render(
+      <BrowserRouter>
+        <FormalDiscImportPage embedded />
+      </BrowserRouter>,
+    )
+    expect(
+      screen.getByRole('heading', { name: '已更新“测试；备用；账户”的 343 张驱动盘' }),
+    ).toBeVisible()
+  })
+
   it('keeps a committed import successful when clearing browser storage or notifying the parent fails', async () => {
     const user = userEvent.setup()
     const onError = vi.fn()
@@ -58,7 +92,7 @@ describe('FormalDiscImportPage usage', () => {
     try {
       await user.click(screen.getByRole('button', { name: '导入' }))
       expect(
-        await screen.findByRole('heading', { name: '已更新 343 张驱动盘' }),
+        await screen.findByRole('heading', { name: '已更新“测试账户”的 343 张驱动盘' }),
       ).toBeInTheDocument()
       expect(mocks.replace).toHaveBeenCalledTimes(1)
       expect(onImportSuccess).toHaveBeenCalledWith(343)

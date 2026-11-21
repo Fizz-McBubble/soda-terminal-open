@@ -1,0 +1,278 @@
+/* Soda BOX Team Experience Archetype: Member Mindscape Badges & Cultivation Reference */
+
+.f5v-box-team-portrait-slot {
+  position: relative;
+  display: inline-block;
+  flex: 0 0 64px;
+  width: 64px;
+  height: 64px;
+}
+
+.f5v-box-team-portrait-slot > .f5v-box-team-portrait-frame {
+  width: 100%;
+  height: 100%;
+}
+
+.f5v-box-team-portrait-slot.is-bangboo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.f5v-box-team-mindscape-badge {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 3px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  user-select: none;
+  box-sizing: border-box;
+}
+
+.f5v-box-team-mindscape-badge.is-met,
+.f5v-box-team-mindscape-badge.is-recorded {
+  background: var(--soda-accent, #6549b2);
+  color: #fff;
+  border: 1px solid var(--soda-surface-raised, #fff);
+}
+
+.f5v-box-team-mindscape-badge.is-gap {
+  background: var(--soda-text, #201b2d);
+  color: #fff;
+  border: 1px solid var(--soda-surface-raised, #fff);
+}
+
+.f5v-box-team-mindscape-badge.is-unrecorded,
+.f5v-box-team-mindscape-badge.is-unowned,
+.f5v-box-team-mindscape-badge.is-unknown {
+  background: rgba(43, 38, 54, 0.88);
+  color: rgba(230, 224, 245, 0.8);
+  border: 1px dashed rgba(165, 155, 195, 0.5);
+}
+
+.f5v-box-team-mindscape-badge.is-reference_only {
+  background: #3a3252;
+  color: #e3dcfa;
+  border: 1px solid rgba(160, 147, 205, 0.4);
+}
+
+.f5v-box-team-portraits.is-large .f5v-box-team-portrait-slot {
+  flex-basis: 64px;
+  width: 64px;
+  height: 64px;
+}
+
+.f5v-box-team-portraits.is-large .f5v-box-team-portrait-slot.is-bangboo {
+  flex-basis: 48px;
+  width: 48px;
+  height: 48px;
+}
+
+.f5v-box-team-portraits.is-large .f5v-box-team-mindscape-badge {
+  min-width: 19px;
+  height: 19px;
+  font-size: 11px;
+  padding: 0 4px;
+  right: 3px;
+  bottom: 3px;
+}
+
+.f5v-box-team-preview__mindscape-legend {
+  margin: 8px 0 0;
+  font-size: var(--soda-font-small, 0.8125rem);
+  line-height: 1.5;
+  color: var(--soda-text-2, #655e75);
+}
+
+.f5v-shell .team-execution__member-portrait {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+}
+
+.f5v-shell .team-execution__mindscape-legend,
+.f5v-shell .team-execution__engine-comparison {
+  margin: 6px 0;
+  color: var(--soda-text-2);
+  font-size: var(--soda-font-small, 0.8125rem);
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.f5v-shell .team-execution__cultivation-members {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px 16px;
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+  font-variant-numeric: tabular-nums;
+}
+
+.f5v-shell .team-execution__cultivation-members > li {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.f5v-box-team-preview .team-execution__cultivation-members {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.f5v-box-team-preview .team-execution__cultivation-members > li {
+  grid-template-columns: minmax(64px, 0.8fr) repeat(2, minmax(0, 1fr));
+  align-items: baseline;
+  gap: 8px;
+}
+
+.f5v-box-team-preview .f5v-box-team-decision-summary {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 16px;
+  color: var(--soda-text);
+  font-size: var(--soda-font-body, 0.875rem);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.f5v-box-team-decision-summary :is(h3, p, ul) {
+  margin: 0;
+}
+
+.f5v-box-team-decision-summary h3 {
+  color: var(--soda-text);
+  font-size: inherit;
+  font-weight: 650;
+}
+
+.f5v-box-team-decision-summary ul {
+  padding-left: 1.25em;
+}
+
+.f5v-box-team-decision-summary__reason {
+  color: var(--soda-text);
+  font-weight: 600;
+}
+
+.f5v-shell .team-execution .team-execution__member-slot > button[role='tab']:focus-visible,
+.f5v-shell .team-execution__reference-rules-disclosure > summary:focus-visible {
+  outline: 2px solid var(--soda-accent);
+  outline-offset: 3px;
+}
+
+@container soda-viewport (max-width: 760px) {
+  .f5v-shell .team-execution__cultivation-members,
+  .f5v-box-team-preview .team-execution__cultivation-members > li {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Formed Team Reference: Always-visible summary + Single-layer rules disclosure */
+
+.f5v-shell .team-execution__graduation-reference {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: var(--soda-panel, #fcfbff);
+  border: 1px solid var(--soda-line, rgba(75, 69, 99, 0.14));
+  border-radius: var(--soda-radius-control, 8px);
+  color: var(--soda-text, #201b2d);
+  font-size: 12.5px;
+  line-height: 1.55;
+  box-sizing: border-box;
+}
+
+.f5v-shell .team-execution__reference-header {
+  margin-bottom: 6px;
+}
+
+.f5v-shell .team-execution__reference-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--soda-text, #201b2d);
+  letter-spacing: -0.01em;
+}
+
+.f5v-shell .team-execution__reference-summary-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px;
+  margin-bottom: 6px;
+  color: var(--soda-text, #201b2d);
+}
+
+.f5v-shell .team-execution__reference-subheading {
+  font-weight: 650;
+  color: var(--soda-text, #201b2d);
+  white-space: nowrap;
+}
+
+.f5v-shell .team-execution__reference-members-text {
+  color: var(--soda-text, #201b2d);
+}
+
+.f5v-shell .team-execution__reference-gaps-block {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 6px;
+}
+
+.f5v-shell .team-execution__reference-gaps-list {
+  margin: 0 0 0 16px;
+  padding: 0;
+  color: #a43a08;
+}
+
+.f5v-shell .team-execution__reference-gaps-list li {
+  margin-bottom: 2px;
+}
+
+.f5v-shell .team-execution__reference-no-gaps {
+  color: #1a6f3b;
+  font-weight: 550;
+}
+
+.f5v-shell .team-execution__reference-rules-disclosure {
+  margin-top: 8px;
+  padding-top: 6px;
+  border-top: 1px solid var(--soda-line, rgba(75, 69, 99, 0.1));
+  font-size: 11.5px;
+  color: var(--soda-text-2, #655e75);
+}
+
+.f5v-shell .team-execution__reference-rules-disclosure > summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--soda-purple-strong, #533a9f);
+  user-select: none;
+}
+
+.f5v-shell .team-execution__reference-rules-disclosure > summary:hover {
+  text-decoration: underline;
+}
+
+.f5v-shell .team-execution__reference-rules-disclosure p {
+  margin: 4px 0 0;
+  line-height: 1.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .f5v-shell .team-execution__reference-rules-disclosure * {
+    transition: none !important;
+    animation: none !important;
+  }
+}

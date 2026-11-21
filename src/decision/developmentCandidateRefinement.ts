@@ -26,7 +26,7 @@ import {
 import {
   solveCandidateWarehouse,
   type CandidateWarehousePlan,
-} from '../optimizer/candidateWarehouseSolver'
+} from '../optimizer/independentCandidateWarehouseSolver'
 import {
   absoluteDiscRetentionCatalog,
   toAbsoluteRetentionDisc,
@@ -91,7 +91,9 @@ export function refineDevelopmentCandidates(input: {
   eventConditionDeclaration?: import('../calculation/reviewedTemplateEventConditions32').ReviewedTemplateEventConditionDeclaration32
   scenarioSelection?: CurrentPlanningScenarioSelection32
 }): CandidateWarehousePlan[] {
-  const originals = [...input.candidates]
+  const originals = input.candidates.filter((plan) =>
+    plan.loadouts.every((loadout) => loadout.discs.every(({ disc }) => disc.rarity === 'S')),
+  )
   if (!originals.length) return originals
   const constraint = input.buildIntent.recommendations.find(
     (row) => row.agentId === input.agentId,
@@ -115,7 +117,7 @@ export function refineDevelopmentCandidates(input: {
   input.warehouse.discs.forEach((disc) => ids.set(disc.id, (ids.get(disc.id) ?? 0) + 1))
   const excluded = new Set(options.excludedDiscIds ?? [])
   const available = input.warehouse.discs.filter((disc) => {
-    if (ids.get(disc.id) !== 1 || excluded.has(disc.id)) return false
+    if (disc.rarity !== 'S' || ids.get(disc.id) !== 1 || excluded.has(disc.id)) return false
     try {
       history(toAbsoluteRetentionDisc(disc), absoluteDiscRetentionCatalog.rules)
       return true

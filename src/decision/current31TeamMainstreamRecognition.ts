@@ -30,6 +30,23 @@ function createMainstreamRecognitionIndex(reviewVersion: string) {
           evidenceRefs: item.sourceRefs.map((ref) => ref.url),
           conditions: [...item.conditions],
           sourceBangbooOptionIds: [...(item.sourceBangbooOptionIds ?? [])],
+          evidenceClass: (() => {
+            const currentSources = item.sourceRefs.filter(
+              (ref) => ref.verificationStatus !== 'historical_membership_reference',
+            )
+            const publisherCount = new Set(
+              currentSources.flatMap((ref) => {
+                try {
+                  return [new URL(ref.url).hostname]
+                } catch {
+                  return []
+                }
+              }),
+            ).size
+            if (publisherCount >= 2) return 'current_multi_publisher' as const
+            if (publisherCount === 1) return 'current_single_publisher' as const
+            return 'historical_reference' as const
+          })(),
           historicalReferenceOnly: item.sourceRefs.every(
             (ref) => ref.verificationStatus === 'historical_membership_reference',
           ),
@@ -56,6 +73,11 @@ const compatibilityNotesByFormationKey = new Map(
 
 export type Current31MainstreamRecognition = {
   status: 'confirmed' | 'unknown'
+  evidenceClass?:
+    | 'current_multi_publisher'
+    | 'current_single_publisher'
+    | 'historical_reference'
+    | 'unknown'
   evidenceRefs: string[]
   explanation: string
   conditions?: string[]
@@ -79,6 +101,7 @@ export function resolveCurrent31MainstreamRecognition(
   return recognized
     ? {
         status: 'confirmed',
+        evidenceClass: recognized.evidenceClass,
         evidenceRefs,
         conditions,
         sourceBangbooOptionIds: [...recognized.sourceBangbooOptionIds],
@@ -89,6 +112,7 @@ export function resolveCurrent31MainstreamRecognition(
       }
     : {
         status: 'unknown',
+        evidenceClass: 'unknown',
         evidenceRefs,
         conditions,
         explanation: note

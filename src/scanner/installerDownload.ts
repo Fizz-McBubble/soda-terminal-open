@@ -3,84 +3,42 @@ import {
   installerDownloadChunkSize,
   installerDownloadIdentity,
 } from './installerDownloadCache'
+import {
+  type InstallerDownloadResult,
+  installerDownloadConcurrency,
+  installerDownloadMaximumSize,
+  type InstallerTransferProgress,
+  type InstallerDownloadErrorCode,
+  type InstallerDownloadFailureDetails,
+  InstallerDownloadError,
+  installerDownloadFailureDetails,
+  installerDownloadRequestCount,
+  createInstallerDownloadFeedbackReport,
+  scannerInstallerFileName,
+  waitForAbortable,
+  RetryableTransferError,
+  RestartTransfer,
+  ResponseTransferError,
+  ReleaseChangedTransferError,
+  retryDelay,
+  transferFailureDetails,
+  retryPause,
+  batchOffsets,
+} from './installerDownloadSupport'
 
-export type InstallerDownloadResult = 'save_requested'
-export const installerDownloadConcurrency = 8
-export type InstallerTransferProgress = {
-  bytes: number
-  total: number
-  bytesPerSecond: number
-  resumedBytes: number
-  phase: 'downloading' | 'retrying'
-  retryAttempt: number
-}
-
-export function scannerInstallerFileName(version: string): string {
-  if (!/^\d+\.\d+\.\d+$/u.test(version)) throw new Error('invalid_installer_version')
-  return !/^1\.0\.[0-8]$/u.test(version)
-    ? `SodaTerminal-Scanner-Setup-${version}.exe`
-    : `Soda-画面扫描-${version}.exe`
-}
-
-export function waitForAbortable<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const aborted = () => {
-      signal.removeEventListener('abort', aborted)
-      reject(signal.reason)
-    }
-    signal.addEventListener('abort', aborted, { once: true })
-    if (signal.aborted) aborted()
-    promise.then(
-      (value) => {
-        signal.removeEventListener('abort', aborted)
-        resolve(value)
-      },
-      (error: unknown) => {
-        signal.removeEventListener('abort', aborted)
-        reject(error)
-      },
-    )
-  })
-}
-
-class RetryableTransferError extends Error {
-  readonly cause: unknown
-  readonly retryAfter: number | undefined
-  constructor(cause: unknown, retryAfter?: number) {
-    super('download_retryable')
-    this.cause = cause
-    this.retryAfter = retryAfter
-  }
-}
-class RestartTransfer extends Error {}
-
-function retryDelay(response: Response) {
-  const value = response.headers.get('retry-after')
-  return response.status === 429 && value !== null && /^\d+(?:\.\d+)?$/u.test(value.trim())
-    ? Math.max(1, Math.min(60, Number(value))) * 1000
-    : undefined
-}
-
-async function retryPause(ms: number, signal: AbortSignal) {
-  let timer: ReturnType<typeof setTimeout> | undefined
-  try {
-    await waitForAbortable(
-      new Promise<void>((resolve) => {
-        timer = setTimeout(resolve, ms)
-      }),
-      signal,
-    )
-  } finally {
-    clearTimeout(timer)
-  }
-}
-
-function batchOffsets(offset: number, size: number, concurrency: number) {
-  const remaining = Math.ceil((size - offset) / installerDownloadChunkSize)
-  return Array.from(
-    { length: Math.min(remaining, concurrency) },
-    (_, index) => offset + index * installerDownloadChunkSize,
-  )
+export {
+  type InstallerDownloadResult,
+  installerDownloadConcurrency,
+  installerDownloadMaximumSize,
+  type InstallerTransferProgress,
+  type InstallerDownloadErrorCode,
+  type InstallerDownloadFailureDetails,
+  InstallerDownloadError,
+  installerDownloadFailureDetails,
+  installerDownloadRequestCount,
+  createInstallerDownloadFeedbackReport,
+  scannerInstallerFileName,
+  waitForAbortable,
 }
 
 async function receiveRange(
@@ -90,6 +48,11 @@ async function receiveRange(
   sha256: string,
   signal: AbortSignal,
   progress: (bytes: number) => void,
+  observe: (event: {
+    attempt?: true
+    status?: number
+    waitReason?: InstallerDownloadFailureDetails['waitReason']
+  }) => void,
 ) {
   const end = Math.min(offset + installerDownloadChunkSize, size) - 1
   const attempt = new AbortController()
@@ -109,6 +72,7 @@ async function receiveRange(
   touch()
   try {
     signal.throwIfAborted()
+    observe({ attempt: true })
     const promise = fetch(url, {
       credentials: 'omit',
       cache: 'no-store',
@@ -129,9 +93,20 @@ async function receiveRange(
     response = await waitForAbortable(promise, attempt.signal)
     network = false
     attempt.signal.throwIfAborted()
-    if (response.status === 429 || response.status === 503)
-      throw new RetryableTransferError(new Error('download_failed'), retryDelay(response))
-    if (!response.ok || !response.body || response.redirected) throw new Error('download_failed')
+    observe({ status: response.status })
+    if ([408, 425, 429, 500, 502, 503, 504].includes(response.status))
+      throw new RetryableTransferError(
+        new Error('download_failed'),
+        retryDelay(response),
+        response.status,
+        response.status === 429
+          ? 'rate_limit'
+          : response.status === 503
+            ? 'server_busy'
+            : 'network',
+      )
+    if (!response.ok || !response.body || response.redirected)
+      throw new ResponseTransferError(response.status)
     if (/html/iu.test(response.headers.get('content-type') ?? ''))
       throw new Error('invalid_download')
     const etag = response.headers.get('etag')
@@ -139,11 +114,11 @@ async function receiveRange(
     if (response.status === 206) {
       if (response.headers.get('content-range') !== `bytes ${offset}-${end}/${size}`)
         throw new Error('invalid_download_range')
-      if (etag !== `"${sha256}"`) throw new Error('invalid_download_etag')
+      if (etag !== `"${sha256}"`) throw new ReleaseChangedTransferError(206)
       length = end - offset + 1
     } else if (response.status === 200) {
       if (offset) throw new RestartTransfer()
-      if (etag !== null && etag !== `"${sha256}"`) throw new Error('invalid_download_etag')
+      if (etag !== null && etag !== `"${sha256}"`) throw new ReleaseChangedTransferError(200)
       length = size
     } else throw new Error('invalid_download_range')
     const contentLength = response.headers.get('content-length')
@@ -175,7 +150,12 @@ async function receiveRange(
   } catch (error) {
     if (signal.aborted) throw signal.reason
     if (network || (error instanceof DOMException && error.name === 'TimeoutError'))
-      throw new RetryableTransferError(error)
+      throw new RetryableTransferError(
+        error,
+        undefined,
+        undefined,
+        error instanceof DOMException && error.name === 'TimeoutError' ? 'timeout' : 'network',
+      )
     throw error
   } finally {
     clearTimeout(idle!)
@@ -217,16 +197,35 @@ export async function downloadScannerInstaller({
   if (!/^[a-f0-9]{64}$/u.test(expectedSha256)) throw new Error('invalid_download_sha256')
   const identity = installerDownloadIdentity(url, expectedSize, expectedSha256)
   signal.throwIfAborted()
-  const cache = new InstallerDownloadCache(identity, signal)
+  let cache: InstallerDownloadCache | undefined
+  let phase: InstallerDownloadFailureDetails['phase'] = 'range'
+  let attemptCount = 0
+  let httpStatus: number | undefined
+  let waitReason: InstallerDownloadFailureDetails['waitReason'] = 'none'
+  let lastProgress = 0
   try {
-    await waitForAbortable(cache.open(), signal)
-    let resumedBytes = cache.bytes
+    phase = 'storage'
+    const activeCache = new InstallerDownloadCache(identity, signal)
+    cache = activeCache
+    await waitForAbortable(activeCache.open(), signal)
+    let resumedBytes = activeCache.bytes
     let parallelism = Math.min(
       installerDownloadConcurrency,
-      Math.ceil((expectedSize - cache.bytes) / installerDownloadChunkSize),
+      Math.ceil((expectedSize - activeCache.bytes) / installerDownloadChunkSize),
     )
     let restarted = false
-    let lastProgress = cache.bytes
+    lastProgress = activeCache.bytes
+    phase = 'range'
+    const observe = (event: {
+      attempt?: true
+      status?: number
+      waitReason?: InstallerDownloadFailureDetails['waitReason']
+    }) => {
+      if (event.attempt) attemptCount += 1
+      if (event.status !== undefined) httpStatus = event.status
+      if (event.waitReason) waitReason = event.waitReason
+      phase = 'range'
+    }
     const notify = (
       bytes: number,
       bytesPerSecond = 0,
@@ -250,9 +249,9 @@ export async function downloadScannerInstaller({
     }
     if (resumedBytes) reportProgress(resumedBytes)
     notify(resumedBytes)
-    while (cache.bytes < expectedSize) {
+    while (activeCache.bytes < expectedSize) {
       signal.throwIfAborted()
-      const batchStart = cache.bytes
+      const batchStart = activeCache.bytes
       const offsets = batchOffsets(batchStart, expectedSize, parallelism)
       const started = performance.now()
       const batchAbort = new AbortController()
@@ -264,9 +263,9 @@ export async function downloadScannerInstaller({
       let commitError: unknown
       let commitChain = Promise.resolve()
       const aggregateBytes = () => {
-        let bytes = cache.bytes
+        let bytes = activeCache.bytes
         for (const offset of offsets) {
-          if (offset < cache.bytes) continue
+          if (offset < activeCache.bytes) continue
           const expected = Math.min(installerDownloadChunkSize, expectedSize - offset)
           const loadedBytes = loaded.get(offset) ?? 0
           bytes += Math.min(expected, loadedBytes)
@@ -292,12 +291,17 @@ export async function downloadScannerInstaller({
           loaded.delete(offsets[index])
           commitChain = commitChain
             .then(async () => {
-              for (let start = 0; start < bytes.byteLength; start += installerDownloadChunkSize)
-                await waitForAbortable(
-                  cache.checkpoint(bytes.slice(start, start + installerDownloadChunkSize)),
-                  signal,
-                )
-              reportLoaded()
+              phase = 'storage'
+              try {
+                for (let start = 0; start < bytes.byteLength; start += installerDownloadChunkSize)
+                  await waitForAbortable(
+                    activeCache.checkpoint(bytes.slice(start, start + installerDownloadChunkSize)),
+                    signal,
+                  )
+                reportLoaded()
+              } finally {
+                phase = 'range'
+              }
             })
             .catch((error: unknown) => {
               commitError ??= error
@@ -321,6 +325,7 @@ export async function downloadScannerInstaller({
                 loaded.set(offset, total - offset)
                 reportLoaded(failures)
               },
+              observe,
             )
             results.set(index, bytes)
             commitReady()
@@ -342,6 +347,7 @@ export async function downloadScannerInstaller({
               batchAbort.abort(error)
               return
             }
+            observe({ status: error.status, waitReason: error.waitReason })
             if (failures >= 3) {
               errors.set(index, error.cause)
               batchAbort.abort(error.cause)
@@ -356,14 +362,16 @@ export async function downloadScannerInstaller({
       await Promise.all(tasks)
       await commitChain.catch(() => {})
       if (commitError !== undefined) throw commitError
-      if (cache.bytes === expectedSize) break
+      if (activeCache.bytes === expectedSize) break
       const failure = offsets
         .map((_, index) => errors.get(index))
         .find((error) => error !== undefined)
       if (failure instanceof RestartTransfer && !restarted) {
         restarted = true
         parallelism = 1
-        await waitForAbortable(cache.reset(), signal)
+        phase = 'storage'
+        await waitForAbortable(activeCache.reset(), signal)
+        phase = 'range'
         resumedBytes = 0
         reportProgress(0, true)
         notify(0)
@@ -372,13 +380,13 @@ export async function downloadScannerInstaller({
       if (failure !== undefined) throw failure
       continue
     }
-    if (cache.chunks[0]?.[0] !== 0x4d || cache.chunks[0]?.[1] !== 0x5a) {
-      await waitForAbortable(cache.discard(), signal)
+    phase = 'verify'
+    if (activeCache.chunks[0]?.[0] !== 0x4d || activeCache.chunks[0]?.[1] !== 0x5a) {
+      await waitForAbortable(activeCache.discard(), signal)
       throw new Error('invalid_download')
     }
-    onSaving()
     signal.throwIfAborted()
-    const blob = new Blob(cache.chunks, { type: 'application/octet-stream' })
+    const blob = new Blob(activeCache.chunks, { type: 'application/octet-stream' })
     const hashing = new AbortController()
     const cancelHash = () => hashing.abort(signal.reason)
     signal.addEventListener('abort', cancelHash, { once: true })
@@ -400,9 +408,12 @@ export async function downloadScannerInstaller({
       byte.toString(16).padStart(2, '0'),
     ).join('')
     if (sha256 !== expectedSha256) {
-      await waitForAbortable(cache.discard(), signal)
+      await waitForAbortable(activeCache.discard(), signal)
       throw new Error('invalid_download_sha256')
     }
+    phase = 'save'
+    onSaving()
+    signal.throwIfAborted()
     const objectUrl = URL.createObjectURL(blob)
     try {
       const anchor = document.createElement('a')
@@ -418,9 +429,23 @@ export async function downloadScannerInstaller({
       // Browser save acceptance is unobservable; allow time before releasing it.
       setTimeout(URL.revokeObjectURL.bind(URL, objectUrl), 60_000)
     }
-    await waitForAbortable(cache.discard(), signal)
+    phase = 'storage'
+    await waitForAbortable(activeCache.discard(), signal)
     return 'save_requested'
+  } catch (error) {
+    if (signal.aborted) throw signal.reason
+    const details = transferFailureDetails(error, {
+      phase,
+      bytesReceived: Math.max(lastProgress, cache?.bytes ?? 0),
+      attemptCount,
+      waitReason,
+      httpStatus,
+    })
+    if (details.code === 'installer_download_release_changed' && cache) {
+      await waitForAbortable(cache.discard(), signal).catch(() => {})
+    }
+    throw new InstallerDownloadError(error, details)
   } finally {
-    void cache.close()
+    void cache?.close()
   }
 }

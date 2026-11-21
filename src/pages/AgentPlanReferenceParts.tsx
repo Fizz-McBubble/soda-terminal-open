@@ -12,43 +12,47 @@ import { directionFor } from './planningDraftProjection'
 
 export function CandidateReferenceDirection({ profile }: { profile: PlanningProfile }) {
   const direction = directionFor(profile)
+  const visible = (value: string) => Boolean(value.trim()) && !value.includes('资料待补齐')
+  const scenario = playerFacingLabel(profile.scenario)
+  const assumptions = profile.assumptions.map(playerFacingLabel).filter(visible)
+  const teammates = profile.recommendation?.teammates.map(playerFacingAgentLabel).filter(visible)
+  const bangboos = profile.recommendation?.bangboos.map(playerFacingBangbooLabel).filter(visible)
+  const directions = profile.recommendation
+    ? (
+        [
+          ['音擎方向', direction.wEngineDirection],
+          ['驱动盘与主词条方向', direction.discDirection],
+          [
+            '关键副词条',
+            formatCandidateSubStatDirections(profile.recommendation.subStats)
+              .filter(visible)
+              .join('、'),
+          ],
+          ['养成建议', direction.progressionDirection],
+          [
+            '队伍与邦布方向',
+            [teammates?.join('、'), bangboos?.join('、')].filter(Boolean).join('；'),
+          ],
+        ] as const
+      ).filter(([, value]) => visible(value))
+    : []
   return (
     <details
       className="panel optimizer-reference-direction"
-      aria-label={`${profile.agentName}资料与方案条件`}
+      aria-label={`${profile.agentName}配装方向与条件`}
     >
-      <summary>{profile.agentName}资料与方案条件</summary>
-      <p>适用场景：{playerFacingLabel(profile.scenario)}。</p>
-      <p>
-        来源：
-        {profile.sources
-          .map((source) => {
-            if (source.label.startsWith('prydwen-')) return 'Prydwen'
-            if (source.label.startsWith('gachabase-release-')) return 'Gachabase'
-            return playerFacingLabel(source.label)
-          })
-          .join('、')}
-        。假设：
-        {profile.assumptions.map(playerFacingLabel).join('；') || '资料待补齐'}
-      </p>
-      {profile.recommendation ? (
+      <summary>{profile.agentName}配装方向与条件</summary>
+      {visible(scenario) ? <p>适用场景：{scenario}。</p> : null}
+      {assumptions.length ? <p>使用条件：{assumptions.join('；')}。</p> : null}
+      {directions.length ? (
         <ul>
-          <li>音擎方向：{direction.wEngineDirection}。</li>
-          <li>驱动盘与主词条方向：{direction.discDirection}。</li>
-          <li>
-            关键副词条：
-            {formatCandidateSubStatDirections(profile.recommendation.subStats).join('、')}。
-          </li>
-          <li>养成建议：{direction.progressionDirection}</li>
-          <li>
-            队伍与邦布方向：
-            {profile.recommendation.teammates.map(playerFacingAgentLabel).join('、')}；
-            {profile.recommendation.bangboos.map(playerFacingBangbooLabel).join('、')}。
-          </li>
+          {directions.map(([label, value]) => (
+            <li key={label}>
+              {label}：{value}
+            </li>
+          ))}
         </ul>
-      ) : (
-        <p>当前没有可安全展开的参考方案：{profile.gaps.join('；')}。</p>
-      )}
+      ) : null}
       <Link
         className="button button--secondary"
         to={`/development/${profile.agentId}?panel=knowledge`}
@@ -80,9 +84,6 @@ export function PlayerAssetSummary({
         技能：普攻 {agent.skillLevels.basic ?? '待填'}、特殊 {agent.skillLevels.special ?? '待填'}
         、连携 {agent.skillLevels.chain ?? '待填'}、核心 {agent.skillLevels.core ?? '待填'}。
       </p>
-      <p className="muted-note">
-        当前最终属性与毕业目标仅在有对应来源字段时显示；驱动盘匹配不代表伤害或属性结论。
-      </p>
     </section>
   )
 }
@@ -90,10 +91,7 @@ export function PlayerAssetSummary({
 export function MissingDirection({ profile }: { profile: PlanningProfile }) {
   return (
     <section className="panel status-card is-warning" role="status">
-      <h2>资料待补齐</h2>
-      <p>
-        {profile.agentName}目前缺少：{profile.gaps.join('；')}。不能生成虚假计算或伤害结果。
-      </p>
+      <h2>暂无配装建议</h2>
       <Link
         className="button button--secondary"
         to={`/development/${profile.agentId}?panel=knowledge`}

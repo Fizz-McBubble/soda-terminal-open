@@ -52,16 +52,25 @@ describe('released catalogue candidate branch coverage', () => {
         for (const sets of patterns) {
           const discs: DriveDisc[] = sets.map((setId, index) => {
             const slot = (index + 1) as DriveDisc['slot']
+            const mainStat =
+              slot <= 3
+                ? (['hp_flat', 'atk_flat', 'def_flat'] as const)[slot - 1]!
+                : constraint.mainStats[String(slot) as '4' | '5' | '6']![0]!
             return {
               ...sampleDiscs.treasureCandidate,
+              rarity: 'S',
               id: `catalogue-${agentId}-${slot}`,
               slot,
               setId,
-              mainStat:
-                slot <= 3
-                  ? (['hp_flat', 'atk_flat', 'def_flat'] as const)[slot - 1]!
-                  : constraint.mainStats[String(slot) as '4' | '5' | '6']![0]!,
-              subStats: [],
+              mainStat,
+              subStats: driveDiscData!.rules.subStatStepsByRarity.S.filter(
+                ({ stat }) => stat !== mainStat,
+              )
+                .slice(0, 4)
+                .map(({ stat, baseValue }, index) => {
+                  const upgrades = index === 0 ? 5 : 0
+                  return { stat, value: baseValue * (upgrades + 1), upgrades }
+                }),
             }
           })
           const result = solveCandidateWarehouse(discs, [agentId], 'agent', {}, [

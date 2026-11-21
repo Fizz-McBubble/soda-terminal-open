@@ -47,8 +47,18 @@ export type ObservedAgentField =
 export type ObservedAgentFacts = {
   schemaVersion: 1
   source: 'asset_quick_read'
-  protocolVersion: '3.2'
-  fields: Partial<Record<ObservedAgentField, { capturedAt: string; snapshotSha256: string }>>
+  protocolVersion: '3.2' | '3.3'
+  fields: Partial<
+    Record<
+      ObservedAgentField,
+      {
+        capturedAt: string
+        snapshotSha256: string
+        /** Present when retained fields originate from another protocol generation. */
+        protocolVersion?: '3.2' | '3.3'
+      }
+    >
+  >
 }
 
 export type RosterAgent = {
@@ -61,6 +71,8 @@ export type RosterAgent = {
   mindscape: number
   /** Only agents carrying the catalog capability use this field. */
   potentialImage?: number | null
+  /** Value-bound explicit edits; absent on legacy/default projections. */
+  manualProgression?: { mindscape?: number; potentialImage?: number }
   skills: string
   wEngine: string
   refinement: number

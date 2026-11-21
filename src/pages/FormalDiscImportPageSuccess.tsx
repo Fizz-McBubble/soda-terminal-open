@@ -2,10 +2,10 @@ import { CheckCircle2 } from 'lucide-react'
 import type { RefObject } from 'react'
 
 export function FormalDiscImportPageSuccess({
-  message,
+  heading,
   headingRef,
 }: {
-  message: string
+  heading: string
   headingRef?: RefObject<HTMLHeadingElement | null>
 }) {
   return (
@@ -15,9 +15,9 @@ export function FormalDiscImportPageSuccess({
       </div>
       <div className="formal-import-success__copy">
         <h2 ref={headingRef} tabIndex={-1}>
-          {message.split('；')[0]}
+          {heading}
         </h2>
-        <p>{message.split('；').slice(1).join('；')}</p>
+        <p>其他账户、代理人、邦布、音擎和备份未改动。</p>
       </div>
     </section>
   )

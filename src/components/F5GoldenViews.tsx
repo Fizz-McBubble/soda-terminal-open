@@ -20,6 +20,7 @@ type F5HomeGoldenViewProps = {
   nextSignal: {
     label: string
     summary: string
+    hidden?: boolean
     busy?: boolean
     alert?: boolean
     action?: { label: string; onClick: () => void }
@@ -60,20 +61,32 @@ export function F5HomeGoldenView({
   assetTools,
   journey,
 }: F5HomeGoldenViewProps) {
+  const signalState = nextSignal.alert ? 'alert' : nextSignal.busy ? 'busy' : 'idle'
+
   return (
     <div className="soda-home soda-home--golden">
-      <section className="home-focus" aria-labelledby="home-next-action-title">
+      <section
+        className="home-focus"
+        aria-labelledby="home-next-action-title"
+        data-signal-state={signalState}
+      >
         <div className="focus-copy">
           <div className="home-next-action__context">
-            <span>下一步</span>
+            <span>当前阶段</span>
             <strong>{statusLabel}</strong>
           </div>
-          <h1 id="home-next-action-title" aria-label={headlineLabel}>
+          <h1
+            id="home-next-action-title"
+            aria-label={headlineLabel}
+            aria-describedby="home-next-action-copy"
+          >
             <span>{headline[0]}</span>
             <br />
             <em>{headline[1]}</em>
           </h1>
-          <p className="home-focus__lead">{supportingCopy}</p>
+          <p className="home-focus__lead" id="home-next-action-copy">
+            {supportingCopy}
+          </p>
           <div className="home-focus__actions">
             <Link className="home-primary-action" to={primaryAction.route}>
               {primaryAction.label} <span aria-hidden="true">→</span>
@@ -84,33 +97,35 @@ export function F5HomeGoldenView({
               </Link>
             ) : null}
           </div>
-          <div
-            className="home-next-signal"
-            aria-label="接下来"
-            role={
-              nextSignal.alert
-                ? 'alert'
-                : nextSignal.busy || nextSignal.action
-                  ? 'status'
-                  : undefined
-            }
-            aria-busy={nextSignal.busy || undefined}
-          >
-            <span>接下来</span>
-            <div>
-              <strong>{nextSignal.label}</strong>{' '}
-              {nextSignal.action ? (
-                <button
-                  className="button button--quiet home-secondary-action"
-                  type="button"
-                  onClick={nextSignal.action.onClick}
-                >
-                  {nextSignal.action.label}
-                </button>
-              ) : null}
-              <p>{nextSignal.summary}</p>
+          {!nextSignal.hidden ? (
+            <div
+              className={`home-next-signal is-${signalState}`}
+              aria-label="接下来"
+              role={
+                nextSignal.alert
+                  ? 'alert'
+                  : nextSignal.busy || nextSignal.action
+                    ? 'status'
+                    : undefined
+              }
+              aria-busy={nextSignal.busy || undefined}
+            >
+              <span>{nextSignal.alert || nextSignal.busy ? '当前状态' : '其他入口'}</span>
+              <div>
+                <strong>{nextSignal.label}</strong>{' '}
+                {nextSignal.action ? (
+                  <button
+                    className="button button--quiet home-secondary-action"
+                    type="button"
+                    onClick={nextSignal.action.onClick}
+                  >
+                    {nextSignal.action.label}
+                  </button>
+                ) : null}
+                <p>{nextSignal.summary}</p>
+              </div>
             </div>
-          </div>
+          ) : null}
         </div>
 
         <figure className="home-scene" data-art-emphasis="cross-layer-large">
@@ -125,7 +140,7 @@ export function F5HomeGoldenView({
             height={2048}
             fetchPriority="high"
             decoding="async"
-            alt="蕾米埃尔版本主视觉"
+            alt="首页角色插画"
             draggable="false"
           />
         </figure>
@@ -145,12 +160,12 @@ export function F5HomeGoldenView({
               <dd title={readiness.accountName}>{readiness.accountName}</dd>
             </div>
             <div>
-              <dt>账户资产</dt>
-              <dd title={`${readiness.agentCount} 代理人`}>{readiness.agentCount} 代理人</dd>
+              <dt>已拥有代理人</dt>
+              <dd title={`${readiness.agentCount} 名`}>{readiness.agentCount} 名</dd>
             </div>
             <div>
-              <dt>驱动盘仓库</dt>
-              <dd title={`${readiness.discCount} 件`}>{readiness.discCount} 件</dd>
+              <dt>已记录驱动盘</dt>
+              <dd title={`${readiness.discCount} 张`}>{readiness.discCount} 张</dd>
             </div>
           </dl>
           <div className="home-catalog-cache" title={readiness.assetLabel}>

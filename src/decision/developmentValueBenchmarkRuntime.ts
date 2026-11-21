@@ -35,6 +35,24 @@ import { reviewedPreparedAnomalyPreparation32 } from '../calculation/reviewedPre
 import { evaluateDevelopmentPreparedAnomalyBenchmarkSide32 } from './developmentPreparedAnomalyBenchmark32'
 import { evaluateReviewedFunctionalCapacity32 } from '../calculation/reviewedFunctionalCapacity32'
 import { resolveCurrentPlanningScenario32 } from '../calculation/currentPlanningScenario32'
+import {
+  equipmentConditionConflict,
+  ariaEventDeclarationFailure,
+  prepareDevelopmentDeclaredEquipmentRuntime,
+} from './developmentDeclaredEquipmentRuntime'
+import {
+  personalDevelopmentObjectiveRoute32,
+  resolvePersonalDevelopmentObjective32,
+} from './personalDevelopmentObjective32'
+import { personalPreparedSupport32 } from './personalPreparedSupport32'
+import { evaluatePersonalPreparedPolarityBenchmarkSide32 } from './personalPreparedAnomalyPolarity32'
+import { evaluatePersonalPreparedOrdinaryAnomalyBenchmarkSide32 } from './personalPreparedOrdinaryAnomaly32'
+import { evaluatePersonalPreparedPhoenixAbloomBenchmarkSide33 } from './personalPreparedPhoenixAnomaly33'
+import { resolvePersonalPhoenixPlanningScenario33 } from '../calculation/personalPhoenixPlanningScenario33'
+import { compilePersonalMiyabiShimotsuki32 } from './personalMiyabiShimotsuki32'
+import { resolvePersonalFunctionalConditions32 } from './resolvePersonalFunctionalConditions32'
+import { compilePersonalComparisonPreparation32 } from './compilePersonalComparisonPreparation32'
+import { personalAtomicSourceAction32 } from './personalAtomicSourceAction32'
 
 export function evaluateDevelopmentValueBenchmarkSide(
   input: DevelopmentValueBenchmarkInput,
@@ -42,6 +60,13 @@ export function evaluateDevelopmentValueBenchmarkSide(
   const scenario = resolveCurrentPlanningScenario32(input.scenarioSelection)
   const unavailable = (facts: Parameters<typeof unsupportedSide>[0]) =>
     unsupportedSide({ ...facts, scenarioSelection: scenario.selection })
+  if (!personalDevelopmentObjectiveRoute32(input.agentId))
+    return unavailable({
+      agentId: input.agentId,
+      discs: input.discs,
+      engineKey: 'unknown',
+      reasons: ['角色身份没有已声明个人收益目标。'],
+    })
   const agent = input.warehouse.roster.agents.find(
     (item) => item.agentId === input.agentId && item.owned,
   )
@@ -80,6 +105,14 @@ export function evaluateDevelopmentValueBenchmarkSide(
           : '未记录当前音擎；六盘方案仍可查看和保存，固定事件数值比较需明确音擎参数。',
       ],
     })
+  input = {
+    ...input,
+    eventConditionDeclaration: compilePersonalComparisonPreparation32({
+      agentId: input.agentId,
+      engineId: engine.engineId,
+      declaration: input.eventConditionDeclaration,
+    }),
+  }
   if (
     !Number.isInteger(engine.level) ||
     engine.level < 1 ||
@@ -156,7 +189,247 @@ export function evaluateDevelopmentValueBenchmarkSide(
     initialStats: stats.initialStats,
     finalStats: stats.finalStats,
   }
+  const functionalConditions = resolvePersonalFunctionalConditions32({
+    agentId: input.agentId,
+    engineId: engine.engineId,
+    discs: input.discs,
+    declaration: input.eventConditionDeclaration?.personalFunctionalConditions32,
+  })
+  if (functionalConditions.status !== 'supported')
+    return unavailable({
+      agentId: input.agentId,
+      discs: input.discs,
+      engineKey,
+      reasons: functionalConditions.blockers,
+    })
+  const hasApplicableFunctionalConditions =
+    Object.keys(functionalConditions.engineFlags).length > 0 ||
+    Object.keys(functionalConditions.stacks).length > 0 ||
+    Object.keys(functionalConditions.discFlags).length > 0 ||
+    Object.keys(functionalConditions.references).length > 0
+  const supportDeclaration = input.eventConditionDeclaration?.personalSupportPreparation32
+  if (supportDeclaration) {
+    const allowed =
+      input.agentId === 'agent-zhao'
+        ? ['zhaoAdditionalAbilityActive', 'zhaoInsideEtherVeil']
+        : input.agentId === 'agent-sunna'
+          ? ['sunnaAngelicChordActive']
+          : input.agentId === 'agent-lucia'
+            ? ['luciaDarkbreaker']
+            : []
+    if (
+      Object.entries(supportDeclaration).some(
+        ([key, value]) => value != null && !allowed.includes(key),
+      )
+    )
+      return unavailable({
+        agentId: input.agentId,
+        discs: input.discs,
+        engineKey,
+        reasons: ['支持准备态声明与当前角色不匹配。'],
+      })
+  }
+  if (input.agentId === 'agent-phoenix' && input.eventConditionDeclaration?.phoenixOwnFireAbloom) {
+    const declaration = input.eventConditionDeclaration
+    let phoenixScenario: ReturnType<typeof resolvePersonalPhoenixPlanningScenario33>
+    try {
+      phoenixScenario = resolvePersonalPhoenixPlanningScenario33(input.scenarioSelection)
+    } catch {
+      return unavailable({
+        agentId: input.agentId,
+        discs: input.discs,
+        engineKey,
+        reasons: ['菲欧妮单次绽放的来源与场景身份未通过核对。'],
+      })
+    }
+    if (
+      hasApplicableFunctionalConditions ||
+      Object.keys(declaration).some(
+        (key) =>
+          ![
+            'sourceRefs',
+            'enemyStunned',
+            'phoenixOwnFireAbloom',
+            'firstPlumageAnomalyCritWindowActive',
+            'personalFunctionalConditions32',
+          ].includes(key),
+      ) ||
+      (declaration.enemyStunned !== undefined && declaration.enemyStunned !== scenario.enemyStunned)
+    )
+      return unavailable({
+        agentId: input.agentId,
+        discs: input.discs,
+        engineKey,
+        reasons: ['菲欧妮单次绽放声明包含尚未绑定的额外事件条件。'],
+      })
+    const equipment = prepareDevelopmentDeclaredEquipmentRuntime(declaration, undefined)
+    if (equipment.conflict)
+      return unavailable(equipmentConditionConflict(input.agentId, input.discs, engineKey))
+    const side = evaluatePersonalPreparedPhoenixAbloomBenchmarkSide33({
+      member,
+      baseline: phoenixScenario.baseline,
+      discs: input.discs,
+      wEngine: {
+        engineId: engine.engineId,
+        refinement: engine.refinement,
+        runtime: equipment.runtime,
+      },
+      engineKey,
+      discLoadoutKey: stableContentHash(
+        input.statProbe
+          ? { discs: input.discs, hypotheticalStatProbe: input.statProbe }
+          : input.discs,
+      ),
+      subjectKey: stableContentHash({
+        agentId: input.agentId,
+        level: agent.level,
+        ascension: agent.ascension,
+        mindscape: agent.mindscape,
+        skillLevels,
+      }),
+      potential,
+      declaration: declaration.phoenixOwnFireAbloom!,
+    })
+    return {
+      ...side,
+      personalObjective32: resolvePersonalDevelopmentObjective32(input.agentId, side),
+      scenarioSelection: phoenixScenario.selection,
+      scenarioIdentity: phoenixScenario.identity,
+      functionalStats32: {
+        impact: stats.finalStats.impact,
+        enerRegen: stats.finalStats.enerRegen,
+        anomMas: stats.finalStats.anomMas,
+        anomProf: stats.finalStats.anomProf,
+      },
+    }
+  }
+  if (input.agentId === 'agent-yanagi') {
+    const declaration = input.eventConditionDeclaration
+    const preparation = declaration?.yanagiPolarity
+    if (!preparation)
+      return unavailable({
+        agentId: input.agentId,
+        discs: input.discs,
+        engineKey,
+        reasons: ['柳的单次极性紊乱需要明确声明本人原异常的归属及有效时序。'],
+      })
+    if (
+      hasApplicableFunctionalConditions ||
+      Object.keys(declaration).some(
+        (key) =>
+          ![
+            'sourceRefs',
+            'enemyStunned',
+            'yanagiPolarity',
+            'personalFunctionalConditions32',
+          ].includes(key),
+      ) ||
+      (declaration.enemyStunned !== undefined && declaration.enemyStunned !== scenario.enemyStunned)
+    )
+      return unavailable({
+        agentId: input.agentId,
+        discs: input.discs,
+        engineKey,
+        reasons: ['柳的极性紊乱声明包含该单次模型尚未绑定的事件条件。'],
+      })
+    const side = evaluatePersonalPreparedPolarityBenchmarkSide32({
+      member,
+      baseline: scenario.baseline,
+      discs: input.discs,
+      wEngine: { engineId: engine.engineId, refinement: engine.refinement },
+      engineKey,
+      discLoadoutKey: stableContentHash(
+        input.statProbe
+          ? { discs: input.discs, hypotheticalStatProbe: input.statProbe }
+          : input.discs,
+      ),
+      subjectKey: stableContentHash({
+        agentId: input.agentId,
+        level: agent.level,
+        ascension: agent.ascension,
+        mindscape: agent.mindscape,
+        skillLevels,
+      }),
+      potential,
+      preparation,
+    })
+    return {
+      ...side,
+      personalObjective32: resolvePersonalDevelopmentObjective32(input.agentId, side),
+      scenarioSelection: scenario.selection,
+      scenarioIdentity: scenario.identity,
+      functionalStats32: {
+        impact: stats.finalStats.impact,
+        enerRegen: stats.finalStats.enerRegen,
+        anomMas: stats.finalStats.anomMas,
+        anomProf: stats.finalStats.anomProf,
+      },
+    }
+  }
+  if (input.eventConditionDeclaration?.personalOrdinaryAnomaly) {
+    const declaration = input.eventConditionDeclaration
+    if (
+      !['agent-burnice', 'agent-grace', 'agent-vivian', 'agent-velina'].includes(input.agentId) ||
+      hasApplicableFunctionalConditions ||
+      Object.keys(declaration).some(
+        (key) =>
+          ![
+            'sourceRefs',
+            'enemyStunned',
+            'personalOrdinaryAnomaly',
+            'personalFunctionalConditions32',
+          ].includes(key),
+      ) ||
+      (declaration.enemyStunned !== undefined && declaration.enemyStunned !== scenario.enemyStunned)
+    )
+      return unavailable({
+        agentId: input.agentId,
+        discs: input.discs,
+        engineKey,
+        reasons: ['该单次异常声明的角色或额外事件条件不在已核模型范围。'],
+      })
+    const side = evaluatePersonalPreparedOrdinaryAnomalyBenchmarkSide32({
+      member,
+      baseline: scenario.baseline,
+      discs: input.discs,
+      wEngine: { engineId: engine.engineId, refinement: engine.refinement },
+      engineKey,
+      discLoadoutKey: stableContentHash(
+        input.statProbe
+          ? { discs: input.discs, hypotheticalStatProbe: input.statProbe }
+          : input.discs,
+      ),
+      subjectKey: stableContentHash({
+        agentId: input.agentId,
+        level: agent.level,
+        ascension: agent.ascension,
+        mindscape: agent.mindscape,
+        skillLevels,
+      }),
+      potential,
+      declaration: declaration.personalOrdinaryAnomaly!,
+    })
+    return {
+      ...side,
+      personalObjective32: resolvePersonalDevelopmentObjective32(input.agentId, side),
+      scenarioSelection: scenario.selection,
+      scenarioIdentity: scenario.identity,
+      functionalStats32: {
+        impact: stats.finalStats.impact,
+        enerRegen: stats.finalStats.enerRegen,
+        anomMas: stats.finalStats.anomMas,
+        anomProf: stats.finalStats.anomProf,
+      },
+    }
+  }
   if (reviewedPreparedAnomalyPreparation32(input.agentId)) {
+    if (hasApplicableFunctionalConditions)
+      return unavailable({
+        agentId: input.agentId,
+        discs: input.discs,
+        engineKey,
+        reasons: ['单次异常结算尚未绑定这些装备或角色功能准备态。'],
+      })
     if (input.agentId === 'agent-aria') {
       const allowedScenario =
         (scenario.selection.id === 'normalized-comparison' &&
@@ -176,26 +449,16 @@ export function evaluateDevelopmentValueBenchmarkSide(
             '爱芮异常准备轴仅支持 normalized 与 declared-stun 两个固定比较场景（DEF 700 / RES 0.2）。',
           ],
         })
-      if (input.eventConditionDeclaration) {
-        if (
-          input.eventConditionDeclaration.windswept != null ||
-          input.eventConditionDeclaration.sunnaDelusionApplied != null ||
-          input.eventConditionDeclaration.nangongMisstepApplied != null ||
-          input.eventConditionDeclaration.remiellePhaseFlow != null ||
-          input.eventConditionDeclaration.whiteWaterBalladCritWindow != null ||
-          input.eventConditionDeclaration.whiteWaterBalladAttackWindow != null ||
-          (input.eventConditionDeclaration.enemyStunned != null &&
-            input.eventConditionDeclaration.enemyStunned !== scenario.enemyStunned)
-        )
-          return unavailable({
-            agentId: input.agentId,
-            discs: input.discs,
-            engineKey,
-            reasons: ['爱芮异常准备轴不接受外来或冲突的额外事件声明。'],
-          })
-      }
+      const ariaFailure = ariaEventDeclarationFailure(input, scenario.enemyStunned, engineKey)
+      if (ariaFailure) return unavailable(ariaFailure)
     } else {
-      if (scenario.baseline.enemy.stunMultiplier !== 1 || input.eventConditionDeclaration)
+      if (
+        scenario.baseline.enemy.stunMultiplier !== 1 ||
+        (input.eventConditionDeclaration &&
+          Object.keys(input.eventConditionDeclaration).some(
+            (key) => !['sourceRefs', 'personalFunctionalConditions32'].includes(key),
+          ))
+      )
         return unavailable({
           agentId: input.agentId,
           discs: input.discs,
@@ -203,39 +466,41 @@ export function evaluateDevelopmentValueBenchmarkSide(
           reasons: ['已核异常准备轴仅验证失衡倍率1且不接受额外事件条件。'],
         })
     }
-    return {
-      ...evaluateDevelopmentPreparedAnomalyBenchmarkSide32({
-        member,
-        baseline: scenario.baseline,
-        discs: input.discs,
-        wEngine: { engineId: engine.engineId, refinement: engine.refinement },
-        engineKey,
-        discLoadoutKey: stableContentHash(
-          input.statProbe
-            ? { discs: input.discs, hypotheticalStatProbe: input.statProbe }
-            : input.discs,
-        ),
-        potential,
-        preparation:
-          input.agentId === 'agent-aria'
-            ? {
-                kind: 'aria_single_self_ether_abloom',
-                acceptedSingleOwnerSettlement: true,
-                perfectPitchHit3Heavy: true,
-                ownEtherAnomalyPresent: true,
-                fandomPowerPrepared: true,
-                enemyStunned: scenario.enemyStunned,
-                momentOfDelusion: false,
-              }
-            : undefined,
-        subjectKey: stableContentHash({
-          agentId: input.agentId,
-          level: agent.level,
-          ascension: agent.ascension,
-          mindscape: agent.mindscape,
-          skillLevels,
-        }),
+    const side = evaluateDevelopmentPreparedAnomalyBenchmarkSide32({
+      member,
+      baseline: scenario.baseline,
+      discs: input.discs,
+      wEngine: { engineId: engine.engineId, refinement: engine.refinement },
+      engineKey,
+      discLoadoutKey: stableContentHash(
+        input.statProbe
+          ? { discs: input.discs, hypotheticalStatProbe: input.statProbe }
+          : input.discs,
+      ),
+      potential,
+      preparation:
+        input.agentId === 'agent-aria'
+          ? {
+              kind: 'aria_single_self_ether_abloom',
+              acceptedSingleOwnerSettlement: true,
+              perfectPitchHit3Heavy: true,
+              ownEtherAnomalyPresent: true,
+              fandomPowerPrepared: true,
+              enemyStunned: scenario.enemyStunned,
+              momentOfDelusion: false,
+            }
+          : undefined,
+      subjectKey: stableContentHash({
+        agentId: input.agentId,
+        level: agent.level,
+        ascension: agent.ascension,
+        mindscape: agent.mindscape,
+        skillLevels,
       }),
+    })
+    return {
+      ...side,
+      personalObjective32: resolvePersonalDevelopmentObjective32(input.agentId, side),
       scenarioSelection: scenario.selection,
       scenarioIdentity: scenario.identity,
       functionalStats32: {
@@ -246,10 +511,48 @@ export function evaluateDevelopmentValueBenchmarkSide(
       },
     }
   }
+  const miyabiDeclaration = input.eventConditionDeclaration?.miyabiShimotsuki
+  if (
+    miyabiDeclaration &&
+    (input.agentId !== 'agent-miyabi' ||
+      Object.keys(input.eventConditionDeclaration!).some(
+        (key) =>
+          ![
+            'sourceRefs',
+            'enemyStunned',
+            'miyabiShimotsuki',
+            'personalFunctionalConditions32',
+          ].includes(key),
+      ) ||
+      (input.eventConditionDeclaration?.enemyStunned !== undefined &&
+        input.eventConditionDeclaration.enemyStunned !== scenario.enemyStunned))
+  )
+    return unavailable({
+      agentId: input.agentId,
+      discs: input.discs,
+      engineKey,
+      reasons: ['霜月声明的角色或额外事件条件不在已核模型范围。'],
+    })
+  const miyabiAction = miyabiDeclaration
+    ? compilePersonalMiyabiShimotsuki32({ member, declaration: miyabiDeclaration })
+    : null
+  if (miyabiAction?.status === 'unsupported')
+    return unavailable({
+      agentId: input.agentId,
+      discs: input.discs,
+      engineKey,
+      reasons: miyabiAction.blockers,
+    })
   const sourceAction = developmentSourceAction32(member)
   if (
     sourceAction &&
-    (scenario.baseline.enemy.stunMultiplier !== 1 || input.eventConditionDeclaration)
+    (scenario.baseline.enemy.stunMultiplier !== 1 ||
+      (input.eventConditionDeclaration &&
+        (Object.keys(input.eventConditionDeclaration).some(
+          (key) => !['sourceRefs', 'enemyStunned', 'personalFunctionalConditions32'].includes(key),
+        ) ||
+          (input.eventConditionDeclaration.enemyStunned !== undefined &&
+            input.eventConditionDeclaration.enemyStunned !== scenario.enemyStunned))))
   )
     return unavailable({
       agentId: input.agentId,
@@ -264,8 +567,17 @@ export function evaluateDevelopmentValueBenchmarkSide(
       engineKey,
       reasons: sourceAction.blockers,
     })
+  const atomicAction =
+    sourceAction || miyabiAction
+      ? null
+      : personalAtomicSourceAction32({
+          agentId: input.agentId,
+          skillLevels,
+        })
   const schedule =
     sourceAction ??
+    miyabiAction ??
+    atomicAction ??
     compileNormalizedAgentEventSchedule({
       agentId: input.agentId,
       skillLevels,
@@ -287,7 +599,23 @@ export function evaluateDevelopmentValueBenchmarkSide(
     : prepareReviewedTemplateEvents32({
         member,
         eventUsages,
-        references: potentialPreparation?.baselineReferences,
+        references: {
+          ...potentialPreparation?.baselineReferences,
+          ...miyabiAction?.baselineReferences,
+          ...functionalConditions.references,
+          ...(input.agentId === 'agent-lucia' &&
+          input.eventConditionDeclaration?.personalSupportPreparation32?.luciaDarkbreaker ===
+            true &&
+          input.eventConditionDeclaration.sourceRefs?.includes(
+            'personal-comparison-preparation32:lucia-prepared-darkbreaker-ex-and-dreamers-nursery-rhyme-self-share-no-window-uptime',
+          )
+            ? { dreamersNurseryRhyme: true }
+            : {}),
+          enemyStunned:
+            input.eventConditionDeclaration?.enemyStunned === undefined
+              ? scenario.enemyStunned
+              : input.eventConditionDeclaration.enemyStunned,
+        },
         // Event trigger declarations are separate from the numeric scene coordinate.
         // Only an absent state inherits the scene default; false/null remain explicit.
         conditionDeclaration: input.eventConditionDeclaration
@@ -310,8 +638,20 @@ export function evaluateDevelopmentValueBenchmarkSide(
   const discEffects = compileCurrentDriveDiscPlanningEffects({
     members: [member],
     loadouts: [{ agentId: input.agentId, discs: input.discs }],
+    ...(Object.keys(functionalConditions.discFlags).length
+      ? {
+          preparedFunctionalByAgentId: {
+            [input.agentId]: {
+              flags: functionalConditions.discFlags,
+              sourceRefs: functionalConditions.sourceRefs,
+            },
+          },
+        }
+      : {}),
     preparedWhiteWaterByAgentId: templatePreparation?.conditionPreparation
-      ? { [member.agentId]: templatePreparation.conditionPreparation.whiteWaterBalladPreparation }
+      ? {
+          [member.agentId]: templatePreparation.conditionPreparation.whiteWaterBalladPreparation,
+        }
       : undefined,
   })
   if (discEffects.status !== 'supported')
@@ -321,12 +661,40 @@ export function evaluateDevelopmentValueBenchmarkSide(
       engineKey,
       reasons: discEffects.blockers,
     })
+  const preparedEngine = sourceAction?.equipmentRuntime
+  const engineConflict =
+    Object.entries(functionalConditions.engineFlags).some(
+      ([key, value]) =>
+        preparedEngine?.flags?.[key] !== undefined && preparedEngine.flags[key] !== value,
+    ) ||
+    Object.entries(functionalConditions.stacks).some(
+      ([key, value]) =>
+        preparedEngine?.accumulators?.[key] !== undefined &&
+        preparedEngine.accumulators[key] !== value,
+    )
+  if (engineConflict)
+    return unavailable(equipmentConditionConflict(input.agentId, input.discs, engineKey))
+  const hasFunctionalEngine =
+    Object.keys(functionalConditions.engineFlags).length > 0 ||
+    Object.keys(functionalConditions.stacks).length > 0
+  const equipmentContext = prepareDevelopmentDeclaredEquipmentRuntime(
+    input.eventConditionDeclaration,
+    hasFunctionalEngine
+      ? {
+          ...preparedEngine,
+          flags: { ...preparedEngine?.flags, ...functionalConditions.engineFlags },
+          accumulators: { ...preparedEngine?.accumulators, ...functionalConditions.stacks },
+        }
+      : preparedEngine,
+  )
+  if (equipmentContext.conflict)
+    return unavailable(equipmentConditionConflict(input.agentId, input.discs, engineKey))
   const engineEffects = compileCurrentWEnginePersonalPlanningEffects({
     agentId: input.agentId,
     engineId: engine.engineId,
     refinement: engine.refinement,
     member,
-    runtime: sourceAction?.equipmentRuntime,
+    runtime: equipmentContext.runtime,
   })
   if (engineEffects.status !== 'supported')
     return unavailable({
@@ -353,7 +721,10 @@ export function evaluateDevelopmentValueBenchmarkSide(
   }
   const runtime = evaluateSourceBackedPersonalPlanningDps({
     member,
-    ...(sourceAction?.runtimeInput ?? { eventUsages }),
+    ...(sourceAction?.runtimeInput ?? {
+      eventUsages,
+      ...(miyabiAction ? { baselineReferences: miyabiAction.baselineReferences } : {}),
+    }),
     ...(potentialPreparation
       ? {
           potentialEvents: potentialPreparation.potentialEvents,
@@ -399,7 +770,7 @@ export function evaluateDevelopmentValueBenchmarkSide(
     // invalidate a comparison whose objective does not consume that cycle.
     sourceEffectExclusions: runtime.sourceEffectExclusions,
   })
-  const coverage = projectDevelopmentValueBenchmarkCoverage({
+  const projectedCoverage = projectDevelopmentValueBenchmarkCoverage({
     agentId: input.agentId,
     member,
     baseCoverage,
@@ -407,6 +778,9 @@ export function evaluateDevelopmentValueBenchmarkSide(
     potentialPreparation,
     templatePreparation,
   })
+  const coverage = miyabiAction
+    ? { ...projectedCoverage, boundary: `${projectedCoverage.boundary} ${miyabiAction.boundary}` }
+    : projectedCoverage
   const dimensions: ValueBenchmarkSide['dimensions'] = {
     game_version: scenario.baseline.gameVersion,
     subject: stableContentHash({
@@ -417,11 +791,11 @@ export function evaluateDevelopmentValueBenchmarkSide(
       skillLevels,
     }),
     potential: String(potential ?? 'unavailable'),
-    scenario: `${scenario.identity}${sourceAction ? `:${sourceAction.policyId}` : ''}${potentialPreparation ? `:${potentialPreparation.policyId}` : ''}${templatePreparation ? `:${templatePreparation.policyId}:${templatePreparation.conditionPreparation?.identity ?? 'neutral'}` : ''}`,
+    scenario: `${scenario.identity}${sourceAction ? `:${sourceAction.policyId}` : ''}${potentialPreparation ? `:${potentialPreparation.policyId}` : ''}${templatePreparation ? `:${templatePreparation.policyId}:${templatePreparation.conditionPreparation?.identity ?? 'neutral'}` : ''}${equipmentContext.identity}${hasFunctionalEngine ? `:functional-engine:${stableContentHash({ flags: functionalConditions.engineFlags, stacks: functionalConditions.stacks })}` : ''}`,
     event_set: stableContentHash(eventUsages),
-    duration: String(runtime.declaredDurationSeconds),
+    duration: atomicAction ? 'not_applicable' : String(runtime.declaredDurationSeconds),
     formula: scenario.baseline.formulaHash,
-    runtime: `${personalRuntimeIdentity}${sourceAction ? `:${sourceAction.identity}` : ''}${potentialPreparation ? `:${potentialPreparation.identity}` : ''}${templatePreparation ? `:${templatePreparation.identity}` : ''}`,
+    runtime: `${personalRuntimeIdentity}${sourceAction ? `:${sourceAction.identity}` : ''}${miyabiAction ? `:miyabiShimotsuki:${miyabiAction.identity}` : ''}${atomicAction ? ':atomic-lycaon-charged-hit9-r1' : ''}${potentialPreparation ? `:${potentialPreparation.identity}` : ''}${templatePreparation ? `:${templatePreparation.identity}` : ''}`,
     disc_loadout: stableContentHash(
       input.statProbe
         ? { discs: input.discs, hypotheticalStatProbe: input.statProbe }
@@ -453,7 +827,7 @@ export function evaluateDevelopmentValueBenchmarkSide(
           stale: input.stale,
         })
       : null
-  const functionalCapacities32 = evaluateReviewedFunctionalCapacity32({
+  const evaluatedFunctionalCapacities32 = evaluateReviewedFunctionalCapacity32({
     member,
     eventUsages,
     potentialEvents: potentialPreparation?.potentialEvents,
@@ -462,24 +836,89 @@ export function evaluateDevelopmentValueBenchmarkSide(
     baselineReferencesByAgentId: sourceAction
       ? { [member.agentId]: sourceAction.runtimeInput.baselineReferences }
       : templatePreparation
-        ? { [member.agentId]: templatePreparation.baselineReferences }
+        ? {
+            [member.agentId]: {
+              ...templatePreparation.baselineReferences,
+              ...(input.eventConditionDeclaration?.personalSupportPreparation32
+                ?.luciaDarkbreaker === undefined
+                ? {}
+                : {
+                    darkbreaker:
+                      input.eventConditionDeclaration.personalSupportPreparation32.luciaDarkbreaker,
+                  }),
+            },
+          }
         : potentialPreparation
           ? { [member.agentId]: potentialPreparation.baselineReferences }
           : undefined,
   })
+  const preparedSupport = personalPreparedSupport32({
+    member,
+    equipmentExclusions: [...discEffects.exclusions, ...engineEffects.exclusions],
+    equipmentModifierBuckets: [...discEffects.buckets, ...engineEffects.buckets],
+    declaration: input.eventConditionDeclaration?.personalSupportPreparation32,
+  })
+  const functionalCapacities32 = {
+    ...evaluatedFunctionalCapacities32,
+    blockers: evaluatedFunctionalCapacities32.blockers.filter(
+      (blocker) =>
+        !(
+          member.agentId === 'agent-zhao' &&
+          preparedSupport.length > 0 &&
+          blocker === '功能目标缺少已核来源、等级、激活或初始属性/装备上下文：agent-zhao'
+        ),
+    ),
+    capacities: [
+      ...evaluatedFunctionalCapacities32.capacities.filter(
+        (capacity) =>
+          !(
+            member.agentId === 'agent-zhao' &&
+            preparedSupport.length > 0 &&
+            capacity.key === 'agent-zhao:initial_hp_additional_target' &&
+            capacity.value === null
+          ),
+      ),
+      ...preparedSupport,
+    ],
+  }
   const functionalStats32 = {
     impact: stats.finalStats.impact,
     enerRegen: stats.finalStats.enerRegen,
     anomMas: stats.finalStats.anomMas,
     anomProf: stats.finalStats.anomProf,
   }
-  return {
+  const apEquipmentUnknowns = [...discEffects.exclusions, ...engineEffects.exclusions]
+    .filter(
+      (effect) =>
+        !effect.resolvedInactive &&
+        (!effect.writeFields?.length ||
+          effect.writeFields.some((field) =>
+            ['initial.anomProf', 'final.anomProf', 'combat.anomProf'].includes(field),
+          )),
+    )
+    .map((effect) => ({
+      reason: effect.reason,
+      fields: effect.fields,
+      effectPath: effect.effectPath ?? null,
+      writeFields: effect.writeFields ?? null,
+      sourceRefs: effect.sourceRefs,
+    }))
+    .sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)))
+  const apEquipmentBuckets = [...discEffects.buckets, ...engineEffects.buckets]
+    .filter((bucket) => bucket.application === 'anomaly_proficiency_flat')
+    .map((bucket) => ({
+      key: bucket.effectKey,
+      value: bucket.value,
+      sourceRefs: bucket.sourceRefs,
+    }))
+    .sort((a, b) => a.key.localeCompare(b.key))
+  const side: ScenarioValueBenchmarkSide = {
     scenarioSelection: scenario.selection,
     scenarioIdentity: scenario.identity,
     state: 'supported',
     dimensions,
     totalDamage: runtime.totalDamage,
-    planningDps: runtime.planningDps,
+    planningDps: atomicAction ? null : runtime.planningDps,
     calculationFingerprint: stableContentHash({
       dimensions,
       runtime,
@@ -497,6 +936,18 @@ export function evaluateDevelopmentValueBenchmarkSide(
     coverage,
     functionalCapacities32,
     functionalStats32,
+    personalFunctionalInputs32: {
+      initialAttack: stats.initialStats.atk,
+      initialHp: stats.initialStats.hp,
+    },
+    personalFunctionalEquipmentIdentity32: stableContentHash({
+      apEquipmentUnknowns,
+      apEquipmentBuckets,
+    }),
     sourceResourceProduction32,
+  }
+  return {
+    ...side,
+    personalObjective32: resolvePersonalDevelopmentObjective32(input.agentId, side),
   }
 }

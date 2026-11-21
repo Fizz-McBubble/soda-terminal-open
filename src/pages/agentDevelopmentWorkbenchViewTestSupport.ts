@@ -17,6 +17,7 @@ export function createWorkbenchViewProps(
     editingThisAgent: false,
     candidateSnapshotStale: false,
     retainingDuringSave: false,
+    analysisRefresh: null,
     saveRefresh: null,
     editingPresentation: null,
     decisionWorld: {
@@ -25,7 +26,7 @@ export function createWorkbenchViewProps(
       run: {
         runId: 'isolated-run',
         inputFingerprint: 'isolated-input',
-        input: { warehouse: { discs: [] } },
+        input: { warehouse: { accountId: 'isolated-a', discs: [] } },
       },
     } as unknown as Props['decisionWorld'],
     queryDevelopmentCandidateAlternatives: query,
@@ -43,4 +44,26 @@ export function createWorkbenchViewProps(
     setRouteRead: vi.fn(),
     setLastRouteProjection: vi.fn(),
   }
+}
+
+export function createWorkbenchCandidateResult() {
+  const discs = Array.from({ length: 6 }, (_, index) => ({
+    id: `compare-disc-${index + 1}`,
+    slot: index + 1,
+  }))
+  return {
+    status: 'ready' as const,
+    gaps: [],
+    accountId: 'isolated-a',
+    agentId: 'agent-billy',
+    runId: 'isolated-run',
+    inputFingerprint: 'isolated-input',
+    eventConditionDeclarationsIdentity: undefined,
+    eventConditionDeclarationsByAgentId: undefined,
+    candidates: [
+      {
+        loadouts: [{ agentId: 'agent-billy', discs: discs.map((disc) => ({ disc })) }],
+      },
+    ],
+  } as unknown as Awaited<ReturnType<Props['queryDevelopmentCandidateAlternatives']>>
 }

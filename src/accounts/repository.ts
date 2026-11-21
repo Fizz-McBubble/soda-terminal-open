@@ -59,7 +59,9 @@ export async function setActiveAccount(accountId: string, db: SodaDatabase = dat
   accountIdSchema.parse(accountId)
   const account = await db.accounts.get(accountId)
   if (!account || account.status !== 'active') throw new Error('账号不存在或已归档。')
-  await db.settings.put({ key: activeAccountKey, value: accountId })
+  const current = await db.settings.get(activeAccountKey)
+  if (current?.value !== accountId)
+    await db.settings.put({ key: activeAccountKey, value: accountId })
   return account
 }
 
@@ -419,8 +421,20 @@ export async function updateAccountRoster(
   db: SodaDatabase = database,
 ) {
   return db.transaction('rw', db.accounts, db.accountRosters, async () => {
-    const current = await getAccountRoster(accountId, db)
-    return saveAccountRoster(accountId, mutate(current), db)
+    await assertAccount(accountId, db)
+    const record = await db.accountRosters.get(accountId)
+    const current = record ? hydrateRosterDefaults(record.roster) : createEmptyRoster()
+    const next = mutate(current)
+    // Hydration supplies read-time defaults. A targeted edit must not persist
+    // those defaults as newly observed fields on other agents in an old backup.
+    const original = new Map(record?.roster.agents.map((agent) => [agent.agentId, agent]))
+    const previous = new Set(current.agents)
+    return saveAccountRoster(accountId, {
+      ...next,
+      agents: next.agents.map((agent) =>
+        previous.has(agent) ? original.get(agent.agentId) ?? agent : agent,
+      ),
+    }, db)
   })
 }
 

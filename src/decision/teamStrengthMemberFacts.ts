@@ -8,6 +8,7 @@ import { isSourceRateEvent32 } from '../calculation/sourceEventQuantity32'
 import { teamStrengthActionFacts } from './teamStrengthActionFacts'
 import {
   resolveTeamStrengthReferenceMindscape,
+  resolveTeamStrengthReferencePotential,
   teamStrengthReferenceStatePolicy,
 } from './teamStrengthReferenceState'
 import { resolveSkillInvestmentMindscapeBonus } from './skillInvestmentProjection'
@@ -34,8 +35,13 @@ export type Member = {
   actionLimitations: string[]
 }
 const memberCache = new Map<string, Member>()
-export function memberFacts(agentId: string): Member | null {
-  const cached = memberCache.get(agentId)
+export function memberFacts(
+  agentId: string,
+  memberIds?: readonly string[],
+  potential = resolveTeamStrengthReferencePotential(agentId),
+): Member | null {
+  const cacheKey = `${agentId}:${potential}:${agentId === 'agent-koleda' ? (memberIds?.includes('agent-ben') === true ? 'ben' : memberIds?.length === 3 ? 'no-ben' : 'unknown-team') : ''}`
+  const cached = memberCache.get(cacheKey)
   if (cached) return cached
   const contract = getCurrentAgentEventContract(agentId)
   const rule = ruleById.get(agentId)
@@ -57,7 +63,13 @@ export function memberFacts(agentId: string): Member | null {
   const skillLevel =
     teamStrengthReferenceStatePolicy.baseSkillLevel +
     (resolveSkillInvestmentMindscapeBonus(resolveTeamStrengthReferenceMindscape(agentId)) ?? 0)
-  const actions = teamStrengthActionFacts({ agentId, skillLevel, declaredRateSecondsByEventId })
+  const actions = teamStrengthActionFacts({
+    agentId,
+    skillLevel,
+    declaredRateSecondsByEventId,
+    memberIds,
+    potential,
+  })
   if (!actions) return null
   // Separate source packets preserve the metric being described. None of the
   // baseline's 2..6 policy repetitions becomes observed action frequency.
@@ -104,6 +116,6 @@ export function memberFacts(agentId: string): Member | null {
       ),
     ],
   }
-  memberCache.set(agentId, result)
+  memberCache.set(cacheKey, result)
   return result
 }

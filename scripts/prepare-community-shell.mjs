@@ -9,6 +9,8 @@ import { hasPrivateCommunityLocator } from '../build/communitySourceProjection.m
 const appRoot = resolve(fileURLToPath(new URL('..', import.meta.url)))
 const allowedAsset =
   /^\/assets\/[A-Za-z0-9._~/-]+\.(?:avif|css|gif|jpe?g|js|json|png|svg|wasm|webp|woff2?)$/u
+const onDemandTeamIndex =
+  /^\/assets\/(?:worker|ui)-(?:team-intrinsic-index|generic-team-ranking)-[A-Za-z0-9_-]+\.js$/u
 
 function filesUnder(root) {
   return readdirSync(root, { withFileTypes: true }).flatMap((entry) => {
@@ -36,7 +38,8 @@ export function prepareCommunityShell({ dist, releaseId }) {
   if (
     files.some(
       (path) =>
-        /\.(?:html|js|json)$/u.test(path) && hasPrivateCommunityLocator(readFileSync(path, 'utf8')),
+        /\.(?:html|js|json)$/u.test(path) &&
+        hasPrivateCommunityLocator(readFileSync(path, 'utf8'), path),
     )
   )
     throw new Error('private_locator_in_community_artifact')
@@ -64,12 +67,24 @@ export function prepareCommunityShell({ dist, releaseId }) {
     throw new Error('browser_query_worker_not_referenced')
   if (!appScripts.some((path) => readFileSync(path, 'utf8').includes(releaseId)))
     throw new Error('community_build_release_id_missing')
-  // Install only succeeds once every execution chunk and stylesheet is cached. Decorative images
-  // warm in the background; a completed install can already start a fresh calculation offline.
+  // Default BOX stays available offline after installation. The full team indexes
+  // remain in the release inventory and enter the offline cache on first use.
+  const onDemandAssets = assetPaths.filter((path) => onDemandTeamIndex.test(path))
+  const hashes = (paths) =>
+    Object.fromEntries(
+      paths.map((path) => [
+        path,
+        createHash('sha256')
+          .update(readFileSync(join(root, path.slice(1))))
+          .digest('hex'),
+      ]),
+    )
   const criticalAssets = [
     '/index.html',
     '/favicon.svg',
-    ...assetPaths.filter((path) => /\.(?:css|js|json|wasm)$/u.test(path)),
+    ...assetPaths.filter(
+      (path) => /\.(?:css|js|json|wasm)$/u.test(path) && !onDemandTeamIndex.test(path),
+    ),
   ]
   const manifest = {
     releaseId,
@@ -78,14 +93,8 @@ export function prepareCommunityShell({ dist, releaseId }) {
     computeWorker,
     assets: ['/index.html', '/favicon.svg', ...assetPaths],
     criticalAssets,
-    criticalAssetSha256: Object.fromEntries(
-      criticalAssets.map((path) => [
-        path,
-        createHash('sha256')
-          .update(readFileSync(join(root, path.slice(1))))
-          .digest('hex'),
-      ]),
-    ),
+    criticalAssetSha256: hashes(criticalAssets),
+    onDemandAssetSha256: hashes(onDemandAssets),
   }
   writeFileSync(join(root, 'offline-shell-manifest.json'), `${JSON.stringify(manifest)}\n`, {
     flag: 'wx',

@@ -1,6 +1,15 @@
 import { z } from 'zod'
+import { preparedYanagiPolaritySchema32 } from './reviewedPreparedPolarityDeclaration32'
+import { personalOrdinaryAnomalyDeclarationSchema32 } from './personalOrdinaryAnomalyDeclaration32'
+import { personalPhoenixAbloomDeclarationSchema33 } from './personalPhoenixAbloomDeclaration33'
+import { personalMiyabiShimotsukiDeclarationSchema32 } from './personalMiyabiShimotsukiDeclaration32'
+import { personalFunctionalConditionsSchema32 } from './personalFunctionalConditions32'
 import { stableContentHash } from '../domain/stableContentHash'
 import type { ReviewedTemplateEventConditionDeclaration32 } from './reviewedTemplateEventConditions32'
+import {
+  reviewedTargetEffectStateSchema32,
+  reviewedTargetEffectSnapshotSchema32,
+} from '../domain/reviewedTargetEffectState32'
 
 export type ReviewedEventConditionDeclarations32 = Readonly<
   Record<string, ReviewedTemplateEventConditionDeclaration32>
@@ -17,6 +26,43 @@ export const reviewedEventConditionDeclarationSchema32 = z
     remiellePhaseFlow: state,
     whiteWaterBalladCritWindow: state,
     whiteWaterBalladAttackWindow: state,
+    steelCushionHitBehind: state,
+    firstPlumageAnomalyCritWindowActive: state,
+    yanagiPolarity: preparedYanagiPolaritySchema32.optional(),
+    personalOrdinaryAnomaly: personalOrdinaryAnomalyDeclarationSchema32.optional(),
+    phoenixOwnFireAbloom: personalPhoenixAbloomDeclarationSchema33.optional(),
+    miyabiShimotsuki: personalMiyabiShimotsukiDeclarationSchema32.optional(),
+    personalFunctionalConditions32: personalFunctionalConditionsSchema32.optional(),
+    personalSupportPreparation32: z
+      .object({
+        zhaoAdditionalAbilityActive: state,
+        zhaoInsideEtherVeil: state,
+        sunnaAngelicChordActive: state,
+        luciaDarkbreaker: state,
+      })
+      .strict()
+      .optional(),
+    ye: z
+      .object({
+        yeShunguangUnity32: z.boolean().optional(),
+        yeShunguangEnlightenedMind32: z.boolean().optional(),
+        yeShunguangPaidChasingStorms32: z.boolean().optional(),
+        yeShunguangVerdictActive32: z.boolean().optional(),
+        yeShunguangVerdictTargetInside32: z.boolean().optional(),
+        yeShunguangVerdictAtCap32: z.boolean().optional(),
+        yeShunguangVerdictVulnerability32: z.number().finite().nonnegative().optional(),
+      })
+      .strict()
+      .optional(),
+    zhao: z
+      .object({
+        zhaoM1SwitchedOut32: z.boolean().optional(),
+        zhaoM1SecondsSinceSwitchOut32: z.number().finite().nonnegative().optional(),
+      })
+      .strict()
+      .optional(),
+    targetEffectState32: reviewedTargetEffectStateSchema32.nullable().optional(),
+    targetEffectSnapshot32: reviewedTargetEffectSnapshotSchema32.nullable().optional(),
   })
   .strict()
 export const reviewedEventConditionDeclarationsSchema32 = z.record(

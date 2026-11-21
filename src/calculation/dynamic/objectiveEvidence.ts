@@ -7,7 +7,7 @@ export type ObjectiveContext = {
   objectiveKey: string
   mode: 'fixed_events' | 'generated_policy'
   policyKey: string
-  horizon: number
+  horizon: number | 'not_applicable'
 }
 export type MissingEffect = {
   id: string
@@ -62,7 +62,9 @@ export function objectiveContextKey(ctx: ObjectiveContext): string {
   ] as const)
     if (!ctx[k]?.trim()) throw new Error(`missing_${k}`)
   if (!['fixed_events', 'generated_policy'].includes(ctx.mode)) throw new Error('invalid_mode')
-  finite(ctx.horizon, 'horizon', Number.MIN_VALUE)
+  if (ctx.horizon === 'not_applicable') {
+    if (ctx.mode !== 'fixed_events') throw new Error('invalid_horizon')
+  } else finite(ctx.horizon, 'horizon', Number.MIN_VALUE)
   return canonical(ctx)
 }
 export function functionalSatisfied(e: ObjectiveEvaluation): boolean {

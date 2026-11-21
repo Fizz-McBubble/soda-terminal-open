@@ -131,7 +131,7 @@ export function createTeamStrengthCapacityContext(
         providerAgentId: id,
         effectKey: `${id}:standard_reference`,
         fields: [standard.reason],
-        sourceRefs: [],
+        sourceRefs: [] as string[],
       })),
     }
   const standardById = new Map(
@@ -213,17 +213,51 @@ export function createTeamStrengthCapacityContext(
         : sourceUsages(member, runtime.get(member.agentId)!),
     ]),
   )
+  const eventEffectContext = (
+    id: string,
+    actors: ReadonlyMap<string, PlanningEffectRuntimeMember>,
+    buckets: readonly SourceBackedPlanningEffectBucket[],
+    references = conditions.supportReferencesByAgentId,
+  ) => ({
+    memberIds: ids,
+    members: [...actors.values()],
+    // Converted ATK buckets already carry the conversion result. Only a
+    // remaining Sheer Force grant needs the source conversion DAG again.
+    entries:
+      id === 'agent-norma' && buckets.some((row) => row.application === 'sheer_force')
+        ? [getCurrentAgentPlanningEffectBlueprint('agent-norma:reviewed_sheer_force_attack32')!]
+        : [],
+    baselineReferencesByAgentId: references,
+    consumedBuckets: [],
+    exclusions: [],
+  })
+  // A source coordinate includes the actor's intrinsic state and the supplied
+  // effects. Unselected providers' automatic mechanisms remain outside this
+  // coordinate; they are not observations of inactivity or a complete team.
+  const unresolvedCoordinate = (
+    context: ReturnType<typeof eventEffectContext>,
+    id: string,
+    buckets: readonly SourceBackedPlanningEffectBucket[],
+  ) =>
+    context.exclusions.some(
+      (row: { effectKey: string }) =>
+        row.effectKey.startsWith(`${id}:`) ||
+        buckets.some((bucket) => bucket.effectKey === row.effectKey),
+    )
   const value = (id: string, buckets: SourceBackedPlanningEffectBucket[]) => {
     const events = usages.get(id)!
     const equipment = contactEquipment(events)
     if (!events.length || equipment.status !== 'ready' || unresolvedEquipment(equipment.exclusions))
       return null
-    return calculateCurrentPlanningEventDamage32({
+    const context = eventEffectContext(id, runtime, buckets)
+    const result = calculateCurrentPlanningEventDamage32({
       member: runtime.get(id)!,
       buckets: [...equipment.buckets, ...buckets],
       eventUsages: events,
       baseline,
+      eventEffectContext: context,
     })
+    return unresolvedCoordinate(context, id, buckets) ? null : result
   }
   // Contact and unequipped action coordinates each use their own actor's
   // effective skills, including the common A6 cultivation projection.
@@ -312,34 +346,24 @@ export function createTeamStrengthCapacityContext(
             : []
           : [bucket],
       )
+      const context = eventEffectContext(
+        id,
+        contactRuntime,
+        buckets,
+        sourceReferencesByAgentId ?? conditions.supportReferencesByAgentId,
+      )
       const settled = calculateCurrentPlanningEventDamage32({
         member: contactRuntime.get(id)!,
         buckets: [...equipment.buckets, ...scoped],
         eventUsages: [usage],
         baseline,
-        // Empty buckets are the explicit unbuffed contact comparator, not an
-        // observation of external sources. Only an actual Sheer Force grant
-        // needs the source conversion DAG; converted ATK buckets already carry
-        // its result and must not be produced a second time.
-        ...(id === 'agent-norma' && buckets.some((row) => row.application === 'sheer_force')
-          ? {
-              eventEffectContext: {
-                memberIds: ids,
-                members: [...contactRuntime.values()],
-                entries: [
-                  getCurrentAgentPlanningEffectBlueprint(
-                    'agent-norma:reviewed_sheer_force_attack32',
-                  )!,
-                ],
-                baselineReferencesByAgentId:
-                  sourceReferencesByAgentId ?? conditions.supportReferencesByAgentId,
-                consumedBuckets: [],
-                exclusions: [],
-              },
-            }
-          : {}),
+        eventEffectContext: context,
       })
-      return settled === null || !Number.isFinite(settled) ? null : settled
+      return unresolvedCoordinate(context, id, buckets) ||
+        settled === null ||
+        !Number.isFinite(settled)
+        ? null
+        : settled
     })
     return values.some((value) => value === null)
       ? null

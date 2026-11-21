@@ -10,6 +10,7 @@ import { currentAssetProjection } from '../gameDataPacks/currentAssetProjection'
 import type { Current31MechanicValidity } from './current31TeamStrengthCalibration'
 import { createTeamIndexPayloadReader, unpackTeamIndexNodes } from './teamIndexPayload'
 import type { DecisionConfidenceBand, TeamRatingBand } from './teamDecisionAuthority'
+import { readTeamStartupIndex } from './teamStartupIndexEnvelope'
 
 const bands = ['S+', 'S', 'A+', 'A', 'B', 'Experimental'] as const
 const confidences = ['high', 'medium', 'low', 'experimental'] as const
@@ -29,6 +30,7 @@ type MetaAuthority = (typeof metaAuthorities)[number]
 type RawRow = readonly number[]
 type PreparedIndex = {
   legacyReference: boolean
+  startupOnly: boolean
   contentHash: string
   agentIds: readonly string[]
   agentIndex: ReadonlyMap<string, number>
@@ -61,10 +63,12 @@ function exactArray(actual: unknown, expected: readonly string[]) {
   )
 }
 
-function prepareIndex(): { index: PreparedIndex | null; reason: string | null } {
+function prepareIndex(input: unknown): { index: PreparedIndex | null; reason: string | null } {
   try {
-    if (!rawIndex || typeof rawIndex !== 'object') throw new Error('artifact is not an object')
-    const artifact = rawIndex as unknown as Record<string, unknown>
+    const scope = readTeamStartupIndex(input)
+    if (!scope.artifact || typeof scope.artifact !== 'object')
+      throw new Error('artifact is not an object')
+    const artifact = scope.artifact as Record<string, unknown>
     if (artifact.contract !== 'soda-current31-team-intrinsic-index/v1')
       throw new Error('contract mismatch')
     const { contentHash, ...content } = artifact
@@ -81,6 +85,7 @@ function prepareIndex(): { index: PreparedIndex | null; reason: string | null } 
     )
       throw new Error('game version mismatch')
     const legacyReference = artifact.gameVersion !== currentVersionProjection.gameVersion
+    if (legacyReference && scope.keys) throw new Error('legacy startup index is not supported')
     if (!legacyReference) {
       const currentIdentity = Object.fromEntries(
         [
@@ -124,7 +129,10 @@ function prepareIndex(): { index: PreparedIndex | null; reason: string | null } 
     if (!fingerprints || fingerprints.roster !== stableContentHash(currentAgentIds))
       throw new Error('runtime fingerprint mismatch')
     if (!Array.isArray(artifact.rows)) throw new Error('rows are missing')
-    const expectedRows = (agentIds.length * (agentIds.length - 1) * (agentIds.length - 2)) / 6
+    const fullCount = (agentIds.length * (agentIds.length - 1) * (agentIds.length - 2)) / 6
+    if (scope.indexSize !== null && scope.indexSize !== fullCount)
+      throw new Error('startup formation population mismatch')
+    const expectedRows = scope.keys?.size ?? fullCount
     if (artifact.rows.length !== expectedRows) throw new Error('row coverage mismatch')
     const details = artifact.details as
       | { contract?: string; data: string; codec: string; roots: number[] }
@@ -148,8 +156,13 @@ function prepareIndex(): { index: PreparedIndex | null; reason: string | null } 
       if (!Array.isArray(raw) || raw.length !== 11 || !raw.every(Number.isInteger))
         throw new Error('row shape is invalid')
       const [first, second, third] = raw
-      if (!(first! < second! && second! < third! && third! < agentIds.length))
+      if (!(first! >= 0 && first! < second! && second! < third! && third! < agentIds.length))
         throw new Error('row identity is invalid')
+      if (
+        scope.keys &&
+        !scope.keys.has([agentIds[first!], agentIds[second!], agentIds[third!]].sort().join('|'))
+      )
+        throw new Error('startup intrinsic row is outside its scope')
       const key = first! * agentIds.length * agentIds.length + second! * agentIds.length + third!
       if (rows.has(key)) throw new Error('duplicate row identity')
       rows.set(key, raw)
@@ -165,7 +178,8 @@ function prepareIndex(): { index: PreparedIndex | null; reason: string | null } 
     return {
       index: {
         legacyReference,
-        contentHash,
+        startupOnly: scope.keys !== null,
+        contentHash: scope.fullHash ?? contentHash,
         agentIds,
         agentIndex: new Map(agentIds.map((id, index) => [id, index])),
         rows,
@@ -193,6 +207,7 @@ export type OfflineTeamDetails = Pick<
   formedTeamReference: import('../application/publicFormedTeamReference').FormedTeamReference
   prerequisiteStatus: 'eligible' | 'condition-not-met' | 'condition-unknown'
   primaryOutputAgentId: string | null
+  mechanismDirection: import('./teamMechanismDirection').TeamMechanismDirection
 }
 
 /** Pure data lookup. Each caller receives its own objects; no rating/solver fallback. */
@@ -200,7 +215,14 @@ export function lookupCurrent31TeamIntrinsicDetails(
   memberIds: readonly string[],
   candidateId: string,
 ): OfflineTeamDetails | null {
-  const index = prepared.index
+  return lookupDetails(prepared.index, memberIds, candidateId)
+}
+
+function lookupDetails(
+  index: PreparedIndex | null,
+  memberIds: readonly string[],
+  candidateId: string,
+): OfflineTeamDetails | null {
   if (!index || memberIds.length !== 3 || new Set(memberIds).size !== 3) return null
   const positions = memberIds.map((id) => index.agentIndex.get(id)).sort((a, b) => a! - b!)
   if (positions.some((n) => n === undefined)) return null
@@ -214,7 +236,7 @@ export function lookupCurrent31TeamIntrinsicDetails(
   return result
 }
 
-const prepared = prepareIndex()
+let prepared = prepareIndex(rawIndex)
 
 export const current31TeamIntrinsicIndexStatus = Object.freeze({
   status: prepared.index ? ('ready' as const) : ('unavailable' as const),
@@ -224,6 +246,32 @@ export const current31TeamIntrinsicIndexStatus = Object.freeze({
     ? reviewedReferenceSupportContinuity32
     : null,
 })
+
+export function usesTeamStartupIntrinsicIndex() {
+  return prepared.index?.startupOnly === true
+}
+
+export function replaceTeamIntrinsicIndex(input: unknown) {
+  const next = prepareIndex(input)
+  const index = next.index
+  if (
+    !index ||
+    index.startupOnly ||
+    index.contentHash !== current31TeamIntrinsicIndexStatus.contentHash
+  )
+    throw new Error(next.reason ?? 'Full intrinsic index does not match the BOX startup version.')
+  return {
+    binding: {
+      status: 'ready' as const,
+      contentHash: index.contentHash,
+      lookup: (memberIds: readonly string[], candidateId: string) =>
+        lookupDetails(index, memberIds, candidateId),
+    },
+    commit() {
+      prepared = next
+    },
+  }
+}
 
 export function lookupCurrent31TeamIntrinsicSummary(
   memberIds: readonly [string, string, string],

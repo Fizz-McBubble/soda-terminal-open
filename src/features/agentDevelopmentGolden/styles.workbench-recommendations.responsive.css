@@ -1,22 +1,3 @@
-.loadout-main-stat-priority div {
-  min-width: 0;
-  padding: 0;
-}
-
-.loadout-main-stat-priority dt {
-  color: #5f776f;
-  font-size: 0.54rem;
-}
-
-.loadout-main-stat-priority dd {
-  overflow: hidden;
-  margin: 1px 0 0;
-  color: #2d6258;
-  font-size: 0.61rem;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .loadout-team-options li {
   display: grid;
   grid-template-columns: 164px minmax(0, 1fr);

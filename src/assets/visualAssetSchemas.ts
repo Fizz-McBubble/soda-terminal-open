@@ -39,6 +39,7 @@ export const visualAssetSchema = z.object({
   license: z.string().min(1).optional(),
   attribution: z.string().min(1).optional(),
   verifiedAt: z.string().datetime().optional(),
+  distribution: z.literal('local-only').optional(),
 })
 
 /** Internal/desktop manifest entry: the full source, licence, attribution and review ledger. */

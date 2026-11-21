@@ -5,14 +5,7 @@ import { reviewedTeamDiscDirections } from '../gameDataPacks/reviewedTeamDiscCon
 import { current31TeamEngineD1Pack } from '../teamEngine/current31D1Pack'
 import type { scoreCurrent31ExhaustiveAccountCandidates } from './exhaustiveAccountCandidateScoring'
 import type { assetConflictBands, CultivationPriorityInput } from './teamDecisionAuthority'
-import {
-  getCurrentBuildProfile,
-  getBuildRecommendation,
-  getSelectedBuildBranchId,
-} from '../assault/currentBuildProfiles'
-import { getProjectedBuildKnowledgeProfile } from '../gameDataPacks/agentProfile'
-import { getCandidateWarehouseConstraint } from '../gameDataPacks/candidateWarehouseConstraints'
-import { agentDevelopmentSkillRecommendations } from '../pages/agentDevelopmentSkillRecommendations'
+import { developmentSkillRecommendations } from '../application/developmentSkillRecommendations'
 
 export type RankedFormation = ReturnType<
   typeof scoreCurrent31ExhaustiveAccountCandidates
@@ -45,22 +38,7 @@ export function inspectSkillInvestments(
     | undefined,
 ) {
   if (!agent) return { knownGapCount: 7, unknownCount: 0 }
-  const profile = getProjectedBuildKnowledgeProfile(agent.agentId)
-  const currentProfile = getCurrentBuildProfile(agent.agentId)
-  const recommendation = currentProfile
-    ? getBuildRecommendation(
-        currentProfile,
-        getSelectedBuildBranchId(agent) ?? currentProfile.defaultBranchId,
-      )
-    : null
-  const skills = agentDevelopmentSkillRecommendations(
-    agent.agentId,
-    profile.recommendation?.skillPriority ??
-      getCandidateWarehouseConstraint(agent.agentId)?.progressionDirection ??
-      [],
-    recommendation?.skillPriority ?? [],
-    { skillLevels: agent.skillLevels, mindscape: agent.mindscape },
-  ).skills
+  const skills = developmentSkillRecommendations(agent).skills
   let knownGapCount = agent.level >= 60 ? 0 : 1
   let unknownCount = 0
   for (const skill of skills) {
@@ -173,6 +151,11 @@ export function deriveAccountBands(
     0,
   )
   const potentialGaps = derivePotentialGaps(candidate, context)
+  const levels = candidate.memberIds.map((id) => context.agentById.get(id)?.level)
+  const unknownLevel = levels.some(
+    (level) => typeof level !== 'number' || !Number.isInteger(level) || level < 1 || level > 60,
+  )
+  const knownLevelGap = levels.some((level) => typeof level === 'number' && level < 60)
   const allGlobal = candidate.memberIds.every((agentId) => context.globalById.has(agentId))
   const allIndependent = candidate.memberIds.every((agentId) =>
     context.independentById.has(agentId),
@@ -188,11 +171,12 @@ export function deriveAccountBands(
   const currentReadiness: AccountBands['currentReadiness'] =
     missingAgents > 0 || missingWEngines > 0
       ? 'blocked'
-      : !allocationAssessed || unknownSkillInvestmentCount > 0
+      : !allocationAssessed || unknownSkillInvestmentCount > 0 || unknownLevel
         ? 'not_evaluated'
         : allGlobal &&
             missingDiscSlots === 0 &&
             missingSkillInvestmentCount === 0 &&
+            !knownLevelGap &&
             potentialGaps.length === 0
           ? 'ready'
           : allIndependent &&

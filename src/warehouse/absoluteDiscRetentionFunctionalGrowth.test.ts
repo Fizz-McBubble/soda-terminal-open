@@ -16,6 +16,11 @@ const profileFor = (stat: string): Profile => ({
   weights: { atk_percent: 1 },
   mainStatsBySlot: { '6': { [stat]: 'valid' } },
   effectUtility: { atk_: 'valid' },
+  branchSetPlan: {
+    pattern: '4+2',
+    primarySetIds: ['synthetic-function-primary'],
+    secondarySetIds: ['synthetic-set'],
+  },
   functionalMains: [
     {
       slot: 6,

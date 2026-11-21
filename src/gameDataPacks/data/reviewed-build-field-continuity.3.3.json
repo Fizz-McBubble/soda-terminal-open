@@ -362,10 +362,12 @@
     {
       "agentId": "agent-claret",
       "fieldId": "build.main_sub_stats",
-      "valueHash": "fnv1a-2380bcc2",
+      "valueHash": "fnv1a-31759b85",
       "sourceRefsHash": "fnv1a-d52e926c",
       "conditionsHash": "fnv1a-bbd0856e",
-      "sourceReviewVersion": "3.2"
+      "sourceReviewVersion": "3.2",
+      "reviewedAt": "2026-11-02",
+      "reviewReason": "CRIT Rate remains common Disc 4; DEF is separately source-bound and non-automatic."
     },
     {
       "agentId": "agent-claret",
@@ -394,10 +396,12 @@
     {
       "agentId": "agent-claret",
       "fieldId": "build.version_change_impact",
-      "valueHash": "fnv1a-e5490445",
+      "valueHash": "fnv1a-c3b1e6f8",
       "sourceRefsHash": "fnv1a-b25a2e25",
       "conditionsHash": "fnv1a-fb7808fb",
-      "sourceReviewVersion": "3.2"
+      "sourceReviewVersion": "3.2",
+      "reviewedAt": "2026-11-02",
+      "reviewReason": "Refresh the derived version-impact identity after the reviewed source condition / same-recipe reference correction; no new meta or formula claim."
     },
     {
       "agentId": "agent-sigrid",
@@ -538,10 +542,12 @@
     {
       "agentId": "agent-remielle",
       "fieldId": "build.version_change_impact",
-      "valueHash": "fnv1a-92f6b56b",
-      "sourceRefsHash": "fnv1a-5072ee42",
+      "valueHash": "fnv1a-cc7e609a",
+      "sourceRefsHash": "fnv1a-8d488627",
       "conditionsHash": "fnv1a-6ddb97a6",
-      "sourceReviewVersion": "3.2"
+      "sourceReviewVersion": "3.2",
+      "reviewedAt": "2026-11-02",
+      "reviewReason": "Refresh the derived version-impact identity after the reviewed source condition / same-recipe reference correction; no new meta or formula claim."
     },
     {
       "agentId": "agent-norma",
@@ -1954,8 +1960,8 @@
     {
       "agentId": "agent-ju-fufu",
       "fieldId": "build.progression",
-      "valueHash": "fnv1a-2040faca",
-      "sourceRefsHash": "fnv1a-31651f79",
+      "valueHash": "fnv1a-b8a0b79f",
+      "sourceRefsHash": "fnv1a-9d6fbee6",
       "conditionsHash": "fnv1a-741638a5",
       "sourceReviewVersion": "3.1"
     },
@@ -1978,8 +1984,8 @@
     {
       "agentId": "agent-ju-fufu",
       "fieldId": "build.version_change_impact",
-      "valueHash": "fnv1a-48c18350",
-      "sourceRefsHash": "fnv1a-6c12bbd",
+      "valueHash": "fnv1a-ac726ee5",
+      "sourceRefsHash": "fnv1a-523040c",
       "conditionsHash": "fnv1a-6ddb97a6",
       "sourceReviewVersion": "3.2"
     },
@@ -3683,9 +3689,11 @@
       "agentId": "agent-rina",
       "fieldId": "build.drive_disc_sets",
       "valueHash": "fnv1a-39562c7e",
-      "sourceRefsHash": "fnv1a-e64350bd",
+      "sourceRefsHash": "fnv1a-448a3c19",
       "conditionsHash": "fnv1a-2540ceaa",
-      "sourceReviewVersion": "3.2"
+      "sourceReviewVersion": "3.2",
+      "reviewedAt": "2026-11-02",
+      "reviewReason": "Correct already-equipped teammate condition; retain source recipes, version and formula boundary."
     },
     {
       "agentId": "agent-rina",
@@ -3722,10 +3730,12 @@
     {
       "agentId": "agent-rina",
       "fieldId": "build.version_change_impact",
-      "valueHash": "fnv1a-56818b6b",
-      "sourceRefsHash": "fnv1a-a6ae8d55",
+      "valueHash": "fnv1a-c89aadf",
+      "sourceRefsHash": "fnv1a-2dae7fc9",
       "conditionsHash": "fnv1a-c088974f",
-      "sourceReviewVersion": "3.2"
+      "sourceReviewVersion": "3.2",
+      "reviewedAt": "2026-11-02",
+      "reviewReason": "Refresh the derived version-impact identity after the reviewed source condition / same-recipe reference correction; no new meta or formula claim."
     },
     {
       "agentId": "agent-manato",
@@ -3827,9 +3837,11 @@
       "agentId": "agent-pan-yinhu",
       "fieldId": "build.drive_disc_sets",
       "valueHash": "fnv1a-fb1aebf3",
-      "sourceRefsHash": "fnv1a-a1bb72b3",
+      "sourceRefsHash": "fnv1a-1d3f3be6",
       "conditionsHash": "fnv1a-40188624",
-      "sourceReviewVersion": "3.2"
+      "sourceReviewVersion": "3.2",
+      "reviewedAt": "2026-11-02",
+      "reviewReason": "Correct already-equipped teammate condition; retain source recipes, version and formula boundary."
     },
     {
       "agentId": "agent-pan-yinhu",
@@ -3866,10 +3878,12 @@
     {
       "agentId": "agent-pan-yinhu",
       "fieldId": "build.version_change_impact",
-      "valueHash": "fnv1a-2bd2474a",
-      "sourceRefsHash": "fnv1a-67fa76c6",
+      "valueHash": "fnv1a-dd8f09db",
+      "sourceRefsHash": "fnv1a-b9bc2371",
       "conditionsHash": "fnv1a-ac05a0c7",
-      "sourceReviewVersion": "3.2"
+      "sourceReviewVersion": "3.2",
+      "reviewedAt": "2026-11-02",
+      "reviewReason": "Refresh the derived version-impact identity after the reviewed source condition / same-recipe reference correction; no new meta or formula claim."
     },
     {
       "agentId": "agent-pulchra",
@@ -3971,9 +3985,11 @@
       "agentId": "agent-seth",
       "fieldId": "build.drive_disc_sets",
       "valueHash": "fnv1a-78125876",
-      "sourceRefsHash": "fnv1a-c723da45",
+      "sourceRefsHash": "fnv1a-ff0d30f4",
       "conditionsHash": "fnv1a-ebba9e7c",
-      "sourceReviewVersion": "3.2"
+      "sourceReviewVersion": "3.2",
+      "reviewedAt": "2026-11-02",
+      "reviewReason": "Correct already-equipped teammate condition; retain source recipes, version and formula boundary."
     },
     {
       "agentId": "agent-seth",
@@ -4010,10 +4026,12 @@
     {
       "agentId": "agent-seth",
       "fieldId": "build.version_change_impact",
-      "valueHash": "fnv1a-dd386380",
-      "sourceRefsHash": "fnv1a-85d5a3c2",
+      "valueHash": "fnv1a-e108e333",
+      "sourceRefsHash": "fnv1a-c25b8ce7",
       "conditionsHash": "fnv1a-ac05a0c7",
-      "sourceReviewVersion": "3.2"
+      "sourceReviewVersion": "3.2",
+      "reviewedAt": "2026-11-02",
+      "reviewReason": "Refresh the derived version-impact identity after the reviewed source condition / same-recipe reference correction; no new meta or formula claim."
     },
     {
       "agentId": "agent-anby",
@@ -4403,9 +4421,11 @@
       "agentId": "agent-ben",
       "fieldId": "build.drive_disc_sets",
       "valueHash": "fnv1a-4b4df6b1",
-      "sourceRefsHash": "fnv1a-e2cba8d0",
-      "conditionsHash": "fnv1a-a1f8ba81",
-      "sourceReviewVersion": "3.2"
+      "sourceRefsHash": "fnv1a-f6d1d40b",
+      "conditionsHash": "fnv1a-bf8e5f39",
+      "sourceReviewVersion": "3.2",
+      "reviewedAt": "2026-11-02",
+      "reviewReason": "Retain the Burn requirement without an unproved applier example."
     },
     {
       "agentId": "agent-ben",
@@ -4442,10 +4462,12 @@
     {
       "agentId": "agent-ben",
       "fieldId": "build.version_change_impact",
-      "valueHash": "fnv1a-1520873e",
-      "sourceRefsHash": "fnv1a-b420205c",
+      "valueHash": "fnv1a-8ddebf71",
+      "sourceRefsHash": "fnv1a-5e92b431",
       "conditionsHash": "fnv1a-3515468",
-      "sourceReviewVersion": "3.2"
+      "sourceReviewVersion": "3.2",
+      "reviewedAt": "2026-11-02",
+      "reviewReason": "Refresh the derived version-impact identity after the reviewed source condition / same-recipe reference correction; no new meta or formula claim."
     },
     {
       "agentId": "agent-soukaku",

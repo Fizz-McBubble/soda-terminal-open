@@ -1,3 +1,4 @@
+import { playerErrorMessage } from '../../../application/playerErrorMessage'
 import './asset-dialog.css'
 import { useEffect, useEffectEvent, useRef, useState } from 'react'
 import { detectLocalDataFileKind } from '../../../application/localDataFile'
@@ -8,7 +9,7 @@ import { JsonFilePicker } from '../../JsonFilePicker'
 import './account-file-drop.css'
 import { RestoreRecoveryCopies } from '../../dataCenter/RestoreRecoveryCopies'
 import { AccountDeleteDialog, AccountRenameDialog } from './AccountWorkspaceDialogs'
-import { AccountRestorePreview } from './AccountRestorePreview'
+import { AccountRestoreDialog } from './AccountRestoreDialog'
 
 export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
   const backupSectionRef = useRef<HTMLElement>(null)
@@ -30,6 +31,8 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
   const renameOpenerRef = useRef<HTMLButtonElement | null>(null)
   const renamePendingRef = useRef(false)
   const openerRef = useRef<HTMLButtonElement>(null)
+  const restoreCancelRef = useRef<HTMLButtonElement>(null)
+  const deleteOpenerRef = useRef<HTMLButtonElement | null>(null)
   const inspectionGeneration = useRef(0)
   const [inspecting, setInspecting] = useState(false)
   useEffect(
@@ -51,14 +54,26 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
   const [restoring, setRestoring] = useState(false)
   const restorePendingRef = useRef(false)
   const [operationError, setOperationError] = useState<string | null>(null)
+  const [backupOperation, setBackupOperation] = useState<{
+    accountId: string
+    status: 'idle' | 'exporting' | 'success'
+  }>({ accountId: props.accountId, status: 'idle' })
+  const [deleteError, setDeleteError] = useState<string | null>(null)
   const hasAccount = props.accountId !== 'no-account'
   const ownedAgents = props.roster.agents.filter((item) => item.owned).length
+  const backupState =
+    backupOperation.accountId === props.accountId ? backupOperation.status : 'idle'
   useEffect(() => {
     const dialog = dialogRef.current
     const focus = () => openerRef.current?.focus()
     dialog?.addEventListener('close', focus)
     return () => dialog?.removeEventListener('close', focus)
   }, [])
+  const openRestoreDialog = () => {
+    if (typeof dialogRef.current?.showModal === 'function') dialogRef.current.showModal()
+    else setRestoreDialogOpen(true)
+    window.requestAnimationFrame(() => restoreCancelRef.current?.focus())
+  }
   const choose = async (file: File) => {
     const generation = ++inspectionGeneration.current
     setInspecting(true)
@@ -82,15 +97,11 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
       const next = await props.onInspectBackup(file)
       if (generation !== inspectionGeneration.current) return
       setPreview(next)
-      if (typeof dialogRef.current?.showModal === 'function') {
-        dialogRef.current.showModal()
-      } else {
-        setRestoreDialogOpen(true)
-      }
+      openRestoreDialog()
     } catch (error) {
       if (generation !== inspectionGeneration.current) return
       setPreview(null)
-      setOperationError(error instanceof Error ? error.message : '无法检查这份备份。')
+      setOperationError(playerErrorMessage(error, '无法检查这份备份。'))
     } finally {
       if (generation === inspectionGeneration.current) setInspecting(false)
     }
@@ -121,7 +132,12 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
       openerRef.current?.focus()
     }
   }
-  const openDeleteDialog = (account: { id: string; displayName: string }) => {
+  const openDeleteDialog = (
+    account: { id: string; displayName: string },
+    opener: HTMLButtonElement,
+  ) => {
+    deleteOpenerRef.current = opener
+    setDeleteError(null)
     setDeleteTarget(account)
     if (typeof deleteDialogRef.current?.showModal === 'function') {
       deleteDialogRef.current.showModal()
@@ -133,6 +149,8 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
     if (typeof deleteDialogRef.current?.close === 'function') deleteDialogRef.current.close()
     else setDeleteDialogOpen(false)
     setDeleteTarget(null)
+    setDeleteError(null)
+    window.requestAnimationFrame(() => deleteOpenerRef.current?.focus())
   }
   const closeRenameDialog = () => {
     if (renamePendingRef.current) return
@@ -156,7 +174,7 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
       renamePendingRef.current = false
       closeRenameDialog()
     } catch (error) {
-      setRenameError(error instanceof Error ? error.message : '无法重命名账户，请重试。')
+      setRenameError(playerErrorMessage(error, '无法重命名账户，请重试。'))
     } finally {
       renamePendingRef.current = false
       setRenaming(false)
@@ -183,7 +201,7 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
               </div>
             </dl>
           ) : (
-            <p>先建立独立本机账户，再录入代理人和驱动盘；音擎、邦布只在方案需要时确认。</p>
+            <p>先建立本机账户，再记录代理人。音擎与邦布可先浏览图鉴。</p>
           )}
         </header>
         <aside className="account-sidebar" aria-label="本机账户">
@@ -200,9 +218,7 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
                 onChange={(accountId) => {
                   setOperationError(null)
                   void Promise.resolve(props.onSelectAccount(accountId)).catch((error) =>
-                    setOperationError(
-                      error instanceof Error ? error.message : '无法切换当前账户。',
-                    ),
+                    setOperationError(playerErrorMessage(error, '无法切换当前账户。')),
                   )
                 }}
               />
@@ -246,7 +262,7 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
                       <button
                         className="danger"
                         type="button"
-                        onClick={() => openDeleteDialog(account)}
+                        onClick={(event) => openDeleteDialog(account, event.currentTarget)}
                       >
                         删除账户
                       </button>
@@ -263,17 +279,15 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
           {hasAccount ? (
             <section className="account-range" aria-labelledby="range-title">
               <div>
-                <h2 id="range-title">账户资产</h2>
+                <h2 id="range-title">账户记录概览</h2>
               </div>
               <dl className="range-facts">
                 <div>
-                  <dt>代理人</dt>
-                  <dd>
-                    {ownedAgents} / {props.catalog.agents.length}
-                  </dd>
+                  <dt>已拥有代理人</dt>
+                  <dd>{ownedAgents} 名</dd>
                 </div>
                 <div>
-                  <dt>驱动盘</dt>
+                  <dt>已记录驱动盘</dt>
                   <dd>{props.discs.length} 张</dd>
                 </div>
               </dl>
@@ -288,19 +302,38 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
               </div>
               <button
                 className="primary"
+                aria-busy={backupState === 'exporting' || undefined}
+                disabled={backupState === 'exporting'}
                 onClick={() => {
+                  const exportingAccountId = props.accountId
                   setOperationError(null)
+                  setBackupOperation({ accountId: exportingAccountId, status: 'exporting' })
                   void props
                     .onCreateBackup()
-                    .catch((error) =>
-                      setOperationError(
-                        error instanceof Error ? error.message : '无法导出当前账户备份。',
+                    .then(() =>
+                      setBackupOperation((current) =>
+                        current.accountId === exportingAccountId
+                          ? { accountId: exportingAccountId, status: 'success' }
+                          : current,
                       ),
                     )
+                    .catch((error) => {
+                      setBackupOperation((current) =>
+                        current.accountId === exportingAccountId
+                          ? { accountId: exportingAccountId, status: 'idle' }
+                          : current,
+                      )
+                      setOperationError(playerErrorMessage(error, '无法导出当前账户备份。'))
+                    })
                 }}
               >
-                导出备份文件
+                {backupState === 'exporting' ? '正在准备备份…' : '导出备份文件'}
               </button>
+              {backupState === 'success' ? (
+                <p className="account-action-feedback" role="status">
+                  备份文件已生成，请检查浏览器下载列表。
+                </p>
+              ) : null}
             </section>
           ) : null}
           <JsonFileDropTarget
@@ -361,97 +394,57 @@ export function AccountWorkspace({ props }: { props: AssetGoldenProps }) {
         }}
         onSave={() => void saveRename()}
       />
-      <dialog
-        className="soda-asset-dialog"
-        ref={dialogRef}
-        open={restoreDialogOpen || undefined}
-        aria-labelledby="restore-title"
-        onCancel={(event) => {
-          event.preventDefault()
-          if (!restorePendingRef.current) closeRestoreDialog()
+      <AccountRestoreDialog
+        dialogRef={dialogRef}
+        open={restoreDialogOpen}
+        restoring={restoring}
+        restorePendingRef={restorePendingRef}
+        preview={preview}
+        operationError={operationError}
+        restoreCancelRef={restoreCancelRef}
+        onClose={closeRestoreDialog}
+        onNativeClose={() => setRestoreDialogOpen(false)}
+        onPreviewChange={setPreview}
+        onConfirmRestore={() => {
+          if (!preview || restorePendingRef.current) return
+          restorePendingRef.current = true
+          const generation = inspectionGeneration.current
+          const beforeCommit = () => {
+            if (generation !== inspectionGeneration.current)
+              throw new Error('本次恢复已失效，请重新选择备份。')
+          }
+          setOperationError(null)
+          setRestoring(true)
+          void props
+            .onRestore(preview, beforeCommit)
+            .then(closeRestoreDialog)
+            .catch((error) => setOperationError(playerErrorMessage(error, '无法恢复这份备份。')))
+            .finally(() => {
+              restorePendingRef.current = false
+              setRestoring(false)
+            })
         }}
-        onClose={() => setRestoreDialogOpen(false)}
-      >
-        <form>
-          <header>
-            <div>
-              <small>恢复确认</small>
-              <h2 id="restore-title">用所选备份恢复账户？</h2>
-            </div>
-            <button
-              type="button"
-              className="icon-button"
-              aria-label="关闭"
-              disabled={restoring}
-              onClick={closeRestoreDialog}
-            >
-              ×
-            </button>
-          </header>
-          {preview && (
-            <AccountRestorePreview preview={preview} restoring={restoring} onChange={setPreview} />
-          )}
-          {operationError && preview ? <p role="alert">{operationError}</p> : null}
-          <footer>
-            <button
-              type="button"
-              className="quiet"
-              disabled={restoring}
-              onClick={closeRestoreDialog}
-            >
-              取消
-            </button>
-            <button
-              type="button"
-              className="danger"
-              disabled={restoring}
-              onClick={() => {
-                if (!preview || restorePendingRef.current) return
-                restorePendingRef.current = true
-                const generation = inspectionGeneration.current
-                const beforeCommit = () => {
-                  if (generation !== inspectionGeneration.current)
-                    throw new Error('本次恢复已失效，请重新选择备份。')
-                }
-                setOperationError(null)
-                setRestoring(true)
-                void props
-                  .onRestore(preview, beforeCommit)
-                  .then(closeRestoreDialog)
-                  .catch((error) =>
-                    setOperationError(
-                      error instanceof Error ? error.message : '无法恢复这份备份。',
-                    ),
-                  )
-                  .finally(() => {
-                    restorePendingRef.current = false
-                    setRestoring(false)
-                  })
-              }}
-            >
-              {restoring
-                ? '正在恢复…'
-                : preview?.identity === 'same_name_different_id'
-                  ? '作为独立账号恢复'
-                  : '恢复这份备份'}
-            </button>
-          </footer>
-        </form>
-      </dialog>
+      />
       <AccountDeleteDialog
         dialogRef={deleteDialogRef}
         open={deleteDialogOpen}
         deleting={deleting}
+        error={deleteError}
         deleteTarget={deleteTarget}
         onClose={closeDeleteDialog}
         onConfirmDelete={() => {
           if (!deleteTarget) return
+          setDeleteError(null)
           setDeleting(true)
           void props
             .onDeleteAccount(deleteTarget.id)
             .then((deleted) => {
               if (deleted) closeDeleteDialog()
+              else setDeleteError('删除失败，请重试。')
             })
+            .catch((error) =>
+              setDeleteError(playerErrorMessage(error, '删除失败，账户资料保持不变。')),
+            )
             .finally(() => setDeleting(false))
         }}
       />

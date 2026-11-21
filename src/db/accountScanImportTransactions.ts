@@ -266,11 +266,17 @@ export async function replaceReadyAccountScanStaging(
         throw new Error('稳定身份回接产生重复驱动盘 ID，事务未写入。')
 
       const replacementIds = new Set(replacementDiscs.map((disc) => disc.id))
+      // A complete scanner batch only attests the S inventory. Preserve other
+      // and unknown rarities unless an incoming entity was explicitly matched.
+      const retainedDiscs = existingDiscs.filter(
+        (disc) => disc.rarity !== 'S' && !replacementIds.has(disc.id),
+      )
       const replacedDiscs = existingDiscs
-        .filter((disc) => !replacementIds.has(disc.id))
+        .filter((disc) => disc.rarity === 'S' && !replacementIds.has(disc.id))
         .map((disc) => driveDiscSchema.parse(disc))
 
       await db.accountDriveDiscs.where('accountId').equals(accountId).delete()
+      await db.accountDriveDiscs.bulkAdd(retainedDiscs)
       await db.accountDriveDiscs.bulkAdd(
         replacementDiscs.map((disc) => ({
           ...disc,
@@ -306,7 +312,7 @@ export async function replaceReadyAccountScanStaging(
         ],
       })
       const finalCount = await db.accountDriveDiscs.where('accountId').equals(accountId).count()
-      if (finalCount !== manifest.expectedTotal)
+      if (finalCount !== manifest.expectedTotal + retainedDiscs.length)
         throw new Error('账号正式仓库数量校验失败，事务已回滚。')
       await saveScannerImportRecovery(accountId, batchId, 'replace', beforeFacts, importedAt, db)
       beforeCommit?.()

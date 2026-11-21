@@ -24,6 +24,7 @@ import {
 } from './currentPlanningDamageModifiers'
 import { knownInactivePlanningEffect32 } from './planningKnownInactiveEffects32'
 import { isReviewedTemplateMechanicEffect32 } from './reviewedTemplateMechanicEffects32'
+import { isPersonalSourceSelfShare32 } from './personalSourceSelfShare32'
 
 type EffectResult = Extract<
   ReturnType<typeof evaluateCurrentPlanningEffectEntries32>,
@@ -175,11 +176,13 @@ export function compileCurrentPlanningSelfEffects32(input: {
       input.member.agentId === 'agent-lucy' &&
       ['agent-lucy:exSpecial_atk', 'agent-lucy:m4_crit_dmg_'].includes(entry.effectKey) &&
       metadata.receiverPath?.startsWith('teamBuff.')
+    const reviewedSelfShare = isPersonalSourceSelfShare32(entry)
     if (metadata.receiverPath?.includes('.initial.')) continue
     if (
       (!metadata.receiverPath?.startsWith('ownBuff.') &&
         !koledaSelfReceivingTeamBuff &&
         !lucySelfReceivingTeamBuff &&
+        !reviewedSelfShare &&
         !roxyPreparedEnemyEffect) ||
       (entry.numericExpression.sourceStatus !== 'upstream_expression_available' &&
         !isReviewedTemplateMechanicEffect32(entry))
@@ -225,7 +228,9 @@ export function compileCurrentPlanningSelfEffects32(input: {
       continue
     }
     // Formula receiver is calculation targeting; references to team counts are not recipients.
-    entries.push({ ...entry, targetKinds: ['self'] })
+    // Preserve the reviewed blueprint identity: a one-member runtime naturally
+    // resolves its team receiver to that member, without altering its source IR.
+    entries.push(reviewedSelfShare ? entry : { ...entry, targetKinds: ['self'] })
   }
   const result = evaluateCurrentPlanningEffectEntries32(
     {

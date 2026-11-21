@@ -1,12 +1,14 @@
 import { ExplanationPopover } from '../components/ExplanationPopover'
 import { EffectDescription } from '../components/EffectDescription'
 import type { BangbooConditionPresentation } from '../application/publicBangbooConditionPresentation'
+import { formatBangbooCardDisplay } from './teamBangbooPresentation'
 
 export function BangbooConditionDetailsView({
   condition,
 }: {
   condition: BangbooConditionPresentation
 }) {
+  const purpose = formatBangbooCardDisplay({ recommendationReason: condition.purposeSummary }).fullReason
   return (
     <div className="team-execution__bangboo-conditions" aria-live="polite">
       <div className="team-execution__bangboo-status-row">
@@ -24,11 +26,11 @@ export function BangbooConditionDetailsView({
           align="start"
           className="team-execution__bangboo-details"
         >
-          {condition.purposeSummary ? (
+          {purpose ? (
             <section>
               <h4>队伍用途</h4>
               <p>
-                <EffectDescription text={condition.purposeSummary} />
+                <EffectDescription text={purpose} />
               </p>
             </section>
           ) : null}

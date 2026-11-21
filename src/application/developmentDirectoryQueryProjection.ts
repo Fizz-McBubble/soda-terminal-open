@@ -1,12 +1,5 @@
-import {
-  getCurrentBuildProfile,
-  getBuildRecommendation,
-  getSelectedBuildBranchId,
-} from '../assault/currentBuildProfiles'
-import { getProjectedBuildKnowledgeProfile } from '../gameDataPacks/agentProfile'
-import { getCandidateWarehouseConstraint } from '../gameDataPacks/candidateWarehouseConstraints'
-import { agentDevelopmentSkillRecommendations } from '../pages/agentDevelopmentSkillRecommendations'
-import { projectAgentDecision } from './accountDecisionProjections'
+import { projectDevelopmentDirectorySourceTargets } from './developmentDirectorySourceTargets'
+import { projectAgentDecisionSummary } from './accountDecisionProjections'
 import { accountDecisionNextAction, type AccountDecisionWorld } from './accountDecisionWorldModel'
 import type { AccountDecisionRun } from './calculationQueryContract'
 import type { DevelopmentDirectoryProjection } from './publicDevelopmentDirectoryContract'
@@ -50,30 +43,11 @@ export function projectDevelopmentDirectoryQuery(
       .filter((record) => record.owned && eligibleIds.has(record.agentId))
       .map((record) => {
         const agentId = record.agentId
-        const projection = projectAgentDecision(current, agentId)
-        const profile = getProjectedBuildKnowledgeProfile(agentId)
-        const currentBuildProfile = getCurrentBuildProfile(agentId)
-        const recommendation = currentBuildProfile
-          ? getBuildRecommendation(
-              currentBuildProfile,
-              getSelectedBuildBranchId(record) ?? currentBuildProfile.defaultBranchId,
-            )
-          : null
-        const guidance = agentDevelopmentSkillRecommendations(
-          agentId,
-          profile.recommendation?.skillPriority ??
-            getCandidateWarehouseConstraint(agentId)?.progressionDirection ??
-            [],
-          recommendation?.skillPriority ?? [],
-          {
-            skillLevels: record.skillLevels,
-            mindscape: record.mindscape,
-          },
-        )
+        const projection = projectAgentDecisionSummary(current, agentId)
         return {
-          agentId,
+          ...projectDevelopmentDirectorySourceTargets(record),
           current: { status: projection.status, summary: projection.summary },
-          staleSummary: projectAgentDecision(stale, agentId).summary,
+          staleSummary: projectAgentDecisionSummary(stale, agentId).summary,
           authority: projection.authorityRecommendation
             ? {
                 teamRating: projection.authorityRecommendation.teamRating,
@@ -81,31 +55,6 @@ export function projectDevelopmentDirectoryQuery(
                 confidence: projection.authorityRecommendation.confidence,
               }
             : null,
-          skills: guidance.skills.map(
-            ({
-              key,
-              label,
-              targetLevel,
-              recommended,
-              targetType,
-              exactTarget,
-              minimumReference,
-              sodaDerived,
-              priority,
-              nextLevel,
-            }) => ({
-              key,
-              label,
-              targetLevel,
-              recommended,
-              targetType,
-              exactTarget,
-              minimumReference,
-              sodaDerived,
-              priority,
-              nextLevel: nextLevel ?? null,
-            }),
-          ),
         }
       }),
   }

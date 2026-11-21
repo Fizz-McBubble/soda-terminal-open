@@ -27,18 +27,36 @@ export function warehouseObjectCodec(input: readonly unknown[]) {
     indexes.set(key, shapes.length)
     shapes.push(keys)
   }
-  const encode = (value: unknown): unknown => {
-    if (Array.isArray(value)) return value.map(encode)
-    if (!value || typeof value !== 'object') return value
-    const entries = Object.entries(value)
-    const index = entries.every(([, child]) => child !== undefined)
-      ? indexes.get(JSON.stringify(entries.map(([name]) => name)))
-      : undefined
-    return index === undefined
-      ? Object.fromEntries(entries.map(([name, child]) => [name, encode(child)]))
-      : { [marker]: [index, entries.map(([, child]) => encode(child))] }
+  // Reuse repeated references within one encode pass only. A later call gets
+  // a fresh cache, and restores continue to reconstruct independent values.
+  const createEncoder = () => {
+    const encoded = new WeakMap<object, unknown>()
+    const encode = (value: unknown): unknown => {
+      if (!value || typeof value !== 'object') return value
+      if (encoded.has(value)) return encoded.get(value)
+      if (Array.isArray(value)) {
+        const result = value.map(encode)
+        encoded.set(value, result)
+        return result
+      }
+      const entries = Object.entries(value)
+      const index = entries.every(([, child]) => child !== undefined)
+        ? indexes.get(JSON.stringify(entries.map(([name]) => name)))
+        : undefined
+      const result =
+        index === undefined
+          ? Object.fromEntries(entries.map(([name, child]) => [name, encode(child)]))
+          : { [marker]: [index, entries.map(([, child]) => encode(child))] }
+      encoded.set(value, result)
+      return result
+    }
+    return encode
   }
-  return { shapes, encode }
+  return {
+    shapes,
+    encode: (value: unknown) => createEncoder()(value),
+    encodeAll: (values: readonly unknown[]) => values.map(createEncoder()),
+  }
 }
 
 export function restoreWarehouseObjects(value: unknown, shapes: readonly string[][]): unknown {

@@ -2,7 +2,7 @@
   display: grid;
   grid-template-columns: 52px minmax(0, 1fr) 76px;
   align-items: end;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
 }
 
@@ -13,13 +13,13 @@
 
 .team-execution__header-engine {
   margin-left: auto;
-  flex: 0 1 330px;
-  min-width: 270px;
+  flex: 0 1 340px;
+  min-width: 290px;
 }
 
 .team-execution__scheme-control--wengine {
-  grid-template-columns: 38px minmax(0, 1fr) 68px;
-  align-items: center;
+  grid-template-columns: 40px minmax(0, 1fr) 74px;
+  align-items: end;
 }
 
 .team-execution__scheme-control--static {
@@ -92,7 +92,8 @@
 
 .team-execution__scheme-control label {
   display: grid;
-  gap: 3px;
+  align-content: end;
+  gap: 4px;
   min-width: 0;
 }
 
@@ -100,7 +101,24 @@
 .team-execution__scheme-source-note {
   color: var(--soda-text-2);
   font-size: 0.75rem;
-  line-height: 1.2;
+  line-height: 1.25;
+}
+
+.team-execution__scheme-control .f5v-select-menu,
+.team-execution__scheme-control .f5v-select-menu.select-menu {
+  width: 100%;
+}
+
+.team-execution__scheme-control .f5v-select-menu.select-menu > .filter-select__trigger {
+  min-height: 34px;
+  padding: 5px 9px;
+  font-size: 0.75rem;
+}
+
+.team-execution__scheme-control .f5v-select-menu .filter-select__option-copy > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .team-execution__scheme-image {
@@ -199,22 +217,43 @@
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 4px 12px;
+  gap: 6px 12px;
 }
 .team-execution .team-execution__heading-meta .team-execution__loadout-summary,
 .team-execution .team-execution__heading-meta .team-execution__summary-followup {
   display: contents;
 }
-.team-execution__heading-meta .team-execution__scheme-degrade {
-  font-size: inherit;
+.team-execution__scheme-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  margin: 0;
+  padding: 6px 9px;
+  border-left: 2px solid color-mix(in srgb, #a26a31 58%, var(--soda-line));
+  border-radius: 0 var(--soda-radius-tag) var(--soda-radius-tag) 0;
+  color: var(--soda-text-2);
+  background: color-mix(in srgb, #a26a31 5%, #fff);
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.team-execution__scheme-note strong {
+  flex: none;
+  color: #7c532b;
+  font-weight: 720;
+}
+
+.team-execution__scheme-note span {
+  min-width: 0;
 }
 
 @media (min-width: 1321px) {
   .team-execution__member-workspace > .team-execution__loadout-heading {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 300px max-content;
+    grid-template-columns: minmax(0, 1fr) 320px max-content;
     align-items: center;
-    gap: 4px 12px;
+    gap: 8px 14px;
   }
   .team-execution__member-workspace > .team-execution__loadout-heading > div:first-child {
     display: contents;

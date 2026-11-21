@@ -188,9 +188,21 @@ export function compileCurrentPlanningBaselineResourceContracts(
   remielleRadiance32?: unknown,
   resourceTimelineDeclaration32?: unknown,
   sourceActionUsages32?: readonly PlanningEventUsage[],
+  baselineDurationSeconds: number = currentNormalizedPlanningBaseline.declaredDurationSeconds,
 ) {
   if (memberIds.some((agentId) => !observationByAgentId.has(agentId)))
     return { status: 'unsupported' as const, blockers: ['resource_baseline_member_unknown'] }
+  // Bind to the caller's selected baseline, never infer the window from the
+  // resource declaration. Only finite slices of the existing baseline are supported.
+  if (
+    !Number.isFinite(baselineDurationSeconds) ||
+    baselineDurationSeconds <= 0 ||
+    baselineDurationSeconds > currentNormalizedPlanningBaseline.declaredDurationSeconds
+  )
+    return {
+      status: 'unsupported' as const,
+      blockers: ['resource_baseline_duration_invalid'],
+    }
   const resourceTimeline =
     resourceTimelineDeclaration32 === undefined
       ? undefined
@@ -198,8 +210,7 @@ export function compileCurrentPlanningBaselineResourceContracts(
   if (
     resourceTimeline &&
     (resourceTimeline.status !== 'declared_resource_production' ||
-      resourceTimeline.declaration.durationSeconds !==
-        currentNormalizedPlanningBaseline.declaredDurationSeconds ||
+      resourceTimeline.declaration.durationSeconds !== baselineDurationSeconds ||
       stableContentHash(resourceTimeline.declaration.memberAgentIds) !==
         stableContentHash(memberIds))
   )
@@ -228,8 +239,7 @@ export function compileCurrentPlanningBaselineResourceContracts(
     declaredRadiance &&
     (declaredRadiance.status === 'unsupported' ||
       !memberIds.includes('agent-remielle') ||
-      declaredRadiance.durationSeconds !==
-        currentNormalizedPlanningBaseline.declaredDurationSeconds)
+      declaredRadiance.durationSeconds !== baselineDurationSeconds)
   )
     return {
       status: 'unsupported' as const,
@@ -405,6 +415,9 @@ export function compileCurrentPlanningBaselineResourceContracts(
         sourceCompilation: compilation,
         resourceObservationHash: stableContentHash({
           memberIds,
+          ...(baselineDurationSeconds !== currentNormalizedPlanningBaseline.declaredDurationSeconds
+            ? { baselineDurationSeconds }
+            : {}),
           contracts,
           resourceStateAudit,
           selectedActionResourceProduction32: selectedActionResourceProduction32.map(

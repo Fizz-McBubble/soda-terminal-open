@@ -2,8 +2,11 @@ import { getProjectedBuildKnowledgeProfile } from '../gameDataPacks/agentProfile
 import { getCandidateWarehouseConstraint } from '../gameDataPacks/candidateWarehouseConstraints'
 
 /** Private Query side: freeze reviewed directions with the captured candidate solve. */
-export function projectDevelopmentCandidatePresentation(agentId: string) {
-  const constraint = getCandidateWarehouseConstraint(agentId)
+export function projectDevelopmentCandidatePresentation(
+  agentId: string,
+  selectedConstraint?: ReturnType<typeof getCandidateWarehouseConstraint>,
+) {
+  const constraint = selectedConstraint ?? getCandidateWarehouseConstraint(agentId)
   const profile = getProjectedBuildKnowledgeProfile(agentId)
   return {
     contract: 'soda-development-candidate-presentation/v1' as const,

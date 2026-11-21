@@ -54,6 +54,8 @@ export type PlanningEventUsage = {
   eventId: string
   skillLevel: number
   occurrenceCount: number
+  /** Zero-based damaging contact of one Rina cleanup command. */
+  cleanupContact?: { animation: number; index: number }
   /** Total seconds for a source coefficient explicitly measured per second. */
   durationSeconds?: number
   evidenceRefs: string[]
@@ -199,6 +201,8 @@ export function compilePlanningCalculationContext(
     if (!input.memberIds.includes(usage.ownerAgentId))
       blockers.push(`事件 owner 不属于计算队伍：${usage.ownerAgentId}`)
     if (!event) blockers.push(`固定事件不存在：${usage.ownerAgentId}:${usage.eventId}`)
+    if (event?.formulaBinding?.formalEligible === false)
+      blockers.push(`事件尚未完成 Formal 合同：${usage.ownerAgentId}:${usage.eventId}`)
     const resolved = resolveCurrentAgentEvent({
       stableId: usage.ownerAgentId,
       eventId: usage.eventId,

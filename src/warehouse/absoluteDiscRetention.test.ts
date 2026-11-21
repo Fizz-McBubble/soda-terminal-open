@@ -6,7 +6,7 @@ import {
   absoluteDiscRetentionPolicy,
 } from './absoluteDiscRetentionCatalog'
 import { assessDisc, twoPieceApplicability } from './absoluteDiscRetentionKernel'
-import { profileValid } from './absoluteDiscRetentionScoring'
+import { history, profileValid } from './absoluteDiscRetentionScoring'
 import { analyzeAccountWarehouse } from './discWarehouseAnalysis'
 import { warehouseClearAlternative, warehouseTestDisc } from './discWarehouseAnalysis.testFixtures'
 
@@ -191,11 +191,53 @@ describe('production absolute-retention adapter', () => {
         { stat: 'pen', value: 18, upgrades: 1 },
       ],
     }
+    // Phoenix's 3.3 source recommends Freedom or Chaos four-piece with
+    // Phaethon's Melody two-piece. The same ATK effect on 34100 is useful for
+    // quality scoring, but does not make 34100 a recommended set identity.
     const assessed = assessDisc(disc, absoluteDiscRetentionCatalog, absoluteDiscRetentionPolicy)
     expect(assessed.qualityDisposition).toBe('cleanup_candidate')
-    expect(assessed.evidence.some((row) => row.twoPieceFit === 'valid')).toBe(true)
-    expect(assessed.evidence.every((row) => row.possibleFinalScore.upper < 48)).toBe(true)
-    const excluded = assessDisc(disc, absoluteDiscRetentionCatalog, {
+    expect(assessed.reasonKind).toBe('proven_low_ceiling')
+    expect(assessed.sourceCoverage).toBe('complete')
+    expect(assessed.blockedBy).toEqual([])
+    const phoenixUses = assessed.evidence.filter((row) => row.agentId === 'agent-phoenix')
+    expect(phoenixUses).toHaveLength(2)
+    expect(phoenixUses.map((row) => row.branchSetPlan?.primarySetIds)).toEqual([
+      ['set-freedom-blues'],
+      ['set-chaos-jazz'],
+    ])
+    expect(
+      phoenixUses.every((row) =>
+        row.branchSetPlan?.secondarySetIds.includes('set-phaethons-melody'),
+      ),
+    ).toBe(true)
+    expect(phoenixUses.every((row) => row.twoPieceFit === 'valid')).toBe(true)
+    expect(phoenixUses.every((row) => row.recommendationSetFit === 'incompatible')).toBe(true)
+    expect(phoenixUses.every((row) => row.useState === 'incompatible')).toBe(true)
+    expect(
+      phoenixUses.some(
+        (row) => (row.weightEvidence?.method ?? '') === 'goal_bound_standard_roll_quality_proxy',
+      ),
+    ).toBe(true)
+    expect(
+      phoenixUses.some((row) =>
+        row.sourceIds.some((sourceId) =>
+          sourceId.startsWith('reviewed-phoenix-build-guidance-3.3-r1:'),
+        ),
+      ),
+    ).toBe(true)
+    // Preserve the independent rarity boundary on another supported two-piece.
+    const calibratedDisc = { ...disc, setId: 'set-polar-metal' }
+    const elementalAssessment = assessDisc(
+      calibratedDisc,
+      absoluteDiscRetentionCatalog,
+      absoluteDiscRetentionPolicy,
+    )
+    expect(elementalAssessment.qualityDisposition).toBe('cleanup_candidate')
+    expect(elementalAssessment.evidence.some((row) => row.twoPieceFit === 'valid')).toBe(true)
+    expect(elementalAssessment.evidence.every((row) => row.possibleFinalScore.upper < 48)).toBe(
+      true,
+    )
+    const excluded = assessDisc(calibratedDisc, absoluteDiscRetentionCatalog, {
       ...absoluteDiscRetentionPolicy,
       calibratedRarities: ['A'],
     })
@@ -236,27 +278,25 @@ describe('production absolute-retention adapter', () => {
     ['B', 0, [0.8]],
     ['B', 3, [0.8, 1.6]],
   ] as const)(
-    'validates %s level %s growth rules independently of the approved rarity cleanup rule',
+    'preserves the historical %s level %s growth rule without recommending it',
     (rarity, level, values) => {
       const stats = ['crit_rate', 'crit_dmg', 'atk_percent']
-      const assessment = assessDisc(
-        {
-          id: 'lower-rarity-growth',
-          setId: 'set-woodpecker-electro',
-          slot: 2,
-          mainStat: 'atk_flat',
-          rarity,
-          level,
-          subStats: values.map((value, index) => ({ stat: stats[index]!, value, upgrades: 0 })),
-        },
-        absoluteDiscRetentionCatalog,
-        { ...absoluteDiscRetentionPolicy, rarityCleanup: undefined },
-      )
+      const disc = {
+        id: 'lower-rarity-growth',
+        setId: 'set-woodpecker-electro',
+        slot: 2,
+        mainStat: 'atk_flat',
+        rarity,
+        level,
+        subStats: values.map((value, index) => ({ stat: stats[index]!, value, upgrades: 0 })),
+      }
+      expect(() => history(disc, absoluteDiscRetentionCatalog.rules)).not.toThrow()
+      const assessment = assessDisc(disc, absoluteDiscRetentionCatalog, {
+        ...absoluteDiscRetentionPolicy,
+        rarityCleanup: undefined,
+      })
       expect(assessment.reasons).not.toContain('invalid_record')
-      expect(assessment.evidence.length).toBeGreaterThan(0)
-      expect(
-        assessment.evidence.every((row) => row.possibleFinalScore.upper >= row.currentScore),
-      ).toBe(true)
+      expect(assessment.evidence).toEqual([])
       expect(assessment.qualityDisposition).not.toBe('cleanup_candidate')
     },
   )
@@ -328,7 +368,39 @@ describe('production absolute-retention adapter', () => {
       expect(applicable.every((row) => row.possibleFinalScore.upper < 48)).toBe(true)
     } else {
       expect(assessment.qualityDisposition).toBe('review')
-      expect(assessment.reasonKind).toBe('conditional_use')
+      if (setId === 'set-phaethons-melody') {
+        // Phoenix's current source-bound ATK% use is valid, while Yanagi's
+        // functional main remains conditional. The conditional function keeps
+        // the result in review without misreporting Phoenix as missing data.
+        expect(assessment.reasonKind).toBe('conditional_use')
+        expect(assessment.blockedBy).toContainEqual(
+          expect.objectContaining({
+            agentId: 'agent-yanagi',
+            field: 'functionalTarget',
+            kind: 'conditional_use',
+          }),
+        )
+        expect(assessment.nextAction.kind).toBe('check_condition')
+        expect(assessment.evidence).toContainEqual(
+          expect.objectContaining({
+            agentId: 'agent-phoenix',
+            useState: 'valid',
+            weightEvidence: expect.objectContaining({
+              method: 'goal_bound_standard_roll_quality_proxy',
+            }),
+          }),
+        )
+        expect(assessment.evidence).toContainEqual(
+          expect.objectContaining({
+            agentId: 'agent-yanagi',
+            functionalMain: true,
+            functionalState: 'needs_build_context',
+            useState: 'conditional',
+          }),
+        )
+      } else {
+        expect(assessment.reasonKind).toBe('conditional_use')
+      }
       expect(assessment.blockedBy.some((row) => row.field === 'functionalTarget')).toBe(true)
     }
   })

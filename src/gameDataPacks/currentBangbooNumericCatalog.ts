@@ -3,7 +3,13 @@ import rawCatalog from './generated/current-bangboo-numeric-catalog.v1.json'
 import reviewedContinuity from './reviewedBangbooContinuity32.json'
 import { stableContentHash } from './types'
 
-const ascensionSchema = z.object({ hp: z.number(), attack: z.number(), defence: z.number() })
+const ascensionSchema = z.object({
+  hp: z.number(),
+  attack: z.number(),
+  defence: z.number(),
+  critRate: z.number().nonnegative(),
+  critDamage: z.number().nonnegative(),
+})
 const propertySchema = z.object({
   key: z.string().min(1),
   main: z.number(),
@@ -75,6 +81,21 @@ const catalogSchema = z.object({
     source: z.literal('https://static.nanoka.cc/zzz/3.1'),
     upstreamGenerator: z.string().min(1),
     boundary: z.string().min(1),
+    ascensionSupplement: z.object({
+      sourceVersions: z.tuple([z.literal('3.2'), z.literal('3.3')]),
+      boundary: z.string().min(1),
+      sources: z
+        .array(
+          z.object({
+            gameId: z.string().regex(/^\d+$/),
+            sourceVersion: z.enum(['3.2', '3.3']),
+            url: z.string().url(),
+            sha256: z.string().regex(/^[A-F0-9]{64}$/),
+            bytes: z.number().int().positive(),
+          }),
+        )
+        .length(82),
+    }),
     sourceReplay: z
       .object({
         schema: z.literal('soda-bangboo-source-replay/v1'),
@@ -120,20 +141,48 @@ export function validateBangbooContinuity32(raw: unknown, review: typeof reviewe
     review.sourceKind !== 'release' ||
     review.reviewedForVersion !== '3.2-phase-ii' ||
     review.pending !== 0 ||
+    review.historicalBaselineCatalogContentHash !==
+      '71ACF4A0754F975D27CAF88B74911F234ADAF93162495BB10BBA78946CED0A85' ||
     review.baselineCatalogContentHash !== catalog.contentHash ||
+    review.ascensionSupplementFingerprint !==
+      stableContentHash(catalog.generatedFrom.ascensionSupplement) ||
     review.releaseSource.commit !== '1277ebca4b8a7a6c3bcbaac6d5708dc9f4a55f23' ||
     !review.releaseSource.releaseLabel.includes('PRODWin3.2.0_') ||
     review.releaseSource.tableHashes.length !== 14 ||
     new Set(review.releaseSource.tableHashes.map((entry) => entry.path)).size !== 14 ||
     review.releaseSource.tableHashes.some((entry) => !/^[A-F0-9]{64}$/.test(entry.sha256)) ||
+    catalog.generatedFrom.ascensionSupplement.sources.some(
+      (source) =>
+        source.url !==
+        `https://static.nanoka.cc/zzz/${source.sourceVersion}/zh/bangboo/${source.gameId}.json`,
+    ) ||
+    new Set(
+      catalog.generatedFrom.ascensionSupplement.sources.map(
+        (source) => `${source.sourceVersion}:${source.gameId}`,
+      ),
+    ).size !== 82 ||
+    catalog.items.some(
+      (item) =>
+        !['3.2', '3.3'].every((version) =>
+          catalog.generatedFrom.ascensionSupplement.sources.some(
+            (source) => source.gameId === item.gameId && source.sourceVersion === version,
+          ),
+        ),
+    ) ||
     review.rows.length !== catalog.items.length ||
     new Set(review.rows.map((row) => row.stableId)).size !== catalog.items.length
   )
     return false
   return catalog.items.every((item) => {
     const row = review.rows.find((row) => row.stableId === item.stableId)
+    const historical = structuredClone(item)
+    for (const ascension of Object.values(historical.stats.ascensionByLevelCap)) {
+      delete (ascension as Partial<typeof ascension>).critRate
+      delete (ascension as Partial<typeof ascension>).critDamage
+    }
     return (
       row?.gameId === item.gameId &&
+      row.historicalItemFingerprint === stableContentHash(historical) &&
       row.itemFingerprint === stableContentHash(item) &&
       row.historicalSource.url === item.source.url &&
       row.historicalSource.sha256 === item.source.sha256 &&
@@ -176,7 +225,8 @@ export function projectCurrentBangbooStats(input: {
     !item ||
     !Number.isInteger(input.level) ||
     input.level < 1 ||
-    input.level > input.ascensionLevelCap
+    input.level > input.ascensionLevelCap ||
+    ![10, 20, 30, 40, 50, 60].includes(input.ascensionLevelCap)
   ) {
     return { status: 'unsupported' as const }
   }
@@ -199,8 +249,8 @@ export function projectCurrentBangbooStats(input: {
     ),
     breakStun: item.stats.breakStun,
     anomalyMastery: item.stats.anomalyMastery,
-    critRate: item.stats.critRate,
-    critDamage: item.stats.critDamage,
+    critRate: item.stats.critRate + ascension.critRate,
+    critDamage: item.stats.critDamage + ascension.critDamage,
     penetrationRatio: item.stats.penetrationRatio,
   }
 }

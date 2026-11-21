@@ -123,8 +123,16 @@ export function twoPieceRecommendationPriority(
         modifierValueForStat(primarySetId, 'atk_')
       : undefined
   const softReferences: Record<string, { target: number; after: string; name: string }> = {
-    'agent-remielle': { target: 4000, after: 'anomProf', name: '异常精通' },
     'agent-sunna': { target: 3500, after: 'enerRegen_', name: '回能' },
+  }
+  // Remielle's observed target belongs to one signature / Feathered Fate 4 +
+  // Freedom Blues 2 recipe. It cannot rank every ATK/AP secondary combination.
+  // Keep that reference in the source-bound target panel, and compare the
+  // secondary effects here without an invented universal ATK switch point.
+  if (id === 'agent-remielle' && (stat === 'atk_' || stat === 'anomProf')) {
+    const projected = projectedAttack === undefined ? '' : `换套后攻击约 ${projectedAttack.toFixed(0)}；`
+    const label = stat === 'atk_' ? '补攻击' : '补异常精通'
+    return result(0, label, `${projected}${label}，按完整面板和副词条取舍。`)
   }
   if (id === 'agent-ju-fufu' && primarySetId === 'set-king-of-the-summit') {
     if (stat === 'impact_')

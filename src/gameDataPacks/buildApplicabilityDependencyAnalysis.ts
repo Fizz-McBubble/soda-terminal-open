@@ -1,3 +1,11 @@
+import type {
+  BuildApplicabilityIdentity,
+  BuildApplicabilityStatus,
+} from './buildApplicabilityIdentity'
+export type {
+  BuildApplicabilityIdentity,
+  BuildApplicabilityStatus,
+} from './buildApplicabilityIdentity'
 import { agentCatalog } from '../assault/catalogData'
 import { bwikiPageEvidence, type PlayerBuildSource } from './playerBuildSources'
 import { gameData32CatalogEntities } from './gameData32CatalogEntities'
@@ -590,36 +598,6 @@ export function resolveBuildFieldApplicability(
 // Shared Applicability Identity Interface for Owner Consumers
 // ---------------------------------------------------------------------------
 
-export type BuildApplicabilityStatus =
-  | 'continuous'
-  | 'affected_pending'
-  | 'unreviewed_reference'
-  | 'missing'
-
-export type BuildApplicabilityIdentity = {
-  readonly agentId: string
-  readonly status: BuildApplicabilityStatus
-  readonly version: string
-  readonly source: {
-    readonly id: string | null
-    readonly sourceVersion: string | null
-    readonly originalSourceVersion: string | null
-    readonly checkedAt: string | null
-  }
-  readonly authorReview: {
-    readonly isExplicitAuthorReview: boolean
-    readonly authorReviewedVersion: string | null
-  }
-  readonly localAdoptionReviewId: string | null
-  readonly dependencyFingerprint: string
-  /**
-   * Historical continuity alone does not prove current guidance review.
-   */
-  readonly isCurrentGuidanceComplete: boolean
-  readonly affectedFieldPaths: readonly string[]
-  readonly applicabilityReasons: readonly string[]
-}
-
 /**
  * Lightweight, pure-function applicability identity interface for candidateWarehouseConstraints,
  * BuildIntent, and loadout cache records.
@@ -693,6 +671,7 @@ export function getBuildApplicabilityIdentity(
 
   const dependencyFingerprint = stableContentHash({
     agentId,
+    fieldPath: options?.fieldPath ?? null,
     targetVersion,
     contextTargetVersion: ctx.targetVersion,
     status,
@@ -725,6 +704,7 @@ export function getBuildApplicabilityIdentity(
 
   return {
     agentId,
+    ...(options?.fieldPath ? { fieldPath: options.fieldPath } : {}),
     status,
     version: targetVersion,
     source: {

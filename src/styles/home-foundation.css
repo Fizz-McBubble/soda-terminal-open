@@ -119,7 +119,7 @@
 
 .home-mission h1 {
   color: #efffff;
-  font-size: clamp(34px, 4vw, 54px);
+  font-size: clamp(34px, calc(4 * var(--soda-type-vw, 1vw)), 54px);
   line-height: 1;
   letter-spacing: -0.04em;
 }

@@ -26,12 +26,41 @@ export function savedTeamReplayPlanHash(plan: AccountPlanningDraft) {
             agentId: engine.agentId,
             engineId: engine.engineId,
             refinement: engine.refinement,
+            ...(engine.level === undefined ? {} : { level: engine.level }),
+            ...(engine.ascension === undefined ? {} : { ascension: engine.ascension }),
           })),
+          potentialByAgentId: plan.teamEquipmentParameters.potentialByAgentId,
+          koledaFixedEventConditions32: plan.teamEquipmentParameters.koledaFixedEventConditions32,
+          luminizeComparison32: plan.teamEquipmentParameters.luminizeComparison32,
+          resourceTimelineDeclaration32: plan.teamEquipmentParameters.resourceTimelineDeclaration32,
           bangbooId: plan.teamEquipmentParameters.bangbooId,
           bangbooStars: plan.teamEquipmentParameters.bangbooStars,
           source: plan.teamEquipmentParameters.source,
         }
       : null,
+    discAssignment: {
+      warehouseRefs: [...plan.warehouseRefs].sort(),
+      executionIdentity: plan.teamExecutionSnapshot
+        ? {
+            candidateId: plan.teamExecutionSnapshot.candidateId,
+            memberIds: plan.teamExecutionSnapshot.memberIds,
+            bangbooId: plan.teamExecutionSnapshot.bangbooId,
+            bangbooStar: plan.teamExecutionSnapshot.bangbooStar,
+            deploymentOrder: plan.teamExecutionSnapshot.deploymentOrder,
+          }
+        : null,
+      loadouts: plan.candidateWarehouse?.loadouts
+        .map(({ agentId, discIds }) => ({ agentId, discIds: [...discIds].sort() }))
+        .sort((left, right) => left.agentId.localeCompare(right.agentId)),
+      execution: plan.teamExecutionSnapshot?.members
+        .map(({ agentId, suggested, cultivation }) => ({
+          agentId,
+          discIds: [...suggested.discIds].sort(),
+          ...(cultivation ? { cultivation } : {}),
+        }))
+        .sort((left, right) => left.agentId.localeCompare(right.agentId)),
+      physicalDiscIds: plan.teamExecutionSnapshot?.physicalDiscIds?.toSorted(),
+    },
     solutionContext: plan.solutionContext
       ? {
           contract: plan.solutionContext.contract,

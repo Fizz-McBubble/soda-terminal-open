@@ -44,6 +44,37 @@ export type ReviewedTeamDeploymentEvidence = {
   sources: readonly ReviewedTeamDeploymentSource[]
 }
 
+const astraMiyabiNangongOrder = ['agent-astra', 'agent-miyabi', 'agent-nangong'] as const
+// The two adopted 3.3 operations both open with Cadenza. The guide establishes
+// the shared neighbor order, including Nangong's conditional reverse assist.
+const reviewedExactOpening: ReviewedTeamDeploymentEvidence = {
+  memberIds: astraMiyabiNangongOrder,
+  rules: [
+    {
+      kind: 'cyclic_order',
+      orderedMemberIds: astraMiyabiNangongOrder,
+      strength: 'preferred',
+      basis: 'retained',
+    },
+    {
+      kind: 'starter',
+      agentId: 'agent-astra',
+      strength: 'preferred',
+      basis: 'retained',
+    },
+  ],
+  sources: [
+    {
+      sourceId: 'taptap-790007274545348805-team-deployment',
+      gameVersion: '2.7',
+      url: 'https://www.taptap.cn/moment/790007274545348805',
+      locator: '非失衡期；失衡期；站位与操作要点',
+      excerpt: '耀嘉音先开咏叹华彩，星见雅在第二位接南宫羽满足条件时的反向快速支援。',
+      applicability: 'historical_reuse',
+    },
+  ],
+}
+
 type RawDirectionRecord = {
   claimId: string
   memberIds: readonly string[]
@@ -361,6 +392,17 @@ export function currentReviewedTeamDeploymentEvidence(): ReviewedTeamDeploymentE
       entry.sources.push(sourceFor(record, excerpt))
       byMembers.set(key, entry)
     }
+  }
+  if (currentVersionProjection.gameVersion === '3.3') {
+    const reviewedKey = memberKey(reviewedExactOpening.memberIds)
+    const reviewedEntry = byMembers.get(reviewedKey) ?? {
+      memberIds: [...reviewedExactOpening.memberIds] as [string, string, string],
+      rules: [],
+      sources: [],
+    }
+    reviewedEntry.rules.push(...reviewedExactOpening.rules)
+    reviewedEntry.sources.push(...reviewedExactOpening.sources)
+    byMembers.set(reviewedKey, reviewedEntry)
   }
   return [...byMembers.values()]
     .map((entry) => ({

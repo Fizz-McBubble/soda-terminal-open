@@ -1,5 +1,9 @@
 import type { GoldenWorkbenchData } from '../features/agentDevelopmentGolden'
 import { staticPanelTargetDisplay } from '../gameDataPacks/targetPanelSemantics'
+import {
+  applyRecordedDevelopmentMetrics,
+  type DevelopmentDiscScore,
+} from '../application/publicDevelopmentDiscScore'
 
 type Source = { label: string; kind: 'official_fact' | 'community_candidate'; updatedAt: string }
 type ConstraintSource = { id: string; sourceVersion: string | null }
@@ -23,7 +27,7 @@ export function createAgentDevelopmentDecisionGuide(input: {
 }): GoldenWorkbenchData['decisionGuide'] {
   const coverage = [
     ...(input.skillPriority.length || input.skillTargetCount ? ['技能'] : []),
-    ...(input.engines.some((engine) => engine.name !== '音擎方向资料待补齐') ? ['音擎'] : []),
+    ...(input.engines.length ? ['音擎'] : []),
     ...(input.discSets.length ? ['驱动盘'] : []),
     ...(input.teamCount ? ['配队'] : []),
     ...(input.panelCount ? ['毕业面板'] : []),
@@ -36,9 +40,7 @@ export function createAgentDevelopmentDecisionGuide(input: {
             : '技能升级建议尚未接入。',
         ]
       : []),
-    ...(input.engines.some((engine) => engine.name === '音擎方向资料待补齐')
-      ? ['音擎建议资料不足。']
-      : []),
+    ...(!input.engines.length ? ['音擎建议资料不足。'] : []),
     ...(!input.discSets.length ? ['驱动盘套装建议资料不足。'] : []),
     ...(!input.teamCount ? ['配队建议资料不足。'] : []),
     ...(!input.panelCount ? ['毕业推荐尚未接入。'] : []),
@@ -47,7 +49,7 @@ export function createAgentDevelopmentDecisionGuide(input: {
   const evidence = [
     ...input.sources.map((source) => ({
       label: source.label,
-      detail: `${source.kind === 'official_fact' ? '游戏资料' : '攻略资料'} · ${source.updatedAt.slice(0, 10)}`,
+      detail: `${source.kind === 'official_fact' ? '游戏资料' : '补充方向'} · ${source.updatedAt.slice(0, 10)}`,
     })),
     ...input.constraintSources.map((source) => ({
       label: source.id,
@@ -59,13 +61,11 @@ export function createAgentDevelopmentDecisionGuide(input: {
   const recommendation = coverage.length
     ? [
         input.skillPriority.length
-          ? `优先升级${input.skillPriority.join('、')}`
+          ? `优先培养方向：${input.skillPriority.join('、')}`
           : input.skillTargetCount
             ? '按技能栏的目标等级培养'
             : null,
-        input.engines[0]?.name && input.engines[0].name !== '音擎方向资料待补齐'
-          ? `音擎先看${input.engines[0]?.name}`
-          : null,
+        input.engines[0]?.name ? `音擎先看${input.engines[0]?.name}` : null,
         input.discSets[0]?.label ? `驱动盘先按${input.discSets[0].label}` : null,
       ]
         .filter(Boolean)
@@ -82,16 +82,23 @@ export function createAgentDevelopmentDecisionGuide(input: {
   }
 }
 
-export function createAgentDevelopmentWarehouseStatus(input: {
+type WarehouseStatusInput = {
   inventoryTransition?: boolean
   savedInventoryTransition?: boolean
   requested: boolean
   comparable: boolean
-  totalScore?: number
-  choices: Array<{ effectiveLines: number; effectiveRolls: number }>
+  evaluation?: DevelopmentDiscScore | null
   replacementCount?: number
   gap?: string
-}): GoldenWorkbenchData['warehouseAnalysis'] {
+}
+
+export function createAgentDevelopmentWarehouseStatus(input: WarehouseStatusInput) {
+  const status = warehouseStatus(input)
+  applyRecordedDevelopmentMetrics(status, input.evaluation)
+  return status
+}
+
+function warehouseStatus(input: WarehouseStatusInput): GoldenWorkbenchData['warehouseAnalysis'] {
   const transitionSummary = '副套待补齐'
   if (!input.requested)
     return {
@@ -107,15 +114,6 @@ export function createAgentDevelopmentWarehouseStatus(input: {
       ? transitionSummary
       : '已保留当前匹配结果；需要时可重新匹配。',
     ...(input.inventoryTransition ? { inventoryTransition: true } : {}),
-    totalScore:
-      typeof input.totalScore === 'number' && Number.isFinite(input.totalScore)
-        ? Math.round(input.totalScore * 10) / 10
-        : undefined,
-    effectiveLines: input.choices.reduce((total, choice) => total + choice.effectiveLines, 0),
-    effectiveEnhancements: input.choices.reduce(
-      (total, choice) => total + Math.max(0, choice.effectiveRolls - choice.effectiveLines),
-      0,
-    ),
     replacementCount: input.replacementCount,
   }
 }

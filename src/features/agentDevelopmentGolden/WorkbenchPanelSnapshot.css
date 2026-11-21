@@ -1,0 +1,293 @@
+/* One game-menu layout; outer workspaces and artwork retain their accepted rules. */
+.f5v-shell .workbench--single-page .current-overview__panel.panel-snapshot--menu {
+  grid-template-rows: var(--overview-heading-height) minmax(var(--overview-body-height), auto) auto;
+  row-gap: 8px;
+  align-content: start;
+  min-width: 0;
+}
+.f5v-shell .panel-snapshot--menu > .panel-snapshot__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 30px;
+  margin: 0;
+}
+.f5v-shell .panel-snapshot--menu > .panel-snapshot__heading h2 {
+  margin: 0;
+}
+.f5v-shell .panel-snapshot--menu .panel-snapshot__context {
+  color: var(--soda-text-3);
+  font-size: var(--soda-type-meta);
+}
+.f5v-shell .panel-snapshot--menu .panel-snapshot__body {
+  min-width: 0;
+}
+.f5v-shell .workbench--single-page .panel-snapshot--menu .stat-grid.panel-snapshot__main-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(5, 24px);
+  grid-auto-flow: row;
+  gap: 2px 20px;
+  margin: 0;
+}
+.f5v-shell
+  .workbench--single-page
+  .panel-snapshot--menu
+  .stat-grid.panel-snapshot__main-grid
+  > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  min-height: 0;
+  padding: 1px 5px;
+  border: 0;
+}
+.f5v-shell .panel-snapshot--menu .panel-snapshot__main-grid :is(dt, dd) {
+  margin: 0;
+  white-space: nowrap;
+  font-size: var(--soda-type-body);
+  line-height: 22px;
+}
+.f5v-shell .panel-snapshot--menu .panel-snapshot__main-grid dt {
+  color: var(--soda-text-2);
+}
+.f5v-shell .panel-snapshot--menu :is(.panel-snapshot__main-grid, .panel-snapshot__full-grid) dd {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.f5v-shell .panel-snapshot--menu .panel-snapshot__status-slot {
+  display: flex;
+  align-items: center;
+  min-height: 18px;
+  margin-top: 2px;
+  color: var(--soda-text-3);
+  font-size: var(--soda-type-body);
+  line-height: 18px;
+}
+.f5v-shell .panel-snapshot--menu .panel-snapshot__status-slot:empty {
+  display: none;
+}
+.f5v-shell
+  .panel-snapshot--menu
+  :is(.panel-snapshot__refresh-status, .panel-snapshot__unavailable) {
+  position: static;
+  display: block;
+  margin: 0;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+  font-weight: 400;
+  line-height: inherit;
+}
+.f5v-shell .panel-snapshot__complete > .explanation-popover[popover] {
+  width: min(32rem, calc(100vw - 24px));
+}
+.f5v-shell .panel-snapshot__complete .panel-snapshot__full-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2px 16px;
+  margin: 0;
+}
+.f5v-shell .panel-snapshot__complete .panel-snapshot__full-grid > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  min-height: 28px;
+  margin: 0;
+  padding: 2px 6px;
+}
+.f5v-shell .panel-snapshot__complete .panel-snapshot__full-grid :is(dt, dd) {
+  margin: 0;
+  font-size: var(--soda-type-body);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.f5v-shell .panel-snapshot__complete .panel-snapshot__full-grid dt {
+  color: var(--soda-text-2);
+  font-weight: 400;
+}
+.f5v-shell .panel-snapshot__complete .panel-snapshot__full-grid dd {
+  text-align: right;
+}
+.f5v-shell .panel-snapshot__full-grid > .focus {
+  border-radius: var(--soda-radius-tag);
+  background: var(--soda-surface-raised);
+}
+.f5v-shell .workbench--single-page .panel-snapshot--menu > .panel-graduation-targets {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: 0;
+  margin-top: 0;
+  padding-top: 8px;
+  border-top: 1px solid var(--soda-line);
+}
+.f5v-shell .panel-snapshot--menu .panel-graduation-targets__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 26px;
+  margin: 0;
+}
+.f5v-shell .panel-snapshot--menu .panel-graduation-targets__title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  min-width: 0;
+}
+.f5v-shell .panel-snapshot--menu .panel-graduation-targets__title h3 {
+  margin: 0;
+  color: var(--soda-text);
+  font-size: var(--soda-type-body);
+}
+.f5v-shell .panel-snapshot--menu .panel-graduation-targets__kind {
+  color: var(--soda-text-3);
+  font-size: var(--soda-type-meta);
+  white-space: nowrap;
+}
+.f5v-shell
+  .workbench--single-page
+  .panel-snapshot--menu
+  .panel-graduation-targets
+  > .panel-graduation-targets__items {
+  display: grid;
+  grid-area: auto;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 24px;
+  align-items: center;
+  gap: 4px 16px;
+  min-width: 0;
+}
+.f5v-shell
+  .workbench--single-page
+  .panel-snapshot--menu
+  .panel-graduation-targets__items
+  > .panel-graduation-targets__item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  white-space: nowrap;
+}
+.f5v-shell .panel-snapshot--menu .panel-graduation-targets__item :is(small, b) {
+  font-size: var(--soda-type-meta);
+  line-height: 22px;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  font-variant-numeric: tabular-nums;
+}
+.f5v-shell .panel-snapshot--menu .panel-graduation-targets__item > small {
+  color: var(--soda-text-2);
+}
+.f5v-shell .panel-snapshot--menu .panel-graduation-targets__direction {
+  grid-column: 1 / -1;
+  align-self: start;
+  color: var(--soda-text-2);
+  font-size: var(--soda-type-meta);
+  line-height: 22px;
+}
+.f5v-shell .explanation-popover .panel-graduation-targets__references {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 12px;
+}
+.f5v-shell .explanation-popover .panel-graduation-targets__references > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+.f5v-shell .explanation-popover .panel-graduation-targets__references > div + div {
+  margin-top: 0;
+}
+.f5v-shell .panel-graduation-targets__references dt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+}
+.f5v-shell .panel-graduation-targets__references dt small {
+  color: var(--soda-text-3);
+  font-size: var(--soda-type-meta);
+}
+.f5v-shell .explanation-popover .panel-graduation-targets__references dd {
+  margin: 0;
+  text-align: right;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.f5v-shell .explanation-popover .panel-graduation-targets__condition-list {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.f5v-shell .explanation-popover .panel-graduation-targets__condition-list > h3 {
+  display: none;
+}
+.f5v-shell .explanation-popover .panel-graduation-targets__reference-config {
+  margin: 0 0 12px;
+  color: var(--soda-text-3);
+}
+.f5v-shell
+  .explanation-popover
+  .panel-graduation-targets__references
+  + .panel-graduation-targets__condition-list {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--soda-line);
+}
+
+@media (max-width: 480px) {
+  .f5v-shell .panel-snapshot__complete .panel-snapshot__full-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.f5v-shell .panel-graduation-targets__comparison-context {
+  margin-bottom: 12px;
+}
+.f5v-shell .panel-graduation-targets__comparison-context h4 {
+  margin: 0 0 6px;
+}
+.f5v-shell .panel-graduation-targets__comparison-context p {
+  margin: 4px 0;
+}
+
+@container soda-viewport (max-width: 600px) {
+  .f5v-shell .workbench--single-page .panel-snapshot--menu .stat-grid.panel-snapshot__main-grid,
+  .f5v-shell
+    .workbench--single-page
+    .panel-snapshot--menu
+    .panel-graduation-targets
+    > .panel-graduation-targets__items {
+    column-gap: 10px;
+  }
+}
+.f5v-shell .explanation-popover .development-comparison-conditions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding-top: 12px;
+}
+.f5v-shell .explanation-popover .development-comparison-conditions > label {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.f5v-shell .explanation-popover .development-comparison-conditions > p,
+.f5v-shell .explanation-popover .development-comparison-conditions > button {
+  grid-column: 1 / -1;
+}
+.f5v-shell .explanation-popover .development-comparison-conditions input {
+  width: 100%;
+  min-width: 0;
+}

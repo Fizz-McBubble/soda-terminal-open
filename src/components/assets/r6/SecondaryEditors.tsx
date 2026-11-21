@@ -1,17 +1,20 @@
 import { VisualEntityImage } from '../../VisualEntityImage'
 import { CatalogReferencePanel } from './CatalogReference'
-import { getAgentSpecialtyLabel } from '../../../application/publicRosterNames'
+import { getAgentName, getAgentSpecialtyLabel } from '../../../application/publicRosterNames'
 import { Identity } from './EditorShared'
 import type { AssetGoldenProps, CatalogItem, DiscItem } from './types'
 
 export function WEngineEditor({ props, item }: { props: AssetGoldenProps; item: CatalogItem }) {
-  const users = props.roster.agents.filter((agent) => agent.wEngineDetails.id === item.stableId)
+  const users = props.roster.agents.filter(
+    (agent) =>
+      props.accountId !== 'no-account' && agent.owned && agent.wEngineDetails.id === item.stableId,
+  )
   return (
     <>
       {Identity(
         item,
         `${item.rarity ?? ''}级 · ${getAgentSpecialtyLabel(item.specialty)}`,
-        props.accountId === 'no-account' ? '图鉴预览' : '当前账户',
+        users.length ? '已使用' : '图鉴预览',
       )}
       <CatalogReferencePanel item={item} />
       {users.length > 0 && (
@@ -21,7 +24,7 @@ export function WEngineEditor({ props, item }: { props: AssetGoldenProps; item: 
             {users.map((agent) => {
               const name =
                 props.catalog.agents.find((entry) => entry.stableId === agent.agentId)
-                  ?.playerName ?? agent.agentId
+                  ?.playerName ?? getAgentName(agent.agentId)
               return (
                 <span key={agent.agentId} title={name} className="engine-user-avatar">
                   <VisualEntityImage
@@ -41,34 +44,28 @@ export function WEngineEditor({ props, item }: { props: AssetGoldenProps; item: 
   )
 }
 
-export function BangbooEditor({ props, item }: { props: AssetGoldenProps; item: CatalogItem }) {
+export function BangbooEditor({ item }: { props: AssetGoldenProps; item: CatalogItem }) {
   return (
-    <>
-      <div className="asset-editor-heading">
-        {Identity(
-          item,
-          `${item.rarity ?? ''}级邦布`,
-          props.accountId === 'no-account' ? '图鉴预览' : '方案参考',
-        )}
+    <div className="bangboo-editor">
+      <div className="bangboo-editor__content">
+        <div className="asset-editor-heading">
+          {Identity(item, `${item.rarity ?? ''}级邦布`, '图鉴预览')}
+        </div>
+        <CatalogReferencePanel item={item} additionalAbilityLevel={1} />
       </div>
-      <CatalogReferencePanel item={item} skillLevel={10} additionalAbilityLevel={1} />
-      <p>在队伍配装中选择邦布并确认星级。</p>
-      <button
-        type="button"
-        className="quiet"
-        onClick={() => props.onPrimaryNavigate('/loadouts/team')}
-      >
-        前往队伍配装
-      </button>
-    </>
+    </div>
   )
 }
 export function DiscEditor({ item }: { props: AssetGoldenProps; item: DiscItem }) {
   return (
     <>
       <div className="asset-editor-heading">
-        {Identity(item.set, `${item.slot}号位 · +${item.level}`)}
+        {Identity(
+          item.set,
+          `${item.rarity ? `${item.rarity}级` : '品质未确认'} · ${item.slot}号位 · +${item.level}`,
+        )}
       </div>
+      {item.rarity !== 'S' && <p>此盘记录已保留，不纳入配装和驱动盘分析。</p>}
       <CatalogReferencePanel item={item.set} />
       <section className="editor-section disc-editor-stats">
         <h3>词条</h3>

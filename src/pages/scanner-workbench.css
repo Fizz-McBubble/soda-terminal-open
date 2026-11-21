@@ -90,9 +90,8 @@
   align-items: center;
   justify-content: flex-start;
   gap: 12px 32px;
-  margin: 0 0 18px;
-  padding: 0 0 18px;
-  border-bottom: 1px solid var(--f5-line);
+  margin: 0 0 24px;
+  padding: 0;
 }
 
 .f5v-shell .scanner-workbench__account {

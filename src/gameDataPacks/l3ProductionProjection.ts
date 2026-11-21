@@ -9,12 +9,12 @@ import {
   l3AgentDevelopmentEvidencePackage,
   type L3AgentDevelopmentEvidenceFact,
   type L3MiyousheCandidateClaim,
-} from './generated/l3-b04c7cc7ac8ad6279074/agentDevelopmentEvidence'
+} from './generated/l3-457fce3ccb1869e6f9f9/agentDevelopmentEvidence'
 import {
   getL3NoncharacterMiyousheSidecarFacts,
   l3NoncharacterMiyousheSidecarPackage,
   type L3NoncharacterMiyousheSidecarFact,
-} from './generated/l3-b04c7cc7ac8ad6279074/noncharacterMiyousheSidecar'
+} from './generated/l3-457fce3ccb1869e6f9f9/noncharacterMiyousheSidecar'
 
 // Resolve all historical identities through the shared bridge, not one special-cased agent.
 // Keep individual records intact: matching identities does not resolve conflicting facts.

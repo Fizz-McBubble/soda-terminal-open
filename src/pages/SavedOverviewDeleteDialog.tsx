@@ -49,7 +49,7 @@ export function SavedOverviewDeleteDialog({
             } catch {
               pending.current = false
               setBusy(false)
-              setError('删除失败，方案仍保留，请重试。')
+              setError('删除失败，请重试。')
               return
             }
             try {

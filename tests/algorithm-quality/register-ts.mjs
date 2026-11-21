@@ -1,7 +1,15 @@
 import { registerHooks } from 'node:module'
 import { existsSync, readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
-// Extension resolution only: no source transformation, mocks or import replacements.
+import { assertCurrentPlanningConsumerPolicyIdentity } from '../../build/communityConsumerPolicySourceHashes.mjs'
+
+const root = fileURLToPath(new URL('../../', import.meta.url))
+const policyUrl = new URL(
+  '../../src/calculation/generated/currentPlanningConsumerPolicyIdentity32.v1.json',
+  import.meta.url,
+).href
+
+// Node reads the generated policy data through the same source check as the browser build.
 registerHooks({
   resolve(specifier, context, next) {
     if (specifier === '@soda/visual-asset-manifest')
@@ -21,7 +29,10 @@ registerHooks({
   },
   load(url, context, next) {
     if (url.endsWith('.json')) {
-      const value = JSON.parse(readFileSync(fileURLToPath(url), 'utf8'))
+      const value =
+        url === policyUrl
+          ? assertCurrentPlanningConsumerPolicyIdentity({ root })
+          : JSON.parse(readFileSync(fileURLToPath(url), 'utf8'))
       return {
         format: 'module',
         shortCircuit: true,

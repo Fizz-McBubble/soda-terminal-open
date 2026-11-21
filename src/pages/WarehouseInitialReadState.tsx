@@ -13,7 +13,7 @@ export function WarehouseInitialReadState({
       <h1>驱动盘分析</h1>
       <p>
         {decisionWorld.liveInput?.warehouse.accountId
-          ? `已读取 ${decisionWorld.liveInput.warehouse.discs.length} 张驱动盘，正在核对品质与用途。`
+          ? `已读取 ${decisionWorld.liveInput.warehouse.discs.filter((disc) => disc.rarity === 'S').length} 张 S 级驱动盘，正在核对品质与用途。其他品质记录会保留。`
           : '正在读取当前账户的驱动盘。'}
       </p>
       <WarehouseCalculationStatus

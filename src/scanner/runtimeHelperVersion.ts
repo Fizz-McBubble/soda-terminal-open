@@ -15,6 +15,19 @@ function compatibilityError(message: string) {
   return error
 }
 
+function isCompatibleScannerHelper(version: string) {
+  // Keep the established 2.3 recovery family; explicitly admit the reviewed
+  // decimal-carry successors without admitting unreviewed 2.4.x/2.5.x helpers.
+  return (
+    version === '2.4.0' ||
+    version === '2.4.1' ||
+    version === '2.4.2' ||
+    version === '2.4.3' ||
+    version === '2.4.4' ||
+    /^2\.3\.[1-9]\d*$/u.test(version)
+  )
+}
+
 /** Previous direct-fork helpers remain reachable for updates and result recovery. */
 export function verifyScannerHelperIdentity(value: unknown): string {
   const identity = value as Record<string, unknown> | null
@@ -23,7 +36,7 @@ export function verifyScannerHelperIdentity(value: unknown): string {
     identity.service !== 'soda-terminal-scanner-helper' ||
     typeof identity.version !== 'string' ||
     (identity.version !== scannerDistributionManifest.helper.version &&
-      !/^2\.3\.[1-9]\d*$/u.test(identity.version)) ||
+      !isCompatibleScannerHelper(identity.version)) ||
     identity.protocolVersion !== 5 ||
     identity.transport !== 'direct-fork-http' ||
     identity.accountWriteEnabled !== false ||
@@ -37,7 +50,7 @@ export function verifyScannerHelperIdentity(value: unknown): string {
 
 export function requireCurrentScannerHelper(version: string | null) {
   const comparison = compareToolVersion(version, scannerDistributionManifest.helper.version)
-  if (!version || !/^2\.3\.[1-9]\d*$/u.test(version) || comparison === null || comparison < 0)
+  if (!version || !isCompatibleScannerHelper(version) || comparison === null || comparison < 0)
     throw compatibilityError('请更新画面扫描后再扫描。')
 }
 

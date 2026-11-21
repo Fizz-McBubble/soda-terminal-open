@@ -1,84 +1,358 @@
 .f5v-shell .help-privacy {
-  width: min(100%, 1000px);
+  width: 100%;
   box-sizing: border-box;
-  margin: 0 auto;
-  padding: clamp(16px, 2vw, 28px);
+  margin: 0;
+  padding: clamp(16px, 2.4vw, 36px);
   color: var(--f5-ink);
 }
 .f5v-shell .help-privacy__header {
+  position: relative;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: 24px;
+  margin-bottom: 16px;
+  padding: clamp(20px, 3vw, 32px);
+  overflow: hidden;
+  border: 1px solid rgba(103, 90, 144, 0.16);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 92% 0%, rgba(103, 90, 144, 0.13), transparent 34%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(246, 243, 250, 0.78));
+}
+.f5v-shell .help-privacy__intro {
+  max-width: 720px;
 }
 .f5v-shell .help-privacy h1 {
   margin: 0 0 8px;
-  font-size: clamp(1.7rem, 2.4vw, 2.2rem);
-  line-height: 1.2;
+  font-size: clamp(1.8rem, calc(2.6 * var(--soda-type-vw, 1vw)), 2.45rem);
+  line-height: 1.12;
+  letter-spacing: -0.035em;
 }
 .f5v-shell .help-privacy__header p {
   margin: 0;
   color: var(--f5-muted);
+  font-size: clamp(0.9rem, calc(1.2 * var(--soda-type-vw, 1vw)), 1rem);
+  line-height: 1.65;
+  text-wrap: pretty;
 }
-.f5v-shell .help-privacy__sections section {
+.f5v-shell .help-privacy__back {
+  flex: 0 0 auto;
+}
+.f5v-shell .help-privacy__topics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+.f5v-shell .help-privacy__topics a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 11px;
+  border: 1px solid rgba(103, 90, 144, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.62);
+  color: var(--f5-primary, #675a90);
+  font-size: 0.8125rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+.f5v-shell .help-privacy__topics a:focus-visible {
+  outline: 2px solid var(--f5-primary, #675a90);
+  outline-offset: 4px;
+  border-radius: 3px;
+}
+.f5v-shell .help-privacy__sections {
   display: grid;
-  grid-template-columns: 160px minmax(0, 1fr);
-  gap: 24px;
-  padding: 20px 0;
-  border-top: 1px solid rgba(103, 90, 144, 0.18);
+  gap: 14px;
+}
+.f5v-shell .help-privacy__sections > .help-privacy__section {
+  display: grid;
+  grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+  gap: clamp(22px, 3vw, 38px);
+  padding: clamp(20px, 3vw, 28px);
+  border: 1px solid rgba(103, 90, 144, 0.16);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.74);
+  scroll-margin-top: 24px;
+}
+.f5v-shell .help-privacy__section-heading {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+}
+.f5v-shell .help-privacy__section-heading > span {
+  color: rgba(103, 90, 144, 0.56);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
 }
 .f5v-shell .help-privacy h2 {
   margin: 0;
-  font-size: 1rem;
-  line-height: 1.6;
+  font-size: clamp(1.08rem, calc(1.6 * var(--soda-type-vw, 1vw)), 1.32rem);
+  line-height: 1.35;
+  letter-spacing: -0.015em;
+}
+.f5v-shell .help-privacy__section-heading p {
+  margin: 0;
+  color: var(--f5-muted);
+  font-size: 0.82rem;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+.f5v-shell .help-privacy__sections > .help-privacy__section:target {
+  border-color: rgba(103, 90, 144, 0.42);
+  box-shadow: 0 0 0 2px rgba(103, 90, 144, 0.08);
 }
 .f5v-shell .help-privacy__content {
   min-width: 0;
 }
 .f5v-shell .help-privacy__content p {
-  margin: 0 0 8px;
+  margin: 0;
   color: var(--f5-muted);
-  font-size: 0.875rem;
+  font-size: 0.9rem;
   line-height: 1.65;
   text-wrap: pretty;
-}
-.f5v-shell .help-privacy__content p:last-child {
-  margin-bottom: 0;
 }
 .f5v-shell .help-privacy a:not(.button) {
   color: var(--f5-primary, #675a90);
   text-underline-offset: 3px;
 }
-.f5v-shell .help-privacy__content .help-privacy__feedback-note {
-  margin-top: 10px;
+.f5v-shell .help-privacy__action-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 16px;
+  border: 1px solid rgba(103, 90, 144, 0.18);
+  border-radius: 12px;
+  background: rgba(103, 90, 144, 0.055);
 }
-.f5v-shell .help-privacy__diagnostic {
-  margin-top: 12px;
+.f5v-shell .help-privacy__action-card > div:first-child {
+  display: grid;
+  gap: 5px;
 }
-.f5v-shell .help-privacy__diagnostic summary {
-  width: fit-content;
-  cursor: pointer;
+.f5v-shell .help-privacy__action-card strong,
+.f5v-shell .help-privacy__risk-card strong,
+.f5v-shell .help-privacy__import-card strong,
+.f5v-shell .help-privacy__diagnostics > header strong {
+  color: var(--f5-ink);
+  font-size: 0.94rem;
+  line-height: 1.45;
+}
+.f5v-shell .help-privacy__eyebrow {
   color: var(--f5-primary, #675a90);
-  font-size: 0.875rem;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
 }
-.f5v-shell .help-privacy__diagnostic[open] summary {
-  margin-bottom: 10px;
-}
-.f5v-shell .help-privacy__diagnostic-controls {
+.f5v-shell .help-privacy__actions {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
+  justify-content: flex-end;
   gap: 8px;
-  margin-bottom: 10px;
+}
+.f5v-shell .help-privacy__actions .button {
+  min-height: 40px;
+  white-space: nowrap;
+}
+.f5v-shell .help-privacy__facts {
+  display: grid;
+  gap: 0;
+  margin: 14px 0 0;
+  overflow: hidden;
+  border: 1px solid rgba(103, 90, 144, 0.13);
+  border-radius: 12px;
+}
+.f5v-shell .help-privacy__facts > div {
+  display: grid;
+  grid-template-columns: 116px minmax(0, 1fr);
+  gap: 14px;
+  padding: 12px 14px;
+}
+.f5v-shell .help-privacy__facts > div + div {
+  border-top: 1px solid rgba(103, 90, 144, 0.1);
+}
+.f5v-shell .help-privacy__facts dt {
+  color: var(--f5-ink);
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+.f5v-shell .help-privacy__facts dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--f5-muted);
+  font-size: 0.86rem;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+.f5v-shell .help-privacy__inline-warning {
+  margin-top: 10px !important;
+  padding-left: 10px;
+  border-left: 2px solid rgba(168, 68, 88, 0.58);
+}
+.f5v-shell .help-privacy__risk-card {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid rgba(168, 68, 88, 0.24);
+  border-radius: 12px;
+  background: rgba(168, 68, 88, 0.055);
+}
+.f5v-shell .help-privacy__risk-card .help-privacy__eyebrow {
+  color: #8f3b4d;
+}
+.f5v-shell .help-privacy__methods {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.f5v-shell .help-privacy__methods article {
+  min-width: 0;
+  padding: 13px 14px;
+  border: 1px solid rgba(103, 90, 144, 0.13);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.58);
+}
+.f5v-shell .help-privacy__methods strong {
+  color: var(--f5-ink);
+  font-size: 0.88rem;
+}
+.f5v-shell .help-privacy__methods p {
+  margin-top: 4px;
+}
+.f5v-shell .help-privacy__import-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  margin-top: 12px;
+  padding: 14px;
+  border: 1px solid rgba(103, 90, 144, 0.14);
+  border-radius: 12px;
+}
+.f5v-shell .help-privacy__import-copy {
+  display: grid;
+  gap: 5px;
+}
+.f5v-shell .help-privacy__import-card .scanner-guide {
+  margin: 0;
+}
+.f5v-shell .help-privacy__diagnostics {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  margin-top: 12px;
+  padding: 14px;
+  border: 1px solid rgba(103, 90, 144, 0.16);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.6);
+}
+.f5v-shell .help-privacy__diagnostics > header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px 16px;
+  flex-wrap: wrap;
+}
+.f5v-shell .help-privacy__diagnostics > header span {
+  color: var(--f5-muted);
+  font-size: 0.78rem;
+}
+.f5v-shell .help-privacy__diagnostics > * {
+  width: 100%;
+  min-width: 0;
+}
+.f5v-shell .help-privacy__diagnostics .scanner-diagnostic-feedback {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+}
+.f5v-shell .help-privacy__diagnostics .scanner-diagnostic-feedback__main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: stretch;
+  gap: 9px;
+}
+.f5v-shell .help-privacy__diagnostics .scanner-diagnostic-feedback__main > p {
+  width: 100%;
+  min-width: 0;
+}
+.f5v-shell .help-privacy__diagnostics .scanner-diagnostic-feedback__main > button {
+  justify-self: start;
+}
+.f5v-shell .help-privacy__diagnostics .scanner-diagnostic-feedback__details {
+  justify-self: start;
+}
+.f5v-shell .help-privacy__diagnostics .scanner-diagnostic-entry {
+  padding-top: 12px;
+  border-top: 1px solid rgba(103, 90, 144, 0.1);
+}
+.f5v-shell .help-privacy__diagnostics .scanner-diagnostic-feedback + .scanner-diagnostic-entry {
+  border-top: 1px solid rgba(103, 90, 144, 0.12);
+}
+.f5v-shell .help-privacy__diagnostics .scanner-diagnostic-entry__heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  justify-items: start;
+  gap: 8px;
+}
+.f5v-shell
+  .help-privacy__diagnostics
+  .scanner-diagnostic-entry
+  > .scanner-diagnostic-entry__status {
+  width: 100%;
+}
+.f5v-shell .help-privacy__content > .button--primary {
+  min-height: 42px;
+}
+.f5v-shell .help-privacy__diagnostic {
+  margin-top: 12px;
+  padding: 14px 16px;
+  border: 1px solid rgba(103, 90, 144, 0.16);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.58);
+}
+.f5v-shell .help-privacy__diagnostic summary {
+  cursor: pointer;
+  color: var(--f5-primary, #675a90);
+  font-size: 0.875rem;
+  font-weight: 750;
+  text-underline-offset: 4px;
+}
+.f5v-shell .help-privacy__diagnostic[open] summary {
+  margin-bottom: 8px;
+}
+.f5v-shell .help-privacy__diagnostic summary:focus-visible,
+.f5v-shell .help-privacy__diagnostic pre:focus-visible {
+  outline: 2px solid var(--f5-primary, #675a90);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+.f5v-shell .help-privacy__diagnostic-controls {
+  display: grid;
+  grid-template-columns: auto minmax(180px, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0 10px;
   font-size: 0.875rem;
 }
 .f5v-shell .help-privacy__stage {
-  width: min(100%, 210px);
+  width: 100%;
   min-width: 0;
+}
+.f5v-shell .help-privacy__diagnostic-controls .button {
+  min-height: 42px;
+  white-space: nowrap;
 }
 .f5v-shell .help-privacy__diagnostic pre {
   box-sizing: border-box;
+  width: 100%;
   max-width: 100%;
   margin: 8px 0 0;
   padding: 12px;
@@ -90,9 +364,24 @@
   font-size: 0.8rem;
   line-height: 1.6;
 }
+.f5v-shell .help-privacy__copy-feedback {
+  margin: 2px 0 0 !important;
+  padding-left: 9px;
+  border-left: 2px solid #7460a7;
+  color: #4f426f !important;
+  font-weight: 700;
+}
+.f5v-shell .help-privacy__copy-feedback[data-state='error'] {
+  border-left-color: #a84458;
+  color: #813446 !important;
+}
 .f5v-shell .help-privacy__footer {
-  padding-top: 16px;
-  border-top: 1px solid rgba(103, 90, 144, 0.18);
+  display: flex;
+  justify-content: space-between;
+  gap: 8px 24px;
+  margin-top: 16px;
+  padding: 16px 4px 6px;
+  border-top: 1px solid rgba(103, 90, 144, 0.14);
   color: var(--f5-muted);
   font-size: 0.75rem;
   line-height: 1.6;
@@ -102,6 +391,10 @@
 }
 .f5v-shell .help-privacy__usage {
   margin-top: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(103, 90, 144, 0.12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.48);
 }
 .f5v-shell .help-privacy__usage label {
   display: flex;
@@ -110,23 +403,49 @@
   font-size: 0.875rem;
 }
 @media (max-width: 700px) {
-  .f5v-shell .help-privacy__sections section {
+  .f5v-shell .help-privacy__sections > .help-privacy__section {
     grid-template-columns: minmax(0, 1fr);
-    gap: 8px;
-    padding: 16px 0;
+    gap: 16px;
+    padding: 18px;
   }
   .f5v-shell .help-privacy__header {
     align-items: flex-start;
     flex-wrap: wrap;
+    padding: 20px;
+  }
+  .f5v-shell .help-privacy__back {
+    order: -1;
+  }
+  .f5v-shell .help-privacy__action-card,
+  .f5v-shell .help-privacy__import-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .f5v-shell .help-privacy__actions {
+    justify-content: flex-start;
+  }
+  .f5v-shell .help-privacy__methods {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .f5v-shell .help-privacy__facts > div {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 3px;
   }
   .f5v-shell .help-privacy__diagnostic-controls {
+    grid-template-columns: minmax(0, 1fr);
     align-items: stretch;
   }
-  .f5v-shell .help-privacy__diagnostic-controls label {
+  .f5v-shell .help-privacy__diagnostic-controls .button {
     width: 100%;
   }
-  .f5v-shell .help-privacy__stage {
-    flex: 1 1 180px;
-    width: auto;
+  .f5v-shell .help-privacy__footer {
+    display: grid;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .f5v-shell .help-privacy__diagnostic,
+  .f5v-shell .help-privacy__copy-feedback {
+    scroll-behavior: auto;
+    transition: none;
   }
 }

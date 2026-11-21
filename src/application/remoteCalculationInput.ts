@@ -41,7 +41,11 @@ export function projectRemoteAccountDecisionInput(
         level: disc.level,
         rarity: disc.rarity,
         mainStat: disc.mainStat,
-        subStats: disc.subStats.map(({ stat, value, upgrades }) => ({ stat, value, upgrades })),
+        subStats: disc.subStats.map(({ stat, value, upgrades }) => ({
+          stat,
+          value,
+          upgrades,
+        })),
         locked: disc.locked,
         favorite: disc.favorite,
         tags: [],
@@ -175,6 +179,12 @@ export function projectRemoteAccountDecisionInput(
             comparisonParameters: draft.solutionContext.comparisonParameters
               ? {
                   potential: draft.solutionContext.comparisonParameters.potential,
+                  independentDirection: draft.solutionContext.comparisonParameters
+                    .independentDirection
+                    ? {
+                        ...draft.solutionContext.comparisonParameters.independentDirection,
+                      }
+                    : undefined,
                   wEngine: draft.solutionContext.comparisonParameters.wEngine
                     ? {
                         engineId: draft.solutionContext.comparisonParameters.wEngine.engineId,

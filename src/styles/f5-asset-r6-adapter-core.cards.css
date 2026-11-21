@@ -1,0 +1,214 @@
+/* Restore the accepted 120 x 84 compact-card frame and Foundation crop. */
+.r6-golden .object-grid.agents {
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  grid-auto-rows: 84px;
+  align-content: start;
+}
+
+.r6-golden .object-card.agent {
+  width: 100%;
+  height: 84px;
+  aspect-ratio: auto;
+}
+
+.r6-golden .object-card::after {
+  height: 42px;
+  background: linear-gradient(transparent, rgba(31, 27, 44, 0.9));
+  pointer-events: none;
+}
+
+.r6-golden .card-name,
+.r6-golden .card-state {
+  color: #fff;
+  font-size: var(--soda-font-caption);
+  line-height: 14px;
+  text-shadow: 0 1px 2px #211b30;
+}
+
+.r6-golden .card-name {
+  bottom: 20px;
+}
+.r6-golden .card-state {
+  bottom: 4px;
+}
+
+.r6-golden .object-card.wengine > .visual-entity-image,
+.r6-golden .object-card.bangboo > .visual-entity-image,
+.r6-golden .object-card.disc > .visual-entity-image {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+}
+
+.r6-golden .inventory-protection-note {
+  margin: 10px 0 0;
+  color: #7a4f35;
+  font-size: var(--soda-font-caption);
+  line-height: 1.5;
+}
+
+.r6-golden .selection-context {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border-radius: var(--soda-radius-control);
+  background: #eeeaf7;
+  color: #473b69;
+  font-size: var(--soda-font-body);
+  line-height: 1.5;
+}
+
+.r6-golden .selection-context span {
+  display: block;
+  font-size: var(--soda-font-caption);
+}
+
+/* Keep the narrow, stacked workspace responsive after the desktop adapter rules. */
+@container soda-viewport (max-width: 960px) {
+  /* Keep complete rows visible at short/zoomed viewports. The stacked page
+     scrolls; its catalog must not shrink below a readable selection area. */
+  .r6-golden .catalog {
+    height: clamp(420px, calc(var(--soda-viewport-height) * 0.58), 520px);
+    min-height: 420px;
+    max-height: none;
+  }
+
+  .r6-golden .object-grid.agents,
+  .r6-golden .object-grid.wengines,
+  .r6-golden .object-grid.bangboos,
+  .r6-golden .object-grid.discs {
+    grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  }
+
+  .r6-golden .filterbar,
+  .r6-golden .filterbar--discs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .r6-golden .filterbar > * {
+    min-width: 0;
+  }
+}
+
+.r6-golden .asset-editor-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--soda-space-3);
+  flex-wrap: wrap;
+}
+.r6-golden .asset-editor-heading .identity {
+  min-width: 0;
+  flex: 1 1 200px;
+}
+.r6-golden .asset-editor-heading .editor-action {
+  position: static;
+  margin: 0 0 0 auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.r6-golden .asset-editor-heading .editor-action > small {
+  display: none;
+}
+.r6-golden .object-grid.wengines,
+.r6-golden .object-grid.bangboos,
+.r6-golden .object-grid.discs {
+  grid-auto-rows: max-content;
+}
+
+/* Keep the compact identity family legible without changing its 84px frame. */
+.r6-golden .object-card {
+  transition:
+    box-shadow var(--soda-motion-fast) var(--soda-ease-out),
+    filter var(--soda-motion-fast) var(--soda-ease-out);
+}
+
+.r6-golden .object-card::after {
+  height: 48px;
+}
+
+.r6-golden .object-card:not(.disc) .card-name {
+  display: -webkit-box;
+  max-height: 2.4em;
+  overflow: hidden;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  text-wrap: balance;
+  white-space: normal;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.r6-golden .icon-stack > .visual-asset-fallback::before,
+.r6-golden .icon-stack > .visual-asset-fallback::after {
+  display: none;
+}
+
+.r6-golden .object-card[aria-selected='true'],
+.r6-golden .object-card[aria-checked='true'] {
+  box-shadow:
+    0 0 0 2px #6f5ba6,
+    0 0 0 4px rgb(255 255 255 / 86%),
+    0 7px 15px rgb(69 53 110 / 20%);
+}
+
+.r6-golden .object-card:focus-visible {
+  outline: 3px solid rgb(86 63 148 / 72%);
+  outline-offset: 3px;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 7px 18px rgb(69 53 110 / 24%);
+}
+
+.r6-golden .object-card[aria-selected='true']:focus-visible,
+.r6-golden .object-card[aria-checked='true']:focus-visible {
+  box-shadow:
+    0 0 0 2px #6f5ba6,
+    0 0 0 4px #fff,
+    0 8px 18px rgb(69 53 110 / 24%);
+}
+
+.f5v-shell
+  :is(
+    .agent-maintenance-r2__agent-card,
+    .wengine-compact-card,
+    .asset-portrait-card,
+    .disc-compact-card
+  ):focus-visible {
+  outline: 3px solid rgb(86 63 148 / 72%);
+  outline-offset: 2px;
+}
+
+.f5v-shell
+  :is(
+    .agent-maintenance-r2__agent-card,
+    .wengine-compact-card,
+    .asset-portrait-card,
+    .disc-compact-card
+  ).is-selected {
+  box-shadow:
+    inset 0 0 0 2px rgb(103 90 144 / 82%),
+    inset 0 0 0 4px rgb(255 255 255 / 72%);
+}
+
+@media (hover: hover) {
+  .r6-golden .object-card:hover {
+    box-shadow:
+      inset 0 0 0 1px rgb(103 90 144 / 26%),
+      0 5px 12px rgb(56 45 83 / 14%);
+  }
+
+  .r6-golden .object-card[aria-selected='true']:hover,
+  .r6-golden .object-card[aria-checked='true']:hover {
+    box-shadow:
+      0 0 0 2px #6f5ba6,
+      0 0 0 4px rgb(255 255 255 / 86%),
+      0 8px 18px rgb(69 53 110 / 22%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .r6-golden .object-card {
+    transition: none;
+  }
+}

@@ -6,6 +6,7 @@ import { evaluationRules } from '../evaluation/rules'
 import { isAllowedMainStat, type BuildKnowledgeProfile } from './buildKnowledge'
 import { allowedSetCountPatterns, canStillCompleteSetPattern } from './optimizerSetPatterns'
 import { optimizeEffectiveCritBuild } from './optimizeEffectiveCritBuild'
+import { isRecommendableDisc } from './recommendableDisc'
 import type {
   CandidateEffectiveCritObjective,
   CandidateEffectiveCritProjection,
@@ -43,6 +44,7 @@ export type OptimizerOptions = {
   allowEquipped?: boolean
   topK?: number
   panelInput?: CandidatePanelInput
+  effectiveCritProjectionCache?: Map<string, CandidateEffectiveCritProjection>
   /** Internal same-call identity; ignored unless it refers to the exact input array. */
   warehouseSnapshot?: { discs: DriveDisc[]; hash: string }
 }
@@ -139,6 +141,7 @@ export function resolveSetPlan(
   const candidates: Array<{
     pattern: '4+2' | '2+2+2'
     activeSets: string[]
+    fitBonusEligible?: boolean
   }> = []
   for (const plan of knowledge.setPlans) {
     if (plan.pattern === '4+2') {
@@ -148,7 +151,11 @@ export function resolveSetPlan(
           ([setId]) => setId !== primary[0] && plan.secondarySets.includes(setId),
         )
         if (secondary)
-          candidates.push({ pattern: plan.pattern, activeSets: [primary[0], secondary[0]] })
+          candidates.push({
+            pattern: plan.pattern,
+            activeSets: [primary[0], secondary[0]],
+            fitBonusEligible: plan.fitBonusEligible,
+          })
       }
       continue
     }
@@ -157,19 +164,27 @@ export function resolveSetPlan(
       .map(([setId]) => setId)
       .sort()
       .slice(0, 3)
-    if (activeSets.length === 3) candidates.push({ pattern: plan.pattern, activeSets })
+    if (activeSets.length === 3)
+      candidates.push({
+        pattern: plan.pattern,
+        activeSets,
+        fitBonusEligible: plan.fitBonusEligible,
+      })
   }
   if (!candidates.length) return null
 
   return candidates
-    .map((candidate) => ({
+    .map(({ fitBonusEligible, ...candidate }) => ({
       ...candidate,
-      score: round(
-        candidate.activeSets.reduce((sum, setId) => {
-          const fit = profile.setFit[setId] ?? 0
-          return sum + scoreSetFit(fit, counts[setId] ?? 0)
-        }, 0),
-      ),
+      score:
+        fitBonusEligible === false
+          ? 0
+          : round(
+              candidate.activeSets.reduce((sum, setId) => {
+                const fit = profile.setFit[setId] ?? 0
+                return sum + scoreSetFit(fit, counts[setId] ?? 0)
+              }, 0),
+            ),
     }))
     .sort(
       (left, right) =>
@@ -204,9 +219,11 @@ export function optimizeBuild(
     ? discs.find((disc) => disc.id === options.fixedDiscId)
     : undefined
   if (options.fixedDiscId && !fixedDisc) throw new Error('固定的驱动盘已不存在。')
+  if (fixedDisc && !isRecommendableDisc(fixedDisc)) throw new Error('固定盘必须明确为 S 级。')
 
-  const excludedLockedCount = allowLocked ? 0 : discs.filter((disc) => disc.locked).length
-  const eligibleByLock = allowLocked ? discs : discs.filter((disc) => !disc.locked)
+  const sDiscs = discs.filter(isRecommendableDisc)
+  const excludedLockedCount = allowLocked ? 0 : sDiscs.filter((disc) => disc.locked).length
+  const eligibleByLock = allowLocked ? sDiscs : sDiscs.filter((disc) => !disc.locked)
   const excludedIllegalMainStatCount = eligibleByLock.filter(
     (disc) => !isAllowedMainStat(knowledge, disc.slot, disc.mainStat),
   ).length
@@ -299,6 +316,7 @@ export function optimizeBuild(
       candidates,
       objective: options.effectiveCritObjective,
       panelInput,
+      projectionCache: options.effectiveCritProjectionCache,
       patterns: allowedPatterns,
       knowledge,
       topK,

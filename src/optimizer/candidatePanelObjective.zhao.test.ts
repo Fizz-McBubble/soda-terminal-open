@@ -22,7 +22,12 @@ describe('Zhao source-bound support target', () => {
       })
     const target = getCandidatePanelObjectiveTarget(agent.agentId, input)!
     expect(candidatePanelObjectiveWarning(target, 'unsupported', false)).not.toContain('核心技7')
-    const original = panels.projectOutOfCombatPanel({ ...input, discs })
+    if (input.mindscape == null) throw new Error('fixture requires a known mindscape')
+    const original = panels.projectOutOfCombatPanel({
+      ...input,
+      mindscape: input.mindscape,
+      discs,
+    })
     expect(original.status).toBe('ok')
     const precise = vi
       .spyOn(panels, 'projectOutOfCombatPanel')

@@ -5,7 +5,9 @@ import {
   type ScannerDistributionSnapshot,
 } from '../scanner/distribution'
 import {
+  createInstallerDownloadFeedbackReport,
   downloadScannerInstaller,
+  installerDownloadFailureDetails,
   type InstallerTransferProgress,
 } from '../scanner/installerDownload'
 import {
@@ -41,6 +43,9 @@ export function ScannerInstallerAction({
   const [timedOut, setTimedOut] = useState(false)
   const [connectionNotice, setConnectionNotice] = useState('')
   const [release, setRelease] = useState<InstallerRelease | null>(null)
+  const [feedbackReport, setFeedbackReport] = useState<ReturnType<
+    typeof createInstallerDownloadFeedbackReport
+  > | null>(null)
   const downloadButton = useRef<HTMLButtonElement | null>(null)
   const cancelButton = useRef<HTMLButtonElement | null>(null)
   const restoreDownloadFocus = useRef(false)
@@ -134,38 +139,73 @@ export function ScannerInstallerAction({
     request.current = controller
     completedDownload.current = false
     const current = () => mounted.current && request.current === controller
-    const deadline = setTimeout(
-      () => controller.abort(new DOMException('download_timeout', 'TimeoutError')),
-      60 * 1000,
-    )
+    const startedAt = performance.now()
+    const readRelease = async () => {
+      const deadline = setTimeout(
+        () => controller.abort(new DOMException('download_timeout', 'TimeoutError')),
+        60 * 1000,
+      )
+      try {
+        return await readInstallerRelease(controller.signal)
+      } finally {
+        clearTimeout(deadline)
+      }
+    }
     setState('downloading')
     setBytes(0)
     setTransfer(null)
     setTimedOut(false)
     setConnectionNotice('')
+    setFeedbackReport(null)
     leftAfterDownload.current = false
     autoConnectAttempted.current = false
+    let activeRelease: InstallerRelease | null = release
     try {
-      const latestRelease = await readInstallerRelease(controller.signal)
-      clearTimeout(deadline)
+      activeRelease = await readRelease()
       if (!current()) return
-      setRelease(latestRelease)
-      const result = await downloadScannerInstaller({
-        url: latestRelease.downloadUrl,
-        fileName: latestRelease.fileName,
-        expectedSize: latestRelease.size,
-        expectedSha256: latestRelease.sha256,
-        signal: controller.signal,
-        onProgress: (received) => {
-          if (current()) setBytes(received)
-        },
-        onTransfer: (progress) => {
-          if (current()) setTransfer(progress)
-        },
-        onSaving: () => {
-          if (current()) setState('saving')
-        },
-      })
+      setRelease(activeRelease)
+      let result: Awaited<ReturnType<typeof downloadScannerInstaller>>
+      for (let recovery = 0; ; recovery += 1) {
+        try {
+          result = await downloadScannerInstaller({
+            url: activeRelease.downloadUrl,
+            fileName: activeRelease.fileName,
+            expectedSize: activeRelease.size,
+            expectedSha256: activeRelease.sha256,
+            signal: controller.signal,
+            onProgress: (received) => {
+              if (current()) setBytes(received)
+            },
+            onTransfer: (progress) => {
+              if (current()) setTransfer(progress)
+            },
+            onSaving: () => {
+              if (current()) setState('saving')
+            },
+          })
+          break
+        } catch (error) {
+          const details = installerDownloadFailureDetails(error)
+          if (
+            recovery > 0 ||
+            details?.code !== 'installer_download_release_changed' ||
+            controller.signal.aborted
+          )
+            throw error
+          const refreshed = await readRelease()
+          if (!current()) return
+          if (
+            refreshed.version === activeRelease.version &&
+            refreshed.size === activeRelease.size &&
+            refreshed.sha256 === activeRelease.sha256
+          )
+            throw error
+          activeRelease = refreshed
+          setRelease(refreshed)
+          setBytes(0)
+          setTransfer(null)
+        }
+      }
       if (current()) {
         completedDownload.current = true
         restoreDownloadFocus.current = document.activeElement === cancelButton.current
@@ -173,7 +213,10 @@ export function ScannerInstallerAction({
       }
     } catch (error) {
       if (!current()) return
-      const timeout = error instanceof DOMException && error.name === 'TimeoutError'
+      const failure = installerDownloadFailureDetails(error)
+      const timeout =
+        failure?.code === 'installer_download_timeout' ||
+        (error instanceof DOMException && error.name === 'TimeoutError')
       const cancelled =
         !timeout &&
         (controller.signal.aborted ||
@@ -181,8 +224,21 @@ export function ScannerInstallerAction({
       restoreDownloadFocus.current = document.activeElement === cancelButton.current
       setTimedOut(timeout)
       setState(cancelled ? 'cancelled' : 'error')
+      if (!cancelled) {
+        const expected = activeRelease ?? release ?? scannerDistributionManifest.helper
+        setFeedbackReport(
+          createInstallerDownloadFeedbackReport({
+            tool: 'screen_scanner_installer',
+            installerVersion:
+              'installerVersion' in expected ? expected.installerVersion : expected.version,
+            expectedSize: expected.size,
+            expectedSha256: expected.sha256,
+            durationMs: performance.now() - startedAt,
+            error,
+          }),
+        )
+      }
     } finally {
-      clearTimeout(deadline)
       if (request.current === controller) request.current = null
     }
   }
@@ -198,6 +254,9 @@ export function ScannerInstallerAction({
   const transferText =
     state === 'downloading' && transfer ? installerTransferStatus(transfer) : progressText
   const preparationMessage = hidden ? '' : pending ? transferText : message
+  const feedbackHref = feedbackReport
+    ? `/installer-feedback#${encodeURIComponent(JSON.stringify(feedbackReport))}`
+    : null
   useEffect(() => {
     publishStatus?.({ text: preparationMessage, pending })
     return () => publishStatus?.({ text: '', pending: false })
@@ -265,9 +324,20 @@ export function ScannerInstallerAction({
           </>
         ) : null}
       </div>
-      {preparationMessage && !publishStatus ? (
+      {(feedbackHref || preparationMessage) && !publishStatus ? (
         <div className="scanner-installer__feedback" role="status">
           <span className="scanner-installer__notice">{preparationMessage}</span>
+          {feedbackHref ? (
+            <a className="scanner-installer__fallback" href={feedbackHref}>
+              报告下载问题
+            </a>
+          ) : null}
+        </div>
+      ) : feedbackHref ? (
+        <div className="scanner-installer__feedback">
+          <a className="scanner-installer__fallback" href={feedbackHref}>
+            报告下载问题
+          </a>
         </div>
       ) : null}
     </div>

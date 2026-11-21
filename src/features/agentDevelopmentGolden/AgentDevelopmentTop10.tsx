@@ -2,48 +2,16 @@ import { useMemo, useRef, useState } from 'react'
 import { playerErrorMessage } from '../../application/playerErrorMessage'
 import { useStateTransitionMotion } from '../../motion/useStateTransitionMotion'
 import { BackNavigation } from '../../components/BackNavigation'
+import { useTop10SaveFeedback } from './useTop10SaveFeedback'
 import { ExplanationPopover } from '../../components/ExplanationPopover'
-import { DevelopmentDiscCard } from './DevelopmentDiscCard'
+import { ComparisonDiscResult } from './ComparisonDiscResult'
 import { Top10StatTable } from './Top10StatTable'
 import { SetSummary, Top10CandidateNav } from './Top10CandidateNav'
 import type { AgentDevelopmentGoldenProps, GoldenTop10Data, JourneyScenario } from './types'
-import {
-  benchmarkLabel,
-  benchmarkOverallReason,
-  benchmarkScopeNote,
-  candidateSearchLabel,
-} from './top10Labels'
-import { staticPanelTargetDisplay } from '../../gameDataPacks/targetPanelSemantics'
+import { benchmarkLabel, benchmarkOverallReason, benchmarkScopeNote } from './top10Labels'
+import { comparisonImpactTone } from './comparisonImpactTone'
 
-function PanelReferenceConditions({ data }: { data: GoldenTop10Data }) {
-  if (data.statPresentation !== 'static_panel') return null
-  const notes = new Map<string, Set<string>>()
-  for (const stat of data.allStats) {
-    if (!staticPanelTargetDisplay(stat.target)) continue
-    for (const condition of data.targetConditionsByLabel?.[stat.label] ?? []) {
-      const text = condition.trim()
-      if (!text) continue
-      const labels = notes.get(text) ?? new Set<string>()
-      labels.add(stat.label)
-      notes.set(text, labels)
-    }
-  }
-  if (!notes.size) return null
-  return (
-    <section aria-label="毕业推荐适用条件">
-      <p>毕业推荐适用条件</p>
-      <ul>
-        {[...notes].map(([condition, labels]) => (
-          <li key={condition}>
-            {Array.from(labels).join('、')}：{condition}
-          </li>
-        ))}
-      </ul>
-    </section>
-  )
-}
-
-export function Top10({
+function Top10Content({
   back,
   scenario,
   data,
@@ -77,17 +45,22 @@ export function Top10({
   const changedSelection = selection.externalRank !== data.selectedCandidateRank
   const selected = changedSelection ? preferredRank : selection.rank
   if (changedSelection) {
-    setSelection({ externalRank: data.selectedCandidateRank, rank: preferredRank })
+    setSelection({
+      externalRank: data.selectedCandidateRank,
+      rank: preferredRank,
+    })
   }
   const resultRef = useRef<HTMLElement>(null)
+  const reanalyzeGeneration = useRef(0)
+  const [reanalyzing, setReanalyzing] = useState(false)
+  const [reanalyzeMessage, setReanalyzeMessage] = useState<string | null>(null)
   const setSelected = (rank: number) => {
+    reanalyzeGeneration.current += 1
+    setReanalyzing(false)
+    setReanalyzeMessage(null)
     setSelection({ externalRank: data.selectedCandidateRank, rank })
     if (resultRef.current) resultRef.current.scrollTop = 0
   }
-  const [saveError, setSaveError] = useState<string | null>(null)
-  const [saving, setSaving] = useState(false)
-  const [reanalyzing, setReanalyzing] = useState(false)
-  const [reanalyzeMessage, setReanalyzeMessage] = useState<string | null>(null)
   const [conflictFreeOnly, setConflictFreeOnly] = useState(false)
   const visibleCandidates = data.candidates.filter((row) => !conflictFreeOnly || !row.conflict)
 
@@ -98,9 +71,25 @@ export function Top10({
       : selected === -1 && data.currentPlan && (!conflictFreeOnly || !data.currentPlan.conflict)
         ? data.currentPlan
         : (visibleCandidates.find((row) => row.rank === selected) ?? visibleCandidates[0])
+  const { save, saving, saveError, saveMessage, saveScope } = useTop10SaveFeedback(
+    data,
+    selected,
+    selectedRow,
+    onSavePlan,
+  )
   const selectedBenchmark = selectedRow ? data.valueBenchmarks?.[selectedRow.rank - 1] : undefined
   const selectedSearch =
     data.candidateSearchByRank?.[selectedRow?.rank ?? 0] ?? data.candidateSearch
+  const selectedImpactTone = comparisonImpactTone(
+    data.valueBenchmarks?.[Math.max(selectedRow?.rank ?? 1, 1) - 1],
+    Boolean(data.snapshot?.stale),
+  )
+  const hasComparisonMethodDetails = Boolean(
+    selectedRow &&
+    selectedRow.rank > 0 &&
+    !data.snapshot?.stale &&
+    (onComparisonDetailsOpen || comparisonEquipmentControl),
+  )
   const discsById = useMemo(() => new Map(data.discs.map((disc) => [disc.id, disc])), [data.discs])
   const selectedDiscs = selectedRow?.discIds?.flatMap((id) => {
     const disc = discsById.get(id)
@@ -113,21 +102,38 @@ export function Top10({
   const baselineBySlot = new Map(
     (data.baseline.discIds ?? []).flatMap((id) => {
       const disc = discsById.get(id)
-      return disc ? [[disc.slot, disc.id] as const] : []
+      return disc ? [[disc.slot, disc] as const] : []
     }),
   )
-  const baselineAvailable = data.baselineKind
-    ? data.baselineKind !== 'none'
-    : data.baselineAvailability !== 'unavailable'
-  const actualBaseline = data.baselineKind ? data.baselineKind === 'actual' : baselineAvailable
-  const baselineLabel = data.baselineLabel ?? (actualBaseline ? '当前实装' : '比较方案')
-  const baselineDisplay =
-    data.baselineKind === 'saved'
+  const baselineDiscIds = data.baseline.discIds
+  const baselineHasCompleteDiscs =
+    baselineDiscIds?.length === 6 &&
+    new Set(baselineDiscIds).size === 6 &&
+    baselineDiscs.length === 6 &&
+    new Set(baselineDiscs.map((disc) => disc.slot)).size === 6 &&
+    baselineDiscs.every((disc) => disc.slot >= 1 && disc.slot <= 6)
+  const baselineDeclared =
+    data.baselineAvailability === 'unavailable'
+      ? false
+      : data.baselineAvailability === 'available'
+        ? true
+        : data.baselineKind
+          ? data.baselineKind !== 'none'
+          : baselineHasCompleteDiscs
+  const baselineAvailable = baselineDeclared && baselineHasCompleteDiscs
+  const actualBaseline =
+    baselineAvailable && (data.baselineKind ? data.baselineKind === 'actual' : baselineDeclared)
+  const baselineLabel =
+    data.baselineLabel ??
+    (actualBaseline ? '当前装备' : baselineAvailable ? '比较方案' : '尚无比较基线')
+  const baselineDisplay = !baselineAvailable
+    ? '尚无比较基线'
+    : data.baselineKind === 'saved'
       ? '已保存方案'
       : data.baselineKind === 'candidate'
         ? '方案 1'
         : actualBaseline
-          ? '当前实装'
+          ? '当前装备'
           : baselineLabel.length > 18
             ? '比较方案'
             : baselineLabel
@@ -136,29 +142,27 @@ export function Top10({
     stateKey: `${selectedRow?.rank ?? 0}:${selectedRow?.discIds?.join('|') ?? ''}`,
     includeScope: true,
     enabled: !reanalyzing,
+    transition: 'result',
   })
-
   const reanalyze = async () => {
     if (!onReanalyzeWarehouse || reanalyzing) return
+    const generation = ++reanalyzeGeneration.current
     setReanalyzing(true)
     setReanalyzeMessage('正在重新搭配当前仓库…')
     try {
       await onReanalyzeWarehouse()
+      if (generation !== reanalyzeGeneration.current) return
       setReanalyzeMessage('搭配完成，方案已刷新。')
     } catch (error) {
+      if (generation !== reanalyzeGeneration.current) return
+      if (error instanceof Error && error.name === 'AbortError') {
+        setReanalyzeMessage(null)
+        return
+      }
       setReanalyzeMessage(playerErrorMessage(error, '重新搭配失败，请稍后重试。'))
     } finally {
-      setReanalyzing(false)
+      if (generation === reanalyzeGeneration.current) setReanalyzing(false)
     }
-  }
-
-  const save = () => {
-    if (!onSavePlan || !selectedRow) return
-    setSaveError(null)
-    setSaving(true)
-    void Promise.resolve(onSavePlan(selectedRow.rank))
-      .catch((error: unknown) => setSaveError(playerErrorMessage(error, '保存失败，请稍后重试。')))
-      .finally(() => setSaving(false))
   }
 
   if (!data.candidates.length && !baselineAvailable) {
@@ -169,7 +173,10 @@ export function Top10({
             <BackNavigation label="返回养成" className="back-navigation--heading" onClick={back} />
             <div className="comparison-heading__text">
               <h1 id="top10-title">暂时没有匹配方案</h1>
-              <p>{data.agentName}暂时没有完整方案。未记录游戏当前实装，可从仓库搭配方案。</p>
+              <p>
+                {data.agentName}
+                暂时没有完整方案。未记录当前装备，可从仓库搭配方案。
+              </p>
             </div>
           </div>
           <div className="comparison-heading__actions">
@@ -228,7 +235,9 @@ export function Top10({
               <strong>
                 <SetSummary text={data.baseline.sets} />
               </strong>
-              <small>{data.baseline.effective} 有效词条</small>
+              {/^(?:\d+)(?:\.\d+)?$/.test(data.baseline.effective) ? (
+                <small>{data.baseline.effective} 有效词条</small>
+              ) : null}
             </div>
             <p className="comparison-empty-candidates" role="status">
               可重新搭配，查找其他搭配。
@@ -241,14 +250,6 @@ export function Top10({
                 <small>{baselineDisplay}</small>
                 <h2 id="comparison-discs-title">{data.baseline.label} · 六盘明细</h2>
                 <p>{data.baseline.sets}</p>
-                <ExplanationPopover
-                  label="排序与计算限制"
-                  title="方案排序与计算限制"
-                  className="comparison-method-popover"
-                >
-                  <p>{candidateSearchLabel(selectedSearch)}</p>
-                  <PanelReferenceConditions data={data} />
-                </ExplanationPopover>
               </div>
               <dl>
                 <div>
@@ -272,7 +273,7 @@ export function Top10({
               </header>
               <div className="comparison-disc-strip">
                 {baselineDiscs.map((disc) => (
-                  <DevelopmentDiscCard key={disc.id} disc={disc} changed={false} />
+                  <ComparisonDiscResult key={disc.id} disc={disc} baselineLabel={baselineDisplay} />
                 ))}
               </div>
             </section>
@@ -291,7 +292,9 @@ export function Top10({
             <h1 id="top10-title">方案比较</h1>
             <p>比较驱动盘搭配和属性，选择适合的方案保存。</p>
             {!actualBaseline && !baselineAvailable ? (
-              <p className="comparison-heading__subnote">暂无当前实装，可先查看仓库方案。</p>
+              <p className="comparison-heading__subnote">
+                尚无完整六盘比较基准，可先查看仓库方案。
+              </p>
             ) : null}
           </div>
         </div>
@@ -348,7 +351,7 @@ export function Top10({
                     benchmarkOverallReason(selectedBenchmark)))) ? (
                 <span className="comparison-summary-intro__note">
                   {selectedSearch?.rankingMethod === 'prepared_anomaly_settlement'
-                    ? '按同条件单次异常结算排序，不含循环收益。'
+                    ? '同条件下先比较单次异常伤害；伤害相同时参考推荐套装。'
                     : benchmarkScopeNote(selectedBenchmark)}
                 </span>
               ) : null}
@@ -374,31 +377,30 @@ export function Top10({
                   的变化。
                 </span>
               ) : null}
-              <ExplanationPopover
-                key={selectedRow?.rank}
-                label="排序与计算限制"
-                title="方案排序与计算限制"
-                className="comparison-method-popover"
-                onOpenChange={(open) => {
-                  if (open && selectedRow) onComparisonDetailsOpen?.(selectedRow.rank)
-                }}
-              >
-                <div className="comparison-method-popover__content">
-                  {selectedRow && selectedRow.rank > 0 ? comparisonEquipmentControl : null}
-                  <p>{candidateSearchLabel(selectedSearch)}</p>
-                  {selectedBenchmark?.status !== 'supported' && selectedBenchmark ? (
-                    <p>当前输出对比受限或未支持，未假设 0% 收益。</p>
-                  ) : null}
-                  <PanelReferenceConditions data={data} />
-                </div>
-              </ExplanationPopover>
+              {hasComparisonMethodDetails ? (
+                <ExplanationPopover
+                  key={selectedRow?.rank}
+                  label="方案设置"
+                  title="方案设置"
+                  className="comparison-method-popover"
+                  onOpenChange={(open) => {
+                    if (open && selectedRow) onComparisonDetailsOpen?.(selectedRow.rank)
+                  }}
+                >
+                  <div className="comparison-method-popover__content">
+                    {selectedRow && selectedRow.rank > 0 ? comparisonEquipmentControl : null}
+                  </div>
+                </ExplanationPopover>
+              ) : null}
             </div>
             <dl>
               {baselineAvailable ? (
                 <>
                   <div>
                     <dt>相比{baselineDisplay}</dt>
-                    <dd>{benchmarkLabel(selectedBenchmark, Boolean(data.snapshot?.stale))}</dd>
+                    <dd data-impact-tone={selectedImpactTone}>
+                      {benchmarkLabel(selectedBenchmark, Boolean(data.snapshot?.stale))}
+                    </dd>
                   </div>
                   <div>
                     <dt>换盘</dt>
@@ -415,7 +417,9 @@ export function Top10({
             </dl>
             {data.snapshot?.stale && !saving ? (
               <span className="comparison-status" role="status">
-                装备已更新，重新搭配后即可保存。
+                {data.snapshot.staleReason === 'session_unavailable'
+                  ? '本次搭配会话已结束，重新搭配后即可保存。'
+                  : '装备已更新，重新搭配后即可保存。'}
               </span>
             ) : null}
             <strong className="comparison-disc-count">{selectedDiscs?.length ?? 0} / 6</strong>
@@ -435,7 +439,7 @@ export function Top10({
               {saving
                 ? '正在保存…'
                 : selectedRow?.rank === 0 && data.currentLoadout
-                  ? '保留当前实装'
+                  ? '保留当前装备'
                   : (selectedRow?.rank ?? 1) <= 0
                     ? '已保存方案'
                     : '保存为养成方案'}
@@ -452,14 +456,24 @@ export function Top10({
               {saveError}
             </p>
           ) : null}
+          {saveMessage?.key ===
+          `${saveScope}:${selectedRow?.rank ?? 0}:${selectedRow?.discIds?.join('|') ?? ''}` ? (
+            <p className="development-save-success" role="status" aria-live="polite">
+              {saveMessage.message}
+              {saveMessage.savedPlanUrl ? (
+                <a href={saveMessage.savedPlanUrl}>查看已保存方案</a>
+              ) : null}
+            </p>
+          ) : null}
 
           <section className="comparison-evidence" aria-labelledby="comparison-discs-title">
             <div className="comparison-disc-strip">
               {selectedDiscs?.map((disc) => (
-                <DevelopmentDiscCard
+                <ComparisonDiscResult
                   key={disc.id}
                   disc={disc}
-                  changed={baselineAvailable ? baselineBySlot.get(disc.slot) !== disc.id : null}
+                  baseline={baselineAvailable ? baselineBySlot.get(disc.slot) : undefined}
+                  baselineLabel={baselineDisplay}
                 />
               ))}
             </div>
@@ -474,5 +488,11 @@ export function Top10({
         </section>
       </div>
     </section>
+  )
+}
+
+export function Top10(props: Parameters<typeof Top10Content>[0]) {
+  return (
+    <Top10Content key={`${props.data.panelScopeKey ?? ''}:${props.data.agentName}`} {...props} />
   )
 }

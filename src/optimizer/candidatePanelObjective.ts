@@ -14,7 +14,10 @@ import {
   type CandidatePanelPriorityStat,
 } from '../gameDataPacks/candidatePanelPolicy'
 
-export type CandidatePanelInput = Omit<PanelInput, 'discs'> & { specialLevel?: number }
+export type CandidatePanelInput = Omit<PanelInput, 'discs' | 'mindscape'> & {
+  mindscape?: number | null
+  specialLevel?: number
+}
 export const candidatePanelObjectiveVersion =
   'reviewed-initial-hp-and-attack-threshold-priority-r4' as const
 export type CandidatePanelObjective = {
@@ -37,6 +40,14 @@ type ResolvedSetPlan = {
   activeSets: readonly string[]
 }
 
+function panelInputWithKnownMindscape(
+  panelInput: CandidatePanelInput,
+  discs: DriveDisc[],
+): PanelInput | undefined {
+  if (panelInput.mindscape == null) return undefined
+  return { ...panelInput, mindscape: panelInput.mindscape, discs }
+}
+
 export function hasCandidatePanelObjective(agentId: string) {
   return getCandidatePanelPolicy(agentId) !== null || hasContextualAttackTargetPolicy(agentId)
 }
@@ -46,6 +57,7 @@ export function getCandidatePanelObjectiveTarget(
   agentId: string,
   panelInput?: CandidatePanelInput,
 ): CandidatePanelObjectiveTarget | null {
+  if (panelInput?.mindscape === null) return null
   const policy =
     panelInput?.agentId === agentId
       ? getCandidatePanelPolicyForContext(agentId, {
@@ -142,10 +154,12 @@ export function projectCandidatePanelObjective(
   panelInput: CandidatePanelInput,
   discs: DriveDisc[],
 ): CandidatePanelObjective | undefined {
+  const projectionInput = panelInputWithKnownMindscape(panelInput, discs)
+  if (!projectionInput) return undefined
   const panel =
     target.minimumInitialHp === undefined && !target.requiresPreciseInitialStats
-      ? projectOutOfCombatMenuPanel({ ...panelInput, discs })
-      : projectOutOfCombatPanel({ ...panelInput, discs })
+      ? projectOutOfCombatMenuPanel(projectionInput)
+      : projectOutOfCombatPanel(projectionInput)
   if (panel.status !== 'ok') return undefined
   if (target.minimumInitialHp !== undefined) {
     if (!Number.isFinite(panel.values.hp)) return undefined
@@ -186,8 +200,8 @@ export function prepareCandidatePanelObjective(
   const anchorDiscs = [1, 2, 3, 4, 5, 6].flatMap(
     (slot) => eligible.find((disc) => disc.slot === slot) ?? [],
   )
-  const anchor =
-    objectiveTarget && panelInput ? projectPanel({ ...panelInput, discs: anchorDiscs }) : null
+  const anchorInput = panelInput ? panelInputWithKnownMindscape(panelInput, anchorDiscs) : undefined
+  const anchor = objectiveTarget && anchorInput ? projectPanel(anchorInput) : null
   const objectiveEnabled = anchor?.status === 'ok'
   const baseAttack =
     anchor?.trace
@@ -200,10 +214,15 @@ export function prepareCandidatePanelObjective(
   const contributions = new Map<string, { attack: number; priority: number }>()
   if (objectiveEnabled && panelInput) {
     for (const disc of eligible) {
-      const panel = projectPanel({
-        ...panelInput,
-        discs: anchorDiscs.map((item) => (item.slot === disc.slot ? disc : item)),
-      })
+      const projectionInput = panelInputWithKnownMindscape(
+        panelInput,
+        anchorDiscs.map((item) => (item.slot === disc.slot ? disc : item)),
+      )
+      if (!projectionInput) {
+        contributions.clear()
+        break
+      }
+      const panel = projectPanel(projectionInput)
       if (panel.status !== 'ok') {
         contributions.clear()
         break

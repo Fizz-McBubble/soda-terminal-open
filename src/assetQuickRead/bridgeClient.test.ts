@@ -87,21 +87,27 @@ describe('independent asset bridge client', () => {
     await expect(client.start("soda-source-ref:24d5780e541a1a1ad1393e8962be6e18", 'account-synthetic')).rejects.toThrow()
   })
 
-  it.each(['1.0.0', '1.0.1', '1.0.2'])('pairs with supported bridge %s', async (version) => {
-    const fetcher = transport([
-      { body: { ...health, version } },
-      { body: { ...session, version } },
-      { status: 202, body: job },
-    ])
-    const client = new AssetQuickReadBridgeClient(fetcher)
-    await expect(client.connect()).resolves.toMatchObject({ version })
-    await expect(client.start("soda-source-ref:24d5780e541a1a1ad1393e8962be6e18", 'account-synthetic')).resolves.toEqual(job)
-  })
-  it('rejects an unknown bridge version before pairing', async () => {
-    const fetcher = transport([{ body: { ...health, version: '2.0.0' } }])
-    await expect(new AssetQuickReadBridgeClient(fetcher).connect()).rejects.toThrow('版本不兼容')
-    expect(fetcher).toHaveBeenCalledTimes(1)
-  })
+  it.each(['1.0.0', '1.0.1', '1.0.2', '1.1.0', '1.1.1'])(
+    'pairs with supported bridge %s',
+    async (version) => {
+      const fetcher = transport([
+        { body: { ...health, version } },
+        { body: { ...session, version } },
+        { status: 202, body: job },
+      ])
+      const client = new AssetQuickReadBridgeClient(fetcher)
+      await expect(client.connect()).resolves.toMatchObject({ version })
+      await expect(client.start("soda-source-ref:24d5780e541a1a1ad1393e8962be6e18", 'account-synthetic')).resolves.toEqual(job)
+    },
+  )
+  it.each(['1.1.2', '1.1.9', '1.2.0', '2.0.0'])(
+    'rejects unsupported bridge %s before pairing',
+    async (version) => {
+      const fetcher = transport([{ body: { ...health, version } }])
+      await expect(new AssetQuickReadBridgeClient(fetcher).connect()).rejects.toThrow('版本不兼容')
+      expect(fetcher).toHaveBeenCalledTimes(1)
+    },
+  )
   it('rejects an unknown session version without authorizing a capture', async () => {
     const fetcher = transport([
       { body: { ...health, version: '1.0.1' } },

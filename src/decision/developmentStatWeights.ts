@@ -1,6 +1,5 @@
 import type { CoreWarehouse } from '../accounts/coreFlow'
 import type { DriveDisc, StatKey } from '../domain/schemas'
-import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
 import { standardSubstatProbes } from '../calculation/standardSubstatProbe'
 import {
   compareValueBenchmarkSides,
@@ -56,10 +55,7 @@ export function evaluateDevelopmentStatWeights(
   const baseline = evaluateDevelopmentValueBenchmarkSide(input)
   const probes = standardSubstatProbes()
   const reasons: string[] = []
-  const specialty = getCurrentAgentEventContract(input.agentId)?.identity.specialty
   const preparedAnomaly = baseline.coverage?.domain === 'prepared_anomaly_settlement'
-  if (!preparedAnomaly && !['attack', 'armorer', 'rupture'].includes(specialty ?? ''))
-    reasons.push('当前目标尚未提供异常、击破时序或团队功能的词条收益模型。')
   if (input.stale || baseline.state !== 'supported') reasons.push(...baseline.reasons)
   if (!probes.length) reasons.push('缺少 S 级标准副词条增量。')
   try {

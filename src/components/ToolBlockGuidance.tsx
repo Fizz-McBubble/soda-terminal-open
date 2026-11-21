@@ -27,26 +27,51 @@ export function ToolBlockGuidance({
   const isAsset = tool === 'asset_quick_read'
   const isScanner = tool === 'scanner'
 
-  const versionText = isAsset ? (
-    <p className="tool-block-guidance__versions">
-      当前官方下载：资产快读 {assetQuickReadRelease.version}（
-      <code>{assetQuickReadRelease.fileName}</code>
-      ）。请核对实际下载文件的版本；本页显示的版本不会改变已经下载的旧文件。
-    </p>
-  ) : isScanner ? (
-    <p className="tool-block-guidance__versions">
+  const isScannerPublished = scannerDistributionManifest.runtime.releaseState === 'published'
+  const isAssetPublished = Boolean(assetQuickReadRelease.available)
+
+  const scannerVersionDesc = isScannerPublished ? (
+    <>
       当前官方下载：画面扫描 {scannerDistributionManifest.helper.installerVersion}（
-      <code>{scannerDistributionManifest.helper.entry}</code>
-      ）。请核对实际下载文件的版本；本页显示的版本不会改变已经下载的旧文件。
-    </p>
+      <code>{scannerDistributionManifest.helper.entry}</code>）
+    </>
   ) : (
-    <p className="tool-block-guidance__versions">
-      当前下载：资产快读 {assetQuickReadRelease.version}（
-      <code>{assetQuickReadRelease.fileName}</code>）；画面扫描{' '}
-      {scannerDistributionManifest.helper.installerVersion}（
-      <code>{scannerDistributionManifest.helper.entry}</code>
-      ）。请核对实际下载文件的版本；本页显示的版本不会改变已经下载的旧文件。
-    </p>
+    <>画面扫描 {scannerDistributionManifest.helper.installerVersion} 尚未提供下载</>
+  )
+
+  const assetVersionDesc = isAssetPublished ? (
+    <>
+      当前官方下载：资产快读 {assetQuickReadRelease.version}（
+      <code>{assetQuickReadRelease.fileName}</code>）
+    </>
+  ) : (
+    <>资产快读 {assetQuickReadRelease.version} 尚未提供下载</>
+  )
+
+  const isAssetCn32Only =
+    isAssetPublished &&
+    assetQuickReadRelease.version === '1.2.0' &&
+    assetQuickReadRelease.bridgeVersion === '1.1.0'
+
+  const versionText = (
+    <>
+      {isAsset ? (
+        <p className="tool-block-guidance__versions">{assetVersionDesc}。</p>
+      ) : isScanner ? (
+        <p className="tool-block-guidance__versions">{scannerVersionDesc}。</p>
+      ) : (
+        <p className="tool-block-guidance__versions">
+          {assetVersionDesc}；{scannerVersionDesc}。
+        </p>
+      )}
+      {!isScanner && isAssetCn32Only && (
+        <p className="tool-block-guidance__versions">
+          当前公开资产快读（{assetQuickReadRelease.version} / Bridge{' '}
+          {assetQuickReadRelease.bridgeVersion}）仅支持国服 3.2；国服 3.3
+          客户端读取需等待新版发布，旧读取结果仍可查看与恢复。
+        </p>
+      )}
+    </>
   )
 
   const content = (

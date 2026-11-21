@@ -2534,6 +2534,56 @@
       "cacheStatus": "not_cached",
       "licenseStatus": "reference_only",
       "note": "已核验远程原始响应及精确实体身份；仅显式个人缓存，不授权游戏图片再分发。"
+    },
+    {
+      "stableId": "agent-phoenix",
+      "playerName": "菲欧妮",
+      "sourceUrl": "https://zzz.gachabase.net/agents/1641/phoenix/release?lang=en",
+      "releaseState": "candidate",
+      "mediaStatus": "available_not_cached",
+      "cacheStatus": "not_cached",
+      "licenseStatus": "reference_only",
+      "note": "官方 full_body 与 Gachabase 精确实体 512x512 square icon 分别登记；社区图只允许个人缓存，不证明再分发许可。"
+    },
+    {
+      "stableId": "wengine-14164",
+      "playerName": "涅槃初翎",
+      "sourceUrl": "https://zzz.gachabase.net/w-engines/14164/plume-of-rebirth/release?lang=en",
+      "releaseState": "candidate",
+      "mediaStatus": "available_not_cached",
+      "cacheStatus": "not_cached",
+      "licenseStatus": "reference_only",
+      "note": "已核验精确实体 70x78 catalog icon；社区镜像只允许个人缓存，不授权再分发。"
+    },
+    {
+      "stableId": "wengine-13022",
+      "playerName": "烛光诡计",
+      "sourceUrl": "https://zzz.gachabase.net/w-engines/13022/candlelit-scheme/release?lang=en",
+      "releaseState": "candidate",
+      "mediaStatus": "available_not_cached",
+      "cacheStatus": "not_cached",
+      "licenseStatus": "reference_only",
+      "note": "已核验精确实体 75x76 catalog icon；社区镜像只允许个人缓存，不授权再分发。"
+    },
+    {
+      "stableId": "agent-severian",
+      "playerName": "赛维里安",
+      "sourceUrl": "https://zzz.gachabase.net/agents/1631/severian/release?lang=en",
+      "releaseState": "candidate",
+      "mediaStatus": "available_not_cached",
+      "cacheStatus": "not_cached",
+      "licenseStatus": "reference_only",
+      "note": "官方 full_body 与 Gachabase 精确实体 512x512 square icon 分别登记；社区图只允许个人缓存，不证明再分发许可。"
+    },
+    {
+      "stableId": "wengine-14163",
+      "playerName": "禁罪囚笼",
+      "sourceUrl": "https://zzz.gachabase.net/w-engines/14163/incarcerating-grip/release?lang=en",
+      "releaseState": "candidate",
+      "mediaStatus": "available_not_cached",
+      "cacheStatus": "not_cached",
+      "licenseStatus": "reference_only",
+      "note": "已核验精确实体 78x76 catalog icon；社区镜像只允许个人缓存，不授权再分发。"
     }
   ]
 }

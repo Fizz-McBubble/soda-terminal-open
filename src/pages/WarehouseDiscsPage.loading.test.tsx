@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { render, screen, fireEvent, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import * as decisionWorld from '../application/accountDecisionWorld'
@@ -6,9 +6,13 @@ import { createEmptyRoster } from '../assault/catalog'
 import { sampleDiscs } from '../evaluation/fixtures'
 import { WarehouseDiscsPage } from './WarehouseDiscsPage'
 import { choosePlayerSelect } from '../testing/choosePlayerSelect'
+import { clearCatalogBrowseContexts } from '../components/assets/r6/useCatalogBrowseState'
+import type { AccountPlanningDraft } from '../accounts/types'
 
 function input(count = 80) {
   return {
+    drafts: [] as AccountPlanningDraft[],
+    activePlanIds: {},
     warehouse: {
       accountId: 'pending-account',
       account: { id: 'pending-account' },
@@ -16,6 +20,7 @@ function input(count = 80) {
       discs: Array.from({ length: count }, (_, index) => ({
         ...sampleDiscs.treasureCandidate,
         id: `pending-${index}`,
+        rarity: 'S' as const,
         slot: index % 2 ? 5 : 4,
         level: index % 2 ? 15 : 0,
       })),
@@ -23,7 +28,125 @@ function input(count = 80) {
   }
 }
 afterEach(() => vi.restoreAllMocks())
+beforeEach(clearCatalogBrowseContexts)
 describe('warehouse factual inventory before analysis', () => {
+  it('links the exact saved team associated with the incoming disc before analysis completes', () => {
+    const liveInput = input(2)
+    const plan: AccountPlanningDraft = {
+      scopedId: 'pending-account:saved-team',
+      accountId: 'pending-account',
+      id: 'saved-team',
+      kind: 'team',
+      name: '仓库直达保存队伍',
+      state: 'saved',
+      selection: {
+        agentIds: ['agent-miyabi', 'agent-lucy', 'agent-vivian'],
+        bangbooId: null,
+        scenario: '',
+      },
+      manualOverrides: {
+        wEngineDirection: '',
+        discDirection: '',
+        progressionDirection: '',
+        notes: '',
+      },
+      warehouseRefs: ['pending-1'],
+      knowledgeRefs: [],
+      comparisonCapability: 'direction',
+      createdAt: '2026-11-21T00:00:00Z',
+      updatedAt: '2026-11-21T00:00:00Z',
+      revision: 1,
+    }
+    liveInput.drafts.push(plan, { ...plan, id: 'instead', warehouseRefs: ['pending-0'] })
+    vi.spyOn(decisionWorld, 'useAccountDecisionWorld').mockReturnValue({
+      status: 'loading',
+      liveInput,
+      refresh: vi.fn(),
+    } as never)
+    render(
+      <MemoryRouter
+        initialEntries={['/warehouse/discs?account=pending-account&selected=pending-1']}
+      >
+        <WarehouseDiscsPage />
+      </MemoryRouter>,
+    )
+    const trigger = screen.getByRole('button', { name: '1 个关联方案' })
+    const dialog = document.getElementById(trigger.getAttribute('popovertarget')!)!
+    expect(dialog).toHaveAttribute('role', 'dialog')
+    const links = within(dialog).getAllByRole('link', { hidden: true })
+    expect(links).toHaveLength(1)
+    expect(links[0]).toHaveAttribute('href', '/loadouts/plans/saved-team')
+  })
+
+  it('restores the account browse context after leaving, isolates other accounts and honors an explicit incoming disc', async () => {
+    const a = input()
+    a.warehouse.discs[3]!.level = 6
+    const before = JSON.stringify(a)
+    const spy = vi.spyOn(decisionWorld, 'useAccountDecisionWorld').mockReturnValue({
+      status: 'loading',
+      run: null,
+      liveInput: a,
+      refresh: vi.fn(),
+    } as never)
+    const mount = (path = '/warehouse/discs') =>
+      render(
+        <MemoryRouter initialEntries={[path]}>
+          <WarehouseDiscsPage />
+        </MemoryRouter>,
+      )
+    let view = mount()
+    await choosePlayerSelect(screen.getByRole('combobox', { name: '号位' }), '5')
+    const selected = document.querySelectorAll<HTMLButtonElement>('.warehouse-pending-row')[7]!
+    const selectedLabel = selected.getAttribute('aria-label')
+    fireEvent.click(selected)
+    fireEvent.scroll(document.querySelector('.warehouse-action-list__body')!, {
+      target: { scrollTop: 600 },
+    })
+    view.unmount()
+    view = mount()
+    expect(screen.getByRole('combobox', { name: '号位' })).toHaveValue('5')
+    expect(document.querySelector('.warehouse-pending-row[aria-pressed="true"]')).toHaveAttribute(
+      'aria-label',
+      selectedLabel,
+    )
+    expect(document.querySelector('.warehouse-action-list__body')!.scrollTop).toBe(600)
+    view.unmount()
+    const b = {
+      warehouse: { ...a.warehouse, accountId: 'other-account', account: { id: 'other-account' } },
+    }
+    spy.mockReturnValue({ status: 'loading', run: null, liveInput: b, refresh: vi.fn() } as never)
+    view = mount()
+    expect(screen.getByRole('combobox', { name: '号位' })).toHaveValue('')
+    expect(document.querySelector('.warehouse-action-list__body')!.scrollTop).toBe(0)
+    view.unmount()
+    spy.mockReturnValue({ status: 'loading', run: null, liveInput: a, refresh: vi.fn() } as never)
+    mount('/warehouse/discs?account=pending-account&selected=pending-3')
+    expect(screen.getByRole('combobox', { name: '号位' })).toHaveValue('5')
+    expect(document.querySelector('.warehouse-pending-detail')).toHaveTextContent('强化等级 +6')
+    expect(JSON.stringify(a)).toBe(before)
+  })
+
+  it('shows active filter chips and clears only the requested condition', async () => {
+    vi.spyOn(decisionWorld, 'useAccountDecisionWorld').mockReturnValue({
+      status: 'loading',
+      run: null,
+      liveInput: input(),
+      refresh: vi.fn(),
+    } as never)
+    render(
+      <MemoryRouter>
+        <WarehouseDiscsPage />
+      </MemoryRouter>,
+    )
+    await choosePlayerSelect(screen.getByRole('combobox', { name: '号位' }), '5')
+    await choosePlayerSelect(screen.getByRole('combobox', { name: '等级/强化' }), '15')
+    expect(screen.getByRole('group', { name: '已启用的更多筛选' })).toHaveTextContent(
+      '强化等级 +15',
+    )
+    fireEvent.click(screen.getByRole('button', { name: '取消强化等级 +15 筛选' }))
+    expect(screen.getByRole('combobox', { name: '号位' })).toHaveValue('5')
+    expect(screen.queryByRole('group', { name: '已启用的更多筛选' })).not.toBeInTheDocument()
+  })
   it('shows bounded actual records and disabled unknown classifications; preserves filters and selection when results arrive', async () => {
     const liveInput = input()
     const refresh = vi.fn()
@@ -41,7 +164,7 @@ describe('warehouse factual inventory before analysis', () => {
         <WarehouseDiscsPage />
       </MemoryRouter>,
     )
-    expect(screen.getByText('已读取 80 张驱动盘，建议待分析。')).toBeInTheDocument()
+    expect(screen.getByText('已读取 80 张 S 级驱动盘，建议待分析')).toBeInTheDocument()
     expect(document.querySelectorAll('.warehouse-pending-row')).toHaveLength(36)
     const summary = screen.getByRole('group', { name: '驱动盘建议' })
     expect(within(summary).getAllByText('待分析')).toHaveLength(3)

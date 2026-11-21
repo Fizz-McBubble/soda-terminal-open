@@ -280,8 +280,8 @@
     }
   ],
   "optimizerSourceSha256": "d5f54389a3b972dccb4d2d57134a42e1675ae1839fe2a3482c2dd4b1c60d8748",
-  "producerSourceSha256": "a9e1a9ab568058f33fd20a80e9e720138567a90214262341d4520c184daf73ad",
-  "evidenceSourceSha256": "0d9e6d09bb0a544ba325b33389701d474181810acd6b80708c6244b229f568e5",
+  "producerSourceSha256": "64314ed12eb0dd88c9a55afc639e176343d521548eba07037aa251e68db77859",
+  "evidenceSourceSha256": "2b68284e6e5c55b3a7cc211bc77b269eb7ba2f2f6a26f909fcd1d28c7012f8b0",
   "evidencePolicy": {
     "version": "all-shared-two-observed-pairs-primary-embargo/v2",
     "selection": "same-source-partition-positive-limited-S-M0-means-exactly-two-shared-members",
@@ -290,8 +290,8 @@
     "bangboo": "source-string-equality-stratum-only-not-a-controlled-build-claim"
   },
   "pairMembershipSha256": "5f696aac7934607a4be8a8f69ff0fbf7e9235a17761d485dfce6c5235e303c7f",
-  "mechanicDataFingerprint": "fnv1a-589b4ebf",
-  "referenceConditionsIdentity": "fnv1a-af6c787e",
+  "mechanicDataFingerprint": "fnv1a-f4174bc",
+  "referenceConditionsIdentity": "fnv1a-dceeb45",
   "featureNames": [
     "direct_action_scale",
     "anomaly_action_buildup",
@@ -366,7 +366,7 @@
   ],
   "diagnosticBaseline": {
     "kind": "historical-label-directional-ridge",
-    "contentHash": "fnv1a-f22e11fd",
+    "contentHash": "fnv1a-c75cd935",
     "trainingCount": 105
   },
   "target": "all-same-partition-limited-S-M0-aggregate-shared-two-member-replacements-observed-direction/v3",
@@ -394,89 +394,89 @@
       "folds": 7,
       "pairs": 5584,
       "decisivePairs": 5583,
-      "correct": 3309,
-      "accuracy": 0.5926921010209565,
-      "baselineCorrect": 3094,
-      "baselineAccuracy": 0.554182339244134,
-      "modelTies": 24,
+      "correct": 3394,
+      "accuracy": 0.6079168905606305,
+      "baselineCorrect": 3079,
+      "baselineAccuracy": 0.5514956116783092,
+      "modelTies": 8,
       "byPartition": [
         {
           "partition": "3.2.3:shiyu_defense:5-1",
           "pairs": 1167,
-          "correct": 668,
-          "baselineCorrect": 662
+          "correct": 699,
+          "baselineCorrect": 667
         },
         {
           "partition": "3.2.3:shiyu_defense:5-2",
           "pairs": 617,
-          "correct": 363,
-          "baselineCorrect": 330
+          "correct": 388,
+          "baselineCorrect": 344
         },
         {
           "partition": "3.2.3:shiyu_defense:5-3",
           "pairs": 1164,
-          "correct": 677,
-          "baselineCorrect": 633
+          "correct": 666,
+          "baselineCorrect": 626
         },
         {
           "partition": "3.2.3:deadly_assault:1-1",
           "pairs": 564,
-          "correct": 333,
-          "baselineCorrect": 296
+          "correct": 339,
+          "baselineCorrect": 310
         },
         {
           "partition": "3.2.3:deadly_assault:1-2",
           "pairs": 1049,
-          "correct": 608,
-          "baselineCorrect": 573
+          "correct": 636,
+          "baselineCorrect": 547
         },
         {
           "partition": "3.2.3:deadly_assault:1-3",
           "pairs": 853,
-          "correct": 544,
-          "baselineCorrect": 501
+          "correct": 552,
+          "baselineCorrect": 483
         },
         {
           "partition": "3.2.3:deadly_assault:2-1",
           "pairs": 169,
-          "correct": 116,
-          "baselineCorrect": 99
+          "correct": 114,
+          "baselineCorrect": 102
         }
       ],
       "byReplacement": [
         {
           "stratum": "changed_primary",
           "decisivePairs": 2176,
-          "correct": 1281,
-          "accuracy": 0.5886948529411765,
-          "baselineCorrect": 1202,
-          "baselineAccuracy": 0.5523897058823529
+          "correct": 1285,
+          "accuracy": 0.5905330882352942,
+          "baselineCorrect": 1195,
+          "baselineAccuracy": 0.5491727941176471
         },
         {
           "stratum": "same_primary",
           "decisivePairs": 3407,
-          "correct": 2028,
-          "accuracy": 0.5952450836513061,
-          "baselineCorrect": 1892,
-          "baselineAccuracy": 0.5553272673906663
+          "correct": 2109,
+          "accuracy": 0.6190196653947755,
+          "baselineCorrect": 1884,
+          "baselineAccuracy": 0.5529791605518051
         }
       ],
       "byBangboo": [
         {
           "stratum": "different_source_bangboo",
           "decisivePairs": 2959,
-          "correct": 1694,
-          "accuracy": 0.5724907063197026,
-          "baselineCorrect": 1631,
-          "baselineAccuracy": 0.5511997296383914
+          "correct": 1751,
+          "accuracy": 0.591753970936127,
+          "baselineCorrect": 1629,
+          "baselineAccuracy": 0.5505238256167624
         },
         {
           "stratum": "same_source_bangboo",
           "decisivePairs": 2624,
-          "correct": 1615,
-          "accuracy": 0.6154725609756098,
-          "baselineCorrect": 1463,
-          "baselineAccuracy": 0.557545731707317
+          "correct": 1643,
+          "accuracy": 0.6261432926829268,
+          "baselineCorrect": 1450,
+          "baselineAccuracy": 0.5525914634146342
         }
       ]
     },
@@ -484,89 +484,89 @@
       "folds": 209,
       "pairs": 5584,
       "decisivePairs": 5583,
-      "correct": 3254,
-      "accuracy": 0.5828407666129322,
-      "baselineCorrect": 3094,
-      "baselineAccuracy": 0.554182339244134,
-      "modelTies": 55,
+      "correct": 3356,
+      "accuracy": 0.601110514060541,
+      "baselineCorrect": 3079,
+      "baselineAccuracy": 0.5514956116783092,
+      "modelTies": 0,
       "byPartition": [
         {
           "partition": "3.2.3:shiyu_defense:5-1",
           "pairs": 1167,
-          "correct": 663,
-          "baselineCorrect": 662
+          "correct": 702,
+          "baselineCorrect": 667
         },
         {
           "partition": "3.2.3:shiyu_defense:5-2",
           "pairs": 617,
-          "correct": 343,
-          "baselineCorrect": 330
+          "correct": 365,
+          "baselineCorrect": 344
         },
         {
           "partition": "3.2.3:shiyu_defense:5-3",
           "pairs": 1164,
-          "correct": 683,
-          "baselineCorrect": 633
+          "correct": 686,
+          "baselineCorrect": 626
         },
         {
           "partition": "3.2.3:deadly_assault:1-1",
           "pairs": 564,
-          "correct": 344,
-          "baselineCorrect": 296
+          "correct": 340,
+          "baselineCorrect": 310
         },
         {
           "partition": "3.2.3:deadly_assault:1-2",
           "pairs": 1049,
-          "correct": 584,
-          "baselineCorrect": 573
+          "correct": 613,
+          "baselineCorrect": 547
         },
         {
           "partition": "3.2.3:deadly_assault:1-3",
           "pairs": 853,
-          "correct": 523,
-          "baselineCorrect": 501
+          "correct": 538,
+          "baselineCorrect": 483
         },
         {
           "partition": "3.2.3:deadly_assault:2-1",
           "pairs": 169,
-          "correct": 114,
-          "baselineCorrect": 99
+          "correct": 112,
+          "baselineCorrect": 102
         }
       ],
       "byReplacement": [
         {
           "stratum": "changed_primary",
           "decisivePairs": 2176,
-          "correct": 1233,
-          "accuracy": 0.5666360294117647,
-          "baselineCorrect": 1202,
-          "baselineAccuracy": 0.5523897058823529
+          "correct": 1243,
+          "accuracy": 0.5712316176470589,
+          "baselineCorrect": 1195,
+          "baselineAccuracy": 0.5491727941176471
         },
         {
           "stratum": "same_primary",
           "decisivePairs": 3407,
-          "correct": 2021,
-          "accuracy": 0.5931904901673026,
-          "baselineCorrect": 1892,
-          "baselineAccuracy": 0.5553272673906663
+          "correct": 2113,
+          "accuracy": 0.620193718814206,
+          "baselineCorrect": 1884,
+          "baselineAccuracy": 0.5529791605518051
         }
       ],
       "byBangboo": [
         {
           "stratum": "different_source_bangboo",
           "decisivePairs": 2959,
-          "correct": 1676,
-          "accuracy": 0.5664075701250423,
-          "baselineCorrect": 1631,
-          "baselineAccuracy": 0.5511997296383914
+          "correct": 1752,
+          "accuracy": 0.5920919229469416,
+          "baselineCorrect": 1629,
+          "baselineAccuracy": 0.5505238256167624
         },
         {
           "stratum": "same_source_bangboo",
           "decisivePairs": 2624,
-          "correct": 1578,
-          "accuracy": 0.6013719512195121,
-          "baselineCorrect": 1463,
-          "baselineAccuracy": 0.557545731707317
+          "correct": 1604,
+          "accuracy": 0.6112804878048781,
+          "baselineCorrect": 1450,
+          "baselineAccuracy": 0.5525914634146342
         }
       ]
     },
@@ -574,89 +574,89 @@
       "folds": 7,
       "pairs": 5584,
       "decisivePairs": 5583,
-      "correct": 3244,
-      "accuracy": 0.5810496149023823,
-      "baselineCorrect": 3094,
-      "baselineAccuracy": 0.554182339244134,
-      "modelTies": 65,
+      "correct": 3337,
+      "accuracy": 0.5977073258104961,
+      "baselineCorrect": 3079,
+      "baselineAccuracy": 0.5514956116783092,
+      "modelTies": 14,
       "byPartition": [
         {
           "partition": "3.2.3:shiyu_defense:5-1",
           "pairs": 1167,
-          "correct": 689,
-          "baselineCorrect": 662
+          "correct": 705,
+          "baselineCorrect": 667
         },
         {
           "partition": "3.2.3:shiyu_defense:5-2",
           "pairs": 617,
-          "correct": 374,
-          "baselineCorrect": 330
+          "correct": 388,
+          "baselineCorrect": 344
         },
         {
           "partition": "3.2.3:shiyu_defense:5-3",
           "pairs": 1164,
-          "correct": 649,
-          "baselineCorrect": 633
+          "correct": 635,
+          "baselineCorrect": 626
         },
         {
           "partition": "3.2.3:deadly_assault:1-1",
           "pairs": 564,
-          "correct": 329,
-          "baselineCorrect": 296
+          "correct": 332,
+          "baselineCorrect": 310
         },
         {
           "partition": "3.2.3:deadly_assault:1-2",
           "pairs": 1049,
-          "correct": 615,
-          "baselineCorrect": 573
+          "correct": 645,
+          "baselineCorrect": 547
         },
         {
           "partition": "3.2.3:deadly_assault:1-3",
           "pairs": 853,
-          "correct": 488,
-          "baselineCorrect": 501
+          "correct": 531,
+          "baselineCorrect": 483
         },
         {
           "partition": "3.2.3:deadly_assault:2-1",
           "pairs": 169,
-          "correct": 100,
-          "baselineCorrect": 99
+          "correct": 101,
+          "baselineCorrect": 102
         }
       ],
       "byReplacement": [
         {
           "stratum": "changed_primary",
           "decisivePairs": 2176,
-          "correct": 1145,
-          "accuracy": 0.5261948529411765,
-          "baselineCorrect": 1202,
-          "baselineAccuracy": 0.5523897058823529
+          "correct": 1191,
+          "accuracy": 0.5473345588235294,
+          "baselineCorrect": 1195,
+          "baselineAccuracy": 0.5491727941176471
         },
         {
           "stratum": "same_primary",
           "decisivePairs": 3407,
-          "correct": 2099,
-          "accuracy": 0.616084531846199,
-          "baselineCorrect": 1892,
-          "baselineAccuracy": 0.5553272673906663
+          "correct": 2146,
+          "accuracy": 0.6298796595245084,
+          "baselineCorrect": 1884,
+          "baselineAccuracy": 0.5529791605518051
         }
       ],
       "byBangboo": [
         {
           "stratum": "different_source_bangboo",
           "decisivePairs": 2959,
-          "correct": 1641,
-          "accuracy": 0.5545792497465359,
-          "baselineCorrect": 1631,
-          "baselineAccuracy": 0.5511997296383914
+          "correct": 1704,
+          "accuracy": 0.5758702264278472,
+          "baselineCorrect": 1629,
+          "baselineAccuracy": 0.5505238256167624
         },
         {
           "stratum": "same_source_bangboo",
           "decisivePairs": 2624,
-          "correct": 1603,
-          "accuracy": 0.6108993902439024,
-          "baselineCorrect": 1463,
-          "baselineAccuracy": 0.557545731707317
+          "correct": 1633,
+          "accuracy": 0.6223323170731707,
+          "baselineCorrect": 1450,
+          "baselineAccuracy": 0.5525914634146342
         }
       ]
     }
@@ -664,14 +664,14 @@
   "model": {
     "method": "partition-balanced-monotone-pairwise-logistic/v1",
     "scales": [
-      1.6969610548262006, 0.7382456714338377, 0.17115838040717807,
-      0.9698689422540049, 2.9602775483131385, 0.24426980665944023,
+      1.6704669735915152, 0.7335013807985059, 0.17105237668447115,
+      0.9276404874509142, 2.9602775483131385, 0.24426980665944023,
       0.07132299249079747, 0.4412412383965808, 0.3865741415829107,
       0.12332463735337426, 0.040651337842920444, 0.354431155542232,
       0.306442376202826, 0.33501525463706744, 0.37417474784551735,
-      0.39282753160859324, 0.43047498483955526, 0.30204521576821497,
-      0.031528219900562315, 0.39236395748033315, 3.1790910369759944,
-      0.5370256743879308, 1, 2.130596639501326, 0.7553307435742879,
+      0.43784080789636987, 0.44978407941146004, 0.29957544307065115,
+      0.031528219900562315, 0.39236395748033315, 3.1725507423476214,
+      0.48032530059295897, 1, 2.1181847853702824, 0.7592061130261519,
       1.3386362150760647, 1, 1, 0.15695708788753143, 0.047955030792963475,
       0.013777088790264718, 0.09597482990476364, 0.0038760646213895932,
       0.009039384523234956, 0.5603902892397205, 0.38490255159861075,
@@ -679,25 +679,24 @@
       0.14190337977636808, 0.031373566293326154, 0.2022654536894077, 1,
       0.21551869878042554, 0.07887757611611154, 0.07887757611611154,
       0.06953459287226292, 0.18495218364509616, 0.23378485473923055, 1, 1,
-      0.4862879013201413, 2.2692463040508213, 0.18104970771989112,
-      0.15615463765034174, 0.3987823046909668, 0.22925239666486452,
-      0.16158830649133796, 1, 0.05920997654978432, 0.014118104831996764,
-      0.04329077818815494, 0.5820583191350513, 0.05920997654978432,
-      0.3749706117088245, 0.4583651538143512, 0.05912120307286448, 1,
-      0.30651054304116115
+      1.61090276411877, 2.3364849620949992, 0.1822657682193422,
+      0.12594977312057792, 0.3987823046909668, 0.22925239666486452,
+      0.2085199134175059, 1, 0.05920997654978432, 1, 1, 0.5820583191350513,
+      0.05920997654978432, 0.3749706117088245, 0.4583651538143512,
+      0.05912120307286448, 1, 0.25874135706138573
     ],
     "coefficients": [
-      0, 0.008085480797735514, 0.005353040119035062, 0.051981182400793885, 0,
-      -0.11847851423253428, -0.1442444832006648, 0.04595599323243327,
-      -0.1025955318682114, -0.047156409790853934, 0, -0.03852629782504039, 0,
-      0.020174041998726456, 0, 0.04491956653644066, 0, 0, 0,
-      0.13825536927181487, 0, 0, 0, 0, 0, 0.012830453454980323, 0, 0,
-      0.03543366975275803, 0.04384354383512073, 0, 0.1324213960038438,
-      0.15572253762268806, 0, 0, 0.17654085112349813, 0, 0,
-      0.021540622357248487, 0, 0.07810038635620535, 0.002231051272439177, 0, 0,
-      0, 0, 0, 0.08694693375826841, 0, 0, 0, 0, 0, 0.06487744040753403, 0,
-      0.028398230930159092, 0.17094512212511545, 0.326435276410139, 0, 0, 0,
-      0.002227569406263884, 0, 0, 0, 0, 0, 0, 0, 0
+      0, 0.01341347643260303, 0.0021536391771812477, 0.04977182170533379, 0,
+      -0.11589754349599328, -0.13884935961423045, 0.047070409525028147,
+      -0.09078453119855284, -0.048571249675626274, 0, -0.036633018209338515, 0,
+      0.015062285042315557, 0, 0.09840175816944204, 0, 0, 0, 0.138385172199236,
+      0.007128039000299871, 0, 0, 0, 0, 0.012337335427013853, 0, 0,
+      0.03336620568390524, 0.04613833279498472, 0, 0.13191190373617204,
+      0.15114997963345547, 0, 0, 0.19248647425097773, 0, 0,
+      0.023528113457852686, 0, 0.08004257214380656, 0, 0, 0, 0, 0, 0,
+      0.08708415036703226, 0, 0, 0, 0, 0, 0.03143979676315797, 0,
+      0.042607164090994555, 0.17002731064593873, 0.3316441946269689,
+      0.01053831993645492, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.03757877114615462
     ],
     "directions": [
       1, 1, 1, 1, 1, 0, -1, 0, 0, -1, -1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
@@ -707,11 +706,11 @@
     "lambda": 0.09523809523809523,
     "samplePairs": 5584,
     "partitions": 7,
-    "iterations": 12,
-    "objective": 0.649853465869231
+    "iterations": 16,
+    "objective": 0.6486388382511261
   },
   "runtimeStrengthAuthority": false,
   "currentIndependentAccuracy": false,
   "boundary": "Observed Limited-S-M0 aggregate preference only; Standard-S and A-rank Mindscapes are unrestricted. Player/build/potential differences remain uncontrolled; correlated pairs are not independent samples. No generic S/A/B tier, DPS, pull value or default ranking authority.",
-  "contentHash": "fnv1a-bb757322"
+  "contentHash": "fnv1a-7e6cee5d"
 }

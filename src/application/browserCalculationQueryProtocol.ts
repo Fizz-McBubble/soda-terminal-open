@@ -6,16 +6,24 @@ import type {
   DecisionPortfolioQuery,
   DevelopmentCandidateAlternativesQuery,
   DevelopmentWorkbenchRouteQuery,
+  DevelopmentWorkbenchFactsQuery,
+  DevelopmentDirectoryFactsQuery,
   SavedTeamPlanReplayQuery,
   SavedTeamSolutionComponentsQuery,
   TargetTeamWarehouseFitQuery,
   TeamOverviewPresentationQuery,
   TeamRoutePresentationQuery,
   WarehouseDiscTransitionUsesQuery,
+  WarehouseActionsQuery,
 } from './calculationQueryContract'
 import type { CurrentGameDataRuntimeSelection } from '../gameDataPacks/runtimeSelection'
+import type {
+  OpenPersonalDevelopmentQuery,
+  PersonalDevelopmentCandidatesQuery,
+  PersonalDevelopmentRouteQuery,
+} from './publicPersonalDevelopment'
 
-export const browserCalculationQueryProtocolVersion = 'soda-browser-calculation-query/v6' as const
+export const browserCalculationQueryProtocolVersion = 'soda-browser-calculation-query/v8' as const
 
 export type BrowserCalculationQuery =
   | CommonAnomalySettlement32Query
@@ -30,7 +38,13 @@ export type BrowserCalculationQuery =
   | SavedTeamSolutionComponentsQuery
   | DevelopmentCandidateAlternativesQuery
   | DevelopmentWorkbenchRouteQuery
+  | DevelopmentWorkbenchFactsQuery
+  | DevelopmentDirectoryFactsQuery
+  | OpenPersonalDevelopmentQuery
+  | PersonalDevelopmentCandidatesQuery
+  | PersonalDevelopmentRouteQuery
   | WarehouseDiscTransitionUsesQuery
+  | WarehouseActionsQuery
 
 export type BrowserCalculationQueryRequest =
   | {
@@ -39,12 +53,17 @@ export type BrowserCalculationQueryRequest =
       requestId: number
       runtime: Extract<CurrentGameDataRuntimeSelection, { status: 'compiled_current' }>
       query: BrowserCalculationQuery
-      resultProjection?: 'local'
+      resultProjection?: 'local' | 'public-development'
     }
   | {
       protocolVersion: typeof browserCalculationQueryProtocolVersion
       kind: 'release'
       runId: string
+    }
+  | {
+      protocolVersion: typeof browserCalculationQueryProtocolVersion
+      kind: 'release_personal'
+      sessionId: string
     }
 
 export type BrowserCalculationQueryResponse = {

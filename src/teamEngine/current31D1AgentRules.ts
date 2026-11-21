@@ -1,4 +1,6 @@
+import { current33D1AgentRules } from './current33D1AgentRules'
 import type { AgentRule } from './contracts'
+
 import {
   zhuYuanGuide,
   qingyiGuide,
@@ -462,4 +464,5 @@ export const d1AgentRules: AgentRule[] = [
     },
     evidence: [normaTeamGuide, ultraJakeGuide],
   },
+  ...current33D1AgentRules,
 ]

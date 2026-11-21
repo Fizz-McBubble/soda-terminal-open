@@ -2,7 +2,7 @@ import { currentAssetProjection } from '../gameDataPacks/currentAssetProjection'
 import { current31AgentRuleReadiness } from './current31AgentRuleReadiness'
 import { current31TeamEngineD1Pack } from './current31D1Pack'
 import { current31LegalCandidateUniverse } from './current31LegalCandidateUniverse'
-import { current31FormationMechanicAudit } from './current31FormationMechanicAudit'
+import { auditCurrent31FormationMechanics } from './current31FormationMechanicAudit'
 import { currentPlanningContextBlueprintAudit } from '../calculation/currentPlanningContextBlueprintAudit'
 import { currentNormalizedDecisionScoreAudit } from '../calculation/currentNormalizedPlanningBaseline'
 
@@ -14,6 +14,7 @@ const releasedAgentIds = currentAssetProjection.agents
 const executableRuleIds = [...current31AgentRuleReadiness.recommendationExecutableAgentIds]
 
 const executableRuleSet = new Set(executableRuleIds)
+let formationMechanicAudit: ReturnType<typeof auditCurrent31FormationMechanics> | undefined
 const representedAgentIds = [
   ...new Set(
     current31TeamEngineD1Pack.kernels.flatMap((kernel) => [
@@ -67,7 +68,9 @@ export const current31CandidateUniverseAudit = {
   candidateUniverseStatus: 'complete_normalized_identity_score_universe',
   legalUniverse: current31LegalCandidateUniverse.legality,
   numericOperandCoverage: current31LegalCandidateUniverse.numericOperandCoverage,
-  formationMechanicAudit: current31FormationMechanicAudit,
+  get formationMechanicAudit() {
+    return (formationMechanicAudit ??= auditCurrent31FormationMechanics())
+  },
   planningContextBlueprintAudit: currentPlanningContextBlueprintAudit,
   normalizedDecisionScoreAudit: currentNormalizedDecisionScoreAudit,
   decisionScoreCoverage: {

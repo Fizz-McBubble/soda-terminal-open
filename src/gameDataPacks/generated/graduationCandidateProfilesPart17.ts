@@ -9,14 +9,14 @@ export const graduationCandidateProfilesPart17 = [
     agentId: 'agent-anby',
     playerName: '安比',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '1.0',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F3',
     objectiveTopology: 'O4',
     configHash: '767725ce15639e8055bf10d159eb07f7f55a7c768de305203cb4e9a892570acd',
-    inputHash: '578896bf61152337c79fe681c419eb6b3f4bc80589be2bec9bd16d9042c0373f',
+    inputHash: 'f381af8aa4dfb28810ee7515087655503e1c48837cd2a949c363f8e80735bbdd',
     inputReferences: [
       {
         record_id: 'ENTITY_FACTS:fact-anby-core-levels:core.levels:batch-agents-1.0-a-r3r1',
@@ -118,7 +118,7 @@ export const graduationCandidateProfilesPart17 = [
       deterministic: true,
       configHash: 'ebb701787c7f922fb95544d2dd2cfaf5948f9f8a4a4ed005a7cfd5b0e70c4882',
     },
-    profileHash: '7bb0d1140cc2a916eee016e862f3b702f807ede01b9d82881fceed9adbb07b6e',
+    profileHash: '0940634089bca795a549032c04d97109ab1db196a7a1819b14752666e49340dd',
   },
   {
     schema: 'soda-graduation-profile/v1',
@@ -129,14 +129,14 @@ export const graduationCandidateProfilesPart17 = [
     agentId: 'agent-nicole',
     playerName: '妮可',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '1.0',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F7',
     objectiveTopology: 'O4',
     configHash: 'aa6c824c506c3e44909e6d2636f2056c7db489105709c4bff1316fe26acabc9d',
-    inputHash: '56ea1150436f71bc3ca2cc1579a8f0c3e689ba7d28a9ac71210cd74bb344df05',
+    inputHash: '51e4f08c3d94b1d7546e4df47a56a491b0913f1554c50934e28ffe506f3517f7',
     inputReferences: [
       {
         record_id: 'ENTITY_FACTS:fact-r3r4-nicole-atk:stats.lv60.raw.atk:batch-agents-1.0-d-r3r4',
@@ -237,7 +237,7 @@ export const graduationCandidateProfilesPart17 = [
       deterministic: true,
       configHash: 'f91fe7ae1bfcd6b68d7e4a446022286f48002260573ef188324d1d66f384d2b2',
     },
-    profileHash: '74970d68347f94b86c6e08d9b46acf01c1b82d410d21f4ab938b744aa55c4787',
+    profileHash: '85944efb6bf48b03c164483c42362c8203f4bd855b9e2d74431275f71091a044',
   },
   {
     schema: 'soda-graduation-profile/v1',
@@ -248,14 +248,14 @@ export const graduationCandidateProfilesPart17 = [
     agentId: 'agent-corin',
     playerName: '可琳',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '1.0',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F1',
     objectiveTopology: 'O5',
     configHash: '91c9166703e8f9b86b12700242fc31e93eb962ade4835e02ce6f1657ef1f7c83',
-    inputHash: '39dacd8e5a6151620afb94b07641da0a01a296968aeab0033fd4a9b25ac36701',
+    inputHash: '3d58eee85c30cb0b58595f0bb570d98ac7f152c025c3c0f5b557efc42eae8cee',
     inputReferences: [
       {
         record_id: 'ENTITY_FACTS:fact-r3r2-corin-atk:stats.lv60.raw.atk:batch-agents-1.0-b-r3r2',
@@ -369,6 +369,6 @@ export const graduationCandidateProfilesPart17 = [
       deterministic: true,
       configHash: 'd3dcabc2e48948499c8b1ab738e5b65b51fcf487982f9ec076926cfc6c85c025',
     },
-    profileHash: '54a4a367787669931f25d137dec1170a41bda30123107d0f840a32519fe7ae9f',
+    profileHash: '31c92d00489d5d512a4ef497ab527dd98af32f653853d8f6ae8478c39b554ec4',
   },
 ] as const

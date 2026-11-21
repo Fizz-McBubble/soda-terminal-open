@@ -1,24 +1,15 @@
 import { database, type SodaDatabase } from '../db/database'
-import {
-  buildKnowledge30Formal,
-  bundledGameDataPacks,
-  gameBase31Current,
-  gameBase32Current,
-  rotation30Formal,
-  visualCatalog30Formal,
-} from './baseline'
+import { gameBase31Current } from './baseline'
 import {
   gameData31CurrentCanonical,
   validateGameData31CurrentCanonical,
 } from './gameData31CurrentCanonical'
 import { type GameDataPackageManifest, type GameDataPackState, validateManifest } from './types'
+import { ensureBundledGameDataPacks, initialState, stateId } from './repositoryInitialization'
+export { ensureBundledGameDataPacks, initialState, stateId } from './repositoryInitialization'
 import { compiledCurrentGameBase } from './currentVersionProjection'
 
-const stateId = 'active-game-data-packs' as const
 const noticeKey = 'game-data-pack-last-notice'
-const current31MigrationKey = 'game-data-pack-current-3.1-migrated'
-const current32MigrationKey = 'game-data-pack-current-3.2-migrated'
-const current33MigrationKey = 'game-data-pack-current-3.3-migrated'
 
 export type GameDataPackNotice = {
   tone: 'status' | 'alert'
@@ -34,89 +25,6 @@ async function saveNotice(notice: GameDataPackNotice, db: SodaDatabase) {
 export async function getGameDataPackNotice(db: SodaDatabase = database) {
   const value = (await db.settings.get(noticeKey))?.value
   return value && typeof value === 'object' ? (value as GameDataPackNotice) : null
-}
-
-function initialState(now = new Date().toISOString()): GameDataPackState {
-  return {
-    id: stateId,
-    activeFormalByKind: {
-      'game-base': compiledCurrentGameBase.id,
-      'build-knowledge': buildKnowledge30Formal.id,
-      rotation: rotation30Formal.id,
-      'visual-catalog': visualCatalog30Formal.id,
-    },
-    expiredCalculationPackageIds: [],
-    updatedAt: now,
-  }
-}
-
-export async function ensureBundledGameDataPacks(db: SodaDatabase = database) {
-  await db.transaction('rw', db.gameDataPacks, db.gameDataPackState, db.settings, async () => {
-    for (const pack of bundledGameDataPacks) {
-      const existing = await db.gameDataPacks.get(pack.id)
-      if (!existing) await db.gameDataPacks.add(pack)
-    }
-    const state = await db.gameDataPackState.get(stateId)
-    if (!state) {
-      await db.gameDataPackState.add(initialState())
-      await db.settings.put({ key: current32MigrationKey, value: true })
-      if (compiledCurrentGameBase.gameVersion === '3.3')
-        await db.settings.put({ key: current33MigrationKey, value: true })
-      return
-    }
-    // One-time migration to the installed current-version view. The marker prevents a deliberate
-    // rollback to 3.0 from being silently undone on the next startup.
-    const migrated = Boolean((await db.settings.get(current32MigrationKey))?.value)
-    if (!migrated) {
-      const previousSelection = state.activeFormalByKind['game-base']
-      const previouslyMigrated31 = Boolean((await db.settings.get(current31MigrationKey))?.value)
-      // Preserve a deliberate rollback or external selection; only the known
-      // previous current package (or an unmigrated legacy install) advances.
-      if (
-        previousSelection !== gameBase31Current.id &&
-        previousSelection !== gameBase32Current.id &&
-        previouslyMigrated31
-      ) {
-        await db.settings.put({ key: current32MigrationKey, value: true })
-        return
-      }
-      const previousId = state.activeFormalByKind['game-base']
-      const activeFormalByKind = { ...state.activeFormalByKind, 'game-base': gameBase32Current.id }
-      await db.gameDataPackState.put({
-        ...state,
-        activeFormalByKind,
-        expiredCalculationPackageIds:
-          previousId && previousId !== gameBase32Current.id
-            ? [...new Set([...state.expiredCalculationPackageIds, previousId])]
-            : state.expiredCalculationPackageIds,
-        updatedAt: new Date().toISOString(),
-      })
-      await db.settings.put({ key: current32MigrationKey, value: true })
-    }
-    if (
-      compiledCurrentGameBase.gameVersion === '3.3' &&
-      !(await db.settings.get(current33MigrationKey))?.value
-    ) {
-      const selected = await db.gameDataPackState.get(stateId)
-      const previousId = selected?.activeFormalByKind['game-base']
-      // Only the known previous current package advances automatically. A
-      // deliberate older rollback or external selection remains untouched.
-      if (selected && previousId === gameBase32Current.id) {
-        await db.gameDataPackState.put({
-          ...selected,
-          activeFormalByKind: {
-            ...selected.activeFormalByKind,
-            'game-base': compiledCurrentGameBase.id,
-          },
-          expiredCalculationPackageIds: [
-            ...new Set([...selected.expiredCalculationPackageIds, previousId]),
-          ],
-          updatedAt: new Date().toISOString(),
-        })
-      }
-      await db.settings.put({ key: current33MigrationKey, value: true })
-    }
-  })
 }
 
 export async function getGameDataPackState(db: SodaDatabase = database) {

@@ -24,6 +24,11 @@ export type SearchBudget = {
   nodes: number
   evaluations: number
 }
+export type DynamicObjectiveSearchStatus =
+  | 'complete'
+  | 'budget_exhausted'
+  | 'proven_infeasible'
+  | 'objective_unresolved'
 /** Full objective is invoked inside candidate generation. Heuristics order visits, never prune.
  * Raw domains must already enforce game legality and explicit player locks, not guide rank or top-K.
  * Finite budgets do not prove global optimality. Unknown-valued feasible candidates are retained.

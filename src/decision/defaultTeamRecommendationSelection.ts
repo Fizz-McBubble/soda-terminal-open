@@ -1,6 +1,17 @@
 /** Recommendation eligibility is independent of the per-carry display cap.
  * Diagnostic scores are retained for identity checks and never grant admission. */
 import { resolveReviewedPhoenixTeam33 } from './reviewedPhoenixTeams33'
+import type { CurrentPlayRanking } from './teamGraduatedRankingProjection'
+
+import {
+  hasTeamSystemRankingAuthority,
+  compareTeamSystemRankingAuthority,
+} from './teamSystemRankingAuthority'
+export {
+  hasTeamSystemRankingAuthority,
+  compareTeamSystemRankingAuthority,
+} from './teamSystemRankingAuthority'
+
 export type DefaultTeamRecommendationCandidate = {
   candidateId: string
   memberIds: readonly string[]
@@ -16,17 +27,22 @@ export type DefaultTeamRecommendationCandidate = {
   sourceExcluded: boolean
   /** Exact-team withdrawal overrides every default route, including source ratings. */
   withdrawn?: boolean
+  accountPrerequisiteStatus?: 'eligible' | 'condition-not-met' | 'condition-unknown'
+  /** Production offline authority. A ranked row supersedes legacy rating/source gates. */
+  teamSystemRanking?: CurrentPlayRanking | null
 }
 
-/** Default cards require independently rated source evidence or confirmed
- * mainstream membership. Model-only inferred trios remain searchable elsewhere
- * but cannot become confirmed defaults from a mechanism-weighted score. */
+/** Production-ranked trios enter defaults directly. Until that authority is
+ * available, default cards require independently rated source evidence or
+ * confirmed mainstream membership; a model-only score never grants admission. */
 export function selectDefaultTeamRecommendationPool(
   ordered: readonly DefaultTeamRecommendationCandidate[],
   primaryOutputAgentId: (candidate: DefaultTeamRecommendationCandidate) => string | null,
-  options: { includePortfolioFallback?: boolean } = {},
+  options: { includePortfolioFallback?: boolean; admission?: (candidate: DefaultTeamRecommendationCandidate) => { tier: 'exact' | 'alternative'; primary: string } | null } = {},
 ) {
-  void options
+  const hasSystemRankingAuthority = ordered.some((candidate) =>
+    hasTeamSystemRankingAuthority(candidate.teamSystemRanking),
+  )
   const byId = new Map<string, string>()
   const candidates: Array<{
     candidate: DefaultTeamRecommendationCandidate
@@ -57,6 +73,19 @@ export function selectDefaultTeamRecommendationPool(
       Number.isFinite(candidate.recommendationScore) ? candidate.recommendationScore : null,
       candidate.sourceExcluded,
       candidate.withdrawn === true,
+      candidate.accountPrerequisiteStatus ?? null,
+      candidate.teamSystemRanking
+        ? [
+            candidate.teamSystemRanking.status,
+            candidate.teamSystemRanking.contentHash,
+            candidate.teamSystemRanking.status === 'ranked'
+              ? candidate.teamSystemRanking.system
+              : null,
+            candidate.teamSystemRanking.status === 'ranked'
+              ? candidate.teamSystemRanking.systemRank
+              : null,
+          ]
+        : null,
     ])
     const previous = byId.get(candidate.candidateId)
     if (previous !== undefined) {
@@ -64,6 +93,24 @@ export function selectDefaultTeamRecommendationPool(
       continue
     }
     byId.set(candidate.candidateId, identity)
+    const systemRanking = candidate.teamSystemRanking
+    if (candidate.accountPrerequisiteStatus && candidate.accountPrerequisiteStatus !== 'eligible')
+      continue
+    if (hasSystemRankingAuthority) {
+      if (
+        candidate.explicitSelectionOnly ||
+        candidate.withdrawn === true ||
+        candidate.ratingStatus !== 'rated' ||
+        (!systemRanking?.genericOrder &&
+          !candidate.mechanicallyClosed &&
+          !resolveReviewedPhoenixTeam33(candidate.memberIds)) ||
+        (systemRanking?.genericOrder && systemRanking.genericOrder.status !== 'recommended') ||
+        systemRanking?.status !== 'ranked'
+      )
+        continue
+      candidates.push({ candidate, primary: null, triple })
+      continue
+    }
     if (
       candidate.explicitSelectionOnly ||
       candidate.ratingStatus !== 'rated' ||
@@ -82,13 +129,42 @@ export function selectDefaultTeamRecommendationPool(
     const id = entry.candidate.candidateId
     if (!primaryCache.has(id)) primaryCache.set(id, primaryOutputAgentId(entry.candidate))
     const primary = primaryCache.get(id)
+    if (entry.candidate.teamSystemRanking?.genericOrder?.status === 'recommended' && !primary)
+      return [entry]
     return primary && entry.candidate.memberIds.includes(primary) ? [{ ...entry, primary }] : []
   })
-  const defaults = eligible
+  // Preserve an actionable account fallback if its owned teams have no entry
+  // in the current, evidence-bound default scope.
+  let defaultEligible = eligible
+  if (options.admission) {
+    const classified = eligible.map((entry) => ({ entry, admission: options.admission!(entry.candidate) }))
+    const exactCores = new Set(classified.flatMap(({ admission }) =>
+      admission?.tier === 'exact' ? [admission.primary] : [],
+    ))
+    const admitted = classified.filter(({ entry, admission }) =>
+      Boolean(entry.candidate.teamSystemRanking?.genericOrder?.referenceInterval) ||
+      // A completed score belongs to the admitted play. Another roster
+      // option with a guide entry cannot remove it before score ordering.
+      (admission && (entry.candidate.teamSystemRanking?.graduatedScore ||
+        admission.tier === 'exact' || !exactCores.has(admission.primary))),
+    ).map(({ entry }) => entry)
+    defaultEligible = admitted.length ? admitted : eligible.slice(0, 1)
+  }
+  const defaults = [...defaultEligible].sort((left, right) =>
+    compareTeamSystemRankingAuthority(
+      left.candidate.teamSystemRanking,
+      right.candidate.teamSystemRanking,
+    ),
+  )
   const eligibleIds = new Set(eligible.map(({ candidate }) => candidate.candidateId))
   const defaultIds = new Set<string>()
   for (const { candidate } of defaults) defaultIds.add(candidate.candidateId)
-  return { eligibleIds, defaultIds }
+  return {
+    eligibleIds,
+    defaultIds,
+    orderedCandidateIds: defaults.map(({ candidate }) => candidate.candidateId),
+    usesSystemRanking: hasSystemRankingAuthority,
+  }
 }
 
 /** Existing callers retain the bounded default-list contract. */

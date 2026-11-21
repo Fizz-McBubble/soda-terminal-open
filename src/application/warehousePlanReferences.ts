@@ -13,6 +13,7 @@ export function warehousePlanReferences(
           {
             id: draft.id,
             name: savedPlanDisplayName(draft),
+            memberIds: draft.selection.agentIds,
             state: draft.state,
             active: activeIds.includes(draft.id),
           },

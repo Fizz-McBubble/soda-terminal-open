@@ -60,7 +60,26 @@ export function developmentCommittedCurrentDisplayFailure(
     currentPanel: {
       ...presentation.currentPanel,
       refreshState: 'failed',
-      summary: '当前面板更新失败；请重新编辑当前状态后保存。',
+      refreshPlaceholderSummary:
+        presentation.currentPanel.refreshPlaceholderSummary ?? presentation.currentPanel.summary,
+      summary: '当前面板更新未完成，请重试。',
+    },
+  }
+}
+
+export function developmentAnalysisRecoveryDisplay(
+  presentation: GoldenWorkbenchData,
+  phase: 'updating' | 'failed',
+): GoldenWorkbenchData {
+  return {
+    ...presentation,
+    currentPanel: {
+      ...presentation.currentPanel,
+      refreshState: phase,
+      refreshPlaceholderSummary:
+        presentation.currentPanel.refreshPlaceholderSummary ?? presentation.currentPanel.summary,
+      summary:
+        phase === 'updating' ? '正在按最新账户资料更新当前面板…' : '当前面板更新未完成，请重试。',
     },
   }
 }

@@ -8,15 +8,18 @@ import type {
 } from '../warehouse/discWarehouseAnalysis'
 import { warehouseAnalysisRuleVersion } from '../warehouse/discWarehouseAnalysis'
 import { authorityConsumerRecommendations } from './authorityConsumerRecommendations'
-import type { AccountDecisionWorld } from './accountDecisionWorld'
-import type { AccountPlanningDraft } from '../accounts/types'
-import type { DriveDisc } from '../domain/schemas'
-import { resolvePlanningDiscReferences } from '../accounts/planningDiscReferences'
+import type { AccountDecisionRun } from './calculationQueryContract'
+import { savedTeamStatus } from './warehouseSavedTeamStatus'
+import { canonicalTeamPlayIdentity } from '../domain/teamPlayMechanismContract'
+import { savedTeamRatedPlayId } from '../accounts/savedTeamRatingPlayIdentity'
 import { warehousePlanReferences } from './warehousePlanReferences'
+import { retentionUseMatchesRecommendedSet } from '../warehouse/warehouseRetentionGuidance'
 import {
   type WarehouseActionItem,
   type WarehouseActionKind,
+  type WarehouseActionNextStep,
   type WarehouseActionProjection,
+  type WarehouseActionRecommendationBasis,
   type WarehouseActionStatus,
 } from './warehouseActionContract'
 
@@ -29,59 +32,16 @@ export type {
   WarehouseActionStatus,
 } from './warehouseActionContract'
 
-type ReadyWorld = Extract<AccountDecisionWorld, { status: 'current' | 'stale' }>
-
-function savedTeamStatus(
-  draft: AccountPlanningDraft,
-  discs: readonly DriveDisc[],
-): 'ready' | 'needs_confirmation' | 'missing_equipment' {
-  if (!resolvePlanningDiscReferences(draft).consistent) return 'needs_confirmation'
-  const byId = new Map(discs.map((disc) => [disc.id, disc]))
-  if (
-    draft.warehouseRefs.length !== 18 ||
-    new Set(draft.warehouseRefs).size !== 18 ||
-    draft.warehouseRefs.some((id) => !byId.has(id))
-  )
-    return 'missing_equipment'
-  const execution = draft.teamExecutionSnapshot
-  const matchingExecution =
-    execution &&
-    execution.memberIds.length === 3 &&
-    execution.memberIds.every((id) => draft.selection.agentIds.includes(id))
-      ? execution
-      : null
-  if (
-    matchingExecution?.status === 'missing_equipment' ||
-    matchingExecution?.blockers.length ||
-    matchingExecution?.members.some((member) => member.status === 'missing_equipment')
-  )
-    return 'missing_equipment'
-  const loadouts =
-    matchingExecution?.members.map((member) => ({
-      agentId: member.agentId,
-      discIds: member.suggested.discIds,
-    })) ?? draft.candidateWarehouse?.loadouts
-  if (!loadouts) return 'needs_confirmation'
-  const assigned = loadouts.flatMap((loadout) => loadout.discIds)
-  const complete =
-    new Set(draft.selection.agentIds).size === 3 &&
-    loadouts.length === 3 &&
-    new Set(loadouts.map((loadout) => loadout.agentId)).size === 3 &&
-    loadouts.every(
-      (loadout) =>
-        draft.selection.agentIds.includes(loadout.agentId) &&
-        loadout.discIds.length === 6 &&
-        loadout.discIds.every((id) => byId.has(id)) &&
-        new Set(loadout.discIds.map((id) => byId.get(id)?.slot)).size === 6,
-    ) &&
-    assigned.length === 18 &&
-    new Set(assigned).size === 18 &&
-    new Set(draft.warehouseRefs).size === 18 &&
-    assigned.every((id) => draft.warehouseRefs.includes(id))
-  if (!complete) return 'missing_equipment'
-  if (matchingExecution?.members.some((member) => member.status === 'needs_confirmation'))
-    return 'needs_confirmation'
-  return matchingExecution?.status ?? 'needs_confirmation'
+type WarehouseSource = AccountDecisionRun['snapshot']
+type WarehouseProjectionRun = {
+  runId: string
+  input: Pick<AccountDecisionRun['input'], 'warehouse' | 'drafts'>
+  snapshot: Pick<WarehouseSource, 'warehouse' | 'sideEffect'> & {
+    account: Pick<WarehouseSource['account'], 'accountId'>
+    fingerprint: Pick<WarehouseSource['fingerprint'], 'inputHash'>
+    claims: { warehouse: Pick<WarehouseSource['claims']['warehouse'], 'status' | 'summary'> }
+    decisionAuthority?: WarehouseSource['decisionAuthority']
+  }
 }
 
 function actionForCategory(category: WarehouseDiscCategory): WarehouseActionKind {
@@ -93,6 +53,32 @@ function actionForCategory(category: WarehouseDiscCategory): WarehouseActionKind
 
 function uniqueInOrder(values: string[]) {
   return [...new Set(values)]
+}
+
+function evidenceNeedsReview(decision: WarehouseDiscDecision) {
+  const independentTrial =
+    decision.absoluteRetention?.disposition === 'observe' &&
+    decision.absoluteRetention.reasonKind === 'try_next_upgrade' &&
+    decision.absoluteRetention.nextAction?.kind === 'try_upgrade' &&
+    decision.absoluteRetention.leadingUses.some(
+      (use) =>
+        decision.absoluteRetention?.witnessProfileIds?.includes(use.profileId) &&
+        use.useState === 'valid' &&
+        retentionUseMatchesRecommendedSet(use.guidance?.currentSet?.id, use),
+    )
+  return Boolean(
+    decision.reviewDirection ||
+    (decision.absoluteRetention
+      ? decision.absoluteRetention.disposition === 'review' ||
+        decision.absoluteRetention.policyCalibration !== 'approved' ||
+        (decision.absoluteRetention.sourceCoverage !== 'complete' && !independentTrial) ||
+        (decision.absoluteRetention.disposition === 'cleanup_candidate' &&
+          !decision.cleanupSafety.complete) ||
+        decision.absoluteRetention.nextAction?.kind === 'complete_data' ||
+        decision.absoluteRetention.nextAction?.kind === 'check_condition' ||
+        decision.absoluteRetention.nextAction?.kind === 'review_quality'
+      : decision.category === 'replaceable' || !decision.cleanupSafety.complete),
+  )
 }
 
 function statusesFor(
@@ -111,14 +97,90 @@ function statusesFor(
     decision.alternatives.length > 0
   )
     statuses.push('better_alternative')
-  if (
-    decision.reviewDirection ||
-    decision.category === 'replaceable' ||
-    !decision.cleanupSafety.complete
-  )
-    statuses.push('needs_review')
+  if (evidenceNeedsReview(decision)) statuses.push('needs_review')
   if (input.stale) statuses.push('stale')
   return statuses
+}
+
+function currentNextStep(
+  decision: WarehouseDiscDecision,
+  action: WarehouseActionKind,
+  explicitlyProtected: boolean,
+  hasCompleteBuildUse: boolean,
+  needsReview: boolean,
+): WarehouseActionNextStep {
+  if (explicitlyProtected) {
+    return {
+      kind: 'keep',
+      targetLevel: null,
+      detail: '保留这张盘。',
+      stopWhen: '',
+    }
+  }
+  if (hasCompleteBuildUse) {
+    return {
+      kind: 'keep',
+      targetLevel: null,
+      detail: '按已核对的完整配装用途保留；继续投入前先核对对应方案条件。',
+      stopWhen: '对应配装条件或实体分配变化后重新分析。',
+    }
+  }
+  if (decision.absoluteRetention?.nextAction) {
+    const { kind, targetLevel, detail, stopWhen } = decision.absoluteRetention.nextAction
+    if (
+      (kind !== 'manual_cleanup' || action === 'cleanup') &&
+      (!needsReview || ['complete_data', 'check_condition', 'review_quality'].includes(kind))
+    )
+      return { kind, targetLevel, detail, stopWhen }
+  }
+  if (decision.reviewDirection === 'no_current_fit') {
+    return {
+      kind: 'complete_data',
+      targetLevel: null,
+      detail: '当前记录找不到适合用途，也未证明无人使用；先核对实际装备与保存方案记录。',
+      stopWhen: '使用记录和适用分支未核对前暂停清理。',
+    }
+  }
+  if (needsReview) {
+    const missingSource =
+      decision.absoluteRetention &&
+      (decision.absoluteRetention.sourceCoverage !== 'complete' ||
+        decision.absoluteRetention.policyCalibration !== 'approved')
+    return {
+      kind: missingSource ? 'complete_data' : 'check_condition',
+      targetLevel: null,
+      detail: '先保留，暂不继续强化。',
+      stopWhen: '',
+    }
+  }
+  if (action === 'cleanup') {
+    return {
+      kind: 'manual_cleanup',
+      targetLevel: null,
+      detail: '可列为清理候选。',
+      stopWhen: '清理前在游戏内确认未装备，并检查方案使用情况。',
+    }
+  }
+  if (action === 'enhance')
+    return decision.absoluteRetention
+      ? {
+          kind: 'check_condition',
+          targetLevel: null,
+          detail: '先核对构筑条件和当前装备缺口。',
+          stopWhen: '',
+        }
+      : {
+          kind: 'try_upgrade',
+          targetLevel: null,
+          detail: '结合当前配装决定是否继续强化。',
+          stopWhen: '用途条件或投入价值变化时重新分析。',
+        }
+  return {
+    kind: 'keep',
+    targetLevel: null,
+    detail: '保留这张盘。',
+    stopWhen: '',
+  }
 }
 
 /**
@@ -126,13 +188,22 @@ function statusesFor(
  * It deliberately only joins existing snapshot facts; it never invokes a warehouse
  * analyser, optimiser, Claim calculator, repository, or command.
  */
-export function projectWarehouseActions(
-  world: Pick<ReadyWorld, 'run' | 'status'>,
-): WarehouseActionProjection {
+export function projectWarehouseActions(world: {
+  run: WarehouseProjectionRun
+  status: 'current' | 'stale'
+}): WarehouseActionProjection {
   const { run } = world
   const snapshot = run.snapshot
-  const stale =
-    world.status === 'stale' || snapshot.warehouse.ruleVersion !== warehouseAnalysisRuleVersion
+  const warehouse = snapshot.warehouse
+  if (!warehouse) throw new Error('仓库分析尚未完成。')
+  const ruleVersionChanged = warehouse.ruleVersion !== warehouseAnalysisRuleVersion
+  const stale = world.status === 'stale' || ruleVersionChanged
+  const freshnessReason =
+    world.status === 'stale'
+      ? ('account_changed' as const)
+      : ruleVersionChanged
+        ? ('analysis_rule_changed' as const)
+        : ('current_snapshot' as const)
   const discsById = new Map(run.input.warehouse.discs.map((disc) => [disc.id, disc]))
   const accountAgentIds = new Set(
     [
@@ -143,31 +214,24 @@ export function projectWarehouseActions(
     ].map(resolveCurrentReleasedIdentity),
   )
   const draftsById = new Map(run.input.drafts.map((draft) => [draft.id, draft]))
-  const authorityByMembers = new Map<
-    string,
-    {
-      teamRating: string
-      confidence: string
-      cultivationPriority: string
-    }
-  >()
-  if (!stale && snapshot.decisionAuthority.status === 'ready') {
-    for (const recommendation of authorityConsumerRecommendations(snapshot.decisionAuthority)) {
-      if (recommendation.teamRating.status !== 'rated') continue
-      const key = [...recommendation.memberIds].sort().join('|')
-      if (authorityByMembers.has(key)) continue
-      authorityByMembers.set(key, {
-        teamRating: recommendation.teamRating.ratingBand,
-        confidence: recommendation.teamRating.confidence,
-        cultivationPriority: recommendation.cultivationPriority.tier,
-      })
+  type AffectedTeam = WarehouseActionItem['affectedTeams'][number]
+  const savedTeams = new Map<string, AffectedTeam>()
+  const equippedOwners = new Map<string, string[]>()
+  for (const agent of run.input.warehouse.roster.agents) {
+    if (!agent.owned) continue
+    for (const discId of new Set(agent.equippedDiscIds ?? [])) {
+      const owners = equippedOwners.get(discId)
+      if (owners) owners.push(agent.agentId)
+      else equippedOwners.set(discId, [agent.agentId])
     }
   }
-  const actions = snapshot.warehouse.decisions.flatMap((decision) => {
+  const recommendations = stale ? [] : authorityConsumerRecommendations(snapshot.decisionAuthority)
+  const recommendationByCandidate = new Map(recommendations.map((row) => [row.candidateId, row]))
+  const actions = warehouse.decisions.flatMap((decision) => {
     const disc = discsById.get(decision.discId)
     // A snapshot only has decisions for the captured warehouse. Fail closed if a malformed
     // snapshot loses the physical object rather than inventing an identity for the page.
-    if (!disc) return []
+    if (!disc || disc.rarity !== 'S') return []
     const affectedPlans = warehousePlanReferences(
       decision.planIds.flatMap((id) => {
         const draft = draftsById.get(id)
@@ -183,20 +247,38 @@ export function projectWarehouseActions(
     const affectedTeams = decision.planIds.flatMap((planId) => {
       const draft = draftsById.get(planId)
       if (draft?.kind !== 'team' || draft.selection.agentIds.length !== 3) return []
+      const existing = savedTeams.get(planId)
+      if (existing) return [existing]
       const memberIds = [...draft.selection.agentIds] as [string, string, string]
-      return [
-        {
-          candidateId: draft.solutionContext?.sourceCandidateId ?? draft.id,
-          memberIds,
-          status: savedTeamStatus(draft, run.input.warehouse.discs),
-          decisionAuthority: authorityByMembers.get([...memberIds].sort().join('|')) ?? null,
-        },
-      ]
+      const candidateId = draft.solutionContext?.sourceCandidateId ?? draft.id
+      const recommendation = recommendationByCandidate.get(candidateId)
+      const playId = savedTeamRatedPlayId(draft)
+      const samePlay =
+        draft.solutionContext?.ratedTeamPlayId === undefined ||
+        (playId &&
+          recommendation?.playDirection &&
+          canonicalTeamPlayIdentity(recommendation.playDirection) === playId)
+      const team: AffectedTeam = {
+        planId,
+        candidateId,
+        memberIds,
+        status: savedTeamStatus(draft, discsById),
+        decisionAuthority:
+          recommendation?.teamRating.status === 'rated' &&
+          samePlay &&
+          [...recommendation.memberIds].sort().join('|') === [...memberIds].sort().join('|')
+            ? {
+                teamRating: recommendation.teamRating.ratingBand,
+                confidence: recommendation.teamRating.confidence,
+                cultivationPriority: recommendation.cultivationPriority.tier,
+              }
+            : null,
+      }
+      savedTeams.set(planId, team)
+      return [team]
     })
     const usageAgentIds = uniqueInOrder([
-      ...run.input.warehouse.roster.agents
-        .filter((agent) => agent.owned && (agent.equippedDiscIds ?? []).includes(decision.discId))
-        .map((agent) => agent.agentId),
+      ...(equippedOwners.get(decision.discId) ?? []),
       ...decision.planIds.flatMap((planId) => {
         const draft = draftsById.get(planId)
         return draft ? savedDiscAgentIds(draft, decision.discId) : []
@@ -208,25 +290,13 @@ export function projectWarehouseActions(
       ...usageAgentIds,
       ...completeBuildUseAgentIds,
     ])
-    const needsReview = decision.absoluteRetention
-      ? decision.absoluteRetention.disposition === 'review' ||
-        decision.absoluteRetention.disposition === 'observe' ||
-        decision.absoluteRetention.policyCalibration !== 'approved' ||
-        decision.absoluteRetention.sourceCoverage !== 'complete'
-      : decision.category === 'replaceable' ||
-        !decision.cleanupSafety.complete ||
-        Boolean(decision.reviewDirection)
-    const baseAction: WarehouseActionKind = decision.absoluteRetention
-      ? decision.absoluteRetention.disposition === 'cleanup_candidate' &&
-        decision.absoluteRetention.policyCalibration === 'approved' &&
-        decision.cleanupSafety.complete &&
-        decision.cleanupSafety.deleteAfterFeasible
-        ? 'cleanup'
-        : decision.absoluteRetention.disposition === 'observe' ||
-            decision.absoluteRetention.disposition === 'review'
-          ? 'enhance'
-          : 'keep'
-      : actionForCategory(decision.category)
+    const baseAction = actionForCategory(decision.category)
+    const cleanupBlocked =
+      baseAction === 'cleanup' &&
+      (!decision.cleanupSafety.complete ||
+        !decision.cleanupSafety.deleteAfterFeasible ||
+        (decision.absoluteRetention?.disposition ?? 'cleanup_candidate') !== 'cleanup_candidate')
+    const needsReview = evidenceNeedsReview(decision) || cleanupBlocked
     const explicitlyProtected =
       decision.cleanupSafety.favorite ||
       decision.cleanupSafety.equipped ||
@@ -234,13 +304,65 @@ export function projectWarehouseActions(
       decision.cleanupSafety.savedPlanReferenced ||
       decision.cleanupSafety.portfolioReferenced
     const action =
-      stale || explicitlyProtected || completeBuildUseAgentIds.length ? 'keep' : baseAction
+      stale || explicitlyProtected || completeBuildUseAgentIds.length
+        ? 'keep'
+        : needsReview && baseAction === 'cleanup'
+          ? 'enhance'
+          : baseAction
     const retentionBasis =
-      action === 'keep'
-        ? stale
-          ? ('unresolved' as const)
-          : warehouseRetentionBasis(decision, accountAgentIds)
-        : undefined
+      !stale && action === 'keep' ? warehouseRetentionBasis(decision, accountAgentIds) : undefined
+    const recommendationBasis: WarehouseActionRecommendationBasis = explicitlyProtected
+      ? 'explicit_protection'
+      : completeBuildUseAgentIds.length
+        ? 'recorded_use'
+        : needsReview
+          ? 'evidence_review'
+          : decision.absoluteRetention
+            ? 'absolute_quality'
+            : 'unresolved'
+    const finalRecommendation = stale
+      ? null
+      : {
+          action,
+          state: needsReview ? ('needs_review' as const) : ('current' as const),
+          basis: recommendationBasis,
+        }
+    const nextStep: WarehouseActionNextStep = stale
+      ? {
+          kind: 'reanalyze',
+          targetLevel: null,
+          detail: '账户或分析版本已变化；先重新分析，旧方向不能作为当前建议执行。',
+          stopWhen: '重新分析完成前暂停清理和投入决定。',
+        }
+      : currentNextStep(
+          decision,
+          action,
+          explicitlyProtected,
+          completeBuildUseAgentIds.length > 0,
+          needsReview,
+        )
+    const decisionProfileIds = uniqueInOrder([
+      ...(decision.absoluteRetention?.witnessProfileIds ?? []),
+    ])
+    if (
+      decision.absoluteRetention?.bestUseProfileId &&
+      !decisionProfileIds.includes(decision.absoluteRetention.bestUseProfileId)
+    )
+      decisionProfileIds.push(decision.absoluteRetention.bestUseProfileId)
+    const profileEvidence = decision.absoluteRetention?.leadingUses ?? []
+    const useRecorded =
+      usageAgentIds.length > 0 ||
+      decision.planIds.length > 0 ||
+      affectedPlans.length > 0 ||
+      affectedTeams.length > 0
+    const evidenceState = stale
+      ? ('stale' as const)
+      : needsReview
+        ? ('needs_review' as const)
+        : (decision.absoluteRetention?.sourceCoverage ??
+              (decision.cleanupSafety.complete ? 'complete' : 'partial')) === 'complete'
+          ? ('complete' as const)
+          : ('partial' as const)
     const lowEffectiveRollsReview =
       !decision.absoluteRetention &&
       !stale &&
@@ -267,12 +389,27 @@ export function projectWarehouseActions(
         },
         action,
         ...(decision.absoluteRetention ? { absoluteRetention: decision.absoluteRetention } : {}),
+        cleanupAssessment: decision.cleanupSafety,
         ...(retentionBasis ? { retentionBasis } : {}),
         ...(!decision.absoluteRetention && decision.reviewDirection === 'no_current_fit'
           ? { reviewBasis: 'no_current_fit' as const }
           : {}),
         ...(lowEffectiveRollsReview ? { retentionReview: 'low_effective_rolls' as const } : {}),
         recommendationState: stale ? 'stale' : needsReview ? 'needs_review' : 'current',
+        finalRecommendation,
+        nextStep,
+        evidenceState,
+        decisiveProfileIds: decisionProfileIds,
+        profileEvidence,
+        usage: {
+          state: useRecorded ? 'recorded' : 'not_recorded',
+          agentIds: usageAgentIds,
+          planIds: uniqueInOrder(decision.planIds),
+        },
+        freshness: {
+          state: stale ? 'stale' : 'current',
+          reason: freshnessReason,
+        },
         reasons: uniqueInOrder(decision.reasons),
         statuses: affectedPlanStatuses,
         compatibleAgentIds: uniqueInOrder([
@@ -320,7 +457,9 @@ export function projectWarehouseActions(
     ]
   })
   const counts: Record<WarehouseActionKind, number> = { keep: 0, enhance: 0, cleanup: 0 }
-  for (const action of actions) counts[action.action] += 1
+  for (const action of actions) {
+    if (action.finalRecommendation) counts[action.finalRecommendation.action] += 1
+  }
   return {
     runId: run.runId,
     fingerprint: snapshot.fingerprint.inputHash,
@@ -332,7 +471,7 @@ export function projectWarehouseActions(
       summary: snapshot.claims.warehouse.summary,
     },
     counts,
-    referenceIssues: snapshot.warehouse.referenceIssues,
+    referenceIssues: warehouse.referenceIssues,
     actions,
   }
 }

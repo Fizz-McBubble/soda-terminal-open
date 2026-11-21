@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createEmptyRoster } from '../assault/catalog'
@@ -54,7 +54,7 @@ describe('Dashboard staging identity with the actual reactive query', () => {
       </MemoryRouter>,
     )
     try {
-      await screen.findByText('2 份扫描结果等待导入，点击导入后才会更新账户。')
+      await screen.findByText('2 份扫描结果等待确认。')
       vi.mocked(useAccountDecisionWorld).mockReturnValue(worldFor('account-staging-b'))
       view.rerender(
         <MemoryRouter>
@@ -65,13 +65,48 @@ describe('Dashboard staging identity with the actual reactive query', () => {
       expect(screen.getByRole('region', { name: '本地资料' })).toHaveTextContent(
         'account-staging-b',
       )
-      expect(screen.queryByText(/2 份扫描结果等待导入/)).not.toBeInTheDocument()
+      expect(screen.queryByText(/2 份扫描结果等待确认/)).not.toBeInTheDocument()
       expect(screen.queryByRole('heading', { name: '继续正式导入' })).not.toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: '等待扫描结果' })).toBeInTheDocument()
+      expect(screen.queryByRole('heading', { name: '扫描或导入本地数据' })).not.toBeInTheDocument()
       await act(async () => finishB([]))
       expect(screen.getByRole('heading', { name: '扫描或导入本地数据' })).toBeInTheDocument()
     } finally {
       finishB([])
       view.unmount()
     }
+  })
+
+  it('retains a read failure and retries before reporting a true empty result', async () => {
+    vi.mocked(useAccountDecisionWorld).mockReturnValue({
+      status: 'unavailable',
+      run: null,
+      nextAction: null,
+      liveInput: {
+        warehouse: {
+          accountId: 'staging-error',
+          account: { id: 'staging-error', displayName: '测试账户' },
+          roster: createEmptyRoster(),
+          discs: [],
+        },
+        drafts: [],
+      },
+    } as unknown as ReturnType<typeof useAccountDecisionWorld>)
+    const collection = database.accountScanImportBatches.where('accountId').equals('staging-error')
+    const read = vi
+      .spyOn(Object.getPrototypeOf(collection) as typeof collection, 'toArray')
+      .mockRejectedValueOnce(new Error('internal database path must not appear'))
+      .mockResolvedValueOnce([])
+    render(
+      <MemoryRouter>
+        <DashboardPage />
+      </MemoryRouter>,
+    )
+    await screen.findByRole('button', { name: '重试核对' })
+    expect(screen.queryByRole('heading', { name: '扫描或导入本地数据' })).not.toBeInTheDocument()
+    expect(document.body.textContent).not.toContain('internal database path')
+    fireEvent.click(screen.getByRole('button', { name: '重试核对' }))
+    await screen.findByRole('heading', { name: '扫描或导入本地数据' })
+    expect(read).toHaveBeenCalledTimes(2)
   })
 })

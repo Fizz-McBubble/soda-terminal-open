@@ -3,11 +3,10 @@ const routeModules = {
   development: () => import('../pages/AgentDevelopmentGoldenDirectoryPage'),
   workbench: () => import('../pages/AgentDevelopmentWorkbenchPage'),
   comparison: () => import('../pages/AgentLoadoutComparisonPage'),
-  team: () => import('../pages/OptimizerFlowPage'),
+  team: () => import('../pages/optimizer/TeamPicker'),
   teamDetail: () =>
     Promise.all([import('../pages/OptimizerFlowPage'), import('../pages/TeamPlan')]),
-  savedPlan: () =>
-    Promise.all([import('../pages/OptimizerFlowPage'), import('../pages/optimizer/SavedPlan')]),
+  savedPlan: () => import('../pages/optimizer/SavedPlanRoute'),
   warehouse: () => import('../pages/WarehouseDiscsPage'),
   scanner: () => import('../pages/ScannerAssistantPage'),
   help: () => import('../pages/HelpAndPrivacyPage'),

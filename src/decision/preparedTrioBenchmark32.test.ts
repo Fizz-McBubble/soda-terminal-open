@@ -7,6 +7,7 @@ import { compileTargetTeamPlanningContext } from './targetTeamPlanningContext'
 import { fixture } from './targetTeamPlanningContext.testFixture'
 import { projectTargetTeamAccountBoundBenchmark } from './targetTeamAccountBoundBenchmark'
 import { projectTargetTeamValueBenchmark } from './targetTeamValueBenchmark'
+import { targetTeamWEngineRuntimeSource } from './targetTeamPlanningContextInput'
 
 const memberIds = ['agent-claret', 'agent-roxy', 'agent-koleda'] as const
 
@@ -283,10 +284,42 @@ describe('shared prepared three-agent fixed benchmark', () => {
     }
     const realSets = compileTargetTeamPlanningContext(sourceSets)
     if (realSets.status !== 'supported') throw new Error(realSets.blockers.join(';'))
+    // An unobserved passive is not a certified finite condition. Keep this
+    // negative case, then explicitly bind the legal no-prior-EX/on-field fixture.
+    expect(realSets.memberModelQualification32).toBeNull()
+    expect(realSets.coverage.excludedEffects).toContainEqual(
+      expect.objectContaining({
+        effectKey: expect.stringContaining('wengine:agent-koleda:wengine-14110:'),
+        reason: 'unobserved_conditional_effect',
+        fields: ['combat_conditions'],
+      }),
+    )
+    const observedSets = compileTargetTeamPlanningContext({
+      ...sourceSets,
+      wEngineRuntimeDeclarations: [
+        {
+          ...targetTeamWEngineRuntimeSource('wengine-14110')!,
+          agentId: 'agent-koleda',
+          engineId: 'wengine-14110',
+          runtime: {
+            flags: { 'HellfireGears:offField': false },
+            accumulators: { 'HellfireGears:exSpecialUsed': 0 },
+          },
+        },
+      ],
+    })
+    if (observedSets.status !== 'supported') throw new Error(observedSets.blockers.join(';'))
     expect(
-      realSets.memberModelQualification32?.status,
-      JSON.stringify(realSets.coverage.excludedEffects),
+      observedSets.memberModelQualification32?.status,
+      JSON.stringify(observedSets.coverage.excludedEffects),
     ).toBe('formal')
+    expect(
+      observedSets.coverage.excludedEffects.some((row) => row.fields.includes('combat_conditions')),
+    ).toBe(false)
+    expect(observedSets.coverage.excludedEffects.map((row) => row.effectKey).sort()).toEqual([
+      'agent-claret:core_initial_crit_',
+      'agent-roxy:ability_anomBuildup_',
+    ])
     expect(realSets.bangbooDamage).toBeNull()
     expect(realSets.modifierProjection.bangboo.blockers).toEqual([])
     expect(realSets.modifierProjection.bangboo.excludedOutputs).toContainEqual(

@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   buildAccountDecisionSnapshot,
   type AccountDecisionSnapshot,
@@ -24,6 +24,8 @@ const input = (accountId: string): AccountDecisionSnapshotCalculationInput =>
     preference: {},
     capturedAt: '2026-09-13T00:00:00.000Z',
   }) as unknown as AccountDecisionSnapshotCalculationInput
+
+afterEach(() => vi.useRealTimers())
 
 const snapshot = (accountId: string): AccountDecisionSnapshot =>
   ({ account: { accountId } }) as unknown as AccountDecisionSnapshot
@@ -62,6 +64,96 @@ const success = (
 })
 
 describe('browser account decision snapshot worker', () => {
+  it('bounds a silent worker, clears every pending request and recreates for a new account', async () => {
+    vi.useFakeTimers()
+    const workers: FakeWorker[] = []
+    const calculator = createBrowserAccountDecisionSnapshotCalculator({
+      createWorker: () => {
+        const worker = new FakeWorker()
+        workers.push(worker)
+        return worker
+      },
+    })
+    const first = calculator.calculateSnapshot(input('old-account'))
+    const queued = calculator.calculateSnapshot(input('queued-account'))
+    const failures = Promise.all([
+      expect(first).rejects.toMatchObject({ name: 'AccountDecisionWorkerTimeoutError' }),
+      expect(queued).rejects.toMatchObject({ name: 'AccountDecisionWorkerTimeoutError' }),
+    ])
+    const oldMessage = workers[0]!.onmessage!
+    const oldError = workers[0]!.onerror!
+    const oldMessageError = workers[0]!.onmessageerror!
+    await vi.advanceTimersByTimeAsync(119_999)
+    expect(workers[0]!.terminated).toBe(false)
+    await vi.advanceTimersByTimeAsync(1)
+    await failures
+    expect(workers[0]!.terminated).toBe(true)
+    expect(vi.getTimerCount()).toBe(0)
+
+    const next = calculator.calculateSnapshot(input('new-account'))
+    const requestId = workers[1]!.requests[0]!.requestId
+    // Even callbacks captured before detachment cannot poison a replacement.
+    oldMessage({ data: success(requestId, snapshot('old-account')) } as MessageEvent)
+    oldError({ message: 'late old error' } as ErrorEvent)
+    oldMessageError({} as MessageEvent)
+    expect(workers[1]!.terminated).toBe(false)
+    workers[1]!.respond(success(requestId, snapshot('new-account')))
+    await expect(next).resolves.toMatchObject({ account: { accountId: 'new-account' } })
+    expect(vi.getTimerCount()).toBe(0)
+    calculator.dispose()
+  })
+
+  it('gives queued work a fresh budget and removes the cancelled account timer', async () => {
+    vi.useFakeTimers()
+    const workers = [new FakeWorker(), new FakeWorker()]
+    const createWorker = vi.fn().mockReturnValueOnce(workers[0]).mockReturnValueOnce(workers[1])
+    const calculator = createBrowserAccountDecisionSnapshotCalculator({ createWorker })
+    const controller = new AbortController()
+    const old = calculator.calculateSnapshot(input('old-account'), { signal: controller.signal })
+    const cancelled = expect(old).rejects.toMatchObject({ name: 'AbortError' })
+    const queued = calculator.calculateSnapshot(input('new-account'))
+    const oldMessage = workers[0]!.onmessage!
+    await vi.advanceTimersByTimeAsync(119_000)
+    controller.abort()
+    await cancelled
+    await vi.advanceTimersByTimeAsync(119_000)
+    expect(workers[1]!.terminated).toBe(false)
+    oldMessage({
+      data: success(workers[1]!.requests[0]!.requestId, snapshot('old-account')),
+    } as MessageEvent)
+    workers[1]!.respond(success(workers[1]!.requests[0]!.requestId, snapshot('new-account')))
+    await expect(queued).resolves.toMatchObject({ account: { accountId: 'new-account' } })
+    expect(vi.getTimerCount()).toBe(0)
+    calculator.dispose()
+  })
+
+  it.each(['onmessageerror', 'protocol', 'postMessage', 'dispose'] as const)(
+    'clears the active timer on %s and permits only live worker callbacks',
+    async (failure) => {
+      vi.useFakeTimers()
+      const worker = new FakeWorker()
+      if (failure === 'postMessage')
+        vi.spyOn(worker, 'postMessage').mockImplementation(() => {
+          throw new Error('clone failed')
+        })
+      const calculator = createBrowserAccountDecisionSnapshotCalculator({
+        createWorker: () => worker,
+      })
+      const request = calculator.calculateSnapshot(input('account'))
+      const rejected = expect(request).rejects.toBeInstanceOf(Error)
+      if (failure === 'onmessageerror') worker.onmessageerror?.({} as MessageEvent)
+      if (failure === 'protocol')
+        worker.respond({
+          ...success(1, snapshot('account')),
+          protocolVersion: -1,
+        } as unknown as AccountDecisionSnapshotWorkerResponse)
+      if (failure === 'dispose') calculator.dispose()
+      await rejected
+      expect(vi.getTimerCount()).toBe(0)
+      calculator.dispose()
+    },
+  )
+
   it('structured-clones a real query input and its complete decision snapshot', () => {
     const query = fixtureQuery('worker-clone-contract', ['yixuan', 'dialyn', 'lucia'])
     const clonedInput = structuredClone({ ...query.input, capturedAt: query.capturedAt })

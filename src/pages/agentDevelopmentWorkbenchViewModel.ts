@@ -9,15 +9,19 @@ import {
   formatCharacterPanelValue,
 } from '../application/characterPanelFields'
 import type { RosterAgent } from '../assault/types'
+import { resolveWEngine } from '../decision/wEngineResolver'
+import { developmentSkillRecommendations } from '../application/developmentSkillRecommendations'
 import { playerFacingPlanName } from '../application/savedPlanDisplayName'
 import type { DriveDisc, StatKey } from '../domain/schemas'
 import type { ProjectedBuildKnowledgeProfile } from '../gameDataPacks/agentProfile'
 import type { PanelResult } from '../calculation/outOfCombatPanel'
 import { formatDevelopmentEntityText } from '../application/publicRosterNames'
+import type { ReviewedTargetContext } from '../gameDataPacks/reviewedContextualTargetPanel'
 import {
   getL3AgentDevelopmentEvidence,
   type L3AgentDevelopmentEvidenceStatus,
 } from '../gameDataPacks/l3ProductionProjection'
+import { playerDecisionText } from './teamEquipmentParameterPresentation'
 
 export type CurrentEvidence = '账户组合复算' | '暂不可复算'
 export type ContributionEvidence = '盘面贡献' | '无可证贡献'
@@ -56,9 +60,9 @@ export type WorkbenchFact = {
 export type PlannedDiscFact = {
   slot: number
   disc: DriveDisc | null
-  state: '方案实体盘' | '已装备实体盘' | '盘位引用缺失'
+  state: '方案实体盘' | '已装备实体盘' | '候选实体盘' | '盘位引用缺失'
 }
-export type CurrentDiscSource = '当前方案' | '当前已装备' | '未关联实体盘'
+export type CurrentDiscSource = '当前方案' | '当前已装备' | '仓库候选' | '未关联实体盘'
 export type CandidateReferenceFact = {
   id: string
   group: string
@@ -97,7 +101,7 @@ export type WorkbenchSlice = {
   dataFoundation: {
     packageId: string | null
     evidenceStatus: L3AgentDevelopmentEvidenceStatus
-    current: '可复算锚点' | '资料不足'
+    current: '当前属性可核对' | '资料不足'
     reference: '参考方向' | '资料不足'
     blockers: readonly ('candidate_only' | 'data_gap')[]
   }
@@ -168,32 +172,48 @@ export function createAgentDevelopmentWorkbenchViewModel(input: {
   agent: RosterAgent
   profile: ProjectedBuildKnowledgeProfile
   activePlan: DevelopmentPlan
+  activePlanDiscIds?: readonly string[]
   discs: DriveDisc[]
   targetPanel?: TargetPanel
+  /** Saved comparison facts override target conditions without replacing current account facts. */
+  targetContext?: ReviewedTargetContext
   panel?: PanelResult
+  discSelection?: { source: CurrentDiscSource; discIds: readonly string[] }
 }) {
   const { agent, profile, activePlan, discs, targetPanel = null, panel } = input
+  const engine = resolveWEngine({ agent }).current
+  const coreTarget =
+    developmentSkillRecommendations(agent).skills.find((skill) => skill.key === 'core')
+      ?.targetLevel ?? null
   const l3Evidence = getL3AgentDevelopmentEvidence(agent.agentId)
   const references = candidateReferences(l3Evidence)
-  const planIds = activePlan?.warehouseRefs ?? []
+  const planIds = input.activePlanDiscIds ?? activePlan?.warehouseRefs ?? []
   const equippedIds = agent.equippedDiscIds ?? []
   const planDiscCount = discs.filter((disc) => planIds.includes(disc.id)).length
   const equippedDiscCount = discs.filter((disc) => equippedIds.includes(disc.id)).length
   const discSource: CurrentDiscSource =
-    planIds.length === 6 && planDiscCount === 6
+    input.discSelection?.source ??
+    (planIds.length === 6 && planDiscCount === 6
       ? '当前方案'
       : equippedIds.length === 6 && equippedDiscCount === 6
         ? '当前已装备'
-        : '未关联实体盘'
+        : '未关联实体盘')
   const currentDiscIds =
-    discSource === '当前方案' ? planIds : discSource === '当前已装备' ? equippedIds : []
+    input.discSelection?.discIds ??
+    (discSource === '当前方案' ? planIds : discSource === '当前已装备' ? equippedIds : [])
   const plannedDiscs = [1, 2, 3, 4, 5, 6].map((slot) => {
     const disc =
       discs.find((item) => currentDiscIds.includes(item.id) && item.slot === slot) ?? null
     return {
       slot,
       disc,
-      state: disc ? (discSource === '当前已装备' ? '已装备实体盘' : '方案实体盘') : '盘位引用缺失',
+      state: disc
+        ? discSource === '当前已装备'
+          ? '已装备实体盘'
+          : discSource === '仓库候选'
+            ? '候选实体盘'
+            : '方案实体盘'
+        : '盘位引用缺失',
     } satisfies PlannedDiscFact
   })
   const contribution = new Map<string, number[]>()
@@ -204,6 +224,14 @@ export function createAgentDevelopmentWorkbenchViewModel(input: {
       if (label) contribution.set(label, [...(contribution.get(label) ?? []), subStat.value])
     })
   const direction = profile.recommendation?.subStats.join('、') ?? null
+  const targetBuildContext = input.targetContext ?? {
+    agentId: agent.agentId,
+    coreLevel: agent.skillLevels.core,
+    specialLevel: agent.skillLevels.special,
+    engineId: agent.wEngineDetails?.id,
+    engineRefinement: agent.wEngineDetails?.refinement,
+    mindscape: agent.mindscape,
+  }
   const facts: WorkbenchFact[] = getCharacterPanelFields(agent.agentId).map((field) => {
     const { label, key, detail } = field
     const legacyLabel = characterPanelLabels.find((item) => item === label)
@@ -211,14 +239,7 @@ export function createAgentDevelopmentWorkbenchViewModel(input: {
       panel?.status === 'ok' ? (panel.values as Partial<Record<string, number>>)[key] : undefined
     const values = contribution.get(label) ?? []
     const reference = legacyLabel
-      ? targetPanelPresentation(targetPanel, legacyLabel, {
-          agentId: agent.agentId,
-          coreLevel: agent.skillLevels.core,
-          specialLevel: agent.skillLevels.special,
-          engineId: agent.wEngineDetails?.id,
-          engineRefinement: agent.wEngineDetails?.refinement,
-          mindscape: agent.mindscape,
-        })
+      ? targetPanelPresentation(targetPanel, legacyLabel, targetBuildContext)
       : { value: null, conditions: [] }
     const target = reference.value
     return {
@@ -233,12 +254,13 @@ export function createAgentDevelopmentWorkbenchViewModel(input: {
         ? `+${formatCharacterPanelValue(
             field,
             values.reduce((total, value) => total + value, 0),
+            { isDelta: true },
           )}`
         : currentValue !== undefined && Number.isFinite(currentValue)
           ? '已纳入六盘投影'
           : '无可证副词条',
       target: target ?? '资料不足',
-      targetConditions: reference.conditions,
+      targetConditions: reference.conditions.map(playerDecisionText),
       currentEvidence:
         currentValue === undefined || !Number.isFinite(currentValue)
           ? '暂不可复算'
@@ -258,18 +280,18 @@ export function createAgentDevelopmentWorkbenchViewModel(input: {
   const targetCount = facts.filter((fact) => fact.target !== '资料不足').length
   const diagnosis =
     panel?.status === 'ok'
-      ? `可复算锚点：已支持的游戏当前属性已由${discSource === '当前方案' ? '当前方案' : '已装备'}的实体盘和账户角色/音擎事实复算，并按游戏菜单精度显示。`
-      : `资料不足：局外面板暂不支持：${panel?.reason ?? '当前没有可用内核输入。'}`
-  const gap = `当前总面板仍缺 ${facts.length - recordedCurrent.length} 项；目标数值已来源化 ${targetCount} 项，其他位置显示资料不足。`
+      ? `当前属性已按${discSource}的驱动盘与账户资料复算，数值按对应字段的精度与单位呈现。`
+      : `当前面板暂时无法核对：${panel?.reason ?? '还缺少可用的账户资料。'}`
+  const gap = `当前面板仍有 ${facts.length - recordedCurrent.length} 项待核对；已有 ${targetCount} 项目标数值，其余显示为资料不足。`
   const actions = [
     recordedCurrent.length
-      ? `在游戏局外面板核对项目复算的 ${recordedCurrent.join('、')}。`
-      : '补齐可复算的角色、音擎与六盘事实；缺失字段保持 unsupported。',
+      ? `在游戏局外面板核对 ${recordedCurrent.join('、')}。`
+      : '补齐角色、音擎与六盘资料；暂缺内容保持待确认。',
     contributionCount
       ? `逐项复核当前培养方案的 ${contributionCount} 类盘面副词条贡献。`
       : '当前方案没有可直接证明的面板副词条贡献。',
     direction
-      ? `按 candidate 词条方向“${direction}”比较方案；目标数值缺失时不作推导。`
+      ? `按盘面词条方向“${direction}”比较方案；目标数值缺失时不作推导。`
       : '目标资料不足；不要把候选盘面分数当作最终面板。',
   ]
   const sourcedFacts = facts.filter((fact) => fact.targetEvidence !== 'missing')
@@ -297,7 +319,9 @@ export function createAgentDevelopmentWorkbenchViewModel(input: {
               : '当前方案'
             : discSource === '当前已装备'
               ? '当前已装备驱动盘'
-              : '当前驱动盘',
+              : discSource === '仓库候选'
+                ? '仓库候选驱动盘'
+                : '当前驱动盘',
         action: plannedDiscs.every((item) => item.disc)
           ? '保留六张已引用实体盘'
           : '补齐六张实体盘引用',
@@ -306,7 +330,9 @@ export function createAgentDevelopmentWorkbenchViewModel(input: {
             ? '当前方案已提供仓库引用。'
             : discSource === '当前已装备'
               ? '账户已绑定六张实体盘。'
-              : '尚无当前方案或已装备六盘来源。',
+              : discSource === '仓库候选'
+                ? '本次候选提供六张实体盘引用，尚未写入当前装备。'
+                : '尚无当前方案或已装备六盘来源。',
         completion: plannedDiscs.every((item) => item.disc)
           ? '六盘引用完整'
           : '六盘引用完整后再比较',
@@ -315,29 +341,50 @@ export function createAgentDevelopmentWorkbenchViewModel(input: {
       {
         domain: '音擎',
         object: agent.wEngineDetails.name ?? '音擎',
-        action: agent.wEngineDetails.name ? '维持当前已录入音擎' : '补齐已选音擎',
-        reason: agent.wEngineDetails.name ? '账户组合已包含音擎事实。' : '缺少音擎事实。',
-        completion: agent.wEngineDetails.name ? '音擎已录入' : '录入音擎后可复算',
-        availability: agent.wEngineDetails.name ? 'available' : 'unavailable',
+        action: engine ? '按当前实际音擎比较候选方案' : '补齐当前音擎及其等级、突破、精炼',
+        reason: engine
+          ? '当前装备参数完整；推荐音擎仍是独立规划选项。'
+          : '仅有名称或推荐方向不证明当前装备参数完整。',
+        completion: engine ? '当前音擎参数已核对' : '补齐实际参数后再复算',
+        availability: engine ? 'available' : 'unavailable',
       },
       {
         domain: '技能',
         object: '核心技',
-        action: agent.skillLevels.core == null ? '补齐核心技等级' : '维持当前核心技等级',
-        reason: agent.skillLevels.core == null ? '核心技未录入。' : '账户已录入核心技等级。',
-        completion: agent.skillLevels.core == null ? '录入核心技等级' : '核心技已录入',
+        action:
+          agent.skillLevels.core == null
+            ? '补齐核心技等级'
+            : coreTarget !== null && agent.skillLevels.core < coreTarget
+              ? `核心技${agent.skillLevels.core} → ${coreTarget}级`
+              : coreTarget === null
+                ? '核对技能培养方向'
+                : '维持已达标核心技，继续核对其它技能',
+        reason:
+          agent.skillLevels.core == null
+            ? '核心技未录入。'
+            : coreTarget === null
+              ? '当前没有可直接套用的核心技数值目标。'
+              : '按同一来源目标与实际已录入等级比较。',
+        completion:
+          agent.skillLevels.core == null
+            ? '录入核心技等级'
+            : coreTarget !== null && agent.skillLevels.core < coreTarget
+              ? '补齐具名等级差距'
+              : coreTarget === null
+                ? '技能目标待确认'
+                : '核心技目标已满足',
         availability: agent.skillLevels.core == null ? 'unavailable' : 'available',
       },
     ],
     planState: {
       availability: activePlan ? 'available' : 'unavailable',
       name: activePlan ? playerFacingPlanName(activePlan.name, [agent.agentId]) : '尚未保存方案',
-      discCount: activePlan?.warehouseRefs.length ?? 0,
+      discCount: activePlan ? planIds.length : 0,
     },
     dataFoundation: {
       packageId: l3Evidence?.packageId ?? null,
       evidenceStatus: l3Evidence?.status ?? 'unavailable',
-      current: panel?.status === 'ok' ? '可复算锚点' : '资料不足',
+      current: panel?.status === 'ok' ? '当前属性可核对' : '资料不足',
       reference: l3Evidence?.candidateFacts.length ? '参考方向' : '资料不足',
       blockers: l3Evidence?.blockers.map((blocker) => blocker.code) ?? [],
     },

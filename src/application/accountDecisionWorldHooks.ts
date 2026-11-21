@@ -10,12 +10,36 @@ import {
 } from './calculationQueryContract'
 import { type AccountDecisionWorldContextValue } from './accountDecisionWorldModel'
 import { createAccountDecisionRun } from './publicAccountDecisionRun'
+import type { DevelopmentDirectoryScaffoldReady } from './developmentDirectoryScaffold'
 
 export const AccountDecisionWorldContext = createContext<AccountDecisionWorldContextValue | null>(
   null,
 )
 
 export const CalculationQueryClientContext = createContext<CalculationQueryClient | null>(null)
+
+export type DevelopmentDirectoryScaffoldScopeIdentity = Readonly<{
+  accountId: string | null
+}>
+
+export type DevelopmentDirectoryScaffoldContextValue =
+  | (DevelopmentDirectoryScaffoldReady & {
+      scope: DevelopmentDirectoryScaffoldScopeIdentity
+      retry: () => void
+    })
+  | {
+      status: 'loading' | 'failed'
+      accountId: string
+      scope: DevelopmentDirectoryScaffoldScopeIdentity
+      retry: () => void
+    }
+
+export const DevelopmentDirectoryScaffoldContext =
+  createContext<DevelopmentDirectoryScaffoldContextValue | null>(null)
+
+export function useDevelopmentDirectoryScaffold() {
+  return useContext(DevelopmentDirectoryScaffoldContext)
+}
 
 export function useDecisionPortfolioQuery(
   runId: string | null | undefined,
@@ -91,19 +115,25 @@ export function useTargetTeamWarehouseFitCalculation() {
       eventConditionDeclarationsByAgentId?: import('../calculation/reviewedEventConditionDeclarations32').ReviewedEventConditionDeclarations32,
       declaredEventComparison32?: import('./calculationQueryContract').TargetTeamWarehouseFitQuery['declaredEventComparison32'],
       standardReference32?: import('./targetTeamStandardReference32').TargetTeamStandardReferenceRequest32,
+      savedPlanReplay?: import('./calculationQueryContract').TargetTeamWarehouseFitQuery['savedPlanReplay'],
+      signal?: AbortSignal,
     ): Promise<TargetTeamWarehouseFitQueryResult> => {
       if (!client) throw new Error('Calculation/Query client is unavailable.')
-      return client.calculateTargetTeamWarehouseFit({
-        contractVersion: calculationQueryContractVersion,
-        kind: 'target_team_warehouse_fit',
-        runId,
-        candidateId,
-        equipmentParameters,
-        scenarioSelection,
-        eventConditionDeclarationsByAgentId,
-        declaredEventComparison32,
-        standardReference32,
-      })
+      return client.calculateTargetTeamWarehouseFit(
+        {
+          contractVersion: calculationQueryContractVersion,
+          kind: 'target_team_warehouse_fit',
+          runId,
+          candidateId,
+          equipmentParameters,
+          scenarioSelection,
+          eventConditionDeclarationsByAgentId,
+          declaredEventComparison32,
+          standardReference32,
+          savedPlanReplay,
+        },
+        signal ? { signal } : undefined,
+      )
     },
     [client],
   )
@@ -137,19 +167,23 @@ export function useDevelopmentCandidateAlternativesCalculation() {
       eventConditionDeclarationsByAgentId?: import('../calculation/reviewedEventConditionDeclarations32').ReviewedEventConditionDeclarations32,
       resourceGrantDeclaration32?: import('../calculation/sourceMechanismResourceGrants32').SourceResourceGrantDeclaration32,
       wEngineComparison?: import('./publicDevelopmentWEngineComparison').DevelopmentWEngineComparisonSelection,
+      signal?: AbortSignal,
     ): Promise<DevelopmentCandidateAlternativesQueryResult> => {
       if (!client) throw new Error('Calculation/Query client is unavailable.')
-      return client.queryDevelopmentCandidateAlternatives({
-        contractVersion: calculationQueryContractVersion,
-        kind: 'development_candidate_alternatives',
-        runId,
-        agentId,
-        candidateParametersByRank,
-        scenarioSelection,
-        eventConditionDeclarationsByAgentId,
-        resourceGrantDeclaration32,
-        wEngineComparison,
-      })
+      return client.queryDevelopmentCandidateAlternatives(
+        {
+          contractVersion: calculationQueryContractVersion,
+          kind: 'development_candidate_alternatives',
+          runId,
+          agentId,
+          candidateParametersByRank,
+          scenarioSelection,
+          eventConditionDeclarationsByAgentId,
+          resourceGrantDeclaration32,
+          wEngineComparison,
+        },
+        { signal },
+      )
     },
     [client],
   )

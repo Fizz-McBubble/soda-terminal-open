@@ -1,5 +1,9 @@
 import { database, type SodaDatabase } from '../db/databaseCore'
 import { getAccountPreference, saveAccountPreference } from './repository'
+import {
+  comparePersonalCurrentReferences,
+  isPersonalCurrentReference,
+} from './personalCurrentReference'
 
 const priorityKey = 'development.priority-agent-ids'
 const activePlansKey = 'development.active-agent-plan-ids'
@@ -38,9 +42,12 @@ export async function getSavedAgentBuildIds(accountId: string, db?: SodaDatabase
     .where('[accountId+kind]')
     .equals([accountId, 'agent'])
     .filter(
-      (plan) => plan.savedRole === 'current_reference' && plan.selection.agentIds.length === 1,
+      (plan) =>
+        plan.selection.agentIds.length === 1 &&
+        isPersonalCurrentReference(plan, plan.selection.agentIds[0]!),
     )
     .toArray()
+  current.sort((left, right) => comparePersonalCurrentReferences(right, left))
   return {
     ...legacy,
     ...Object.fromEntries(current.map((plan) => [plan.selection.agentIds[0], plan.id])),

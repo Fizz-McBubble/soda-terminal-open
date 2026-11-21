@@ -9,7 +9,14 @@ import {
   currentFormulaWEngineContractIds,
   resolveCurrentFormulaWEngineContract,
 } from './currentFormulaMechanicContracts'
-import { FIRST_PLUMAGE_STABLE_ID, resolveFirstPlumagePassive } from './reviewedWEngine33'
+import {
+  CAGE_OF_CONFINED_SIN_STABLE_ID,
+  FIRST_PLUMAGE_STABLE_ID,
+  TRICK_OF_CANDLEGLOW_STABLE_ID,
+  resolveCageOfConfinedSinPassive,
+  resolveFirstPlumagePassive,
+  resolveTrickOfCandleglowPassive,
+} from './reviewedWEngine33'
 
 const refinementSchema = z.number().int().min(1).max(5)
 const specialtySchema = z.object({
@@ -29,9 +36,10 @@ export type CurrentWEnginePassiveEffect = {
     | 'energy_regen'
     | 'hp_percent'
     | 'impact'
+    | 'resistance_ignore'
   value: number
   action?: 'basic' | 'dash' | 'dodge_counter' | 'ex_special' | 'ultimate'
-  attribute?: 'physical' | 'fire' | 'ice' | 'electric'
+  attribute?: 'physical' | 'fire' | 'ice' | 'electric' | 'ether' | 'wind'
 }
 
 type SupportedPassiveResult = {
@@ -351,7 +359,16 @@ export function resolveRainforestGourmetPassive(input: unknown) {
   }
 }
 
-export const currentWEnginePassiveAdapterRegistry = Object.freeze(
+type CurrentWEnginePassiveAdapterEntry = {
+  contract: 'soda-mechanic-contract/v1'
+  resolver:
+    | typeof resolveCurrentWEngineMechanicContract
+    | typeof resolveCurrentFormulaWEngineContract
+    | typeof resolveTrickOfCandleglowPassive
+    | typeof resolveCageOfConfinedSinPassive
+}
+
+const formulaWEnginePassiveAdapterEntries: Record<string, CurrentWEnginePassiveAdapterEntry> =
   Object.fromEntries(
     currentFormulaWEngineContractIds.map((stableId) => [
       stableId,
@@ -364,8 +381,21 @@ export const currentWEnginePassiveAdapterRegistry = Object.freeze(
           : resolveCurrentFormulaWEngineContract,
       },
     ]),
-  ),
-)
+  )
+
+export const currentWEnginePassiveAdapterRegistry: Readonly<
+  Record<string, CurrentWEnginePassiveAdapterEntry>
+> = Object.freeze({
+  ...formulaWEnginePassiveAdapterEntries,
+  [TRICK_OF_CANDLEGLOW_STABLE_ID]: {
+    contract: 'soda-mechanic-contract/v1',
+    resolver: resolveTrickOfCandleglowPassive,
+  },
+  [CAGE_OF_CONFINED_SIN_STABLE_ID]: {
+    contract: 'soda-mechanic-contract/v1',
+    resolver: resolveCageOfConfinedSinPassive,
+  },
+})
 
 export const currentWEnginePassiveAdapterIds = Object.freeze(
   Object.keys(currentWEnginePassiveAdapterRegistry),
@@ -383,4 +413,8 @@ export function resolveCurrentWEnginePassive(stableId: string, input: unknown) {
     : unsupported([`音擎 ${stableId} 尚未进入本地被动适配注册表。`])
 }
 
-export { resolveFirstPlumagePassive }
+export {
+  resolveCageOfConfinedSinPassive,
+  resolveFirstPlumagePassive,
+  resolveTrickOfCandleglowPassive,
+}

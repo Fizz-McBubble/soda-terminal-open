@@ -1,16 +1,30 @@
 import type { AccountPlanningDraft } from '../accounts/types'
+import { savedPlanHistoricalDiscReferenceStatus } from './savedTeamHistoricalDiscRefs'
+export { savedPlanHistoricalDiscRefs } from './savedTeamHistoricalDiscRefs'
+import { savedTeamRatedPlayId } from '../accounts/savedTeamRatingPlayIdentity'
 import type { AccountDecisionSnapshot } from '../application/calculationQueryContract'
+import { publicVersionIdentity } from '../application/publicVersionIdentity'
 import { authorityConsumerRecommendations } from '../application/authorityConsumerRecommendations'
 import { resolveCurrent31TeamFamily } from '../decision/current31TeamCoreAggregation'
 import { lookupCurrent31TeamIntrinsicDetails } from '../decision/current31TeamIntrinsicIndex'
+import {
+  currentGenericTeamRankingStatus,
+  lookupCurrentGenericTeamRanking,
+  lookupGraduatedScoreForSelection,
+} from '../decision/teamGenericRanking'
+import { selectSavedDefaultTeamAdmissionPlay } from '../decision/defaultTeamAdmissionPlay'
+import { projectGenericTeamRating } from '../decision/teamGenericRankingMethod'
 import { playerFacingAgentLabel, playerFacingBangbooLabel } from '../application/playerFacingLabels'
 import { savedPlanDisplayName } from '../application/savedPlanDisplayName'
 import type { TeamLoadoutOverviewItem } from './teamLoadoutOverviewModel'
 import type { CoreWarehouse } from '../accounts/coreFlow'
 import { savedPlanGraduationCompletion } from './savedPlanGraduationCompletion'
 import { attachSavedTeamDiscCompletion, savedTeamDiscCompletion } from './savedTeamDiscCompletion'
-import { targetTeamBangbooOptions } from '../decision/targetTeamSourceBangbooOptions'
+import { teamOverviewBangbooSuggestions } from './teamOverviewBangbooSuggestions'
 import { resolveReviewedTeamOutputModule } from '../gameDataPacks/reviewedTeamOutputModuleEvidence'
+import { resolveTeamMechanismDirection } from '../decision/teamMechanismDirection'
+import { canonicalTeamPlayIdentity } from '../domain/teamPlayMechanismContract'
+import type { FiniteTeamPlay } from '../domain/finiteTeamPlayContract'
 
 type AuthorityRecommendation = Extract<
   AccountDecisionSnapshot['decisionAuthority'],
@@ -23,6 +37,45 @@ function sameStableIds(left: readonly string[], right: readonly string[]) {
     new Set(left).size === left.length &&
     new Set(right).size === right.length &&
     left.every((value) => right.includes(value))
+  )
+}
+
+export function currentPlayForSavedPlan(
+  plan: AccountPlanningDraft,
+  activePlay?: FiniteTeamPlay | null,
+) {
+  const members = plan.selection.agentIds
+  if (plan.teamPortfolioSnapshot || members.length !== 3 || new Set(members).size !== 3) return null
+  const direction = resolveTeamMechanismDirection(members)
+  const context = plan.solutionContext
+  if (context?.ratedTeamPlayId !== undefined) {
+    const playId = savedTeamRatedPlayId(plan)
+    if (
+      !playId ||
+      plan.kind !== 'team' ||
+      plan.state !== 'saved' ||
+      plan.teamExecutionSnapshot?.authorComparisonMembership ||
+      context.scope !== 'team_joint' ||
+      context.gameVersion !== publicVersionIdentity.gameVersion
+    )
+      return null
+    const play = direction.variants.find((variant) => canonicalTeamPlayIdentity(variant) === playId)
+    return play && lookupGraduatedScoreForSelection(members, play) ? play : null
+  }
+  const ratedCount = direction.variants.filter((play) =>
+    lookupGraduatedScoreForSelection(members, play),
+  ).length
+  if (ratedCount > 1) return null
+  const activeId = activePlay && canonicalTeamPlayIdentity(activePlay)
+  const matchingActivePlay =
+    activeId && direction.variants.find((play) => canonicalTeamPlayIdentity(play) === activeId)
+  return (
+    matchingActivePlay ||
+    selectSavedDefaultTeamAdmissionPlay(
+      members,
+      direction,
+      currentGenericTeamRankingStatus.contentHash,
+    )
   )
 }
 
@@ -77,10 +130,19 @@ export function currentTeamRatingForSavedPlan(
   const memberIds = plan.selection.agentIds
   if (memberIds.length !== 3 || new Set(memberIds).size !== 3) return null
   const sortedMemberIds = [...memberIds].sort() as [string, string, string]
-  const current = lookupCurrent31TeamIntrinsicDetails(
+  const indexed = lookupCurrent31TeamIntrinsicDetails(
     sortedMemberIds,
     `saved-team-rating:${sortedMemberIds.join('+')}`,
   )
+  const current = indexed
+    ? {
+        ...indexed,
+        rating: projectGenericTeamRating(
+          indexed.rating,
+          lookupCurrentGenericTeamRanking(sortedMemberIds),
+        ),
+      }
+    : null
   if (
     !current ||
     current.rating.status !== 'rated' ||
@@ -117,43 +179,6 @@ export function currentTeamRatingForSavedPlan(
   return current
 }
 
-/**
- * Persisted rows have carried the same historical entity links in more than one compatible
- * projection. Keep their union for read-only restore; filtering against the current warehouse
- * would silently turn a recorded 18-disc plan into a shorter plan.
- */
-function savedPlanHistoricalDiscReferenceStatus(plan: AccountPlanningDraft) {
-  const candidateWarehouseDiscIds =
-    plan.candidateWarehouse?.loadouts.flatMap((loadout) => loadout.discIds) ?? []
-  const executionMemberDiscIds =
-    plan.teamExecutionSnapshot?.members.flatMap((member) => member.suggested.discIds) ?? []
-  const portfolioExecutionDiscIds =
-    plan.teamPortfolioSnapshot?.executions.flatMap((execution) => execution.physicalDiscIds) ?? []
-  const portfolioMemberDiscIds =
-    plan.teamPortfolioSnapshot?.executions.flatMap((execution) =>
-      execution.members.flatMap((member) => member.suggested.discIds),
-    ) ?? []
-  const projections = [
-    plan.warehouseRefs,
-    candidateWarehouseDiscIds,
-    ...(plan.teamExecutionSnapshot?.physicalDiscIds
-      ? [plan.teamExecutionSnapshot.physicalDiscIds]
-      : []),
-    executionMemberDiscIds,
-    ...(plan.teamPortfolioSnapshot?.uniquePhysicalDiscIds
-      ? [plan.teamPortfolioSnapshot.uniquePhysicalDiscIds]
-      : []),
-    portfolioExecutionDiscIds,
-    portfolioMemberDiscIds,
-  ].filter((discIds) => discIds.length > 0)
-  const normalized = projections.map((discIds) => [...new Set(discIds)].toSorted())
-  const baseline = normalized[0]?.join('|') ?? ''
-  return {
-    references: [...new Set(projections.flat())],
-    conflict: normalized.slice(1).some((discIds) => discIds.join('|') !== baseline),
-  }
-}
-
 function savedPlanMemberIds(plan: AccountPlanningDraft) {
   return plan.teamPortfolioSnapshot
     ? plan.teamPortfolioSnapshot.executions.flatMap((execution) => execution.memberIds)
@@ -164,12 +189,28 @@ function savedPlanBangbooLabel(plan: AccountPlanningDraft) {
   if (plan.teamPortfolioSnapshot)
     return plan.teamPortfolioSnapshot.executions
       .map((execution) =>
-        execution.bangbooId ? playerFacingBangbooLabel(execution.bangbooId) : '未纳入',
+        execution.bangbooId ? playerFacingBangbooLabel(execution.bangbooId) : '未记录',
       )
       .join(' · ')
   return plan.selection.bangbooId
     ? playerFacingBangbooLabel(plan.selection.bangbooId)
-    : '邦布待选择'
+    : '邦布未记录'
+}
+
+function savedPlanBangbooStars(plan: AccountPlanningDraft, bangbooId: string | null) {
+  if (!bangbooId) return undefined
+  const parameterStars =
+    plan.teamEquipmentParameters?.bangbooId === bangbooId
+      ? plan.teamEquipmentParameters.bangbooStars
+      : undefined
+  const snapshotStars =
+    plan.teamExecutionSnapshot?.bangbooId === bangbooId
+      ? plan.teamExecutionSnapshot.bangbooStar
+      : undefined
+  const stars = parameterStars ?? snapshotStars
+  return Number.isInteger(stars) && stars !== undefined && stars >= 1 && stars <= 5
+    ? (stars as 1 | 2 | 3 | 4 | 5)
+    : undefined
 }
 
 function savedPlanExpectedDiscCount(plan: AccountPlanningDraft) {
@@ -186,10 +227,6 @@ function savedPlanReason(plan: AccountPlanningDraft, historicalDiscReferenceCoun
     ? `已保存 ${historicalDiscReferenceCount} 张不同驱动盘`
     : '成员与方案方向已保存'
   return `${portfolioPrefix}${members || '成员待补齐'} · ${bangboo} · ${references}`
-}
-
-export function savedPlanHistoricalDiscRefs(plan: AccountPlanningDraft) {
-  return savedPlanHistoricalDiscReferenceStatus(plan).references
 }
 
 export function isContextSavedPlan(
@@ -228,9 +265,25 @@ export function savedPlanItem(
   const unavailableDiscCount = options.availableDiscIds
     ? historicalDiscRefs.filter((discId) => !options.availableDiscIds!.includes(discId)).length
     : 0
-  const degradedCount =
-    plan.candidateWarehouse?.loadouts.filter((loadout) => loadout.degraded).length ?? 0
   const quantitativeCompletion = (() => {
+    const executions =
+      plan.teamPortfolioSnapshot?.executions ??
+      (plan.teamExecutionSnapshot ? [plan.teamExecutionSnapshot] : [])
+    if (
+      !executions.length ||
+      executions.some(
+        (execution) =>
+          execution.members?.length !== 3 ||
+          execution.members.some(
+            (member) =>
+              !member.cultivation ||
+              member.suggested?.wEngine?.level == null ||
+              member.suggested.wEngine.ascension == null ||
+              member.suggested.wEngine.refinement == null,
+          ),
+      )
+    )
+      return null
     try {
       return savedPlanGraduationCompletion(plan, options.warehouse)
     } catch {
@@ -244,24 +297,22 @@ export function savedPlanItem(
   )
   const gaps = [
     ...(savedMemberIds.length < expectedMemberCount
-      ? [`还需补齐 ${expectedMemberCount - savedMemberIds.length} 名队伍成员`]
+      ? [`方案未记录 ${expectedMemberCount - savedMemberIds.length} 名成员`]
       : []),
     ...(historicalDiscRefs.length === expectedDiscCount
       ? []
       : [`当前保存了 ${historicalDiscRefs.length}/${expectedDiscCount} 张不同驱动盘`]),
-    ...(historicalDiscReferences.conflict
-      ? ['保存记录中的驱动盘信息不一致；已完整保留，需重新匹配后才能作为当前方案。']
-      : []),
+    ...(historicalDiscReferences.conflict ? ['保存记录中的驱动盘信息不一致，请重新匹配。'] : []),
     ...(unavailableDiscCount
-      ? [
-          `已保存的驱动盘中有 ${unavailableDiscCount} 张当前不在仓库；原记录已保留，未自动缩减或替换。`,
-        ]
+      ? [`已保存的驱动盘中有 ${unavailableDiscCount} 张当前不在仓库。`]
       : []),
     ...(plan.teamPortfolioSnapshot || plan.selection.bangbooId || plan.teamAccountFactBinding
       ? []
-      : ['尚未保存邦布方向']),
-    ...(degradedCount ? [`${degradedCount} 名成员需要复核仓库替代盘`] : []),
+      : ['邦布未记录']),
   ]
+  const savedBangbooStars = plan.teamPortfolioSnapshot
+    ? undefined
+    : savedPlanBangbooStars(plan, plan.selection.bangbooId)
   return {
     id: `saved:${plan.id}`,
     candidateId: null,
@@ -280,14 +331,11 @@ export function savedPlanItem(
         : null,
     bangbooId: plan.teamPortfolioSnapshot ? null : plan.selection.bangbooId,
     bangbooLabel: savedPlanBangbooLabel(plan),
-    bangbooSuggestions: targetTeamBangbooOptions({ memberIds: savedMemberIds }).map(
-      ({ bangbooId, defaultStars, recommendationReason, primaryPurpose, activationStatus }) => ({
-        bangbooId,
-        defaultStars,
-        recommendationReason,
-        primaryPurpose,
-        activationStatus,
-      }),
+    ...(savedBangbooStars ? { bangbooStars: savedBangbooStars } : {}),
+    bangbooSuggestions: teamOverviewBangbooSuggestions(
+      savedMemberIds,
+      plan.selection.bangbooId,
+      savedBangbooStars,
     ),
     stateLabel: '用户已保存',
     reason: savedPlanReason(plan, historicalDiscRefs.length),
@@ -333,5 +381,7 @@ export function savedPlanItem(
     authorityReasons: options.currentAuthority?.cultivationPriority.reasons ?? [],
     authorityTradeoffs: options.currentAuthority?.cultivationPriority.tradeoffs ?? [],
     authorityNextAction: options.currentAuthority?.cultivationPriority.nextAction ?? null,
+    // Current source conditions do not turn a historical save into a current recommendation.
+    playDirection: currentPlayForSavedPlan(plan, options.currentAuthority?.playDirection),
   }
 }

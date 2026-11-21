@@ -24,6 +24,38 @@ export const validReport = {
 }
 
 describe('allowlisted diagnostic privacy boundary', () => {
+  it('preserves exact scanner r38 candidate identity and historical revisions without retaining unknown scanner identities', () => {
+    for (const scanner of [
+      'ZZZ-Scanner.Next-1.0.49-soda-r22',
+      'ZZZ-Scanner.Next-1.0.49-soda-r37',
+      'ZZZ-Scanner.Next-1.0.49-soda-r38',
+    ]) {
+      const report = diagnosticFromSnapshot(
+        { ...connectingSnapshot, diagnostics: { ...validReport, versions: { scanner } } },
+        reportId,
+      )
+      expect(report.versions).toEqual({ scanner })
+      expect(sanitizeScanFeedbackPayload(report)).toEqual({ ok: true, record: report })
+      saveLastScanDiagnostic(report)
+      expect(readLastScanDiagnostic()?.versions).toEqual({ scanner })
+      expect(JSON.parse(diagnosticJson(report)).versions).toEqual({ scanner })
+    }
+    for (const scanner of [
+      'unknown',
+      'scanner-r38b',
+      'ZZZ-Scanner.Next-1.0.49-soda-r38b',
+      'ZZZ-Scanner.Next-1.0.49-soda-r10000',
+      'ZZZ-Scanner.Next-1.0.49-soda-r38/private',
+    ]) {
+      const raw = { ...validReport, versions: { scanner } }
+      const safe = sanitizeScanDiagnostic(raw)!
+      expect(safe.versions).toEqual({})
+      expect(sanitizeScanFeedbackPayload(raw)).toEqual({ status: 400 })
+      expect(sanitizeScanFeedbackPayload(safe)).toEqual({ ok: true, record: safe })
+    }
+    localStorage.clear()
+  })
+
   it('keeps the observed preflight reason across browser storage and strict receiver', () => {
     const evidence = {
       preflightState: 'inventory_screen_unreadable',
@@ -141,6 +173,7 @@ describe('allowlisted diagnostic privacy boundary', () => {
     'game_window_not_foreground',
     'game_window_not_visible',
     'window_geometry_changed',
+    'input_position_failed',
     'ppocrv6_detail_geometry_incompatible',
     'warehouse_context_lost',
   ])('preserves actionable window failure %s without copying raw details', (code) => {
@@ -152,21 +185,28 @@ describe('allowlisted diagnostic privacy boundary', () => {
     expect(report.code).toBe(code)
     expect(report).not.toHaveProperty('rawError')
   })
-  it('keeps an ambiguous window actionable through legacy snapshot diagnostics', () => {
+  it.each([
+    [
+      'game_window_ambiguous',
+      'preflight',
+      '检测到多个游戏窗口。请将本次要扫描的驱动仓库切到前台后重试。',
+    ],
+    ['input_position_failed', 'capture', '鼠标未能移动到目标位置，已停止扫描。'],
+  ])('keeps %s actionable through legacy snapshot diagnostics', (code, stage, userMessage) => {
     const report = diagnosticFromSnapshot(
       {
         ...connectingSnapshot,
         state: 'connection_failed',
         error: {
-          userMessage: '检测到多个游戏窗口。请将本次要扫描的驱动仓库切到前台后重试。',
+          userMessage,
           remedy: 'private path and window title',
-          diagnosticCode: 'game_window_ambiguous',
+          diagnosticCode: code,
           recoveryAction: 'retry',
         },
       },
       reportId,
     )
-    expect(report).toMatchObject({ code: 'game_window_ambiguous', stage: 'preflight' })
+    expect(report).toMatchObject({ code, stage, outcome: 'failed' })
     expect(JSON.stringify(report)).not.toContain('private')
   })
   it.each([
@@ -287,6 +327,72 @@ it('carries bounded terminal evidence through projection, storage, copy and stri
   })
   expect(new TextEncoder().encode(diagnosticJson(report)).length).toBeLessThanOrEqual(4096)
   localStorage.clear()
+})
+
+it.each([
+  'insufficient_stable_confirmation',
+  'cursor_release_unconfirmed',
+  'scroll_no_movement_after_max_ticks',
+])('retains the measured row-scroll cause %s rather than only its phase and tick', (reason) => {
+  // These names come from ScanDiagnosticDetails.RowScroll, not the edge-click DTO.
+  const evidence = {
+    diagnosticSource: 'terminal_details',
+    phase: 'row_scroll',
+    direction: 'down',
+    tick: 1,
+    maximumTicks: 2,
+    sample: 14,
+    decision: 'Ambiguous',
+    noMoveScore: 53,
+    oneRowScore: 12,
+    twoRowScore: 48,
+    bestScore: 12,
+    secondScore: 48,
+    margin: 36,
+    movedDistance: 15,
+    frameDistance: 20,
+    observationPhase: 'Settle',
+    settleSamples: 14,
+    reason,
+  }
+  const report = diagnosticFromSnapshot(
+    {
+      ...connectingSnapshot,
+      state: 'connection_failed',
+      diagnostics: { ...validReport, code: 'scan_navigation_failed', evidence },
+    },
+    reportId,
+  )
+  expect(report.evidence).toEqual(evidence)
+  saveLastScanDiagnostic(report)
+  expect(readLastScanDiagnostic()).toEqual(report)
+  expect(sanitizeScanFeedbackPayload(JSON.parse(diagnosticJson(report)))).toEqual({
+    ok: true,
+    record: report,
+  })
+  expect(new TextEncoder().encode(diagnosticJson(report)).length).toBeLessThanOrEqual(4096)
+  localStorage.clear()
+})
+
+it('rejects unobserved scores and unbounded scroll details without converting them to zero', () => {
+  const report = sanitizeScanDiagnostic({
+    ...validReport,
+    evidence: {
+      noMoveScore: 2147483647,
+      oneRowScore: -1,
+      twoRowScore: 1.5,
+      frameDistance: 0,
+      sample: 100001,
+      direction: 'down/private',
+      observationPhase: 'Settle/private',
+      reason: 'cursor_release_unconfirmed/private',
+      positionReason: 'scrollbar_and_leading_phase_no_move',
+    },
+  })!
+  expect(report.evidence).toEqual({
+    frameDistance: 0,
+    positionReason: 'scrollbar_and_leading_phase_no_move',
+  })
 })
 
 it.each(['scanner_failure', 'unknown', 'none', 'scanner_exit'])(

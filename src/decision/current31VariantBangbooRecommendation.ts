@@ -4,6 +4,11 @@ import {
   effectiveBangbooActivationPredicate,
   evaluateTeamPredicate,
 } from '../teamEngine/teamMethodR1'
+import {
+  getCurrentBangbooContractRequirements,
+  resolveCurrentBangbooAdditionalActivation,
+} from '../calculation/currentBangbooMechanicContracts'
+import { projectCurrentBangbooComposition32 } from '../calculation/currentBangbooCompositionIdentity'
 import { currentAssetProjection } from '../gameDataPacks/currentAssetProjection'
 import {
   current31ReviewedBangbooSourceAtoms,
@@ -188,18 +193,41 @@ function isStaticActivationPredicate(predicate: TeamPredicate): boolean {
   ].includes(predicate.kind)
 }
 
-function hasKnownActivationConflict(memberIds: readonly string[], bangbooId: string) {
+export type Current31VariantBangbooActivationStatus = 'active' | 'inactive' | 'unknown'
+
+function currentContractActivationStatus(
+  memberIds: readonly string[],
+  bangbooId: string,
+): Current31VariantBangbooActivationStatus | null {
+  if (!getCurrentBangbooContractRequirements(bangbooId)) return null
+  const composition = projectCurrentBangbooComposition32(memberIds)
+  if (!composition) return 'unknown'
+  const results = ([1, 2, 3, 4, 5] as const).map((star) =>
+    resolveCurrentBangbooAdditionalActivation({
+      stableId: bangbooId,
+      additionalAbilityLevel: star,
+      composition,
+    }),
+  )
+  if (results.some((result) => result.status === 'supported' && result.active)) return 'active'
+  return results.every((result) => result.status === 'supported') ? 'inactive' : 'unknown'
+}
+
+function legacyActivationStatus(
+  memberIds: readonly string[],
+  bangbooId: string,
+): Current31VariantBangbooActivationStatus {
   const rule = current31TeamEngineD1Pack.bangbooRules.find((item) => item.bangbooId === bangbooId)
   // Missing modeling is not a proof that an author's option is impossible.
-  if (!rule || rule.activation.status !== 'modeled') return false
+  if (!rule || rule.activation.status !== 'modeled') return 'unknown'
   const activation = rule.activation
   // The source resolver has no account state. Defer dynamic or unmodeled
   // activation to the target query rather than treating missing state as false.
-  if (!isStaticActivationPredicate(activation.predicate)) return false
+  if (!isStaticActivationPredicate(activation.predicate)) return 'unknown'
   const agents = memberIds.map((id) =>
     current31TeamEngineD1Pack.agentRules.find((item) => item.agentId === id),
   )
-  if (!agents.every((agent): agent is NonNullable<typeof agent> => Boolean(agent))) return false
+  if (!agents.every((agent): agent is NonNullable<typeof agent> => Boolean(agent))) return 'unknown'
   const context = {
     agents,
     producedTags: new Set(agents.flatMap((agent) => agent.produces)),
@@ -207,12 +235,27 @@ function hasKnownActivationConflict(memberIds: readonly string[], bangbooId: str
   }
   // Preserve reviewed minimum-star defaults such as S3 Belion. A source direction
   // conflicts only when no supported star can activate its exact three members.
-  return !([1, 2, 3, 4, 5] as const).some((star) =>
+  const anyStarActivates = ([1, 2, 3, 4, 5] as const).some((star) =>
     evaluateTeamPredicate(
       effectiveBangbooActivationPredicate(bangbooId, activation, star),
       context,
     ),
   )
+  return anyStarActivates ? 'active' : 'inactive'
+}
+
+export function resolveCurrent31VariantBangbooActivationStatus(
+  memberIds: readonly string[],
+  bangbooId: string,
+): Current31VariantBangbooActivationStatus {
+  return (
+    currentContractActivationStatus(memberIds, bangbooId) ??
+    legacyActivationStatus(memberIds, bangbooId)
+  )
+}
+
+function hasKnownActivationConflict(memberIds: readonly string[], bangbooId: string) {
+  return resolveCurrent31VariantBangbooActivationStatus(memberIds, bangbooId) === 'inactive'
 }
 
 export function resolveCurrent31VariantBangbooRecommendation(
@@ -254,5 +297,5 @@ export const current31VariantBangbooRecommendationSet = Object.freeze({
   activationBlockedSourceDefaults,
   inventoryAuthority: false,
   boundary:
-    '该映射只给出精确三人 Variant 的来源化候选邦布参数：既有具名权威优先，审阅 source atom 和当前版本无歧义的攻略图片选项仅补缺。它不读取账户库存、不创建队伍、不改变 Family 身份，也不携带 Team Strength Band。未命中、source 冲突或已建模的激活条件在所有星级均不成立时必须保持 null，禁止按 Family 猜测。',
+    '该映射只给出精确三人 Variant 的来源化候选邦布参数：既有具名权威优先，审阅 source atom 和当前版本无歧义的攻略图片选项仅补缺。当前 Mechanic Contract 优先于旧 Team Engine 回退，并逐星级核对额外能力激活条件。它不读取账户库存、不创建队伍、不改变 Family 身份，也不携带 Team Strength Band。未命中、source 冲突或已知激活条件在所有星级均不成立时必须保持 null；条件未知时不得当作失败，禁止按 Family 猜测。',
 })

@@ -3,6 +3,15 @@
   "sourceProjectionId": "current-asset-projection-3.3-r1",
   "agents": [
     {
+      "stableId": "agent-severian",
+      "entityType": "agent",
+      "playerName": "赛维里安",
+      "rarity": "S",
+      "specialty": "damage",
+      "attribute": "wind",
+      "supportsPotentialImage": false
+    },
+    {
       "stableId": "agent-phoenix",
       "entityType": "agent",
       "playerName": "菲欧妮",
@@ -233,7 +242,7 @@
       "playerName": "仪玄",
       "rarity": "S",
       "specialty": "rupture",
-      "attribute": "auric_ink",
+      "attribute": "ether",
       "supportsPotentialImage": false
     },
     {
@@ -553,6 +562,15 @@
     }
   ],
   "wengines": [
+    {
+      "stableId": "wengine-14163",
+      "entityType": "wengine",
+      "playerName": "禁罪囚笼",
+      "rarity": "S",
+      "specialty": "damage",
+      "attribute": null,
+      "supportsPotentialImage": false
+    },
     {
       "stableId": "wengine-14164",
       "entityType": "wengine",
@@ -982,6 +1000,15 @@
       "playerName": "啜泣摇篮",
       "rarity": "S",
       "specialty": "support",
+      "attribute": null,
+      "supportsPotentialImage": false
+    },
+    {
+      "stableId": "wengine-13022",
+      "entityType": "wengine",
+      "playerName": "烛光诡计",
+      "rarity": "A",
+      "specialty": "armorer",
       "attribute": null,
       "supportsPotentialImage": false
     },

@@ -22,11 +22,25 @@ const enumOrder = (values: readonly string[], value: string) => {
 }
 
 export function ratingOrder(band: TeamRatingBand) {
-  return enumOrder(['S+', 'S', 'A+', 'A', 'B', 'Experimental'], band)
+  return enumOrder(['S+', 'S', 'A+', 'A', 'B+', 'B', 'C', 'Experimental'], band)
 }
 
 export function confidenceOrder(confidence: DecisionConfidenceBand) {
   return enumOrder(['high', 'medium', 'low', 'experimental'], confidence)
+}
+
+/** Stable identity order for tied authority rows; account damage is not a tie-break. */
+export function compareAccountCandidateIdentity(
+  left: { memberIds: readonly string[]; candidate: { candidateId: string } },
+  right: { memberIds: readonly string[]; candidate: { candidateId: string } },
+) {
+  return (
+    [...left.memberIds]
+      .sort()
+      .join('|')
+      .localeCompare([...right.memberIds].sort().join('|')) ||
+    left.candidate.candidateId.localeCompare(right.candidate.candidateId)
+  )
 }
 
 export function readinessOrder(readiness: AccountBands['currentReadiness']) {
@@ -111,9 +125,7 @@ export function resolveComparableTeamCandidates<T>(
     activeRelationCount: 0,
   }
   const positions = new Map<string, number[]>()
-  const genericPreferences = resolveReviewedCurrentTeamPreferences(
-    currentReviewedTeamSourceDirections(),
-  )
+  let genericPreferences: ReturnType<typeof resolveReviewedCurrentTeamPreferences> | undefined
   items.forEach((item, i) => {
     const key = bucket(item)
     const indices = positions.get(key) ?? []
@@ -122,6 +134,11 @@ export function resolveComparableTeamCandidates<T>(
   })
   for (const indices of positions.values()) {
     if (indices.length < 2) continue
+    // Singleton families and independent system-rank buckets cannot consume a
+    // source relation. Resolve the current source graph only when it is used.
+    genericPreferences ??= resolveReviewedCurrentTeamPreferences(
+      currentReviewedTeamSourceDirections(),
+    )
     const group = indices.map((i) => items[i]!)
     const keyOf = (item: T) =>
       current31ProductionPartialOrderVariantKey({ memberIds: members(item), bangbooId: null }) ?? ''

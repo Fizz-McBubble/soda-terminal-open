@@ -35,7 +35,7 @@ export function teamRecommendationScore(
   band: TeamRatingBand | null,
   vector: Pick<TeamFeatureVector, 'dimensions' | 'hardPrunes'>,
 ): number | null {
-  if (!band || band === 'Experimental' || vector.hardPrunes.length) return null
+  if (!band || band === 'Experimental' || band === 'B+' || band === 'C' || vector.hardPrunes.length) return null
   return teamRecommendationScorePolicy.anchors[band]
 }
 
@@ -43,7 +43,7 @@ export function teamMechanismDiagnosticScore(
   band: TeamRatingBand | null,
   vector: Pick<TeamFeatureVector, 'dimensions' | 'hardPrunes'>,
 ): number | null {
-  if (!band || band === 'Experimental' || vector.hardPrunes.length) return null
+  if (!band || band === 'Experimental' || band === 'B+' || band === 'C' || vector.hardPrunes.length) return null
   const factors = Object.entries(teamMechanismDiagnosticScorePolicy.factors)
   let weightedFit = 0
   for (const [name, weight] of factors) {

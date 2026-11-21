@@ -397,19 +397,7 @@ export const gameData31CatalogIntake = {
   boundary: candidateBoundary,
 }
 
-export const scannerDriveDiscCatalog31 = gameData31CatalogEntities
-  .filter((entity) => entity.domain === 'drive_disc_set')
-  .map((entity) => ({
-    id: entity.identity.projectStableId,
-    gameStableId: entity.identity.gameStableId ?? null,
-    name: entity.fields.localizedName ?? entity.displayName,
-    aliases: String(entity.fields.ocrAliases ?? entity.fields.localizedName ?? entity.displayName)
-      .split('|')
-      .filter(Boolean),
-    status: entity.status,
-    version: entity.source.sourceVersion,
-    sourceRefs: [entity.source.id, entity.source.contentHash],
-  }))
+export { scannerDriveDiscCatalog31 } from './gameData31CatalogEntities'
 
 export function getGameData31CatalogEntity(id: string) {
   return gameData31CatalogEntities.find((entity) => entity.id === id) ?? null

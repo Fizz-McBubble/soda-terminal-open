@@ -1,4 +1,10 @@
 {
+  "agent-phoenix-official-avatar": "https://drive.usercontent.google.com/download?id=17-c96uuYVeqRHq6NShgvXSbLJ3zG17Pn&export=download",
+  "agent-phoenix": "https://i.gachabase.net/pjWvKjiqcrVXw62mVjjtK_3-o3UjrDqO7uaUdapJDv8/q:50/f:webp/plain/zzz/assets/8f0be38216c1d38219a1cb97c18d76c2.png",
+  "agent-severian": "https://i.gachabase.net/rfibKKH-wVXDjYEZRPR4bbQU1sfenB9nzp-aEXAPR1o/q:50/f:webp/plain/zzz/assets/cd03523923aae9b7a11236f6c3232979.png",
+  "wengine-14164": "https://i.gachabase.net/ZGMDPHmr1-0jEMnU0qb4KmZYZTcJ8PL-RjhTlUv2IwU/q:50/f:webp/plain/zzz/assets/43a45839f3b132a443f9dbcd2ef73526.png",
+  "wengine-14163": "https://i.gachabase.net/var7TAFiy2s1P5cFSwXG8Oq6niei4OhGKzME7XSwYgM/q:50/f:webp/plain/zzz/assets/6da430c30c453c0b2f22ef7bbd564d15.png",
+  "wengine-13022": "https://i.gachabase.net/xBjjEXSrvllEXyd3sZsh-JC75k7-1u1pNowhVnPgMy0/q:50/f:webp/plain/zzz/assets/aa3f1218b96f89aa4a50cb0d4f5552e5.png",
   "specialty-armorer": "https://raw.githubusercontent.com/frzyc/genshin-optimizer/3456cd0f6f5bea10e168074502460dac2fcd6df4/libs/zzz/assets/src/common/speciality/IconArmorer.png",
   "wengine-14161": "https://raw.githubusercontent.com/frzyc/genshin-optimizer/3456cd0f6f5bea10e168074502460dac2fcd6df4/libs/zzz/assets/src/gen/wengines/CrimsonThirst/icon.png",
   "wengine-14162": "https://raw.githubusercontent.com/frzyc/genshin-optimizer/3456cd0f6f5bea10e168074502460dac2fcd6df4/libs/zzz/assets/src/gen/wengines/CrimsonMoonCasket/icon.png",
@@ -64,5 +70,9 @@
   "agent-zhu-yuan": "https://raw.githubusercontent.com/frzyc/genshin-optimizer/3456cd0f6f5bea10e168074502460dac2fcd6df4/libs/zzz/assets/src/gen/chars/ZhuYuan/interknot.png",
   "agent-zhao": "https://raw.githubusercontent.com/frzyc/genshin-optimizer/3456cd0f6f5bea10e168074502460dac2fcd6df4/libs/zzz/assets/src/gen/chars/Zhao/interknot.png",
   "agent-remielle": "https://raw.githubusercontent.com/frzyc/genshin-optimizer/3456cd0f6f5bea10e168074502460dac2fcd6df4/libs/zzz/assets/src/gen/chars/Remielle/interknot.png",
-  "agent-sigrid": "https://raw.githubusercontent.com/frzyc/genshin-optimizer/3456cd0f6f5bea10e168074502460dac2fcd6df4/libs/zzz/assets/src/gen/chars/Sigrid/interknot.png"
+  "agent-sigrid": "https://raw.githubusercontent.com/frzyc/genshin-optimizer/3456cd0f6f5bea10e168074502460dac2fcd6df4/libs/zzz/assets/src/gen/chars/Sigrid/interknot.png",
+  "agent-phoenix-interknot": "https://enka.network/ui/zzz/IconInterKnotRole1641.png",
+  "agent-severian-interknot": "https://enka.network/ui/zzz/IconInterKnotRole1631.png",
+  "agent-claret-square": "https://static.nanoka.cc/assets/zzz/IconRoleCrop1611.webp",
+  "agent-roxy-square": "https://static.nanoka.cc/assets/zzz/IconRoleCrop68.webp"
 }

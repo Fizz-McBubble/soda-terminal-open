@@ -127,26 +127,15 @@
   .f5v-box-team-overview .f5v-box-team-row {
     grid-template-columns: 240px minmax(0, 1fr);
   }
-  .f5v-box-team-overview .f5v-box-team-row__identity {
-    display: grid;
-    grid-template-columns: 144px minmax(0, 1fr) auto auto;
-    align-items: center;
-    gap: 12px;
-  }
-  .f5v-box-team-overview .f5v-box-team-row__identity > .f5v-box-team-reference {
-    width: 100%;
+  .f5v-box-team-overview .f5v-box-team-card__title-line > .f5v-box-team-reference {
+    width: fit-content;
+    max-width: 100%;
+    justify-self: start;
     box-sizing: border-box;
     white-space: nowrap;
   }
-  .f5v-box-team-overview .f5v-box-team-row__identity > strong {
-    min-width: 0;
-    overflow-wrap: anywhere;
-  }
-  .f5v-box-team-overview .f5v-box-team-row__identity > .team-graduation-completion {
-    grid-column: 3;
-  }
-  .f5v-box-team-overview .f5v-box-team-row__identity > .f5v-box-team-state {
-    grid-column: 4;
+  .f5v-box-team-overview :is(.f5v-box-team-row, .f5v-box-team-decision-card) {
+    align-items: center;
   }
   .f5v-box-team-overview
     :is(.f5v-box-team-row, .f5v-box-team-decision-card)
@@ -271,6 +260,21 @@
   .f5v-box-team-completion__team-portrait {
     width: 38px;
     height: 38px;
+  }
+  .f5v-box-team-overview .f5v-box-team-toolbar {
+    align-items: stretch;
+  }
+  .f5v-box-team-overview
+    .f5v-box-team-toolbar
+    :is(.f5v-box-team-recommendation-search, .f5v-box-team-system-filter) {
+    flex-basis: 100%;
+    max-width: none;
+  }
+  .f5v-box-team-overview .f5v-box-team-system-filter {
+    min-width: 0;
+  }
+  .f5v-box-team-overview .f5v-box-team-toolbar .f5v-box-team-favorites-filter {
+    min-width: 0;
   }
 }
 

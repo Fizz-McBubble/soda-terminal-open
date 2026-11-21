@@ -1,0 +1,331 @@
+/* Reusable musical-workstation tactile cadence across Assets, Development, Teams, and Warehouse.
+ * - One-shot compositor-only (transform / opacity) confirmations that settle to calm resting states.
+ * - Zero hover-lift, zero infinite card glow, zero layout shift, full keyboard & touch parity.
+ */
+
+/* --- Tabular numeral alignment across active operational surfaces --- */
+.r6-golden .editor :is(input, select),
+.r6-golden .card-state,
+.f5v-shell .agent-tile-link small,
+.f5v-shell .stat-grid dd,
+.f5v-shell .skill-comparison b,
+.f5v-shell .disc-metric,
+.f5v-shell .comparison-candidate__metrics,
+.f5v-shell .development-disc-card__slot,
+.f5v-shell .development-disc-card__main-stat,
+.f5v-shell .f5v-box-team-row__identity,
+.f5v-shell .team-execution__member-copy small,
+.f5v-shell .team-execution__disc-summary-meta,
+.f5v-shell .warehouse-action-row__identity small,
+.f5v-shell .warehouse-action-row__substats small,
+.f5v-shell .warehouse-action-row__advice {
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Section 1: Assets (cards & tabs) --- */
+.r6-golden .object-card,
+.r6-golden .asset-tabs button {
+  touch-action: manipulation;
+}
+
+.r6-golden .object-card:active:not(:disabled),
+.r6-golden .asset-tabs button:active:not(:disabled) {
+  transform: scale(0.992);
+}
+
+/* --- Section 2: Agent Development (directory tiles, comparison candidates, honest busy/save) --- */
+.f5v-shell .agent-tile-link,
+.f5v-shell .top10 .comparison-candidate {
+  position: relative;
+  touch-action: manipulation;
+}
+
+.f5v-shell .agent-tile-link::before,
+.f5v-shell .top10 .comparison-candidate::before {
+  content: '';
+  position: absolute;
+  inset: 8px auto 8px 0;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: var(--soda-accent);
+  opacity: 0;
+  transform: scaleY(0.35);
+  pointer-events: none;
+}
+
+.f5v-shell .agent-tile-link:is(.selected, [aria-pressed='true'])::before,
+.f5v-shell .top10 .comparison-candidate:is(.is-selected, [aria-pressed='true'])::before {
+  opacity: 1;
+  transform: scaleY(1);
+}
+
+.f5v-shell .agent-tile-link:focus-visible,
+.f5v-shell .top10 .comparison-candidate:focus-visible {
+  outline: 2px solid var(--soda-focus);
+  outline-offset: -2px;
+}
+
+.f5v-shell .agent-tile-link:active:not(:disabled),
+.f5v-shell .top10 .comparison-candidate:active:not(:disabled) {
+  background-color: color-mix(in srgb, var(--soda-accent) 10%, var(--f5-paper));
+}
+
+.f5v-shell .warehouse-analysis-running,
+.f5v-shell .optimizer-plan__transition-notice {
+  position: relative;
+}
+
+.f5v-shell .warehouse-analysis-running::before,
+.f5v-shell .optimizer-plan__transition-notice::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--soda-accent);
+  opacity: 0.78;
+}
+
+/* --- Section 3: Team Loadouts (overview rows, variants, member tabs, disc slots) --- */
+.f5v-shell .f5v-box-team-row {
+  position: relative;
+  touch-action: manipulation;
+}
+
+.f5v-shell .f5v-box-team-row:hover {
+  transform: none;
+}
+
+.f5v-shell .f5v-box-team-row::before {
+  content: '';
+  position: absolute;
+  inset: 12px auto 12px 0;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: var(--soda-accent);
+  opacity: 0;
+  transform: scaleY(0.35);
+  pointer-events: none;
+}
+
+.f5v-shell .f5v-box-team-row.is-selected::before {
+  opacity: 1;
+  transform: scaleY(1);
+}
+
+.f5v-shell .f5v-box-team-row:active:not(:disabled) {
+  background-color: color-mix(in srgb, var(--soda-accent) 9%, var(--f5-paper));
+}
+
+.f5v-shell .f5v-box-team-variants button,
+.f5v-shell .team-execution__member-slot > button[role='tab'],
+.f5v-shell .team-execution__view-toggle button,
+.f5v-shell .team-execution__disc-toggle {
+  touch-action: manipulation;
+}
+
+.f5v-shell .team-execution__member-slot > button[role='tab'] {
+  position: relative;
+}
+
+.f5v-shell .team-execution__member-slot > button[role='tab']::after {
+  content: '';
+  position: absolute;
+  inset: auto 14px 2px 14px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--soda-accent);
+  opacity: 0;
+  transform: scaleX(0.35);
+  pointer-events: none;
+}
+
+.f5v-shell .team-execution__member-slot > button[role='tab'][aria-selected='true']::after {
+  opacity: 1;
+  transform: scaleX(1);
+}
+
+.f5v-shell .team-execution__member-slot > button[role='tab']:focus-visible,
+.f5v-shell .team-execution__view-toggle button:focus-visible {
+  outline: 2px solid var(--soda-focus);
+  outline-offset: -2px;
+}
+
+.f5v-shell .team-execution__member-slot > button[role='tab']:active:not(:disabled),
+.f5v-shell .team-execution__disc-toggle:active:not(:disabled) {
+  background-color: color-mix(in srgb, var(--soda-accent) 8%, var(--soda-surface));
+}
+
+.f5v-shell .team-execution__disc-card {
+  position: relative;
+}
+
+.f5v-shell .team-execution__disc-card::before {
+  content: '';
+  position: absolute;
+  inset: 8px auto 8px 0;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: var(--soda-accent);
+  opacity: 0;
+  transform: scaleY(0.35);
+  pointer-events: none;
+}
+
+.f5v-shell .team-execution__disc-card.is-expanded::before {
+  opacity: 1;
+  transform: scaleY(1);
+}
+
+/* --- Section 4: Disc Warehouse (virtualized rows, keyboard focus, summary pills) --- */
+.f5v-shell .warehouse-action-row {
+  position: relative;
+  touch-action: manipulation;
+}
+
+.f5v-shell .warehouse-action-row::before {
+  content: '';
+  position: absolute;
+  inset: 8px auto 8px 0;
+  width: 3px;
+  border-radius: 0 2px 2px 0;
+  background: var(--f5-accent);
+  opacity: 0;
+  transform: scaleY(0.35);
+  pointer-events: none;
+}
+
+.f5v-shell .warehouse-action-row:is(.is-selected, [aria-pressed='true']) {
+  background-color: color-mix(in srgb, var(--f5-accent) 11%, var(--f5-paper));
+  box-shadow: none;
+}
+
+.f5v-shell .warehouse-action-row:is(.is-selected, [aria-pressed='true'])::before {
+  opacity: 1;
+  transform: scaleY(1);
+}
+
+.f5v-shell .warehouse-action-row:focus-visible {
+  outline: 2px solid var(--soda-focus);
+  outline-offset: -2px;
+  background-color: color-mix(in srgb, var(--soda-accent) 7%, var(--f5-paper));
+}
+
+.f5v-shell .warehouse-action-row:active:not(:disabled) {
+  background-color: color-mix(in srgb, var(--f5-accent) 14%, var(--f5-paper));
+}
+
+.f5v-shell .warehouse-action-summary__item {
+  touch-action: manipulation;
+}
+
+.f5v-shell .warehouse-action-summary__item:hover {
+  transform: none;
+}
+
+.f5v-shell .warehouse-action-summary__item:active:not(:disabled) {
+  transform: scale(0.99);
+}
+
+/* Gate pointer hover tints to fine-pointer hover-capable devices so touch never sticks. */
+@media (hover: none) {
+  .f5v-shell .warehouse-action-row:hover:not(.is-selected):not([aria-pressed='true']) {
+    background-color: transparent;
+  }
+  .f5v-shell .f5v-box-team-row:hover:not(.is-selected) {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+  }
+  .f5v-shell .warehouse-action-summary__item:hover:not(.is-active) {
+    border-color: transparent;
+    background: var(--f5-wash);
+    box-shadow: none;
+  }
+}
+
+/* --- Musical cadence one-shot confirmations & honest in-flight rhythm (motion-safe only) --- */
+@media (prefers-reduced-motion: no-preference) {
+  .r6-golden .asset-tabs button.active::after,
+  .f5v-shell .team-execution__member-slot > button[role='tab'][aria-selected='true']::after {
+    animation: soda-cadence-underline-lock 260ms var(--soda-ease-out);
+  }
+
+  .f5v-shell .agent-tile-link:is(.selected, [aria-pressed='true'])::before,
+  .f5v-shell .top10 .comparison-candidate:is(.is-selected, [aria-pressed='true'])::before,
+  .f5v-shell .f5v-box-team-row.is-selected::before,
+  .f5v-shell .team-execution__disc-card.is-expanded::before,
+  .f5v-shell .warehouse-action-row:is(.is-selected, [aria-pressed='true'])::before {
+    animation: soda-cadence-bar-lock 260ms var(--soda-ease-out);
+  }
+
+  .r6-golden .object-card[aria-selected='true'],
+  .r6-golden .object-card[aria-checked='true'],
+  .f5v-shell .f5v-box-team-variants button.is-selected,
+  .f5v-shell .team-execution__view-toggle button[aria-pressed='true'],
+  .f5v-shell .warehouse-action-summary__item.is-active,
+  .f5v-shell .development-save-success {
+    animation: soda-cadence-settle 240ms var(--soda-ease-out);
+  }
+
+  .f5v-shell .warehouse-analysis-running::before,
+  .f5v-shell .optimizer-plan__transition-notice::before {
+    animation: soda-cadence-busy-pulse 1.6s ease-in-out infinite;
+    animation-play-state: var(--signal-play-state, running);
+  }
+}
+
+@keyframes soda-cadence-settle {
+  0% {
+    transform: scale(0.988);
+  }
+  55% {
+    transform: scale(1.006);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes soda-cadence-bar-lock {
+  0% {
+    opacity: 0.45;
+    transform: scaleY(0.28);
+  }
+  60% {
+    opacity: 1;
+    transform: scaleY(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+@keyframes soda-cadence-underline-lock {
+  0% {
+    opacity: 0.45;
+    transform: scaleX(0.32);
+  }
+  60% {
+    opacity: 1;
+    transform: scaleX(1.04);
+  }
+  100% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+}
+
+@keyframes soda-cadence-busy-pulse {
+  0%,
+  100% {
+    opacity: 0.36;
+    transform: scale(0.86);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}

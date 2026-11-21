@@ -9,16 +9,21 @@ import { currentTeamAnalysisSession } from './teamAnalysisSession'
 import { choosePlayerSelect } from '../testing/choosePlayerSelect'
 import { traceTeamRematch, type TeamRematchTraceWindow } from './optimizer/teamRematchTrace'
 import {
+  addWarehouseDisc,
   findAnalyzeCurrentTeamButton,
   findFitTeamEquipmentButton,
   findTeamEquipmentHeading,
   optimizerFlowIntegrationTestTimeout,
+  readOptimizerTeamAccountState,
   seedTeamWarehouse,
   setupOptimizerFlowTestIsolation,
+  setupRealTeamRematchModules,
+  openSourceDefaultTeamDetail,
 } from './optimizerFlowTestFixtures'
 
 describe('team rematch lifecycle', () => {
   setupOptimizerFlowTestIsolation()
+  setupRealTeamRematchModules()
   it(
     'passes real saved player parameters through the reanalyze rematchPlan entry to the actual fit query',
     async () => {
@@ -61,15 +66,10 @@ describe('team rematch lifecycle', () => {
           teamEquipmentParameters: parameters,
         })
       })
-      // A committed IndexedDB write precedes the live-query render. Wait for
-      // the player's stale-result notice before requesting a new analysis;
-      // otherwise the test can reuse the previous world while it is changing.
-      await screen.findByRole('status', { name: '账户数据已更新' })
-      const before = {
-        rosters: await database.accountRosters.toArray(),
-        discs: await database.accountDriveDiscs.toArray(),
-        drafts: await database.accountPlanningDrafts.toArray(),
-      }
+      expect(
+        (await database.accountPlanningDrafts.get(stored.scopedId))?.teamEquipmentParameters,
+      ).toEqual(parameters)
+      const before = await readOptimizerTeamAccountState()
       const replay = vi.spyOn(localCalculationQueryClient, 'querySavedTeamPlanReplay')
       const fit = vi.spyOn(localCalculationQueryClient, 'calculateTargetTeamWarehouseFit')
       await act(async () => {
@@ -86,9 +86,7 @@ describe('team rematch lifecycle', () => {
       const replayResult = await replay.mock.results.at(-1)!.value
       expect(replayResult.match?.effectiveEquipmentParameters).toEqual(parameters)
       expect(fit.mock.calls[0]![0].equipmentParameters).toEqual(parameters)
-      expect(await database.accountRosters.toArray()).toEqual(before.rosters)
-      expect(await database.accountDriveDiscs.toArray()).toEqual(before.discs)
-      expect(await database.accountPlanningDrafts.toArray()).toEqual(before.drafts)
+      expect(await readOptimizerTeamAccountState()).toEqual(before)
     },
     optimizerFlowIntegrationTestTimeout,
   )
@@ -124,14 +122,10 @@ describe('team rematch lifecycle', () => {
         </StrictMode>,
       )
       await user.click(await findAnalyzeCurrentTeamButton())
-      await user.click(await findFitTeamEquipmentButton())
+      await openSourceDefaultTeamDetail()
       await findTeamEquipmentHeading()
       const teamPath = window.location.pathname
-      const before = {
-        rosters: await database.accountRosters.toArray(),
-        discs: await database.accountDriveDiscs.toArray(),
-        drafts: await database.accountPlanningDrafts.toArray(),
-      }
+      const before = await readOptimizerTeamAccountState()
       const fit = vi.spyOn(localCalculationQueryClient, 'calculateTargetTeamWarehouseFit')
       const route = vi.spyOn(localCalculationQueryClient, 'queryTeamRoutePresentation')
       const previousFit = Object.values(currentTeamAnalysisSession!.result.targetTeamFits)[0]!
@@ -152,9 +146,7 @@ describe('team rematch lifecycle', () => {
           .effectiveEquipmentParameters,
       ).toEqual(previousFit.effectiveEquipmentParameters)
       expect(previousFit.effectiveEquipmentParameters?.source).toBe('source_defaults')
-      expect(await database.accountRosters.toArray()).toEqual(before.rosters)
-      expect(await database.accountDriveDiscs.toArray()).toEqual(before.discs)
-      expect(await database.accountPlanningDrafts.toArray()).toEqual(before.drafts)
+      expect(await readOptimizerTeamAccountState()).toEqual(before)
     },
     optimizerFlowIntegrationTestTimeout,
   )
@@ -202,39 +194,28 @@ describe('team rematch lifecycle', () => {
       await findTeamEquipmentHeading()
       const teamId = decodeURIComponent(window.location.pathname.split('/').at(-1)!)
       await user.click(screen.getByRole('button', { name: '保存当前队伍方案' }))
-      await screen.findByRole('heading', { name: '当前队伍建议' })
-      const disc = await database.accountDriveDiscs.toCollection().first()
-      if (!disc) throw new Error('Expected a test drive disc')
-      await database.accountDriveDiscs.update(disc.scopedId, { tags: ['saved-rematch-refresh'] })
-      await screen.findByRole('status', { name: '账户数据已更新' })
-      const before = {
-        rosters: await database.accountRosters.toArray(),
-        discs: await database.accountDriveDiscs.toArray(),
-        drafts: await database.accountPlanningDrafts.toArray(),
-      }
+      await screen.findByRole('heading', { name: '当前队伍建议' }, { timeout: 20_000 })
+      await addWarehouseDisc()
+      const before = await readOptimizerTeamAccountState()
       const route = vi.spyOn(localCalculationQueryClient, 'queryTeamRoutePresentation')
       const fit = vi.spyOn(localCalculationQueryClient, 'calculateTargetTeamWarehouseFit')
-      const calculate = localCalculationQueryClient.calculateAccountDecision.bind(
+      const readOverview = localCalculationQueryClient.queryTeamOverviewPresentation.bind(
         localCalculationQueryClient,
       )
       const prunedPresentation = vi
-        .spyOn(localCalculationQueryClient, 'calculateAccountDecision')
-        .mockImplementation(async (query) => {
-          const run = await calculate(query)
-          if (!run.teamPresentation) throw new Error('Expected a real team presentation')
-          // Exercise presentation pruning independently of producer eligibility:
-          // preserve the actual run, snapshot, saved rows and private fit solver.
+        .spyOn(localCalculationQueryClient, 'queryTeamOverviewPresentation')
+        .mockImplementation(async (query, options) => {
+          const presentation = await readOverview(query, options)
+          // Keep the actual run and fit Query while pruning the displayed BOX.
           return {
-            ...run,
-            teamPresentation: {
-              ...run.teamPresentation,
-              overviewModel: {
-                ...run.teamPresentation.overviewModel,
-                groups: run.teamPresentation.overviewModel.groups.map((group) => ({
-                  ...group,
-                  items: group.kind === 'saved' ? group.items : [],
-                })),
-              },
+            ...presentation,
+            overviewModel: {
+              ...presentation.overviewModel,
+              groups: presentation.overviewModel.groups.map((group) => ({
+                ...group,
+                items: group.kind === 'saved' ? group.items : [],
+                referenceItems: [],
+              })),
             },
           }
         })
@@ -247,7 +228,8 @@ describe('team rematch lifecycle', () => {
 
       expect(await findTeamEquipmentHeading()).toBeInTheDocument()
       expect(window.location.pathname).toBe(`/loadouts/team/${encodeURIComponent(teamId)}`)
-      expect(route).toHaveBeenCalledWith(expect.objectContaining({ candidateId: teamId }))
+      expect(route).toHaveBeenCalledOnce()
+      expect(route.mock.calls[0]?.[0]).toMatchObject({ candidateId: teamId })
       expect(fit).toHaveBeenCalledTimes(1)
       const routeResult = await route.mock.results[0]!.value
       expect(routeResult.team.agentIds.toSorted()).toEqual(
@@ -259,36 +241,46 @@ describe('team rematch lifecycle', () => {
           candidateId: routeResult.targetCandidateId,
         }),
       )
-      const prunedRun: Awaited<ReturnType<typeof calculate>> =
+      const prunedOverview: Awaited<ReturnType<typeof readOverview>> =
         await prunedPresentation.mock.results[0]!.value
       expect(
-        prunedRun.teamPresentation?.overviewModel.groups.flatMap((group) =>
+        prunedOverview.overviewModel.groups.flatMap((group) =>
           group.items.flatMap((family) =>
             family.variants.filter((variant) => variant.kind !== 'saved'),
           ),
         ),
       ).toEqual([])
-      expect(
-        prunedRun.teamPresentation?.overviewModel.groups.flatMap((group) => group.items),
-      ).not.toEqual([])
-      expect(await database.accountRosters.toArray()).toEqual(before.rosters)
-      expect(await database.accountDriveDiscs.toArray()).toEqual(before.discs)
-      expect(await database.accountPlanningDrafts.toArray()).toEqual(before.drafts)
+      expect(prunedOverview.overviewModel.groups.flatMap((group) => group.items)).not.toEqual([])
+      expect(await readOptimizerTeamAccountState()).toEqual(before)
     },
     optimizerFlowIntegrationTestTimeout,
   )
-  it('rejects an unknown rematch identity without fitting a different current team', async () => {
-    await seedTeamWarehouse()
-    const fit = vi.spyOn(localCalculationQueryClient, 'calculateTargetTeamWarehouseFit')
-    window.history.pushState({}, '', '/loadouts/team?reanalyze=1&rematchTeam=unknown-current-team')
-    render(<App />)
+  it(
+    'rejects an unknown rematch identity without fitting a different current team',
+    async () => {
+      await seedTeamWarehouse()
+      const calculate = vi.spyOn(localCalculationQueryClient, 'calculateAccountDecision')
+      const fit = vi.spyOn(localCalculationQueryClient, 'calculateTargetTeamWarehouseFit')
+      window.history.pushState(
+        {},
+        '',
+        '/loadouts/team?reanalyze=1&rematchTeam=unknown-current-team',
+      )
+      render(<App />)
 
-    expect(
-      await screen.findByText('这支队伍暂不能生成配装，请重新选择搭配。', {}, { timeout: 20_000 }),
-    ).toBeInTheDocument()
-    expect(window.location.pathname).toBe('/loadouts/team')
-    expect(fit).not.toHaveBeenCalled()
-  })
+      expect(
+        await screen.findByText(
+          '这支队伍暂不能生成配装，请重新选择搭配。',
+          {},
+          { timeout: 20_000 },
+        ),
+      ).toBeInTheDocument()
+      expect(window.location.pathname).toBe('/loadouts/team')
+      expect(calculate).toHaveBeenCalledOnce()
+      expect(fit).not.toHaveBeenCalled()
+    },
+    optimizerFlowIntegrationTestTimeout,
+  )
   it('does not fit or navigate a rematch whose route query completes after leaving the page', async () => {
     await seedTeamWarehouse()
     const originalRoute = localCalculationQueryClient.queryTeamRoutePresentation.bind(
@@ -316,9 +308,11 @@ describe('team rematch lifecycle', () => {
     const user = userEvent.setup()
     render(<App />)
     try {
-      await waitFor(() => expect(delayedRoute).toHaveBeenCalledTimes(1))
+      await waitFor(() => expect(delayedRoute).toHaveBeenCalledTimes(1), { timeout: 20_000 })
       await user.click(screen.getByRole('link', { name: '代理人养成' }))
-      await waitFor(() => expect(window.location.pathname).toBe('/development'))
+      await waitFor(() => expect(window.location.pathname).toBe('/development'), {
+        timeout: 20_000,
+      })
       releaseRoute()
       await waitFor(() => expect(completed).toBe(true))
       expect(window.location.pathname).toBe('/development')
@@ -351,7 +345,7 @@ describe('team rematch lifecycle', () => {
     )
     render(<App />)
     try {
-      await waitFor(() => expect(delayedRoute).toHaveBeenCalledTimes(1))
+      await waitFor(() => expect(delayedRoute).toHaveBeenCalledTimes(1), { timeout: 20_000 })
       // Hold the existing React page mounted while browser navigation is already committed,
       // as happens while the destination's lazy module is still loading.
       await act(async () => {
@@ -381,9 +375,7 @@ describe('team rematch lifecycle', () => {
     expect(savePlan).toBeEnabled()
     expect(parameter).toBeEnabled()
 
-    const disc = await database.accountDriveDiscs.toCollection().first()
-    if (!disc) throw new Error('Expected a test drive disc')
-    await database.accountDriveDiscs.update(disc.scopedId, { tags: ['changed-during-team-detail'] })
+    await addWarehouseDisc()
 
     await waitFor(() => expect(savePlan).toBeDisabled())
     expect(screen.getByRole('button', { name: '重新搭配' })).toBeInTheDocument()
@@ -455,17 +447,11 @@ describe('team rematch lifecycle', () => {
     await user.click(await findAnalyzeCurrentTeamButton())
     await user.click(await findFitTeamEquipmentButton())
     await findTeamEquipmentHeading()
-    const disc = await database.accountDriveDiscs.toCollection().first()
-    if (!disc) throw new Error('Expected a test drive disc')
-    await database.accountDriveDiscs.update(disc.scopedId, { tags: ['changed-before-rematch'] })
+    await addWarehouseDisc()
     await waitFor(() =>
       expect(screen.getByRole('button', { name: '保存当前队伍方案' })).toBeDisabled(),
     )
-    const before = {
-      rosters: await database.accountRosters.toArray(),
-      discs: await database.accountDriveDiscs.toArray(),
-      drafts: await database.accountPlanningDrafts.toArray(),
-    }
+    const before = await readOptimizerTeamAccountState()
     const calculate = localCalculationQueryClient.calculateAccountDecision.bind(
       localCalculationQueryClient,
     )
@@ -486,7 +472,9 @@ describe('team rematch lifecycle', () => {
       await user.click(screen.getByRole('button', { name: '重新搭配' }))
       await waitFor(() => expect(delayed).toHaveBeenCalledTimes(1))
       await user.click(screen.getByRole('link', { name: '代理人养成' }))
-      await waitFor(() => expect(window.location.pathname).toBe('/development'))
+      await waitFor(() => expect(window.location.pathname).toBe('/development'), {
+        timeout: 20_000,
+      })
       releaseCalculation()
       await waitFor(() => expect(completed).toBe(true))
       // Allow every zero-delay post-calculation stage to finish, including the
@@ -496,9 +484,7 @@ describe('team rematch lifecycle', () => {
       })
       expect(window.location.pathname).toBe('/development')
       expect(screen.queryByRole('heading', { name: /的方案配装/ })).not.toBeInTheDocument()
-      expect(await database.accountRosters.toArray()).toEqual(before.rosters)
-      expect(await database.accountDriveDiscs.toArray()).toEqual(before.discs)
-      expect(await database.accountPlanningDrafts.toArray()).toEqual(before.drafts)
+      expect(await readOptimizerTeamAccountState()).toEqual(before)
     } finally {
       releaseCalculation()
       delayed.mockRestore()

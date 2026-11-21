@@ -262,7 +262,7 @@
           "corrosive_chill_disorder_gain": 5,
           "corrosive_chill_own_freeze_gain": 5,
           "corrosive_chill_own_turbulence_gain": 5,
-          "trial_by_cold_initial": 0,
+          "trial_by_cold_initial": 2,
           "trial_by_cold_cap": 2,
           "trial_by_cold_cost": 1
         },
@@ -326,7 +326,7 @@
             "parameterKey": "trial_by_cold_cost"
           }
         ],
-        "evidenceLocator": "SOURCE_REGISTRY:honeyhunter-promeia-current-2026-08-05#core-skill | CURRENT_3_1_CONTINUITY:agent-promeia#resource-gains"
+        "evidenceLocator": "SOURCE_REGISTRY:honeyhunter-promeia-current-2026-08-05#core-skill | CURRENT_3_1_CONTINUITY:agent-promeia#resource-gains | CURRENT_3_3_ENTRY_REVIEW: https://static.nanoka.cc/zzz/3.3/zh/character/1541.json#sha256=bb05f0dc36cbf3cdb1e2a60e094f9e818bf9e3b8232c9e680804e705f9c0023b; core battle entry grants 2 Trial by Cold"
       }
     },
     {

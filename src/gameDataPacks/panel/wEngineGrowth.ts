@@ -34,6 +34,26 @@ export type TypedWEngineBaseStat = {
   value: number
 }
 
+/** Legal stages at a level. Boundaries 10–50 permit both sides of promotion. */
+export function legalAscensionsForLevel(level: number, allowLevelZero = false): number[] {
+  if (!Number.isInteger(level) || level < (allowLevelZero ? 0 : 1) || level > 60) return []
+  if (level === 0) return [0]
+  if (level === 60) return [5]
+  const stage = Math.floor(level / 10)
+  return level % 10 === 0 ? [stage - 1, stage] : [stage]
+}
+
+/** Infer only when the recorded level determines a single legal stage. */
+export function resolveRecordedAscension(
+  level: number,
+  ascension: number | null | undefined,
+  allowLevelZero = false,
+): number | undefined {
+  const legal = legalAscensionsForLevel(level, allowLevelZero)
+  if (ascension == null) return legal.length === 1 ? legal[0] : undefined
+  return legal.includes(ascension) ? ascension : undefined
+}
+
 export function defaultAscensionForLevel(level: number): number {
   if (typeof level !== 'number' || !Number.isInteger(level) || level < 0 || level > 60) {
     throw new Error(`Invalid level for ascension derivation: ${level}`)

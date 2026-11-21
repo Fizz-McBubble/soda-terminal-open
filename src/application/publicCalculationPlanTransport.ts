@@ -129,6 +129,7 @@ export function projectPublicTargetTeamFit(
   const publicValueBenchmark = projectPublicValueBenchmark(valueBenchmark)
   return {
     scenarioSelection: fit.scenarioSelection,
+    ...(fit.savedPlanReplay ? { savedPlanReplay: { ...fit.savedPlanReplay } } : {}),
     ...(fit.standardReference32 ? { standardReference32: fit.standardReference32 } : {}),
     ...(fit.formedTeamReference ? { formedTeamReference: fit.formedTeamReference } : {}),
     ...(fit.standardReferenceRequest32
@@ -220,8 +221,8 @@ export function projectPublicTargetTeamFit(
 }
 
 export function projectPublicDevelopmentAlternatives(
-  result: DevelopmentCandidateAlternativesQueryResult,
-): RemoteCalculationResult {
+  result: Omit<DevelopmentCandidateAlternativesQueryResult, 'runId'> & { runId?: string },
+) {
   const {
     contract,
     runId,
@@ -290,5 +291,5 @@ export function projectPublicDevelopmentAlternatives(
     gaps,
     presentation,
     panelPresentation,
-  } as RemoteCalculationResult
+  }
 }

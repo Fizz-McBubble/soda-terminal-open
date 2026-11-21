@@ -6,13 +6,117 @@ import {
   prepareAssetQuickReadImport,
   restoreAssetQuickReadImport,
 } from './accountImport'
-import { accountId, agentId, candidate, now, otherAccountId } from './accountImport.fixtures'
+import {
+  accountId,
+  agentId,
+  candidate,
+  now,
+  otherAccountId,
+  storedDisc,
+} from './accountImport.fixtures'
 import type { AccountImportTransactionsFixture } from './accountImportTransactionsFixture'
 import { mergeAssetQuickReadRoster } from './accountRosterMerge'
 import { convertAssetSnapshot } from './snapshotAdapter'
-import { omitted, present, syntheticAssetSnapshot } from './syntheticAssetSnapshotTestFixture'
+import {
+  omitted,
+  present,
+  stat,
+  syntheticAssetSnapshot,
+  syntheticAssetSnapshot33,
+} from './syntheticAssetSnapshotTestFixture'
 
 export function registerAccountImportTransactionsCases1(fixture: AccountImportTransactionsFixture) {
+  it('refuses a physical UID whose stored rarity conflicts with the observation', async () => {
+    const { db, facts } = fixture
+    await db.accountDriveDiscs.put({
+      ...storedDisc('old-b', 'asset-quick-read:880001'),
+      rarity: 'B',
+    })
+    const before = await facts()
+    await expect(prepareAssetQuickReadImport(accountId, candidate(), db)).rejects.toThrow(
+      '品级冲突',
+    )
+    expect(await facts()).toEqual(before)
+  })
+  it('previews, count-confirms and restores a mixed-quality observation without losing existing discs', async () => {
+    const { db, facts } = fixture
+    const prior = { ...storedDisc('existing-a', 'asset-quick-read:990002'), rarity: 'A' as const }
+    await db.accountDriveDiscs.put(prior)
+    const before = await facts()
+    const raw = syntheticAssetSnapshot()
+    raw.assets.discs.push({
+      uid: present(990002),
+      catalog_id: present(31032),
+      level: present(0),
+      main_stat: stat(12103, 53),
+      substats: [stat(11103, 79), stat(20103, 160)],
+    })
+    raw.assets.discs.push({
+      uid: present(990003),
+      catalog_id: present(31022),
+      level: present(0),
+      main_stat: stat(12103, 26),
+      substats: [stat(11103, 39)],
+    })
+    raw.counts.discs = 3
+    raw.counts.a_discs = raw.counts.b_discs = 1
+    const incoming = convertAssetSnapshot(raw, { snapshotSha256: 'b'.repeat(64), capturedAt: now })
+    expect(incoming.issues).toEqual([])
+    const plan = await prepareAssetQuickReadImport(accountId, incoming, db)
+    expect(plan.summary).toMatchObject({ observedDiscs: 3, newDiscs: 2, updatedDiscs: 1 })
+    expect(plan.next.discs.find((disc) => disc.id === prior.id)).toMatchObject({
+      rarity: 'A',
+      favorite: true,
+      tags: prior.tags,
+      subStats: expect.arrayContaining([{ stat: 'hp_flat', value: 79, upgrades: 0 }]),
+    })
+    const confirmation = {
+      accountId,
+      snapshotSha256: incoming.snapshotSha256,
+      sameGameAccountAndCounts: true as const,
+    }
+    await expect(confirmAssetQuickReadImport(incoming, plan, confirmation, db)).rejects.toThrow(
+      '核对全部驱动盘数量',
+    )
+    expect(await facts()).toEqual(before)
+    const receipt = await confirmAssetQuickReadImport(
+      incoming,
+      plan,
+      { ...confirmation, observedDiscCount: 3 },
+      db,
+    )
+    expect(await db.accountDriveDiscs.where('accountId').equals(accountId).toArray()).toHaveLength(
+      3,
+    )
+    await restoreAssetQuickReadImport(
+      accountId,
+      receipt.recoveryKey,
+      'restore_asset_quick_read',
+      db,
+    )
+    expect((await facts()).discs).toEqual(before.discs)
+  })
+  it('preserves existing A/B discs and their identity and metadata through S-only quick read and restore', async () => {
+    const { db, facts } = fixture
+    const lower = (['A', 'B'] as const).map((rarity) => ({
+      ...storedDisc(`lower-${rarity}`, `legacy-${rarity}`),
+      rarity,
+    }))
+    await db.accountDriveDiscs.bulkPut(lower)
+    const before = await facts()
+    const incoming = candidate()
+    const plan = await prepareAssetQuickReadImport(accountId, incoming, db)
+    expect(plan.next.discs).toEqual(expect.arrayContaining(lower))
+    const result = await confirmAssetQuickReadImport(
+      incoming,
+      plan,
+      { accountId, snapshotSha256: incoming.snapshotSha256, sameGameAccountAndCounts: true },
+      db,
+    )
+    expect(await db.accountDriveDiscs.bulkGet(lower.map((disc) => disc.scopedId))).toEqual(lower)
+    await restoreAssetQuickReadImport(accountId, result.recoveryKey, 'restore_asset_quick_read', db)
+    expect((await facts()).discs).toEqual(before.discs)
+  })
   it('rejects an existing roster with two aliases for one agent before merging', () => {
     const roster = createEmptyRoster(now)
     const claret = roster.agents.find((agent) => agent.agentId === 'agent-claret')!
@@ -23,7 +127,7 @@ export function registerAccountImportTransactionsCases1(fixture: AccountImportTr
     )
     expect(JSON.stringify(roster)).toBe(before)
   })
-  it('excludes malformed A/B at inspection and imports only S discs through preview and confirm', async () => {
+  it('blocks malformed A/B at inspection without writing the account', async () => {
     const { db } = fixture
 
     await db.accountDriveDiscs.clear() // Isolated fake IndexedDB fixture only.
@@ -41,29 +145,19 @@ export function registerAccountImportTransactionsCases1(fixture: AccountImportTr
     raw.counts.b_discs = raw.counts.a_discs = 1
     const incoming = convertAssetSnapshot(raw, { snapshotSha256: 'b'.repeat(64), capturedAt: now })
     expect(incoming.counts).toMatchObject({ discs: 3, sDiscs: 1 })
-    expect(incoming.importable).toBe(true)
+    expect(incoming.importable).toBe(false)
     expect(incoming.discs.discs).toHaveLength(1)
-    const preview = await prepareAssetQuickReadImport(accountId, incoming, db)
-    expect(preview.summary.observedDiscs).toBe(1)
-    expect(preview.next.discs.every((disc) => disc.rarity === 'S')).toBe(true)
-    await confirmAssetQuickReadImport(
-      incoming,
-      preview,
-      { accountId, snapshotSha256: incoming.snapshotSha256, sameGameAccountAndCounts: true },
-      db,
-    )
-    const saved = await db.accountDriveDiscs.where('accountId').equals(accountId).toArray()
-    expect(saved).toHaveLength(1)
-    expect(saved[0].rarity).toBe('S')
+    await expect(prepareAssetQuickReadImport(accountId, incoming, db)).rejects.toThrow()
+    expect(await db.accountDriveDiscs.where('accountId').equals(accountId).count()).toBe(0)
   })
-  it('rejects an injected A/B candidate at the shared preview/confirm boundary with all account facts preserved', async () => {
+  it('rejects an injected A/B candidate with inconsistent S count and preserves account facts', async () => {
     const { db, facts } = fixture
 
     const before = await facts()
     const incoming = candidate()
     incoming.discs.discs[0].rarity = 'A'
     await expect(prepareAssetQuickReadImport(accountId, incoming, db)).rejects.toThrow(
-      '仅支持 S 级盘',
+      '数量与快照不一致',
     )
     expect(await facts()).toEqual(before)
   })
@@ -77,65 +171,70 @@ export function registerAccountImportTransactionsCases1(fixture: AccountImportTr
     expect(plan.summary).toMatchObject({ newDiscs: 1, observedAgents: 1 })
     expect(await facts()).toEqual(before)
   })
-  it('imports all valid discs despite missing agent growth and restores the synthetic account exactly', async () => {
-    const { db, facts, agent, patchAgent } = fixture
+  it.each(['3.2', '3.3'] as const)(
+    'imports %s discs despite missing agent growth and restores the synthetic account exactly',
+    async (protocolVersion) => {
+      const { db, facts, agent, patchAgent } = fixture
 
-    const input = syntheticAssetSnapshot()
-    input.assets.agents[0].catalog_id.value = 1031
-    Object.assign(input.assets.agents[0], {
-      level: omitted(),
-      promotion: omitted(),
-      skills: [],
-      weapon_uid: omitted(),
-      dressed_equips: [],
-    })
-    const old = await patchAgent({
-      level: 40,
-      ascension: 3,
-      skillLevels: {
-        basic: 8,
-        dodge: 8,
-        assist: 8,
-        special: 8,
-        chain: 8,
-        core: 4,
-      },
-    })
-    const before = await facts()
-    const converted = convertAssetSnapshot(input, {
-      snapshotSha256: 'b'.repeat(64),
-      capturedAt: now,
-    })
-    const plan = await prepareAssetQuickReadImport(accountId, converted, db)
-    expect(plan.importable).toBe(true)
-    const receipt = await confirmAssetQuickReadImport(
-      converted,
-      plan,
-      {
+      const input =
+        protocolVersion === '3.3' ? syntheticAssetSnapshot33() : syntheticAssetSnapshot()
+      input.assets.agents[0].catalog_id.value = 1031
+      Object.assign(input.assets.agents[0], {
+        level: omitted(),
+        promotion: omitted(),
+        skills: [],
+        weapon_uid: omitted(),
+        dressed_equips: [],
+      })
+      const old = await patchAgent({
+        level: 40,
+        ascension: 3,
+        skillLevels: {
+          basic: 8,
+          dodge: 8,
+          assist: 8,
+          special: 8,
+          chain: 8,
+          core: 4,
+        },
+      })
+      const before = await facts()
+      const converted = convertAssetSnapshot(input, {
+        snapshotSha256: 'b'.repeat(64),
+        capturedAt: now,
+      })
+      const plan = await prepareAssetQuickReadImport(accountId, converted, db)
+      expect(plan.importable).toBe(true)
+      const receipt = await confirmAssetQuickReadImport(
+        converted,
+        plan,
+        {
+          accountId,
+          snapshotSha256: converted.snapshotSha256,
+          sameGameAccountAndCounts: true,
+        },
+        db,
+      )
+      expect(await db.accountDriveDiscs.where('accountId').equals(accountId).count()).toBe(1)
+      const imported = await agent()
+      expect(imported.observedFacts?.protocolVersion).toBe(protocolVersion)
+      expect(imported.level).toBe(old.level)
+      expect(imported.ascension).toBe(old.ascension)
+      expect(imported.skillLevels).toEqual(old.skillLevels)
+      expect(imported.observedFacts?.fields.level).toBeUndefined()
+      expect(imported.observedFacts?.fields.ascension).toBeUndefined()
+      await restoreAssetQuickReadImport(
         accountId,
-        snapshotSha256: converted.snapshotSha256,
-        sameGameAccountAndCounts: true,
-      },
-      db,
-    )
-    expect(await db.accountDriveDiscs.where('accountId').equals(accountId).count()).toBe(1)
-    const imported = await agent()
-    expect(imported.level).toBe(old.level)
-    expect(imported.ascension).toBe(old.ascension)
-    expect(imported.skillLevels).toEqual(old.skillLevels)
-    expect(imported.observedFacts?.fields.level).toBeUndefined()
-    expect(imported.observedFacts?.fields.ascension).toBeUndefined()
-    await restoreAssetQuickReadImport(
-      accountId,
-      receipt.recoveryKey,
-      'restore_asset_quick_read',
-      db,
-    )
-    const restored = await facts()
-    expect(restored.discs).toEqual(before.discs)
-    expect(restored.rosters).toEqual(before.rosters)
-    expect(restored.accounts).toEqual(before.accounts)
-  })
+        receipt.recoveryKey,
+        'restore_asset_quick_read',
+        db,
+      )
+      const restored = await facts()
+      expect(restored.discs).toEqual(before.discs)
+      expect(restored.rosters).toEqual(before.rosters)
+      expect(restored.accounts).toEqual(before.accounts)
+    },
+  )
   it('guards missing, archived and inactive target scopes before preparing', async () => {
     const { db, facts } = fixture
 

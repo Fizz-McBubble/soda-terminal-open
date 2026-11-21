@@ -1,4 +1,11 @@
-import { evaluateCandidateSetPlanEligibility } from '../gameDataPacks/candidateSetPlanEligibility'
+import type { DriveDisc } from '../domain/schemas'
+import {
+  candidateConstraintFromIntent,
+  getCandidateWarehouseProfiles,
+} from './candidateWarehouseProfiles'
+import type { AccountOptimizerOptions } from './optimizeAccountBuildsCore'
+import type { optimizeAccountBuilds } from './optimizeAccountBuilds'
+import { evaluateCandidateSetPlanEligibility, type CandidateSetPlanEligibilityContext } from '../gameDataPacks/candidateSetPlanEligibility'
 import {
   candidateSetPlansForConstraint,
   deriveCandidateSetPlanReadiness,
@@ -9,11 +16,14 @@ import { stableContentHash } from '../gameDataPacks/types'
 import { candidateSetPlanIdentity } from '../gameDataPacks/candidateSetPlanPolicy'
 import type { AccountLoadout } from './optimizeAccountBuilds'
 
+export type SourceOperationCoverageByAgent = Readonly<Record<string, CandidateSetPlanEligibilityContext['operationCoverage']>>
+
 export function selectedSourceCondition(
   loadout: AccountLoadout,
   loadouts: readonly AccountLoadout[],
   agentIds: string[],
   constraint: CandidateWarehouseConstraint | null,
+  operationCoverage?: SourceOperationCoverageByAgent,
 ) {
   const matching = (constraint ? candidateSetPlansForConstraint(constraint) : [])
     .filter(
@@ -26,6 +36,7 @@ export function selectedSourceCondition(
       plan,
       eligibility: evaluateCandidateSetPlanEligibility(loadout.agentId, plan, {
         memberIds: agentIds,
+        operationCoverage: operationCoverage?.[loadout.agentId],
         selectedLoadouts: {
           basis: 'final-candidate',
           setCountsByAgentId: Object.fromEntries(
@@ -52,6 +63,15 @@ export function selectedSourceCondition(
   }
 }
 
+/** A disproven source branch can degrade physical inventory use without becoming equipment-illegal. */
+export function sourceConditionDegradeReasons(
+  condition: ReturnType<typeof selectedSourceCondition>,
+): string[] {
+  return condition?.status === 'condition-not-met' || condition?.status === 'condition-unknown'
+    ? [condition.reason]
+    : []
+}
+
 export function excludeDisprovenSourcePlans(
   recommendations: readonly CandidateWarehouseRecommendation[],
   rejectedConditions: readonly { agentId: string; sourcePlanIdentity: string }[],
@@ -72,4 +92,105 @@ export function excludeDisprovenSourcePlans(
     }
     return { agentId, constraint: { ...revised, contentHash: stableContentHash(revised) } }
   })
+}
+
+/** Resolve source qualification without discarding a legal physical assignment. */
+export function resolveCandidateSourceConditions(
+  discs: DriveDisc[],
+  agentIds: string[],
+  scope: 'agent' | 'team' | 'portfolio',
+  solveOptions: AccountOptimizerOptions,
+  recommendations: readonly CandidateWarehouseRecommendation[] | undefined,
+  initialProfiles: ReturnType<typeof getCandidateWarehouseProfiles>,
+  optimize: typeof optimizeAccountBuilds,
+  operationCoverage?: SourceOperationCoverageByAgent,
+) {
+  let profiles = initialProfiles
+  let result = optimize(discs, profiles, solveOptions)
+  const physicalFallbackResult = result
+  const physicalFallbackProfiles = profiles
+  let effectiveRecommendations = recommendations
+  const rejectedConditions: Array<
+    NonNullable<ReturnType<typeof selectedSourceCondition>> & { agentId: string }
+  > = []
+  const conditionPassBudget =
+    scope === 'team' && agentIds.length === 3
+      ? agentIds.reduce(
+          (total, agentId) =>
+            total +
+            (candidateConstraintFromIntent(agentId, recommendations)?.setPlans?.length ?? 1),
+          0,
+        )
+      : 0
+  // Each pass removes disproven branches and checks the newly selected equipment.
+  for (let pass = 0; pass < conditionPassBudget; pass += 1) {
+    const rejected = result.global.flatMap((loadout) => {
+      const condition = selectedSourceCondition(
+        loadout,
+        result.global,
+        agentIds,
+        candidateConstraintFromIntent(loadout.agentId, effectiveRecommendations),
+        operationCoverage,
+      )
+      return condition?.status === 'condition-not-met' && condition.conditionalPrimarySetId
+        ? [{ agentId: loadout.agentId, ...condition }]
+        : []
+    })
+    if (!rejected.length) break
+    rejectedConditions.push(...rejected)
+    effectiveRecommendations = excludeDisprovenSourcePlans(
+      agentIds.map((agentId) => ({
+        agentId,
+        constraint: candidateConstraintFromIntent(agentId, effectiveRecommendations),
+      })),
+      rejected,
+    )
+    profiles = getCandidateWarehouseProfiles(
+      agentIds,
+      [...new Set(discs.map((disc) => disc.setId))],
+      effectiveRecommendations,
+    )
+    result = optimize(discs, profiles, solveOptions)
+  }
+  const completeTeam = (candidate: typeof result) => {
+    const loadouts = agentIds
+      .map((agentId) => candidate.global.find((loadout) => loadout.agentId === agentId))
+      .filter((loadout) => loadout !== undefined)
+    const ids = loadouts.flatMap((loadout) => loadout.discs.map(({ disc }) => disc.id))
+    return (
+      loadouts.length === agentIds.length &&
+      loadouts.every((loadout) => loadout.discs.length === 6) &&
+      new Set(ids).size === ids.length
+    )
+  }
+  // Source qualification and entity feasibility are separate gates. If removing
+  // a disproven source branch leaves the team incomplete, retain the already
+  // validated physical assignment and mark its source condition as degraded.
+  // A caller-pinned single branch remains fail-closed. One rejected agent with
+  // an alternative cannot authorize a fallback for another rejected agent whose
+  // source direction was explicitly pinned.
+  const rejectedAgentIds = [...new Set(rejectedConditions.map((condition) => condition.agentId))]
+  const allRejectedAgentsHaveSourceAlternative =
+    rejectedAgentIds.length > 0 &&
+    rejectedAgentIds.every(
+      (agentId) =>
+        (candidateConstraintFromIntent(agentId, recommendations)?.setPlans?.length ?? 0) > 1,
+    )
+  const sourceConditionFallbackUsed =
+    scope === 'team' &&
+    agentIds.length === 3 &&
+    allRejectedAgentsHaveSourceAlternative &&
+    !completeTeam(result) &&
+    completeTeam(physicalFallbackResult)
+  if (sourceConditionFallbackUsed) {
+    result = physicalFallbackResult
+    profiles = physicalFallbackProfiles
+  }
+  return {
+    result,
+    profiles,
+    effectiveRecommendations,
+    rejectedConditions,
+    sourceConditionFallbackUsed,
+  }
 }

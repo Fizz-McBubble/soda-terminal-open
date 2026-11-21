@@ -1,5 +1,10 @@
 import type { RosterAgent } from '../assault/types'
-import { evaluateSkillInvestmentNextLevel } from '../calculation/skillInvestmentNextLevel'
+import { getMindscapeSkillLevelBonus } from '../accounts/agentProgressionRules'
+import {
+  evaluateSkillInvestmentNextLevel,
+  type SkillInvestmentBlockReason,
+  type SkillInvestmentMissingInput,
+} from '../calculation/skillInvestmentNextLevel'
 import type { SkillKey } from '../calculation/skillInvestmentPolicy'
 
 export const skillInvestmentMindscapeSource = Object.freeze({
@@ -12,7 +17,7 @@ export const skillInvestmentMindscapeSource = Object.freeze({
 export function resolveSkillInvestmentMindscapeBonus(mindscape: number | null) {
   if (mindscape === null || !Number.isInteger(mindscape) || mindscape < 0 || mindscape > 6)
     return null
-  return mindscape >= 5 ? 4 : mindscape >= 3 ? 2 : 0
+  return getMindscapeSkillLevelBonus('basic', mindscape)
 }
 
 export type SkillNextLevelDisplay = {
@@ -25,6 +30,69 @@ export type SkillNextLevelDisplay = {
   gainText: string
   materialsText: string
   tooltip: string
+  reasonCode?: SkillInvestmentBlockReason
+  nextAction?: string
+  missingInputs?: readonly SkillInvestmentMissingInput[]
+}
+
+const blockedSkillDisplay: Record<
+  SkillInvestmentBlockReason,
+  {
+    title: string
+    message: string
+    action: string
+  }
+> = {
+  current_level_unknown: {
+    title: '当前等级未记录',
+    message: '当前技能等级未记录，暂不能评估下一等级。',
+    action: '补充当前技能等级后重新查看。',
+  },
+  target_level_unknown: {
+    title: '投入目标待确认',
+    message: '实际投入目标待确认，暂不计算下一等级收益。',
+    action: '推荐等级仍可作为培养参考。',
+  },
+  current_and_target_unknown: {
+    title: '等级与目标待确认',
+    message: '当前技能等级未记录，实际投入目标也待确认。',
+    action: '先补充当前等级，再核对培养目标。',
+  },
+  mindscape_bonus_unknown: {
+    title: '影画加成待确认',
+    message: '影画技能加成未确认，暂不能换算基础等级和升级消耗。',
+    action: '确认当前影画后重新查看，已有技能等级保持不变。',
+  },
+  invalid_levels: {
+    title: '等级需要核对',
+    message: '当前技能等级或培养目标不是有效等级。',
+    action: '核对当前记录和培养目标后重新查看。',
+  },
+  event_contract_unavailable: {
+    title: '升级收益待补齐',
+    message: '这位代理人的技能收益资料尚未齐全。',
+    action: '推荐等级仍可参考，暂不据此比较升级收益。',
+  },
+  invalid_mindscape_bonus: {
+    title: '影画加成需要核对',
+    message: '记录的影画技能加成与当前技能不符。',
+    action: '核对影画和技能等级后重新查看。',
+  },
+  level_out_of_bounds: {
+    title: '等级超出范围',
+    message: '当前技能等级或培养目标超出了该技能支持的等级范围。',
+    action: '核对基础等级、影画加成和培养目标。',
+  },
+  core_growth_unavailable: {
+    title: '核心成长待补齐',
+    message: '此等级的核心技成长资料尚未齐全。',
+    action: '暂不据此推算属性和伤害收益。',
+  },
+  skill_events_unavailable: {
+    title: '技能收益待补齐',
+    message: '这项技能的具体动作收益尚不能评估。',
+    action: '推荐等级仍可参考，暂不据此比较升级收益。',
+  },
 }
 
 const coreAttributes: Record<string, { label: string; percent?: boolean }> = {
@@ -96,16 +164,37 @@ export function projectSkillNextLevelDisplay(
   }
 
   if (evidence.status === 'unknown' || evidence.status === 'unsupported') {
+    const copy = blockedSkillDisplay[evidence.reasonCode]
+    const bonusMissingAlongsideLevels =
+      evidence.reasonCode !== 'mindscape_bonus_unknown' &&
+      evidence.missingInputs.includes('mindscape_bonus')
+    const message = [
+      copy.message,
+      bonusMissingAlongsideLevels ? '影画技能加成也未确认，暂不能换算基础等级。' : '',
+    ]
+      .filter(Boolean)
+      .join(' ')
+    const currentLevel =
+      Number.isInteger(evidence.currentLevel) &&
+      evidence.currentLevel !== null &&
+      evidence.currentLevel >= 1
+        ? evidence.currentLevel
+        : null
     return {
       status: evidence.status,
-      title: '未评估',
-      fromLevel: null,
+      reasonCode: evidence.reasonCode,
+      missingInputs: evidence.missingInputs,
+      title: copy.title,
+      fromLevel: currentLevel,
       toLevel: null,
       fromBaseLevel: null,
       toBaseLevel: null,
-      gainText: evidence.reason,
+      gainText: message,
       materialsText: '',
-      tooltip: evidence.reason,
+      nextAction: copy.action,
+      tooltip: [currentLevel === null ? '' : `当前技能 Lv.${currentLevel}。`, message, copy.action]
+        .filter(Boolean)
+        .join(' '),
     }
   }
 

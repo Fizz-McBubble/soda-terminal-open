@@ -1,11 +1,13 @@
-import { acceptReviewedIncrementalEventResult32 } from './publicReviewedIncrementalEvent32'
-import { acceptCommonAnomalySettlementQuery32 } from './publicCommonAnomalySettlementQuery32'
-import { acceptPlanningBenchmarkResult32 } from './publicPlanningBenchmark32'
-import { planningEventDeclarationsInputFingerprint32 } from './publicPlanningEventDeclarations32'
 import type { CurrentGameDataRuntimeSelection } from '../gameDataPacks/runtimeSelection'
 import type { CalculationQueryClient } from './calculationQueryContract'
-import { browserCalculationInputFingerprint } from './browserCalculationInputFingerprint'
 import { unpackPublicWarehouseActions } from './publicWarehouseActionTransport'
+import { createBrowserDevelopmentFactsClient } from './browserDevelopmentFactsClient'
+import { createBrowserPlanningQueries } from './browserPlanningQueries'
+import {
+  createBrowserAccountDecisionCalculation,
+  createBrowserPersonalDevelopmentClient,
+} from './browserPersonalDevelopmentClient'
+import { browserCalculationInputFingerprint } from './browserCalculationInputFingerprint'
 import {
   browserCalculationQueryProtocolVersion,
   type BrowserCalculationQuery,
@@ -20,12 +22,13 @@ type WorkerPort = Pick<Worker, 'postMessage' | 'terminate'> & {
 }
 
 type PendingRequest = {
-  runId: string
+  ownerKey: string
   query: BrowserCalculationQuery
   resolve(value: never): void
   reject(error: Error): void
-  signal?: AbortSignal
   runtime?: Extract<CurrentGameDataRuntimeSelection, { status: 'compiled_current' }>
+  deadlineAt: number
+  timeout: ReturnType<typeof setTimeout>
   removeAbortListener(): void
 }
 
@@ -41,24 +44,41 @@ function defaultModuleWorker(): WorkerPort {
   })
 }
 
-/** The browser owns storage and UI; this client keeps every expensive Query operation in one Worker. */
-export function createBrowserCalculationQueryClient(options: {
+type BrowserQueryClientOptions = {
   readRuntimeSelection: () => Promise<CurrentGameDataRuntimeSelection>
   createWorker?: () => WorkerPort
-  resultProjection?: 'local'
-}): CalculationQueryClient {
+  createFactsWorker?: () => WorkerPort
+  createPersonalWorker?: () => WorkerPort
+  resultProjection?: 'local' | 'public-development'
+}
+
+/** Independent channels share the same queue implementation, without sharing run state. */
+export function createBrowserCalculationQueryClient(
+  options: BrowserQueryClientOptions,
+): CalculationQueryClient {
+  return createBrowserCalculationQueryChannel(options, false)
+}
+
+function createBrowserCalculationQueryChannel(
+  options: BrowserQueryClientOptions,
+  factsLane: boolean,
+  personalLane = false,
+): CalculationQueryClient {
   const pending = new Map<number, PendingRequest>()
   const queue: number[] = []
   const liveRuns = new Set<string>()
+  const livePersonalSessions = new Set<string>()
   const runListeners = new Set<() => void>()
   const fingerprints = new Map<string, { browser: string; core: string }>()
   let worker: WorkerPort | null = null
   let workerReady = false
   let workerReadyTimer: ReturnType<typeof setTimeout> | null = null
-  let activeRequestTimer: ReturnType<typeof setTimeout> | null = null
   let generation = 0
-  let activeRequestId: number | null = null
+  let active: { id: number; request: PendingRequest } | null = null
+  let watchingDeadlines = false
   let nextRequestId = 1
+  let factsClient: CalculationQueryClient | undefined
+  let personalClient: CalculationQueryClient | undefined
 
   function notifyRunChange() {
     for (const listener of runListeners) listener()
@@ -68,8 +88,6 @@ export function createBrowserCalculationQueryClient(options: {
     generation += 1
     if (workerReadyTimer) clearTimeout(workerReadyTimer)
     workerReadyTimer = null
-    if (activeRequestTimer) clearTimeout(activeRequestTimer)
-    activeRequestTimer = null
     if (worker) {
       worker.onmessage = null
       worker.onerror = null
@@ -78,17 +96,97 @@ export function createBrowserCalculationQueryClient(options: {
       worker = null
     }
     workerReady = false
+    if (active) clearTimeout(active.request.timeout)
     for (const request of pending.values()) {
+      clearTimeout(request.timeout)
       request.removeAbortListener()
       request.reject(error)
     }
     pending.clear()
     queue.length = 0
-    activeRequestId = null
+    active = null
+    stopWatchingIdleDeadlines()
     const hadRuns = liveRuns.size > 0
     liveRuns.clear()
+    livePersonalSessions.clear()
     fingerprints.clear()
     if (hadRuns) notifyRunChange()
+  }
+
+  function expireRequest(requestId: number) {
+    const current = active?.id === requestId ? active : null
+    const request = current?.request ?? pending.get(requestId)
+    if (!request || Date.now() < request.deadlineAt) return
+    if (current) {
+      invalidate(
+        queryError('BrowserCalculationTimeoutError', '本机计算超时，可在当前页面重新分析。'),
+      )
+      return
+    }
+    forgetRequest(requestId, request)
+    request.reject(
+      queryError('BrowserCalculationQueueTimeoutError', '本机计算排队超时，请稍后重试。'),
+    )
+    stopWatchingIdleDeadlines()
+  }
+
+  function onVisibilityChange() {
+    if (document.visibilityState !== 'visible') return
+    if (active) expireRequest(active.id)
+    for (const requestId of pending.keys()) expireRequest(requestId)
+  }
+
+  function watchDeadlines() {
+    if (watchingDeadlines || typeof document === 'undefined') return
+    document.addEventListener('visibilitychange', onVisibilityChange)
+    watchingDeadlines = true
+  }
+
+  function stopWatchingIdleDeadlines() {
+    if (!watchingDeadlines || active || pending.size) return
+    document.removeEventListener('visibilitychange', onVisibilityChange)
+    watchingDeadlines = false
+  }
+
+  function forgetRequest(id: number, request: PendingRequest) {
+    request.removeAbortListener()
+    pending.delete(id)
+    if (active?.id === id) return
+    clearTimeout(request.timeout)
+    const queueIndex = queue.indexOf(id)
+    if (queueIndex !== -1) queue.splice(queueIndex, 1)
+  }
+
+  function finishActive() {
+    if (!active) return
+    const { id, request } = active
+    clearTimeout(request.timeout)
+    if (pending.has(id)) forgetRequest(id, request)
+    active = null
+    stopWatchingIdleDeadlines()
+    dispatchNext()
+  }
+
+  function cancelRequest(id: number, request: PendingRequest, error: Error) {
+    forgetRequest(id, request)
+    request.reject(error)
+    // A sent request keeps the serial Worker slot and its hard deadline until it replies.
+    if (active?.id === id && !request.runtime) finishActive()
+    stopWatchingIdleDeadlines()
+  }
+
+  function cancelOwnedRequests(ownerKey: string, error: Error, releaseOwner = false) {
+    // Remove owned queued requests before an unsent active request advances the queue.
+    for (const id of queue.slice()) {
+      const request = pending.get(id)
+      if (request?.ownerKey === ownerKey) cancelRequest(id, request, error)
+    }
+    if (!active || active.request.ownerKey !== ownerKey || !pending.has(active.id)) return
+    if (releaseOwner && pending.size === 1 && !liveRuns.size && !livePersonalSessions.size) {
+      invalidate(error)
+      return
+    }
+    cancelRequest(active.id, active.request, error)
   }
 
   function ensureWorker() {
@@ -111,46 +209,43 @@ export function createBrowserCalculationQueryClient(options: {
         dispatchNext()
         return
       }
-      if (response.requestId !== activeRequestId) return
-      const request = pending.get(response.requestId)
-      if (!request) return
+      const current = active
+      if (!current || response.requestId !== current.id || !current.request.runtime) return
+      const { request } = current
+      if (Date.now() >= request.deadlineAt) {
+        expireRequest(response.requestId)
+        return
+      }
       void (async () => {
         try {
           const runtime = await options.readRuntimeSelection()
-          if (workerGeneration !== generation || !pending.has(response.requestId)) return
-          if (runtime.status !== 'compiled_current') throw new Error(runtime.message)
+          if (workerGeneration !== generation || active !== current) return
+          if (Date.now() >= request.deadlineAt) {
+            expireRequest(response.requestId)
+            return
+          }
           if (
+            runtime.status !== 'compiled_current' ||
             !request.runtime ||
             runtime.packageId !== request.runtime.packageId ||
             runtime.packageVersion !== request.runtime.packageVersion ||
-            runtime.gameVersion !== request.runtime.gameVersion
+            runtime.gameVersion !== request.runtime.gameVersion ||
+            (response.status === 'failed' &&
+              response.error === '游戏资料版本不匹配，请刷新页面后重试。')
           )
             throw new Error('游戏资料已变化，请重新分析。')
-          if (response.status !== 'succeeded') throw new Error(response.error ?? '计算失败。')
-          request.resolve(response.result as never)
-        } catch (error) {
-          if (workerGeneration !== generation || pending.get(response.requestId) !== request) return
-          if (
-            error instanceof Error &&
-            (response.status === 'succeeded' || /游戏资料/.test(error.message))
-          ) {
-            invalidate(queryError('BrowserCalculationRuntimeError', '游戏资料已变化，请重新分析。'))
+          if (!pending.has(current.id)) return
+          if (response.status === 'succeeded') request.resolve(response.result as never)
+          else request.reject(new Error(response.error ?? '计算失败。'))
+        } catch {
+          if (workerGeneration !== generation || active !== current) return
+          if (Date.now() >= request.deadlineAt) {
+            expireRequest(response.requestId)
             return
           }
-          request.reject(error instanceof Error ? error : new Error('计算失败。'))
+          invalidate(queryError('BrowserCalculationRuntimeError', '游戏资料已变化，请重新分析。'))
         } finally {
-          if (
-            workerGeneration === generation &&
-            activeRequestId === response.requestId &&
-            pending.get(response.requestId) === request
-          ) {
-            if (activeRequestTimer) clearTimeout(activeRequestTimer)
-            activeRequestTimer = null
-            request.removeAbortListener()
-            pending.delete(response.requestId)
-            activeRequestId = null
-            dispatchNext()
-          }
+          if (workerGeneration === generation && active === current) finishActive()
         }
       })()
     }
@@ -181,7 +276,7 @@ export function createBrowserCalculationQueryClient(options: {
   }
 
   function dispatchNext() {
-    if (activeRequestId !== null) return
+    if (active) return
     if (!queue.length) return
     try {
       ensureWorker()
@@ -199,20 +294,22 @@ export function createBrowserCalculationQueryClient(options: {
     while (requestId !== undefined && !pending.has(requestId)) requestId = queue.shift()
     if (requestId === undefined) return
     const request = pending.get(requestId)!
-    activeRequestId = requestId
+    if (Date.now() >= request.deadlineAt) {
+      expireRequest(requestId)
+      dispatchNext()
+      return
+    }
+    const current = { id: requestId, request }
+    active = current
     const dispatchGeneration = generation
-    // Cover both runtime reads and the Worker operation. A ready Worker that stops
-    // responding must not leave the initial account world or queued panels pending forever.
-    activeRequestTimer = setTimeout(() => {
-      if (dispatchGeneration !== generation || activeRequestId !== requestId) return
-      invalidate(
-        queryError('BrowserCalculationTimeoutError', '本机计算超时，可在当前页面重新分析。'),
-      )
-    }, 120_000)
     void (async () => {
       try {
         const runtime = await options.readRuntimeSelection()
-        if (dispatchGeneration !== generation || !pending.has(requestId)) return
+        if (dispatchGeneration !== generation || active !== current) return
+        if (Date.now() >= request.deadlineAt) {
+          expireRequest(requestId)
+          return
+        }
         if (runtime.status !== 'compiled_current') throw new Error(runtime.message)
         request.runtime = runtime
         const currentWorker = ensureWorker()
@@ -225,7 +322,11 @@ export function createBrowserCalculationQueryClient(options: {
           ...(options.resultProjection ? { resultProjection: options.resultProjection } : {}),
         } satisfies BrowserCalculationQueryRequest)
       } catch (error) {
-        if (dispatchGeneration !== generation) return
+        if (dispatchGeneration !== generation || active !== current) return
+        if (Date.now() >= request.deadlineAt) {
+          expireRequest(requestId)
+          return
+        }
         // Keep the active request in pending so invalidation settles it together with
         // every queued request and discards the Worker after a failed dispatch.
         invalidate(error instanceof Error ? error : new Error('无法启动本机计算。'))
@@ -240,24 +341,42 @@ export function createBrowserCalculationQueryClient(options: {
       const abort = () => {
         const request = pending.get(requestId)
         if (!request) return
-        if (activeRequestId === requestId) {
+        const canStopPersonalSolve =
+          (query.kind === 'personal_development_open' ||
+            query.kind === 'personal_development_candidates') &&
+          (livePersonalSessions.size === 0 ||
+            (livePersonalSessions.size === 1 && livePersonalSessions.has(query.sessionId)))
+        if (
+          active?.id === requestId &&
+          request.runtime &&
+          pending.size === 1 &&
+          !liveRuns.size &&
+          (factsLane || canStopPersonalSolve)
+        ) {
           invalidate(queryError('AbortError', '本机计算已取消，请重新分析。'))
           return
         }
-        request.removeAbortListener()
-        pending.delete(requestId)
-        request.reject(queryError('AbortError', '已取消本次计算。'))
+        cancelRequest(requestId, request, queryError('AbortError', '已取消本次计算。'))
       }
       signal?.addEventListener('abort', abort, { once: true })
+      const deadlineAt = Date.now() + 120_000
+      const timeout = setTimeout(() => expireRequest(requestId), 120_000)
       pending.set(requestId, {
-        runId: query.runId,
+        ownerKey:
+          'runId' in query
+            ? `run:${query.runId}`
+            : 'sessionId' in query
+              ? `personal:${query.sessionId}`
+              : `facts:${query.operationId}`,
         query,
         resolve: resolve as (value: never) => void,
         reject,
-        signal,
+        deadlineAt,
+        timeout,
         removeAbortListener: () => signal?.removeEventListener('abort', abort),
       })
       queue.push(requestId)
+      watchDeadlines()
       dispatchNext()
     })
   }
@@ -266,21 +385,55 @@ export function createBrowserCalculationQueryClient(options: {
     const hadRun = liveRuns.delete(runId)
     fingerprints.delete(runId)
     if (hadRun) notifyRunChange()
-    for (const [requestId, request] of pending) {
-      if (request.runId !== runId) continue
-      if (activeRequestId === requestId) {
-        invalidate(queryError('AbortError', '本机计算已取消，请重新分析。'))
-        return
-      }
-      request.removeAbortListener()
-      pending.delete(requestId)
-      request.reject(queryError('AbortError', '本次分析已释放。'))
-    }
-    worker?.postMessage({
+    cancelOwnedRequests(`run:${runId}`, queryError('AbortError', '本次分析已释放。'), true)
+    postRelease({
       protocolVersion: browserCalculationQueryProtocolVersion,
       kind: 'release',
       runId,
     } satisfies BrowserCalculationQueryRequest)
+  }
+
+  function postRelease(request: Exclude<BrowserCalculationQueryRequest, { kind: 'query' }>) {
+    try {
+      worker?.postMessage(request)
+    } catch {
+      invalidate(queryError('BrowserCalculationWorkerError', '本机计算异常，请重新分析。'))
+    }
+  }
+
+  function releasePersonal(sessionId: string) {
+    livePersonalSessions.delete(sessionId)
+    cancelOwnedRequests(`personal:${sessionId}`, queryError('AbortError', '个人搭配已释放。'), true)
+    postRelease({
+      protocolVersion: browserCalculationQueryProtocolVersion,
+      kind: 'release_personal',
+      sessionId,
+    })
+  }
+
+  function getFactsClient() {
+    factsClient ??= createBrowserCalculationQueryChannel(
+      {
+        readRuntimeSelection: options.readRuntimeSelection,
+        createWorker: options.createFactsWorker ?? options.createWorker,
+        resultProjection: options.resultProjection ?? 'local',
+      },
+      true,
+    )
+    return factsClient
+  }
+
+  function getPersonalClient() {
+    personalClient ??= createBrowserCalculationQueryChannel(
+      {
+        readRuntimeSelection: options.readRuntimeSelection,
+        createWorker: options.createPersonalWorker ?? options.createWorker,
+        resultProjection: options.resultProjection ?? 'local',
+      },
+      false,
+      true,
+    )
+    return personalClient
   }
 
   return {
@@ -290,74 +443,52 @@ export function createBrowserCalculationQueryClient(options: {
       runListeners.add(listener)
       return () => runListeners.delete(listener)
     },
-    cancelActiveQuery: (runId) => {
-      for (const [requestId, request] of pending) {
-        if (request.runId !== runId) continue
-        if (activeRequestId === requestId) {
-          invalidate(queryError('AbortError', '本机计算已取消，请重新分析。'))
-          return
-        }
-        request.removeAbortListener()
-        pending.delete(requestId)
-        request.reject(queryError('AbortError', '已取消本次计算。'))
-      }
-    },
+    cancelActiveQuery: (runId) =>
+      cancelOwnedRequests(`run:${runId}`, queryError('AbortError', '已取消本次计算。')),
     fingerprintAccountDecisionInput(input, currentRunId) {
       const browser = browserCalculationInputFingerprint(input)
       const matched = currentRunId ? fingerprints.get(currentRunId) : undefined
       return matched?.browser === browser ? matched.core : browser
     },
-    async calculateAccountDecision(query) {
-      release(query.runId)
-      const input = structuredClone(query.input)
-      const browser = browserCalculationInputFingerprint(input)
-      const run = await submit<
-        Awaited<ReturnType<CalculationQueryClient['calculateAccountDecision']>>
-      >({
-        ...query,
-        input,
-      })
-      liveRuns.add(query.runId)
-      fingerprints.set(query.runId, { browser, core: run.inputFingerprint })
-      notifyRunChange()
-      return {
-        ...run,
-        input,
-        warehouseActions: run.warehouseActions
-          ? unpackPublicWarehouseActions(run.warehouseActions)
-          : undefined,
-      }
-    },
-    async queryCommonAnomalySettlement32(request) {
-      const query = structuredClone(request)
-      return acceptCommonAnomalySettlementQuery32(await submit(query), query)
-    },
-    async queryReviewedIncrementalEvent32(query) {
-      return acceptReviewedIncrementalEventResult32(await submit(query), query.runId, query.input)
-    },
-    async queryPlanningBenchmark32(request) {
-      const query = structuredClone(request)
-      if (query.declarations && !query.sourceBindingFingerprint)
-        throw new Error('请先获取当前配装的事件声明来源，再提交计算。')
-      return acceptPlanningBenchmarkResult32(await submit(query), {
-        runId: query.runId,
-        candidateId: query.candidateId,
-        fitFingerprint: query.fitFingerprint,
-        accountFingerprint: query.accountFingerprint,
-        inputFingerprint: query.declarations
-          ? planningEventDeclarationsInputFingerprint32(query.declarations)
-          : null,
-        sourceBindingFingerprint: query.sourceBindingFingerprint,
-      })
-    },
+    ...createBrowserAccountDecisionCalculation({
+      release,
+      submit,
+      liveRuns,
+      fingerprints,
+      notifyRunChange,
+    }),
+    ...createBrowserPlanningQueries(submit),
+    ...(options.resultProjection === 'local' || options.resultProjection === 'public-development'
+      ? createBrowserDevelopmentFactsClient({
+          factsLane,
+          submit,
+          getFactsClient,
+          abortError: () => queryError('AbortError', '已取消本次计算。'),
+        })
+      : {}),
+    ...(options.resultProjection === 'local' || options.resultProjection === 'public-development'
+      ? createBrowserPersonalDevelopmentClient({
+          personalLane,
+          publicDevelopment: options.resultProjection === 'public-development',
+          submit,
+          getPersonalClient,
+          release: releasePersonal,
+          register: (id) => livePersonalSessions.add(id),
+          has: (id) => livePersonalSessions.has(id),
+        })
+      : {}),
     queryDecisionPortfolio: (query) => submit(query),
-    calculateTargetTeamWarehouseFit: (query) => submit(query),
+    calculateTargetTeamWarehouseFit: (query, requestOptions) =>
+      submit(query, requestOptions?.signal),
     queryTeamOverviewPresentation: (query) => submit(query),
-    queryTeamRoutePresentation: (query) => submit(query),
+    queryTeamRoutePresentation: (query, requestOptions) => submit(query, requestOptions?.signal),
     querySavedTeamPlanReplay: (query) => submit(query),
     querySavedTeamSolutionComponents: (query) => submit(query),
-    queryDevelopmentCandidateAlternatives: (query) => submit(query),
+    queryDevelopmentCandidateAlternatives: (query, requestOptions) =>
+      submit(query, requestOptions?.signal),
     queryDevelopmentWorkbenchRoute: (query) => submit(query),
+    queryWarehouseActions: async (query, requestOptions) =>
+      unpackPublicWarehouseActions(await submit(query, requestOptions?.signal)),
     queryWarehouseDiscTransitionUses: (query, requestOptions) =>
       submit(query, requestOptions?.signal),
   }

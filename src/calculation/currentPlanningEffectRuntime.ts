@@ -14,6 +14,7 @@ import { currentNormalizedPlanningBaseline } from './currentNormalizedPlanningBa
 import type { PlanningEffectDisposition } from './planningCalculationContextCompiler'
 import type { PlanningInteractionContract } from './planningInteractionOperators'
 import { unique, evaluateFormationEffects } from './currentPlanningFormationEffectEvaluation'
+import type { ReviewedCommunityPlayConditions32 } from './reviewedCommunityPlayConditions32'
 export {
   bindPlanningEffectRuntimePotentialReference,
   createLevel60NeutralEffectRuntimeMember,
@@ -26,6 +27,10 @@ export { evaluateInitialCritConversion32 as evaluateCurrentPlanningInitialCritCo
 export { compileCurrentPlanningFormationEffectTimeline } from './verifiedPlanningFormationTimeline'
 
 export function evaluateCurrentPlanningFormationEffects(input: {
+  communityPlayConditions32?: Omit<
+    ReviewedCommunityPlayConditions32,
+    'memberIds' | 'baselineReferencesByAgentId'
+  >
   memberIds: readonly [string, string, string]
   members: readonly PlanningEffectRuntimeMember[]
   baselineReferencesByAgentId?: Readonly<Record<string, Readonly<Record<string, unknown>>>>
@@ -36,6 +41,10 @@ export function evaluateCurrentPlanningFormationEffects(input: {
 
 export function evaluateCurrentPlanningEffectEntries32(
   input: {
+    communityPlayConditions32?: Omit<
+      ReviewedCommunityPlayConditions32,
+      'memberIds' | 'baselineReferencesByAgentId'
+    >
     memberIds: readonly string[]
     members: readonly PlanningEffectRuntimeMember[]
     baselineReferencesByAgentId?: Readonly<Record<string, Readonly<Record<string, unknown>>>>

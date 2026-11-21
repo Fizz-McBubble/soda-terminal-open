@@ -1,0 +1,261 @@
+{
+  "contract": "team-rotation-summaries/v1",
+  "gameVersion": "3.3",
+  "rows": [
+    {
+      "playId": "sha256:4b0cc2bf437a768b4465c1bfc32c5ab418d1b7ad22f48d32a1a1d902dd9c929b",
+      "memberIds": [
+        "agent-phoenix",
+        "agent-velina",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-phoenix",
+      "opening": "柚叶先用普攻攒能量，接强化特殊技；菲欧妮衔接普攻三、四段，再切维琳娜强化特殊技。",
+      "loop": "菲欧妮以普攻三、四段衔接强化特殊技；维琳娜续上风异常，柚叶补强化特殊技维持增益。",
+      "burst": "菲欧妮资源充足时连续打出强化攻击；维琳娜触发涡流后及时切回菲欧妮接续输出。",
+      "evidence": {
+        "axisSha256": "6125c68a67fe01283e39d9e5dbe7a0d59f0dfb5e58d77e1b6282cacb63d1cebe",
+        "policySha256": "6125c68a67fe01283e39d9e5dbe7a0d59f0dfb5e58d77e1b6282cacb63d1cebe",
+        "draftSha256": "4aa7fb33a76d7d153d1abf9fc1c13655b4d090da21753200b1d1858f85eee8d4"
+      }
+    },
+    {
+      "playId": "sha256:e67a0b7f705017c000bfca0070ed4210c9dc8e181d7ac788c14579c63dfdd603",
+      "memberIds": [
+        "agent-phoenix",
+        "agent-remielle",
+        "agent-velina"
+      ],
+      "primaryAgentId": "agent-phoenix",
+      "opening": "蕾米埃尔强化特殊技起手，切菲欧妮强化特殊技接普攻三、四段，再切维琳娜打风异常。",
+      "loop": "维琳娜强化特殊技后由菲欧妮快速支援；蕾米埃尔通过支援、特殊攻击续上效果，再交回菲欧妮。",
+      "burst": "菲欧妮集中打出强化攻击与终结技；蕾米埃尔穿插支援，维琳娜补风异常接续涡流。",
+      "evidence": {
+        "axisSha256": "427d45dd4b403ce20ce014afe6708206a29d47887d8d18f556f93056aa8d6528",
+        "policySha256": "427d45dd4b403ce20ce014afe6708206a29d47887d8d18f556f93056aa8d6528",
+        "draftSha256": "340425e61ac76bb91162f28f1717aafd4b2398fa54e4168dbf990b5b8d451ab7"
+      }
+    },
+    {
+      "playId": "sha256:474c2d75878f00318b2cc5ed668284cb969dfe73f38aaf8e085ec85df1d3f867",
+      "memberIds": [
+        "agent-claret",
+        "agent-norma",
+        "agent-rina"
+      ],
+      "primaryAgentId": "agent-claret",
+      "opening": "丽娜冲刺攻击起手，诺姆释放强化特殊技，再切克拉蕾强化特殊技进入连段。",
+      "loop": "克拉蕾强化特殊技后接普攻与特殊攻击；丽娜补人偶，诺姆补强化特殊技维持后台攻击。",
+      "burst": "敌人失衡时接连携，切回克拉蕾继续连段；终结技就绪后释放并衔接后续攻击。",
+      "evidence": {
+        "axisSha256": "2333745799d8630781d4ccd0d74554493e8e5793e3e16f0cb96b153b26d0b99b",
+        "policySha256": "4a27b06fda496a640e4c33a80c514f24f93f71259ea9715c1e4dd6c1ec7248a5",
+        "draftSha256": "268470cfa7da248ab8a06481d27f8df9f11f71e2c998b7d388ae66127cb91267"
+      }
+    },
+    {
+      "playId": "sha256:1c027e343ddeb8e11f46bc875cc7ad13a72594002191c3fb1292d7cbc3bf89e8",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-vivian",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "柚叶强化特殊技起手，雅接快速支援；柚叶二影触发连携时让薇薇安补入场。",
+      "loop": "雅用普攻与强化特殊技积攒落霜；薇薇安补飞羽、护羽，柚叶在增益结束前补强化特殊技。",
+      "burst": "雅攒满6点落霜后释放三段蓄力斩；以紊乱衔接下一轮，避免落霜溢出。",
+      "evidence": {
+        "axisSha256": "1e7eee1096afdac5c64b8d91c36197e0acd1440a70d040b81e383889ab1e5727",
+        "policySha256": "935e32ee4394adf2b8cbe56b2e64ff140024ff1906fc92866fa3852a2acd5e53",
+        "draftSha256": "ee4d8ed73cdc896e738bfc00525140104b830c4dfd61b4443727b6061bc1d493"
+      }
+    },
+    {
+      "playId": "sha256:82f8d52e486b6b65f43426d20842450d0e450188b2b07b52ca4d634bbacfa93b",
+      "memberIds": [
+        "agent-astra",
+        "agent-vivian",
+        "agent-yanagi"
+      ],
+      "primaryAgentId": "agent-yanagi",
+      "opening": "耀嘉音特殊技起手，薇薇安接快速支援，再切柳使用强化特殊技。",
+      "loop": "柳持续站场积累电异常，普攻后切换架势；薇薇安补护羽后退场，耀嘉音保持演奏。",
+      "burst": "敌人进入异常后由柳强化特殊技或终结技触发极性紊乱，带动薇薇安的后台攻击。",
+      "evidence": {
+        "axisSha256": "bae70af1e04df9596982d1e598779ea12d7cb76ddd057a972e436af32edd3040",
+        "policySha256": "8b9bf87668433859ed32d9af5a33ad8b06cc785f597ff57130a97105c3a60309",
+        "draftSha256": "d1b88de17ced5aa7fceca109e599b41f5328756c5e18d1722deb16f76eece841"
+      }
+    },
+    {
+      "playId": "sha256:39b56e1db9b9634e860ff5c5a8f8c64b8c3daaf6d2b9af1a267bb4651a0f8508",
+      "memberIds": [
+        "agent-hugo",
+        "agent-lighter",
+        "agent-trigger"
+      ],
+      "primaryAgentId": "agent-hugo",
+      "opening": "扳机先进入狙击姿态积攒决意，随后切雨果普攻输出。",
+      "loop": "雨果普攻攒能量，扳机在后台协同；莱特攒满士气后接快速支援，打完强化拳击推进失衡。",
+      "burst": "失衡后先让雨果连携，再释放终结技和强化特殊技打出总攻。",
+      "evidence": {
+        "axisSha256": "f157b9de459e8b6d2ace3ad1f81ab2e0ddbaa5802ad1854e954861584cc3b86f",
+        "policySha256": "d0010032bb86983d8e6fa5462d7830a2fa8736c8aa0037af1ccc75f47c06774d",
+        "draftSha256": "2d48cee15a07aa7ef3c188f447681151064a6c35295cf76d45aa6bef6b27fcc8"
+      }
+    },
+    {
+      "playId": "sha256:8d83f9b9050c1679a349d29391fefb5a04031553744e6068af2e68b5d63973a1",
+      "memberIds": [
+        "agent-astra",
+        "agent-hugo",
+        "agent-lighter"
+      ],
+      "primaryAgentId": "agent-hugo",
+      "opening": "耀嘉音特殊技起手，雨果接快速支援后开始普攻。",
+      "loop": "雨果普攻攒能量；莱特攒满士气后接快速支援，打完强化拳击，耀嘉音维持演奏。",
+      "burst": "失衡后由雨果连携起手，再用终结技和强化特殊技打出总攻。",
+      "evidence": {
+        "axisSha256": "5dd152834e5fd53f3c316ee3dd0b23f98d4228cf256625e63d67dcbb7f79e99b",
+        "policySha256": "480ba0f66e02cd1e5e5a7ee5230e92866b46939b453f4c59e9cd7008ae3a585c",
+        "draftSha256": "2c64f8b879e80f1866d76b030b1d5a8da7f91afaa3ebfff24869a85ae2b8cb0b"
+      }
+    },
+    {
+      "playId": "sha256:fb4d09231b12b224881bfe3957d8cc5c604f77bef032e7c9f029bdca35d5b13d",
+      "memberIds": [
+        "agent-astra",
+        "agent-trigger",
+        "agent-yixuan"
+      ],
+      "primaryAgentId": "agent-yixuan",
+      "opening": "耀嘉音特殊技起手，扳机快速支援后狙击攒决意，再由仪玄快速支援入场。",
+      "loop": "仪玄使用强化特殊技和特殊普攻；扳机补决意维持协同，耀嘉音保持演奏与快速支援。",
+      "burst": "术法达到120点时释放对应终结技，随后衔接强化普攻；另一种终结技按喧响就绪释放。",
+      "evidence": {
+        "axisSha256": "f35ed565d0107d4072d5b8640852f0168eb0fdba264f3b9de4b78979b661f26b",
+        "policySha256": "33808c57be3090dc491a61f80eefafc8a6dfdccc63fce2784011badb139fe0e6",
+        "draftSha256": "7f472f9077d0a4314972f64b34b2bf7e12960ca2dbb3e6fe065baec14c51c770"
+      }
+    },
+    {
+      "playId": "sha256:3c06efb2840f66c687c9060403de84b0e9f8739a0de640f035c42782a7669a62",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-yanagi",
+        "agent-yuzuha"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "柚叶冲刺攻击起手；雅已有6点落霜时先打三段蓄力斩，再由柚叶强化特殊技接柳入场。",
+      "loop": "雅与柳交替积累异常；柳以强化特殊技触发极性紊乱，柚叶补甜度和增益。",
+      "burst": "雅攒满6点落霜后释放三段蓄力斩，再利用强化特殊技与终结技接续下一轮。",
+      "evidence": {
+        "axisSha256": "c0f60552512e3634649f2eadbfdf286cc66d177f8b405fcfbf42b2bbdcdd1d6a",
+        "policySha256": "defcf6b1b04fc78e2274054551035840746e90a660374c4a47bacb8d11e08741",
+        "draftSha256": "1fb1efacdbdb5b0cd1e0cba8d5d56d53f91be8c81d598857933737204843d83e"
+      }
+    },
+    {
+      "playId": "sha256:422d38430d4f201aaf2a47c3d861272fdf0698572b43e62330458904974f67fa",
+      "memberIds": [
+        "agent-cissia",
+        "agent-rina",
+        "agent-seed"
+      ],
+      "primaryAgentId": "agent-cissia",
+      "opening": "席德冲刺接普攻三、四段，丽娜强化特殊技后快速支援希希芙。",
+      "loop": "希希芙发动蛇吻后快速支援席德，席德用普攻和强化炮击积攒钢心。",
+      "burst": "钢心足够时接两段下坠，喧响足够时释放终结技。",
+      "evidence": {
+        "axisSha256": "6089c44a13f7c2418c72f71176394656f8590129ce888cc8ade792115a7cddde",
+        "policySha256": "4cddd15e6324237012d2818d0f38fa4904aaa1e037cb25c23ee624e21da15acd",
+        "draftSha256": "06131f007ae4b0c442cfd8eec87c884e4a19d61ae1ae05ceb0417f2484fdaf79"
+      }
+    },
+    {
+      "playId": "sha256:9f09d63026543cd3a9c4f37983615c50e5222a1b5c21f9f4c4fd7e6ef2010ec1",
+      "memberIds": [
+        "agent-astra",
+        "agent-cissia",
+        "agent-seed"
+      ],
+      "primaryAgentId": "agent-seed",
+      "opening": "席德冲刺接普攻三、四段，耀嘉音特殊技命中后快速支援希希芙。",
+      "loop": "演奏期间观察快速支援提示，希希芙发动蛇吻后切回席德。",
+      "burst": "席德能量达到60后开强化炮击；耀嘉音终结技后留意连携提示。",
+      "evidence": {
+        "axisSha256": "cbf4caecbad528c44ee60272476f930f7ee38355b2654eb2a2d2b9026531d5b0",
+        "policySha256": "4cddd15e6324237012d2818d0f38fa4904aaa1e037cb25c23ee624e21da15acd",
+        "draftSha256": "78b89e653f5ef4901fb48fb6eb06fb1252e66e791bb0eb8840639fba36ecf745"
+      }
+    },
+    {
+      "playId": "sha256:51891cb577913653a72480e0c8a863e609382097dda39b410a972789ebbeb337",
+      "memberIds": [
+        "agent-astra",
+        "agent-miyabi",
+        "agent-nangong"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "耀嘉音以特殊技起手，雅打完一轮普攻，再切南宫羽接普攻与强化特殊技。",
+      "loop": "南宫羽在击破前打出三段蓄力。雅留好落霜，等敌人失衡再接蓄力。",
+      "burst": "把雅的霜月集中在失衡期间，窗口将结束时优先打完已备好的蓄力。",
+      "evidence": {
+        "axisSha256": "6fc22fda88ec466d9bdbe6a1f95e2bde98dc5b085c0993ced65e480d5cd4b7ea",
+        "policySha256": "de28ec92520daa987cd2a08cf0d33604e829355f0b9db2a5e81947adf92e5943",
+        "productionReportSha256": "f759bc32bb1580b550799d3a2f082e17e5416a1e4e9d821064cd4f58ea17b254"
+      }
+    },
+    {
+      "playId": "sha256:62bbc8d4373db14757dcedc6d8d2022c0229b7bf3f2aa3b912a537160ce44372",
+      "memberIds": [
+        "agent-astra",
+        "agent-miyabi",
+        "agent-nangong"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "耀嘉音以特殊技起手，雅用普攻积累霜异常，接南宫羽的普攻与强化特殊技。",
+      "loop": "耀嘉音维持咏叹华彩，快速支援交给南宫羽。南宫羽用精准入场和强化特殊技衔接极性紊乱。",
+      "burst": "失衡时由南宫羽接续极性紊乱，落霜攒满就切雅打霜月，再交回南宫羽。",
+      "evidence": {
+        "axisSha256": "5d3bc5ad7476133ecd4bd6057dd7cc64c78a5e65560a3fec7d00e877d98f3265",
+        "policySha256": "a1410621f6440932bdc636deef998ad56d5df152c51433cef43bfd57bf1ae9ba",
+        "productionReportSha256": "0df0a17df364fc8a747e0c168a279593f872f3fc30ea7dc3e08e7458114e89d1"
+      }
+    },
+    {
+      "playId": "sha256:0386c43939612f693ffe7d5aa0dbbaaeaf16725e73aefa8810546f46ccbad1bf",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-nangong",
+        "agent-sunna"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "南宫羽普攻起手，切千夏打完普攻，再由南宫羽接强化特殊技。",
+      "loop": "南宫羽在击破前完成三段蓄力，雅用普攻攒好落霜，给下一次失衡留出霜月。",
+      "burst": "南宫羽完成击破接力后切雅，让满蓄霜月在失衡结束前命中。",
+      "evidence": {
+        "axisSha256": "cb39ee39acfbce9bd421b131b24a7c3f73477547469a947bce1f2fe1416098f1",
+        "policySha256": "fda5ba2c52ec482c90722ba30e4da93233fd88b9bee4ba7ac8bb0a02aaba7f2d",
+        "productionReportSha256": "a3891126f80ff64f6710c22dd1e84fae1ac2f5e946cb01bfb4098dcffe533062"
+      }
+    },
+    {
+      "playId": "sha256:63c2692fa046230cfc69ef64923c0c94b050b59acb2ac6fea84c7dd4cb2bb7f2",
+      "memberIds": [
+        "agent-miyabi",
+        "agent-nangong",
+        "agent-sunna"
+      ],
+      "primaryAgentId": "agent-miyabi",
+      "opening": "南宫羽强化特殊技起手，切雅打一轮普攻，再切千夏释放强化特殊技。",
+      "loop": "雅与南宫羽交替积累异常，利用极性紊乱为雅补落霜，千夏在两轮之间接续增益。",
+      "burst": "失衡期间先接极性紊乱，落霜攒满就切雅释放霜月；第二轮积够后再打一次满蓄。",
+      "evidence": {
+        "axisSha256": "57b777f5124979d83ddd4317f480edef9a977828a8aa8425e89540c7dbf9c581",
+        "policySha256": "7839c3a9a0ab51e47e088b6b9a93cc02dffc595b242ceaad9c1b523d281eb45b",
+        "productionReportSha256": "3a6fafba9b876498f46d6f1477ea7e3a94953a1e809ad27e1a8110a3c85ba45c"
+      }
+    }
+  ]
+}

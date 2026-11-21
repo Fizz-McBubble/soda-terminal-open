@@ -4,22 +4,43 @@ import {
   useCatalogBrowseScroll,
 } from '../../components/assets/r6/useCatalogBrowseState'
 import { Star } from 'lucide-react'
-import { ExplanationPopover } from '../../components/ExplanationPopover'
 import { preloadSelectedAgentAvatar } from '../../components/selectedAgentAvatarPreload'
 import { SelectMenu } from '../../components/assets/r6/SelectMenu'
 import { createLatestVisualSelection } from '../../assets/visualEntityImageSource'
+import { useStateTransitionMotion } from '../../motion/useStateTransitionMotion'
 import type { AgentSummary } from './types'
 import { AgentAvatar } from './AgentDevelopmentOverviewComponents'
 import {
   attributeIcons,
   getDirectoryProgress,
-  getSkillDisplayInfo,
   specialtyIcons,
 } from './agentDevelopmentOverviewHelpers'
 import './styles.overview-scroll.css'
 
 function preloadRecommendationAvatar(agentId: string) {
   void preloadSelectedAgentAvatar(agentId, 'agent-development.overview')
+}
+
+function getSkillProgress(agent: AgentSummary) {
+  const gaps = agent.nextTrainingSteps?.length ?? 0
+  switch (agent.skillStatus) {
+    case 'pending':
+      return '正在核对'
+    case 'stale':
+      return '待重新分析'
+    case 'unknown':
+      return gaps ? `${gaps} 项可提升，部分等级待补录` : '等级待补录'
+    case 'target-unknown':
+      return gaps ? `${gaps} 项可提升，部分目标待确认` : '部分目标待确认'
+    case 'complete':
+      return '已记录目标均达标'
+    case 'has-gaps':
+      return `${gaps} 项可继续提升`
+    case 'no-target':
+      return '暂无可核对目标'
+    default:
+      return gaps ? `${gaps} 项可继续提升` : '目标待确认'
+  }
 }
 
 export function AgentDevelopmentOverview({
@@ -92,6 +113,7 @@ export function AgentDevelopmentOverview({
       preloadSelectedAgentAvatar(request.entityId, 'agent-development.overview'),
     ),
   ).current
+  const detailRef = useRef<HTMLElement>(null)
 
   const selectAgentDetail = async (agentId: string) => {
     if (agentId === selectedAgentId) return
@@ -119,6 +141,14 @@ export function AgentDevelopmentOverview({
   const selectedAgent =
     filtered.find((agent) => agent.agentId === selectedAgentId) ?? filtered[0] ?? null
   const selectedProgress = selectedAgent ? getDirectoryProgress(selectedAgent) : null
+  const skillProgress = selectedAgent ? getSkillProgress(selectedAgent) : ''
+  useStateTransitionMotion({
+    scope: detailRef,
+    stateKey: selectedAgent?.agentId ?? 'none',
+    includeScope: true,
+    enabled: Boolean(selectedAgent),
+    transition: 'content',
+  })
   const selectedAgentForPreloadId = selectedAgent?.agentId
   useEffect(() => {
     if (selectedAgentForPreloadId) preloadRecommendationAvatar(selectedAgentForPreloadId)
@@ -149,20 +179,22 @@ export function AgentDevelopmentOverview({
                 onChange={(event) => setQuery(event.target.value)}
               />
             </label>
-            <button
-              type="button"
-              aria-pressed={filter === 'recommendations'}
-              onClick={() => setFilter('recommendations')}
-            >
-              全部角色
-            </button>
-            <button
-              type="button"
-              aria-pressed={filter === 'plans'}
-              onClick={() => setFilter('plans')}
-            >
-              已有方案
-            </button>
+            <div className="catalog-tools__modes" role="group" aria-label="角色范围">
+              <button
+                type="button"
+                aria-pressed={filter === 'recommendations'}
+                onClick={() => setFilter('recommendations')}
+              >
+                全部角色
+              </button>
+              <button
+                type="button"
+                aria-pressed={filter === 'plans'}
+                onClick={() => setFilter('plans')}
+              >
+                已有方案
+              </button>
+            </div>
 
             <label>
               <span>稀有度</span>
@@ -237,13 +269,15 @@ export function AgentDevelopmentOverview({
                   >
                     <Star
                       aria-hidden="true"
-                      size={15}
+                      size={18}
                       strokeWidth={2}
                       fill={agent.favorite ? 'currentColor' : 'none'}
                     />
                   </button>
                   <button
                     className={`agent-tile-link ${isSelected ? 'selected' : ''}`}
+                    data-agent-id={agent.agentId}
+                    aria-current={isSelected ? 'true' : undefined}
                     type="button"
                     aria-pressed={isSelected}
                     aria-label={[agent.name, progress.label, progress.detail]
@@ -295,7 +329,7 @@ export function AgentDevelopmentOverview({
           </ul>
         </section>
         {selectedAgent && selectedProgress ? (
-          <aside className="next-panel">
+          <aside ref={detailRef} className="next-panel" aria-live="polite">
             {selectedAgent.plan && onDeleteAgentPlan ? (
               <button
                 className="delete-agent-plan"
@@ -310,6 +344,7 @@ export function AgentDevelopmentOverview({
                 agent={selectedAgent}
                 className="featured-avatar"
                 slot="recommendation-identity"
+                includeIdentityIcons={false}
               />
               <div>
                 <small>已选代理人</small>
@@ -320,27 +355,51 @@ export function AgentDevelopmentOverview({
               </div>
             </div>
             <div className="next-copy">
-              {(() => {
-                const skillInfo = getSkillDisplayInfo(selectedAgent, selectedProgress.detail)
-                return (
-                  <div className="next-training-steps">
-                    <div className="next-training-steps__heading">
-                      <strong>{skillInfo.heading}</strong>
-                      {skillInfo.hasMorePopover ? (
-                        <ExplanationPopover
-                          key={selectedAgent.agentId}
-                          label={`其余 ${skillInfo.popoverCount} 项`}
-                          title="其余可补技能"
-                        >
-                          <p>{skillInfo.popoverContent}</p>
-                        </ExplanationPopover>
-                      ) : null}
-                    </div>
-                    <p title={skillInfo.line1}>{skillInfo.line1}</p>
-                    <small title={skillInfo.line2}>{skillInfo.line2}</small>
+              <section className="next-progress" aria-label="养成进度">
+                <strong>养成进度</strong>
+                <dl>
+                  <div>
+                    <dt>角色等级</dt>
+                    <dd>Lv.{selectedAgent.level}</dd>
                   </div>
-                )
-              })()}
+                  <div>
+                    <dt>技能</dt>
+                    <dd>{skillProgress}</dd>
+                  </div>
+                  <div>
+                    <dt>音擎</dt>
+                    <dd>{selectedAgent.equipmentProgress?.engine ?? '待确认'}</dd>
+                  </div>
+                  <div>
+                    <dt>驱动盘</dt>
+                    <dd>{selectedAgent.equipmentProgress?.discs ?? '装备记录待确认'}</dd>
+                  </div>
+                </dl>
+              </section>
+              <section className="next-cinema" aria-label="影画参考">
+                <strong>影画参考</strong>
+                {selectedAgent.skillStatus !== 'stale' && selectedAgent.cinemaLevels?.length ? (
+                  <>
+                    <p>
+                      关键影画：{selectedAgent.cinemaLevels.map((level) => `${level}影`).join('、')}
+                    </p>
+                    <small>
+                      当前 {selectedAgent.mindscape}影；
+                      {selectedAgent.cinemaLevels.some((level) => level > selectedAgent.mindscape)
+                        ? '可根据队伍需要和资源考虑后续影画。'
+                        : '已解锁所列影画。'}
+                    </small>
+                  </>
+                ) : (
+                  <p>
+                    {selectedAgent.skillStatus === 'pending'
+                      ? '影画建议更新中…'
+                      : selectedAgent.skillStatus === 'stale'
+                        ? '账户资料已变化，请重新分析。'
+                        : '暂无影画建议。'}
+                  </p>
+                )}
+              </section>
               <button
                 className="primary"
                 data-player-route={`/development/${selectedAgent.agentId}`}

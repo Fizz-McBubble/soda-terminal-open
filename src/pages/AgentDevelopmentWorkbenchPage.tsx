@@ -1,15 +1,18 @@
+import { workbenchCandidateIsStale } from './workbenchCandidateFreshness'
+import { PersonalWorkbenchReadError } from './PersonalWorkbenchReadError'
+import { useWorkbenchAnalysisRefresh } from './useWorkbenchAnalysisRefresh'
+import { selectWorkbenchRun, usePersonalWorkbenchRead } from './usePersonalWorkbenchRead'
+import { useDevelopmentCurrentRecordReconciliation } from './useDevelopmentCurrentRecordReconciliation'
+import { useDevelopmentWorkbenchRouteRead } from './useDevelopmentWorkbenchRouteRead'
 import { AppLoadingState } from '../components/AppEntryState'
-import {
-  readDevelopmentWorkbenchRoute,
-  rememberDevelopmentWorkbenchRoute,
-} from './developmentWorkbenchRouteCache'
-import { useEffect, useMemo } from 'react'
-import { useState } from 'react'
+import { readDevelopmentWorkbenchRoute } from './developmentWorkbenchRouteCache'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { publicDevelopmentDirectoryCatalog } from '../application/publicDevelopmentDirectoryCatalog'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { BackNavigation } from '../components/BackNavigation'
 import { AccountRequiredState } from '../components/ui/AccountRequiredState'
 import { AgentDevelopmentReadError } from './AgentDevelopmentReadError'
+import { AgentDevelopmentRouteUnavailable } from './AgentDevelopmentRouteUnavailable'
 import { agentCatalog } from '../application/publicRosterNames'
 import { findCurrentDevelopmentWorkbenchEquipment } from '../application/publicDevelopmentWorkbenchPresentation'
 import { contentHash } from '../application/contentHash'
@@ -20,24 +23,28 @@ import {
   useDevelopmentWorkbenchRouteCalculation,
 } from '../application/accountDecisionWorld'
 import { resolveSavedAgentPlanRoute } from './agentDevelopmentSavedPlanRoute'
+import { resolvePersonalReferenceDiscs } from '../accounts/personalCurrentReference'
 import { SavedAgentPlanRouteError } from './AgentDevelopmentSavedPlanRouteError'
-import {
-  isDevelopmentCandidateSnapshotStale,
-  readDevelopmentCandidateSnapshot,
-} from './agentDevelopmentCandidateSession'
+import { readDevelopmentCandidateSnapshot } from './agentDevelopmentCandidateSession'
 import {
   isCurrentDevelopmentWorkbenchRoute,
-  type DevelopmentWorkbenchRoutePresentation,
   type DevelopmentWorkbenchRouteSelection,
 } from '../application/publicDevelopmentWorkbenchRoute'
 import { developmentPanelDiscFingerprint } from '../application/publicDevelopmentComparisonPanels'
 import { createAgentDevelopmentWorkbenchData } from './createAgentDevelopmentWorkbenchData'
+import { DevelopmentDiscCard } from '../features/agentDevelopmentGolden/DevelopmentDiscCard'
+import { developmentRecordedDiscFacts } from './agentDevelopmentPublicDisplay'
 import { AgentDevelopmentWorkbenchView } from './AgentDevelopmentWorkbenchView'
+import { developmentAnalysisRecoveryDisplay } from './developmentCommittedCurrentDisplay'
+import type { AnalysisRefresh, SaveRefresh } from './agentDevelopmentWorkbenchViewState'
+import { useDevelopmentWorkbenchFacts } from './useDevelopmentWorkbenchFacts'
+import { isCurrentDevelopmentWorkbenchFacts } from '../application/publicDevelopmentWorkbenchFacts'
 
 export function AgentDevelopmentWorkbenchPage() {
   const { agentId = '' } = useParams()
   const [searchParams] = useSearchParams()
   const decisionWorld = useAccountDecisionWorld()
+  const refreshDecisionWorld = decisionWorld.refresh
   const queryDevelopmentCandidateAlternatives = useDevelopmentCandidateAlternativesCalculation()
   const queryDevelopmentWorkbenchRoute = useDevelopmentWorkbenchRouteCalculation()
   const [analysisVersion, setAnalysisVersion] = useState(0)
@@ -52,32 +59,46 @@ export function AgentDevelopmentWorkbenchPage() {
     accountId: string
     presentation: GoldenWorkbenchData
   } | null>(null)
-  const [saveRefresh, setSaveRefresh] = useState<{
-    accountId: string
-    agentId: string
-    presentation: GoldenWorkbenchData
-    kind?: 'current_record'
-    phase?: 'updating' | 'failed'
-    record?: import('../assault/types').RosterAgent
-    error?: string
-  } | null>(null)
-  const [lastRouteProjection, setLastRouteProjection] = useState<{
-    accountId: string
-    agentId: string
-    value: DevelopmentWorkbenchRoutePresentation
-  } | null>(null)
-  const [routeRead, setRouteRead] = useState<{
-    key: string
-    value: DevelopmentWorkbenchRoutePresentation
-  } | null>(null)
-  const [routeFailureKey, setRouteFailureKey] = useState<string | null>(null)
+  const [saveRefresh, setSaveRefresh] = useState<SaveRefresh | null>(null)
+  const [analysisRefresh, setAnalysisRefresh] = useState<AnalysisRefresh | null>(null)
+  const analysisRefreshAttempt = useRef<string | null>(null)
+  const analysisRefreshRequest = useRef(0)
+  const pageActive = useRef(true)
   const requestedPlanId = searchParams.get('plan')
+  const requestedCandidateRank = Number.parseInt(searchParams.get('candidate') ?? '1', 10)
+  const preferEquipped = requestedCandidateRank === 0 && !requestedPlanId
+  const facts = useDevelopmentWorkbenchFacts(agentId, requestedPlanId, preferEquipped)
   const pageAccountId =
-    decisionWorld.liveInput?.warehouse.accountId ?? decisionWorld.run?.input.warehouse.accountId
+    facts.input?.warehouse.accountId ??
+    decisionWorld.liveInput?.warehouse.accountId ??
+    decisionWorld.run?.input.warehouse.accountId
+  const {
+    personalCapture,
+    personalInput,
+    personalCurrent,
+    personalRouteKey,
+    personalRouteFailure,
+    setPersonalRouteFailure,
+    personalRoute,
+    personalSnapshot,
+  } = usePersonalWorkbenchRead({
+    pageAccountId: pageAccountId ?? undefined,
+    agentId,
+    requestedPlanId,
+    preferEquipped,
+    analysisVersion,
+    requestedCandidateRank,
+  })
   const committedCurrentRecord =
     saveRefresh?.kind === 'current_record' &&
     saveRefresh.accountId === pageAccountId &&
     saveRefresh.agentId === agentId
+  useEffect(() => {
+    pageActive.current = true
+    return () => {
+      pageActive.current = false
+    }
+  }, [])
   useEffect(() => {
     let active = true
     queueMicrotask(() => {
@@ -86,18 +107,66 @@ export function AgentDevelopmentWorkbenchPage() {
       setWarehouseRefresh(null)
       setEditingCurrent(false)
       setEditingPresentation(null)
+      setAnalysisRefresh(null)
+      analysisRefreshAttempt.current = null
     })
     return () => {
       active = false
     }
   }, [pageAccountId, agentId, requestedPlanId])
-  const requestedCandidateRank = Number.parseInt(searchParams.get('candidate') ?? '1', 10)
-  const preferEquipped = requestedCandidateRank === 0 && !requestedPlanId
-  const selectedCandidateRank =
-    Number.isFinite(requestedCandidateRank) && requestedCandidateRank > 0
-      ? requestedCandidateRank
-      : 1
-  const currentRun = decisionWorld.status === 'current' ? decisionWorld.run : null
+  const { selectedCandidateRank, currentRun, retainedRun } = selectWorkbenchRun(
+    decisionWorld,
+    requestedCandidateRank,
+  )
+  const staleRefreshKey =
+    !facts.enabled &&
+    decisionWorld.status === 'stale' &&
+    decisionWorld.liveInput?.warehouse.accountId &&
+    decisionWorld.liveFingerprint
+      ? `${decisionWorld.liveInput.warehouse.accountId}\0${decisionWorld.liveFingerprint}\0${decisionWorld.run?.runId ?? 'missing'}`
+      : null
+  const runAnalysisRefresh = useWorkbenchAnalysisRefresh(
+    refreshDecisionWorld,
+    analysisRefreshAttempt,
+    analysisRefreshRequest,
+    pageActive,
+    setAnalysisRefresh,
+  )
+  useEffect(() => {
+    if (
+      !staleRefreshKey ||
+      !pageAccountId ||
+      saveRefresh ||
+      warehouseRefresh ||
+      editingCurrent ||
+      (requestedPlanId && !committedCurrentRecord)
+    )
+      return
+    void runAnalysisRefresh(staleRefreshKey, pageAccountId)
+  }, [
+    committedCurrentRecord,
+    editingCurrent,
+    pageAccountId,
+    requestedPlanId,
+    runAnalysisRefresh,
+    saveRefresh,
+    staleRefreshKey,
+    warehouseRefresh,
+  ])
+  useEffect(() => {
+    if (!currentRun || !analysisRefresh) return
+    // Another request may have superseded this refresh and already produced a current run.
+    analysisRefreshRequest.current += 1
+    analysisRefreshAttempt.current = null
+    let active = true
+    queueMicrotask(() => {
+      if (active) setAnalysisRefresh(null)
+    })
+    return () => {
+      active = false
+    }
+  }, [analysisRefresh, currentRun])
+  useDevelopmentCurrentRecordReconciliation(facts, saveRefresh, setSaveRefresh)
   const routeSnapshot =
     currentRun && !requestedPlanId && !preferEquipped
       ? readDevelopmentCandidateSnapshot(currentRun.input.warehouse.accountId ?? '', agentId)
@@ -121,54 +190,37 @@ export function AgentDevelopmentWorkbenchPage() {
     }),
     [agentId, requestedPlanId, preferEquipped, routeCandidateIndex, routeLoadoutFingerprint],
   )
+  const retainedRouteKey = retainedRun
+    ? contentHash([retainedRun.runId, retainedRun.inputFingerprint, routeSelection])
+    : null
   const routeKey = currentRun
     ? contentHash([currentRun.runId, currentRun.inputFingerprint, routeSelection])
     : null
-  useEffect(() => {
-    if (!currentRun || !routeKey) return
-    let active = true
-    const cached = readDevelopmentWorkbenchRoute(routeKey)
-    void (
-      cached
-        ? Promise.resolve(cached)
-        : queryDevelopmentWorkbenchRoute(currentRun.runId, routeSelection)
-    )
-      .then((value) => {
-        if (active) {
-          rememberDevelopmentWorkbenchRoute(routeKey, value)
-          setRouteFailureKey(null)
-          setRouteRead({ key: routeKey, value })
-          setLastRouteProjection({
-            accountId: currentRun.input.warehouse.accountId ?? '',
-            agentId,
-            value,
-          })
-        }
-      })
-      .catch(() => {
-        if (active) {
-          setRouteFailureKey(routeKey)
-        }
-      })
-    return () => {
-      active = false
-    }
-  }, [
+  const {
+    lastRouteProjection,
+    setLastRouteProjection,
+    routeRead,
+    setRouteRead,
+    routeFailureKey,
+    setRouteFailureKey,
+  } = useDevelopmentWorkbenchRouteRead({
     currentRun,
     routeKey,
     routeSelection,
     queryDevelopmentWorkbenchRoute,
     analysisVersion,
     agentId,
-  ])
+  })
   // A decision run is intentionally retained while the live account changes.
   // Use that run for derived authority only; current-page account facts must
   // switch to the live input immediately, otherwise a low level, missing
   // engine, or changed disc can be presented as the player's current state.
   const currentInput =
-    decisionWorld.status === 'stale' || committedCurrentRecord
-      ? decisionWorld.liveInput
-      : (decisionWorld.run?.input ?? (requestedPlanId ? decisionWorld.liveInput : undefined))
+    personalCurrent && personalInput
+      ? personalInput
+      : facts.enabled && !currentRun
+        ? (facts.input ?? undefined)
+        : (decisionWorld.liveInput ?? decisionWorld.run?.input ?? undefined)
   const data = currentInput
     ? {
         account: currentInput.warehouse.account,
@@ -183,14 +235,36 @@ export function AgentDevelopmentWorkbenchPage() {
   // A saved plan is a local record. Reading it must not depend on a new online calculation.
   if (
     decisionWorld.status === 'error' &&
+    !facts.enabled &&
     !committedCurrentRecord &&
-    !(requestedPlanId && currentInput)
+    !(requestedPlanId && currentInput) &&
+    !analysisRefresh
   )
-    return <AgentDevelopmentReadError message={decisionWorld.message} />
-  if (data === undefined)
+    return (
+      <AgentDevelopmentReadError
+        message={decisionWorld.message}
+        onRetry={
+          staleRefreshKey && !requestedPlanId
+            ? () => {
+                const current = decisionWorld.liveInput
+                if (current?.warehouse.accountId)
+                  void runAnalysisRefresh(staleRefreshKey, current.warehouse.accountId, {
+                    retry: true,
+                  })
+              }
+            : undefined
+        }
+      />
+    )
+  if (facts.enabled && !currentInput && facts.error)
+    return <AgentDevelopmentReadError message="当前养成资料暂未读取完整。" onRetry={facts.retry} />
+  if (facts.enabled && !currentInput && facts.noAccount)
+    return <AccountRequiredState title="先创建或选择账户" />
+  if (data === undefined || (facts.enabled && !currentInput && facts.loading))
     return <AppLoadingState heading="代理人养成" title="正在读取当前账户…" compact />
   if (!data) return <AccountRequiredState title="先创建或选择账户" />
-  if (!data.account) return <p role="status">暂时无法整理养成建议，请刷新页面重试。</p>
+  if (!data.account)
+    return <AgentDevelopmentReadError message="暂时无法读取当前账户资料，请重新加载后再试。" />
   const account = data.account
   const editingThisAgent =
     editingCurrent &&
@@ -217,19 +291,6 @@ export function AgentDevelopmentWorkbenchPage() {
       </section>
     )
 
-  const equipment =
-    decisionWorld.status === 'current'
-      ? findCurrentDevelopmentWorkbenchEquipment(
-          decisionWorld.run.developmentWorkbenchPresentation,
-          {
-            runId: decisionWorld.run.runId,
-            accountId: account.id,
-            inputFingerprint: decisionWorld.run.inputFingerprint,
-            agentId,
-          },
-        )
-      : null
-
   const savedPlanResolution = preferEquipped
     ? { status: 'current' as const, plan: undefined }
     : resolveSavedAgentPlanRoute({
@@ -247,13 +308,18 @@ export function AgentDevelopmentWorkbenchPage() {
   const savedAgentBuild = savedPlanResolution.plan
   // A historical plan must remain its own recorded six-disc reference. Do not let a
   // previous candidate session replace it merely because that session is still cached.
-  const candidateSnapshot =
-    requestedPlanId || preferEquipped ? null : readDevelopmentCandidateSnapshot(account.id, agentId)
-  const candidateSnapshotStale =
-    decisionWorld.status === 'stale' ||
-    (candidateSnapshot
-      ? isDevelopmentCandidateSnapshotStale(candidateSnapshot, decisionWorld.liveFingerprint)
-      : false)
+  const legacyCandidateSnapshot =
+    requestedPlanId || preferEquipped || personalCapture
+      ? null
+      : readDevelopmentCandidateSnapshot(account.id, agentId)
+  const candidateSnapshot = personalSnapshot ?? legacyCandidateSnapshot
+  const candidateSnapshotStale = workbenchCandidateIsStale(
+    personalCapture,
+    personalCurrent,
+    decisionWorld,
+    analysisRefresh,
+    legacyCandidateSnapshot,
+  )
   // A cached solve is evidence for its captured account fingerprint only. Once
   // the live warehouse changes, do not feed its IDs into the current panel or
   // six-disc cards: the same ID may now describe different disc facts. The
@@ -283,9 +349,12 @@ export function AgentDevelopmentWorkbenchPage() {
       : undefined
   const selectedDiscIds = hasComparablePlan
     ? candidateChoices.map((choice) => choice.disc.id)
-    : (savedAgentBuild?.warehouseRefs ?? currentDiscIds)
+    : ((savedAgentBuild
+        ? resolvePersonalReferenceDiscs(savedAgentBuild, data.discs)?.map((disc) => disc.id)
+        : undefined) ?? currentDiscIds)
   const selectedDiscs = data.discs.filter((disc) => selectedDiscIds.includes(disc.id))
-  const cachedRoute = readDevelopmentWorkbenchRoute(routeKey)
+  const cachedRouteValue = readDevelopmentWorkbenchRoute(routeKey)
+  const cachedRoute = cachedRouteValue?.equipment ? cachedRouteValue : null
   const resolvedRoute = cachedRoute ?? (routeRead?.key === routeKey ? routeRead.value : null)
   const freshRouteProjection =
     resolvedRoute &&
@@ -303,33 +372,151 @@ export function AgentDevelopmentWorkbenchPage() {
     )
       ? resolvedRoute
       : null
+  const cachedRetainedRoute = retainedRouteKey
+    ? readDevelopmentWorkbenchRoute(retainedRouteKey)
+    : null
+  const retainedRouteProjection =
+    lastRouteProjection?.accountId === account.id && lastRouteProjection.agentId === agentId
+      ? lastRouteProjection.value
+      : cachedRetainedRoute
   const retainingDuringSave =
     !freshRouteProjection &&
     (savePresentationThisAgent || editingThisAgent) &&
     lastRouteProjection?.accountId === account.id &&
     lastRouteProjection.agentId === agentId
+  const retainingDuringAnalysis =
+    !freshRouteProjection &&
+    !facts.enabled &&
+    (decisionWorld.status === 'stale' || Boolean(analysisRefresh)) &&
+    Boolean(retainedRouteProjection)
+  const factsProjection =
+    !routeLoadout &&
+    facts.request &&
+    facts.value &&
+    isCurrentDevelopmentWorkbenchFacts(facts.value, facts.request, selectedDiscs)
+      ? facts.value
+      : null
   const routeProjection =
-    freshRouteProjection ?? (retainingDuringSave ? lastRouteProjection!.value : null)
-  if (currentRun && !routeProjection && !matchingThisAgent) {
-    if (routeFailureKey === routeKey)
+    personalRoute ??
+    freshRouteProjection ??
+    (retainingDuringSave ? lastRouteProjection!.value : null) ??
+    (retainingDuringAnalysis ? retainedRouteProjection : null) ??
+    factsProjection ??
+    null
+  const retainedRunEquipment =
+    !facts.enabled && retainedRun?.input.warehouse.accountId === account.id
+      ? findCurrentDevelopmentWorkbenchEquipment(retainedRun.developmentWorkbenchPresentation, {
+          runId: retainedRun.runId,
+          accountId: account.id,
+          inputFingerprint: retainedRun.inputFingerprint,
+          agentId,
+        })
+      : null
+  const equipment = routeProjection?.equipment ?? retainedRunEquipment
+  // Missing projection data is a loading/recovery state, never evidence that
+  // the player has no engine or discs. A captured edit/save presentation is
+  // already complete and may continue to be shown while it recovers.
+  if (!equipment && !savePresentationThisAgent && !editingThisAgent && !matchingThisAgent) {
+    if (facts.enabled && facts.error)
       return (
-        <section className="panel">
-          <h1>暂时无法读取本次养成资料</h1>
-          <p>请刷新页面重试；已保存的方案仍然保留。</p>
-          <BackNavigation to="/development" />
+        <AgentDevelopmentReadError message="当前养成资料暂未读取完整。" onRetry={facts.retry} />
+      )
+    if (decisionWorld.analysisIssue && !facts.enabled)
+      return (
+        <AgentDevelopmentReadError
+          message={decisionWorld.analysisIssue.message}
+          onRetry={() => {
+            void decisionWorld.refresh()
+          }}
+        />
+      )
+    if (analysisRefresh?.phase === 'failed' || (decisionWorld.status === 'error' && !facts.enabled))
+      return (
+        <AgentDevelopmentReadError
+          message={analysisRefresh?.error ?? '当前养成资料暂未更新。'}
+          onRetry={
+            analysisRefresh?.onRetry ??
+            (() => {
+              void decisionWorld.refresh()
+            })
+          }
+        />
+      )
+    if (currentRun && (routeFailureKey === routeKey || routeRead?.key === routeKey))
+      return (
+        <AgentDevelopmentReadError
+          message="当前养成资料暂未读取完整。"
+          onRetry={() => {
+            setRouteFailureKey(null)
+            setRouteRead(null)
+            setAnalysisVersion((version) => version + 1)
+          }}
+        />
+      )
+    if (
+      facts.request?.input.warehouse.accountId === account.id &&
+      facts.request.selection.agentId === agentId &&
+      !requestedPlanId &&
+      !savedAgentBuild &&
+      !hasComparablePlan &&
+      currentDiscs.length > 0
+    ) {
+      const recorded = developmentRecordedDiscFacts(agentId, currentDiscs).sort(
+        (a, b) => a.slot - b.slot,
+      )
+      return (
+        <section className="disc-section disc-section--workbench decision-loadout-result is-actual">
+          <h1>{catalog.playerName} · 当前装备</h1>
+          <p role="status">正在整理当前养成资料…</p>
+          <div className="disc-grid decision-loadout-result__grid">
+            {recorded.map((disc) => (
+              <DevelopmentDiscCard key={disc.slot} disc={disc} showGrade={false} />
+            ))}
+          </div>
         </section>
       )
-    if (routeRead?.key === routeKey)
-      return (
-        <section className="panel">
-          <h1>本次养成资料已变化</h1>
-          <p>请重新打开当前代理人或重新搭配驱动盘；已保存的方案仍然保留。</p>
-          <BackNavigation to="/development" />
-        </section>
-      )
+    }
     return <AppLoadingState heading="代理人养成" title="正在整理当前养成资料…" compact />
   }
-  const workbenchData = createAgentDevelopmentWorkbenchData({
+  if (personalRouteKey && personalRouteFailure === personalRouteKey)
+    return (
+      <PersonalWorkbenchReadError
+        onRetry={() => {
+          setPersonalRouteFailure(null)
+          setAnalysisVersion((version) => version + 1)
+        }}
+      />
+    )
+
+  if (
+    decisionWorld.status === 'error' &&
+    !facts.enabled &&
+    !routeProjection &&
+    !savePresentationThisAgent &&
+    !editingThisAgent &&
+    analysisRefresh
+  )
+    return (
+      <AgentDevelopmentReadError
+        message={analysisRefresh.error ?? decisionWorld.message}
+        onRetry={analysisRefresh.onRetry}
+      />
+    )
+  if (currentRun && !routeProjection && !matchingThisAgent) {
+    if (routeFailureKey === routeKey || routeRead?.key === routeKey)
+      return <AgentDevelopmentRouteUnavailable failed={routeFailureKey === routeKey} />
+    return <AppLoadingState heading="代理人养成" title="正在整理当前养成资料…" compact />
+  }
+  if (
+    decisionWorld.status === 'stale' &&
+    !facts.enabled &&
+    !routeProjection &&
+    !matchingThisAgent &&
+    !savePresentationThisAgent &&
+    !editingThisAgent
+  )
+    return <AppLoadingState heading="代理人养成" title="正在按最新账户资料恢复养成建议…" compact />
+  const baseWorkbenchData = createAgentDevelopmentWorkbenchData({
     agentId,
     agent,
     catalog,
@@ -353,6 +540,9 @@ export function AgentDevelopmentWorkbenchPage() {
     analysisRequested,
     savedAgentBuild,
   })
+  const workbenchData = analysisRefresh
+    ? developmentAnalysisRecoveryDisplay(baseWorkbenchData, analysisRefresh.phase)
+    : baseWorkbenchData
   return (
     <AgentDevelopmentWorkbenchView
       agentId={agentId}
@@ -366,13 +556,16 @@ export function AgentDevelopmentWorkbenchPage() {
       editingThisAgent={editingThisAgent}
       candidateSnapshotStale={candidateSnapshotStale}
       retainingDuringSave={retainingDuringSave}
+      analysisRefresh={analysisRefresh}
       saveRefresh={saveRefresh}
       editingPresentation={editingPresentation}
       decisionWorld={decisionWorld}
       queryDevelopmentCandidateAlternatives={queryDevelopmentCandidateAlternatives}
       queryDevelopmentWorkbenchRoute={queryDevelopmentWorkbenchRoute}
+      facts={facts}
       candidates={candidates}
-      candidateSnapshot={candidateSnapshot}
+      candidateSnapshot={legacyCandidateSnapshot}
+      personalCapture={personalSnapshot ? personalCapture : null}
       equipment={equipment}
       requestedPlanId={requestedPlanId}
       selectedCandidateRank={selectedCandidateRank}

@@ -20,8 +20,9 @@ import type { PlanningEffectRuntimeMember } from '../calculation/currentPlanning
 import type { developmentSourceAction32 } from './developmentSourceAction32'
 import type { prepareReviewedPotentialEvents32 } from '../calculation/reviewedPotentialPreparedEvents32'
 import type { prepareReviewedTemplateEvents32 } from '../calculation/reviewedTemplatePreparedEvents32'
+import type { PersonalObjective32 } from './personalDevelopmentObjective32'
 
-export const personalRuntimeIdentity = `source-backed-personal-fixed-event/v7-${currentWEnginePersonalPlanningEffectVersion}`
+export const personalRuntimeIdentity = `source-backed-personal-fixed-event/v9-prepared-protocol-${currentWEnginePersonalPlanningEffectVersion}`
 export const personalEventSetIdentity = stableContentHash({
   baselineId: currentNormalizedPlanningBaseline.baselineId,
   selection: 'normalized-agent-fixed-event-schedule',
@@ -30,6 +31,7 @@ export const personalEventSetIdentity = stableContentHash({
 export type ScenarioValueBenchmarkSide = ValueBenchmarkSide & {
   scenarioSelection: CurrentPlanningScenarioSelection32
   scenarioIdentity: string
+  personalObjective32?: PersonalObjective32
 }
 
 export function unsupportedSide(input: {
@@ -65,8 +67,14 @@ export function unsupportedSide(input: {
 }
 
 export type DevelopmentComparisonParameters = {
-  wEngine?: { engineId: string; level: number; ascension?: number; refinement: number }
+  wEngine?: {
+    engineId: string
+    level: number
+    ascension?: number
+    refinement: number
+  }
   potential?: number
+  independentDirection?: import('./buildIntent').IndependentDirectionSelection
 }
 
 /** Project personal effect omissions and source completeness without changing numeric runtime. */

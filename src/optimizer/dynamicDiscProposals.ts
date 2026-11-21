@@ -1,6 +1,7 @@
 import type { DriveDisc } from '../domain/schemas'
 import type { DevelopmentStatWeights } from '../decision/developmentStatWeights'
 import { compareCandidateDiscFacts } from './candidateSearchFacts'
+import { isRecommendableDisc } from './recommendableDisc'
 
 /** A local, non-admissible search heuristic. It cannot justify pruning or accepting a swap. */
 export function dynamicDiscProposals(
@@ -8,7 +9,7 @@ export function dynamicDiscProposals(
   current: DriveDisc,
   weights: DevelopmentStatWeights,
 ): DriveDisc[] {
-  if (!['supported', 'limited'].includes(weights.status)) return []
+  if (!isRecommendableDisc(current) || !['supported', 'limited'].includes(weights.status)) return []
   const known = new Map(
     weights.rows.flatMap((row) =>
       row.status !== 'unsupported' &&
@@ -39,12 +40,12 @@ export function dynamicDiscProposals(
   return pool
     .filter(
       (disc) =>
+        isRecommendableDisc(disc) &&
         disc.id !== current.id &&
         disc.slot === current.slot &&
         disc.setId === current.setId &&
         disc.mainStat === current.mainStat &&
         disc.level === current.level &&
-        (disc.rarity ?? 'S') === (current.rarity ?? 'S') &&
         unknown(disc) === unmodeled &&
         Number.isFinite(score(disc)),
     )

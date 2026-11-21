@@ -1,8 +1,8 @@
 {
   "schema": "soda-reviewed-wengine/v1",
   "gameVersion": "3.3",
-  "generatedAt": "2026-10-21",
-  "boundary": "Transformed 3.3 W-Engine facts. Only released_first_half (14164) is enabled in 3.3 Phase 1 selectable catalog; pending_event (13022) and pending_second_half (14163) are not eligible before their scheduled release timestamps.",
+  "generatedAt": "2026-11-11",
+  "boundary": "Transformed 3.3 W-Engine facts. Released first-half 14164, event 13022, and second-half 14163 are eligible in the 3.3 Phase II current catalog.",
   "items": [
     {
       "stableId": "wengine-14164",
@@ -73,7 +73,7 @@
       "nativeKey": "TrickOfCandleglow",
       "rarity": "A",
       "specialty": "armorer",
-      "releaseStatus": "pending_event",
+      "releaseStatus": "released_event",
       "releaseAt": "2026-10-22T10:00:00+08:00",
       "staticStats": {
         "baseStat": {
@@ -133,7 +133,7 @@
       "nativeKey": "CageOfConfinedSin",
       "rarity": "S",
       "specialty": "damage",
-      "releaseStatus": "pending_second_half",
+      "releaseStatus": "released_second_half",
       "releaseAt": "2026-11-11T12:00:00+08:00",
       "staticStats": {
         "baseStat": {

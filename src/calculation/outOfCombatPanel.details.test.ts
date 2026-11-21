@@ -112,8 +112,9 @@ describe('shared out-of-combat detail attributes', () => {
     expect(rupture.values.namedResourceRegen).toBeUndefined()
     expect(rupture.values.namedResourceGenerationRate).toBeUndefined()
     expect(rupture.values.maxNamedResource).toBeUndefined()
-    expect(rupture.values.adrenalineRegen).toBeUndefined()
-    expect(rupture.values.maxAdrenaline).toBeUndefined()
+    expect(rupture.values.adrenalineRegen).toBe(2)
+    expect(rupture.values.maxAdrenaline).toBe(120)
+    expect(rupture.values.adrenalineGenerationRate).toBe(0)
     const armorer = projectOutOfCombatPanel({
       ...input,
       agentId: 'agent-claret',
@@ -143,4 +144,42 @@ describe('shared out-of-combat detail attributes', () => {
       projectOutOfCombatPanel({ ...input, wEngine: { ...input.wEngine, id: 'unknown' } }).status,
     ).toBe('unsupported')
   })
+  it.each([
+    ['agent-yixuan', 2],
+    ['agent-banyue', 2],
+    ['agent-yidhari', 2],
+    ['agent-starlight-billy', 2],
+    ['agent-manato', 0],
+  ] as const)(
+    'projects the reviewed %s adrenaline base, including a real zero',
+    (agentId, base) => {
+      const ordinary = projectOutOfCombatPanel({ ...input, agentId })
+      const energyDisc = projectOutOfCombatPanel({
+        ...input,
+        agentId,
+        discs: discs.map((disc) =>
+          disc.slot === 6 ? { ...disc, mainStat: 'energy_regen' as const } : disc,
+        ),
+      })
+      expect(ordinary.status).toBe('ok')
+      expect(energyDisc.status).toBe('ok')
+      expect(ordinary.values.adrenalineRegen).toBe(base)
+      expect(energyDisc.values.adrenalineRegen).toBe(base)
+      const efficiency = agentId === 'agent-yixuan' ? 0 : undefined
+      expect(ordinary.values.adrenalineGenerationRate).toBe(efficiency)
+      expect(energyDisc.values.adrenalineGenerationRate).toBe(efficiency)
+      expect(ordinary.values.maxAdrenaline).toBe(120)
+      expect(energyDisc.values.maxAdrenaline).toBe(120)
+      expect(ordinary.trace).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            key: 'maxAdrenaline',
+            operation: 'base',
+            value: 120,
+            source: expect.stringContaining('nanoka'),
+          }),
+        ]),
+      )
+    },
+  )
 })

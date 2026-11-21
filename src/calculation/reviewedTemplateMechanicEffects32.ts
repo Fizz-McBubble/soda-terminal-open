@@ -3,7 +3,15 @@ import type { CurrentAgentPlanningEffectBlueprint } from './currentAgentPlanning
 import type { UpstreamExpressionIR } from './currentUpstreamExpressionIR'
 import { getCurrentAgentEventContract } from './currentAgentMechanicContracts'
 import { getCurrentAgentDecisionMechanicContract } from './currentAgentDecisionMechanicContracts'
-import { requiredReferences } from './currentPlanningEffectExpressions'
+import {
+  planningEffectBlueprintShallowEqual32,
+  requiredReferences,
+} from './currentPlanningEffectExpressions'
+import {
+  bindReviewedAnomalyPartyState32,
+  reviewedAnomalyPartySource32,
+} from './reviewedAnomalyPartyState32'
+import { reviewedCissiaSource32 } from './reviewedCissiaEventEffects32'
 
 /** Hand-compiled components from the pinned skill text. These replace none of
  * the raw actions and do not assert complete mechanics, uptime or team DPS. */
@@ -50,12 +58,14 @@ function component(input: {
   locators: string[]
   target: 'self' | 'team' | 'enemy'
   damageType?: string
+  attribute?: 'electric'
+  retainedSource?: boolean
 }): CurrentAgentPlanningEffectBlueprint {
   const path = `libs/zzz/dm-localization/assets/locales/en/char_${input.key}_gen.json`
   const expression: UpstreamExpressionIR = {
     kind: 'call',
     operator: input.damageType ? 'addWithDmgType' : 'add',
-    receiver: ref(input.receiver),
+    receiver: ref(input.attribute ? `${input.receiver}.${input.attribute}` : input.receiver),
     arguments: input.damageType ? [lit(input.damageType), input.value] : [input.value],
   }
   const operators = new Set<string>()
@@ -92,7 +102,13 @@ function component(input: {
     sourceRefs: [
       `https://github.com/frzyc/genshin-optimizer@${reviewedTemplateMechanicSource32.commit}`,
       `${path}#sha256=${reviewedTemplateMechanicSource32.localizationHashes[input.key]}`,
+      ...(input.retainedSource
+        ? [
+            `${path}#retained-file-sha256=${reviewedAnomalyPartySource32.retainedFileSha256[input.key as keyof typeof reviewedAnomalyPartySource32.retainedFileSha256]}`,
+          ]
+        : []),
       ...input.locators.map((locator) => `${path}#${locator}`),
+      ...(input.key === 'Cissia' ? reviewedCissiaSource32.sourceRefs : []),
       'reviewed-template-component32:partial-mechanism-no-uptime-or-dps',
     ],
   }
@@ -100,6 +116,38 @@ function component(input: {
 
 export const reviewedTemplateMechanicEffectBlueprints32: readonly CurrentAgentPlanningEffectBlueprint[] =
   Object.freeze([
+    component({
+      key: 'Promeia',
+      agentId: 'agent-promeia',
+      effectId: 'reviewed_guilty_abloom_defense_ignore32',
+      target: 'team',
+      receiver: 'teamBuff.combat.defIgn_',
+      damageType: 'abloom',
+      value: ability(
+        active(
+          'promeiaGuiltyAbloom32',
+          call('sum', lit(0.4), call('cmpGE', ref('char.mindscape'), lit(1), lit(0.2), lit(0))),
+        ),
+      ),
+      locators: ['/ability/desc/3', '/mindscapes/1/desc'],
+      retainedSource: true,
+    }),
+    component({
+      key: 'Sunna',
+      agentId: 'agent-sunna',
+      effectId: 'reviewed_cat_gaze_defense_reduction32',
+      target: 'enemy',
+      receiver: 'enemyDebuff.common.defRed_',
+      value: call(
+        'cmpGE',
+        ref('char.mindscape'),
+        lit(1),
+        call('prod', ref('sunnaCatGazeStacks32'), lit(0.07)),
+        lit(0),
+      ),
+      locators: ['/mindscapes/1/desc'],
+      retainedSource: true,
+    }),
     component({
       key: 'Aria',
       agentId: 'agent-aria',
@@ -147,6 +195,15 @@ export const reviewedTemplateMechanicEffectBlueprints32: readonly CurrentAgentPl
         core([0.33, 0.39, 0.44, 0.5, 0.55, 0.61, 0.66]),
       ),
       locators: ['/core/desc/0..6/5'],
+    }),
+    component({
+      key: 'Sigrid',
+      agentId: 'agent-sigrid',
+      effectId: 'reviewed_aerial_patrol_stun32',
+      target: 'self',
+      receiver: 'ownBuff.combat.stun_',
+      value: active('sigridAerialPatrolCritWindow32', active('enemyStunned', lit(0.2))),
+      locators: ['/core/desc/0..6/6'],
     }),
     component({
       key: 'Sunna',
@@ -197,8 +254,47 @@ export const reviewedTemplateMechanicEffectBlueprints32: readonly CurrentAgentPl
       effectId: 'reviewed_misstep_stun32',
       target: 'enemy',
       receiver: 'enemyDebuff.common.stun_',
-      value: ability(active('nangongMisstep32', lit(0.3))),
-      locators: ['/ability/desc/0', '/ability/desc/5'],
+      value: ability(
+        active(
+          'nangongMisstep32',
+          call('sum', lit(0.3), call('cmpGE', ref('char.mindscape'), lit(2), lit(0.3), lit(0))),
+        ),
+      ),
+      locators: ['/ability/desc/0', '/ability/desc/5', '/mindscapes/2/desc'],
+      retainedSource: true,
+    }),
+    component({
+      key: 'Cissia',
+      agentId: 'agent-cissia',
+      effectId: 'reviewed_venom_regen_electric_defense_ignore32',
+      target: 'team',
+      receiver: 'teamBuff.combat.defIgn_',
+      attribute: 'electric',
+      value: active(
+        'cissiaVenomBuffWindow32',
+        call(
+          'prod',
+          call('cmpGE', ref('char.mindscape'), lit(1), lit(1.4), lit(1)),
+          call(
+            'min',
+            core([0.1288, 0.149, 0.1692, 0.1894, 0.2096, 0.2298, 0.25]),
+            call(
+              'sum',
+              core([0.03, 0.035, 0.04, 0.045, 0.05, 0.055, 0.06]),
+              call(
+                'prod',
+                excess('own.initial.enerRegen', 1.4),
+                call(
+                  'prod',
+                  lit(1 / 0.12),
+                  core([0.0052, 0.006, 0.0068, 0.0076, 0.0084, 0.0092, 0.01]),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+      locators: ['/core/desc/0..6/2', '/mindscapes/1/desc'],
     }),
     component({
       key: 'Cissia',
@@ -271,6 +367,26 @@ export const reviewedTemplateMechanicEffectBlueprints32: readonly CurrentAgentPl
       ),
       locators: ['/core/desc/0..6/0'],
     }),
+    ...['special', 'exSpecial', 'ult'].map((damageType) =>
+      component({
+        key: 'Norma',
+        agentId: 'agent-norma',
+        effectId: `reviewed_initial_crit_${damageType}_daze32`,
+        target: 'self',
+        receiver: 'ownBuff.combat.dazeInc_',
+        damageType,
+        value: call(
+          'min',
+          call(
+            'prod',
+            excess('own.initial.crit_', 0.5),
+            core([0.44, 0.5, 0.56, 0.62, 0.68, 0.74, 0.8]),
+          ),
+          core([0.22, 0.25, 0.28, 0.31, 0.34, 0.37, 0.4]),
+        ),
+        locators: ['/core/desc/0..6/1'],
+      }),
+    ),
     component({
       key: 'Norma',
       agentId: 'agent-norma',
@@ -326,7 +442,9 @@ export function isReviewedTemplateMechanicEffect32(entry: CurrentAgentPlanningEf
     expected &&
     entry.providerAgentId === expected.providerAgentId &&
     entry.numericExpression.expressionSha256 === expected.numericExpression.expressionSha256 &&
-    canonicalJson(entry) === canonicalJson(expected),
+    (entry === expected ||
+      planningEffectBlueprintShallowEqual32(entry, expected) ||
+      canonicalJson(entry) === canonicalJson(expected)),
   )
 }
 
@@ -337,8 +455,37 @@ export function validateReviewedTemplateMechanicObservations32(input: {
   references?: Readonly<Record<string, unknown>>
 }) {
   if (!isReviewedTemplateMechanicEffect32(input.entry)) return { status: 'supported' as const }
+  const numericState = 'sunnaCatGazeStacks32'
+  const stack = input.references?.[numericState]
+  if (
+    stack !== undefined &&
+    (!Number.isInteger(stack) || (stack as number) < 0 || (stack as number) > 3)
+  )
+    return { status: 'unsupported' as const, blockers: ['千夏猫眼层数必须为0至3的整数观测。'] }
+  if (
+    ['reviewed_guilty_abloom_defense_ignore32', 'reviewed_cat_gaze_defense_reduction32'].includes(
+      input.entry.effectId,
+    )
+  ) {
+    const name =
+      input.entry.providerAgentId === 'agent-promeia' ? 'promeiaGuiltyAbloom32' : numericState
+    if (Object.hasOwn(input.references ?? {}, name)) {
+      if (!Object.hasOwn(input.references ?? {}, 'reviewedTargetEffectState32'))
+        return {
+          status: 'unsupported' as const,
+          blockers: ['有罪/猫眼状态需要具名目标与时点声明，不能使用裸状态值。'],
+        }
+      const bound = bindReviewedAnomalyPartyState32({
+        providerAgentId: input.entry.providerAgentId,
+        references: input.references,
+      })
+      if (bound.status !== 'supported') return bound
+      if (bound.references[name] !== input.references?.[name])
+        return { status: 'unsupported' as const, blockers: ['有罪/猫眼标量与目标时点声明冲突。'] }
+    }
+  }
   const stateReferences = requiredReferences(input.entry.numericExpression.expressionIr).filter(
-    (name) => name.endsWith('32') && !name.includes('.'),
+    (name) => name !== numericState && name.endsWith('32') && !name.includes('.'),
   )
   const invalid = stateReferences.filter(
     (name) =>

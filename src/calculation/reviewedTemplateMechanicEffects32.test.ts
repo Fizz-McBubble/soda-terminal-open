@@ -161,6 +161,39 @@ describe('reviewed concrete components replacing generic skill templates', () =>
     }
     expect(new Set(entries.map((row) => row.providerAgentId)).size).toBe(12)
   })
+  it('accepts exact and equivalent reviewed entries while rejecting forged nested facts', () => {
+    const original = entries.find(
+      (row) => row.targetKinds.length === 1 && row.targetKinds[0] === 'self',
+    )!
+    expect(isReviewedTemplateMechanicEffect32(original)).toBe(true)
+    expect(isReviewedTemplateMechanicEffect32({ ...original, targetKinds: ['self'] })).toBe(true)
+    const deepClone = structuredClone(original)
+    expect(isReviewedTemplateMechanicEffect32(deepClone)).toBe(true)
+    expect(isReviewedTemplateMechanicEffect32({ ...original, targetKinds: ['team'] })).toBe(false)
+    expect(
+      isReviewedTemplateMechanicEffect32({
+        ...original,
+        sourceRefs: [...original.sourceRefs, 'forged'],
+      }),
+    ).toBe(false)
+    const alteredIr = structuredClone(original)
+    alteredIr.numericExpression.expressionIr = { kind: 'literal', value: 0 }
+    expect(alteredIr.numericExpression.expressionSha256).toBe(
+      original.numericExpression.expressionSha256,
+    )
+    expect(isReviewedTemplateMechanicEffect32(alteredIr)).toBe(false)
+    const alteredReceiver = structuredClone(original)
+    const expression = alteredReceiver.numericExpression.expressionIr
+    if (expression.kind !== 'call') throw new Error('expected source call')
+    expression.receiver = { kind: 'reference', path: 'enemyDebuff.common.defRed_' }
+    expect(alteredReceiver.numericExpression.expressionSha256).toBe(
+      original.numericExpression.expressionSha256,
+    )
+    expect(isReviewedTemplateMechanicEffect32(alteredReceiver)).toBe(false)
+    const missingKey = { ...original } as Partial<typeof original>
+    delete missingKey.snapshotPolicy
+    expect(isReviewedTemplateMechanicEffect32(missingKey as typeof original)).toBe(false)
+  })
   it('Sigrid resolves actual core levels, known off, unknown, and invalid observations separately', () => {
     expect(
       value('reviewed_aerial_patrol_crit32', {
@@ -323,5 +356,101 @@ describe('reviewed concrete components replacing generic skill templates', () =>
       references: { luciaHarmonyFinalHit32: true },
     })
     expect(early.status === 'supported' && early.valueOverride).toBe(0)
+  })
+})
+
+describe('source-bound missing generic components', () => {
+  it('Norma initial CR only adds daze to Special, EX and Ultimate, with the core cap', () => {
+    for (const type of ['special', 'exSpecial', 'ult']) {
+      expect(
+        value('reviewed_initial_crit_' + type + '_daze32', {
+          'char.core': 6,
+          'own.initial.crit_': 0.7,
+        }),
+      ).toBeCloseTo(0.16)
+      expect(
+        value('reviewed_initial_crit_' + type + '_daze32', {
+          'char.core': 6,
+          'own.initial.crit_': 1.5,
+        }),
+      ).toBe(0.4)
+      const meta = effectReceiverMetadata(
+        entry('reviewed_initial_crit_' + type + '_daze32').numericExpression.expressionIr,
+      )
+      expect(meta.damageType).toBe(type)
+      expect(applicationForReceiver(meta.receiverPath)).toBe('daze_increase')
+    }
+    expect(
+      value('reviewed_initial_crit_special_daze32', { 'char.core': 0, 'own.initial.crit_': 0.7 }),
+    ).toBeCloseTo(0.088)
+  })
+  it('Cissia source core conversion reads initial regen, stays electric-only and caps by core', () => {
+    const key = 'reviewed_venom_regen_electric_defense_ignore32'
+    expect(
+      value(key, {
+        'char.core': 6,
+        'char.mindscape': 0,
+        'own.initial.enerRegen': 1.52,
+        'own.final.enerRegen': 8,
+        cissiaVenomBuffWindow32: true,
+      }),
+    ).toBeCloseTo(0.07)
+    expect(
+      value(key, {
+        'char.core': 0,
+        'char.mindscape': 0,
+        'own.initial.enerRegen': 1.52,
+        cissiaVenomBuffWindow32: true,
+      }),
+    ).toBeCloseTo(0.0352)
+    expect(
+      value(key, {
+        'char.core': 6,
+        'char.mindscape': 0,
+        'own.initial.enerRegen': 8,
+        cissiaVenomBuffWindow32: true,
+      }),
+    ).toBe(0.25)
+    expect(
+      value(key, {
+        'char.core': 6,
+        'char.mindscape': 0,
+        'own.initial.enerRegen': 8,
+        cissiaVenomBuffWindow32: false,
+      }),
+    ).toBe(0)
+    const meta = effectReceiverMetadata(entry(key).numericExpression.expressionIr)
+    expect(meta.receiverPath).toBe('teamBuff.combat.defIgn_.electric')
+    expect(entry(key).targetKinds).toEqual(['team'])
+    expect(
+      value(key, {
+        'char.core': 6,
+        'char.mindscape': 1,
+        'own.initial.enerRegen': 8,
+        cissiaVenomBuffWindow32: true,
+      }),
+    ).toBeCloseTo(0.25 * 1.4)
+    expect(applicationForReceiver(meta.receiverPath)).toBe('defense_ignore')
+  })
+  it('Sigrid source stun multiplier needs both Aerial Patrol and the same-event stun coordinate', () => {
+    expect(
+      value('reviewed_aerial_patrol_stun32', {
+        sigridAerialPatrolCritWindow32: true,
+        enemyStunned: true,
+      }),
+    ).toBe(0.2)
+    expect(
+      value('reviewed_aerial_patrol_stun32', {
+        sigridAerialPatrolCritWindow32: true,
+        enemyStunned: false,
+      }),
+    ).toBe(0)
+    expect(
+      value('reviewed_aerial_patrol_stun32', {
+        sigridAerialPatrolCritWindow32: false,
+        enemyStunned: true,
+      }),
+    ).toBe(0)
+    expect(entry('reviewed_aerial_patrol_stun32').targetKinds).toEqual(['self'])
   })
 })

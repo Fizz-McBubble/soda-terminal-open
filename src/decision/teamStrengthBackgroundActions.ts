@@ -1,4 +1,5 @@
 import { getCurrentAgentEventContract } from '../calculation/currentAgentMechanicContracts'
+import { getCurrentAgentDecisionMechanicContract } from '../calculation/currentAgentDecisionMechanicContracts'
 import { stableContentHash } from '../gameDataPacks/types'
 import type { Member } from './teamStrengthMemberFacts'
 import type { TeamStrengthSourceAction } from './teamStrengthActionFacts'
@@ -103,5 +104,47 @@ export function teamStrengthBackgroundAction(member: Member) {
     blockers,
     sourceRefs,
     preparedConditions: binding?.preparedConditions ?? [],
+  }
+}
+
+/** Catalog-only execution evidence may be known before its numeric packet is
+ * compiled. Never lend this semantic event ID to the damage/throughput reader. */
+export function teamPlayBackgroundEvidence(member: Member): {
+  eventIds: string[]
+  sourceRefs: string[]
+  preparedConditions: readonly string[]
+} | null {
+  const numeric = teamStrengthBackgroundAction(member)
+  if (numeric.status === 'supported' && numeric.action)
+    return {
+      eventIds: numeric.action.eventIds,
+      sourceRefs: numeric.sourceRefs,
+      preparedConditions: numeric.preparedConditions,
+    }
+  const source = getCurrentAgentEventContract(member.agentId)?.source
+  const resource = getCurrentAgentDecisionMechanicContract(member.agentId)?.resourceContract
+  if (
+    member.agentId !== 'agent-burnice' ||
+    source?.formulaSha256 !== '8A46BA0B3E268C6C2E67C2029E0FA293D3C7C97718BC2063D43FB29EB81D2B3C' ||
+    resource?.source.profileHash !==
+      '308612c7aa9171e7f0d32b7142175c97d84fbbf91c1cdf82a5562f7e0565d6cf'
+  )
+    return null
+  // Existing current-encyclopedia-display.3.3 core[6].effects[0] + L3 resource
+  // record fact-burnice-core-levels. No new magnitude or proc count is adopted.
+  return {
+    eventIds: ['source-core:agent-burnice:afterburn'],
+    sourceRefs: [
+      'https://static.nanoka.cc/zzz/3.3/zh/character/1171.json#sha256=2f0fa44e1a4e782048ff81e3128f0f9c21467164ec2fb23454e5c7fae9ff2ef8:core[6].effects[0]',
+      `${source.formulaPath}#${source.formulaSha256}`,
+      `${resource.source.packageId}#${resource.resourceFlow.evidenceLocator}:${resource.source.profileHash}`,
+    ],
+    preparedConditions: [
+      'nitro_fuel_state',
+      'target_scorched',
+      'other_squad_attack_hit',
+      'resource:heat:afterburn_heat_cost',
+      'resource:afterburn_cooldown_seconds',
+    ],
   }
 }

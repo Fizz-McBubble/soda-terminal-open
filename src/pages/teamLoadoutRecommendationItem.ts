@@ -1,7 +1,5 @@
-import type {
-  AccountDecisionSnapshot,
-  TargetTeamWarehouseFitQueryResult,
-} from '../application/calculationQueryContract'
+import type { AccountDecisionSnapshot } from '../application/calculationQueryContract'
+import type { TeamLoadoutCapturedFit } from './teamLoadoutOverviewTypes'
 import { getAgentName } from '../application/publicRosterNames'
 import { playerFacingBangbooLabel } from '../application/playerFacingLabels'
 import { defaultSchemeBangbooId, teamRecommendationFamilyKey } from './teamLoadoutDecisionViewModel'
@@ -9,26 +7,38 @@ import { visibleDecisionText } from './teamLoadoutVisibleDecisionText'
 import { resolveCurrent31TeamFamily } from '../decision/current31TeamCoreAggregation'
 import { resolveTeamPresentationFamily } from './teamSourceFamilyProjection'
 import type { TeamEngineCandidate } from '../teamEngine/contracts'
-import type { TeamLoadoutOverviewItem } from './teamLoadoutOverviewModel'
+import type { TeamLoadoutOverviewItem } from './teamLoadoutOverviewTypes'
 import { reviewedTeamCombatEvidence } from '../decision/reviewedTeamCombatEvidence'
-import { targetTeamBangbooOptions } from '../decision/targetTeamSourceBangbooOptions'
+import { teamOverviewBangbooSuggestions } from './teamOverviewBangbooSuggestions'
 import { isReviewedFallbackTeam } from '../decision/reviewedTeamRecommendationDisposition'
 import { reviewedTeamPreferences } from '../decision/reviewedTeamPreferences'
 import { resolveReviewedTeamOutputModule } from '../gameDataPacks/reviewedTeamOutputModuleEvidence'
+import { lookupCurrentGenericTeamRankingForPlay } from '../decision/teamGenericRanking'
+import { resolveTeamMechanismDirection } from '../decision/teamMechanismDirection'
 
 /** Returning from a fit shows the actual scheme choice without changing its source rating. */
 export function targetFitBangbooPresentation(
-  fit: TargetTeamWarehouseFitQueryResult,
+  fit: TeamLoadoutCapturedFit,
   variant: TeamLoadoutOverviewItem,
 ): Partial<TeamLoadoutOverviewItem> {
   const bangbooId = fit.effectiveEquipmentParameters?.bangbooId
-  if (!bangbooId) return {}
+  if (!bangbooId) return { deploymentOrder: fit.targetExecution.deploymentOrder }
+  const selectedStars = fit.effectiveEquipmentParameters?.bangbooStars
+  const bangbooStars = typeof selectedStars === 'number' &&
+    Number.isInteger(selectedStars) &&
+    selectedStars >= 1 &&
+    selectedStars <= 5
+      ? selectedStars as 1 | 2 | 3 | 4 | 5
+      : undefined
+  const bangbooSuggestions = teamOverviewBangbooSuggestions(variant.agentIds, bangbooId, bangbooStars)
   return {
     bangbooId,
+    bangbooStars,
     deploymentOrder: fit.targetExecution.deploymentOrder,
     bangbooLabel: playerFacingBangbooLabel(bangbooId),
     bangbooReason: null,
-    bangbooAlternativeIds: fit.equipmentRecommendations.bangboo.alternativeBangbooIds,
+    bangbooSuggestions,
+    bangbooAlternativeIds: bangbooSuggestions.filter(option => option.bangbooId !== bangbooId).map(option => option.bangbooId),
     bangbooAuthority: bangbooId === variant.bangbooId ? variant.bangbooAuthority : 'unknown',
     combatEvidence: reviewedTeamCombatEvidence(variant.agentIds, bangbooId),
   }
@@ -38,6 +48,19 @@ type AuthorityRecommendation = Extract<
   AccountDecisionSnapshot['decisionAuthority'],
   { status: 'ready' }
 >['recommendations'][number]
+
+/** Attach current offline ranking to a saved or projected exact trio. */
+export function withCurrentTeamSystemRanking<
+  T extends Pick<TeamLoadoutOverviewItem, 'agentIds' | 'playDirection'>,
+>(item: T) {
+  const ranking = lookupCurrentGenericTeamRankingForPlay(item.agentIds, item.playDirection)
+  return {
+    ...item,
+    teamSystemRanking: ranking,
+    teamRatingBand: ranking?.genericOrder?.band ?? null,
+    confidence: ranking?.genericOrder?.confidence ?? null,
+  }
+}
 
 export function unselectedBangbooReason(
   selection: TeamEngineCandidate['bangbooSelection'] | undefined,
@@ -53,7 +76,7 @@ export function unselectedBangbooReason(
     case 'no_authoritative_recommendation':
       return selection.bangbooIds.length
         ? '有能触发额外加成的邦布，进入配装后选择要使用的那只。'
-        : '暂时无法确定合适的邦布，还需要核对搭配资料。'
+        : '暂时无法确定合适的邦布，还需要核对成员与装备。'
     case 'compatible_fallback':
       return `可用邦布：${playerFacingBangbooLabel(selection.bangbooId)}；进入配装后查看额外能力条件。`
     case 'selected':
@@ -109,11 +132,19 @@ export function recommendationItem(
   const sourceSchemeBangbooId = authority
     ? authority.bangbooId
     : defaultSchemeBangbooId(recommendation)
+  const selection = recommendation.bangbooSelection
+  const sourceSchemeBangbooStars =
+    sourceSchemeBangbooId &&
+    selection &&
+    (selection.status === 'selected' || selection.status === 'compatible_fallback') &&
+    selection.bangbooId === sourceSchemeBangbooId
+      ? selection.bangbooStar
+      : undefined
   // The fit route uses the same exact-trio shortlist when no source default was
   // bound. Fill the initial card from it without changing the candidate identity.
-  const bangbooOptions = authority?.authorComparisonMembership
+  const bangbooOptions = authority?.authorComparisonMembership && !authority.authorComparisonMembership.independentDefaultAdmission
     ? []
-    : targetTeamBangbooOptions({ memberIds: recommendation.memberIds })
+    : teamOverviewBangbooSuggestions(recommendation.memberIds, sourceSchemeBangbooId, sourceSchemeBangbooStars)
   const defaultOptions = sourceSchemeBangbooId ? [] : bangbooOptions
   const automaticBangbooId = defaultOptions[0]?.bangbooId ?? null
   const schemeBangbooId = sourceSchemeBangbooId ?? automaticBangbooId
@@ -145,6 +176,25 @@ export function recommendationItem(
     ...recommendation.failures.map((failure) => visibleDecisionText(failure.detail)),
     ...(!hardPreferenceSatisfied ? ['这支队伍不满足你设置的固定条件，请调整固定成员或邦布。'] : []),
   ]
+  const playDirection =
+    authority?.playDirection ??
+    resolveTeamMechanismDirection(recommendation.memberIds).playability ??
+    null
+  const teamSystemRanking =
+    authority &&
+    authority.playDirection === playDirection &&
+    [...authority.memberIds].sort().join('|') === memberKey &&
+    authority.teamSystemRanking
+      ? authority.teamSystemRanking
+      : lookupCurrentGenericTeamRankingForPlay(recommendation.memberIds, playDirection)
+  const generic = teamSystemRanking?.genericOrder
+  const hasCurrentReference =
+    teamSystemRanking?.status === 'ranked' &&
+    generic?.status === 'recommended' &&
+    !!generic.band &&
+    !!generic.confidence &&
+    generic.band === authority?.teamRating.ratingBand &&
+    generic.confidence === authority?.teamRating.confidence
   return {
     id: `decision:${authority?.candidateId ?? recommendation.candidateId}`,
     candidateId: authority?.candidateId ?? recommendation.candidateId,
@@ -164,21 +214,11 @@ export function recommendationItem(
     ),
     outputModule: resolveReviewedTeamOutputModule(recommendation.memberIds) ?? null,
     bangbooId: schemeBangbooId,
-    bangbooAlternativeIds: automaticBangbooId
-      ? defaultOptions.slice(1).map((option) => option.bangbooId)
-      : (authority?.bangbooAlternativeIds ??
-        (recommendation.bangbooSelection && 'bangbooIds' in recommendation.bangbooSelection
-          ? recommendation.bangbooSelection.bangbooIds
-          : [])),
-    bangbooSuggestions: bangbooOptions.map(
-      ({ bangbooId, defaultStars, recommendationReason, primaryPurpose, activationStatus }) => ({
-        bangbooId,
-        defaultStars,
-        recommendationReason,
-        primaryPurpose,
-        activationStatus,
-      }),
-    ),
+    ...(schemeBangbooId === sourceSchemeBangbooId && sourceSchemeBangbooStars
+      ? { bangbooStars: sourceSchemeBangbooStars }
+      : {}),
+    bangbooAlternativeIds: bangbooOptions.filter(option => option.bangbooId !== schemeBangbooId).map(option => option.bangbooId),
+    bangbooSuggestions: bangbooOptions,
     bangbooLabel: schemeBangbooId ? playerFacingBangbooLabel(schemeBangbooId) : '邦布待确认',
     bangbooReason: schemeBangbooId
       ? null
@@ -220,11 +260,20 @@ export function recommendationItem(
     planningDps: authority?.benchmarkOutput ?? null,
     planningDpsStatus: authority?.benchmarkOutput === null || !authority ? 'unsupported' : 'ready',
     cultivationPriority: authority?.cultivationPriority.tier ?? null,
-    teamRatingBand: authority?.teamRating.ratingBand ?? null,
-    confidence: authority?.teamRating.confidence ?? null,
+    teamRatingBand:
+      teamSystemRanking?.graduatedScore?.band ??
+      (hasCurrentReference ? (authority?.teamRating.ratingBand ?? null) : null),
+    confidence: teamSystemRanking?.graduatedScore
+      ? teamSystemRanking.genericOrder?.confidence ?? null
+      : hasCurrentReference
+        ? (authority?.teamRating.confidence ?? null)
+        : null,
+    teamSystemRanking,
     ratingAnalysis: authority?.metaCalibration?.analysis ?? null,
     recommendationScore: authority?.metaCalibration?.recommendationScore ?? null,
-    inferredStrength: authority?.metaCalibration?.authority === 'model_inference',
+    inferredStrength:
+      !teamSystemRanking?.graduatedScore &&
+      authority?.metaCalibration?.authority === 'model_inference',
     inferredPrimaryOutputAgentId:
       authority?.metaCalibration?.inference?.primaryOutputAgentId ?? null,
     mechanicValidity: authority?.mechanicValidity ?? null,
@@ -237,21 +286,28 @@ export function recommendationItem(
     cultivationPriorityOrder: authority?.cultivationPriorityOrder ?? null,
     authorityReasons: authority?.cultivationPriority.reasons ?? [],
     authorityTradeoffs: authority?.cultivationPriority.tradeoffs ?? [],
+    // Sourced play describes a conditional direction independently of rating readiness.
+    playDirection,
     authorityNextAction: authority?.cultivationPriority.nextAction ?? null,
     sourceConfirmed:
-      !authority?.authorComparisonMembership &&
+      (!authority?.authorComparisonMembership || authority.authorComparisonMembership.independentDefaultAdmission === true) &&
       !authority?.hasPreparedBenchmark32 &&
       authority?.mainstreamRecognition?.status === 'confirmed',
+    ...(authority ? { defaultEligible: authority.defaultEligible } : {}),
     ...(authority?.hasPreparedBenchmark32 ? { hasPreparedBenchmark32: true } : {}),
     ...(authority?.authorComparisonMembership
       ? { authorComparisonMembership: authority.authorComparisonMembership }
       : {}),
     fallbackOnly: isReviewedFallbackTeam(recommendation.memberIds),
     sourceConditions:
-      authority?.authorComparisonMembership?.conditions ??
+      (authority?.authorComparisonMembership?.independentDefaultAdmission ? undefined : authority?.authorComparisonMembership?.conditions) ??
       authority?.mainstreamRecognition?.conditions ??
       [],
     sourceBangbooOptionIds: authority?.mainstreamRecognition?.sourceBangbooOptionIds ?? [],
-    historicalReferenceOnly: authority?.mainstreamRecognition?.historicalReferenceOnly ?? false,
+    // Historical guide membership does not invalidate a separately reviewed current reference.
+    historicalReferenceOnly:
+      !teamSystemRanking?.graduatedScore &&
+      !hasCurrentReference &&
+      (authority?.mainstreamRecognition?.historicalReferenceOnly ?? false),
   }
 }

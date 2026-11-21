@@ -7,6 +7,7 @@ import {
   createStandardReferenceDiscSeed,
   standardReferenceDiscAllocationPolicy,
   standardReferenceDiscProposals,
+  standardReferenceDiscTransfer,
   validateStandardReferenceDiscs,
 } from './standardReferenceDiscAllocation'
 
@@ -75,11 +76,21 @@ function* discreteTeams(options: readonly Option[][]) {
 
 /** Coordinate changes and simultaneous two/three-member changes reuse the
  * allocator's exact physical proposals, always evaluated as one whole team. */
-function* teamProposals(selections: readonly StandardTeamReferenceSelection[]) {
-  const streams = selections.map((row) => standardReferenceDiscProposals(row.discs))
+function* teamProposals(
+  selections: readonly StandardTeamReferenceSelection[],
+  observedGains: ReadonlyMap<string, ReadonlyMap<string, number>>,
+) {
+  const streams = selections.map((row) =>
+    standardReferenceDiscProposals(row.discs, observedGains.get(row.agentId)),
+  )
+  // Preserve the original cross-member pairings while learned directions
+  // reorder individual exploration. Reordering each stream before zipping it
+  // would silently replace, rather than retain, the joint proposal domain.
+  const jointStreams = selections.map((row) => standardReferenceDiscProposals(row.discs))
   while (true) {
     const batch = streams.map((stream) => stream.next())
-    if (batch.every((row) => row.done)) return
+    const jointBatch = jointStreams.map((stream) => stream.next())
+    if (batch.every((row) => row.done) && jointBatch.every((row) => row.done)) return
     for (let actor = 0; actor < 3; actor++) {
       const proposal = batch[actor]!
       if (!proposal.done)
@@ -89,8 +100,8 @@ function* teamProposals(selections: readonly StandardTeamReferenceSelection[]) {
     }
     for (let left = 0; left < 2; left++)
       for (let right = left + 1; right < 3; right++) {
-        const a = batch[left]!,
-          b = batch[right]!
+        const a = jointBatch[left]!,
+          b = jointBatch[right]!
         if (!a.done && !b.done)
           yield selections.map((row, index) =>
             index === left
@@ -100,8 +111,8 @@ function* teamProposals(selections: readonly StandardTeamReferenceSelection[]) {
                 : row,
           )
       }
-    if (batch.every((row) => !row.done))
-      yield selections.map((row, index) => ({ ...row, discs: batch[index]!.value! }))
+    if (jointBatch.every((row) => !row.done))
+      yield selections.map((row, index) => ({ ...row, discs: jointBatch[index]!.value! }))
   }
 }
 
@@ -276,9 +287,17 @@ export function selectStandardTeamReferenceEquipment(input: {
   }
   type Entry = State & { proposals: Generator<StandardTeamReferenceSelection[]>; turn: number }
   const frontier: Entry[] = []
+  // Only an observed improvement from a single member can be attributed to
+  // that member's direction. Joint proposals remain scored but cannot teach
+  // a fictitious independent marginal to any one of their participants.
+  const observedGains = new Map<string, Map<string, number>>()
   let turn = 0
   const add = (state: State) =>
-    frontier.push({ ...state, proposals: teamProposals(state.selections), turn: turn++ })
+    frontier.push({
+      ...state,
+      proposals: teamProposals(state.selections, observedGains),
+      turn: turn++,
+    })
   const order = (a: Entry, b: Entry) => b.value - a.value || a.turn - b.turn
   const trim = () => {
     frontier.sort(order)
@@ -370,7 +389,28 @@ export function selectStandardTeamReferenceEquipment(input: {
     const before = evaluations
     const state = evaluate(next.value, 'disc')
     sinceDiscrete += evaluations - before
-    if (state) add(state)
+    if (state) {
+      if (state.value > current.value) {
+        const changed = state.selections.filter(
+          (row, index) =>
+            stableContentHash(row.discs) !== stableContentHash(current.selections[index]!.discs),
+        )
+        if (changed.length === 1) {
+          const row = changed[0]!
+          const previous = current.selections.find((entry) => entry.agentId === row.agentId)!
+          const move = standardReferenceDiscTransfer(previous.discs, row.discs)
+          if (move) {
+            const gains = observedGains.get(row.agentId) ?? new Map<string, number>()
+            gains.set(
+              move.key,
+              Math.max(gains.get(move.key) ?? 0, (state.value - current.value) / move.amount),
+            )
+            observedGains.set(row.agentId, gains)
+          }
+        }
+      }
+      add(state)
+    }
     trim()
   }
   if (!best || !coverageIdentity)

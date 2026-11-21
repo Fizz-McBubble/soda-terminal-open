@@ -9,6 +9,8 @@ import { currentAgentEventContracts } from '../calculation/currentAgentMechanicC
 import { currentAgentDecisionMechanicContracts } from '../calculation/currentAgentDecisionMechanicContracts'
 import { resolveSourceBoundAdditionalAbility } from './reviewedSourceBoundAdditionalAbility'
 import round5Audit from './data/reviewed-team-output-modules.round5-audit.3.2.json'
+import { currentVersionProjection } from './currentVersionProjection'
+import { reviewedPhoenixUnresolvedOutputTeams33 } from '../decision/reviewedPhoenixTeams33'
 
 type CoverageDirection = ReturnType<typeof currentReviewedTeamSourceDirections>[number]
 
@@ -63,7 +65,8 @@ function isCurrentExactTeam(direction: CoverageDirection) {
     (source) =>
       source.verificationStatus === 'reviewed_exact_team_current_32' ||
       source.verificationStatus === 'reviewed_current_aggregate_composition_32' ||
-      (source.sourceVersion === '3.2' && source.observationRole !== 'author_comparison_setup'),
+      (['3.2', currentVersionProjection.gameVersion].includes(source.sourceVersion) &&
+        source.observationRole !== 'author_comparison_setup'),
   )
 }
 
@@ -135,15 +138,20 @@ export function buildCurrentTeamOutputModuleCoverage(
   const releasedAgentIds = currentAgentEventContracts.map((agent) => agent.stableId).sort()
   const classifiedMemberIds = new Set(classified.flatMap((direction) => direction.memberIds))
   const round5UnresolvedKeys = new Set(round5Audit.unresolved.map((entry) => entry.memberKey))
+  const currentUnresolvedOutputKeys = new Set(
+    reviewedPhoenixUnresolvedOutputTeams33.map((entry) => [...entry.memberIds].sort().join('|')),
+  )
   const auditedUnknown = directions.filter(
     (direction) =>
       direction.outputModule?.status !== 'classified' &&
-      round5UnresolvedKeys.has([...direction.memberIds].sort().join('|')),
+      (round5UnresolvedKeys.has([...direction.memberIds].sort().join('|')) ||
+        currentUnresolvedOutputKeys.has([...direction.memberIds].sort().join('|'))),
   )
   const unaudited = directions.filter(
     (direction) =>
       direction.outputModule?.status !== 'classified' &&
-      !round5UnresolvedKeys.has([...direction.memberIds].sort().join('|')),
+      !round5UnresolvedKeys.has([...direction.memberIds].sort().join('|')) &&
+      !currentUnresolvedOutputKeys.has([...direction.memberIds].sort().join('|')),
   )
   const classifiedAgentIds = releasedAgentIds.filter((id) => classifiedMemberIds.has(id))
   const missingAgentIds = releasedAgentIds.filter((id) => !classifiedMemberIds.has(id))
@@ -163,7 +171,8 @@ export function buildCurrentTeamOutputModuleCoverage(
     unclassifiedExactTeamCount: directions.length - classified.length,
     sourceAuditedUnknownExactTeamCount: auditedUnknown.length,
     unauditedExactTeamCount: unaudited.length,
-    sourceAuditComplete: unaudited.length === 0 && directions.length === classified.length + auditedUnknown.length,
+    sourceAuditComplete:
+      unaudited.length === 0 && directions.length === classified.length + auditedUnknown.length,
     currentExactTeamCount: current.length,
     currentClassifiedTeamCount: currentClassified.length,
     currentUnknownTeamCount: currentUnknown.length,

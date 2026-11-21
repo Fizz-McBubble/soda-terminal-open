@@ -73,13 +73,13 @@ const warehouseConstraintCore: Omit<CandidateWarehouseConstraint, 'contentHash'>
   },
   subStatWeights: { atk_percent: 1, anomaly_proficiency: 0.88, atk_flat: 0.76 },
   wEngineDirections: [
-    '空羽复归之诗（wengine-14158，P1与P5为候选；P2–P4资料待补齐）',
+    '空羽复归之诗（wengine-14158，五档参数与效果已采用；具体计算资格独立核验）',
     '双生泣星、嵌合编译器或触电唇彩仅作候选替代方向',
   ],
   teamAndBangbooPreconditions: ['优先三名异常代理人；当前目标面板按攻击力4000候选前提解释。'],
   progressionDirection: ['先满足攻击力目标，再比较异常精通；不把候选仓库分解释为伤害。'],
   gaps: [
-    '专属音擎P2–P4没有直接证据，禁止推算。',
+    '专属音擎五档已由当前数值与中文展示目录承接；历史intake不作为现行缺口清单。',
     '角色/套装/音擎的数值来源仍为candidate/reference-only，不能进入formal或DPS。',
   ],
   boundary:

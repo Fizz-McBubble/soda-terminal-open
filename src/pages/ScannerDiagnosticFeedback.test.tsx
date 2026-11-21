@@ -258,7 +258,9 @@ it('retains report and copy/download options after a network failure, then retri
   vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {})
   render(<ScannerDiagnosticFeedback report={report} />)
   fireEvent.click(screen.getByRole('button', { name: '反馈此问题' }))
-  await waitFor(() => expect(screen.getByRole('status')).toHaveTextContent('发送失败'))
+  await waitFor(() =>
+    expect(screen.getByRole('status')).toHaveTextContent('反馈发送未完成，请重试。'),
+  )
   expect(screen.getByRole('status')).not.toHaveTextContent('private')
   fireEvent.click(screen.getByText('查看诊断信息'))
   expect(screen.getByText(/已处理 4 张/)).toBeVisible()

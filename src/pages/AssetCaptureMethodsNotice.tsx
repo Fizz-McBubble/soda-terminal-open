@@ -1,6 +1,6 @@
 import { AlertTriangle, Database, ScanLine } from 'lucide-react'
+import { assetQuickReadRelease } from '../assetQuickRead/distribution'
 import { ExplanationPopover } from '../components/ExplanationPopover'
-import { TestingBadge } from '../components/TestingBadge'
 import './AssetCaptureMethodsNotice.css'
 
 const officialTermsUrl =
@@ -74,7 +74,6 @@ export function AssetCaptureMethodsNotice() {
           <h3>
             <Database size={21} aria-hidden="true" />
             资产快读
-            <TestingBadge scope="quickRead" />
           </h3>
           <h4>读取范围</h4>
           <p>
@@ -96,7 +95,12 @@ export function AssetCaptureMethodsNotice() {
               </strong>
               。
             </li>
-            <li>未读到的潜能保留原值；游戏更新后可能需等待适配。</li>
+            <li>
+              {assetQuickReadRelease.version === '1.2.0' &&
+              assetQuickReadRelease.bridgeVersion === '1.1.0'
+                ? `未读到的潜能保留原值；当前公开安装包（${assetQuickReadRelease.version}）仅支持国服 3.2，国服 3.3 读取需等待新版发布（仍可查看或导入已有 JSON 结果）。`
+                : '未读到的潜能保留原值；游戏更新后可能需等待适配。'}
+            </li>
           </ul>
         </article>
       </div>

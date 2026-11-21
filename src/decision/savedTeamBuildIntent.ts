@@ -1,4 +1,5 @@
 import type { AccountPlanningDraft } from '../accounts/types'
+import { savedTeamCultivationRoster } from './savedTeamCultivation'
 import { authorityTargetBuildDirection } from './authorityTargetBuildDirection'
 import { resolveAuthorityExecutionCandidate } from './accountDecisionAuthorityExecutionCandidates'
 import {
@@ -45,12 +46,20 @@ export function currentSavedTeamBuildIntent(
     | undefined,
   warehouse: CoreWarehouse | undefined,
 ) {
-  if (plan?.kind === 'team' && decision && warehouse && plan.teamAccountFactBinding) {
+  // Author-comparison bindings attest the live account, before any saved
+  // cultivation projection is applied for ordinary scheme replay.
+  const liveWarehouse = warehouse
+  if (plan?.teamExecutionSnapshot && warehouse) {
+    const roster = savedTeamCultivationRoster(plan.teamExecutionSnapshot, warehouse.roster)
+    if (!roster) return undefined
+    warehouse = { ...warehouse, roster }
+  }
+  if (plan?.kind === 'team' && decision && liveWarehouse && plan.teamAccountFactBinding) {
     const candidate = authorityConsumerRecommendations(decision.decisionAuthority).find(
       (row) => row.candidateId === plan.solutionContext?.sourceCandidateId,
     )
     const ids = plan.selection.agentIds
-    const owned = warehouse.roster.agents.filter((row) => row.owned).map((row) => row.agentId)
+    const owned = liveWarehouse.roster.agents.filter((row) => row.owned).map((row) => row.agentId)
     const source = reviewedAuthorComparisonMembership32(ids, owned)
     if (
       !candidate?.authorComparisonMembership ||
@@ -62,14 +71,14 @@ export function currentSavedTeamBuildIntent(
       plan.teamExecutionSnapshot.authorComparisonMembership?.fingerprint !== source.fingerprint
     )
       return undefined
-    const binding = authorComparisonAccountBinding(warehouse, ids, source.fingerprint)
+    const binding = authorComparisonAccountBinding(liveWarehouse, ids, source.fingerprint)
     if (binding.fingerprint !== plan.teamAccountFactBinding.fingerprint) return undefined
     return {
       buildIntent: compileAuthorComparisonTeamBuildIntent({
         candidateId: candidate.candidateId,
         memberIds: ids as [string, string, string],
         ownedAgentIds: owned,
-        ...targetTeamBuildDirectionConditions({ memberIds: ids, roster: warehouse.roster }),
+        ...targetTeamBuildDirectionConditions({ memberIds: ids, roster: liveWarehouse.roster }),
       }),
       effectiveEquipmentParameters: undefined,
       accountFactBinding: binding,
@@ -212,6 +221,7 @@ export function currentSavedTeamBuildIntent(
           warehouse.roster.agents,
           candidate.memberIds,
           plan.teamEquipmentParameters.wEngines,
+          directionConditions.agentStateById,
         ),
       },
       candidateId: candidate.candidateId,

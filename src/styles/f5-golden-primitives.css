@@ -159,18 +159,6 @@
   }
 }
 
-.f5v-shell:where(:root[data-soda-motion='off'] .f5v-shell) *,
-.f5v-shell:where(:root[data-soda-motion='off'] .f5v-shell) *::before,
-.f5v-shell:where(:root[data-soda-motion='off'] .f5v-shell) *::after {
-  scroll-behavior: auto !important;
-  animation: none !important;
-  transition: none !important;
-}
-
-.f5v-shell:where(:root[data-soda-motion='off'] .f5v-shell) details::details-content {
-  transition: none !important;
-}
-
 .f5v-shell :is(.button, .scanner-account-picker__trigger):disabled {
   cursor: not-allowed;
   opacity: 0.55;
@@ -221,36 +209,6 @@
 .f5v-shell .button--quiet {
   color: var(--f5-accent);
   background: rgba(255, 255, 255, 0.68);
-}
-
-.f5v-shell .status-banner {
-  display: grid;
-  gap: 6px;
-  padding: 12px 14px;
-  border: 1px solid rgba(103, 90, 144, 0.18);
-  border-radius: var(--soda-radius-control);
-  color: var(--f5-ink);
-  background: rgba(255, 255, 255, 0.66);
-}
-
-.f5v-shell .status-banner :is(strong, p) {
-  margin: 0;
-}
-
-.f5v-shell .status-banner p {
-  color: var(--f5-muted);
-  font-size: 0.8125rem;
-  line-height: 1.5;
-}
-
-.f5v-shell .status-banner--error {
-  border-color: rgba(142, 53, 75, 0.24);
-  background: rgba(249, 235, 239, 0.78);
-}
-
-.f5v-shell .status-banner--success {
-  border-color: rgba(73, 111, 101, 0.24);
-  background: rgba(234, 243, 240, 0.8);
 }
 
 .f5v-shell .scanner-account-picker {

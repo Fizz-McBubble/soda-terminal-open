@@ -1,17 +1,20 @@
+import { lazy, Suspense } from 'react'
 import { CatalogReferencePublic } from './CatalogReferencePublic'
-import type { CatalogItem } from './types'
-
-type CatalogReferenceProps = {
-  item: CatalogItem
-  skillLevel?: number
-  additionalAbilityLevel?: number
-}
+import type { CatalogReferenceProps } from './types'
 
 const ReferencePanel =
   import.meta.env.VITE_SODA_PUBLIC_BUILD === 'true'
     ? CatalogReferencePublic
-    : (await import('./CatalogReferenceLocal')).CatalogReferencePanel
+    : lazy(() =>
+        import('./CatalogReferenceLocal').then((module) => ({
+          default: module.CatalogReferencePanel,
+        })),
+      )
 
 export function CatalogReferencePanel(props: CatalogReferenceProps) {
-  return <ReferencePanel {...props} />
+  return (
+    <Suspense fallback={<p role="status">正在读取图鉴…</p>}>
+      <ReferencePanel {...props} />
+    </Suspense>
+  )
 }

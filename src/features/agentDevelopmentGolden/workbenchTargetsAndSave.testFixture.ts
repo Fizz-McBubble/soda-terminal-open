@@ -4,6 +4,7 @@ import type { GoldenTop10Data, GoldenWorkbenchData } from './types'
 export function createPanelDetailSubject(): GoldenWorkbenchData {
   return {
     ...workbench,
+    agentId: 'agent-claret',
     panelFacts: [
       { key: 'pen', name: '穿透值', value: '0', currentValue: 0 },
       {
@@ -81,7 +82,7 @@ export function createAnomalyRankingData(): GoldenTop10Data {
 export function createLegacyReferenceData(): GoldenTop10Data {
   const baseline: GoldenTop10Data['baseline'] = {
     rank: 0,
-    label: '当前实装',
+    label: '当前装备',
     fit: '比较基准',
     panel: '当前方案',
     sets: '未录入',
@@ -105,5 +106,23 @@ export function createLegacyReferenceData(): GoldenTop10Data {
       { key: 'def', label: '防御力', unit: '', highlight: false, target: '750+（战斗内）' },
       { key: 'atk', label: '攻击力', unit: '', highlight: true, target: '3000+' },
     ],
+  }
+}
+
+export function createLegacyEngineDirectionWorkbench(
+  agentId = workbench.agentId,
+): GoldenWorkbenchData {
+  return {
+    ...workbench,
+    agentId,
+    graduation: {
+      ...workbench.graduation,
+      panel: [],
+      panelDirection: '暴击率 / 防御力百分比',
+      engineConditions: [
+        '按队伍需求选择',
+        '沿用一般培养参考；3.3 版本实战效果、最佳配装与精确伤害未确认。',
+      ],
+    },
   }
 }

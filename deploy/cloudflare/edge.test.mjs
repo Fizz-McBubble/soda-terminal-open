@@ -1,16 +1,17 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { createEdge } from './edge.mjs'
+import { createEdge, downloadRequestBudgetPerMinute } from './edge.mjs'
 import scannerRelease from '../../public/downloads/scanner-installer-release.v1.json' with { type: 'json' }
 import {
   assetQuickReadInstallerRelease,
   assetQuickReadInstallerPath,
 } from './asset-quick-read-release.mjs'
 import { installerChunkSize } from './installer-chunk-cache.mjs'
+import { createInstallerDownload } from './scanner-installer.mjs'
 
 const origin = 'https://sodaterminal.com'
 
-test('edge forwards waitUntil for both pinned installer chunk caches', async (t) => {
+test('edge forwards waitUntil for both pinned published installer chunk caches and keeps unpublished candidates closed', async (t) => {
   const previous = Object.getOwnPropertyDescriptor(globalThis, 'caches')
   const entries = new Map(),
     pending = []
@@ -75,6 +76,23 @@ test('edge forwards waitUntil for both pinned installer chunk caches', async (t)
     assert.equal(calls, 1)
   }
   assert.equal(entries.size, 2)
+
+  let candidateCalls = 0
+  const unpublishedScanner = createInstallerDownload({
+    fetcher: async () => {
+      candidateCalls += 1
+      throw new Error('unpublished candidate must fail before upstream fetch')
+    },
+    manifest: { ...scannerRelease, releaseState: 'not_published' },
+  })
+  const unavailable = await unpublishedScanner(
+    new Request(`${origin}/downloads/Soda-Scanner-Setup.exe`, {
+      headers: { range: 'bytes=0-0' },
+    }),
+    ctx,
+  )
+  assert.equal(unavailable.status, 503)
+  assert.equal(candidateCalls, 0)
 })
 const env = {
   SODA_USAGE_STATISTICS: 'enabled',
@@ -523,27 +541,29 @@ test('image budget permits a full page burst and blocks excess before upstream f
   )
 })
 
-test('installer budget preserves Range downloads and is shared by both installer entries', async () => {
+test('installer budget covers both current published packages and three retrying cycles', async () => {
   let calls = 0
   const { edge } = fixture({
     fetcher: async (url, init) => {
       calls += 1
-      assert.equal(init.headers.range, 'bytes=0-0')
       const size = url.includes('asset-quick-read')
         ? assetQuickReadInstallerRelease.size
         : scannerRelease.size
-      return new Response('x', {
-        status: 206,
+      if (init.headers.range) assert.equal(init.headers.range, 'bytes=0-0')
+      return new Response(init.method === 'HEAD' ? null : 'x', {
+        status: init.method === 'HEAD' ? 200 : 206,
         headers: {
           'content-type': 'application/octet-stream',
-          'content-length': '1',
-          'content-range': `bytes 0-0/${size}`,
+          'content-length': init.method === 'HEAD' ? String(size) : '1',
+          ...(init.method === 'HEAD' ? {} : { 'content-range': `bytes 0-0/${size}` }),
         },
       })
     },
   })
   const paths = ['/downloads/Soda-Scanner-Setup.exe', '/downloads/Soda-Asset-Quick-Read-Setup.exe']
-  for (let i = 0; i < 60; i += 1) {
+  const currentPairRequestCount = 37 + 24
+  assert.equal(downloadRequestBudgetPerMinute, currentPairRequestCount * 3 + 9)
+  for (let i = 0; i < currentPairRequestCount; i += 1) {
     const response = await edge.fetch(
       new Request(`${origin}${paths[i % 2]}`, { headers: { range: 'bytes=0-0' } }),
       env,
@@ -551,12 +571,17 @@ test('installer budget preserves Range downloads and is shared by both installer
     assert.equal(response.status, 206)
     assert.equal(await response.text(), 'x')
   }
+  for (let i = currentPairRequestCount; i < downloadRequestBudgetPerMinute; i += 1) {
+    const response = await edge.fetch(new Request(`${origin}${paths[0]}`, { method: 'HEAD' }), env)
+    assert.equal(response.status, 200)
+    await response.body?.cancel()
+  }
   for (const path of paths) {
     const response = await edge.fetch(new Request(`${origin}${path}`, { method: 'HEAD' }), env)
     assert.equal(response.status, 429)
     assert.equal(response.headers.get('cache-control'), 'no-store')
   }
-  assert.equal(calls, 60)
+  assert.equal(calls, downloadRequestBudgetPerMinute)
 })
 
 test('feedback permits normal retries then blocks before any KV access, independently for another source', async () => {

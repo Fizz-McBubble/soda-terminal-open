@@ -58,8 +58,19 @@ export function selectRetentionWitnesses(
     trialGates.functionalContextComplete &&
     trialGates.cleanupCalibrated &&
     !strictLow
+      ? validTrial
+      : undefined
   const winner =
     qualityWinners.find((row) => row.useState === 'valid') ??
     (readyFunction || growingFunction || admittedValidTrial ? undefined : qualityWinners[0])
-  return { winner, readyFunction, growingFunction, borderline, trial, investmentGaps, strictLow }
+  return {
+    winner,
+    readyFunction,
+    growingFunction,
+    borderline,
+    trial,
+    admittedValidTrial,
+    investmentGaps,
+    strictLow,
+  }
 }

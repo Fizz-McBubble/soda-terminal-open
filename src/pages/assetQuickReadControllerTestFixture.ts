@@ -128,6 +128,8 @@ afterEach(() => {
 })
 
 export async function prepareStart() {
+  // The production adapter must confirm whether a recoverable result exists before new work.
+  await act(async () => vi.advanceTimersByTimeAsync(0))
   fireEvent.change(screen.getByLabelText('游戏安装目录'), {
     target: { value: "soda-source-ref:24d5780e541a1a1ad1393e8962be6e18" },
   })

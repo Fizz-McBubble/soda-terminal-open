@@ -9,14 +9,14 @@ export const graduationCandidateProfilesPart14 = [
     agentId: 'agent-koleda',
     playerName: '珂蕾妲',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '1.0',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F3',
     objectiveTopology: 'O4',
     configHash: 'a914aa01dccb4f069377f7fa46a7e6d62a08e5592b82caff9c7f635f699a5d13',
-    inputHash: '574ab4ded32d0400cbdcd529d08d567b965e2c0c397364eb6432b7543d6a7c91',
+    inputHash: '75f9f0377b408356cb5581e3334f600f83811e160aeb7404873e5a4fd7790d6d',
     inputReferences: [
       {
         record_id: 'ENTITY_FACTS:fact-r3r3-koleda-core-levels:core.levels:batch-agents-1.0-c-r3r3',
@@ -119,7 +119,7 @@ export const graduationCandidateProfilesPart14 = [
       deterministic: true,
       configHash: '5cad2f25d097b563324cfa53280b655044f492077ab85bd10e5c226937c11c1f',
     },
-    profileHash: '93293d8346ec77a7eac9fc2528134ee965ad18d454927977876467ae210b6703',
+    profileHash: 'c8b33d35137ca9b78f17443b24cb468b3b670c2face9830a2dc7237cb49622e3',
   },
   {
     schema: 'soda-graduation-profile/v1',
@@ -130,14 +130,14 @@ export const graduationCandidateProfilesPart14 = [
     agentId: 'agent-lycaon',
     playerName: '莱卡恩',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '1.0',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F3',
     objectiveTopology: 'O4',
     configHash: '4e52bf3820ee2ef2dc291b26151095390dcc374067f8b8fc41ae202e3aebffe5',
-    inputHash: '7f3dbd9d59e930baae5e9c600622790c39c7b6fa8e6ca764bc17bbaa31054102',
+    inputHash: 'f75bd2acab195ece9014819dd4c2c2200620f2e9ad0a731f4917214ebf6a39d4',
     inputReferences: [
       {
         record_id: 'ENTITY_FACTS:fact-r3r3-lycaon-core-levels:core.levels:batch-agents-1.0-c-r3r3',
@@ -240,7 +240,7 @@ export const graduationCandidateProfilesPart14 = [
       deterministic: true,
       configHash: 'cc0998cc2b14f9511e261a54c2e3254b9a26a8f8ee2a8867b7b8dad472723509',
     },
-    profileHash: '21fb40f50811b7669307e15760515f2c5a251bae2bcbc0e62134198c6eb26b1f',
+    profileHash: '045aed3bf60e819fe66d1bfb8ba58af35164cbf873f35740dda2d1a6b70bea1e',
   },
   {
     schema: 'soda-graduation-profile/v1',
@@ -251,14 +251,14 @@ export const graduationCandidateProfilesPart14 = [
     agentId: 'agent-grace',
     playerName: '格莉丝',
     publicationState: 'prepared_not_adopted',
-    sourcePackageId: 'l3-b323989c00330f284329',
+    sourcePackageId: 'l3-3d1346d03efa8110fdf0',
     gameFactsVersion: '1.0',
     formulaVersion: 'soda-formula-adapters-r1.1-fixed-context',
     kernelVersion: 'soda-graduation-kernel-r0.1-frozen-o1-o6',
     formulaFamily: 'F4',
     objectiveTopology: 'O5',
     configHash: '9b0b5f3086c432bd54cc8ba1087830e87198ab1f47adaeb5204966dea32d80e7',
-    inputHash: '6ae9b4c55551aa38466c45468d7cb1953a4753d4a0db33cda2c822ae2c0e7f0a',
+    inputHash: 'b9a9d091ba0ad21237496c508930e7e7691a5d772729590d9f35242d4d07025c',
     inputReferences: [
       {
         record_id:
@@ -366,6 +366,6 @@ export const graduationCandidateProfilesPart14 = [
       deterministic: true,
       configHash: '0591a8062f7f2ffe2a865db34e2968b11374eb8d65dc4ce5531a2728a96fca7c',
     },
-    profileHash: 'dacc4ad6a83db4dc381b90c0c8324000ae11816c2861f2c33b476b762651f817',
+    profileHash: '7858e738580ab6ce084f28f6a7764ea1ab7b4f1cd822d092ff892b3cfc67ec7b',
   },
 ] as const

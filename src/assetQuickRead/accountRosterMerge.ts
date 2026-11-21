@@ -44,15 +44,29 @@ function manuallyProtected(agent: RosterAgent, field: ObservedAgentField) {
   )
 }
 
-function hasNewerObservation(agent: RosterAgent, field: ObservedAgentField, capturedAt: string) {
-  const timestamp = agent.observedFacts?.fields[field]?.capturedAt
-  if (timestamp && !Number.isFinite(Date.parse(timestamp)))
+function hasNewerObservation(
+  agent: RosterAgent,
+  field: ObservedAgentField,
+  capturedAt: string,
+  snapshotSha256: string,
+) {
+  const marker = agent.observedFacts?.fields[field]
+  if (marker && !Number.isFinite(Date.parse(marker.capturedAt)))
     throw new AssetQuickReadImportError(
       'import_snapshot_invalid',
       '已保存的观察时间无效，请先核对来源时间，未写入账户。',
     )
+  if (!marker) return false
   // Dates can carry different UTC offsets, so lexical order is not chronological order.
-  return Boolean(timestamp && Date.parse(timestamp) > Date.parse(capturedAt))
+  const observedAt = Date.parse(marker.capturedAt)
+  const candidateAt = Date.parse(capturedAt)
+  // Equal capture times cannot order two different snapshots. Keep the imported
+  // fact instead of guessing; the same SHA remains an idempotent replay.
+  return (
+    observedAt > candidateAt ||
+    (observedAt === candidateAt &&
+      marker.snapshotSha256.toLowerCase() !== snapshotSha256.toLowerCase())
+  )
 }
 
 export function mergeAssetQuickReadRoster(
@@ -106,12 +120,31 @@ export function mergeAssetQuickReadRoster(
       for (const field of observation.observedFields) {
         const clearingEngine =
           field === 'wEngineDetails.id' && observation.fields.wEngineDetails?.id === null
+        if (clearingEngine) {
+          const empty = observation.fields.wEngineDetails!
+          if (
+            empty.name !== null ||
+            empty.level !== null ||
+            empty.refinement !== null ||
+            empty.ascension != null ||
+            empty.manualProgression !== undefined
+          )
+            throw new AssetQuickReadImportError(
+              'import_preflight_failed',
+              '未装备音擎的观察状态不一致，未写入账户。',
+            )
+        }
         if (
           clearingEngine &&
           (currentEngineFields.some(
             (engineField) =>
               explicitlyLocked(existing, engineField) ||
-              hasNewerObservation(existing, engineField, candidate.capturedAt),
+              hasNewerObservation(
+                existing,
+                engineField,
+                candidate.capturedAt,
+                candidate.snapshotSha256,
+              ),
           ) ||
             existing.lockedFields.includes('wEngineCopyId'))
         ) {
@@ -152,18 +185,12 @@ export function mergeAssetQuickReadRoster(
               : previousValue !== value
         const hardProtected =
           explicitlyLocked(existing, field) ||
-          hasNewerObservation(existing, field, candidate.capturedAt)
+          hasNewerObservation(existing, field, candidate.capturedAt, candidate.snapshotSha256)
         const newerManualFact =
           automaticallySyncedField(field) &&
           manuallyProtected(existing, field) &&
           Boolean(manualUpdatedAt && Date.parse(manualUpdatedAt) > Date.parse(candidate.capturedAt))
-        if (
-          !hardProtected &&
-          newerManualFact &&
-          previousValue !== undefined &&
-          previousValue !== null &&
-          differs
-        )
+        if (newerManualFact && previousValue !== undefined && previousValue !== null && differs)
           throw new AssetQuickReadImportError(
             'import_snapshot_stale',
             '本次读取早于代理人养成或当前装备的后续手动修改，请重新读取，未写入账户。',
@@ -183,18 +210,6 @@ export function mergeAssetQuickReadRoster(
           )
         const [parent, child] = field.split('.')
         if (clearingEngine) {
-          const empty = observation.fields.wEngineDetails!
-          if (
-            empty.name !== null ||
-            empty.level !== null ||
-            empty.refinement !== null ||
-            empty.ascension != null ||
-            empty.manualProgression !== undefined
-          )
-            throw new AssetQuickReadImportError(
-              'import_preflight_failed',
-              '未装备音擎的观察状态不一致，未写入账户。',
-            )
           next.wEngineDetails = { id: null, name: null, level: null, refinement: null }
           next.wEngine = ''
           next.refinement = 0
@@ -228,8 +243,14 @@ export function mergeAssetQuickReadRoster(
         next.observedFacts ??= {
           schemaVersion: 1,
           source: 'asset_quick_read',
-          protocolVersion: '3.2',
+          protocolVersion: candidate.protocolVersion,
           fields: {},
+        }
+        if (next.observedFacts.protocolVersion !== candidate.protocolVersion) {
+          for (const marker of Object.values(next.observedFacts.fields)) {
+            if (marker) marker.protocolVersion ??= next.observedFacts.protocolVersion
+          }
+          next.observedFacts.protocolVersion = candidate.protocolVersion
         }
         // Identity provenance marks when this equipment became current. Re-reading the
         // same identity must not invalidate progression observed on that same item.

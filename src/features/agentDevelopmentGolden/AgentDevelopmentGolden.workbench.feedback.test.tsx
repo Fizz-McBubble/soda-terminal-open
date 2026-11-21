@@ -24,7 +24,7 @@ it('keeps inventory feedback outside the toolbar and opens gaps in the shared po
         )}
     />,
   )
-  await userEvent.click(screen.getByRole('button', { name: '比较其他配装' }))
+  await userEvent.click(screen.getByRole('button', { name: '重新搭配并比较' }))
   expect(container.querySelectorAll('.development-disc-card')).toHaveLength(6)
   const status = screen.getByRole('status')
   expect(status).toHaveTextContent('当前仓库还不能组成完整配装')

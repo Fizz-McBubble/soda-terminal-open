@@ -84,7 +84,7 @@ textarea,
 
 .app-entry-state h1 {
   margin: 0;
-  font-size: clamp(1.25rem, 3vw, 1.75rem);
+  font-size: clamp(1.25rem, calc(3 * var(--soda-type-vw, 1vw)), 1.75rem);
   line-height: 1.35;
 }
 
@@ -124,18 +124,18 @@ body.soda-f5-scrollbarless {
 html.soda-f5-scrollbarless,
 body.soda-f5-scrollbarless,
 .soda-f5-scrollbarless .f5v-shell,
-.soda-f5-scrollbarless .f5v-shell * {
+body.soda-f5-scrollbarless * {
   -ms-overflow-style: none;
-  scrollbar-width: none;
+  scrollbar-width: none !important;
 }
 
 html.soda-f5-scrollbarless::-webkit-scrollbar,
 body.soda-f5-scrollbarless::-webkit-scrollbar,
 .soda-f5-scrollbarless .f5v-shell::-webkit-scrollbar,
-.soda-f5-scrollbarless .f5v-shell *::-webkit-scrollbar {
+body.soda-f5-scrollbarless *::-webkit-scrollbar {
   width: 0;
   height: 0;
-  display: none;
+  display: none !important;
 }
 
 button,

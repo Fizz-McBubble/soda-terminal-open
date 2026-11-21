@@ -1,23 +1,31 @@
+import { createAccountCalculationScope } from './accountCalculationScope'
 /* eslint-disable react-refresh/only-export-components -- provider and its typed consumer hooks form one application boundary */
 import { useLiveQuery } from 'dexie-react-hooks'
-import { useCallback, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from 'react'
 import { type AccountDecisionRun, type CalculationQueryClient } from './calculationQueryContract'
 import { getActiveAccount } from '../accounts/repository'
+import type { AccountProfile } from '../accounts/types'
 import { AppLoadingState } from '../components/AppEntryState'
 import { useAccountDecisionCalculation } from './useAccountDecisionCalculation'
 import { useAccountDecisionRunLiveness } from './useAccountDecisionRunLiveness'
+import { useAccountDecisionObservation } from './useAccountDecisionObservation'
+import { useLiveDecisionFingerprint } from './useLiveDecisionFingerprint'
 import {
   type AccountDecisionWorldContextValue,
   type RuntimeSelectionReader,
   readableCalculationError,
   observeRuntimeSelection,
-  loadWorldInput,
   accountDecisionNextAction,
 } from './accountDecisionWorldModel'
 import {
   AccountDecisionWorldContext,
   CalculationQueryClientContext,
+  DevelopmentDirectoryScaffoldContext,
 } from './accountDecisionWorldHooks'
+import {
+  loadDevelopmentDirectoryScaffold,
+  type DevelopmentDirectoryScaffoldReady,
+} from './developmentDirectoryScaffold'
 export {
   useDecisionPortfolioQuery,
   useTargetTeamWarehouseFitCalculation,
@@ -28,6 +36,7 @@ export {
   useReviewedIncrementalEvent32Calculation,
   useAccountDecisionWorld,
   useOptionalAccountDecisionWorld,
+  useDevelopmentDirectoryScaffold,
 } from './accountDecisionWorldHooks'
 
 export {
@@ -47,6 +56,8 @@ export type AccountDecisionWorldProviderProps = {
   runtimeSelectionReader: RuntimeSelectionReader
   repairRuntimeSelection: (() => Promise<unknown>) | null
   autoCalculate?: boolean
+  observeInput?: boolean | 'disabled'
+  enableDevelopmentDirectoryScaffold?: boolean
 }
 
 export function AccountDecisionWorldProvider({
@@ -55,19 +66,52 @@ export function AccountDecisionWorldProvider({
   runtimeSelectionReader,
   repairRuntimeSelection,
   autoCalculate = true,
+  observeInput = true,
+  enableDevelopmentDirectoryScaffold = false,
 }: AccountDecisionWorldProviderProps) {
-  const identity = useLiveQuery(async () => ({ account: await getActiveAccount() }), [])
+  const [identityAttempt, setIdentityAttempt] = useState(0)
+  const [identityTimedOutAttempt, setIdentityTimedOutAttempt] = useState<number | null>(null)
+  const identity = useLiveQuery(async () => {
+    try {
+      return { attempt: identityAttempt, account: await getActiveAccount(), failed: false as const }
+    } catch {
+      return { attempt: identityAttempt, failed: true as const }
+    }
+  }, [identityAttempt])
+  const currentIdentity = identity?.attempt === identityAttempt ? identity : undefined
+  useEffect(() => {
+    if (currentIdentity || identityTimedOutAttempt === identityAttempt) return
+    const timer = setTimeout(() => setIdentityTimedOutAttempt(identityAttempt), 10_000)
+    return () => clearTimeout(timer)
+  }, [currentIdentity, identityAttempt, identityTimedOutAttempt])
+  const retryIdentity = () => {
+    setIdentityTimedOutAttempt(null)
+    setIdentityAttempt((attempt) => attempt + 1)
+  }
   // Do not mount editable consumers under a temporary loading key and discard their input
   // when the independent account lookup completes.
-  if (!identity) return <AppLoadingState title="正在读取当前账户资料" />
-  const account = identity.account
+  if (identityTimedOutAttempt === identityAttempt || currentIdentity?.failed)
+    return (
+      <section className="app-entry-state" role="alert">
+        <h1>当前账户资料暂时无法读取</h1>
+        <p>请重试。</p>
+        <button className="button button--primary" type="button" onClick={retryIdentity}>
+          重试读取账户
+        </button>
+      </section>
+    )
+  if (!currentIdentity) return <AppLoadingState title="正在读取当前账户资料" />
+  const account = currentIdentity.account ?? null
   return (
     <AccountScopedDecisionWorldProvider
+      activeAccount={account}
       accountId={account?.id ?? null}
       queryClient={queryClient}
       runtimeSelectionReader={runtimeSelectionReader}
       repairRuntimeSelection={repairRuntimeSelection}
       autoCalculate={autoCalculate}
+      observeInput={observeInput}
+      enableDevelopmentDirectoryScaffold={enableDevelopmentDirectoryScaffold}
     >
       {children}
     </AccountScopedDecisionWorldProvider>
@@ -76,122 +120,117 @@ export function AccountDecisionWorldProvider({
 
 function AccountScopedDecisionWorldProvider({
   children,
+  activeAccount,
   accountId,
   queryClient,
   runtimeSelectionReader,
   repairRuntimeSelection,
   autoCalculate,
+  observeInput,
+  enableDevelopmentDirectoryScaffold,
 }: {
   children: ReactNode
+  activeAccount: AccountProfile | null
   accountId: string | null
   queryClient: CalculationQueryClient
   runtimeSelectionReader: RuntimeSelectionReader
   repairRuntimeSelection: (() => Promise<unknown>) | null
   autoCalculate: boolean
+  observeInput: boolean | 'disabled'
+  enableDevelopmentDirectoryScaffold: boolean
 }) {
-  const observedInput = useLiveQuery(async () => {
-    const input = await loadWorldInput()
-    return input?.warehouse.accountId === accountId ? input : null
-  }, [accountId])
-  const liveInput =
-    observedInput === undefined
-      ? undefined
-      : observedInput?.warehouse.accountId === accountId
-        ? observedInput
-        : null
-  // Replace the calculation scope while leaving the visible page mounted.
-  const accountIdentity = useMemo(() => ({ accountId }), [accountId])
-  const scope = useRef({
-    identity: accountIdentity,
-    active: true,
-    epoch: 0,
-    runs: new Set<string>(),
+  const { liveInput, observingInput, rememberRequestedInput } = useAccountDecisionObservation({
+    accountId,
+    activeAccount,
+    observeInput,
   })
-  const scopedClient = useMemo<CalculationQueryClient>(() => {
-    const state = scope.current
-    const assertCurrent = async (epoch: number) => {
-      const current = await getActiveAccount()
-      if (
-        !state.active ||
-        state.identity !== accountIdentity ||
-        state.epoch !== epoch ||
-        current?.id !== accountId
-      )
-        throw new Error('账户已切换，请在当前账户重新分析。')
-    }
-    const guarded = async <T,>(operation: () => Promise<T>) => {
-      const epoch = state.epoch
-      await assertCurrent(epoch)
-      const result = await operation()
-      await assertCurrent(epoch)
-      return result
-    }
-    const queryRun = <T,>(runId: string, operation: () => Promise<T>) =>
-      guarded(async () => {
-        if (!state.runs.has(runId)) throw new Error('分析结果已释放，请在当前账户重新分析。')
-        const result = await operation()
-        if (!state.runs.has(runId)) throw new Error('分析结果已更新，请使用新的分析结果。')
-        return result
+  const accountIdentity = useMemo(() => ({ accountId }), [accountId])
+  const directoryScaffoldScopeIdentity = useMemo(
+    () => ({ accountId, enabled: enableDevelopmentDirectoryScaffold }),
+    [accountId, enableDevelopmentDirectoryScaffold],
+  )
+  const scopedLiveInputReady = Boolean(accountId && liveInput?.warehouse.accountId === accountId)
+  const [directoryScaffoldRead, setDirectoryScaffoldRead] = useState<
+    | (DevelopmentDirectoryScaffoldReady & { scope: typeof directoryScaffoldScopeIdentity })
+    | {
+        status: 'failed'
+        accountId: string
+        scope: typeof directoryScaffoldScopeIdentity
+      }
+    | null
+  >(null)
+  const [directoryScaffoldRevision, setDirectoryScaffoldRevision] = useState(0)
+  const retryDirectoryScaffold = useCallback(() => {
+    setDirectoryScaffoldRead((current) =>
+      current?.scope === directoryScaffoldScopeIdentity ? null : current,
+    )
+    setDirectoryScaffoldRevision((revision) => revision + 1)
+  }, [directoryScaffoldScopeIdentity])
+  useEffect(() => {
+    const scopeIdentity = directoryScaffoldScopeIdentity
+    if (!enableDevelopmentDirectoryScaffold || !accountId || scopedLiveInputReady) {
+      queueMicrotask(() => {
+        setDirectoryScaffoldRead((current) => (current?.scope === scopeIdentity ? null : current))
       })
-    return {
-      ...queryClient,
-      releaseAccountDecisionRun(runId) {
-        state.runs.delete(runId)
-        queryClient.releaseAccountDecisionRun?.(runId)
-      },
-      async calculateAccountDecision(query) {
-        if (query.input.warehouse.accountId !== accountId)
-          throw new Error('分析输入不属于当前账户。')
-        let result: AccountDecisionRun | undefined
-        state.runs.add(query.runId)
-        try {
-          return await guarded(async () => {
-            if (!state.runs.has(query.runId)) throw new Error('本次分析已取消，可重新分析。')
-            result = await queryClient.calculateAccountDecision(query)
-            if (!state.runs.has(query.runId)) throw new Error('本次分析已取消，可重新分析。')
-            return result
-          })
-        } catch (error) {
-          state.runs.delete(query.runId)
-          queryClient.releaseAccountDecisionRun?.(result?.runId ?? query.runId)
-          throw error
-        }
-      },
-      queryDecisionPortfolio: (query) =>
-        queryRun(query.runId, () => queryClient.queryDecisionPortfolio(query)),
-      calculateTargetTeamWarehouseFit: (query) =>
-        queryRun(query.runId, () => queryClient.calculateTargetTeamWarehouseFit(query)),
-      queryTeamOverviewPresentation: (query, internal) =>
-        queryRun(query.runId, () => queryClient.queryTeamOverviewPresentation(query, internal)),
-      queryTeamRoutePresentation: (query) =>
-        queryRun(query.runId, () => queryClient.queryTeamRoutePresentation(query)),
-      querySavedTeamPlanReplay: (query) =>
-        queryRun(query.runId, () => queryClient.querySavedTeamPlanReplay(query)),
-      querySavedTeamSolutionComponents: (query) =>
-        queryRun(query.runId, () => queryClient.querySavedTeamSolutionComponents(query)),
-      queryDevelopmentCandidateAlternatives: (query) =>
-        queryRun(query.runId, () => queryClient.queryDevelopmentCandidateAlternatives(query)),
-      queryDevelopmentWorkbenchRoute: (query) =>
-        queryRun(query.runId, () => queryClient.queryDevelopmentWorkbenchRoute(query)),
-      queryWarehouseDiscTransitionUses: queryClient.queryWarehouseDiscTransitionUses
-        ? (query, options) =>
-            queryRun(query.runId, () =>
-              queryClient.queryWarehouseDiscTransitionUses!(query, options),
-            )
-        : undefined,
+      return
     }
-  }, [accountId, queryClient, accountIdentity])
-  useLayoutEffect(() => {
-    const state = scope.current
-    state.identity = accountIdentity
-    state.active = true
+    let active = true
+    void loadDevelopmentDirectoryScaffold(accountId).then((result) => {
+      if (!active) return
+      if (result.status === 'ready')
+        setDirectoryScaffoldRead({
+          status: 'ready',
+          accountId: result.accountId,
+          roster: result.roster,
+          priorityAgentIds: result.priorityAgentIds,
+          scope: scopeIdentity,
+        })
+      else if (result.status === 'failed' || result.status === 'no_account')
+        setDirectoryScaffoldRead({
+          status: 'failed',
+          accountId,
+          scope: scopeIdentity,
+        })
+    })
     return () => {
-      state.active = false
-      state.epoch += 1
-      for (const id of state.runs) queryClient.releaseAccountDecisionRun?.(id)
-      state.runs.clear()
+      active = false
     }
-  }, [queryClient, accountIdentity])
+  }, [
+    accountId,
+    directoryScaffoldRevision,
+    directoryScaffoldScopeIdentity,
+    enableDevelopmentDirectoryScaffold,
+    scopedLiveInputReady,
+  ])
+  const directoryScaffold = useMemo(() => {
+    if (!enableDevelopmentDirectoryScaffold || !accountId || scopedLiveInputReady) return null
+    if (directoryScaffoldRead?.scope === directoryScaffoldScopeIdentity)
+      return {
+        ...directoryScaffoldRead,
+        scope: directoryScaffoldScopeIdentity,
+        retry: retryDirectoryScaffold,
+      }
+    return {
+      status: 'loading' as const,
+      accountId,
+      scope: directoryScaffoldScopeIdentity,
+      retry: retryDirectoryScaffold,
+    }
+  }, [
+    accountId,
+    directoryScaffoldRead,
+    directoryScaffoldScopeIdentity,
+    enableDevelopmentDirectoryScaffold,
+    retryDirectoryScaffold,
+    scopedLiveInputReady,
+  ])
+  // Keep the visible page mounted when the account or its calculation client changes.
+  const calculationScope = useMemo(
+    () => createAccountCalculationScope(queryClient, accountIdentity),
+    [queryClient, accountIdentity],
+  )
+  const scopedClient = calculationScope.client
+  useLayoutEffect(() => calculationScope.activate(), [calculationScope])
   const [repairError, setRepairError] = useState<string | null>(null)
   const [runtimeSelectionRevision, setRuntimeSelectionRevision] = useState(0)
   const runtimeObservation = useLiveQuery(
@@ -204,7 +243,7 @@ function AccountScopedDecisionWorldProvider({
     error: calculationError,
     calculation,
     cancelled,
-    refresh,
+    refresh: refreshAccountDecision,
     cancelCalculation,
   } = useAccountDecisionCalculation({
     accountId,
@@ -215,10 +254,12 @@ function AccountScopedDecisionWorldProvider({
     autoCalculate,
     reviewRuntime,
   })
-  const liveFingerprint = useMemo(() => {
-    if (!liveInput?.warehouse.accountId) return null
-    return queryClient.fingerprintAccountDecisionInput(liveInput, run?.runId)
-  }, [liveInput, queryClient, run?.runId])
+  const refresh = useCallback(async () => {
+    const result = await refreshAccountDecision()
+    if (result) rememberRequestedInput(result.input)
+    return result
+  }, [refreshAccountDecision, rememberRequestedInput])
+  const liveFingerprint = useLiveDecisionFingerprint(queryClient, run, liveInput)
   const retained = useAccountDecisionRunLiveness(queryClient, run?.runId)
 
   const repairApplicationData = useCallback(async () => {
@@ -243,21 +284,35 @@ function AccountScopedDecisionWorldProvider({
   }, [refresh, runtimeObservation, repairRuntimeSelection])
 
   const value = useMemo<AccountDecisionWorldContextValue>(() => {
+    const sameAccountRun = Boolean(
+      run && liveInput?.warehouse.accountId === run.input.warehouse.accountId,
+    )
+    const analysisIssue: AccountDecisionWorldContextValue['analysisIssue'] =
+      run && !retained
+        ? { kind: 'run_lost', message: cancelled ? '分析已取消。' : '分析连接已中断，请重试分析。' }
+        : runtimeObservation?.status === 'error'
+          ? { kind: 'runtime_unavailable', message: runtimeObservation.message }
+          : calculationError
+            ? { kind: 'calculation_failed', message: calculationError }
+            : null
     const common = {
       refresh,
       repairApplicationData,
       liveInput,
+      analysisIssue,
       calculation:
         calculation ??
-        (liveInput === undefined
-          ? { phase: 'reading_account' as const, startedAt: null }
-          : runtimeObservation === undefined
-            ? { phase: 'preparing_rules' as const, startedAt: null }
-            : null),
+        (!observingInput
+          ? null
+          : liveInput === undefined
+            ? { phase: 'reading_account' as const, startedAt: null }
+            : runtimeObservation === undefined
+              ? { phase: 'preparing_rules' as const, startedAt: null }
+              : null),
       calculationCancelled: cancelled,
       cancelCalculation,
     }
-    if (runtimeObservation === undefined)
+    if (runtimeObservation === undefined && !sameAccountRun)
       return {
         status: 'loading',
         run: null,
@@ -265,7 +320,7 @@ function AccountScopedDecisionWorldProvider({
         nextAction: null,
         ...common,
       }
-    if (runtimeObservation.status === 'error')
+    if (runtimeObservation?.status === 'error' && !sameAccountRun)
       return {
         status: 'error',
         run: null,
@@ -275,7 +330,7 @@ function AccountScopedDecisionWorldProvider({
         canRepairApplicationData: false,
         ...common,
       }
-    if (runtimeObservation.selection.status === 'unbound')
+    if (runtimeObservation?.status === 'ready' && runtimeObservation.selection.status === 'unbound')
       return {
         status: 'error',
         run: null,
@@ -285,7 +340,7 @@ function AccountScopedDecisionWorldProvider({
         canRepairApplicationData: repairRuntimeSelection !== null,
         ...common,
       }
-    if (calculationError)
+    if (calculationError && !sameAccountRun)
       return {
         status: 'error',
         run: null,
@@ -319,7 +374,7 @@ function AccountScopedDecisionWorldProvider({
         nextAction: null,
         ...common,
       }
-    const status = run.inputFingerprint === liveFingerprint && retained ? 'current' : 'stale'
+    const status = run.inputFingerprint === liveFingerprint ? 'current' : 'stale'
     return {
       status,
       run,
@@ -345,13 +400,16 @@ function AccountScopedDecisionWorldProvider({
     run,
     runtimeObservation,
     autoCalculate,
+    observingInput,
   ])
 
   return (
-    <CalculationQueryClientContext.Provider value={scopedClient}>
-      <AccountDecisionWorldContext.Provider value={value}>
-        {children}
-      </AccountDecisionWorldContext.Provider>
-    </CalculationQueryClientContext.Provider>
+    <DevelopmentDirectoryScaffoldContext.Provider value={directoryScaffold}>
+      <CalculationQueryClientContext.Provider value={scopedClient}>
+        <AccountDecisionWorldContext.Provider value={value}>
+          {children}
+        </AccountDecisionWorldContext.Provider>
+      </CalculationQueryClientContext.Provider>
+    </DevelopmentDirectoryScaffoldContext.Provider>
   )
 }

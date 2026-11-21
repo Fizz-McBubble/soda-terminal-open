@@ -1,4 +1,4 @@
-import generated from './generated/l3-40356c64ad0d6d5a5e01/teamRecommendationSeeds.json'
+import generated from './generated/l3-0dd6af3f8cc593147835/teamRecommendationSeeds.json'
 
 export type ProductSynthesisTeamSeed = {
   schema: 'soda-product-synthesis-team-seed/v1'

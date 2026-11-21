@@ -6,6 +6,7 @@ import { evaluateDevelopmentValueBenchmarkSide } from './developmentValueBenchma
 import { searchDevelopmentDynamicCandidates } from './developmentDynamicSearch'
 import { solveCandidateAgentAlternatives } from '../optimizer/candidateWarehouseSolver'
 import { dynamicLegalInventory } from '../optimizer/teamDynamicDomain'
+import { candidate as physicalCandidate } from './developmentValueBenchmark.fixtures'
 
 function fixture() {
   const value = statWeightCalibrationFixture('agent-claret', 'crit_rate')
@@ -17,6 +18,72 @@ function fixture() {
 }
 
 describe('dynamic six-disc production producer', () => {
+  it('re-evaluates real Roxy candidates with a finite observation budget', () => {
+    const value = statWeightCalibrationFixture('agent-billy')
+    const actor = value.warehouse.roster.agents.find((row) => row.agentId === 'agent-roxy')!
+    Object.assign(actor, {
+      ...structuredClone(
+        value.warehouse.roster.agents.find((row) => row.agentId === 'agent-billy')!,
+      ),
+      agentId: 'agent-roxy',
+      wEngineDetails: { id: 'wengine-14162', name: null, level: 60, ascension: 5, refinement: 1 },
+    })
+    const current = value.discs.slice()
+    actor.equippedDiscIds = current.map((disc) => disc.id)
+    const first = current[0]!
+    const stronger = {
+      ...structuredClone(first),
+      id: 'roxy-budget-atk',
+      subStats: first.subStats.map((row) =>
+        row.stat === 'atk_percent'
+          ? { ...row, value: 18, upgrades: 5 }
+          : row.stat === 'pen'
+            ? { ...row, value: 9, upgrades: 0 }
+            : row,
+      ),
+    }
+    value.warehouse.discs.push(stronger)
+    const alternate = current.map((disc) => (disc.slot === 1 ? stronger : disc))
+    expect(dynamicLegalInventory(value.warehouse.discs)).toHaveLength(7)
+    const a = evaluateDevelopmentValueBenchmarkSide({
+      ...value,
+      agentId: 'agent-roxy',
+      discs: current,
+      stale: false,
+    })
+    const b = evaluateDevelopmentValueBenchmarkSide({
+      ...value,
+      agentId: 'agent-roxy',
+      discs: alternate,
+      stale: false,
+    })
+    expect(a.state, a.reasons.join('; ')).toBe('supported')
+    expect(b.totalDamage!).toBeGreaterThan(a.totalDamage!)
+    const intent = compileAgentBuildIntent({ agentId: 'agent-roxy' })
+    const original = physicalCandidate(current)
+    original.agentIds = ['agent-roxy']
+    original.loadouts[0]!.agentId = 'agent-roxy'
+    const source = [original]
+    const result = searchDevelopmentDynamicCandidates({
+      ...value,
+      agentId: 'agent-roxy',
+      buildIntent: intent,
+      candidates: source,
+      evaluationBudget: 8,
+    })
+    expect(result.search?.evaluations).toBeLessThanOrEqual(8)
+    // Actual model sees the higher slice, but incomplete source effects prevent
+    // promoting it over the original as an overall result.
+    expect(
+      result.search?.unresolved.some((row) =>
+        row.loadouts['agent-roxy']?.some((disc) => disc.id === stronger.id),
+      ),
+    ).toBe(true)
+    expect(result.rankingApplied).toBe(false)
+    expect(result.candidates[0]?.loadouts[0]?.discs.map((row) => row.disc.id)).toEqual(
+      current.map((disc) => disc.id),
+    )
+  })
   it('passes selected stun through refinement and dynamic ranking instead of pricing the neutral prepared axis', () => {
     const value = fixture()
     const before = JSON.stringify(value.warehouse)
@@ -140,12 +207,13 @@ describe('dynamic six-disc production producer', () => {
       evaluationBudget: 256,
     })
     const alternative = [other.discs[0]!, other.discs[1]!, ...current.slice(2)]
-    const expected = evaluateDevelopmentValueBenchmarkSide({
+    const expectedSide = evaluateDevelopmentValueBenchmarkSide({
       ...value,
       discs: alternative,
       stale: false,
-    }).totalDamage!
-    expect(result.search?.best?.evaluation.modeledValue).toBeCloseTo(expected, 8)
+    })
+    const expected = expectedSide.totalDamage!
+    expect(result.search?.best?.evaluation.modeledValue).toBeCloseTo(expectedSide.planningDps!, 8)
     expect(result.candidates[0]!.loadouts[0]!.discs.map((row) => row.disc.id)).toEqual(
       alternative.map((disc) => disc.id),
     )
@@ -223,7 +291,8 @@ describe('dynamic six-disc production producer', () => {
     )
     expect(scores).toEqual([...scores].sort((a, b) => b - a))
     expect(result.candidateSearch).toMatchObject({
-      rankingMethod: 'dynamic_objective',
+      rankingMethod: 'comparison_groups',
+      rankingScopes: ['declared_event'],
       status: 'complete',
       productionGameAccuracyCertified: false,
     })
@@ -255,10 +324,20 @@ describe('dynamic six-disc production producer', () => {
       candidates: source,
       evaluationBudget: 8,
     })
-    expect(result.candidates).toEqual(source)
+    expect(
+      result.candidates.map((plan) => plan.loadouts[0]!.discs.map((choice) => choice.disc.id)),
+    ).toEqual(source.map((plan) => plan.loadouts[0]!.discs.map((choice) => choice.disc.id)))
+    expect(
+      result.candidates.every(
+        (plan) =>
+          plan.loadouts[0]?.personalDiscScore !== undefined ||
+          plan.loadouts[0]?.personalScoreUnavailable === true,
+      ),
+    ).toBe(true)
     expect(result.rankingApplied).toBe(false)
-    expect(result.search?.unresolved.every((row) => row.evaluation.modeledValue === null)).toBe(
-      true,
-    )
+    expect(
+      result.search === null ||
+        result.search.unresolved.every((row) => row.evaluation.modeledValue === null),
+    ).toBe(true)
   })
 })

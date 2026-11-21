@@ -1,3 +1,4 @@
+import { playerErrorMessage } from '../application/playerErrorMessage'
 import type { ReactNode } from 'react'
 import type { AssetQuickReadBridgeClient, AssetBridgeJob } from '../assetQuickRead/bridgeClient'
 import type { AssetQuickReadState } from './AssetQuickReadEntry'
@@ -35,9 +36,7 @@ export type AssetQuickReadControllerProps = {
   client?: Bridge
 }
 export const assetQuickReadErrorMessage = (error: unknown) =>
-  error instanceof Error && !error.name.startsWith('Zod')
-    ? error.message
-    : '结果结构不符合当前资产快读合同，未写入账户。'
+  playerErrorMessage(error, '无法读取这份结果，请重新读取或选择有效文件。')
 const connectionGuidance: Record<string, { problem: string; nextAction: string }> = {
   bridge_unavailable: {
     problem: '未能连接资产快读。',

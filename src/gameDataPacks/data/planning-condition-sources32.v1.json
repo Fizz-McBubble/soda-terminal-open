@@ -162,10 +162,7 @@
           "integerOnly": false,
           "minimum": null,
           "maximum": null,
-          "options": [
-            "val1",
-            "val2"
-          ]
+          "options": ["val1", "val2"]
         },
         {
           "sheet": "Aria",
@@ -507,10 +504,7 @@
           "integerOnly": false,
           "minimum": null,
           "maximum": null,
-          "options": [
-            "val1",
-            "val2"
-          ]
+          "options": ["val1", "val2"]
         },
         {
           "sheet": "Cissia",
@@ -663,10 +657,7 @@
           "integerOnly": false,
           "minimum": null,
           "maximum": null,
-          "options": [
-            "attack",
-            "rupture"
-          ]
+          "options": ["attack", "rupture"]
         }
       ]
     },
@@ -1431,10 +1422,7 @@
           "integerOnly": false,
           "minimum": null,
           "maximum": null,
-          "options": [
-            "val1",
-            "val2"
-          ]
+          "options": ["val1", "val2"]
         },
         {
           "sheet": "NangongYu",
@@ -1587,10 +1575,7 @@
           "integerOnly": false,
           "minimum": null,
           "maximum": null,
-          "options": [
-            "val1",
-            "val2"
-          ]
+          "options": ["val1", "val2"]
         },
         {
           "sheet": "Norma",
@@ -1734,10 +1719,7 @@
           "integerOnly": false,
           "minimum": null,
           "maximum": null,
-          "options": [
-            "val1",
-            "val2"
-          ]
+          "options": ["val1", "val2"]
         },
         {
           "sheet": "Promeia",
@@ -1818,10 +1800,7 @@
           "integerOnly": false,
           "minimum": null,
           "maximum": null,
-          "options": [
-            "val1",
-            "val2"
-          ]
+          "options": ["val1", "val2"]
         },
         {
           "sheet": "Pyrois",
@@ -1911,10 +1890,7 @@
           "integerOnly": false,
           "minimum": null,
           "maximum": null,
-          "options": [
-            "val1",
-            "val2"
-          ]
+          "options": ["val1", "val2"]
         },
         {
           "sheet": "Remielle",
@@ -2175,10 +2151,7 @@
           "integerOnly": false,
           "minimum": null,
           "maximum": null,
-          "options": [
-            "val1",
-            "val2"
-          ]
+          "options": ["val1", "val2"]
         },
         {
           "sheet": "Sigrid",
@@ -2367,10 +2340,7 @@
           "integerOnly": false,
           "minimum": null,
           "maximum": null,
-          "options": [
-            "val1",
-            "val2"
-          ]
+          "options": ["val1", "val2"]
         },
         {
           "sheet": "StarlightBilly",
@@ -2415,10 +2385,7 @@
           "integerOnly": false,
           "minimum": null,
           "maximum": null,
-          "options": [
-            "val1",
-            "val2"
-          ]
+          "options": ["val1", "val2"]
         },
         {
           "sheet": "Sunna",
@@ -2499,10 +2466,7 @@
           "integerOnly": false,
           "minimum": null,
           "maximum": null,
-          "options": [
-            "val1",
-            "val2"
-          ]
+          "options": ["val1", "val2"]
         },
         {
           "sheet": "Velina",
@@ -2637,10 +2601,7 @@
           "integerOnly": false,
           "minimum": null,
           "maximum": null,
-          "options": [
-            "exSpecial",
-            "ult"
-          ]
+          "options": ["exSpecial", "ult"]
         },
         {
           "sheet": "Yanagi",
@@ -2694,10 +2655,7 @@
           "integerOnly": false,
           "minimum": null,
           "maximum": null,
-          "options": [
-            "val1",
-            "val2"
-          ]
+          "options": ["val1", "val2"]
         },
         {
           "sheet": "YeShunguang",
@@ -2877,10 +2835,7 @@
           "integerOnly": false,
           "minimum": null,
           "maximum": null,
-          "options": [
-            "val1",
-            "val2"
-          ]
+          "options": ["val1", "val2"]
         },
         {
           "sheet": "Zhao",

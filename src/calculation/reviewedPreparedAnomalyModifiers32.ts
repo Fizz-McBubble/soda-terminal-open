@@ -16,10 +16,11 @@ export function collectReviewedPreparedAnomalyModifiers32(input: {
   refs: string[]
   sums: Record<string, number>
   /** Disorder modifiers occupy their own source domain, never an ordinary proc. */
-  settlementType?: 'anomaly' | 'disorder'
+  settlementType?: 'anomaly' | 'abloom' | 'disorder'
 }): string[] | null {
   const { agentId, attribute, bucketRows, modifiers, exclusions, included, refs, sums } = input
   const disorder = input.settlementType === 'disorder'
+  const instance = input.settlementType ?? 'anomaly'
   const seenBuckets = new Map<string, SourceBackedPlanningEffectBucket>()
   const applicationStat: Partial<Record<SourceBackedPlanningEffectBucket['application'], string>> =
     {
@@ -52,9 +53,11 @@ export function collectReviewedPreparedAnomalyModifiers32(input: {
       row.action !== null ||
       row.applicationScope === 'event_only' ||
       (row.damageType !== null &&
-        (disorder
-          ? row.damageType !== 'disorder'
-          : !['anomaly', 'abloom'].includes(row.damageType)))
+        row.damageType !== instance &&
+        // Locked char/util.ts: Abloom carries damageType1=anomaly and
+        // damageType2=abloom. Disorder has its own primary type. The reverse
+        // inclusion would incorrectly give ordinary Ice Abloom-only DEF ignore.
+        !(instance === 'abloom' && row.damageType === 'anomaly'))
     ) {
       exclusions.push({
         effectKey: row.effectKey,
@@ -64,9 +67,13 @@ export function collectReviewedPreparedAnomalyModifiers32(input: {
       })
       continue
     }
+    const receiverStat = row.receiverPath?.replace(/^(ownBuff|teamBuff|notOwnBuff)\./, '')
+    // Rina grants the recipient additional final PEN ratio. The supplied
+    // equipped panel predates that party effect, just as it does for combat PEN.
     const stat =
-      row.receiverPath?.replace(/^(ownBuff|teamBuff|notOwnBuff)\./, '') ??
-      applicationStat[row.application]
+      receiverStat === 'final.pen_' && row.application === 'penetration_ratio'
+        ? 'combat.pen_'
+        : (receiverStat ?? applicationStat[row.application])
     if (!stat) {
       exclusions.push({
         effectKey: row.effectKey,

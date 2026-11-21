@@ -181,9 +181,7 @@ export function InstallerFeedbackPage({
           <div className="installer-feedback-guidance">
             <p>
               <strong>状态说明</strong>
-              <span>
-                未检测到有效的安装诊断信息。若安装遇到问题，请在安装器中点击“反馈安装问题”；或检查网络连接后重试安装。
-              </span>
+              <span>请从安装器中的“反馈安装问题”打开本页。</span>
             </p>
           </div>
           <ToolBlockGuidance
@@ -210,7 +208,7 @@ export function InstallerFeedbackPage({
       setReceipt(ack)
       setStatusMessage('已收到反馈。')
     } catch {
-      setStatusMessage('暂未收到回执，请重试或复制诊断。')
+      setStatusMessage('反馈发送未完成，请重试。')
     } finally {
       setIsSending(false)
     }
@@ -228,15 +226,24 @@ export function InstallerFeedbackPage({
 
   function handleDownload() {
     if (!report) return
-    const blob = new Blob([JSON.stringify(report, null, 2)], {
-      type: 'application/json; charset=utf-8',
-    })
-    const url = URL.createObjectURL(blob)
-    const anchor = document.createElement('a')
-    anchor.href = url
-    anchor.download = `soda-installer-diagnostic-${report.reportId}.json`
-    anchor.click()
-    setTimeout(() => URL.revokeObjectURL(url), 0)
+    let url: string | undefined
+    try {
+      const blob = new Blob([JSON.stringify(report, null, 2)], {
+        type: 'application/json; charset=utf-8',
+      })
+      url = URL.createObjectURL(blob)
+      const anchor = document.createElement('a')
+      anchor.href = url
+      anchor.download = `soda-installer-diagnostic-${report.reportId}.json`
+      anchor.click()
+    } catch {
+      setStatusMessage('下载未完成，可重试或复制诊断。')
+    } finally {
+      if (url) {
+        const objectUrl = url
+        setTimeout(() => URL.revokeObjectURL(objectUrl), 0)
+      }
+    }
   }
 
   return (
@@ -251,8 +258,6 @@ export function InstallerFeedbackPage({
             <span className="installer-feedback-version">安装器版本 {report.installerVersion}</span>
           </div>
         </header>
-
-        {restoredReceipt ? <p>上次已提交的安装诊断；此记录不代表当前安装仍然失败。</p> : null}
 
         <div className="installer-feedback-guidance">
           <p>

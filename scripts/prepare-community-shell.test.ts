@@ -25,6 +25,7 @@ it('binds every critical offline asset to the exact emitted bytes', () => {
       'assets/entry-test.js': `export const release = '${releaseId}'; export const worker = '${worker}';`,
       'assets/entry-test.css': 'body { color: red; }',
       'assets/runtime-test.json': '{"ready":true}',
+      'assets/worker-team-intrinsic-index-test1234.js': '/* full intrinsic index */',
       'assets/decorative-test.png': 'decorative bytes',
     }
     for (const [path, value] of Object.entries(files)) writeFileSync(join(root, path), value)
@@ -34,6 +35,12 @@ it('binds every critical offline asset to the exact emitted bytes', () => {
     expect(manifest.criticalAssets).toContain('/assets/entry-test.css')
     expect(manifest.criticalAssets).toContain('/assets/runtime-test.json')
     expect(manifest.criticalAssetSha256['/assets/decorative-test.png']).toBeUndefined()
+    const full = '/assets/worker-team-intrinsic-index-test1234.js'
+    expect(manifest.assets).toContain(full)
+    expect(manifest.criticalAssets).not.toContain(full)
+    expect(manifest.onDemandAssetSha256[full]).toBe(
+      createHash('sha256').update(files[full.slice(1)]!).digest('hex'),
+    )
     for (const asset of manifest.criticalAssets)
       expect(manifest.criticalAssetSha256[asset]).toBe(
         createHash('sha256')

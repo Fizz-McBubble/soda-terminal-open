@@ -28,6 +28,9 @@ describe('AssetQuickReadGuide component', () => {
     expect(
       screen.getByText(new RegExp(`资产快读 ${assetQuickReadRelease.version}`)),
     ).toBeInTheDocument()
+    expect(
+      screen.getAllByText(/仅支持国服 3\.2；国服 3\.3 客户端读取需等待新版发布/).length,
+    ).toBeGreaterThanOrEqual(2)
     expect(screen.getAllByText(new RegExp(assetQuickReadRelease.fileName)).length).toBeGreaterThan(
       0,
     )

@@ -16,6 +16,7 @@ export const planningWEngineActions: Readonly<Record<string, string>> = {
   chain: 'chain',
   ult: 'ultimate',
   ultimate: 'ultimate',
+  aftershock: 'aftershock',
 }
 
 export function planningWEngineEffectScope(stat: string, action?: string | null) {
@@ -81,7 +82,7 @@ export function retainPlanningWEngineDependencies32(input: {
       effectKey: id,
       providerAgentId: input.agentId,
       recipientAgentIds: input.recipientAgentIds,
-      receiverPath: null,
+      receiverPath: entry.path,
       damageType: null,
       application: scope.application,
       action: scope.action ?? null,

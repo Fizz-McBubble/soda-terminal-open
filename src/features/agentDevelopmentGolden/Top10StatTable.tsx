@@ -1,4 +1,4 @@
-import { useId, useState } from 'react'
+import { useId } from 'react'
 import {
   formatCharacterPanelValue,
   isCharacterPanelDetailRelevant,
@@ -26,39 +26,30 @@ function ComparisonStatTable({
   baselineAvailable,
   baselineLabel,
 }: Top10StatTableProps) {
-  const [expanded, setExpanded] = useState(false)
   const tableId = useId()
-  const detailsId = useId()
   const known = (value: number | undefined): value is number =>
     value !== undefined && Number.isFinite(value)
-  const changed = (key: string) => {
-    const before = data.baseline.finalStats[key]
-    const after = selectedRow?.finalStats[key]
-    return baselineAvailable && known(before) && known(after) && before !== after
-  }
   const visibleStats = data.allStats.filter(
-    (stat) => data.statPresentation !== 'static_panel' || !stat.detail || changed(stat.key),
+    (stat) =>
+      data.statPresentation !== 'static_panel' ||
+      isCharacterPanelDetailRelevant(
+        stat,
+        selectedRow?.finalStats[stat.key],
+        baselineAvailable ? data.baseline.finalStats[stat.key] : undefined,
+      ),
   )
-  const visibleKeys = new Set(visibleStats.map((stat) => stat.key))
-  const detailStats = data.allStats.filter((stat) => {
-    if (data.statPresentation !== 'static_panel' || visibleKeys.has(stat.key)) return false
-    const current = data.baseline.finalStats[stat.key]
-    const candidate = selectedRow?.finalStats[stat.key]
-    return isCharacterPanelDetailRelevant(stat, candidate, baselineAvailable ? current : undefined)
-  })
-  const groups = [
-    { key: 'primary', label: '基础与战斗' },
-    { key: 'supplementary', label: '辅助属性' },
-    { key: 'resource', label: '资源与循环' },
-  ] as const
-  const hasDetails = detailStats.length > 0
-  const valueText = (stat: GoldenTop10Data['allStats'][number], value: number | undefined) =>
-    !known(value)
-      ? '—'
-      : data.statPresentation === 'static_panel'
-        ? formatStat(Number.parseFloat(formatCharacterPanelValue(stat, value)), stat.unit)
-        : formatStat(value, stat.unit)
+  const valueText = (stat: GoldenTop10Data['allStats'][number], value: number | undefined) => {
+    if (!known(value)) return '—'
+    if (data.statPresentation !== 'static_panel') return formatStat(value, stat.unit)
+    return formatCharacterPanelValue(stat, value)
+  }
   const title = data.statPresentation === 'static_panel' ? '属性对比' : '副词条合计'
+  const deltaText = (stat: GoldenTop10Data['allStats'][number], delta: number | undefined) => {
+    if (delta === undefined) return '—'
+    if (data.statPresentation !== 'static_panel') return formatStat(delta, stat.unit, true)
+    const text = formatCharacterPanelValue(stat, delta, { isDelta: true })
+    return `${Number.parseFloat(text) > 0 ? '+' : ''}${text}`
+  }
   const renderTable = (
     stats: GoldenTop10Data['allStats'],
     details = false,
@@ -89,9 +80,12 @@ function ComparisonStatTable({
               const candidate = selectedRow?.finalStats[stat.key]
               const delta =
                 baselineAvailable && known(candidate) && known(current)
-                  ? candidate - current
+                  ? data.statPresentation === 'static_panel'
+                    ? Number.parseFloat(formatCharacterPanelValue(stat, candidate)) -
+                      Number.parseFloat(formatCharacterPanelValue(stat, current))
+                    : candidate - current
                   : undefined
-              const target = staticPanelTargetDisplay(stat.target)
+              const target = staticPanelTargetDisplay(stat.target)?.trim()
               return (
                 <div
                   role="row"
@@ -106,18 +100,14 @@ function ComparisonStatTable({
                   <strong role="cell" aria-label={stat.label}>
                     {stat.label}
                     {data.statPresentation !== 'disc_contribution' && target ? (
-                      <small className="comparison-priority-label">毕业推荐 {target}</small>
-                    ) : stat.highlight ? (
-                      <small className="comparison-priority-label">毕业推荐</small>
+                      <small className="comparison-priority-label">培养目标 {target}</small>
                     ) : null}
                   </strong>
                   {baselineAvailable ? (
                     <>
                       <span role="cell">{valueText(stat, current)}</span>
                       <b role="cell" className="comparison-stat-delta">
-                        {delta === undefined || delta === 0
-                          ? '—'
-                          : formatStat(delta, stat.unit, true)}
+                        {deltaText(stat, delta)}
                       </b>
                     </>
                   ) : null}
@@ -148,40 +138,9 @@ function ComparisonStatTable({
       {data.statPresentation === 'static_panel' ? (
         <header className="comparison-stats__attributes-header">
           <h2>{title}</h2>
-          {hasDetails ? (
-            <button
-              type="button"
-              aria-controls={detailsId}
-              aria-expanded={expanded}
-              onClick={() => setExpanded((current) => !current)}
-            >
-              {expanded ? '收起完整面板' : '查看完整面板'}
-            </button>
-          ) : null}
         </header>
       ) : null}
       {renderTable(visibleStats)}
-      {hasDetails ? (
-        <div
-          id={detailsId}
-          className="comparison-stats__expanded"
-          hidden={!expanded}
-          role="region"
-          aria-label="完整属性对比"
-        >
-          {groups.map((group) => {
-            const stats = detailStats.filter(
-              (stat) => (stat.group ?? 'supplementary') === group.key,
-            )
-            return stats.length ? (
-              <section key={group.key} className="comparison-stats__group" aria-label={group.label}>
-                <h3>{group.label}</h3>
-                {renderTable(stats, true, `${group.label}对比`)}
-              </section>
-            ) : null
-          })}
-        </div>
-      ) : null}
     </section>
   )
 }

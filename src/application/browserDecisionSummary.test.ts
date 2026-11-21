@@ -9,6 +9,8 @@ import { currentVersionProjection } from '../gameDataPacks/currentVersionProject
 import type { CurrentGameDataRuntimeSelection } from '../gameDataPacks/runtimeSelection'
 import { query } from './localCalculationQueryClient.testFixture'
 import { projectPublicCalculationResult } from './publicCalculationTransport'
+import { projectPublicDevelopmentFacts } from './publicPersonalDevelopmentTransport'
+import { acceptTeamRoutePresentation } from '../pages/publicTeamRoutePresentation'
 
 afterEach(() => vi.restoreAllMocks())
 
@@ -42,7 +44,7 @@ it('matches offline teams and opens details without rating or gear recalculation
   expect(summary.allocation.deferred).toBe(true)
   expect(
     summary.decisionAuthority.consumerRecommendations.every(
-      (row) => !row.metaCalibration.inference,
+      (row) => row.mechanicDiagnosticDeferred && !row.metaCalibration.inference,
     ),
   ).toBe(true)
   const runtime: CurrentGameDataRuntimeSelection = {
@@ -61,7 +63,13 @@ it('matches offline teams and opens details without rating or gear recalculation
   const compact = projectPublicCalculationResult('account_decision', run) as Record<string, unknown>
   expect(compact.input).toBeUndefined()
   expect(compact.snapshot).not.toHaveProperty('decisionAuthority.consumerRecommendations')
-  expect(compact).toHaveProperty('developmentWorkbenchPresentation.agents')
+  expect(compact.developmentDirectory).toMatchObject({
+    contract: 'soda-development-directory/v1',
+    runId: run.runId,
+    accountId: request.input.warehouse.accountId,
+    decisions: expect.arrayContaining([expect.objectContaining({ agentId: 'agent-alice' })]),
+  })
+  expect(compact).not.toHaveProperty('developmentWorkbenchPresentation')
   const captured = JSON.stringify(run.snapshot)
   const route = await client.queryTeamRoutePresentation({
     contractVersion: request.contractVersion,
@@ -69,16 +77,43 @@ it('matches offline teams and opens details without rating or gear recalculation
     runId: run.runId,
     candidateId: prior!.candidateId,
   })
-  expect(route.team).not.toBeNull()
+  expect(route.team).toMatchObject({ id: prior!.candidateId, agentIds: prior!.memberIds })
+  expect(route.teamRatingLabel).toBeTruthy()
   expect(route.mechanicDiagnostic).toBeNull()
   expect(ratingSpy).not.toHaveBeenCalled()
   expect(featureSpy).not.toHaveBeenCalled()
   expect(gearSpy).not.toHaveBeenCalled()
-  vi.restoreAllMocks()
-  expect(projectPublicCalculationResult('team_route_presentation', route)).toHaveProperty(
-    'mechanicDiagnostic',
-    route.mechanicDiagnostic,
-  )
+  const projectedRoute = projectPublicCalculationResult(
+    'team_route_presentation',
+    route,
+  ) as typeof route
+  expect(acceptTeamRoutePresentation(projectedRoute, route)).toMatchObject({
+    team: route.team,
+    teamRatingLabel: route.teamRatingLabel,
+    mechanicDiagnostic: null,
+  })
+  expect(
+    acceptTeamRoutePresentation(projectedRoute, { ...route, runId: 'different-run' }),
+  ).toBeNull()
+  const selection = {
+    agentId: 'agent-alice',
+    requestedPlanId: null,
+    candidateRank: null,
+    candidateLoadoutFingerprint: null,
+  }
+  const workbench = await client.queryDevelopmentWorkbenchFacts!({
+    contractVersion: request.contractVersion,
+    kind: 'development_workbench_facts',
+    operationId: 'alice-facts',
+    input: request.input,
+    selection,
+  })
+  expect(projectPublicDevelopmentFacts(workbench)).toMatchObject({
+    status: 'ready',
+    authority: 'not_evaluated',
+    accountId: request.input.warehouse.accountId,
+    selection,
+  })
   expect(JSON.stringify(run.snapshot)).toBe(captured)
   expect(JSON.stringify(input)).toBe(before)
   client.releaseAccountDecisionRun!(run.runId)

@@ -46,7 +46,7 @@ describe('asset snapshot local candidate adapter', () => {
     expect(input).toEqual(before)
   })
   it.each(['A', 'B'] as const)(
-    'accepts legal %s discs while keeping mixed-grade equipment unsupported',
+    'accepts legal %s discs and preserves mixed-grade equipment identities',
     (rarity) => {
       const input = fixture()
       const rules = rawDiscData.rules
@@ -80,10 +80,11 @@ describe('asset snapshot local candidate adapter', () => {
       const result = convertAssetSnapshot(input, context)
       expect(result.issues).toEqual([])
       expect(result.importable).toBe(true)
-      expect(result.discs.discs).toHaveLength(1)
+      expect(result.discs.discs).toHaveLength(2)
       expect(result.discs.discs[0].rarity).toBe('S')
-      expect(result.agents[0].observedFields).not.toContain('equippedDiscIds')
-      expect(result.warnings?.some((warning) => warning.includes('A/B'))).toBe(true)
+      expect(result.discs.discs[1].rarity).toBe(rarity)
+      expect(result.agents[0].observedFields).toContain('equippedDiscIds')
+      expect(result.agents[0].equippedSourceIds).toContain('asset-quick-read:990002')
     },
   )
   it('refuses conversion when the validated public disc projection is unavailable', () => {
@@ -168,34 +169,39 @@ describe('asset snapshot local candidate adapter', () => {
     expect(identities.discs).toEqual(
       discCatalog.items.map((row) => ({ gameId: row.gameId, id: row.stableId })),
     )
-    expect(identities.engines).toEqual(
-      engineCatalog.items.map((row) => ({
-        gameId: row.gameId,
-        id: row.stableId,
-        name: row.playerName,
-      })),
+    expect([...identities.engines].sort(byGameId)).toEqual(
+      engineCatalog.items
+        .map((row) => ({
+          gameId: row.gameId,
+          id: row.stableId,
+          name: row.playerName,
+        }))
+        .sort(byGameId),
     )
   })
-  it('maps released 3.3 identities in the retained synthetic CN3.2 envelope without claiming native verification', () => {
-    expect(identities.agents).toHaveLength(61)
-    expect(identities.engines).toHaveLength(101)
-    expect(identities.agents.some((row) => row.gameId === '1631')).toBe(false)
-    expect(identities.engines.some((row) => ['14163', '13022'].includes(row.gameId))).toBe(false)
-    const input = fixture()
-    input.assets.agents[0].catalog_id = present(1641)
-    input.assets.engines[0].catalog_id = present(14164)
-    const before = structuredClone(input)
-    const candidate = convertAssetSnapshot(input, context)
-    expect(candidate.issues).toEqual([])
-    expect(candidate.importable).toBe(true)
-    expect(candidate.protocolVersion).toBe('3.2')
-    expect(candidate.agents[0]).toMatchObject({
-      agentId: 'agent-phoenix',
-      fields: { wEngineDetails: { id: 'wengine-14164', name: '涅槃初翎' } },
-    })
-    expect(candidate.fullInventoryVerified).toBe(false)
-    expect(input).toEqual(before)
-  })
+  it.each([
+    { agentGameId: 1641, agentId: 'agent-phoenix', engineGameId: 14164, engineName: '涅槃初翎' },
+    { agentGameId: 1421, agentId: 'agent-pan-yinhu', engineGameId: 13022, engineName: '烛光诡计' },
+    { agentGameId: 1631, agentId: 'agent-severian', engineGameId: 14163, engineName: '禁罪囚笼' },
+  ])(
+    'maps released 3.3 engine $engineGameId in the retained synthetic CN3.2 envelope without claiming native verification',
+    ({ agentGameId, agentId, engineGameId, engineName }) => {
+      const input = fixture()
+      input.assets.agents[0].catalog_id = present(agentGameId)
+      input.assets.engines[0].catalog_id = present(engineGameId)
+      const before = structuredClone(input)
+      const candidate = convertAssetSnapshot(input, context)
+      expect(candidate.issues).toEqual([])
+      expect(candidate.importable).toBe(true)
+      expect(candidate.protocolVersion).toBe('3.2')
+      expect(candidate.agents[0]).toMatchObject({
+        agentId,
+        fields: { wEngineDetails: { id: `wengine-${engineGameId}`, name: engineName } },
+      })
+      expect(candidate.fullInventoryVerified).toBe(false)
+      expect(input).toEqual(before)
+    },
+  )
   it('converts percent rolls and equipped details without exporting inventory or completeness authority', () => {
     const candidate = convertAssetSnapshot(fixture(), context)
     expect(candidate.issues).toEqual([])

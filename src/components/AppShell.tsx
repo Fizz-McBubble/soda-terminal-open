@@ -31,6 +31,7 @@ import { F5VisualShell } from './F5VisualShell'
 import { F5AccountSummaryProvider } from './f5AccountSummaryContext'
 import { OnlineCalculationConsent } from './OnlineCalculationConsent'
 import { ensureOfficialCatalogInstalled } from '../assets/visualAssetInstallCoordinator'
+import { readEntryState } from '../application/entryReadState'
 
 export function AppShell({
   navigationPending = false,
@@ -43,54 +44,67 @@ export function AppShell({
 }) {
   const [appSessionId] = useState(() => crypto.randomUUID())
   const location = useLocation()
-  const { currentVersion, dataStatus, databaseError, databaseStatus } = useAppHealth()
+  const { currentVersion, dataStatus, databaseStatus, retryDatabaseInitialization } = useAppHealth()
   const { sidebarOpen, toggleSidebar, closeSidebar } = useUiStore()
   const routeMeta = getRouteMeta(location.pathname)
-  const accountSummary = useLiveQuery(
+  const [accountReadRevision, setAccountReadRevision] = useState(0)
+  const accountRead = useLiveQuery(
     async () =>
       databaseStatus === 'ready'
-        ? database.transaction(
-            'r',
-            [
-              database.settings,
-              database.accounts,
-              database.accountDriveDiscs,
-              database.accountRosters,
-            ],
-            async () => {
-              const [account, accountDiagnostic] = await Promise.all([
-                getActiveAccount(),
-                getAccountSelectionDiagnostic(),
-              ])
-              if (!account)
-                return {
-                  accountId: null,
-                  name: '',
-                  discCount: 0,
-                  agentCount: 0,
-                  hasAccount: false,
-                  accountDiagnostic,
-                }
-              const [discCount, roster] = await Promise.all([
-                database.accountDriveDiscs.where('accountId').equals(account.id).count(),
-                getAccountRoster(account.id),
-              ])
-              return {
-                accountId: account.id,
-                name: account.displayName,
-                discCount,
-                agentCount: roster.agents.filter((agent) => agent.owned).length,
-                hasAccount: true,
-                accountDiagnostic,
-              }
-            },
+        ? readEntryState(
+            () =>
+              database.transaction(
+                'r',
+                [
+                  database.settings,
+                  database.accounts,
+                  database.accountDriveDiscs,
+                  database.accountRosters,
+                ],
+                async () => {
+                  const [account, accountDiagnostic] = await Promise.all([
+                    getActiveAccount(),
+                    getAccountSelectionDiagnostic(),
+                  ])
+                  if (!account)
+                    return {
+                      accountId: null,
+                      name: '',
+                      discCount: 0,
+                      agentCount: 0,
+                      hasAccount: false,
+                      accountDiagnostic,
+                    }
+                  const [discCount, roster] = await Promise.all([
+                    database.accountDriveDiscs.where('accountId').equals(account.id).count(),
+                    getAccountRoster(account.id),
+                  ])
+                  return {
+                    accountId: account.id,
+                    name: account.displayName,
+                    discCount,
+                    agentCount: roster.agents.filter((agent) => agent.owned).length,
+                    hasAccount: true,
+                    accountDiagnostic,
+                  }
+                },
+              ),
+            '暂时无法读取本地账户，原资料保留。',
           )
         : undefined,
-    [databaseStatus],
+    [databaseStatus, accountReadRevision],
   )
-  const systemReady = dataStatus === 'ready' && databaseStatus === 'ready'
-  const systemFailed = dataStatus === 'error' || databaseStatus === 'error'
-  const accountHydrating = accountSummary === undefined
+  const accountSummary = accountRead?.status === 'ready' ? accountRead.data : undefined
+  const accountStatus: 'loading' | 'ready' | 'error' =
+    databaseStatus === 'error' || accountRead?.status === 'error'
+      ? 'error'
+      : databaseStatus !== 'ready' || accountSummary === undefined
+        ? 'loading'
+        : 'ready'
+  const accountHydrating = accountStatus === 'loading'
+  const systemReady =
+    dataStatus === 'ready' && databaseStatus === 'ready' && accountStatus !== 'error'
+  const systemFailed = dataStatus === 'error' || accountStatus === 'error'
   const browsePositions = useRef(new Map<string, { frame: number; content: number }>())
   const browsePositionKey = [
     '/development',
@@ -196,6 +210,7 @@ export function AppShell({
   }, [location.pathname])
 
   useEffect(() => {
+    if (location.state?.preserveWorkbenchPosition) return
     const focusHeading = (force = false) => {
       if (document.querySelector('dialog[open], [role="dialog"][aria-modal="true"]')) return false
       const heading = document.querySelector<HTMLElement>('main h1')
@@ -226,11 +241,12 @@ export function AppShell({
       window.cancelAnimationFrame(frame)
       observer?.disconnect()
     }
-  }, [location.pathname, location.search])
+  }, [location.pathname, location.search, location.state?.preserveWorkbenchPosition])
 
   if (isF5Slice) {
     const f5AccountSummary = {
       hydrating: accountHydrating,
+      status: accountStatus,
       appSessionId,
       accountId: accountSummary?.accountId ?? null,
       name: accountSummary?.name ?? '',
@@ -255,10 +271,24 @@ export function AppShell({
           {databaseStatus === 'error' ? (
             <section className="database-error-banner" role="alert">
               <strong>本地档案库未能安全打开</strong>
-              <span>{databaseError ?? '数据库初始化或迁移失败。'}</span>
+              <span>数据库初始化或迁移失败。</span>
               <p>现有数据不会被当作空仓库覆盖。请保留当前浏览器数据并重试，必要时联系支持恢复。</p>
+              {retryDatabaseInitialization && (
+                <button type="button" onClick={retryDatabaseInitialization}>
+                  重试读取
+                </button>
+              )}
             </section>
           ) : null}
+          {databaseStatus === 'ready' && accountRead?.status === 'error' && (
+            <section className="database-error-banner" role="alert">
+              <strong>{accountRead.message}</strong>
+              <button type="button" onClick={() => setAccountReadRevision((value) => value + 1)}>
+                重试读取
+              </button>
+              <Link to="/assets/account">查看账户与备份</Link>
+            </section>
+          )}
           {dataStatus === 'error' ? (
             <section className="database-error-banner" role="alert">
               <strong>游戏数据未能安全加载</strong>
@@ -392,7 +422,7 @@ export function AppShell({
           {databaseStatus === 'error' && (
             <section className="database-error-banner" role="alert">
               <strong>本地档案库未能安全打开</strong>
-              <span>{databaseError ?? '数据库初始化或迁移失败。'}</span>
+              <span>数据库初始化或迁移失败。</span>
               <p>现有数据不会被当作空仓库覆盖。请保留当前浏览器数据并重试，必要时联系支持恢复。</p>
             </section>
           )}

@@ -110,6 +110,13 @@ export interface GameRules {
   readonly mainStatsBySlot: Readonly<Record<string, readonly string[]>>
   readonly rarities: Readonly<Record<string, RarityRules>>
 }
+export interface RetentionBranchSetPlan {
+  readonly pattern: '4+2' | '2+2+2' | '4+unconfirmed'
+  readonly primarySetIds: readonly string[]
+  readonly secondarySetIds: readonly string[]
+  readonly purpose?: 'recommended' | 'conditional' | 'transition' | 'historical'
+  readonly sourceText?: string
+}
 export interface Profile {
   readonly id: string
   readonly agentId: string
@@ -118,8 +125,12 @@ export interface Profile {
   /** A team- or potential-gated branch remains separate and cannot prove current use. */
   readonly availability?: Applicability
   readonly mainAvailability?: Applicability
+  /** A sourced alternative for one main-stat slot must not create uses on other slots. */
+  readonly restrictedSlots?: readonly number[]
   /** Separate builds MUST be separate profiles; never union their stat weights. */
   readonly weights: StatWeights
+  /** Sourced set identities for this branch; omitted means the set plan is unknown. */
+  readonly branchSetPlan?: RetentionBranchSetPlan
   readonly goal?: 'crit_damage' | 'anomaly_damage' | 'functional' | 'unknown'
   readonly coreStats?: readonly string[]
   readonly weightEvidence?: {
@@ -202,8 +213,12 @@ export interface QualityEvidence {
   readonly profileId: string
   readonly agentId: string
   readonly sourceIds: readonly string[]
+  readonly branchSetPlan?: RetentionBranchSetPlan
   readonly mainFit: Applicability
+  /** Effect utility only; it does not prove this set belongs to a recommended branch. */
   readonly setFit: Applicability
+  /** Exact recommendation branch membership for this set and corresponding piece use. */
+  readonly recommendationSetFit: Applicability
   readonly twoPieceFit: Applicability
   readonly fourPieceFit: Applicability
   readonly currentScore: number

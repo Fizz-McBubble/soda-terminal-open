@@ -33,6 +33,7 @@ import { PrepareChecklist } from './ScannerPrepareChecklist'
 import { ScannerGuide } from './ScannerGuide'
 import { ScannerWorkbenchNavigation } from './ScannerWorkbenchGuides'
 import { ScannerMethodSteps } from './ScannerMethodSteps'
+import { VisualEntityImage } from '../components/VisualEntityImage'
 import { ScannerImportHistory, ScannerUndoImportAction } from './ScannerImportHistory'
 import { focusScannerWorkspaceTarget, navigateScannerWorkspace } from './scannerWorkbenchNavigation'
 import { ScannerHandoffSection } from './ScannerHandoffSection'
@@ -831,7 +832,20 @@ function HydratedScannerAssistantPage({
                     >
                       <header className="scanner-workbench__method-heading">
                         <h3 id="scanner-method-heading">
-                          <ScanLine size={22} aria-hidden="true" />
+                          <span className="scanner-workbench__guide-mark" aria-hidden="true">
+                            <ScanLine size={21} />
+                            {!methodActive &&
+                            import.meta.env.VITE_SODA_PUBLIC_BUILD !== 'true' &&
+                            import.meta.env.VITE_SODA_COMMUNITY_BUILD !== 'true' ? (
+                              <VisualEntityImage
+                                entityType="bangboo"
+                                entityId="bangboo-exploreboo"
+                                name="寻宝布"
+                                slotId="bangboo.scanner-guide"
+                                consumer="scanner.preparation"
+                              />
+                            ) : null}
+                          </span>
                           画面扫描
                         </h3>
                         <ScannerGuide />

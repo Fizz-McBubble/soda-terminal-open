@@ -20,15 +20,18 @@ export function resolveTargetTeamFitEntry(
           (candidate) => [...candidate.memberIds].sort().join('|') === memberKey,
         )
       : []
-  const authorityCandidate = authorityCandidates.find(
+  const matchingCandidates = authorityCandidates.filter(
     (candidate) => candidate.bangbooId === team?.bangbooId,
   )
+  const authorityCandidate =
+    matchingCandidates.find((candidate) => candidate.candidateId === candidateId) ??
+    (matchingCandidates.length === 1 ? matchingCandidates[0] : undefined)
   const engineCandidate = decision.teamEngine.recommendations.find(
     (candidate) => candidate.candidateId === team?.id,
   )
   const targetCandidateId = authorityCandidate?.candidateId ?? engineCandidate?.candidateId ?? null
   const playerConfirmableBangbooInput =
-    team && !team.bangbooId && !authorityCandidate?.authorComparisonMembership
+    team && !team.bangbooId && (!authorityCandidate?.authorComparisonMembership || authorityCandidate.authorComparisonMembership.independentDefaultAdmission)
       ? {
           memberIds: team.agentIds as [string, string, string],
           primaryBangbooId: engineCandidate ? (sourceBangbooId(engineCandidate) ?? '') : '',
