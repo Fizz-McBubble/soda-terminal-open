@@ -36,7 +36,7 @@ export function publicSavedTeamRatingLabel(input: Pick<SavedRatingInput, 'plan' 
     plan.selection.agentIds.length !== 3 ||
     new Set(publicItem.agentIds).size !== 3 ||
     publicItem.agentIds.some((id) => !plan.selection.agentIds.includes(id)) ||
-    !graduatedTeamRatingBands.some(band => band === publicItem.teamRatingBand) ||
+    !graduatedTeamRatingBands.some((band) => band === publicItem.teamRatingBand) ||
     publicItem.confidence === 'experimental' ||
     publicItem.mechanicValidity === 'invalid' ||
     (publicItem.recommendationScore != null &&
