@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "files": {
     ".gitattributes": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da",
-    ".github/workflows/ci.yml": "89fae929de28b8c1650f8f0a0c0d9196d6e95e7ed7ed49a3e981a6973bda928d",
+    ".github/workflows/ci.yml": "bb0c36a0c2bffdbf288fe195776e2b7091a42883e77138b8aabb4e1216cc26f2",
     ".gitignore": "cd29b691d6bb69a1d0e50d3e54a71a202146d9f724ca3bf2494148c317ad30e0",
     "build/boxStartupIndexAliases.ts": "55aea362ef82ee53d78cb7bff7c92b805cf2b282a4fa22c8cce8cf5ab881bf0f",
     "build/catalogCodeSplitting.ts": "f3778080d0651e5f411c01b30b704812c96c5c3d0f9dc1b90c1e114057c4559d",
