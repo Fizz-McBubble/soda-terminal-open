@@ -46,12 +46,20 @@
     var(--f5-paper);
 }
 
+.f5v-workspace-color-field {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  contain: paint;
+  overflow: clip;
+  pointer-events: none;
+}
+
 /* Primary melodic voice (16s): weighted downbeat crest at upper-right and calm paper shield at center. */
-.f5v-content::before {
+.f5v-workspace-color-field::before {
   content: '';
   position: absolute;
   inset: -4%;
-  z-index: -1;
   pointer-events: none;
   background:
     radial-gradient(
@@ -73,11 +81,10 @@
 }
 
 /* Secondary harmonic overtone (24s, 2:3 fifth ratio): diagonal brand-purple phrasing across margins. */
-.f5v-content::after {
+.f5v-workspace-color-field::after {
   content: '';
   position: absolute;
   inset: -6%;
-  z-index: -1;
   pointer-events: none;
   background:
     radial-gradient(
@@ -118,11 +125,11 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  .f5v-content::before {
+  .f5v-workspace-color-field::before {
     animation: soda-workspace-color 16s ease-in-out infinite;
     animation-play-state: var(--signal-play-state, running);
   }
-  .f5v-content::after {
+  .f5v-workspace-color-field::after {
     animation: soda-workspace-harmonic 24s ease-in-out -6s infinite;
     animation-play-state: var(--signal-play-state, running);
   }

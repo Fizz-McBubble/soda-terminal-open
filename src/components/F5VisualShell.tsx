@@ -343,6 +343,7 @@ function F5VisualShellContent({
       ) : null}
 
       <div className="f5v-content" inert={navigationDialogOpen}>
+        <div className="f5v-workspace-color-field" aria-hidden="true" />
         <header className="f5v-topbar">
           <button
             ref={menuRef}

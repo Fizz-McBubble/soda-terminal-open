@@ -11,6 +11,7 @@ export type TeamRotationSummarySource = {
     memberIds: readonly string[]
     primaryAgentId: string
     opening: string
+    handoff?: string
     loop: string
     burst: string
     evidence: { axisSha256: string; policySha256: string }
@@ -23,15 +24,28 @@ export function presentTeamRotationSummary(
   source: TeamRotationSummarySource = reviewed,
 ) {
   const play = item.playDirection
-  if (!play || source.contract !== 'team-rotation-summaries/v1' ||
-      source.gameVersion !== currentVersionProjection.gameVersion) return null
+  if (
+    !play ||
+    source.contract !== 'team-rotation-summaries/v1' ||
+    source.gameVersion !== currentVersionProjection.gameVersion
+  )
+    return null
   const members = [...item.agentIds].sort().join('|')
-  if (item.agentIds.length !== 3 || new Set(item.agentIds).size !== 3 ||
-      [...play.memberIds].sort().join('|') !== members) return null
+  if (
+    item.agentIds.length !== 3 ||
+    new Set(item.agentIds).size !== 3 ||
+    [...play.memberIds].sort().join('|') !== members
+  )
+    return null
   const id = canonicalTeamPlayIdentity(play)
-  const matches = source.rows.filter(row => row.playId === id &&
-    row.memberIds.length === 3 && new Set(row.memberIds).size === 3 &&
-    [...row.memberIds].sort().join('|') === members && row.primaryAgentId === play.primaryOutputAgentId &&
-    [row.opening, row.loop, row.burst].every(text => typeof text === 'string' && text.trim()))
+  const matches = source.rows.filter(
+    (row) =>
+      row.playId === id &&
+      row.memberIds.length === 3 &&
+      new Set(row.memberIds).size === 3 &&
+      [...row.memberIds].sort().join('|') === members &&
+      row.primaryAgentId === play.primaryOutputAgentId &&
+      [row.opening, row.loop, row.burst].every((text) => typeof text === 'string' && text.trim()),
+  )
   return matches.length === 1 ? matches[0]! : null
 }

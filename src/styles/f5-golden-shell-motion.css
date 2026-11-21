@@ -94,7 +94,7 @@
   }
   50% {
     opacity: 0.88;
-    transform: translate3d(1.5%, 0, 0) scaleX(1);
+    transform: translate3d(1.5%, 0, 0) scaleX(0.97);
   }
 }
 

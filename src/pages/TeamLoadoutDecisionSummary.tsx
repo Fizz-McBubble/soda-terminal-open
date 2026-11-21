@@ -2,7 +2,10 @@ import type { TeamLoadoutOverviewItem } from './teamLoadoutOverviewTypes'
 import { presentTeamDecision } from './teamLoadoutVisibleDecisionText'
 import type { TeamDecisionPresentation } from './teamLoadoutVisibleDecisionText'
 import { DecisionConditions } from '../components/DecisionConditions'
-import { presentTeamRotationSummary, type TeamRotationSummarySource } from './teamRotationSummaryPresentation'
+import {
+  presentTeamRotationSummary,
+  type TeamRotationSummarySource,
+} from './teamRotationSummaryPresentation'
 
 function isGenericPotentialCycleClause(clause: string) {
   const compact = clause.replace(/\s+/gu, '')
@@ -73,9 +76,24 @@ export function TeamLoadoutDecisionSummary({
       {rotation ? (
         <div className="f5v-box-team-rotation-summary">
           <h3>输出手法</h3>
-          <p><strong>开场：</strong>{rotation.opening}</p>
-          <p><strong>循环：</strong>{rotation.loop}</p>
-          <p><strong>爆发：</strong>{rotation.burst}</p>
+          <p>
+            <strong>开场：</strong>
+            {rotation.opening}
+          </p>
+          {rotation.handoff?.trim() ? (
+            <p>
+              <strong>交接：</strong>
+              {rotation.handoff}
+            </p>
+          ) : null}
+          <p>
+            <strong>循环：</strong>
+            {rotation.loop}
+          </p>
+          <p>
+            <strong>爆发：</strong>
+            {rotation.burst}
+          </p>
         </div>
       ) : null}
     </section>

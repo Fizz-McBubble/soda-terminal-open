@@ -62,7 +62,7 @@ describe('F5 musical workstation polish and style boundary', () => {
       expect(css).toContain('@media (prefers-reduced-motion: no-preference)')
       expect(css).toContain('animation-play-state: var(--signal-play-state, running)')
     }
-    expect(fieldCss).toContain('.f5v-content::after')
+    expect(fieldCss).toContain('.f5v-workspace-color-field::after')
     expect(cadenceCss).toContain('@media (hover: none)')
   })
 
