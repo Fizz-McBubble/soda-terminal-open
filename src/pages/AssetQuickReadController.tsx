@@ -674,6 +674,7 @@ function AccountBoundQuickRead({
       riskNoticeHref={riskNoticeHref}
       blocked={blocked || operation !== null || restoring || selecting || downloading}
       capability={connected ? 'ready' : 'unavailable'}
+      connectedBridgeVersion={connected ? toolVersion : undefined}
       state={state}
       installationDirectory={directory}
       onDirectoryChange={changeDirectory}

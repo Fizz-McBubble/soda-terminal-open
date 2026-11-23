@@ -736,6 +736,7 @@ function HydratedScannerAssistantPage({
                 <ScannerWorkbenchNavigation />
                 <section
                   id="scanner-target"
+                  tabIndex={-1}
                   className="scanner-workbench__target"
                   aria-label="本次操作目标账户"
                 >

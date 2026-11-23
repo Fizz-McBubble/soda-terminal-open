@@ -21,7 +21,7 @@ export function AssetQuickReadGuide() {
             本机游戏。下载并安装资产快读，返回本页连接。填写游戏目录；不确定路径时，使用输入框旁的“如何查找”。
             {assetQuickReadRelease.version === '1.2.0' &&
               assetQuickReadRelease.bridgeVersion === '1.1.0' &&
-              ` 当前公开安装包（${assetQuickReadRelease.version} / Bridge ${assetQuickReadRelease.bridgeVersion}）仅支持国服 3.2；国服 3.3 客户端读取需等待新版发布，已有读取结果仍可查看与恢复。`}
+              ` 当前公开安装包（${assetQuickReadRelease.version} / Bridge ${assetQuickReadRelease.bridgeVersion}）支持国服 3.2。已有读取结果仍可查看与恢复。`}
           </dd>
         </div>
         <div>

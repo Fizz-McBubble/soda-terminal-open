@@ -8,7 +8,9 @@ import {
 
 it('keeps the persistent risk notice to one statement with details and official terms', () => {
   render(<AssetCaptureRiskNotice />)
-  const notice = screen.getByRole('complementary', { name: '非官方工具风险提示' })
+  const notice = screen.getByRole('complementary', {
+    name: '非官方工具风险提示',
+  })
   expect(notice).toHaveTextContent('存在账号处罚风险，无法保证账号安全')
   expect(notice.querySelectorAll(':scope > p')).toHaveLength(1)
   expect(within(notice).getByRole('button', { name: '风险说明' })).toBeInTheDocument()
@@ -30,9 +32,7 @@ it('compares only the scope, prerequisites and limits players need to choose a m
   expect(scan).toHaveTextContent('代理人养成与音擎沿用你在资产中填写的信息')
   expect(quick).toHaveTextContent('从当前装备出发，对比换装后的面板和近似输出')
   expect(quick).toHaveTextContent('未读到的潜能保留原值')
-  expect(quick).toHaveTextContent(
-    '当前公开安装包（1.2.0）仅支持国服 3.2，国服 3.3 读取需等待新版发布',
-  )
+  expect(quick).toHaveTextContent('当前公开安装包（1.2.0）支持国服 3.2')
   expect(quick).not.toHaveTextContent('游戏面板校对')
   expect(within(quick).queryByRole('button', { name: '测试版' })).not.toBeInTheDocument()
   expect(screen.queryByRole('heading', { name: '能帮你做什么' })).not.toBeInTheDocument()

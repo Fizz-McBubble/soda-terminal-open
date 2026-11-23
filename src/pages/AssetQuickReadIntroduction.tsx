@@ -45,29 +45,39 @@ export function AssetQuickReadProgress({ currentStep }: { currentStep: number })
   )
 }
 
-export function AssetQuickReadScope({ renderParts }: { renderParts: boolean }) {
+export function AssetQuickReadScope({
+  renderParts,
+  connectedBridgeVersion,
+}: {
+  renderParts: boolean
+  connectedBridgeVersion?: string
+}) {
+  const connectedFor33 = connectedBridgeVersion === '1.1.1'
+  const olderPublicDownload =
+    assetQuickReadRelease.version === '1.2.0' && assetQuickReadRelease.bridgeVersion === '1.1.0'
+  const compatibility = connectedFor33
+    ? '已连接本机快读，支持国服 3.3。'
+    : olderPublicDownload
+      ? '官网下载版 1.2.0 支持国服 3.2。'
+      : null
   return (
     <>
       {renderParts ? (
-        <>
-          <p className="scanner-workbench__scope">
-            驱动盘 · 代理人养成 <span className="scanner-workbench__metric">一键读取</span>
-          </p>
-          {assetQuickReadRelease.version === '1.2.0' &&
-            assetQuickReadRelease.bridgeVersion === '1.1.0' && (
-              <p className="asset-quick-read__muted">
-                当前公开包（{assetQuickReadRelease.version}）仅支持国服 3.2；国服 3.3
-                读取需等待新版发布，已有结果仍可查看与恢复。
-              </p>
-            )}
-        </>
+        <p className="scanner-workbench__scope">
+          驱动盘 · 代理人养成{' '}
+          <span className="scanner-workbench__metric">
+            {connectedFor33
+              ? '本机支持国服 3.3'
+              : olderPublicDownload
+                ? '官网下载版支持国服 3.2'
+                : '一键读取'}
+          </span>
+        </p>
       ) : (
         <p>
           读取已拥有代理人的真实养成和驱动盘。配装与分析只使用 S 级，A/B
           级记录会保留。当前已装备音擎详情用于现有配装，不建立音擎或邦布库存。
-          {assetQuickReadRelease.version === '1.2.0' &&
-            assetQuickReadRelease.bridgeVersion === '1.1.0' &&
-            ` 当前公开安装包（${assetQuickReadRelease.version}）仅支持国服 3.2；国服 3.3 读取需等待新版发布，已有结果仍可查看与恢复。`}
+          {compatibility && ` ${compatibility}`}
         </p>
       )}
     </>

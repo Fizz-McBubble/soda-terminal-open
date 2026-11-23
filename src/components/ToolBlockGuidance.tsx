@@ -67,8 +67,7 @@ export function ToolBlockGuidance({
       {!isScanner && isAssetCn32Only && (
         <p className="tool-block-guidance__versions">
           当前公开资产快读（{assetQuickReadRelease.version} / Bridge{' '}
-          {assetQuickReadRelease.bridgeVersion}）仅支持国服 3.2；国服 3.3
-          客户端读取需等待新版发布，旧读取结果仍可查看与恢复。
+          {assetQuickReadRelease.bridgeVersion}）支持国服 3.2。已有读取结果仍可查看与恢复。
         </p>
       )}
     </>

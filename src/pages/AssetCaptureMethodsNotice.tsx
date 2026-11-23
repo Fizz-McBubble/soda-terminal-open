@@ -98,7 +98,7 @@ export function AssetCaptureMethodsNotice() {
             <li>
               {assetQuickReadRelease.version === '1.2.0' &&
               assetQuickReadRelease.bridgeVersion === '1.1.0'
-                ? `未读到的潜能保留原值；当前公开安装包（${assetQuickReadRelease.version}）仅支持国服 3.2，国服 3.3 读取需等待新版发布（仍可查看或导入已有 JSON 结果）。`
+                ? `未读到的潜能保留原值；当前公开安装包（${assetQuickReadRelease.version}）支持国服 3.2，已有 JSON 结果仍可查看或导入。`
                 : '未读到的潜能保留原值；游戏更新后可能需等待适配。'}
             </li>
           </ul>

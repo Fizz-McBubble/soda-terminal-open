@@ -82,7 +82,11 @@ export function registerScannerCompletedResultTests({
     expect(await screen.findByRole('textbox', { name: '新账户名称' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '创建并选用' })).toBeDisabled()
     expect(screen.getByRole('heading', { name: '画面扫描已连接' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '开始扫描' })).toBeDisabled()
+    expect(screen.getByRole('link', { name: '选择目标账户' })).toHaveAttribute(
+      'href',
+      '#scanner-target',
+    )
+    expect(screen.queryByRole('button', { name: '开始扫描' })).not.toBeInTheDocument()
     rendered.unmount()
     render(<App />)
     expect(await screen.findByRole('textbox', { name: '新账户名称' })).toBeInTheDocument()

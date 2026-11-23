@@ -27,7 +27,9 @@ import { choosePlayerSelect } from '../testing/choosePlayerSelect'
 import * as pendingResults from '../assetQuickRead/pendingResult'
 
 vi.mock('../components/ExplanationPopover', () => import('../testing/ExplanationPopoverStub'))
-const runtimeState = vi.hoisted(() => ({ snapshot: {} as Record<string, unknown> }))
+const runtimeState = vi.hoisted(() => ({
+  snapshot: {} as Record<string, unknown>,
+}))
 const releaseStateFixture = vi.hoisted(() => ({
   override: null as null | 'published' | 'not_published',
 }))
@@ -40,7 +42,10 @@ vi.mock('../scanner/distribution', async (importOriginal) => {
 })
 const commands = createScannerRuntimeCommands(vi.fn)
 vi.mock('../scanner/runtime', () => ({
-  useScannerAssistantRuntime: () => ({ snapshot: runtimeState.snapshot, commands }),
+  useScannerAssistantRuntime: () => ({
+    snapshot: runtimeState.snapshot,
+    commands,
+  }),
 }))
 const bridge = vi.hoisted(() => ({
   connect: vi.fn(),
@@ -67,7 +72,9 @@ beforeEach(async () => {
   vi.stubGlobal('crypto', webcrypto)
   await resetScannerPageTestDatabase()
   await createAccount('合成主账户', database, { id: accountId })
-  await createAccount('合成备用账户', database, { id: 'account-workbench-other' })
+  await createAccount('合成备用账户', database, {
+    id: 'account-workbench-other',
+  })
   await setActiveAccount(accountId, database)
   runtimeState.snapshot = createScannerRuntimeSnapshot('ready')
   bridge.connect.mockResolvedValue({})
@@ -118,7 +125,12 @@ it('returns a partial native scan to preparation without importing or restarting
   runtimeState.snapshot = {
     ...failed,
     readiness: { ...failed.readiness, helperConnected: true },
-    progress: { processed: 27, total: 381, stageLabel: '读取中断', etaSeconds: null },
+    progress: {
+      processed: 27,
+      total: 381,
+      stageLabel: '读取中断',
+      etaSeconds: null,
+    },
     error: {
       userMessage: '翻行后仓库位置未能确认。',
       recoveryAction: 'retry',
@@ -169,10 +181,13 @@ it('shows an empty target selector beside account creation before allowing acqui
   expect(within(target).getByRole('combobox', { name: '目标账户' })).toBeDisabled()
   expect(within(target).getByRole('combobox')).toHaveTextContent('请先创建账户')
   expect(within(target).getByLabelText('新账户名称')).toBeVisible()
-  expect(screen.getByRole('button', { name: '开始扫描' })).toBeDisabled()
+  const scan = screen.getByRole('link', { name: '选择目标账户' })
+  expect(scan).toHaveAttribute('href', '#scanner-target')
+  fireEvent.click(scan)
+  expect(target).toHaveFocus()
   await act(async () => fireEvent.click(screen.getByRole('button', { name: '连接资产快读' })))
-  const readAction = screen.queryByRole('button', { name: '一键读取' })
-  if (readAction) expect(readAction).toBeDisabled()
+  expect(screen.getAllByRole('link', { name: '选择目标账户' })).toHaveLength(2)
+  expect(screen.queryByRole('button', { name: '一键读取' })).not.toBeInTheDocument()
   expect(bridge.start).not.toHaveBeenCalled()
 })
 
@@ -232,7 +247,9 @@ it('recognizes a synthetic quick snapshot from the shared file without connectin
   fireEvent.change(screen.getByLabelText('选择本机文件（JSON）'), {
     target: { files: [quickFile()] },
   })
-  const task = await screen.findByRole('region', { name: '资产快读操作与结果' })
+  const task = await screen.findByRole('region', {
+    name: '资产快读操作与结果',
+  })
   await within(task).findByRole('heading', { name: '本次读取结果' })
   await waitFor(() =>
     expect(within(task).getByRole('heading', { name: '本次读取结果' })).toHaveFocus(),
@@ -271,7 +288,9 @@ it('keeps an existing installer download mounted and cancellable when a quick fi
   const before = await facts()
   await showPage()
   fireEvent.click(screen.getByRole('button', { name: '下载画面扫描' }))
-  const progress = await screen.findByRole('progressbar', { name: '画面扫描下载进度' })
+  const progress = await screen.findByRole('progressbar', {
+    name: '画面扫描下载进度',
+  })
   const cancel = screen.getByRole('button', { name: '取消下载' })
   fireEvent.change(screen.getByLabelText('选择本机文件（JSON）'), {
     target: { files: [quickFile()] },
@@ -372,8 +391,20 @@ it('automatically imports newer observed progression and current equipment over 
     level: 40,
     ascension: 3,
     mindscape: 2,
-    skillLevels: { basic: 8, dodge: 8, assist: 8, special: 8, chain: 8, core: 4 },
-    wEngineDetails: { id: 'manual-engine', name: '手动音擎意图', level: 40, refinement: 3 },
+    skillLevels: {
+      basic: 8,
+      dodge: 8,
+      assist: 8,
+      special: 8,
+      chain: 8,
+      core: 4,
+    },
+    wEngineDetails: {
+      id: 'manual-engine',
+      name: '手动音擎意图',
+      level: 40,
+      refinement: 3,
+    },
   })
   record.updatedAt = record.roster.updatedAt = '2026-10-08T00:00:00.000Z'
   await database.accountRosters.put(record)
@@ -402,8 +433,20 @@ it('automatically imports newer observed progression and current equipment over 
     level: 60,
     ascension: 5,
     mindscape: 0,
-    skillLevels: { basic: 11, dodge: 11, assist: 11, special: 11, chain: 11, core: 7 },
-    wEngineDetails: { id: 'wengine-14110', name: '燃狱齿轮', level: 60, refinement: 1 },
+    skillLevels: {
+      basic: 11,
+      dodge: 11,
+      assist: 11,
+      special: 11,
+      chain: 11,
+      core: 7,
+    },
+    wEngineDetails: {
+      id: 'wengine-14110',
+      name: '燃狱齿轮',
+      level: 60,
+      refinement: 1,
+    },
     manualSource: 'manual_override',
     progressionManuallySet: true,
   })
@@ -466,7 +509,11 @@ it('keeps a production recovery blocker in its modal and preserves real persiste
   const saved = await saveAccountPlanningDraft(disc.accountId, {
     kind: 'agent',
     name: '合成恢复保护方案',
-    selection: { agentIds: ['agent-koleda'], bangbooId: null, scenario: '合成规划' },
+    selection: {
+      agentIds: ['agent-koleda'],
+      bangbooId: null,
+      scenario: '合成规划',
+    },
     manualOverrides: {
       wEngineDirection: '',
       discDirection: '',

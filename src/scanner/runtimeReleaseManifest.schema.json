@@ -30,25 +30,28 @@
       "const": 1
     },
     "runtimeVersion": {
-      "const": "soda-scanner-zzz-next-ppocrv6-18-rc8-19-local-20261021"
+      "const": "soda-scanner-zzz-next-ppocrv6-18-rc8-26-local-20261027"
     },
     "releaseTag": {
-      "const": "scanner-runtime-v18.0.0-rc.8.19-local.20261021"
+      "const": "scanner-runtime-v18.0.0-rc.8.26-local.20261027"
     },
     "releaseState": {
-      "enum": ["not_published", "published"]
+      "enum": [
+        "not_published",
+        "published"
+      ]
     },
     "assetName": {
-      "const": "soda-scanner-runtime-18-rc8-19-local-20261021-win-x64.zip"
+      "const": "soda-scanner-runtime-18-rc8-26-local-20261027-win-x64.zip"
     },
     "assetUrl": {
-      "const": "https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.19-local.20261021/soda-scanner-runtime-18-rc8-19-local-20261021-win-x64.zip"
+      "const": "https://github.com/Fizz-McBubble/soda-terminal-scanner/releases/download/scanner-runtime-v18.0.0-rc.8.26-local.20261027/soda-scanner-runtime-18-rc8-26-local-20261027-win-x64.zip"
     },
     "size": {
-      "const": 131766335
+      "const": 131775890
     },
     "sha256": {
-      "const": "8f4deb7677ee03f70747295d3021a6d8b510e2e4219470e27a610a12065e650c"
+      "const": "ddbca8ede47d8928f7c398ae31c00b0e1c1d42cf75243c7c9e5f2d46bd096a87"
     },
     "platform": {
       "const": "windows"
@@ -63,7 +66,7 @@
       "const": "soda-loopback-http-sse-1"
     },
     "captureVersion": {
-      "const": "ZZZ-Scanner.Next-1.0.49-soda-r37"
+      "const": "ZZZ-Scanner.Next-1.0.49-soda-r42"
     },
     "captureSchemaVersion": {
       "const": "soda.zzz-scanner-next.direct-r4.v1"

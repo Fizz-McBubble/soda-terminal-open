@@ -30,6 +30,7 @@ export interface AssetQuickReadPreview {
 
 export interface AssetQuickReadEntryProps {
   /** Only the real independent tool adapter may report ready. */
+  connectedBridgeVersion?: string
   capability?: 'unavailable' | 'ready'
   /** Controlled by the adapter; this component never simulates capture or a deadline. */
   state?: AssetQuickReadState

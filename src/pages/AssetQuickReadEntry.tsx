@@ -74,6 +74,7 @@ function QuickReadDetail({
 
 export function AssetQuickReadEntry({
   capability = 'unavailable',
+  connectedBridgeVersion,
   state = 'idle',
   onConnect,
   installationDirectory = '',
@@ -266,7 +267,12 @@ export function AssetQuickReadEntry({
 
   const heading = <AssetQuickReadHeading headingId={headingId} renderParts={Boolean(renderParts)} />
   const steps = <AssetQuickReadProgress currentStep={currentStep} />
-  const scope = <AssetQuickReadScope renderParts={Boolean(renderParts)} />
+  const scope = (
+    <AssetQuickReadScope
+      renderParts={Boolean(renderParts)}
+      connectedBridgeVersion={connectedBridgeVersion}
+    />
+  )
   const showInstallerStatus = currentStep === 0 && Boolean(installerStatus.text) && !pendingAction
   const compactStatus =
     pendingAction === 'connect'
@@ -747,6 +753,7 @@ export function AssetQuickReadEntry({
       {renderParts && (
         <>
           {capability === 'ready' &&
+          !targetMissing &&
           (!stageActive || ['error', 'stopped', 'timed_out'].includes(state)) ? (
             <label className="asset-quick-read__compact-confirmation">
               <input
@@ -763,6 +770,10 @@ export function AssetQuickReadEntry({
           <div className="asset-quick-read__actions">
             {capability !== 'ready' ? (
               connectionButton
+            ) : targetMissing ? (
+              <a className="button button--primary" href="#scanner-target">
+                选择目标账户
+              </a>
             ) : (
               <button
                 ref={startTriggerRef}

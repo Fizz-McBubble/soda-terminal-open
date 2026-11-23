@@ -249,7 +249,11 @@
   gap: 10px;
   margin-top: 0;
 }
-.f5v-shell .scanner-workbench .scanner-prepare--compact .scanner-prepare__actions > button,
+.f5v-shell
+  .scanner-workbench
+  .scanner-prepare--compact
+  .scanner-prepare__actions
+  > :is(button, a.scanner-web__primary-action),
 .f5v-shell .scanner-workbench .asset-quick-read__actions > .button {
   box-sizing: border-box;
   width: 168px;

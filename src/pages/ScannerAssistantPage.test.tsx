@@ -147,7 +147,11 @@ describe('ScannerAssistantPage', () => {
       await screen.findByRole('heading', { name: '画面扫描已连接' }, { timeout: 10000 }),
     ).toBeInTheDocument()
     expect(screen.getByRole('textbox', { name: '新账户名称' })).toBeVisible()
-    expect(screen.getByRole('button', { name: '开始扫描' })).toBeDisabled()
+    expect(screen.getByRole('link', { name: '选择目标账户' })).toHaveAttribute(
+      'href',
+      '#scanner-target',
+    )
+    expect(screen.queryByRole('button', { name: '开始扫描' })).not.toBeInTheDocument()
     expect(
       screen.queryByText('已选择接收结果的本地账户。', { exact: false }),
     ).not.toBeInTheDocument()
@@ -244,7 +248,7 @@ describe('ScannerAssistantPage', () => {
   // A replayed completion after preparing another scan is covered separately.
   it.each([
     ['connection_failed', '本次扫描未完成', null],
-    ['ready', '画面扫描已连接', '开始扫描'],
+    ['ready', '画面扫描已连接', null],
     ['checking', '画面扫描正在检查游戏与权限', null],
     ['awaiting_elevation', '请确认管理员权限提示', null],
     ['scanning', null, '停止本次扫描'],
@@ -296,10 +300,17 @@ describe('ScannerAssistantPage', () => {
     setRuntimeState('scanning')
     runtimeMock.snapshot = {
       ...runtimeMock.snapshot,
-      progress: { processed: 169, total: null, stageLabel: '正在读取驱动盘', etaSeconds: null },
+      progress: {
+        processed: 169,
+        total: null,
+        stageLabel: '正在读取驱动盘',
+        etaSeconds: null,
+      },
     }
     render(<App />)
-    const progress = await screen.findByRole('progressbar', { name: '已处理 169，总量待确认' })
+    const progress = await screen.findByRole('progressbar', {
+      name: '已处理 169，总量待确认',
+    })
     expect(progress).not.toHaveAttribute('value')
     expect(screen.queryByText('0%')).not.toBeInTheDocument()
     expect(await database.accountDriveDiscs.count()).toBe(0)
@@ -309,7 +320,12 @@ describe('ScannerAssistantPage', () => {
     setRuntimeState('connection_failed')
     runtimeMock.snapshot = {
       ...runtimeMock.snapshot,
-      progress: { processed: 169, total: 492, stageLabel: '读取中断', etaSeconds: null },
+      progress: {
+        processed: 169,
+        total: 492,
+        stageLabel: '读取中断',
+        etaSeconds: null,
+      },
     }
     render(<App />)
     expect(await screen.findByRole('heading', { name: '本次扫描未完成' })).toBeInTheDocument()
@@ -334,7 +350,9 @@ describe('ScannerAssistantPage', () => {
   it('keeps route focus on the unique page heading during direct state restoration', async () => {
     setRuntimeState('scanning')
     render(<App />)
-    const progress = await screen.findByRole('progressbar', { name: '已处理 128，共 384' })
+    const progress = await screen.findByRole('progressbar', {
+      name: '已处理 128，共 384',
+    })
     const pageHeading = screen.getByRole('heading', { name: '扫描与导入' })
     await waitFor(() => expect(pageHeading).toHaveFocus())
     expect(progress).not.toHaveFocus()
@@ -343,7 +361,9 @@ describe('ScannerAssistantPage', () => {
 
   it('lets the helper atomically check and start when browser-side game facts are missing', async () => {
     const user = userEvent.setup()
-    const account = await createAccount('主账号', database, { id: 'account-main' })
+    const account = await createAccount('主账号', database, {
+      id: 'account-main',
+    })
     await setActiveAccount(account.id, database)
     setRuntimeState('ready')
     runtimeMock.snapshot = {
@@ -372,7 +392,9 @@ describe('ScannerAssistantPage', () => {
   })
 
   it('keeps the single start action gated by the target account and local helper only', async () => {
-    const account = await createAccount('主账号', database, { id: 'account-main' })
+    const account = await createAccount('主账号', database, {
+      id: 'account-main',
+    })
     await setActiveAccount(account.id, database)
     setRuntimeState('unchecked')
     runtimeMock.snapshot = {
@@ -400,7 +422,9 @@ describe('ScannerAssistantPage', () => {
 
   it('shows the dynamic warehouse count and opens the gate only after all checks pass', async () => {
     const user = userEvent.setup()
-    const account = await createAccount('主账号', database, { id: 'account-main' })
+    const account = await createAccount('主账号', database, {
+      id: 'account-main',
+    })
     await setActiveAccount(account.id, database)
     setRuntimeState('ready')
     runtimeMock.snapshot = {
@@ -494,5 +518,9 @@ describe('ScannerAssistantPage', () => {
       releaseStateFixture.override = 'published'
     },
   })
-  registerScannerDataFileCompatibilityTests({ App, setRuntimeState, runtimeMock })
+  registerScannerDataFileCompatibilityTests({
+    App,
+    setRuntimeState,
+    runtimeMock,
+  })
 })

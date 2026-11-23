@@ -95,6 +95,8 @@ export function PrepareChecklist({
     actionPending || snapshot.state === 'checking' || snapshot.state === 'awaiting_elevation'
   const waitingForPlayer = snapshot.state === 'ready' && !snapshot.prepare
   const needsConnection = !snapshot.readiness.helperConnected
+  const canSelectTarget =
+    compact && !targetReady && !needsConnection && !blocked && !requestInFlight
   const headingId = compact ? 'scanner-preparation-heading' : 'scanner-stage-heading'
   const observedFailures = snapshot.prepare
     ? checks.filter((check) =>
@@ -110,7 +112,9 @@ export function PrepareChecklist({
     ? '点击后会切换到游戏，检查画面和仓库是否就绪；检查通过后才开始扫描。'
     : !targetReady
       ? '请先选择本次扫描要更新的账户。'
-      : '画面扫描连接后即可检查并开始。'
+      : needsConnection
+        ? '画面扫描连接后即可检查并开始。'
+        : (snapshot.distribution?.message ?? '请检查扫描组件的安装状态。')
   const showInstallerStatus =
     compact &&
     !requestInFlight &&
@@ -198,41 +202,51 @@ export function PrepareChecklist({
           {targetPanel && <ol className="scanner-prepare__account">{targetPanel}</ol>}
 
           <div className="scanner-prepare__actions">
-            <button
-              className="button button--primary scanner-web__primary-action"
-              type="button"
-              disabled={blocked || requestInFlight || (!startReady && !needsConnection)}
-              aria-busy={actionPending}
-              aria-describedby="scanner-gate-explanation"
-              title={!targetReady && !needsConnection ? '请先创建或选择目标账户' : undefined}
-              onClick={() => {
-                const action = startReady
-                  ? onStart
-                  : needsConnection
-                    ? (onRecover ?? onReconnect)
-                    : undefined
-                if (action) {
-                  setInstallerStatus({ text: '', pending: false })
-                  action()
-                }
-              }}
-            >
-              <ScanLine aria-hidden="true" size={19} />
-              {!startReady && needsConnection
-                ? actionPending
-                  ? '正在连接画面扫描'
-                  : unchecked
-                    ? '连接画面扫描'
-                    : '重新连接画面扫描'
-                : snapshot.state === 'awaiting_elevation'
-                  ? '等待 Windows 权限确认'
-                  : snapshot.state === 'checking'
-                    ? '正在检查'
-                    : snapshot.state === 'connection_failed'
-                      ? '重新扫描'
-                      : '开始扫描'}
-              <ChevronRight aria-hidden="true" size={18} />
-            </button>
+            {canSelectTarget ? (
+              <a
+                className="button button--primary scanner-web__primary-action"
+                href="#scanner-target"
+              >
+                <ScanLine aria-hidden="true" size={19} />
+                选择目标账户
+              </a>
+            ) : (
+              <button
+                className="button button--primary scanner-web__primary-action"
+                type="button"
+                disabled={blocked || requestInFlight || (!startReady && !needsConnection)}
+                aria-busy={actionPending}
+                aria-describedby="scanner-gate-explanation"
+                title={!targetReady && !needsConnection ? '请先创建或选择目标账户' : undefined}
+                onClick={() => {
+                  const action = startReady
+                    ? onStart
+                    : needsConnection
+                      ? (onRecover ?? onReconnect)
+                      : undefined
+                  if (action) {
+                    setInstallerStatus({ text: '', pending: false })
+                    action()
+                  }
+                }}
+              >
+                <ScanLine aria-hidden="true" size={19} />
+                {!startReady && needsConnection
+                  ? actionPending
+                    ? '正在连接画面扫描'
+                    : unchecked
+                      ? '连接画面扫描'
+                      : '重新连接画面扫描'
+                  : snapshot.state === 'awaiting_elevation'
+                    ? '等待 Windows 权限确认'
+                    : snapshot.state === 'checking'
+                      ? '正在检查'
+                      : snapshot.state === 'connection_failed'
+                        ? '重新扫描'
+                        : '开始扫描'}
+                <ChevronRight aria-hidden="true" size={18} />
+              </button>
+            )}
             {installer}
             {compact &&
               onRevoke &&
